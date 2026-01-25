@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function() {
+        var stored = localStorage.getItem('astermail_theme');
+        var dark = stored === 'dark' || (stored !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+        else document.documentElement.classList.remove('dark');
+        document.documentElement.style.backgroundColor = dark ? '#0a0a0a' : '#ffffff';
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        document.body && (document.body.style.backgroundColor = dark ? '#0a0a0a' : '#ffffff');
+      })();
+    </script>
+    <style>
+      html, body { background-color: #ffffff; }
+      html.dark, html.dark body { background-color: #0a0a0a; }
+      @font-face {
+        font-family: 'Google Sans Flex';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/GoogleSansFlex-400.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Google Sans Flex';
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url('/fonts/GoogleSansFlex-500.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Google Sans Flex';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/GoogleSansFlex-600.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Google Sans Flex';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('/fonts/GoogleSansFlex-700.woff2') format('woff2');
+      }
+      html, body { font-family: 'Google Sans Flex', system-ui, sans-serif; }
+    </style>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <title>Aster Mail</title>
+    <meta key="title" content="Aster Mail - Secure Email" property="og:title" />
+    <meta
+      content="Private, encrypted email that puts you in control."
+      property="og:description"
+    />
+    <meta
+      content="Private, encrypted email that puts you in control."
+      name="description"
+    />
+    <meta
+      key="viewport"
+      content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+      name="viewport"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      [400,500,600,700].forEach(function(w){
+        var f=new FontFace('Google Sans Flex',
+          "url('/fonts/GoogleSansFlex-"+w+".woff2')",
+          {weight:String(w),style:'normal'});
+        f.load().then(function(){document.fonts.add(f)});
+      });
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

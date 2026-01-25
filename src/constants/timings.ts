@@ -1,0 +1,9 @@
+export const COPY_FEEDBACK_MS = 2000;
+export const COPY_FIELD_FEEDBACK_MS = 1500;
+export const REFRESH_STATE_MS = 1000;
+export const PGP_DEBOUNCE_MS = 500;
+export const RECT_UPDATE_INTERVAL_MS = 500;
+export const TRANSITION_MS = 80;
+export const FOCUS_DELAY_MS = 100;
+export const QUICK_FOCUS_MS = 50;
+export const TOAST_DISMISS_MS = 100;
