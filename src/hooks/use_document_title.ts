@@ -3,6 +3,7 @@ import type { MailUserStatsResponse } from "@/services/api/mail";
 import { useLayoutEffect, useRef } from "react";
 
 import { use_mail_counts } from "./use_mail_counts";
+import { use_folders, type DecryptedFolder } from "./use_folders";
 
 import { use_auth } from "@/contexts/auth_context";
 
@@ -48,11 +49,12 @@ const VIEW_COUNT_KEYS: Record<string, string> = {
   trash: "trash",
 };
 
-function get_view_label(view: string): string {
+function get_view_label(view: string, folders: DecryptedFolder[]): string {
   if (view.startsWith("folder-")) {
-    const folder_name = view.replace("folder-", "");
+    const folder_token = view.replace("folder-", "");
+    const folder = folders.find((f) => f.folder_token === folder_token);
 
-    return folder_name.charAt(0).toUpperCase() + folder_name.slice(1);
+    return folder?.name || "Folder";
   }
 
   return VIEW_LABELS[view] || "Inbox";
@@ -80,6 +82,7 @@ function build_title(
   custom_title: string | undefined,
   counts: MailUserStatsResponse,
   user_name: string,
+  folders: DecryptedFolder[],
 ): string {
   const workspace = format_workspace_name(user_name);
 
@@ -91,7 +94,7 @@ function build_title(
     return `${truncate_subject(email_subject)} | ${workspace}`;
   }
 
-  const label = get_view_label(view);
+  const label = get_view_label(view, folders);
   const count_key = VIEW_COUNT_KEYS[view] as keyof MailUserStatsResponse;
   const count = count_key ? ((counts[count_key] as number) ?? 0) : 0;
 
@@ -104,6 +107,7 @@ export function use_document_title(options: DocumentTitleOptions = {}): void {
   const { view = "inbox", email_subject, custom_title } = options;
   const { counts } = use_mail_counts();
   const { user } = use_auth();
+  const { state: folder_state } = use_folders();
   const initialized = useRef(false);
 
   const user_name = user?.display_name || user?.username || "";
@@ -113,6 +117,7 @@ export function use_document_title(options: DocumentTitleOptions = {}): void {
     custom_title,
     counts,
     user_name,
+    folder_state.folders,
   );
 
   if (!initialized.current) {
