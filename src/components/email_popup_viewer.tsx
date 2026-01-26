@@ -58,6 +58,7 @@ import { EncryptionInfoModal } from "@/components/encryption_info_modal";
 import { send_reply, type OriginalEmail } from "@/services/mail_actions";
 import { undo_send_manager } from "@/hooks/use_undo_send";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
+import { try_decrypt_ratchet_body } from "@/utils/email_crypto";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
@@ -411,16 +412,24 @@ export function EmailPopupViewer({
           envelope.sent_at || response.data.created_at,
         );
 
+        const body_text = user?.email
+          ? await try_decrypt_ratchet_body(
+              envelope.body_text,
+              user.email,
+              envelope.from.email,
+            )
+          : envelope.body_text;
+
         const decrypted: DecryptedEmail = {
           id: response.data.id,
           sender: envelope.from.name || get_email_username(envelope.from.email),
           sender_email: envelope.from.email,
           subject: envelope.subject || "(No subject)",
-          preview: envelope.body_text.substring(0, 200),
+          preview: body_text.substring(0, 200),
           timestamp: format_email_detail(timestamp_date.current),
           is_read: response.data.is_read ?? false,
           is_starred: response.data.is_starred ?? false,
-          body: envelope.body_text,
+          body: body_text,
           to: envelope.to || [],
           cc: envelope.cc || [],
           bcc: envelope.bcc || [],
@@ -439,7 +448,7 @@ export function EmailPopupViewer({
             "Unknown",
           sender_email: envelope.from.email || "",
           subject: envelope.subject || "(No subject)",
-          body: envelope.body_text || "",
+          body: body_text || "",
           timestamp: response.data.message_ts || response.data.created_at,
           is_read: response.data.is_read ?? false,
           is_starred: response.data.is_starred ?? false,
@@ -451,6 +460,7 @@ export function EmailPopupViewer({
         if (response.data.thread_token) {
           const thread_result = await fetch_and_decrypt_thread_messages(
             response.data.thread_token,
+            user?.email,
           );
 
           if (thread_result.messages.length > 0) {
@@ -587,6 +597,7 @@ export function EmailPopupViewer({
 
       const thread_result = await fetch_and_decrypt_thread_messages(
         detail.thread_token,
+        user?.email,
       );
 
       if (thread_result.messages.length > 0) {
@@ -1022,6 +1033,7 @@ export function EmailPopupViewer({
         setTimeout(async () => {
           const thread_result = await fetch_and_decrypt_thread_messages(
             result.thread_token!,
+            user?.email,
           );
 
           if (thread_result.messages.length > 0) {

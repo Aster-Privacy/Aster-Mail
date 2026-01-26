@@ -6,12 +6,19 @@ import {
   create_thread,
   link_mail_to_thread,
 } from "./api/mail";
-import { get_passphrase_bytes } from "./crypto/memory_key_store";
+import {
+  get_passphrase_bytes,
+  get_vault_from_memory,
+} from "./crypto/memory_key_store";
 import {
   decrypt_envelope_with_bytes,
   array_to_base64,
   base64_to_array,
 } from "./crypto/envelope";
+import {
+  parse_ratchet_envelope,
+  decrypt_ratchet_message,
+} from "./crypto/ratchet_manager";
 import { zero_uint8_array } from "./crypto/secure_memory";
 
 interface DecryptedEnvelope {
@@ -87,6 +94,7 @@ export function get_thread_context_from_email(
 
 export async function fetch_and_decrypt_thread_messages(
   thread_token: string,
+  our_email?: string,
 ): Promise<{
   messages: DecryptedThreadMessage[];
   thread_data: ThreadWithMessages | null;
@@ -123,13 +131,40 @@ export async function fetch_and_decrypt_thread_messages(
       };
     }
 
+    let body_text = envelope.body_text;
+
+    if (our_email && body_text.startsWith("{")) {
+      const ratchet_env = parse_ratchet_envelope(body_text);
+
+      if (ratchet_env) {
+        const vault = get_vault_from_memory();
+
+        if (vault) {
+          try {
+            const decrypted = await decrypt_ratchet_message(
+              our_email,
+              envelope.from.email,
+              ratchet_env,
+              vault,
+            );
+
+            if (decrypted) {
+              body_text = decrypted;
+            }
+          } catch {
+            void 0;
+          }
+        }
+      }
+    }
+
     return {
       id: msg.id,
       item_type: msg.item_type as "received" | "sent" | "draft",
       sender_name: envelope.from.name || envelope.from.email.split("@")[0],
       sender_email: envelope.from.email,
       subject: envelope.subject,
-      body: envelope.body_text,
+      body: body_text,
       timestamp: envelope.sent_at || msg.created_at,
       is_read: msg.is_read,
       is_starred: msg.is_starred ?? false,

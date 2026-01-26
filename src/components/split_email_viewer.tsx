@@ -57,6 +57,7 @@ import {
 } from "@/services/crypto/envelope";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
+import { try_decrypt_ratchet_body } from "@/utils/email_crypto";
 import { is_astermail_sender, get_email_username } from "@/lib/utils";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -598,7 +599,31 @@ export function SplitEmailViewer({
         return;
       }
 
-      const unsubscribe = detect_unsubscribe_info("", envelope.body_text || "");
+      let user_email: string | undefined;
+
+      try {
+        const { get_current_account } = await import(
+          "@/services/account_manager"
+        );
+        const account = await get_current_account();
+
+        if (account) {
+          user_email = account.user.email;
+          set_current_user_email(account.user.email);
+        }
+      } catch {
+        void 0;
+      }
+
+      const body_text = user_email
+        ? await try_decrypt_ratchet_body(
+            envelope.body_text || "",
+            user_email,
+            envelope.from.email,
+          )
+        : envelope.body_text || "";
+
+      const unsubscribe = detect_unsubscribe_info("", body_text);
 
       set_email({
         id: item.id,
@@ -608,12 +633,12 @@ export function SplitEmailViewer({
           "Unknown",
         sender_email: envelope.from.email || "",
         subject: envelope.subject || "(No subject)",
-        preview: envelope.body_text?.substring(0, 200) || "",
+        preview: body_text.substring(0, 200),
         timestamp: item.created_at,
         is_read: item.is_read ?? false,
         is_starred: item.is_starred ?? false,
         is_archived: item.is_archived ?? false,
-        body: envelope.body_text || "",
+        body: body_text,
         unsubscribe_info: unsubscribe,
         thread_token: item.thread_token,
         to: envelope.to || [],
@@ -635,7 +660,7 @@ export function SplitEmailViewer({
           "Unknown",
         sender_email: envelope.from.email || "",
         subject: envelope.subject || "(No subject)",
-        body: envelope.body_text || "",
+        body: body_text,
         timestamp: item.message_ts || item.created_at,
         is_read: item.is_read ?? false,
         is_starred: item.is_starred ?? false,
@@ -647,6 +672,7 @@ export function SplitEmailViewer({
       if (item.thread_token) {
         const thread_result = await fetch_and_decrypt_thread_messages(
           item.thread_token,
+          user_email,
         );
 
         if (!cancelled && thread_result.messages.length > 0) {
@@ -656,15 +682,6 @@ export function SplitEmailViewer({
         }
       } else if (!cancelled) {
         set_thread_messages([single_message]);
-      }
-
-      const { get_current_account } = await import(
-        "@/services/account_manager"
-      );
-      const account = await get_current_account();
-
-      if (account) {
-        set_current_user_email(account.user.email);
       }
 
       set_is_loading(false);
@@ -736,6 +753,7 @@ export function SplitEmailViewer({
 
       const thread_result = await fetch_and_decrypt_thread_messages(
         detail.thread_token,
+        current_user_email || undefined,
       );
 
       if (thread_result.messages.length > 0) {

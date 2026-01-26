@@ -2,7 +2,6 @@ import {
   DoubleRatchet,
   save_ratchet_state,
   load_ratchet_state,
-  generate_keypair,
   type EncryptedMessage,
   type RatchetKeyPair,
 } from "./double_ratchet";

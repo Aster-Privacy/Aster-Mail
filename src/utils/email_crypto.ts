@@ -4,7 +4,14 @@ import {
   decrypt_envelope_with_bytes,
   base64_to_array,
 } from "@/services/crypto/envelope";
-import { get_passphrase_bytes } from "@/services/crypto/memory_key_store";
+import {
+  get_passphrase_bytes,
+  get_vault_from_memory,
+} from "@/services/crypto/memory_key_store";
+import {
+  parse_ratchet_envelope,
+  decrypt_ratchet_message,
+} from "@/services/crypto/ratchet_manager";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
@@ -43,5 +50,34 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
     zero_uint8_array(passphrase_bytes);
 
     return null;
+  }
+}
+
+export async function try_decrypt_ratchet_body(
+  body_text: string,
+  our_email: string,
+  sender_email: string,
+): Promise<string> {
+  if (!body_text.startsWith("{")) return body_text;
+
+  const envelope = parse_ratchet_envelope(body_text);
+
+  if (!envelope) return body_text;
+
+  const vault = get_vault_from_memory();
+
+  if (!vault) return body_text;
+
+  try {
+    const decrypted = await decrypt_ratchet_message(
+      our_email,
+      sender_email,
+      envelope,
+      vault,
+    );
+
+    return decrypted ?? body_text;
+  } catch {
+    return body_text;
   }
 }

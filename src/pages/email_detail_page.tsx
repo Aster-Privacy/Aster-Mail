@@ -62,6 +62,7 @@ import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { get_draft } from "@/services/api/multi_drafts";
 import { show_action_toast } from "@/components/action_toast";
 import { show_toast } from "@/components/simple_toast";
+import { try_decrypt_ratchet_body } from "@/utils/email_crypto";
 import { use_auth } from "@/contexts/auth_context";
 import {
   get_preferences,
@@ -374,12 +375,20 @@ export default function EmailDetailPage() {
       );
 
       if (envelope) {
+        const body_text = user?.email
+          ? await try_decrypt_ratchet_body(
+              envelope.body_text,
+              user.email,
+              envelope.from.email,
+            )
+          : envelope.body_text;
+
         const decrypted: DecryptedEmail = {
           id: response.data.id,
           sender: envelope.from.name || get_email_username(envelope.from.email),
           sender_email: envelope.from.email,
           subject: envelope.subject || "(No subject)",
-          preview: envelope.body_text.substring(0, 200),
+          preview: body_text.substring(0, 200),
           timestamp: format_email_popup(
             new Date(envelope.sent_at || response.data.created_at),
           ),
@@ -387,7 +396,7 @@ export default function EmailDetailPage() {
           is_starred: response.data.is_starred ?? false,
           has_attachment: response.data.has_attachments ?? false,
           thread_count: 1,
-          body: envelope.body_text,
+          body: body_text,
           to: envelope.to || [],
           cc: envelope.cc || [],
           bcc: envelope.bcc || [],
@@ -407,7 +416,7 @@ export default function EmailDetailPage() {
             "Unknown",
           sender_email: envelope.from.email || "",
           subject: envelope.subject || "(No subject)",
-          body: envelope.body_text || "",
+          body: body_text || "",
           timestamp: response.data.message_ts || response.data.created_at,
           is_read: response.data.is_read ?? false,
           is_starred: response.data.is_starred ?? false,
@@ -419,6 +428,7 @@ export default function EmailDetailPage() {
         if (response.data.thread_token) {
           const thread_result = await fetch_and_decrypt_thread_messages(
             response.data.thread_token,
+            user?.email,
           );
 
           if (thread_result.messages.length > 0) {
