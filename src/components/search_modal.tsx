@@ -1902,8 +1902,13 @@ export function SearchModal({
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/40 backdrop-blur-md z-50 transition-opacity duration-150 ${is_open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-        onClick={handle_close}
+        className={`fixed inset-0 bg-black/40 backdrop-blur-md z-50 ${is_open ? "" : "pointer-events-none"}`}
+        style={{
+          opacity: is_open ? 1 : 0.01,
+          willChange: "opacity",
+          transform: "translateZ(0)",
+        }}
+        onClick={is_open ? handle_close : undefined}
       />
       <AnimatePresence>
         {is_open && (
@@ -2753,8 +2758,13 @@ export function AdvancedSearchModal({
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/40 backdrop-blur-md z-50 transition-opacity duration-150 ${is_open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-        onClick={handle_close}
+        className={`fixed inset-0 bg-black/40 backdrop-blur-md z-50 ${is_open ? "" : "pointer-events-none"}`}
+        style={{
+          opacity: is_open ? 1 : 0.01,
+          willChange: "opacity",
+          transform: "translateZ(0)",
+        }}
+        onClick={is_open ? handle_close : undefined}
       />
       <AnimatePresence>
         {is_open && (
