@@ -332,16 +332,6 @@ function validate_passphrase(entered: string): string | null {
   return null;
 }
 
-export function export_private_key_with_confirmation(
-  entered_passphrase: string,
-): { success: boolean; key?: string; error?: string } {
-  const error = validate_passphrase(entered_passphrase);
-
-  if (error) return { success: false, error };
-
-  return { success: true, key: vault_in_memory!.identity_key };
-}
-
 export function get_recovery_codes_with_confirmation(
   entered_passphrase: string,
 ): { success: boolean; codes?: string[]; error?: string } {

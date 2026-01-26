@@ -9,67 +9,36 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { use_auth } from "@/contexts/auth_context";
 import {
   get_key_fingerprint,
-  export_private_key_with_confirmation,
   get_recovery_codes_with_confirmation,
   has_vault_in_memory,
 } from "@/services/crypto/memory_key_store";
 
 export function PrivacySection() {
-  const { user } = use_auth();
-  const [show_key_export, set_show_key_export] = useState(false);
-  const [key_export_password, set_key_export_password] = useState("");
-  const [key_export_error, set_key_export_error] = useState("");
-  const [exported_key, set_exported_key] = useState("");
+  const [show_recovery, set_show_recovery] = useState(false);
+  const [recovery_password, set_recovery_password] = useState("");
+  const [recovery_error, set_recovery_error] = useState("");
   const [show_recovery_codes, set_show_recovery_codes] = useState(false);
   const [recovery_codes_list, set_recovery_codes_list] = useState<string[]>([]);
 
-  const handle_export_key = async () => {
-    set_key_export_error("");
-    const result =
-      await export_private_key_with_confirmation(key_export_password);
-
-    if (result.success && result.key) {
-      set_exported_key(result.key);
-    } else {
-      set_key_export_error(result.error || "Failed to export key");
-    }
-  };
-
   const handle_show_recovery_codes = async () => {
-    set_key_export_error("");
+    set_recovery_error("");
     const result =
-      await get_recovery_codes_with_confirmation(key_export_password);
+      await get_recovery_codes_with_confirmation(recovery_password);
 
     if (result.success && result.codes) {
       set_recovery_codes_list(result.codes);
       set_show_recovery_codes(true);
     } else {
-      set_key_export_error(result.error || "Failed to get recovery codes");
+      set_recovery_error(result.error || "Failed to get recovery codes");
     }
   };
 
-  const handle_download_key = () => {
-    if (!exported_key) return;
-    const blob = new Blob([exported_key], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = `astermail-private-key-${user?.username || "user"}.asc`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   const reset_state = () => {
-    set_show_key_export(false);
-    set_key_export_password("");
-    set_key_export_error("");
-    set_exported_key("");
+    set_show_recovery(false);
+    set_recovery_password("");
+    set_recovery_error("");
     set_show_recovery_codes(false);
     set_recovery_codes_list([]);
   };
@@ -146,13 +115,13 @@ export function PrivacySection() {
           </div>
         )}
 
-        {!show_key_export ? (
+        {!show_recovery ? (
           <Button
             className="w-full h-9"
             variant="outline"
-            onClick={() => set_show_key_export(true)}
+            onClick={() => set_show_recovery(true)}
           >
-            Export Keys & Recovery Codes
+            View Recovery Codes
           </Button>
         ) : (
           <div
@@ -162,93 +131,41 @@ export function PrivacySection() {
               borderColor: "var(--border-secondary)",
             }}
           >
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-              <svg
-                className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
-              </svg>
-              <p className="text-xs text-amber-700 dark:text-amber-300">
-                Never share your private key with anyone. Store it securely
-                offline.
-              </p>
-            </div>
-
-            {key_export_error && (
+            {recovery_error && (
               <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/30">
                 <p className="text-xs text-red-600 dark:text-red-400">
-                  {key_export_error}
+                  {recovery_error}
                 </p>
               </div>
             )}
 
-            {!exported_key && !show_recovery_codes && (
+            {!show_recovery_codes && (
               <>
                 <div>
                   <label
                     className="text-xs font-medium block mb-1.5"
-                    htmlFor="key-export-password"
+                    htmlFor="recovery-password"
                     style={{ color: "var(--text-primary)" }}
                   >
                     Enter your password to continue
                   </label>
                   <Input
                     className="h-8 text-xs"
-                    id="key-export-password"
+                    id="recovery-password"
                     placeholder="Your password"
                     type="password"
-                    value={key_export_password}
-                    onChange={(e) => set_key_export_password(e.target.value)}
+                    value={recovery_password}
+                    onChange={(e) => set_recovery_password(e.target.value)}
                   />
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    className="flex-1 h-8 text-xs"
-                    disabled={!key_export_password}
-                    onClick={handle_export_key}
-                  >
-                    Export Private Key
-                  </Button>
-                  <Button
-                    className="flex-1 h-8 text-xs"
-                    disabled={!key_export_password}
-                    variant="outline"
-                    onClick={handle_show_recovery_codes}
-                  >
-                    View Recovery Codes
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {exported_key && (
-              <div className="space-y-3">
-                <p
-                  className="text-sm font-medium"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  Your Private Key
-                </p>
-                <textarea
-                  readOnly
-                  className="w-full px-3 py-2 text-xs font-mono border rounded-lg"
-                  rows={6}
-                  style={{
-                    backgroundColor: "var(--input-bg)",
-                    borderColor: "var(--input-border)",
-                    color: "var(--text-secondary)",
-                  }}
-                  value={exported_key}
-                />
                 <Button
-                  className="w-full h-9 text-xs"
-                  onClick={handle_download_key}
+                  className="w-full h-8 text-xs"
+                  disabled={!recovery_password}
+                  onClick={handle_show_recovery_codes}
                 >
-                  Download Key File
+                  View Recovery Codes
                 </Button>
-              </div>
+              </>
             )}
 
             {show_recovery_codes && recovery_codes_list.length > 0 && (
