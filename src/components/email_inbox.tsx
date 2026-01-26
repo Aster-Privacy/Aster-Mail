@@ -132,6 +132,7 @@ interface DraftClickData {
   bcc_recipients: string[];
   subject: string;
   message: string;
+  updated_at: string;
 }
 
 interface ScheduledClickData {
@@ -1163,6 +1164,7 @@ export function EmailInbox({
           bcc_recipients: draft.bcc_recipients || [],
           subject: draft.subject || "",
           message: draft.full_message || "",
+          updated_at: draft.updated_at || new Date().toISOString(),
         });
 
         return;

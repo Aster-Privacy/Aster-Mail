@@ -67,6 +67,7 @@ interface EditDraftData {
   bcc_recipients: string[];
   subject: string;
   message: string;
+  updated_at: string;
 }
 
 interface FolderModalData {

@@ -7,6 +7,7 @@ interface SimpleSendRequest {
   subject: string;
   body: string;
   is_e2e_encrypted?: boolean;
+  encryption_type?: string;
   encrypted_envelope?: string;
   envelope_nonce?: string;
   folder_token?: string;

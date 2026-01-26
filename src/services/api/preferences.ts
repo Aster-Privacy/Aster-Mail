@@ -65,6 +65,23 @@ export interface UserPreferences {
   accent_color_hover: string;
 }
 
+export async function sync_quiet_hours_to_server(
+  enabled: boolean,
+  start_time: string,
+  end_time: string,
+): Promise<void> {
+  try {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    await api_client.put("/sync/quiet-hours", {
+      enabled,
+      start_time,
+      end_time,
+      timezone,
+    });
+  } catch {}
+}
+
 interface GetPreferencesApiResponse {
   encrypted_preferences: string | null;
   preferences_nonce: string | null;

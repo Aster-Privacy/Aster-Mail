@@ -20,7 +20,7 @@ import {
   has_passphrase_in_memory,
 } from "@/services/crypto/memory_key_store";
 import { emit_folders_changed, MAIL_EVENTS } from "@/hooks/mail_events";
-import { use_auth } from "@/contexts/auth_context";
+import { use_auth_safe } from "@/contexts/auth_context";
 
 export interface DecryptedFolder {
   id: string;
@@ -237,7 +237,8 @@ async function decrypt_folder(
 }
 
 export function use_folders(): UseFoldersReturn {
-  const { user } = use_auth();
+  const auth = use_auth_safe();
+  const user = auth?.user ?? null;
   const [state, set_state] = useState<FoldersState>({
     folders: cached_folders.data,
     is_loading: cached_folders.data.length === 0,

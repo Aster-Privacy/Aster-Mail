@@ -35,6 +35,15 @@ import {
   encrypt_vault,
   base64_to_array,
 } from "@/services/crypto/key_manager";
+import {
+  get_vault_from_memory,
+  store_vault_in_memory,
+  get_passphrase_from_memory,
+} from "@/services/crypto/memory_key_store";
+import {
+  generate_ratchet_keys,
+  upload_prekey_bundle,
+} from "@/services/crypto/ratchet_manager";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 
 interface SecuritySettingProps {
@@ -377,6 +386,55 @@ export function SecuritySection() {
     update_preference("session_timeout_minutes", minutes);
   };
 
+  const handle_forward_secrecy_toggle = async () => {
+    const enabling = !preferences.forward_secrecy_enabled;
+
+    update_preference("forward_secrecy_enabled", enabling);
+
+    if (enabling) {
+      try {
+        const vault = get_vault_from_memory();
+
+        if (!vault || vault.ratchet_identity_key) return;
+
+        const ratchet_keys = await generate_ratchet_keys();
+
+        if (!ratchet_keys) return;
+
+        vault.ratchet_identity_key = ratchet_keys.identity_jwk;
+        vault.ratchet_identity_public = ratchet_keys.identity_public;
+        vault.ratchet_signed_prekey = ratchet_keys.signed_prekey_jwk;
+        vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
+
+        const passphrase = get_passphrase_from_memory();
+
+        if (passphrase) {
+          await store_vault_in_memory(vault, passphrase);
+
+          const { encrypted_vault, vault_nonce } = await encrypt_vault(
+            vault,
+            passphrase,
+          );
+
+          if (user?.id) {
+            sessionStorage.setItem(
+              `astermail_encrypted_vault_${user.id}`,
+              encrypted_vault,
+            );
+            sessionStorage.setItem(
+              `astermail_vault_nonce_${user.id}`,
+              vault_nonce,
+            );
+          }
+        }
+
+        await upload_prekey_bundle(vault);
+      } catch {
+        return;
+      }
+    }
+  };
+
   const get_timeout_description = () => {
     if (!preferences.session_timeout_enabled) {
       return "Session timeout is disabled";
@@ -548,12 +606,7 @@ export function SecuritySection() {
             action={
               <Toggle
                 enabled={preferences.forward_secrecy_enabled}
-                on_toggle={() =>
-                  update_preference(
-                    "forward_secrecy_enabled",
-                    !preferences.forward_secrecy_enabled,
-                  )
-                }
+                on_toggle={handle_forward_secrecy_toggle}
               />
             }
             description={

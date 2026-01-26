@@ -12,6 +12,10 @@ import {
   get_passphrase_bytes,
   has_passphrase_in_memory,
 } from "./crypto/memory_key_store";
+import {
+  encrypt_for_ratchet_recipient,
+  build_ratchet_envelope,
+} from "./crypto/ratchet_manager";
 import { get_current_account } from "./account_manager";
 import {
   encrypt_envelope_with_bytes,
@@ -212,6 +216,7 @@ function check_send_readiness_internal(): SendReadinessResult {
 async function encrypt_for_recipients(
   body: string,
   recipients: string[],
+  sender_email?: string,
 ): Promise<EncryptionResult> {
   const internal_recipients = recipients.filter(is_internal_email);
 
@@ -226,6 +231,53 @@ async function encrypt_for_recipients(
       "mixed_recipients",
       "Cannot send to both internal and external recipients. Internal emails are E2E encrypted, external emails are not. Please send separately.",
     );
+  }
+
+  const vault = get_vault_from_memory();
+
+  if (
+    sender_email &&
+    vault?.ratchet_identity_key &&
+    vault?.ratchet_identity_public
+  ) {
+    const ratchet_results: Record<
+      string,
+      Awaited<ReturnType<typeof encrypt_for_ratchet_recipient>>
+    > = {};
+    let all_ratchet_ok = true;
+
+    for (const recipient of internal_recipients) {
+      const username = extract_username_from_email(recipient);
+
+      if (!username) {
+        all_ratchet_ok = false;
+        break;
+      }
+
+      const result = await encrypt_for_ratchet_recipient(
+        sender_email,
+        recipient,
+        username,
+        body,
+        vault,
+      );
+
+      if (result) {
+        ratchet_results[recipient.toLowerCase()] = result;
+      } else {
+        all_ratchet_ok = false;
+        break;
+      }
+    }
+
+    if (all_ratchet_ok && Object.keys(ratchet_results).length > 0) {
+      const envelope = build_ratchet_envelope(
+        vault.ratchet_identity_public,
+        ratchet_results as Record<string, NonNullable<typeof ratchet_results[string]>>,
+      );
+
+      return { encrypted_body: envelope, is_encrypted: true };
+    }
   }
 
   const public_keys: string[] = [];
@@ -347,6 +399,13 @@ async function execute_send(email: QueuedEmailInternal): Promise<void> {
     throw readiness.error;
   }
 
+  const current_account = await get_current_account();
+
+  if (!current_account?.user?.email) {
+    throw new SendError("No authenticated account found");
+  }
+  const sender_email = current_account.user.email;
+
   const all_recipients = [
     ...email.to,
     ...(email.cc || []),
@@ -356,14 +415,8 @@ async function execute_send(email: QueuedEmailInternal): Promise<void> {
   const { encrypted_body, is_encrypted } = await encrypt_for_recipients(
     email.body,
     all_recipients,
+    sender_email,
   );
-
-  const current_account = await get_current_account();
-
-  if (!current_account?.user?.email) {
-    throw new SendError("No authenticated account found");
-  }
-  const sender_email = current_account.user.email;
 
   const envelope_data = await create_sent_envelope(email, sender_email);
 

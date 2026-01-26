@@ -237,6 +237,7 @@ interface EditDraftData {
   bcc_recipients: string[];
   subject: string;
   message: string;
+  updated_at: string;
 }
 
 interface ComposeModalProps {
@@ -249,6 +250,32 @@ interface ComposeModalProps {
 
 const is_valid_email = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+function format_last_saved(saved_time: Date): string {
+  const now = new Date();
+  const is_today =
+    saved_time.getDate() === now.getDate() &&
+    saved_time.getMonth() === now.getMonth() &&
+    saved_time.getFullYear() === now.getFullYear();
+
+  const time_str = saved_time.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  if (is_today) {
+    return `Last saved today at ${time_str}`;
+  }
+
+  const is_same_year = saved_time.getFullYear() === now.getFullYear();
+  const date_str = saved_time.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+    ...(is_same_year ? {} : { year: "numeric" }),
+  });
+
+  return `Last saved ${date_str} at ${time_str}`;
+}
 
 const get_domain_from_email = (email: string): string => {
   const parts = email.split("@");
@@ -578,6 +605,7 @@ export function ComposeModal({
     set_message("");
     set_attachments([]);
     set_draft_status("idle");
+    set_last_saved_time(null);
     set_scheduled_time(null);
     set_is_scheduling(false);
   }, []);
@@ -753,6 +781,7 @@ export function ComposeModal({
         bcc: edit_draft.bcc_recipients.length > 0,
       });
       set_draft_status("saved");
+      set_last_saved_time(new Date(edit_draft.updated_at));
     } else {
       draft_context_id_ref.current = draft_manager.create_context("new");
 
@@ -1886,7 +1915,7 @@ export function ComposeModal({
                     {draft_status === "saving"
                       ? "Saving..."
                       : last_saved_time
-                        ? `Saved at ${last_saved_time.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+                        ? format_last_saved(last_saved_time)
                         : "Saved"}
                   </div>
                 )}

@@ -877,3 +877,7 @@ export function use_auth(): AuthContextType {
 
   return context;
 }
+
+export function use_auth_safe(): AuthContextType | null {
+  return useContext(AuthContext);
+}

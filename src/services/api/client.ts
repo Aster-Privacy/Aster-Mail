@@ -126,7 +126,7 @@ class ApiClient {
     }, refresh_interval);
   }
 
-  private async refresh_session(): Promise<void> {
+  async refresh_session(): Promise<void> {
     if (!this.is_authenticated_flag) return;
 
     const max_retries = 3;

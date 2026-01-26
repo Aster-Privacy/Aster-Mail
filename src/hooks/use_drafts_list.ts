@@ -38,6 +38,7 @@ export interface DraftListItem extends InboxEmail {
   cc_recipients: string[];
   bcc_recipients: string[];
   full_message: string;
+  updated_at: string;
 }
 
 export interface DraftsListState {
@@ -95,6 +96,7 @@ function transform_draft(
     cc_recipients: draft.content.cc_recipients,
     bcc_recipients: draft.content.bcc_recipients,
     full_message: draft.content.message,
+    updated_at: draft.updated_at,
   };
 }
 

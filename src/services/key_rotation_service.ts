@@ -7,6 +7,10 @@ import {
   encrypt_vault,
 } from "@/services/crypto/key_manager";
 import {
+  parse_ratchet_envelope,
+  decrypt_ratchet_message,
+} from "@/services/crypto/ratchet_manager";
+import {
   get_identity_key_status,
   rotate_identity_key,
   type RotateIdentityKeyRequest,
@@ -162,6 +166,10 @@ export async function perform_key_rotation(
       signed_prekey: new_prekey.public_key,
       signed_prekey_private: new_prekey.private_key,
       recovery_codes: current_vault.recovery_codes,
+      ratchet_identity_key: current_vault.ratchet_identity_key,
+      ratchet_identity_public: current_vault.ratchet_identity_public,
+      ratchet_signed_prekey: current_vault.ratchet_signed_prekey,
+      ratchet_signed_prekey_public: current_vault.ratchet_signed_prekey_public,
     };
 
     const { encrypted_vault, vault_nonce } = await encrypt_vault(
@@ -249,7 +257,27 @@ export async function decrypt_with_key_fallback(
   vault: EncryptedVault,
   encrypted_message: string,
   passphrase: string,
+  ratchet_context?: { our_email: string; sender_email: string },
 ): Promise<{ decrypted: string; used_key_index: number } | null> {
+  if (ratchet_context) {
+    const envelope = parse_ratchet_envelope(encrypted_message);
+
+    if (envelope) {
+      const decrypted = await decrypt_ratchet_message(
+        ratchet_context.our_email,
+        ratchet_context.sender_email,
+        envelope,
+        vault,
+      );
+
+      if (decrypted) {
+        return { decrypted, used_key_index: -1 };
+      }
+
+      return null;
+    }
+  }
+
   const keys_to_try = [vault.identity_key, ...(vault.previous_keys ?? [])];
 
   for (let i = 0; i < keys_to_try.length; i++) {

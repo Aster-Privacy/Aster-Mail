@@ -26,6 +26,8 @@ class SyncClient {
   private reconnect_timeout: ReturnType<typeof setTimeout> | null = null;
   private message_handlers: Map<string, MessageHandler[]> = new Map();
   private should_reconnect = false;
+  private auth_error_count = 0;
+  private last_auth_error = false;
 
   async connect(): Promise<void> {
     this.should_reconnect = true;
@@ -66,8 +68,11 @@ class SyncClient {
 
         if (data.type === "auth_success") {
           this.authenticated = true;
+          this.auth_error_count = 0;
+          this.last_auth_error = false;
           resolve();
         } else if (data.type === "auth_error") {
+          this.last_auth_error = true;
           reject(new Error(data.message || "Authentication failed"));
         }
       };
@@ -87,15 +92,39 @@ class SyncClient {
   private schedule_reconnect(): void {
     if (this.reconnect_timeout || !this.should_reconnect) return;
 
-    this.reconnect_timeout = setTimeout(() => {
+    this.reconnect_timeout = setTimeout(async () => {
       this.reconnect_timeout = null;
-      if (this.should_reconnect) {
-        this.connect().catch(() => {
+      if (!this.should_reconnect) return;
+
+      if (this.last_auth_error) {
+        this.auth_error_count++;
+
+        if (this.auth_error_count > 3) {
+          this.should_reconnect = false;
           window.dispatchEvent(
-            new CustomEvent("astermail:sync-connection-failed"),
+            new CustomEvent("astermail:session-expired"),
           );
-        });
+          return;
+        }
+
+        await api_client.refresh_session();
+
+        if (!api_client.is_authenticated()) {
+          this.should_reconnect = false;
+          window.dispatchEvent(
+            new CustomEvent("astermail:session-expired"),
+          );
+          return;
+        }
+
+        this.last_auth_error = false;
       }
+
+      this.connect().catch(() => {
+        window.dispatchEvent(
+          new CustomEvent("astermail:sync-connection-failed"),
+        );
+      });
     }, 3000);
   }
 
@@ -223,6 +252,8 @@ class SyncClient {
 
   disconnect(): void {
     this.should_reconnect = false;
+    this.last_auth_error = false;
+    this.auth_error_count = 0;
     if (this.reconnect_timeout) {
       clearTimeout(this.reconnect_timeout);
       this.reconnect_timeout = null;

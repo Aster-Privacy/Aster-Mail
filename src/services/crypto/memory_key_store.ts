@@ -113,6 +113,10 @@ export async function store_vault_in_memory(
     signed_prekey: vault.signed_prekey,
     signed_prekey_private: vault.signed_prekey_private,
     recovery_codes: [...vault.recovery_codes],
+    ratchet_identity_key: vault.ratchet_identity_key,
+    ratchet_identity_public: vault.ratchet_identity_public,
+    ratchet_signed_prekey: vault.ratchet_signed_prekey,
+    ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public,
   };
 
   secure_passphrase = SecureBuffer.from_string(

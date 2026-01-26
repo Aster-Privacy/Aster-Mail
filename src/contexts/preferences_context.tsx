@@ -16,6 +16,7 @@ import { useTheme } from "@/contexts/theme_context";
 import {
   get_preferences,
   save_preferences,
+  sync_quiet_hours_to_server,
   DEFAULT_PREFERENCES,
   type UserPreferences,
 } from "@/services/api/preferences";
@@ -128,6 +129,14 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           request_notification_permission();
         }
       }
+
+      if (response.data.quiet_hours_enabled) {
+        sync_quiet_hours_to_server(
+          response.data.quiet_hours_enabled,
+          response.data.quiet_hours_start,
+          response.data.quiet_hours_end,
+        );
+      }
     }
     set_is_loading(false);
   }, [vault, set_theme_preference, set_language, is_completing_registration]);
@@ -212,6 +221,18 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           configure_session_timeout(
             updated.session_timeout_enabled,
             updated.session_timeout_minutes,
+          );
+        }
+
+        if (
+          key === "quiet_hours_enabled" ||
+          key === "quiet_hours_start" ||
+          key === "quiet_hours_end"
+        ) {
+          sync_quiet_hours_to_server(
+            updated.quiet_hours_enabled,
+            updated.quiet_hours_start,
+            updated.quiet_hours_end,
           );
         }
 

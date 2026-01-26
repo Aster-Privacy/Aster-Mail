@@ -11,6 +11,7 @@ import {
   store_vault_in_memory,
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
+import { upload_prekey_bundle } from "@/services/crypto/ratchet_manager";
 import { show_toast } from "@/components/simple_toast";
 
 export interface KeyRotationState {
@@ -142,6 +143,10 @@ export function use_key_rotation() {
               `astermail_vault_nonce_${user.id}`,
               result.vault_nonce,
             );
+          }
+
+          if (result.new_vault.ratchet_identity_public) {
+            upload_prekey_bundle(result.new_vault).catch(() => {});
           }
 
           set_state((prev) => ({

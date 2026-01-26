@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef } from "react";
 import { use_mail_counts } from "./use_mail_counts";
 import { use_folders, type DecryptedFolder } from "./use_folders";
 
-import { use_auth } from "@/contexts/auth_context";
+import { use_auth_safe } from "@/contexts/auth_context";
 
 type ViewType =
   | "inbox"
@@ -106,7 +106,8 @@ function build_title(
 export function use_document_title(options: DocumentTitleOptions = {}): void {
   const { view = "inbox", email_subject, custom_title } = options;
   const { counts } = use_mail_counts();
-  const { user } = use_auth();
+  const auth = use_auth_safe();
+  const user = auth?.user ?? null;
   const { state: folder_state } = use_folders();
   const initialized = useRef(false);
 

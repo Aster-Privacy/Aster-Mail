@@ -51,6 +51,10 @@ interface EncryptedVault {
   signed_prekey: string;
   signed_prekey_private: string;
   recovery_codes: string[];
+  ratchet_identity_key?: string;
+  ratchet_identity_public?: string;
+  ratchet_signed_prekey?: string;
+  ratchet_signed_prekey_public?: string;
 }
 
 interface VaultEncryptionResult {
