@@ -1884,41 +1884,71 @@ export function ComposeModal({
                   />
                 </div>
 
-                {draft_status !== "idle" && (
-                  <div
-                    className="text-xs flex items-center gap-1.5 px-2"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {draft_status === "saving" ? (
-                      <svg
-                        className="w-3.5 h-3.5 animate-spin"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-                        <path
-                          d="M12 2a10 10 0 0 1 10 10"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-3.5 h-3.5"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                      </svg>
-                    )}
-                    {draft_status === "saving"
-                      ? "Saving..."
-                      : last_saved_time
-                        ? format_last_saved(last_saved_time)
-                        : "Saved"}
-                  </div>
-                )}
+                <AnimatePresence>
+                  {draft_status !== "idle" && (
+                    <motion.div
+                      className="text-xs flex items-center gap-1.5 px-2 overflow-hidden"
+                      style={{ color: "var(--text-muted)" }}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -8 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                    >
+                      <AnimatePresence mode="wait" initial={false}>
+                        {draft_status === "saving" ? (
+                          <motion.div
+                            key="saving"
+                            className="flex items-center gap-1.5"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            <svg
+                              className="w-3.5 h-3.5 animate-spin"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                              <path
+                                d="M12 2a10 10 0 0 1 10 10"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                            <span>Saving...</span>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="saved"
+                            className="flex items-center gap-1.5"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            <motion.svg
+                              className="w-3.5 h-3.5"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            >
+                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                            </motion.svg>
+                            <span>
+                              {last_saved_time
+                                ? format_last_saved(last_saved_time)
+                                : "Saved"}
+                            </span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <div className="ml-auto flex items-center gap-2">
                   <ToolbarButton
