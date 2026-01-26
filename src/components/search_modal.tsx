@@ -687,7 +687,7 @@ function SaveSearchDialog({
   return (
     <motion.div
       animate={{ opacity: 1 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60]"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       onClick={on_close}
@@ -1904,7 +1904,7 @@ export function SearchModal({
       {is_open && (
         <motion.div
           animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-50 p-0 sm:p-4"
+          className="fixed inset-0 bg-black/40 flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-50 p-0 sm:p-4"
           exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
@@ -2753,7 +2753,7 @@ export function AdvancedSearchModal({
       {is_open && (
         <motion.div
           animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-50 p-0 sm:p-4"
+          className="fixed inset-0 bg-black/40 flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-50 p-0 sm:p-4"
           exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
