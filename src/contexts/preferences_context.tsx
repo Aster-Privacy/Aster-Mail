@@ -122,6 +122,18 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         );
       }
 
+      if (response.data.reduce_motion) {
+        document.documentElement.classList.add("reduce-motion");
+      } else {
+        document.documentElement.classList.remove("reduce-motion");
+      }
+
+      if (response.data.compact_mode) {
+        document.documentElement.classList.add("compact-mode");
+      } else {
+        document.documentElement.classList.remove("compact-mode");
+      }
+
       await load_notification_preferences(vault);
 
       if (response.data.desktop_notifications && "Notification" in window) {
@@ -385,6 +397,22 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   useEffect(() => {
     load_preferences();
   }, [load_preferences]);
+
+  useEffect(() => {
+    if (preferences.reduce_motion) {
+      document.documentElement.classList.add("reduce-motion");
+    } else {
+      document.documentElement.classList.remove("reduce-motion");
+    }
+  }, [preferences.reduce_motion]);
+
+  useEffect(() => {
+    if (preferences.compact_mode) {
+      document.documentElement.classList.add("compact-mode");
+    } else {
+      document.documentElement.classList.remove("compact-mode");
+    }
+  }, [preferences.compact_mode]);
 
   useEffect(() => {
     return () => {

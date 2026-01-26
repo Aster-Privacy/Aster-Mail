@@ -82,6 +82,8 @@ const PREFERENCE_VALIDATORS: Record<
   accent_color: (v) => typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v),
   accent_color_hover: (v) =>
     typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v),
+  reduce_motion: (v) => typeof v === "boolean",
+  compact_mode: (v) => typeof v === "boolean",
 };
 
 function validate_preferences(data: unknown): {

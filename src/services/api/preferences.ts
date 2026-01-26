@@ -63,6 +63,8 @@ export interface UserPreferences {
   style_preset: StylePresetId;
   accent_color: string;
   accent_color_hover: string;
+  reduce_motion: boolean;
+  compact_mode: boolean;
 }
 
 export async function sync_quiet_hours_to_server(
@@ -205,6 +207,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   style_preset: "custom",
   accent_color: "#3b82f6",
   accent_color_hover: "#2563eb",
+  reduce_motion: false,
+  compact_mode: false,
 };
 
 async function get_preferences_via_http(
