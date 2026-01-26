@@ -268,10 +268,6 @@ export function OnboardingTour() {
     return () => window.removeEventListener("keydown", handle_keydown);
   }, [should_show_onboarding, handle_skip, handle_next, handle_previous]);
 
-  if (!should_show_onboarding) {
-    return null;
-  }
-
   const current = ONBOARDING_STEPS[current_step];
   const progress = ((current_step + 1) / ONBOARDING_STEPS.length) * 100;
   const is_final_step = current_step === ONBOARDING_STEPS.length - 1;
@@ -337,11 +333,12 @@ export function OnboardingTour() {
   const is_positioned = target_rect && current.position !== "center";
 
   return (
-    <AnimatePresence>
-      {should_show_onboarding && (
-        <>
-          <style>{pulse_style}</style>
+    <>
+      {should_show_onboarding && <style>{pulse_style}</style>}
+      <AnimatePresence>
+        {should_show_onboarding && (
           <motion.div
+            key="onboarding-overlay"
             animate={{ opacity: 1 }}
             className="fixed inset-0 z-[9999] select-none"
             exit={{ opacity: 0 }}
@@ -548,8 +545,8 @@ export function OnboardingTour() {
               </motion.div>
             </AnimatePresence>
           </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
