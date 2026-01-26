@@ -686,10 +686,10 @@ function SaveSearchDialog({
 
   return (
     <motion.div
-      animate={{ opacity: 1, backdropFilter: "blur(4px)" }}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]"
-      exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-      initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60]"
+      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }}
       onClick={on_close}
     >
       <motion.div
@@ -1900,16 +1900,17 @@ export function SearchModal({
     !state.error;
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <motion.div
-          animate={{ opacity: 1, backdropFilter: "blur(12px)" }}
-          className="fixed inset-0 bg-black/40 flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-50 p-0 sm:p-4"
-          exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-          initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-          transition={{ duration: 0.15 }}
-          onClick={handle_close}
-        >
+    <>
+      <div
+        className={`fixed inset-0 bg-black/40 backdrop-blur-md z-50 transition-opacity duration-150 ${is_open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        onClick={handle_close}
+      />
+      <AnimatePresence>
+        {is_open && (
+          <div
+            className="fixed inset-0 flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-50 p-0 sm:p-4"
+            onClick={handle_close}
+          >
           <motion.div
             animate={{ scale: 1, opacity: 1, y: 0 }}
             className="rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-2xl overflow-hidden flex flex-col"
@@ -2453,9 +2454,10 @@ export function SearchModal({
               query={state.query}
             />
           </motion.div>
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>
+    </>
   );
 }
 
@@ -2749,16 +2751,17 @@ export function AdvancedSearchModal({
     !state.error;
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <motion.div
-          animate={{ opacity: 1, backdropFilter: "blur(12px)" }}
-          className="fixed inset-0 bg-black/40 flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-50 p-0 sm:p-4"
-          exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-          initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-          transition={{ duration: 0.15 }}
-          onClick={handle_close}
-        >
+    <>
+      <div
+        className={`fixed inset-0 bg-black/40 backdrop-blur-md z-50 transition-opacity duration-150 ${is_open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        onClick={handle_close}
+      />
+      <AnimatePresence>
+        {is_open && (
+          <div
+            className="fixed inset-0 flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-50 p-0 sm:p-4"
+            onClick={handle_close}
+          >
           <motion.div
             animate={{ scale: 1, opacity: 1, y: 0 }}
             className="rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-2xl overflow-hidden flex flex-col"
@@ -3228,8 +3231,9 @@ export function AdvancedSearchModal({
               </div>
             </ErrorBoundary>
           </motion.div>
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>
+    </>
   );
 }
