@@ -134,13 +134,16 @@ class ApiClient {
 
     for (let attempt = 0; attempt < max_retries; attempt++) {
       try {
-        const response = await this.post<{ csrf_token: string }>(
-          "/auth/refresh",
-          {},
-        );
+        const response = await this.post<{
+          csrf_token: string;
+          access_token?: string;
+        }>("/auth/refresh", {});
 
         if (response.data?.csrf_token) {
           this.is_authenticated_flag = true;
+          if (response.data.access_token) {
+            this.set_dev_token(response.data.access_token);
+          }
           this.schedule_token_refresh();
 
           return;

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -22,6 +22,23 @@ import {
   is_totp_required_response,
   TotpVerifyResponse,
 } from "@/services/api/totp";
+
+const TRUSTED_REDIRECT_ORIGINS = [
+  "http://localhost:5174",
+  "http://localhost:5173",
+  "https://portal.astermail.org",
+  "https://mail.astermail.org",
+];
+
+function is_safe_redirect_url(url: string, current_origin: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.origin === current_origin) return true;
+    return TRUSTED_REDIRECT_ORIGINS.includes(parsed.origin);
+  } catch {
+    return false;
+  }
+}
 
 const page_variants = {
   initial: { opacity: 0, y: 8 },
@@ -58,6 +75,7 @@ const Alert = ({ message, is_dark }: AlertProps) => (
 
 export default function SignInPage() {
   const navigate = useNavigate();
+  const [search_params] = useSearchParams();
   const {
     login,
     add_account,
@@ -68,6 +86,23 @@ export default function SignInPage() {
   const { theme } = useTheme();
   const { t } = use_i18n();
   const is_dark = theme === "dark";
+
+  const get_redirect_url = useCallback((): string | null => {
+    const redirect = search_params.get("redirect");
+    if (redirect && is_safe_redirect_url(redirect, window.location.origin)) {
+      return redirect;
+    }
+    return null;
+  }, [search_params]);
+
+  const handle_navigation_after_login = useCallback(() => {
+    const redirect_url = get_redirect_url();
+    if (redirect_url) {
+      window.location.href = redirect_url;
+    } else {
+      navigate("/");
+    }
+  }, [get_redirect_url, navigate]);
 
   useEffect(() => {
     document.title = "Sign In | Aster Mail";
@@ -139,6 +174,7 @@ export default function SignInPage() {
             totp_response.encrypted_vault,
             totp_response.vault_nonce,
           );
+          navigate("/");
         } else {
           await login(
             user_data,
@@ -147,9 +183,8 @@ export default function SignInPage() {
             totp_response.encrypted_vault,
             totp_response.vault_nonce,
           );
+          handle_navigation_after_login();
         }
-
-        navigate("/");
       } catch (err) {
         if (err instanceof Error && err.message.includes("decrypt")) {
           set_error(t("errors.decrypt_failed"));
@@ -162,7 +197,7 @@ export default function SignInPage() {
         set_totp_required(false);
       }
     },
-    [password, is_adding_account, add_account, login, navigate, t],
+    [password, is_adding_account, add_account, login, navigate, t, handle_navigation_after_login],
   );
 
   const handle_login = async () => {
@@ -328,7 +363,11 @@ export default function SignInPage() {
           );
         }
       }
-      navigate("/");
+      if (is_adding_account) {
+        navigate("/");
+      } else {
+        handle_navigation_after_login();
+      }
     } catch (err) {
       const elapsed = Date.now() - start_time;
       const min_time = 1000;

@@ -48,6 +48,7 @@ const ws_target = process.env.VITE_WS_TARGET || "ws://localhost:3000";
 export default defineConfig({
   base: "./",
   server: {
+    port: 5173,
     allowedHosts: true,
     watch: {
       usePolling: true,
