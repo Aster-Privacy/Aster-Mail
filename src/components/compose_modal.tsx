@@ -1157,7 +1157,7 @@ export function ComposeModal({
       cc: recipients.cc.length > 0 ? recipients.cc : undefined,
       bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
       subject,
-      body: message + ASTER_FOOTER,
+      body: message,
     };
 
     const all_recipients = [
@@ -1213,7 +1213,7 @@ export function ComposeModal({
       cc_recipients: recipients.cc,
       bcc_recipients: recipients.bcc,
       subject,
-      body: message + ASTER_FOOTER,
+      body: message,
       scheduled_at: scheduled_time.toISOString(),
     };
 
