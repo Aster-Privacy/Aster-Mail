@@ -5,12 +5,6 @@ import { TemplatePicker } from "./template_picker";
 import { EditorToolbar } from "./editor_toolbar";
 import { CloseIcon, AttachmentIcon, FileIcon } from "./icons";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { undo_send_manager } from "@/hooks/use_undo_send";
 import { MODAL_SIZES } from "@/constants/modal";
@@ -147,42 +141,33 @@ function get_file_icon_color(mime_type: string): {
 }
 
 interface ToolbarButtonProps {
-  tooltip: string;
   onClick?: () => void;
   children: React.ReactNode;
   disabled?: boolean;
 }
 
 function ToolbarButton({
-  tooltip,
   onClick,
   children,
   disabled,
 }: ToolbarButtonProps) {
   return (
-    <TooltipProvider delayDuration={0}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            className="p-2 rounded transition-colors duration-150 disabled:opacity-50"
-            disabled={disabled}
-            style={{ color: "var(--text-tertiary)" }}
-            onClick={onClick}
-            onMouseEnter={(e) => {
-              if (!disabled) {
-                e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-              }
-            }}
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
-          >
-            {children}
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="top">{tooltip}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <button
+      className="p-2 rounded transition-colors duration-150 disabled:opacity-50"
+      disabled={disabled}
+      style={{ color: "var(--text-tertiary)" }}
+      onClick={onClick}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
+        }
+      }}
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.backgroundColor = "transparent")
+      }
+    >
+      {children}
+    </button>
   );
 }
 
@@ -1020,7 +1005,6 @@ export function ReplyModal({
                   <div className="flex items-center gap-0.5">
                     <ToolbarButton
                       disabled={is_sending}
-                      tooltip="Attach file"
                       onClick={trigger_file_select}
                     >
                       <AttachmentIcon className="w-4.5 h-4.5" />

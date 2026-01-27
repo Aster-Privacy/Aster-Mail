@@ -314,7 +314,6 @@ export function EmailReplySection({
                 className="p-2 rounded-lg transition-colors disabled:opacity-50"
                 disabled={is_disabled}
                 style={{ backgroundColor: "transparent" }}
-                title="Add emoji"
                 whileHover={{ scale: is_disabled ? 1 : 1.1 }}
                 whileTap={{ scale: is_disabled ? 1 : 0.9 }}
                 onClick={() =>

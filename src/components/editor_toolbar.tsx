@@ -1,12 +1,6 @@
 import { useCallback, useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { ColorPicker } from "@/components/ui/color_picker";
 
 interface EditorToolbarProps {
@@ -301,7 +295,6 @@ function is_inside_list(node: Node | null, list_type: ListType): boolean {
 }
 
 interface ToolbarButtonProps {
-  tooltip: string;
   active?: boolean;
   disabled?: boolean;
   onClick: () => void;
@@ -309,36 +302,26 @@ interface ToolbarButtonProps {
 }
 
 function ToolbarButton({
-  tooltip,
   active,
   disabled,
   onClick,
   children,
 }: ToolbarButtonProps) {
   return (
-    <TooltipProvider delayDuration={300}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            className={`
-              p-1 rounded transition-all duration-150
-              ${active ? "bg-blue-500/15 text-blue-500" : "hover:bg-black/5 dark:hover:bg-white/10"}
-              ${disabled ? "opacity-40 cursor-not-allowed" : ""}
-            `}
-            disabled={disabled}
-            style={{ color: active ? undefined : "var(--text-tertiary)" }}
-            type="button"
-            onClick={onClick}
-            onMouseDown={(e) => e.preventDefault()}
-          >
-            {children}
-          </button>
-        </TooltipTrigger>
-        <TooltipContent className="px-2 py-1 text-xs" side="top" sideOffset={4}>
-          {tooltip}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <button
+      className={`
+        p-1 rounded transition-all duration-150
+        ${active ? "bg-blue-500/15 text-blue-500" : "hover:bg-black/5 dark:hover:bg-white/10"}
+        ${disabled ? "opacity-40 cursor-not-allowed" : ""}
+      `}
+      disabled={disabled}
+      style={{ color: active ? undefined : "var(--text-tertiary)" }}
+      type="button"
+      onClick={onClick}
+      onMouseDown={(e) => e.preventDefault()}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -353,7 +336,6 @@ function Divider() {
 
 interface ColorPickerButtonProps {
   color: string;
-  tooltip: string;
   open: boolean;
   onChange: (color: string) => void;
   onOpenChange: (open: boolean) => void;
@@ -362,41 +344,31 @@ interface ColorPickerButtonProps {
 
 function ColorPickerButton({
   color,
-  tooltip,
   open,
   onChange,
   onOpenChange,
   children,
 }: ColorPickerButtonProps) {
   return (
-    <TooltipProvider delayDuration={300}>
-      <Tooltip>
-        <ColorPicker
-          open={open}
-          value={color}
-          onChange={onChange}
-          onOpenChange={onOpenChange}
-        >
-          <TooltipTrigger asChild>
-            <button
-              className="px-1.5 py-1 rounded cursor-pointer flex flex-col items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/10"
-              style={{ color: "var(--text-tertiary)" }}
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              {children}
-              <div
-                className="w-4 h-1 rounded-sm mt-0.5"
-                style={{ backgroundColor: color }}
-              />
-            </button>
-          </TooltipTrigger>
-        </ColorPicker>
-        <TooltipContent className="px-2 py-1 text-xs" side="top" sideOffset={4}>
-          {tooltip}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <ColorPicker
+      open={open}
+      value={color}
+      onChange={onChange}
+      onOpenChange={onOpenChange}
+    >
+      <button
+        className="px-1.5 py-1 rounded cursor-pointer flex flex-col items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/10"
+        style={{ color: "var(--text-tertiary)" }}
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+      >
+        {children}
+        <div
+          className="w-4 h-1 rounded-sm mt-0.5"
+          style={{ backgroundColor: color }}
+        />
+      </button>
+    </ColorPicker>
   );
 }
 
@@ -783,7 +755,6 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
     <div className="flex items-center justify-start gap-0.5 py-1 px-0.5 overflow-x-auto relative z-10">
       <ToolbarButton
         active={active_formats.has("bold")}
-        tooltip="Bold (Ctrl+B)"
         onClick={() => exec_command("bold")}
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -793,7 +764,6 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
 
       <ToolbarButton
         active={active_formats.has("italic")}
-        tooltip="Italic (Ctrl+I)"
         onClick={() => exec_command("italic")}
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -803,7 +773,6 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
 
       <ToolbarButton
         active={active_formats.has("underline")}
-        tooltip="Underline (Ctrl+U)"
         onClick={() => exec_command("underline")}
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -813,7 +782,6 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
 
       <ToolbarButton
         active={active_formats.has("strikethrough")}
-        tooltip="Strikethrough"
         onClick={() => exec_command("strikeThrough")}
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -826,7 +794,6 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
       <div ref={font_size_btn_ref} className="relative">
         <ToolbarButton
           active={show_font_size}
-          tooltip="Font size"
           onClick={() => set_show_font_size(!show_font_size)}
         >
           <div className="flex items-center gap-0.5">
@@ -961,7 +928,6 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
       <ColorPickerButton
         color={text_color}
         open={open_color_picker === "text"}
-        tooltip="Text color"
         onChange={(color) => {
           set_text_color(color);
           exec_command("foreColor", color);
@@ -981,7 +947,6 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
       <ColorPickerButton
         color={highlight_color}
         open={open_color_picker === "highlight"}
-        tooltip="Highlight"
         onChange={(color) => {
           set_highlight_color(color);
           exec_command("hiliteColor", color);
@@ -997,28 +962,19 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
 
       <Divider />
 
-      <ToolbarButton
-        tooltip="Align left"
-        onClick={() => exec_command("justifyLeft")}
-      >
+      <ToolbarButton onClick={() => exec_command("justifyLeft")}>
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z" />
         </svg>
       </ToolbarButton>
 
-      <ToolbarButton
-        tooltip="Align center"
-        onClick={() => exec_command("justifyCenter")}
-      >
+      <ToolbarButton onClick={() => exec_command("justifyCenter")}>
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z" />
         </svg>
       </ToolbarButton>
 
-      <ToolbarButton
-        tooltip="Align right"
-        onClick={() => exec_command("justifyRight")}
-      >
+      <ToolbarButton onClick={() => exec_command("justifyRight")}>
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M3 21h18v-2H3v2zm6-4h12v-2H9v2zm-6-4h18v-2H3v2zm6-4h12V7H9v2zM3 3v2h18V3H3z" />
         </svg>
@@ -1028,7 +984,6 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
 
       <ToolbarButton
         active={active_formats.has("unorderedList")}
-        tooltip="Bullet list"
         onClick={() => toggle_list("ul")}
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1038,7 +993,6 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
 
       <ToolbarButton
         active={active_formats.has("orderedList")}
-        tooltip="Numbered list"
         onClick={() => toggle_list("ol")}
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1046,10 +1000,7 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
         </svg>
       </ToolbarButton>
 
-      <ToolbarButton
-        tooltip="Quote"
-        onClick={() => exec_command("formatBlock", "<blockquote>")}
-      >
+      <ToolbarButton onClick={() => exec_command("formatBlock", "<blockquote>")}>
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z" />
         </svg>
@@ -1057,16 +1008,13 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
 
       <Divider />
 
-      <ToolbarButton tooltip="Insert link" onClick={handle_link}>
+      <ToolbarButton onClick={handle_link}>
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
         </svg>
       </ToolbarButton>
 
-      <ToolbarButton
-        tooltip="Clear formatting"
-        onClick={() => exec_command("removeFormat")}
-      >
+      <ToolbarButton onClick={() => exec_command("removeFormat")}>
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M3.27 5L2 6.27l6.97 6.97L6.5 19h3l1.57-3.66L16.73 21 18 19.73 3.27 5zM6 5v.18L8.82 8h2.4l-.72 1.68 2.1 2.1L14.21 8H20V5H6z" />
         </svg>
@@ -1074,19 +1022,13 @@ export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {
 
       <Divider />
 
-      <ToolbarButton
-        tooltip="Undo (Ctrl+Z)"
-        onClick={() => exec_command("undo")}
-      >
+      <ToolbarButton onClick={() => exec_command("undo")}>
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
         </svg>
       </ToolbarButton>
 
-      <ToolbarButton
-        tooltip="Redo (Ctrl+Y)"
-        onClick={() => exec_command("redo")}
-      >
+      <ToolbarButton onClick={() => exec_command("redo")}>
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" />
         </svg>

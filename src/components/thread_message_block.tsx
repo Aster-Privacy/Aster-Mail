@@ -1,6 +1,6 @@
 import type { DecryptedThreadMessage } from "@/types/thread";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import {
   ChevronDownIcon,
   StarIcon,
@@ -403,6 +403,8 @@ export function ThreadMessagesList({
     return initial;
   });
 
+  const auto_read_ids = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     const new_starred = new Set<string>();
 
@@ -450,6 +452,10 @@ export function ThreadMessagesList({
     set_expanded_ids(new_expanded);
   }, [message_ids_key, default_expanded_id, messages]);
 
+  useEffect(() => {
+    auto_read_ids.current = new Set();
+  }, [message_ids_key]);
+
   const mark_as_read = useCallback(
     (msg: DecryptedThreadMessage) => {
       if (read_ids.has(msg.id)) return;
@@ -493,7 +499,12 @@ export function ThreadMessagesList({
 
   useEffect(() => {
     messages.forEach((msg) => {
-      if (expanded_ids.has(msg.id) && !read_ids.has(msg.id)) {
+      if (
+        expanded_ids.has(msg.id) &&
+        !read_ids.has(msg.id) &&
+        !auto_read_ids.current.has(msg.id)
+      ) {
+        auto_read_ids.current.add(msg.id);
         mark_as_read(msg);
       }
     });
@@ -508,6 +519,7 @@ export function ThreadMessagesList({
 
         if (next.has(msg.id)) {
           next.delete(msg.id);
+          auto_read_ids.current.delete(msg.id);
         } else {
           next.add(msg.id);
         }
@@ -516,6 +528,7 @@ export function ThreadMessagesList({
       });
 
       if (is_expanding && !read_ids.has(msg.id)) {
+        auto_read_ids.current.add(msg.id);
         mark_as_read(msg);
       }
     },

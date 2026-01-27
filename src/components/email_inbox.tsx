@@ -85,6 +85,7 @@ import { use_email_selection } from "@/hooks/use_email_selection";
 import { use_folders, type DecryptedFolder } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
+import { use_categories } from "@/hooks/use_categories";
 import { MAIL_EVENTS, emit_mail_item_updated } from "@/hooks/mail_events";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import {
@@ -101,6 +102,7 @@ import { SplitEmailViewer } from "@/components/split_email_viewer";
 import { SplitScheduledViewer } from "@/components/split_scheduled_viewer";
 import { FullEmailViewer } from "@/components/full_email_viewer";
 import { CustomSnoozeModal } from "@/components/custom_snooze_modal";
+import { CategoryTabs } from "@/components/category_tabs";
 
 interface ReplyData {
   recipient_name: string;
@@ -287,6 +289,19 @@ export function EmailInbox({
   const is_drafts_view = current_view === "drafts";
   const is_scheduled_view = current_view === "scheduled";
   const is_snoozed_view = current_view === "snoozed";
+  const is_inbox_view =
+    current_view === "inbox" ||
+    current_view === "" ||
+    (!current_view.startsWith("folder-") &&
+      !["all", "starred", "sent", "drafts", "scheduled", "snoozed", "archive", "spam", "trash"].includes(current_view));
+
+  const {
+    active_category,
+    set_active_category,
+    filter_by_category,
+    unread_counts,
+    update_unread_counts,
+  } = use_categories({ enabled: preferences.categories_enabled && is_inbox_view });
   const [folder_unlock_key, set_folder_unlock_key] = useState(0);
 
   useEffect(() => {
@@ -1066,12 +1081,25 @@ export function EmailInbox({
     [email_state.emails, current_view],
   );
 
+  const category_filtered_emails = useMemo(() => {
+    if (!is_inbox_view || !preferences.categories_enabled) {
+      return view_filtered_emails;
+    }
+    return filter_by_category(view_filtered_emails, active_category);
+  }, [view_filtered_emails, is_inbox_view, preferences.categories_enabled, filter_by_category, active_category]);
+
+  useEffect(() => {
+    if (is_inbox_view && preferences.categories_enabled) {
+      update_unread_counts(view_filtered_emails);
+    }
+  }, [view_filtered_emails, is_inbox_view, preferences.categories_enabled, update_unread_counts]);
+
   const filtered_emails = useMemo(
     () =>
-      apply_active_filter(view_filtered_emails, active_filter).map(
+      apply_active_filter(category_filtered_emails, active_filter).map(
         enrich_email_folders,
       ),
-    [view_filtered_emails, active_filter, enrich_email_folders],
+    [category_filtered_emails, active_filter, enrich_email_folders],
   );
 
   const pinned_emails = useMemo(
@@ -1786,6 +1814,14 @@ export function EmailInbox({
               some_selected={some_selected}
               total_messages={email_state.total_messages}
             />
+
+            {is_inbox_view && preferences.categories_enabled && (
+              <CategoryTabs
+                active_category={active_category}
+                on_category_change={set_active_category}
+                unread_counts={unread_counts}
+              />
+            )}
           </>
         )}
 

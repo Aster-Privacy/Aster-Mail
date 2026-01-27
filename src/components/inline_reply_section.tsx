@@ -360,7 +360,6 @@ export const InlineReplySection = forwardRef<
                     className="p-2 rounded-lg transition-colors disabled:opacity-50"
                     disabled={is_disabled}
                     style={{ backgroundColor: "transparent" }}
-                    title="Add emoji"
                     onClick={() =>
                       !is_disabled && set_show_emoji_picker(!show_emoji_picker)
                     }

@@ -491,13 +491,43 @@ function HighlightedText({
 function ContactResultRow({
   contact,
   on_click,
+  search_query,
 }: {
   contact: DecryptedContact;
   on_click: () => void;
+  search_query?: string;
 }) {
   const display_name =
     `${contact.first_name} ${contact.last_name}`.trim() || "Unknown";
   const primary_email = contact.emails?.[0] || "";
+
+  const get_match_context = () => {
+    if (!search_query || search_query.length < 2) return null;
+    const q = search_query.toLowerCase();
+    const name_lower = display_name.toLowerCase();
+    const email_lower = primary_email.toLowerCase();
+
+    if (name_lower.includes(q) || email_lower.includes(q)) return null;
+
+    if (contact.company?.toLowerCase().includes(q)) {
+      return contact.company;
+    }
+    if (contact.job_title?.toLowerCase().includes(q)) {
+      return contact.job_title;
+    }
+    if (contact.phone?.toLowerCase().includes(q)) {
+      return contact.phone;
+    }
+    if (contact.address?.city?.toLowerCase().includes(q)) {
+      return contact.address.city;
+    }
+    if (contact.address?.country?.toLowerCase().includes(q)) {
+      return contact.address.country;
+    }
+    return null;
+  };
+
+  const match_context = get_match_context();
 
   return (
     <div
@@ -530,7 +560,7 @@ function ContactResultRow({
           className="text-xs block truncate"
           style={{ color: "var(--text-muted)" }}
         >
-          {primary_email}
+          {match_context ? `${primary_email} · ${match_context}` : primary_email}
         </span>
       </div>
       <span
@@ -1665,17 +1695,50 @@ export function SearchModal({
 
     return all_contacts
       .filter((contact) => {
-        const name = `${contact.first_name} ${contact.last_name}`.toLowerCase();
+        const first_name = contact.first_name?.toLowerCase() || "";
+        const last_name = contact.last_name?.toLowerCase() || "";
+        const full_name = `${first_name} ${last_name}`;
         const emails = contact.emails?.map((email: string) => email.toLowerCase()) || [];
         const company = contact.company?.toLowerCase() || "";
+        const job_title = contact.job_title?.toLowerCase() || "";
+        const phone = contact.phone?.toLowerCase() || "";
+        const notes = contact.notes?.toLowerCase() || "";
+        const relationship = contact.relationship?.toLowerCase() || "";
+        const groups = contact.groups?.map((g: string) => g.toLowerCase()) || [];
+
+        const address_parts: string[] = [];
+        if (contact.address) {
+          if (contact.address.street) address_parts.push(contact.address.street.toLowerCase());
+          if (contact.address.city) address_parts.push(contact.address.city.toLowerCase());
+          if (contact.address.state) address_parts.push(contact.address.state.toLowerCase());
+          if (contact.address.postal_code) address_parts.push(contact.address.postal_code.toLowerCase());
+          if (contact.address.country) address_parts.push(contact.address.country.toLowerCase());
+        }
+
+        const social_parts: string[] = [];
+        if (contact.social_links) {
+          if (contact.social_links.linkedin) social_parts.push(contact.social_links.linkedin.toLowerCase());
+          if (contact.social_links.twitter) social_parts.push(contact.social_links.twitter.toLowerCase());
+          if (contact.social_links.github) social_parts.push(contact.social_links.github.toLowerCase());
+          if (contact.social_links.website) social_parts.push(contact.social_links.website.toLowerCase());
+        }
 
         return (
-          name.includes(query_lower) ||
+          first_name.includes(query_lower) ||
+          last_name.includes(query_lower) ||
+          full_name.includes(query_lower) ||
           emails.some((email: string) => email.includes(query_lower)) ||
-          company.includes(query_lower)
+          company.includes(query_lower) ||
+          job_title.includes(query_lower) ||
+          phone.includes(query_lower) ||
+          notes.includes(query_lower) ||
+          relationship.includes(query_lower) ||
+          groups.some((g: string) => g.includes(query_lower)) ||
+          address_parts.some((part) => part.includes(query_lower)) ||
+          social_parts.some((part) => part.includes(query_lower))
         );
       })
-      .slice(0, 3);
+      .slice(0, 5);
   }, [state.query, all_contacts]);
 
   const handle_contact_click = useCallback(
@@ -2400,6 +2463,7 @@ export function SearchModal({
                         <ContactResultRow
                           key={contact.id}
                           contact={contact}
+                          search_query={state.query}
                           on_click={() => handle_contact_click(contact)}
                         />
                       ))}

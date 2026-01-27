@@ -14,12 +14,6 @@ import { SchedulePicker } from "./schedule_picker";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { undo_send_manager, type UndoSendEvent } from "@/hooks/use_undo_send";
 import { use_auth } from "@/contexts/auth_context";
@@ -451,33 +445,25 @@ function RecipientField({
 }
 
 interface ToolbarButtonProps {
-  tooltip: string;
   onClick?: () => void;
   children: React.ReactNode;
 }
 
-function ToolbarButton({ tooltip, onClick, children }: ToolbarButtonProps) {
+function ToolbarButton({ onClick, children }: ToolbarButtonProps) {
   return (
-    <TooltipProvider delayDuration={0}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            className="p-2 rounded transition-colors duration-150"
-            style={{ color: "var(--text-tertiary)" }}
-            onClick={onClick}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
-          >
-            {children}
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="top">{tooltip}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <button
+      className="p-2 rounded transition-colors duration-150"
+      style={{ color: "var(--text-tertiary)" }}
+      onClick={onClick}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
+      }
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.backgroundColor = "transparent")
+      }
+    >
+      {children}
+    </button>
   );
 }
 
@@ -1799,7 +1785,7 @@ export function ComposeWindow({
                   on_schedule={set_scheduled_time}
                   scheduled_time={scheduled_time}
                 />
-                <ToolbarButton tooltip="Attach file" onClick={trigger_file_select}>
+                <ToolbarButton onClick={trigger_file_select}>
                   <AttachmentIcon className="w-4 h-4" />
                 </ToolbarButton>
               </div>
@@ -1826,10 +1812,7 @@ export function ComposeWindow({
               </AnimatePresence>
 
               <div className="ml-auto">
-                <ToolbarButton
-                  tooltip="Delete draft"
-                  onClick={handle_show_delete_confirm}
-                >
+                <ToolbarButton onClick={handle_show_delete_confirm}>
                   <svg
                     className="w-4 h-4"
                     fill="currentColor"
