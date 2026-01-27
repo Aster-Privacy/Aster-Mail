@@ -117,22 +117,13 @@ export function ContactsHeader({
         className="flex items-center gap-2 px-3 sm:px-4 py-2 border-t"
         style={{ borderColor: "var(--border-primary)" }}
       >
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex-shrink-0">
-                <Checkbox
-                  checked={all_selected}
-                  indeterminate={some_selected}
-                  onCheckedChange={on_toggle_select_all}
-                />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              {all_selected ? "Deselect all" : "Select all"}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex-shrink-0">
+          <Checkbox
+            checked={all_selected}
+            indeterminate={some_selected}
+            onCheckedChange={on_toggle_select_all}
+          />
+        </div>
 
         {has_selection ? (
           <div className="flex items-center gap-1 ml-2">
@@ -143,40 +134,26 @@ export function ContactsHeader({
               {selected_count} selected
             </span>
 
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className="h-8 w-8"
-                    size="icon"
-                    variant="ghost"
-                    onClick={on_compose_to_selected}
-                  >
-                    <EnvelopeIcon
-                      className="h-4 w-4"
-                      style={{ color: "var(--text-secondary)" }}
-                    />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Compose email</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button
+              className="h-8 w-8"
+              size="icon"
+              variant="ghost"
+              onClick={on_compose_to_selected}
+            >
+              <EnvelopeIcon
+                className="h-4 w-4"
+                style={{ color: "var(--text-secondary)" }}
+              />
+            </Button>
 
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
-                    size="icon"
-                    variant="ghost"
-                    onClick={on_delete_selected}
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Delete selected</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button
+              className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+              size="icon"
+              variant="ghost"
+              onClick={on_delete_selected}
+            >
+              <TrashIcon className="h-4 w-4" />
+            </Button>
           </div>
         ) : (
           <span className="text-sm ml-2" style={{ color: "var(--text-muted)" }}>

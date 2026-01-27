@@ -17,6 +17,13 @@ import { SplitEmailViewer } from "./split_email_viewer";
 import { Spinner } from "./ui/spinner";
 import { Skeleton } from "./ui/skeleton";
 import { Separator } from "./ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 import { use_search } from "@/hooks/use_search";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -25,11 +32,14 @@ import { cn } from "@/lib/utils";
 const MIN_LIST_WIDTH = 280;
 const DEFAULT_LIST_WIDTH = 400;
 
+type SortOption = "relevant" | "recent";
+
 interface SearchFiltersState {
   date_range: "any" | "today" | "week" | "month";
   has_attachment: boolean | null;
   exclude_social: boolean;
   read_status: "any" | "read" | "unread";
+  sort_by: SortOption;
 }
 
 interface SearchResultsPageProps {
@@ -104,6 +114,7 @@ export function SearchResultsPage({
     has_attachment: null,
     exclude_social: false,
     read_status: "any",
+    sort_by: "relevant",
   });
 
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
@@ -172,7 +183,7 @@ export function SearchResultsPage({
   }, [filters.date_range, filters.has_attachment]);
 
   const filtered_results = useMemo(() => {
-    let results = state.results;
+    let results = [...state.results];
 
     if (filters.read_status === "read") {
       results = results.filter((r) => r.is_read);
@@ -207,11 +218,20 @@ export function SearchResultsPage({
       });
     }
 
+    if (filters.sort_by === "recent") {
+      results.sort((a, b) => {
+        const date_a = new Date(a.timestamp).getTime();
+        const date_b = new Date(b.timestamp).getTime();
+
+        return date_b - date_a;
+      });
+    }
+
     return results.map((r) => ({
       ...r,
       is_selected: selected_ids.has(r.id),
     }));
-  }, [state.results, filters.read_status, filters.exclude_social, selected_ids]);
+  }, [state.results, filters.read_status, filters.exclude_social, filters.sort_by, selected_ids]);
 
   const handle_toggle_select = useCallback((id: string) => {
     set_selected_ids((prev) => {
@@ -516,6 +536,26 @@ export function SearchResultsPage({
               }))
             }
           />
+
+          <Separator
+            className="h-4 mx-1 bg-[var(--border-secondary)]"
+            orientation="vertical"
+          />
+
+          <Select
+            value={filters.sort_by}
+            onValueChange={(value: SortOption) =>
+              set_filters((prev) => ({ ...prev, sort_by: value }))
+            }
+          >
+            <SelectTrigger className="h-7 w-[140px] text-[13px] border-[var(--border-secondary)] bg-transparent">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="relevant">Most relevant</SelectItem>
+              <SelectItem value="recent">Most recent</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

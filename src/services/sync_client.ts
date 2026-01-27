@@ -1,6 +1,7 @@
 import type { EncryptedVault } from "./crypto/key_manager";
 
 import { api_client } from "./api/client";
+import { refresh_session_activity } from "./session_timeout_service";
 
 type MessageHandler = (data: ServerMessage) => void;
 
@@ -135,6 +136,8 @@ class SyncClient {
   }
 
   private handle_message(data: ServerMessage): void {
+    refresh_session_activity();
+
     const handlers = this.message_handlers.get(data.type);
 
     if (handlers) {

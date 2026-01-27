@@ -10,6 +10,9 @@ const ACTIVITY_EVENTS = [
   "scroll",
   "touchstart",
   "click",
+  "focus",
+  "pointerdown",
+  "wheel",
 ];
 
 interface SessionTimeoutConfig {
@@ -57,6 +60,12 @@ function handle_activity(): void {
   update_last_activity();
 }
 
+function handle_visibility_change(): void {
+  if (document.visibilityState === "visible") {
+    update_last_activity();
+  }
+}
+
 function attach_activity_listeners(): void {
   if (activity_listener_attached) {
     return;
@@ -64,6 +73,7 @@ function attach_activity_listeners(): void {
   ACTIVITY_EVENTS.forEach((event) => {
     window.addEventListener(event, handle_activity, { passive: true });
   });
+  document.addEventListener("visibilitychange", handle_visibility_change);
   activity_listener_attached = true;
 }
 
@@ -74,6 +84,7 @@ function detach_activity_listeners(): void {
   ACTIVITY_EVENTS.forEach((event) => {
     window.removeEventListener(event, handle_activity);
   });
+  document.removeEventListener("visibilitychange", handle_visibility_change);
   activity_listener_attached = false;
 }
 

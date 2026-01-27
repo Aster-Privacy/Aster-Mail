@@ -2724,7 +2724,7 @@ export function SearchModal({
 
               {show_inline_results && show_empty_state && <EmptySearchState query={state.query} />}
 
-              {show_first_time_state && (
+              {show_inline_results && show_first_time_state && (
                 <>
                   {search_history.length > 0 || saved_searches.length > 0 ? (
                     <>
