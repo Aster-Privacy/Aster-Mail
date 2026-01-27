@@ -86,8 +86,8 @@ export default function IndexPage() {
     set_popup_email_id(null);
     set_popup_scheduled(null);
     set_split_scheduled_data(null);
-    set_is_compose_open(true);
-  }, []);
+    open_compose_instance();
+  }, [open_compose_instance]);
 
   const handle_reply = useCallback((data: ReplyData) => {
     set_popup_email_id(null);
@@ -186,7 +186,6 @@ export default function IndexPage() {
 
   const handle_email_click = useCallback(
     (id: string) => {
-      set_is_compose_open(false);
       set_edit_draft(null);
       set_popup_scheduled(null);
       set_split_scheduled_data(null);
