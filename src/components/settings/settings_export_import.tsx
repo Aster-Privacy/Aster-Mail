@@ -78,6 +78,14 @@ const PREFERENCE_VALIDATORS: Record<
     typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v),
   reduce_motion: (v) => typeof v === "boolean",
   compact_mode: (v) => typeof v === "boolean",
+  categories_enabled: (v) => typeof v === "boolean",
+  default_category_view: (v) =>
+    v === "all" ||
+    v === "primary" ||
+    v === "social" ||
+    v === "promotions" ||
+    v === "updates" ||
+    v === "forums",
 };
 
 function validate_preferences(data: unknown): {

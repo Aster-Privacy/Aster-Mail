@@ -491,6 +491,14 @@ export function ThreadMessagesList({
     [read_ids, starred_ids],
   );
 
+  useEffect(() => {
+    messages.forEach((msg) => {
+      if (expanded_ids.has(msg.id) && !read_ids.has(msg.id)) {
+        mark_as_read(msg);
+      }
+    });
+  }, [expanded_ids, messages, read_ids, mark_as_read]);
+
   const toggle = useCallback(
     (msg: DecryptedThreadMessage) => {
       const is_expanding = !expanded_ids.has(msg.id);

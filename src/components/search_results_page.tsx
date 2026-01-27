@@ -16,12 +16,6 @@ import { InboxEmailListItem } from "./inbox_email_list_item";
 import { Spinner } from "./ui/spinner";
 import { Skeleton } from "./ui/skeleton";
 import { Separator } from "./ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
 
 import { use_search } from "@/hooks/use_search";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -246,27 +240,23 @@ export function SearchResultsPage({
       style={{ backgroundColor: "var(--bg-primary)" }}
     >
       <div
-        className="flex items-center gap-3 px-4 py-3 border-b flex-shrink-0"
+        className="flex items-center gap-3 px-2 sm:px-4 py-2 sm:py-2.5 border-b flex-shrink-0"
         style={{ borderColor: "var(--border-secondary)" }}
       >
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                className="p-1.5 rounded-lg transition-colors hover:bg-[var(--bg-hover)]"
-                style={{ color: "var(--text-secondary)" }}
-                onClick={on_close}
-              >
-                <ArrowLeftIcon className="w-5 h-5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Back to inbox</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <button
+          className="p-1.5 rounded-lg transition-colors hover:bg-[var(--bg-hover)]"
+          style={{ color: "var(--text-secondary)" }}
+          onClick={on_close}
+        >
+          <ArrowLeftIcon className="w-5 h-5" />
+        </button>
 
         <button
-          className="flex items-center gap-2 flex-1 min-w-0 px-3 py-1.5 rounded-lg transition-colors hover:bg-[var(--bg-hover)] cursor-pointer"
-          style={{ backgroundColor: "var(--bg-tertiary)" }}
+          className="flex items-center gap-2 flex-1 min-w-0 h-9 px-3 rounded-lg border transition-colors hover:border-[var(--text-muted)] cursor-pointer"
+          style={{
+            backgroundColor: "var(--bg-secondary)",
+            borderColor: "var(--border-secondary)",
+          }}
           onClick={on_search_click}
         >
           <MagnifyingGlassIcon
@@ -274,11 +264,14 @@ export function SearchResultsPage({
             style={{ color: "var(--text-muted)" }}
           />
           <span
-            className="text-sm truncate text-left"
+            className="text-sm truncate text-left flex-1"
             style={{ color: "var(--text-primary)" }}
           >
             {query}
           </span>
+          <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] border-[var(--border-secondary)]">
+            ⌘K
+          </kbd>
         </button>
 
         <span

@@ -1,4 +1,5 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+import type { EmailCategory } from "@/types/email";
 
 import { api_client } from "./client";
 
@@ -63,6 +64,8 @@ export interface UserPreferences {
   accent_color_hover: string;
   reduce_motion: boolean;
   compact_mode: boolean;
+  categories_enabled: boolean;
+  default_category_view: EmailCategory | "all";
 }
 
 export async function sync_quiet_hours_to_server(
@@ -206,6 +209,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   accent_color_hover: "#2563eb",
   reduce_motion: false,
   compact_mode: false,
+  categories_enabled: true,
+  default_category_view: "all",
 };
 
 async function get_preferences_via_http(
