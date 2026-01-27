@@ -745,6 +745,7 @@ export function use_search(): UseSearchReturn {
   const autocomplete_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const prefetch_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abort_controller_ref = useRef<AbortController | null>(null);
   const offset_ref = useRef(0);
   const search_start_time_ref = useRef(0);
@@ -1407,7 +1408,11 @@ export function use_search(): UseSearchReturn {
 
     prefetch_queue.add(query);
 
-    setTimeout(async () => {
+    if (prefetch_timer_ref.current) {
+      clearTimeout(prefetch_timer_ref.current);
+    }
+
+    prefetch_timer_ref.current = setTimeout(async () => {
       try {
         const search_result = await search_with_worker(query, {
           fields: ["all"],
@@ -1477,6 +1482,10 @@ export function use_search(): UseSearchReturn {
 
       if (autocomplete_timer_ref.current) {
         clearTimeout(autocomplete_timer_ref.current);
+      }
+
+      if (prefetch_timer_ref.current) {
+        clearTimeout(prefetch_timer_ref.current);
       }
 
       abort_controller_ref.current?.abort();
@@ -1695,6 +1704,7 @@ export function use_advanced_search(): UseAdvancedSearchReturn {
     initial_advanced_state,
   );
   const debounce_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const filter_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abort_controller_ref = useRef<AbortController | null>(null);
   const search_start_time_ref = useRef(0);
   const is_mounted_ref = useRef(true);
@@ -2222,7 +2232,10 @@ export function use_advanced_search(): UseAdvancedSearchReturn {
           const parsed = parse_search_query(new_query);
           const new_active_filters = create_active_filters(parsed.operators);
 
-          setTimeout(() => {
+          if (filter_timer_ref.current) {
+            clearTimeout(filter_timer_ref.current);
+          }
+          filter_timer_ref.current = setTimeout(() => {
             perform_search(
               new_query,
               parsed.text_query,
@@ -2259,7 +2272,10 @@ export function use_advanced_search(): UseAdvancedSearchReturn {
         const parsed = parse_search_query(new_query);
         const new_active_filters = create_active_filters(parsed.operators);
 
-        setTimeout(() => {
+        if (filter_timer_ref.current) {
+          clearTimeout(filter_timer_ref.current);
+        }
+        filter_timer_ref.current = setTimeout(() => {
           perform_search(
             new_query,
             parsed.text_query,
@@ -2300,7 +2316,10 @@ export function use_advanced_search(): UseAdvancedSearchReturn {
     (scope: SearchScope) => {
       set_state((current) => {
         if (current.raw_query) {
-          setTimeout(() => {
+          if (filter_timer_ref.current) {
+            clearTimeout(filter_timer_ref.current);
+          }
+          filter_timer_ref.current = setTimeout(() => {
             perform_search(
               current.raw_query,
               current.text_query,
@@ -2372,6 +2391,10 @@ export function use_advanced_search(): UseAdvancedSearchReturn {
     return () => {
       if (debounce_timer_ref.current) {
         clearTimeout(debounce_timer_ref.current);
+      }
+
+      if (filter_timer_ref.current) {
+        clearTimeout(filter_timer_ref.current);
       }
 
       abort_controller_ref.current?.abort();

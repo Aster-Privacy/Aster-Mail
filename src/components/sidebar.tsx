@@ -70,6 +70,7 @@ interface SidebarProps {
   edit_draft?: EditDraftData | null;
   is_mobile_open?: boolean;
   on_mobile_toggle?: () => void;
+  is_search_active?: boolean;
 }
 
 export const MobileMenuButton = ({ on_click }: { on_click: () => void }) => {
@@ -94,6 +95,7 @@ export const Sidebar = ({
   edit_draft,
   is_mobile_open = false,
   on_mobile_toggle,
+  is_search_active = false,
 }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -158,6 +160,7 @@ export const Sidebar = ({
   const [selected_item, set_selected_item] = useState(
     get_initial_selected_item(),
   );
+  const effective_selected = is_search_active ? null : selected_item;
   const [indicator_style, set_indicator_style] = useState({});
   const [is_share_open, set_is_share_open] = useState(false);
   const [is_create_folder_open, set_is_create_folder_open] = useState(false);
@@ -524,7 +527,7 @@ export const Sidebar = ({
         className={`flex-1 overflow-y-auto ${is_collapsed ? "px-2" : "px-2.5"} pt-0.5`}
       >
         <div ref={container_ref} className="relative">
-          {!is_collapsed && (
+          {!is_collapsed && !is_search_active && (
             <div
               className="pointer-events-none absolute left-0 w-full rounded-md"
               style={{
@@ -557,11 +560,11 @@ export const Sidebar = ({
             style={{
               zIndex: 1,
               color:
-                selected_item === "inbox"
+                effective_selected === "inbox"
                   ? "var(--text-primary)"
                   : "var(--text-secondary)",
               backgroundColor:
-                is_collapsed && selected_item === "inbox"
+                is_collapsed && effective_selected === "inbox"
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
@@ -577,7 +580,7 @@ export const Sidebar = ({
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} transition-colors duration-150`}
               style={{
                 color:
-                  selected_item === "inbox"
+                  effective_selected === "inbox"
                     ? "var(--text-primary)"
                     : "var(--text-muted)",
               }}
@@ -606,11 +609,11 @@ export const Sidebar = ({
             style={{
               zIndex: 1,
               color:
-                selected_item === "sent"
+                effective_selected === "sent"
                   ? "var(--text-primary)"
                   : "var(--text-secondary)",
               backgroundColor:
-                is_collapsed && selected_item === "sent"
+                is_collapsed && effective_selected === "sent"
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
@@ -626,7 +629,7 @@ export const Sidebar = ({
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} transition-colors duration-150`}
               style={{
                 color:
-                  selected_item === "sent"
+                  effective_selected === "sent"
                     ? "var(--text-primary)"
                     : "var(--text-muted)",
               }}
@@ -650,11 +653,11 @@ export const Sidebar = ({
             style={{
               zIndex: 1,
               color:
-                selected_item === "scheduled"
+                effective_selected === "scheduled"
                   ? "var(--text-primary)"
                   : "var(--text-secondary)",
               backgroundColor:
-                is_collapsed && selected_item === "scheduled"
+                is_collapsed && effective_selected === "scheduled"
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
@@ -670,7 +673,7 @@ export const Sidebar = ({
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} transition-colors duration-150`}
               style={{
                 color:
-                  selected_item === "scheduled"
+                  effective_selected === "scheduled"
                     ? "var(--text-primary)"
                     : "var(--text-muted)",
               }}
@@ -699,11 +702,11 @@ export const Sidebar = ({
             style={{
               zIndex: 1,
               color:
-                selected_item === "snoozed"
+                effective_selected === "snoozed"
                   ? "var(--text-primary)"
                   : "var(--text-secondary)",
               backgroundColor:
-                is_collapsed && selected_item === "snoozed"
+                is_collapsed && effective_selected === "snoozed"
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
@@ -719,7 +722,7 @@ export const Sidebar = ({
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} transition-colors duration-150`}
               style={{
                 color:
-                  selected_item === "snoozed"
+                  effective_selected === "snoozed"
                     ? "var(--text-primary)"
                     : "var(--text-muted)",
               }}
@@ -746,11 +749,11 @@ export const Sidebar = ({
             style={{
               zIndex: 1,
               color:
-                selected_item === "drafts"
+                effective_selected === "drafts"
                   ? "var(--text-primary)"
                   : "var(--text-secondary)",
               backgroundColor:
-                is_collapsed && selected_item === "drafts"
+                is_collapsed && effective_selected === "drafts"
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
@@ -766,7 +769,7 @@ export const Sidebar = ({
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} transition-colors duration-150`}
               style={{
                 color:
-                  selected_item === "drafts"
+                  effective_selected === "drafts"
                     ? "var(--text-primary)"
                     : "var(--text-muted)",
               }}
@@ -803,11 +806,11 @@ export const Sidebar = ({
             style={{
               zIndex: 1,
               color:
-                selected_item === "starred"
+                effective_selected === "starred"
                   ? "var(--text-primary)"
                   : "var(--text-secondary)",
               backgroundColor:
-                is_collapsed && selected_item === "starred"
+                is_collapsed && effective_selected === "starred"
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
@@ -823,7 +826,7 @@ export const Sidebar = ({
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} transition-colors duration-150`}
               style={{
                 color:
-                  selected_item === "starred"
+                  effective_selected === "starred"
                     ? "var(--text-primary)"
                     : "var(--text-muted)",
               }}
@@ -847,11 +850,11 @@ export const Sidebar = ({
             style={{
               zIndex: 1,
               color:
-                selected_item === "all"
+                effective_selected === "all"
                   ? "var(--text-primary)"
                   : "var(--text-secondary)",
               backgroundColor:
-                is_collapsed && selected_item === "all"
+                is_collapsed && effective_selected === "all"
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
@@ -867,7 +870,7 @@ export const Sidebar = ({
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} transition-colors duration-150`}
               style={{
                 color:
-                  selected_item === "all"
+                  effective_selected === "all"
                     ? "var(--text-primary)"
                     : "var(--text-muted)",
               }}
@@ -883,11 +886,11 @@ export const Sidebar = ({
             style={{
               zIndex: 1,
               color:
-                selected_item === "archive"
+                effective_selected === "archive"
                   ? "var(--text-primary)"
                   : "var(--text-secondary)",
               backgroundColor:
-                is_collapsed && selected_item === "archive"
+                is_collapsed && effective_selected === "archive"
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
@@ -903,7 +906,7 @@ export const Sidebar = ({
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} transition-colors duration-150`}
               style={{
                 color:
-                  selected_item === "archive"
+                  effective_selected === "archive"
                     ? "var(--text-primary)"
                     : "var(--text-muted)",
               }}
@@ -927,11 +930,11 @@ export const Sidebar = ({
             style={{
               zIndex: 1,
               color:
-                selected_item === "spam"
+                effective_selected === "spam"
                   ? "var(--text-primary)"
                   : "var(--text-secondary)",
               backgroundColor:
-                is_collapsed && selected_item === "spam"
+                is_collapsed && effective_selected === "spam"
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
@@ -947,7 +950,7 @@ export const Sidebar = ({
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} transition-colors duration-150`}
               style={{
                 color:
-                  selected_item === "spam"
+                  effective_selected === "spam"
                     ? "var(--text-primary)"
                     : "var(--text-muted)",
               }}
@@ -971,11 +974,11 @@ export const Sidebar = ({
             style={{
               zIndex: 1,
               color:
-                selected_item === "trash"
+                effective_selected === "trash"
                   ? "var(--text-primary)"
                   : "var(--text-secondary)",
               backgroundColor:
-                is_collapsed && selected_item === "trash"
+                is_collapsed && effective_selected === "trash"
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
@@ -991,7 +994,7 @@ export const Sidebar = ({
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} transition-colors duration-150`}
               style={{
                 color:
-                  selected_item === "trash"
+                  effective_selected === "trash"
                     ? "var(--text-primary)"
                     : "var(--text-muted)",
               }}
@@ -1015,11 +1018,11 @@ export const Sidebar = ({
             style={{
               zIndex: 1,
               color:
-                selected_item === "contacts"
+                effective_selected === "contacts"
                   ? "var(--text-primary)"
                   : "var(--text-secondary)",
               backgroundColor:
-                is_collapsed && selected_item === "contacts"
+                is_collapsed && effective_selected === "contacts"
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
@@ -1035,7 +1038,7 @@ export const Sidebar = ({
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} transition-colors duration-150`}
               style={{
                 color:
-                  selected_item === "contacts"
+                  effective_selected === "contacts"
                     ? "var(--text-primary)"
                     : "var(--text-muted)",
               }}
@@ -1141,11 +1144,11 @@ export const Sidebar = ({
                           style={{
                             zIndex: 1,
                             color:
-                              selected_item === folder_item_id
+                              effective_selected === folder_item_id
                                 ? "var(--text-primary)"
                                 : "var(--text-secondary)",
                             backgroundColor:
-                              is_collapsed && selected_item === folder_item_id
+                              is_collapsed && effective_selected === folder_item_id
                                 ? "var(--indicator-bg)"
                                 : undefined,
                           }}

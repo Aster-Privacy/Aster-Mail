@@ -24,6 +24,7 @@ interface EmailAutocompleteProps {
   contacts: DecryptedContact[];
   existing_emails: string[];
   placeholder?: string;
+  auto_focus?: boolean;
 }
 
 export function EmailAutocomplete({
@@ -33,6 +34,7 @@ export function EmailAutocomplete({
   contacts,
   existing_emails,
   placeholder,
+  auto_focus = false,
 }: EmailAutocompleteProps) {
   const [is_open, set_is_open] = useState(false);
   const [selected_index, set_selected_index] = useState(0);
@@ -77,6 +79,16 @@ export function EmailAutocomplete({
     set_is_open(suggestions.length > 0 && value.length > 0);
     set_selected_index(0);
   }, [suggestions, value]);
+
+  useEffect(() => {
+    if (auto_focus && input_ref.current) {
+      const timer = setTimeout(() => {
+        input_ref.current?.focus();
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [auto_focus]);
 
   const handle_select = useCallback(
     (suggestion: EmailSuggestion) => {

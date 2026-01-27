@@ -261,6 +261,7 @@ export default function IndexPage() {
     set_popup_scheduled(null);
     set_split_email_id(null);
     set_split_scheduled_data(null);
+    set_active_search_query(null);
   }, []);
 
   useEffect(() => {
@@ -582,6 +583,7 @@ export default function IndexPage() {
         <Sidebar
           edit_draft={edit_draft}
           is_mobile_open={is_mobile_sidebar_open}
+          is_search_active={!!active_search_query}
           on_compose={open_compose}
           on_draft_click_compose={(draft) => {
             set_popup_email_id(null);
@@ -634,7 +636,8 @@ export default function IndexPage() {
                 on_search_click={() => set_is_search_open(true)}
                 on_split_close={handle_search_split_close}
                 split_email_id={
-                  preferences.email_view_mode === "split"
+                  preferences.email_view_mode === "split" ||
+                  preferences.email_view_mode === "fullpage"
                     ? split_email_id
                     : null
                 }

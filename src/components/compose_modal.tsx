@@ -332,6 +332,7 @@ interface RecipientFieldProps {
   show_cc?: boolean;
   show_bcc?: boolean;
   contacts?: DecryptedContact[];
+  auto_focus?: boolean;
 }
 
 function RecipientField({
@@ -349,6 +350,7 @@ function RecipientField({
   show_cc,
   show_bcc,
   contacts = [],
+  auto_focus = false,
 }: RecipientFieldProps) {
   const handle_key_down = (e: React.KeyboardEvent) => {
     if (e.key === "Backspace" && !input_value && recipients.length > 0) {
@@ -384,6 +386,7 @@ function RecipientField({
         ))}
         <div className="flex-1 min-w-[120px] compose_recipient_input">
           <EmailAutocomplete
+            auto_focus={auto_focus}
             contacts={contacts}
             existing_emails={recipients}
             on_change={on_input_change}
@@ -1544,6 +1547,7 @@ export function ComposeModal({
                     >
                       <RecipientField
                         show_cc_bcc_buttons
+                        auto_focus={is_open && !edit_draft}
                         contacts={contacts}
                         input_value={inputs.to}
                         label="To"

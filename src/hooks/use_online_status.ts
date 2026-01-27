@@ -8,6 +8,7 @@ interface OnlineStatusState {
 const subscribers = new Set<(is_online: boolean) => void>();
 let current_status = typeof navigator !== "undefined" ? navigator.onLine : true;
 let was_ever_offline = false;
+let listeners_attached = false;
 
 function broadcast(is_online: boolean): void {
   current_status = is_online;
@@ -17,9 +18,26 @@ function broadcast(is_online: boolean): void {
   subscribers.forEach((fn) => fn(is_online));
 }
 
-if (typeof window !== "undefined") {
-  window.addEventListener("online", () => broadcast(true));
-  window.addEventListener("offline", () => broadcast(false));
+function handle_online(): void {
+  broadcast(true);
+}
+
+function handle_offline(): void {
+  broadcast(false);
+}
+
+function attach_listeners(): void {
+  if (listeners_attached || typeof window === "undefined") return;
+  window.addEventListener("online", handle_online);
+  window.addEventListener("offline", handle_offline);
+  listeners_attached = true;
+}
+
+function detach_listeners(): void {
+  if (!listeners_attached || typeof window === "undefined") return;
+  window.removeEventListener("online", handle_online);
+  window.removeEventListener("offline", handle_offline);
+  listeners_attached = false;
 }
 
 export function use_online_status(): OnlineStatusState {
@@ -37,6 +55,11 @@ export function use_online_status(): OnlineStatusState {
     };
 
     subscribers.add(handler);
+
+    if (subscribers.size === 1) {
+      attach_listeners();
+    }
+
     set_state({
       is_online: current_status,
       was_offline: was_ever_offline,
@@ -44,6 +67,9 @@ export function use_online_status(): OnlineStatusState {
 
     return () => {
       subscribers.delete(handler);
+      if (subscribers.size === 0) {
+        detach_listeners();
+      }
     };
   }, []);
 

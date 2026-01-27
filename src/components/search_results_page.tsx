@@ -13,6 +13,7 @@ import {
 
 import { InboxEmailListItem } from "./inbox_email_list_item";
 import { SplitEmailViewer } from "./split_email_viewer";
+import { FullEmailViewer } from "./full_email_viewer";
 import { Spinner } from "./ui/spinner";
 import { Skeleton } from "./ui/skeleton";
 import { Separator } from "./ui/separator";
@@ -327,6 +328,8 @@ export function SearchResultsPage({
 
   const is_loading = state.is_loading || state.is_searching;
   const is_split_view = !!split_email_id;
+  const is_fullpage_mode = preferences.email_view_mode === "fullpage";
+  const show_full_email_viewer = is_fullpage_mode && !!split_email_id;
 
   const email_list_content = (
     <>
@@ -412,172 +415,189 @@ export function SearchResultsPage({
       className="flex flex-col h-full"
       style={{ backgroundColor: "var(--bg-primary)" }}
     >
-      <div
-        className="flex items-center gap-3 px-2 sm:px-4 py-2 sm:py-2.5 border-b flex-shrink-0"
-        style={{ borderColor: "var(--border-secondary)" }}
-      >
-        <button
-          className="p-1.5 rounded-lg transition-colors hover:bg-[var(--bg-hover)]"
-          style={{ color: "var(--text-secondary)" }}
-          onClick={on_close}
-        >
-          <ArrowLeftIcon className="w-5 h-5" />
-        </button>
-
-        <button
-          className="flex items-center gap-2 flex-1 min-w-0 h-9 px-3 rounded-lg border transition-colors hover:border-[var(--text-muted)] cursor-pointer"
-          style={{
-            backgroundColor: "var(--bg-secondary)",
-            borderColor: "var(--border-secondary)",
-          }}
-          onClick={on_search_click}
-        >
-          <MagnifyingGlassIcon
-            className="w-4 h-4 flex-shrink-0"
-            style={{ color: "var(--text-muted)" }}
-          />
-          <span
-            className="text-sm truncate text-left flex-1"
-            style={{ color: "var(--text-primary)" }}
+      {!show_full_email_viewer && (
+        <>
+          <div
+            className="flex items-center gap-3 px-2 sm:px-4 py-2 sm:py-2.5 border-b flex-shrink-0"
+            style={{ borderColor: "var(--border-secondary)" }}
           >
-            {query}
-          </span>
-          <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] border-[var(--border-secondary)]">
-            {is_mac ? "⌘" : "Ctrl"}K
-          </kbd>
-        </button>
-
-        <span
-          className="text-xs whitespace-nowrap"
-          style={{ color: "var(--text-muted)" }}
-        >
-          {is_loading ? (
-            "Searching..."
-          ) : (
-            <>
-              {filtered_results.length} result
-              {filtered_results.length !== 1 ? "s" : ""}
-            </>
-          )}
-        </span>
-      </div>
-
-      <div
-        className="flex-shrink-0 border-b"
-        style={{ borderColor: "var(--border-primary)" }}
-      >
-        <div className="flex items-center gap-2 px-3 sm:px-4 py-2 overflow-x-auto">
-          <FilterButton
-            icon={CalendarIcon}
-            is_active={filters.date_range === "today"}
-            label="Today"
-            on_click={() =>
-              set_filters((prev) => ({
-                ...prev,
-                date_range: prev.date_range === "today" ? "any" : "today",
-              }))
-            }
-          />
-          <FilterButton
-            icon={CalendarIcon}
-            is_active={filters.date_range === "week"}
-            label="Past week"
-            on_click={() =>
-              set_filters((prev) => ({
-                ...prev,
-                date_range: prev.date_range === "week" ? "any" : "week",
-              }))
-            }
-          />
-          <FilterButton
-            icon={CalendarIcon}
-            is_active={filters.date_range === "month"}
-            label="Past month"
-            on_click={() =>
-              set_filters((prev) => ({
-                ...prev,
-                date_range: prev.date_range === "month" ? "any" : "month",
-              }))
-            }
-          />
-
-          <Separator
-            className="h-4 mx-1 bg-[var(--border-secondary)]"
-            orientation="vertical"
-          />
-
-          <FilterButton
-            icon={PaperClipIcon}
-            is_active={filters.has_attachment === true}
-            label="Has attachment"
-            on_click={() =>
-              set_filters((prev) => ({
-                ...prev,
-                has_attachment: prev.has_attachment === true ? null : true,
-              }))
-            }
-          />
-
-          <FilterButton
-            icon={UserGroupIcon}
-            is_active={filters.exclude_social}
-            label="Exclude social"
-            on_click={() =>
-              set_filters((prev) => ({
-                ...prev,
-                exclude_social: !prev.exclude_social,
-              }))
-            }
-          />
-
-          <Separator
-            className="h-4 mx-1 bg-[var(--border-secondary)] hidden sm:block"
-            orientation="vertical"
-          />
-
-          <FilterButton
-            icon={EnvelopeIcon}
-            is_active={filters.read_status === "unread"}
-            label="Unread"
-            on_click={() =>
-              set_filters((prev) => ({
-                ...prev,
-                read_status: prev.read_status === "unread" ? "any" : "unread",
-              }))
-            }
-          />
-          <FilterButton
-            icon={EnvelopeOpenIcon}
-            is_active={filters.read_status === "read"}
-            label="Read"
-            on_click={() =>
-              set_filters((prev) => ({
-                ...prev,
-                read_status: prev.read_status === "read" ? "any" : "read",
-              }))
-            }
-          />
-
-          <div className="ml-auto flex items-center gap-2">
-            <Select
-              value={filters.sort_by}
-              onValueChange={(value: SortOption) =>
-                set_filters((prev) => ({ ...prev, sort_by: value }))
-              }
+            <button
+              className="p-1.5 rounded-lg transition-colors hover:bg-[var(--bg-hover)]"
+              style={{ color: "var(--text-secondary)" }}
+              onClick={on_close}
             >
-              <SelectTrigger className="h-7 w-[140px] text-[13px] border-[var(--border-secondary)] bg-transparent">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="relevant">Most relevant</SelectItem>
-                <SelectItem value="recent">Most recent</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
 
-      {is_split_view ? (
+            <button
+              className="flex items-center gap-2 flex-1 min-w-0 h-9 px-3 rounded-lg border transition-colors hover:border-[var(--text-muted)] cursor-pointer"
+              style={{
+                backgroundColor: "var(--bg-secondary)",
+                borderColor: "var(--border-secondary)",
+              }}
+              onClick={on_search_click}
+            >
+              <MagnifyingGlassIcon
+                className="w-4 h-4 flex-shrink-0"
+                style={{ color: "var(--text-muted)" }}
+              />
+              <span
+                className="text-sm truncate text-left flex-1"
+                style={{ color: "var(--text-primary)" }}
+              >
+                {query}
+              </span>
+              <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] border-[var(--border-secondary)]">
+                {is_mac ? "⌘" : "Ctrl"}K
+              </kbd>
+            </button>
+
+            <span
+              className="text-xs whitespace-nowrap"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {is_loading ? (
+                "Searching..."
+              ) : (
+                <>
+                  {filtered_results.length} result
+                  {filtered_results.length !== 1 ? "s" : ""}
+                </>
+              )}
+            </span>
+          </div>
+
+          <div
+            className="flex-shrink-0 border-b"
+            style={{ borderColor: "var(--border-primary)" }}
+          >
+            <div className="flex items-center gap-2 px-3 sm:px-4 py-2 overflow-x-auto">
+              <FilterButton
+                icon={CalendarIcon}
+                is_active={filters.date_range === "today"}
+                label="Today"
+                on_click={() =>
+                  set_filters((prev) => ({
+                    ...prev,
+                    date_range: prev.date_range === "today" ? "any" : "today",
+                  }))
+                }
+              />
+              <FilterButton
+                icon={CalendarIcon}
+                is_active={filters.date_range === "week"}
+                label="Past week"
+                on_click={() =>
+                  set_filters((prev) => ({
+                    ...prev,
+                    date_range: prev.date_range === "week" ? "any" : "week",
+                  }))
+                }
+              />
+              <FilterButton
+                icon={CalendarIcon}
+                is_active={filters.date_range === "month"}
+                label="Past month"
+                on_click={() =>
+                  set_filters((prev) => ({
+                    ...prev,
+                    date_range: prev.date_range === "month" ? "any" : "month",
+                  }))
+                }
+              />
+
+              <Separator
+                className="h-4 mx-1 bg-[var(--border-secondary)]"
+                orientation="vertical"
+              />
+
+              <FilterButton
+                icon={PaperClipIcon}
+                is_active={filters.has_attachment === true}
+                label="Has attachment"
+                on_click={() =>
+                  set_filters((prev) => ({
+                    ...prev,
+                    has_attachment: prev.has_attachment === true ? null : true,
+                  }))
+                }
+              />
+
+              <FilterButton
+                icon={UserGroupIcon}
+                is_active={filters.exclude_social}
+                label="Exclude social"
+                on_click={() =>
+                  set_filters((prev) => ({
+                    ...prev,
+                    exclude_social: !prev.exclude_social,
+                  }))
+                }
+              />
+
+              <Separator
+                className="h-4 mx-1 bg-[var(--border-secondary)] hidden sm:block"
+                orientation="vertical"
+              />
+
+              <FilterButton
+                icon={EnvelopeIcon}
+                is_active={filters.read_status === "unread"}
+                label="Unread"
+                on_click={() =>
+                  set_filters((prev) => ({
+                    ...prev,
+                    read_status: prev.read_status === "unread" ? "any" : "unread",
+                  }))
+                }
+              />
+              <FilterButton
+                icon={EnvelopeOpenIcon}
+                is_active={filters.read_status === "read"}
+                label="Read"
+                on_click={() =>
+                  set_filters((prev) => ({
+                    ...prev,
+                    read_status: prev.read_status === "read" ? "any" : "read",
+                  }))
+                }
+              />
+
+              <div className="ml-auto flex items-center gap-2">
+                <Select
+                  value={filters.sort_by}
+                  onValueChange={(value: SortOption) =>
+                    set_filters((prev) => ({ ...prev, sort_by: value }))
+                  }
+                >
+                  <SelectTrigger className="h-7 w-[140px] text-[13px] border-[var(--border-secondary)] bg-transparent">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="relevant">Most relevant</SelectItem>
+                    <SelectItem value="recent">Most recent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {show_full_email_viewer && split_email_id ? (
+        <div className="flex-1 overflow-hidden">
+          <FullEmailViewer
+            can_go_next={can_go_next}
+            can_go_prev={can_go_prev}
+            current_index={current_email_index}
+            email_id={split_email_id}
+            on_back={on_split_close || (() => {})}
+            on_navigate_next={handle_navigate_next}
+            on_navigate_prev={handle_navigate_prev}
+            total_count={result_ids.length}
+          />
+        </div>
+      ) : is_split_view && !is_fullpage_mode ? (
         <div
           className="flex-1 flex min-h-0"
           style={{

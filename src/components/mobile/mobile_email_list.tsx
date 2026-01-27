@@ -372,16 +372,18 @@ export function MobileEmailList({
 
                     {on_star && (
                       <button
-                        className="flex-shrink-0 p-1"
+                        aria-label={email.is_starred ? "Unstar email" : "Star email"}
+                        className="flex-shrink-0 p-2.5 -mr-2 touch-manipulation"
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           on_star(email.id, !email.is_starred);
                         }}
                       >
                         {email.is_starred ? (
-                          <StarIconSolid className="h-4 w-4 text-yellow-500" />
+                          <StarIconSolid className="h-5 w-5 text-yellow-500" />
                         ) : (
-                          <StarIcon className="h-4 w-4 text-muted-foreground" />
+                          <StarIcon className="h-5 w-5 text-muted-foreground" />
                         )}
                       </button>
                     )}

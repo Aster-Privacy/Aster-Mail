@@ -426,7 +426,12 @@ async function fetch_mail_from_api(
     (r): r is PromiseRejectedResult => r.status === "rejected",
   );
 
-  void rejected.length;
+  if (rejected.length > 0 && process.env.NODE_ENV === "development") {
+    console.warn(
+      `[use_email_list] ${rejected.length} email(s) failed to decrypt:`,
+      rejected.map((r) => r.reason),
+    );
+  }
 
   const successful = results
     .filter(
