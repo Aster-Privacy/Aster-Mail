@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRightStartOnRectangleIcon,
+  ArrowTopRightOnSquareIcon,
   SparklesIcon,
   ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
@@ -223,6 +224,25 @@ export function WorkspaceSwitcher({
                 Upgrade to Pro
               </span>
             </button>
+
+            <a
+              className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06] mb-0.5"
+              href="https://portal.astermail.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => on_open_change(false)}
+            >
+              <ArrowTopRightOnSquareIcon
+                className="w-4 h-4"
+                style={{ color: "var(--text-muted)" }}
+              />
+              <span
+                className="text-[13px]"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Go to Portal
+              </span>
+            </a>
 
             <button
               className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors hover:bg-red-500/10"

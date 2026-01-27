@@ -11,6 +11,6 @@ export const PROFILE_COLORS = [
 
 export type ProfileColor = (typeof PROFILE_COLORS)[number];
 
-export function get_random_profile_color(): ProfileColor {
-  return PROFILE_COLORS[Math.floor(Math.random() * PROFILE_COLORS.length)];
+export function get_default_profile_color(): ProfileColor {
+  return "#3b82f6";
 }

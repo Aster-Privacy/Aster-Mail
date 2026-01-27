@@ -5,7 +5,7 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 import { ConfirmationModal } from "@/components/confirmation_modal";
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
-import { PROFILE_COLORS, get_random_profile_color } from "@/constants/profile";
+import { PROFILE_COLORS, get_default_profile_color } from "@/constants/profile";
 import { PlansComparison } from "@/components/plans_comparison";
 import { Button } from "@/components/ui/button";
 import { show_toast } from "@/components/simple_toast";
@@ -184,7 +184,7 @@ export default function RegisterPage() {
   const [confirm_password, set_confirm_password] = useState("");
   const [recovery_email, set_recovery_email] = useState("");
   const [remember_me, set_remember_me] = useState(true);
-  const [profile_color, set_profile_color] = useState(get_random_profile_color);
+  const [profile_color, set_profile_color] = useState(get_default_profile_color);
 
   const [error, set_error] = useState("");
   const [generation_status, set_generation_status] = useState("");

@@ -66,12 +66,6 @@ export default defineConfig(({ mode }) => ({
         target: api_target,
         changeOrigin: true,
         secure: false,
-        cookieDomainRewrite: {
-          "*": "",
-        },
-        cookiePathRewrite: {
-          "*": "/",
-        },
       },
     },
   },

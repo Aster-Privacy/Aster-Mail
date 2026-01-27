@@ -661,6 +661,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 
   const remove_account_handler = useCallback(async (account_id: string) => {
+    const is_current = account_id === state.current_account_id;
+
+    if (is_current) {
+      sync_client.disconnect();
+      try {
+        await api_client.post("/auth/logout", {});
+      } catch {
+        // proceed with local cleanup
+      }
+      api_client.clear_auth_data();
+    }
+
     const result = await storage_remove_account(account_id);
 
     if (result.removed) {
@@ -719,7 +731,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
       }
     }
-  }, []);
+  }, [state.current_account_id]);
 
   const logout = useCallback(async () => {
     if (state.current_account_id) {
