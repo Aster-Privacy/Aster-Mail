@@ -363,10 +363,18 @@ export function ThreadMessagesList({
 
   const read_ids_ref = useRef<Set<string>>(read_ids);
   const auto_read_ids = useRef<Set<string>>(new Set());
+  const pending_read_updates = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   useEffect(() => {
     read_ids_ref.current = read_ids;
   }, [read_ids]);
+
+  useEffect(() => {
+    return () => {
+      pending_read_updates.current.forEach((timeout) => clearTimeout(timeout));
+      pending_read_updates.current.clear();
+    };
+  }, []);
 
   useEffect(() => {
     const new_starred = new Set<string>();
@@ -556,6 +564,8 @@ export function ThreadMessagesList({
 
       if (!new_read) {
         auto_read_ids.current.add(msg.id);
+      } else {
+        auto_read_ids.current.delete(msg.id);
       }
 
       set_read_ids((prev) => {
@@ -570,38 +580,48 @@ export function ThreadMessagesList({
         return next;
       });
 
-      emit_mail_item_updated({ id: msg.id, is_read: new_read });
+      const existing_timeout = pending_read_updates.current.get(msg.id);
+      if (existing_timeout) {
+        clearTimeout(existing_timeout);
+      }
 
-      update_item_metadata(
-        msg.id,
-        {
-          encrypted_metadata: msg.encrypted_metadata,
-          metadata_nonce: msg.metadata_nonce,
-          is_read: is_currently_read,
-          is_starred: starred_ids.has(msg.id),
-        },
-        { is_read: new_read },
-      ).then((result) => {
-        if (!result.success) {
-          if (!new_read) {
-            auto_read_ids.current.delete(msg.id);
+      const timeout = setTimeout(() => {
+        pending_read_updates.current.delete(msg.id);
+
+        const final_read_state = read_ids_ref.current.has(msg.id);
+
+        emit_mail_item_updated({ id: msg.id, is_read: final_read_state });
+
+        update_item_metadata(
+          msg.id,
+          {
+            encrypted_metadata: msg.encrypted_metadata,
+            metadata_nonce: msg.metadata_nonce,
+            is_read: !final_read_state,
+            is_starred: starred_ids.has(msg.id),
+          },
+          { is_read: final_read_state },
+        ).then((result) => {
+          if (!result.success) {
+            set_read_ids((prev) => {
+              const next = new Set(prev);
+
+              if (final_read_state) {
+                next.delete(msg.id);
+              } else {
+                next.add(msg.id);
+              }
+
+              return next;
+            });
+            emit_mail_item_updated({ id: msg.id, is_read: !final_read_state });
+          } else {
+            window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
           }
-          set_read_ids((prev) => {
-            const next = new Set(prev);
+        });
+      }, 300);
 
-            if (new_read) {
-              next.delete(msg.id);
-            } else {
-              next.add(msg.id);
-            }
-
-            return next;
-          });
-          emit_mail_item_updated({ id: msg.id, is_read: !new_read });
-        } else {
-          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-        }
-      });
+      pending_read_updates.current.set(msg.id, timeout);
 
       on_toggle_message_read?.(msg.id);
     },

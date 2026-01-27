@@ -1,7 +1,6 @@
 import type { InboxEmail } from "@/types/email";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeftIcon,
   MagnifyingGlassIcon,
@@ -334,28 +333,19 @@ export function SearchResultsPage({
         </div>
       ) : (
         <>
-          <AnimatePresence mode="popLayout">
-            {filtered_results.map((email) => (
-              <motion.div
-                key={email.id}
-                exit={{ opacity: 0, height: 0 }}
-                initial={{ opacity: 1, height: "auto" }}
-                layout
-                transition={{ duration: 0.2 }}
-              >
-                <InboxEmailListItem
-                  current_view="search"
-                  density={preferences.density}
-                  email={email as InboxEmail}
-                  is_active={email.id === split_email_id}
-                  on_email_click={handle_email_click}
-                  on_toggle_select={handle_toggle_select}
-                  show_email_preview={preferences.show_email_preview}
-                  show_profile_pictures={preferences.show_profile_pictures}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          {filtered_results.map((email) => (
+            <InboxEmailListItem
+              key={email.id}
+              current_view="search"
+              density={preferences.density}
+              email={email as InboxEmail}
+              is_active={email.id === split_email_id}
+              on_email_click={handle_email_click}
+              on_toggle_select={handle_toggle_select}
+              show_email_preview={!is_split_view && preferences.show_email_preview}
+              show_profile_pictures={preferences.show_profile_pictures}
+            />
+          ))}
 
           {state.is_loading_more && (
             <div className="flex items-center justify-center py-4">
