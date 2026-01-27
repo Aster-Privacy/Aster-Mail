@@ -4,6 +4,9 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { ComposeWindow } from "./compose_window";
+import { show_toast } from "@/components/simple_toast";
+
+const MAX_COMPOSE_INSTANCES = 3;
 
 export interface EditDraftData {
   id: string;

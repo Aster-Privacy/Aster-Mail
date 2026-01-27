@@ -73,12 +73,6 @@ const PREFERENCE_VALIDATORS: Record<
   forward_secrecy_enabled: (v) => typeof v === "boolean",
   key_rotation_hours: (v) => typeof v === "number" && v >= 1 && v <= 8760,
   key_history_limit: (v) => typeof v === "number" && v >= 0 && v <= 100,
-  style_preset: (v) =>
-    v === "gmail" ||
-    v === "outlook" ||
-    v === "apple_mail" ||
-    v === "yahoo" ||
-    v === "custom",
   accent_color: (v) => typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v),
   accent_color_hover: (v) =>
     typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v),

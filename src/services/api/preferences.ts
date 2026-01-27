@@ -1,5 +1,4 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
-import type { StylePresetId } from "@/types/style_presets";
 
 import { api_client } from "./client";
 
@@ -60,7 +59,6 @@ export interface UserPreferences {
   forward_secrecy_enabled: boolean;
   key_rotation_hours: number;
   key_history_limit: number;
-  style_preset: StylePresetId;
   accent_color: string;
   accent_color_hover: string;
   reduce_motion: boolean;
@@ -204,7 +202,6 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   forward_secrecy_enabled: false,
   key_rotation_hours: 168,
   key_history_limit: 0,
-  style_preset: "custom",
   accent_color: "#3b82f6",
   accent_color_hover: "#2563eb",
   reduce_motion: false,

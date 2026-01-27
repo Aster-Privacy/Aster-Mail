@@ -1,5 +1,4 @@
 import type { LanguageCode } from "@/lib/i18n/types";
-import type { StylePresetId } from "@/types/style_presets";
 
 import {
   createContext,
@@ -20,10 +19,6 @@ import {
   DEFAULT_PREFERENCES,
   type UserPreferences,
 } from "@/services/api/preferences";
-import {
-  STYLE_PRESETS,
-  STYLE_AFFECTING_PREFERENCES,
-} from "@/constants/style_presets";
 import {
   load_notification_preferences,
   request_notification_permission,
@@ -56,7 +51,6 @@ interface PreferencesContextType {
     immediate?: boolean,
   ) => void;
   update_preferences: (updates: Partial<UserPreferences>) => void;
-  apply_style_preset: (preset_id: StylePresetId) => void;
   reset_to_defaults: () => void;
   reset_section: (keys: (keyof UserPreferences)[]) => void;
   save_now: () => Promise<void>;
@@ -248,18 +242,6 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           );
         }
 
-        const is_style_affecting = STYLE_AFFECTING_PREFERENCES.includes(
-          key as (typeof STYLE_AFFECTING_PREFERENCES)[number],
-        );
-
-        if (
-          is_style_affecting &&
-          key !== "style_preset" &&
-          updated.style_preset !== "custom"
-        ) {
-          updated.style_preset = "custom";
-        }
-
         if (immediate) {
           if (save_timeout.current) {
             clearTimeout(save_timeout.current);
@@ -288,52 +270,6 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       });
     },
     [schedule_save],
-  );
-
-  const apply_style_preset = useCallback(
-    (preset_id: StylePresetId) => {
-      const preset = STYLE_PRESETS[preset_id];
-
-      if (!preset) return;
-
-      set_preferences((prev) => {
-        const is_dark = document.documentElement.classList.contains("dark");
-        const colors = is_dark ? preset.colors.dark : preset.colors.light;
-
-        const updated: UserPreferences = {
-          ...prev,
-          style_preset: preset_id,
-          density: preset.density,
-          inbox_format: preset.inbox_format,
-          email_view_mode: preset.email_view_mode,
-          reading_pane_position: preset.reading_pane_position,
-          show_profile_pictures: preset.show_profile_pictures,
-          show_email_preview: preset.show_email_preview,
-          split_pane_width: preset.split_pane_width,
-          accent_color: colors.accent,
-          accent_color_hover: colors.accent_hover,
-        };
-
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          colors.accent,
-        );
-        document.documentElement.style.setProperty(
-          "--accent-color-hover",
-          colors.accent_hover,
-        );
-
-        if (save_timeout.current) {
-          clearTimeout(save_timeout.current);
-          save_timeout.current = null;
-        }
-        pending_preferences.current = updated;
-        save_debounced(updated);
-
-        return updated;
-      });
-    },
-    [save_debounced],
   );
 
   const reset_to_defaults = useCallback(() => {
@@ -434,7 +370,6 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         preferences,
         update_preference,
         update_preferences,
-        apply_style_preset,
         reset_to_defaults,
         reset_section,
         save_now,
