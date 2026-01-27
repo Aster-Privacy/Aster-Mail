@@ -45,13 +45,23 @@ export function useComposeManager() {
 
   const open_compose = useCallback(
     (edit_draft?: EditDraftData | null, initial_to?: string) => {
-      const new_instance: ComposeInstance = {
-        id: generate_compose_id(),
-        edit_draft,
-        initial_to,
-        is_minimized: false,
-      };
-      set_instances((prev) => [...prev, new_instance]);
+      set_instances((prev) => {
+        if (prev.length >= MAX_COMPOSE_INSTANCES) {
+          show_toast(
+            "You can't have more than three email composers open at a time.",
+            "error",
+          );
+          return prev;
+        }
+
+        const new_instance: ComposeInstance = {
+          id: generate_compose_id(),
+          edit_draft,
+          initial_to,
+          is_minimized: false,
+        };
+        return [...prev, new_instance];
+      });
     },
     [],
   );
