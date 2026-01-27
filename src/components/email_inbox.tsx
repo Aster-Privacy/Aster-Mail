@@ -99,6 +99,7 @@ import { cn } from "@/lib/utils";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { SplitEmailViewer } from "@/components/split_email_viewer";
 import { SplitScheduledViewer } from "@/components/split_scheduled_viewer";
+import { FullEmailViewer } from "@/components/full_email_viewer";
 import { CustomSnoozeModal } from "@/components/custom_snooze_modal";
 
 interface ReplyData {
@@ -1574,6 +1575,8 @@ export function EmailInbox({
   }, []);
 
   const is_split_view = !!split_email_id || !!split_scheduled_data;
+  const is_full_view_mode = preferences.inbox_format === "full";
+  const show_full_email_viewer = is_full_view_mode && !!split_email_id && !split_scheduled_data;
 
   const split_email_snoozed_until = useMemo(() => {
     if (!split_email_id) return undefined;
@@ -1743,46 +1746,60 @@ export function EmailInbox({
         className="flex flex-col h-full"
         style={{ backgroundColor: "var(--bg-primary)" }}
       >
-        <InboxHeader
-          active_filter={active_filter}
-          on_compose={on_compose}
-          on_filter_change={handle_filter_change}
-          on_search_click={on_search_click}
-          on_settings_click={on_settings_click}
-          view_title={get_view_title(current_view, folders_state.folders)}
-        />
+        {!show_full_email_viewer && (
+          <>
+            <InboxHeader
+              active_filter={active_filter}
+              on_compose={on_compose}
+              on_filter_change={handle_filter_change}
+              on_search_click={on_search_click}
+              on_settings_click={on_settings_click}
+              view_title={get_view_title(current_view, folders_state.folders)}
+            />
 
-        <InboxToolbar
-          active_filter={active_filter}
-          all_selected={all_selected}
-          current_page={current_page}
-          current_view={current_view}
-          filtered_count={filtered_emails.length}
-          folders={folders_state.folders.map((f) => ({
-            folder_token: f.folder_token,
-            name: f.name,
-            color: f.color || "#6366f1",
-          }))}
-          on_archive={handle_toolbar_archive}
-          on_custom_snooze={() => set_show_toolbar_custom_snooze(true)}
-          on_delete={handle_toolbar_delete}
-          on_empty_spam={handle_empty_spam}
-          on_filter_change={handle_filter_change}
-          on_mark_read={handle_toolbar_mark_read}
-          on_page_change={handle_page_change}
-          on_reply={handle_toolbar_reply}
-          on_snooze={handle_toolbar_snooze}
-          on_spam={handle_toolbar_spam}
-          on_toggle_folder={handle_toolbar_toggle_folder}
-          on_toggle_select_all={handle_toggle_select_all}
-          on_unarchive={handle_toolbar_unarchive}
-          page_size={page_size}
-          selected_emails={selected_emails}
-          some_selected={some_selected}
-          total_messages={email_state.total_messages}
-        />
+            <InboxToolbar
+              active_filter={active_filter}
+              all_selected={all_selected}
+              current_page={current_page}
+              current_view={current_view}
+              filtered_count={filtered_emails.length}
+              folders={folders_state.folders.map((f) => ({
+                folder_token: f.folder_token,
+                name: f.name,
+                color: f.color || "#6366f1",
+              }))}
+              on_archive={handle_toolbar_archive}
+              on_custom_snooze={() => set_show_toolbar_custom_snooze(true)}
+              on_delete={handle_toolbar_delete}
+              on_empty_spam={handle_empty_spam}
+              on_filter_change={handle_filter_change}
+              on_mark_read={handle_toolbar_mark_read}
+              on_page_change={handle_page_change}
+              on_reply={handle_toolbar_reply}
+              on_snooze={handle_toolbar_snooze}
+              on_spam={handle_toolbar_spam}
+              on_toggle_folder={handle_toolbar_toggle_folder}
+              on_toggle_select_all={handle_toggle_select_all}
+              on_unarchive={handle_toolbar_unarchive}
+              page_size={page_size}
+              selected_emails={selected_emails}
+              some_selected={some_selected}
+              total_messages={email_state.total_messages}
+            />
+          </>
+        )}
 
-        {is_split_view ? (
+        {show_full_email_viewer && split_email_id ? (
+          <div className="flex-1 overflow-hidden">
+            <FullEmailViewer
+              email_id={split_email_id}
+              on_back={on_split_close || (() => {})}
+              on_forward={on_forward}
+              on_reply={on_reply}
+              snoozed_until={split_email_snoozed_until}
+            />
+          </div>
+        ) : is_split_view && !is_full_view_mode ? (
           <div
             className="flex-1 flex min-h-0"
             style={{

@@ -243,6 +243,13 @@ export default function IndexPage() {
     set_split_scheduled_data(null);
   }, []);
 
+  const handle_sidebar_nav_click = useCallback(() => {
+    set_popup_email_id(null);
+    set_popup_scheduled(null);
+    set_split_email_id(null);
+    set_split_scheduled_data(null);
+  }, []);
+
   useEffect(() => {
     if (
       vault &&
@@ -539,6 +546,7 @@ export default function IndexPage() {
             set_popup_scheduled(null);
             set_split_scheduled_data(null);
           }}
+          on_nav_click={handle_sidebar_nav_click}
           on_settings_click={(section) => {
             set_popup_email_id(null);
             set_popup_scheduled(null);

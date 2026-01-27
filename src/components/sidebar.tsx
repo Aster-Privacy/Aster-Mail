@@ -81,6 +81,7 @@ interface FolderModalData {
 interface SidebarProps {
   on_settings_click: (section?: string) => void;
   on_modal_open?: () => void;
+  on_nav_click?: () => void;
   force_close_compose?: boolean;
   open_compose_trigger?: boolean;
   edit_draft?: EditDraftData | null;
@@ -107,6 +108,7 @@ export const MobileMenuButton = ({ on_click }: { on_click: () => void }) => {
 export const Sidebar = ({
   on_settings_click,
   on_modal_open,
+  on_nav_click,
   force_close_compose,
   open_compose_trigger,
   edit_draft,
@@ -403,6 +405,7 @@ export const Sidebar = ({
   }, [on_compose_to_cleared]);
 
   const handle_nav_click = (callback: () => void) => {
+    on_nav_click?.();
     callback();
     if (is_mobile && on_mobile_toggle) {
       on_mobile_toggle();

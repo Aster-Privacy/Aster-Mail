@@ -44,6 +44,12 @@ import {
   check_session_expired,
   clear_session_timeout_data,
 } from "@/services/session_timeout_service";
+import {
+  broadcast_logout,
+  broadcast_logout_all,
+  broadcast_session_expired,
+  subscribe_to_session_sync,
+} from "@/services/session_sync_service";
 import { is_auth_page } from "@/lib/auth_utils";
 
 const ENCRYPTED_VAULT_KEY_PREFIX = "astermail_encrypted_vault_";
@@ -670,6 +676,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } catch {
         // proceed with local cleanup
       }
+      broadcast_logout();
       api_client.clear_auth_data();
     }
 
@@ -772,6 +779,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
 
+    broadcast_logout_all();
     await clear_local_auth_data();
   }, [clear_local_auth_data]);
 
@@ -795,6 +803,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         has_keys: false,
       }));
 
+      broadcast_session_expired();
       window.dispatchEvent(new CustomEvent("astermail:session-locked"));
     };
 
@@ -819,6 +828,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
       );
     };
   }, [logout_all_handler, state.current_account_id]);
+
+  useEffect(() => {
+    const unsubscribe = subscribe_to_session_sync(
+      () => {
+        clear_local_auth_data();
+      },
+      () => {
+        clear_local_auth_data();
+      },
+      () => {
+        clear_local_auth_data();
+      },
+    );
+
+    return unsubscribe;
+  }, [clear_local_auth_data]);
 
   const set_vault = useCallback(
     async (vault: EncryptedVault, passphrase: string) => {
