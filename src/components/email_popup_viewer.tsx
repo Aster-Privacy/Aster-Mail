@@ -19,7 +19,6 @@ import {
   FolderIcon,
   NoSymbolIcon,
   MapPinIcon,
-  PaperAirplaneIcon,
   ChevronUpIcon,
   ChevronDownIcon,
   ClockIcon,
@@ -41,7 +40,6 @@ import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import {
   MAIL_EVENTS,
   emit_mail_item_updated,
-  emit_thread_reply_sent,
   type MailItemUpdatedEventDetail,
   type ThreadReplySentEventDetail,
 } from "@/hooks/mail_events";
@@ -49,13 +47,9 @@ import { show_action_toast } from "@/components/action_toast";
 import { show_toast } from "@/components/simple_toast";
 import { LockIcon } from "@/components/icons";
 import { EncryptionInfoModal } from "@/components/encryption_info_modal";
-import { send_reply, type OriginalEmail } from "@/services/mail_actions";
-import { undo_send_manager } from "@/hooks/use_undo_send";
-import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { try_decrypt_ratchet_body } from "@/utils/email_crypto";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { use_signatures } from "@/contexts/signatures_context";
 import {
   get_passphrase_bytes,
   get_vault_from_memory,
@@ -66,6 +60,9 @@ import {
 } from "@/services/crypto/envelope";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
+import { extract_email_details } from "@/services/extraction/extractor";
+import { PurchaseDetailsBanner } from "@/components/email/purchase_details_banner";
+import { ShippingDetailsBanner } from "@/components/email/shipping_details_banner";
 import {
   format_snooze_remaining,
   format_snooze_target,
@@ -74,12 +71,12 @@ import { is_astermail_sender, get_email_username } from "@/lib/utils";
 import { use_date_format } from "@/hooks/use_date_format";
 import { EmailProfileTrigger } from "@/components/email_profile_trigger";
 import { ThreadMessagesList } from "@/components/thread_message_block";
-import { EditorToolbar } from "@/components/editor_toolbar";
 import { print_email } from "@/utils/print_email";
 import {
   fetch_and_decrypt_thread_messages,
   get_latest_expanded_id,
 } from "@/services/thread_service";
+import { InlineReplySection } from "@/components/inline_reply_section";
 
 interface EmailPopupViewerProps {
   email_id: string | null;
@@ -203,8 +200,6 @@ type PopupSize = "default" | "expanded" | "fullscreen";
 
 const POPUP_MARGIN = 16;
 const FULLSCREEN_MARGIN = 64;
-const ASTER_FOOTER =
-  '<br><br><span style="color: var(--text-tertiary); font-size: 12px;">Secured by <a href="https://astermail.org" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Aster Mail</a></span>';
 
 export function EmailPopupViewer({
   email_id,
@@ -222,7 +217,6 @@ export function EmailPopupViewer({
 }: EmailPopupViewerProps) {
   const { user } = use_auth();
   const { preferences } = use_preferences();
-  const { default_signature, get_formatted_signature } = use_signatures();
   const { format_email_detail, format_email_popup } = use_date_format();
   const [email, set_email] = useState<DecryptedEmail | null>(null);
   const [mail_item, set_mail_item] = useState<MailItem | null>(null);
@@ -238,9 +232,7 @@ export function EmailPopupViewer({
   const [is_dragging, set_is_dragging] = useState(false);
   const [show_details, set_show_details] = useState(false);
   const [show_encryption_info, set_show_encryption_info] = useState(false);
-  const [show_reply_composer, set_show_reply_composer] = useState(false);
-  const [reply_message, set_reply_message] = useState("");
-  const [is_sending, set_is_sending] = useState(false);
+  const [show_inline_reply, set_show_inline_reply] = useState(false);
   const [thread_messages, set_thread_messages] = useState<
     DecryptedThreadMessage[]
   >([]);
@@ -249,7 +241,7 @@ export function EmailPopupViewer({
   >(null);
   const drag_start_ref = useRef({ x: 0, y: 0, pos_x: 0, pos_y: 0 });
   const popup_ref = useRef<HTMLDivElement>(null);
-  const reply_editor_ref = useRef<HTMLDivElement>(null);
+  const inline_reply_ref = useRef<HTMLDivElement>(null);
   const timestamp_date = useRef<Date | null>(null);
   const mark_as_read_timeout = useRef<number | null>(null);
 
@@ -274,6 +266,18 @@ export function EmailPopupViewer({
     if (email.unsubscribe_info) return email.unsubscribe_info;
 
     return detect_unsubscribe_info(undefined, email.body);
+  }, [email]);
+
+  const extraction_result = useMemo(() => {
+    if (!email) return null;
+
+    return extract_email_details(
+      email.subject,
+      email.body,
+      undefined,
+      email.sender_email,
+      email.sender,
+    );
   }, [email]);
 
   useEffect(() => {
@@ -517,9 +521,7 @@ export function EmailPopupViewer({
 
     if (email_id) {
       fetch_email();
-      set_show_reply_composer(false);
-      set_reply_message("");
-      set_is_sending(false);
+      set_show_inline_reply(false);
     }
 
     return () => {
@@ -809,22 +811,10 @@ export function EmailPopupViewer({
   }, [email_id, is_pin_loading, is_pinned, mail_item]);
 
   const handle_reply = useCallback(() => {
-    set_show_reply_composer(true);
-    set_reply_message("");
-    set_is_sending(false);
+    set_show_inline_reply(true);
     setTimeout(() => {
-      if (reply_editor_ref.current) {
-        reply_editor_ref.current.innerHTML = "";
-        reply_editor_ref.current.focus();
-        const selection = window.getSelection();
-        const range = document.createRange();
-
-        range.setStart(reply_editor_ref.current, 0);
-        range.collapse(true);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-      }
-    }, 100);
+      inline_reply_ref.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 150);
   }, []);
 
   const handle_forward = useCallback(() => {
@@ -840,6 +830,14 @@ export function EmailPopupViewer({
       email_timestamp: email.timestamp,
     });
   }, [email, on_forward]);
+
+  const handle_inline_reply_sent = useCallback(
+    (new_message: DecryptedThreadMessage) => {
+      set_thread_messages((prev) => [...prev, new_message]);
+      set_show_inline_reply(false);
+    },
+    [],
+  );
 
   useEffect(() => {
     const handle_keyboard_reply = () => handle_reply();
@@ -939,122 +937,6 @@ export function EmailPopupViewer({
     is_read,
   ]);
 
-  const get_signature = useCallback((): string => {
-    if (!user || preferences.signature_mode === "disabled") {
-      return "";
-    }
-
-    if (preferences.signature_mode === "auto" && default_signature) {
-      return get_formatted_signature(default_signature);
-    }
-
-    return "";
-  }, [
-    user,
-    preferences.signature_mode,
-    default_signature,
-    get_formatted_signature,
-  ]);
-
-  const handle_send_reply = useCallback(async () => {
-    if (!reply_message.trim() || is_sending || !email) return;
-
-    set_is_sending(true);
-
-    const original: OriginalEmail = {
-      sender_email: email.sender_email,
-      sender_name: email.sender,
-      subject: email.subject,
-      body: email.body,
-      timestamp: email.timestamp,
-    };
-
-    const message_with_signature =
-      reply_message.trim() + ASTER_FOOTER + get_signature();
-    const subject = email.subject.trim().toLowerCase().startsWith("re:")
-      ? email.subject
-      : `Re: ${email.subject}`;
-
-    const delay_ms = get_undo_send_delay_ms(
-      preferences.undo_send_enabled,
-      preferences.undo_send_seconds,
-      preferences.undo_send_period,
-    );
-    const delay_seconds = delay_ms / 1000;
-
-    const result = await send_reply(
-      {
-        original,
-        message: message_with_signature,
-        reply_all: false,
-        thread_token: current_thread_token || undefined,
-        original_email_id: email_id || undefined,
-      },
-      {
-        on_complete: () => {
-          window.dispatchEvent(new CustomEvent("astermail:email-sent"));
-        },
-        on_cancel: () => {},
-        on_error: () => {},
-      },
-      preferences.undo_send_period,
-    );
-
-    if (result.success && result.queued_id) {
-      undo_send_manager.add({
-        id: result.queued_id,
-        to: [email.sender_email],
-        subject,
-        body: message_with_signature,
-        scheduled_time: Date.now() + delay_ms,
-        total_seconds: delay_seconds,
-      });
-
-      set_show_reply_composer(false);
-      set_reply_message("");
-      set_is_sending(false);
-
-      if (result.thread_token) {
-        if (!current_thread_token) {
-          set_current_thread_token(result.thread_token);
-        }
-
-        emit_thread_reply_sent({
-          thread_token: result.thread_token,
-          original_email_id: email_id || undefined,
-        });
-
-        setTimeout(async () => {
-          const thread_result = await fetch_and_decrypt_thread_messages(
-            result.thread_token!,
-            user?.email,
-          );
-
-          if (thread_result.messages.length > 0) {
-            set_thread_messages(thread_result.messages);
-          }
-        }, 300);
-      }
-    } else {
-      set_is_sending(false);
-      show_toast(result.error || "Failed to send reply", "error");
-    }
-  }, [
-    reply_message,
-    is_sending,
-    email,
-    email_id,
-    current_thread_token,
-    get_signature,
-    preferences.undo_send_period,
-  ]);
-
-  const handle_cancel_reply = useCallback(() => {
-    set_show_reply_composer(false);
-    set_reply_message("");
-    set_is_sending(false);
-  }, []);
-
   const handle_print = useCallback(() => {
     if (!email) return;
 
@@ -1083,8 +965,6 @@ export function EmailPopupViewer({
       window.location.href = `mailto:${unsubscribe_info.unsubscribe_mailto}?subject=Unsubscribe`;
     }
   }, [unsubscribe_info]);
-
-  const can_send_reply = reply_message.trim().length > 0 && !is_sending;
 
   if (!email_id) return null;
 
@@ -1372,6 +1252,20 @@ export function EmailPopupViewer({
                   </p>
                 </div>
               </div>
+            )}
+
+            {extraction_result?.has_purchase_details && extraction_result.purchase && (
+              <PurchaseDetailsBanner
+                details={extraction_result.purchase}
+                className="mx-4 mt-4"
+              />
+            )}
+
+            {extraction_result?.has_shipping_details && extraction_result.shipping && (
+              <ShippingDetailsBanner
+                details={extraction_result.shipping}
+                className="mx-4 mt-4"
+              />
             )}
 
             <div className="p-4">
@@ -1670,6 +1564,20 @@ export function EmailPopupViewer({
                   }}
                   subject={email.subject}
                 />
+
+                <InlineReplySection
+                  ref={inline_reply_ref}
+                  body={email.body}
+                  email_id={email.id}
+                  is_visible={show_inline_reply}
+                  sender_email={email.sender_email}
+                  sender_name={email.sender}
+                  subject={email.subject}
+                  thread_token={current_thread_token || undefined}
+                  timestamp={email.timestamp}
+                  on_close={() => set_show_inline_reply(false)}
+                  on_reply_sent={handle_inline_reply_sent}
+                />
               </div>
             </div>
           </>
@@ -1685,9 +1593,9 @@ export function EmailPopupViewer({
         )}
       </div>
 
-      {email && (
+      {email && !show_inline_reply && (
         <div
-          className="flex-shrink-0"
+          className="flex-shrink-0 flex items-center gap-2 p-3"
           style={{
             borderTop: "1px solid var(--border-primary)",
             borderBottomLeftRadius: is_fullscreen ? "16px" : "12px",
@@ -1695,210 +1603,37 @@ export function EmailPopupViewer({
             background: "var(--modal-bg)",
           }}
         >
-          <AnimatePresence mode="wait">
-            {show_reply_composer ? (
-              <motion.div
-                key="composer"
-                animate={{ opacity: 1, y: 0 }}
-                className="p-3"
-                exit={{ opacity: 0, y: 8 }}
-                initial={{ opacity: 0, y: 8 }}
-                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-              >
-                <div
-                  className="rounded-xl overflow-hidden"
-                  style={{
-                    background: "var(--bg-secondary)",
-                    border: "1px solid var(--border-primary)",
-                  }}
-                >
-                  <div className="flex items-center gap-3 px-4 py-3">
-                    <ProfileAvatar
-                      email={email.sender_email}
-                      name={email.sender}
-                      size="sm"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <ArrowUturnLeftIcon className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                        <span
-                          className="text-sm font-medium truncate"
-                          style={{ color: "var(--text-primary)" }}
-                        >
-                          {email.sender}
-                        </span>
-                      </div>
-                      <span
-                        className="text-xs"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        {email.sender_email}
-                      </span>
-                    </div>
-                    <button
-                      className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors"
-                      onClick={handle_cancel_reply}
-                    >
-                      <XMarkIcon
-                        className="w-4 h-4"
-                        style={{ color: "var(--text-muted)" }}
-                      />
-                    </button>
-                  </div>
-
-                  <div className="px-3 pb-3">
-                    <div
-                      className="rounded-md overflow-hidden"
-                      style={{
-                        border: "1px solid var(--border-secondary)",
-                      }}
-                    >
-                      <div
-                        className="px-1"
-                        style={{
-                          borderBottom: "1px solid var(--border-secondary)",
-                        }}
-                      >
-                        <EditorToolbar
-                          editor_ref={reply_editor_ref}
-                          on_change={() => {
-                            if (reply_editor_ref.current) {
-                              set_reply_message(
-                                reply_editor_ref.current.innerHTML,
-                              );
-                            }
-                          }}
-                        />
-                      </div>
-
-                      <div className="px-3 py-2">
-                        <div
-                          ref={reply_editor_ref}
-                          className="w-full min-h-[80px] text-sm leading-relaxed bg-transparent outline-none"
-                          contentEditable={!is_sending}
-                          data-placeholder="Write your reply..."
-                          style={{
-                            color: "var(--text-primary)",
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-word",
-                          }}
-                          onBlur={() => {
-                            if (reply_editor_ref.current) {
-                              set_reply_message(
-                                reply_editor_ref.current.innerHTML,
-                              );
-                            }
-                          }}
-                          onInput={() => {
-                            if (reply_editor_ref.current) {
-                              set_reply_message(
-                                reply_editor_ref.current.innerHTML,
-                              );
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            if (
-                              e.key === "Enter" &&
-                              (e.metaKey || e.ctrlKey) &&
-                              can_send_reply
-                            ) {
-                              e.preventDefault();
-                              handle_send_reply();
-                            }
-                          }}
-                          onPaste={(e) => {
-                            e.preventDefault();
-                            const text = e.clipboardData.getData("text/plain");
-
-                            document.execCommand("insertText", false, text);
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <style>{`
-                      [contenteditable=true]:empty:before {
-                        content: attr(data-placeholder);
-                        color: var(--text-muted);
-                        pointer-events: none;
-                      }
-                    `}</style>
-                  </div>
-
-                  <div
-                    className="flex items-center justify-between px-3 py-2.5"
-                    style={{ borderTop: "1px solid var(--border-secondary)" }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="text-xs"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        ⌘↵ to send
-                      </span>
-                    </div>
-                    <button
-                      className="h-8 px-4 flex items-center justify-center gap-2 rounded-lg text-sm font-medium text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={!can_send_reply}
-                      style={{
-                        background: can_send_reply
-                          ? "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)"
-                          : "var(--bg-tertiary)",
-                        boxShadow: can_send_reply
-                          ? "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)"
-                          : "none",
-                        color: can_send_reply ? "white" : "var(--text-muted)",
-                      }}
-                      onClick={handle_send_reply}
-                    >
-                      <PaperAirplaneIcon className="w-3.5 h-3.5" />
-                      Send
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="buttons"
-                animate={{ opacity: 1 }}
-                className="flex items-center gap-2 p-3"
-                exit={{ opacity: 0 }}
-                initial={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <button
-                  className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium text-white transition-all duration-150"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-                    boxShadow:
-                      "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)",
-                  }}
-                  onClick={handle_reply}
-                >
-                  <ArrowUturnLeftIcon className="w-4 h-4" />
-                  <span>Reply</span>
-                  <KeyboardShortcutBadge
-                    className="bg-white/20 border-white/30 text-white/80 shadow-none"
-                    shortcut="r"
-                  />
-                </button>
-                <button
-                  className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-150"
-                  style={{
-                    background: "var(--bg-secondary)",
-                    color: "var(--text-primary)",
-                    boxShadow:
-                      "0 1px 2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px var(--border-primary)",
-                  }}
-                  onClick={handle_forward}
-                >
-                  <ArrowUturnRightIcon className="w-4 h-4" />
-                  <span>Forward</span>
-                  <KeyboardShortcutBadge shortcut="f" />
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <button
+            className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium text-white transition-all duration-150"
+            style={{
+              background:
+                "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+              boxShadow:
+                "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)",
+            }}
+            onClick={handle_reply}
+          >
+            <ArrowUturnLeftIcon className="w-4 h-4" />
+            <span>Reply</span>
+            <KeyboardShortcutBadge
+              className="bg-white/20 border-white/30 text-white/80 shadow-none"
+              shortcut="r"
+            />
+          </button>
+          <button
+            className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-150"
+            style={{
+              background: "var(--bg-secondary)",
+              color: "var(--text-primary)",
+              boxShadow:
+                "0 1px 2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px var(--border-primary)",
+            }}
+            onClick={handle_forward}
+          >
+            <ArrowUturnRightIcon className="w-4 h-4" />
+            <span>Forward</span>
+            <KeyboardShortcutBadge shortcut="f" />
+          </button>
         </div>
       )}
     </motion.div>

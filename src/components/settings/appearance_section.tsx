@@ -645,9 +645,6 @@ export function AppearanceSection() {
     update_preference("time_format", value as "12h" | "24h");
   };
 
-  const handle_inbox_format_change = (value: "split" | "full") => {
-    update_preference("inbox_format", value, true);
-  };
 
   const handle_accent_color_select = (
     swatch: (typeof ACCENT_COLOR_SWATCHES)[number],
@@ -792,43 +789,23 @@ export function AppearanceSection() {
             }
           />
           <RadioRowWithDescription
-            description="Shows email content on the right side of your inbox"
+            description="Shows email list and preview side by side"
             is_selected={preferences.email_view_mode === "split"}
             label="Split view"
             on_select={() =>
               update_preference("email_view_mode", "split", true)
             }
           />
+          <RadioRowWithDescription
+            description="Opens email in full-width view without inbox list"
+            is_selected={preferences.email_view_mode === "fullpage"}
+            label="Full page"
+            on_select={() =>
+              update_preference("email_view_mode", "fullpage", true)
+            }
+          />
         </div>
       </div>
-
-      {preferences.email_view_mode === "split" && (
-        <div className="pt-3">
-          <h4
-            className="text-sm font-semibold mb-1"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Inbox format
-          </h4>
-          <p className="text-sm mb-2" style={{ color: "var(--text-muted)" }}>
-            Select a display format for your inbox list
-          </p>
-          <div className="space-y-2">
-            <RadioRowWithDescription
-              description="Shows email list and preview side by side"
-              is_selected={preferences.inbox_format === "split"}
-              label="Split view"
-              on_select={() => handle_inbox_format_change("split")}
-            />
-            <RadioRowWithDescription
-              description="Shows full-width email content without inbox list"
-              is_selected={preferences.inbox_format === "full"}
-              label="Full view"
-              on_select={() => handle_inbox_format_change("full")}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

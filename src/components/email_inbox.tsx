@@ -163,6 +163,12 @@ interface EmailInboxProps {
   ) => void;
   on_search_click?: () => void;
   focused_email_id?: string | null;
+  on_navigate_prev?: () => void;
+  on_navigate_next?: () => void;
+  can_go_prev?: boolean;
+  can_go_next?: boolean;
+  current_email_index?: number;
+  total_email_count?: number;
 }
 
 export type { ReplyData, ForwardData, DraftClickData, ScheduledClickData };
@@ -270,6 +276,12 @@ export function EmailInbox({
   on_search_click,
   focused_email_id,
   active_email_id,
+  on_navigate_prev,
+  on_navigate_next,
+  can_go_prev = false,
+  can_go_next = false,
+  current_email_index,
+  total_email_count,
 }: EmailInboxProps): React.ReactElement {
   const navigate = useNavigate();
   const { user } = use_auth();
@@ -1597,7 +1609,7 @@ export function EmailInbox({
   }, []);
 
   const is_split_view = !!split_email_id || !!split_scheduled_data;
-  const is_full_view_mode = preferences.inbox_format === "full";
+  const is_full_view_mode = preferences.email_view_mode === "fullpage";
   const show_full_email_viewer = is_full_view_mode && !!split_email_id && !split_scheduled_data;
 
   const split_email_snoozed_until = useMemo(() => {
@@ -1822,10 +1834,16 @@ export function EmailInbox({
         {show_full_email_viewer && split_email_id ? (
           <div className="flex-1 overflow-hidden">
             <FullEmailViewer
+              can_go_next={can_go_next}
+              can_go_prev={can_go_prev}
+              current_index={current_email_index}
               email_id={split_email_id}
               on_back={on_split_close || (() => {})}
               on_forward={on_forward}
+              on_navigate_next={on_navigate_next}
+              on_navigate_prev={on_navigate_prev}
               snoozed_until={split_email_snoozed_until}
+              total_count={total_email_count}
             />
           </div>
         ) : is_split_view && !is_full_view_mode ? (
@@ -1869,10 +1887,16 @@ export function EmailInbox({
                 />
               ) : split_email_id ? (
                 <SplitEmailViewer
+                  can_go_next={can_go_next}
+                  can_go_prev={can_go_prev}
+                  current_index={current_email_index}
                   email_id={split_email_id}
                   on_close={on_split_close || (() => {})}
                   on_forward={on_forward}
+                  on_navigate_next={on_navigate_next}
+                  on_navigate_prev={on_navigate_prev}
                   snoozed_until={split_email_snoozed_until}
+                  total_count={total_email_count}
                 />
               ) : null}
             </div>

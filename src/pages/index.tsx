@@ -558,6 +558,8 @@ export default function IndexPage() {
 
   useEffect(() => {
     set_focused_email_index(-1);
+    set_active_search_query(null);
+    set_split_email_id(null);
   }, [current_view]);
 
   useEffect(() => {
@@ -641,6 +643,9 @@ export default function IndexPage() {
               <EmailInbox
                 key={current_account_id}
                 active_email_id={popup_email_id ?? split_email_id}
+                can_go_next={can_go_next}
+                can_go_prev={can_go_prev}
+                current_email_index={current_email_index}
                 current_view={current_view}
                 focused_email_id={focused_email_id}
                 on_compose={open_compose}
@@ -648,6 +653,8 @@ export default function IndexPage() {
                 on_email_click={handle_email_click}
                 on_email_list_change={handle_email_list_change}
                 on_forward={handle_popup_forward}
+                on_navigate_next={handle_navigate_next}
+                on_navigate_prev={handle_navigate_prev}
                 on_reply={handle_reply}
                 on_scheduled_click={handle_scheduled_click}
                 on_search_click={() => set_is_search_open(true)}
@@ -660,15 +667,18 @@ export default function IndexPage() {
                 on_split_close={handle_split_close}
                 on_split_scheduled_close={handle_split_scheduled_close}
                 split_email_id={
-                  preferences.email_view_mode === "split"
+                  preferences.email_view_mode === "split" ||
+                  preferences.email_view_mode === "fullpage"
                     ? split_email_id
                     : null
                 }
                 split_scheduled_data={
-                  preferences.email_view_mode === "split"
+                  preferences.email_view_mode === "split" ||
+                  preferences.email_view_mode === "fullpage"
                     ? split_scheduled_data
                     : null
                 }
+                total_email_count={visible_email_ids.length}
               />
             )}
           </div>

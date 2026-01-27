@@ -20,6 +20,8 @@ import {
   PrinterIcon,
   FolderIcon,
   MapPinIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
 import { show_toast } from "@/components/simple_toast";
@@ -86,6 +88,12 @@ interface SplitEmailViewerProps {
   on_close: () => void;
   snoozed_until?: string;
   on_forward?: (data: SplitForwardData) => void;
+  on_navigate_prev?: () => void;
+  on_navigate_next?: () => void;
+  can_go_prev?: boolean;
+  can_go_next?: boolean;
+  current_index?: number;
+  total_count?: number;
 }
 
 interface LocalDecryptedEnvelope {
@@ -236,6 +244,12 @@ export function SplitEmailViewer({
   on_close,
   snoozed_until,
   on_forward,
+  on_navigate_prev,
+  on_navigate_next,
+  can_go_prev = false,
+  can_go_next = false,
+  current_index,
+  total_count,
 }: SplitEmailViewerProps): React.ReactElement {
   const { format_email_detail } = use_date_format();
   const { preferences } = use_preferences();
@@ -959,6 +973,39 @@ export function SplitEmailViewer({
         </DropdownMenu>
 
         <div className="flex-1" />
+
+        {(can_go_prev || can_go_next) && (
+          <div className="flex items-center gap-0.5 mr-2">
+            <Button
+              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+              disabled={!can_go_prev}
+              size="icon"
+              variant="ghost"
+              onClick={on_navigate_prev}
+            >
+              <ChevronUpIcon className="w-4 h-4" />
+            </Button>
+            <Button
+              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+              disabled={!can_go_next}
+              size="icon"
+              variant="ghost"
+              onClick={on_navigate_next}
+            >
+              <ChevronDownIcon className="w-4 h-4" />
+            </Button>
+            {typeof current_index === "number" &&
+              typeof total_count === "number" &&
+              total_count > 0 && (
+                <span
+                  className="text-xs px-1.5 tabular-nums"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {current_index + 1} of {total_count}
+                </span>
+              )}
+          </div>
+        )}
 
         <button
           className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] flex-shrink-0"

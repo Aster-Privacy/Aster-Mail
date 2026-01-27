@@ -21,6 +21,8 @@ import {
   FolderIcon,
   MapPinIcon,
   ArrowLeftIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
 import { show_toast } from "@/components/simple_toast";
@@ -87,6 +89,12 @@ interface FullEmailViewerProps {
   on_back: () => void;
   snoozed_until?: string;
   on_forward?: (data: FullForwardData) => void;
+  on_navigate_prev?: () => void;
+  on_navigate_next?: () => void;
+  can_go_prev?: boolean;
+  can_go_next?: boolean;
+  current_index?: number;
+  total_count?: number;
 }
 
 interface LocalDecryptedEnvelope {
@@ -237,6 +245,12 @@ export function FullEmailViewer({
   on_back,
   snoozed_until,
   on_forward,
+  on_navigate_prev,
+  on_navigate_next,
+  can_go_prev = false,
+  can_go_next = false,
+  current_index,
+  total_count,
 }: FullEmailViewerProps): React.ReactElement {
   const { format_email_detail } = use_date_format();
   const { preferences } = use_preferences();
@@ -996,6 +1010,43 @@ export function FullEmailViewer({
               )}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {(can_go_prev || can_go_next) && (
+            <>
+              <div
+                className="w-px h-5 mx-1"
+                style={{ backgroundColor: "var(--border-secondary)" }}
+              />
+              <Button
+                className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+                disabled={!can_go_prev}
+                size="icon"
+                variant="ghost"
+                onClick={on_navigate_prev}
+              >
+                <ChevronUpIcon className="w-4 h-4" />
+              </Button>
+              <Button
+                className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+                disabled={!can_go_next}
+                size="icon"
+                variant="ghost"
+                onClick={on_navigate_next}
+              >
+                <ChevronDownIcon className="w-4 h-4" />
+              </Button>
+              {typeof current_index === "number" &&
+                typeof total_count === "number" &&
+                total_count > 0 && (
+                  <span
+                    className="text-xs px-1.5 tabular-nums"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {current_index + 1} of {total_count}
+                  </span>
+                )}
+            </>
+          )}
         </div>
       </div>
 

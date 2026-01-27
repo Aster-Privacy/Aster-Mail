@@ -100,6 +100,7 @@ export function SearchResultsPage({
   on_split_close,
 }: SearchResultsPageProps) {
   const { preferences } = use_preferences();
+  const is_mac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
   const {
     state,
     search,
@@ -252,6 +253,36 @@ export function SearchResultsPage({
     },
     [on_result_click],
   );
+
+  const result_ids = useMemo(() => {
+    return filtered_results.map((r) => r.id);
+  }, [filtered_results]);
+
+  const current_email_index = useMemo(() => {
+    if (!split_email_id || result_ids.length === 0) return -1;
+
+    return result_ids.indexOf(split_email_id);
+  }, [split_email_id, result_ids]);
+
+  const can_go_prev = current_email_index > 0;
+  const can_go_next =
+    current_email_index !== -1 && current_email_index < result_ids.length - 1;
+
+  const handle_navigate_prev = useCallback(() => {
+    if (can_go_prev) {
+      const prev_id = result_ids[current_email_index - 1];
+
+      on_result_click(prev_id);
+    }
+  }, [can_go_prev, current_email_index, result_ids, on_result_click]);
+
+  const handle_navigate_next = useCallback(() => {
+    if (can_go_next) {
+      const next_id = result_ids[current_email_index + 1];
+
+      on_result_click(next_id);
+    }
+  }, [can_go_next, current_email_index, result_ids, on_result_click]);
 
   const active_filter_count = useMemo(() => {
     let count = 0;
@@ -412,7 +443,7 @@ export function SearchResultsPage({
             {query}
           </span>
           <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] border-[var(--border-secondary)]">
-            ⌘K
+            {is_mac ? "⌘" : "Ctrl"}K
           </kbd>
         </button>
 
@@ -527,25 +558,22 @@ export function SearchResultsPage({
             }
           />
 
-          <Separator
-            className="h-4 mx-1 bg-[var(--border-secondary)]"
-            orientation="vertical"
-          />
-
-          <Select
-            value={filters.sort_by}
-            onValueChange={(value: SortOption) =>
-              set_filters((prev) => ({ ...prev, sort_by: value }))
-            }
-          >
-            <SelectTrigger className="h-7 w-[140px] text-[13px] border-[var(--border-secondary)] bg-transparent">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="relevant">Most relevant</SelectItem>
-              <SelectItem value="recent">Most recent</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="ml-auto flex items-center gap-2">
+            <Select
+              value={filters.sort_by}
+              onValueChange={(value: SortOption) =>
+                set_filters((prev) => ({ ...prev, sort_by: value }))
+              }
+            >
+              <SelectTrigger className="h-7 w-[140px] text-[13px] border-[var(--border-secondary)] bg-transparent">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="relevant">Most relevant</SelectItem>
+                <SelectItem value="recent">Most recent</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -583,8 +611,14 @@ export function SearchResultsPage({
           </div>
           <div className="overflow-hidden" style={{ flex: 1, minWidth: 0 }}>
             <SplitEmailViewer
+              can_go_next={can_go_next}
+              can_go_prev={can_go_prev}
+              current_index={current_email_index}
               email_id={split_email_id}
               on_close={on_split_close || (() => {})}
+              on_navigate_next={handle_navigate_next}
+              on_navigate_prev={handle_navigate_prev}
+              total_count={result_ids.length}
             />
           </div>
         </div>
