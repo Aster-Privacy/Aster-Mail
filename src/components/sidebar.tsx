@@ -34,7 +34,7 @@ import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 
-import { ComposeModal } from "./compose_modal";
+import type { EditDraftData } from "./compose_manager";
 import { ShareModal } from "./share_modal";
 import { CreateFolderModal } from "./create_folder_modal";
 import { KeyboardShortcutBadge } from "./keyboard_shortcut_badge";

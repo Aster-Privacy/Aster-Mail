@@ -723,6 +723,12 @@ export default function IndexPage() {
         on_close={close_rotation_modal}
         on_rotate={perform_rotation}
       />
+      <ComposeManager
+        instances={compose_instances}
+        on_close={close_compose}
+        on_draft_cleared={handle_draft_cleared}
+        on_toggle_minimize={toggle_minimize}
+      />
     </>
   );
 }
