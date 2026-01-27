@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { FolderIcon } from "@heroicons/react/24/outline";
+import { FolderIcon, UserIcon } from "@heroicons/react/24/outline";
 
 import { CustomCheckbox } from "./custom_checkbox";
 import { ProfileAvatar } from "./ui/profile_avatar";
@@ -491,10 +491,12 @@ function HighlightedText({
 function ContactResultRow({
   contact,
   on_click,
+  on_profile_click,
   search_query,
 }: {
   contact: DecryptedContact;
   on_click: () => void;
+  on_profile_click: () => void;
   search_query?: string;
 }) {
   const display_name =
@@ -531,7 +533,7 @@ function ContactResultRow({
 
   return (
     <div
-      className="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors cursor-pointer hover:bg-[var(--bg-hover)]"
+      className="group flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors cursor-pointer hover:bg-[var(--bg-hover)]"
       role="button"
       tabIndex={0}
       onClick={on_click}
@@ -563,8 +565,18 @@ function ContactResultRow({
           {match_context ? `${primary_email} · ${match_context}` : primary_email}
         </span>
       </div>
+      <button
+        className="p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--bg-tertiary)]"
+        title="View contact profile"
+        onClick={(e) => {
+          e.stopPropagation();
+          on_profile_click();
+        }}
+      >
+        <UserIcon className="w-4 h-4 text-[var(--text-muted)]" />
+      </button>
       <span
-        className="text-[10px] px-1.5 py-0.5 rounded"
+        className="text-[10px] px-1.5 py-0.5 rounded group-hover:hidden"
         style={{
           backgroundColor: "var(--bg-tertiary)",
           color: "var(--text-muted)",
@@ -1758,6 +1770,14 @@ export function SearchModal({
     [set_query, search, on_search_submit, on_close],
   );
 
+  const handle_contact_profile_click = useCallback(
+    (contact: DecryptedContact) => {
+      on_close();
+      navigate(`/contacts?contact_id=${contact.id}`);
+    },
+    [on_close, navigate],
+  );
+
   const handle_folder_click = useCallback(
     (folder: DecryptedFolder) => {
       on_close();
@@ -2465,6 +2485,7 @@ export function SearchModal({
                           contact={contact}
                           search_query={state.query}
                           on_click={() => handle_contact_click(contact)}
+                          on_profile_click={() => handle_contact_profile_click(contact)}
                         />
                       ))}
                     </>

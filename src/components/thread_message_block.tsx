@@ -499,16 +499,18 @@ export function ThreadMessagesList({
 
   useEffect(() => {
     messages.forEach((msg) => {
+      const is_unread = !msg.is_read && !read_ids.has(msg.id);
       if (
         expanded_ids.has(msg.id) &&
-        !read_ids.has(msg.id) &&
+        is_unread &&
         !auto_read_ids.current.has(msg.id)
       ) {
         auto_read_ids.current.add(msg.id);
         mark_as_read(msg);
       }
     });
-  }, [expanded_ids, messages, read_ids, mark_as_read]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded_ids, message_ids_key]);
 
   const toggle = useCallback(
     (msg: DecryptedThreadMessage) => {

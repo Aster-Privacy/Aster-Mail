@@ -1,6 +1,7 @@
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   MagnifyingGlassIcon,
@@ -86,6 +87,7 @@ export function ContactsContent({
   on_mobile_menu_toggle,
 }: ContactsContentProps) {
   const { has_keys } = use_auth();
+  const [search_params, set_search_params] = useSearchParams();
   const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
   const [search_query, set_search_query] = useState("");
   const [is_form_open, set_is_form_open] = useState(false);
@@ -315,6 +317,19 @@ export function ContactsContent({
   useEffect(() => {
     fetch_contacts();
   }, [fetch_contacts]);
+
+  useEffect(() => {
+    const contact_id = search_params.get("contact_id");
+
+    if (contact_id && contacts.length > 0 && !selected_contact) {
+      const contact = contacts.find((c) => c.id === contact_id);
+
+      if (contact) {
+        set_selected_contact(contact);
+        set_search_params({}, { replace: true });
+      }
+    }
+  }, [contacts, search_params, set_search_params, selected_contact]);
 
   useEffect(() => {
     return () => {

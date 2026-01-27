@@ -373,7 +373,7 @@ export function InboxHeader({
           </Button>
 
           <button
-            className="hidden md:flex items-center gap-2 h-9 px-3 rounded-lg border cursor-pointer transition-colors hover:border-[var(--text-muted)]"
+            className="hidden md:flex items-center gap-2 flex-1 max-w-md h-9 px-3 rounded-lg border cursor-pointer transition-colors hover:border-[var(--text-muted)]"
             data-onboarding="search-bar"
             style={{
               backgroundColor: "var(--bg-secondary)",
@@ -381,8 +381,8 @@ export function InboxHeader({
             }}
             onClick={handle_search_open}
           >
-            <MagnifyingGlassIcon className="w-4 h-4 text-[var(--text-muted)]" />
-            <span className="text-sm text-[var(--text-muted)] w-32 lg:w-48 text-left">
+            <MagnifyingGlassIcon className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
+            <span className="text-sm text-[var(--text-muted)] flex-1 text-left truncate">
               Search emails...
             </span>
             <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] border-[var(--border-secondary)]">
