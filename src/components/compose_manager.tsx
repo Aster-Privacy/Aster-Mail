@@ -144,7 +144,7 @@ export function ComposeManager({
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
       <div
         ref={container_ref}
-        className="flex flex-row-reverse items-end gap-2 px-4 pb-0 overflow-x-auto pointer-events-auto scrollbar-compose"
+        className="flex flex-row-reverse items-end gap-2 px-4 pb-0 overflow-x-auto scrollbar-compose"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "var(--border-primary) transparent",
@@ -154,6 +154,7 @@ export function ComposeManager({
           {instances.map((instance) => (
             <motion.div
               key={instance.id}
+              className="pointer-events-auto"
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               initial={{ opacity: 0 }}

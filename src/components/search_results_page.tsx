@@ -38,6 +38,7 @@ interface SearchResultsPageProps {
   query: string;
   on_close: () => void;
   on_result_click: (id: string) => void;
+  on_search_click?: () => void;
 }
 
 function SearchResultSkeleton() {
@@ -85,6 +86,7 @@ export function SearchResultsPage({
   query,
   on_close,
   on_result_click,
+  on_search_click,
 }: SearchResultsPageProps) {
   const { preferences } = use_preferences();
   const {
@@ -262,21 +264,22 @@ export function SearchResultsPage({
           </Tooltip>
         </TooltipProvider>
 
-        <div
-          className="flex items-center gap-2 flex-1 min-w-0 px-3 py-1.5 rounded-lg"
+        <button
+          className="flex items-center gap-2 flex-1 min-w-0 px-3 py-1.5 rounded-lg transition-colors hover:bg-[var(--bg-hover)] cursor-pointer"
           style={{ backgroundColor: "var(--bg-tertiary)" }}
+          onClick={on_search_click}
         >
           <MagnifyingGlassIcon
             className="w-4 h-4 flex-shrink-0"
             style={{ color: "var(--text-muted)" }}
           />
           <span
-            className="text-sm truncate"
+            className="text-sm truncate text-left"
             style={{ color: "var(--text-primary)" }}
           >
             {query}
           </span>
-        </div>
+        </button>
 
         <span
           className="text-xs whitespace-nowrap"

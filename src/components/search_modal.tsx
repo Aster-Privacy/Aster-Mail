@@ -49,6 +49,8 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { get_operator_suggestions } from "@/utils/search_operators";
 import { format_history_timestamp } from "@/services/search";
+import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
+import type { DecryptedContact } from "@/types/contacts";
 
 interface SearchModalProps {
   is_open: boolean;
@@ -483,6 +485,64 @@ function HighlightedText({
         ),
       )}
     </>
+  );
+}
+
+function ContactResultRow({
+  contact,
+  on_click,
+}: {
+  contact: DecryptedContact;
+  on_click: () => void;
+}) {
+  const display_name =
+    `${contact.first_name} ${contact.last_name}`.trim() || "Unknown";
+  const primary_email = contact.emails?.[0] || "";
+
+  return (
+    <div
+      className="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors cursor-pointer hover:bg-[var(--bg-hover)]"
+      role="button"
+      tabIndex={0}
+      onClick={on_click}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          on_click();
+        }
+      }}
+    >
+      <ProfileAvatar
+        use_domain_logo
+        email={primary_email}
+        image_url={contact.avatar_url}
+        name={display_name}
+        size="sm"
+      />
+      <div className="flex-1 min-w-0">
+        <span
+          className="text-sm font-medium block truncate"
+          style={{ color: "var(--text-primary)" }}
+        >
+          {display_name}
+        </span>
+        <span
+          className="text-xs block truncate"
+          style={{ color: "var(--text-muted)" }}
+        >
+          {primary_email}
+        </span>
+      </div>
+      <span
+        className="text-[10px] px-1.5 py-0.5 rounded"
+        style={{
+          backgroundColor: "var(--bg-tertiary)",
+          color: "var(--text-muted)",
+        }}
+      >
+        Contact
+      </span>
+    </div>
   );
 }
 
@@ -1353,6 +1413,8 @@ export function SearchModal({
   const [local_updates, set_local_updates] = useState<
     Map<string, Partial<SearchResultItem>>
   >(new Map());
+  const [all_contacts, set_all_contacts] = useState<DecryptedContact[]>([]);
+  const [contacts_loaded, set_contacts_loaded] = useState(false);
 
   const input_ref = useRef<HTMLInputElement>(null);
   const results_container_ref = useRef<HTMLDivElement>(null);
@@ -1404,6 +1466,27 @@ export function SearchModal({
 
     load_search_data();
   }, [user?.id, is_open]);
+
+  useEffect(() => {
+    if (!is_open || contacts_loaded) return;
+
+    const load_contacts = async () => {
+      try {
+        const response = await list_contacts({ limit: 100 });
+
+        if (response.data?.items) {
+          const decrypted = await decrypt_contacts(response.data.items);
+
+          set_all_contacts(decrypted);
+          set_contacts_loaded(true);
+        }
+      } catch {
+        set_contacts_loaded(true);
+      }
+    };
+
+    load_contacts();
+  }, [is_open, contacts_loaded]);
 
   useEffect(() => {
     if (is_open && initial_query) {
@@ -1575,6 +1658,43 @@ export function SearchModal({
     return results;
   }, [state.results, locked_folder_tokens, local_updates]);
 
+  const filtered_contacts = useMemo(() => {
+    if (!state.query || state.query.length < 2) return [];
+
+    const query_lower = state.query.toLowerCase();
+
+    return all_contacts
+      .filter((contact) => {
+        const name = `${contact.first_name} ${contact.last_name}`.toLowerCase();
+        const emails = contact.emails?.map((email: string) => email.toLowerCase()) || [];
+        const company = contact.company?.toLowerCase() || "";
+
+        return (
+          name.includes(query_lower) ||
+          emails.some((email: string) => email.includes(query_lower)) ||
+          company.includes(query_lower)
+        );
+      })
+      .slice(0, 3);
+  }, [state.query, all_contacts]);
+
+  const handle_contact_click = useCallback(
+    (contact: DecryptedContact) => {
+      const primary_email = contact.emails?.[0];
+
+      if (primary_email) {
+        set_query(`from:${primary_email}`);
+        if (on_search_submit) {
+          on_search_submit(`from:${primary_email}`);
+        } else {
+          search(`from:${primary_email}`, { fields: ["all"] });
+        }
+      }
+      on_close();
+    },
+    [set_query, search, on_search_submit, on_close],
+  );
+
   const handle_folder_click = useCallback(
     (folder: DecryptedFolder) => {
       on_close();
@@ -1677,9 +1797,7 @@ export function SearchModal({
         clear_autocomplete();
       }
 
-      if (!on_search_submit) {
-        handle_search(query);
-      }
+      handle_search(query);
     },
     [
       set_query,
@@ -1688,7 +1806,6 @@ export function SearchModal({
       clear_autocomplete,
       filters.fields,
       filtered_results.length,
-      on_search_submit,
     ],
   );
 
@@ -2270,30 +2387,96 @@ export function SearchModal({
               className="flex-1 sm:flex-none sm:max-h-[28rem] overflow-y-auto"
             >
               {!show_inline_results && state.query && (
-                <div className="p-4">
-                  <div
-                    className="flex items-center justify-center gap-3 py-8 px-4 rounded-lg border-2 border-dashed"
-                    style={{
-                      borderColor: "var(--border-secondary)",
-                      backgroundColor: "var(--bg-tertiary)",
-                    }}
-                  >
-                    <div className="text-center">
-                      <p
-                        className="text-sm font-medium mb-1"
-                        style={{ color: "var(--text-primary)" }}
-                      >
-                        Press Enter to search
-                      </p>
-                      <p
-                        className="text-xs"
+                <div className="p-2">
+                  {filtered_contacts.length > 0 && (
+                    <>
+                      <div
+                        className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider"
                         style={{ color: "var(--text-muted)" }}
                       >
-                        Results will appear in the main view
-                      </p>
-                    </div>
-                  </div>
+                        Contacts
+                      </div>
+                      {filtered_contacts.map((contact) => (
+                        <ContactResultRow
+                          key={contact.id}
+                          contact={contact}
+                          on_click={() => handle_contact_click(contact)}
+                        />
+                      ))}
+                    </>
+                  )}
+
+                  {filtered_results.length > 0 && (
+                    <>
+                      <div
+                        className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        Emails
+                      </div>
+                      {filtered_results.slice(0, 5).map((result) => (
+                        <SearchResultRow
+                          key={result.id}
+                          query_terms={query_terms}
+                          result={result}
+                          on_click={() => handle_result_click(result.id)}
+                        />
+                      ))}
+                    </>
+                  )}
+
+                  {state.is_loading && filtered_results.length === 0 && (
+                    <>
+                      <SearchResultSkeleton />
+                      <SearchResultSkeleton />
+                      <SearchResultSkeleton />
+                    </>
+                  )}
+
+                  {!state.is_loading &&
+                    filtered_results.length === 0 &&
+                    filtered_contacts.length === 0 && (
+                      <div className="px-3 py-6 text-center">
+                        <p
+                          className="text-sm"
+                          style={{ color: "var(--text-muted)" }}
+                        >
+                          No results found
+                        </p>
+                      </div>
+                    )}
+
+                  {(filtered_results.length > 0 || filtered_contacts.length > 0) && (
+                    <button
+                      className="w-full mt-2 py-2.5 text-sm font-medium rounded-lg transition-colors"
+                      style={{
+                        backgroundColor: "var(--accent-color, #3b82f6)",
+                        color: "#ffffff",
+                      }}
+                      onClick={() => {
+                        if (on_search_submit) {
+                          on_search_submit(state.query);
+                        }
+                      }}
+                    >
+                      View all results for &ldquo;{state.query}&rdquo;
+                    </button>
+                  )}
                 </div>
+              )}
+
+              {!show_inline_results && !state.query && (
+                <>
+                  <SearchHistorySection
+                    history={search_history}
+                    on_clear_all={handle_clear_all_history}
+                    on_remove={handle_history_remove}
+                    on_select={handle_history_select}
+                  />
+                  {search_history.length === 0 && (
+                    <FirstTimeSearchState on_quick_action={handle_quick_search} />
+                  )}
+                </>
               )}
 
               {show_inline_results && state.error && (

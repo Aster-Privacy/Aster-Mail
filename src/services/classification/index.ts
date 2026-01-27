@@ -46,3 +46,11 @@ export {
   FORUMS_DOMAINS,
   ALL_DOMAIN_RULES,
 } from "./rules";
+
+export {
+  ClassificationWorkerClient,
+  get_classification_worker,
+  terminate_classification_worker,
+  classify_with_worker,
+  classify_batch_with_worker,
+} from "./worker_client";

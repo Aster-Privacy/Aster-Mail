@@ -625,6 +625,7 @@ export default function IndexPage() {
                 query={active_search_query}
                 on_close={handle_close_search_results}
                 on_result_click={handle_search_result_click}
+                on_search_click={() => set_is_search_open(true)}
               />
             ) : (
               <EmailInbox
