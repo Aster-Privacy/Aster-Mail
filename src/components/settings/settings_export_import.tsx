@@ -85,7 +85,8 @@ const PREFERENCE_VALIDATORS: Record<
     v === "social" ||
     v === "promotions" ||
     v === "updates" ||
-    v === "forums",
+    v === "forums" ||
+    v === "purchases",
 };
 
 function validate_preferences(data: unknown): {

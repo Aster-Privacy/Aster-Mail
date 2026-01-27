@@ -362,7 +362,6 @@ export default function IndexPage() {
 
   const handle_search_result_click = useCallback(
     (id: string) => {
-      set_active_search_query(null);
       if (preferences.email_view_mode === "popup") {
         set_popup_email_id(id);
       } else {
@@ -371,6 +370,10 @@ export default function IndexPage() {
     },
     [preferences.email_view_mode],
   );
+
+  const handle_search_split_close = useCallback(() => {
+    set_split_email_id(null);
+  }, []);
 
   const is_input_modal_open = useMemo(() => {
     return (
@@ -627,6 +630,12 @@ export default function IndexPage() {
                 on_close={handle_close_search_results}
                 on_result_click={handle_search_result_click}
                 on_search_click={() => set_is_search_open(true)}
+                on_split_close={handle_search_split_close}
+                split_email_id={
+                  preferences.email_view_mode === "split"
+                    ? split_email_id
+                    : null
+                }
               />
             ) : (
               <EmailInbox

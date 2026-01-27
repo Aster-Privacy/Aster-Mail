@@ -1,6 +1,6 @@
 import type { InboxEmail } from "@/types/email";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeftIcon,
@@ -13,6 +13,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { InboxEmailListItem } from "./inbox_email_list_item";
+import { SplitEmailViewer } from "./split_email_viewer";
 import { Spinner } from "./ui/spinner";
 import { Skeleton } from "./ui/skeleton";
 import { Separator } from "./ui/separator";
@@ -20,6 +21,9 @@ import { Separator } from "./ui/separator";
 import { use_search } from "@/hooks/use_search";
 import { use_preferences } from "@/contexts/preferences_context";
 import { cn } from "@/lib/utils";
+
+const MIN_LIST_WIDTH = 280;
+const DEFAULT_LIST_WIDTH = 400;
 
 interface SearchFiltersState {
   date_range: "any" | "today" | "week" | "month";
@@ -33,6 +37,8 @@ interface SearchResultsPageProps {
   on_close: () => void;
   on_result_click: (id: string) => void;
   on_search_click?: () => void;
+  split_email_id?: string | null;
+  on_split_close?: () => void;
 }
 
 function SearchResultSkeleton() {
@@ -81,6 +87,8 @@ export function SearchResultsPage({
   on_close,
   on_result_click,
   on_search_click,
+  split_email_id,
+  on_split_close,
 }: SearchResultsPageProps) {
   const { preferences } = use_preferences();
   const {
@@ -99,6 +107,11 @@ export function SearchResultsPage({
   });
 
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
+
+  const [pane_width, set_pane_width] = useState(DEFAULT_LIST_WIDTH);
+  const [is_dragging, set_is_dragging] = useState(false);
+  const drag_start_x = useRef(0);
+  const drag_start_width = useRef(0);
 
   useEffect(() => {
     if (query) {
@@ -232,7 +245,126 @@ export function SearchResultsPage({
     return count;
   }, [filters]);
 
+  const handle_drag_start = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    set_is_dragging(true);
+    drag_start_x.current = e.clientX;
+    drag_start_width.current = pane_width;
+  }, [pane_width]);
+
+  useEffect(() => {
+    if (!is_dragging) return;
+
+    const handle_mouse_move = (e: MouseEvent) => {
+      const delta = e.clientX - drag_start_x.current;
+      const new_width = Math.max(MIN_LIST_WIDTH, drag_start_width.current + delta);
+
+      set_pane_width(new_width);
+    };
+
+    const handle_mouse_up = () => {
+      set_is_dragging(false);
+    };
+
+    document.addEventListener("mousemove", handle_mouse_move);
+    document.addEventListener("mouseup", handle_mouse_up);
+
+    return () => {
+      document.removeEventListener("mousemove", handle_mouse_move);
+      document.removeEventListener("mouseup", handle_mouse_up);
+    };
+  }, [is_dragging]);
+
   const is_loading = state.is_loading || state.is_searching;
+  const is_split_view = !!split_email_id;
+
+  const email_list_content = (
+    <>
+      {is_loading && filtered_results.length === 0 ? (
+        <div>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <SearchResultSkeleton key={i} />
+          ))}
+        </div>
+      ) : filtered_results.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+            style={{ backgroundColor: "var(--bg-tertiary)" }}
+          >
+            <MagnifyingGlassIcon
+              className="w-8 h-8"
+              style={{ color: "var(--text-muted)" }}
+            />
+          </div>
+          <p
+            className="text-sm font-medium mb-1"
+            style={{ color: "var(--text-primary)" }}
+          >
+            No results found
+          </p>
+          <p
+            className="text-xs text-center max-w-[280px]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            {active_filter_count > 0
+              ? "Try adjusting your filters or search for something else"
+              : `No emails match "${query}"`}
+          </p>
+        </div>
+      ) : (
+        <>
+          <AnimatePresence mode="popLayout">
+            {filtered_results.map((email) => (
+              <motion.div
+                key={email.id}
+                exit={{ opacity: 0, height: 0 }}
+                initial={{ opacity: 1, height: "auto" }}
+                layout
+                transition={{ duration: 0.2 }}
+              >
+                <InboxEmailListItem
+                  current_view="search"
+                  density={preferences.density}
+                  email={email as InboxEmail}
+                  is_active={email.id === split_email_id}
+                  on_email_click={handle_email_click}
+                  on_toggle_select={handle_toggle_select}
+                  show_email_preview={preferences.show_email_preview}
+                  show_profile_pictures={preferences.show_profile_pictures}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {state.is_loading_more && (
+            <div className="flex items-center justify-center py-4">
+              <Spinner className="text-[var(--accent-color)]" size="md" />
+            </div>
+          )}
+
+          {state.has_more && !state.is_loading_more && (
+            <button
+              className="w-full py-3 text-xs text-center transition-colors hover:bg-[var(--bg-hover)]"
+              style={{ color: "var(--text-muted)" }}
+              onClick={load_more}
+            >
+              Load more results ({state.total_results - filtered_results.length} remaining)
+            </button>
+          )}
+
+          {!state.has_more && filtered_results.length > 0 && (
+            <div
+              className="text-center py-4 text-xs"
+              style={{ color: "var(--text-muted)" }}
+            >
+              End of results
+            </div>
+          )}
+        </>
+      )}
+    </>
+  );
 
   return (
     <div
@@ -387,91 +519,50 @@ export function SearchResultsPage({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {is_loading && filtered_results.length === 0 ? (
-          <div>
-            {Array.from({ length: 10 }).map((_, i) => (
-              <SearchResultSkeleton key={i} />
-            ))}
+      {is_split_view ? (
+        <div
+          className="flex-1 flex min-h-0"
+          style={{
+            cursor: is_dragging ? "col-resize" : undefined,
+            userSelect: is_dragging ? "none" : undefined,
+          }}
+        >
+          <div
+            className="overflow-y-auto overflow-x-hidden"
+            style={{
+              width: pane_width,
+              minWidth: MIN_LIST_WIDTH,
+              flexShrink: 0,
+              flexGrow: 0,
+            }}
+          >
+            {email_list_content}
           </div>
-        ) : filtered_results.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-4">
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-              style={{ backgroundColor: "var(--bg-tertiary)" }}
-            >
-              <MagnifyingGlassIcon
-                className="w-8 h-8"
-                style={{ color: "var(--text-muted)" }}
-              />
-            </div>
-            <p
-              className="text-sm font-medium mb-1"
-              style={{ color: "var(--text-primary)" }}
-            >
-              No results found
-            </p>
-            <p
-              className="text-xs text-center max-w-[280px]"
-              style={{ color: "var(--text-muted)" }}
-            >
-              {active_filter_count > 0
-                ? "Try adjusting your filters or search for something else"
-                : `No emails match "${query}"`}
-            </p>
+          <div
+            className="w-px cursor-col-resize relative transition-colors hover:bg-blue-500"
+            role="presentation"
+            style={{
+              backgroundColor: is_dragging
+                ? "var(--accent-blue)"
+                : "var(--border-primary)",
+              flexShrink: 0,
+            }}
+            onMouseDown={handle_drag_start}
+          >
+            <div className="absolute inset-y-0 -left-1.5 -right-1.5" />
           </div>
-        ) : (
-          <>
-            <AnimatePresence mode="popLayout">
-              {filtered_results.map((email) => (
-                <motion.div
-                  key={email.id}
-                  exit={{ opacity: 0, height: 0 }}
-                  initial={{ opacity: 1, height: "auto" }}
-                  layout
-                  transition={{ duration: 0.2 }}
-                >
-                  <InboxEmailListItem
-                    current_view="search"
-                    density={preferences.density}
-                    email={email as InboxEmail}
-                    is_active={false}
-                    on_email_click={handle_email_click}
-                    on_toggle_select={handle_toggle_select}
-                    show_email_preview={preferences.show_email_preview}
-                    show_profile_pictures={preferences.show_profile_pictures}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-
-            {state.is_loading_more && (
-              <div className="flex items-center justify-center py-4">
-                <Spinner className="text-[var(--accent-color)]" size="md" />
-              </div>
-            )}
-
-            {state.has_more && !state.is_loading_more && (
-              <button
-                className="w-full py-3 text-xs text-center transition-colors hover:bg-[var(--bg-hover)]"
-                style={{ color: "var(--text-muted)" }}
-                onClick={load_more}
-              >
-                Load more results ({state.total_results - filtered_results.length} remaining)
-              </button>
-            )}
-
-            {!state.has_more && filtered_results.length > 0 && (
-              <div
-                className="text-center py-4 text-xs"
-                style={{ color: "var(--text-muted)" }}
-              >
-                End of results
-              </div>
-            )}
-          </>
-        )}
-      </div>
+          <div className="overflow-hidden" style={{ flex: 1, minWidth: 0 }}>
+            <SplitEmailViewer
+              email_id={split_email_id}
+              on_close={on_split_close || (() => {})}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto">
+          {email_list_content}
+        </div>
+      )}
     </div>
   );
 }

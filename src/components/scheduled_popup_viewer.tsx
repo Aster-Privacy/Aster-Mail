@@ -15,12 +15,6 @@ import { Button } from "@/components/ui/button";
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -317,155 +311,117 @@ export function ScheduledPopupViewer({
         }}
         onMouseDown={handle_drag_start}
       >
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                data-no-drag
-                className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                size="icon"
-                variant="ghost"
-                onClick={on_close}
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Close</TooltipContent>
-          </Tooltip>
+        <Button
+          data-no-drag
+          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          size="icon"
+          variant="ghost"
+          onClick={on_close}
+        >
+          <XMarkIcon className="w-4 h-4" />
+        </Button>
 
-          {!is_fullscreen && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-no-drag
-                  className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  size="icon"
-                  variant="ghost"
-                  onClick={toggle_size}
-                >
-                  {popup_size === "default" ? (
-                    <ArrowsPointingOutIcon className="w-4 h-4" />
-                  ) : (
-                    <ArrowsPointingInIcon className="w-4 h-4" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {popup_size === "default" ? "Expand" : "Collapse"}
-              </TooltipContent>
-            </Tooltip>
+        {!is_fullscreen && (
+          <Button
+            data-no-drag
+            className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            size="icon"
+            variant="ghost"
+            onClick={toggle_size}
+          >
+            {popup_size === "default" ? (
+              <ArrowsPointingOutIcon className="w-4 h-4" />
+            ) : (
+              <ArrowsPointingInIcon className="w-4 h-4" />
+            )}
+          </Button>
+        )}
+
+        <Button
+          data-no-drag
+          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          size="icon"
+          variant="ghost"
+          onClick={handle_fullscreen}
+        >
+          {is_fullscreen ? (
+            <ArrowsPointingInIcon className="w-4 h-4" />
+          ) : (
+            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
           )}
+        </Button>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                data-no-drag
-                className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                size="icon"
-                variant="ghost"
-                onClick={handle_fullscreen}
-              >
-                {is_fullscreen ? (
-                  <ArrowsPointingInIcon className="w-4 h-4" />
-                ) : (
-                  <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              {is_fullscreen ? "Exit full screen" : "Full screen"}
-            </TooltipContent>
-          </Tooltip>
+        <div
+          className="w-px h-4 mx-1"
+          style={{ backgroundColor: "var(--border-secondary)" }}
+        />
 
-          <div
-            className="w-px h-4 mx-1"
-            style={{ backgroundColor: "var(--border-secondary)" }}
-          />
-
-          <EmailTag label="Scheduled" size="default" variant="scheduled" />
-        </TooltipProvider>
+        <EmailTag label="Scheduled" size="default" variant="scheduled" />
 
         <div className="flex-1" />
 
-        <TooltipProvider delayDuration={0}>
-          {on_edit && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-no-drag
-                  className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  disabled={is_loading_content}
-                  size="icon"
-                  variant="ghost"
-                  onClick={handle_edit}
-                >
-                  <PencilIcon className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Edit</TooltipContent>
-            </Tooltip>
-          )}
+        {on_edit && (
+          <Button
+            data-no-drag
+            className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            disabled={is_loading_content}
+            size="icon"
+            variant="ghost"
+            onClick={handle_edit}
+          >
+            <PencilIcon className="w-4 h-4" />
+          </Button>
+        )}
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                data-no-drag
-                className="h-7 w-7 text-[var(--text-muted)] hover:text-red-500"
-                disabled={is_cancelling}
-                size="icon"
-                variant="ghost"
-                onClick={() => set_show_cancel_confirm(true)}
-              >
-                <TrashIcon className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Cancel</TooltipContent>
-          </Tooltip>
+        <Button
+          data-no-drag
+          className="h-7 w-7 text-[var(--text-muted)] hover:text-red-500"
+          disabled={is_cancelling}
+          size="icon"
+          variant="ghost"
+          onClick={() => set_show_cancel_confirm(true)}
+        >
+          <TrashIcon className="w-4 h-4" />
+        </Button>
 
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    data-no-drag
-                    className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                    size="icon"
-                    variant="ghost"
-                  >
-                    <EllipsisHorizontalIcon className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">More</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              data-no-drag
+              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              size="icon"
+              variant="ghost"
+            >
+              <EllipsisHorizontalIcon className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem
+              disabled={is_sending_now}
+              onClick={handle_send_now}
+            >
+              <PaperAirplaneIcon className="w-4 h-4 mr-2" />
+              {is_sending_now ? "Sending..." : "Send now"}
+            </DropdownMenuItem>
+            {on_edit && (
               <DropdownMenuItem
-                disabled={is_sending_now}
-                onClick={handle_send_now}
+                disabled={is_loading_content}
+                onClick={handle_edit}
               >
-                <PaperAirplaneIcon className="w-4 h-4 mr-2" />
-                {is_sending_now ? "Sending..." : "Send now"}
+                <PencilIcon className="w-4 h-4 mr-2" />
+                {is_loading_content ? "Loading..." : "Edit & reschedule"}
               </DropdownMenuItem>
-              {on_edit && (
-                <DropdownMenuItem
-                  disabled={is_loading_content}
-                  onClick={handle_edit}
-                >
-                  <PencilIcon className="w-4 h-4 mr-2" />
-                  {is_loading_content ? "Loading..." : "Edit & reschedule"}
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-red-500 focus:text-red-500"
-                onClick={() => set_show_cancel_confirm(true)}
-              >
-                <TrashIcon className="w-4 h-4 mr-2" />
-                Cancel scheduled
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </TooltipProvider>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-red-500 focus:text-red-500"
+              onClick={() => set_show_cancel_confirm(true)}
+            >
+              <TrashIcon className="w-4 h-4 mr-2" />
+              Cancel scheduled
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="flex-1 overflow-y-auto">

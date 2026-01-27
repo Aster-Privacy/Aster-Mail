@@ -42,12 +42,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -1036,25 +1030,18 @@ export function ContactsContent({
                 {contacts.length}
               </span>
             )}
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className="h-8 w-8"
-                    disabled={is_importing}
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => file_input_ref.current?.click()}
-                  >
-                    <ArrowUpTrayIcon
-                      className="w-4 h-4"
-                      style={{ color: "var(--text-secondary)" }}
-                    />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Import CSV</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button
+              className="h-8 w-8"
+              disabled={is_importing}
+              size="icon"
+              variant="ghost"
+              onClick={() => file_input_ref.current?.click()}
+            >
+              <ArrowUpTrayIcon
+                className="w-4 h-4"
+                style={{ color: "var(--text-secondary)" }}
+              />
+            </Button>
             <div
               className="hidden sm:flex items-center rounded-md p-0.5"
               style={{ backgroundColor: "var(--bg-secondary)" }}
@@ -1174,22 +1161,13 @@ export function ContactsContent({
             className="flex items-center gap-2 px-3 py-2 border-b"
             style={{ borderColor: "var(--border-primary)" }}
           >
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex-shrink-0">
-                    <Checkbox
-                      checked={selection_state.all_selected}
-                      indeterminate={selection_state.some_selected}
-                      onCheckedChange={handle_toggle_select_all}
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  {selection_state.all_selected ? "Deselect all" : "Select all"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div className="flex-shrink-0">
+              <Checkbox
+                checked={selection_state.all_selected}
+                indeterminate={selection_state.some_selected}
+                onCheckedChange={handle_toggle_select_all}
+              />
+            </div>
 
             {has_selection ? (
               <div className="flex items-center gap-1 flex-1">
@@ -1200,107 +1178,70 @@ export function ContactsContent({
                   {selection_state.selected_count}
                 </span>
 
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        className="h-7 w-7"
-                        size="icon"
-                        variant="ghost"
-                        onClick={handle_compose_to_selected}
-                      >
-                        <EnvelopeIcon
-                          className="h-3.5 w-3.5"
-                          style={{ color: "var(--text-secondary)" }}
-                        />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Email</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button
+                  className="h-7 w-7"
+                  size="icon"
+                  variant="ghost"
+                  onClick={handle_compose_to_selected}
+                >
+                  <EnvelopeIcon
+                    className="h-3.5 w-3.5"
+                    style={{ color: "var(--text-secondary)" }}
+                  />
+                </Button>
 
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        className="h-7 w-7"
-                        size="icon"
-                        variant="ghost"
-                        onClick={handle_toggle_favorite_selected}
-                      >
-                        {selected_all_favorited ? (
-                          <StarIconSolid className="h-3.5 w-3.5 text-amber-400" />
-                        ) : (
-                          <StarIcon
-                            className="h-3.5 w-3.5"
-                            style={{ color: "var(--text-secondary)" }}
-                          />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      {selected_all_favorited ? "Unfavorite" : "Favorite"}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button
+                  className="h-7 w-7"
+                  size="icon"
+                  variant="ghost"
+                  onClick={handle_toggle_favorite_selected}
+                >
+                  {selected_all_favorited ? (
+                    <StarIconSolid className="h-3.5 w-3.5 text-amber-400" />
+                  ) : (
+                    <StarIcon
+                      className="h-3.5 w-3.5"
+                      style={{ color: "var(--text-secondary)" }}
+                    />
+                  )}
+                </Button>
 
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        className="h-7 w-7"
-                        size="icon"
-                        variant="ghost"
-                        onClick={handle_copy_emails}
-                      >
-                        {copied_field === "bulk-emails" ? (
-                          <CheckIcon className="h-3.5 w-3.5 text-green-500" />
-                        ) : (
-                          <ClipboardDocumentIcon
-                            className="h-3.5 w-3.5"
-                            style={{ color: "var(--text-secondary)" }}
-                          />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Copy emails</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button
+                  className="h-7 w-7"
+                  size="icon"
+                  variant="ghost"
+                  onClick={handle_copy_emails}
+                >
+                  {copied_field === "bulk-emails" ? (
+                    <CheckIcon className="h-3.5 w-3.5 text-green-500" />
+                  ) : (
+                    <ClipboardDocumentIcon
+                      className="h-3.5 w-3.5"
+                      style={{ color: "var(--text-secondary)" }}
+                    />
+                  )}
+                </Button>
 
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        className="h-7 w-7"
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handle_export_contacts(true)}
-                      >
-                        <ArrowDownTrayIcon
-                          className="h-3.5 w-3.5"
-                          style={{ color: "var(--text-secondary)" }}
-                        />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Export</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button
+                  className="h-7 w-7"
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handle_export_contacts(true)}
+                >
+                  <ArrowDownTrayIcon
+                    className="h-3.5 w-3.5"
+                    style={{ color: "var(--text-secondary)" }}
+                  />
+                </Button>
 
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
-                        size="icon"
-                        variant="ghost"
-                        onClick={handle_delete_selected}
-                      >
-                        <TrashIcon className="h-3.5 w-3.5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Delete</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button
+                  className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                  size="icon"
+                  variant="ghost"
+                  onClick={handle_delete_selected}
+                >
+                  <TrashIcon className="h-3.5 w-3.5" />
+                </Button>
               </div>
             ) : (
               <div className="flex items-center justify-between flex-1">
@@ -1642,53 +1583,37 @@ export function ContactsContent({
                         }}
                       >
                         {primary_email && (
-                          <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5"
-                                  onClick={() =>
-                                    handle_compose_email(primary_email)
-                                  }
-                                >
-                                  <EnvelopeIcon
-                                    className="w-3.5 h-3.5"
-                                    style={{ color: "var(--text-muted)" }}
-                                  />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top">Email</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <button
+                            className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5"
+                            onClick={() =>
+                              handle_compose_email(primary_email)
+                            }
+                          >
+                            <EnvelopeIcon
+                              className="w-3.5 h-3.5"
+                              style={{ color: "var(--text-muted)" }}
+                            />
+                          </button>
                         )}
-                        <TooltipProvider delayDuration={0}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5"
-                                onClick={() =>
-                                  primary_email &&
-                                  handle_copy(
-                                    primary_email,
-                                    `quick-${contact.id}`,
-                                  )
-                                }
-                              >
-                                {copied_field === `quick-${contact.id}` ? (
-                                  <CheckIcon className="w-3.5 h-3.5 text-green-500" />
-                                ) : (
-                                  <ClipboardDocumentIcon
-                                    className="w-3.5 h-3.5"
-                                    style={{ color: "var(--text-muted)" }}
-                                  />
-                                )}
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top">
-                              Copy email
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <button
+                          className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5"
+                          onClick={() =>
+                            primary_email &&
+                            handle_copy(
+                              primary_email,
+                              `quick-${contact.id}`,
+                            )
+                          }
+                        >
+                          {copied_field === `quick-${contact.id}` ? (
+                            <CheckIcon className="w-3.5 h-3.5 text-green-500" />
+                          ) : (
+                            <ClipboardDocumentIcon
+                              className="w-3.5 h-3.5"
+                              style={{ color: "var(--text-muted)" }}
+                            />
+                          )}
+                        </button>
                       </div>
                       <ChevronRightIcon
                         className="w-4 h-4 flex-shrink-0 opacity-30 group-hover:opacity-0"

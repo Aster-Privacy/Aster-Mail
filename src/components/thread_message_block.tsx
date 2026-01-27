@@ -361,7 +361,12 @@ export function ThreadMessagesList({
     return initial;
   });
 
+  const read_ids_ref = useRef<Set<string>>(read_ids);
   const auto_read_ids = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    read_ids_ref.current = read_ids;
+  }, [read_ids]);
 
   useEffect(() => {
     const new_starred = new Set<string>();
@@ -546,7 +551,7 @@ export function ThreadMessagesList({
 
   const toggle_read = useCallback(
     (msg: DecryptedThreadMessage) => {
-      const is_currently_read = read_ids.has(msg.id);
+      const is_currently_read = read_ids_ref.current.has(msg.id);
       const new_read = !is_currently_read;
 
       if (!new_read) {
@@ -600,7 +605,7 @@ export function ThreadMessagesList({
 
       on_toggle_message_read?.(msg.id);
     },
-    [read_ids, starred_ids, on_toggle_message_read],
+    [starred_ids, on_toggle_message_read],
   );
 
   return (

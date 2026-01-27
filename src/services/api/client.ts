@@ -5,6 +5,7 @@ import {
 } from "./csrf";
 
 import { is_auth_page } from "@/lib/auth_utils";
+import { refresh_session_activity } from "@/services/session_timeout_service";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -357,6 +358,8 @@ class ApiClient {
         }
 
         const data = await response.json();
+
+        refresh_session_activity();
 
         return { data };
       } catch (error) {

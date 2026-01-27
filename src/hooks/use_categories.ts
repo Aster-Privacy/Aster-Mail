@@ -25,6 +25,7 @@ const ALL_CATEGORIES: EmailCategory[] = [
   "promotions",
   "updates",
   "forums",
+  "purchases",
 ];
 
 interface CategoryConfig {
@@ -40,6 +41,7 @@ const DEFAULT_CATEGORY_CONFIGS: CategoryConfig[] = [
   { id: "promotions", label: "Promotions", icon: "tag", enabled: true },
   { id: "updates", label: "Updates", icon: "bell", enabled: true },
   { id: "forums", label: "Forums", icon: "message-square", enabled: true },
+  { id: "purchases", label: "Purchases", icon: "shopping-bag", enabled: true },
 ];
 
 interface UseCategoriesOptions {
@@ -108,6 +110,7 @@ export function use_categories(
     promotions: 0,
     updates: 0,
     forums: 0,
+    purchases: 0,
   });
   const [pending_count, set_pending_count] = useState(0);
   const [is_classifying, set_is_classifying] = useState(false);
@@ -126,6 +129,7 @@ export function use_categories(
       promotions: 0,
       updates: 0,
       forums: 0,
+      purchases: 0,
     };
 
     for (const email of emails) {

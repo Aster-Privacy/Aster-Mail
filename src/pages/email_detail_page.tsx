@@ -676,173 +676,134 @@ export default function EmailDetailPage() {
               className="flex items-center gap-1 px-2 sm:px-3 py-2 border-b flex-shrink-0"
               style={{ borderColor: "var(--border-secondary)" }}
             >
-              <TooltipProvider delayDuration={0}>
-                <div className="md:hidden mr-1">
-                  <MobileMenuButton on_click={toggle_mobile_sidebar} />
+              <div className="md:hidden mr-1">
+                <MobileMenuButton on_click={toggle_mobile_sidebar} />
+              </div>
+              <Button
+                className="h-9 w-9 sm:h-8 sm:w-8"
+                size="icon"
+                variant="ghost"
+                onClick={() => navigate(-1)}
+              >
+                <ArrowLeftIcon className="w-5 h-5 sm:w-4 sm:h-4" />
+              </Button>
+
+              <div className="hidden sm:block w-px h-5 mx-1 bg-[var(--border-secondary)]" />
+
+              <div className="hidden sm:flex items-center gap-1">
+                <Button className="h-8 w-8" size="icon" variant="ghost">
+                  <TagIcon className="w-4 h-4" />
+                </Button>
+
+                <Button
+                  className="h-8 w-8"
+                  disabled={is_archive_loading}
+                  size="icon"
+                  variant="ghost"
+                  onClick={() =>
+                    preferences.confirm_before_archive
+                      ? set_is_archive_confirm_open(true)
+                      : handle_archive()
+                  }
+                >
+                  <ArchiveBoxIcon className="w-4 h-4" />
+                </Button>
+
+                <Button className="h-8 w-8" size="icon" variant="ghost">
+                  <ExclamationCircleIcon className="w-4 h-4" />
+                </Button>
+
+                <Button
+                  className="h-8 w-8"
+                  disabled={is_trash_loading}
+                  size="icon"
+                  variant="ghost"
+                  onClick={() =>
+                    preferences.confirm_before_delete
+                      ? set_is_trash_confirm_open(true)
+                      : handle_trash()
+                  }
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </Button>
+
+                <div className="hidden lg:block w-px h-5 mx-1 bg-[var(--border-secondary)]" />
+
+                <div className="hidden lg:flex items-center gap-1">
+                  <Button className="h-8 w-8" size="icon" variant="ghost">
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                  </Button>
+
+                  <Button
+                    className="h-8 w-8"
+                    size="icon"
+                    variant="ghost"
+                    onClick={handle_print}
+                  >
+                    <PrinterIcon className="w-4 h-4" />
+                  </Button>
                 </div>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className="h-9 w-9 sm:h-8 sm:w-8"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => navigate(-1)}
+              </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="h-8 w-8" size="icon" variant="ghost">
+                    <EllipsisVerticalIcon className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <div className="sm:hidden">
+                    <DropdownMenuItem
+                      onClick={() =>
+                        preferences.confirm_before_archive
+                          ? set_is_archive_confirm_open(true)
+                          : handle_archive()
+                      }
                     >
-                      <ArrowLeftIcon className="w-5 h-5 sm:w-4 sm:h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Back</TooltipContent>
-                </Tooltip>
-
-                <div className="hidden sm:block w-px h-5 mx-1 bg-[var(--border-secondary)]" />
-
-                <div className="hidden sm:flex items-center gap-1">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button className="h-8 w-8" size="icon" variant="ghost">
-                        <TagIcon className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
+                      <ArchiveBoxIcon className="w-4 h-4 mr-2" />
+                      Archive
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        preferences.confirm_before_delete
+                          ? set_is_trash_confirm_open(true)
+                          : handle_trash()
+                      }
+                    >
+                      <TrashIcon className="w-4 h-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <TagIcon className="w-4 h-4 mr-2" />
                       Move to folder
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        className="h-8 w-8"
-                        disabled={is_archive_loading}
-                        size="icon"
-                        variant="ghost"
-                        onClick={() =>
-                          preferences.confirm_before_archive
-                            ? set_is_archive_confirm_open(true)
-                            : handle_archive()
-                        }
-                      >
-                        <ArchiveBoxIcon className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Archive</TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button className="h-8 w-8" size="icon" variant="ghost">
-                        <ExclamationCircleIcon className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Report spam</TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        className="h-8 w-8"
-                        disabled={is_trash_loading}
-                        size="icon"
-                        variant="ghost"
-                        onClick={() =>
-                          preferences.confirm_before_delete
-                            ? set_is_trash_confirm_open(true)
-                            : handle_trash()
-                        }
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Delete</TooltipContent>
-                  </Tooltip>
-
-                  <div className="hidden lg:block w-px h-5 mx-1 bg-[var(--border-secondary)]" />
-
-                  <div className="hidden lg:flex items-center gap-1">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button className="h-8 w-8" size="icon" variant="ghost">
-                          <ArrowDownTrayIcon className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">Download</TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          className="h-8 w-8"
-                          size="icon"
-                          variant="ghost"
-                          onClick={handle_print}
-                        >
-                          <PrinterIcon className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">Print</TooltipContent>
-                    </Tooltip>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <ExclamationCircleIcon className="w-4 h-4 mr-2" />
+                      Report spam
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                   </div>
-                </div>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button className="h-8 w-8" size="icon" variant="ghost">
-                      <EllipsisVerticalIcon className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    <div className="sm:hidden">
-                      <DropdownMenuItem
-                        onClick={() =>
-                          preferences.confirm_before_archive
-                            ? set_is_archive_confirm_open(true)
-                            : handle_archive()
-                        }
-                      >
-                        <ArchiveBoxIcon className="w-4 h-4 mr-2" />
-                        Archive
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          preferences.confirm_before_delete
-                            ? set_is_trash_confirm_open(true)
-                            : handle_trash()
-                        }
-                      >
-                        <TrashIcon className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <TagIcon className="w-4 h-4 mr-2" />
-                        Move to folder
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <ExclamationCircleIcon className="w-4 h-4 mr-2" />
-                        Report spam
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </div>
-                    <div className="lg:hidden sm:block hidden">
-                      <DropdownMenuItem>
-                        <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
-                        Download
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handle_print}>
-                        <PrinterIcon className="w-4 h-4 mr-2" />
-                        Print
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </div>
+                  <div className="lg:hidden sm:block hidden">
                     <DropdownMenuItem>
-                      <DocumentTextIcon className="w-4 h-4 mr-2" />
-                      View message source
+                      <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                      Download
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <ArrowTopRightOnSquareIcon className="w-4 h-4 mr-2" />
-                      Open in new window
+                    <DropdownMenuItem onClick={handle_print}>
+                      <PrinterIcon className="w-4 h-4 mr-2" />
+                      Print
                     </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TooltipProvider>
+                    <DropdownMenuSeparator />
+                  </div>
+                  <DropdownMenuItem>
+                    <DocumentTextIcon className="w-4 h-4 mr-2" />
+                    View message source
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <ArrowTopRightOnSquareIcon className="w-4 h-4 mr-2" />
+                    Open in new window
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <div className="flex-1" />
 
@@ -851,36 +812,24 @@ export default function EmailDetailPage() {
                   {current_email_index + 1} of {email_list.length}
                 </span>
               )}
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className="h-7 w-7"
-                      disabled={!can_go_newer}
-                      size="icon"
-                      variant="ghost"
-                      onClick={handle_go_newer}
-                    >
-                      <ChevronLeftIcon className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Newer</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className="h-7 w-7"
-                      disabled={!can_go_older}
-                      size="icon"
-                      variant="ghost"
-                      onClick={handle_go_older}
-                    >
-                      <ChevronRightIcon className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Older</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button
+                className="h-7 w-7"
+                disabled={!can_go_newer}
+                size="icon"
+                variant="ghost"
+                onClick={handle_go_newer}
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+              </Button>
+              <Button
+                className="h-7 w-7"
+                disabled={!can_go_older}
+                size="icon"
+                variant="ghost"
+                onClick={handle_go_older}
+              >
+                <ChevronRightIcon className="w-4 h-4" />
+              </Button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-20 sm:pb-6">

@@ -4,6 +4,7 @@ import {
   TagIcon,
   BellIcon,
   ChatBubbleLeftRightIcon,
+  ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
 
 import type { EmailCategory } from "@/types/email";
@@ -30,6 +31,7 @@ const CATEGORY_CONFIGS: CategoryTabConfig[] = [
   { id: "promotions", label: "Promotions", icon: TagIcon },
   { id: "updates", label: "Updates", icon: BellIcon },
   { id: "forums", label: "Forums", icon: ChatBubbleLeftRightIcon },
+  { id: "purchases", label: "Purchases", icon: ShoppingBagIcon },
 ];
 
 function CategoryTabs({
