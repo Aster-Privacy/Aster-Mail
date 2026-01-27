@@ -4,6 +4,10 @@ import { AnimatePresence } from "framer-motion";
 
 import { Sidebar, MobileMenuButton } from "@/components/sidebar";
 import {
+  ComposeManager,
+  useComposeManager,
+} from "@/components/compose_manager";
+import {
   EmailInbox,
   type ReplyData,
   type DraftClickData,
@@ -42,7 +46,13 @@ export default function IndexPage() {
   const [settings_section, set_settings_section] = useState<string | undefined>(
     undefined,
   );
-  const [is_compose_open, set_is_compose_open] = useState(false);
+  const {
+    instances: compose_instances,
+    open_compose: open_compose_instance,
+    close_compose,
+    toggle_minimize,
+    has_instances: has_compose_instances,
+  } = useComposeManager();
   const [is_reply_open, set_is_reply_open] = useState(false);
   const [is_forward_open, set_is_forward_open] = useState(false);
   const [reply_data, set_reply_data] = useState<ReplyData | null>(null);
