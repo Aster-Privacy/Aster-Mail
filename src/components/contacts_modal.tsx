@@ -37,12 +37,6 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -1356,24 +1350,13 @@ export function ContactsModal({
                         className="flex items-center gap-2 px-5 py-2 border-b"
                         style={{ borderColor: "var(--border-secondary)" }}
                       >
-                        <TooltipProvider delayDuration={0}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex-shrink-0">
-                                <Checkbox
-                                  checked={selection_state.all_selected}
-                                  indeterminate={selection_state.some_selected}
-                                  onCheckedChange={handle_toggle_select_all}
-                                />
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">
-                              {selection_state.all_selected
-                                ? "Deselect all"
-                                : "Select all"}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <div className="flex-shrink-0">
+                          <Checkbox
+                            checked={selection_state.all_selected}
+                            indeterminate={selection_state.some_selected}
+                            onCheckedChange={handle_toggle_select_all}
+                          />
+                        </div>
 
                         {has_selection ? (
                           <div className="flex items-center gap-1 ml-1 flex-1">
@@ -1384,121 +1367,74 @@ export function ContactsModal({
                               {selection_state.selected_count} selected
                             </span>
 
-                            <TooltipProvider delayDuration={0}>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    className="h-7 w-7"
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={handle_compose_to_selected}
-                                  >
-                                    <EnvelopeIcon
-                                      className="h-3.5 w-3.5"
-                                      style={{ color: "var(--text-secondary)" }}
-                                    />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom">
-                                  Compose email
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <Button
+                              className="h-7 w-7"
+                              size="icon"
+                              variant="ghost"
+                              onClick={handle_compose_to_selected}
+                            >
+                              <EnvelopeIcon
+                                className="h-3.5 w-3.5"
+                                style={{ color: "var(--text-secondary)" }}
+                              />
+                            </Button>
 
-                            <TooltipProvider delayDuration={0}>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    className="h-7 w-7"
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={handle_toggle_favorite_selected}
-                                  >
-                                    {selected_all_favorited ? (
-                                      <StarIconSolid className="h-3.5 w-3.5 text-amber-400" />
-                                    ) : (
-                                      <StarIcon
-                                        className="h-3.5 w-3.5"
-                                        style={{
-                                          color: "var(--text-secondary)",
-                                        }}
-                                      />
-                                    )}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom">
-                                  {selected_all_favorited
-                                    ? "Remove from favorites"
-                                    : "Add to favorites"}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <Button
+                              className="h-7 w-7"
+                              size="icon"
+                              variant="ghost"
+                              onClick={handle_toggle_favorite_selected}
+                            >
+                              {selected_all_favorited ? (
+                                <StarIconSolid className="h-3.5 w-3.5 text-amber-400" />
+                              ) : (
+                                <StarIcon
+                                  className="h-3.5 w-3.5"
+                                  style={{
+                                    color: "var(--text-secondary)",
+                                  }}
+                                />
+                              )}
+                            </Button>
 
-                            <TooltipProvider delayDuration={0}>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    className="h-7 w-7"
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={handle_copy_emails}
-                                  >
-                                    {copied_field === "bulk-emails" ? (
-                                      <CheckIcon className="h-3.5 w-3.5 text-green-500" />
-                                    ) : (
-                                      <ClipboardDocumentIcon
-                                        className="h-3.5 w-3.5"
-                                        style={{
-                                          color: "var(--text-secondary)",
-                                        }}
-                                      />
-                                    )}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom">
-                                  Copy emails
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <Button
+                              className="h-7 w-7"
+                              size="icon"
+                              variant="ghost"
+                              onClick={handle_copy_emails}
+                            >
+                              {copied_field === "bulk-emails" ? (
+                                <CheckIcon className="h-3.5 w-3.5 text-green-500" />
+                              ) : (
+                                <ClipboardDocumentIcon
+                                  className="h-3.5 w-3.5"
+                                  style={{
+                                    color: "var(--text-secondary)",
+                                  }}
+                                />
+                              )}
+                            </Button>
 
-                            <TooltipProvider delayDuration={0}>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    className="h-7 w-7"
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={() => handle_export_contacts(true)}
-                                  >
-                                    <ArrowDownTrayIcon
-                                      className="h-3.5 w-3.5"
-                                      style={{ color: "var(--text-secondary)" }}
-                                    />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom">
-                                  Export selected
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <Button
+                              className="h-7 w-7"
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handle_export_contacts(true)}
+                            >
+                              <ArrowDownTrayIcon
+                                className="h-3.5 w-3.5"
+                                style={{ color: "var(--text-secondary)" }}
+                              />
+                            </Button>
 
-                            <TooltipProvider delayDuration={0}>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={handle_delete_selected}
-                                  >
-                                    <TrashIcon className="h-3.5 w-3.5" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom">
-                                  Delete selected
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <Button
+                              className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                              size="icon"
+                              variant="ghost"
+                              onClick={handle_delete_selected}
+                            >
+                              <TrashIcon className="h-3.5 w-3.5" />
+                            </Button>
                           </div>
                         ) : (
                           <div className="flex items-center justify-between flex-1">
@@ -1513,43 +1449,34 @@ export function ContactsModal({
 
                             <div className="flex items-center gap-1">
                               <DropdownMenu>
-                                <TooltipProvider delayDuration={0}>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button
-                                          className="h-7 px-2 gap-1 text-[12px]"
-                                          size="sm"
-                                          variant="ghost"
-                                        >
-                                          <FunnelIcon
-                                            className="h-3.5 w-3.5"
-                                            style={{
-                                              color:
-                                                filter_by !== "all"
-                                                  ? "var(--text-primary)"
-                                                  : "var(--text-muted)",
-                                            }}
-                                          />
-                                          <span
-                                            className="hidden sm:inline"
-                                            style={{
-                                              color:
-                                                filter_by !== "all"
-                                                  ? "var(--text-primary)"
-                                                  : "var(--text-muted)",
-                                            }}
-                                          >
-                                            {filter_label}
-                                          </span>
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="bottom">
-                                      Filter
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    className="h-7 px-2 gap-1 text-[12px]"
+                                    size="sm"
+                                    variant="ghost"
+                                  >
+                                    <FunnelIcon
+                                      className="h-3.5 w-3.5"
+                                      style={{
+                                        color:
+                                          filter_by !== "all"
+                                            ? "var(--text-primary)"
+                                            : "var(--text-muted)",
+                                      }}
+                                    />
+                                    <span
+                                      className="hidden sm:inline"
+                                      style={{
+                                        color:
+                                          filter_by !== "all"
+                                            ? "var(--text-primary)"
+                                            : "var(--text-muted)",
+                                      }}
+                                    >
+                                      {filter_label}
+                                    </span>
+                                  </Button>
+                                </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                   align="end"
                                   className="w-40"
@@ -1611,46 +1538,37 @@ export function ContactsModal({
                               </DropdownMenu>
 
                               <DropdownMenu>
-                                <TooltipProvider delayDuration={0}>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button
-                                          className="h-7 px-2 gap-1 text-[12px]"
-                                          size="sm"
-                                          variant="ghost"
-                                        >
-                                          {sort_by === "name_desc" ? (
-                                            <BarsArrowUpIcon
-                                              className="h-3.5 w-3.5"
-                                              style={{
-                                                color: "var(--text-muted)",
-                                              }}
-                                            />
-                                          ) : (
-                                            <BarsArrowDownIcon
-                                              className="h-3.5 w-3.5"
-                                              style={{
-                                                color: "var(--text-muted)",
-                                              }}
-                                            />
-                                          )}
-                                          <span
-                                            className="hidden sm:inline"
-                                            style={{
-                                              color: "var(--text-muted)",
-                                            }}
-                                          >
-                                            {sort_label}
-                                          </span>
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="bottom">
-                                      Sort
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    className="h-7 px-2 gap-1 text-[12px]"
+                                    size="sm"
+                                    variant="ghost"
+                                  >
+                                    {sort_by === "name_desc" ? (
+                                      <BarsArrowUpIcon
+                                        className="h-3.5 w-3.5"
+                                        style={{
+                                          color: "var(--text-muted)",
+                                        }}
+                                      />
+                                    ) : (
+                                      <BarsArrowDownIcon
+                                        className="h-3.5 w-3.5"
+                                        style={{
+                                          color: "var(--text-muted)",
+                                        }}
+                                      />
+                                    )}
+                                    <span
+                                      className="hidden sm:inline"
+                                      style={{
+                                        color: "var(--text-muted)",
+                                      }}
+                                    >
+                                      {sort_label}
+                                    </span>
+                                  </Button>
+                                </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                   align="end"
                                   className="w-40"
@@ -1695,29 +1613,20 @@ export function ContactsModal({
                               </DropdownMenu>
 
                               <DropdownMenu>
-                                <TooltipProvider delayDuration={0}>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button
-                                          className="h-7 w-7"
-                                          size="icon"
-                                          variant="ghost"
-                                        >
-                                          <ArrowDownTrayIcon
-                                            className="h-3.5 w-3.5"
-                                            style={{
-                                              color: "var(--text-muted)",
-                                            }}
-                                          />
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="bottom">
-                                      Export
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    className="h-7 w-7"
+                                    size="icon"
+                                    variant="ghost"
+                                  >
+                                    <ArrowDownTrayIcon
+                                      className="h-3.5 w-3.5"
+                                      style={{
+                                        color: "var(--text-muted)",
+                                      }}
+                                    />
+                                  </Button>
+                                </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                   align="end"
                                   className="w-44"

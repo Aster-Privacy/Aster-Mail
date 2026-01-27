@@ -50,6 +50,7 @@ import {
   format_email_list_timestamp,
   type FormatOptions,
 } from "@/utils/date_format";
+import { classify_email } from "@/services/classification/classifier";
 
 const MIN_SKELETON_MS = 0;
 const MAIL_FETCH_LIMIT = 50;
@@ -290,6 +291,10 @@ function mail_to_email(
 
   const raw_ts = envelope.sent_at || item.created_at;
 
+  const classification = item.item_type === "received"
+    ? classify_email({ id: item.id, envelope })
+    : null;
+
   return {
     id: item.id,
     item_type: effective_metadata.item_type as MailItem["item_type"],
@@ -318,6 +323,8 @@ function mail_to_email(
     encrypted_metadata: item.encrypted_metadata,
     metadata_nonce: item.metadata_nonce,
     metadata_version: item.metadata_version,
+    email_category: classification?.category,
+    category_confidence: classification?.confidence,
   };
 }
 

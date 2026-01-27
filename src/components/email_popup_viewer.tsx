@@ -29,12 +29,6 @@ import { Button } from "@/components/ui/button";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { KeyboardShortcutBadge } from "@/components/keyboard_shortcut_badge";
 import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -1138,244 +1132,184 @@ export function EmailPopupViewer({
         }}
         onMouseDown={handle_drag_start}
       >
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                data-no-drag
-                className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                size="icon"
-                variant="ghost"
-                onClick={on_close}
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Close</TooltipContent>
-          </Tooltip>
+        <Button
+          data-no-drag
+          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          size="icon"
+          variant="ghost"
+          onClick={on_close}
+        >
+          <XMarkIcon className="w-4 h-4" />
+        </Button>
 
-          {!is_fullscreen && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-no-drag
-                  className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  size="icon"
-                  variant="ghost"
-                  onClick={toggle_size}
+        {!is_fullscreen && (
+          <Button
+            data-no-drag
+            className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            size="icon"
+            variant="ghost"
+            onClick={toggle_size}
+          >
+            {popup_size === "default" ? (
+              <ArrowsPointingOutIcon className="w-4 h-4" />
+            ) : (
+              <ArrowsPointingInIcon className="w-4 h-4" />
+            )}
+          </Button>
+        )}
+
+        <Button
+          data-no-drag
+          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          size="icon"
+          variant="ghost"
+          onClick={handle_fullscreen}
+        >
+          {is_fullscreen ? (
+            <ArrowsPointingInIcon className="w-4 h-4" />
+          ) : (
+            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+          )}
+        </Button>
+
+        {(can_go_prev || can_go_next) && (
+          <>
+            <div
+              className="w-px h-4 mx-1"
+              style={{ backgroundColor: "var(--border-secondary)" }}
+            />
+            <Button
+              data-no-drag
+              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+              disabled={!can_go_prev}
+              size="icon"
+              variant="ghost"
+              onClick={on_navigate_prev}
+            >
+              <ChevronUpIcon className="w-4 h-4" />
+            </Button>
+            <Button
+              data-no-drag
+              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+              disabled={!can_go_next}
+              size="icon"
+              variant="ghost"
+              onClick={on_navigate_next}
+            >
+              <ChevronDownIcon className="w-4 h-4" />
+            </Button>
+            {typeof current_index === "number" &&
+              typeof total_count === "number" &&
+              total_count > 0 && (
+                <span
+                  className="text-xs px-1.5 tabular-nums"
+                  style={{ color: "var(--text-muted)" }}
                 >
-                  {popup_size === "default" ? (
-                    <ArrowsPointingOutIcon className="w-4 h-4" />
-                  ) : (
-                    <ArrowsPointingInIcon className="w-4 h-4" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {popup_size === "default" ? "Expand" : "Collapse"}
-              </TooltipContent>
-            </Tooltip>
-          )}
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                data-no-drag
-                className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                size="icon"
-                variant="ghost"
-                onClick={handle_fullscreen}
-              >
-                {is_fullscreen ? (
-                  <ArrowsPointingInIcon className="w-4 h-4" />
-                ) : (
-                  <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              {is_fullscreen ? "Exit full screen" : "Full screen"}
-            </TooltipContent>
-          </Tooltip>
-
-          {(can_go_prev || can_go_next) && (
-            <>
-              <div
-                className="w-px h-4 mx-1"
-                style={{ backgroundColor: "var(--border-secondary)" }}
-              />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    data-no-drag
-                    className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-                    disabled={!can_go_prev}
-                    size="icon"
-                    variant="ghost"
-                    onClick={on_navigate_prev}
-                  >
-                    <ChevronUpIcon className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Newer</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    data-no-drag
-                    className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-                    disabled={!can_go_next}
-                    size="icon"
-                    variant="ghost"
-                    onClick={on_navigate_next}
-                  >
-                    <ChevronDownIcon className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Older</TooltipContent>
-              </Tooltip>
-              {typeof current_index === "number" &&
-                typeof total_count === "number" &&
-                total_count > 0 && (
-                  <span
-                    className="text-xs px-1.5 tabular-nums"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {current_index + 1} of {total_count}
-                  </span>
-                )}
-            </>
-          )}
-        </TooltipProvider>
+                  {current_index + 1} of {total_count}
+                </span>
+              )}
+          </>
+        )}
 
         <div className="flex-1" />
 
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                data-no-drag
-                className={`h-7 w-7 ${is_pinned ? "text-blue-500" : "text-[var(--text-muted)] hover:text-blue-500"}`}
-                disabled={is_pin_loading}
-                size="icon"
-                variant="ghost"
-                onClick={handle_pin_toggle}
-              >
-                <MapPinIcon
-                  className={`w-4 h-4 ${is_pinned ? "-rotate-45" : ""}`}
-                />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              {is_pinned ? "Unpin" : "Pin"}
-            </TooltipContent>
-          </Tooltip>
+        <Button
+          data-no-drag
+          className={`h-7 w-7 ${is_pinned ? "text-blue-500" : "text-[var(--text-muted)] hover:text-blue-500"}`}
+          disabled={is_pin_loading}
+          size="icon"
+          variant="ghost"
+          onClick={handle_pin_toggle}
+        >
+          <MapPinIcon
+            className={`w-4 h-4 ${is_pinned ? "-rotate-45" : ""}`}
+          />
+        </Button>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                data-no-drag
-                className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                disabled={is_archive_loading}
-                size="icon"
-                variant="ghost"
-                onClick={handle_archive}
-              >
-                <ArchiveBoxIcon className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Archive</TooltipContent>
-          </Tooltip>
+        <Button
+          data-no-drag
+          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          disabled={is_archive_loading}
+          size="icon"
+          variant="ghost"
+          onClick={handle_archive}
+        >
+          <ArchiveBoxIcon className="w-4 h-4" />
+        </Button>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                data-no-drag
-                className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                disabled={is_spam_loading}
-                size="icon"
-                variant="ghost"
-                onClick={handle_spam}
-              >
-                <NoSymbolIcon className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Report spam</TooltipContent>
-          </Tooltip>
+        <Button
+          data-no-drag
+          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          disabled={is_spam_loading}
+          size="icon"
+          variant="ghost"
+          onClick={handle_spam}
+        >
+          <NoSymbolIcon className="w-4 h-4" />
+        </Button>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                data-no-drag
-                className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                disabled={is_trash_loading}
-                size="icon"
-                variant="ghost"
-                onClick={handle_trash}
-              >
-                <TrashIcon className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Delete</TooltipContent>
-          </Tooltip>
+        <Button
+          data-no-drag
+          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          disabled={is_trash_loading}
+          size="icon"
+          variant="ghost"
+          onClick={handle_trash}
+        >
+          <TrashIcon className="w-4 h-4" />
+        </Button>
 
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    data-no-drag
-                    className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                    size="icon"
-                    variant="ghost"
-                  >
-                    <EllipsisHorizontalIcon className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">More</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handle_read_toggle}>
-                {is_read ? (
-                  <>
-                    <EnvelopeIcon className="w-4 h-4 mr-2" />
-                    Mark as unread
-                  </>
-                ) : (
-                  <>
-                    <EnvelopeOpenIcon className="w-4 h-4 mr-2" />
-                    Mark as read
-                  </>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handle_pin_toggle}>
-                <MapPinIcon
-                  className={`w-4 h-4 mr-2 ${is_pinned ? "-rotate-45 text-blue-500" : ""}`}
-                />
-                {is_pinned ? "Unpin" : "Pin to top"}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem disabled>
-                <FolderIcon className="w-4 h-4 mr-2" />
-                Move to folder
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handle_print}>
-                <PrinterIcon className="w-4 h-4 mr-2" />
-                Print
-              </DropdownMenuItem>
-              {unsubscribe_info?.has_unsubscribe && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              data-no-drag
+              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              size="icon"
+              variant="ghost"
+            >
+              <EllipsisHorizontalIcon className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={handle_read_toggle}>
+              {is_read ? (
                 <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handle_unsubscribe}>
-                    <XMarkIcon className="w-4 h-4 mr-2" />
-                    Unsubscribe
-                  </DropdownMenuItem>
+                  <EnvelopeIcon className="w-4 h-4 mr-2" />
+                  Mark as unread
+                </>
+              ) : (
+                <>
+                  <EnvelopeOpenIcon className="w-4 h-4 mr-2" />
+                  Mark as read
                 </>
               )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </TooltipProvider>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handle_pin_toggle}>
+              <MapPinIcon
+                className={`w-4 h-4 mr-2 ${is_pinned ? "-rotate-45 text-blue-500" : ""}`}
+              />
+              {is_pinned ? "Unpin" : "Pin to top"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled>
+              <FolderIcon className="w-4 h-4 mr-2" />
+              Move to folder
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handle_print}>
+              <PrinterIcon className="w-4 h-4 mr-2" />
+              Print
+            </DropdownMenuItem>
+            {unsubscribe_info?.has_unsubscribe && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handle_unsubscribe}>
+                  <XMarkIcon className="w-4 h-4 mr-2" />
+                  Unsubscribe
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="flex-1 overflow-y-auto">

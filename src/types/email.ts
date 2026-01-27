@@ -76,7 +76,8 @@ export type EmailCategory =
   | "social"
   | "promotions"
   | "updates"
-  | "forums";
+  | "forums"
+  | "purchases";
 
 export const EMAIL_CATEGORY_STYLES: Record<EmailCategory, string> = {
   primary:
@@ -89,6 +90,8 @@ export const EMAIL_CATEGORY_STYLES: Record<EmailCategory, string> = {
     "bg-amber-100 text-amber-700 border border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-500",
   forums:
     "bg-purple-100 text-purple-700 border border-purple-300 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-500",
+  purchases:
+    "bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-500",
 };
 
 export const EMAIL_CATEGORY_LABELS: Record<EmailCategory, string> = {
@@ -97,6 +100,7 @@ export const EMAIL_CATEGORY_LABELS: Record<EmailCategory, string> = {
   promotions: "Promotions",
   updates: "Updates",
   forums: "Forums",
+  purchases: "Purchases",
 };
 
 export const EMAIL_CATEGORY_ICONS: Record<EmailCategory, string> = {
@@ -105,6 +109,7 @@ export const EMAIL_CATEGORY_ICONS: Record<EmailCategory, string> = {
   promotions: "tag",
   updates: "bell",
   forums: "message-square",
+  purchases: "shopping-bag",
 };
 
 export interface CategoryMetadata {

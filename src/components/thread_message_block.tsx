@@ -21,12 +21,6 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { show_toast } from "@/components/simple_toast";
 
 interface ThreadMessageBlockProps {
@@ -109,51 +103,33 @@ export function ThreadMessageBlock({
 
         <div className="flex items-center gap-1.5">
           {on_toggle_read && (
-            <TooltipProvider delayDuration={100}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_toggle_read();
-                    }}
-                  >
-                    {is_read ? (
-                      <EyeSlashIcon className="h-4 w-4 text-[var(--text-muted)]" />
-                    ) : (
-                      <EyeIcon className="h-4 w-4 text-[var(--text-muted)]" />
-                    )}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {is_read ? "Mark as unread" : "Mark as read"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <button
+              className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
+              onClick={(e) => {
+                e.stopPropagation();
+                on_toggle_read();
+              }}
+            >
+              {is_read ? (
+                <EyeSlashIcon className="h-4 w-4 text-[var(--text-muted)]" />
+              ) : (
+                <EyeIcon className="h-4 w-4 text-[var(--text-muted)]" />
+              )}
+            </button>
           )}
-          <TooltipProvider delayDuration={100}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_star_toggle?.();
-                  }}
-                >
-                  {is_starred ? (
-                    <StarIconSolid className="h-4 w-4 text-amber-400" />
-                  ) : (
-                    <StarIcon className="h-4 w-4 text-[var(--text-muted)]" />
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {is_starred ? "Remove star" : "Star"}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <button
+            className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
+            onClick={(e) => {
+              e.stopPropagation();
+              on_star_toggle?.();
+            }}
+          >
+            {is_starred ? (
+              <StarIconSolid className="h-4 w-4 text-amber-400" />
+            ) : (
+              <StarIcon className="h-4 w-4 text-[var(--text-muted)]" />
+            )}
+          </button>
           <span className="ml-1 text-sm" style={{ color: "var(--text-muted)" }}>
             {format_email_detail(new Date(message.timestamp))}
           </span>
@@ -199,51 +175,33 @@ export function ThreadMessageBlock({
 
         <div className="flex items-center gap-1.5">
           {on_toggle_read && (
-            <TooltipProvider delayDuration={100}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_toggle_read();
-                    }}
-                  >
-                    {is_read ? (
-                      <EyeSlashIcon className="h-4 w-4 text-[var(--text-muted)]" />
-                    ) : (
-                      <EyeIcon className="h-4 w-4 text-[var(--text-muted)]" />
-                    )}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {is_read ? "Mark as unread" : "Mark as read"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <button
+              className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
+              onClick={(e) => {
+                e.stopPropagation();
+                on_toggle_read();
+              }}
+            >
+              {is_read ? (
+                <EyeSlashIcon className="h-4 w-4 text-[var(--text-muted)]" />
+              ) : (
+                <EyeIcon className="h-4 w-4 text-[var(--text-muted)]" />
+              )}
+            </button>
           )}
-          <TooltipProvider delayDuration={100}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_star_toggle?.();
-                  }}
-                >
-                  {is_starred ? (
-                    <StarIconSolid className="h-4 w-4 text-amber-400" />
-                  ) : (
-                    <StarIcon className="h-4 w-4 text-[var(--text-muted)]" />
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {is_starred ? "Remove star" : "Star"}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <button
+            className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
+            onClick={(e) => {
+              e.stopPropagation();
+              on_star_toggle?.();
+            }}
+          >
+            {is_starred ? (
+              <StarIconSolid className="h-4 w-4 text-amber-400" />
+            ) : (
+              <StarIcon className="h-4 w-4 text-[var(--text-muted)]" />
+            )}
+          </button>
           <ChevronDownIcon
             className="ml-1 h-4 w-4"
             style={{ color: "var(--text-muted)" }}
@@ -588,7 +546,12 @@ export function ThreadMessagesList({
 
   const toggle_read = useCallback(
     (msg: DecryptedThreadMessage) => {
-      const new_read = !read_ids.has(msg.id);
+      const is_currently_read = read_ids.has(msg.id);
+      const new_read = !is_currently_read;
+
+      if (!new_read) {
+        auto_read_ids.current.add(msg.id);
+      }
 
       set_read_ids((prev) => {
         const next = new Set(prev);
@@ -609,12 +572,15 @@ export function ThreadMessagesList({
         {
           encrypted_metadata: msg.encrypted_metadata,
           metadata_nonce: msg.metadata_nonce,
-          is_read: read_ids.has(msg.id),
+          is_read: is_currently_read,
           is_starred: starred_ids.has(msg.id),
         },
         { is_read: new_read },
       ).then((result) => {
         if (!result.success) {
+          if (!new_read) {
+            auto_read_ids.current.delete(msg.id);
+          }
           set_read_ids((prev) => {
             const next = new Set(prev);
 

@@ -4,12 +4,6 @@ import { motion } from "framer-motion";
 import { EnvelopeIcon } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { TrashIcon, ArchiveIcon, SpamIcon } from "@/components/icons";
 
 interface EmailViewerHeaderProps {
@@ -54,87 +48,47 @@ export function EmailViewerHeader({
       </motion.button>
       <div className="flex items-center gap-2">
         {show_unsubscribe && (
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    className="text-violet-500 hover:text-violet-600 hover:bg-violet-500/10"
-                    size="icon"
-                    variant="ghost"
-                    onClick={on_unsubscribe}
-                  >
-                    <EnvelopeIcon className="w-[18px] h-[18px]" />
-                  </Button>
-                </motion.div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Unsubscribe</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              className="text-violet-500 hover:text-violet-600 hover:bg-violet-500/10"
+              size="icon"
+              variant="ghost"
+              onClick={on_unsubscribe}
+            >
+              <EnvelopeIcon className="w-[18px] h-[18px]" />
+            </Button>
+          </motion.div>
         )}
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  disabled={is_archive_loading}
-                  size="icon"
-                  variant="ghost"
-                  onClick={on_archive}
-                >
-                  <ArchiveIcon size={18} />
-                </Button>
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Archive</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  disabled={is_spam_loading}
-                  size="icon"
-                  variant="ghost"
-                  onClick={on_spam}
-                >
-                  <SpamIcon size={18} />
-                </Button>
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Mark as spam</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  disabled={is_trash_loading}
-                  size="icon"
-                  variant="ghost"
-                  onClick={on_trash}
-                >
-                  <TrashIcon size={18} />
-                </Button>
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Move to trash</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            disabled={is_archive_loading}
+            size="icon"
+            variant="ghost"
+            onClick={on_archive}
+          >
+            <ArchiveIcon size={18} />
+          </Button>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            disabled={is_spam_loading}
+            size="icon"
+            variant="ghost"
+            onClick={on_spam}
+          >
+            <SpamIcon size={18} />
+          </Button>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            disabled={is_trash_loading}
+            size="icon"
+            variant="ghost"
+            onClick={on_trash}
+          >
+            <TrashIcon size={18} />
+          </Button>
+        </motion.div>
       </div>
     </motion.div>
   );

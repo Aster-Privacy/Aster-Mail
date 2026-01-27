@@ -29,12 +29,6 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -922,105 +916,86 @@ export function FullEmailViewer({
         </div>
 
         <div className="flex items-center gap-1">
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  className={`h-8 w-8 ${is_pinned ? "text-blue-500 bg-blue-500/10" : "text-[var(--text-muted)] hover:text-blue-500 hover:bg-blue-500/10"}`}
-                  disabled={is_pin_loading}
-                  size="icon"
-                  variant="ghost"
-                  onClick={handle_pin_toggle}
-                >
-                  <MapPinIcon
-                    className={`w-4 h-4 ${is_pinned ? "-rotate-45" : ""}`}
-                  />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {is_pinned ? "Unpin" : "Pin"}
-              </TooltipContent>
-            </Tooltip>
+          <Button
+            className={`h-8 w-8 ${is_pinned ? "text-blue-500 bg-blue-500/10" : "text-[var(--text-muted)] hover:text-blue-500 hover:bg-blue-500/10"}`}
+            disabled={is_pin_loading}
+            size="icon"
+            variant="ghost"
+            onClick={handle_pin_toggle}
+          >
+            <MapPinIcon
+              className={`w-4 h-4 ${is_pinned ? "-rotate-45" : ""}`}
+            />
+          </Button>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-                  disabled={is_archive_loading}
-                  size="icon"
-                  variant="ghost"
-                  onClick={handle_archive}
-                >
-                  <ArchiveBoxIcon className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Archive</TooltipContent>
-            </Tooltip>
+          <Button
+            className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+            disabled={is_archive_loading}
+            size="icon"
+            variant="ghost"
+            onClick={handle_archive}
+          >
+            <ArchiveBoxIcon className="w-4 h-4" />
+          </Button>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  className="h-8 w-8 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10"
-                  disabled={is_trash_loading}
-                  size="icon"
-                  variant="ghost"
-                  onClick={handle_trash}
-                >
-                  <TrashIcon className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Delete</TooltipContent>
-            </Tooltip>
+          <Button
+            className="h-8 w-8 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10"
+            disabled={is_trash_loading}
+            size="icon"
+            variant="ghost"
+            onClick={handle_trash}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-                  size="icon"
-                  variant="ghost"
-                >
-                  <EllipsisHorizontalIcon className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem onClick={handle_read_toggle}>
-                  {is_read ? (
-                    <>
-                      <EnvelopeIcon className="w-4 h-4 mr-2" />
-                      Mark as unread
-                    </>
-                  ) : (
-                    <>
-                      <EnvelopeOpenIcon className="w-4 h-4 mr-2" />
-                      Mark as read
-                    </>
-                  )}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handle_spam}>
-                  <NoSymbolIcon className="w-4 h-4 mr-2" />
-                  Report spam
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem disabled>
-                  <FolderIcon className="w-4 h-4 mr-2" />
-                  Move to folder
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handle_print}>
-                  <PrinterIcon className="w-4 h-4 mr-2" />
-                  Print
-                </DropdownMenuItem>
-                {email.unsubscribe_info?.has_unsubscribe && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+                size="icon"
+                variant="ghost"
+              >
+                <EllipsisHorizontalIcon className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem onClick={handle_read_toggle}>
+                {is_read ? (
                   <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handle_unsubscribe}>
-                      <XMarkIcon className="w-4 h-4 mr-2" />
-                      Unsubscribe
-                    </DropdownMenuItem>
+                    <EnvelopeIcon className="w-4 h-4 mr-2" />
+                    Mark as unread
+                  </>
+                ) : (
+                  <>
+                    <EnvelopeOpenIcon className="w-4 h-4 mr-2" />
+                    Mark as read
                   </>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </TooltipProvider>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handle_spam}>
+                <NoSymbolIcon className="w-4 h-4 mr-2" />
+                Report spam
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled>
+                <FolderIcon className="w-4 h-4 mr-2" />
+                Move to folder
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handle_print}>
+                <PrinterIcon className="w-4 h-4 mr-2" />
+                Print
+              </DropdownMenuItem>
+              {email.unsubscribe_info?.has_unsubscribe && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handle_unsubscribe}>
+                    <XMarkIcon className="w-4 h-4 mr-2" />
+                    Unsubscribe
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

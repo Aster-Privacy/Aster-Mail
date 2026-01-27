@@ -23,12 +23,6 @@ import {
   type TagIconName,
 } from "@/components/ui/email_tag";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { cn, is_astermail_sender } from "@/lib/utils";
 
 interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -394,113 +388,72 @@ export const InboxEmailListItem = forwardRef<
               }
             }}
           >
-            <TooltipProvider delayDuration={0}>
-              {on_toggle_read && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                      onClick={() => on_toggle_read(email)}
-                    >
-                      {email.is_read ? (
-                        <EnvelopeIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                      ) : (
-                        <EnvelopeOpenIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    {email.is_read ? "Mark as unread" : "Mark as read"}
-                  </TooltipContent>
-                </Tooltip>
-              )}
+            {on_toggle_read && (
+              <button
+                className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                onClick={() => on_toggle_read(email)}
+              >
+                {email.is_read ? (
+                  <EnvelopeIcon className="w-4 h-4 text-[var(--text-muted)]" />
+                ) : (
+                  <EnvelopeOpenIcon className="w-4 h-4 text-[var(--text-muted)]" />
+                )}
+              </button>
+            )}
 
-              {is_trash_view && on_restore && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                      onClick={() => on_restore(email)}
-                    >
-                      <ArrowUturnLeftIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Restore</TooltipContent>
-                </Tooltip>
-              )}
+            {is_trash_view && on_restore && (
+              <button
+                className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                onClick={() => on_restore(email)}
+              >
+                <ArrowUturnLeftIcon className="w-4 h-4 text-[var(--text-muted)]" />
+              </button>
+            )}
 
-              {is_archive_view && on_move_to_inbox && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                      onClick={() => on_move_to_inbox(email)}
-                    >
-                      <InboxIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Move to inbox</TooltipContent>
-                </Tooltip>
-              )}
+            {is_archive_view && on_move_to_inbox && (
+              <button
+                className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                onClick={() => on_move_to_inbox(email)}
+              >
+                <InboxIcon className="w-4 h-4 text-[var(--text-muted)]" />
+              </button>
+            )}
 
-              {is_spam_view && on_mark_not_spam && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                      onClick={() => on_mark_not_spam(email)}
-                    >
-                      <CheckCircleIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Not spam</TooltipContent>
-                </Tooltip>
-              )}
+            {is_spam_view && on_mark_not_spam && (
+              <button
+                className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                onClick={() => on_mark_not_spam(email)}
+              >
+                <CheckCircleIcon className="w-4 h-4 text-[var(--text-muted)]" />
+              </button>
+            )}
 
-              {!is_trash_view && !is_archive_view && on_archive && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                      onClick={() => on_archive(email)}
-                    >
-                      <ArchiveBoxArrowDownIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Archive</TooltipContent>
-                </Tooltip>
-              )}
+            {!is_trash_view && !is_archive_view && on_archive && (
+              <button
+                className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                onClick={() => on_archive(email)}
+              >
+                <ArchiveBoxArrowDownIcon className="w-4 h-4 text-[var(--text-muted)]" />
+              </button>
+            )}
 
-              {!is_trash_view && !is_spam_view && on_spam && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                      onClick={() => on_spam(email)}
-                    >
-                      <ExclamationTriangleIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Report spam</TooltipContent>
-                </Tooltip>
-              )}
+            {!is_trash_view && !is_spam_view && on_spam && (
+              <button
+                className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                onClick={() => on_spam(email)}
+              >
+                <ExclamationTriangleIcon className="w-4 h-4 text-[var(--text-muted)]" />
+              </button>
+            )}
 
-              {on_delete && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                      onClick={() => on_delete(email)}
-                    >
-                      <TrashIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    {is_trash_view ? "Delete forever" : "Delete"}
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </TooltipProvider>
+            {on_delete && (
+              <button
+                className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                onClick={() => on_delete(email)}
+              >
+                <TrashIcon className="w-4 h-4 text-[var(--text-muted)]" />
+              </button>
+            )}
           </div>
         )}
       </div>

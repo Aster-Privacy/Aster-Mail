@@ -43,12 +43,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
@@ -2079,34 +2073,28 @@ function InboxToolbar({
       style={{ borderColor: "var(--border-primary)" }}
     >
       <div className="flex items-center gap-2 px-3 sm:px-4 py-2">
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                className={cn(
-                  "w-[18px] h-[18px] rounded-[4px] border-[1.5px] flex items-center justify-center flex-shrink-0",
-                  has_selection
-                    ? "bg-blue-500 border-blue-500"
-                    : "bg-transparent border-[var(--text-muted)] hover:border-[var(--text-tertiary)]",
-                )}
-                onClick={on_toggle_select_all}
-              >
-                {all_selected ? (
-                  <CheckIcon className="w-3 h-3 text-white" />
-                ) : some_selected ? (
-                  <MinusIcon className="w-3 h-3 text-white" />
-                ) : null}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Select all</TooltipContent>
-          </Tooltip>
+        <button
+          className={cn(
+            "w-[18px] h-[18px] rounded-[4px] border-[1.5px] flex items-center justify-center flex-shrink-0",
+            has_selection
+              ? "bg-blue-500 border-blue-500"
+              : "bg-transparent border-[var(--text-muted)] hover:border-[var(--text-tertiary)]",
+          )}
+          onClick={on_toggle_select_all}
+        >
+          {all_selected ? (
+            <CheckIcon className="w-3 h-3 text-white" />
+          ) : some_selected ? (
+            <MinusIcon className="w-3 h-3 text-white" />
+          ) : null}
+        </button>
 
-          <Separator
-            className="h-4 bg-[var(--border-secondary)]"
-            orientation="vertical"
-          />
+        <Separator
+          className="h-4 bg-[var(--border-secondary)]"
+          orientation="vertical"
+        />
 
-          <div className="flex items-center gap-0.5 overflow-x-auto">
+        <div className="flex items-center gap-0.5 overflow-x-auto">
             {filters.map(({ key, label, icon: Icon }) => {
               const is_active = active_filter === key;
 
@@ -2145,136 +2133,126 @@ function InboxToolbar({
               on_click={on_mark_read}
             />
 
-            <Tooltip>
-              <DropdownMenu>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button className="h-8 w-8" size="icon" variant="ghost">
-                      <FolderPlusIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Move to folder</TooltipContent>
-                <DropdownMenuContent align="start" className="w-48">
-                  {folders.length === 0 ? (
-                    <div className="px-3 py-2 text-xs text-[var(--text-muted)]">
-                      No folders
-                    </div>
-                  ) : (
-                    folders.map((folder) => {
-                      const status = get_folder_assignment_status(
-                        folder.folder_token,
-                      );
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="h-8 w-8" size="icon" variant="ghost">
+                  <FolderPlusIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                {folders.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-[var(--text-muted)]">
+                    No folders
+                  </div>
+                ) : (
+                  folders.map((folder) => {
+                    const status = get_folder_assignment_status(
+                      folder.folder_token,
+                    );
 
-                      return (
-                        <DropdownMenuItem
-                          key={folder.folder_token}
-                          onClick={() =>
-                            handle_folder_click(folder.folder_token)
-                          }
-                        >
-                          <span className="w-4 h-4 flex items-center justify-center">
-                            {status === "all" && (
-                              <CheckIcon className="w-3.5 h-3.5 text-blue-500" />
-                            )}
-                            {status === "some" && (
-                              <MinusIcon className="w-3.5 h-3.5 text-blue-400" />
-                            )}
-                          </span>
-                          <span
-                            className="w-2.5 h-2.5 rounded-full ml-1"
-                            style={{ backgroundColor: folder.color }}
-                          />
-                          <span className="ml-2 truncate">{folder.name}</span>
-                        </DropdownMenuItem>
-                      );
-                    })
+                    return (
+                      <DropdownMenuItem
+                        key={folder.folder_token}
+                        onClick={() =>
+                          handle_folder_click(folder.folder_token)
+                        }
+                      >
+                        <span className="w-4 h-4 flex items-center justify-center">
+                          {status === "all" && (
+                            <CheckIcon className="w-3.5 h-3.5 text-blue-500" />
+                          )}
+                          {status === "some" && (
+                            <MinusIcon className="w-3.5 h-3.5 text-blue-400" />
+                          )}
+                        </span>
+                        <span
+                          className="w-2.5 h-2.5 rounded-full ml-1"
+                          style={{ backgroundColor: folder.color }}
+                        />
+                        <span className="ml-2 truncate">{folder.name}</span>
+                      </DropdownMenuItem>
+                    );
+                  })
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {on_snooze && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="h-8 w-8" size="icon" variant="ghost">
+                    <ClockIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const date = new Date();
+
+                      date.setHours(date.getHours() + 4);
+                      on_snooze(date);
+                    }}
+                  >
+                    Later today (4 hours)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const date = new Date();
+
+                      date.setDate(date.getDate() + 1);
+                      date.setHours(9, 0, 0, 0);
+                      on_snooze(date);
+                    }}
+                  >
+                    Tomorrow (9 AM)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const date = new Date();
+                      const day = date.getDay();
+                      const days_until_saturday =
+                        day === 6 ? 7 : (6 - day + 7) % 7;
+
+                      date.setDate(date.getDate() + days_until_saturday);
+                      date.setHours(9, 0, 0, 0);
+                      on_snooze(date);
+                    }}
+                  >
+                    This weekend
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const date = new Date();
+
+                      date.setDate(date.getDate() + 7);
+                      date.setHours(9, 0, 0, 0);
+                      on_snooze(date);
+                    }}
+                  >
+                    Next week
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const date = new Date();
+
+                      date.setMonth(date.getMonth() + 1);
+                      date.setHours(9, 0, 0, 0);
+                      on_snooze(date);
+                    }}
+                  >
+                    Next month
+                  </DropdownMenuItem>
+                  {on_custom_snooze && (
+                    <>
+                      <Separator className="my-1" />
+                      <DropdownMenuItem onClick={on_custom_snooze}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        Pick date & time
+                      </DropdownMenuItem>
+                    </>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </Tooltip>
-
-            {on_snooze && (
-              <Tooltip>
-                <DropdownMenu>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <Button className="h-8 w-8" size="icon" variant="ghost">
-                        <ClockIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Snooze</TooltipContent>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuItem
-                      onClick={() => {
-                        const date = new Date();
-
-                        date.setHours(date.getHours() + 4);
-                        on_snooze(date);
-                      }}
-                    >
-                      Later today (4 hours)
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        const date = new Date();
-
-                        date.setDate(date.getDate() + 1);
-                        date.setHours(9, 0, 0, 0);
-                        on_snooze(date);
-                      }}
-                    >
-                      Tomorrow (9 AM)
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        const date = new Date();
-                        const day = date.getDay();
-                        const days_until_saturday =
-                          day === 6 ? 7 : (6 - day + 7) % 7;
-
-                        date.setDate(date.getDate() + days_until_saturday);
-                        date.setHours(9, 0, 0, 0);
-                        on_snooze(date);
-                      }}
-                    >
-                      This weekend
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        const date = new Date();
-
-                        date.setDate(date.getDate() + 7);
-                        date.setHours(9, 0, 0, 0);
-                        on_snooze(date);
-                      }}
-                    >
-                      Next week
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        const date = new Date();
-
-                        date.setMonth(date.getMonth() + 1);
-                        date.setHours(9, 0, 0, 0);
-                        on_snooze(date);
-                      }}
-                    >
-                      Next month
-                    </DropdownMenuItem>
-                    {on_custom_snooze && (
-                      <>
-                        <Separator className="my-1" />
-                        <DropdownMenuItem onClick={on_custom_snooze}>
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          Pick date & time
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </Tooltip>
             )}
 
             {is_archive_view ? (
@@ -2396,7 +2374,6 @@ function InboxToolbar({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </TooltipProvider>
 
         <div className="ml-auto flex items-center gap-1 text-[11px] text-[var(--text-muted)]">
           {(() => {
@@ -2453,23 +2430,18 @@ interface ToolbarButtonProps {
 
 function ToolbarButton({
   icon: Icon,
-  label,
+  label: _label,
   on_click,
 }: ToolbarButtonProps): React.ReactElement {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          className="h-8 w-8"
-          size="icon"
-          variant="ghost"
-          onClick={on_click}
-        >
-          <Icon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom">{label}</TooltipContent>
-    </Tooltip>
+    <Button
+      className="h-8 w-8"
+      size="icon"
+      variant="ghost"
+      onClick={on_click}
+    >
+      <Icon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+    </Button>
   );
 }
 

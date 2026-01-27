@@ -362,6 +362,7 @@ export default function IndexPage() {
 
   const handle_search_result_click = useCallback(
     (id: string) => {
+      set_active_search_query(null);
       if (preferences.email_view_mode === "popup") {
         set_popup_email_id(id);
       } else {

@@ -5,12 +5,6 @@ import { motion } from "framer-motion";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { UnsubscribeBanner } from "@/components/unsubscribe_banner";
 import { LockIcon } from "@/components/icons";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
@@ -51,23 +45,9 @@ export function EmailViewerContent({ email }: { email: Email }) {
           />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="text-blue-500 cursor-default">
-                      <LockIcon size={20} />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <div className="text-xs space-y-1 py-0.5">
-                      <div className="font-medium">End-to-end encrypted</div>
-                      <div style={{ color: "var(--text-muted)" }}>
-                        AES-256-GCM · X25519
-                      </div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <span className="text-blue-500 cursor-default">
+                <LockIcon size={20} />
+              </span>
               <h2
                 className="text-2xl font-semibold break-words"
                 style={{ color: "var(--text-primary)" }}
