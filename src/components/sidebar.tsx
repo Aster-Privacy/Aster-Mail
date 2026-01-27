@@ -1,12 +1,9 @@
-import type { DraftType } from "@/services/api/multi_drafts";
-
 import {
   useState,
   useRef,
   useEffect,
   useLayoutEffect,
   useMemo,
-  useCallback,
 } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -56,20 +53,6 @@ import { format_bytes } from "@/lib/utils";
 let mail_logo_cached = false;
 let text_logo_cached = false;
 
-interface EditDraftData {
-  id: string;
-  version: number;
-  draft_type: DraftType;
-  reply_to_id?: string;
-  forward_from_id?: string;
-  to_recipients: string[];
-  cc_recipients: string[];
-  bcc_recipients: string[];
-  subject: string;
-  message: string;
-  updated_at: string;
-}
-
 interface FolderModalData {
   folder_id: string;
   folder_name: string;
@@ -82,14 +65,11 @@ interface SidebarProps {
   on_settings_click: (section?: string) => void;
   on_modal_open?: () => void;
   on_nav_click?: () => void;
-  force_close_compose?: boolean;
-  open_compose_trigger?: boolean;
+  on_compose: () => void;
+  on_draft_click_compose?: (draft: EditDraftData) => void;
   edit_draft?: EditDraftData | null;
-  on_draft_cleared?: () => void;
   is_mobile_open?: boolean;
   on_mobile_toggle?: () => void;
-  initial_compose_to?: string;
-  on_compose_to_cleared?: () => void;
 }
 
 export const MobileMenuButton = ({ on_click }: { on_click: () => void }) => {
@@ -109,14 +89,11 @@ export const Sidebar = ({
   on_settings_click,
   on_modal_open,
   on_nav_click,
-  force_close_compose,
-  open_compose_trigger,
+  on_compose,
+  on_draft_click_compose,
   edit_draft,
-  on_draft_cleared,
   is_mobile_open = false,
   on_mobile_toggle,
-  initial_compose_to,
-  on_compose_to_cleared,
 }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -182,7 +159,6 @@ export const Sidebar = ({
     get_initial_selected_item(),
   );
   const [indicator_style, set_indicator_style] = useState({});
-  const [is_compose_open, set_is_compose_open] = useState(false);
   const [is_share_open, set_is_share_open] = useState(false);
   const [is_create_folder_open, set_is_create_folder_open] = useState(false);
   const [is_contacts_open, set_is_contacts_open] = useState(false);
@@ -376,33 +352,10 @@ export const Sidebar = ({
   }, [selected_item, folders_state.folders, is_collapsed]);
 
   useEffect(() => {
-    if (force_close_compose) {
-      set_is_compose_open(false);
-    }
-  }, [force_close_compose]);
-
-  useEffect(() => {
-    if (open_compose_trigger) {
-      set_is_compose_open(true);
-    }
-  }, [open_compose_trigger]);
-
-  useEffect(() => {
-    if (edit_draft?.id) {
-      set_is_compose_open(true);
+    if (edit_draft?.id && on_draft_click_compose) {
+      on_draft_click_compose(edit_draft);
     }
   }, [edit_draft?.id]);
-
-  useEffect(() => {
-    if (initial_compose_to) {
-      set_is_compose_open(true);
-    }
-  }, [initial_compose_to]);
-
-  const handle_compose_close = useCallback(() => {
-    set_is_compose_open(false);
-    on_compose_to_cleared?.();
-  }, [on_compose_to_cleared]);
 
   const handle_nav_click = (callback: () => void) => {
     on_nav_click?.();
@@ -502,7 +455,7 @@ export const Sidebar = ({
           }}
           onClick={() => {
             on_modal_open?.();
-            set_is_compose_open(true);
+            on_compose();
           }}
         >
           <PencilSquareIcon className="w-[15px] h-[15px]" />
@@ -518,13 +471,6 @@ export const Sidebar = ({
         </button>
       </div>
 
-      <ComposeModal
-        edit_draft={edit_draft}
-        initial_to={initial_compose_to}
-        is_open={is_compose_open}
-        on_close={handle_compose_close}
-        on_draft_cleared={on_draft_cleared}
-      />
       <ShareModal
         is_open={is_share_open}
         on_close={() => set_is_share_open(false)}
@@ -538,7 +484,7 @@ export const Sidebar = ({
         on_close={() => set_is_contacts_open(false)}
         on_compose_to={(_email) => {
           set_is_contacts_open(false);
-          set_is_compose_open(true);
+          on_compose();
         }}
       />
       <InviteFriendsModal

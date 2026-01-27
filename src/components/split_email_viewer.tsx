@@ -3,6 +3,8 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+import { InlineReplySection } from "@/components/inline_reply_section";
 import {
   XMarkIcon,
   NoSymbolIcon,
@@ -89,7 +91,6 @@ interface SplitEmailViewerProps {
   email_id: string;
   on_close: () => void;
   snoozed_until?: string;
-  on_reply?: (data: SplitReplyData) => void;
   on_forward?: (data: SplitForwardData) => void;
 }
 
@@ -240,7 +241,6 @@ export function SplitEmailViewer({
   email_id,
   on_close,
   snoozed_until,
-  on_reply,
   on_forward,
 }: SplitEmailViewerProps): React.ReactElement {
   const { format_email_detail } = use_date_format();
@@ -263,7 +263,9 @@ export function SplitEmailViewer({
   const [is_external, set_is_external] = useState(false);
   const [has_pq_protection, set_has_pq_protection] = useState(false);
   const [show_encryption_info, set_show_encryption_info] = useState(false);
+  const [show_inline_reply, set_show_inline_reply] = useState(false);
   const mark_as_read_timeout = useRef<number | null>(null);
+  const inline_reply_ref = useRef<HTMLDivElement>(null);
 
   const copy_to_clipboard = useCallback(async (text: string, label: string) => {
     const clear_clipboard_after_timeout = () => {
@@ -298,18 +300,23 @@ export function SplitEmailViewer({
   }, []);
 
   const handle_reply = useCallback(() => {
-    if (!email || !on_reply) return;
-    on_reply({
-      recipient_name: email.sender,
-      recipient_email: email.sender_email,
-      recipient_avatar: "/mail_logo.png",
-      original_subject: email.subject,
-      original_body: email.body,
-      original_timestamp: email.timestamp,
-      thread_token: email.thread_token,
-      original_email_id: email.id,
-    });
-  }, [email, on_reply]);
+    if (!email) return;
+    set_show_inline_reply(true);
+    setTimeout(() => {
+      inline_reply_ref.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }, 150);
+  }, [email]);
+
+  const handle_inline_reply_sent = useCallback(
+    (new_message: DecryptedThreadMessage) => {
+      set_thread_messages((prev) => [...prev, new_message]);
+      set_show_inline_reply(false);
+    },
+    [],
+  );
 
   const handle_forward = useCallback(() => {
     if (!email || !on_forward) return;
@@ -564,6 +571,7 @@ export function SplitEmailViewer({
       set_is_loading(true);
       set_error(null);
       set_thread_messages([]);
+      set_show_inline_reply(false);
 
       const result = await get_mail_item(email_id);
 
@@ -1333,11 +1341,25 @@ export function SplitEmailViewer({
               }}
               subject={email.subject}
             />
+
+            <InlineReplySection
+              ref={inline_reply_ref}
+              body={email.body}
+              email_id={email.id}
+              is_visible={show_inline_reply}
+              sender_email={email.sender_email}
+              sender_name={email.sender}
+              subject={email.subject}
+              thread_token={email.thread_token}
+              timestamp={email.timestamp}
+              on_close={() => set_show_inline_reply(false)}
+              on_reply_sent={handle_inline_reply_sent}
+            />
           </div>
         </div>
       </div>
 
-      {(on_reply || on_forward) && (
+      {!show_inline_reply && (
         <div
           className="flex items-center gap-3 px-4 py-3 border-t"
           style={{
@@ -1345,26 +1367,24 @@ export function SplitEmailViewer({
             borderColor: "var(--border-primary)",
           }}
         >
-          {on_reply && (
-            <button
-              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-150"
-              style={{
-                background:
-                  "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-                color: "#ffffff",
-                boxShadow:
-                  "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)",
-              }}
-              onClick={handle_reply}
-            >
-              <ArrowUturnLeftIcon className="w-4 h-4" />
-              <span>Reply</span>
-              <KeyboardShortcutBadge
-                className="bg-white/20 border-white/30 text-white/80 shadow-none"
-                shortcut="r"
-              />
-            </button>
-          )}
+          <button
+            className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-150"
+            style={{
+              background:
+                "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+              color: "#ffffff",
+              boxShadow:
+                "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)",
+            }}
+            onClick={handle_reply}
+          >
+            <ArrowUturnLeftIcon className="w-4 h-4" />
+            <span>Reply</span>
+            <KeyboardShortcutBadge
+              className="bg-white/20 border-white/30 text-white/80 shadow-none"
+              shortcut="r"
+            />
+          </button>
           {on_forward && (
             <button
               className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-150"

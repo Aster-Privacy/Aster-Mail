@@ -150,31 +150,23 @@ export function ComposeManager({
           scrollbarColor: "var(--border-primary) transparent",
         }}
       >
-        <AnimatePresence mode="popLayout">
-          {instances.map((instance, index) => (
+        <AnimatePresence>
+          {instances.map((instance) => (
             <motion.div
               key={instance.id}
-              layout
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              transition={{
-                type: "spring",
-                stiffness: 500,
-                damping: 30,
-                mass: 0.8,
-              }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
             >
               <ComposeWindow
                 edit_draft={instance.edit_draft}
-                index={index}
                 initial_to={instance.initial_to}
                 instance_id={instance.id}
                 is_minimized={instance.is_minimized}
                 on_close={() => on_close(instance.id)}
                 on_draft_cleared={on_draft_cleared}
                 on_toggle_minimize={() => on_toggle_minimize(instance.id)}
-                total_instances={instances.length}
               />
             </motion.div>
           ))}

@@ -200,8 +200,15 @@ export function use_keyboard_shortcuts(
       return;
     }
 
-    if (is_any_modal_open) return;
     if (is_typing()) return;
+
+    if (key === "c" && !has_cmd && !has_shift) {
+      handle(h.on_compose);
+
+      return;
+    }
+
+    if (is_any_modal_open) return;
 
     if (key === "j" && !has_cmd && !has_shift) {
       handle_throttled(h.on_next_email);
@@ -225,12 +232,6 @@ export function use_keyboard_shortcuts(
 
     if (key === "u" && !has_cmd && !has_shift) {
       handle(h.on_close_viewer);
-
-      return;
-    }
-
-    if (key === "c" && !has_cmd && !has_shift) {
-      handle(h.on_compose);
 
       return;
     }

@@ -12,6 +12,7 @@ import { ColorPicker } from "@/components/ui/color_picker";
 interface EditorToolbarProps {
   editor_ref: React.RefObject<HTMLDivElement | null>;
   on_change?: () => void;
+  compact?: boolean;
 }
 
 function escape_html(str: string): string {

@@ -1795,7 +1795,6 @@ export function EmailInbox({
               email_id={split_email_id}
               on_back={on_split_close || (() => {})}
               on_forward={on_forward}
-              on_reply={on_reply}
               snoozed_until={split_email_snoozed_until}
             />
           </div>
@@ -1843,7 +1842,6 @@ export function EmailInbox({
                   email_id={split_email_id}
                   on_close={on_split_close || (() => {})}
                   on_forward={on_forward}
-                  on_reply={on_reply}
                   snoozed_until={split_email_snoozed_until}
                 />
               ) : null}

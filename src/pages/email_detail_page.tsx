@@ -46,6 +46,10 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import { Sidebar, MobileMenuButton } from "@/components/sidebar";
+import {
+  ComposeManager,
+  useComposeManager,
+} from "@/components/compose_manager";
 import { ReplyModal } from "@/components/reply_modal";
 import { ConfirmationModal } from "@/components/confirmation_modal";
 import { ForwardModal } from "@/components/forward_modal";
@@ -208,6 +212,12 @@ export default function EmailDetailPage() {
   const [settings_section, set_settings_section] = useState<string | undefined>(
     undefined,
   );
+  const {
+    instances: compose_instances,
+    open_compose,
+    close_compose,
+    toggle_minimize,
+  } = useComposeManager();
   const [auto_advance, set_auto_advance] = useState(
     DEFAULT_PREFERENCES.auto_advance,
   );
@@ -640,12 +650,6 @@ export default function EmailDetailPage() {
     });
   }, [email]);
 
-  const any_email_modal_open =
-    is_reply_modal_open ||
-    is_archive_confirm_open ||
-    is_trash_confirm_open ||
-    is_forward_modal_open;
-
   const handle_copy_text = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     show_toast(`Copied ${label}`, "success");
@@ -658,8 +662,8 @@ export default function EmailDetailPage() {
         style={{ backgroundColor: "var(--bg-secondary)" }}
       >
         <Sidebar
-          force_close_compose={any_email_modal_open}
           is_mobile_open={is_mobile_sidebar_open}
+          on_compose={open_compose}
           on_mobile_toggle={toggle_mobile_sidebar}
           on_settings_click={(section) => {
             set_settings_section(section);
@@ -1552,6 +1556,11 @@ export default function EmailDetailPage() {
           set_is_settings_open(false);
           set_settings_section(undefined);
         }}
+      />
+      <ComposeManager
+        instances={compose_instances}
+        on_close={close_compose}
+        on_toggle_minimize={toggle_minimize}
       />
     </>
   );

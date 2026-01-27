@@ -72,24 +72,48 @@ export interface EmailFilter {
 }
 
 export type EmailCategory =
-  | "marketing"
-  | "finance"
-  | "product"
-  | "development"
-  | "personal";
+  | "primary"
+  | "social"
+  | "promotions"
+  | "updates"
+  | "forums";
 
 export const EMAIL_CATEGORY_STYLES: Record<EmailCategory, string> = {
-  marketing:
+  primary:
+    "bg-slate-100 text-slate-700 border border-slate-300 dark:bg-slate-900/30 dark:text-slate-400 dark:border-slate-500",
+  social:
     "bg-blue-100 text-blue-700 border border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-500",
-  finance:
-    "bg-amber-100 text-amber-700 border border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-500",
-  product:
-    "bg-teal-100 text-teal-700 border border-teal-300 dark:bg-teal-900/30 dark:text-teal-400 dark:border-teal-500",
-  development:
-    "bg-purple-100 text-purple-700 border border-purple-300 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-500",
-  personal:
+  promotions:
     "bg-green-100 text-green-700 border border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-500",
+  updates:
+    "bg-amber-100 text-amber-700 border border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-500",
+  forums:
+    "bg-purple-100 text-purple-700 border border-purple-300 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-500",
 };
+
+export const EMAIL_CATEGORY_LABELS: Record<EmailCategory, string> = {
+  primary: "Primary",
+  social: "Social",
+  promotions: "Promotions",
+  updates: "Updates",
+  forums: "Forums",
+};
+
+export const EMAIL_CATEGORY_ICONS: Record<EmailCategory, string> = {
+  primary: "inbox",
+  social: "users",
+  promotions: "tag",
+  updates: "bell",
+  forums: "message-square",
+};
+
+export interface CategoryMetadata {
+  category: EmailCategory;
+  confidence: number;
+  classified_at: number;
+  user_override: boolean;
+  version: number;
+}
 
 export function create_empty_email(id: string): Email {
   return {
@@ -160,6 +184,9 @@ export interface InboxEmail {
   encrypted_metadata?: string;
   metadata_nonce?: string;
   metadata_version?: number;
+  email_category?: EmailCategory;
+  category_confidence?: number;
+  category_user_override?: boolean;
 }
 
 export interface MailItemMetadata {
@@ -178,6 +205,10 @@ export interface MailItemMetadata {
   trashed_at?: string;
   message_ts: string;
   item_type: string;
+  email_category?: EmailCategory;
+  category_confidence?: number;
+  category_user_override?: boolean;
+  category_classified_at?: number;
 }
 
 export interface DecryptedEnvelope {

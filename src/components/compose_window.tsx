@@ -4,7 +4,8 @@ import type { DraftType } from "@/services/api/multi_drafts";
 import { useState, useEffect, useRef, useCallback, useReducer } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { TemplatePicker } from "./template_picker";
+import { use_draggable_modal } from "@/hooks/use_draggable_modal";
+
 import { CloseIcon, FileIcon, AttachmentIcon } from "./icons";
 import { EmailAutocomplete } from "./email_autocomplete";
 import { EditorToolbar } from "./editor_toolbar";
@@ -21,7 +22,6 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { undo_send_manager, type UndoSendEvent } from "@/hooks/use_undo_send";
-import { MODAL_SIZES } from "@/constants/modal";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
@@ -241,8 +241,6 @@ interface EditDraftData {
 
 interface ComposeWindowProps {
   instance_id: string;
-  index: number;
-  total_instances: number;
   is_minimized: boolean;
   on_close: () => void;
   on_toggle_minimize: () => void;
@@ -295,13 +293,13 @@ function RecipientBadge({ email, on_remove }: RecipientBadgeProps) {
 
   return (
     <div
-      className="flex items-center gap-1 bg-default-100 rounded-full px-1.5 py-0.5 border text-xs"
+      className="flex items-center gap-1.5 bg-default-100 rounded-full px-2 py-1 border"
       style={{ borderColor: "var(--border-secondary)" }}
     >
       {!logo_error && logo_url ? (
         <img
           alt=""
-          className="w-4 h-4 rounded-full object-contain flex-shrink-0"
+          className="w-5 h-5 rounded-full object-contain flex-shrink-0"
           src={logo_url}
           onError={() => set_logo_error(true)}
         />
@@ -312,17 +310,12 @@ function RecipientBadge({ email, on_remove }: RecipientBadgeProps) {
           size="xs"
         />
       )}
-      <span
-        className="text-xs max-w-[100px] truncate"
-        style={{ color: "var(--text-primary)" }}
-      >
-        {email.split("@")[0]}
-      </span>
+      <span className="text-sm text-default-900">{email}</span>
       <button
         className="text-default-400 hover:text-default-600 transition-colors"
         onClick={on_remove}
       >
-        <CloseIcon className="w-3 h-3" />
+        <CloseIcon className="w-4 h-4" />
       </button>
     </div>
   );
@@ -374,15 +367,15 @@ function RecipientField({
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-2">
       <span
-        className="text-xs w-8 flex-shrink-0"
+        className="text-sm w-14 flex-shrink-0"
         style={{ color: "var(--text-tertiary)" }}
       >
         {label}
       </span>
       <div
-        className="flex-1 flex flex-wrap items-center gap-1"
+        className="flex-1 flex flex-wrap items-center gap-1.5"
         role="presentation"
         onKeyDown={handle_key_down}
       >
@@ -393,7 +386,7 @@ function RecipientField({
             on_remove={() => on_remove_recipient(email)}
           />
         ))}
-        <div className="flex-1 min-w-[80px] compose_recipient_input">
+        <div className="flex-1 min-w-[120px] compose_recipient_input">
           <EmailAutocomplete
             contacts={contacts}
             existing_emails={recipients}
@@ -405,10 +398,10 @@ function RecipientField({
         </div>
       </div>
       {show_cc_bcc_buttons && (
-        <div className="flex items-center gap-0.5 flex-shrink-0">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {!show_cc && (
             <button
-              className="text-[10px] px-1 py-0.5 rounded transition-colors"
+              className="text-xs px-2 py-1 rounded transition-colors"
               style={{ color: "var(--text-tertiary)" }}
               onClick={on_show_cc}
               onMouseEnter={(e) =>
@@ -423,7 +416,7 @@ function RecipientField({
           )}
           {!show_bcc && (
             <button
-              className="text-[10px] px-1 py-0.5 rounded transition-colors"
+              className="text-xs px-2 py-1 rounded transition-colors"
               style={{ color: "var(--text-tertiary)" }}
               onClick={on_show_bcc}
               onMouseEnter={(e) =>
@@ -440,11 +433,17 @@ function RecipientField({
       )}
       {on_close && (
         <button
-          className="p-0.5 rounded transition-colors flex-shrink-0"
+          className="p-1 rounded transition-colors flex-shrink-0"
           style={{ color: "var(--text-muted)" }}
           onClick={on_close}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = "transparent")
+          }
         >
-          <CloseIcon className="w-3 h-3" />
+          <CloseIcon className="w-3.5 h-3.5" />
         </button>
       )}
     </div>
@@ -463,7 +462,7 @@ function ToolbarButton({ tooltip, onClick, children }: ToolbarButtonProps) {
       <Tooltip>
         <TooltipTrigger asChild>
           <button
-            className="p-1.5 rounded transition-colors duration-150"
+            className="p-2 rounded transition-colors duration-150"
             style={{ color: "var(--text-tertiary)" }}
             onClick={onClick}
             onMouseEnter={(e) =>
@@ -492,8 +491,9 @@ interface DraftRefData {
   message: string;
 }
 
-const WINDOW_WIDTH = 360;
-const WINDOW_HEIGHT_NORMAL = 480;
+const WINDOW_WIDTH = 700;
+const WINDOW_WIDTH_MINIMIZED = 320;
+const WINDOW_HEIGHT_NORMAL = 600;
 
 export function ComposeWindow({
   instance_id,
@@ -508,6 +508,40 @@ export function ComposeWindow({
   const { preferences } = use_preferences();
   const { default_signature, get_formatted_signature } = use_signatures();
   const [is_expanded, set_is_expanded] = useState(false);
+
+  const {
+    handle_drag_start,
+    get_position_style,
+    has_been_moved,
+    did_drag,
+    reset: reset_drag_position,
+  } = use_draggable_modal(!is_minimized && !is_expanded, {
+    width: is_minimized ? WINDOW_WIDTH_MINIMIZED : WINDOW_WIDTH,
+    height: WINDOW_HEIGHT_NORMAL,
+  });
+
+  const handle_header_click = useCallback(() => {
+    if (did_drag()) {
+      return;
+    }
+    on_toggle_minimize();
+  }, [did_drag, on_toggle_minimize]);
+
+  const handle_header_mouse_down = useCallback(
+    (e: React.MouseEvent) => {
+      if (is_minimized) {
+        return;
+      }
+      handle_drag_start(e);
+    },
+    [is_minimized, handle_drag_start],
+  );
+
+  useEffect(() => {
+    if (is_minimized) {
+      reset_drag_position();
+    }
+  }, [is_minimized, reset_drag_position]);
 
   const [recipients, dispatch_recipients] = useReducer(
     recipients_reducer,
@@ -1369,36 +1403,44 @@ export function ComposeWindow({
       <div
         className={`flex flex-col shadow-2xl border rounded-t-lg overflow-hidden ${
           is_expanded ? "fixed inset-4 z-50 rounded-lg" : ""
-        }`}
+        } ${has_been_moved && !is_expanded ? "fixed z-50" : ""}`}
         style={{
           backgroundColor: "var(--modal-bg)",
           borderColor: "var(--border-primary)",
-          width: is_expanded ? "auto" : is_minimized ? WINDOW_WIDTH : WINDOW_WIDTH,
+          width: is_expanded
+            ? "auto"
+            : is_minimized
+              ? WINDOW_WIDTH_MINIMIZED
+              : WINDOW_WIDTH,
           height: is_expanded ? "auto" : is_minimized ? "auto" : WINDOW_HEIGHT_NORMAL,
-          minWidth: is_minimized ? 280 : WINDOW_WIDTH,
-          maxWidth: is_expanded ? "none" : WINDOW_WIDTH,
+          minWidth: is_minimized ? WINDOW_WIDTH_MINIMIZED : WINDOW_WIDTH,
+          maxWidth: is_expanded ? "none" : is_minimized ? WINDOW_WIDTH_MINIMIZED : WINDOW_WIDTH,
+          ...(has_been_moved && !is_expanded ? get_position_style() : {}),
         }}
       >
         <ErrorBoundary fallback={<ComposeErrorFallback />}>
           <div
-            className="flex items-center justify-between px-3 py-2 border-b cursor-pointer select-none flex-shrink-0"
+            className={`flex items-center justify-between px-4 py-3 border-b select-none flex-shrink-0 ${
+              is_minimized ? "cursor-pointer" : "cursor-move"
+            }`}
             role="presentation"
             style={{ borderColor: "var(--border-primary)" }}
-            onClick={on_toggle_minimize}
+            onMouseDown={handle_header_mouse_down}
+            onClick={handle_header_click}
           >
             <h2
-              className="text-xs font-medium truncate flex-1 mr-2"
+              className="text-sm font-medium truncate flex-1 mr-2"
               style={{ color: "var(--text-primary)" }}
             >
               {window_title}
             </h2>
             <div
-              className="flex items-center gap-0.5"
+              className="flex items-center gap-1"
               role="presentation"
               onClick={(e) => e.stopPropagation()}
             >
               <button
-                className="transition-colors duration-150 p-1 w-6 h-6 flex items-center justify-center rounded"
+                className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded"
                 style={{ color: "var(--text-muted)" }}
                 onClick={on_toggle_minimize}
                 onMouseEnter={(e) =>
@@ -1409,7 +1451,7 @@ export function ComposeWindow({
                 }
               >
                 <svg
-                  className="w-3.5 h-3.5"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -1419,7 +1461,7 @@ export function ComposeWindow({
                 </svg>
               </button>
               <button
-                className="transition-colors duration-150 p-1 w-6 h-6 flex items-center justify-center rounded"
+                className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded"
                 style={{ color: "var(--text-muted)" }}
                 onClick={() => set_is_expanded(!is_expanded)}
                 onMouseEnter={(e) =>
@@ -1431,7 +1473,7 @@ export function ComposeWindow({
               >
                 {is_expanded ? (
                   <svg
-                    className="w-3.5 h-3.5"
+                    className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
@@ -1445,7 +1487,7 @@ export function ComposeWindow({
                   </svg>
                 ) : (
                   <svg
-                    className="w-3.5 h-3.5"
+                    className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
@@ -1460,7 +1502,7 @@ export function ComposeWindow({
                 )}
               </button>
               <button
-                className="transition-colors duration-150 p-1 w-6 h-6 flex items-center justify-center rounded"
+                className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded"
                 style={{ color: "var(--text-muted)" }}
                 onClick={handle_close}
                 onMouseEnter={(e) =>
@@ -1470,16 +1512,16 @@ export function ComposeWindow({
                   (e.currentTarget.style.backgroundColor = "transparent")
                 }
               >
-                <CloseIcon className="w-3.5 h-3.5" />
+                <CloseIcon className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {!is_minimized && (
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-              <div className="px-3 pt-2 pb-1 flex-shrink-0 overflow-visible relative z-20">
+              <div className="px-4 pt-3 pb-2 flex-shrink-0 overflow-visible relative z-20">
                 <div
-                  className="py-1.5 border-b"
+                  className="py-2 border-b"
                   style={{ borderColor: "var(--border-secondary)" }}
                 >
                   <RecipientField
@@ -1503,13 +1545,13 @@ export function ComposeWindow({
 
                 {visibility.cc && (
                   <div
-                    className="py-1.5 border-b"
+                    className="py-2 border-b"
                     style={{ borderColor: "var(--border-secondary)" }}
                   >
                     <RecipientField
                       contacts={contacts}
                       input_value={inputs.cc}
-                      label="CC"
+                      label="Cc"
                       on_add_recipient={(email) => add_recipient("cc", email)}
                       on_close={hide_cc_field}
                       on_input_change={(val) => update_input("cc", val)}
@@ -1524,13 +1566,13 @@ export function ComposeWindow({
 
                 {visibility.bcc && (
                   <div
-                    className="py-1.5 border-b"
+                    className="py-2 border-b"
                     style={{ borderColor: "var(--border-secondary)" }}
                   >
                     <RecipientField
                       contacts={contacts}
                       input_value={inputs.bcc}
-                      label="BCC"
+                      label="Bcc"
                       on_add_recipient={(email) => add_recipient("bcc", email)}
                       on_close={hide_bcc_field}
                       on_input_change={(val) => update_input("bcc", val)}
@@ -1544,18 +1586,18 @@ export function ComposeWindow({
                 )}
 
                 <div
-                  className="flex items-center gap-1.5 py-1.5 border-b"
+                  className="flex items-center gap-2 py-2 border-b"
                   style={{ borderColor: "var(--border-secondary)" }}
                 >
                   <span
-                    className="text-xs w-8 flex-shrink-0"
+                    className="text-sm w-14 flex-shrink-0"
                     style={{ color: "var(--text-tertiary)" }}
                   >
-                    Subj
+                    Subject
                   </span>
                   <div className="flex-1 compose_recipient_input">
                     <input
-                      className="w-full text-xs bg-transparent border-none outline-none"
+                      className="w-full text-sm bg-transparent border-none outline-none"
                       placeholder="Subject"
                       style={{ color: "var(--text-primary)" }}
                       type="text"
@@ -1566,7 +1608,7 @@ export function ComposeWindow({
                 </div>
               </div>
 
-              <div className="flex-1 px-2 pt-1 pb-1 overflow-hidden flex flex-col min-h-0">
+              <div className="flex-1 px-3 pt-2 pb-2 overflow-hidden flex flex-col min-h-0">
                 <div
                   className="flex-1 flex flex-col min-h-0 rounded-md overflow-hidden"
                   style={{
@@ -1574,27 +1616,26 @@ export function ComposeWindow({
                   }}
                 >
                   <div
-                    className="flex-shrink-0 px-1"
+                    className="flex-shrink-0 px-2"
                     style={{
                       borderBottom: "1px solid var(--border-secondary)",
                     }}
                   >
                     <EditorToolbar
-                      compact
                       editor_ref={message_textarea_ref}
                       on_change={handle_editor_input}
                     />
                   </div>
 
-                  <div className="flex-1 overflow-auto px-2 py-1.5">
+                  <div className="flex-1 overflow-auto px-3 py-3">
                     <div
                       ref={message_textarea_ref}
                       contentEditable
                       suppressContentEditableWarning
-                      className="w-full h-full text-xs leading-relaxed border-none outline-none bg-transparent"
-                      data-placeholder="Write message"
+                      className="w-full h-full text-sm leading-relaxed border-none outline-none bg-transparent"
+                      data-placeholder="Write your message..."
                       style={{
-                        minHeight: "80px",
+                        minHeight: "120px",
                         whiteSpace: "pre-wrap",
                         wordBreak: "break-word",
                         color: "var(--text-primary)",
@@ -1621,10 +1662,10 @@ export function ComposeWindow({
               className="border-t flex-shrink-0"
               style={{ borderColor: "var(--border-primary)" }}
             >
-              <div className="min-h-[40px] px-2 flex items-start pt-2 pb-1.5">
+              <div className="min-h-[48px] px-3 flex items-start pt-3 pb-2">
                 <div
                   ref={attachments_scroll_ref}
-                  className="flex gap-1.5 overflow-x-auto w-full pb-1 scrollbar-hide"
+                  className="flex gap-2 overflow-x-auto w-full pb-1 scrollbar-hide"
                 >
                   {attachments.map((attachment) => {
                     const color = get_file_icon_color(attachment.mime_type);
@@ -1632,17 +1673,17 @@ export function ComposeWindow({
                     return (
                       <div
                         key={attachment.id}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0"
+                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs whitespace-nowrap flex-shrink-0"
                         style={{
                           backgroundColor: color.bg,
                           border: `1px solid ${color.border}`,
                         }}
                       >
                         <span style={{ color: color.text }}>
-                          <FileIcon className="w-3 h-3 flex-shrink-0" />
+                          <FileIcon className="w-4 h-4 flex-shrink-0" />
                         </span>
                         <span
-                          className="font-medium whitespace-nowrap max-w-[80px] truncate"
+                          className="font-medium whitespace-nowrap max-w-[120px] truncate"
                           style={{ color: "var(--text-primary)" }}
                           title={attachment.name}
                         >
@@ -1653,7 +1694,7 @@ export function ComposeWindow({
                           type="button"
                           onClick={() => remove_attachment(attachment.id)}
                         >
-                          <CloseIcon className="w-3 h-3" />
+                          <CloseIcon className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     );
@@ -1665,47 +1706,47 @@ export function ComposeWindow({
 
           {(send_error || restore_error) && !is_minimized && (
             <div
-              className="mx-2 mb-1.5 p-2 rounded-lg border flex items-center gap-1.5 flex-shrink-0"
+              className="mx-3 mb-2 p-3 rounded-lg border flex items-center gap-2 flex-shrink-0"
               style={{
                 backgroundColor: "rgba(239, 68, 68, 0.1)",
                 borderColor: "rgba(239, 68, 68, 0.3)",
               }}
             >
               <svg
-                className="w-4 h-4 text-red-500 flex-shrink-0"
+                className="w-5 h-5 text-red-500 flex-shrink-0"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
               </svg>
-              <span className="text-[10px] text-red-600 dark:text-red-400 flex-1 truncate">
+              <span className="text-xs text-red-600 dark:text-red-400 flex-1">
                 {send_error || restore_error}
               </span>
               <button
                 className="text-red-500 hover:text-red-700 flex-shrink-0"
                 onClick={clear_all_errors}
               >
-                <CloseIcon className="w-3 h-3" />
+                <CloseIcon className="w-4 h-4" />
               </button>
             </div>
           )}
 
           {attachment_error && !is_minimized && (
             <div
-              className="mx-2 mb-1.5 p-2 rounded-lg border flex items-center gap-1.5 flex-shrink-0"
+              className="mx-3 mb-2 p-3 rounded-lg border flex items-center gap-2 flex-shrink-0"
               style={{
                 backgroundColor: "rgba(234, 179, 8, 0.1)",
                 borderColor: "rgba(234, 179, 8, 0.3)",
               }}
             >
               <svg
-                className="w-4 h-4 text-yellow-500 flex-shrink-0"
+                className="w-5 h-5 text-yellow-500 flex-shrink-0"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
               </svg>
-              <span className="text-[10px] text-yellow-600 dark:text-yellow-400 flex-1 truncate">
+              <span className="text-xs text-yellow-600 dark:text-yellow-400 flex-1">
                 {attachment_error}
               </span>
               <button
@@ -1713,7 +1754,7 @@ export function ComposeWindow({
                 type="button"
                 onClick={() => set_attachment_error(null)}
               >
-                <CloseIcon className="w-3 h-3" />
+                <CloseIcon className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -1729,7 +1770,7 @@ export function ComposeWindow({
 
           {!is_minimized && (
             <div
-              className="border-t px-2 py-1.5 flex items-center gap-1.5 flex-shrink-0"
+              className="border-t px-3 py-2.5 flex items-center gap-2 flex-shrink-0"
               style={{ borderColor: "var(--border-primary)" }}
             >
               {scheduled_time ? (
@@ -1738,9 +1779,8 @@ export function ComposeWindow({
                   size="sm"
                   variant="primary"
                   onClick={handle_scheduled_send}
-                  className="text-xs h-7 px-2"
                 >
-                  {is_scheduling ? "..." : "Schedule"}
+                  {is_scheduling ? "Scheduling..." : "Schedule"}
                 </Button>
               ) : (
                 <Button
@@ -1748,27 +1788,26 @@ export function ComposeWindow({
                   size="sm"
                   variant="primary"
                   onClick={handle_send}
-                  className="text-xs h-7 px-2"
                 >
                   Send
                 </Button>
               )}
 
-              <div className="flex items-center gap-0.5">
+              <div className="flex items-center gap-1">
                 <SchedulePicker
                   disabled={recipients.to.length === 0}
                   on_schedule={set_scheduled_time}
                   scheduled_time={scheduled_time}
                 />
-                <ToolbarButton tooltip="Attach" onClick={trigger_file_select}>
-                  <AttachmentIcon className="w-3.5 h-3.5" />
+                <ToolbarButton tooltip="Attach file" onClick={trigger_file_select}>
+                  <AttachmentIcon className="w-4 h-4" />
                 </ToolbarButton>
               </div>
 
               <AnimatePresence>
                 {draft_status !== "idle" && (
                   <motion.div
-                    className="text-[10px] flex items-center gap-1 px-1 overflow-hidden"
+                    className="text-xs flex items-center gap-1 px-2 overflow-hidden"
                     style={{ color: "var(--text-muted)" }}
                     initial={{ opacity: 0, x: -4 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -1788,11 +1827,11 @@ export function ComposeWindow({
 
               <div className="ml-auto">
                 <ToolbarButton
-                  tooltip="Delete"
+                  tooltip="Delete draft"
                   onClick={handle_show_delete_confirm}
                 >
                   <svg
-                    className="w-3.5 h-3.5"
+                    className="w-4 h-4"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >

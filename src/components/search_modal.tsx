@@ -56,6 +56,7 @@ interface SearchModalProps {
   on_compose?: () => void;
   initial_query?: string;
   on_initial_query_consumed?: () => void;
+  on_search_submit?: (query: string) => void;
 }
 
 type SearchFieldType = "subject" | "body" | "sender" | "recipient" | "all";
@@ -1314,6 +1315,7 @@ export function SearchModal({
   on_close,
   initial_query,
   on_initial_query_consumed,
+  on_search_submit,
 }: SearchModalProps) {
   const navigate = useNavigate();
   const { user } = use_auth();
@@ -1675,7 +1677,9 @@ export function SearchModal({
         clear_autocomplete();
       }
 
-      handle_search(query);
+      if (!on_search_submit) {
+        handle_search(query);
+      }
     },
     [
       set_query,
@@ -1684,6 +1688,7 @@ export function SearchModal({
       clear_autocomplete,
       filters.fields,
       filtered_results.length,
+      on_search_submit,
     ],
   );
 
@@ -1789,6 +1794,8 @@ export function SearchModal({
             selected_index < results_count
           ) {
             handle_result_click(filtered_results[selected_index].id);
+          } else if (state.query && on_search_submit) {
+            on_search_submit(state.query);
           } else if (state.query) {
             handle_search(state.query);
           }
@@ -1819,6 +1826,7 @@ export function SearchModal({
       select_autocomplete,
       handle_autocomplete_select,
       clear_autocomplete,
+      on_search_submit,
     ],
   );
 
@@ -1898,6 +1906,7 @@ export function SearchModal({
     filtered_results.length === 0 &&
     filtered_folders.length === 0 &&
     !state.error;
+  const show_inline_results = !on_search_submit;
 
   return (
     <AnimatePresence>
@@ -1996,26 +2005,28 @@ export function SearchModal({
                     </svg>
                   </button>
                 )}
-                <button
-                  className="p-1.5 rounded-lg transition-all duration-150"
-                  style={{
-                    backgroundColor: show_filters
-                      ? "var(--accent-color, #3b82f6)"
-                      : "var(--bg-hover)",
-                    color: show_filters ? "#ffffff" : "var(--text-muted)",
-                  }}
-                  title="Toggle filters (Shift+Tab)"
-                  onClick={() => set_show_filters((prev) => !prev)}
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
+                {!on_search_submit && (
+                  <button
+                    className="p-1.5 rounded-lg transition-all duration-150"
+                    style={{
+                      backgroundColor: show_filters
+                        ? "var(--accent-color, #3b82f6)"
+                        : "var(--bg-hover)",
+                      color: show_filters ? "#ffffff" : "var(--text-muted)",
+                    }}
+                    title="Toggle filters (Shift+Tab)"
+                    onClick={() => set_show_filters((prev) => !prev)}
                   >
-                    <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" />
-                  </svg>
-                </button>
-                {state.query && filtered_results.length > 0 && (
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" />
+                    </svg>
+                  </button>
+                )}
+                {!on_search_submit && state.query && filtered_results.length > 0 && (
                   <button
                     className="p-1.5 rounded-lg transition-all duration-150"
                     style={{
@@ -2034,41 +2045,43 @@ export function SearchModal({
                     </svg>
                   </button>
                 )}
-                <div className="relative">
-                  <button
-                    className="p-1.5 rounded-lg transition-all duration-150"
-                    style={{
-                      backgroundColor: show_clear_menu
-                        ? "var(--accent-color, #3b82f6)"
-                        : "var(--bg-hover)",
-                      color: show_clear_menu ? "#ffffff" : "var(--text-muted)",
-                    }}
-                    title="Clear search data"
-                    onClick={() => set_show_clear_menu((prev) => !prev)}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
+                {!on_search_submit && (
+                  <div className="relative">
+                    <button
+                      className="p-1.5 rounded-lg transition-all duration-150"
+                      style={{
+                        backgroundColor: show_clear_menu
+                          ? "var(--accent-color, #3b82f6)"
+                          : "var(--bg-hover)",
+                        color: show_clear_menu ? "#ffffff" : "var(--text-muted)",
+                      }}
+                      title="Clear search data"
+                      onClick={() => set_show_clear_menu((prev) => !prev)}
                     >
-                      <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />
-                    </svg>
-                  </button>
-                  <AnimatePresence>
-                    {show_clear_menu && (
-                      <ClearDataMenu
-                        is_open={show_clear_menu}
-                        on_clear={handle_clear_data}
-                        on_close={() => set_show_clear_menu(false)}
-                      />
-                    )}
-                  </AnimatePresence>
-                </div>
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />
+                      </svg>
+                    </button>
+                    <AnimatePresence>
+                      {show_clear_menu && (
+                        <ClearDataMenu
+                          is_open={show_clear_menu}
+                          on_clear={handle_clear_data}
+                          on_close={() => set_show_clear_menu(false)}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
               </div>
             </div>
 
             <AnimatePresence>
-              {show_filters && (
+              {!on_search_submit && show_filters && (
                 <motion.div
                   animate={{ height: "auto", opacity: 1 }}
                   className="border-b overflow-hidden"
@@ -2256,7 +2269,34 @@ export function SearchModal({
               ref={results_container_ref}
               className="flex-1 sm:flex-none sm:max-h-[28rem] overflow-y-auto"
             >
-              {state.error && (
+              {!show_inline_results && state.query && (
+                <div className="p-4">
+                  <div
+                    className="flex items-center justify-center gap-3 py-8 px-4 rounded-lg border-2 border-dashed"
+                    style={{
+                      borderColor: "var(--border-secondary)",
+                      backgroundColor: "var(--bg-tertiary)",
+                    }}
+                  >
+                    <div className="text-center">
+                      <p
+                        className="text-sm font-medium mb-1"
+                        style={{ color: "var(--text-primary)" }}
+                      >
+                        Press Enter to search
+                      </p>
+                      <p
+                        className="text-xs"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        Results will appear in the main view
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {show_inline_results && state.error && (
                 <motion.div
                   animate={{ opacity: 1, y: 0 }}
                   className="p-4"
@@ -2284,7 +2324,8 @@ export function SearchModal({
                 </motion.div>
               )}
 
-              {state.query &&
+              {show_inline_results &&
+                state.query &&
                 state.is_loading &&
                 filtered_results.length === 0 &&
                 filtered_folders.length === 0 && (
@@ -2295,7 +2336,7 @@ export function SearchModal({
                   </div>
                 )}
 
-              {state.query && filtered_folders.length > 0 && (
+              {show_inline_results && state.query && filtered_folders.length > 0 && (
                 <div className="p-2 pb-0">
                   <div
                     className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider"
@@ -2322,7 +2363,7 @@ export function SearchModal({
                 </div>
               )}
 
-              {state.query && filtered_results.length > 0 && (
+              {show_inline_results && state.query && filtered_results.length > 0 && (
                 <div className="p-2">
                   {filtered_folders.length > 0 && (
                     <div
@@ -2413,7 +2454,7 @@ export function SearchModal({
                 </div>
               )}
 
-              {show_empty_state && <EmptySearchState query={state.query} />}
+              {show_inline_results && show_empty_state && <EmptySearchState query={state.query} />}
 
               {show_first_time_state && (
                 <>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 interface ModalSize {
   width: number;
@@ -19,10 +19,14 @@ interface DraggableModalState {
 interface DraggableModalReturn {
   position: Position;
   has_been_moved: boolean;
+  is_dragging: boolean;
+  did_drag: () => boolean;
   handle_drag_start: (e: React.MouseEvent) => void;
   reset: () => void;
   get_position_style: () => React.CSSProperties;
 }
+
+const DRAG_THRESHOLD = 5;
 
 export function use_draggable_modal(
   is_open: boolean,
@@ -34,6 +38,11 @@ export function use_draggable_modal(
     has_been_moved: false,
   });
   const [drag_start, set_drag_start] = useState<Position>({ x: 0, y: 0 });
+  const [initial_mouse_pos, set_initial_mouse_pos] = useState<Position>({
+    x: 0,
+    y: 0,
+  });
+  const movement_occurred_ref = useRef(false);
 
   useEffect(() => {
     if (is_open) {
@@ -53,6 +62,9 @@ export function use_draggable_modal(
 
       if (!rect) return;
 
+      movement_occurred_ref.current = false;
+      set_initial_mouse_pos({ x: e.clientX, y: e.clientY });
+
       const new_drag_start = !state.has_been_moved
         ? { x: e.clientX - rect.left, y: e.clientY - rect.top }
         : { x: e.clientX - state.position.x, y: e.clientY - state.position.y };
@@ -61,7 +73,6 @@ export function use_draggable_modal(
         set_state((prev) => ({
           ...prev,
           position: { x: rect.left, y: rect.top },
-          has_been_moved: true,
           is_dragging: true,
         }));
       } else {
@@ -77,6 +88,16 @@ export function use_draggable_modal(
     if (!state.is_dragging) return;
 
     const handle_move = (e: MouseEvent) => {
+      const dx = Math.abs(e.clientX - initial_mouse_pos.x);
+      const dy = Math.abs(e.clientY - initial_mouse_pos.y);
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < DRAG_THRESHOLD && !movement_occurred_ref.current) {
+        return;
+      }
+
+      movement_occurred_ref.current = true;
+
       const new_x = Math.max(
         0,
         Math.min(
@@ -92,7 +113,11 @@ export function use_draggable_modal(
         ),
       );
 
-      set_state((prev) => ({ ...prev, position: { x: new_x, y: new_y } }));
+      set_state((prev) => ({
+        ...prev,
+        position: { x: new_x, y: new_y },
+        has_been_moved: true,
+      }));
     };
 
     const handle_up = () => {
@@ -106,7 +131,7 @@ export function use_draggable_modal(
       window.removeEventListener("mousemove", handle_move);
       window.removeEventListener("mouseup", handle_up);
     };
-  }, [state.is_dragging, drag_start, modal_size]);
+  }, [state.is_dragging, drag_start, modal_size, initial_mouse_pos]);
 
   const reset = useCallback(() => {
     set_state({
@@ -114,6 +139,13 @@ export function use_draggable_modal(
       is_dragging: false,
       has_been_moved: false,
     });
+    movement_occurred_ref.current = false;
+  }, []);
+
+  const did_drag = useCallback(() => {
+    const result = movement_occurred_ref.current;
+    movement_occurred_ref.current = false;
+    return result;
   }, []);
 
   const get_position_style = useCallback((): React.CSSProperties => {
@@ -137,6 +169,8 @@ export function use_draggable_modal(
   return {
     position: state.position,
     has_been_moved: state.has_been_moved,
+    is_dragging: state.is_dragging,
+    did_drag,
     handle_drag_start,
     reset,
     get_position_style,

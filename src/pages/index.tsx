@@ -21,6 +21,7 @@ import { EmailPopupViewer } from "@/components/email_popup_viewer";
 import { ScheduledPopupViewer } from "@/components/scheduled_popup_viewer";
 import { OnboardingTour } from "@/components/onboarding_tour";
 import { SearchModal } from "@/components/search_modal";
+import { SearchResultsPage } from "@/components/search_results_page";
 import { CommandPalette } from "@/components/command_palette";
 import { KeyboardShortcutsModal } from "@/components/keyboard_shortcuts_modal";
 import { KeyRotationModal } from "@/components/key_rotation_modal";
@@ -117,6 +118,9 @@ export default function IndexPage() {
   >({});
 
   const [is_search_open, set_is_search_open] = useState(false);
+  const [active_search_query, set_active_search_query] = useState<
+    string | null
+  >(null);
   const [is_command_palette_open, set_is_command_palette_open] =
     useState(false);
   const [is_shortcuts_open, set_is_shortcuts_open] = useState(false);
@@ -343,6 +347,30 @@ export default function IndexPage() {
     set_initial_search_query(undefined);
   }, []);
 
+  const handle_search_submit = useCallback((query: string) => {
+    set_is_search_open(false);
+    set_active_search_query(query);
+    set_popup_email_id(null);
+    set_split_email_id(null);
+    set_popup_scheduled(null);
+    set_split_scheduled_data(null);
+  }, []);
+
+  const handle_close_search_results = useCallback(() => {
+    set_active_search_query(null);
+  }, []);
+
+  const handle_search_result_click = useCallback(
+    (id: string) => {
+      if (preferences.email_view_mode === "popup") {
+        set_popup_email_id(id);
+      } else {
+        set_split_email_id(id);
+      }
+    },
+    [preferences.email_view_mode],
+  );
+
   const is_input_modal_open = useMemo(() => {
     return (
       is_settings_open ||
@@ -555,7 +583,6 @@ export default function IndexPage() {
             set_split_scheduled_data(null);
             open_compose_instance(draft);
           }}
-          on_draft_cleared={handle_draft_cleared}
           on_mobile_toggle={toggle_mobile_sidebar}
           on_modal_open={() => {
             set_popup_email_id(null);
@@ -593,6 +620,12 @@ export default function IndexPage() {
           >
             {location.pathname === "/contacts" ? (
               <ContactsContent on_mobile_menu_toggle={toggle_mobile_sidebar} />
+            ) : active_search_query ? (
+              <SearchResultsPage
+                query={active_search_query}
+                on_close={handle_close_search_results}
+                on_result_click={handle_search_result_click}
+              />
             ) : (
               <EmailInbox
                 key={current_account_id}
@@ -704,6 +737,7 @@ export default function IndexPage() {
         on_close={() => set_is_search_open(false)}
         on_compose={open_compose}
         on_initial_query_consumed={handle_initial_query_consumed}
+        on_search_submit={handle_search_submit}
       />
       <CommandPalette
         is_open={is_command_palette_open}
