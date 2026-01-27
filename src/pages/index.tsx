@@ -346,7 +346,7 @@ export default function IndexPage() {
   const is_input_modal_open = useMemo(() => {
     return (
       is_settings_open ||
-      is_compose_open ||
+      has_compose_instances ||
       is_reply_open ||
       is_forward_open ||
       is_search_open ||
@@ -355,7 +355,7 @@ export default function IndexPage() {
     );
   }, [
     is_settings_open,
-    is_compose_open,
+    has_compose_instances,
     is_reply_open,
     is_forward_open,
     is_search_open,
@@ -548,6 +548,13 @@ export default function IndexPage() {
         <Sidebar
           edit_draft={edit_draft}
           is_mobile_open={is_mobile_sidebar_open}
+          on_compose={open_compose}
+          on_draft_click_compose={(draft) => {
+            set_popup_email_id(null);
+            set_popup_scheduled(null);
+            set_split_scheduled_data(null);
+            open_compose_instance(draft);
+          }}
           on_draft_cleared={handle_draft_cleared}
           on_mobile_toggle={toggle_mobile_sidebar}
           on_modal_open={() => {
@@ -563,7 +570,6 @@ export default function IndexPage() {
             set_settings_section(section);
             set_is_settings_open(true);
           }}
-          open_compose_trigger={is_compose_open}
         />
         <div className="flex-1 p-1 md:p-2 min-h-0 min-w-0 flex flex-col overflow-hidden">
           <div className="md:hidden flex items-center h-12 px-2 flex-shrink-0">
