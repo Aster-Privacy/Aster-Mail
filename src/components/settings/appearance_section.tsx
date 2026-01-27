@@ -922,33 +922,6 @@ export function AppearanceSection() {
           className="text-sm font-semibold mb-1"
           style={{ color: "var(--text-primary)" }}
         >
-          Style presets
-        </h4>
-        <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
-          Choose a layout style inspired by popular email providers
-        </p>
-        <div className="grid grid-cols-5 gap-3">
-          {PRESET_ORDER.map((preset_id) => {
-            const preset = STYLE_PRESETS[preset_id];
-
-            return (
-              <StylePresetCard
-                key={preset_id}
-                is_dark={is_dark}
-                is_selected={preferences.style_preset === preset_id}
-                on_select={() => handle_preset_select(preset_id)}
-                preset={preset}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="pt-3">
-        <h4
-          className="text-sm font-semibold mb-1"
-          style={{ color: "var(--text-primary)" }}
-        >
           Accent color
         </h4>
         <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
