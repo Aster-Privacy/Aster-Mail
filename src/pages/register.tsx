@@ -538,7 +538,7 @@ export default function RegisterPage() {
           <motion.div
             key="welcome"
             animate="animate"
-            className="flex flex-col items-center w-full max-w-md px-4"
+            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
             exit="exit"
             initial="initial"
             transition={page_transition}
@@ -567,73 +567,64 @@ export default function RegisterPage() {
               </button>
             )}
 
-            <div
-              className="w-full rounded-2xl p-8 border"
-              style={{
-                backgroundColor: "var(--bg-card)",
-                borderColor: "var(--border-primary)",
-              }}
+            <Logo />
+
+            <h1
+              className="text-2xl font-bold mt-6"
+              style={{ color: "var(--text-primary)" }}
             >
-              <div className="flex flex-col items-center text-center">
-                <Logo />
+              Create your Aster account
+            </h1>
+            <p
+              className="text-sm mt-3 leading-relaxed max-w-xs"
+              style={{ color: "var(--text-tertiary)" }}
+            >
+              One account for all Aster services. End-to-end encrypted by
+              default.
+            </p>
 
-                <h1
-                  className="text-2xl font-bold mt-6"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  Create your Aster account
-                </h1>
-                <p
-                  className="text-sm mt-3 leading-relaxed max-w-xs"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  One account for all Aster services. End-to-end encrypted by
-                  default.
-                </p>
+            <div className="w-full mt-8 space-y-3">
+              <Button
+                className="w-full"
+                size="lg"
+                variant="primary"
+                onClick={() => set_step("email")}
+              >
+                Create free account
+              </Button>
 
-                <div className="w-full mt-8 space-y-3">
-                  <Button
-                    className="w-full"
-                    size="lg"
-                    variant="primary"
-                    onClick={() => set_step("email")}
-                  >
-                    Create free account
-                  </Button>
-
-                  <Button
-                    asChild
-                    className="w-full"
-                    size="lg"
-                    variant="secondary"
-                  >
-                    <Link to="/sign-in">Sign in to existing account</Link>
-                  </Button>
-                </div>
-              </div>
+              <Button
+                asChild
+                className="w-full"
+                size="lg"
+                variant="secondary"
+              >
+                <Link to="/sign-in">Sign in to existing account</Link>
+              </Button>
             </div>
 
-            <div className="w-full mt-8 flex items-center justify-between">
-              <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                © {new Date().getFullYear()} Aster
-              </span>
-              <div className="flex items-center gap-4">
-                <Link
-                  className="text-xs transition-colors hover:opacity-80"
-                  style={{ color: "var(--text-muted)" }}
-                  to="/terms"
-                >
-                  Terms
-                </Link>
-                <Link
-                  className="text-xs transition-colors hover:opacity-80"
-                  style={{ color: "var(--text-muted)" }}
-                  to="/privacy"
-                >
-                  Privacy
-                </Link>
-              </div>
-            </div>
+            <p
+              className="text-xs mt-6 leading-relaxed"
+              style={{ color: "var(--text-muted)" }}
+            >
+              By continuing, you agree to our{" "}
+              <Link
+                className="underline transition-colors hover:opacity-80"
+                style={{ color: "var(--accent-blue)" }}
+                to="/terms"
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                className="underline transition-colors hover:opacity-80"
+                style={{ color: "var(--accent-blue)" }}
+                to="/privacy"
+              >
+                Privacy Policy
+              </Link>
+              . Copyright {new Date().getFullYear()} Aster.
+            </p>
           </motion.div>
         );
 
@@ -1025,27 +1016,6 @@ export default function RegisterPage() {
                 </span>
               </label>
 
-              <p
-                className="text-xs text-left"
-                style={{ color: "var(--text-muted)" }}
-              >
-                By signing in or registering, you agree to the{" "}
-                <Link
-                  className="underline hover:opacity-80"
-                  style={{ color: "var(--accent-blue)" }}
-                  to="/terms"
-                >
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link
-                  className="underline hover:opacity-80"
-                  style={{ color: "var(--accent-blue)" }}
-                  to="/privacy"
-                >
-                  Privacy Policy
-                </Link>
-              </p>
             </div>
 
             <Button
