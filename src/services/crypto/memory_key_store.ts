@@ -273,6 +273,7 @@ export function extend_passphrase_timeout(): void {
   if (secure_passphrase) {
     secure_passphrase.extend_timeout();
   }
+  refresh_session();
 }
 
 export function set_passphrase_timeout(timeout_ms: number): void {

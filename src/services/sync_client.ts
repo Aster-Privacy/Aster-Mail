@@ -29,6 +29,7 @@ class SyncClient {
   private should_reconnect = false;
   private auth_error_count = 0;
   private last_auth_error = false;
+  private reconnect_attempt = 0;
 
   async connect(): Promise<void> {
     this.should_reconnect = true;
@@ -71,6 +72,7 @@ class SyncClient {
           this.authenticated = true;
           this.auth_error_count = 0;
           this.last_auth_error = false;
+          this.reconnect_attempt = 0;
           resolve();
         } else if (data.type === "auth_error") {
           this.last_auth_error = true;
@@ -92,6 +94,15 @@ class SyncClient {
 
   private schedule_reconnect(): void {
     if (this.reconnect_timeout || !this.should_reconnect) return;
+
+    const base_delay = 3000;
+    const max_delay = 60000;
+    const delay = Math.min(
+      base_delay * Math.pow(2, this.reconnect_attempt),
+      max_delay,
+    );
+
+    this.reconnect_attempt++;
 
     this.reconnect_timeout = setTimeout(async () => {
       this.reconnect_timeout = null;
@@ -126,7 +137,7 @@ class SyncClient {
           new CustomEvent("astermail:sync-connection-failed"),
         );
       });
-    }, 3000);
+    }, delay);
   }
 
   private send_message(msg: Record<string, unknown>): void {
@@ -179,8 +190,15 @@ class SyncClient {
         return;
       }
 
-      const timeout_id = setTimeout(() => {
-        const idx = this.pending_requests.findIndex((r) => r.type === msg.type);
+      const pending: PendingRequest = {
+        resolve,
+        reject,
+        type: msg.type as string,
+        timeout_id: null as unknown as ReturnType<typeof setTimeout>,
+      };
+
+      pending.timeout_id = setTimeout(() => {
+        const idx = this.pending_requests.indexOf(pending);
 
         if (idx !== -1) {
           this.pending_requests.splice(idx, 1);
@@ -188,12 +206,7 @@ class SyncClient {
         }
       }, 10000);
 
-      this.pending_requests.push({
-        resolve,
-        reject,
-        type: msg.type as string,
-        timeout_id,
-      });
+      this.pending_requests.push(pending);
 
       this.send_message(msg);
     });
@@ -257,6 +270,7 @@ class SyncClient {
     this.should_reconnect = false;
     this.last_auth_error = false;
     this.auth_error_count = 0;
+    this.reconnect_attempt = 0;
     if (this.reconnect_timeout) {
       clearTimeout(this.reconnect_timeout);
       this.reconnect_timeout = null;

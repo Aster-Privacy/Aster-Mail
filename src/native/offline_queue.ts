@@ -54,15 +54,21 @@ export async function enqueue_action(
 }
 
 export async function get_queue(): Promise<QueuedAction[]> {
-  if (!is_native_platform()) {
-    const stored = localStorage.getItem(QUEUE_KEY);
+  try {
+    if (!is_native_platform()) {
+      const stored = localStorage.getItem(QUEUE_KEY);
 
-    return stored ? JSON.parse(stored) : [];
+      return stored ? JSON.parse(stored) : [];
+    }
+
+    const { value } = await Preferences.get({ key: QUEUE_KEY });
+
+    return value ? JSON.parse(value) : [];
+  } catch {
+    await save_queue([]);
+
+    return [];
   }
-
-  const { value } = await Preferences.get({ key: QUEUE_KEY });
-
-  return value ? JSON.parse(value) : [];
 }
 
 async function save_queue(queue: QueuedAction[]): Promise<void> {

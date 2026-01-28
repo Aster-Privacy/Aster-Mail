@@ -55,7 +55,12 @@ export async function register_push_notifications(): Promise<void> {
 
       if (data?.email_id) {
         window.location.href = `/email/${data.email_id}`;
-      } else if (data?.route) {
+      } else if (
+        data?.route &&
+        typeof data.route === "string" &&
+        data.route.startsWith("/") &&
+        !data.route.startsWith("//")
+      ) {
         window.location.href = data.route;
       }
     },
