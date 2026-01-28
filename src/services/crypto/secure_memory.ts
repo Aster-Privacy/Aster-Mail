@@ -1,4 +1,4 @@
-const DEFAULT_AUTO_ZERO_TIMEOUT_MS = 5 * 60 * 1000;
+const DEFAULT_AUTO_ZERO_TIMEOUT_MS = 30 * 60 * 1000;
 
 type ZeroCallback = () => void;
 

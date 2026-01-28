@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { use_auth } from "@/contexts/auth_context";
+import { api_client } from "@/services/api/client";
 import { use_i18n } from "@/lib/i18n/context";
 import { useTheme } from "@/contexts/theme_context";
 import {
@@ -106,7 +107,10 @@ export default function SignInPage() {
 
   useEffect(() => {
     document.title = "Sign In | Aster Mail";
-  }, []);
+    if (!is_adding_account) {
+      api_client.clear_session_cookies();
+    }
+  }, [is_adding_account]);
 
   const handle_cancel_add_account = () => {
     set_is_adding_account(false);

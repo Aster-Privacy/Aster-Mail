@@ -757,6 +757,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     clear_session();
     await clear_all_session_data();
     api_client.clear_auth_data();
+    api_client.clear_session_cookies();
 
     await clear_all_session_passphrases();
 

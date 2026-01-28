@@ -6,6 +6,7 @@ import {
 
 import { is_auth_page } from "@/lib/auth_utils";
 import { refresh_session_activity } from "@/services/session_timeout_service";
+import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -240,6 +241,20 @@ class ApiClient {
     this.clear_auth_state();
   }
 
+  async clear_session_cookies(): Promise<void> {
+    try {
+      const url = `${API_BASE_URL}/auth/clear-session`;
+      await fetch(url, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+    } catch {
+      return;
+    }
+  }
+
   private async request_with_timeout(
     url: string,
     options: RequestInit,
@@ -333,6 +348,7 @@ class ApiClient {
 
             this.clear_auth_state();
             if (was_authenticated) {
+              this.clear_session_cookies();
               window.dispatchEvent(
                 new CustomEvent("astermail:session-expired"),
               );
@@ -360,6 +376,7 @@ class ApiClient {
         const data = await response.json();
 
         refresh_session_activity();
+        extend_passphrase_timeout();
 
         return { data };
       } catch (error) {
