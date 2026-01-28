@@ -366,7 +366,6 @@ export function SplitEmailViewer({
       set_mail_item((prev) => (prev ? { ...prev, is_read: !new_state } : prev));
     } else {
       emit_mail_item_updated({ id: email_id, is_read: new_state });
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
     }
   }, [email_id, is_read, mail_item]);
 

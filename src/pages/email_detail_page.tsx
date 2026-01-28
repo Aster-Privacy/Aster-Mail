@@ -51,7 +51,6 @@ import { SettingsPanel } from "@/components/settings/settings_panel";
 import { ThreadMessagesList } from "@/components/thread_message_block";
 import {
   get_mail_item,
-  list_mail_items,
   type MailItem,
 } from "@/services/api/mail";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
@@ -486,17 +485,6 @@ export default function EmailDetailPage() {
     load_preferences();
   }, [vault]);
 
-  useEffect(() => {
-    const fetch_email_list = async () => {
-      const response = await list_mail_items();
-
-      if (response.data && response.data.items) {
-        set_email_list(response.data.items.map((item: MailItem) => item.id));
-      }
-    };
-
-    fetch_email_list();
-  }, []);
 
   const current_email_index = useMemo(() => {
     if (!email_id || email_list.length === 0) return -1;

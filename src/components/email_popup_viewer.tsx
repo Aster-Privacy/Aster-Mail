@@ -641,7 +641,7 @@ export function EmailPopupViewer({
       set_is_read(!new_state);
     } else {
       set_mail_item((prev) => (prev ? { ...prev, is_read: new_state } : prev));
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      emit_mail_item_updated({ id: email_id, is_read: new_state });
     }
   }, [email_id, is_read, mail_item]);
 
