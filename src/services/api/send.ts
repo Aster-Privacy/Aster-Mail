@@ -14,6 +14,8 @@ interface SimpleSendRequest {
   thread_token?: string;
   encrypted_metadata?: string;
   metadata_nonce?: string;
+  sender_email?: string;
+  sender_alias_hash?: string;
 }
 
 interface SimpleSendResponse {
@@ -57,6 +59,8 @@ interface ExternalSendRequest {
   encrypted_metadata?: string;
   metadata_nonce?: string;
   acknowledge_server_readable: boolean;
+  sender_email?: string;
+  sender_alias_hash?: string;
 }
 
 export async function send_simple_email(

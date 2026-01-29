@@ -133,6 +133,8 @@ export interface EmailParams {
   subject: string;
   body: string;
   thread_id?: string;
+  sender_email?: string;
+  sender_alias_hash?: string;
 }
 
 export interface QueueCallbacks {
@@ -407,7 +409,7 @@ async function execute_send(email: QueuedEmailInternal): Promise<void> {
   if (!current_account?.user?.email) {
     throw new SendError("No authenticated account found");
   }
-  const sender_email = current_account.user.email;
+  const sender_email = email.sender_email || current_account.user.email;
 
   const all_recipients = [
     ...email.to,
@@ -435,6 +437,8 @@ async function execute_send(email: QueuedEmailInternal): Promise<void> {
     folder_token: envelope_data.folder_token,
     encrypted_metadata: envelope_data.encrypted_metadata,
     metadata_nonce: envelope_data.metadata_nonce,
+    sender_email: email.sender_email,
+    sender_alias_hash: email.sender_alias_hash,
   };
 
   if (email.thread_id) {
@@ -469,7 +473,7 @@ export async function execute_external_send(
   if (!current_account?.user?.email) {
     throw new SendError("No authenticated account found");
   }
-  const sender_email = current_account.user.email;
+  const sender_email = email.sender_email || current_account.user.email;
 
   const internal_email: QueuedEmailInternal = {
     id: crypto.randomUUID(),
@@ -478,6 +482,8 @@ export async function execute_external_send(
     bcc: email.bcc,
     subject: email.subject,
     body: email.body,
+    sender_email: email.sender_email,
+    sender_alias_hash: email.sender_alias_hash,
     scheduled_time: Date.now(),
     timeout_id: 0,
     callbacks: {
@@ -499,6 +505,8 @@ export async function execute_external_send(
     nonce: encrypted.nonce,
     encrypted_envelope: envelope_data.encrypted_envelope,
     envelope_nonce: envelope_data.envelope_nonce,
+    sender_email: email.sender_email,
+    sender_alias_hash: email.sender_alias_hash,
     folder_token: envelope_data.folder_token,
     encrypted_metadata: envelope_data.encrypted_metadata,
     metadata_nonce: envelope_data.metadata_nonce,

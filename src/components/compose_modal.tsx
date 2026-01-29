@@ -10,8 +10,13 @@ import { EmailAutocomplete } from "./email_autocomplete";
 import { EditorToolbar } from "./editor_toolbar";
 import { ConfirmationModal } from "./confirmation_modal";
 import { SchedulePicker } from "./schedule_picker";
+import { SenderSelector } from "./sender_selector";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import {
+  use_sender_aliases,
+  type SenderOption,
+} from "@/hooks/use_sender_aliases";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { Button } from "@/components/ui/button";
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
@@ -542,6 +547,17 @@ export function ComposeModal({
   const [scheduled_time, set_scheduled_time] = useState<Date | null>(null);
   const [is_scheduling, set_is_scheduling] = useState(false);
   const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
+
+  const { sender_options, loading: aliases_loading } = use_sender_aliases();
+  const [selected_sender, set_selected_sender] = useState<SenderOption | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (sender_options.length > 0 && !selected_sender) {
+      set_selected_sender(sender_options[0]);
+    }
+  }, [sender_options, selected_sender]);
 
   const update_input = useCallback(
     (field: keyof InputsState, value: string) => {
@@ -1158,6 +1174,12 @@ export function ComposeModal({
       bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
       subject,
       body: message,
+      sender_email: selected_sender?.is_alias
+        ? selected_sender.email
+        : undefined,
+      sender_alias_hash: selected_sender?.is_alias
+        ? selected_sender.alias_hash
+        : undefined,
     };
 
     const all_recipients = [
@@ -1526,19 +1548,12 @@ export function ComposeModal({
                       >
                         From
                       </span>
-                      <div
-                        className="flex items-center gap-1.5 bg-default-100 rounded-full px-2 py-1 border"
-                        style={{ borderColor: "var(--border-secondary)" }}
-                      >
-                        <ProfileAvatar
-                          email={user?.email || ""}
-                          name={user?.username || ""}
-                          size="xs"
-                        />
-                        <span className="text-sm text-default-900">
-                          {user?.email || ""}
-                        </span>
-                      </div>
+                      <SenderSelector
+                        disabled={aliases_loading}
+                        on_select={set_selected_sender}
+                        options={sender_options}
+                        selected={selected_sender}
+                      />
                     </div>
 
                     <div

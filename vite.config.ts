@@ -3,8 +3,6 @@ import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
-import { ObfuscatorOptions } from "javascript-obfuscator";
-import viteObfuscatePlugin from "vite-plugin-javascript-obfuscator";
 
 function source_map_fix_plugin(): Plugin {
   const extension_patterns = [
@@ -47,7 +45,7 @@ function source_map_fix_plugin(): Plugin {
 const api_target = process.env.VITE_API_TARGET || "http://localhost:3000";
 const ws_target = process.env.VITE_WS_TARGET || "ws://localhost:3000";
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   base: "./",
   server: {
     port: 5173,
@@ -74,30 +72,6 @@ export default defineConfig(({ mode }) => ({
     react(),
     tsconfigPaths(),
     tailwindcss(),
-    ...(mode === "production"
-      ? [
-          viteObfuscatePlugin({
-            options: {
-              compact: true,
-              controlFlowFlattening: true,
-              controlFlowFlatteningThreshold: 0.5,
-              deadCodeInjection: true,
-              deadCodeInjectionThreshold: 0.3,
-              identifierNamesGenerator: "hexadecimal",
-              renameGlobals: false,
-              selfDefending: false,
-              stringArray: true,
-              stringArrayCallsTransform: true,
-              stringArrayEncoding: ["base64"],
-              stringArrayThreshold: 0.75,
-              splitStrings: true,
-              splitStringsChunkLength: 10,
-              transformObjectKeys: true,
-              unicodeEscapeSequence: false,
-            } as ObfuscatorOptions,
-          }),
-        ]
-      : []),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: [
@@ -290,4 +264,4 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ],
-}));
+});

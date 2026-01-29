@@ -9,9 +9,14 @@ import { EmailAutocomplete } from "./email_autocomplete";
 import { EditorToolbar } from "./editor_toolbar";
 import { ConfirmationModal } from "./confirmation_modal";
 import { SchedulePicker } from "./schedule_picker";
+import { SenderSelector } from "./sender_selector";
 
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import {
+  use_sender_aliases,
+  type SenderOption,
+} from "@/hooks/use_sender_aliases";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { Button } from "@/components/ui/button";
 import { undo_send_manager, type UndoSendEvent } from "@/hooks/use_undo_send";
@@ -577,6 +582,17 @@ export function ComposeWindow({
   const [scheduled_time, set_scheduled_time] = useState<Date | null>(null);
   const [is_scheduling, set_is_scheduling] = useState(false);
   const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
+
+  const { sender_options, loading: aliases_loading } = use_sender_aliases();
+  const [selected_sender, set_selected_sender] = useState<SenderOption | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (sender_options.length > 0 && !selected_sender) {
+      set_selected_sender(sender_options[0]);
+    }
+  }, [sender_options, selected_sender]);
 
   const update_input = useCallback(
     (field: keyof InputsState, value: string) => {
@@ -1165,6 +1181,12 @@ export function ComposeWindow({
       bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
       subject,
       body: message,
+      sender_email: selected_sender?.is_alias
+        ? selected_sender.email
+        : undefined,
+      sender_alias_hash: selected_sender?.is_alias
+        ? selected_sender.alias_hash
+        : undefined,
     };
 
     const all_recipients = [
@@ -1531,6 +1553,24 @@ export function ComposeWindow({
           {!is_minimized && (
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
               <div className="px-4 pt-3 pb-2 flex-shrink-0 overflow-visible relative z-20">
+                <div
+                  className="flex items-center gap-2 py-2 border-b"
+                  style={{ borderColor: "var(--border-secondary)" }}
+                >
+                  <span
+                    className="text-sm w-10 flex-shrink-0"
+                    style={{ color: "var(--text-tertiary)" }}
+                  >
+                    From
+                  </span>
+                  <SenderSelector
+                    disabled={aliases_loading}
+                    on_select={set_selected_sender}
+                    options={sender_options}
+                    selected={selected_sender}
+                  />
+                </div>
+
                 <div
                   className="py-2 border-b"
                   style={{ borderColor: "var(--border-secondary)" }}
