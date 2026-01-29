@@ -844,6 +844,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       () => {
         clear_local_auth_data();
       },
+      () => {
+        verify_auth_status();
+      },
     );
 
     return unsubscribe;

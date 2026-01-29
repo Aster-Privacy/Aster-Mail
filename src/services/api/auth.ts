@@ -1,5 +1,6 @@
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
+import { broadcast_login } from "../session_sync_service";
 
 interface DefaultFolderData {
   label_token: string;
@@ -136,6 +137,7 @@ export async function register_user(
       api_client.set_dev_token(response.data.access_token);
     }
     api_client.set_authenticated(true);
+    broadcast_login();
   }
 
   return response;
@@ -158,6 +160,7 @@ export async function login_user(
       api_client.set_dev_token(response.data.access_token);
     }
     api_client.set_authenticated(true);
+    broadcast_login();
   }
 
   return response;

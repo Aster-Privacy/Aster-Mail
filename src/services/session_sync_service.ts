@@ -3,7 +3,8 @@ const SESSION_SYNC_CHANNEL = "aster_session_sync";
 type SessionSyncMessage =
   | { type: "session_expired" }
   | { type: "logout" }
-  | { type: "logout_all" };
+  | { type: "logout_all" }
+  | { type: "login" };
 
 let broadcast_channel: BroadcastChannel | null = null;
 
@@ -49,10 +50,21 @@ export function broadcast_logout_all(): void {
   }
 }
 
+export function broadcast_login(): void {
+  const channel = get_channel();
+
+  if (channel) {
+    const message: SessionSyncMessage = { type: "login" };
+
+    channel.postMessage(message);
+  }
+}
+
 export function subscribe_to_session_sync(
   on_session_expired: () => void,
   on_logout: () => void,
   on_logout_all: () => void,
+  on_login?: () => void,
 ): () => void {
   const channel = get_channel();
 
@@ -70,6 +82,9 @@ export function subscribe_to_session_sync(
         break;
       case "logout_all":
         on_logout_all();
+        break;
+      case "login":
+        on_login?.();
         break;
     }
   };
