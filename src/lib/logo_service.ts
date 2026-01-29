@@ -59,18 +59,23 @@ export async function preload_logo(domain: string): Promise<boolean> {
     return cached;
   }
 
-  try {
-    const response = await fetch(get_logo_url(clean), { method: "HEAD" });
-    const exists = response.ok;
+  const url = get_logo_url(clean);
 
-    LOGO_CACHE.set(clean, { exists, timestamp: Date.now() });
+  return new Promise((resolve) => {
+    const img = new Image();
 
-    return exists;
-  } catch {
-    LOGO_CACHE.set(clean, { exists: false, timestamp: Date.now() });
+    img.onload = () => {
+      LOGO_CACHE.set(clean, { exists: true, timestamp: Date.now() });
+      resolve(true);
+    };
 
-    return false;
-  }
+    img.onerror = () => {
+      LOGO_CACHE.set(clean, { exists: false, timestamp: Date.now() });
+      resolve(false);
+    };
+
+    img.src = url;
+  });
 }
 
 async function process_preload_queue(): Promise<void> {

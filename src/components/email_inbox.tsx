@@ -62,7 +62,13 @@ import { use_folders, type DecryptedFolder } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_categories } from "@/hooks/use_categories";
-import { use_mail_stats } from "@/hooks/use_mail_stats";
+import {
+  use_mail_stats,
+  adjust_stats_inbox,
+  adjust_stats_sent,
+  adjust_stats_trash,
+  adjust_stats_unread,
+} from "@/hooks/use_mail_stats";
 import { MAIL_EVENTS, emit_mail_item_updated } from "@/hooks/mail_events";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import {
@@ -516,7 +522,14 @@ export function EmailInbox({
       remove_email(email.id);
       if (should_adjust_unread) {
         adjust_unread_count(-1);
+        adjust_stats_unread(-1);
       }
+      if (email.item_type === "received") {
+        adjust_stats_inbox(-1);
+      } else if (email.item_type === "sent") {
+        adjust_stats_sent(-1);
+      }
+      adjust_stats_trash(1);
       const result = await update_item_metadata(
         email.id,
         {
@@ -536,7 +549,14 @@ export function EmailInbox({
           on_undo: async () => {
             if (should_adjust_unread) {
               adjust_unread_count(1);
+              adjust_stats_unread(1);
             }
+            if (email.item_type === "received") {
+              adjust_stats_inbox(1);
+            } else if (email.item_type === "sent") {
+              adjust_stats_sent(1);
+            }
+            adjust_stats_trash(-1);
             await update_item_metadata(
               email.id,
               {
@@ -558,6 +578,12 @@ export function EmailInbox({
       remove_email(email.id);
       if (should_adjust_unread) {
         adjust_unread_count(-1);
+        adjust_stats_unread(-1);
+      }
+      if (email.item_type === "received") {
+        adjust_stats_inbox(-1);
+      } else if (email.item_type === "sent") {
+        adjust_stats_sent(-1);
       }
       const result = await batch_archive({ ids: [email.id], tier: "hot" });
 
@@ -570,6 +596,12 @@ export function EmailInbox({
           on_undo: async () => {
             if (should_adjust_unread) {
               adjust_unread_count(1);
+              adjust_stats_unread(1);
+            }
+            if (email.item_type === "received") {
+              adjust_stats_inbox(1);
+            } else if (email.item_type === "sent") {
+              adjust_stats_sent(1);
             }
             await batch_unarchive({ ids: [email.id] });
             window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_CHANGED));
@@ -585,6 +617,12 @@ export function EmailInbox({
       remove_email(email.id);
       if (should_adjust_unread) {
         adjust_unread_count(-1);
+        adjust_stats_unread(-1);
+      }
+      if (email.item_type === "received") {
+        adjust_stats_inbox(-1);
+      } else if (email.item_type === "sent") {
+        adjust_stats_sent(-1);
       }
       const result = await update_item_metadata(
         email.id,
@@ -605,6 +643,12 @@ export function EmailInbox({
           on_undo: async () => {
             if (should_adjust_unread) {
               adjust_unread_count(1);
+              adjust_stats_unread(1);
+            }
+            if (email.item_type === "received") {
+              adjust_stats_inbox(1);
+            } else if (email.item_type === "sent") {
+              adjust_stats_sent(1);
             }
             await update_item_metadata(
               email.id,
@@ -620,6 +664,12 @@ export function EmailInbox({
       } else {
         if (should_adjust_unread) {
           adjust_unread_count(1);
+          adjust_stats_unread(1);
+        }
+        if (email.item_type === "received") {
+          adjust_stats_inbox(1);
+        } else if (email.item_type === "sent") {
+          adjust_stats_sent(1);
         }
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_CHANGED));
         show_toast("Failed to mark as spam", "error");
@@ -633,6 +683,7 @@ export function EmailInbox({
       update_email(email.id, { is_read: new_state });
       if (is_received) {
         adjust_unread_count(new_state ? -1 : 1);
+        adjust_stats_unread(new_state ? -1 : 1);
       }
       const result = await update_item_metadata(
         email.id,
@@ -653,6 +704,7 @@ export function EmailInbox({
           on_undo: async () => {
             if (is_received) {
               adjust_unread_count(new_state ? 1 : -1);
+              adjust_stats_unread(new_state ? 1 : -1);
             }
             await update_item_metadata(
               email.id,
@@ -788,7 +840,14 @@ export function EmailInbox({
       update_email(email.id, { is_trashed: false });
       if (should_adjust_unread) {
         adjust_unread_count(1);
+        adjust_stats_unread(1);
       }
+      if (email.item_type === "received") {
+        adjust_stats_inbox(1);
+      } else if (email.item_type === "sent") {
+        adjust_stats_sent(1);
+      }
+      adjust_stats_trash(-1);
       const result = await update_item_metadata(
         email.id,
         {
@@ -808,7 +867,14 @@ export function EmailInbox({
           on_undo: async () => {
             if (should_adjust_unread) {
               adjust_unread_count(-1);
+              adjust_stats_unread(-1);
             }
+            if (email.item_type === "received") {
+              adjust_stats_inbox(-1);
+            } else if (email.item_type === "sent") {
+              adjust_stats_sent(-1);
+            }
+            adjust_stats_trash(1);
             await update_item_metadata(
               email.id,
               {
@@ -830,6 +896,12 @@ export function EmailInbox({
       update_email(email.id, { is_spam: false });
       if (should_adjust_unread) {
         adjust_unread_count(1);
+        adjust_stats_unread(1);
+      }
+      if (email.item_type === "received") {
+        adjust_stats_inbox(1);
+      } else if (email.item_type === "sent") {
+        adjust_stats_sent(1);
       }
       const result = await update_item_metadata(
         email.id,
@@ -850,6 +922,12 @@ export function EmailInbox({
           on_undo: async () => {
             if (should_adjust_unread) {
               adjust_unread_count(-1);
+              adjust_stats_unread(-1);
+            }
+            if (email.item_type === "received") {
+              adjust_stats_inbox(-1);
+            } else if (email.item_type === "sent") {
+              adjust_stats_sent(-1);
             }
             await update_item_metadata(
               email.id,
@@ -872,6 +950,12 @@ export function EmailInbox({
       remove_email(email.id);
       if (should_adjust_unread) {
         adjust_unread_count(1);
+        adjust_stats_unread(1);
+      }
+      if (email.item_type === "received") {
+        adjust_stats_inbox(1);
+      } else if (email.item_type === "sent") {
+        adjust_stats_sent(1);
       }
       const result = await batch_unarchive({ ids: [email.id] });
 
@@ -884,6 +968,12 @@ export function EmailInbox({
           on_undo: async () => {
             if (should_adjust_unread) {
               adjust_unread_count(-1);
+              adjust_stats_unread(-1);
+            }
+            if (email.item_type === "received") {
+              adjust_stats_inbox(-1);
+            } else if (email.item_type === "sent") {
+              adjust_stats_sent(-1);
             }
             await batch_archive({ ids: [email.id], tier: "hot" });
             window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_CHANGED));

@@ -405,6 +405,7 @@ export const Sidebar = ({
                   ref={mail_logo_ref}
                   alt="Mail"
                   className={`w-full h-full select-none rounded-lg transition-opacity duration-150 ${mail_logo_loaded ? "opacity-100" : "opacity-0"}`}
+                  decoding="async"
                   draggable={false}
                   src="/mail_logo.png"
                   onLoad={() => {
@@ -551,7 +552,7 @@ export const Sidebar = ({
 
           <button
             ref={inbox_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === "inbox" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -600,7 +601,7 @@ export const Sidebar = ({
 
           <button
             ref={sent_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === "sent" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -644,7 +645,7 @@ export const Sidebar = ({
 
           <button
             ref={scheduled_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === "scheduled" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -693,7 +694,7 @@ export const Sidebar = ({
 
           <button
             ref={snoozed_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === "snoozed" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -740,7 +741,7 @@ export const Sidebar = ({
 
           <button
             ref={drafts_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === "drafts" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -797,7 +798,7 @@ export const Sidebar = ({
 
           <button
             ref={starred_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === "starred" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -841,7 +842,7 @@ export const Sidebar = ({
 
           <button
             ref={all_mail_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === "all" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -877,7 +878,7 @@ export const Sidebar = ({
 
           <button
             ref={archive_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === "archive" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -921,7 +922,7 @@ export const Sidebar = ({
 
           <button
             ref={spam_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === "spam" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -965,7 +966,7 @@ export const Sidebar = ({
 
           <button
             ref={trash_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === "trash" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -1014,7 +1015,7 @@ export const Sidebar = ({
 
           <button
             ref={contacts_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === "contacts" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -1140,7 +1141,7 @@ export const Sidebar = ({
                           ref={(el) => {
                             folder_refs.current[folder.folder_token] = el;
                           }}
-                          className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150`}
+                          className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px] transition-colors duration-150 ${is_collapsed && effective_selected === folder_item_id ? "sidebar-selected" : ""}`}
                           style={{
                             zIndex: 1,
                             color:
@@ -1290,6 +1291,7 @@ export const Sidebar = ({
                     ref={text_logo_ref}
                     alt="Aster"
                     className={`h-[18px] select-none transition-opacity duration-150 ${text_logo_loaded ? "opacity-100" : "opacity-0"}`}
+                    decoding="async"
                     draggable={false}
                     src="/text_logo.png"
                     onLoad={() => {

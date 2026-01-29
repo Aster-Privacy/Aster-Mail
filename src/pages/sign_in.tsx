@@ -497,7 +497,7 @@ export default function SignInPage() {
               </button>
             )}
 
-            <img alt="Aster" className="h-10" src="/text_logo.png" />
+            <img alt="Aster" className="h-10" decoding="async" src="/text_logo.png" />
 
             <h1
               className="text-xl font-semibold mt-6"

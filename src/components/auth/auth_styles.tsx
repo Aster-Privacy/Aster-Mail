@@ -309,7 +309,7 @@ export const AuthFooter = () => (
 );
 
 export const Logo = () => (
-  <img alt="Logo" className="h-12" src="/text_logo.png" />
+  <img alt="Logo" className="h-12" decoding="async" src="/text_logo.png" />
 );
 
 export const FormLabel = ({ children }: { children: React.ReactNode }) => (
