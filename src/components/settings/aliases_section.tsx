@@ -43,9 +43,7 @@ import {
   type DnsRecordsResponse,
 } from "@/services/api/domains";
 
-const AVAILABLE_DOMAINS = ["astermail.org", "aster.cx"];
-
-type TabType = "aliases" | "domains";
+const DEFAULT_DOMAINS = ["astermail.org", "aster.cx"];
 
 interface DomainDropdownProps {
   value: string;
@@ -151,6 +149,7 @@ interface CreateAliasModalProps {
   on_created: () => void;
   max_aliases: number;
   current_count: number;
+  available_domains: string[];
 }
 
 function CreateAliasModal({
@@ -159,9 +158,10 @@ function CreateAliasModal({
   on_created,
   max_aliases,
   current_count,
+  available_domains,
 }: CreateAliasModalProps) {
   const [local_part, set_local_part] = useState("");
-  const [domain, set_domain] = useState(AVAILABLE_DOMAINS[0]);
+  const [domain, set_domain] = useState(available_domains[0] || DEFAULT_DOMAINS[0]);
   const [display_name, set_display_name] = useState("");
   const [saving, set_saving] = useState(false);
   const [error, set_error] = useState<string | null>(null);
@@ -172,12 +172,12 @@ function CreateAliasModal({
   useEffect(() => {
     if (is_open) {
       set_local_part("");
-      set_domain(AVAILABLE_DOMAINS[0]);
+      set_domain(available_domains[0] || DEFAULT_DOMAINS[0]);
       set_display_name("");
       set_error(null);
       set_is_available(null);
     }
-  }, [is_open]);
+  }, [is_open, available_domains]);
 
   const check_availability = useCallback(async (lp: string, d: string) => {
     if (!lp || lp.length < 3) {
@@ -412,7 +412,7 @@ function CreateAliasModal({
                     </span>
                     <DomainDropdown
                       on_change={set_domain}
-                      options={AVAILABLE_DOMAINS}
+                      options={available_domains}
                       value={domain}
                     />
                   </div>
@@ -1189,8 +1189,6 @@ function DomainItem({
 }
 
 export function AliasesSection() {
-  const [active_tab, set_active_tab] = useState<TabType>("aliases");
-
   const [aliases, set_aliases] = useState<DecryptedEmailAlias[]>([]);
   const [aliases_loading, set_aliases_loading] = useState(true);
   const [max_aliases, set_max_aliases] = useState(3);
@@ -1212,6 +1210,11 @@ export function AliasesSection() {
     is_open: boolean;
     id: string | null;
   }>({ is_open: false, id: null });
+
+  const available_domains_for_aliases = [
+    ...DEFAULT_DOMAINS,
+    ...domains.filter((d) => d.status === "active").map((d) => d.domain_name),
+  ];
 
   const load_aliases = useCallback(async () => {
     set_aliases_loading(true);
@@ -1341,242 +1344,225 @@ export function AliasesSection() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: "var(--bg-tertiary)" }}>
-        <button
-          className="flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors"
-          style={{
-            backgroundColor: active_tab === "aliases" ? "var(--bg-card)" : "transparent",
-            color: active_tab === "aliases" ? "var(--text-primary)" : "var(--text-muted)",
-            boxShadow: active_tab === "aliases" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
-          }}
-          onClick={() => set_active_tab("aliases")}
-        >
-          <div className="flex items-center justify-center gap-2">
-            <AtSymbolIcon className="w-4 h-4" />
-            Email Aliases
-          </div>
-        </button>
-        <button
-          className="flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors"
-          style={{
-            backgroundColor: active_tab === "domains" ? "var(--bg-card)" : "transparent",
-            color: active_tab === "domains" ? "var(--text-primary)" : "var(--text-muted)",
-            boxShadow: active_tab === "domains" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
-          }}
-          onClick={() => set_active_tab("domains")}
-        >
-          <div className="flex items-center justify-center gap-2">
-            <GlobeAltIcon className="w-4 h-4" />
-            Custom Domains
-          </div>
-        </button>
-      </div>
-
-      {active_tab === "aliases" && (
-        <div>
-          <div className="flex items-center justify-between mb-2">
+    <div className="space-y-8">
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <AtSymbolIcon className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
             <h3
               className="text-lg font-semibold"
               style={{ color: "var(--text-primary)" }}
             >
               Email Aliases
             </h3>
-            <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-              {aliases.length} / {max_aliases} used
-            </span>
           </div>
-          <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
-            Create alternate email addresses that forward to your main inbox. Use
-            them to protect your privacy or organize incoming mail.
-          </p>
+          <span className="text-sm" style={{ color: "var(--text-muted)" }}>
+            {aliases.length} / {max_aliases} used
+          </span>
+        </div>
+        <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
+          Create alternate email addresses that forward to your main inbox. Use
+          them to protect your privacy or organize incoming mail.
+          {domains.filter((d) => d.status === "active").length > 0 && (
+            <span className="block mt-1" style={{ color: "var(--text-tertiary)" }}>
+              You can also create aliases on your verified custom domains.
+            </span>
+          )}
+        </p>
 
-          <motion.button
-            className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-lg mb-3"
+        <motion.button
+          className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-lg mb-3"
+          style={{
+            background:
+              "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+            color: "#ffffff",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
+          }}
+          transition={{ duration: 0.15 }}
+          whileHover={{
+            background:
+              "linear-gradient(to bottom, #7b96ff 0%, #5f7ef7 50%, #4b6af8 100%)",
+            scale: 1.01,
+          }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => set_show_create_alias_modal(true)}
+        >
+          <PlusIcon className="w-4 h-4" />
+          Create Alias
+        </motion.button>
+
+        {aliases_loading ? (
+          <div />
+        ) : aliases.length === 0 ? (
+          <div
+            className="text-center py-12 rounded-lg"
             style={{
-              background:
-                "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-              color: "#ffffff",
-              border: "1px solid rgba(255, 255, 255, 0.15)",
-              borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
+              backgroundColor: "var(--bg-tertiary)",
+              border: "1px solid var(--border-secondary)",
             }}
-            transition={{ duration: 0.15 }}
-            whileHover={{
-              background:
-                "linear-gradient(to bottom, #7b96ff 0%, #5f7ef7 50%, #4b6af8 100%)",
-              scale: 1.01,
-            }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => set_show_create_alias_modal(true)}
           >
-            <PlusIcon className="w-4 h-4" />
-            Create Alias
-          </motion.button>
+            <AtSymbolIcon
+              className="w-12 h-12 mx-auto mb-3"
+              style={{ color: "var(--text-muted)" }}
+            />
+            <p
+              className="text-sm font-medium mb-1"
+              style={{ color: "var(--text-primary)" }}
+            >
+              No aliases yet
+            </p>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+              Create your first email alias to get started
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {aliases.map((alias) => (
+              <AliasItem
+                key={alias.id}
+                alias={alias}
+                deleting={alias_deleting_id === alias.id}
+                on_delete={handle_alias_delete}
+                on_toggle={handle_alias_toggle}
+                toggling={toggling_id === alias.id}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
-          {aliases_loading ? (
-            <div />
-          ) : aliases.length === 0 ? (
+      <div
+        className="border-t pt-8"
+        style={{ borderColor: "var(--border-secondary)" }}
+      >
+        {!domains_loading && max_domains === 0 ? (
+          <>
+            <div className="flex items-center gap-2 mb-2">
+              <GlobeAltIcon className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
+              <h3
+                className="text-lg font-semibold"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Custom Domains
+              </h3>
+            </div>
             <div
-              className="text-center py-12 rounded-lg"
+              className="p-6 rounded-lg text-center"
               style={{
                 backgroundColor: "var(--bg-tertiary)",
                 border: "1px solid var(--border-secondary)",
               }}
             >
-              <AtSymbolIcon
-                className="w-12 h-12 mx-auto mb-3"
-                style={{ color: "var(--text-muted)" }}
-              />
               <p
                 className="text-sm font-medium mb-1"
                 style={{ color: "var(--text-primary)" }}
               >
-                No aliases yet
+                Custom domains not available
               </p>
-              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                Create your first email alias to get started
+              <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
+                Upgrade your plan to add custom domains and create aliases on your
+                own domain.
               </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {aliases.map((alias) => (
-                <AliasItem
-                  key={alias.id}
-                  alias={alias}
-                  deleting={alias_deleting_id === alias.id}
-                  on_delete={handle_alias_delete}
-                  on_toggle={handle_alias_toggle}
-                  toggling={toggling_id === alias.id}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {active_tab === "domains" && (
-        <div>
-          {!domains_loading && max_domains === 0 ? (
-            <>
-              <h3
-                className="text-lg font-semibold mb-2"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Custom Domains
-              </h3>
-              <div
-                className="p-6 rounded-lg text-center"
+              <button
+                className="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:brightness-[1.08]"
                 style={{
-                  backgroundColor: "var(--bg-tertiary)",
-                  border: "1px solid var(--border-secondary)",
+                  background:
+                    "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                  color: "#ffffff",
                 }}
               >
-                <p
-                  className="text-sm font-medium mb-1"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  Custom domains not available
-                </p>
-                <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
-                  Upgrade your plan to add custom domains and send email from your
-                  own domain.
-                </p>
-                <button
-                  className="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:brightness-[1.08]"
-                  style={{
-                    background:
-                      "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-                    color: "#ffffff",
-                  }}
-                >
-                  Upgrade Plan
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-2">
+                Upgrade Plan
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <GlobeAltIcon className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
                 <h3
                   className="text-lg font-semibold"
                   style={{ color: "var(--text-primary)" }}
                 >
                   Custom Domains
                 </h3>
-                <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-                  {domains.length} / {max_domains} used
-                </span>
               </div>
-              <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
-                Add your own domain to send and receive email. You will need access to
-                your domain&apos;s DNS settings to complete verification.
-              </p>
+              <span className="text-sm" style={{ color: "var(--text-muted)" }}>
+                {domains.length} / {max_domains} used
+              </span>
+            </div>
+            <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
+              Add your own domain to create aliases and send email from your domain.
+              Verified domains will appear in the alias domain selector.
+            </p>
 
-              <motion.button
-                className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-lg mb-3"
+            <motion.button
+              className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-lg mb-3"
+              style={{
+                background:
+                  "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                color: "#ffffff",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
+              }}
+              transition={{ duration: 0.15 }}
+              whileHover={{
+                background:
+                  "linear-gradient(to bottom, #7b96ff 0%, #5f7ef7 50%, #4b6af8 100%)",
+                scale: 1.01,
+              }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => set_show_add_domain_modal(true)}
+            >
+              <PlusIcon className="w-4 h-4" />
+              Add Domain
+            </motion.button>
+
+            {domains_loading ? (
+              <div />
+            ) : domains.length === 0 ? (
+              <div
+                className="text-center py-12 rounded-lg"
                 style={{
-                  background:
-                    "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-                  color: "#ffffff",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
+                  backgroundColor: "var(--bg-tertiary)",
+                  border: "1px solid var(--border-secondary)",
                 }}
-                transition={{ duration: 0.15 }}
-                whileHover={{
-                  background:
-                    "linear-gradient(to bottom, #7b96ff 0%, #5f7ef7 50%, #4b6af8 100%)",
-                  scale: 1.01,
-                }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => set_show_add_domain_modal(true)}
               >
-                <PlusIcon className="w-4 h-4" />
-                Add Domain
-              </motion.button>
-
-              {domains_loading ? (
-                <div />
-              ) : domains.length === 0 ? (
-                <div
-                  className="text-center py-12 rounded-lg"
-                  style={{
-                    backgroundColor: "var(--bg-tertiary)",
-                    border: "1px solid var(--border-secondary)",
-                  }}
+                <GlobeAltIcon
+                  className="w-12 h-12 mx-auto mb-3"
+                  style={{ color: "var(--text-muted)" }}
+                />
+                <p
+                  className="text-sm font-medium mb-1"
+                  style={{ color: "var(--text-primary)" }}
                 >
-                  <GlobeAltIcon
-                    className="w-12 h-12 mx-auto mb-3"
-                    style={{ color: "var(--text-muted)" }}
+                  No custom domains yet
+                </p>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                  Add your first custom domain to get started
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {domains.map((domain) => (
+                  <DomainItem
+                    key={domain.id}
+                    deleting={domain_deleting_id === domain.id}
+                    domain={domain}
+                    on_delete={handle_domain_delete}
+                    on_verify={handle_domain_verify}
+                    verifying={verifying_id === domain.id}
                   />
-                  <p
-                    className="text-sm font-medium mb-1"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    No custom domains yet
-                  </p>
-                  <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                    Add your first custom domain to get started
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {domains.map((domain) => (
-                    <DomainItem
-                      key={domain.id}
-                      deleting={domain_deleting_id === domain.id}
-                      domain={domain}
-                      on_delete={handle_domain_delete}
-                      on_verify={handle_domain_verify}
-                      verifying={verifying_id === domain.id}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       <CreateAliasModal
+        available_domains={available_domains_for_aliases}
         current_count={aliases.length}
         is_open={show_create_alias_modal}
         max_aliases={max_aliases}
