@@ -1,4 +1,4 @@
-import type { InboxFilterType } from "@/types/email";
+import type { InboxFilterType, EmailCategory } from "@/types/email";
 
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,12 @@ import {
   ArrowPathIcon,
   FunnelIcon,
   CheckIcon,
+  InboxIcon,
+  UserGroupIcon,
+  TagIcon,
+  BellIcon,
+  ChatBubbleLeftRightIcon,
+  ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
 
 import { REFRESH_STATE_MS } from "@/constants/timings";
@@ -90,6 +96,22 @@ function is_newsletter_email(email: string, name: string): boolean {
   );
 }
 
+interface CategoryConfig {
+  id: EmailCategory | "all";
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const CATEGORY_CONFIGS: CategoryConfig[] = [
+  { id: "all", label: "All", icon: InboxIcon },
+  { id: "primary", label: "Primary", icon: InboxIcon },
+  { id: "social", label: "Social", icon: UserGroupIcon },
+  { id: "promotions", label: "Promos", icon: TagIcon },
+  { id: "updates", label: "Updates", icon: BellIcon },
+  { id: "forums", label: "Forums", icon: ChatBubbleLeftRightIcon },
+  { id: "purchases", label: "Purchases", icon: ShoppingBagIcon },
+];
+
 interface InboxHeaderProps {
   on_settings_click: () => void;
   view_title: string;
@@ -97,6 +119,9 @@ interface InboxHeaderProps {
   active_filter?: InboxFilterType;
   on_filter_change?: (filter: InboxFilterType) => void;
   on_search_click?: () => void;
+  active_category?: EmailCategory | "all";
+  on_category_change?: (category: EmailCategory | "all") => void;
+  show_categories?: boolean;
 }
 
 export function InboxHeader({
@@ -106,6 +131,9 @@ export function InboxHeader({
   active_filter = "all",
   on_filter_change,
   on_search_click,
+  active_category = "all",
+  on_category_change,
+  show_categories = false,
 }: InboxHeaderProps) {
   const navigate = useNavigate();
   const { state: folders_state } = use_folders();
@@ -373,7 +401,7 @@ export function InboxHeader({
           </Button>
 
           <button
-            className="hidden md:flex items-center gap-2 flex-1 max-w-md h-9 px-3 rounded-lg border cursor-pointer transition-colors hover:border-[var(--text-muted)]"
+            className="hidden md:flex items-center gap-2 w-48 h-8 px-2.5 rounded-md border cursor-pointer transition-colors hover:border-[var(--text-muted)]"
             data-onboarding="search-bar"
             style={{
               backgroundColor: "var(--bg-secondary)",
@@ -381,14 +409,38 @@ export function InboxHeader({
             }}
             onClick={handle_search_open}
           >
-            <MagnifyingGlassIcon className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
-            <span className="text-sm text-[var(--text-muted)] flex-1 text-left truncate">
-              Search emails...
+            <MagnifyingGlassIcon className="w-3.5 h-3.5 text-[var(--text-muted)] flex-shrink-0" />
+            <span className="text-xs text-[var(--text-muted)] flex-1 text-left truncate">
+              Search...
             </span>
-            <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] border-[var(--border-secondary)]">
+            <kbd className="hidden lg:inline-flex h-4 items-center gap-0.5 rounded border px-1 font-mono text-[9px] font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] border-[var(--border-secondary)]">
               {is_mac ? "⌘" : "Ctrl"}K
             </kbd>
           </button>
+
+          {show_categories && on_category_change && (
+            <div className="hidden md:flex items-center gap-0.5 ml-2">
+              {CATEGORY_CONFIGS.map((config) => {
+                const is_active = active_category === config.id;
+                const IconComponent = config.icon;
+
+                return (
+                  <button
+                    key={config.id}
+                    className={`flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md transition-colors duration-150 whitespace-nowrap ${
+                      is_active
+                        ? "text-[var(--text-primary)] bg-[var(--bg-tertiary)]"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+                    }`}
+                    onClick={() => on_category_change(config.id)}
+                  >
+                    <IconComponent className="w-3 h-3" />
+                    <span>{config.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">

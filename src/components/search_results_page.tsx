@@ -445,7 +445,7 @@ export function SearchResultsPage({
             </button>
 
             <button
-              className="flex items-center gap-2 flex-1 min-w-0 h-9 px-3 rounded-lg border transition-colors hover:border-[var(--text-muted)] cursor-pointer"
+              className="flex items-center gap-2 w-48 h-8 px-2.5 rounded-md border transition-colors hover:border-[var(--text-muted)] cursor-pointer"
               style={{
                 backgroundColor: "var(--bg-secondary)",
                 borderColor: "var(--border-secondary)",
@@ -453,16 +453,16 @@ export function SearchResultsPage({
               onClick={on_search_click}
             >
               <MagnifyingGlassIcon
-                className="w-4 h-4 flex-shrink-0"
+                className="w-3.5 h-3.5 flex-shrink-0"
                 style={{ color: "var(--text-muted)" }}
               />
               <span
-                className="text-sm truncate text-left flex-1"
+                className="text-xs truncate text-left flex-1"
                 style={{ color: "var(--text-primary)" }}
               >
                 {query}
               </span>
-              <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] border-[var(--border-secondary)]">
+              <kbd className="hidden lg:inline-flex h-4 items-center gap-0.5 rounded border px-1 font-mono text-[9px] font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] border-[var(--border-secondary)]">
                 {is_mac ? "⌘" : "Ctrl"}K
               </kbd>
             </button>

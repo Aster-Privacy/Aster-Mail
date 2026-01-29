@@ -96,7 +96,7 @@ import { SplitEmailViewer } from "@/components/split_email_viewer";
 import { SplitScheduledViewer } from "@/components/split_scheduled_viewer";
 import { FullEmailViewer } from "@/components/full_email_viewer";
 import { CustomSnoozeModal } from "@/components/custom_snooze_modal";
-import { CategoryTabs } from "@/components/category_tabs";
+import { SelectionActionIsland } from "@/components/selection_action_island";
 
 interface ReplyData {
   recipient_name: string;
@@ -295,6 +295,7 @@ export function EmailInbox({
   const is_drafts_view = current_view === "drafts";
   const is_scheduled_view = current_view === "scheduled";
   const is_snoozed_view = current_view === "snoozed";
+  const is_archive_view = current_view === "archive";
   const is_inbox_view =
     current_view === "inbox" ||
     current_view === "" ||
@@ -315,7 +316,7 @@ export function EmailInbox({
     active_category,
     set_active_category,
     filter_by_category,
-    unread_counts,
+    unread_counts: _unread_counts,
     update_unread_counts,
   } = use_categories({
     enabled: preferences.categories_enabled && is_inbox_view,
@@ -1166,7 +1167,8 @@ export function EmailInbox({
     }
   }, [pinned_emails, primary_emails, on_email_list_change]);
 
-  const { all_selected, some_selected } = get_selection_state(filtered_emails);
+  const { all_selected, some_selected, selected_count } =
+    get_selection_state(filtered_emails);
 
   const get_update_fn = useCallback(() => {
     if (is_drafts_view)
@@ -1204,6 +1206,16 @@ export function EmailInbox({
       }
     });
   }, [filtered_emails, email_state.emails, get_update_fn]);
+
+  const handle_clear_selection = useCallback((): void => {
+    const update_fn = get_update_fn();
+
+    email_state.emails.forEach((e) => {
+      if (e.is_selected) {
+        update_fn(e.id, { is_selected: false });
+      }
+    });
+  }, [email_state.emails, get_update_fn]);
 
   const handle_email_click = useCallback(
     (id: string): void => {
@@ -1808,11 +1820,14 @@ export function EmailInbox({
         {!show_full_email_viewer && (
           <>
             <InboxHeader
+              active_category={active_category}
               active_filter={active_filter}
+              on_category_change={set_active_category}
               on_compose={on_compose}
               on_filter_change={handle_filter_change}
               on_search_click={on_search_click}
               on_settings_click={on_settings_click}
+              show_categories={is_inbox_view && preferences.categories_enabled}
               view_title={get_view_title(current_view, folders_state.folders)}
             />
 
@@ -1845,14 +1860,6 @@ export function EmailInbox({
               some_selected={some_selected}
               total_messages={email_state.total_messages}
             />
-
-            {is_inbox_view && preferences.categories_enabled && (
-              <CategoryTabs
-                active_category={active_category}
-                on_category_change={set_active_category}
-                unread_counts={unread_counts}
-              />
-            )}
           </>
         )}
 
@@ -2012,6 +2019,18 @@ export function EmailInbox({
             <PencilSquareIcon className="w-6 h-6 text-white" />
           </motion.button>
         )}
+
+        <SelectionActionIsland
+          is_archive_view={is_archive_view}
+          is_visible={all_selected || some_selected}
+          on_archive={handle_toolbar_archive}
+          on_clear_selection={handle_clear_selection}
+          on_delete={handle_toolbar_delete}
+          on_mark_read={handle_toolbar_mark_read}
+          on_spam={handle_toolbar_spam}
+          on_unarchive={handle_toolbar_unarchive}
+          selected_count={selected_count}
+        />
       </div>
     </ErrorBoundary>
   );
