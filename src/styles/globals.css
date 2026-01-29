@@ -79,7 +79,7 @@
 
 .dark {
   --bg-primary: #121212;
-  --bg-secondary: #050505;
+  --bg-secondary: #0a0a0a;
   --bg-tertiary: #121212;
   --bg-hover: #1a1a1a;
   --bg-selected: #142744;
@@ -96,7 +96,7 @@
   --accent-blue-hover: #60a5fa;
   --indicator-bg: #121212;
   --indicator-border: #2a2a2a;
-  --sidebar-bg: #050505;
+  --sidebar-bg: #0a0a0a;
   --sidebar-hover: #0f0f0f;
   --modal-bg: #121212;
   --modal-overlay: rgba(0, 0, 0, 0.85);
