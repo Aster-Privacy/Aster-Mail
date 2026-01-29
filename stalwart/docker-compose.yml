@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  stalwart:
+    image: stalwartlabs/stalwart:latest
+    container_name: astermail-stalwart
+    restart: unless-stopped
+    ports:
+      - "25:25"
+      - "465:465"
+      - "587:587"
+      - "993:993"
+      - "8080:8080"
+    volumes:
+      - stalwart-data:/opt/stalwart/data
+      - ./config:/opt/stalwart/etc:z
+    environment:
+      - STALWART_LOG_LEVEL=info
+      - STALWART_ADMIN_PASSWORD=${STALWART_ADMIN_PASSWORD:-changeme}
+    networks:
+      - astermail-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: astermail-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-astermail}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-astermail_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-astermail}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../../Aster-Backend/migrations:/docker-entrypoint-initdb.d:ro,z
+    networks:
+      - astermail-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-astermail}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../../Aster-Backend
+      dockerfile: Dockerfile
+    container_name: astermail-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-astermail}:${POSTGRES_PASSWORD:-astermail_secret}@postgres:5432/${POSTGRES_DB:-astermail}
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-change-in-production}
+      - STALWART_API_URL=http://stalwart:8080
+      - STALWART_API_KEY=${STALWART_API_KEY:-}
+      - RUST_LOG=info
+    networks:
+      - astermail-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      stalwart:
+        condition: service_started
+
+  redis:
+    image: redis:7-alpine
+    container_name: astermail-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - astermail-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  stalwart-data:
+  postgres-data:
+  redis-data:
+
+networks:
+  astermail-network:
+    driver: bridge

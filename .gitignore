@@ -53,3 +53,13 @@ portal/
 
 # Packages (development)
 packages/
+
+# Old backend backup (now separate repo)
+backend.old/
+
+# SSL certs
+cert.pem
+key.pem
+
+# Workspace setup script
+setup_workspace.sh
