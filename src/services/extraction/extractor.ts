@@ -14,8 +14,8 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   "£": "GBP",
   "¥": "JPY",
   "₹": "INR",
-  "C$": "CAD",
-  "A$": "AUD",
+  C$: "CAD",
+  A$: "AUD",
 };
 
 const ORDER_ID_PATTERNS = [
@@ -27,16 +27,13 @@ const ORDER_ID_PATTERNS = [
   /transaction\s*(?:#|id)?[:\s]*([A-Z0-9][\w-]{8,30})/i,
 ];
 
-const AMOUNT_PATTERN = /([\$€£¥₹]|USD|EUR|GBP|CAD|AUD)?\s*([0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?)\s*([\$€£¥₹]|USD|EUR|GBP|CAD|AUD)?/;
+const AMOUNT_PATTERN =
+  /([\$€£¥₹]|USD|EUR|GBP|CAD|AUD)?\s*([0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?)\s*([\$€£¥₹]|USD|EUR|GBP|CAD|AUD)?/;
 
 const TRACKING_PATTERNS: { carrier: ShippingCarrier; patterns: RegExp[] }[] = [
   {
     carrier: "ups",
-    patterns: [
-      /\b(1Z[A-Z0-9]{16})\b/i,
-      /\b(T\d{10})\b/,
-      /\b(\d{18})\b/,
-    ],
+    patterns: [/\b(1Z[A-Z0-9]{16})\b/i, /\b(T\d{10})\b/, /\b(\d{18})\b/],
   },
   {
     carrier: "fedex",
@@ -59,18 +56,11 @@ const TRACKING_PATTERNS: { carrier: ShippingCarrier; patterns: RegExp[] }[] = [
   },
   {
     carrier: "dhl",
-    patterns: [
-      /\b(\d{10,11})\b/,
-      /\b([A-Z]{3}\d{7})\b/i,
-      /\b(JD\d{18})\b/i,
-    ],
+    patterns: [/\b(\d{10,11})\b/, /\b([A-Z]{3}\d{7})\b/i, /\b(JD\d{18})\b/i],
   },
   {
     carrier: "amazon",
-    patterns: [
-      /\b(TBA\d{12,15})\b/i,
-      /\b(AMZN_US\(\w+\))\b/i,
-    ],
+    patterns: [/\b(TBA\d{12,15})\b/i, /\b(AMZN_US\(\w+\))\b/i],
   },
 ];
 
@@ -100,6 +90,7 @@ const CARRIER_NAME_MAP: Record<string, ShippingCarrier> = {
 
 function parse_amount(text: string): ExtractedAmount | null {
   const match = text.match(AMOUNT_PATTERN);
+
   if (!match) return null;
 
   const [, prefix_symbol, value_str, suffix_symbol] = match;
@@ -122,11 +113,14 @@ function extract_amount_from_line(
 ): ExtractedAmount | null {
   for (const pattern of patterns) {
     const match = text.match(pattern);
+
     if (match) {
       const amount_str = match[1] || match[0];
+
       return parse_amount(amount_str);
     }
   }
+
   return null;
 }
 
@@ -136,6 +130,7 @@ function detect_carrier_from_email(
   body: string,
 ): ShippingCarrier | null {
   const from_lower = from_email.toLowerCase();
+
   for (const [domain, carrier] of Object.entries(CARRIER_DOMAIN_MAP)) {
     if (from_lower.includes(domain)) {
       return carrier;
@@ -143,6 +138,7 @@ function detect_carrier_from_email(
   }
 
   const combined = `${subject} ${body}`.toLowerCase();
+
   for (const [name, carrier] of Object.entries(CARRIER_NAME_MAP)) {
     if (combined.includes(name)) {
       return carrier;
@@ -157,10 +153,14 @@ function extract_tracking_number(
   carrier: ShippingCarrier | null,
 ): { number: string; carrier: ShippingCarrier } | null {
   if (carrier) {
-    const carrier_patterns = TRACKING_PATTERNS.find((p) => p.carrier === carrier);
+    const carrier_patterns = TRACKING_PATTERNS.find(
+      (p) => p.carrier === carrier,
+    );
+
     if (carrier_patterns) {
       for (const pattern of carrier_patterns.patterns) {
         const match = body.match(pattern);
+
         if (match) {
           return { number: match[1], carrier };
         }
@@ -171,6 +171,7 @@ function extract_tracking_number(
   for (const { carrier: c, patterns } of TRACKING_PATTERNS) {
     for (const pattern of patterns) {
       const match = body.match(pattern);
+
       if (match) {
         return { number: match[1], carrier: c };
       }
@@ -179,6 +180,7 @@ function extract_tracking_number(
 
   const generic_pattern = /tracking\s*(?:#|number)?[:\s]*([A-Z0-9]{10,30})/i;
   const match = body.match(generic_pattern);
+
   if (match) {
     return { number: match[1], carrier: "other" };
   }
@@ -186,7 +188,10 @@ function extract_tracking_number(
   return null;
 }
 
-function extract_tracking_url(body: string, html: string | undefined): string | null {
+function extract_tracking_url(
+  body: string,
+  html: string | undefined,
+): string | null {
   const url_patterns = [
     /https?:\/\/[^\s<>"]+track[^\s<>"]*/gi,
     /https?:\/\/[^\s<>"]+shipment[^\s<>"]*/gi,
@@ -197,9 +202,12 @@ function extract_tracking_url(body: string, html: string | undefined): string | 
 
   for (const pattern of url_patterns) {
     const matches = content.match(pattern);
+
     if (matches && matches.length > 0) {
       let url = matches[0];
+
       url = url.replace(/['">\]]+$/, "");
+
       return url;
     }
   }
@@ -262,10 +270,12 @@ function detect_shipping_status(subject: string, body: string): ShippingStatus {
 function extract_date(text: string, patterns: RegExp[]): string | null {
   for (const pattern of patterns) {
     const match = text.match(pattern);
+
     if (match) {
       return match[1] || match[0];
     }
   }
+
   return null;
 }
 
@@ -280,6 +290,7 @@ function extract_items_from_body(body: string): ExtractedItem[] {
 
   for (const pattern of item_patterns) {
     let match;
+
     while ((match = pattern.exec(body)) !== null) {
       const [, qty_or_name, name_or_qty, price_str] = match;
       const qty = parseInt(qty_or_name, 10);
@@ -311,14 +322,21 @@ function extract_items_from_body(body: string): ExtractedItem[] {
 
 function extract_merchant_name(from_email: string, from_name: string): string {
   if (from_name && !from_name.toLowerCase().includes("noreply")) {
-    return from_name.replace(/\s*(order|shipping|notification|update)s?\s*/gi, "").trim();
+    return from_name
+      .replace(/\s*(order|shipping|notification|update)s?\s*/gi, "")
+      .trim();
   }
 
   const domain = from_email.split("@")[1];
+
   if (domain) {
     const parts = domain.split(".");
+
     if (parts.length >= 2) {
-      return parts[parts.length - 2].charAt(0).toUpperCase() + parts[parts.length - 2].slice(1);
+      return (
+        parts[parts.length - 2].charAt(0).toUpperCase() +
+        parts[parts.length - 2].slice(1)
+      );
     }
   }
 
@@ -335,8 +353,10 @@ export function extract_purchase_details(
   const combined = `${subject}\n${body}`;
 
   let order_id: string | null = null;
+
   for (const pattern of ORDER_ID_PATTERNS) {
     const match = combined.match(pattern);
+
     if (match) {
       order_id = match[1];
       signals.push(`order_id:${order_id}`);
@@ -351,6 +371,7 @@ export function extract_purchase_details(
     /total\s+charged[:\s]*\$?([\d,.]+)/i,
     /purchase\s+total[:\s]*\$?([\d,.]+)/i,
   ]);
+
   if (total) signals.push(`total:${total.formatted}`);
 
   const subtotal = extract_amount_from_line(combined, [
@@ -374,8 +395,11 @@ export function extract_purchase_details(
     /promo(?:tion)?\s+(?:code\s+)?(?:applied)?[:\s]*-?\$?([\d,.]+)/i,
   ]);
 
-  const card_match = combined.match(/(?:card\s+)?ending\s+(?:in\s+)?[\*x]?(\d{4})/i);
+  const card_match = combined.match(
+    /(?:card\s+)?ending\s+(?:in\s+)?[\*x]?(\d{4})/i,
+  );
   const card_last_four = card_match ? card_match[1] : null;
+
   if (card_last_four) signals.push(`card:****${card_last_four}`);
 
   const payment_match = combined.match(
@@ -391,6 +415,7 @@ export function extract_purchase_details(
   const order_date = extract_date(combined, date_patterns);
 
   const items = extract_items_from_body(body);
+
   if (items.length > 0) signals.push(`items:${items.length}`);
 
   const merchant_name = extract_merchant_name(from_email, from_name);
@@ -433,6 +458,7 @@ export function extract_shipping_details(
   const signals: string[] = [];
 
   const carrier = detect_carrier_from_email(from_email, subject, body);
+
   if (carrier) signals.push(`carrier:${carrier}`);
 
   const tracking_result = extract_tracking_number(body, carrier);
@@ -446,12 +472,14 @@ export function extract_shipping_details(
   if (!tracking_url && tracking_number && detected_carrier) {
     const { CARRIER_TRACKING_URLS } = require("./types");
     const base_url = CARRIER_TRACKING_URLS[detected_carrier];
+
     if (base_url) {
       tracking_url = `${base_url}${tracking_number}`;
     }
   }
 
   const status = detect_shipping_status(subject, body);
+
   signals.push(`status:${status}`);
 
   const delivery_patterns = [
@@ -482,7 +510,9 @@ export function extract_shipping_details(
     : null;
 
   const { CARRIER_NAMES } = require("./types");
-  const carrier_name = detected_carrier ? CARRIER_NAMES[detected_carrier] : null;
+  const carrier_name = detected_carrier
+    ? CARRIER_NAMES[detected_carrier]
+    : null;
 
   return {
     tracking_number,
@@ -517,6 +547,7 @@ export function is_purchase_email(subject: string, body: string): boolean {
   ];
 
   let matches = 0;
+
   for (const pattern of purchase_indicators) {
     if (pattern.test(combined)) {
       matches++;
@@ -546,6 +577,7 @@ export function is_shipping_email(subject: string, body: string): boolean {
   ];
 
   let matches = 0;
+
   for (const pattern of shipping_indicators) {
     if (pattern.test(combined)) {
       matches++;

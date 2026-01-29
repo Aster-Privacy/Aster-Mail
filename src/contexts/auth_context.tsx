@@ -666,79 +666,82 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [state.current_account_id],
   );
 
-  const remove_account_handler = useCallback(async (account_id: string) => {
-    const is_current = account_id === state.current_account_id;
+  const remove_account_handler = useCallback(
+    async (account_id: string) => {
+      const is_current = account_id === state.current_account_id;
 
-    if (is_current) {
-      sync_client.disconnect();
-      try {
-        await api_client.post("/auth/logout", {});
-      } catch {
-        // proceed with local cleanup
-      }
-      broadcast_logout();
-      api_client.clear_auth_data();
-    }
-
-    const result = await storage_remove_account(account_id);
-
-    if (result.removed) {
-      stop_session_timeout();
-      clear_vault_from_memory();
-      clear_stored_encrypted_vault(account_id);
-      await clear_session_passphrase(account_id);
-      clear_session_timeout_data(account_id);
-
-      const switched_account = result.switched_to;
-
-      if (switched_account) {
-        const accounts = await get_all_accounts();
-
-        let has_keys = false;
-        const stored_passphrase = await get_session_passphrase(
-          switched_account.id,
-        );
-        const stored_vault = get_stored_encrypted_vault(switched_account.id);
-
-        if (stored_passphrase && stored_vault) {
-          try {
-            const vault = await decrypt_vault_with_lock(
-              stored_vault.encrypted_vault,
-              stored_vault.vault_nonce,
-              stored_passphrase,
-            );
-
-            has_keys = vault !== null;
-
-            if (has_keys) {
-              start_session_timeout(switched_account.id);
-            }
-          } catch {
-            await clear_session_passphrase(switched_account.id);
-          }
+      if (is_current) {
+        sync_client.disconnect();
+        try {
+          await api_client.post("/auth/logout", {});
+        } catch {
+          // proceed with local cleanup
         }
-
-        set_state((prev) => ({
-          ...prev,
-          user: switched_account.user,
-          is_authenticated: true,
-          has_keys,
-          accounts,
-          current_account_id: switched_account.id,
-        }));
-      } else {
-        api_client.set_authenticated(false);
-        set_state({
-          user: null,
-          is_loading: false,
-          is_authenticated: false,
-          has_keys: false,
-          accounts: [],
-          current_account_id: null,
-        });
+        broadcast_logout();
+        api_client.clear_auth_data();
       }
-    }
-  }, [state.current_account_id]);
+
+      const result = await storage_remove_account(account_id);
+
+      if (result.removed) {
+        stop_session_timeout();
+        clear_vault_from_memory();
+        clear_stored_encrypted_vault(account_id);
+        await clear_session_passphrase(account_id);
+        clear_session_timeout_data(account_id);
+
+        const switched_account = result.switched_to;
+
+        if (switched_account) {
+          const accounts = await get_all_accounts();
+
+          let has_keys = false;
+          const stored_passphrase = await get_session_passphrase(
+            switched_account.id,
+          );
+          const stored_vault = get_stored_encrypted_vault(switched_account.id);
+
+          if (stored_passphrase && stored_vault) {
+            try {
+              const vault = await decrypt_vault_with_lock(
+                stored_vault.encrypted_vault,
+                stored_vault.vault_nonce,
+                stored_passphrase,
+              );
+
+              has_keys = vault !== null;
+
+              if (has_keys) {
+                start_session_timeout(switched_account.id);
+              }
+            } catch {
+              await clear_session_passphrase(switched_account.id);
+            }
+          }
+
+          set_state((prev) => ({
+            ...prev,
+            user: switched_account.user,
+            is_authenticated: true,
+            has_keys,
+            accounts,
+            current_account_id: switched_account.id,
+          }));
+        } else {
+          api_client.set_authenticated(false);
+          set_state({
+            user: null,
+            is_loading: false,
+            is_authenticated: false,
+            has_keys: false,
+            accounts: [],
+            current_account_id: null,
+          });
+        }
+      }
+    },
+    [state.current_account_id],
+  );
 
   const logout = useCallback(async () => {
     if (state.current_account_id) {
@@ -877,6 +880,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!state.has_keys && !is_completing_registration) {
       return null;
     }
+
     return get_vault_from_memory();
   }, [state.has_keys, is_completing_registration]);
 

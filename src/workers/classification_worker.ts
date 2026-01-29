@@ -162,6 +162,7 @@ const ALL_DOMAIN_RULES: DomainRuleData[] = [
 ];
 
 const DOMAIN_MAP = new Map<string, DomainRuleData>();
+
 for (const rule of ALL_DOMAIN_RULES) {
   DOMAIN_MAP.set(rule.domain, rule);
 }
@@ -169,27 +170,107 @@ for (const rule of ALL_DOMAIN_RULES) {
 const SUBJECT_KEYWORDS: KeywordRuleData[] = [
   { pattern: "\\bsale\\b", flags: "i", category: "promotions", weight: 60 },
   { pattern: "\\bdiscount\\b", flags: "i", category: "promotions", weight: 65 },
-  { pattern: "\\b\\d+%\\s*off\\b", flags: "i", category: "promotions", weight: 75 },
-  { pattern: "\\bfree\\s+shipping\\b", flags: "i", category: "promotions", weight: 70 },
-  { pattern: "\\bpromo\\s*code\\b", flags: "i", category: "promotions", weight: 80 },
+  {
+    pattern: "\\b\\d+%\\s*off\\b",
+    flags: "i",
+    category: "promotions",
+    weight: 75,
+  },
+  {
+    pattern: "\\bfree\\s+shipping\\b",
+    flags: "i",
+    category: "promotions",
+    weight: 70,
+  },
+  {
+    pattern: "\\bpromo\\s*code\\b",
+    flags: "i",
+    category: "promotions",
+    weight: 80,
+  },
   { pattern: "\\bcoupon\\b", flags: "i", category: "promotions", weight: 75 },
-  { pattern: "\\bnewsletter\\b", flags: "i", category: "promotions", weight: 55 },
+  {
+    pattern: "\\bnewsletter\\b",
+    flags: "i",
+    category: "promotions",
+    weight: 55,
+  },
 
-  { pattern: "\\border\\s+(confirmation|confirmed)\\b", flags: "i", category: "updates", weight: 90 },
-  { pattern: "\\bshipping\\s+(confirmation|update)\\b", flags: "i", category: "updates", weight: 90 },
-  { pattern: "\\bdelivery\\s+(confirmation|update)\\b", flags: "i", category: "updates", weight: 90 },
+  {
+    pattern: "\\border\\s+(confirmation|confirmed)\\b",
+    flags: "i",
+    category: "updates",
+    weight: 90,
+  },
+  {
+    pattern: "\\bshipping\\s+(confirmation|update)\\b",
+    flags: "i",
+    category: "updates",
+    weight: 90,
+  },
+  {
+    pattern: "\\bdelivery\\s+(confirmation|update)\\b",
+    flags: "i",
+    category: "updates",
+    weight: 90,
+  },
   { pattern: "\\breceipt\\b", flags: "i", category: "updates", weight: 80 },
   { pattern: "\\binvoice\\b", flags: "i", category: "updates", weight: 80 },
-  { pattern: "\\bpassword\\s+reset\\b", flags: "i", category: "updates", weight: 90 },
-  { pattern: "\\bverify\\s+your\\b", flags: "i", category: "updates", weight: 85 },
-  { pattern: "\\bsecurity\\s+alert\\b", flags: "i", category: "updates", weight: 90 },
-  { pattern: "\\bhas\\s+shipped\\b", flags: "i", category: "updates", weight: 90 },
-  { pattern: "\\bout\\s+for\\s+delivery\\b", flags: "i", category: "updates", weight: 95 },
+  {
+    pattern: "\\bpassword\\s+reset\\b",
+    flags: "i",
+    category: "updates",
+    weight: 90,
+  },
+  {
+    pattern: "\\bverify\\s+your\\b",
+    flags: "i",
+    category: "updates",
+    weight: 85,
+  },
+  {
+    pattern: "\\bsecurity\\s+alert\\b",
+    flags: "i",
+    category: "updates",
+    weight: 90,
+  },
+  {
+    pattern: "\\bhas\\s+shipped\\b",
+    flags: "i",
+    category: "updates",
+    weight: 90,
+  },
+  {
+    pattern: "\\bout\\s+for\\s+delivery\\b",
+    flags: "i",
+    category: "updates",
+    weight: 95,
+  },
 
-  { pattern: "\\bfriend\\s+request\\b", flags: "i", category: "social", weight: 85 },
-  { pattern: "\\btagged\\s+(you|in)\\b", flags: "i", category: "social", weight: 80 },
-  { pattern: "\\bmentioned\\s+you\\b", flags: "i", category: "social", weight: 80 },
-  { pattern: "\\bnew\\s+follower\\b", flags: "i", category: "social", weight: 85 },
+  {
+    pattern: "\\bfriend\\s+request\\b",
+    flags: "i",
+    category: "social",
+    weight: 85,
+  },
+  {
+    pattern: "\\btagged\\s+(you|in)\\b",
+    flags: "i",
+    category: "social",
+    weight: 80,
+  },
+  {
+    pattern: "\\bmentioned\\s+you\\b",
+    flags: "i",
+    category: "social",
+    weight: 80,
+  },
+  {
+    pattern: "\\bnew\\s+follower\\b",
+    flags: "i",
+    category: "social",
+    weight: 85,
+  },
 
   { pattern: "^\\s*re:\\s*", flags: "i", category: "forums", weight: 40 },
   { pattern: "\\[[\\w-]+\\]\\s*", flags: "i", category: "forums", weight: 50 },
@@ -212,18 +293,23 @@ const CACHE_MAX_SIZE = 1000;
 
 function extract_domain(email: string): string {
   const at_index = email.lastIndexOf("@");
+
   if (at_index === -1) return "";
+
   return email.slice(at_index + 1).toLowerCase();
 }
 
 function get_domain_rule(domain: string): DomainRuleData | undefined {
   const normalized = domain.toLowerCase();
   const direct = DOMAIN_MAP.get(normalized);
+
   if (direct) return direct;
 
   const parts = normalized.split(".");
+
   if (parts.length > 2) {
     const parent = parts.slice(-2).join(".");
+
     return DOMAIN_MAP.get(parent);
   }
 
@@ -234,13 +320,24 @@ function is_automated_sender(email: string): boolean {
   return NOREPLY_PATTERNS.some((pattern) => pattern.test(email));
 }
 
-function match_subject_keywords(subject: string): Array<{ category: EmailCategory; weight: number; source: string }> {
-  const matches: Array<{ category: EmailCategory; weight: number; source: string }> = [];
+function match_subject_keywords(
+  subject: string,
+): Array<{ category: EmailCategory; weight: number; source: string }> {
+  const matches: Array<{
+    category: EmailCategory;
+    weight: number;
+    source: string;
+  }> = [];
 
   for (const rule of SUBJECT_KEYWORDS) {
     const regex = new RegExp(rule.pattern, rule.flags);
+
     if (regex.test(subject)) {
-      matches.push({ category: rule.category, weight: rule.weight, source: rule.pattern });
+      matches.push({
+        category: rule.category,
+        weight: rule.weight,
+        source: rule.pattern,
+      });
     }
   }
 
@@ -249,6 +346,7 @@ function match_subject_keywords(subject: string): Array<{ category: EmailCategor
 
 function classify_internal(input: ClassifyPayload): ClassificationResultData {
   const cached = classification_cache.get(input.id);
+
   if (cached) return cached;
 
   const signals: Array<{ type: string; source: string; weight: number }> = [];
@@ -256,48 +354,82 @@ function classify_internal(input: ClassifyPayload): ClassificationResultData {
 
   const sender_email = input.envelope.from.email.toLowerCase();
   const preference = user_preferences.get(sender_email);
+
   if (preference) {
-    signals.push({ type: "user_correction", source: sender_email, weight: 100 });
+    signals.push({
+      type: "user_correction",
+      source: sender_email,
+      weight: 100,
+    });
     weights.set(preference.assigned_category, 100);
   }
 
   const domain = extract_domain(sender_email);
+
   if (domain) {
     const rule = get_domain_rule(domain);
+
     if (rule) {
-      signals.push({ type: "domain_match", source: domain, weight: rule.confidence });
+      signals.push({
+        type: "domain_match",
+        source: domain,
+        weight: rule.confidence,
+      });
       const current = weights.get(rule.category) ?? 0;
+
       weights.set(rule.category, Math.max(current, rule.confidence));
     }
   }
 
   if (is_automated_sender(sender_email)) {
-    signals.push({ type: "sender_pattern", source: "automated_sender", weight: 30 });
+    signals.push({
+      type: "sender_pattern",
+      source: "automated_sender",
+      weight: 30,
+    });
     for (const category of ["promotions", "updates"] as EmailCategory[]) {
       const current = weights.get(category) ?? 0;
+
       weights.set(category, current + 15);
     }
   }
 
   const subject = input.envelope.subject;
+
   if (subject) {
     const matches = match_subject_keywords(subject);
+
     for (const match of matches) {
-      signals.push({ type: "subject_keyword", source: match.source, weight: match.weight });
+      signals.push({
+        type: "subject_keyword",
+        source: match.source,
+        weight: match.weight,
+      });
       const current = weights.get(match.category) ?? 0;
+
       weights.set(match.category, current + match.weight);
     }
   }
 
   if (input.headers?.list_unsubscribe) {
-    signals.push({ type: "header_hint", source: "list_unsubscribe", weight: 60 });
+    signals.push({
+      type: "header_hint",
+      source: "list_unsubscribe",
+      weight: 60,
+    });
     const current = weights.get("promotions") ?? 0;
+
     weights.set("promotions", current + 60);
   }
 
   if (input.headers?.precedence?.toLowerCase() === "bulk") {
-    signals.push({ type: "header_hint", source: "precedence_bulk", weight: 50 });
+    signals.push({
+      type: "header_hint",
+      source: "precedence_bulk",
+      weight: 50,
+    });
     const current = weights.get("promotions") ?? 0;
+
     weights.set("promotions", current + 50);
   }
 
@@ -307,8 +439,13 @@ function classify_internal(input: ClassifyPayload): ClassificationResultData {
     input.envelope.bcc.length;
 
   if (total_recipients > 10) {
-    signals.push({ type: "recipient_count", source: `${total_recipients}_recipients`, weight: 40 });
+    signals.push({
+      type: "recipient_count",
+      source: `${total_recipients}_recipients`,
+      weight: 40,
+    });
     const current = weights.get("forums") ?? 0;
+
     weights.set("forums", current + 40);
   }
 
@@ -330,6 +467,7 @@ function classify_internal(input: ClassifyPayload): ClassificationResultData {
 
   if (classification_cache.size >= CACHE_MAX_SIZE) {
     const first_key = classification_cache.keys().next().value;
+
     if (first_key) {
       classification_cache.delete(first_key);
     }
@@ -347,6 +485,7 @@ function handle_message(message: WorkerMessage): WorkerResponse {
       case "classify": {
         const input = payload as ClassifyPayload;
         const result = classify_internal(input);
+
         return { id, type, payload: result };
       }
 
@@ -370,35 +509,43 @@ function handle_message(message: WorkerMessage): WorkerResponse {
           assigned_category: category,
           created_at: Date.now(),
         };
+
         user_preferences.set(sender_email.toLowerCase(), pref);
         classification_cache.clear();
+
         return { id, type, payload: { success: true } };
       }
 
       case "remove_preference": {
         const { sender_email } = payload as RemovePreferencePayload;
+
         user_preferences.delete(sender_email.toLowerCase());
         classification_cache.clear();
+
         return { id, type, payload: { success: true } };
       }
 
       case "load_preferences": {
         const { preferences } = payload as LoadPreferencesPayload;
+
         user_preferences.clear();
         for (const pref of preferences) {
           user_preferences.set(pref.sender_email, pref);
         }
         classification_cache.clear();
+
         return { id, type, payload: { loaded: preferences.length } };
       }
 
       case "get_preferences": {
         const prefs = Array.from(user_preferences.values());
+
         return { id, type, payload: { preferences: prefs } };
       }
 
       case "clear_cache": {
         classification_cache.clear();
+
         return { id, type, payload: { success: true } };
       }
 
@@ -406,13 +553,16 @@ function handle_message(message: WorkerMessage): WorkerResponse {
         return { id, type, error: `Unknown message type: ${type}` };
     }
   } catch (error) {
-    const error_message = error instanceof Error ? error.message : "Unknown error";
+    const error_message =
+      error instanceof Error ? error.message : "Unknown error";
+
     return { id, type, error: error_message };
   }
 }
 
 self.onmessage = (event: MessageEvent<WorkerMessage>) => {
   const response = handle_message(event.data);
+
   self.postMessage(response);
 };
 

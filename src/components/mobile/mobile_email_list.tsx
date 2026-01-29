@@ -372,7 +372,9 @@ export function MobileEmailList({
 
                     {on_star && (
                       <button
-                        aria-label={email.is_starred ? "Unstar email" : "Star email"}
+                        aria-label={
+                          email.is_starred ? "Unstar email" : "Star email"
+                        }
                         className="flex-shrink-0 p-2.5 -mr-2 touch-manipulation"
                         type="button"
                         onClick={(e) => {

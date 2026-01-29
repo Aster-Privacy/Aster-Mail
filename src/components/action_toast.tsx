@@ -41,7 +41,7 @@ export function show_action_toast(toast: Omit<ActionToastState, "id">) {
 
   current_toast = {
     ...toast,
-    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    id: crypto.randomUUID(),
   };
 
   toast_listeners.forEach((listener) => listener(current_toast));

@@ -1,5 +1,6 @@
 import type { EmailCategory } from "@/types/email";
 import type { CategoryToken } from "./types";
+
 import { get_derived_encryption_key } from "../crypto/memory_key_store";
 import { zero_uint8_array } from "../crypto/secure_memory";
 
@@ -15,7 +16,9 @@ let cached_tokens: Map<EmailCategory, string> | null = null;
 
 function array_to_base64(arr: Uint8Array): string {
   let binary = "";
+
   arr.forEach((b) => (binary += String.fromCharCode(b)));
+
   return btoa(binary);
 }
 
@@ -27,6 +30,7 @@ function array_to_hex(arr: Uint8Array): string {
 
 async function fingerprint_key(key_bytes: Uint8Array): Promise<string> {
   const hash = await crypto.subtle.digest("SHA-256", key_bytes);
+
   return array_to_hex(new Uint8Array(hash).slice(0, 8));
 }
 
@@ -41,6 +45,7 @@ async function derive_category_key(): Promise<CryptoKey> {
 
   if (cached_category_key && cached_key_fingerprint === current_fingerprint) {
     zero_uint8_array(encryption_key);
+
     return cached_category_key;
   }
 
@@ -80,6 +85,7 @@ export async function generate_category_token(
   const key = await derive_category_key();
   const data = new TextEncoder().encode(`category:${category}`);
   const signature = await crypto.subtle.sign("HMAC", key, data);
+
   return array_to_base64(new Uint8Array(signature).slice(0, 16));
 }
 
@@ -104,10 +110,15 @@ export async function generate_all_category_tokens(): Promise<
   for (const category of categories) {
     const data = new TextEncoder().encode(`category:${category}`);
     const signature = await crypto.subtle.sign("HMAC", key, data);
-    tokens.set(category, array_to_base64(new Uint8Array(signature).slice(0, 16)));
+
+    tokens.set(
+      category,
+      array_to_base64(new Uint8Array(signature).slice(0, 16)),
+    );
   }
 
   cached_tokens = tokens;
+
   return tokens;
 }
 
@@ -144,6 +155,7 @@ export function clear_category_token_cache(): void {
 export async function validate_category_key(): Promise<boolean> {
   try {
     await derive_category_key();
+
     return true;
   } catch {
     return false;

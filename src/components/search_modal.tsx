@@ -1,4 +1,5 @@
 import type { SearchFilters } from "@/services/api/search";
+import type { DecryptedContact } from "@/types/contacts";
 
 import {
   useEffect,
@@ -50,7 +51,6 @@ import { use_email_actions } from "@/hooks/use_email_actions";
 import { get_operator_suggestions } from "@/utils/search_operators";
 import { format_history_timestamp } from "@/services/search";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
-import type { DecryptedContact } from "@/types/contacts";
 
 interface SearchModalProps {
   is_open: boolean;
@@ -526,6 +526,7 @@ function ContactResultRow({
     if (contact.address?.country?.toLowerCase().includes(q)) {
       return contact.address.country;
     }
+
     return null;
   };
 
@@ -562,7 +563,9 @@ function ContactResultRow({
           className="text-xs block truncate"
           style={{ color: "var(--text-muted)" }}
         >
-          {match_context ? `${primary_email} · ${match_context}` : primary_email}
+          {match_context
+            ? `${primary_email} · ${match_context}`
+            : primary_email}
         </span>
       </div>
       <button
@@ -1710,29 +1713,42 @@ export function SearchModal({
         const first_name = contact.first_name?.toLowerCase() || "";
         const last_name = contact.last_name?.toLowerCase() || "";
         const full_name = `${first_name} ${last_name}`;
-        const emails = contact.emails?.map((email: string) => email.toLowerCase()) || [];
+        const emails =
+          contact.emails?.map((email: string) => email.toLowerCase()) || [];
         const company = contact.company?.toLowerCase() || "";
         const job_title = contact.job_title?.toLowerCase() || "";
         const phone = contact.phone?.toLowerCase() || "";
         const notes = contact.notes?.toLowerCase() || "";
         const relationship = contact.relationship?.toLowerCase() || "";
-        const groups = contact.groups?.map((g: string) => g.toLowerCase()) || [];
+        const groups =
+          contact.groups?.map((g: string) => g.toLowerCase()) || [];
 
         const address_parts: string[] = [];
+
         if (contact.address) {
-          if (contact.address.street) address_parts.push(contact.address.street.toLowerCase());
-          if (contact.address.city) address_parts.push(contact.address.city.toLowerCase());
-          if (contact.address.state) address_parts.push(contact.address.state.toLowerCase());
-          if (contact.address.postal_code) address_parts.push(contact.address.postal_code.toLowerCase());
-          if (contact.address.country) address_parts.push(contact.address.country.toLowerCase());
+          if (contact.address.street)
+            address_parts.push(contact.address.street.toLowerCase());
+          if (contact.address.city)
+            address_parts.push(contact.address.city.toLowerCase());
+          if (contact.address.state)
+            address_parts.push(contact.address.state.toLowerCase());
+          if (contact.address.postal_code)
+            address_parts.push(contact.address.postal_code.toLowerCase());
+          if (contact.address.country)
+            address_parts.push(contact.address.country.toLowerCase());
         }
 
         const social_parts: string[] = [];
+
         if (contact.social_links) {
-          if (contact.social_links.linkedin) social_parts.push(contact.social_links.linkedin.toLowerCase());
-          if (contact.social_links.twitter) social_parts.push(contact.social_links.twitter.toLowerCase());
-          if (contact.social_links.github) social_parts.push(contact.social_links.github.toLowerCase());
-          if (contact.social_links.website) social_parts.push(contact.social_links.website.toLowerCase());
+          if (contact.social_links.linkedin)
+            social_parts.push(contact.social_links.linkedin.toLowerCase());
+          if (contact.social_links.twitter)
+            social_parts.push(contact.social_links.twitter.toLowerCase());
+          if (contact.social_links.github)
+            social_parts.push(contact.social_links.github.toLowerCase());
+          if (contact.social_links.website)
+            social_parts.push(contact.social_links.website.toLowerCase());
         }
 
         return (
@@ -2226,25 +2242,27 @@ export function SearchModal({
                     </svg>
                   </button>
                 )}
-                {!on_search_submit && state.query && filtered_results.length > 0 && (
-                  <button
-                    className="p-1.5 rounded-lg transition-all duration-150"
-                    style={{
-                      backgroundColor: "var(--bg-hover)",
-                      color: "var(--text-muted)",
-                    }}
-                    title="Save this search"
-                    onClick={() => set_show_save_dialog(true)}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
+                {!on_search_submit &&
+                  state.query &&
+                  filtered_results.length > 0 && (
+                    <button
+                      className="p-1.5 rounded-lg transition-all duration-150"
+                      style={{
+                        backgroundColor: "var(--bg-hover)",
+                        color: "var(--text-muted)",
+                      }}
+                      title="Save this search"
+                      onClick={() => set_show_save_dialog(true)}
                     >
-                      <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
-                    </svg>
-                  </button>
-                )}
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                      </svg>
+                    </button>
+                  )}
                 {!on_search_submit && (
                   <div className="relative">
                     <button
@@ -2253,7 +2271,9 @@ export function SearchModal({
                         backgroundColor: show_clear_menu
                           ? "var(--accent-color, #3b82f6)"
                           : "var(--bg-hover)",
-                        color: show_clear_menu ? "#ffffff" : "var(--text-muted)",
+                        color: show_clear_menu
+                          ? "#ffffff"
+                          : "var(--text-muted)",
                       }}
                       title="Clear search data"
                       onClick={() => set_show_clear_menu((prev) => !prev)}
@@ -2483,9 +2503,11 @@ export function SearchModal({
                         <ContactResultRow
                           key={contact.id}
                           contact={contact}
-                          search_query={state.query}
                           on_click={() => handle_contact_click(contact)}
-                          on_profile_click={() => handle_contact_profile_click(contact)}
+                          on_profile_click={() =>
+                            handle_contact_profile_click(contact)
+                          }
+                          search_query={state.query}
                         />
                       ))}
                     </>
@@ -2502,9 +2524,9 @@ export function SearchModal({
                       {filtered_results.slice(0, 5).map((result) => (
                         <SearchResultRow
                           key={result.id}
+                          on_click={() => handle_result_click(result.id)}
                           query_terms={query_terms}
                           result={result}
-                          on_click={() => handle_result_click(result.id)}
                         />
                       ))}
                     </>
@@ -2531,7 +2553,8 @@ export function SearchModal({
                       </div>
                     )}
 
-                  {(filtered_results.length > 0 || filtered_contacts.length > 0) && (
+                  {(filtered_results.length > 0 ||
+                    filtered_contacts.length > 0) && (
                     <button
                       className="w-full mt-2 py-2.5 text-sm font-medium rounded-lg transition-colors"
                       style={{
@@ -2559,7 +2582,9 @@ export function SearchModal({
                     on_select={handle_history_select}
                   />
                   {search_history.length === 0 && (
-                    <FirstTimeSearchState on_quick_action={handle_quick_search} />
+                    <FirstTimeSearchState
+                      on_quick_action={handle_quick_search}
+                    />
                   )}
                 </>
               )}
@@ -2604,125 +2629,131 @@ export function SearchModal({
                   </div>
                 )}
 
-              {show_inline_results && state.query && filtered_folders.length > 0 && (
-                <div className="p-2 pb-0">
-                  <div
-                    className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    Folders
-                  </div>
-                  {filtered_folders.slice(0, 5).map((folder) => (
-                    <FolderResultRow
-                      key={folder.id}
-                      folder={folder}
-                      on_click={() => handle_folder_click(folder)}
-                    />
-                  ))}
-                  {filtered_folders.length > 5 && (
-                    <div
-                      className="px-3 py-1.5 text-[11px]"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      +{filtered_folders.length - 5} more folder
-                      {filtered_folders.length - 5 !== 1 ? "s" : ""}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {show_inline_results && state.query && filtered_results.length > 0 && (
-                <div className="p-2">
-                  {filtered_folders.length > 0 && (
+              {show_inline_results &&
+                state.query &&
+                filtered_folders.length > 0 && (
+                  <div className="p-2 pb-0">
                     <div
                       className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider"
                       style={{ color: "var(--text-muted)" }}
                     >
-                      Emails
+                      Folders
                     </div>
-                  )}
-                  <div
-                    className="px-3 py-2 text-xs flex items-center justify-between"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    <span>
-                      Showing {filtered_results.length} of {state.total_results}{" "}
-                      result
-                      {state.total_results !== 1 ? "s" : ""}{" "}
-                      {state.search_time_ms > 0 && (
-                        <span className="opacity-60">
-                          ({state.search_time_ms.toFixed(0)}ms)
-                        </span>
-                      )}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      {state.index_building && (
-                        <span className="flex items-center gap-1 text-amber-500">
-                          <Spinner size="xs" />
-                          Indexing
-                        </span>
-                      )}
-                      {state.search_time_ms > 0 && (
-                        <span style={{ color: "var(--text-muted)" }}>
-                          {state.search_time_ms < 1000
-                            ? `${Math.round(state.search_time_ms)}ms`
-                            : `${(state.search_time_ms / 1000).toFixed(1)}s`}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <AnimatePresence mode="popLayout">
-                    {filtered_results.map((result) => (
-                      <SearchResultRow
-                        key={result.id}
-                        on_click={() => handle_result_click(result.id)}
-                        query_terms={query_terms}
-                        quick_actions={quick_action_handlers}
-                        result={result}
+                    {filtered_folders.slice(0, 5).map((folder) => (
+                      <FolderResultRow
+                        key={folder.id}
+                        folder={folder}
+                        on_click={() => handle_folder_click(folder)}
                       />
                     ))}
-                  </AnimatePresence>
-                  {(state.is_searching || state.is_loading_more) && (
-                    <div className="py-2">
-                      <div className="flex items-center justify-center gap-2 py-3">
-                        <Spinner
-                          className="text-[var(--accent-color,#3b82f6)]"
-                          size="sm"
-                        />
-                        <span
-                          className="text-xs"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          {state.is_loading_more
-                            ? "Loading more..."
-                            : "Searching..."}
-                        </span>
-                      </div>
-                      {state.is_loading_more && <SearchResultSkeleton />}
-                    </div>
-                  )}
-                  {state.has_more &&
-                    !state.is_searching &&
-                    !state.is_loading_more && (
-                      <motion.button
-                        className="w-full py-3 text-xs text-center transition-all duration-150 rounded-lg mt-2"
-                        style={{
-                          color: "var(--text-muted)",
-                          backgroundColor: "var(--bg-tertiary)",
-                        }}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                        onClick={load_more}
+                    {filtered_folders.length > 5 && (
+                      <div
+                        className="px-3 py-1.5 text-[11px]"
+                        style={{ color: "var(--text-muted)" }}
                       >
-                        Load more results (
-                        {state.total_results - filtered_results.length}{" "}
-                        remaining)
-                      </motion.button>
+                        +{filtered_folders.length - 5} more folder
+                        {filtered_folders.length - 5 !== 1 ? "s" : ""}
+                      </div>
                     )}
-                </div>
-              )}
+                  </div>
+                )}
 
-              {show_inline_results && show_empty_state && <EmptySearchState query={state.query} />}
+              {show_inline_results &&
+                state.query &&
+                filtered_results.length > 0 && (
+                  <div className="p-2">
+                    {filtered_folders.length > 0 && (
+                      <div
+                        className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        Emails
+                      </div>
+                    )}
+                    <div
+                      className="px-3 py-2 text-xs flex items-center justify-between"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      <span>
+                        Showing {filtered_results.length} of{" "}
+                        {state.total_results} result
+                        {state.total_results !== 1 ? "s" : ""}{" "}
+                        {state.search_time_ms > 0 && (
+                          <span className="opacity-60">
+                            ({state.search_time_ms.toFixed(0)}ms)
+                          </span>
+                        )}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {state.index_building && (
+                          <span className="flex items-center gap-1 text-amber-500">
+                            <Spinner size="xs" />
+                            Indexing
+                          </span>
+                        )}
+                        {state.search_time_ms > 0 && (
+                          <span style={{ color: "var(--text-muted)" }}>
+                            {state.search_time_ms < 1000
+                              ? `${Math.round(state.search_time_ms)}ms`
+                              : `${(state.search_time_ms / 1000).toFixed(1)}s`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <AnimatePresence mode="popLayout">
+                      {filtered_results.map((result) => (
+                        <SearchResultRow
+                          key={result.id}
+                          on_click={() => handle_result_click(result.id)}
+                          query_terms={query_terms}
+                          quick_actions={quick_action_handlers}
+                          result={result}
+                        />
+                      ))}
+                    </AnimatePresence>
+                    {(state.is_searching || state.is_loading_more) && (
+                      <div className="py-2">
+                        <div className="flex items-center justify-center gap-2 py-3">
+                          <Spinner
+                            className="text-[var(--accent-color,#3b82f6)]"
+                            size="sm"
+                          />
+                          <span
+                            className="text-xs"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            {state.is_loading_more
+                              ? "Loading more..."
+                              : "Searching..."}
+                          </span>
+                        </div>
+                        {state.is_loading_more && <SearchResultSkeleton />}
+                      </div>
+                    )}
+                    {state.has_more &&
+                      !state.is_searching &&
+                      !state.is_loading_more && (
+                        <motion.button
+                          className="w-full py-3 text-xs text-center transition-all duration-150 rounded-lg mt-2"
+                          style={{
+                            color: "var(--text-muted)",
+                            backgroundColor: "var(--bg-tertiary)",
+                          }}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                          onClick={load_more}
+                        >
+                          Load more results (
+                          {state.total_results - filtered_results.length}{" "}
+                          remaining)
+                        </motion.button>
+                      )}
+                  </div>
+                )}
+
+              {show_inline_results && show_empty_state && (
+                <EmptySearchState query={state.query} />
+              )}
 
               {show_inline_results && show_first_time_state && (
                 <>

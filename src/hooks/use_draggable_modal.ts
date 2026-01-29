@@ -144,7 +144,9 @@ export function use_draggable_modal(
 
   const did_drag = useCallback(() => {
     const result = movement_occurred_ref.current;
+
     movement_occurred_ref.current = false;
+
     return result;
   }, []);
 

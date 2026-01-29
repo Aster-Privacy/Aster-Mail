@@ -7,6 +7,7 @@ import type {
   ClassificationCache,
   UserCategoryPreference,
 } from "./types";
+
 import { DEFAULT_CLASSIFICATION_CONFIG } from "./types";
 import {
   get_domain_rule,
@@ -34,10 +35,12 @@ class InMemoryClassificationCache implements ClassificationCache {
 
   get(email_id: string): ClassificationResult | null {
     const entry = this.cache.get(email_id);
+
     if (!entry) return null;
 
     if (Date.now() - entry.timestamp > this.ttl_ms) {
       this.cache.delete(email_id);
+
       return null;
     }
 
@@ -89,6 +92,7 @@ export class EmailClassifier {
 
   classify(input: ClassificationInput): ClassificationResult {
     const cached = this.cache.get(input.id);
+
     if (cached) return cached;
 
     const signals: ClassificationSignal[] = [];
@@ -111,10 +115,13 @@ export class EmailClassifier {
     };
 
     this.cache.set(input.id, result);
+
     return result;
   }
 
-  classify_batch(inputs: ClassificationInput[]): Map<string, ClassificationResult> {
+  classify_batch(
+    inputs: ClassificationInput[],
+  ): Map<string, ClassificationResult> {
     const results = new Map<string, ClassificationResult>();
 
     for (const input of inputs) {
@@ -124,10 +131,7 @@ export class EmailClassifier {
     return results;
   }
 
-  add_user_preference(
-    sender_email: string,
-    category: EmailCategory,
-  ): void {
+  add_user_preference(sender_email: string, category: EmailCategory): void {
     const domain = extract_domain(sender_email);
     const preference: UserCategoryPreference = {
       sender_email: sender_email.toLowerCase(),
@@ -135,6 +139,7 @@ export class EmailClassifier {
       assigned_category: category,
       created_at: Date.now(),
     };
+
     this.user_preferences.set(sender_email.toLowerCase(), preference);
   }
 
@@ -181,9 +186,11 @@ export class EmailClassifier {
     weights: Map<EmailCategory, number>,
   ): void {
     const domain = extract_domain(input.envelope.from.email);
+
     if (!domain) return;
 
     const rule = get_domain_rule(domain);
+
     if (rule) {
       signals.push({
         type: "domain_match",
@@ -191,6 +198,7 @@ export class EmailClassifier {
         weight: rule.confidence,
       });
       const current = weights.get(rule.category) ?? 0;
+
       weights.set(rule.category, Math.max(current, rule.confidence));
     }
   }
@@ -211,6 +219,7 @@ export class EmailClassifier {
 
       for (const category of ["promotions", "updates"] as EmailCategory[]) {
         const current = weights.get(category) ?? 0;
+
         weights.set(category, current + 15);
       }
     }
@@ -222,9 +231,11 @@ export class EmailClassifier {
     weights: Map<EmailCategory, number>,
   ): void {
     const subject = input.envelope.subject;
+
     if (!subject) return;
 
     const matches = match_subject_keywords(subject);
+
     for (const match of matches) {
       signals.push({
         type: "subject_keyword",
@@ -232,6 +243,7 @@ export class EmailClassifier {
         weight: match.weight,
       });
       const current = weights.get(match.category) ?? 0;
+
       weights.set(match.category, current + match.weight);
     }
   }
@@ -242,6 +254,7 @@ export class EmailClassifier {
     weights: Map<EmailCategory, number>,
   ): void {
     const body = input.envelope.body_text;
+
     if (!body) return;
 
     const preview = body.slice(0, 5000);
@@ -254,6 +267,7 @@ export class EmailClassifier {
         weight: match.weight,
       });
       const current = weights.get(match.category) ?? 0;
+
       weights.set(match.category, current + match.weight);
     }
   }
@@ -264,6 +278,7 @@ export class EmailClassifier {
     weights: Map<EmailCategory, number>,
   ): void {
     const headers = input.headers;
+
     if (!headers) return;
 
     if (headers.list_unsubscribe) {
@@ -273,6 +288,7 @@ export class EmailClassifier {
         weight: 60,
       });
       const current = weights.get("promotions") ?? 0;
+
       weights.set("promotions", current + 60);
     }
 
@@ -283,6 +299,7 @@ export class EmailClassifier {
         weight: 50,
       });
       const current = weights.get("promotions") ?? 0;
+
       weights.set("promotions", current + 50);
     }
   }
@@ -304,6 +321,7 @@ export class EmailClassifier {
         weight: 40,
       });
       const current = weights.get("forums") ?? 0;
+
       weights.set("forums", current + 40);
     }
   }
@@ -315,6 +333,7 @@ export function get_classifier(): EmailClassifier {
   if (!classifier_instance) {
     classifier_instance = new EmailClassifier();
   }
+
   return classifier_instance;
 }
 
@@ -325,7 +344,9 @@ export function reset_classifier(): void {
   classifier_instance = null;
 }
 
-export function classify_email(input: ClassificationInput): ClassificationResult {
+export function classify_email(
+  input: ClassificationInput,
+): ClassificationResult {
   return get_classifier().classify(input);
 }
 

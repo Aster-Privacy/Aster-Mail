@@ -1874,21 +1874,21 @@ export function ComposeModal({
                 <AnimatePresence>
                   {draft_status !== "idle" && (
                     <motion.div
-                      className="text-xs flex items-center gap-1.5 px-2 overflow-hidden"
-                      style={{ color: "var(--text-muted)" }}
-                      initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
+                      className="text-xs flex items-center gap-1.5 px-2 overflow-hidden"
                       exit={{ opacity: 0, x: -8 }}
+                      initial={{ opacity: 0, x: -8 }}
+                      style={{ color: "var(--text-muted)" }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
                     >
-                      <AnimatePresence mode="wait" initial={false}>
+                      <AnimatePresence initial={false} mode="wait">
                         {draft_status === "saving" ? (
                           <motion.div
                             key="saving"
-                            className="flex items-center gap-1.5"
-                            initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
+                            className="flex items-center gap-1.5"
                             exit={{ opacity: 0 }}
+                            initial={{ opacity: 0 }}
                             transition={{ duration: 0.15 }}
                           >
                             <svg
@@ -1898,7 +1898,12 @@ export function ComposeModal({
                               strokeWidth="2"
                               viewBox="0 0 24 24"
                             >
-                              <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                              <circle
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                strokeOpacity="0.25"
+                              />
                               <path
                                 d="M12 2a10 10 0 0 1 10 10"
                                 strokeLinecap="round"
@@ -1909,19 +1914,23 @@ export function ComposeModal({
                         ) : (
                           <motion.div
                             key="saved"
-                            className="flex items-center gap-1.5"
-                            initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
+                            className="flex items-center gap-1.5"
                             exit={{ opacity: 0 }}
+                            initial={{ opacity: 0 }}
                             transition={{ duration: 0.15 }}
                           >
                             <motion.svg
+                              animate={{ scale: 1 }}
                               className="w-3.5 h-3.5"
                               fill="currentColor"
-                              viewBox="0 0 24 24"
                               initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 300,
+                                damping: 20,
+                              }}
+                              viewBox="0 0 24 24"
                             >
                               <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                             </motion.svg>

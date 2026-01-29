@@ -813,7 +813,10 @@ export function EmailPopupViewer({
   const handle_reply = useCallback(() => {
     set_show_inline_reply(true);
     setTimeout(() => {
-      inline_reply_ref.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      inline_reply_ref.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
     }, 150);
   }, []);
 
@@ -1101,9 +1104,7 @@ export function EmailPopupViewer({
           variant="ghost"
           onClick={handle_pin_toggle}
         >
-          <MapPinIcon
-            className={`w-4 h-4 ${is_pinned ? "-rotate-45" : ""}`}
-          />
+          <MapPinIcon className={`w-4 h-4 ${is_pinned ? "-rotate-45" : ""}`} />
         </Button>
 
         <Button
@@ -1254,19 +1255,21 @@ export function EmailPopupViewer({
               </div>
             )}
 
-            {extraction_result?.has_purchase_details && extraction_result.purchase && (
-              <PurchaseDetailsBanner
-                details={extraction_result.purchase}
-                className="mx-4 mt-4"
-              />
-            )}
+            {extraction_result?.has_purchase_details &&
+              extraction_result.purchase && (
+                <PurchaseDetailsBanner
+                  className="mx-4 mt-4"
+                  details={extraction_result.purchase}
+                />
+              )}
 
-            {extraction_result?.has_shipping_details && extraction_result.shipping && (
-              <ShippingDetailsBanner
-                details={extraction_result.shipping}
-                className="mx-4 mt-4"
-              />
-            )}
+            {extraction_result?.has_shipping_details &&
+              extraction_result.shipping && (
+                <ShippingDetailsBanner
+                  className="mx-4 mt-4"
+                  details={extraction_result.shipping}
+                />
+              )}
 
             <div className="p-4">
               <div className="flex items-center gap-2 mb-4">
@@ -1570,13 +1573,13 @@ export function EmailPopupViewer({
                   body={email.body}
                   email_id={email.id}
                   is_visible={show_inline_reply}
+                  on_close={() => set_show_inline_reply(false)}
+                  on_reply_sent={handle_inline_reply_sent}
                   sender_email={email.sender_email}
                   sender_name={email.sender}
                   subject={email.subject}
                   thread_token={current_thread_token || undefined}
                   timestamp={email.timestamp}
-                  on_close={() => set_show_inline_reply(false)}
-                  on_reply_sent={handle_inline_reply_sent}
                 />
               </div>
             </div>

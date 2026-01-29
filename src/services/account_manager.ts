@@ -75,8 +75,8 @@ async function get_accounts_data_async(): Promise<AccountsData> {
 
       return data;
     }
-  } catch {
-    void 0;
+  } catch (error) {
+    console.warn("[account_manager] Failed to retrieve account data:", error);
   }
 
   return { accounts: [], current_account_id: null };

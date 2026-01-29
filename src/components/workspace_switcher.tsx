@@ -41,7 +41,8 @@ export function WorkspaceSwitcher({
   const [show_logout_confirm, set_show_logout_confirm] = useState(false);
 
   const user_email = user?.email ?? "";
-  const display_name = user?.display_name || user?.username || user_email.split("@")[0];
+  const display_name =
+    user?.display_name || user?.username || user_email.split("@")[0];
 
   const handle_copy_email = useCallback(async () => {
     if (!user_email) return;
@@ -228,8 +229,8 @@ export function WorkspaceSwitcher({
             <a
               className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06] mb-0.5"
               href="https://portal.astermail.org"
-              target="_blank"
               rel="noopener noreferrer"
+              target="_blank"
               onClick={() => on_open_change(false)}
             >
               <ArrowTopRightOnSquareIcon

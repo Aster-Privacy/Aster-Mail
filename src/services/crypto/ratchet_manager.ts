@@ -1,3 +1,7 @@
+import type { EncryptedVault } from "./key_manager";
+
+import { api_client } from "../api/client";
+
 import {
   DoubleRatchet,
   save_ratchet_state,
@@ -10,10 +14,11 @@ import {
   perform_x3dh_receiver,
   type PrekeyBundle,
 } from "./x3dh";
-import { sync_ratchet_to_server, derive_ratchet_encryption_key } from "./ratchet_sync";
+import {
+  sync_ratchet_to_server,
+  derive_ratchet_encryption_key,
+} from "./ratchet_sync";
 import { get_derived_encryption_key } from "./memory_key_store";
-import { api_client } from "../api/client";
-import type { EncryptedVault } from "./key_manager";
 
 interface RatchetRecipientData {
   ephemeral_key: string;

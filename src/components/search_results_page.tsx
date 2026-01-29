@@ -53,7 +53,10 @@ interface SearchResultsPageProps {
 
 function SearchResultSkeleton() {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: "var(--border-secondary)" }}>
+    <div
+      className="flex items-center gap-3 px-4 py-3 border-b"
+      style={{ borderColor: "var(--border-secondary)" }}
+    >
       <Skeleton className="w-5 h-5 rounded flex-shrink-0" />
       <Skeleton className="w-8 h-8 rounded-full flex-shrink-0 hidden sm:block" />
       <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1">
@@ -102,13 +105,7 @@ export function SearchResultsPage({
 }: SearchResultsPageProps) {
   const { preferences } = use_preferences();
   const is_mac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-  const {
-    state,
-    search,
-    load_more,
-    set_query,
-    clear_results,
-  } = use_search();
+  const { state, search, load_more, set_query, clear_results } = use_search();
 
   const [filters, set_filters] = useState<SearchFiltersState>({
     date_range: "any",
@@ -170,7 +167,10 @@ export function SearchResultsPage({
         fields: ["all"],
         filters:
           Object.keys(search_filters).length > 0
-            ? (search_filters as { has_attachments?: boolean; date_from?: string })
+            ? (search_filters as {
+                has_attachments?: boolean;
+                date_from?: string;
+              })
             : undefined,
       });
     },
@@ -232,7 +232,13 @@ export function SearchResultsPage({
       ...r,
       is_selected: selected_ids.has(r.id),
     }));
-  }, [state.results, filters.read_status, filters.exclude_social, filters.sort_by, selected_ids]);
+  }, [
+    state.results,
+    filters.read_status,
+    filters.exclude_social,
+    filters.sort_by,
+    selected_ids,
+  ]);
 
   const handle_toggle_select = useCallback((id: string) => {
     set_selected_ids((prev) => {
@@ -296,19 +302,25 @@ export function SearchResultsPage({
     return count;
   }, [filters]);
 
-  const handle_drag_start = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    set_is_dragging(true);
-    drag_start_x.current = e.clientX;
-    drag_start_width.current = pane_width;
-  }, [pane_width]);
+  const handle_drag_start = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      set_is_dragging(true);
+      drag_start_x.current = e.clientX;
+      drag_start_width.current = pane_width;
+    },
+    [pane_width],
+  );
 
   useEffect(() => {
     if (!is_dragging) return;
 
     const handle_mouse_move = (e: MouseEvent) => {
       const delta = e.clientX - drag_start_x.current;
-      const new_width = Math.max(MIN_LIST_WIDTH, drag_start_width.current + delta);
+      const new_width = Math.max(
+        MIN_LIST_WIDTH,
+        drag_start_width.current + delta,
+      );
 
       set_pane_width(new_width);
     };
@@ -376,7 +388,9 @@ export function SearchResultsPage({
               is_active={email.id === split_email_id}
               on_email_click={handle_email_click}
               on_toggle_select={handle_toggle_select}
-              show_email_preview={!is_split_view && preferences.show_email_preview}
+              show_email_preview={
+                !is_split_view && preferences.show_email_preview
+              }
               show_profile_pictures={preferences.show_profile_pictures}
             />
           ))}
@@ -393,7 +407,8 @@ export function SearchResultsPage({
               style={{ color: "var(--text-muted)" }}
               onClick={load_more}
             >
-              Load more results ({state.total_results - filtered_results.length} remaining)
+              Load more results ({state.total_results - filtered_results.length}{" "}
+              remaining)
             </button>
           )}
 
@@ -547,7 +562,8 @@ export function SearchResultsPage({
                 on_click={() =>
                   set_filters((prev) => ({
                     ...prev,
-                    read_status: prev.read_status === "unread" ? "any" : "unread",
+                    read_status:
+                      prev.read_status === "unread" ? "any" : "unread",
                   }))
                 }
               />
@@ -643,9 +659,7 @@ export function SearchResultsPage({
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto">
-          {email_list_content}
-        </div>
+        <div className="flex-1 overflow-y-auto">{email_list_content}</div>
       )}
     </div>
   );

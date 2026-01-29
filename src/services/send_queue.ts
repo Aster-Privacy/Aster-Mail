@@ -273,7 +273,10 @@ async function encrypt_for_recipients(
     if (all_ratchet_ok && Object.keys(ratchet_results).length > 0) {
       const envelope = build_ratchet_envelope(
         vault.ratchet_identity_public,
-        ratchet_results as Record<string, NonNullable<typeof ratchet_results[string]>>,
+        ratchet_results as Record<
+          string,
+          NonNullable<(typeof ratchet_results)[string]>
+        >,
       );
 
       return { encrypted_body: envelope, is_encrypted: true };

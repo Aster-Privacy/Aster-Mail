@@ -1,3 +1,5 @@
+import type { EmailCategory } from "@/types/email";
+
 import {
   InboxIcon,
   UserGroupIcon,
@@ -7,7 +9,6 @@ import {
   CheckIcon,
 } from "@heroicons/react/24/outline";
 
-import type { EmailCategory } from "@/types/email";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -82,7 +83,7 @@ function CategoryMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
-      <DropdownMenuContent align={align} side={side} className="w-56">
+      <DropdownMenuContent align={align} className="w-56" side={side}>
         <DropdownMenuLabel className="text-xs font-medium text-[var(--text-tertiary)]">
           Move to Category
         </DropdownMenuLabel>
@@ -94,13 +95,15 @@ function CategoryMenu({
           return (
             <DropdownMenuItem
               key={option.id}
-              onClick={() => on_category_change(option.id)}
               className={cn(
                 "flex items-center gap-2.5 cursor-pointer",
                 is_current && "bg-[var(--bg-secondary)]",
               )}
+              onClick={() => on_category_change(option.id)}
             >
-              <IconComponent className={cn("w-4 h-4 flex-shrink-0", option.color)} />
+              <IconComponent
+                className={cn("w-4 h-4 flex-shrink-0", option.color)}
+              />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-[var(--text-primary)]">
                   {option.label}
@@ -138,13 +141,15 @@ function CategoryMenuItems({
         return (
           <DropdownMenuItem
             key={option.id}
-            onClick={() => on_category_change(option.id)}
             className={cn(
               "flex items-center gap-2.5 cursor-pointer",
               is_current && "bg-[var(--bg-secondary)]",
             )}
+            onClick={() => on_category_change(option.id)}
           >
-            <IconComponent className={cn("w-4 h-4 flex-shrink-0", option.color)} />
+            <IconComponent
+              className={cn("w-4 h-4 flex-shrink-0", option.color)}
+            />
             <span className="flex-1 text-sm">{option.label}</span>
             {is_current && (
               <CheckIcon className="w-4 h-4 text-[var(--accent-color)] flex-shrink-0" />

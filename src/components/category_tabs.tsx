@@ -1,3 +1,5 @@
+import type { EmailCategory } from "@/types/email";
+
 import {
   InboxIcon,
   UserGroupIcon,
@@ -7,7 +9,6 @@ import {
   ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
 
-import type { EmailCategory } from "@/types/email";
 import { cn } from "@/lib/utils";
 
 interface CategoryTabsProps {
@@ -47,17 +48,18 @@ function CategoryTabs({
 
   const get_unread_count = (category: EmailCategory | "all"): number => {
     if (category === "all") {
-      return Object.values(unread_counts).reduce((sum, count) => sum + count, 0);
+      return Object.values(unread_counts).reduce(
+        (sum, count) => sum + count,
+        0,
+      );
     }
+
     return unread_counts[category] ?? 0;
   };
 
   return (
     <div
-      className={cn(
-        "flex-shrink-0 border-b",
-        className,
-      )}
+      className={cn("flex-shrink-0 border-b", className)}
       style={{ borderColor: "var(--border-primary)" }}
     >
       <div className="flex items-center gap-0.5 px-3 sm:px-4 py-2">
@@ -69,13 +71,13 @@ function CategoryTabs({
           return (
             <button
               key={config.id}
-              onClick={() => on_category_change(config.id)}
               className={cn(
                 "flex items-center gap-1.5 px-2.5 py-1 text-[13px] font-medium rounded-md transition-colors duration-150 whitespace-nowrap border",
                 is_active
                   ? "text-[var(--text-primary)] bg-[var(--indicator-bg)] border-[var(--border-primary)]"
                   : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] border-transparent",
               )}
+              onClick={() => on_category_change(config.id)}
             >
               <IconComponent className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{config.label}</span>

@@ -184,7 +184,9 @@ export default function RegisterPage() {
   const [confirm_password, set_confirm_password] = useState("");
   const [recovery_email, set_recovery_email] = useState("");
   const [remember_me, set_remember_me] = useState(true);
-  const [profile_color, set_profile_color] = useState(get_default_profile_color);
+  const [profile_color, set_profile_color] = useState(
+    get_default_profile_color,
+  );
 
   const [error, set_error] = useState("");
   const [generation_status, set_generation_status] = useState("");
@@ -593,12 +595,7 @@ export default function RegisterPage() {
                 Create free account
               </Button>
 
-              <Button
-                asChild
-                className="w-full"
-                size="lg"
-                variant="secondary"
-              >
+              <Button asChild className="w-full" size="lg" variant="secondary">
                 <Link to="/sign-in">Sign in to existing account</Link>
               </Button>
             </div>
@@ -1015,7 +1012,6 @@ export default function RegisterPage() {
                   </span>
                 </span>
               </label>
-
             </div>
 
             <Button

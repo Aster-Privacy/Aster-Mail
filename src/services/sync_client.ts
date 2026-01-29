@@ -3,15 +3,24 @@ import type { EncryptedVault } from "./crypto/key_manager";
 import { api_client } from "./api/client";
 import { refresh_session_activity } from "./session_timeout_service";
 
-type MessageHandler = (data: ServerMessage) => void;
+type ServerMessageType =
+  | "auth_success"
+  | "auth_error"
+  | "preferences"
+  | "preferences_saved"
+  | "draft"
+  | "draft_saved"
+  | "draft_deleted";
 
 interface ServerMessage {
-  type: string;
+  type: ServerMessageType;
   encrypted?: string | null;
   nonce?: string | null;
   success?: boolean;
   message?: string;
 }
+
+type MessageHandler = (data: ServerMessage) => void;
 
 interface PendingRequest {
   resolve: (data: ServerMessage) => void;
@@ -113,9 +122,8 @@ class SyncClient {
 
         if (this.auth_error_count > 3) {
           this.should_reconnect = false;
-          window.dispatchEvent(
-            new CustomEvent("astermail:session-expired"),
-          );
+          window.dispatchEvent(new CustomEvent("astermail:session-expired"));
+
           return;
         }
 
@@ -123,9 +131,8 @@ class SyncClient {
 
         if (!api_client.is_authenticated()) {
           this.should_reconnect = false;
-          window.dispatchEvent(
-            new CustomEvent("astermail:session-expired"),
-          );
+          window.dispatchEvent(new CustomEvent("astermail:session-expired"));
+
           return;
         }
 

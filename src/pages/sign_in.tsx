@@ -34,7 +34,9 @@ const TRUSTED_REDIRECT_ORIGINS = [
 function is_safe_redirect_url(url: string, current_origin: string): boolean {
   try {
     const parsed = new URL(url);
+
     if (parsed.origin === current_origin) return true;
+
     return TRUSTED_REDIRECT_ORIGINS.includes(parsed.origin);
   } catch {
     return false;
@@ -90,14 +92,17 @@ export default function SignInPage() {
 
   const get_redirect_url = useCallback((): string | null => {
     const redirect = search_params.get("redirect");
+
     if (redirect && is_safe_redirect_url(redirect, window.location.origin)) {
       return redirect;
     }
+
     return null;
   }, [search_params]);
 
   const handle_navigation_after_login = useCallback(() => {
     const redirect_url = get_redirect_url();
+
     if (redirect_url) {
       window.location.href = redirect_url;
     } else {
@@ -201,7 +206,15 @@ export default function SignInPage() {
         set_totp_required(false);
       }
     },
-    [password, is_adding_account, add_account, login, navigate, t, handle_navigation_after_login],
+    [
+      password,
+      is_adding_account,
+      add_account,
+      login,
+      navigate,
+      t,
+      handle_navigation_after_login,
+    ],
   );
 
   const handle_login = async () => {

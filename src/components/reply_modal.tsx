@@ -146,11 +146,7 @@ interface ToolbarButtonProps {
   disabled?: boolean;
 }
 
-function ToolbarButton({
-  onClick,
-  children,
-  disabled,
-}: ToolbarButtonProps) {
+function ToolbarButton({ onClick, children, disabled }: ToolbarButtonProps) {
   return (
     <button
       className="p-2 rounded transition-colors duration-150 disabled:opacity-50"

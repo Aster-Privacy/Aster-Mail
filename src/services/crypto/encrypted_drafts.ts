@@ -143,8 +143,8 @@ class DraftManager {
 
     try {
       await context.pending_save;
-    } catch {
-      void 0;
+    } catch (error) {
+      console.warn("[draft_manager] Pending save failed:", error);
     }
   }
 

@@ -1,5 +1,9 @@
 import type { EmailCategory, DecryptedEnvelope } from "@/types/email";
-import type { ClassificationResult, UserCategoryPreference, EmailHeaders } from "./types";
+import type {
+  ClassificationResult,
+  UserCategoryPreference,
+  EmailHeaders,
+} from "./types";
 
 type ClassificationMessageType =
   | "classify"
@@ -65,6 +69,7 @@ class ClassificationWorkerClient {
 
   private handle_response(response: WorkerResponse): void {
     const pending = this.pending_requests.get(response.id);
+
     if (!pending) return;
 
     clearTimeout(pending.timeout_id);
@@ -92,6 +97,7 @@ class ClassificationWorkerClient {
     return new Promise((resolve, reject) => {
       if (this.pending_requests.size >= MAX_QUEUE_SIZE) {
         reject(new Error("Classification queue full"));
+
         return;
       }
 
@@ -100,6 +106,7 @@ class ClassificationWorkerClient {
 
       const timeout_id = setTimeout(() => {
         const pending = this.pending_requests.get(id);
+
         if (pending) {
           this.pending_requests.delete(id);
           reject(new Error("Classification request timeout"));
@@ -117,7 +124,9 @@ class ClassificationWorkerClient {
       } catch (error) {
         clearTimeout(timeout_id);
         this.pending_requests.delete(id);
-        reject(error instanceof Error ? error : new Error("Failed to send message"));
+        reject(
+          error instanceof Error ? error : new Error("Failed to send message"),
+        );
       }
     });
   }
@@ -159,19 +168,22 @@ class ClassificationWorkerClient {
     await this.send_message("remove_preference", { sender_email });
   }
 
-  async load_preferences(preferences: UserCategoryPreference[]): Promise<number> {
+  async load_preferences(
+    preferences: UserCategoryPreference[],
+  ): Promise<number> {
     const result = await this.send_message<{ loaded: number }>(
       "load_preferences",
       { preferences },
     );
+
     return result.loaded;
   }
 
   async get_preferences(): Promise<UserCategoryPreference[]> {
-    const result = await this.send_message<{ preferences: UserCategoryPreference[] }>(
-      "get_preferences",
-      {},
-    );
+    const result = await this.send_message<{
+      preferences: UserCategoryPreference[];
+    }>("get_preferences", {});
+
     return result.preferences;
   }
 
@@ -205,6 +217,7 @@ export function get_classification_worker(): ClassificationWorkerClient {
   if (!worker_instance) {
     worker_instance = new ClassificationWorkerClient();
   }
+
   return worker_instance;
 }
 

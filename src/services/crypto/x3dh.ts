@@ -96,9 +96,8 @@ export async function perform_x3dh_sender(
   sender_identity_jwk: JsonWebKey,
   recipient_bundle: PrekeyBundle,
 ): Promise<X3dhSenderResult> {
-  const sender_identity_private = await import_ecdh_private_key(
-    sender_identity_jwk,
-  );
+  const sender_identity_private =
+    await import_ecdh_private_key(sender_identity_jwk);
 
   const recipient_identity_raw = base64_to_array(
     recipient_bundle.ecdh_identity_key,
@@ -156,12 +155,10 @@ export async function perform_x3dh_receiver(
     receiver_signed_prekey_jwk,
   );
 
-  const sender_identity_public = await import_ecdh_public_key(
-    sender_identity_raw,
-  );
-  const sender_ephemeral_public = await import_ecdh_public_key(
-    sender_ephemeral_raw,
-  );
+  const sender_identity_public =
+    await import_ecdh_public_key(sender_identity_raw);
+  const sender_ephemeral_public =
+    await import_ecdh_public_key(sender_ephemeral_raw);
 
   const dh1 = await derive_shared_secret_bits(
     receiver_signed_prekey_private,

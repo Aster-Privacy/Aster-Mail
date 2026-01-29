@@ -4,14 +4,13 @@ import type { DraftType } from "@/services/api/multi_drafts";
 import { useState, useEffect, useRef, useCallback, useReducer } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { use_draggable_modal } from "@/hooks/use_draggable_modal";
-
 import { CloseIcon, FileIcon, AttachmentIcon } from "./icons";
 import { EmailAutocomplete } from "./email_autocomplete";
 import { EditorToolbar } from "./editor_toolbar";
 import { ConfirmationModal } from "./confirmation_modal";
 import { SchedulePicker } from "./schedule_picker";
 
+import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { Button } from "@/components/ui/button";
@@ -57,6 +56,8 @@ interface Attachment {
 
 const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
 const MAX_TOTAL_ATTACHMENTS_SIZE = 50 * 1024 * 1024;
+const EVENT_DISPATCH_DELAY_MS = 100;
+const INITIAL_CONTENT_DELAY_MS = 0;
 const ASTER_FOOTER =
   '<br><br><span style="color: var(--text-tertiary); font-size: 12px;">Secured by <a href="https://astermail.org" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Aster Mail</a></span><br><br>';
 const ALLOWED_MIME_TYPES = new Set([
@@ -93,7 +94,7 @@ const ALLOWED_MIME_TYPES = new Set([
 ]);
 
 function generate_attachment_id(): string {
-  return `att_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  return `att_${crypto.randomUUID()}`;
 }
 
 function get_file_icon_color(mime_type: string): {
@@ -272,6 +273,7 @@ function format_last_saved(saved_time: Date): string {
 
 const get_domain_from_email = (email: string): string => {
   const parts = email.split("@");
+
   return parts.length === 2 ? parts[1].toLowerCase() : "";
 };
 
@@ -447,11 +449,13 @@ function RecipientField({
 interface ToolbarButtonProps {
   onClick?: () => void;
   children: React.ReactNode;
+  aria_label?: string;
 }
 
-function ToolbarButton({ onClick, children }: ToolbarButtonProps) {
+function ToolbarButton({ onClick, children, aria_label }: ToolbarButtonProps) {
   return (
     <button
+      aria-label={aria_label}
       className="p-2 rounded transition-colors duration-150"
       style={{ color: "var(--text-tertiary)" }}
       onClick={onClick}
@@ -655,6 +659,7 @@ export function ComposeWindow({
 
         if (response.data?.items) {
           const decrypted = await decrypt_contacts(response.data.items);
+
           set_contacts(decrypted);
         }
       } catch {
@@ -674,6 +679,7 @@ export function ComposeWindow({
 
     if (just_loaded_draft_ref.current) {
       just_loaded_draft_ref.current = false;
+
       return;
     }
 
@@ -685,6 +691,7 @@ export function ComposeWindow({
         clearTimeout(save_timer_ref.current);
         save_timer_ref.current = null;
       }
+
       return;
     }
 
@@ -699,6 +706,7 @@ export function ComposeWindow({
     save_timer_ref.current = setTimeout(async () => {
       if (is_sending_ref.current || !context_id) {
         save_timer_ref.current = null;
+
         return;
       }
 
@@ -804,6 +812,7 @@ export function ComposeWindow({
           if (preferences.signature_mode === "auto" && default_signature) {
             const signature_text = get_formatted_signature(default_signature);
             const signature_html = signature_text.replace(/\n/g, "<br>");
+
             content = "<br><br>" + signature_html + ASTER_FOOTER;
           } else {
             content = ASTER_FOOTER;
@@ -816,7 +825,7 @@ export function ComposeWindow({
           message_textarea_ref.current.innerHTML = sanitized_content;
           set_message(message_textarea_ref.current.innerHTML);
         }
-      }, 0);
+      }, INITIAL_CONTENT_DELAY_MS);
     }
 
     return () => {
@@ -871,16 +880,12 @@ export function ComposeWindow({
         const file = files[i];
 
         if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(
-            `"${file.name}" exceeds max size of 25MB`,
-          );
+          set_attachment_error(`"${file.name}" exceeds max size of 25MB`);
           continue;
         }
 
         if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          set_attachment_error(
-            `Total attachments exceed 50MB limit`,
-          );
+          set_attachment_error(`Total attachments exceed 50MB limit`);
           continue;
         }
 
@@ -1172,14 +1177,14 @@ export function ComposeWindow({
     const has_internal = all_recipients.some((r) => is_internal_email(r));
 
     if (has_external && has_internal) {
-      set_send_error(
-        "Cannot mix internal and external recipients.",
-      );
+      set_send_error("Cannot mix internal and external recipients.");
+
       return;
     }
 
     if (has_external) {
       do_external_send(email_data);
+
       return;
     }
 
@@ -1223,6 +1228,7 @@ export function ComposeWindow({
       if (response.error) {
         set_send_error(response.error);
         set_is_scheduling(false);
+
         return;
       }
 
@@ -1242,7 +1248,7 @@ export function ComposeWindow({
 
       setTimeout(() => {
         emit_scheduled_changed({ action: "created" });
-      }, 100);
+      }, EVENT_DISPATCH_DELAY_MS);
     } catch (error) {
       set_send_error(
         error instanceof Error ? error.message : "Failed to schedule email",
@@ -1270,7 +1276,9 @@ export function ComposeWindow({
 
       if (id !== queued_email_id) return;
 
-      const saved = sessionStorage.getItem(`astermail_pending_send_${instance_id}`);
+      const saved = sessionStorage.getItem(
+        `astermail_pending_send_${instance_id}`,
+      );
 
       if (saved) {
         try {
@@ -1305,9 +1313,7 @@ export function ComposeWindow({
           });
           sessionStorage.removeItem(`astermail_pending_send_${instance_id}`);
         } catch {
-          set_restore_error(
-            "Failed to restore draft.",
-          );
+          set_restore_error("Failed to restore draft.");
         }
       }
 
@@ -1369,7 +1375,9 @@ export function ComposeWindow({
     }
   }, [on_close, edit_draft, on_draft_cleared]);
 
-  const window_title = subject || (recipients.to.length > 0 ? recipients.to[0].split("@")[0] : "New Message");
+  const window_title =
+    subject ||
+    (recipients.to.length > 0 ? recipients.to[0].split("@")[0] : "New Message");
 
   return (
     <>
@@ -1398,9 +1406,17 @@ export function ComposeWindow({
             : is_minimized
               ? WINDOW_WIDTH_MINIMIZED
               : WINDOW_WIDTH,
-          height: is_expanded ? "auto" : is_minimized ? "auto" : WINDOW_HEIGHT_NORMAL,
+          height: is_expanded
+            ? "auto"
+            : is_minimized
+              ? "auto"
+              : WINDOW_HEIGHT_NORMAL,
           minWidth: is_minimized ? WINDOW_WIDTH_MINIMIZED : WINDOW_WIDTH,
-          maxWidth: is_expanded ? "none" : is_minimized ? WINDOW_WIDTH_MINIMIZED : WINDOW_WIDTH,
+          maxWidth: is_expanded
+            ? "none"
+            : is_minimized
+              ? WINDOW_WIDTH_MINIMIZED
+              : WINDOW_WIDTH,
           ...(has_been_moved && !is_expanded ? get_position_style() : {}),
         }}
       >
@@ -1411,8 +1427,8 @@ export function ComposeWindow({
             }`}
             role="presentation"
             style={{ borderColor: "var(--border-primary)" }}
-            onMouseDown={handle_header_mouse_down}
             onClick={handle_header_click}
+            onMouseDown={handle_header_mouse_down}
           >
             <h2
               className="text-sm font-medium truncate flex-1 mr-2"
@@ -1426,6 +1442,11 @@ export function ComposeWindow({
               onClick={(e) => e.stopPropagation()}
             >
               <button
+                aria-label={
+                  is_minimized
+                    ? "Expand compose window"
+                    : "Minimize compose window"
+                }
                 className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded"
                 style={{ color: "var(--text-muted)" }}
                 onClick={on_toggle_minimize}
@@ -1447,6 +1468,9 @@ export function ComposeWindow({
                 </svg>
               </button>
               <button
+                aria-label={
+                  is_expanded ? "Exit fullscreen" : "Enter fullscreen"
+                }
                 className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded"
                 style={{ color: "var(--text-muted)" }}
                 onClick={() => set_is_expanded(!is_expanded)}
@@ -1488,6 +1512,7 @@ export function ComposeWindow({
                 )}
               </button>
               <button
+                aria-label="Close compose window"
                 className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded"
                 style={{ color: "var(--text-muted)" }}
                 onClick={handle_close}
@@ -1618,8 +1643,11 @@ export function ComposeWindow({
                       ref={message_textarea_ref}
                       contentEditable
                       suppressContentEditableWarning
+                      aria-label="Email message body"
+                      aria-multiline="true"
                       className="w-full h-full text-sm leading-relaxed border-none outline-none bg-transparent"
                       data-placeholder="Write your message..."
+                      role="textbox"
                       style={{
                         minHeight: "120px",
                         whiteSpace: "pre-wrap",
@@ -1785,7 +1813,10 @@ export function ComposeWindow({
                   on_schedule={set_scheduled_time}
                   scheduled_time={scheduled_time}
                 />
-                <ToolbarButton onClick={trigger_file_select}>
+                <ToolbarButton
+                  aria_label="Attach file"
+                  onClick={trigger_file_select}
+                >
                   <AttachmentIcon className="w-4 h-4" />
                 </ToolbarButton>
               </div>
@@ -1793,18 +1824,20 @@ export function ComposeWindow({
               <AnimatePresence>
                 {draft_status !== "idle" && (
                   <motion.div
-                    className="text-xs flex items-center gap-1 px-2 overflow-hidden"
-                    style={{ color: "var(--text-muted)" }}
-                    initial={{ opacity: 0, x: -4 }}
                     animate={{ opacity: 1, x: 0 }}
+                    className="text-xs flex items-center gap-1 px-2 overflow-hidden"
                     exit={{ opacity: 0, x: -4 }}
+                    initial={{ opacity: 0, x: -4 }}
+                    style={{ color: "var(--text-muted)" }}
                     transition={{ duration: 0.15 }}
                   >
                     {draft_status === "saving" ? (
                       <span>Saving...</span>
                     ) : (
                       <span>
-                        {last_saved_time ? format_last_saved(last_saved_time) : "Saved"}
+                        {last_saved_time
+                          ? format_last_saved(last_saved_time)
+                          : "Saved"}
                       </span>
                     )}
                   </motion.div>
@@ -1812,7 +1845,10 @@ export function ComposeWindow({
               </AnimatePresence>
 
               <div className="ml-auto">
-                <ToolbarButton onClick={handle_show_delete_confirm}>
+                <ToolbarButton
+                  aria_label="Delete draft"
+                  onClick={handle_show_delete_confirm}
+                >
                   <svg
                     className="w-4 h-4"
                     fill="currentColor"

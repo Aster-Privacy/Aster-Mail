@@ -1,10 +1,6 @@
-import {
-  useState,
-  useRef,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-} from "react";
+import type { EditDraftData } from "./compose_manager";
+
+import { useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -31,7 +27,6 @@ import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 
-import type { EditDraftData } from "./compose_manager";
 import { ShareModal } from "./share_modal";
 import { CreateFolderModal } from "./create_folder_modal";
 import { KeyboardShortcutBadge } from "./keyboard_shortcut_badge";
@@ -1148,7 +1143,8 @@ export const Sidebar = ({
                                 ? "var(--text-primary)"
                                 : "var(--text-secondary)",
                             backgroundColor:
-                              is_collapsed && effective_selected === folder_item_id
+                              is_collapsed &&
+                              effective_selected === folder_item_id
                                 ? "var(--indicator-bg)"
                                 : undefined,
                           }}

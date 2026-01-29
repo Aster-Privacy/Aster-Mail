@@ -49,10 +49,7 @@ import { ConfirmationModal } from "@/components/confirmation_modal";
 import { ForwardModal } from "@/components/forward_modal";
 import { SettingsPanel } from "@/components/settings/settings_panel";
 import { ThreadMessagesList } from "@/components/thread_message_block";
-import {
-  get_mail_item,
-  type MailItem,
-} from "@/services/api/mail";
+import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
@@ -214,7 +211,7 @@ export default function EmailDetailPage() {
   const [auto_advance, set_auto_advance] = useState(
     DEFAULT_PREFERENCES.auto_advance,
   );
-  const [email_list, set_email_list] = useState<string[]>([]);
+  const [email_list, _set_email_list] = useState<string[]>([]);
   const [is_archive_loading, set_is_archive_loading] = useState(false);
   const [is_trash_loading, set_is_trash_loading] = useState(false);
   const [is_mobile_sidebar_open, set_is_mobile_sidebar_open] = useState(false);
@@ -484,7 +481,6 @@ export default function EmailDetailPage() {
 
     load_preferences();
   }, [vault]);
-
 
   const current_email_index = useMemo(() => {
     if (!email_id || email_list.length === 0) return -1;

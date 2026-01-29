@@ -122,8 +122,11 @@ function load_config_from_storage(): SessionTimeoutConfig {
         timeout_minutes: parsed.timeout_minutes ?? DEFAULT_TIMEOUT_MINUTES,
       };
     }
-  } catch {
-    void 0;
+  } catch (error) {
+    console.warn(
+      "[session_timeout] Failed to load config from storage:",
+      error,
+    );
   }
 
   return {
@@ -145,8 +148,8 @@ export function configure_session_timeout(
 
   try {
     sessionStorage.setItem(SESSION_TIMEOUT_KEY, JSON.stringify(current_config));
-  } catch {
-    void 0;
+  } catch (error) {
+    console.warn("[session_timeout] Failed to save config to storage:", error);
   }
 
   if (enabled && current_account_id) {

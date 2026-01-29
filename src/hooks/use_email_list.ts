@@ -291,9 +291,10 @@ function mail_to_email(
 
   const raw_ts = envelope.sent_at || item.created_at;
 
-  const classification = item.item_type === "received"
-    ? classify_email({ id: item.id, envelope })
-    : null;
+  const classification =
+    item.item_type === "received"
+      ? classify_email({ id: item.id, envelope })
+      : null;
 
   return {
     id: item.id,

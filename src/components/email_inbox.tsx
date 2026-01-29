@@ -299,7 +299,17 @@ export function EmailInbox({
     current_view === "inbox" ||
     current_view === "" ||
     (!current_view.startsWith("folder-") &&
-      !["all", "starred", "sent", "drafts", "scheduled", "snoozed", "archive", "spam", "trash"].includes(current_view));
+      ![
+        "all",
+        "starred",
+        "sent",
+        "drafts",
+        "scheduled",
+        "snoozed",
+        "archive",
+        "spam",
+        "trash",
+      ].includes(current_view));
 
   const {
     active_category,
@@ -307,7 +317,9 @@ export function EmailInbox({
     filter_by_category,
     unread_counts,
     update_unread_counts,
-  } = use_categories({ enabled: preferences.categories_enabled && is_inbox_view });
+  } = use_categories({
+    enabled: preferences.categories_enabled && is_inbox_view,
+  });
   const [folder_unlock_key, set_folder_unlock_key] = useState(0);
 
   useEffect(() => {
@@ -1091,14 +1103,26 @@ export function EmailInbox({
     if (!is_inbox_view || !preferences.categories_enabled) {
       return view_filtered_emails;
     }
+
     return filter_by_category(view_filtered_emails, active_category);
-  }, [view_filtered_emails, is_inbox_view, preferences.categories_enabled, filter_by_category, active_category]);
+  }, [
+    view_filtered_emails,
+    is_inbox_view,
+    preferences.categories_enabled,
+    filter_by_category,
+    active_category,
+  ]);
 
   useEffect(() => {
     if (is_inbox_view && preferences.categories_enabled) {
       update_unread_counts(view_filtered_emails);
     }
-  }, [view_filtered_emails, is_inbox_view, preferences.categories_enabled, update_unread_counts]);
+  }, [
+    view_filtered_emails,
+    is_inbox_view,
+    preferences.categories_enabled,
+    update_unread_counts,
+  ]);
 
   const filtered_emails = useMemo(
     () =>
@@ -1610,7 +1634,8 @@ export function EmailInbox({
 
   const is_split_view = !!split_email_id || !!split_scheduled_data;
   const is_full_view_mode = preferences.email_view_mode === "fullpage";
-  const show_full_email_viewer = is_full_view_mode && !!split_email_id && !split_scheduled_data;
+  const show_full_email_viewer =
+    is_full_view_mode && !!split_email_id && !split_scheduled_data;
 
   const split_email_snoozed_until = useMemo(() => {
     if (!split_email_id) return undefined;
@@ -2119,96 +2144,223 @@ function InboxToolbar({
         />
 
         <div className="flex items-center gap-0.5 overflow-x-auto">
-            {filters.map(({ key, label, icon: Icon }) => {
-              const is_active = active_filter === key;
+          {filters.map(({ key, label, icon: Icon }) => {
+            const is_active = active_filter === key;
 
-              return (
-                <button
-                  key={key}
-                  className={cn(
-                    "flex items-center gap-1.5 px-2.5 py-1 text-[13px] font-medium rounded-md transition-colors duration-150 whitespace-nowrap border",
-                    is_active
-                      ? "text-[var(--text-primary)] bg-[var(--indicator-bg)] border-[var(--border-primary)]"
-                      : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] border-transparent",
-                  )}
-                  onClick={() => on_filter_change(key)}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{label}</span>
-                </button>
-              );
-            })}
-          </div>
+            return (
+              <button
+                key={key}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1 text-[13px] font-medium rounded-md transition-colors duration-150 whitespace-nowrap border",
+                  is_active
+                    ? "text-[var(--text-primary)] bg-[var(--indicator-bg)] border-[var(--border-primary)]"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] border-transparent",
+                )}
+                onClick={() => on_filter_change(key)}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+            );
+          })}
+        </div>
 
-          <Separator
-            className="h-4 mx-1 bg-[var(--border-secondary)] hidden sm:block"
-            orientation="vertical"
+        <Separator
+          className="h-4 mx-1 bg-[var(--border-secondary)] hidden sm:block"
+          orientation="vertical"
+        />
+
+        <div className="hidden sm:flex items-center gap-0.5">
+          <ToolbarButton
+            icon={ArrowUturnLeftIcon}
+            label="Reply"
+            on_click={on_reply}
+          />
+          <ToolbarButton
+            icon={EnvelopeOpenIcon}
+            label="Mark as read"
+            on_click={on_mark_read}
           />
 
-          <div className="hidden sm:flex items-center gap-0.5">
-            <ToolbarButton
-              icon={ArrowUturnLeftIcon}
-              label="Reply"
-              on_click={on_reply}
-            />
-            <ToolbarButton
-              icon={EnvelopeOpenIcon}
-              label="Mark as read"
-              on_click={on_mark_read}
-            />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="h-8 w-8" size="icon" variant="ghost">
+                <FolderPlusIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              {folders.length === 0 ? (
+                <div className="px-3 py-2 text-xs text-[var(--text-muted)]">
+                  No folders
+                </div>
+              ) : (
+                folders.map((folder) => {
+                  const status = get_folder_assignment_status(
+                    folder.folder_token,
+                  );
 
+                  return (
+                    <DropdownMenuItem
+                      key={folder.folder_token}
+                      onClick={() => handle_folder_click(folder.folder_token)}
+                    >
+                      <span className="w-4 h-4 flex items-center justify-center">
+                        {status === "all" && (
+                          <CheckIcon className="w-3.5 h-3.5 text-blue-500" />
+                        )}
+                        {status === "some" && (
+                          <MinusIcon className="w-3.5 h-3.5 text-blue-400" />
+                        )}
+                      </span>
+                      <span
+                        className="w-2.5 h-2.5 rounded-full ml-1"
+                        style={{ backgroundColor: folder.color }}
+                      />
+                      <span className="ml-2 truncate">{folder.name}</span>
+                    </DropdownMenuItem>
+                  );
+                })
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {on_snooze && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="h-8 w-8" size="icon" variant="ghost">
-                  <FolderPlusIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                  <ClockIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
-                {folders.length === 0 ? (
-                  <div className="px-3 py-2 text-xs text-[var(--text-muted)]">
-                    No folders
-                  </div>
-                ) : (
-                  folders.map((folder) => {
-                    const status = get_folder_assignment_status(
-                      folder.folder_token,
-                    );
+                <DropdownMenuItem
+                  onClick={() => {
+                    const date = new Date();
 
-                    return (
-                      <DropdownMenuItem
-                        key={folder.folder_token}
-                        onClick={() =>
-                          handle_folder_click(folder.folder_token)
-                        }
-                      >
-                        <span className="w-4 h-4 flex items-center justify-center">
-                          {status === "all" && (
-                            <CheckIcon className="w-3.5 h-3.5 text-blue-500" />
-                          )}
-                          {status === "some" && (
-                            <MinusIcon className="w-3.5 h-3.5 text-blue-400" />
-                          )}
-                        </span>
-                        <span
-                          className="w-2.5 h-2.5 rounded-full ml-1"
-                          style={{ backgroundColor: folder.color }}
-                        />
-                        <span className="ml-2 truncate">{folder.name}</span>
-                      </DropdownMenuItem>
-                    );
-                  })
+                    date.setHours(date.getHours() + 4);
+                    on_snooze(date);
+                  }}
+                >
+                  Later today (4 hours)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const date = new Date();
+
+                    date.setDate(date.getDate() + 1);
+                    date.setHours(9, 0, 0, 0);
+                    on_snooze(date);
+                  }}
+                >
+                  Tomorrow (9 AM)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const date = new Date();
+                    const day = date.getDay();
+                    const days_until_saturday =
+                      day === 6 ? 7 : (6 - day + 7) % 7;
+
+                    date.setDate(date.getDate() + days_until_saturday);
+                    date.setHours(9, 0, 0, 0);
+                    on_snooze(date);
+                  }}
+                >
+                  This weekend
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const date = new Date();
+
+                    date.setDate(date.getDate() + 7);
+                    date.setHours(9, 0, 0, 0);
+                    on_snooze(date);
+                  }}
+                >
+                  Next week
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const date = new Date();
+
+                    date.setMonth(date.getMonth() + 1);
+                    date.setHours(9, 0, 0, 0);
+                    on_snooze(date);
+                  }}
+                >
+                  Next month
+                </DropdownMenuItem>
+                {on_custom_snooze && (
+                  <>
+                    <Separator className="my-1" />
+                    <DropdownMenuItem onClick={on_custom_snooze}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      Pick date & time
+                    </DropdownMenuItem>
+                  </>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
 
+          {is_archive_view ? (
+            <ToolbarButton
+              icon={InboxIcon}
+              label="Move to inbox"
+              on_click={on_unarchive}
+            />
+          ) : (
+            <ToolbarButton
+              icon={ArchiveBoxArrowDownIcon}
+              label="Archive"
+              on_click={on_archive}
+            />
+          )}
+          <ToolbarButton
+            icon={ShieldExclamationIcon}
+            label="Report spam"
+            on_click={on_spam}
+          />
+          <ToolbarButton icon={TrashIcon} label="Delete" on_click={on_delete} />
+          {is_spam_view && on_empty_spam && filtered_count > 0 && (
+            <>
+              <Separator
+                className="h-4 mx-1 bg-[var(--border-secondary)]"
+                orientation="vertical"
+              />
+              <Button
+                className="h-8 px-3 text-xs font-medium"
+                size="sm"
+                variant="outline"
+                onClick={on_empty_spam}
+              >
+                Empty spam
+              </Button>
+            </>
+          )}
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="h-8 w-8 sm:hidden" size="icon" variant="ghost">
+              <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuItem onClick={on_reply}>
+              <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />
+              Reply
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={on_mark_read}>
+              <EnvelopeOpenIcon className="w-4 h-4 mr-2" />
+              Mark as read
+            </DropdownMenuItem>
             {on_snooze && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="h-8 w-8" size="icon" variant="ghost">
-                    <ClockIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <ClockIcon className="w-4 h-4 mr-2" />
+                  Snooze
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
                   <DropdownMenuItem
                     onClick={() => {
                       const date = new Date();
@@ -2217,7 +2369,7 @@ function InboxToolbar({
                       on_snooze(date);
                     }}
                   >
-                    Later today (4 hours)
+                    Later today
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => {
@@ -2228,21 +2380,7 @@ function InboxToolbar({
                       on_snooze(date);
                     }}
                   >
-                    Tomorrow (9 AM)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      const date = new Date();
-                      const day = date.getDay();
-                      const days_until_saturday =
-                        day === 6 ? 7 : (6 - day + 7) % 7;
-
-                      date.setDate(date.getDate() + days_until_saturday);
-                      date.setHours(9, 0, 0, 0);
-                      on_snooze(date);
-                    }}
-                  >
-                    This weekend
+                    Tomorrow
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => {
@@ -2255,149 +2393,30 @@ function InboxToolbar({
                   >
                     Next week
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      const date = new Date();
-
-                      date.setMonth(date.getMonth() + 1);
-                      date.setHours(9, 0, 0, 0);
-                      on_snooze(date);
-                    }}
-                  >
-                    Next month
-                  </DropdownMenuItem>
-                  {on_custom_snooze && (
-                    <>
-                      <Separator className="my-1" />
-                      <DropdownMenuItem onClick={on_custom_snooze}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        Pick date & time
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
             )}
-
             {is_archive_view ? (
-              <ToolbarButton
-                icon={InboxIcon}
-                label="Move to inbox"
-                on_click={on_unarchive}
-              />
+              <DropdownMenuItem onClick={on_unarchive}>
+                <InboxIcon className="w-4 h-4 mr-2" />
+                Move to inbox
+              </DropdownMenuItem>
             ) : (
-              <ToolbarButton
-                icon={ArchiveBoxArrowDownIcon}
-                label="Archive"
-                on_click={on_archive}
-              />
+              <DropdownMenuItem onClick={on_archive}>
+                <ArchiveBoxArrowDownIcon className="w-4 h-4 mr-2" />
+                Archive
+              </DropdownMenuItem>
             )}
-            <ToolbarButton
-              icon={ShieldExclamationIcon}
-              label="Report spam"
-              on_click={on_spam}
-            />
-            <ToolbarButton
-              icon={TrashIcon}
-              label="Delete"
-              on_click={on_delete}
-            />
-            {is_spam_view && on_empty_spam && filtered_count > 0 && (
-              <>
-                <Separator
-                  className="h-4 mx-1 bg-[var(--border-secondary)]"
-                  orientation="vertical"
-                />
-                <Button
-                  className="h-8 px-3 text-xs font-medium"
-                  size="sm"
-                  variant="outline"
-                  onClick={on_empty_spam}
-                >
-                  Empty spam
-                </Button>
-              </>
-            )}
-          </div>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className="h-8 w-8 sm:hidden" size="icon" variant="ghost">
-                <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuItem onClick={on_reply}>
-                <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />
-                Reply
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={on_mark_read}>
-                <EnvelopeOpenIcon className="w-4 h-4 mr-2" />
-                Mark as read
-              </DropdownMenuItem>
-              {on_snooze && (
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <ClockIcon className="w-4 h-4 mr-2" />
-                    Snooze
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        const date = new Date();
-
-                        date.setHours(date.getHours() + 4);
-                        on_snooze(date);
-                      }}
-                    >
-                      Later today
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        const date = new Date();
-
-                        date.setDate(date.getDate() + 1);
-                        date.setHours(9, 0, 0, 0);
-                        on_snooze(date);
-                      }}
-                    >
-                      Tomorrow
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        const date = new Date();
-
-                        date.setDate(date.getDate() + 7);
-                        date.setHours(9, 0, 0, 0);
-                        on_snooze(date);
-                      }}
-                    >
-                      Next week
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              )}
-              {is_archive_view ? (
-                <DropdownMenuItem onClick={on_unarchive}>
-                  <InboxIcon className="w-4 h-4 mr-2" />
-                  Move to inbox
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem onClick={on_archive}>
-                  <ArchiveBoxArrowDownIcon className="w-4 h-4 mr-2" />
-                  Archive
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={on_spam}>
-                <ShieldExclamationIcon className="w-4 h-4 mr-2" />
-                Report spam
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={on_delete}>
-                <TrashIcon className="w-4 h-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <DropdownMenuItem onClick={on_spam}>
+              <ShieldExclamationIcon className="w-4 h-4 mr-2" />
+              Report spam
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={on_delete}>
+              <TrashIcon className="w-4 h-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <div className="ml-auto flex items-center gap-1 text-[11px] text-[var(--text-muted)]">
           {(() => {
@@ -2458,12 +2477,7 @@ function ToolbarButton({
   on_click,
 }: ToolbarButtonProps): React.ReactElement {
   return (
-    <Button
-      className="h-8 w-8"
-      size="icon"
-      variant="ghost"
-      onClick={on_click}
-    >
+    <Button className="h-8 w-8" size="icon" variant="ghost" onClick={on_click}>
       <Icon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
     </Button>
   );

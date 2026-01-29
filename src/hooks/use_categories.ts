@@ -1,5 +1,3 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
-
 import type {
   EmailCategory,
   DecryptedEnvelope,
@@ -9,6 +7,9 @@ import type {
   ClassificationResult,
   EmailHeaders,
 } from "@/services/classification/types";
+
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+
 import {
   get_classification_worker,
   classify_with_worker,
@@ -98,9 +99,9 @@ export function use_categories(
 ): UseCategoriesReturn {
   const { enabled = true, auto_classify: _auto_classify = true } = options;
 
-  const [active_category, set_active_category] = useState<EmailCategory | "all">(
-    "all",
-  );
+  const [active_category, set_active_category] = useState<
+    EmailCategory | "all"
+  >("all");
   const [categories] = useState<CategoryConfig[]>(DEFAULT_CATEGORY_CONFIGS);
   const [unread_counts, set_unread_counts] = useState<
     Record<EmailCategory, number>
@@ -136,6 +137,7 @@ export function use_categories(
       if (email.is_read) continue;
 
       const category = email.email_category ?? "primary";
+
       if (category in counts) {
         counts[category]++;
       }
@@ -157,6 +159,7 @@ export function use_categories(
       set_is_classifying(true);
       try {
         const result = await classify_with_worker(id, envelope, headers);
+
         return result;
       } finally {
         set_is_classifying(false);
@@ -182,6 +185,7 @@ export function use_categories(
 
       try {
         const results = await classify_batch_with_worker(items);
+
         return results;
       } finally {
         set_is_classifying(false);
@@ -198,6 +202,7 @@ export function use_categories(
       category: EmailCategory,
     ): Promise<void> => {
       const worker = get_classification_worker();
+
       await worker.add_preference(sender_email, category);
     },
     [],
@@ -206,6 +211,7 @@ export function use_categories(
   const remove_override = useCallback(
     async (sender_email: string): Promise<void> => {
       const worker = get_classification_worker();
+
       await worker.remove_preference(sender_email);
     },
     [],
@@ -219,6 +225,7 @@ export function use_categories(
 
       return emails.filter((email) => {
         const email_category = email.email_category ?? "primary";
+
         return email_category === category;
       });
     },
@@ -240,6 +247,7 @@ export function use_categories(
 
   const clear_cache = useCallback(async (): Promise<void> => {
     const worker = get_classification_worker();
+
     await worker.clear_cache();
   }, []);
 

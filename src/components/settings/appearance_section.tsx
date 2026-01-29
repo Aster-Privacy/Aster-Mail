@@ -645,7 +645,6 @@ export function AppearanceSection() {
     update_preference("time_format", value as "12h" | "24h");
   };
 
-
   const handle_accent_color_select = (
     swatch: (typeof ACCENT_COLOR_SWATCHES)[number],
   ) => {

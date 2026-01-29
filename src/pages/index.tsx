@@ -630,11 +630,11 @@ export default function IndexPage() {
               <ContactsContent on_mobile_menu_toggle={toggle_mobile_sidebar} />
             ) : active_search_query ? (
               <SearchResultsPage
-                query={active_search_query}
                 on_close={handle_close_search_results}
                 on_result_click={handle_search_result_click}
                 on_search_click={() => set_is_search_open(true)}
                 on_split_close={handle_search_split_close}
+                query={active_search_query}
                 split_email_id={
                   preferences.email_view_mode === "split" ||
                   preferences.email_view_mode === "fullpage"

@@ -1,3 +1,8 @@
+import type {
+  ExtractedShippingDetails,
+  ShippingStatus,
+} from "@/services/extraction/types";
+
 import { useState } from "react";
 import {
   TruckIcon,
@@ -10,7 +15,6 @@ import {
   MapPinIcon,
 } from "@heroicons/react/24/outline";
 
-import type { ExtractedShippingDetails, ShippingStatus } from "@/services/extraction/types";
 import { cn } from "@/lib/utils";
 
 interface ShippingDetailsBannerProps {
@@ -99,26 +103,26 @@ export function ShippingDetailsBanner({
 
   return (
     <div
-      className={cn(
-        "rounded-lg border overflow-hidden",
-        className,
-      )}
+      className={cn("rounded-lg border overflow-hidden", className)}
       style={{
         backgroundColor: "var(--bg-secondary)",
         borderColor: "var(--border-primary)",
       }}
     >
       <button
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
         type="button"
         onClick={() => set_is_expanded(!is_expanded)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
       >
         <div className="flex items-center gap-3">
           <div
             className="flex items-center justify-center w-9 h-9 rounded-lg"
             style={{ backgroundColor: status_config.bg }}
           >
-            <TruckIcon className="w-5 h-5" style={{ color: status_config.color }} />
+            <TruckIcon
+              className="w-5 h-5"
+              style={{ color: status_config.color }}
+            />
           </div>
           <div className="text-left">
             <div className="flex items-center gap-2">
@@ -151,12 +155,18 @@ export function ShippingDetailsBanner({
                 {status_config.label}
               </span>
               {details.estimated_delivery && details.status !== "delivered" && (
-                <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                <span
+                  className="text-xs"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   Est. {details.estimated_delivery}
                 </span>
               )}
               {details.delivery_date && details.status === "delivered" && (
-                <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                <span
+                  className="text-xs"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   {details.delivery_date}
                 </span>
               )}
@@ -167,20 +177,20 @@ export function ShippingDetailsBanner({
         <div className="flex items-center gap-2">
           {details.tracking_url && (
             <button
-              type="button"
-              onClick={handle_track_click}
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors"
               style={{
                 backgroundColor: "var(--accent-color)",
                 color: "#ffffff",
               }}
+              type="button"
+              onClick={handle_track_click}
             >
               Track Package
               <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
             </button>
           )}
-          {has_additional_details && (
-            is_expanded ? (
+          {has_additional_details &&
+            (is_expanded ? (
               <ChevronUpIcon
                 className="w-4 h-4"
                 style={{ color: "var(--text-muted)" }}
@@ -190,8 +200,7 @@ export function ShippingDetailsBanner({
                 className="w-4 h-4"
                 style={{ color: "var(--text-muted)" }}
               />
-            )
-          )}
+            ))}
         </div>
       </button>
 
@@ -219,12 +228,14 @@ export function ShippingDetailsBanner({
                   {details.tracking_number}
                 </code>
                 <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(details.tracking_number || "");
-                  }}
                   className="text-xs px-2 py-1 rounded hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors"
                   style={{ color: "var(--text-muted)" }}
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      details.tracking_number || "",
+                    );
+                  }}
                 >
                   Copy
                 </button>
@@ -314,15 +325,18 @@ export function ShippingDetailsBanner({
           >
             <svg
               className="w-3.5 h-3.5"
-              viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               style={{ color: "var(--text-muted)" }}
+              viewBox="0 0 24 24"
             >
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
-            <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+            <span
+              className="text-[10px]"
+              style={{ color: "var(--text-muted)" }}
+            >
               Extracted locally from your email. Nothing is sent to our servers.
             </span>
           </div>

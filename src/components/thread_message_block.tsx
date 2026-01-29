@@ -363,7 +363,9 @@ export function ThreadMessagesList({
 
   const read_ids_ref = useRef<Set<string>>(read_ids);
   const auto_read_ids = useRef<Set<string>>(new Set());
-  const pending_read_updates = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const pending_read_updates = useRef<
+    Map<string, ReturnType<typeof setTimeout>>
+  >(new Map());
 
   useEffect(() => {
     read_ids_ref.current = read_ids;
@@ -471,6 +473,7 @@ export function ThreadMessagesList({
   useEffect(() => {
     messages.forEach((msg) => {
       const is_unread = !msg.is_read && !read_ids.has(msg.id);
+
       if (
         expanded_ids.has(msg.id) &&
         is_unread &&
@@ -480,7 +483,6 @@ export function ThreadMessagesList({
         mark_as_read(msg);
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded_ids, message_ids_key]);
 
   const toggle = useCallback(
@@ -581,6 +583,7 @@ export function ThreadMessagesList({
       });
 
       const existing_timeout = pending_read_updates.current.get(msg.id);
+
       if (existing_timeout) {
         clearTimeout(existing_timeout);
       }

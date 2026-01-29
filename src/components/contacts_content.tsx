@@ -1585,9 +1585,7 @@ export function ContactsContent({
                         {primary_email && (
                           <button
                             className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5"
-                            onClick={() =>
-                              handle_compose_email(primary_email)
-                            }
+                            onClick={() => handle_compose_email(primary_email)}
                           >
                             <EnvelopeIcon
                               className="w-3.5 h-3.5"
@@ -1599,10 +1597,7 @@ export function ContactsContent({
                           className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5"
                           onClick={() =>
                             primary_email &&
-                            handle_copy(
-                              primary_email,
-                              `quick-${contact.id}`,
-                            )
+                            handle_copy(primary_email, `quick-${contact.id}`)
                           }
                         >
                           {copied_field === `quick-${contact.id}` ? (

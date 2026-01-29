@@ -244,6 +244,7 @@ class ApiClient {
   async clear_session_cookies(): Promise<void> {
     try {
       const url = `${API_BASE_URL}/auth/clear-session`;
+
       await fetch(url, {
         method: "POST",
         credentials: "include",

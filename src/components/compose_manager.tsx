@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { ComposeWindow } from "./compose_window";
+
 import { show_toast } from "@/components/simple_toast";
 
 const MAX_COMPOSE_INSTANCES = 3;
@@ -37,6 +38,7 @@ let compose_counter = 0;
 
 function generate_compose_id(): string {
   compose_counter += 1;
+
   return `compose_${Date.now()}_${compose_counter}`;
 }
 
@@ -51,6 +53,7 @@ export function useComposeManager() {
             "You can't have more than three email composers open at a time.",
             "error",
           );
+
           return prev;
         }
 
@@ -60,6 +63,7 @@ export function useComposeManager() {
           initial_to,
           is_minimized: false,
         };
+
         return [...prev, new_instance];
       });
     },
@@ -108,10 +112,12 @@ export function ComposeManager({
 
   useEffect(() => {
     const container = container_ref.current;
+
     if (!container) return;
 
     const check_overflow = () => {
       const has_overflow = container.scrollWidth > container.clientWidth;
+
       set_show_scroll_hint(has_overflow);
     };
 
@@ -119,6 +125,7 @@ export function ComposeManager({
     window.addEventListener("resize", check_overflow);
 
     const observer = new MutationObserver(check_overflow);
+
     observer.observe(container, { childList: true, subtree: true });
 
     return () => {
@@ -129,6 +136,7 @@ export function ComposeManager({
 
   useEffect(() => {
     const container = container_ref.current;
+
     if (!container || instances.length === 0) return;
 
     requestAnimationFrame(() => {
@@ -154,8 +162,8 @@ export function ComposeManager({
           {instances.map((instance) => (
             <motion.div
               key={instance.id}
-              className="pointer-events-auto"
               animate={{ opacity: 1 }}
+              className="pointer-events-auto"
               exit={{ opacity: 0 }}
               initial={{ opacity: 0 }}
               transition={{ duration: 0.15 }}

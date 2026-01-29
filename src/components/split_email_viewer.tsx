@@ -3,8 +3,6 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-import { InlineReplySection } from "@/components/inline_reply_section";
 import {
   XMarkIcon,
   NoSymbolIcon,
@@ -24,6 +22,7 @@ import {
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
+import { InlineReplySection } from "@/components/inline_reply_section";
 import { show_toast } from "@/components/simple_toast";
 import { show_action_toast } from "@/components/action_toast";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -885,9 +884,7 @@ export function SplitEmailViewer({
           variant="ghost"
           onClick={handle_pin_toggle}
         >
-          <MapPinIcon
-            className={`w-4 h-4 ${is_pinned ? "-rotate-45" : ""}`}
-          />
+          <MapPinIcon className={`w-4 h-4 ${is_pinned ? "-rotate-45" : ""}`} />
         </Button>
 
         <Button
@@ -1358,13 +1355,13 @@ export function SplitEmailViewer({
               body={email.body}
               email_id={email.id}
               is_visible={show_inline_reply}
+              on_close={() => set_show_inline_reply(false)}
+              on_reply_sent={handle_inline_reply_sent}
               sender_email={email.sender_email}
               sender_name={email.sender}
               subject={email.subject}
               thread_token={email.thread_token}
               timestamp={email.timestamp}
-              on_close={() => set_show_inline_reply(false)}
-              on_reply_sent={handle_inline_reply_sent}
             />
           </div>
         </div>

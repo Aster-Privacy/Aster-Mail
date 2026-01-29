@@ -42,6 +42,8 @@ interface CommandAction {
   disabled?: boolean;
 }
 
+const FOCUS_DELAY_MS = 50;
+
 interface CommandPaletteProps {
   is_open: boolean;
   on_close: () => void;
@@ -515,7 +517,7 @@ export function CommandPalette({
     if (is_open) {
       set_query("");
       set_selected_index(0);
-      setTimeout(() => input_ref.current?.focus(), 50);
+      setTimeout(() => input_ref.current?.focus(), FOCUS_DELAY_MS);
     }
   }, [is_open]);
 
