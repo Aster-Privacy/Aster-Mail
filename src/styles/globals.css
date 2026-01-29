@@ -9,7 +9,7 @@
 
 :root {
   --bg-primary: #ffffff;
-  --bg-secondary: #f7f7f7;
+  --bg-secondary: #ebebeb;
   --bg-tertiary: #f3f4f6;
   --bg-hover: #f9fafb;
   --bg-selected: #eff6ff;
@@ -26,8 +26,8 @@
   --accent-blue-hover: #2563eb;
   --indicator-bg: #ffffff;
   --indicator-border: #e8e8e8;
-  --sidebar-bg: #f7f7f7;
-  --sidebar-hover: #f0f0f0;
+  --sidebar-bg: #ebebeb;
+  --sidebar-hover: #e0e0e0;
   --modal-bg: #ffffff;
   --modal-overlay: rgba(0, 0, 0, 0.5);
   --dropdown-bg: #ffffff;
@@ -79,7 +79,7 @@
 
 .dark {
   --bg-primary: #121212;
-  --bg-secondary: #0a0a0a;
+  --bg-secondary: #050505;
   --bg-tertiary: #121212;
   --bg-hover: #1a1a1a;
   --bg-selected: #142744;
@@ -96,8 +96,8 @@
   --accent-blue-hover: #60a5fa;
   --indicator-bg: #121212;
   --indicator-border: #2a2a2a;
-  --sidebar-bg: #0a0a0a;
-  --sidebar-hover: #151515;
+  --sidebar-bg: #050505;
+  --sidebar-hover: #0f0f0f;
   --modal-bg: #121212;
   --modal-overlay: rgba(0, 0, 0, 0.85);
   --dropdown-bg: #121212;
@@ -599,10 +599,31 @@ button *:not(.animate-spin),
 
 .sidebar-nav-btn:hover {
   color: var(--text-primary) !important;
+  background-color: var(--sidebar-hover);
 }
 
 .sidebar-nav-btn:hover span {
   color: var(--text-primary) !important;
+}
+
+:root .sidebar-nav-btn:hover {
+  border: 1px solid var(--border-primary);
+}
+
+:root .sidebar-nav-btn.sidebar-selected {
+  border: 1px solid var(--border-primary);
+}
+
+:root .sidebar-indicator-border {
+  border: 1px solid var(--border-primary) !important;
+}
+
+.dark .sidebar-nav-btn:hover {
+  border: none;
+}
+
+.dark .sidebar-nav-btn.sidebar-selected {
+  border: none;
 }
 
 .email-frame-container {

@@ -34,7 +34,9 @@ export function AppGrid({ apps, on_app_click }: AppGridProps) {
                 <img
                   alt={app.name}
                   className="w-full h-full object-contain select-none"
+                  decoding="async"
                   draggable={false}
+                  loading="lazy"
                   src={app.icon_src}
                 />
               ) : (

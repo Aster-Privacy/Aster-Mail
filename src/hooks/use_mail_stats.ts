@@ -192,6 +192,17 @@ class MailStatsStore {
     this.active_request = null;
     this.cache = { data: DEFAULT_STATS, timestamp: 0, fetching: false };
   }
+
+  adjust(field: keyof MailStats, delta: number): void {
+    const current = this.cache.data[field];
+    if (typeof current === "number") {
+      this.cache.data = {
+        ...this.cache.data,
+        [field]: Math.max(0, current + delta),
+      };
+      this.notify();
+    }
+  }
 }
 
 const stats_store = new MailStatsStore();
@@ -298,4 +309,20 @@ export function invalidate_mail_stats(): void {
 
 export function prefetch_mail_stats(): void {
   stats_store.fetch();
+}
+
+export function adjust_stats_inbox(delta: number): void {
+  stats_store.adjust("inbox", delta);
+}
+
+export function adjust_stats_sent(delta: number): void {
+  stats_store.adjust("sent", delta);
+}
+
+export function adjust_stats_trash(delta: number): void {
+  stats_store.adjust("trash", delta);
+}
+
+export function adjust_stats_unread(delta: number): void {
+  stats_store.adjust("unread", delta);
 }

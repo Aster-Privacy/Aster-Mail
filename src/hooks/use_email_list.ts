@@ -29,6 +29,7 @@ import {
   batch_unarchive as api_batch_unarchive,
 } from "@/services/api/archive";
 import { adjust_unread_count, adjust_inbox_count, adjust_trash_count, adjust_sent_count } from "@/hooks/use_mail_counts";
+import { adjust_stats_inbox, adjust_stats_sent, adjust_stats_trash, adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { bulk_index_with_worker } from "@/services/crypto/search_worker_client";
 import {
   get_passphrase_bytes,
@@ -955,13 +956,17 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       remove_email(id);
       if (should_adjust_unread) {
         adjust_unread_count(-1);
+        adjust_stats_unread(-1);
       }
       if (is_received) {
         adjust_inbox_count(-1);
+        adjust_stats_inbox(-1);
       } else if (is_sent) {
         adjust_sent_count(-1);
+        adjust_stats_sent(-1);
       }
       adjust_trash_count(1);
+      adjust_stats_trash(1);
 
       const result = await update_item_metadata(
         id,
@@ -978,13 +983,17 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       } else {
         if (should_adjust_unread) {
           adjust_unread_count(1);
+          adjust_stats_unread(1);
         }
         if (is_received) {
           adjust_inbox_count(1);
+          adjust_stats_inbox(1);
         } else if (is_sent) {
           adjust_sent_count(1);
+          adjust_stats_sent(1);
         }
         adjust_trash_count(-1);
+        adjust_stats_trash(-1);
         if (email_to_restore) {
           set_state((prev) => ({
             ...prev,
@@ -1129,11 +1138,19 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
       if (unread_received_count > 0) {
         adjust_unread_count(-unread_received_count);
+        adjust_stats_unread(-unread_received_count);
       }
       if (updates.is_trashed) {
-        if (received_count > 0) adjust_inbox_count(-received_count);
-        if (sent_count > 0) adjust_sent_count(-sent_count);
+        if (received_count > 0) {
+          adjust_inbox_count(-received_count);
+          adjust_stats_inbox(-received_count);
+        }
+        if (sent_count > 0) {
+          adjust_sent_count(-sent_count);
+          adjust_stats_sent(-sent_count);
+        }
         adjust_trash_count(ids.length);
+        adjust_stats_trash(ids.length);
       }
 
       try {
@@ -1142,11 +1159,19 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       } catch {
         if (unread_received_count > 0) {
           adjust_unread_count(unread_received_count);
+          adjust_stats_unread(unread_received_count);
         }
         if (updates.is_trashed) {
-          if (received_count > 0) adjust_inbox_count(received_count);
-          if (sent_count > 0) adjust_sent_count(sent_count);
+          if (received_count > 0) {
+            adjust_inbox_count(received_count);
+            adjust_stats_inbox(received_count);
+          }
+          if (sent_count > 0) {
+            adjust_sent_count(sent_count);
+            adjust_stats_sent(sent_count);
+          }
           adjust_trash_count(-ids.length);
+          adjust_stats_trash(-ids.length);
         }
         set_state((prev) => ({
           ...prev,

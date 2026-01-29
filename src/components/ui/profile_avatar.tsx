@@ -344,8 +344,10 @@ export function ProfileAvatar({
       alt={name}
       className={`rounded-full flex-shrink-0 object-cover ${className}`}
       crossOrigin="anonymous"
+      decoding="async"
       draggable={false}
       height={pixel_size}
+      loading="lazy"
       referrerPolicy="no-referrer"
       src={actual_src}
       style={{ userSelect: "none" }}

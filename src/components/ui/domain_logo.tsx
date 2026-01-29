@@ -140,8 +140,10 @@ export function DomainLogo({
     <img
       alt={resolved_domain || "domain logo"}
       className={`rounded-sm flex-shrink-0 object-contain ${className}`}
+      decoding="async"
       draggable={false}
       height={pixel_size}
+      loading="lazy"
       src={src}
       style={{ userSelect: "none" }}
       width={pixel_size}
