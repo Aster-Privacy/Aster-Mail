@@ -28,7 +28,7 @@ import {
   batch_archive as api_batch_archive,
   batch_unarchive as api_batch_unarchive,
 } from "@/services/api/archive";
-import { adjust_unread_count } from "@/hooks/use_mail_counts";
+import { adjust_unread_count, adjust_inbox_count, adjust_trash_count, adjust_sent_count } from "@/hooks/use_mail_counts";
 import { bulk_index_with_worker } from "@/services/crypto/search_worker_client";
 import {
   get_passphrase_bytes,
@@ -948,14 +948,20 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   const delete_email = useCallback(
     async (id: string) => {
       const email_to_restore = state.emails.find((e) => e.id === id);
-      const should_adjust_unread =
-        email_to_restore?.item_type === "received" &&
-        !email_to_restore?.is_read;
+      const is_received = email_to_restore?.item_type === "received";
+      const is_sent = email_to_restore?.item_type === "sent";
+      const should_adjust_unread = is_received && !email_to_restore?.is_read;
 
       remove_email(id);
       if (should_adjust_unread) {
         adjust_unread_count(-1);
       }
+      if (is_received) {
+        adjust_inbox_count(-1);
+      } else if (is_sent) {
+        adjust_sent_count(-1);
+      }
+      adjust_trash_count(1);
 
       const result = await update_item_metadata(
         id,
@@ -973,6 +979,12 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         if (should_adjust_unread) {
           adjust_unread_count(1);
         }
+        if (is_received) {
+          adjust_inbox_count(1);
+        } else if (is_sent) {
+          adjust_sent_count(1);
+        }
+        adjust_trash_count(-1);
         if (email_to_restore) {
           set_state((prev) => ({
             ...prev,
@@ -1101,6 +1113,12 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       const unread_received_count = emails_to_restore.filter(
         (e) => e.item_type === "received" && !e.is_read,
       ).length;
+      const received_count = emails_to_restore.filter(
+        (e) => e.item_type === "received",
+      ).length;
+      const sent_count = emails_to_restore.filter(
+        (e) => e.item_type === "sent",
+      ).length;
 
       set_state((prev) => ({
         ...prev,
@@ -1112,6 +1130,11 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       if (unread_received_count > 0) {
         adjust_unread_count(-unread_received_count);
       }
+      if (updates.is_trashed) {
+        if (received_count > 0) adjust_inbox_count(-received_count);
+        if (sent_count > 0) adjust_sent_count(-sent_count);
+        adjust_trash_count(ids.length);
+      }
 
       try {
         await bulk_update_mail_items({ ids, ...updates });
@@ -1119,6 +1142,11 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       } catch {
         if (unread_received_count > 0) {
           adjust_unread_count(unread_received_count);
+        }
+        if (updates.is_trashed) {
+          if (received_count > 0) adjust_inbox_count(received_count);
+          if (sent_count > 0) adjust_sent_count(sent_count);
+          adjust_trash_count(-ids.length);
         }
         set_state((prev) => ({
           ...prev,

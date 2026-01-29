@@ -63,6 +63,22 @@ export function adjust_inbox_count(delta: number): void {
   broadcast();
 }
 
+export function adjust_trash_count(delta: number): void {
+  cache.data = {
+    ...cache.data,
+    trash: Math.max(0, cache.data.trash + delta),
+  };
+  broadcast();
+}
+
+export function adjust_sent_count(delta: number): void {
+  cache.data = {
+    ...cache.data,
+    sent: Math.max(0, cache.data.sent + delta),
+  };
+  broadcast();
+}
+
 export interface ComputedMailStats {
   total_items: number;
   inbox: number;
