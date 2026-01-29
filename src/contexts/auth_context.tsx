@@ -426,25 +426,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const init = async () => {
       const on_auth_page = is_auth_page();
 
-      if (has_vault_in_memory() && !on_auth_page) {
-        const data = await initialize_accounts();
-        const current = await get_current_account();
-
-        if (current) {
-          api_client.set_authenticated(true);
-          set_state({
-            user: current.user,
-            is_loading: false,
-            is_authenticated: true,
-            has_keys: true,
-            accounts: data.accounts,
-            current_account_id: data.current_account_id,
-          });
-
-          return;
-        }
-      }
-
       try {
         const data = await initialize_accounts();
         const current = await get_current_account();
@@ -517,9 +498,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
           });
         } else {
           api_client.set_authenticated(false);
+          clear_vault_from_memory();
           set_state((prev) => ({
             ...prev,
             is_loading: false,
+            is_authenticated: false,
+            has_keys: false,
             accounts: data.accounts,
             current_account_id: data.current_account_id,
           }));

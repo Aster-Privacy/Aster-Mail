@@ -82,24 +82,44 @@ class ApiClient {
   private is_authenticated_flag: boolean = false;
   private auth_check_promise: Promise<boolean> | null = null;
   private dev_access_token: string | null = null;
+  private initial_auth_verified: boolean = false;
 
   constructor() {
-    this.check_initial_auth_state();
+    this.load_stored_tokens();
   }
 
-  private check_initial_auth_state(): void {
-    const csrf_token = get_csrf_token_from_cookie();
+  private load_stored_tokens(): void {
     const stored_token = import.meta.env.DEV
       ? sessionStorage.getItem(DEV_TOKEN_KEY)
       : null;
 
-    if (csrf_token || stored_token) {
-      this.is_authenticated_flag = true;
-      if (stored_token) {
-        this.dev_access_token = stored_token;
-      }
+    if (stored_token) {
+      this.dev_access_token = stored_token;
+    }
+  }
+
+  async verify_initial_auth(): Promise<boolean> {
+    if (this.initial_auth_verified) {
+      return this.is_authenticated_flag;
+    }
+
+    const csrf_token = get_csrf_token_from_cookie();
+    const has_stored_token = !!this.dev_access_token;
+
+    if (!csrf_token && !has_stored_token) {
+      this.initial_auth_verified = true;
+      return false;
+    }
+
+    const is_valid = await this.check_auth_status();
+
+    this.initial_auth_verified = true;
+
+    if (is_valid) {
       this.schedule_token_refresh();
     }
+
+    return is_valid;
   }
 
   set_dev_token(token: string): void {
