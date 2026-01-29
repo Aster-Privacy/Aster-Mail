@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   PlusIcon,
   TrashIcon,
@@ -14,8 +13,31 @@ import {
   ShieldCheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  SparklesIcon,
+  BoltIcon,
+  StarIcon,
 } from "@heroicons/react/24/outline";
 
+import { use_auth } from "@/contexts/auth_context";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { ConfirmationModal } from "@/components/confirmation_modal";
 import {
@@ -26,8 +48,11 @@ import {
   check_alias_availability,
   decrypt_aliases,
   validate_local_part,
+  get_alias_counts,
+  generate_random_alias,
   type DecryptedEmailAlias,
   type AliasListResponse,
+  type AliasCountsResponse,
 } from "@/services/api/aliases";
 import {
   list_domains,
@@ -44,104 +69,6 @@ import {
 } from "@/services/api/domains";
 
 const DEFAULT_DOMAINS = ["astermail.org", "aster.cx"];
-
-interface DomainDropdownProps {
-  value: string;
-  options: string[];
-  on_change: (value: string) => void;
-}
-
-function DomainDropdown({ value, options, on_change }: DomainDropdownProps) {
-  const [is_open, set_is_open] = useState(false);
-  const dropdown_ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handle_click_outside = (event: MouseEvent) => {
-      if (
-        dropdown_ref.current &&
-        !dropdown_ref.current.contains(event.target as Node)
-      ) {
-        set_is_open(false);
-      }
-    };
-
-    if (is_open) {
-      document.addEventListener("mousedown", handle_click_outside);
-
-      return () =>
-        document.removeEventListener("mousedown", handle_click_outside);
-    }
-  }, [is_open]);
-
-  return (
-    <div ref={dropdown_ref} className="relative">
-      <button
-        className="flex items-center gap-2 px-4 py-3 text-sm rounded-lg transition-colors min-w-[160px] justify-between outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
-        style={{
-          backgroundColor: "var(--input-bg)",
-          border: "1px solid var(--input-border)",
-          color: "var(--text-primary)",
-        }}
-        type="button"
-        onClick={() => set_is_open(!is_open)}
-      >
-        <span>{value}</span>
-        <svg
-          className={`w-4 h-4 transition-transform ${is_open ? "rotate-180" : ""}`}
-          fill="currentColor"
-          style={{ color: "var(--text-muted)" }}
-          viewBox="0 0 24 24"
-        >
-          <path d="M7 10l5 5 5-5z" />
-        </svg>
-      </button>
-
-      <AnimatePresence>
-        {is_open && (
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="absolute z-10 mt-2 w-full rounded-lg shadow-lg overflow-hidden"
-            exit={{ opacity: 0 }}
-            initial={{ opacity: 0 }}
-            style={{
-              backgroundColor: "var(--bg-tertiary)",
-              border: "1px solid var(--border-secondary)",
-            }}
-            transition={{ duration: 0.15 }}
-          >
-            {options.map((option) => (
-              <button
-                key={option}
-                className="w-full px-4 py-2.5 text-sm text-left transition-colors"
-                style={{
-                  backgroundColor:
-                    option === value ? "var(--bg-secondary)" : "transparent",
-                  color: "var(--text-primary)",
-                  fontWeight: option === value ? 500 : 400,
-                }}
-                type="button"
-                onClick={() => {
-                  on_change(option);
-                  set_is_open(false);
-                }}
-                onMouseEnter={(e) => {
-                  if (option !== value)
-                    e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-                }}
-                onMouseLeave={(e) => {
-                  if (option !== value)
-                    e.currentTarget.style.backgroundColor = "transparent";
-                }}
-              >
-                {option}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 interface CreateAliasModalProps {
   is_open: boolean;
@@ -269,234 +196,239 @@ function CreateAliasModal({
   const at_limit = current_count >= max_aliases;
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center"
-          exit={{ opacity: 0 }}
-          initial={{ opacity: 0 }}
-          style={{ backgroundColor: "var(--modal-overlay)" }}
-          transition={{ duration: 0.15 }}
-          onClick={on_close}
-        >
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="w-[440px] rounded-xl p-5"
-            exit={{ opacity: 0 }}
-            initial={{ opacity: 0 }}
+    <Modal is_open={is_open} on_close={on_close} size="md">
+      <ModalHeader>
+        <ModalTitle>Create Email Alias</ModalTitle>
+        {!at_limit && (
+          <ModalDescription>
+            Create an alternate email address that forwards to your main inbox.
+          </ModalDescription>
+        )}
+      </ModalHeader>
+
+      <ModalBody>
+        {at_limit ? (
+          <div
+            className="flex items-center gap-3 p-4 rounded-lg"
             style={{
-              backgroundColor: "var(--bg-card)",
-              border: "1px solid var(--border-secondary)",
+              backgroundColor: "var(--bg-warning)",
+              border: "1px solid var(--border-warning)",
             }}
-            transition={{ duration: 0.15 }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-base font-semibold"
+            <ExclamationTriangleIcon
+              className="w-5 h-5 flex-shrink-0"
+              style={{ color: "var(--text-warning)" }}
+            />
+            <div>
+              <p
+                className="text-sm font-medium"
+                style={{ color: "var(--text-warning)" }}
+              >
+                Alias limit reached
+              </p>
+              <p
+                className="text-xs mt-0.5"
+                style={{ color: "var(--text-muted)" }}
+              >
+                You have reached the maximum of {max_aliases} aliases for
+                your plan. Upgrade to create more.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <label
+                className="text-sm font-medium block mb-2"
+                htmlFor="alias-address"
                 style={{ color: "var(--text-primary)" }}
               >
-                Create Email Alias
-              </h3>
-              <button
-                className="p-1.5 rounded-lg transition-colors"
-                style={{ color: "var(--text-muted)" }}
-                onClick={on_close}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </button>
-            </div>
-
-            {at_limit ? (
-              <div
-                className="flex items-center gap-3 p-4 rounded-lg mb-4"
-                style={{
-                  backgroundColor: "var(--bg-warning)",
-                  border: "1px solid var(--border-warning)",
-                }}
-              >
-                <ExclamationTriangleIcon
-                  className="w-5 h-5 flex-shrink-0"
-                  style={{ color: "var(--text-warning)" }}
-                />
-                <div>
-                  <p
-                    className="text-sm font-medium"
-                    style={{ color: "var(--text-warning)" }}
-                  >
-                    Alias limit reached
-                  </p>
-                  <p
-                    className="text-xs mt-0.5"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    You have reached the maximum of {max_aliases} aliases for
-                    your plan. Upgrade to create more.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <>
-                <p
-                  className="text-sm mb-4"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  Create an alternate email address that forwards to your main
-                  inbox.
-                </p>
-
-                <div className="mb-4">
-                  <label
-                    className="text-sm font-medium block mb-2"
-                    htmlFor="alias-address"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    Alias Address
-                  </label>
-                  <div className="flex gap-2 items-center">
-                    <div className="flex-1 relative">
-                      <input
-                        // eslint-disable-next-line jsx-a11y/no-autofocus
-                        autoFocus
-                        className="w-full px-4 py-3 text-sm rounded-lg pr-10 outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
-                        id="alias-address"
-                        placeholder="newsletter"
-                        style={{
-                          backgroundColor: "var(--input-bg)",
-                          border: `1px solid ${
-                            is_available === false
-                              ? "var(--border-error)"
-                              : is_available === true
-                                ? "var(--border-success)"
-                                : "var(--input-border)"
-                          }`,
-                          color: "var(--text-primary)",
-                        }}
-                        value={local_part}
-                        onChange={(e) =>
-                          set_local_part(e.target.value.toLowerCase().trim())
-                        }
-                        onKeyDown={(e) => e.key === "Enter" && handle_create()}
-                      />
-                      {checking && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <ArrowPathIcon
-                            className="w-4 h-4 animate-spin"
-                            style={{ color: "var(--text-muted)" }}
-                          />
-                        </div>
-                      )}
-                      {!checking && is_available === true && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <CheckIcon className="w-4 h-4 text-green-500" />
-                        </div>
-                      )}
-                      {!checking && is_available === false && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <XMarkIcon className="w-4 h-4 text-red-500" />
-                        </div>
-                      )}
-                    </div>
-                    <span
-                      className="text-sm"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      @
-                    </span>
-                    <DomainDropdown
-                      on_change={set_domain}
-                      options={available_domains}
-                      value={domain}
-                    />
-                  </div>
-                  {local_part && !validate_local_part(local_part).valid && (
-                    <p className="text-xs mt-1.5 text-red-500">
-                      {validate_local_part(local_part).error}
-                    </p>
-                  )}
-                  {is_available === false && (
-                    <p className="text-xs mt-1.5 text-red-500">
-                      This alias is already taken
-                    </p>
-                  )}
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    className="text-sm font-medium block mb-2"
-                    htmlFor="alias-display-name"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    Display Name{" "}
-                    <span style={{ color: "var(--text-muted)" }}>
-                      (optional)
-                    </span>
-                  </label>
-                  <input
-                    className="w-full px-4 py-3 text-sm rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
-                    id="alias-display-name"
-                    placeholder="Newsletter Alias"
-                    style={{
-                      backgroundColor: "var(--input-bg)",
-                      border: "1px solid var(--input-border)",
-                      color: "var(--text-primary)",
-                    }}
-                    value={display_name}
-                    onChange={(e) => set_display_name(e.target.value)}
+                Alias Address
+              </label>
+              <div className="flex gap-2 items-center">
+                <div className="flex-1 relative">
+                  <Input
+                    // eslint-disable-next-line jsx-a11y/no-autofocus
+                    autoFocus
+                    className={`pr-10 bg-[var(--input-bg)] text-[var(--text-primary)] ${
+                      is_available === false
+                        ? "border-red-500"
+                        : is_available === true
+                          ? "border-green-500"
+                          : "border-[var(--border-secondary)]"
+                    }`}
+                    id="alias-address"
+                    placeholder="newsletter"
+                    size="lg"
+                    value={local_part}
+                    onChange={(e) =>
+                      set_local_part(e.target.value.toLowerCase().trim())
+                    }
+                    onKeyDown={(e) => e.key === "Enter" && handle_create()}
                   />
+                  {checking && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <ArrowPathIcon
+                        className="w-4 h-4 animate-spin"
+                        style={{ color: "var(--text-muted)" }}
+                      />
+                    </div>
+                  )}
+                  {!checking && is_available === true && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <CheckIcon className="w-4 h-4 text-green-500" />
+                    </div>
+                  )}
+                  {!checking && is_available === false && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <XMarkIcon className="w-4 h-4 text-red-500" />
+                    </div>
+                  )}
                 </div>
-              </>
-            )}
-
-            {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
-
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-4 py-2 text-sm rounded-lg transition-colors"
-                style={{ color: "var(--text-secondary)" }}
-                onClick={on_close}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Cancel
-              </button>
-              {!at_limit && (
-                <motion.button
-                  className="px-5 py-2.5 text-sm font-semibold rounded-lg text-white disabled:opacity-50"
-                  disabled={saving || !local_part || is_available === false}
-                  style={{
-                    background:
-                      "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-                  }}
-                  transition={{ duration: 0.15 }}
-                  whileHover={{
-                    background:
-                      "linear-gradient(to bottom, #7b96ff 0%, #5f7ef7 50%, #4b6af8 100%)",
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handle_create}
+                <span
+                  className="text-sm"
+                  style={{ color: "var(--text-muted)" }}
                 >
-                  {saving ? "Creating..." : "Create Alias"}
-                </motion.button>
+                  @
+                </span>
+                <Select value={domain} onValueChange={set_domain}>
+                  <SelectTrigger className="w-[160px] h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {available_domains.map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {local_part && !validate_local_part(local_part).valid && (
+                <p className="text-xs mt-1.5 text-red-500">
+                  {validate_local_part(local_part).error}
+                </p>
+              )}
+              {is_available === false && (
+                <p className="text-xs mt-1.5 text-red-500">
+                  This alias is already taken
+                </p>
               )}
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+
+            <div>
+              <label
+                className="text-sm font-medium block mb-2"
+                htmlFor="alias-display-name"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Display Name{" "}
+                <span style={{ color: "var(--text-muted)" }}>
+                  (optional)
+                </span>
+              </label>
+              <Input
+                className="bg-[var(--input-bg)] border-[var(--border-secondary)] text-[var(--text-primary)]"
+                id="alias-display-name"
+                placeholder="Newsletter Alias"
+                size="lg"
+                value={display_name}
+                onChange={(e) => set_display_name(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {error && <p className="text-sm text-red-500 mt-4">{error}</p>}
+      </ModalBody>
+
+      <ModalFooter>
+        <Button variant="ghost" onClick={on_close}>
+          Cancel
+        </Button>
+        {!at_limit && (
+          <Button
+            disabled={saving || !local_part || is_available === false}
+            variant="primary"
+            onClick={handle_create}
+          >
+            {saving ? "Creating..." : "Create Alias"}
+          </Button>
+        )}
+      </ModalFooter>
+    </Modal>
+  );
+}
+
+interface PrimaryEmailItemProps {
+  email: string;
+  display_name?: string;
+}
+
+function PrimaryEmailItem({ email, display_name }: PrimaryEmailItemProps) {
+  const [copied, set_copied] = useState(false);
+
+  const copy_address = async () => {
+    await navigator.clipboard.writeText(email);
+    set_copied(true);
+    setTimeout(() => set_copied(false), COPY_FEEDBACK_MS);
+  };
+
+  return (
+    <div
+      className="flex items-center gap-3 p-3 rounded-xl"
+      style={{
+        backgroundColor: "var(--bg-secondary)",
+        border: "1px solid var(--border-primary)",
+      }}
+    >
+      <div
+        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+        style={{ backgroundColor: "var(--accent-primary-muted)" }}
+      >
+        <StarIcon className="w-5 h-5" style={{ color: "var(--accent-primary)" }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p
+            className="text-sm font-medium truncate"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {email}
+          </p>
+          <span
+            className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+            style={{
+              backgroundColor: "var(--accent-primary)",
+              color: "white",
+            }}
+          >
+            Primary
+          </span>
+        </div>
+        {display_name && (
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+            {display_name}
+          </p>
+        )}
+      </div>
+      <Button
+        className="h-8 w-8 flex-shrink-0"
+        size="icon"
+        title={copied ? "Copied!" : "Copy address"}
+        variant="ghost"
+        onClick={copy_address}
+      >
+        {copied ? (
+          <CheckIcon className="w-4 h-4 text-green-500" />
+        ) : (
+          <ClipboardDocumentIcon
+            className="w-4 h-4"
+            style={{ color: "var(--text-muted)" }}
+          />
+        )}
+      </Button>
+    </div>
   );
 }
 
@@ -525,13 +457,27 @@ function AliasItem({
 
   return (
     <div
-      className="flex items-center justify-between p-4 rounded-lg transition-colors"
+      className="flex items-center gap-3 p-3 rounded-xl transition-all"
       style={{
-        backgroundColor: "var(--bg-tertiary)",
+        backgroundColor: "var(--bg-secondary)",
         border: "1px solid var(--border-secondary)",
-        opacity: alias.is_enabled ? 1 : 0.6,
+        opacity: alias.is_enabled ? 1 : 0.5,
       }}
     >
+      <div
+        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+        style={{
+          backgroundColor: alias.is_random
+            ? "var(--bg-tertiary)"
+            : "var(--bg-tertiary)",
+        }}
+      >
+        {alias.is_random ? (
+          <BoltIcon className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
+        ) : (
+          <AtSymbolIcon className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
+        )}
+      </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p
@@ -540,26 +486,17 @@ function AliasItem({
           >
             {alias.full_address}
           </p>
-          <button
-            className="p-1 rounded transition-colors flex-shrink-0"
-            title={copied ? "Copied!" : "Copy address"}
-            onClick={copy_address}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
-          >
-            {copied ? (
-              <CheckIcon className="w-3.5 h-3.5 text-green-500" />
-            ) : (
-              <ClipboardDocumentIcon
-                className="w-3.5 h-3.5"
-                style={{ color: "var(--text-muted)" }}
-              />
-            )}
-          </button>
+          {alias.is_random && (
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium"
+              style={{
+                backgroundColor: "var(--bg-tertiary)",
+                color: "var(--text-muted)",
+              }}
+            >
+              Random
+            </span>
+          )}
         </div>
         {alias.display_name && (
           <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
@@ -568,45 +505,43 @@ function AliasItem({
         )}
       </div>
 
-      <div className="flex items-center gap-3">
-        <button
-          className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50"
-          disabled={toggling}
-          style={{
-            backgroundColor: alias.is_enabled
-              ? "#3b82f6"
-              : "var(--border-secondary)",
-          }}
-          onClick={() => on_toggle(alias.id, !alias.is_enabled)}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <Button
+          className="h-8 w-8"
+          size="icon"
+          title={copied ? "Copied!" : "Copy address"}
+          variant="ghost"
+          onClick={copy_address}
         >
-          <span
-            className={
-              "inline-block h-4 w-4 rounded-full transition-transform duration-200 " +
-              (alias.is_enabled ? "translate-x-6" : "translate-x-1")
-            }
-            style={{
-              backgroundColor: alias.is_enabled ? "#ffffff" : "var(--bg-card)",
-            }}
-          />
-        </button>
+          {copied ? (
+            <CheckIcon className="w-4 h-4 text-green-500" />
+          ) : (
+            <ClipboardDocumentIcon
+              className="w-4 h-4"
+              style={{ color: "var(--text-muted)" }}
+            />
+          )}
+        </Button>
 
-        <button
-          className="p-2 rounded-lg transition-colors text-red-500 disabled:opacity-50"
+        <Switch
+          checked={alias.is_enabled}
+          disabled={toggling}
+          onCheckedChange={(checked) => on_toggle(alias.id, checked)}
+        />
+
+        <Button
+          className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
           disabled={deleting}
+          size="icon"
+          variant="ghost"
           onClick={() => on_delete(alias.id)}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "transparent")
-          }
         >
           {deleting ? (
             <ArrowPathIcon className="w-4 h-4 animate-spin" />
           ) : (
             <TrashIcon className="w-4 h-4" />
           )}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -669,170 +604,99 @@ function AddDomainModal({
   const at_limit = current_count >= max_domains;
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center"
-          exit={{ opacity: 0 }}
-          initial={{ opacity: 0 }}
-          style={{ backgroundColor: "var(--modal-overlay)" }}
-          transition={{ duration: 0.15 }}
-          onClick={on_close}
-        >
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="w-[480px] rounded-xl p-5"
-            exit={{ opacity: 0 }}
-            initial={{ opacity: 0 }}
+    <Modal is_open={is_open} on_close={on_close} size="lg">
+      <ModalHeader>
+        <ModalTitle>Add Custom Domain</ModalTitle>
+        {!at_limit && (
+          <ModalDescription>
+            Add a custom domain to send and receive email using your own
+            domain name. You will need to configure DNS records to verify
+            ownership.
+          </ModalDescription>
+        )}
+      </ModalHeader>
+
+      <ModalBody>
+        {at_limit ? (
+          <div
+            className="flex items-center gap-3 p-4 rounded-lg"
             style={{
-              backgroundColor: "var(--bg-card)",
-              border: "1px solid var(--border-secondary)",
+              backgroundColor: "var(--bg-warning)",
+              border: "1px solid var(--border-warning)",
             }}
-            transition={{ duration: 0.15 }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-base font-semibold"
-                style={{ color: "var(--text-primary)" }}
+            <ExclamationTriangleIcon
+              className="w-5 h-5 flex-shrink-0"
+              style={{ color: "var(--text-warning)" }}
+            />
+            <div>
+              <p
+                className="text-sm font-medium"
+                style={{ color: "var(--text-warning)" }}
               >
-                Add Custom Domain
-              </h3>
-              <button
-                className="p-1.5 rounded-lg transition-colors"
+                Domain limit reached
+              </p>
+              <p
+                className="text-xs mt-0.5"
                 style={{ color: "var(--text-muted)" }}
-                onClick={on_close}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
               >
-                <XMarkIcon className="w-4 h-4" />
-              </button>
+                You have reached the maximum of {max_domains} domains for
+                your plan. Upgrade to add more.
+              </p>
             </div>
-
-            {at_limit ? (
-              <div
-                className="flex items-center gap-3 p-4 rounded-lg mb-4"
-                style={{
-                  backgroundColor: "var(--bg-warning)",
-                  border: "1px solid var(--border-warning)",
-                }}
-              >
-                <ExclamationTriangleIcon
-                  className="w-5 h-5 flex-shrink-0"
-                  style={{ color: "var(--text-warning)" }}
-                />
-                <div>
-                  <p
-                    className="text-sm font-medium"
-                    style={{ color: "var(--text-warning)" }}
-                  >
-                    Domain limit reached
-                  </p>
-                  <p
-                    className="text-xs mt-0.5"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    You have reached the maximum of {max_domains} domains for
-                    your plan. Upgrade to add more.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <>
-                <p
-                  className="text-sm mb-4"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  Add a custom domain to send and receive email using your own
-                  domain name. You will need to configure DNS records to verify
-                  ownership.
-                </p>
-
-                <div className="mb-4">
-                  <label
-                    className="text-sm font-medium block mb-2"
-                    htmlFor="domain-name"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    Domain Name
-                  </label>
-                  <input
-                    // eslint-disable-next-line jsx-a11y/no-autofocus
-                    autoFocus
-                    className="w-full px-4 py-3 text-sm rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
-                    id="domain-name"
-                    placeholder="example.com"
-                    style={{
-                      backgroundColor: "var(--input-bg)",
-                      border: "1px solid var(--input-border)",
-                      color: "var(--text-primary)",
-                    }}
-                    value={domain_name}
-                    onChange={(e) =>
-                      set_domain_name(e.target.value.toLowerCase().trim())
-                    }
-                    onKeyDown={(e) => e.key === "Enter" && handle_create()}
-                  />
-                  {domain_name && !validate_domain_name(domain_name).valid && (
-                    <p className="text-xs mt-1.5 text-red-500">
-                      {validate_domain_name(domain_name).error}
-                    </p>
-                  )}
-                </div>
-              </>
+          </div>
+        ) : (
+          <div>
+            <label
+              className="text-sm font-medium block mb-2"
+              htmlFor="domain-name"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Domain Name
+            </label>
+            <Input
+              // eslint-disable-next-line jsx-a11y/no-autofocus
+              autoFocus
+              className="bg-[var(--input-bg)] border-[var(--border-secondary)] text-[var(--text-primary)]"
+              id="domain-name"
+              placeholder="example.com"
+              size="lg"
+              value={domain_name}
+              onChange={(e) =>
+                set_domain_name(e.target.value.toLowerCase().trim())
+              }
+              onKeyDown={(e) => e.key === "Enter" && handle_create()}
+            />
+            {domain_name && !validate_domain_name(domain_name).valid && (
+              <p className="text-xs mt-1.5 text-red-500">
+                {validate_domain_name(domain_name).error}
+              </p>
             )}
+          </div>
+        )}
 
-            {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
+        {error && <p className="text-sm text-red-500 mt-4">{error}</p>}
+      </ModalBody>
 
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-4 py-2 text-sm rounded-lg transition-colors"
-                style={{ color: "var(--text-secondary)" }}
-                onClick={on_close}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Cancel
-              </button>
-              {!at_limit && (
-                <motion.button
-                  className="px-5 py-2.5 text-sm font-semibold rounded-lg text-white disabled:opacity-50"
-                  disabled={
-                    saving ||
-                    !domain_name ||
-                    !validate_domain_name(domain_name).valid
-                  }
-                  style={{
-                    background:
-                      "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-                  }}
-                  transition={{ duration: 0.15 }}
-                  whileHover={{
-                    background:
-                      "linear-gradient(to bottom, #7b96ff 0%, #5f7ef7 50%, #4b6af8 100%)",
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handle_create}
-                >
-                  {saving ? "Adding..." : "Add Domain"}
-                </motion.button>
-              )}
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      <ModalFooter>
+        <Button variant="ghost" onClick={on_close}>
+          Cancel
+        </Button>
+        {!at_limit && (
+          <Button
+            disabled={
+              saving ||
+              !domain_name ||
+              !validate_domain_name(domain_name).valid
+            }
+            variant="primary"
+            onClick={handle_create}
+          >
+            {saving ? "Adding..." : "Add Domain"}
+          </Button>
+        )}
+      </ModalFooter>
+    </Modal>
   );
 }
 
@@ -908,16 +772,12 @@ function DnsRecordItem({ record }: DnsRecordItemProps) {
           >
             {record.value}
           </p>
-          <button
-            className="p-1 rounded transition-colors flex-shrink-0"
+          <Button
+            className="h-6 w-6 flex-shrink-0"
+            size="icon"
             title={copied ? "Copied!" : "Copy value"}
+            variant="ghost"
             onClick={copy_value}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
           >
             {copied ? (
               <CheckIcon className="w-3.5 h-3.5 text-green-500" />
@@ -927,7 +787,7 @@ function DnsRecordItem({ record }: DnsRecordItemProps) {
                 style={{ color: "var(--text-muted)" }}
               />
             )}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -995,15 +855,11 @@ function DomainItem({
     >
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <button
-            className="p-1 rounded transition-colors flex-shrink-0"
+          <Button
+            className="h-6 w-6 flex-shrink-0"
+            size="icon"
+            variant="ghost"
             onClick={handle_expand}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
           >
             {expanded ? (
               <ChevronDownIcon
@@ -1016,7 +872,7 @@ function DomainItem({
                 style={{ color: "var(--text-muted)" }}
               />
             )}
-          </button>
+          </Button>
 
           <GlobeAltIcon
             className="w-5 h-5 flex-shrink-0"
@@ -1050,21 +906,11 @@ function DomainItem({
 
         <div className="flex items-center gap-2">
           {domain.status !== "active" && (
-            <button
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors disabled:opacity-50"
+            <Button
               disabled={verifying}
-              style={{
-                backgroundColor: "var(--accent-color)",
-                color: "#ffffff",
-              }}
+              size="sm"
+              variant="primary"
               onClick={() => on_verify(domain.id)}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  "var(--accent-color-hover)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "var(--accent-color)")
-              }
             >
               {verifying ? (
                 <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
@@ -1072,26 +918,22 @@ function DomainItem({
                 <ShieldCheckIcon className="w-3.5 h-3.5" />
               )}
               Verify
-            </button>
+            </Button>
           )}
 
-          <button
-            className="p-2 rounded-lg transition-colors text-red-500 disabled:opacity-50"
+          <Button
+            className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
             disabled={deleting}
+            size="icon"
+            variant="ghost"
             onClick={() => on_delete(domain.id)}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
           >
             {deleting ? (
               <ArrowPathIcon className="w-4 h-4 animate-spin" />
             ) : (
               <TrashIcon className="w-4 h-4" />
             )}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -1189,6 +1031,7 @@ function DomainItem({
 }
 
 export function AliasesSection() {
+  const { user } = use_auth();
   const [aliases, set_aliases] = useState<DecryptedEmailAlias[]>([]);
   const [aliases_loading, set_aliases_loading] = useState(true);
   const [max_aliases, set_max_aliases] = useState(3);
@@ -1199,6 +1042,10 @@ export function AliasesSection() {
     is_open: boolean;
     id: string | null;
   }>({ is_open: false, id: null });
+
+  const [alias_counts, set_alias_counts] = useState<AliasCountsResponse | null>(null);
+  const [generating_random, set_generating_random] = useState(false);
+  const [random_domain, set_random_domain] = useState(DEFAULT_DOMAINS[0]);
 
   const [domains, set_domains] = useState<CustomDomain[]>([]);
   const [domains_loading, set_domains_loading] = useState(true);
@@ -1235,6 +1082,43 @@ export function AliasesSection() {
     }
   }, []);
 
+  const load_alias_counts = useCallback(async () => {
+    try {
+      const response = await get_alias_counts();
+
+      if (response.data) {
+        set_alias_counts(response.data);
+      }
+    } catch {
+    }
+  }, []);
+
+  const handle_generate_random = async () => {
+    set_generating_random(true);
+    try {
+      const response = await generate_random_alias(random_domain);
+
+      if (!response.error && response.data) {
+        const new_alias: DecryptedEmailAlias = {
+          id: response.data.id,
+          local_part: response.data.local_part,
+          domain: response.data.domain,
+          full_address: response.data.full_address,
+          is_enabled: true,
+          is_random: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        set_aliases((prev) => [new_alias, ...prev]);
+        load_alias_counts();
+      }
+    } catch {
+    } finally {
+      set_generating_random(false);
+    }
+  };
+
   const load_domains = useCallback(async () => {
     set_domains_loading(true);
     try {
@@ -1253,7 +1137,8 @@ export function AliasesSection() {
   useEffect(() => {
     load_aliases();
     load_domains();
-  }, [load_aliases, load_domains]);
+    load_alias_counts();
+  }, [load_aliases, load_domains, load_alias_counts]);
 
   const handle_alias_toggle = async (id: string, enabled: boolean) => {
     set_toggling_id(id);
@@ -1286,6 +1171,7 @@ export function AliasesSection() {
 
       if (!response.error) {
         set_aliases((prev) => prev.filter((a) => a.id !== id));
+        load_alias_counts();
       }
     } catch {
     } finally {
@@ -1356,9 +1242,23 @@ export function AliasesSection() {
               Email Aliases
             </h3>
           </div>
-          <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-            {aliases.length} / {max_aliases} used
-          </span>
+          <div className="flex items-center gap-3">
+            {alias_counts && (
+              <>
+                <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  Custom: {alias_counts.custom_count}/{alias_counts.max_custom}
+                </span>
+                {alias_counts.can_create_random && (
+                  <span
+                    className="text-xs"
+                    style={{ color: "var(--accent-primary)" }}
+                  >
+                    Random: {alias_counts.random_count}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
         </div>
         <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
           Create alternate email addresses that forward to your main inbox. Use
@@ -1370,55 +1270,111 @@ export function AliasesSection() {
           )}
         </p>
 
-        <motion.button
-          className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-lg mb-3"
-          style={{
-            background:
-              "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-            color: "#ffffff",
-            border: "1px solid rgba(255, 255, 255, 0.15)",
-            borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-          }}
-          transition={{ duration: 0.15 }}
-          whileHover={{
-            background:
-              "linear-gradient(to bottom, #7b96ff 0%, #5f7ef7 50%, #4b6af8 100%)",
-            scale: 1.01,
-          }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => set_show_create_alias_modal(true)}
-        >
-          <PlusIcon className="w-4 h-4" />
-          Create Alias
-        </motion.button>
-
-        {aliases_loading ? (
-          <div />
-        ) : aliases.length === 0 ? (
-          <div
-            className="text-center py-12 rounded-lg"
-            style={{
-              backgroundColor: "var(--bg-tertiary)",
-              border: "1px solid var(--border-secondary)",
-            }}
+        <div className="flex gap-2 mb-3">
+          <Button
+            className="flex-1"
+            size="lg"
+            variant="secondary"
+            onClick={() => set_show_create_alias_modal(true)}
           >
-            <AtSymbolIcon
-              className="w-12 h-12 mx-auto mb-3"
-              style={{ color: "var(--text-muted)" }}
-            />
-            <p
-              className="text-sm font-medium mb-1"
-              style={{ color: "var(--text-primary)" }}
+            <PlusIcon className="w-4 h-4" />
+            Custom Alias
+          </Button>
+
+          {alias_counts?.can_create_random ? (
+            <div className="flex-1 flex gap-1">
+              <Select value={random_domain} onValueChange={set_random_domain}>
+                <SelectTrigger className="w-[130px] h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {available_domains_for_aliases.map((d) => (
+                    <SelectItem key={d} value={d}>
+                      {d}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                className="flex-1"
+                disabled={generating_random}
+                size="lg"
+                variant="primary"
+                onClick={handle_generate_random}
+              >
+                {generating_random ? (
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                ) : (
+                  <SparklesIcon className="w-4 h-4" />
+                )}
+                Generate Random
+              </Button>
+            </div>
+          ) : (
+            <div
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm"
+              style={{
+                backgroundColor: "var(--bg-tertiary)",
+                border: "1px solid var(--border-secondary)",
+                color: "var(--text-muted)",
+              }}
             >
-              No aliases yet
-            </p>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              Create your first email alias to get started
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {aliases.map((alias) => (
+              <SparklesIcon className="w-4 h-4" />
+              <span>Upgrade for random aliases</span>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          {user?.email && (
+            <PrimaryEmailItem
+              display_name={user.display_name}
+              email={user.email}
+            />
+          )}
+
+          {aliases_loading ? (
+            <div className="space-y-2">
+              {[1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 p-3 rounded-xl animate-pulse"
+                  style={{
+                    backgroundColor: "var(--bg-secondary)",
+                    border: "1px solid var(--border-secondary)",
+                  }}
+                >
+                  <div
+                    className="w-10 h-10 rounded-full"
+                    style={{ backgroundColor: "var(--bg-tertiary)" }}
+                  />
+                  <div className="flex-1 space-y-2">
+                    <div
+                      className="h-4 w-48 rounded"
+                      style={{ backgroundColor: "var(--bg-tertiary)" }}
+                    />
+                    <div
+                      className="h-3 w-24 rounded"
+                      style={{ backgroundColor: "var(--bg-tertiary)" }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : aliases.length === 0 ? (
+            <div
+              className="text-center py-8 rounded-xl"
+              style={{
+                backgroundColor: "var(--bg-secondary)",
+                border: "1px dashed var(--border-secondary)",
+              }}
+            >
+              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                No additional aliases yet. Create one to protect your privacy.
+              </p>
+            </div>
+          ) : (
+            aliases.map((alias) => (
               <AliasItem
                 key={alias.id}
                 alias={alias}
@@ -1427,9 +1383,9 @@ export function AliasesSection() {
                 on_toggle={handle_alias_toggle}
                 toggling={toggling_id === alias.id}
               />
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
 
       <div
@@ -1464,16 +1420,9 @@ export function AliasesSection() {
                 Upgrade your plan to add custom domains and create aliases on your
                 own domain.
               </p>
-              <button
-                className="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:brightness-[1.08]"
-                style={{
-                  background:
-                    "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-                  color: "#ffffff",
-                }}
-              >
+              <Button variant="primary">
                 Upgrade Plan
-              </button>
+              </Button>
             </div>
           </>
         ) : (
@@ -1497,27 +1446,15 @@ export function AliasesSection() {
               Verified domains will appear in the alias domain selector.
             </p>
 
-            <motion.button
-              className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-lg mb-3"
-              style={{
-                background:
-                  "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-                color: "#ffffff",
-                border: "1px solid rgba(255, 255, 255, 0.15)",
-                borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-              }}
-              transition={{ duration: 0.15 }}
-              whileHover={{
-                background:
-                  "linear-gradient(to bottom, #7b96ff 0%, #5f7ef7 50%, #4b6af8 100%)",
-                scale: 1.01,
-              }}
-              whileTap={{ scale: 0.98 }}
+            <Button
+              className="w-full mb-3"
+              size="lg"
+              variant="primary"
               onClick={() => set_show_add_domain_modal(true)}
             >
               <PlusIcon className="w-4 h-4" />
               Add Domain
-            </motion.button>
+            </Button>
 
             {domains_loading ? (
               <div />
@@ -1563,11 +1500,14 @@ export function AliasesSection() {
 
       <CreateAliasModal
         available_domains={available_domains_for_aliases}
-        current_count={aliases.length}
+        current_count={alias_counts?.custom_count ?? aliases.filter((a) => !a.is_random).length}
         is_open={show_create_alias_modal}
-        max_aliases={max_aliases}
+        max_aliases={alias_counts?.max_custom ?? max_aliases}
         on_close={() => set_show_create_alias_modal(false)}
-        on_created={load_aliases}
+        on_created={() => {
+          load_aliases();
+          load_alias_counts();
+        }}
       />
 
       <AddDomainModal

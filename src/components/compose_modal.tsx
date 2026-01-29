@@ -1007,7 +1007,7 @@ export function ComposeModal({
             set_queued_email_id(null);
           },
           on_error: (error: string) => {
-            set_send_error(error);
+            show_toast(error, "error");
           },
         },
         delay_ms,
@@ -1090,8 +1090,9 @@ export function ComposeModal({
         } catch (err) {
           undo_send_manager.remove(email_id);
           set_queued_email_id(null);
-          set_send_error(
+          show_toast(
             (err as Error).message || "Failed to send external email",
+            "error",
           );
         }
       }, delay_ms);
@@ -1118,8 +1119,9 @@ export function ComposeModal({
             }, 100);
           } catch (err) {
             set_queued_email_id(null);
-            set_send_error(
+            show_toast(
               (err as Error).message || "Failed to send external email",
+              "error",
             );
           }
         },
@@ -1656,19 +1658,7 @@ export function ComposeModal({
                         border: "1px solid var(--border-secondary)",
                       }}
                     >
-                      <div
-                        className="flex-shrink-0 px-1"
-                        style={{
-                          borderBottom: "1px solid var(--border-secondary)",
-                        }}
-                      >
-                        <EditorToolbar
-                          editor_ref={message_textarea_ref}
-                          on_change={handle_editor_input}
-                        />
-                      </div>
-
-                      <div className="flex-1 overflow-auto px-3 py-2">
+                      <div className="flex-1 overflow-auto px-3 py-3">
                         <div
                           ref={message_textarea_ref}
                           contentEditable
@@ -1684,6 +1674,18 @@ export function ComposeModal({
                           onBlur={handle_editor_input}
                           onInput={handle_editor_input}
                           onPaste={handle_editor_paste}
+                        />
+                      </div>
+
+                      <div
+                        className="flex-shrink-0 px-1"
+                        style={{
+                          borderTop: "1px solid var(--border-secondary)",
+                        }}
+                      >
+                        <EditorToolbar
+                          editor_ref={message_textarea_ref}
+                          on_change={handle_editor_input}
                         />
                       </div>
                     </div>

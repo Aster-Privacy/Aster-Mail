@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 
+import { Button } from "@/components/ui/button";
 import { COPY_FIELD_FEEDBACK_MS } from "@/constants/timings";
 import { use_auth } from "@/contexts/auth_context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
@@ -248,34 +249,27 @@ export function DeveloperSection() {
           className="rounded-lg p-4 space-y-2"
           style={{ backgroundColor: "var(--bg-tertiary)" }}
         >
-          <button
-            className="w-full px-4 py-2 text-sm font-medium rounded-lg border transition-colors hover:brightness-95"
-            style={{
-              backgroundColor: "var(--bg-primary)",
-              borderColor: "var(--border-secondary)",
-              color: "var(--text-secondary)",
-            }}
+          <Button
+            className="w-full"
+            variant="secondary"
             onClick={export_debug_info}
           >
             Export Debug Info
-          </button>
-          <button
-            className="w-full px-4 py-2 text-sm font-medium rounded-lg border transition-colors hover:brightness-95"
-            style={{
-              backgroundColor: "var(--bg-primary)",
-              borderColor: "var(--border-secondary)",
-              color: "var(--text-secondary)",
-            }}
+          </Button>
+          <Button
+            className="w-full"
+            variant="secondary"
             onClick={() => window.location.reload()}
           >
             Force Reload
-          </button>
-          <button
-            className="w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:brightness-95 bg-red-500 text-white"
+          </Button>
+          <Button
+            className="w-full"
+            variant="destructive"
             onClick={handle_clear_cache}
           >
             Clear Cache & Reload
-          </button>
+          </Button>
         </div>
       </div>
 

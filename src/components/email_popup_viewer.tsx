@@ -45,8 +45,7 @@ import {
 } from "@/hooks/mail_events";
 import { show_action_toast } from "@/components/action_toast";
 import { show_toast } from "@/components/simple_toast";
-import { LockIcon } from "@/components/icons";
-import { EncryptionInfoModal } from "@/components/encryption_info_modal";
+import { EncryptionInfoDropdown } from "@/components/encryption_info_dropdown";
 import { try_decrypt_ratchet_body } from "@/utils/email_crypto";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -231,7 +230,6 @@ export function EmailPopupViewer({
   const [position, set_position] = useState({ x: 0, y: 0 });
   const [is_dragging, set_is_dragging] = useState(false);
   const [show_details, set_show_details] = useState(false);
-  const [show_encryption_info, set_show_encryption_info] = useState(false);
   const [show_inline_reply, set_show_inline_reply] = useState(false);
   const [thread_messages, set_thread_messages] = useState<
     DecryptedThreadMessage[]
@@ -451,6 +449,7 @@ export function EmailPopupViewer({
           is_read: response.data.is_read ?? false,
           is_starred: response.data.is_starred ?? false,
           is_deleted: false,
+          is_external: response.data.is_external,
           encrypted_metadata: response.data.encrypted_metadata,
           metadata_nonce: response.data.metadata_nonce,
         };
@@ -1273,12 +1272,11 @@ export function EmailPopupViewer({
 
             <div className="p-4">
               <div className="flex items-center gap-2 mb-4">
-                <button
-                  className="text-blue-500 hover:text-blue-600 transition-colors flex-shrink-0"
-                  onClick={() => set_show_encryption_info(true)}
-                >
-                  <LockIcon size={18} />
-                </button>
+                <EncryptionInfoDropdown
+                  has_pq_protection={!!mail_item?.ephemeral_pq_key}
+                  is_external={!!mail_item?.is_external}
+                  size={18}
+                />
                 <h1
                   className="text-lg font-semibold leading-snug flex-1 break-words min-w-0"
                   style={{ color: "var(--text-primary)" }}
@@ -1642,15 +1640,6 @@ export function EmailPopupViewer({
     </motion.div>
   );
 
-  const encryption_modal = (
-    <EncryptionInfoModal
-      has_pq_protection={!!mail_item?.ephemeral_pq_key}
-      is_external={!!mail_item?.is_external}
-      is_open={show_encryption_info}
-      on_close={() => set_show_encryption_info(false)}
-    />
-  );
-
   if (is_fullscreen) {
     return (
       <>
@@ -1674,15 +1663,9 @@ export function EmailPopupViewer({
           />
           {popup_content}
         </motion.div>
-        {encryption_modal}
       </>
     );
   }
 
-  return (
-    <>
-      {popup_content}
-      {encryption_modal}
-    </>
-  );
+  return popup_content;
 }

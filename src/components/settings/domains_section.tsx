@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   PlusIcon,
   TrashIcon,
@@ -15,6 +14,17 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { ConfirmationModal } from "@/components/confirmation_modal";
 import {
@@ -88,170 +98,99 @@ function AddDomainModal({
   const at_limit = current_count >= max_domains;
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center"
-          exit={{ opacity: 0 }}
-          initial={{ opacity: 0 }}
-          style={{ backgroundColor: "var(--modal-overlay)" }}
-          transition={{ duration: 0.15 }}
-          onClick={on_close}
-        >
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="w-[480px] rounded-xl p-5"
-            exit={{ opacity: 0 }}
-            initial={{ opacity: 0 }}
+    <Modal is_open={is_open} on_close={on_close} size="lg">
+      <ModalHeader>
+        <ModalTitle>Add Custom Domain</ModalTitle>
+        {!at_limit && (
+          <ModalDescription>
+            Add a custom domain to send and receive email using your own
+            domain name. You will need to configure DNS records to verify
+            ownership.
+          </ModalDescription>
+        )}
+      </ModalHeader>
+
+      <ModalBody>
+        {at_limit ? (
+          <div
+            className="flex items-center gap-3 p-4 rounded-lg"
             style={{
-              backgroundColor: "var(--bg-card)",
-              border: "1px solid var(--border-secondary)",
+              backgroundColor: "var(--bg-warning)",
+              border: "1px solid var(--border-warning)",
             }}
-            transition={{ duration: 0.15 }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-base font-semibold"
-                style={{ color: "var(--text-primary)" }}
+            <ExclamationTriangleIcon
+              className="w-5 h-5 flex-shrink-0"
+              style={{ color: "var(--text-warning)" }}
+            />
+            <div>
+              <p
+                className="text-sm font-medium"
+                style={{ color: "var(--text-warning)" }}
               >
-                Add Custom Domain
-              </h3>
-              <button
-                className="p-1.5 rounded-lg transition-colors"
+                Domain limit reached
+              </p>
+              <p
+                className="text-xs mt-0.5"
                 style={{ color: "var(--text-muted)" }}
-                onClick={on_close}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
               >
-                <XMarkIcon className="w-4 h-4" />
-              </button>
+                You have reached the maximum of {max_domains} domains for
+                your plan. Upgrade to add more.
+              </p>
             </div>
-
-            {at_limit ? (
-              <div
-                className="flex items-center gap-3 p-4 rounded-lg mb-4"
-                style={{
-                  backgroundColor: "var(--bg-warning)",
-                  border: "1px solid var(--border-warning)",
-                }}
-              >
-                <ExclamationTriangleIcon
-                  className="w-5 h-5 flex-shrink-0"
-                  style={{ color: "var(--text-warning)" }}
-                />
-                <div>
-                  <p
-                    className="text-sm font-medium"
-                    style={{ color: "var(--text-warning)" }}
-                  >
-                    Domain limit reached
-                  </p>
-                  <p
-                    className="text-xs mt-0.5"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    You have reached the maximum of {max_domains} domains for
-                    your plan. Upgrade to add more.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <>
-                <p
-                  className="text-sm mb-4"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  Add a custom domain to send and receive email using your own
-                  domain name. You will need to configure DNS records to verify
-                  ownership.
-                </p>
-
-                <div className="mb-4">
-                  <label
-                    className="text-sm font-medium block mb-2"
-                    htmlFor="domain-name"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    Domain Name
-                  </label>
-                  <input
-                    // eslint-disable-next-line jsx-a11y/no-autofocus
-                    autoFocus
-                    className="w-full px-4 py-3 text-sm rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
-                    id="domain-name"
-                    placeholder="example.com"
-                    style={{
-                      backgroundColor: "var(--input-bg)",
-                      border: "1px solid var(--input-border)",
-                      color: "var(--text-primary)",
-                    }}
-                    value={domain_name}
-                    onChange={(e) =>
-                      set_domain_name(e.target.value.toLowerCase().trim())
-                    }
-                    onKeyDown={(e) => e.key === "Enter" && handle_create()}
-                  />
-                  {domain_name && !validate_domain_name(domain_name).valid && (
-                    <p className="text-xs mt-1.5 text-red-500">
-                      {validate_domain_name(domain_name).error}
-                    </p>
-                  )}
-                </div>
-              </>
+          </div>
+        ) : (
+          <div>
+            <label
+              className="text-sm font-medium block mb-2"
+              htmlFor="domain-name"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Domain Name
+            </label>
+            <Input
+              // eslint-disable-next-line jsx-a11y/no-autofocus
+              autoFocus
+              className="bg-[var(--input-bg)] border-[var(--border-secondary)] text-[var(--text-primary)]"
+              id="domain-name"
+              placeholder="example.com"
+              size="lg"
+              value={domain_name}
+              onChange={(e) =>
+                set_domain_name(e.target.value.toLowerCase().trim())
+              }
+              onKeyDown={(e) => e.key === "Enter" && handle_create()}
+            />
+            {domain_name && !validate_domain_name(domain_name).valid && (
+              <p className="text-xs mt-1.5 text-red-500">
+                {validate_domain_name(domain_name).error}
+              </p>
             )}
+          </div>
+        )}
 
-            {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
+        {error && <p className="text-sm text-red-500 mt-4">{error}</p>}
+      </ModalBody>
 
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-4 py-2 text-sm rounded-lg transition-colors"
-                style={{ color: "var(--text-secondary)" }}
-                onClick={on_close}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Cancel
-              </button>
-              {!at_limit && (
-                <motion.button
-                  className="px-5 py-2.5 text-sm font-semibold rounded-lg text-white disabled:opacity-50"
-                  disabled={
-                    saving ||
-                    !domain_name ||
-                    !validate_domain_name(domain_name).valid
-                  }
-                  style={{
-                    background:
-                      "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-                  }}
-                  transition={{ duration: 0.15 }}
-                  whileHover={{
-                    background:
-                      "linear-gradient(to bottom, #7b96ff 0%, #5f7ef7 50%, #4b6af8 100%)",
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handle_create}
-                >
-                  {saving ? "Adding..." : "Add Domain"}
-                </motion.button>
-              )}
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      <ModalFooter>
+        <Button variant="ghost" onClick={on_close}>
+          Cancel
+        </Button>
+        {!at_limit && (
+          <Button
+            disabled={
+              saving ||
+              !domain_name ||
+              !validate_domain_name(domain_name).valid
+            }
+            variant="primary"
+            onClick={handle_create}
+          >
+            {saving ? "Adding..." : "Add Domain"}
+          </Button>
+        )}
+      </ModalFooter>
+    </Modal>
   );
 }
 
@@ -327,16 +266,12 @@ function DnsRecordItem({ record }: DnsRecordItemProps) {
           >
             {record.value}
           </p>
-          <button
-            className="p-1 rounded transition-colors flex-shrink-0"
+          <Button
+            className="h-6 w-6 flex-shrink-0"
+            size="icon"
             title={copied ? "Copied!" : "Copy value"}
+            variant="ghost"
             onClick={copy_value}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
           >
             {copied ? (
               <CheckIcon className="w-3.5 h-3.5 text-green-500" />
@@ -346,7 +281,7 @@ function DnsRecordItem({ record }: DnsRecordItemProps) {
                 style={{ color: "var(--text-muted)" }}
               />
             )}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -414,15 +349,11 @@ function DomainItem({
     >
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <button
-            className="p-1 rounded transition-colors flex-shrink-0"
+          <Button
+            className="h-6 w-6 flex-shrink-0"
+            size="icon"
+            variant="ghost"
             onClick={handle_expand}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
           >
             {expanded ? (
               <ChevronDownIcon
@@ -435,7 +366,7 @@ function DomainItem({
                 style={{ color: "var(--text-muted)" }}
               />
             )}
-          </button>
+          </Button>
 
           <GlobeAltIcon
             className="w-5 h-5 flex-shrink-0"
@@ -469,21 +400,11 @@ function DomainItem({
 
         <div className="flex items-center gap-2">
           {domain.status !== "active" && (
-            <button
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors disabled:opacity-50"
+            <Button
               disabled={verifying}
-              style={{
-                backgroundColor: "var(--accent-color)",
-                color: "#ffffff",
-              }}
+              size="sm"
+              variant="primary"
               onClick={() => on_verify(domain.id)}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  "var(--accent-color-hover)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "var(--accent-color)")
-              }
             >
               {verifying ? (
                 <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
@@ -491,26 +412,22 @@ function DomainItem({
                 <ShieldCheckIcon className="w-3.5 h-3.5" />
               )}
               Verify
-            </button>
+            </Button>
           )}
 
-          <button
-            className="p-2 rounded-lg transition-colors text-red-500 disabled:opacity-50"
+          <Button
+            className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
             disabled={deleting}
+            size="icon"
+            variant="ghost"
             onClick={() => on_delete(domain.id)}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
           >
             {deleting ? (
               <ArrowPathIcon className="w-4 h-4 animate-spin" />
             ) : (
               <TrashIcon className="w-4 h-4" />
             )}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -715,16 +632,9 @@ export function DomainsSection() {
               Upgrade your plan to add custom domains and send email from your
               own domain.
             </p>
-            <button
-              className="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:brightness-[1.08]"
-              style={{
-                background:
-                  "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-                color: "#ffffff",
-              }}
-            >
+            <Button variant="primary">
               Upgrade Plan
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -750,27 +660,15 @@ export function DomainsSection() {
           your domain&apos;s DNS settings to complete verification.
         </p>
 
-        <motion.button
-          className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-lg mb-3"
-          style={{
-            background:
-              "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-            color: "#ffffff",
-            border: "1px solid rgba(255, 255, 255, 0.15)",
-            borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-          }}
-          transition={{ duration: 0.15 }}
-          whileHover={{
-            background:
-              "linear-gradient(to bottom, #7b96ff 0%, #5f7ef7 50%, #4b6af8 100%)",
-            scale: 1.01,
-          }}
-          whileTap={{ scale: 0.98 }}
+        <Button
+          className="w-full mb-3"
+          size="lg"
+          variant="primary"
           onClick={() => set_show_add_modal(true)}
         >
           <PlusIcon className="w-4 h-4" />
           Add Domain
-        </motion.button>
+        </Button>
 
         {loading ? (
           <div />

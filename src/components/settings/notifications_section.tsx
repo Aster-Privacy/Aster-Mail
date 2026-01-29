@@ -14,6 +14,7 @@ import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 import { use_preferences } from "@/contexts/preferences_context";
 import { play_notification_sound } from "@/services/notification_service";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 
 type PermissionState = "granted" | "denied" | "default" | "unsupported";
 
@@ -166,13 +167,12 @@ export function NotificationsSection() {
           </p>
         </div>
         {permission_state === "default" && (
-          <button
-            className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors bg-blue-500 text-white hover:bg-blue-600"
-            type="button"
+          <Button
+            size="sm"
             onClick={handle_request_permission}
           >
             Enable
-          </button>
+          </Button>
         )}
       </div>
 
@@ -225,18 +225,14 @@ export function NotificationsSection() {
             </div>
             <div className="flex items-center gap-2">
               {permission_state === "granted" && (
-                <button
-                  className="px-2 py-1 text-[11px] font-medium rounded transition-colors"
-                  style={{
-                    backgroundColor: "var(--bg-secondary)",
-                    color: "var(--text-muted)",
-                  }}
-                  type="button"
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={handle_test_notification}
                 >
-                  <PlayIcon className="w-3 h-3 inline mr-1" />
+                  <PlayIcon className="w-3 h-3" />
                   Test
-                </button>
+                </Button>
               )}
               <Switch
                 checked={preferences.desktop_notifications}
@@ -269,18 +265,14 @@ export function NotificationsSection() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                className="px-2 py-1 text-[11px] font-medium rounded transition-colors"
-                style={{
-                  backgroundColor: "var(--bg-secondary)",
-                  color: "var(--text-muted)",
-                }}
-                type="button"
+              <Button
+                size="sm"
+                variant="ghost"
                 onClick={handle_test_sound}
               >
-                <PlayIcon className="w-3 h-3 inline mr-1" />
+                <PlayIcon className="w-3 h-3" />
                 Preview
-              </button>
+              </Button>
               <Switch
                 checked={preferences.sound}
                 onCheckedChange={() =>

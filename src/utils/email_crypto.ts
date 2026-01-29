@@ -6,6 +6,7 @@ import {
 } from "@/services/crypto/envelope";
 import {
   get_passphrase_bytes,
+  get_passphrase_from_memory,
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
 import {
@@ -13,6 +14,7 @@ import {
   decrypt_ratchet_message,
 } from "@/services/crypto/ratchet_manager";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { decrypt_message } from "@/services/crypto/key_manager";
 
 export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
   encrypted_envelope: string,
@@ -77,6 +79,29 @@ export async function try_decrypt_ratchet_body(
     );
 
     return decrypted ?? body_text;
+  } catch {
+    return body_text;
+  }
+}
+
+const PGP_MESSAGE_BEGIN = "-----BEGIN PGP MESSAGE-----";
+
+export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
+  if (!body_text.includes(PGP_MESSAGE_BEGIN)) return body_text;
+
+  const vault = get_vault_from_memory();
+  const passphrase = get_passphrase_from_memory();
+
+  if (!vault || !passphrase) return body_text;
+
+  const private_key = vault.identity_key;
+
+  if (!private_key) return body_text;
+
+  try {
+    const decrypted = await decrypt_message(body_text, private_key, passphrase);
+
+    return decrypted;
   } catch {
     return body_text;
   }

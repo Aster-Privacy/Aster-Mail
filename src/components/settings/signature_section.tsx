@@ -8,6 +8,8 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
 import {
@@ -52,8 +54,6 @@ export function SignatureSection() {
   const [local_placement, set_local_placement] = useState<"below" | "above">(
     preferences.signature_placement || "below",
   );
-  const [name_focused, set_name_focused] = useState(false);
-  const [content_focused, set_content_focused] = useState(false);
 
   useEffect(() => {
     set_local_mode((preferences.signature_mode as SignatureMode) || "auto");
@@ -288,12 +288,14 @@ export function SignatureSection() {
             }}
           >
             <span>{error}</span>
-            <button
-              className="p-1 rounded hover:bg-red-500/20"
+            <Button
+              className="p-1"
+              size="icon"
+              variant="ghost"
               onClick={() => set_error(null)}
             >
               <XMarkIcon className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         )}
 
@@ -305,20 +307,15 @@ export function SignatureSection() {
             >
               Your Signatures ({is_loading ? "..." : signatures.length})
             </h4>
-            <button
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-white rounded-lg transition-all duration-150 active:scale-[0.98] hover:brightness-105 disabled:opacity-50"
+            <Button
               disabled={editor.is_open}
-              style={{
-                background:
-                  "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-                border: "1px solid rgba(255, 255, 255, 0.15)",
-                borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-              }}
+              size="sm"
+              variant="primary"
               onClick={open_create_editor}
             >
               <PlusIcon className="w-4 h-4" />
               Add Signature
-            </button>
+            </Button>
           </div>
 
           <AnimatePresence>
@@ -342,26 +339,17 @@ export function SignatureSection() {
                   >
                     Signature Name
                   </label>
-                  <input
+                  <Input
                     // eslint-disable-next-line jsx-a11y/no-autofocus
                     autoFocus
-                    className="w-full px-3 py-2 text-sm rounded-lg outline-none transition-colors"
+                    className="bg-[var(--input-bg)] border-[var(--border-secondary)] text-[var(--text-primary)]"
                     id="signature-name"
                     placeholder="e.g., Work, Personal, Formal"
-                    style={{
-                      backgroundColor: "var(--input-bg)",
-                      border: name_focused
-                        ? "1px solid var(--accent-color)"
-                        : "1px solid transparent",
-                      color: "var(--text-primary)",
-                    }}
                     type="text"
                     value={editor.name}
-                    onBlur={() => set_name_focused(false)}
                     onChange={(e) =>
                       set_editor((prev) => ({ ...prev, name: e.target.value }))
                     }
-                    onFocus={() => set_name_focused(true)}
                   />
                 </div>
 
@@ -374,26 +362,17 @@ export function SignatureSection() {
                     Signature Content
                   </label>
                   <textarea
-                    className="w-full px-3 py-2 text-sm rounded-lg resize-none outline-none transition-colors font-mono"
+                    className="flex w-full rounded-md border border-[var(--border-secondary)] bg-[var(--input-bg)] px-3 py-2 text-sm resize-none font-mono text-[var(--text-primary)] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30 focus-visible:border-blue-500 transition-colors"
                     id="signature-content"
                     placeholder="Best regards,&#10;Your Name&#10;your@email.com"
                     rows={6}
-                    style={{
-                      backgroundColor: "var(--input-bg)",
-                      border: content_focused
-                        ? "1px solid var(--accent-color)"
-                        : "1px solid transparent",
-                      color: "var(--text-primary)",
-                    }}
                     value={editor.content}
-                    onBlur={() => set_content_focused(false)}
                     onChange={(e) =>
                       set_editor((prev) => ({
                         ...prev,
                         content: e.target.value,
                       }))
                     }
-                    onFocus={() => set_content_focused(true)}
                   />
                   <p
                     className="text-xs mt-1.5"
@@ -404,22 +383,20 @@ export function SignatureSection() {
                 </div>
 
                 <div className="flex gap-3 justify-end pt-2">
-                  <button
-                    className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-[var(--bg-hover)]"
+                  <Button
                     disabled={editor.is_saving}
-                    style={{ color: "var(--text-secondary)" }}
+                    variant="ghost"
                     onClick={close_editor}
                   >
                     Cancel
-                  </button>
-                  <button
-                    className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                  </Button>
+                  <Button
                     disabled={
                       !editor.name.trim() ||
                       !editor.content.trim() ||
                       editor.is_saving
                     }
-                    style={{ backgroundColor: "var(--accent-color)" }}
+                    variant="primary"
                     onClick={handle_save}
                   >
                     {editor.is_saving
@@ -427,7 +404,7 @@ export function SignatureSection() {
                       : editor.editing_id
                         ? "Update Signature"
                         : "Create Signature"}
-                  </button>
+                  </Button>
                 </div>
               </motion.div>
             )}
@@ -498,31 +475,28 @@ export function SignatureSection() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         {!signature.is_default && (
-                          <button
-                            className="px-2.5 py-1 text-xs font-medium rounded-md transition-colors hover:brightness-95 flex items-center justify-center text-center"
-                            style={{
-                              backgroundColor: "var(--bg-secondary)",
-                              color: "var(--text-secondary)",
-                              border: "1px solid var(--border-secondary)",
-                            }}
+                          <Button
+                            size="sm"
+                            variant="outline"
                             onClick={() => handle_set_default(signature.id)}
                           >
                             Set as default
-                          </button>
+                          </Button>
                         )}
-                        <button
-                          className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)]"
-                          style={{ color: "var(--text-muted)" }}
+                        <Button
+                          size="icon"
                           title="Edit"
+                          variant="ghost"
                           onClick={() => open_edit_editor(signature)}
                         >
                           <PencilIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="p-1.5 rounded-md transition-colors hover:bg-red-500/10 disabled:opacity-50"
+                        </Button>
+                        <Button
+                          className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
                           disabled={deleting_id === signature.id}
-                          style={{ color: "#ef4444" }}
+                          size="icon"
                           title="Delete"
+                          variant="ghost"
                           onClick={() => handle_delete(signature.id)}
                         >
                           {deleting_id === signature.id ? (
@@ -536,7 +510,7 @@ export function SignatureSection() {
                           ) : (
                             <TrashIcon className="w-4 h-4" />
                           )}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                     <div

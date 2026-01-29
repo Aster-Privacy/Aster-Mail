@@ -421,6 +421,7 @@ export default function EmailDetailPage() {
           is_read: response.data.is_read ?? false,
           is_starred: response.data.is_starred ?? false,
           is_deleted: false,
+          is_external: response.data.is_external,
           encrypted_metadata: response.data.encrypted_metadata,
           metadata_nonce: response.data.metadata_nonce,
         };

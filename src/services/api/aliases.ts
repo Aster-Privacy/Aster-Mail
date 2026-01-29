@@ -14,6 +14,7 @@ export interface EmailAlias {
   alias_address_hash: string;
   domain: string;
   is_enabled: boolean;
+  is_random: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -25,6 +26,7 @@ export interface DecryptedEmailAlias {
   domain: string;
   full_address: string;
   is_enabled: boolean;
+  is_random: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -64,6 +66,22 @@ export interface AliasLimitResponse {
 
 export interface CheckAvailabilityResponse {
   available: boolean;
+}
+
+export interface AliasCountsResponse {
+  custom_count: number;
+  random_count: number;
+  max_custom: number;
+  can_create_custom: boolean;
+  can_create_random: boolean;
+}
+
+export interface GenerateRandomAliasResponse {
+  id: string;
+  local_part: string;
+  domain: string;
+  full_address: string;
+  success: boolean;
 }
 
 function array_to_base64(array: Uint8Array): string {
@@ -175,10 +193,18 @@ export async function decrypt_alias_field(
 export async function decrypt_alias(
   alias: EmailAlias,
 ): Promise<DecryptedEmailAlias> {
-  const local_part = await decrypt_alias_field(
-    alias.encrypted_local_part,
-    alias.local_part_nonce,
-  );
+  let local_part: string;
+
+  if (alias.is_random) {
+    const decoder = new TextDecoder();
+
+    local_part = decoder.decode(base64_to_array(alias.encrypted_local_part));
+  } else {
+    local_part = await decrypt_alias_field(
+      alias.encrypted_local_part,
+      alias.local_part_nonce,
+    );
+  }
 
   let display_name: string | undefined;
 
@@ -196,6 +222,7 @@ export async function decrypt_alias(
     domain: alias.domain,
     full_address: `${local_part}@${alias.domain}`,
     is_enabled: alias.is_enabled,
+    is_random: alias.is_random,
     created_at: alias.created_at,
     updated_at: alias.updated_at,
   };
@@ -343,4 +370,18 @@ export function validate_local_part(local_part: string): {
   }
 
   return { valid: true };
+}
+
+export async function get_alias_counts(): Promise<
+  ApiResponse<AliasCountsResponse>
+> {
+  return api_client.get<AliasCountsResponse>("/aliases/counts");
+}
+
+export async function generate_random_alias(
+  domain: string,
+): Promise<ApiResponse<GenerateRandomAliasResponse>> {
+  return api_client.post<GenerateRandomAliasResponse>("/aliases/generate", {
+    domain,
+  });
 }

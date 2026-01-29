@@ -6,11 +6,10 @@ import {
   StarIcon,
   EyeIcon,
   EyeSlashIcon,
-  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
-import { EncryptionInfoModal } from "@/components/encryption_info_modal";
+import { EncryptionInfoDropdown } from "@/components/encryption_info_dropdown";
 import { EmailProfileTrigger } from "@/components/email_profile_trigger";
 import {
   sanitize_html,
@@ -56,7 +55,6 @@ export function ThreadMessageBlock({
 }: ThreadMessageBlockProps): React.ReactElement {
   const { preferences } = use_preferences();
   const { format_email_detail } = use_date_format();
-  const [show_encryption_info, set_show_encryption_info] = useState(false);
   const clean_body = useMemo(() => strip_quotes(message.body), [message.body]);
 
   const name = is_own_message ? "Me" : message.sender_name;
@@ -219,16 +217,11 @@ export function ThreadMessageBlock({
           <div className="flex items-center gap-2">
             <span style={{ color: "var(--text-muted)" }}>From</span>
             <div className="flex items-center gap-1.5">
-              <button
-                className="hover:text-blue-500 transition-colors"
-                style={{ color: "var(--text-muted)" }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  set_show_encryption_info(true);
-                }}
-              >
-                <LockClosedIcon className="h-3.5 w-3.5" />
-              </button>
+              <EncryptionInfoDropdown
+                has_pq_protection={false}
+                is_external={message.is_external}
+                size={14}
+              />
               <EmailProfileTrigger
                 email={message.sender_email}
                 name={message.sender_name}
@@ -290,12 +283,6 @@ export function ThreadMessageBlock({
           className="email-body-content prose prose-sm max-w-none [&>*:last-child]:!mb-0 [&>p]:my-2"
         />
       </div>
-      <EncryptionInfoModal
-        has_pq_protection={false}
-        is_external={false}
-        is_open={show_encryption_info}
-        on_close={() => set_show_encryption_info(false)}
-      />
     </div>
   );
 }

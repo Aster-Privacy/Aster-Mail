@@ -126,6 +126,7 @@ export async function fetch_and_decrypt_thread_messages(
         is_read: msg.is_read,
         is_starred: msg.is_starred ?? false,
         is_deleted: false,
+        is_external: msg.is_external ?? false,
         encrypted_metadata: msg.encrypted_metadata,
         metadata_nonce: msg.metadata_nonce,
       };
@@ -169,6 +170,7 @@ export async function fetch_and_decrypt_thread_messages(
       is_read: msg.is_read,
       is_starred: msg.is_starred ?? false,
       is_deleted: false,
+      is_external: msg.is_external ?? false,
       encrypted_metadata: msg.encrypted_metadata,
       metadata_nonce: msg.metadata_nonce,
     };

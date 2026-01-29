@@ -1,5 +1,8 @@
 import { Component, ReactNode } from "react";
 
+import { Logo } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+
 interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
@@ -36,9 +39,10 @@ export class ErrorBoundary extends Component<
 
       return (
         <div
-          className="flex flex-col items-center justify-center p-6 text-center"
+          className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center"
           style={{ color: "var(--text-secondary)" }}
         >
+          <Logo className="w-10 h-10 mb-4" style={{ color: "var(--text-primary)" }} />
           <div
             className="text-sm font-medium mb-2"
             style={{ color: "var(--text-primary)" }}
@@ -48,16 +52,13 @@ export class ErrorBoundary extends Component<
           <div className="text-xs mb-4">
             An unexpected error occurred. Please try refreshing the page.
           </div>
-          <button
-            className="px-3 py-1.5 text-xs rounded-md transition-colors"
-            style={{
-              backgroundColor: "var(--bg-tertiary)",
-              color: "var(--text-primary)",
-            }}
+          <Button
+            size="sm"
+            variant="primary"
             onClick={() => this.setState({ has_error: false, error: null })}
           >
             Try Again
-          </button>
+          </Button>
         </div>
       );
     }

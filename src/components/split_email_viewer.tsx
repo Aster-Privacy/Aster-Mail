@@ -35,9 +35,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LockIcon } from "@/components/icons";
 import { KeyboardShortcutBadge } from "@/components/keyboard_shortcut_badge";
-import { EncryptionInfoModal } from "@/components/encryption_info_modal";
+import { EncryptionInfoDropdown } from "@/components/encryption_info_dropdown";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
@@ -269,7 +268,6 @@ export function SplitEmailViewer({
   const [show_details, set_show_details] = useState(false);
   const [is_external, set_is_external] = useState(false);
   const [has_pq_protection, set_has_pq_protection] = useState(false);
-  const [show_encryption_info, set_show_encryption_info] = useState(false);
   const [show_inline_reply, set_show_inline_reply] = useState(false);
   const mark_as_read_timeout = useRef<number | null>(null);
   const inline_reply_ref = useRef<HTMLDivElement>(null);
@@ -679,6 +677,7 @@ export function SplitEmailViewer({
         is_read: item.is_read ?? false,
         is_starred: item.is_starred ?? false,
         is_deleted: false,
+        is_external: item.is_external,
         encrypted_metadata: item.encrypted_metadata,
         metadata_nonce: item.metadata_nonce,
       };
@@ -792,36 +791,36 @@ export function SplitEmailViewer({
   if (is_loading) {
     return (
       <div
-        className="flex flex-col h-full"
+        className="flex flex-col h-full overflow-hidden"
         style={{ backgroundColor: "var(--bg-primary)" }}
       >
         <div
-          className="flex items-center justify-between px-4 py-3 border-b"
+          className="flex items-center justify-between px-4 py-3 border-b min-w-0"
           style={{ borderColor: "var(--border-primary)" }}
         >
-          <Skeleton className="w-32 h-5" />
+          <Skeleton className="h-5 flex-1 max-w-[120px]" />
           <button
-            className="p-1.5 rounded-md transition-colors"
+            className="p-1.5 rounded-md transition-colors flex-shrink-0 ml-2"
             style={{ color: "var(--text-muted)" }}
             onClick={on_close}
           >
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-4 sm:p-6 overflow-hidden">
           <div className="space-y-4">
-            <Skeleton className="w-3/4 h-6" />
-            <div className="flex items-center gap-3">
-              <Skeleton className="w-10 h-10 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="w-32 h-4" />
-                <Skeleton className="w-48 h-3" />
+            <Skeleton className="h-6 w-full max-w-[75%]" />
+            <div className="flex items-center gap-3 min-w-0">
+              <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
+              <div className="space-y-2 flex-1 min-w-0">
+                <Skeleton className="h-4 w-full max-w-[100px]" />
+                <Skeleton className="h-3 w-full max-w-[150px]" />
               </div>
             </div>
             <div className="space-y-2 pt-4">
               <Skeleton className="w-full h-4" />
               <Skeleton className="w-full h-4" />
-              <Skeleton className="w-2/3 h-4" />
+              <Skeleton className="h-4 w-full max-w-[66%]" />
             </div>
           </div>
         </div>
@@ -1018,12 +1017,11 @@ export function SplitEmailViewer({
       >
         <div className="p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
-            <button
-              className="text-blue-500 hover:text-blue-600 transition-colors flex-shrink-0"
-              onClick={() => set_show_encryption_info(true)}
-            >
-              <LockIcon size={18} />
-            </button>
+            <EncryptionInfoDropdown
+              has_pq_protection={has_pq_protection}
+              is_external={is_external}
+              size={18}
+            />
             <span
               className="text-lg sm:text-xl font-semibold break-words min-w-0 flex-1 text-left"
               style={{ color: "var(--text-primary)" }}
@@ -1411,12 +1409,6 @@ export function SplitEmailViewer({
           )}
         </div>
       )}
-      <EncryptionInfoModal
-        has_pq_protection={has_pq_protection}
-        is_external={is_external}
-        is_open={show_encryption_info}
-        on_close={() => set_show_encryption_info(false)}
-      />
     </div>
   );
 }

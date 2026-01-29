@@ -514,6 +514,7 @@ export interface ThreadMessageItem {
   metadata_nonce?: string;
   is_read: boolean;
   is_starred?: boolean;
+  is_external?: boolean;
   message_ts: string;
   created_at: string;
 }

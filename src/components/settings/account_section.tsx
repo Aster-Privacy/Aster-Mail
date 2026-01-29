@@ -1,13 +1,23 @@
 import { useState, useRef, useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   CameraIcon,
   ArrowPathIcon,
-  XMarkIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 
 import { DeleteAccountModal } from "./delete_account_modal";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
 
 import { PROFILE_COLORS } from "@/constants/profile";
 import { show_toast } from "@/components/simple_toast";
@@ -100,108 +110,33 @@ function RecoveryModal({
   };
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center"
-          exit={{ opacity: 0 }}
-          initial={{ opacity: 0 }}
-          style={{ backgroundColor: "var(--modal-overlay)" }}
-          transition={{ duration: 0.15 }}
-          onClick={on_close}
-        >
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="w-96 rounded-xl p-5"
-            exit={{ opacity: 0 }}
-            initial={{ opacity: 0 }}
-            style={{
-              backgroundColor: "var(--bg-card)",
-              border: "1px solid var(--border-secondary)",
-            }}
-            transition={{ duration: 0.15 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-base font-semibold"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Recovery email
-              </h3>
-              <button
-                className="p-1.5 rounded-lg transition-colors"
-                style={{ color: "var(--text-muted)" }}
-                onClick={on_close}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </button>
-            </div>
-            <p
-              className="text-sm mb-4"
-              style={{ color: "var(--text-tertiary)" }}
-            >
-              This email will be used to recover your account if you lose
-              access.
-            </p>
-            <input
-              // eslint-disable-next-line jsx-a11y/no-autofocus
-              autoFocus
-              className="w-full px-4 py-3 text-sm rounded-lg mb-4"
-              placeholder="Enter recovery email"
-              style={{
-                backgroundColor: "var(--input-bg)",
-                border: "1px solid var(--input-border)",
-                color: "var(--text-primary)",
-              }}
-              type="email"
-              value={email}
-              onChange={(e) => set_email(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handle_save()}
-            />
-            {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-4 py-2 text-sm rounded-lg transition-colors"
-                style={{ color: "var(--text-secondary)" }}
-                onClick={on_close}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 text-sm font-medium rounded-lg text-white disabled:opacity-50 transition-colors"
-                disabled={saving}
-                style={{ backgroundColor: "var(--accent-color)" }}
-                onClick={handle_save}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor =
-                    "var(--accent-color-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor =
-                    "var(--accent-color)")
-                }
-              >
-                {saving ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <Modal is_open={is_open} on_close={on_close} size="sm">
+      <ModalHeader>
+        <ModalTitle>Recovery email</ModalTitle>
+        <ModalDescription>
+          This email will be used to recover your account if you lose access.
+        </ModalDescription>
+      </ModalHeader>
+      <ModalBody>
+        <Input
+          autoFocus
+          placeholder="Enter recovery email"
+          type="email"
+          value={email}
+          onChange={(e) => set_email(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handle_save()}
+        />
+        {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="ghost" onClick={on_close}>
+          Cancel
+        </Button>
+        <Button disabled={saving} onClick={handle_save}>
+          {saving ? "Saving..." : "Save"}
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 }
 
@@ -451,13 +386,8 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <input
-            className="px-4 py-2.5 text-sm rounded-lg w-48"
-            style={{
-              backgroundColor: "var(--input-bg)",
-              border: "1px solid var(--input-border)",
-              color: "var(--text-primary)",
-            }}
+          <Input
+            className="w-48"
             value={name}
             onBlur={save_name}
             onChange={(e) => set_name(e.target.value)}
@@ -488,23 +418,9 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
               This is the email used to recover your account
             </p>
           </div>
-          <button
-            className="px-4 py-2.5 text-sm font-medium rounded-lg transition-colors"
-            style={{
-              backgroundColor: "var(--bg-tertiary)",
-              color: "var(--text-primary)",
-              border: "1px solid var(--border-secondary)",
-            }}
-            onClick={() => set_show_modal(true)}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-tertiary)")
-            }
-          >
+          <Button variant="secondary" onClick={() => set_show_modal(true)}>
             {recovery ? "Update" : "Add"}
-          </button>
+          </Button>
         </div>
         {pending && recovery && (
           <p className="text-sm mt-3" style={{ color: "var(--text-tertiary)" }}>
@@ -547,16 +463,10 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
                 </p>
               </div>
             </div>
-            <input
-              // eslint-disable-next-line jsx-a11y/no-autofocus
+            <Input
               autoFocus
-              className="w-full px-4 py-2.5 text-sm rounded-lg mb-4"
+              className="mb-4"
               placeholder="Type RESET to confirm"
-              style={{
-                backgroundColor: "var(--input-bg)",
-                border: "1px solid var(--input-border)",
-                color: "var(--text-primary)",
-              }}
               value={reset_text}
               onChange={(e) => set_reset_text(e.target.value)}
               onKeyDown={(e) => {
@@ -572,26 +482,18 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
               }}
             />
             <div className="flex justify-end gap-3">
-              <button
-                className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
-                style={{ color: "var(--text-secondary)" }}
+              <Button
+                variant="ghost"
                 onClick={() => {
                   set_show_reset_confirm(false);
                   set_reset_text("");
                 }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
               >
                 Cancel
-              </button>
-              <button
-                className="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors disabled:opacity-50"
+              </Button>
+              <Button
+                className="bg-amber-500 hover:bg-amber-600"
                 disabled={reset_text !== "RESET"}
-                style={{ backgroundColor: "#f59e0b" }}
                 onClick={() => {
                   if (reset_text === "RESET") {
                     reset_to_defaults();
@@ -601,7 +503,7 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
                 }}
               >
                 Reset Settings
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
@@ -620,23 +522,9 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
                 Restore all preferences to their default values
               </p>
             </div>
-            <button
-              className="px-4 py-2.5 text-sm font-medium rounded-lg transition-colors"
-              style={{
-                backgroundColor: "var(--bg-tertiary)",
-                color: "var(--text-primary)",
-                border: "1px solid var(--border-secondary)",
-              }}
-              onClick={() => set_show_reset_confirm(true)}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "var(--bg-tertiary)")
-              }
-            >
+            <Button variant="secondary" onClick={() => set_show_reset_confirm(true)}>
               Reset
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -648,18 +536,9 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
             Erase all your content and data permanently
           </p>
         </div>
-        <button
-          className="px-4 py-2.5 text-sm font-medium rounded-lg text-white transition-all duration-150 hover:brightness-105 active:scale-[0.98]"
-          style={{
-            background:
-              "linear-gradient(to bottom, #f87171 0%, #ef4444 50%, #dc2626 100%)",
-            border: "1px solid rgba(255, 255, 255, 0.15)",
-            borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-          }}
-          onClick={() => set_show_delete_modal(true)}
-        >
+        <Button variant="destructive" onClick={() => set_show_delete_modal(true)}>
           Delete
-        </button>
+        </Button>
       </div>
 
       <RecoveryModal

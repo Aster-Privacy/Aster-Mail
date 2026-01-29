@@ -22,6 +22,7 @@ export interface DecryptedThreadMessage {
   is_read: boolean;
   is_starred: boolean;
   is_deleted: boolean;
+  is_external: boolean;
   encrypted_metadata?: string;
   metadata_nonce?: string;
   attachments?: ThreadAttachment[];

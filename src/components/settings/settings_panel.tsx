@@ -27,6 +27,7 @@ import {
   ArrowUturnLeftIcon,
 } from "@heroicons/react/24/outline";
 
+import { Button } from "@/components/ui/button";
 import { SnoozeIcon } from "@/components/icons";
 import { get_dev_mode } from "@/services/api/preferences";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
@@ -488,13 +489,14 @@ export function SettingsPanel({
               >
                 <div className="flex items-center gap-3">
                   {!show_mobile_nav && (
-                    <button
-                      className="md:hidden p-1.5 -ml-1.5 rounded-lg transition-colors duration-150"
-                      style={{ color: "var(--text-muted)" }}
+                    <Button
+                      className="md:hidden -ml-1.5"
+                      size="icon"
+                      variant="ghost"
                       onClick={() => set_show_mobile_nav(true)}
                     >
                       <ArrowUturnLeftIcon className="w-5 h-5" />
-                    </button>
+                    </Button>
                   )}
                   <h2
                     className="text-[17px] font-semibold"
@@ -509,19 +511,9 @@ export function SettingsPanel({
                   </h2>
                   <SettingsSaveIndicator />
                 </div>
-                <button
-                  className="p-1.5 rounded-lg transition-colors duration-150"
-                  style={{ color: "var(--text-muted)" }}
-                  onClick={on_close}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
-                  }
-                >
+                <Button size="icon" variant="ghost" onClick={on_close}>
                   <XMarkIcon className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
 
               {/* Mobile Navigation - only renders on mobile */}

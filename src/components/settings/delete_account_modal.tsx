@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import {
-  XMarkIcon,
   TrashIcon,
   ExclamationTriangleIcon,
   ArrowPathIcon,
@@ -10,6 +8,13 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
 import { use_auth } from "@/contexts/auth_context";
 import { api_client } from "@/services/api/client";
 import { get_user_salt } from "@/services/api/auth";
@@ -102,193 +107,157 @@ export function DeleteAccountModal({
   };
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-          exit={{ opacity: 0 }}
-          initial={{ opacity: 0 }}
-        >
-          <motion.div
-            className="absolute inset-0 bg-black/60 backdrop-blur-md"
-            onClick={handle_close}
-          />
-          <motion.div
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            style={{
-              backgroundColor: "var(--modal-bg)",
-              boxShadow:
-                "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px var(--border-secondary)",
-            }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-          >
-            <button
-              className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-black/5 dark:hover:bg-white/10"
-              disabled={is_deleting}
-              style={{ color: "var(--text-muted)" }}
-              onClick={handle_close}
+    <Modal
+      close_on_overlay={!is_deleting}
+      is_open={is_open}
+      on_close={handle_close}
+      size="md"
+    >
+      <ModalHeader className="pb-0">
+        <div className="flex items-center gap-3">
+          <TrashIcon className="w-6 h-6 text-red-500 flex-shrink-0" />
+          <div>
+            <h3
+              className="text-base font-semibold leading-tight"
+              style={{ color: "var(--text-primary)" }}
             >
-              <XMarkIcon className="w-4 h-4" />
-            </button>
+              Delete Account
+            </h3>
+            <p
+              className="text-[13px] mt-1"
+              style={{ color: "var(--text-tertiary)" }}
+            >
+              {user?.email}
+            </p>
+          </div>
+        </div>
+      </ModalHeader>
 
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <TrashIcon className="w-6 h-6 text-red-500 flex-shrink-0" />
-                <div>
-                  <h3
-                    className="text-lg font-semibold"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    Delete Account
-                  </h3>
-                  <p
-                    className="text-sm"
-                    style={{ color: "var(--text-tertiary)" }}
-                  >
-                    {user?.email}
-                  </p>
-                </div>
-              </div>
-
-              <div
-                className="rounded-lg p-4 mb-4 border"
-                style={{
-                  backgroundColor: "rgba(239, 68, 68, 0.05)",
-                  borderColor: "rgba(239, 68, 68, 0.2)",
-                }}
-              >
-                <div className="flex items-start gap-3">
-                  <ExclamationTriangleIcon className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-red-600 dark:text-red-400 mb-1">
-                      This action is permanent and cannot be undone
-                    </p>
-                    <p
-                      className="text-xs"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      All your emails, folders, contacts, and encryption keys
-                      will be permanently deleted. You will not be able to
-                      recover any data associated with this account.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
+      <ModalBody>
+        <div
+          className="rounded-lg p-4 mb-4 border"
+          style={{
+            backgroundColor: "rgba(239, 68, 68, 0.05)",
+            borderColor: "rgba(239, 68, 68, 0.2)",
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <ExclamationTriangleIcon className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-red-600 dark:text-red-400 mb-1">
+                This action is permanent and cannot be undone
+              </p>
               <p
-                className="text-sm mb-4"
+                className="text-xs"
                 style={{ color: "var(--text-secondary)" }}
               >
-                To confirm deletion, type{" "}
-                <strong className="text-red-500">delete my account</strong>{" "}
-                below:
+                All your emails, folders, contacts, and encryption keys
+                will be permanently deleted. You will not be able to
+                recover any data associated with this account.
               </p>
-
-              <input
-                autoComplete="off"
-                className="w-full h-10 px-3 rounded-lg text-sm outline-none transition-colors mb-3"
-                disabled={is_deleting}
-                placeholder="Type to confirm"
-                style={{
-                  backgroundColor: "var(--input-bg)",
-                  border: "1px solid var(--input-border)",
-                  color: "var(--text-primary)",
-                }}
-                type="text"
-                value={confirmation_text}
-                onChange={(e) => set_confirmation_text(e.target.value)}
-              />
-
-              <p
-                className="text-sm mb-2"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Enter your password to confirm:
-              </p>
-
-              <div className="relative mb-4">
-                <input
-                  autoComplete="current-password"
-                  className="w-full h-10 px-3 pr-10 rounded-lg text-sm outline-none transition-colors"
-                  disabled={is_deleting}
-                  placeholder="Password"
-                  style={{
-                    backgroundColor: "var(--input-bg)",
-                    border: "1px solid var(--input-border)",
-                    color: "var(--text-primary)",
-                  }}
-                  type={show_password ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => set_password(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && is_confirmed && handle_delete()
-                  }
-                />
-                <button
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded transition-colors"
-                  disabled={is_deleting}
-                  type="button"
-                  onClick={() => set_show_password(!show_password)}
-                >
-                  {show_password ? (
-                    <EyeSlashIcon
-                      className="w-4 h-4"
-                      style={{ color: "var(--text-muted)" }}
-                    />
-                  ) : (
-                    <EyeIcon
-                      className="w-4 h-4"
-                      style={{ color: "var(--text-muted)" }}
-                    />
-                  )}
-                </button>
-              </div>
-
-              {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
-              {status && !error && (
-                <p
-                  className="text-sm mb-4"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  {status}
-                </p>
-              )}
-
-              <div className="flex gap-3">
-                <Button
-                  className="flex-1"
-                  disabled={is_deleting}
-                  size="lg"
-                  variant="outline"
-                  onClick={handle_close}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="flex-1"
-                  disabled={!is_confirmed || is_deleting}
-                  size="lg"
-                  variant="destructive"
-                  onClick={handle_delete}
-                >
-                  {is_deleting ? (
-                    <>
-                      <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    "Delete Account"
-                  )}
-                </Button>
-              </div>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </div>
+        </div>
+
+        <p
+          className="text-sm mb-4"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          To confirm deletion, type{" "}
+          <strong className="text-red-500">delete my account</strong>{" "}
+          below:
+        </p>
+
+        <Input
+          autoComplete="off"
+          className="mb-3 bg-[var(--input-bg)] border-[var(--border-secondary)] text-[var(--text-primary)]"
+          disabled={is_deleting}
+          placeholder="Type to confirm"
+          type="text"
+          value={confirmation_text}
+          onChange={(e) => set_confirmation_text(e.target.value)}
+        />
+
+        <p
+          className="text-sm mb-2"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          Enter your password to confirm:
+        </p>
+
+        <div className="relative">
+          <Input
+            autoComplete="current-password"
+            className="pr-10 bg-[var(--input-bg)] border-[var(--border-secondary)] text-[var(--text-primary)]"
+            disabled={is_deleting}
+            placeholder="Password"
+            type={show_password ? "text" : "password"}
+            value={password}
+            onChange={(e) => set_password(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === "Enter" && is_confirmed && handle_delete()
+            }
+          />
+          <Button
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+            disabled={is_deleting}
+            size="icon"
+            type="button"
+            variant="ghost"
+            onClick={() => set_show_password(!show_password)}
+          >
+            {show_password ? (
+              <EyeSlashIcon
+                className="w-4 h-4"
+                style={{ color: "var(--text-muted)" }}
+              />
+            ) : (
+              <EyeIcon
+                className="w-4 h-4"
+                style={{ color: "var(--text-muted)" }}
+              />
+            )}
+          </Button>
+        </div>
+
+        {error && <p className="text-sm text-red-500 mt-4">{error}</p>}
+        {status && !error && (
+          <p
+            className="text-sm mt-4"
+            style={{ color: "var(--text-tertiary)" }}
+          >
+            {status}
+          </p>
+        )}
+      </ModalBody>
+
+      <ModalFooter>
+        <Button
+          className="flex-1"
+          disabled={is_deleting}
+          size="lg"
+          variant="outline"
+          onClick={handle_close}
+        >
+          Cancel
+        </Button>
+        <Button
+          className="flex-1"
+          disabled={!is_confirmed || is_deleting}
+          size="lg"
+          variant="destructive"
+          onClick={handle_delete}
+        >
+          {is_deleting ? (
+            <>
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
+              Deleting...
+            </>
+          ) : (
+            "Delete Account"
+          )}
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 }

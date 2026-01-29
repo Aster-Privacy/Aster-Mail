@@ -17,6 +17,8 @@ import { TotpSetupModal } from "./totp_setup_modal";
 import { TotpDisableModal } from "./totp_disable_modal";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { KeyRotationModal } from "@/components/key_rotation_modal";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
@@ -91,34 +93,6 @@ function SecuritySetting({
   );
 }
 
-function Toggle({
-  enabled,
-  on_toggle,
-}: {
-  enabled: boolean;
-  on_toggle: () => void;
-}) {
-  return (
-    <button
-      className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-      style={{
-        backgroundColor: enabled ? "#3b82f6" : "var(--border-secondary)",
-      }}
-      type="button"
-      onClick={on_toggle}
-    >
-      <span
-        className={
-          "inline-block h-4 w-4 rounded-full transition-transform duration-200 " +
-          (enabled ? "translate-x-6" : "translate-x-1")
-        }
-        style={{
-          backgroundColor: enabled ? "#ffffff" : "var(--bg-card)",
-        }}
-      />
-    </button>
-  );
-}
 
 const SESSION_TIMEOUT_OPTIONS = [
   { value: 5, label: "5 minutes" },
@@ -497,9 +471,9 @@ export function SecuritySection() {
         <div className="space-y-3">
           <SecuritySetting
             action={
-              <Toggle
-                enabled={totp_status?.enabled ?? false}
-                on_toggle={handle_two_factor_toggle}
+              <Switch
+                checked={totp_status?.enabled ?? false}
+                onCheckedChange={handle_two_factor_toggle}
               />
             }
             description={
@@ -517,9 +491,9 @@ export function SecuritySection() {
           />
           <SecuritySetting
             action={
-              <Toggle
-                enabled={preferences.session_timeout_enabled}
-                on_toggle={handle_timeout_toggle}
+              <Switch
+                checked={preferences.session_timeout_enabled}
+                onCheckedChange={handle_timeout_toggle}
               />
             }
             description={get_timeout_description()}
@@ -588,9 +562,9 @@ export function SecuritySection() {
           )}
           <SecuritySetting
             action={
-              <Toggle
-                enabled={login_alerts_enabled}
-                on_toggle={handle_login_alerts_toggle}
+              <Switch
+                checked={login_alerts_enabled}
+                onCheckedChange={handle_login_alerts_toggle}
               />
             }
             description="Get notified of new sign-ins to your account"
@@ -604,9 +578,9 @@ export function SecuritySection() {
           />
           <SecuritySetting
             action={
-              <Toggle
-                enabled={preferences.forward_secrecy_enabled}
-                on_toggle={handle_forward_secrecy_toggle}
+              <Switch
+                checked={preferences.forward_secrecy_enabled}
+                onCheckedChange={handle_forward_secrecy_toggle}
               />
             }
             description={
@@ -833,16 +807,11 @@ export function SecuritySection() {
                   Current Password
                 </label>
                 <div className="relative">
-                  <input
-                    className="w-full px-3 py-2 pr-10 text-sm border rounded-lg"
+                  <Input
+                    className="pr-10"
                     disabled={password_loading}
                     id="current-password"
                     placeholder="Enter current password"
-                    style={{
-                      backgroundColor: "var(--input-bg)",
-                      borderColor: "var(--input-border)",
-                      color: "var(--text-secondary)",
-                    }}
                     type={show_current_password ? "text" : "password"}
                     value={current_password}
                     onChange={(e) => set_current_password(e.target.value)}
@@ -873,16 +842,11 @@ export function SecuritySection() {
                   New Password
                 </label>
                 <div className="relative">
-                  <input
-                    className="w-full px-3 py-2 pr-10 text-sm border rounded-lg"
+                  <Input
+                    className="pr-10"
                     disabled={password_loading}
                     id="new-password"
                     placeholder="Enter new password"
-                    style={{
-                      backgroundColor: "var(--input-bg)",
-                      borderColor: "var(--input-border)",
-                      color: "var(--text-secondary)",
-                    }}
                     type={show_new_password ? "text" : "password"}
                     value={new_password}
                     onChange={(e) => set_new_password(e.target.value)}
@@ -910,16 +874,10 @@ export function SecuritySection() {
                 >
                   Confirm New Password
                 </label>
-                <input
-                  className="w-full px-3 py-2 text-sm border rounded-lg"
+                <Input
                   disabled={password_loading}
                   id="confirm-new-password"
                   placeholder="Confirm new password"
-                  style={{
-                    backgroundColor: "var(--input-bg)",
-                    borderColor: "var(--input-border)",
-                    color: "var(--text-secondary)",
-                  }}
                   type="password"
                   value={confirm_password}
                   onChange={(e) => set_confirm_password(e.target.value)}

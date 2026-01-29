@@ -6,6 +6,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 
+import { Button } from "@/components/ui/button";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
   DEFAULT_PREFERENCES,
@@ -194,32 +195,19 @@ export function SettingsExportImport() {
         </p>
 
         <div className="flex items-center gap-3">
-          <button
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors hover:opacity-90"
-            style={{
-              backgroundColor: "var(--accent-color)",
-              color: "#ffffff",
-            }}
-            type="button"
-            onClick={handle_export}
-          >
+          <Button type="button" variant="primary" onClick={handle_export}>
             <ArrowDownTrayIcon className="w-4 h-4" />
             Export Settings
-          </button>
+          </Button>
 
-          <button
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors hover:opacity-90"
-            style={{
-              backgroundColor: "var(--bg-secondary)",
-              borderColor: "var(--border-secondary)",
-              color: "var(--text-secondary)",
-            }}
+          <Button
             type="button"
+            variant="secondary"
             onClick={handle_import_click}
           >
             <ArrowUpTrayIcon className="w-4 h-4" />
             Import Settings
-          </button>
+          </Button>
 
           <input
             ref={file_input_ref}

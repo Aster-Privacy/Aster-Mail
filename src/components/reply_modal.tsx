@@ -753,19 +753,7 @@ export function ReplyModal({
                       border: "1px solid var(--border-secondary)",
                     }}
                   >
-                    <div
-                      className="flex-shrink-0 px-1"
-                      style={{
-                        borderBottom: "1px solid var(--border-secondary)",
-                      }}
-                    >
-                      <EditorToolbar
-                        editor_ref={message_editor_ref}
-                        on_change={handle_editor_input}
-                      />
-                    </div>
-
-                    <div className="flex-1 overflow-auto px-3 py-2">
+                    <div className="flex-1 overflow-auto px-3 py-3">
                       <div
                         ref={message_editor_ref}
                         contentEditable
@@ -791,6 +779,18 @@ export function ReplyModal({
                           }
                         }}
                         onPaste={handle_editor_paste}
+                      />
+                    </div>
+
+                    <div
+                      className="flex-shrink-0 px-1"
+                      style={{
+                        borderTop: "1px solid var(--border-secondary)",
+                      }}
+                    >
+                      <EditorToolbar
+                        editor_ref={message_editor_ref}
+                        on_change={handle_editor_input}
                       />
                     </div>
                   </div>

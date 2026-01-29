@@ -4,6 +4,8 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   MagnifyingGlassIcon,
   SparklesIcon,
   Cog6ToothIcon,
@@ -15,12 +17,11 @@ import {
   UserGroupIcon,
   TagIcon,
   BellIcon,
-  ChatBubbleLeftRightIcon,
-  ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
 
 import { REFRESH_STATE_MS } from "@/constants/timings";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -108,8 +109,6 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
   { id: "social", label: "Social", icon: UserGroupIcon },
   { id: "promotions", label: "Promos", icon: TagIcon },
   { id: "updates", label: "Updates", icon: BellIcon },
-  { id: "forums", label: "Forums", icon: ChatBubbleLeftRightIcon },
-  { id: "purchases", label: "Purchases", icon: ShoppingBagIcon },
 ];
 
 interface InboxHeaderProps {
@@ -122,6 +121,14 @@ interface InboxHeaderProps {
   active_category?: EmailCategory | "all";
   on_category_change?: (category: EmailCategory | "all") => void;
   show_categories?: boolean;
+  all_selected?: boolean;
+  some_selected?: boolean;
+  on_toggle_select_all?: () => void;
+  filtered_count?: number;
+  total_messages?: number;
+  current_page?: number;
+  page_size?: number;
+  on_page_change?: (page: number) => void;
 }
 
 export function InboxHeader({
@@ -134,6 +141,14 @@ export function InboxHeader({
   active_category = "all",
   on_category_change,
   show_categories = false,
+  all_selected = false,
+  some_selected = false,
+  on_toggle_select_all,
+  filtered_count = 0,
+  total_messages = 0,
+  current_page = 0,
+  page_size = 50,
+  on_page_change,
 }: InboxHeaderProps) {
   const navigate = useNavigate();
   const { state: folders_state } = use_folders();
@@ -347,14 +362,22 @@ export function InboxHeader({
   return (
     <>
       <div
-        className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-2.5 border-b"
+        className="flex items-center justify-between gap-2 px-2 sm:px-4 py-2 sm:py-2.5 border-b overflow-hidden"
         style={{ borderColor: "var(--border-secondary)" }}
       >
-        <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
+        <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-shrink-0">
+          {on_toggle_select_all && (
+            <Checkbox
+              checked={all_selected ? true : some_selected ? "indeterminate" : false}
+              className="flex-shrink-0"
+              onCheckedChange={on_toggle_select_all}
+            />
+          )}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-1 rounded-md hover:bg-[var(--bg-hover)] transition-colors min-w-0">
-                <span className="text-sm sm:text-base font-semibold text-[var(--text-primary)] truncate max-w-[120px] sm:max-w-none">
+              <button className="flex items-center gap-1 px-1.5 py-1 rounded-md hover:bg-[var(--bg-hover)] transition-colors min-w-0">
+                <span className="text-sm font-semibold text-[var(--text-primary)] truncate max-w-[80px] sm:max-w-[120px]">
                   {view_title}
                 </span>
                 <ChevronDownIcon className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
@@ -390,9 +413,11 @@ export function InboxHeader({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
 
+        <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
           <Button
-            className="h-9 w-9 md:hidden flex-shrink-0"
+            className="h-8 w-8 lg:hidden flex-shrink-0"
             size="icon"
             variant="ghost"
             onClick={handle_search_open}
@@ -401,7 +426,7 @@ export function InboxHeader({
           </Button>
 
           <button
-            className="hidden md:flex items-center gap-2 w-48 h-8 px-2.5 rounded-md border cursor-pointer transition-colors hover:border-[var(--text-muted)]"
+            className="hidden lg:flex items-center gap-2 flex-1 min-w-[120px] max-w-[240px] h-8 px-2.5 rounded-md border cursor-pointer transition-colors hover:border-[var(--text-muted)]"
             data-onboarding="search-bar"
             style={{
               backgroundColor: "var(--bg-secondary)",
@@ -413,13 +438,13 @@ export function InboxHeader({
             <span className="text-xs text-[var(--text-muted)] flex-1 text-left truncate">
               Search...
             </span>
-            <kbd className="hidden lg:inline-flex h-4 items-center gap-0.5 rounded border px-1 font-mono text-[9px] font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] border-[var(--border-secondary)]">
+            <kbd className="hidden xl:inline-flex h-4 items-center gap-0.5 rounded border px-1 font-mono text-[9px] font-medium text-[var(--text-muted)] bg-[var(--bg-tertiary)] border-[var(--border-secondary)]">
               {is_mac ? "⌘" : "Ctrl"}K
             </kbd>
           </button>
 
           {show_categories && on_category_change && (
-            <div className="hidden md:flex items-center gap-0.5 ml-2">
+            <div className="hidden xl:flex items-center gap-0.5">
               {CATEGORY_CONFIGS.map((config) => {
                 const is_active = active_category === config.id;
                 const IconComponent = config.icon;
@@ -427,15 +452,15 @@ export function InboxHeader({
                 return (
                   <button
                     key={config.id}
-                    className={`flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md transition-colors duration-150 whitespace-nowrap ${
+                    className={`flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md transition-colors duration-150 whitespace-nowrap border ${
                       is_active
-                        ? "text-[var(--text-primary)] bg-[var(--bg-tertiary)]"
-                        : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+                        ? "text-[var(--text-primary)] bg-[var(--indicator-bg)] border-[var(--border-primary)]"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] border-transparent"
                     }`}
                     onClick={() => on_category_change(config.id)}
                   >
                     <IconComponent className="w-3 h-3" />
-                    <span>{config.label}</span>
+                    <span className="hidden 2xl:inline">{config.label}</span>
                   </button>
                 );
               })}
@@ -443,29 +468,65 @@ export function InboxHeader({
           )}
         </div>
 
-        <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+        <div className="flex items-center gap-0.5 flex-shrink-0">
           <Button
-            className="hidden sm:flex h-9 w-9"
+            className="hidden md:flex h-8 w-8"
             size="icon"
             variant="ghost"
             onClick={handle_refresh}
           >
             <ArrowPathIcon
-              className={`w-5 h-5 text-[var(--text-secondary)] ${is_refreshing ? "animate-spin" : ""}`}
+              className={`w-4 h-4 text-[var(--text-secondary)] ${is_refreshing ? "animate-spin" : ""}`}
             />
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                className="hidden sm:flex h-9 w-9"
+                className="hidden md:flex h-8 w-8"
                 size="icon"
                 variant="ghost"
               >
-                <SparklesIcon className="w-5 h-5 text-[var(--text-secondary)]" />
+                <FunnelIcon
+                  className={`w-4 h-4 ${active_filter !== "all" ? "text-blue-500" : "text-[var(--text-secondary)]"}`}
+                />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Filter</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => on_filter_change?.("all")}>
+                <span className="w-4 mr-2">
+                  {active_filter === "all" && <CheckIcon className="w-4 h-4" />}
+                </span>
+                All emails
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => on_filter_change?.("unread")}>
+                <span className="w-4 mr-2">
+                  {active_filter === "unread" && (
+                    <CheckIcon className="w-4 h-4" />
+                  )}
+                </span>
+                Unread only
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => on_filter_change?.("read")}>
+                <span className="w-4 mr-2">
+                  {active_filter === "read" && (
+                    <CheckIcon className="w-4 h-4" />
+                  )}
+                </span>
+                Read only
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => on_filter_change?.("attachments")}
+              >
+                <span className="w-4 mr-2">
+                  {active_filter === "attachments" && (
+                    <CheckIcon className="w-4 h-4" />
+                  )}
+                </span>
+                With attachments
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => handle_batch_action("mark_all_read")}
@@ -519,69 +580,51 @@ export function InboxHeader({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                className="hidden sm:flex h-9 w-9"
-                size="icon"
-                variant="ghost"
-              >
-                <FunnelIcon
-                  className={`w-5 h-5 ${active_filter !== "all" ? "text-blue-500" : "text-[var(--text-secondary)]"}`}
-                />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Filter</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => on_filter_change?.("all")}>
-                <span className="w-4 mr-2">
-                  {active_filter === "all" && <CheckIcon className="w-4 h-4" />}
-                </span>
-                All emails
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => on_filter_change?.("unread")}>
-                <span className="w-4 mr-2">
-                  {active_filter === "unread" && (
-                    <CheckIcon className="w-4 h-4" />
-                  )}
-                </span>
-                Unread only
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => on_filter_change?.("read")}>
-                <span className="w-4 mr-2">
-                  {active_filter === "read" && (
-                    <CheckIcon className="w-4 h-4" />
-                  )}
-                </span>
-                Read only
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => on_filter_change?.("attachments")}
-              >
-                <span className="w-4 mr-2">
-                  {active_filter === "attachments" && (
-                    <CheckIcon className="w-4 h-4" />
-                  )}
-                </span>
-                With attachments
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           <Button
-            className="hidden sm:flex h-9 w-9"
+            className="hidden lg:flex h-8 w-8"
             data-onboarding="settings-button"
             size="icon"
             variant="ghost"
             onClick={on_settings_click}
           >
-            <Cog6ToothIcon className="w-5 h-5 text-[var(--text-secondary)]" />
+            <Cog6ToothIcon className="w-4 h-4 text-[var(--text-secondary)]" />
           </Button>
+
+          {on_page_change && (
+            <div className="hidden xl:flex items-center gap-0.5 text-xs text-[var(--text-muted)] ml-1">
+              <span className="tabular-nums text-[11px]">
+                {filtered_count > 0
+                  ? `${current_page * page_size + 1}-${Math.min((current_page + 1) * page_size, filtered_count)}`
+                  : "0"}
+                {total_messages > 0 && (
+                  <span className="hidden 2xl:inline"> of {total_messages}</span>
+                )}
+              </span>
+              <Button
+                className="h-6 w-6"
+                disabled={current_page === 0}
+                size="icon"
+                variant="ghost"
+                onClick={() => on_page_change(current_page - 1)}
+              >
+                <ChevronLeftIcon className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                className="h-6 w-6"
+                disabled={current_page >= Math.ceil(filtered_count / page_size) - 1}
+                size="icon"
+                variant="ghost"
+                onClick={() => on_page_change(current_page + 1)}
+              >
+                <ChevronRightIcon className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="sm:hidden h-9 w-9" size="icon" variant="ghost">
-                <EllipsisVerticalIcon className="w-5 h-5 text-[var(--text-secondary)]" />
+              <Button className="lg:hidden h-8 w-8" size="icon" variant="ghost">
+                <EllipsisVerticalIcon className="w-4 h-4 text-[var(--text-secondary)]" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

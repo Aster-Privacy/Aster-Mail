@@ -1,22 +1,13 @@
 import type { InboxEmail } from "@/types/email";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import {
-  ArrowLeftIcon,
-  MagnifyingGlassIcon,
-  CalendarIcon,
-  PaperClipIcon,
-  EnvelopeIcon,
-  EnvelopeOpenIcon,
-  UserGroupIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 import { InboxEmailListItem } from "./inbox_email_list_item";
 import { SplitEmailViewer } from "./split_email_viewer";
 import { FullEmailViewer } from "./full_email_viewer";
 import { Spinner } from "./ui/spinner";
 import { Skeleton } from "./ui/skeleton";
-import { Separator } from "./ui/separator";
 import {
   Select,
   SelectContent,
@@ -27,7 +18,6 @@ import {
 
 import { use_search } from "@/hooks/use_search";
 import { use_preferences } from "@/contexts/preferences_context";
-import { cn } from "@/lib/utils";
 
 const MIN_LIST_WIDTH = 280;
 const DEFAULT_LIST_WIDTH = 400;
@@ -54,44 +44,17 @@ interface SearchResultsPageProps {
 function SearchResultSkeleton() {
   return (
     <div
-      className="flex items-center gap-3 px-4 py-3 border-b"
+      className="flex items-center gap-3 px-4 py-3 border-b overflow-hidden"
       style={{ borderColor: "var(--border-secondary)" }}
     >
       <Skeleton className="w-5 h-5 rounded flex-shrink-0" />
       <Skeleton className="w-8 h-8 rounded-full flex-shrink-0 hidden sm:block" />
-      <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1">
-        <Skeleton className="h-4 w-28 flex-shrink-0" />
-        <Skeleton className="h-4 w-full sm:flex-1" />
+      <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1 overflow-hidden">
+        <Skeleton className="h-4 w-full max-w-[100px] flex-shrink-0" />
+        <Skeleton className="h-4 flex-1 min-w-0 max-w-[200px]" />
       </div>
-      <Skeleton className="h-3 w-14 flex-shrink-0 hidden sm:block" />
+      <Skeleton className="h-3 w-12 flex-shrink-0 hidden sm:block" />
     </div>
-  );
-}
-
-function FilterButton({
-  label,
-  icon: Icon,
-  is_active,
-  on_click,
-}: {
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  is_active: boolean;
-  on_click: () => void;
-}) {
-  return (
-    <button
-      className={cn(
-        "flex items-center gap-1.5 px-2.5 py-1 text-[13px] font-medium rounded-md transition-colors duration-150 whitespace-nowrap border",
-        is_active
-          ? "text-[var(--text-primary)] bg-[var(--indicator-bg)] border-[var(--border-primary)]"
-          : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] border-transparent",
-      )}
-      onClick={on_click}
-    >
-      {Icon && <Icon className="w-3.5 h-3.5" />}
-      <span className="hidden sm:inline">{label}</span>
-    </button>
   );
 }
 
@@ -431,13 +394,13 @@ export function SearchResultsPage({
       style={{ backgroundColor: "var(--bg-primary)" }}
     >
       {!show_full_email_viewer && (
-        <>
-          <div
-            className="flex items-center gap-3 px-2 sm:px-4 py-2 sm:py-2.5 border-b flex-shrink-0"
-            style={{ borderColor: "var(--border-secondary)" }}
-          >
+        <div
+          className="flex items-center justify-between gap-2 px-2 sm:px-4 py-2 sm:py-2.5 border-b flex-shrink-0"
+          style={{ borderColor: "var(--border-secondary)" }}
+        >
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
-              className="p-1.5 rounded-lg transition-colors hover:bg-[var(--bg-hover)]"
+              className="p-1.5 rounded-lg transition-colors hover:bg-[var(--bg-hover)] flex-shrink-0"
               style={{ color: "var(--text-secondary)" }}
               onClick={on_close}
             >
@@ -445,7 +408,7 @@ export function SearchResultsPage({
             </button>
 
             <button
-              className="flex items-center gap-2 w-48 h-8 px-2.5 rounded-md border transition-colors hover:border-[var(--text-muted)] cursor-pointer"
+              className="hidden sm:flex items-center gap-2 w-64 h-8 px-2.5 rounded-md border transition-colors hover:border-[var(--text-muted)] cursor-pointer flex-shrink-0"
               style={{
                 backgroundColor: "var(--bg-secondary)",
                 borderColor: "var(--border-secondary)",
@@ -468,7 +431,7 @@ export function SearchResultsPage({
             </button>
 
             <span
-              className="text-xs whitespace-nowrap"
+              className="text-xs whitespace-nowrap flex-shrink-0"
               style={{ color: "var(--text-muted)" }}
             >
               {is_loading ? (
@@ -482,122 +445,23 @@ export function SearchResultsPage({
             </span>
           </div>
 
-          <div
-            className="flex-shrink-0 border-b"
-            style={{ borderColor: "var(--border-primary)" }}
-          >
-            <div className="flex items-center gap-2 px-3 sm:px-4 py-2 overflow-x-auto">
-              <FilterButton
-                icon={CalendarIcon}
-                is_active={filters.date_range === "today"}
-                label="Today"
-                on_click={() =>
-                  set_filters((prev) => ({
-                    ...prev,
-                    date_range: prev.date_range === "today" ? "any" : "today",
-                  }))
-                }
-              />
-              <FilterButton
-                icon={CalendarIcon}
-                is_active={filters.date_range === "week"}
-                label="Past week"
-                on_click={() =>
-                  set_filters((prev) => ({
-                    ...prev,
-                    date_range: prev.date_range === "week" ? "any" : "week",
-                  }))
-                }
-              />
-              <FilterButton
-                icon={CalendarIcon}
-                is_active={filters.date_range === "month"}
-                label="Past month"
-                on_click={() =>
-                  set_filters((prev) => ({
-                    ...prev,
-                    date_range: prev.date_range === "month" ? "any" : "month",
-                  }))
-                }
-              />
-
-              <Separator
-                className="h-4 mx-1 bg-[var(--border-secondary)]"
-                orientation="vertical"
-              />
-
-              <FilterButton
-                icon={PaperClipIcon}
-                is_active={filters.has_attachment === true}
-                label="Has attachment"
-                on_click={() =>
-                  set_filters((prev) => ({
-                    ...prev,
-                    has_attachment: prev.has_attachment === true ? null : true,
-                  }))
-                }
-              />
-
-              <FilterButton
-                icon={UserGroupIcon}
-                is_active={filters.exclude_social}
-                label="Exclude social"
-                on_click={() =>
-                  set_filters((prev) => ({
-                    ...prev,
-                    exclude_social: !prev.exclude_social,
-                  }))
-                }
-              />
-
-              <Separator
-                className="h-4 mx-1 bg-[var(--border-secondary)] hidden sm:block"
-                orientation="vertical"
-              />
-
-              <FilterButton
-                icon={EnvelopeIcon}
-                is_active={filters.read_status === "unread"}
-                label="Unread"
-                on_click={() =>
-                  set_filters((prev) => ({
-                    ...prev,
-                    read_status:
-                      prev.read_status === "unread" ? "any" : "unread",
-                  }))
-                }
-              />
-              <FilterButton
-                icon={EnvelopeOpenIcon}
-                is_active={filters.read_status === "read"}
-                label="Read"
-                on_click={() =>
-                  set_filters((prev) => ({
-                    ...prev,
-                    read_status: prev.read_status === "read" ? "any" : "read",
-                  }))
-                }
-              />
-
-              <div className="ml-auto flex items-center gap-2">
-                <Select
-                  value={filters.sort_by}
-                  onValueChange={(value: SortOption) =>
-                    set_filters((prev) => ({ ...prev, sort_by: value }))
-                  }
-                >
-                  <SelectTrigger className="h-7 w-[140px] text-[13px] border-[var(--border-secondary)] bg-transparent">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="relevant">Most relevant</SelectItem>
-                    <SelectItem value="recent">Most recent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+          <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+            <Select
+              value={filters.sort_by}
+              onValueChange={(value: SortOption) =>
+                set_filters((prev) => ({ ...prev, sort_by: value }))
+              }
+            >
+              <SelectTrigger className="h-8 w-[130px] text-xs border-[var(--border-secondary)] bg-transparent">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="relevant">Most relevant</SelectItem>
+                <SelectItem value="recent">Most recent</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </>
+        </div>
       )}
 
       {show_full_email_viewer && split_email_id ? (

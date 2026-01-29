@@ -36,9 +36,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LockIcon } from "@/components/icons";
 import { KeyboardShortcutBadge } from "@/components/keyboard_shortcut_badge";
-import { EncryptionInfoModal } from "@/components/encryption_info_modal";
+import { EncryptionInfoDropdown } from "@/components/encryption_info_dropdown";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
@@ -270,7 +269,6 @@ export function FullEmailViewer({
   const [show_details, set_show_details] = useState(false);
   const [is_external, set_is_external] = useState(false);
   const [has_pq_protection, set_has_pq_protection] = useState(false);
-  const [show_encryption_info, set_show_encryption_info] = useState(false);
   const [show_inline_reply, set_show_inline_reply] = useState(false);
   const mark_as_read_timeout = useRef<number | null>(null);
   const inline_reply_ref = useRef<HTMLDivElement>(null);
@@ -688,6 +686,7 @@ export function FullEmailViewer({
         is_read: item.is_read ?? false,
         is_starred: item.is_starred ?? false,
         is_deleted: false,
+        is_external: item.is_external,
         encrypted_metadata: item.encrypted_metadata,
         metadata_nonce: item.metadata_nonce,
       };
@@ -801,15 +800,15 @@ export function FullEmailViewer({
   if (is_loading) {
     return (
       <div
-        className="flex flex-col h-full"
+        className="flex flex-col h-full overflow-hidden"
         style={{ backgroundColor: "var(--bg-primary)" }}
       >
         <div
-          className="flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-3 border-b flex-shrink-0"
+          className="flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-3 border-b flex-shrink-0 overflow-hidden"
           style={{ borderColor: "var(--border-primary)" }}
         >
           <button
-            className="flex items-center gap-2 px-3 py-1.5 -ml-3 rounded-lg text-sm font-medium transition-all hover:bg-[var(--bg-hover)]"
+            className="flex items-center gap-2 px-3 py-1.5 -ml-3 rounded-lg text-sm font-medium transition-all hover:bg-[var(--bg-hover)] flex-shrink-0"
             style={{ color: "var(--text-secondary)" }}
             onClick={on_back}
           >
@@ -817,34 +816,34 @@ export function FullEmailViewer({
             <span>Back</span>
           </button>
 
-          <div className="flex-1 min-w-0 flex items-center gap-3">
+          <div className="flex-1 min-w-0 flex items-center gap-3 overflow-hidden">
             <Skeleton className="w-4 h-4 rounded flex-shrink-0" />
-            <Skeleton className="w-48 h-4" />
+            <Skeleton className="h-4 flex-1 max-w-[180px]" />
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <Skeleton className="w-8 h-8 rounded-md" />
             <Skeleton className="w-8 h-8 rounded-md" />
             <Skeleton className="w-8 h-8 rounded-md" />
             <Skeleton className="w-8 h-8 rounded-md" />
           </div>
         </div>
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 w-full">
-          <Skeleton className="w-2/3 h-7 mb-6" />
-          <div className="flex items-start gap-3 sm:gap-4 mb-6">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 w-full overflow-hidden">
+          <Skeleton className="h-7 mb-6 w-full max-w-[66%]" />
+          <div className="flex items-start gap-3 sm:gap-4 mb-6 min-w-0">
             <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="w-32 h-4" />
-              <Skeleton className="w-24 h-3" />
+            <div className="flex-1 space-y-2 min-w-0">
+              <Skeleton className="h-4 w-full max-w-[120px]" />
+              <Skeleton className="h-3 w-full max-w-[90px]" />
             </div>
-            <Skeleton className="w-28 h-3" />
+            <Skeleton className="h-3 w-24 flex-shrink-0 hidden sm:block" />
           </div>
           <div className="space-y-3 pt-4">
             <Skeleton className="w-full h-4" />
             <Skeleton className="w-full h-4" />
-            <Skeleton className="w-3/4 h-4" />
+            <Skeleton className="h-4 w-full max-w-[75%]" />
             <Skeleton className="w-full h-4" />
-            <Skeleton className="w-1/2 h-4" />
+            <Skeleton className="h-4 w-full max-w-[50%]" />
           </div>
         </div>
       </div>
@@ -914,12 +913,11 @@ export function FullEmailViewer({
         </button>
 
         <div className="flex-1 min-w-0 flex items-center gap-3">
-          <button
-            className="flex-shrink-0 text-blue-500 hover:text-blue-600 transition-colors"
-            onClick={() => set_show_encryption_info(true)}
-          >
-            <LockIcon size={16} />
-          </button>
+          <EncryptionInfoDropdown
+            has_pq_protection={has_pq_protection}
+            is_external={is_external}
+            size={16}
+          />
           <span
             className="text-sm font-medium truncate"
             style={{ color: "var(--text-primary)" }}
@@ -1440,12 +1438,6 @@ export function FullEmailViewer({
           )}
         </div>
       )}
-      <EncryptionInfoModal
-        has_pq_protection={has_pq_protection}
-        is_external={is_external}
-        is_open={show_encryption_info}
-        on_close={() => set_show_encryption_info(false)}
-      />
     </div>
   );
 }

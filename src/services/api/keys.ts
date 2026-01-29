@@ -194,6 +194,14 @@ export function extract_username_from_email(email: string): string | null {
   return parts[0];
 }
 
+const INTERNAL_DOMAINS = [
+  "astermail.org",
+  "aster.cx",
+  "gs-cloud.space",
+];
+
 export function is_internal_email(email: string): boolean {
-  return email.toLowerCase().endsWith("@gs-cloud.space");
+  const lower_email = email.toLowerCase();
+
+  return INTERNAL_DOMAINS.some((domain) => lower_email.endsWith(`@${domain}`));
 }
