@@ -205,3 +205,28 @@ export function is_internal_email(email: string): boolean {
 
   return INTERNAL_DOMAINS.some((domain) => lower_email.endsWith(`@${domain}`));
 }
+
+interface PublishKeyResponse {
+  success: boolean;
+  url?: string;
+}
+
+export async function publish_key_to_wkd(): Promise<ApiResponse<PublishKeyResponse>> {
+  return api_client.post<PublishKeyResponse>("/keys/publish/wkd", {});
+}
+
+export async function unpublish_key_from_wkd(): Promise<ApiResponse<PublishKeyResponse>> {
+  return api_client.delete<PublishKeyResponse>("/keys/publish/wkd");
+}
+
+export async function publish_key_to_keyserver(): Promise<ApiResponse<PublishKeyResponse>> {
+  return api_client.post<PublishKeyResponse>("/keys/publish/keyserver", {});
+}
+
+export async function get_wkd_publication_status(): Promise<ApiResponse<{ published: boolean; url?: string }>> {
+  return api_client.get<{ published: boolean; url?: string }>("/keys/publish/wkd/status");
+}
+
+export async function get_keyserver_publication_status(): Promise<ApiResponse<{ published: boolean; fingerprint?: string }>> {
+  return api_client.get<{ published: boolean; fingerprint?: string }>("/keys/publish/keyserver/status");
+}

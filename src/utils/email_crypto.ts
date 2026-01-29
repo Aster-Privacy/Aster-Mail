@@ -113,3 +113,91 @@ export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
     return body_text;
   }
 }
+
+export interface RecipientKeyResult {
+  email: string;
+  has_key: boolean;
+  public_key: string | null;
+  fingerprint: string | null;
+  source: string | null;
+}
+
+export interface ExternalEncryptionResult {
+  recipients_with_keys: RecipientKeyResult[];
+  recipients_without_keys: string[];
+  all_have_keys: boolean;
+  any_have_keys: boolean;
+}
+
+export async function discover_external_recipient_keys(
+  emails: string[],
+  auto_discover_enabled: boolean,
+): Promise<ExternalEncryptionResult> {
+  if (!auto_discover_enabled || emails.length === 0) {
+    return {
+      recipients_with_keys: [],
+      recipients_without_keys: emails,
+      all_have_keys: false,
+      any_have_keys: false,
+    };
+  }
+
+  const unique_emails = [...new Set(emails.map((e) => e.toLowerCase()))];
+  const response = await discover_external_keys_batch(unique_emails);
+
+  if (!response.data) {
+    return {
+      recipients_with_keys: [],
+      recipients_without_keys: unique_emails,
+      all_have_keys: false,
+      any_have_keys: false,
+    };
+  }
+
+  const key_map = new Map<string, ExternalKeyInfo>();
+
+  for (const key_info of response.data) {
+    key_map.set(key_info.email.toLowerCase(), key_info);
+  }
+
+  const recipients_with_keys: RecipientKeyResult[] = [];
+  const recipients_without_keys: string[] = [];
+
+  for (const email of unique_emails) {
+    const key_info = key_map.get(email.toLowerCase());
+
+    if (key_info?.found && key_info.public_key) {
+      recipients_with_keys.push({
+        email,
+        has_key: true,
+        public_key: key_info.public_key,
+        fingerprint: key_info.fingerprint,
+        source: key_info.source,
+      });
+    } else {
+      recipients_without_keys.push(email);
+    }
+  }
+
+  return {
+    recipients_with_keys,
+    recipients_without_keys,
+    all_have_keys: recipients_without_keys.length === 0 && recipients_with_keys.length > 0,
+    any_have_keys: recipients_with_keys.length > 0,
+  };
+}
+
+export async function encrypt_for_external_recipients(
+  body: string,
+  recipient_keys: RecipientKeyResult[],
+): Promise<string> {
+  const public_keys = recipient_keys
+    .filter((r) => r.has_key && r.public_key)
+    .map((r) => r.public_key as string);
+
+  if (public_keys.length === 0) {
+    return body;
+  }
+
+  return encrypt_message_multi(body, public_keys);
+}

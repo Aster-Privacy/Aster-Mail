@@ -24,6 +24,11 @@ import { get_dev_mode, save_dev_mode } from "@/services/api/preferences";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { show_toast } from "@/components/simple_toast";
 import {
+  publish_key_to_wkd,
+  unpublish_key_from_wkd,
+  publish_key_to_keyserver,
+} from "@/services/api/keys";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -194,6 +199,54 @@ export function BehaviorSection() {
   const handle_copy_version = () => {
     navigator.clipboard.writeText("v1.0.0 Aurora");
     show_toast("Version copied", "success");
+  };
+
+  const handle_wkd_toggle = async () => {
+    const new_value = !preferences.publish_to_wkd;
+
+    update_preference("publish_to_wkd", new_value);
+
+    if (new_value) {
+      const result = await publish_key_to_wkd();
+
+      if (result.error) {
+        update_preference("publish_to_wkd", false);
+        show_toast("Failed to publish key to WKD", "error");
+      } else {
+        show_toast("Key published to WKD", "success");
+      }
+    } else {
+      const result = await unpublish_key_from_wkd();
+
+      if (result.error) {
+        update_preference("publish_to_wkd", true);
+        show_toast("Failed to remove key from WKD", "error");
+      } else {
+        show_toast("Key removed from WKD", "success");
+      }
+    }
+  };
+
+  const handle_keyserver_toggle = async () => {
+    const new_value = !preferences.publish_to_keyservers;
+
+    update_preference("publish_to_keyservers", new_value);
+
+    if (new_value) {
+      const result = await publish_key_to_keyserver();
+
+      if (result.error) {
+        update_preference("publish_to_keyservers", false);
+        show_toast("Failed to publish key to keyserver", "error");
+      } else {
+        show_toast("Key published to keyserver", "success");
+      }
+    } else {
+      show_toast(
+        "Keys cannot be removed from public keyservers once published",
+        "info",
+      );
+    }
   };
 
   return (
@@ -544,9 +597,7 @@ export function BehaviorSection() {
                 style={{ color: "var(--text-secondary)" }}
               />
             }
-            on_toggle={() =>
-              update_preference("publish_to_wkd", !preferences.publish_to_wkd)
-            }
+            on_toggle={handle_wkd_toggle}
             title="Publish keys to WKD"
           />
 
@@ -559,12 +610,7 @@ export function BehaviorSection() {
                 style={{ color: "var(--text-secondary)" }}
               />
             }
-            on_toggle={() =>
-              update_preference(
-                "publish_to_keyservers",
-                !preferences.publish_to_keyservers,
-              )
-            }
+            on_toggle={handle_keyserver_toggle}
             title="Publish to keyservers"
           />
         </div>

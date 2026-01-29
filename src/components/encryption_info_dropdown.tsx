@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { LockIcon } from "@/components/icons";
+import { use_preferences } from "@/contexts/preferences_context";
 
 interface EncryptionInfoDropdownProps {
   is_external: boolean;
@@ -14,6 +15,11 @@ export function EncryptionInfoDropdown({
   has_pq_protection,
   size = 18,
 }: EncryptionInfoDropdownProps) {
+  const { preferences } = use_preferences();
+
+  if (!preferences.show_encryption_indicators) {
+    return null;
+  }
   const [is_open, set_is_open] = useState(false);
   const dropdown_ref = useRef<HTMLDivElement>(null);
   const trigger_ref = useRef<HTMLButtonElement>(null);

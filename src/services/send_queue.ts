@@ -6,6 +6,11 @@ import {
   extract_username_from_email,
   is_internal_email,
 } from "./api/keys";
+import {
+  discover_external_recipient_keys,
+  encrypt_for_external_recipients,
+  type RecipientKeyResult,
+} from "@/utils/email_crypto";
 import { encrypt_message_multi } from "./crypto/key_manager";
 import {
   get_vault_from_memory,
@@ -126,6 +131,12 @@ export class SendError extends Error {
   }
 }
 
+export interface EncryptionOptions {
+  auto_discover_keys: boolean;
+  encrypt_emails: boolean;
+  require_encryption: boolean;
+}
+
 export interface EmailParams {
   to: string[];
   cc?: string[];
@@ -135,6 +146,8 @@ export interface EmailParams {
   thread_id?: string;
   sender_email?: string;
   sender_alias_hash?: string;
+  encryption_options?: EncryptionOptions;
+  recipient_keys?: RecipientKeyResult[];
 }
 
 export interface QueueCallbacks {
@@ -462,10 +475,60 @@ export async function execute_external_send(
     throw readiness.error;
   }
 
+  const all_recipients = [...email.to, ...(email.cc || []), ...(email.bcc || [])];
+  let body_to_send = email.body;
+  let is_pgp_encrypted = false;
+
+  const encryption_opts = email.encryption_options;
+
+  if (encryption_opts) {
+    let recipient_keys = email.recipient_keys;
+
+    if (!recipient_keys && encryption_opts.auto_discover_keys) {
+      const discovery_result = await discover_external_recipient_keys(
+        all_recipients,
+        true,
+      );
+
+      recipient_keys = discovery_result.recipients_with_keys;
+    }
+
+    if (recipient_keys && recipient_keys.length > 0) {
+      if (encryption_opts.require_encryption) {
+        const recipients_with_keys = new Set(
+          recipient_keys.map((r) => r.email.toLowerCase()),
+        );
+        const recipients_without_keys = all_recipients.filter(
+          (r) => !recipients_with_keys.has(r.toLowerCase()),
+        );
+
+        if (recipients_without_keys.length > 0) {
+          throw create_error(
+            "encryption_failed",
+            `Cannot send: encryption is required but no keys found for: ${recipients_without_keys.join(", ")}`,
+          );
+        }
+      }
+
+      if (encryption_opts.encrypt_emails && recipient_keys.length > 0) {
+        body_to_send = await encrypt_for_external_recipients(
+          email.body,
+          recipient_keys,
+        );
+        is_pgp_encrypted = true;
+      }
+    } else if (encryption_opts.require_encryption) {
+      throw create_error(
+        "encryption_failed",
+        "Cannot send: encryption is required but no recipient keys were found",
+      );
+    }
+  }
+
   const encrypted = await encrypt_with_ephemeral_key(
     { to: email.to, cc: email.cc, bcc: email.bcc },
     email.subject,
-    email.body,
+    body_to_send,
   );
 
   const current_account = await get_current_account();

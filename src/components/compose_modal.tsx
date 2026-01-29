@@ -1075,12 +1075,23 @@ export function ComposeModal({
         message,
       };
 
+      const encryption_options = {
+        auto_discover_keys: preferences.auto_discover_keys,
+        encrypt_emails: preferences.encrypt_emails,
+        require_encryption: preferences.require_encryption,
+      };
+
+      const email_with_encryption = {
+        ...email_data,
+        encryption_options,
+      };
+
       const email_id = crypto.randomUUID();
       const scheduled_time = Date.now() + delay_ms;
 
       const timeout_id = window.setTimeout(async () => {
         try {
-          await execute_external_send(email_data, true);
+          await execute_external_send(email_with_encryption, true);
           undo_send_manager.remove(email_id);
           set_queued_email_id(null);
           show_toast("Email sent.", "success");
@@ -1111,7 +1122,7 @@ export function ComposeModal({
         on_send_immediately: async () => {
           window.clearTimeout(timeout_id);
           try {
-            await execute_external_send(email_data, true);
+            await execute_external_send(email_with_encryption, true);
             set_queued_email_id(null);
             show_toast("Email sent.", "success");
             setTimeout(() => {
@@ -1148,6 +1159,9 @@ export function ComposeModal({
       reset_form,
       edit_draft,
       on_draft_cleared,
+      preferences.auto_discover_keys,
+      preferences.encrypt_emails,
+      preferences.require_encryption,
     ],
   );
 
