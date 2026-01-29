@@ -21,7 +21,6 @@ import {
   AdjustmentsHorizontalIcon,
   AtSymbolIcon,
   CreditCardIcon,
-  GlobeAltIcon,
   KeyIcon,
   CodeBracketIcon,
   DocumentTextIcon,
@@ -81,10 +80,6 @@ const BillingSection = create_lazy_section(
   () => import("@/components/settings/billing_section"),
   (m) => m.BillingSection,
 );
-const DomainsSection = create_lazy_section(
-  () => import("@/components/settings/domains_section"),
-  (m) => m.DomainsSection,
-);
 const EncryptionSection = create_lazy_section(
   () => import("@/components/settings/encryption_section"),
   (m) => m.EncryptionSection,
@@ -116,7 +111,6 @@ export type SettingsSection =
   | "security"
   | "encryption"
   | "aliases"
-  | "domains"
   | "billing"
   | "import"
   | "notifications"
@@ -161,8 +155,7 @@ const NAV_ITEMS: { general: NavItem[]; mail: NavItem[] } = {
     { id: "appearance", label: "Appearance", icon: SwatchIcon },
     { id: "security", label: "Security", icon: ShieldCheckIcon },
     { id: "encryption", label: "Encryption", icon: KeyIcon },
-    { id: "aliases", label: "Aliases", icon: AtSymbolIcon },
-    { id: "domains", label: "Domains", icon: GlobeAltIcon },
+    { id: "aliases", label: "Aliases & Domains", icon: AtSymbolIcon },
     { id: "billing", label: "Billing", icon: CreditCardIcon },
   ],
   mail: [
@@ -203,7 +196,6 @@ export function SettingsPanel({
     security: null,
     encryption: null,
     aliases: null,
-    domains: null,
     billing: null,
     import: null,
     notifications: null,
@@ -333,8 +325,6 @@ export function SettingsPanel({
         return <EncryptionSection />;
       case "aliases":
         return <AliasesSection />;
-      case "domains":
-        return <DomainsSection />;
       case "billing":
         return <BillingSection />;
       case "subscriptions":

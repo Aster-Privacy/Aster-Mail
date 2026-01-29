@@ -62,15 +62,9 @@ export function SenderSelector({
 
   if (!display_option) {
     return (
-      <div
-        className="flex items-center gap-1.5 rounded-full px-2 py-1 border"
-        style={{
-          backgroundColor: "var(--bg-secondary)",
-          borderColor: "var(--border-secondary)",
-        }}
-      >
+      <div className="flex-1 flex items-center gap-1.5">
         <div
-          className="w-6 h-6 rounded-full animate-pulse"
+          className="w-5 h-5 rounded-full animate-pulse"
           style={{ backgroundColor: "var(--bg-hover)" }}
         />
         <span
@@ -83,13 +77,7 @@ export function SenderSelector({
 
   if (options.length <= 1) {
     return (
-      <div
-        className="flex items-center gap-1.5 rounded-full px-2 py-1 border"
-        style={{
-          backgroundColor: "var(--bg-secondary)",
-          borderColor: "var(--border-secondary)",
-        }}
-      >
+      <div className="flex-1 flex items-center gap-1.5">
         <ProfileAvatar
           email={display_option.email}
           name={get_email_username(display_option.email)}
@@ -103,14 +91,10 @@ export function SenderSelector({
   }
 
   return (
-    <div ref={dropdown_ref} className="relative">
+    <div ref={dropdown_ref} className="relative flex-1">
       <button
-        className="flex items-center gap-1.5 rounded-full px-2 py-1 border transition-colors disabled:opacity-50"
+        className="flex items-center gap-1.5 py-0.5 px-1 -ml-1 rounded transition-colors disabled:opacity-50"
         disabled={disabled}
-        style={{
-          backgroundColor: "var(--bg-secondary)",
-          borderColor: "var(--border-secondary)",
-        }}
         type="button"
         onClick={() => set_is_open(!is_open)}
         onMouseEnter={(e) => {
@@ -119,7 +103,7 @@ export function SenderSelector({
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "var(--bg-secondary)";
+          e.currentTarget.style.backgroundColor = "transparent";
         }}
       >
         <ProfileAvatar
@@ -140,7 +124,7 @@ export function SenderSelector({
         {is_open && (
           <motion.div
             animate={{ opacity: 1, y: 0 }}
-            className="absolute z-50 mt-1 w-72 rounded-lg shadow-lg overflow-hidden"
+            className="absolute left-0 z-50 mt-1 w-72 rounded-lg shadow-lg overflow-hidden"
             exit={{ opacity: 0, y: -8 }}
             initial={{ opacity: 0, y: -8 }}
             style={{

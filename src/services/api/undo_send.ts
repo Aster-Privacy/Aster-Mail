@@ -23,6 +23,8 @@ export interface QueueEmailRequest {
   folder_token?: string;
   encrypted_metadata?: string;
   metadata_nonce?: string;
+  sender_email?: string;
+  sender_alias_hash?: string;
 }
 
 export interface QueueEmailResponse {

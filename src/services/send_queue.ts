@@ -630,6 +630,8 @@ class SendQueue {
       subject: email.subject,
       body: email.body,
       thread_id: email.thread_id,
+      sender_email: email.sender_email,
+      sender_alias_hash: email.sender_alias_hash,
       scheduled_time,
       timeout_id,
       callbacks: {
@@ -877,7 +879,7 @@ async function prepare_email_for_server_queue(
   if (!current_account?.user?.email) {
     throw new SendError("No authenticated account found");
   }
-  const sender_email = current_account.user.email;
+  const sender_email = email.sender_email || current_account.user.email;
 
   const internal_email: QueuedEmailInternal = {
     id: crypto.randomUUID(),
@@ -886,6 +888,8 @@ async function prepare_email_for_server_queue(
     bcc: email.bcc,
     subject: email.subject,
     body: email.body,
+    sender_email: email.sender_email,
+    sender_alias_hash: email.sender_alias_hash,
     scheduled_time: Date.now(),
     timeout_id: 0,
     callbacks: {
@@ -914,6 +918,8 @@ async function prepare_email_for_server_queue(
     folder_token: envelope_data.folder_token,
     encrypted_metadata: envelope_data.encrypted_metadata,
     metadata_nonce: envelope_data.metadata_nonce,
+    sender_email: email.sender_email,
+    sender_alias_hash: email.sender_alias_hash,
   };
 
   return { request, is_encrypted };
