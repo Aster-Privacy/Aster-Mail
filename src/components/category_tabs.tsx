@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 interface CategoryTabsProps {
   active_category: EmailCategory | "all";
   on_category_change: (category: EmailCategory | "all") => void;
-  unread_counts: Record<EmailCategory, number>;
+  unread_counts?: Record<EmailCategory, number>;
   show_all_tab?: boolean;
   className?: string;
 }
@@ -38,24 +38,13 @@ const CATEGORY_CONFIGS: CategoryTabConfig[] = [
 function CategoryTabs({
   active_category,
   on_category_change,
-  unread_counts,
+  unread_counts: _unread_counts,
   show_all_tab = true,
   className,
 }: CategoryTabsProps) {
   const visible_categories = show_all_tab
     ? CATEGORY_CONFIGS
     : CATEGORY_CONFIGS.filter((c) => c.id !== "all");
-
-  const get_unread_count = (category: EmailCategory | "all"): number => {
-    if (category === "all") {
-      return Object.values(unread_counts).reduce(
-        (sum, count) => sum + count,
-        0,
-      );
-    }
-
-    return unread_counts[category] ?? 0;
-  };
 
   return (
     <div
@@ -65,7 +54,6 @@ function CategoryTabs({
       <div className="flex items-center gap-0.5 px-3 sm:px-4 py-2">
         {visible_categories.map((config) => {
           const is_active = active_category === config.id;
-          const unread = get_unread_count(config.id);
           const IconComponent = config.icon;
 
           return (
@@ -81,18 +69,6 @@ function CategoryTabs({
             >
               <IconComponent className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{config.label}</span>
-              {unread > 0 && (
-                <span
-                  className={cn(
-                    "inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 text-[10px] font-semibold rounded-full",
-                    is_active
-                      ? "bg-[var(--accent-color)] text-white"
-                      : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]",
-                  )}
-                >
-                  {unread > 99 ? "99+" : unread}
-                </span>
-              )}
             </button>
           );
         })}
