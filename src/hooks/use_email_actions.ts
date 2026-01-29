@@ -13,10 +13,8 @@ import {
   move_mail_item,
   restore_mail_item,
   permanent_delete_mail_item,
-  batched_bulk_update,
   batched_bulk_add_folder,
   batched_bulk_remove_folder,
-  type UpdateMailItemRequest,
 } from "@/services/api/mail";
 import {
   show_action_toast,
@@ -305,19 +303,21 @@ export function use_email_actions(
   const update_with_metadata = useCallback(
     async (
       email: InboxEmail,
-      updates: Partial<UpdateMailItemRequest>,
+      updates: Partial<{
+        is_read: boolean;
+        is_starred: boolean;
+        is_pinned: boolean;
+        is_trashed: boolean;
+        is_archived: boolean;
+        is_spam: boolean;
+      }>,
     ): Promise<{ data?: unknown; error?: string }> => {
       const result = await update_item_metadata(
         email.id,
         {
           encrypted_metadata: email.encrypted_metadata,
           metadata_nonce: email.metadata_nonce,
-          is_read: email.is_read,
-          is_starred: email.is_starred,
-          is_pinned: email.is_pinned,
-          is_trashed: email.is_trashed,
-          is_archived: email.is_archived,
-          is_spam: email.is_spam,
+          metadata_version: email.metadata_version,
         },
         updates,
       );
@@ -325,6 +325,45 @@ export function use_email_actions(
       return result.success ? { data: true } : { error: "Failed to update" };
     },
     [],
+  );
+
+  const bulk_update_with_metadata = useCallback(
+    async (
+      emails: InboxEmail[],
+      updates: Partial<{
+        is_read: boolean;
+        is_starred: boolean;
+        is_pinned: boolean;
+        is_trashed: boolean;
+        is_archived: boolean;
+        is_spam: boolean;
+      }>,
+      options?: {
+        signal?: AbortSignal;
+        on_progress?: (completed: number, total: number) => void;
+      },
+    ): Promise<{ success: boolean; failed_ids: string[] }> => {
+      const failed_ids: string[] = [];
+      let completed = 0;
+
+      for (const email of emails) {
+        if (options?.signal?.aborted) {
+          return { success: false, failed_ids };
+        }
+
+        const result = await update_with_metadata(email, updates);
+
+        if (result.error) {
+          failed_ids.push(email.id);
+        }
+
+        completed++;
+        options?.on_progress?.(completed, emails.length);
+      }
+
+      return { success: failed_ids.length === 0, failed_ids };
+    },
+    [update_with_metadata],
   );
 
   const toggle_star = useCallback(
@@ -685,8 +724,9 @@ export function use_email_actions(
       }
 
       try {
-        const result = await batched_bulk_update(
-          { ids, is_starred: starred },
+        const result = await bulk_update_with_metadata(
+          emails,
+          { is_starred: starred },
           {
             signal: bulk_abort_ref.current.signal,
             on_progress: (completed, total) => {
@@ -736,6 +776,7 @@ export function use_email_actions(
       create_pending_action,
       set_action_loading,
       on_bulk_optimistic_update,
+      bulk_update_with_metadata,
       rollback_action,
       remove_pending_action,
       clear_action_state,
@@ -772,8 +813,9 @@ export function use_email_actions(
       }
 
       try {
-        const result = await batched_bulk_update(
-          { ids, is_archived: true },
+        const result = await bulk_update_with_metadata(
+          emails,
+          { is_archived: true },
           {
             signal: bulk_abort_ref.current.signal,
             on_progress: (completed, total) => {
@@ -802,6 +844,9 @@ export function use_email_actions(
         on_success?.("archive");
 
         const success_count = ids.length - result.failed_ids.length;
+        const successful_emails = emails.filter(
+          (e) => !result.failed_ids.includes(e.id),
+        );
 
         if (success_count > 0) {
           show_action_toast({
@@ -809,8 +854,7 @@ export function use_email_actions(
             action_type: "archive",
             email_ids: ids.filter((i) => !result.failed_ids.includes(i)),
             on_undo: async () => {
-              await batched_bulk_update({
-                ids: ids.filter((i) => !result.failed_ids.includes(i)),
+              await bulk_update_with_metadata(successful_emails, {
                 is_archived: false,
               });
               emit_mail_changed();
@@ -833,6 +877,7 @@ export function use_email_actions(
       set_action_loading,
       on_bulk_optimistic_update,
       on_bulk_remove_from_list,
+      bulk_update_with_metadata,
       rollback_action,
       remove_pending_action,
       clear_action_state,
@@ -869,8 +914,9 @@ export function use_email_actions(
       }
 
       try {
-        const result = await batched_bulk_update(
-          { ids, is_trashed: true },
+        const result = await bulk_update_with_metadata(
+          emails,
+          { is_trashed: true },
           {
             signal: bulk_abort_ref.current.signal,
             on_progress: (completed, total) => {
@@ -899,6 +945,9 @@ export function use_email_actions(
         on_success?.("delete");
 
         const success_count = ids.length - result.failed_ids.length;
+        const successful_emails = emails.filter(
+          (e) => !result.failed_ids.includes(e.id),
+        );
 
         if (success_count > 0) {
           show_action_toast({
@@ -906,8 +955,7 @@ export function use_email_actions(
             action_type: "trash",
             email_ids: ids.filter((i) => !result.failed_ids.includes(i)),
             on_undo: async () => {
-              await batched_bulk_update({
-                ids: ids.filter((i) => !result.failed_ids.includes(i)),
+              await bulk_update_with_metadata(successful_emails, {
                 is_trashed: false,
               });
               emit_mail_changed();
@@ -930,6 +978,7 @@ export function use_email_actions(
       set_action_loading,
       on_bulk_optimistic_update,
       on_bulk_remove_from_list,
+      bulk_update_with_metadata,
       rollback_action,
       remove_pending_action,
       clear_action_state,
@@ -966,8 +1015,9 @@ export function use_email_actions(
       }
 
       try {
-        const result = await batched_bulk_update(
-          { ids, is_read },
+        const result = await bulk_update_with_metadata(
+          emails,
+          { is_read },
           {
             signal: bulk_abort_ref.current.signal,
             on_progress: (completed, total) => {
@@ -1020,6 +1070,7 @@ export function use_email_actions(
       create_pending_action,
       set_action_loading,
       on_bulk_optimistic_update,
+      bulk_update_with_metadata,
       rollback_action,
       remove_pending_action,
       clear_action_state,
@@ -1054,8 +1105,9 @@ export function use_email_actions(
       }
 
       try {
-        const result = await batched_bulk_update(
-          { ids, is_spam: true },
+        const result = await bulk_update_with_metadata(
+          emails,
+          { is_spam: true },
           {
             signal: bulk_abort_ref.current.signal,
             on_progress: (completed, total) => {
@@ -1084,6 +1136,9 @@ export function use_email_actions(
         on_success?.("spam");
 
         const success_count = ids.length - result.failed_ids.length;
+        const successful_emails = emails.filter(
+          (e) => !result.failed_ids.includes(e.id),
+        );
 
         if (success_count > 0) {
           show_action_toast({
@@ -1091,8 +1146,7 @@ export function use_email_actions(
             action_type: "spam",
             email_ids: ids.filter((i) => !result.failed_ids.includes(i)),
             on_undo: async () => {
-              await batched_bulk_update({
-                ids: ids.filter((i) => !result.failed_ids.includes(i)),
+              await bulk_update_with_metadata(successful_emails, {
                 is_spam: false,
               });
               emit_mail_changed();
@@ -1115,6 +1169,7 @@ export function use_email_actions(
       set_action_loading,
       on_bulk_optimistic_update,
       on_bulk_remove_from_list,
+      bulk_update_with_metadata,
       rollback_action,
       remove_pending_action,
       clear_action_state,

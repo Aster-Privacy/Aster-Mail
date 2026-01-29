@@ -167,7 +167,7 @@ export function SenderActionModal({
         const sender_map = new Map<string, SenderInfo>();
 
         for (const item of response.data.items) {
-          if (item.is_trashed) continue;
+          if (item.metadata?.is_trashed) continue;
           try {
             const envelope = await decrypt_envelope_local(
               item.encrypted_envelope,
@@ -242,7 +242,7 @@ export function SenderActionModal({
           },
         });
       } else if (action_type === "delete") {
-        await bulk_update_mail_items({ ids: sender.ids, is_trashed: true });
+        await bulk_update_mail_items({ ids: sender.ids });
         show_action_toast({
           message: `${sender.count} email${sender.count > 1 ? "s" : ""} from ${sender.name} deleted`,
           action_type: "trash",
@@ -250,7 +250,6 @@ export function SenderActionModal({
           on_undo: async () => {
             await bulk_update_mail_items({
               ids: sender.ids,
-              is_trashed: false,
             });
             window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
           },

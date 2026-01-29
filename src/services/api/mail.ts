@@ -1,3 +1,5 @@
+import type { MailItemMetadata } from "@/types/email";
+
 import { api_client, type ApiResponse } from "./client";
 
 export interface MailItemFolder {
@@ -26,20 +28,13 @@ export interface MailItem {
   encrypted_metadata?: string;
   metadata_nonce?: string;
   metadata_version?: number;
-  is_read?: boolean;
-  is_starred?: boolean;
-  is_pinned?: boolean;
-  is_trashed?: boolean;
-  is_archived?: boolean;
-  is_spam?: boolean;
-  size_bytes?: number;
-  has_attachments?: boolean;
-  attachment_count?: number;
   scheduled_at?: string;
   send_status?: string;
   message_ts?: string;
   snoozed_until?: string;
+  category_token?: string;
   folders?: MailItemFolder[];
+  metadata?: MailItemMetadata;
 }
 
 export interface MailItemsListResponse {
@@ -54,14 +49,12 @@ export interface ListMailItemsParams {
   offset?: number;
   cursor?: string;
   item_type?: "received" | "sent" | "draft" | "scheduled";
-  is_starred?: boolean;
-  is_trashed?: boolean;
-  is_archived?: boolean;
-  is_spam?: boolean;
   is_snoozed?: boolean;
+  is_trashed?: boolean;
   ids?: string[];
   folder_filter_token?: string;
   label_token?: string;
+  category_token?: string;
 }
 
 export interface CreateMailItemRequest {
@@ -73,9 +66,6 @@ export interface CreateMailItemRequest {
   ephemeral_key?: string;
   ephemeral_pq_key?: string;
   sender_sealed?: string;
-  size_bytes?: number;
-  has_attachments?: boolean;
-  attachment_count?: number;
   scheduled_at?: string;
   is_external?: boolean;
   thread_token?: string;
@@ -89,25 +79,15 @@ export interface CreateMailItemResponse {
 }
 
 export interface UpdateMailItemRequest {
-  is_read?: boolean;
-  is_starred?: boolean;
-  is_pinned?: boolean;
-  is_trashed?: boolean;
-  is_archived?: boolean;
-  is_spam?: boolean;
   folder_token?: string;
   encrypted_metadata?: string;
   metadata_nonce?: string;
+  category_token?: string;
 }
 
 export interface BulkUpdateRequest {
   ids: string[];
-  is_read?: boolean;
-  is_starred?: boolean;
-  is_pinned?: boolean;
-  is_trashed?: boolean;
-  is_archived?: boolean;
-  is_spam?: boolean;
+  category_token?: string;
 }
 
 export interface MailItemFolderRequest {
@@ -160,11 +140,9 @@ export async function list_mail_items(
   if (params.offset) query_params.set("offset", params.offset.toString());
   if (params.cursor) query_params.set("cursor", params.cursor);
   if (params.item_type) query_params.set("item_type", params.item_type);
-  if (params.is_starred) query_params.set("is_starred", "true");
-  if (params.is_trashed) query_params.set("is_trashed", "true");
-  if (params.is_archived) query_params.set("is_archived", "true");
-  if (params.is_spam) query_params.set("is_spam", "true");
   if (params.is_snoozed) query_params.set("is_snoozed", "true");
+  if (params.is_trashed) query_params.set("is_trashed", "true");
+  if (params.category_token) query_params.set("category_token", params.category_token);
 
   const query_string = query_params.toString();
   const endpoint = `/mail${query_string ? `?${query_string}` : ""}`;
@@ -272,6 +250,14 @@ export async function bulk_permanent_delete(
   );
 }
 
+export async function empty_trash(): Promise<
+  ApiResponse<{ success: boolean; deleted_count: number }>
+> {
+  return api_client.delete<{ success: boolean; deleted_count: number }>(
+    "/mail/trash",
+  );
+}
+
 export async function bulk_add_folder(
   ids: string[],
   folder_token: string,
@@ -322,12 +308,6 @@ export interface MigrationStatusResponse {
 export interface UpdateMetadataRequest {
   encrypted_metadata: string;
   metadata_nonce: string;
-  is_read?: boolean;
-  is_starred?: boolean;
-  is_pinned?: boolean;
-  is_trashed?: boolean;
-  is_archived?: boolean;
-  is_spam?: boolean;
 }
 
 export interface BulkUpdateMetadataItem {
@@ -512,11 +492,11 @@ export interface ThreadMessageItem {
   envelope_nonce: string;
   encrypted_metadata?: string;
   metadata_nonce?: string;
-  is_read: boolean;
-  is_starred?: boolean;
+  metadata_version?: number;
   is_external?: boolean;
   message_ts: string;
   created_at: string;
+  metadata?: MailItemMetadata;
 }
 
 export interface ThreadWithMessages {
@@ -533,11 +513,6 @@ export interface ListThreadsParams {
   limit?: number;
   offset?: number;
   folder_token?: string;
-  is_starred?: boolean;
-  is_trashed?: boolean;
-  is_archived?: boolean;
-  is_spam?: boolean;
-  is_unread?: boolean;
 }
 
 export interface CreateThreadRequest {
@@ -555,11 +530,6 @@ export async function list_threads(
   if (params.offset) query_params.set("offset", params.offset.toString());
   if (params.folder_token)
     query_params.set("folder_token", params.folder_token);
-  if (params.is_starred) query_params.set("is_starred", "true");
-  if (params.is_trashed) query_params.set("is_trashed", "true");
-  if (params.is_archived) query_params.set("is_archived", "true");
-  if (params.is_spam) query_params.set("is_spam", "true");
-  if (params.is_unread) query_params.set("is_unread", "true");
 
   const query_string = query_params.toString();
   const endpoint = `/mail/threads${query_string ? `?${query_string}` : ""}`;

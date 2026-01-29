@@ -33,6 +33,7 @@ import { bulk_index_with_worker } from "@/services/crypto/search_worker_client";
 import {
   get_passphrase_bytes,
   has_passphrase_in_memory,
+  get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
 import {
   decrypt_envelope_with_bytes,
@@ -42,7 +43,8 @@ import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
   decrypt_mail_metadata,
   encrypt_mail_metadata,
-  merge_metadata_with_server_flags,
+  extract_metadata_from_server,
+  update_item_metadata,
 } from "@/services/crypto/mail_metadata";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -74,7 +76,13 @@ type MailView =
   | "snoozed"
   | "all";
 
-const VIEW_PARAMS: Record<MailView, Partial<ListMailItemsParams>> = {
+type ViewParamValue = Partial<ListMailItemsParams> & {
+  is_starred?: boolean;
+  is_archived?: boolean;
+  is_spam?: boolean;
+};
+
+const VIEW_PARAMS: Record<MailView, ViewParamValue> = {
   inbox: { item_type: "received" },
   sent: { item_type: "sent" },
   scheduled: { item_type: "scheduled" },
@@ -209,14 +217,41 @@ async function decrypt_envelope(
   if (!passphrase) return null;
 
   try {
-    const result = await decrypt_envelope_with_bytes<DecryptedEnvelope>(
-      encrypted,
-      passphrase,
-    );
+    if (nonce_bytes.length === 1 && nonce_bytes[0] === 1) {
+      const result = await decrypt_envelope_with_bytes<DecryptedEnvelope>(
+        encrypted,
+        passphrase,
+      );
+
+      zero_uint8_array(passphrase);
+
+      return result;
+    }
 
     zero_uint8_array(passphrase);
 
-    return result;
+    const vault = get_vault_from_memory();
+
+    if (!vault?.identity_key) return null;
+
+    const key_hash = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(vault.identity_key + "astermail-envelope-v1"),
+    );
+    const crypto_key = await crypto.subtle.importKey(
+      "raw",
+      key_hash,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["decrypt"],
+    );
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce_bytes },
+      crypto_key,
+      base64_to_array(encrypted),
+    );
+
+    return JSON.parse(new TextDecoder().decode(decrypted));
   } catch {
     zero_uint8_array(passphrase);
 
@@ -237,16 +272,7 @@ function mail_to_email(
     icon: label.icon,
   }));
 
-  const effective_metadata = merge_metadata_with_server_flags(metadata, {
-    is_read: item.is_read,
-    is_starred: item.is_starred,
-    is_pinned: item.is_pinned,
-    is_trashed: item.is_trashed,
-    is_archived: item.is_archived,
-    is_spam: item.is_spam,
-    size_bytes: item.size_bytes,
-    has_attachments: item.has_attachments,
-    attachment_count: item.attachment_count,
+  const effective_metadata = extract_metadata_from_server(metadata, {
     scheduled_at: item.scheduled_at,
     send_status: item.send_status,
     snoozed_until: item.snoozed_until,
@@ -796,7 +822,14 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   const api_update = useCallback(
     async (
       id: string,
-      updates: Parameters<typeof update_mail_item>[1],
+      updates: Partial<{
+        is_read: boolean;
+        is_starred: boolean;
+        is_pinned: boolean;
+        is_trashed: boolean;
+        is_archived: boolean;
+        is_spam: boolean;
+      }>,
       emit_full_refresh = false,
     ) => {
       const email = state.emails.find((e) => e.id === id);
@@ -842,12 +875,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         const result = await update_mail_item_metadata(id, {
           encrypted_metadata: encrypted.encrypted_metadata,
           metadata_nonce: encrypted.metadata_nonce,
-          is_read: updates.is_read,
-          is_starred: updates.is_starred,
-          is_pinned: updates.is_pinned,
-          is_trashed: updates.is_trashed,
-          is_archived: updates.is_archived,
-          is_spam: updates.is_spam,
         });
 
         if (result.data) {
@@ -866,7 +893,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           }
         }
       } else {
-        const result = await update_mail_item(id, updates);
+        const result = await update_mail_item(id, {});
 
         if (result.data) {
           update_email(id, updates as Partial<InboxEmail>);
@@ -929,9 +956,18 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       if (should_adjust_unread) {
         adjust_unread_count(-1);
       }
-      const result = await update_mail_item(id, { is_trashed: true });
 
-      if (result.data) {
+      const result = await update_item_metadata(
+        id,
+        {
+          encrypted_metadata: email_to_restore?.encrypted_metadata,
+          metadata_nonce: email_to_restore?.metadata_nonce,
+          metadata_version: email_to_restore?.metadata_version,
+        },
+        { is_trashed: true },
+      );
+
+      if (result.success) {
         emit_mail_changed();
       } else {
         if (should_adjust_unread) {
@@ -1022,9 +1058,18 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       if (should_adjust_unread) {
         adjust_unread_count(-1);
       }
-      const result = await update_mail_item(id, { is_spam: true });
 
-      if (result.data) {
+      const result = await update_item_metadata(
+        id,
+        {
+          encrypted_metadata: email?.encrypted_metadata,
+          metadata_nonce: email?.metadata_nonce,
+          metadata_version: email?.metadata_version,
+        },
+        { is_spam: true },
+      );
+
+      if (result.success) {
         emit_mail_changed();
       } else {
         if (should_adjust_unread) {

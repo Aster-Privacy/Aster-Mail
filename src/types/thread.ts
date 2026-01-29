@@ -55,9 +55,9 @@ export function mail_item_to_thread_message(item: MailItem): ThreadMessage {
     item_type: item.item_type as "received" | "sent" | "draft",
     encrypted_envelope: item.encrypted_envelope,
     envelope_nonce: item.envelope_nonce,
-    is_read: item.is_read ?? false,
-    is_trashed: item.is_trashed ?? false,
-    message_ts: item.message_ts ?? new Date().toISOString(),
+    is_read: item.metadata?.is_read ?? false,
+    is_trashed: item.metadata?.is_trashed ?? false,
+    message_ts: item.metadata?.message_ts ?? new Date().toISOString(),
     created_at: item.created_at,
   };
 }

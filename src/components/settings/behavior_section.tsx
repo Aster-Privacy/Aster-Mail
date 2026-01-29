@@ -9,6 +9,12 @@ import {
   ArrowUturnLeftIcon,
   PhotoIcon,
   CodeBracketIcon,
+  LockClosedIcon,
+  MagnifyingGlassIcon,
+  ShieldCheckIcon,
+  EyeIcon,
+  GlobeAltIcon,
+  ServerIcon,
 } from "@heroicons/react/24/outline";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
@@ -444,6 +450,122 @@ export function BehaviorSection() {
               )
             }
             title="Confirm Spam"
+          />
+        </div>
+      </div>
+
+      <div className="pt-3">
+        <h3
+          className="text-lg font-semibold mb-1"
+          style={{ color: "var(--text-primary)" }}
+        >
+          Encryption Behavior
+        </h3>
+        <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
+          Control how encryption is applied to your emails
+        </p>
+
+        <div className="space-y-3">
+          <ToggleSetting
+            description="Automatically search WKD and keyservers when composing"
+            enabled={preferences.auto_discover_keys}
+            icon={
+              <MagnifyingGlassIcon
+                className="w-6 h-6"
+                style={{ color: "var(--text-secondary)" }}
+              />
+            }
+            on_toggle={() =>
+              update_preference(
+                "auto_discover_keys",
+                !preferences.auto_discover_keys,
+              )
+            }
+            title="Auto-discover recipient keys"
+          />
+
+          <ToggleSetting
+            description="Automatically encrypt when recipient key is available"
+            enabled={preferences.encrypt_emails}
+            icon={
+              <LockClosedIcon
+                className="w-6 h-6"
+                style={{ color: "var(--text-secondary)" }}
+              />
+            }
+            on_toggle={() =>
+              update_preference("encrypt_emails", !preferences.encrypt_emails)
+            }
+            title="Encrypt by default"
+          />
+
+          <ToggleSetting
+            description="Prevent sending unencrypted to recipients with known keys"
+            enabled={preferences.require_encryption}
+            icon={
+              <ShieldCheckIcon
+                className="w-6 h-6"
+                style={{ color: "var(--text-secondary)" }}
+              />
+            }
+            on_toggle={() =>
+              update_preference(
+                "require_encryption",
+                !preferences.require_encryption,
+              )
+            }
+            title="Require encryption"
+          />
+
+          <ToggleSetting
+            description="Display lock icons on encrypted messages"
+            enabled={preferences.show_encryption_indicators}
+            icon={
+              <EyeIcon
+                className="w-6 h-6"
+                style={{ color: "var(--text-secondary)" }}
+              />
+            }
+            on_toggle={() =>
+              update_preference(
+                "show_encryption_indicators",
+                !preferences.show_encryption_indicators,
+              )
+            }
+            title="Show encryption indicators"
+          />
+
+          <ToggleSetting
+            description="Make your keys discoverable via Web Key Directory"
+            enabled={preferences.publish_to_wkd}
+            icon={
+              <GlobeAltIcon
+                className="w-6 h-6"
+                style={{ color: "var(--text-secondary)" }}
+              />
+            }
+            on_toggle={() =>
+              update_preference("publish_to_wkd", !preferences.publish_to_wkd)
+            }
+            title="Publish keys to WKD"
+          />
+
+          <ToggleSetting
+            description="Make your keys findable on public keyservers"
+            enabled={preferences.publish_to_keyservers}
+            icon={
+              <ServerIcon
+                className="w-6 h-6"
+                style={{ color: "var(--text-secondary)" }}
+              />
+            }
+            on_toggle={() =>
+              update_preference(
+                "publish_to_keyservers",
+                !preferences.publish_to_keyservers,
+              )
+            }
+            title="Publish to keyservers"
           />
         </div>
       </div>

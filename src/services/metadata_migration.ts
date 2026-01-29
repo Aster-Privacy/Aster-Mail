@@ -23,19 +23,19 @@ type ProgressCallback = (progress: MigrationProgress) => void;
 
 function build_metadata_from_item(item: MailItem): MailItemMetadata {
   return {
-    is_read: item.is_read ?? false,
-    is_starred: item.is_starred ?? false,
-    is_pinned: item.is_pinned ?? false,
-    is_trashed: item.is_trashed ?? false,
-    is_archived: item.is_archived ?? false,
-    is_spam: item.is_spam ?? false,
-    size_bytes: item.size_bytes ?? 0,
-    has_attachments: item.has_attachments ?? false,
-    attachment_count: item.attachment_count ?? 0,
+    is_read: item.metadata?.is_read ?? false,
+    is_starred: item.metadata?.is_starred ?? false,
+    is_pinned: item.metadata?.is_pinned ?? false,
+    is_trashed: item.metadata?.is_trashed ?? false,
+    is_archived: item.metadata?.is_archived ?? false,
+    is_spam: item.metadata?.is_spam ?? false,
+    size_bytes: item.metadata?.size_bytes ?? 0,
+    has_attachments: item.metadata?.has_attachments ?? false,
+    attachment_count: item.metadata?.attachment_count ?? 0,
     scheduled_at: item.scheduled_at,
     send_status: item.send_status,
     snoozed_until: item.snoozed_until,
-    message_ts: item.message_ts ?? new Date().toISOString(),
+    message_ts: item.metadata?.message_ts ?? new Date().toISOString(),
     item_type: item.item_type,
   };
 }

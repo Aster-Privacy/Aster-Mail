@@ -435,8 +435,6 @@ export function ThreadMessagesList({
         {
           encrypted_metadata: msg.encrypted_metadata,
           metadata_nonce: msg.metadata_nonce,
-          is_read: false,
-          is_starred: starred_ids.has(msg.id),
         },
         { is_read: true },
       ).then((result) => {
@@ -520,8 +518,6 @@ export function ThreadMessagesList({
         {
           encrypted_metadata: msg.encrypted_metadata,
           metadata_nonce: msg.metadata_nonce,
-          is_read: read_ids.has(msg.id),
-          is_starred: starred_ids.has(msg.id),
         },
         { is_starred: new_starred },
       ).then((result) => {
@@ -587,8 +583,6 @@ export function ThreadMessagesList({
           {
             encrypted_metadata: msg.encrypted_metadata,
             metadata_nonce: msg.metadata_nonce,
-            is_read: !final_read_state,
-            is_starred: starred_ids.has(msg.id),
           },
           { is_read: final_read_state },
         ).then((result) => {

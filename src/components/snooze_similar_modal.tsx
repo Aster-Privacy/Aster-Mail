@@ -127,7 +127,7 @@ export function SnoozeSimilarModal({
         const sender_map = new Map<string, SenderGroup>();
 
         for (const item of response.data.items) {
-          if (item.is_trashed || item.is_archived) continue;
+          if (item.metadata?.is_trashed || item.metadata?.is_archived) continue;
           try {
             const envelope = await decrypt_envelope_local(
               item.encrypted_envelope,

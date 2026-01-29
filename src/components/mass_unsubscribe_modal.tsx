@@ -152,7 +152,7 @@ export function MassUnsubscribeModal({
         >();
 
         for (const item of response.data.items) {
-          if (item.is_trashed || item.is_archived) continue;
+          if (item.metadata?.is_trashed || item.metadata?.is_archived) continue;
 
           try {
             const envelope = await decrypt_envelope_local(

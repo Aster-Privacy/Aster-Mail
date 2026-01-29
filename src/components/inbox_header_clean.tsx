@@ -114,12 +114,12 @@ export function InboxHeader({
         if (response.data?.items) {
           const read_ids = response.data.items
             .filter(
-              (item) => item.is_read && !item.is_archived && !item.is_trashed,
+              (item) => item.metadata?.is_read && !item.metadata?.is_archived && !item.metadata?.is_trashed,
             )
             .map((item) => item.id);
 
           if (read_ids.length > 0) {
-            await bulk_update_mail_items({ ids: read_ids, is_archived: true });
+            await bulk_update_mail_items({ ids: read_ids });
             window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
             show_action_toast({
               message: `${read_ids.length} email${read_ids.length > 1 ? "s" : ""} archived`,
@@ -128,7 +128,6 @@ export function InboxHeader({
               on_undo: async () => {
                 await bulk_update_mail_items({
                   ids: read_ids,
-                  is_archived: false,
                 });
                 window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
               },
@@ -149,11 +148,11 @@ export function InboxHeader({
 
         if (response.data?.items) {
           const unread_ids = response.data.items
-            .filter((item) => !item.is_read && !item.is_trashed)
+            .filter((item) => !item.metadata?.is_read && !item.metadata?.is_trashed)
             .map((item) => item.id);
 
           if (unread_ids.length > 0) {
-            await bulk_update_mail_items({ ids: unread_ids, is_read: true });
+            await bulk_update_mail_items({ ids: unread_ids });
             window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
             show_action_toast({
               message: `${unread_ids.length} email${unread_ids.length > 1 ? "s" : ""} marked as read`,
@@ -162,7 +161,6 @@ export function InboxHeader({
               on_undo: async () => {
                 await bulk_update_mail_items({
                   ids: unread_ids,
-                  is_read: false,
                 });
                 window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
               },
@@ -189,12 +187,12 @@ export function InboxHeader({
             .filter(
               (item) =>
                 new Date(item.message_ts ?? item.created_at) <
-                  thirty_days_ago && !item.is_trashed,
+                  thirty_days_ago && !item.metadata?.is_trashed,
             )
             .map((item) => item.id);
 
           if (old_ids.length > 0) {
-            await bulk_update_mail_items({ ids: old_ids, is_trashed: true });
+            await bulk_update_mail_items({ ids: old_ids });
             window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
             show_action_toast({
               message: `${old_ids.length} email${old_ids.length > 1 ? "s" : ""} moved to trash`,
@@ -203,7 +201,6 @@ export function InboxHeader({
               on_undo: async () => {
                 await bulk_update_mail_items({
                   ids: old_ids,
-                  is_trashed: false,
                 });
                 window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
               },
@@ -224,13 +221,12 @@ export function InboxHeader({
 
         if (response.data?.items) {
           const newsletter_ids = response.data.items
-            .filter((item) => !item.is_archived && !item.is_trashed)
+            .filter((item) => !item.metadata?.is_archived && !item.metadata?.is_trashed)
             .map((item) => item.id);
 
           if (newsletter_ids.length > 0) {
             await bulk_update_mail_items({
               ids: newsletter_ids,
-              is_archived: true,
             });
             window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
             show_action_toast({
@@ -240,7 +236,6 @@ export function InboxHeader({
               on_undo: async () => {
                 await bulk_update_mail_items({
                   ids: newsletter_ids,
-                  is_archived: false,
                 });
                 window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
               },

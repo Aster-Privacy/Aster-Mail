@@ -1,4 +1,4 @@
-import type { InboxFilterType, EmailCategory } from "@/types/email";
+import type { InboxFilterType, EmailCategory, MailItemMetadata } from "@/types/email";
 
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,11 +7,11 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   MagnifyingGlassIcon,
-  SparklesIcon,
   Cog6ToothIcon,
   EllipsisVerticalIcon,
   ArrowPathIcon,
   FunnelIcon,
+  BoltIcon,
   CheckIcon,
   InboxIcon,
   UserGroupIcon,
@@ -34,7 +34,8 @@ import { SearchModal } from "@/components/search_modal";
 import { SenderActionModal } from "@/components/sender_action_modal";
 import { MassUnsubscribeModal } from "@/components/mass_unsubscribe_modal";
 import { SnoozeSimilarModal } from "@/components/snooze_similar_modal";
-import { list_mail_items, bulk_update_mail_items } from "@/services/api/mail";
+import { list_mail_items, bulk_update_metadata } from "@/services/api/mail";
+import { encrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/action_toast";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
@@ -129,6 +130,15 @@ interface InboxHeaderProps {
   current_page?: number;
   page_size?: number;
   on_page_change?: (page: number) => void;
+  on_navigate_prev?: () => void;
+  on_navigate_next?: () => void;
+  can_go_prev?: boolean;
+  can_go_next?: boolean;
+  email_index?: number;
+  email_count?: number;
+  is_trash_view?: boolean;
+  on_empty_trash?: () => void;
+  trash_count?: number;
 }
 
 export function InboxHeader({
@@ -149,6 +159,15 @@ export function InboxHeader({
   current_page = 0,
   page_size = 50,
   on_page_change,
+  on_navigate_prev,
+  on_navigate_next,
+  can_go_prev = false,
+  can_go_next = false,
+  email_index,
+  email_count,
+  is_trash_view = false,
+  on_empty_trash,
+  trash_count = 0,
 }: InboxHeaderProps) {
   const navigate = useNavigate();
   const { state: folders_state } = use_folders();
@@ -212,7 +231,7 @@ export function InboxHeader({
       if (response.data?.items) {
         const read_ids = response.data.items
           .filter(
-            (item) => item.is_read && !item.is_archived && !item.is_trashed,
+            (item) => item.metadata?.is_read && !item.metadata?.is_archived && !item.metadata?.is_trashed,
           )
           .map((item) => item.id);
 
@@ -237,21 +256,80 @@ export function InboxHeader({
       });
 
       if (response.data?.items) {
-        const unread_ids = response.data.items
-          .filter((item) => !item.is_read && !item.is_trashed)
-          .map((item) => item.id);
+        const unread_items = response.data.items
+          .filter((item) => !item.metadata?.is_read && !item.metadata?.is_trashed);
 
-        if (unread_ids.length > 0) {
-          adjust_unread_count(-unread_ids.length);
-          await bulk_update_mail_items({ ids: unread_ids, is_read: true });
+        if (unread_items.length > 0) {
+          adjust_unread_count(-unread_items.length);
+
+          const metadata_updates = await Promise.all(
+            unread_items.map(async (item) => {
+              const current_metadata: MailItemMetadata = item.metadata ?? {
+                is_read: false,
+                is_starred: false,
+                is_pinned: false,
+                is_trashed: false,
+                is_archived: false,
+                is_spam: false,
+                size_bytes: 0,
+                has_attachments: false,
+                attachment_count: 0,
+                message_ts: item.message_ts ?? item.created_at,
+                item_type: item.item_type,
+              };
+              const updated_metadata = { ...current_metadata, is_read: true };
+              const encrypted = await encrypt_mail_metadata(updated_metadata);
+
+              return encrypted ? { id: item.id, ...encrypted } : null;
+            }),
+          );
+
+          const valid_updates = metadata_updates.filter(
+            (u): u is { id: string; encrypted_metadata: string; metadata_nonce: string } => u !== null,
+          );
+
+          if (valid_updates.length > 0) {
+            await bulk_update_metadata({ items: valid_updates });
+          }
+
           window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
           show_action_toast({
-            message: `${unread_ids.length} email${unread_ids.length > 1 ? "s" : ""} marked as read`,
+            message: `${unread_items.length} email${unread_items.length > 1 ? "s" : ""} marked as read`,
             action_type: "read",
-            email_ids: unread_ids,
+            email_ids: unread_items.map((item) => item.id),
             on_undo: async () => {
-              adjust_unread_count(unread_ids.length);
-              await bulk_update_mail_items({ ids: unread_ids, is_read: false });
+              adjust_unread_count(unread_items.length);
+
+              const undo_updates = await Promise.all(
+                unread_items.map(async (item) => {
+                  const current_metadata: MailItemMetadata = item.metadata ?? {
+                    is_read: false,
+                    is_starred: false,
+                    is_pinned: false,
+                    is_trashed: false,
+                    is_archived: false,
+                    is_spam: false,
+                    size_bytes: 0,
+                    has_attachments: false,
+                    attachment_count: 0,
+                    message_ts: item.message_ts ?? item.created_at,
+                    item_type: item.item_type,
+                  };
+                  const updated_metadata = { ...current_metadata, is_read: false };
+                  const encrypted = await encrypt_mail_metadata(updated_metadata);
+
+                  return encrypted ? { id: item.id, ...encrypted } : null;
+                }),
+              );
+
+              const valid_undo_updates = undo_updates.filter(
+                (u): u is { id: string; encrypted_metadata: string; metadata_nonce: string } => u !== null,
+              );
+
+              if (valid_undo_updates.length > 0) {
+                await bulk_update_metadata({ items: valid_undo_updates });
+              }
+
               window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
             },
           });
@@ -267,23 +345,80 @@ export function InboxHeader({
         const thirty_days_ago = new Date();
 
         thirty_days_ago.setDate(thirty_days_ago.getDate() - 30);
-        const old_ids = response.data.items
+        const old_items = response.data.items
           .filter((item) => {
             const item_date = new Date(item.message_ts ?? item.created_at);
 
-            return item_date < thirty_days_ago && !item.is_trashed;
-          })
-          .map((item) => item.id);
+            return item_date < thirty_days_ago && !item.metadata?.is_trashed;
+          });
 
-        if (old_ids.length > 0) {
-          await bulk_update_mail_items({ ids: old_ids, is_trashed: true });
+        if (old_items.length > 0) {
+          const metadata_updates = await Promise.all(
+            old_items.map(async (item) => {
+              const current_metadata: MailItemMetadata = item.metadata ?? {
+                is_read: false,
+                is_starred: false,
+                is_pinned: false,
+                is_trashed: false,
+                is_archived: false,
+                is_spam: false,
+                size_bytes: 0,
+                has_attachments: false,
+                attachment_count: 0,
+                message_ts: item.message_ts ?? item.created_at,
+                item_type: item.item_type,
+              };
+              const updated_metadata = { ...current_metadata, is_trashed: true };
+              const encrypted = await encrypt_mail_metadata(updated_metadata);
+
+              return encrypted ? { id: item.id, ...encrypted } : null;
+            }),
+          );
+
+          const valid_updates = metadata_updates.filter(
+            (u): u is { id: string; encrypted_metadata: string; metadata_nonce: string } => u !== null,
+          );
+
+          if (valid_updates.length > 0) {
+            await bulk_update_metadata({ items: valid_updates });
+          }
+
           window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
           show_action_toast({
-            message: `${old_ids.length} email${old_ids.length > 1 ? "s" : ""} moved to trash`,
+            message: `${old_items.length} email${old_items.length > 1 ? "s" : ""} moved to trash`,
             action_type: "trash",
-            email_ids: old_ids,
+            email_ids: old_items.map((item) => item.id),
             on_undo: async () => {
-              await bulk_update_mail_items({ ids: old_ids, is_trashed: false });
+              const undo_updates = await Promise.all(
+                old_items.map(async (item) => {
+                  const current_metadata: MailItemMetadata = item.metadata ?? {
+                    is_read: false,
+                    is_starred: false,
+                    is_pinned: false,
+                    is_trashed: false,
+                    is_archived: false,
+                    is_spam: false,
+                    size_bytes: 0,
+                    has_attachments: false,
+                    attachment_count: 0,
+                    message_ts: item.message_ts ?? item.created_at,
+                    item_type: item.item_type,
+                  };
+                  const updated_metadata = { ...current_metadata, is_trashed: false };
+                  const encrypted = await encrypt_mail_metadata(updated_metadata);
+
+                  return encrypted ? { id: item.id, ...encrypted } : null;
+                }),
+              );
+
+              const valid_undo_updates = undo_updates.filter(
+                (u): u is { id: string; encrypted_metadata: string; metadata_nonce: string } => u !== null,
+              );
+
+              if (valid_undo_updates.length > 0) {
+                await bulk_update_metadata({ items: valid_undo_updates });
+              }
+
               window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
             },
           });
@@ -299,7 +434,7 @@ export function InboxHeader({
         const newsletter_ids: string[] = [];
 
         for (const item of response.data.items) {
-          if (item.is_trashed || item.is_archived) continue;
+          if (item.metadata?.is_trashed || item.metadata?.is_archived) continue;
 
           try {
             const envelope = await decrypt_envelope_for_action(
@@ -469,30 +604,39 @@ export function InboxHeader({
         </div>
 
         <div className="flex items-center gap-0.5 flex-shrink-0">
+          {is_trash_view && on_empty_trash && trash_count > 0 && (
+            <Button
+              className="hidden md:flex h-8 px-3 gap-1.5 text-xs font-medium text-red-400/80 hover:text-red-500 hover:bg-red-500/10"
+              size="sm"
+              variant="ghost"
+              onClick={on_empty_trash}
+            >
+              Empty Trash
+            </Button>
+          )}
+
           <Button
-            className="hidden md:flex h-8 w-8"
+            className="hidden md:flex h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
             size="icon"
             variant="ghost"
             onClick={handle_refresh}
           >
             <ArrowPathIcon
-              className={`w-4 h-4 text-[var(--text-secondary)] ${is_refreshing ? "animate-spin" : ""}`}
+              className={`w-[18px] h-[18px] ${is_refreshing ? "animate-spin" : ""}`}
             />
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                className="hidden md:flex h-8 w-8"
+                className={`hidden md:flex h-8 w-8 hover:bg-[var(--bg-hover)] ${active_filter !== "all" ? "text-blue-500" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
                 size="icon"
                 variant="ghost"
               >
-                <FunnelIcon
-                  className={`w-4 h-4 ${active_filter !== "all" ? "text-blue-500" : "text-[var(--text-secondary)]"}`}
-                />
+                <FunnelIcon className="w-[18px] h-[18px]" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Filter</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => on_filter_change?.("all")}>
                 <span className="w-4 mr-2">
@@ -526,7 +670,20 @@ export function InboxHeader({
                 </span>
                 With attachments
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                className="hidden md:flex h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+                size="icon"
+                variant="ghost"
+              >
+                <BoltIcon className="w-[18px] h-[18px]" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => handle_batch_action("mark_all_read")}
@@ -581,14 +738,51 @@ export function InboxHeader({
           </DropdownMenu>
 
           <Button
-            className="hidden lg:flex h-8 w-8"
+            className="hidden lg:flex h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
             data-onboarding="settings-button"
             size="icon"
             variant="ghost"
             onClick={on_settings_click}
           >
-            <Cog6ToothIcon className="w-4 h-4 text-[var(--text-secondary)]" />
+            <Cog6ToothIcon className="w-[18px] h-[18px]" />
           </Button>
+
+          {(can_go_prev || can_go_next) && (
+            <div className="hidden lg:flex items-center gap-0.5 ml-1">
+              <div
+                className="w-px h-4 mr-1"
+                style={{ backgroundColor: "var(--border-secondary)" }}
+              />
+              <Button
+                className="h-6 w-6 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30"
+                disabled={!can_go_prev}
+                size="icon"
+                variant="ghost"
+                onClick={on_navigate_prev}
+              >
+                <ChevronLeftIcon className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                className="h-6 w-6 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30"
+                disabled={!can_go_next}
+                size="icon"
+                variant="ghost"
+                onClick={on_navigate_next}
+              >
+                <ChevronRightIcon className="w-3.5 h-3.5" />
+              </Button>
+              {typeof email_index === "number" &&
+                typeof email_count === "number" &&
+                email_count > 0 && (
+                  <span
+                    className="text-[11px] tabular-nums px-1"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {email_index + 1} of {email_count}
+                  </span>
+                )}
+            </div>
+          )}
 
           {on_page_change && (
             <div className="hidden xl:flex items-center gap-0.5 text-xs text-[var(--text-muted)] ml-1">
@@ -682,6 +876,40 @@ export function InboxHeader({
                 onClick={() => handle_batch_action("delete_old")}
               >
                 Delete emails older than 30 days
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Sender Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => handle_batch_action("archive_from_sender")}
+              >
+                Archive all from sender...
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handle_batch_action("delete_from_sender")}
+              >
+                Delete all from sender...
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handle_batch_action("move_from_sender")}
+              >
+                Move all from sender to...
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Smart Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => handle_batch_action("snooze_similar")}
+              >
+                Snooze similar emails
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handle_batch_action("unsubscribe_bulk")}
+              >
+                Bulk unsubscribe
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handle_batch_action("archive_newsletters")}
+              >
+                Archive all newsletters
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={on_settings_click}>

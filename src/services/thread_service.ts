@@ -8,6 +8,7 @@ import {
 } from "./api/mail";
 import {
   get_passphrase_bytes,
+  get_passphrase_from_memory,
   get_vault_from_memory,
 } from "./crypto/memory_key_store";
 import {
@@ -20,6 +21,7 @@ import {
   decrypt_ratchet_message,
 } from "./crypto/ratchet_manager";
 import { zero_uint8_array } from "./crypto/secure_memory";
+import { decrypt_message } from "./crypto/key_manager";
 
 interface DecryptedEnvelope {
   subject: string;
@@ -123,8 +125,8 @@ export async function fetch_and_decrypt_thread_messages(
         subject: "(Could not decrypt)",
         body: "",
         timestamp: msg.created_at,
-        is_read: msg.is_read,
-        is_starred: msg.is_starred ?? false,
+        is_read: msg.metadata?.is_read ?? false,
+        is_starred: msg.metadata?.is_starred ?? false,
         is_deleted: false,
         is_external: msg.is_external ?? false,
         encrypted_metadata: msg.encrypted_metadata,
@@ -159,6 +161,23 @@ export async function fetch_and_decrypt_thread_messages(
       }
     }
 
+    if (body_text.includes("-----BEGIN PGP MESSAGE-----")) {
+      const vault = get_vault_from_memory();
+      const passphrase = get_passphrase_from_memory();
+
+      if (vault?.identity_key && passphrase) {
+        try {
+          body_text = await decrypt_message(
+            body_text,
+            vault.identity_key,
+            passphrase,
+          );
+        } catch {
+          void 0;
+        }
+      }
+    }
+
     return {
       id: msg.id,
       item_type: msg.item_type as "received" | "sent" | "draft",
@@ -167,8 +186,8 @@ export async function fetch_and_decrypt_thread_messages(
       subject: envelope.subject,
       body: body_text,
       timestamp: envelope.sent_at || msg.created_at,
-      is_read: msg.is_read,
-      is_starred: msg.is_starred ?? false,
+      is_read: msg.metadata?.is_read ?? false,
+      is_starred: msg.metadata?.is_starred ?? false,
       is_deleted: false,
       is_external: msg.is_external ?? false,
       encrypted_metadata: msg.encrypted_metadata,

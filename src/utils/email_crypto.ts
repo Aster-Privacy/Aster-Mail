@@ -14,7 +14,14 @@ import {
   decrypt_ratchet_message,
 } from "@/services/crypto/ratchet_manager";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import { decrypt_message } from "@/services/crypto/key_manager";
+import {
+  decrypt_message,
+  encrypt_message_multi,
+} from "@/services/crypto/key_manager";
+import {
+  discover_external_keys_batch,
+  type ExternalKeyInfo,
+} from "@/services/api/keys";
 
 export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
   encrypted_envelope: string,

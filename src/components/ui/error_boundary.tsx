@@ -1,7 +1,8 @@
 import { Component, ReactNode } from "react";
+import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 
-import { Logo } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { show_toast } from "@/components/simple_toast";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -37,12 +38,14 @@ export class ErrorBoundary extends Component<
         return this.props.fallback;
       }
 
+      const error = this.state.error;
+
       return (
         <div
           className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center"
           style={{ color: "var(--text-secondary)" }}
         >
-          <Logo className="w-10 h-10 mb-4" style={{ color: "var(--text-primary)" }} />
+          <img alt="Aster" className="h-10 mb-4" draggable={false} src="/text_logo.png" />
           <div
             className="text-sm font-medium mb-2"
             style={{ color: "var(--text-primary)" }}
@@ -59,12 +62,65 @@ export class ErrorBoundary extends Component<
           >
             Try Again
           </Button>
+          {error && <ErrorDetails error={error} />}
         </div>
       );
     }
 
     return this.props.children;
   }
+}
+
+function ErrorDetails({ error }: { error: Error }) {
+  const handle_copy = async () => {
+    const error_text = `${error.message}${error.stack ? `\n\n${error.stack}` : ""}`;
+    try {
+      await navigator.clipboard.writeText(error_text);
+      show_toast("Error copied to clipboard", "success");
+    } catch {
+      show_toast("Failed to copy", "error");
+    }
+  };
+
+  return (
+    <div
+      className="mt-6 max-w-lg w-full rounded-lg overflow-hidden"
+      style={{
+        backgroundColor: "var(--bg-tertiary)",
+        border: "1px solid var(--border-secondary)",
+      }}
+    >
+      <div
+        className="px-3 py-2 flex items-center justify-between"
+        style={{ borderBottom: "1px solid var(--border-secondary)" }}
+      >
+        <span
+          className="text-xs font-medium"
+          style={{ color: "var(--text-muted)" }}
+        >
+          Error Details
+        </span>
+        <button
+          className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+          style={{ color: "var(--text-muted)" }}
+          type="button"
+          onClick={handle_copy}
+        >
+          <ClipboardDocumentIcon className="w-3.5 h-3.5" />
+          <span>Copy</span>
+        </button>
+      </div>
+      <div className="p-3 overflow-auto max-h-40">
+        <pre
+          className="text-xs whitespace-pre-wrap break-words font-mono"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          {error.message}
+          {error.stack && `\n\n${error.stack}`}
+        </pre>
+      </div>
+    </div>
+  );
 }
 
 interface EmailErrorFallbackProps {

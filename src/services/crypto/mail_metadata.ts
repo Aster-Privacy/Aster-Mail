@@ -163,18 +163,9 @@ export async function decrypt_mail_metadata_batch<
   return results;
 }
 
-export function merge_metadata_with_server_flags(
+export function extract_metadata_from_server(
   decrypted: MailItemMetadata | null,
-  server_flags: {
-    is_read?: boolean;
-    is_starred?: boolean;
-    is_pinned?: boolean;
-    is_trashed?: boolean;
-    is_archived?: boolean;
-    is_spam?: boolean;
-    size_bytes?: number;
-    has_attachments?: boolean;
-    attachment_count?: number;
+  server_data: {
     scheduled_at?: string;
     send_status?: string;
     snoozed_until?: string;
@@ -182,36 +173,32 @@ export function merge_metadata_with_server_flags(
     item_type?: string;
   },
 ): MailItemMetadata {
-  const base: MailItemMetadata = {
-    is_read: server_flags.is_read ?? false,
-    is_starred: server_flags.is_starred ?? false,
-    is_pinned: server_flags.is_pinned ?? false,
-    is_trashed: server_flags.is_trashed ?? false,
-    is_archived: server_flags.is_archived ?? false,
-    is_spam: server_flags.is_spam ?? false,
-    size_bytes: server_flags.size_bytes ?? 0,
-    has_attachments: server_flags.has_attachments ?? false,
-    attachment_count: server_flags.attachment_count ?? 0,
-    scheduled_at: server_flags.scheduled_at,
-    send_status: server_flags.send_status,
-    snoozed_until: server_flags.snoozed_until,
-    message_ts: server_flags.message_ts ?? new Date().toISOString(),
-    item_type: server_flags.item_type ?? "received",
-  };
-
   if (!decrypted) {
-    return base;
+    return {
+      is_read: false,
+      is_starred: false,
+      is_pinned: false,
+      is_trashed: false,
+      is_archived: false,
+      is_spam: false,
+      size_bytes: 0,
+      has_attachments: false,
+      attachment_count: 0,
+      scheduled_at: server_data.scheduled_at,
+      send_status: server_data.send_status,
+      snoozed_until: server_data.snoozed_until,
+      message_ts: server_data.message_ts ?? new Date().toISOString(),
+      item_type: server_data.item_type ?? "received",
+    };
   }
 
   return {
     ...decrypted,
-    is_read: server_flags.is_read ?? decrypted.is_read,
-    is_starred: server_flags.is_starred ?? decrypted.is_starred,
-    is_pinned: server_flags.is_pinned ?? decrypted.is_pinned,
-    is_trashed: server_flags.is_trashed ?? decrypted.is_trashed,
-    is_archived: server_flags.is_archived ?? decrypted.is_archived,
-    is_spam: server_flags.is_spam ?? decrypted.is_spam,
-    snoozed_until: server_flags.snoozed_until ?? decrypted.snoozed_until,
+    scheduled_at: server_data.scheduled_at ?? decrypted.scheduled_at,
+    send_status: server_data.send_status ?? decrypted.send_status,
+    snoozed_until: server_data.snoozed_until ?? decrypted.snoozed_until,
+    message_ts: server_data.message_ts ?? decrypted.message_ts,
+    item_type: server_data.item_type ?? decrypted.item_type,
   };
 }
 
@@ -223,12 +210,6 @@ export interface MetadataUpdateOptions {
   encrypted_metadata?: string;
   metadata_nonce?: string;
   metadata_version?: number;
-  is_read?: boolean;
-  is_starred?: boolean;
-  is_pinned?: boolean;
-  is_trashed?: boolean;
-  is_archived?: boolean;
-  is_spam?: boolean;
 }
 
 export interface MetadataUpdateResult {
@@ -241,9 +222,7 @@ export async function update_item_metadata(
   current: MetadataUpdateOptions,
   updates: Partial<MailItemMetadata>,
 ): Promise<{ success: boolean; encrypted?: MetadataUpdateResult }> {
-  const { update_mail_item_metadata, update_mail_item } = await import(
-    "@/services/api/mail"
-  );
+  const { update_mail_item_metadata } = await import("@/services/api/mail");
 
   let current_metadata: MailItemMetadata | null = null;
 
@@ -256,19 +235,7 @@ export async function update_item_metadata(
   }
 
   if (!current_metadata) {
-    current_metadata = {
-      is_read: current.is_read ?? false,
-      is_starred: current.is_starred ?? false,
-      is_pinned: current.is_pinned ?? false,
-      is_trashed: current.is_trashed ?? false,
-      is_archived: current.is_archived ?? false,
-      is_spam: current.is_spam ?? false,
-      size_bytes: 0,
-      has_attachments: false,
-      attachment_count: 0,
-      message_ts: new Date().toISOString(),
-      item_type: "received",
-    };
+    current_metadata = create_default_metadata();
   }
 
   const updated_metadata: MailItemMetadata = {
@@ -278,26 +245,16 @@ export async function update_item_metadata(
 
   const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-  if (encrypted) {
-    const request_body = {
-      encrypted_metadata: encrypted.encrypted_metadata,
-      metadata_nonce: encrypted.metadata_nonce,
-      is_read: updates.is_read,
-      is_starred: updates.is_starred,
-      is_pinned: updates.is_pinned,
-      is_trashed: updates.is_trashed,
-      is_archived: updates.is_archived,
-      is_spam: updates.is_spam,
-    };
-
-    const result = await update_mail_item_metadata(item_id, request_body);
-
-    if (result.data) {
-      return { success: true, encrypted };
-    }
+  if (!encrypted) {
+    return { success: false };
   }
 
-  const result = await update_mail_item(item_id, updates);
+  const request_body = {
+    encrypted_metadata: encrypted.encrypted_metadata,
+    metadata_nonce: encrypted.metadata_nonce,
+  };
 
-  return { success: !!result.data };
+  const result = await update_mail_item_metadata(item_id, request_body);
+
+  return { success: !!result.data, encrypted };
 }

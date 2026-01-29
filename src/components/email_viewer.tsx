@@ -10,7 +10,7 @@ import {
   ErrorBoundary,
   EmailErrorFallback,
 } from "@/components/ui/error_boundary";
-import { update_mail_item } from "@/services/api/mail";
+import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/action_toast";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
@@ -106,20 +106,28 @@ export function EmailViewer({
   const handle_spam = useCallback(async () => {
     if (is_spam_loading) return;
     set_is_spam_loading(true);
-    const result = await update_mail_item(email.id, { is_spam: true });
+    const result = await update_item_metadata(
+      email.id,
+      {},
+      { is_spam: true },
+    );
 
     set_is_spam_loading(false);
-    if (!result.error) {
+    if (result.success) {
       emit_mail_changed();
       show_action_toast({
         message: "Conversation marked as spam",
         action_type: "spam",
         email_ids: [email.id],
         on_undo: async () => {
-          const result = await update_mail_item(email.id, { is_spam: false });
+          const undo_result = await update_item_metadata(
+            email.id,
+            {},
+            { is_spam: false },
+          );
 
-          if (result.error) {
-            throw new Error(result.error);
+          if (!undo_result.success) {
+            throw new Error("Failed to undo spam action");
           }
           emit_mail_changed();
         },
@@ -131,22 +139,28 @@ export function EmailViewer({
   const handle_trash = useCallback(async () => {
     if (is_trash_loading) return;
     set_is_trash_loading(true);
-    const result = await update_mail_item(email.id, { is_trashed: true });
+    const result = await update_item_metadata(
+      email.id,
+      {},
+      { is_trashed: true },
+    );
 
     set_is_trash_loading(false);
-    if (!result.error) {
+    if (result.success) {
       emit_mail_changed();
       show_action_toast({
         message: "Conversation moved to trash",
         action_type: "trash",
         email_ids: [email.id],
         on_undo: async () => {
-          const result = await update_mail_item(email.id, {
-            is_trashed: false,
-          });
+          const undo_result = await update_item_metadata(
+            email.id,
+            {},
+            { is_trashed: false },
+          );
 
-          if (result.error) {
-            throw new Error(result.error);
+          if (!undo_result.success) {
+            throw new Error("Failed to undo trash action");
           }
           emit_mail_changed();
         },

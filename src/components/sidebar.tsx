@@ -1005,6 +1005,11 @@ export const Sidebar = ({
                 {stats.trash}
               </span>
             )}
+            {is_collapsed && stats.trash > 0 && (
+              <span className="absolute -top-1 -right-1 text-[9px] tabular-nums min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] font-medium">
+                {stats.trash > 99 ? "99+" : stats.trash}
+              </span>
+            )}
           </button>
 
           <button

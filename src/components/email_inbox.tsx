@@ -62,6 +62,7 @@ import { use_folders, type DecryptedFolder } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_categories } from "@/hooks/use_categories";
+import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { MAIL_EVENTS, emit_mail_item_updated } from "@/hooks/mail_events";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import {
@@ -69,6 +70,7 @@ import {
   bulk_remove_folder,
   permanent_delete_mail_item,
   batched_bulk_permanent_delete,
+  empty_trash,
 } from "@/services/api/mail";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
@@ -268,6 +270,7 @@ export function EmailInbox({
   const navigate = useNavigate();
   const { user } = use_auth();
   const { preferences, update_preference } = use_preferences();
+  const { stats: mail_stats } = use_mail_stats();
   const {
     state: folders_state,
     add_folder_to_email,
@@ -519,12 +522,7 @@ export function EmailInbox({
         {
           encrypted_metadata: email.encrypted_metadata,
           metadata_nonce: email.metadata_nonce,
-          is_read: email.is_read,
-          is_starred: email.is_starred,
-          is_pinned: email.is_pinned,
-          is_trashed: email.is_trashed,
-          is_archived: email.is_archived,
-          is_spam: email.is_spam,
+          metadata_version: email.metadata_version,
         },
         { is_trashed: true },
       );
@@ -544,12 +542,6 @@ export function EmailInbox({
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
                 metadata_nonce: result.encrypted?.metadata_nonce,
-                is_read: email.is_read,
-                is_starred: email.is_starred,
-                is_pinned: email.is_pinned,
-                is_trashed: true,
-                is_archived: email.is_archived,
-                is_spam: email.is_spam,
               },
               { is_trashed: false },
             );
@@ -599,12 +591,7 @@ export function EmailInbox({
         {
           encrypted_metadata: email.encrypted_metadata,
           metadata_nonce: email.metadata_nonce,
-          is_read: email.is_read,
-          is_starred: email.is_starred,
-          is_pinned: email.is_pinned,
-          is_trashed: email.is_trashed,
-          is_archived: email.is_archived,
-          is_spam: email.is_spam,
+          metadata_version: email.metadata_version,
         },
         { is_spam: true },
       );
@@ -624,12 +611,6 @@ export function EmailInbox({
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
                 metadata_nonce: result.encrypted?.metadata_nonce,
-                is_read: email.is_read,
-                is_starred: email.is_starred,
-                is_pinned: email.is_pinned,
-                is_trashed: email.is_trashed,
-                is_archived: email.is_archived,
-                is_spam: true,
               },
               { is_spam: false },
             );
@@ -658,12 +639,7 @@ export function EmailInbox({
         {
           encrypted_metadata: email.encrypted_metadata,
           metadata_nonce: email.metadata_nonce,
-          is_read: email.is_read,
-          is_starred: email.is_starred,
-          is_pinned: email.is_pinned,
-          is_trashed: email.is_trashed,
-          is_archived: email.is_archived,
-          is_spam: email.is_spam,
+          metadata_version: email.metadata_version,
         },
         { is_read: new_state },
       );
@@ -683,12 +659,6 @@ export function EmailInbox({
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
                 metadata_nonce: result.encrypted?.metadata_nonce,
-                is_read: new_state,
-                is_starred: email.is_starred,
-                is_pinned: email.is_pinned,
-                is_trashed: email.is_trashed,
-                is_archived: email.is_archived,
-                is_spam: email.is_spam,
               },
               { is_read: !new_state },
             );
@@ -709,12 +679,7 @@ export function EmailInbox({
         {
           encrypted_metadata: email.encrypted_metadata,
           metadata_nonce: email.metadata_nonce,
-          is_read: email.is_read,
-          is_starred: email.is_starred,
-          is_pinned: email.is_pinned,
-          is_trashed: email.is_trashed,
-          is_archived: email.is_archived,
-          is_spam: email.is_spam,
+          metadata_version: email.metadata_version,
         },
         { is_pinned: new_state },
       );
@@ -731,12 +696,6 @@ export function EmailInbox({
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
                 metadata_nonce: result.encrypted?.metadata_nonce,
-                is_read: email.is_read,
-                is_starred: email.is_starred,
-                is_pinned: new_state,
-                is_trashed: email.is_trashed,
-                is_archived: email.is_archived,
-                is_spam: email.is_spam,
               },
               { is_pinned: !new_state },
             );
@@ -835,12 +794,7 @@ export function EmailInbox({
         {
           encrypted_metadata: email.encrypted_metadata,
           metadata_nonce: email.metadata_nonce,
-          is_read: email.is_read,
-          is_starred: email.is_starred,
-          is_pinned: email.is_pinned,
-          is_trashed: email.is_trashed,
-          is_archived: email.is_archived,
-          is_spam: email.is_spam,
+          metadata_version: email.metadata_version,
         },
         { is_trashed: false },
       );
@@ -860,12 +814,6 @@ export function EmailInbox({
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
                 metadata_nonce: result.encrypted?.metadata_nonce,
-                is_read: email.is_read,
-                is_starred: email.is_starred,
-                is_pinned: email.is_pinned,
-                is_trashed: false,
-                is_archived: email.is_archived,
-                is_spam: email.is_spam,
               },
               { is_trashed: true },
             );
@@ -888,12 +836,7 @@ export function EmailInbox({
         {
           encrypted_metadata: email.encrypted_metadata,
           metadata_nonce: email.metadata_nonce,
-          is_read: email.is_read,
-          is_starred: email.is_starred,
-          is_pinned: email.is_pinned,
-          is_trashed: email.is_trashed,
-          is_archived: email.is_archived,
-          is_spam: email.is_spam,
+          metadata_version: email.metadata_version,
         },
         { is_spam: false },
       );
@@ -913,12 +856,6 @@ export function EmailInbox({
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
                 metadata_nonce: result.encrypted?.metadata_nonce,
-                is_read: email.is_read,
-                is_starred: email.is_starred,
-                is_pinned: email.is_pinned,
-                is_trashed: email.is_trashed,
-                is_archived: email.is_archived,
-                is_spam: false,
               },
               { is_spam: true },
             );
@@ -991,6 +928,8 @@ export function EmailInbox({
   const [dont_ask_archive, set_dont_ask_archive] = useState(false);
   const [show_empty_spam_dialog, set_show_empty_spam_dialog] = useState(false);
   const [is_emptying_spam, set_is_emptying_spam] = useState(false);
+  const [show_empty_trash_dialog, set_show_empty_trash_dialog] = useState(false);
+  const [is_emptying_trash, set_is_emptying_trash] = useState(false);
   const [custom_snooze_email, set_custom_snooze_email] =
     useState<InboxEmail | null>(null);
   const [show_toolbar_custom_snooze, set_show_toolbar_custom_snooze] =
@@ -1454,6 +1393,36 @@ export function EmailInbox({
     set_show_empty_spam_dialog(false);
   }, []);
 
+  const handle_empty_trash = useCallback((): void => {
+    set_show_empty_trash_dialog(true);
+  }, []);
+
+  const confirm_empty_trash = useCallback(async (): Promise<void> => {
+    set_is_emptying_trash(true);
+    try {
+      const result = await empty_trash();
+
+      if (result.data?.success) {
+        for (const email of email_state.emails) {
+          remove_email(email.id);
+        }
+        show_action_toast({
+          message: `Trash emptied successfully`,
+          action_type: "trash",
+          email_ids: [],
+        });
+        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      }
+    } finally {
+      set_is_emptying_trash(false);
+      set_show_empty_trash_dialog(false);
+    }
+  }, [email_state.emails, remove_email]);
+
+  const cancel_empty_trash = useCallback((): void => {
+    set_show_empty_trash_dialog(false);
+  }, []);
+
   const handle_toolbar_mark_read = useCallback(async (): Promise<void> => {
     const selected = email_state.emails.filter((e) => e.is_selected);
 
@@ -1485,12 +1454,7 @@ export function EmailInbox({
           {
             encrypted_metadata: email.encrypted_metadata,
             metadata_nonce: email.metadata_nonce,
-            is_read: email.is_read,
-            is_starred: email.is_starred,
-            is_pinned: email.is_pinned,
-            is_trashed: email.is_trashed,
-            is_archived: email.is_archived,
-            is_spam: email.is_spam,
+            metadata_version: email.metadata_version,
           },
           { is_read: new_state },
         ),
@@ -1524,12 +1488,7 @@ export function EmailInbox({
           {
             encrypted_metadata: email.encrypted_metadata,
             metadata_nonce: email.metadata_nonce,
-            is_read: email.is_read,
-            is_starred: email.is_starred,
-            is_pinned: email.is_pinned,
-            is_trashed: email.is_trashed,
-            is_archived: email.is_archived,
-            is_spam: email.is_spam,
+            metadata_version: email.metadata_version,
           },
           { is_spam: true },
         ),
@@ -1560,12 +1519,6 @@ export function EmailInbox({
                 encrypted_metadata:
                   results[index].encrypted?.encrypted_metadata,
                 metadata_nonce: results[index].encrypted?.metadata_nonce,
-                is_read: email.is_read,
-                is_starred: email.is_starred,
-                is_pinned: email.is_pinned,
-                is_trashed: email.is_trashed,
-                is_archived: email.is_archived,
-                is_spam: true,
               },
               { is_spam: false },
             ),
@@ -1794,55 +1747,54 @@ export function EmailInbox({
         className="flex flex-col h-full"
         style={{ backgroundColor: "var(--bg-primary)" }}
       >
-        {!show_full_email_viewer && (
-          <>
-            <InboxHeader
-              active_category={active_category}
-              active_filter={active_filter}
-              all_selected={all_selected}
-              current_page={current_page}
-              filtered_count={filtered_emails.length}
-              on_category_change={set_active_category}
-              on_compose={on_compose}
-              on_filter_change={handle_filter_change}
-              on_page_change={handle_page_change}
-              on_search_click={on_search_click}
-              on_settings_click={on_settings_click}
-              on_toggle_select_all={handle_toggle_select_all}
-              page_size={page_size}
-              show_categories={is_inbox_view && preferences.categories_enabled}
-              some_selected={some_selected}
-              total_messages={email_state.total_messages}
-              view_title={get_view_title(current_view, folders_state.folders)}
-            />
+        <InboxHeader
+          active_category={active_category}
+          active_filter={active_filter}
+          all_selected={all_selected}
+          can_go_next={show_full_email_viewer ? can_go_next : false}
+          can_go_prev={show_full_email_viewer ? can_go_prev : false}
+          current_page={current_page}
+          email_count={show_full_email_viewer ? total_email_count : undefined}
+          email_index={show_full_email_viewer ? current_email_index : undefined}
+          filtered_count={filtered_emails.length}
+          is_trash_view={current_view === "trash"}
+          on_category_change={set_active_category}
+          on_compose={on_compose}
+          on_empty_trash={handle_empty_trash}
+          on_filter_change={handle_filter_change}
+          on_navigate_next={show_full_email_viewer ? on_navigate_next : undefined}
+          on_navigate_prev={show_full_email_viewer ? on_navigate_prev : undefined}
+          on_page_change={show_full_email_viewer ? undefined : handle_page_change}
+          on_search_click={on_search_click}
+          on_settings_click={on_settings_click}
+          on_toggle_select_all={show_full_email_viewer ? undefined : handle_toggle_select_all}
+          page_size={page_size}
+          show_categories={!show_full_email_viewer && is_inbox_view && preferences.categories_enabled}
+          some_selected={some_selected}
+          total_messages={email_state.total_messages}
+          trash_count={mail_stats.trash}
+          view_title={get_view_title(current_view, folders_state.folders)}
+        />
 
-            {current_view === "spam" && (
-              <InboxToolbar
-                current_page={current_page}
-                current_view={current_view}
-                filtered_count={filtered_emails.length}
-                on_empty_spam={handle_empty_spam}
-                on_page_change={handle_page_change}
-                page_size={page_size}
-                total_messages={email_state.total_messages}
-              />
-            )}
-          </>
+        {!show_full_email_viewer && current_view === "spam" && (
+          <InboxToolbar
+            current_page={current_page}
+            current_view={current_view}
+            filtered_count={filtered_emails.length}
+            on_empty_spam={handle_empty_spam}
+            on_page_change={handle_page_change}
+            page_size={page_size}
+            total_messages={email_state.total_messages}
+          />
         )}
 
         {show_full_email_viewer && split_email_id ? (
           <div className="flex-1 overflow-hidden">
             <FullEmailViewer
-              can_go_next={can_go_next}
-              can_go_prev={can_go_prev}
-              current_index={current_email_index}
               email_id={split_email_id}
               on_back={on_split_close || (() => {})}
               on_forward={on_forward}
-              on_navigate_next={on_navigate_next}
-              on_navigate_prev={on_navigate_prev}
               snoozed_until={split_email_snoozed_until}
-              total_count={total_email_count}
             />
           </div>
         ) : is_split_view && !is_full_view_mode ? (
@@ -1886,16 +1838,10 @@ export function EmailInbox({
                 />
               ) : split_email_id ? (
                 <SplitEmailViewer
-                  can_go_next={can_go_next}
-                  can_go_prev={can_go_prev}
-                  current_index={current_email_index}
                   email_id={split_email_id}
                   on_close={on_split_close || (() => {})}
                   on_forward={on_forward}
-                  on_navigate_next={on_navigate_next}
-                  on_navigate_prev={on_navigate_prev}
                   snoozed_until={split_email_snoozed_until}
-                  total_count={total_email_count}
                 />
               ) : null}
             </div>
@@ -1955,6 +1901,14 @@ export function EmailInbox({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <EmptyTrashModal
+          is_emptying={is_emptying_trash}
+          on_cancel={cancel_empty_trash}
+          on_confirm={confirm_empty_trash}
+          show={show_empty_trash_dialog}
+          trash_count={mail_stats.trash}
+        />
 
         <CustomSnoozeModal
           is_open={custom_snooze_email !== null || show_toolbar_custom_snooze}
@@ -2133,31 +2087,6 @@ function LoadingState(): React.ReactElement {
 
   return (
     <div ref={container_ref} className="overflow-hidden">
-      <div
-        className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-2.5 border-b overflow-hidden"
-        style={{ borderColor: "var(--border-secondary)" }}
-      >
-        <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1 overflow-hidden">
-          <Skeleton className="w-[18px] h-[18px] rounded flex-shrink-0" />
-          <Skeleton className="w-20 h-6 rounded flex-shrink-0" />
-          <Skeleton className="w-9 h-9 rounded md:hidden flex-shrink-0" />
-          <Skeleton className="hidden md:block h-8 rounded flex-1 max-w-[200px]" />
-          <div className="hidden lg:flex items-center gap-0.5 ml-2 flex-shrink-0">
-            <Skeleton className="w-12 h-6 rounded" />
-            <Skeleton className="w-16 h-6 rounded" />
-            <Skeleton className="w-14 h-6 rounded" />
-          </div>
-        </div>
-        <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
-          <Skeleton className="w-9 h-9 rounded" />
-          <Skeleton className="w-9 h-9 rounded" />
-          <Skeleton className="w-9 h-9 rounded" />
-          <Skeleton className="w-9 h-9 rounded" />
-          <Skeleton className="w-16 h-5 rounded ml-2 hidden lg:block" />
-          <Skeleton className="w-7 h-7 rounded" />
-          <Skeleton className="w-7 h-7 rounded" />
-        </div>
-      </div>
       {Array.from({ length: row_count }).map((_, i) => (
         <SkeletonEmailRow key={i} />
       ))}
@@ -2180,7 +2109,6 @@ function SkeletonEmailRow(): React.ReactElement {
           <Skeleton className="w-10 h-3 sm:hidden ml-auto flex-shrink-0" />
         </div>
         <div className="flex items-center gap-2 sm:contents min-w-0 overflow-hidden">
-          <Skeleton className="w-14 h-5 rounded-full hidden lg:block flex-shrink-0" />
           <Skeleton className="h-4 flex-1 min-w-0 max-w-[140px]" />
           <Skeleton className="h-3 flex-1 max-w-[100px] hidden xl:block" />
         </div>
@@ -2609,6 +2537,66 @@ function ConfirmModal({
               onClick={on_confirm}
             >
               {confirm_text}
+            </Button>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+interface EmptyTrashModalProps {
+  show: boolean;
+  trash_count: number;
+  is_emptying: boolean;
+  on_confirm: () => void;
+  on_cancel: () => void;
+}
+
+function EmptyTrashModal({
+  show,
+  trash_count,
+  is_emptying,
+  on_confirm,
+  on_cancel,
+}: EmptyTrashModalProps): React.ReactElement {
+  return (
+    <AlertDialog open={show} onOpenChange={(open) => !open && on_cancel()}>
+      <AlertDialogContent
+        className="gap-0 p-0 overflow-hidden max-w-[380px]"
+        on_overlay_click={on_cancel}
+      >
+        <div className="px-6 pt-6 pb-5">
+          <AlertDialogHeader className="space-y-2">
+            <AlertDialogTitle className="text-16 font-semibold">
+              Empty trash?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-14 leading-normal">
+              All {trash_count} message{trash_count !== 1 ? "s" : ""} in the
+              trash will be permanently deleted. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+        </div>
+
+        <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
+          <AlertDialogCancel asChild>
+            <Button
+              className="mt-0"
+              disabled={is_emptying}
+              size="lg"
+              variant="outline"
+            >
+              Cancel
+            </Button>
+          </AlertDialogCancel>
+          <AlertDialogAction asChild>
+            <Button
+              disabled={is_emptying}
+              size="lg"
+              variant="destructive"
+              onClick={on_confirm}
+            >
+              {is_emptying ? "Deleting..." : "Delete all"}
             </Button>
           </AlertDialogAction>
         </AlertDialogFooter>

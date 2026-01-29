@@ -56,7 +56,10 @@ import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { get_draft } from "@/services/api/multi_drafts";
 import { show_action_toast } from "@/components/action_toast";
 import { show_toast } from "@/components/simple_toast";
-import { try_decrypt_ratchet_body } from "@/utils/email_crypto";
+import {
+  try_decrypt_ratchet_body,
+  try_decrypt_pgp_body,
+} from "@/utils/email_crypto";
 import { use_auth } from "@/contexts/auth_context";
 import {
   get_preferences,
@@ -332,7 +335,7 @@ export default function EmailDetailPage() {
       set_mail_item(response.data);
 
       if (
-        !response.data.is_read &&
+        !response.data.metadata?.is_read &&
         response.data.item_type === "received" &&
         preferences.mark_as_read_delay !== "never"
       ) {
@@ -344,12 +347,6 @@ export default function EmailDetailPage() {
             {
               encrypted_metadata: mail_data.encrypted_metadata,
               metadata_nonce: mail_data.metadata_nonce,
-              is_read: mail_data.is_read,
-              is_starred: mail_data.is_starred,
-              is_pinned: mail_data.is_pinned,
-              is_trashed: mail_data.is_trashed,
-              is_archived: mail_data.is_archived,
-              is_spam: mail_data.is_spam,
             },
             { is_read: true },
           ).then((result) => {
@@ -375,13 +372,15 @@ export default function EmailDetailPage() {
       );
 
       if (envelope) {
-        const body_text = user?.email
+        let body_text = user?.email
           ? await try_decrypt_ratchet_body(
               envelope.body_text,
               user.email,
               envelope.from.email,
             )
           : envelope.body_text;
+
+        body_text = await try_decrypt_pgp_body(body_text);
 
         const decrypted: DecryptedEmail = {
           id: response.data.id,
@@ -392,9 +391,9 @@ export default function EmailDetailPage() {
           timestamp: format_email_popup(
             new Date(envelope.sent_at || response.data.created_at),
           ),
-          is_read: response.data.is_read ?? false,
-          is_starred: response.data.is_starred ?? false,
-          has_attachment: response.data.has_attachments ?? false,
+          is_read: response.data.metadata?.is_read ?? false,
+          is_starred: response.data.metadata?.is_starred ?? false,
+          has_attachment: response.data.metadata?.has_attachments ?? false,
           thread_count: 1,
           body: body_text,
           to: envelope.to || [],
@@ -418,8 +417,8 @@ export default function EmailDetailPage() {
           subject: envelope.subject || "(No subject)",
           body: body_text || "",
           timestamp: response.data.message_ts || response.data.created_at,
-          is_read: response.data.is_read ?? false,
-          is_starred: response.data.is_starred ?? false,
+          is_read: response.data.metadata?.is_read ?? false,
+          is_starred: response.data.metadata?.is_starred ?? false,
           is_deleted: false,
           is_external: response.data.is_external,
           encrypted_metadata: response.data.encrypted_metadata,
@@ -568,12 +567,6 @@ export default function EmailDetailPage() {
       {
         encrypted_metadata: mail_item.encrypted_metadata,
         metadata_nonce: mail_item.metadata_nonce,
-        is_read: mail_item.is_read,
-        is_starred: mail_item.is_starred,
-        is_pinned: mail_item.is_pinned,
-        is_trashed: mail_item.is_trashed,
-        is_archived: mail_item.is_archived,
-        is_spam: mail_item.is_spam,
       },
       { is_trashed: true },
     );
@@ -592,12 +585,6 @@ export default function EmailDetailPage() {
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
               metadata_nonce: result.encrypted?.metadata_nonce,
-              is_read: mail_item.is_read,
-              is_starred: mail_item.is_starred,
-              is_pinned: mail_item.is_pinned,
-              is_trashed: true,
-              is_archived: mail_item.is_archived,
-              is_spam: mail_item.is_spam,
             },
             { is_trashed: false },
           );
@@ -1041,6 +1028,7 @@ export default function EmailDetailPage() {
                                 is_read: email.is_read,
                                 is_starred: email.is_starred,
                                 is_deleted: false,
+                                is_external: mail_item?.is_external ?? false,
                               },
                             ]
                       }
@@ -1070,7 +1058,6 @@ export default function EmailDetailPage() {
                           {
                             encrypted_metadata: msg.encrypted_metadata,
                             metadata_nonce: msg.metadata_nonce,
-                            is_read: msg.is_read,
                           },
                           { is_read: new_read },
                         ).then((result) => {

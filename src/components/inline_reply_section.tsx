@@ -164,6 +164,7 @@ export const InlineReplySection = forwardRef<
             is_read: true,
             is_starred: false,
             is_deleted: false,
+            is_external: false,
           };
 
           on_reply_sent(new_message);

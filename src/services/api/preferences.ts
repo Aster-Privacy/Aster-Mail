@@ -38,6 +38,11 @@ export interface UserPreferences {
   block_external_images: boolean;
   encrypt_emails: boolean;
   warn_external_recipients: boolean;
+  auto_discover_keys: boolean;
+  require_encryption: boolean;
+  show_encryption_indicators: boolean;
+  publish_to_wkd: boolean;
+  publish_to_keyservers: boolean;
   signature_mode: "disabled" | "auto" | "manual";
   signature_placement: "below" | "above";
   default_signature_id: string | null;
@@ -182,6 +187,11 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   block_external_images: false,
   encrypt_emails: true,
   warn_external_recipients: true,
+  auto_discover_keys: true,
+  require_encryption: false,
+  show_encryption_indicators: true,
+  publish_to_wkd: false,
+  publish_to_keyservers: false,
   signature_mode: "auto",
   signature_placement: "below",
   default_signature_id: null,

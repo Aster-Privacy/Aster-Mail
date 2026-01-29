@@ -26,8 +26,8 @@
   --accent-blue-hover: #2563eb;
   --indicator-bg: #ffffff;
   --indicator-border: #e8e8e8;
-  --sidebar-bg: #f7f7f7;
-  --sidebar-hover: #ffffff;
+  --sidebar-bg: #eaeaea;
+  --sidebar-hover: #f5f5f5;
   --modal-bg: #ffffff;
   --modal-overlay: rgba(0, 0, 0, 0.5);
   --dropdown-bg: #ffffff;
@@ -96,8 +96,8 @@
   --accent-blue-hover: #60a5fa;
   --indicator-bg: #121212;
   --indicator-border: #2a2a2a;
-  --sidebar-bg: #0a0a0a;
-  --sidebar-hover: #141414;
+  --sidebar-bg: #0d0d0d;
+  --sidebar-hover: #1a1a1a;
   --modal-bg: #121212;
   --modal-overlay: rgba(0, 0, 0, 0.85);
   --dropdown-bg: #121212;

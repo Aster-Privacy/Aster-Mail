@@ -2,7 +2,7 @@ import type { DecryptedEnvelope, UnsubscribeInfo } from "@/types/email";
 import type { DecryptedThreadMessage } from "@/types/thread";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   XMarkIcon,
   ArrowsPointingOutIcon,
@@ -19,8 +19,6 @@ import {
   FolderIcon,
   NoSymbolIcon,
   MapPinIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
 
@@ -34,6 +32,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
@@ -46,7 +49,10 @@ import {
 import { show_action_toast } from "@/components/action_toast";
 import { show_toast } from "@/components/simple_toast";
 import { EncryptionInfoDropdown } from "@/components/encryption_info_dropdown";
-import { try_decrypt_ratchet_body } from "@/utils/email_crypto";
+import {
+  try_decrypt_ratchet_body,
+  try_decrypt_pgp_body,
+} from "@/utils/email_crypto";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
@@ -68,7 +74,6 @@ import {
 } from "@/utils/date_format";
 import { is_astermail_sender, get_email_username } from "@/lib/utils";
 import { use_date_format } from "@/hooks/use_date_format";
-import { EmailProfileTrigger } from "@/components/email_profile_trigger";
 import { ThreadMessagesList } from "@/components/thread_message_block";
 import { print_email } from "@/utils/print_email";
 import {
@@ -206,12 +211,12 @@ export function EmailPopupViewer({
   on_reply: _on_reply,
   on_forward,
   on_compose,
-  on_navigate_prev,
-  on_navigate_next,
-  can_go_prev = false,
-  can_go_next = false,
-  current_index,
-  total_count,
+  on_navigate_prev: _on_navigate_prev,
+  on_navigate_next: _on_navigate_next,
+  can_go_prev: _can_go_prev = false,
+  can_go_next: _can_go_next = false,
+  current_index: _current_index,
+  total_count: _total_count,
   snoozed_until,
 }: EmailPopupViewerProps) {
   const { user } = use_auth();
@@ -229,7 +234,6 @@ export function EmailPopupViewer({
   const [popup_size, set_popup_size] = useState<PopupSize>("default");
   const [position, set_position] = useState({ x: 0, y: 0 });
   const [is_dragging, set_is_dragging] = useState(false);
-  const [show_details, set_show_details] = useState(false);
   const [show_inline_reply, set_show_inline_reply] = useState(false);
   const [thread_messages, set_thread_messages] = useState<
     DecryptedThreadMessage[]
@@ -395,8 +399,8 @@ export function EmailPopupViewer({
 
     if (response.data) {
       set_mail_item(response.data);
-      set_is_read(response.data.is_read ?? false);
-      set_is_pinned(response.data.is_pinned ?? false);
+      set_is_read(response.data.metadata?.is_read ?? false);
+      set_is_pinned(response.data.metadata?.is_pinned ?? false);
 
       const envelope = await decrypt_mail_envelope(
         response.data.encrypted_envelope,
@@ -408,13 +412,15 @@ export function EmailPopupViewer({
           envelope.sent_at || response.data.created_at,
         );
 
-        const body_text = user?.email
+        let body_text = user?.email
           ? await try_decrypt_ratchet_body(
               envelope.body_text,
               user.email,
               envelope.from.email,
             )
           : envelope.body_text;
+
+        body_text = await try_decrypt_pgp_body(body_text);
 
         const decrypted: DecryptedEmail = {
           id: response.data.id,
@@ -423,8 +429,8 @@ export function EmailPopupViewer({
           subject: envelope.subject || "(No subject)",
           preview: body_text.substring(0, 200),
           timestamp: format_email_detail(timestamp_date.current),
-          is_read: response.data.is_read ?? false,
-          is_starred: response.data.is_starred ?? false,
+          is_read: response.data.metadata?.is_read ?? false,
+          is_starred: response.data.metadata?.is_starred ?? false,
           body: body_text,
           to: envelope.to || [],
           cc: envelope.cc || [],
@@ -446,8 +452,8 @@ export function EmailPopupViewer({
           subject: envelope.subject || "(No subject)",
           body: body_text || "",
           timestamp: response.data.message_ts || response.data.created_at,
-          is_read: response.data.is_read ?? false,
-          is_starred: response.data.is_starred ?? false,
+          is_read: response.data.metadata?.is_read ?? false,
+          is_starred: response.data.metadata?.is_starred ?? false,
           is_deleted: false,
           is_external: response.data.is_external,
           encrypted_metadata: response.data.encrypted_metadata,
@@ -472,7 +478,7 @@ export function EmailPopupViewer({
         const item_data = response.data;
 
         if (
-          !(item_data.is_read ?? false) &&
+          !(item_data.metadata?.is_read ?? false) &&
           preferences.mark_as_read_delay !== "never"
         ) {
           const current_email_id = email_id;
@@ -485,7 +491,6 @@ export function EmailPopupViewer({
                 encrypted_metadata: item_data.encrypted_metadata,
                 metadata_nonce: item_data.metadata_nonce,
                 metadata_version: item_data.metadata_version,
-                is_read: item_data.is_read,
               },
               { is_read: true },
             );
@@ -626,12 +631,7 @@ export function EmailPopupViewer({
       {
         encrypted_metadata: mail_item.encrypted_metadata,
         metadata_nonce: mail_item.metadata_nonce,
-        is_read: mail_item.is_read,
-        is_starred: mail_item.is_starred,
-        is_pinned: mail_item.is_pinned,
-        is_trashed: mail_item.is_trashed,
-        is_archived: mail_item.is_archived,
-        is_spam: mail_item.is_spam,
+        metadata_version: mail_item.metadata_version,
       },
       { is_read: new_state },
     );
@@ -639,7 +639,16 @@ export function EmailPopupViewer({
     if (!result.success) {
       set_is_read(!new_state);
     } else {
-      set_mail_item((prev) => (prev ? { ...prev, is_read: new_state } : prev));
+      set_mail_item((prev) =>
+        prev
+          ? {
+              ...prev,
+              metadata: prev.metadata
+                ? { ...prev.metadata, is_read: new_state }
+                : undefined,
+            }
+          : prev,
+      );
       emit_mail_item_updated({ id: email_id, is_read: new_state });
     }
   }, [email_id, is_read, mail_item]);
@@ -678,12 +687,7 @@ export function EmailPopupViewer({
       {
         encrypted_metadata: mail_item.encrypted_metadata,
         metadata_nonce: mail_item.metadata_nonce,
-        is_read: mail_item.is_read,
-        is_starred: mail_item.is_starred,
-        is_pinned: mail_item.is_pinned,
-        is_trashed: mail_item.is_trashed,
-        is_archived: mail_item.is_archived,
-        is_spam: mail_item.is_spam,
+        metadata_version: mail_item.metadata_version,
       },
       { is_spam: true },
     );
@@ -702,12 +706,6 @@ export function EmailPopupViewer({
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
               metadata_nonce: result.encrypted?.metadata_nonce,
-              is_read: mail_item.is_read,
-              is_starred: mail_item.is_starred,
-              is_pinned: mail_item.is_pinned,
-              is_trashed: mail_item.is_trashed,
-              is_archived: mail_item.is_archived,
-              is_spam: true,
             },
             { is_spam: false },
           );
@@ -728,12 +726,7 @@ export function EmailPopupViewer({
       {
         encrypted_metadata: mail_item.encrypted_metadata,
         metadata_nonce: mail_item.metadata_nonce,
-        is_read: mail_item.is_read,
-        is_starred: mail_item.is_starred,
-        is_pinned: mail_item.is_pinned,
-        is_trashed: mail_item.is_trashed,
-        is_archived: mail_item.is_archived,
-        is_spam: mail_item.is_spam,
+        metadata_version: mail_item.metadata_version,
       },
       { is_trashed: true },
     );
@@ -752,12 +745,6 @@ export function EmailPopupViewer({
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
               metadata_nonce: result.encrypted?.metadata_nonce,
-              is_read: mail_item.is_read,
-              is_starred: mail_item.is_starred,
-              is_pinned: mail_item.is_pinned,
-              is_trashed: true,
-              is_archived: mail_item.is_archived,
-              is_spam: mail_item.is_spam,
             },
             { is_trashed: false },
           );
@@ -782,12 +769,7 @@ export function EmailPopupViewer({
       {
         encrypted_metadata: mail_item.encrypted_metadata,
         metadata_nonce: mail_item.metadata_nonce,
-        is_read: mail_item.is_read,
-        is_starred: mail_item.is_starred,
-        is_pinned: mail_item.is_pinned,
-        is_trashed: mail_item.is_trashed,
-        is_archived: mail_item.is_archived,
-        is_spam: mail_item.is_spam,
+        metadata_version: mail_item.metadata_version,
       },
       { is_pinned: new_state },
     );
@@ -798,7 +780,14 @@ export function EmailPopupViewer({
       set_is_pinned(previous_state);
     } else {
       set_mail_item((prev) =>
-        prev ? { ...prev, is_pinned: new_state } : prev,
+        prev
+          ? {
+              ...prev,
+              metadata: prev.metadata
+                ? { ...prev.metadata, is_pinned: new_state }
+                : undefined,
+            }
+          : prev,
       );
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
       show_action_toast({
@@ -1054,45 +1043,6 @@ export function EmailPopupViewer({
           )}
         </Button>
 
-        {(can_go_prev || can_go_next) && (
-          <>
-            <div
-              className="w-px h-4 mx-1"
-              style={{ backgroundColor: "var(--border-secondary)" }}
-            />
-            <Button
-              data-no-drag
-              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-              disabled={!can_go_prev}
-              size="icon"
-              variant="ghost"
-              onClick={on_navigate_prev}
-            >
-              <ChevronUpIcon className="w-4 h-4" />
-            </Button>
-            <Button
-              data-no-drag
-              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-              disabled={!can_go_next}
-              size="icon"
-              variant="ghost"
-              onClick={on_navigate_next}
-            >
-              <ChevronDownIcon className="w-4 h-4" />
-            </Button>
-            {typeof current_index === "number" &&
-              typeof total_count === "number" &&
-              total_count > 0 && (
-                <span
-                  className="text-xs px-1.5 tabular-nums"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  {current_index + 1} of {total_count}
-                </span>
-              )}
-          </>
-        )}
-
         <div className="flex-1" />
 
         <Button
@@ -1332,12 +1282,123 @@ export function EmailPopupViewer({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button
-                      className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors text-left"
-                      onClick={() => set_show_details(!show_details)}
-                    >
-                      to me {show_details ? "▲" : "▼"}
-                    </button>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors text-left"
+                        >
+                          to me ▼
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        align="start"
+                        className="w-80 p-3 text-xs space-y-2"
+                        side="bottom"
+                        style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-primary)" }}
+                      >
+                        <div className="flex">
+                          <span
+                            className="w-14 flex-shrink-0 font-medium"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            From:
+                          </span>
+                          <span style={{ color: "var(--text-secondary)" }}>
+                            {email.sender ? `${email.sender} ` : ""}
+                            <button
+                              className="hover:underline"
+                              style={{ color: "var(--text-muted)" }}
+                              onClick={() => {
+                                navigator.clipboard.writeText(
+                                  email.sender_email,
+                                );
+                                show_toast("Email copied", "success");
+                              }}
+                            >
+                              &lt;{email.sender_email}&gt;
+                            </button>
+                          </span>
+                        </div>
+                        <div className="flex">
+                          <span
+                            className="w-14 flex-shrink-0 font-medium"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            To:
+                          </span>
+                          <span
+                            className="flex-1"
+                            style={{ color: "var(--text-secondary)" }}
+                          >
+                            {email.to.length > 0
+                              ? email.to
+                                  .map((r) => r.name || r.email || "Unknown")
+                                  .join(", ")
+                              : "me"}
+                          </span>
+                        </div>
+                        {email.cc.length > 0 && (
+                          <div className="flex">
+                            <span
+                              className="w-14 flex-shrink-0 font-medium"
+                              style={{ color: "var(--text-muted)" }}
+                            >
+                              Cc:
+                            </span>
+                            <span
+                              className="flex-1"
+                              style={{ color: "var(--text-secondary)" }}
+                            >
+                              {email.cc
+                                .map((r) => r.name || r.email || "Unknown")
+                                .join(", ")}
+                            </span>
+                          </div>
+                        )}
+                        {email.bcc.length > 0 && (
+                          <div className="flex">
+                            <span
+                              className="w-14 flex-shrink-0 font-medium"
+                              style={{ color: "var(--text-muted)" }}
+                            >
+                              Bcc:
+                            </span>
+                            <span
+                              className="flex-1"
+                              style={{ color: "var(--text-secondary)" }}
+                            >
+                              {email.bcc
+                                .map((r) => r.name || r.email || "Unknown")
+                                .join(", ")}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex">
+                          <span
+                            className="w-14 flex-shrink-0 font-medium"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            Date:
+                          </span>
+                          <span style={{ color: "var(--text-secondary)" }}>
+                            {timestamp_date.current
+                              ? format_email_popup(timestamp_date.current)
+                              : email.timestamp}
+                          </span>
+                        </div>
+                        <div className="flex">
+                          <span
+                            className="w-14 flex-shrink-0 font-medium"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            Subject:
+                          </span>
+                          <span style={{ color: "var(--text-secondary)" }}>
+                            {email.subject}
+                          </span>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     {thread_messages.length > 1 && (
                       <span
                         className="text-xs"
@@ -1349,170 +1410,6 @@ export function EmailPopupViewer({
                   </div>
                 </div>
               </div>
-
-              <AnimatePresence>
-                {show_details && (
-                  <motion.div
-                    animate={{ height: "auto", opacity: 1 }}
-                    className="overflow-hidden"
-                    exit={{ height: 0, opacity: 0 }}
-                    initial={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <div
-                      className="mt-2 p-3 rounded-lg text-xs space-y-2"
-                      style={{ backgroundColor: "var(--bg-secondary)" }}
-                    >
-                      <div className="flex">
-                        <span
-                          className="w-14 flex-shrink-0 font-medium"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          From:
-                        </span>
-                        <span style={{ color: "var(--text-secondary)" }}>
-                          {email.sender_email ? (
-                            <>
-                              <EmailProfileTrigger
-                                email={email.sender_email}
-                                name={email.sender}
-                                on_compose={on_compose}
-                              >
-                                {email.sender || email.sender_email}
-                              </EmailProfileTrigger>{" "}
-                              <button
-                                className="hover:underline"
-                                style={{ color: "var(--text-muted)" }}
-                                onClick={() => {
-                                  navigator.clipboard.writeText(
-                                    email.sender_email,
-                                  );
-                                  show_toast("Email copied", "success");
-                                }}
-                              >
-                                &lt;{email.sender_email}&gt;
-                              </button>
-                            </>
-                          ) : (
-                            <span>{email.sender || "Unknown"}</span>
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex">
-                        <span
-                          className="w-14 flex-shrink-0 font-medium"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          To:
-                        </span>
-                        <span
-                          className="flex-1 flex flex-wrap gap-1"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          {email.to.length > 0 ? (
-                            email.to.map((recipient, idx) => (
-                              <span key={idx}>
-                                {recipient.email ? (
-                                  <EmailProfileTrigger
-                                    email={recipient.email}
-                                    name={recipient.name}
-                                    on_compose={on_compose}
-                                  >
-                                    {recipient.name || recipient.email}
-                                  </EmailProfileTrigger>
-                                ) : (
-                                  <span>{recipient.name || "Unknown"}</span>
-                                )}
-                                {idx < email.to.length - 1 && ", "}
-                              </span>
-                            ))
-                          ) : (
-                            <span>me</span>
-                          )}
-                        </span>
-                      </div>
-                      {email.cc.length > 0 && (
-                        <div className="flex">
-                          <span
-                            className="w-14 flex-shrink-0 font-medium"
-                            style={{ color: "var(--text-muted)" }}
-                          >
-                            Cc:
-                          </span>
-                          <span
-                            className="flex-1 flex flex-wrap gap-1"
-                            style={{ color: "var(--text-secondary)" }}
-                          >
-                            {email.cc.map((recipient, idx) => (
-                              <span key={idx}>
-                                <EmailProfileTrigger
-                                  email={recipient.email}
-                                  name={recipient.name}
-                                  on_compose={on_compose}
-                                >
-                                  {recipient.name || recipient.email}
-                                </EmailProfileTrigger>
-                                {idx < email.cc.length - 1 && ", "}
-                              </span>
-                            ))}
-                          </span>
-                        </div>
-                      )}
-                      {email.bcc.length > 0 && (
-                        <div className="flex">
-                          <span
-                            className="w-14 flex-shrink-0 font-medium"
-                            style={{ color: "var(--text-muted)" }}
-                          >
-                            Bcc:
-                          </span>
-                          <span
-                            className="flex-1 flex flex-wrap gap-1"
-                            style={{ color: "var(--text-secondary)" }}
-                          >
-                            {email.bcc.map((recipient, idx) => (
-                              <span key={idx}>
-                                <EmailProfileTrigger
-                                  email={recipient.email}
-                                  name={recipient.name}
-                                  on_compose={on_compose}
-                                >
-                                  {recipient.name || recipient.email}
-                                </EmailProfileTrigger>
-                                {idx < email.bcc.length - 1 && ", "}
-                              </span>
-                            ))}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex">
-                        <span
-                          className="w-14 flex-shrink-0 font-medium"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          Date:
-                        </span>
-                        <span style={{ color: "var(--text-secondary)" }}>
-                          {timestamp_date.current
-                            ? format_email_popup(timestamp_date.current)
-                            : email.timestamp}
-                        </span>
-                      </div>
-                      <div className="flex">
-                        <span
-                          className="w-14 flex-shrink-0 font-medium"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          Subject:
-                        </span>
-                        <span style={{ color: "var(--text-secondary)" }}>
-                          {email.subject}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
 
               <div className="mt-4">
                 <ThreadMessagesList
@@ -1544,7 +1441,6 @@ export function EmailPopupViewer({
                       {
                         encrypted_metadata: msg.encrypted_metadata,
                         metadata_nonce: msg.metadata_nonce,
-                        is_read: msg.is_read,
                       },
                       { is_read: new_read },
                     ).then((result) => {
