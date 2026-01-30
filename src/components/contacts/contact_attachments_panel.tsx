@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   upload_contact_attachment,
-  list_contact_attachments,
   delete_contact_attachment,
   download_attachment,
 } from "@/services/api/contact_attachments";
@@ -165,15 +164,8 @@ export function ContactAttachmentsPanel({
       set_error(null);
 
       try {
-        if (attachment.blob_url) {
-          download_attachment(attachment.blob_url, attachment.meta.filename);
-        } else if (attachment.data) {
-          const blob = new Blob([attachment.data], {
-            type: attachment.meta.mime_type,
-          });
-          const url = URL.createObjectURL(blob);
-          download_attachment(url, attachment.meta.filename);
-          URL.revokeObjectURL(url);
+        if (attachment.data) {
+          download_attachment(attachment.data, attachment.meta);
         }
       } catch (err) {
         set_error(err instanceof Error ? err.message : "Download failed");

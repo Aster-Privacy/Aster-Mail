@@ -1,4 +1,4 @@
-import type { DecryptedContact, ContactFormData } from "@/types/contacts";
+import type { DecryptedContact, Address } from "@/types/contacts";
 
 import { useState, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -42,6 +42,18 @@ function get_initials(contact: DecryptedContact): string {
   const first = contact.first_name?.[0] || "";
   const last = contact.last_name?.[0] || "";
   return (first + last).toUpperCase() || "?";
+}
+
+function format_address(address?: Address): string | undefined {
+  if (!address) return undefined;
+  const parts = [
+    address.street,
+    address.city,
+    address.state,
+    address.postal_code,
+    address.country,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : undefined;
 }
 
 export function ContactMergeModal({
@@ -208,8 +220,8 @@ export function ContactMergeModal({
             {(contact_1.address || contact_2.address) && (
               <FieldSelector
                 label="Address"
-                value_1={contact_1.address}
-                value_2={contact_2.address}
+                value_1={format_address(contact_1.address)}
+                value_2={format_address(contact_2.address)}
                 selected={preferences.address}
                 on_select={(v) => update_preference("address", v as FieldPreference)}
               />
@@ -245,7 +257,7 @@ export function ContactMergeModal({
               {merged_preview.address && (
                 <p>
                   <span className="text-foreground-500">Address:</span>{" "}
-                  {merged_preview.address}
+                  {format_address(merged_preview.address)}
                 </p>
               )}
             </div>
@@ -270,8 +282,7 @@ export function ContactMergeModal({
             Cancel
           </Button>
           <Button
-            variant="solid"
-            color="primary"
+            variant="primary"
             onClick={handle_merge}
             disabled={is_merging}
             className="gap-1.5"

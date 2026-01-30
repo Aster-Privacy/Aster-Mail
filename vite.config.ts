@@ -41,13 +41,13 @@ function source_map_fix_plugin(): Plugin {
   };
 }
 
-// https://vitejs.dev/config/
-const api_target = process.env.VITE_API_TARGET || "http://localhost:3000";
-const ws_target = process.env.VITE_WS_TARGET || "ws://localhost:3000";
+const api_target = process.env.VITE_API_TARGET || "http://127.0.0.1:3000";
+const ws_target = process.env.VITE_WS_TARGET || "ws://127.0.0.1:3000";
 
 export default defineConfig({
   base: "./",
   server: {
+    host: "mail.localhost",
     port: 5173,
     allowedHosts: true,
     watch: {
@@ -58,20 +58,12 @@ export default defineConfig({
       "/ws": {
         target: ws_target,
         ws: true,
-        changeOrigin: true,
+        changeOrigin: false,
       },
       "/api": {
         target: api_target,
-        changeOrigin: true,
+        changeOrigin: false,
         secure: false,
-        configure: (proxy) => {
-          proxy.on("proxyReq", (proxyReq, req) => {
-            const cookies = req.headers.cookie;
-            if (cookies) {
-              proxyReq.setHeader("Cookie", cookies);
-            }
-          });
-        },
       },
     },
   },

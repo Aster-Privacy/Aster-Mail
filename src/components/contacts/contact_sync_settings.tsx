@@ -244,45 +244,51 @@ export function ContactSyncSettings({
               <span className="text-sm font-medium">Add CardDAV Server</span>
             </div>
 
-            <Input
-              label="Display Name"
-              placeholder="My Nextcloud"
-              value={new_source.display_name || ""}
-              onChange={(e) =>
-                set_new_source((prev) => ({
-                  ...prev,
-                  display_name: e.target.value,
-                }))
-              }
-            />
-
-            <Input
-              label="Server URL"
-              placeholder="https://cloud.example.com/remote.php/dav"
-              value={new_source.server_url}
-              onChange={(e) =>
-                set_new_source((prev) => ({
-                  ...prev,
-                  server_url: e.target.value,
-                }))
-              }
-            />
-
-            <Input
-              label="Username"
-              placeholder="user@example.com"
-              value={new_source.username}
-              onChange={(e) =>
-                set_new_source((prev) => ({
-                  ...prev,
-                  username: e.target.value,
-                }))
-              }
-            />
-
-            <div className="relative">
+            <div className="space-y-1">
+              <label className="text-sm text-foreground-500">Display Name</label>
               <Input
-                label="Password"
+                placeholder="My Nextcloud"
+                value={new_source.display_name || ""}
+                onChange={(e) =>
+                  set_new_source((prev) => ({
+                    ...prev,
+                    display_name: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm text-foreground-500">Server URL</label>
+              <Input
+                placeholder="https://cloud.example.com/remote.php/dav"
+                value={new_source.server_url}
+                onChange={(e) =>
+                  set_new_source((prev) => ({
+                    ...prev,
+                    server_url: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm text-foreground-500">Username</label>
+              <Input
+                placeholder="user@example.com"
+                value={new_source.username}
+                onChange={(e) =>
+                  set_new_source((prev) => ({
+                    ...prev,
+                    username: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-1 relative">
+              <label className="text-sm text-foreground-500">Password</label>
+              <Input
                 type={show_password ? "text" : "password"}
                 placeholder="App password or regular password"
                 value={new_source.password}
@@ -315,8 +321,7 @@ export function ContactSyncSettings({
                 Cancel
               </Button>
               <Button
-                variant="solid"
-                color="primary"
+                variant="primary"
                 size="sm"
                 onClick={handle_add_source}
                 disabled={is_adding}

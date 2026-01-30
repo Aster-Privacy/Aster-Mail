@@ -7,19 +7,10 @@ import type {
 
 import { api_client, type ApiResponse } from "./client";
 import {
-  get_contacts_encryption_key,
   decrypt_contact,
   get_contact,
   encrypt_contact_data,
 } from "./contacts";
-
-function array_to_base64(array: Uint8Array): string {
-  let binary = "";
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-  return btoa(binary);
-}
 
 interface ListDuplicatesResponse {
   items: DuplicateCandidate[];

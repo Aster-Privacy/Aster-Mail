@@ -136,7 +136,7 @@ export function ContactDuplicatesList({
   );
 
   const handle_merge_complete = useCallback(
-    (merged_contact_id: string) => {
+    (_merged_contact_id: string) => {
       if (merge_candidate) {
         set_duplicates((prev) => prev.filter((d) => d.id !== merge_candidate.id));
         set_total((prev) => prev - 1);
@@ -304,8 +304,7 @@ export function ContactDuplicatesList({
                       <span className="ml-1">Dismiss</span>
                     </Button>
                     <Button
-                      variant="solid"
-                      color="primary"
+                      variant="primary"
                       size="sm"
                       onClick={() => set_merge_candidate(duplicate)}
                       className="gap-1.5"

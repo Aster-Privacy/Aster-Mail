@@ -1,10 +1,4 @@
-import type {
-  DecryptedContact,
-  ContactFormData,
-  DecryptedContactPhoto,
-  DecryptedContactAttachment,
-  DecryptedCustomFieldValue,
-} from "@/types/contacts";
+import type { DecryptedContact, ContactFormData } from "@/types/contacts";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -14,7 +8,6 @@ import {
   PlusIcon,
   EnvelopeIcon,
   PhoneIcon,
-  BuildingOffice2Icon,
   DocumentTextIcon,
   PencilIcon,
   TrashIcon,
@@ -30,8 +23,6 @@ import {
   CheckIcon,
   UserPlusIcon,
   PaperAirplaneIcon,
-  BriefcaseIcon,
-  CalendarIcon,
   MapPinIcon,
   GlobeAltIcon,
   Squares2X2Icon,
@@ -43,8 +34,6 @@ import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { ContactForm } from "@/components/contacts";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
 import { ContactImportModal } from "@/components/contacts/contact_import_modal";
-import { ContactDuplicatesList } from "@/components/contacts/contact_duplicates_list";
-import { ContactSyncSettings } from "@/components/contacts/contact_sync_settings";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { ComposeModal } from "@/components/compose/compose_modal";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -1689,7 +1678,7 @@ export function ContactsContent({
                     <Button
                       className="h-8 px-3 text-[12px] gap-1.5"
                       size="sm"
-                      variant={show_history ? "default" : "outline"}
+                      variant={show_history ? "primary" : "outline"}
                       onClick={() => set_show_history(!show_history)}
                     >
                       <DocumentTextIcon className="w-3.5 h-3.5" />

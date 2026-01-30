@@ -647,7 +647,7 @@ export default function EmailDetailPage() {
 
   const handle_draft_saved = useCallback(
     (draft: { id: string; version: number; content: DraftContent }) => {
-      if (!mail_item?.thread_token) return;
+      if (!mail_item?.id) return;
 
       const now = new Date().toISOString();
       const expires_at = new Date(

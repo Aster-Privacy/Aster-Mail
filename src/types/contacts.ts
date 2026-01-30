@@ -235,8 +235,9 @@ export interface DecryptedContactAttachment {
   data: Uint8Array;
   meta: ContactAttachmentMeta;
   size_bytes: number;
-  seq_num: number;
+  seq_num?: number;
   created_at: string;
+  blob_url?: string;
 }
 
 export interface ContactAttachmentListItem {
@@ -388,6 +389,7 @@ export interface ImportResult {
   imported: number;
   updated: number;
   skipped: number;
+  failed: number;
   errors: string[];
 }
 

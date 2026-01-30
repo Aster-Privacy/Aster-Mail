@@ -355,7 +355,7 @@ export function ReplyModal({
 
   const save_thread_draft = useCallback(
     async (text: string) => {
-      if (!thread_token || !text.trim() || !original_email_id) return;
+      if (!text.trim() || !original_email_id) return;
 
       const vault = get_vault_from_memory();
 
@@ -428,7 +428,7 @@ export function ReplyModal({
   );
 
   useEffect(() => {
-    if (!is_open || !thread_token || !reply_message.trim()) return;
+    if (!is_open || !original_email_id || !reply_message.trim()) return;
     if (reply_message === last_saved_text.current) return;
 
     if (save_draft_timeout.current) {
@@ -444,7 +444,7 @@ export function ReplyModal({
         clearTimeout(save_draft_timeout.current);
       }
     };
-  }, [is_open, thread_token, reply_message, save_thread_draft]);
+  }, [is_open, original_email_id, reply_message, save_thread_draft]);
 
   useEffect(() => {
     return () => {

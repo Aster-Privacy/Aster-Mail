@@ -15,7 +15,6 @@ import { clear_search_cache } from "@/services/search/cache";
 import { reset_classifier } from "@/services/classification/classifier";
 import { clear_logo_cache } from "@/lib/logo_service";
 import { stop_session_timeout } from "@/services/session_timeout_service";
-import { close_session_sync } from "@/services/session_sync_service";
 import { sync_client } from "@/services/sync_client";
 import { undo_send_manager } from "@/services/undo_send_manager";
 import { clear_notification_state } from "@/services/notification_service";
@@ -514,7 +513,6 @@ export async function wipe_all_storage(): Promise<void> {
   clear_local_index();
 
   stop_session_timeout();
-  close_session_sync();
   sync_client.disconnect();
   undo_send_manager.destroy();
 

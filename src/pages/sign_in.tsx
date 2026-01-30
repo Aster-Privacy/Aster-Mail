@@ -25,10 +25,15 @@ import {
 } from "@/services/api/totp";
 
 const TRUSTED_REDIRECT_ORIGINS = [
-  "http://localhost:5174",
+  "http://mail.localhost:5173",
+  "http://portal.localhost:5174",
+  "http://panel.localhost:5180",
   "http://localhost:5173",
-  "https://portal.astermail.org",
+  "http://localhost:5174",
+  "http://localhost:5180",
   "https://mail.astermail.org",
+  "https://portal.astermail.org",
+  "https://panel.astermail.org",
 ];
 
 function is_safe_redirect_url(url: string, current_origin: string): boolean {

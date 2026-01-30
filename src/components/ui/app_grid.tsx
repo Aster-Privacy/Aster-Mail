@@ -99,7 +99,7 @@ export const DEFAULT_APPS: AppItem[] = [
     href:
       import.meta.env.VITE_MAIL_URL ||
       (import.meta.env.DEV
-        ? "http://localhost:5173"
+        ? "http://mail.localhost:5173"
         : "https://mail.astermail.org"),
   },
   {
@@ -109,7 +109,7 @@ export const DEFAULT_APPS: AppItem[] = [
     href:
       import.meta.env.VITE_PORTAL_URL ||
       (import.meta.env.DEV
-        ? "http://localhost:5174"
+        ? "http://portal.localhost:5174"
         : "https://portal.astermail.org"),
   },
   {

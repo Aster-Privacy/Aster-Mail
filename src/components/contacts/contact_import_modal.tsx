@@ -13,7 +13,6 @@ import {
   ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   import_vcard,
@@ -314,8 +313,7 @@ export function ContactImportModal({
                     Back
                   </Button>
                   <Button
-                    variant="solid"
-                    color="primary"
+                    variant="primary"
                     onClick={handle_apply_csv_mapping}
                   >
                     Continue
@@ -389,8 +387,7 @@ export function ContactImportModal({
                     Back
                   </Button>
                   <Button
-                    variant="solid"
-                    color="primary"
+                    variant="primary"
                     onClick={handle_import}
                     disabled={is_importing || parsed_contacts.length === 0}
                   >
@@ -448,8 +445,7 @@ export function ContactImportModal({
                 </div>
 
                 <Button
-                  variant="solid"
-                  color="primary"
+                  variant="primary"
                   onClick={handle_done}
                   className="w-full"
                 >

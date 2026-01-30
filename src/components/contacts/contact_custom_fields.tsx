@@ -186,14 +186,21 @@ export function ContactCustomFields({
           };
           on_field_values_change(updated);
         } else {
-          on_field_values_change([
-            ...field_values,
-            {
-              id: response.data?.id || crypto.randomUUID(),
-              field_definition_id: editing_field_id,
-              value: editing_value.trim(),
-            },
-          ]);
+          const definition = definitions.find((d) => d.id === editing_field_id);
+          if (definition) {
+            on_field_values_change([
+              ...field_values,
+              {
+                id: crypto.randomUUID(),
+                contact_id,
+                field_definition_id: editing_field_id,
+                field_name: definition.name,
+                field_type: definition.field_type,
+                value: editing_value.trim(),
+                created_at: new Date().toISOString(),
+              },
+            ]);
+          }
         }
       } else {
         const existing = field_values.find(
