@@ -15,6 +15,7 @@ export interface EditDraftData {
   draft_type: DraftType;
   reply_to_id?: string;
   forward_from_id?: string;
+  thread_token?: string;
   to_recipients: string[];
   cc_recipients: string[];
   bcc_recipients: string[];

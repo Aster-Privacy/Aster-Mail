@@ -19,7 +19,6 @@ import {
   MapPinIcon,
 } from "@heroicons/react/24/outline";
 
-import { InlineReplySection } from "@/components/email/inline_reply_section";
 import { show_toast } from "@/components/toast/simple_toast";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -90,6 +89,7 @@ interface SplitEmailViewerProps {
   email_id: string;
   on_close: () => void;
   snoozed_until?: string;
+  on_reply?: (data: SplitReplyData) => void;
   on_forward?: (data: SplitForwardData) => void;
   on_navigate_prev?: () => void;
   on_navigate_next?: () => void;
@@ -246,6 +246,7 @@ export function SplitEmailViewer({
   email_id,
   on_close,
   snoozed_until,
+  on_reply,
   on_forward,
   on_navigate_prev: _on_navigate_prev,
   on_navigate_next: _on_navigate_next,
@@ -272,9 +273,7 @@ export function SplitEmailViewer({
   const [current_user_email, set_current_user_email] = useState<string>("");
   const [is_external, set_is_external] = useState(false);
   const [has_pq_protection, set_has_pq_protection] = useState(false);
-  const [show_inline_reply, set_show_inline_reply] = useState(false);
   const mark_as_read_timeout = useRef<number | null>(null);
-  const inline_reply_ref = useRef<HTMLDivElement>(null);
 
   const copy_to_clipboard = useCallback(async (text: string, label: string) => {
     const clear_clipboard_after_timeout = () => {
@@ -309,23 +308,18 @@ export function SplitEmailViewer({
   }, []);
 
   const handle_reply = useCallback(() => {
-    if (!email) return;
-    set_show_inline_reply(true);
-    setTimeout(() => {
-      inline_reply_ref.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-      });
-    }, 150);
-  }, [email]);
-
-  const handle_inline_reply_sent = useCallback(
-    (new_message: DecryptedThreadMessage) => {
-      set_thread_messages((prev) => [...prev, new_message]);
-      set_show_inline_reply(false);
-    },
-    [],
-  );
+    if (!email || !on_reply) return;
+    on_reply({
+      recipient_name: email.sender,
+      recipient_email: email.sender_email,
+      recipient_avatar: "/mail_logo.webp",
+      original_subject: email.subject,
+      original_body: email.body,
+      original_timestamp: email.timestamp,
+      thread_token: email.thread_token,
+      original_email_id: email.id,
+    });
+  }, [email, on_reply]);
 
   const handle_forward = useCallback(() => {
     if (!email || !on_forward) return;
@@ -563,7 +557,6 @@ export function SplitEmailViewer({
       set_is_loading(true);
       set_error(null);
       set_thread_messages([]);
-      set_show_inline_reply(false);
 
       const result = await get_mail_item(email_id);
 
@@ -1256,26 +1249,11 @@ export function SplitEmailViewer({
               }}
               subject={email.subject}
             />
-
-            <InlineReplySection
-              ref={inline_reply_ref}
-              body={email.body}
-              email_id={email.id}
-              is_visible={show_inline_reply}
-              on_close={() => set_show_inline_reply(false)}
-              on_reply_sent={handle_inline_reply_sent}
-              sender_email={email.sender_email}
-              sender_name={email.sender}
-              subject={email.subject}
-              thread_token={email.thread_token}
-              timestamp={email.timestamp}
-            />
           </div>
         </div>
       </div>
 
-      {!show_inline_reply && (
-        <div
+      <div
           className="flex items-center gap-3 px-4 py-3 border-t"
           style={{
             backgroundColor: "var(--bg-primary)",
@@ -1317,7 +1295,6 @@ export function SplitEmailViewer({
             </button>
           )}
         </div>
-      )}
     </div>
   );
 }

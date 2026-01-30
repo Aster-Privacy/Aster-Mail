@@ -75,13 +75,33 @@ export function detect_platform(): Platform {
 
   if (cached_platform !== null) return cached_platform;
 
-  const ua = navigator.userAgent.toLowerCase();
+  const nav = navigator as Navigator & {
+    userAgentData?: { platform: string };
+  };
 
-  if (ua.includes("mac")) {
+  if (nav.userAgentData?.platform) {
+    const platform = nav.userAgentData.platform.toLowerCase();
+
+    if (platform === "macos") {
+      cached_platform = "mac";
+    } else if (platform === "windows") {
+      cached_platform = "windows";
+    } else if (platform === "linux" || platform === "chromeos") {
+      cached_platform = "linux";
+    } else {
+      cached_platform = "unknown";
+    }
+
+    return cached_platform;
+  }
+
+  const platform = navigator.platform.toLowerCase();
+
+  if (platform.includes("mac")) {
     cached_platform = "mac";
-  } else if (ua.includes("win")) {
+  } else if (platform.includes("win")) {
     cached_platform = "windows";
-  } else if (ua.includes("linux") || ua.includes("x11")) {
+  } else if (platform.includes("linux") || platform.includes("x11")) {
     cached_platform = "linux";
   } else {
     cached_platform = "unknown";

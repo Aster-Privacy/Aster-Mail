@@ -21,6 +21,7 @@ import {
 
 import { use_search } from "@/hooks/use_search";
 import { use_preferences } from "@/contexts/preferences_context";
+import { is_mac_platform } from "@/lib/utils";
 
 const MIN_LIST_WIDTH = 280;
 const DEFAULT_LIST_WIDTH = 400;
@@ -70,7 +71,7 @@ export function SearchResultsPage({
   on_split_close,
 }: SearchResultsPageProps) {
   const { preferences } = use_preferences();
-  const is_mac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+  const is_mac = is_mac_platform();
   const { state, search, load_more, set_query, clear_results } = use_search();
 
   const [filters, set_filters] = useState<SearchFiltersState>({

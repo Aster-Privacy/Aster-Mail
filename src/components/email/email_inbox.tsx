@@ -4,7 +4,7 @@ import type {
   ConfirmationDialogState,
 } from "@/types/email";
 import type { ScheduledEmailWithContent } from "@/services/api/scheduled";
-import type { DraftType } from "@/services/api/multi_drafts";
+import type { DraftType, DraftWithContent } from "@/services/api/multi_drafts";
 
 import {
   useState,
@@ -114,6 +114,7 @@ interface DraftClickData {
   draft_type: DraftType;
   reply_to_id?: string;
   forward_from_id?: string;
+  thread_token?: string;
   to_recipients: string[];
   cc_recipients: string[];
   bcc_recipients: string[];
@@ -481,6 +482,28 @@ export function EmailInbox({
       }
     },
     [on_reply],
+  );
+
+  const handle_edit_thread_draft = useCallback(
+    (draft: DraftWithContent) => {
+      if (on_draft_click) {
+        on_draft_click({
+          id: draft.id,
+          version: draft.version,
+          draft_type: draft.draft_type,
+          reply_to_id: draft.reply_to_id,
+          forward_from_id: draft.forward_from_id,
+          thread_token: draft.thread_token,
+          to_recipients: draft.content.to_recipients,
+          cc_recipients: draft.content.cc_recipients,
+          bcc_recipients: draft.content.bcc_recipients,
+          subject: draft.content.subject,
+          message: draft.content.message,
+          updated_at: draft.updated_at,
+        });
+      }
+    },
+    [on_draft_click],
   );
 
   const folders_lookup = useMemo(() => {
@@ -1896,6 +1919,7 @@ export function EmailInbox({
             <FullEmailViewer
               email_id={split_email_id}
               on_back={on_split_close || (() => {})}
+              on_edit_draft={handle_edit_thread_draft}
               on_forward={on_forward}
               snoozed_until={split_email_snoozed_until}
             />
@@ -1944,6 +1968,7 @@ export function EmailInbox({
                   email_id={split_email_id}
                   on_close={on_split_close || (() => {})}
                   on_forward={on_forward}
+                  on_reply={on_reply}
                   snoozed_until={split_email_snoozed_until}
                 />
               ) : null}

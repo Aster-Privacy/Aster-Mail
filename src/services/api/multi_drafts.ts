@@ -19,6 +19,7 @@ export interface Draft {
   draft_type: DraftType;
   reply_to_id?: string;
   forward_from_id?: string;
+  thread_token?: string;
   version: number;
   created_at: string;
   updated_at: string;
@@ -36,6 +37,7 @@ interface DraftApiResponse {
   content_nonce: string;
   reply_to_id?: string;
   forward_from_id?: string;
+  thread_token?: string;
   version: number;
   content_hash: string;
   size_bytes: number;
@@ -80,6 +82,7 @@ interface CreateDraftRequest {
   content_hash: string;
   reply_to_id?: string;
   forward_from_id?: string;
+  thread_token?: string;
   size_bytes: number;
   has_attachments: boolean;
   attachment_count: number;
@@ -129,6 +132,7 @@ function transform_api_response_to_draft(response: DraftApiResponse): Draft {
     draft_type: response.draft_type as DraftType,
     reply_to_id: response.reply_to_id,
     forward_from_id: response.forward_from_id,
+    thread_token: response.thread_token,
     version: response.version,
     created_at: response.created_at,
     updated_at: response.updated_at,
@@ -347,6 +351,7 @@ export async function create_draft(
   draft_type: DraftType = "new",
   reply_to_id?: string,
   forward_from_id?: string,
+  thread_token?: string,
 ): Promise<ApiResponse<Draft>> {
   let payload: EncryptedDraftPayload;
 
@@ -370,6 +375,7 @@ export async function create_draft(
     content_hash,
     reply_to_id,
     forward_from_id,
+    thread_token,
     size_bytes: payload.encrypted.length,
     has_attachments: false,
     attachment_count: 0,
@@ -394,6 +400,7 @@ export async function create_draft(
       draft_type,
       reply_to_id,
       forward_from_id,
+      thread_token,
       version: response.data.version,
       created_at: now,
       updated_at: now,
@@ -410,6 +417,7 @@ export async function update_draft(
   draft_type: DraftType = "new",
   reply_to_id?: string,
   forward_from_id?: string,
+  thread_token?: string,
 ): Promise<ApiResponse<Draft>> {
   let payload: EncryptedDraftPayload;
 
@@ -459,6 +467,7 @@ export async function update_draft(
       draft_type,
       reply_to_id,
       forward_from_id,
+      thread_token,
       version: response.data.version,
       created_at: now,
       updated_at: now,
@@ -481,4 +490,47 @@ export async function delete_draft(
   invalidate_mail_counts();
 
   return { data: { success: response.data.success } };
+}
+
+export async function get_draft_by_thread(
+  thread_token: string,
+  vault: EncryptedVault,
+): Promise<ApiResponse<DraftWithContent | null>> {
+  const response = await api_client.get<DraftApiResponse | null>(
+    `/drafts/thread/${encodeURIComponent(thread_token)}`,
+  );
+
+  if (response.error) {
+    return {
+      data: null,
+      error: response.error,
+      code: response.code,
+    };
+  }
+
+  if (!response.data) {
+    return { data: null };
+  }
+
+  try {
+    const content = await decrypt_content(
+      response.data.encrypted_content,
+      response.data.content_nonce,
+      vault,
+    );
+
+    return {
+      data: {
+        ...transform_api_response_to_draft(response.data),
+        content,
+      },
+    };
+  } catch (error) {
+    const message =
+      error instanceof DraftDecryptionError
+        ? error.message
+        : "Failed to decrypt draft";
+
+    return { data: null, error: message };
+  }
 }

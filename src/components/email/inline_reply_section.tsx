@@ -17,6 +17,13 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { emit_thread_reply_sent } from "@/hooks/mail_events";
+import {
+  create_draft,
+  update_draft,
+  delete_draft,
+  type DraftContent,
+} from "@/services/api/multi_drafts";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 
 const ASTER_FOOTER =
   '<br><br><span style="color: var(--text-tertiary); font-size: 12px;">Secured by <a href="https://astermail.org" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Aster Mail</a></span>';
@@ -34,6 +41,13 @@ interface InlineReplySectionProps {
   is_visible: boolean;
   on_close: () => void;
   on_reply_sent: (message: DecryptedThreadMessage) => void;
+  on_sending_start?: (message: DecryptedThreadMessage) => void;
+  on_sending_end?: () => void;
+  on_draft_saved?: (draft: {
+    id: string;
+    version: number;
+    content: DraftContent;
+  }) => void;
 }
 
 export const InlineReplySection = forwardRef<
@@ -51,6 +65,9 @@ export const InlineReplySection = forwardRef<
     is_visible,
     on_close,
     on_reply_sent,
+    on_sending_start,
+    on_sending_end,
+    on_draft_saved,
   },
   ref,
 ) {
@@ -63,7 +80,11 @@ export const InlineReplySection = forwardRef<
   const [error_message, set_error_message] = useState<string | null>(null);
   const [queued_id, set_queued_id] = useState<string | null>(null);
   const [countdown, set_countdown] = useState(0);
+  const [draft_id, set_draft_id] = useState<string | null>(null);
+  const [draft_version, set_draft_version] = useState<number>(1);
   const textarea_ref = useRef<HTMLTextAreaElement>(null);
+  const save_draft_timeout = useRef<number | null>(null);
+  const last_saved_text = useRef<string>("");
 
   const undo_enabled = preferences.undo_send_enabled ?? true;
   const undo_seconds = undo_enabled
@@ -82,6 +103,103 @@ export const InlineReplySection = forwardRef<
       }, 100);
     }
   }, [is_visible]);
+
+  const save_thread_draft = useCallback(
+    async (text: string) => {
+      if (!thread_token || !text.trim()) return;
+
+      const vault = get_vault_from_memory();
+
+      if (!vault) return;
+
+      const content: DraftContent = {
+        to_recipients: [sender_email],
+        cc_recipients: [],
+        bcc_recipients: [],
+        subject: subject.startsWith("Re:") ? subject : `Re: ${subject}`,
+        message: text,
+      };
+
+      if (draft_id) {
+        const result = await update_draft(
+          draft_id,
+          content,
+          draft_version,
+          vault,
+          "reply",
+          email_id,
+          undefined,
+          thread_token,
+        );
+
+        if (result.data) {
+          set_draft_version(result.data.version);
+          last_saved_text.current = text;
+          on_draft_saved?.({
+            id: draft_id,
+            version: result.data.version,
+            content,
+          });
+        }
+      } else {
+        const result = await create_draft(
+          content,
+          vault,
+          "reply",
+          email_id,
+          undefined,
+          thread_token,
+        );
+
+        if (result.data) {
+          set_draft_id(result.data.id);
+          set_draft_version(result.data.version);
+          last_saved_text.current = text;
+          on_draft_saved?.({
+            id: result.data.id,
+            version: result.data.version,
+            content,
+          });
+        }
+      }
+    },
+    [
+      thread_token,
+      sender_email,
+      subject,
+      email_id,
+      draft_id,
+      draft_version,
+      on_draft_saved,
+    ],
+  );
+
+  useEffect(() => {
+    if (!is_visible || !thread_token || !reply_text.trim()) return;
+    if (reply_text === last_saved_text.current) return;
+
+    if (save_draft_timeout.current) {
+      clearTimeout(save_draft_timeout.current);
+    }
+
+    save_draft_timeout.current = window.setTimeout(() => {
+      save_thread_draft(reply_text);
+    }, 1500);
+
+    return () => {
+      if (save_draft_timeout.current) {
+        clearTimeout(save_draft_timeout.current);
+      }
+    };
+  }, [is_visible, thread_token, reply_text, save_thread_draft]);
+
+  useEffect(() => {
+    return () => {
+      if (save_draft_timeout.current) {
+        clearTimeout(save_draft_timeout.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (send_state !== "queued") return;
@@ -123,6 +241,23 @@ export const InlineReplySection = forwardRef<
     set_send_state("queued");
     set_countdown(undo_seconds);
 
+    const sending_message: DecryptedThreadMessage = {
+      id: `sending_${Date.now()}`,
+      item_type: "sent",
+      sender_name: user?.display_name || user?.email || "Me",
+      sender_email: user?.email || "",
+      subject: subject.startsWith("Re:") ? subject : `Re: ${subject}`,
+      body: reply_text.trim(),
+      timestamp: new Date().toISOString(),
+      is_read: true,
+      is_starred: false,
+      is_deleted: false,
+      is_external: false,
+      is_sending: true,
+    };
+
+    on_sending_start?.(sending_message);
+
     const original: OriginalEmail = {
       sender_email: sender_email,
       sender_name: sender_name,
@@ -145,6 +280,15 @@ export const InlineReplySection = forwardRef<
         on_complete: () => {
           set_send_state("sent");
           show_toast("Email sent.", "success");
+          on_sending_end?.();
+
+          if (draft_id) {
+            delete_draft(draft_id).then(() => {
+              set_draft_id(null);
+              set_draft_version(1);
+              last_saved_text.current = "";
+            });
+          }
 
           if (thread_token) {
             emit_thread_reply_sent({
@@ -177,10 +321,12 @@ export const InlineReplySection = forwardRef<
         on_cancel: () => {
           set_send_state("idle");
           set_queued_id(null);
+          on_sending_end?.();
         },
         on_error: (error) => {
           set_send_state("error");
           set_error_message(error);
+          on_sending_end?.();
         },
       },
       preferences.undo_send_period,
@@ -191,6 +337,7 @@ export const InlineReplySection = forwardRef<
     } else if (!result.success) {
       set_send_state("error");
       set_error_message(result.error || "Failed to send reply");
+      on_sending_end?.();
     }
   }, [
     reply_text,
@@ -208,6 +355,8 @@ export const InlineReplySection = forwardRef<
     user,
     on_reply_sent,
     on_close,
+    on_sending_start,
+    on_sending_end,
   ]);
 
   const handle_undo = useCallback(() => {

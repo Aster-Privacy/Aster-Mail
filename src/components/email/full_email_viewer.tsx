@@ -21,6 +21,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { InlineReplySection } from "@/components/email/inline_reply_section";
+import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
+import { SendingMessageBlock } from "@/components/email/sending_message_block";
 import { show_toast } from "@/components/toast/simple_toast";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -66,6 +68,11 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
+import {
+  get_draft_by_thread,
+  type DraftWithContent,
+  type DraftContent,
+} from "@/services/api/multi_drafts";
 
 export interface FullReplyData {
   recipient_name: string;
@@ -92,6 +99,7 @@ interface FullEmailViewerProps {
   on_back: () => void;
   snoozed_until?: string;
   on_forward?: (data: FullForwardData) => void;
+  on_edit_draft?: (draft: DraftWithContent) => void;
   on_navigate_prev?: () => void;
   on_navigate_next?: () => void;
   can_go_prev?: boolean;
@@ -248,6 +256,7 @@ export function FullEmailViewer({
   on_back,
   snoozed_until,
   on_forward,
+  on_edit_draft,
   on_navigate_prev: _on_navigate_prev,
   on_navigate_next: _on_navigate_next,
   can_go_prev: _can_go_prev = false,
@@ -278,9 +287,15 @@ export function FullEmailViewer({
     DecryptedThreadMessage[]
   >([]);
   const [current_user_email, set_current_user_email] = useState<string>("");
+  const [current_user_name, set_current_user_name] = useState<string>("");
   const [is_external, set_is_external] = useState(false);
   const [has_pq_protection, set_has_pq_protection] = useState(false);
   const [show_inline_reply, set_show_inline_reply] = useState(false);
+  const [thread_draft, set_thread_draft] = useState<DraftWithContent | null>(
+    null,
+  );
+  const [sending_message, set_sending_message] =
+    useState<DecryptedThreadMessage | null>(null);
   const mark_as_read_timeout = useRef<number | null>(null);
   const inline_reply_ref = useRef<HTMLDivElement>(null);
 
@@ -346,6 +361,55 @@ export function FullEmailViewer({
       email_timestamp: email.timestamp,
     });
   }, [email, on_forward]);
+
+  const handle_edit_thread_draft = useCallback(
+    (draft: DraftWithContent) => {
+      if (on_edit_draft) {
+        on_edit_draft(draft);
+      }
+    },
+    [on_edit_draft],
+  );
+
+  const handle_thread_draft_deleted = useCallback(() => {
+    set_thread_draft(null);
+  }, []);
+
+  const handle_sending_start = useCallback(
+    (message: DecryptedThreadMessage) => {
+      set_sending_message(message);
+      set_thread_draft(null);
+    },
+    [],
+  );
+
+  const handle_sending_end = useCallback(() => {
+    set_sending_message(null);
+  }, []);
+
+  const handle_draft_saved = useCallback(
+    (draft: { id: string; version: number; content: DraftContent }) => {
+      if (!email?.thread_token) return;
+
+      const now = new Date().toISOString();
+      const expires_at = new Date(
+        Date.now() + 30 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+
+      set_thread_draft({
+        id: draft.id,
+        version: draft.version,
+        draft_type: "reply",
+        reply_to_id: email.id,
+        thread_token: email.thread_token,
+        content: draft.content,
+        created_at: now,
+        updated_at: now,
+        expires_at,
+      });
+    },
+    [email?.id, email?.thread_token],
+  );
 
   const handle_read_toggle = useCallback(async () => {
     if (!email_id || !mail_item) return;
@@ -589,6 +653,8 @@ export function FullEmailViewer({
       set_error(null);
       set_thread_messages([]);
       set_show_inline_reply(false);
+      set_thread_draft(null);
+      set_sending_message(null);
 
       const result = await get_mail_item(email_id);
 
@@ -626,6 +692,8 @@ export function FullEmailViewer({
 
       let user_email: string | undefined;
 
+      let user_name: string | undefined;
+
       try {
         const { get_current_account } = await import(
           "@/services/account_manager"
@@ -634,7 +702,9 @@ export function FullEmailViewer({
 
         if (account) {
           user_email = account.user.email;
+          user_name = account.user.display_name || account.user.email;
           set_current_user_email(account.user.email);
+          set_current_user_name(user_name);
         }
       } catch {
         void 0;
@@ -713,6 +783,24 @@ export function FullEmailViewer({
       }
 
       set_is_loading(false);
+
+      if (item.thread_token && !cancelled) {
+        const { get_vault_from_memory } = await import(
+          "@/services/crypto/memory_key_store"
+        );
+        const current_vault = get_vault_from_memory();
+
+        if (current_vault) {
+          const draft_result = await get_draft_by_thread(
+            item.thread_token,
+            current_vault,
+          );
+
+          if (!cancelled && draft_result.data) {
+            set_thread_draft(draft_result.data);
+          }
+        }
+      }
 
       if (
         !(item.metadata?.is_read ?? false) &&
@@ -1298,13 +1386,35 @@ export function FullEmailViewer({
               subject={email.subject}
             />
 
+            {thread_draft && !show_inline_reply && !sending_message && (
+              <ThreadDraftBadge
+                current_user_email={current_user_email}
+                current_user_name={current_user_name}
+                draft={thread_draft}
+                on_deleted={handle_thread_draft_deleted}
+                on_edit={handle_edit_thread_draft}
+              />
+            )}
+
+            {sending_message && !show_inline_reply && (
+              <div className="mt-4">
+                <SendingMessageBlock
+                  current_user_name={current_user_name}
+                  message={sending_message}
+                />
+              </div>
+            )}
+
             <InlineReplySection
               ref={inline_reply_ref}
               body={email.body}
               email_id={email.id}
               is_visible={show_inline_reply}
               on_close={() => set_show_inline_reply(false)}
+              on_draft_saved={handle_draft_saved}
               on_reply_sent={handle_inline_reply_sent}
+              on_sending_end={handle_sending_end}
+              on_sending_start={handle_sending_start}
               sender_email={email.sender_email}
               sender_name={email.sender}
               subject={email.subject}

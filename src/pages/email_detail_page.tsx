@@ -49,11 +49,17 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { ForwardModal } from "@/components/modals/forward_modal";
 import { SettingsPanel } from "@/components/settings/settings_panel";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
+import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
-import { get_draft } from "@/services/api/multi_drafts";
+import {
+  get_draft,
+  get_draft_by_thread,
+  type DraftWithContent,
+  type DraftContent,
+} from "@/services/api/multi_drafts";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -221,6 +227,9 @@ export default function EmailDetailPage() {
   const [thread_messages, set_thread_messages] = useState<
     DecryptedThreadMessage[]
   >([]);
+  const [thread_draft, set_thread_draft] = useState<DraftWithContent | null>(
+    null,
+  );
   const [current_user_email, set_current_user_email] = useState("");
 
   use_document_title({ email_subject: email?.subject });
@@ -443,6 +452,21 @@ export default function EmailDetailPage() {
         if (user?.email) {
           set_current_user_email(user.email);
         }
+
+        if (response.data.thread_token) {
+          const current_vault = get_vault_from_memory();
+
+          if (current_vault) {
+            const draft_result = await get_draft_by_thread(
+              response.data.thread_token,
+              current_vault,
+            );
+
+            if (draft_result.data) {
+              set_thread_draft(draft_result.data);
+            }
+          }
+        }
       }
 
       await ensure_min_duration();
@@ -620,6 +644,53 @@ export default function EmailDetailPage() {
     navigator.clipboard.writeText(text);
     show_toast(`Copied ${label}`, "success");
   };
+
+  const handle_draft_saved = useCallback(
+    (draft: { id: string; version: number; content: DraftContent }) => {
+      if (!mail_item?.thread_token) return;
+
+      const now = new Date().toISOString();
+      const expires_at = new Date(
+        Date.now() + 30 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+
+      set_thread_draft({
+        id: draft.id,
+        version: draft.version,
+        draft_type: "reply",
+        reply_to_id: mail_item.id,
+        thread_token: mail_item.thread_token,
+        content: draft.content,
+        created_at: now,
+        updated_at: now,
+        expires_at,
+      });
+    },
+    [mail_item?.id, mail_item?.thread_token],
+  );
+
+  const handle_edit_thread_draft = useCallback(
+    (draft: DraftWithContent) => {
+      open_compose({
+        id: draft.id,
+        version: draft.version,
+        draft_type: draft.draft_type,
+        reply_to_id: draft.reply_to_id,
+        thread_token: draft.thread_token,
+        to_recipients: draft.content.to_recipients,
+        cc_recipients: draft.content.cc_recipients,
+        bcc_recipients: draft.content.bcc_recipients,
+        subject: draft.content.subject,
+        message: draft.content.message,
+        updated_at: draft.updated_at,
+      });
+    },
+    [open_compose],
+  );
+
+  const handle_thread_draft_deleted = useCallback(() => {
+    set_thread_draft(null);
+  }, []);
 
   return (
     <>
@@ -1078,6 +1149,16 @@ export default function EmailDetailPage() {
                       }}
                       subject={email.subject}
                     />
+
+                    {thread_draft && !is_reply_modal_open && (
+                      <ThreadDraftBadge
+                        current_user_email={current_user_email}
+                        current_user_name={user?.display_name}
+                        draft={thread_draft}
+                        on_deleted={handle_thread_draft_deleted}
+                        on_edit={handle_edit_thread_draft}
+                      />
+                    )}
                   </div>
 
                   {email.attachments.length > 0 && (
@@ -1417,6 +1498,7 @@ export default function EmailDetailPage() {
       <ReplyModal
         is_open={is_reply_modal_open && !!email}
         on_close={() => set_is_reply_modal_open(false)}
+        on_draft_saved={handle_draft_saved}
         original_body={email?.body}
         original_email_id={mail_item?.id}
         original_subject={email?.subject}

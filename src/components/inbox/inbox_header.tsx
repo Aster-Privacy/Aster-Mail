@@ -50,6 +50,7 @@ import {
   get_passphrase_bytes,
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
+import { is_mac_platform } from "@/lib/utils";
 
 interface DecryptedEnvelope {
   from_address?: string;
@@ -193,7 +194,7 @@ export function InboxHeader({
     useState(false);
   const [is_snooze_modal_open, set_is_snooze_modal_open] = useState(false);
   const [is_refreshing, set_is_refreshing] = useState(false);
-  const is_mac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+  const is_mac = is_mac_platform();
 
   const handle_refresh = () => {
     if (is_refreshing) return;

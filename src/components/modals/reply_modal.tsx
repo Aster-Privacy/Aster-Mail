@@ -16,6 +16,13 @@ import { use_signatures } from "@/contexts/signatures_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_bytes } from "@/lib/utils";
 import { emit_thread_reply_sent } from "@/hooks/mail_events";
+import {
+  create_draft,
+  update_draft,
+  delete_draft,
+  type DraftContent,
+} from "@/services/api/multi_drafts";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 
 interface Attachment {
   id: string;
@@ -181,6 +188,11 @@ interface ReplyModalProps {
   reply_all?: boolean;
   thread_token?: string;
   original_email_id?: string;
+  on_draft_saved?: (draft: {
+    id: string;
+    version: number;
+    content: DraftContent;
+  }) => void;
 }
 
 export function ReplyModal({
@@ -197,6 +209,7 @@ export function ReplyModal({
   reply_all = false,
   thread_token,
   original_email_id,
+  on_draft_saved,
 }: ReplyModalProps) {
   const { user } = use_auth();
   const { preferences } = use_preferences();
@@ -211,11 +224,15 @@ export function ReplyModal({
     null,
   );
   const [show_quoted, set_show_quoted] = useState(false);
+  const [draft_id, set_draft_id] = useState<string | null>(null);
+  const [draft_version, set_draft_version] = useState<number>(1);
 
   const message_editor_ref = useRef<HTMLDivElement>(null);
   const file_input_ref = useRef<HTMLInputElement>(null);
   const attachments_scroll_ref = useRef<HTMLDivElement>(null);
   const pending_thread_token_ref = useRef<string | null>(null);
+  const save_draft_timeout = useRef<number | null>(null);
+  const last_saved_text = useRef<string>("");
 
   const { handle_drag_start, get_position_style } = use_draggable_modal(
     is_open,
@@ -302,6 +319,9 @@ export function ReplyModal({
       set_attachments([]);
       set_attachment_error(null);
       set_show_quoted(false);
+      set_draft_id(null);
+      set_draft_version(1);
+      last_saved_text.current = "";
 
       setTimeout(() => {
         if (message_editor_ref.current) {
@@ -332,6 +352,107 @@ export function ReplyModal({
 
     return () => scroll_container.removeEventListener("wheel", handle_wheel);
   }, [is_open, attachments.length]);
+
+  const save_thread_draft = useCallback(
+    async (text: string) => {
+      if (!thread_token || !text.trim() || !original_email_id) return;
+
+      const vault = get_vault_from_memory();
+
+      if (!vault) return;
+
+      const subject = original_subject.startsWith("Re:")
+        ? original_subject
+        : `Re: ${original_subject}`;
+
+      const content: DraftContent = {
+        to_recipients: [recipient_email],
+        cc_recipients: [],
+        bcc_recipients: [],
+        subject,
+        message: text,
+      };
+
+      if (draft_id) {
+        const result = await update_draft(
+          draft_id,
+          content,
+          draft_version,
+          vault,
+          "reply",
+          original_email_id,
+          undefined,
+          thread_token,
+        );
+
+        if (result.data) {
+          set_draft_version(result.data.version);
+          last_saved_text.current = text;
+          on_draft_saved?.({
+            id: draft_id,
+            version: result.data.version,
+            content,
+          });
+        }
+      } else {
+        const result = await create_draft(
+          content,
+          vault,
+          "reply",
+          original_email_id,
+          undefined,
+          thread_token,
+        );
+
+        if (result.data) {
+          set_draft_id(result.data.id);
+          set_draft_version(result.data.version);
+          last_saved_text.current = text;
+          on_draft_saved?.({
+            id: result.data.id,
+            version: result.data.version,
+            content,
+          });
+        }
+      }
+    },
+    [
+      thread_token,
+      original_email_id,
+      original_subject,
+      recipient_email,
+      draft_id,
+      draft_version,
+      on_draft_saved,
+    ],
+  );
+
+  useEffect(() => {
+    if (!is_open || !thread_token || !reply_message.trim()) return;
+    if (reply_message === last_saved_text.current) return;
+
+    if (save_draft_timeout.current) {
+      clearTimeout(save_draft_timeout.current);
+    }
+
+    save_draft_timeout.current = window.setTimeout(() => {
+      save_thread_draft(reply_message);
+    }, 1500);
+
+    return () => {
+      if (save_draft_timeout.current) {
+        clearTimeout(save_draft_timeout.current);
+      }
+    };
+  }, [is_open, thread_token, reply_message, save_thread_draft]);
+
+  useEffect(() => {
+    return () => {
+      if (save_draft_timeout.current) {
+        clearTimeout(save_draft_timeout.current);
+      }
+    };
+  }, []);
 
   const get_signature = useCallback((): string => {
     if (!user || preferences.signature_mode === "disabled") {
@@ -408,6 +529,15 @@ export function ReplyModal({
         on_complete: () => {
           show_toast("Email sent.", "success");
           window.dispatchEvent(new CustomEvent("astermail:email-sent"));
+
+          if (draft_id) {
+            delete_draft(draft_id).then(() => {
+              set_draft_id(null);
+              set_draft_version(1);
+              last_saved_text.current = "";
+            });
+          }
+
           if (pending_thread_token_ref.current) {
             emit_thread_reply_sent({
               thread_token: pending_thread_token_ref.current,
@@ -461,6 +591,7 @@ export function ReplyModal({
     preferences.undo_send_period,
     get_signature,
     on_close,
+    draft_id,
   ]);
 
   const handle_close = useCallback(() => {

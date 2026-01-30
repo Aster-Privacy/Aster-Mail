@@ -4,12 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import { UndoSendToast } from '@/components/toast/undo_send_toast';
 
 import { use_undo_send } from "@/hooks/use_undo_send";
-
-function get_is_mac(): boolean {
-  if (typeof navigator === "undefined") return false;
-
-  return navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-}
+import { is_mac_platform } from "@/lib/utils";
 
 type ContainerPosition = "bottom-left" | "bottom-right" | "bottom-center";
 
@@ -41,7 +36,7 @@ export function UndoSendContainer({
     remove_pending,
   } = use_undo_send();
 
-  const is_mac = useMemo(() => get_is_mac(), []);
+  const is_mac = useMemo(() => is_mac_platform(), []);
 
   useEffect(() => {
     const handle_keydown = (event: KeyboardEvent) => {

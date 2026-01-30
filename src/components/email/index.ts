@@ -16,3 +16,5 @@ export { EmailProfileTrigger } from "./email_profile_trigger";
 export { EmailReplySection } from "./email_reply_section";
 export { InlineReplySection } from "./inline_reply_section";
 export { ThreadMessageBlock } from "./thread_message_block";
+export { ThreadDraftBadge } from "./thread_draft_badge";
+export { SendingMessageBlock } from "./sending_message_block";

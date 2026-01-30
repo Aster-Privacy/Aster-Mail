@@ -19,6 +19,7 @@ import { MassUnsubscribeModal } from "@/components/modals/mass_unsubscribe_modal
 import { list_mail_items, bulk_update_mail_items } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { use_folders } from "@/hooks/use_folders";
+import { is_mac_platform } from "@/lib/utils";
 
 function ChevronDownIcon() {
   return (
@@ -79,7 +80,7 @@ export function InboxHeader({
   }>({ is_open: false, action_type: "archive" });
   const [is_unsubscribe_open, set_is_unsubscribe_open] = useState(false);
   const [loading_action, set_loading_action] = useState<string | null>(null);
-  const is_mac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+  const is_mac = is_mac_platform();
 
   const handle_batch_action = useCallback(async (action: string) => {
     if (action === "archive_from_sender") {
