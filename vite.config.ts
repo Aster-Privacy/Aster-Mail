@@ -64,6 +64,14 @@ export default defineConfig({
         target: api_target,
         changeOrigin: true,
         secure: false,
+        configure: (proxy) => {
+          proxy.on("proxyReq", (proxyReq, req) => {
+            const cookies = req.headers.cookie;
+            if (cookies) {
+              proxyReq.setHeader("Cookie", cookies);
+            }
+          });
+        },
       },
     },
   },
