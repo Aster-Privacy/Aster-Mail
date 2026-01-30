@@ -297,6 +297,7 @@ export function FullEmailViewer({
   const [sending_message, set_sending_message] =
     useState<DecryptedThreadMessage | null>(null);
   const mark_as_read_timeout = useRef<number | null>(null);
+  const loaded_email_id_ref = useRef<string | null>(null);
   const inline_reply_ref = useRef<HTMLDivElement>(null);
 
   const copy_to_clipboard = useCallback(async (text: string, label: string) => {
@@ -802,6 +803,7 @@ export function FullEmailViewer({
       }
 
       set_is_loading(false);
+      loaded_email_id_ref.current = email_id;
 
       if (item.thread_token && !cancelled) {
         const { get_vault_from_memory } = await import(
@@ -877,7 +879,9 @@ export function FullEmailViewer({
       mark_as_read_timeout.current = null;
     }
 
-    load_email();
+    if (loaded_email_id_ref.current !== email_id) {
+      load_email();
+    }
 
     return () => {
       cancelled = true;

@@ -274,6 +274,7 @@ export function SplitEmailViewer({
   const [is_external, set_is_external] = useState(false);
   const [has_pq_protection, set_has_pq_protection] = useState(false);
   const mark_as_read_timeout = useRef<number | null>(null);
+  const loaded_email_id_ref = useRef<string | null>(null);
 
   const copy_to_clipboard = useCallback(async (text: string, label: string) => {
     const clear_clipboard_after_timeout = () => {
@@ -701,6 +702,7 @@ export function SplitEmailViewer({
       }
 
       set_is_loading(false);
+      loaded_email_id_ref.current = email_id;
 
       if (
         !(decrypted_metadata?.is_read ?? false) &&
@@ -758,7 +760,9 @@ export function SplitEmailViewer({
       mark_as_read_timeout.current = null;
     }
 
-    load_email();
+    if (loaded_email_id_ref.current !== email_id) {
+      load_email();
+    }
 
     return () => {
       cancelled = true;
