@@ -183,3 +183,244 @@ export const GROUP_COLORS = [
   "#8b5cf6",
   "#ec4899",
 ];
+
+export interface ContactPhoto {
+  id: string;
+  contact_id: string;
+  encrypted_data: string;
+  data_nonce: string;
+  encrypted_meta: string;
+  meta_nonce: string;
+  size_bytes: number;
+  created_at: string;
+}
+
+export interface ContactPhotoMeta {
+  filename: string;
+  mime_type: string;
+  width?: number;
+  height?: number;
+}
+
+export interface DecryptedContactPhoto {
+  id: string;
+  contact_id: string;
+  data: Uint8Array;
+  meta: ContactPhotoMeta;
+  blob_url?: string;
+  created_at: string;
+}
+
+export interface ContactAttachment {
+  id: string;
+  contact_id: string;
+  encrypted_data: string;
+  data_nonce: string;
+  encrypted_meta: string;
+  meta_nonce: string;
+  size_bytes: number;
+  seq_num: number;
+  created_at: string;
+}
+
+export interface ContactAttachmentMeta {
+  filename: string;
+  mime_type: string;
+  description?: string;
+}
+
+export interface DecryptedContactAttachment {
+  id: string;
+  contact_id: string;
+  data: Uint8Array;
+  meta: ContactAttachmentMeta;
+  size_bytes: number;
+  seq_num: number;
+  created_at: string;
+}
+
+export interface ContactAttachmentListItem {
+  id: string;
+  contact_id: string;
+  encrypted_meta: string;
+  meta_nonce: string;
+  size_bytes: number;
+  seq_num: number;
+  created_at: string;
+}
+
+export interface CustomFieldDefinition {
+  id: string;
+  encrypted_name: string;
+  name_nonce: string;
+  field_type: CustomFieldType;
+  sort_order: number;
+  created_at: string;
+}
+
+export type CustomFieldType =
+  | "text"
+  | "date"
+  | "url"
+  | "phone"
+  | "email"
+  | "number";
+
+export interface DecryptedCustomFieldDefinition {
+  id: string;
+  name: string;
+  field_type: CustomFieldType;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface CustomFieldValue {
+  id: string;
+  contact_id: string;
+  field_definition_id: string;
+  encrypted_value: string;
+  value_nonce: string;
+  created_at: string;
+}
+
+export interface DecryptedCustomFieldValue {
+  id: string;
+  contact_id: string;
+  field_definition_id: string;
+  field_name: string;
+  field_type: CustomFieldType;
+  value: string;
+  created_at: string;
+}
+
+export interface ContactActivityEntry {
+  id: string;
+  contact_id: string;
+  activity_type: ContactActivityType;
+  mail_item_id?: string;
+  direction?: "sent" | "received";
+  encrypted_subject?: string;
+  subject_nonce?: string;
+  created_at: string;
+}
+
+export type ContactActivityType =
+  | "email_sent"
+  | "email_received"
+  | "created"
+  | "updated"
+  | "merged"
+  | "imported";
+
+export interface DecryptedContactActivityEntry {
+  id: string;
+  contact_id: string;
+  activity_type: ContactActivityType;
+  mail_item_id?: string;
+  direction?: "sent" | "received";
+  subject?: string;
+  created_at: string;
+}
+
+export interface ContactEmailStats {
+  total_sent: number;
+  total_received: number;
+  last_sent_at?: string;
+  last_received_at?: string;
+  first_contact_at?: string;
+}
+
+export interface ContactHistoryResponse {
+  items: ContactActivityEntry[];
+  next_cursor: string | null;
+  has_more: boolean;
+}
+
+export interface DuplicateCandidate {
+  id: string;
+  contact_id_1: string;
+  contact_id_2: string;
+  similarity_score: number;
+  match_reason: "email" | "name" | "phone" | "combined";
+  created_at: string;
+}
+
+export interface DuplicateCandidateWithContacts {
+  id: string;
+  contact_1: DecryptedContact;
+  contact_2: DecryptedContact;
+  similarity_score: number;
+  match_reason: "email" | "name" | "phone" | "combined";
+  created_at: string;
+}
+
+export interface SyncSource {
+  id: string;
+  source_type: "carddav";
+  encrypted_config: string;
+  config_nonce: string;
+  last_sync_at?: string;
+  last_sync_status?: string;
+  contacts_synced: number;
+  is_enabled: boolean;
+  created_at: string;
+}
+
+export interface CardDAVConfig {
+  server_url: string;
+  username: string;
+  password: string;
+  display_name?: string;
+}
+
+export interface DecryptedSyncSource {
+  id: string;
+  source_type: "carddav";
+  config: CardDAVConfig;
+  last_sync_at?: string;
+  last_sync_status?: string;
+  contacts_synced: number;
+  is_enabled: boolean;
+  created_at: string;
+}
+
+export interface ImportResult {
+  imported: number;
+  updated: number;
+  skipped: number;
+  errors: string[];
+}
+
+export interface ImportVCardContact {
+  contact_token: string;
+  encrypted_data: string;
+  data_nonce: string;
+  name_search_token?: string;
+  email_search_token?: string;
+}
+
+export interface RecentContact {
+  id: string;
+  contact_token: string;
+  encrypted_data: string;
+  data_nonce: string;
+  last_contacted_at?: string;
+  email_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DecryptedRecentContact extends DecryptedContact {
+  last_contacted_at?: string;
+  email_count: number;
+}
+
+export interface ExtendedDecryptedContact extends DecryptedContact {
+  has_photo?: boolean;
+  attachment_count?: number;
+  custom_field_count?: number;
+  contact_source?: string;
+  photo_blob_url?: string;
+  custom_fields?: DecryptedCustomFieldValue[];
+  stats?: ContactEmailStats;
+}

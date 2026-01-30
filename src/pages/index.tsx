@@ -2,29 +2,29 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
-import { Sidebar, MobileMenuButton } from "@/components/sidebar";
+import { Sidebar, MobileMenuButton } from "@/components/layout/sidebar";
 import {
   ComposeManager,
   useComposeManager,
-} from "@/components/compose_manager";
+} from "@/components/compose/compose_manager";
 import {
   EmailInbox,
   type ReplyData,
   type DraftClickData,
   type ScheduledClickData,
-} from "@/components/email_inbox";
-import { ContactsContent } from "@/components/contacts_content";
+} from "@/components/email/email_inbox";
+import { ContactsContent } from "@/components/common/contacts_content";
 import { SettingsPanel } from "@/components/settings/settings_panel";
-import { ReplyModal } from "@/components/reply_modal";
-import { ForwardModal } from "@/components/forward_modal";
-import { EmailPopupViewer } from "@/components/email_popup_viewer";
-import { ScheduledPopupViewer } from "@/components/scheduled_popup_viewer";
-import { OnboardingTour } from "@/components/onboarding_tour";
-import { SearchModal } from "@/components/search_modal";
-import { SearchResultsPage } from "@/components/search_results_page";
-import { CommandPalette } from "@/components/command_palette";
-import { KeyboardShortcutsModal } from "@/components/keyboard_shortcuts_modal";
-import { KeyRotationModal } from "@/components/key_rotation_modal";
+import { ReplyModal } from "@/components/modals/reply_modal";
+import { ForwardModal } from "@/components/modals/forward_modal";
+import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
+import { ScheduledPopupViewer } from "@/components/scheduled/scheduled_popup_viewer";
+import { OnboardingTour } from "@/components/common/onboarding_tour";
+import { SearchModal } from "@/components/search/search_modal";
+import { SearchResultsPage } from "@/components/search/search_results_page";
+import { CommandPalette } from "@/components/search/command_palette";
+import { KeyboardShortcutsModal } from "@/components/modals/keyboard_shortcuts_modal";
+import { KeyRotationModal } from "@/components/modals/key_rotation_modal";
 import { use_auth } from "@/contexts/auth_context";
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences } from "@/contexts/preferences_context";

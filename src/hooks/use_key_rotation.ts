@@ -12,7 +12,7 @@ import {
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
 import { upload_prekey_bundle } from "@/services/crypto/ratchet_manager";
-import { show_toast } from "@/components/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 
 export interface KeyRotationState {
   show_modal: boolean;

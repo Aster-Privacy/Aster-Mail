@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api_client } from "@/services/api/client";
-import { show_toast } from "@/components/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 
 interface SpamSettings {
   spam_retention_days: number;

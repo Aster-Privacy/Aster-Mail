@@ -45,7 +45,11 @@ export function AppGrid({ apps, on_app_click }: AppGridProps) {
             </div>
             <span
               className="text-[10px] font-medium"
-              style={{ color: app.disabled ? "var(--text-muted)" : "var(--text-primary)" }}
+              style={{
+                color: app.disabled
+                  ? "var(--text-muted)"
+                  : "var(--text-primary)",
+              }}
             >
               {app.name}
             </span>
@@ -91,14 +95,22 @@ export const DEFAULT_APPS: AppItem[] = [
   {
     id: "mail",
     name: "Mail",
-    icon_src: "/mail_logo.png",
-    href: import.meta.env.VITE_MAIL_URL || (import.meta.env.DEV ? "http://localhost:5173" : "https://mail.astermail.org"),
+    icon_src: "/mail_logo.webp",
+    href:
+      import.meta.env.VITE_MAIL_URL ||
+      (import.meta.env.DEV
+        ? "http://localhost:5173"
+        : "https://mail.astermail.org"),
   },
   {
     id: "portal",
     name: "Portal",
-    icon_src: `${import.meta.env.VITE_PORTAL_URL || (import.meta.env.DEV ? "http://localhost:5174" : "https://portal.astermail.org")}/aster.png`,
-    href: import.meta.env.VITE_PORTAL_URL || (import.meta.env.DEV ? "http://localhost:5174" : "https://portal.astermail.org"),
+    icon_src: "/aster.webp",
+    href:
+      import.meta.env.VITE_PORTAL_URL ||
+      (import.meta.env.DEV
+        ? "http://localhost:5174"
+        : "https://portal.astermail.org"),
   },
   {
     id: "pages",

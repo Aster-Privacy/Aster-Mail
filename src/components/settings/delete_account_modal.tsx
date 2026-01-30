@@ -147,25 +147,18 @@ export function DeleteAccountModal({
               <p className="text-sm font-medium text-red-600 dark:text-red-400 mb-1">
                 This action is permanent and cannot be undone
               </p>
-              <p
-                className="text-xs"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                All your emails, folders, contacts, and encryption keys
-                will be permanently deleted. You will not be able to
-                recover any data associated with this account.
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                All your emails, folders, contacts, and encryption keys will be
+                permanently deleted. You will not be able to recover any data
+                associated with this account.
               </p>
             </div>
           </div>
         </div>
 
-        <p
-          className="text-sm mb-4"
-          style={{ color: "var(--text-secondary)" }}
-        >
+        <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
           To confirm deletion, type{" "}
-          <strong className="text-red-500">delete my account</strong>{" "}
-          below:
+          <strong className="text-red-500">delete my account</strong> below:
         </p>
 
         <Input
@@ -178,10 +171,7 @@ export function DeleteAccountModal({
           onChange={(e) => set_confirmation_text(e.target.value)}
         />
 
-        <p
-          className="text-sm mb-2"
-          style={{ color: "var(--text-secondary)" }}
-        >
+        <p className="text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
           Enter your password to confirm:
         </p>
 
@@ -222,10 +212,7 @@ export function DeleteAccountModal({
 
         {error && <p className="text-sm text-red-500 mt-4">{error}</p>}
         {status && !error && (
-          <p
-            className="text-sm mt-4"
-            style={{ color: "var(--text-tertiary)" }}
-          >
+          <p className="text-sm mt-4" style={{ color: "var(--text-tertiary)" }}>
             {status}
           </p>
         )}

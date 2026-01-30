@@ -1092,6 +1092,11 @@ export function get_usage_statistics(key_id: string): {
   };
 }
 
+export function clear_key_manager_state(): void {
+  KEY_USAGE_LOG.length = 0;
+  PINNED_FINGERPRINTS.clear();
+}
+
 export function clear_key_handle(handle: EncryptedKeyHandle): void {
   secure_zero_memory(handle.encrypted_key);
   log_key_usage(handle.key_id, "decrypt", true, "handle_cleared");

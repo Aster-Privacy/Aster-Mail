@@ -3,12 +3,12 @@ import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
-import { ConfirmationModal } from "@/components/confirmation_modal";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { PROFILE_COLORS, get_default_profile_color } from "@/constants/profile";
-import { PlansComparison } from "@/components/plans_comparison";
+import { PlansComparison } from "@/components/common/plans_comparison";
 import { Button } from "@/components/ui/button";
-import { show_toast } from "@/components/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
 import {

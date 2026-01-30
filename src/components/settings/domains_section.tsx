@@ -14,7 +14,6 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,7 +25,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
-import { ConfirmationModal } from "@/components/confirmation_modal";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   list_domains,
   add_domain,
@@ -103,9 +102,8 @@ function AddDomainModal({
         <ModalTitle>Add Custom Domain</ModalTitle>
         {!at_limit && (
           <ModalDescription>
-            Add a custom domain to send and receive email using your own
-            domain name. You will need to configure DNS records to verify
-            ownership.
+            Add a custom domain to send and receive email using your own domain
+            name. You will need to configure DNS records to verify ownership.
           </ModalDescription>
         )}
       </ModalHeader>
@@ -134,8 +132,8 @@ function AddDomainModal({
                 className="text-xs mt-0.5"
                 style={{ color: "var(--text-muted)" }}
               >
-                You have reached the maximum of {max_domains} domains for
-                your plan. Upgrade to add more.
+                You have reached the maximum of {max_domains} domains for your
+                plan. Upgrade to add more.
               </p>
             </div>
           </div>
@@ -179,9 +177,7 @@ function AddDomainModal({
         {!at_limit && (
           <Button
             disabled={
-              saving ||
-              !domain_name ||
-              !validate_domain_name(domain_name).valid
+              saving || !domain_name || !validate_domain_name(domain_name).valid
             }
             variant="primary"
             onClick={handle_create}
@@ -632,9 +628,7 @@ export function DomainsSection() {
               Upgrade your plan to add custom domains and send email from your
               own domain.
             </p>
-            <Button variant="primary">
-              Upgrade Plan
-            </Button>
+            <Button variant="primary">Upgrade Plan</Button>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
+import { broadcast_login } from "../session_sync_service";
+
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
-import { broadcast_login } from "../session_sync_service";
 
 interface DefaultFolderData {
   label_token: string;

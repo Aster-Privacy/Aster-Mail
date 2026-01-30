@@ -6,11 +6,6 @@ import {
   extract_username_from_email,
   is_internal_email,
 } from "./api/keys";
-import {
-  discover_external_recipient_keys,
-  encrypt_for_external_recipients,
-  type RecipientKeyResult,
-} from "@/utils/email_crypto";
 import { encrypt_message_multi } from "./crypto/key_manager";
 import {
   get_vault_from_memory,
@@ -35,6 +30,11 @@ import {
 import { type QueueEmailRequest } from "./api/undo_send";
 import { encrypt_mail_metadata } from "./crypto/mail_metadata";
 
+import {
+  discover_external_recipient_keys,
+  encrypt_for_external_recipients,
+  type RecipientKeyResult,
+} from "@/utils/email_crypto";
 import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
 import { emit_email_sent } from "@/hooks/mail_events";
 
@@ -475,7 +475,11 @@ export async function execute_external_send(
     throw readiness.error;
   }
 
-  const all_recipients = [...email.to, ...(email.cc || []), ...(email.bcc || [])];
+  const all_recipients = [
+    ...email.to,
+    ...(email.cc || []),
+    ...(email.bcc || []),
+  ];
   let body_to_send = email.body;
 
   const encryption_opts = email.encryption_options;

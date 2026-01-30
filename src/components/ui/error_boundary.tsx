@@ -2,7 +2,7 @@ import { Component, ReactNode } from "react";
 import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
-import { show_toast } from "@/components/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -45,7 +45,12 @@ export class ErrorBoundary extends Component<
           className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center"
           style={{ color: "var(--text-secondary)" }}
         >
-          <img alt="Aster" className="h-10 mb-4" draggable={false} src="/text_logo.png" />
+          <img
+            alt="Aster"
+            className="h-10 mb-4"
+            draggable={false}
+            src="/text_logo.png"
+          />
           <div
             className="text-sm font-medium mb-2"
             style={{ color: "var(--text-primary)" }}
@@ -74,6 +79,7 @@ export class ErrorBoundary extends Component<
 function ErrorDetails({ error }: { error: Error }) {
   const handle_copy = async () => {
     const error_text = `${error.message}${error.stack ? `\n\n${error.stack}` : ""}`;
+
     try {
       await navigator.clipboard.writeText(error_text);
       show_toast("Error copied to clipboard", "success");

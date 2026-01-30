@@ -19,7 +19,7 @@ import { TotpDisableModal } from "./totp_disable_modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { KeyRotationModal } from "@/components/key_rotation_modal";
+import { KeyRotationModal } from "@/components/modals/key_rotation_modal";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
 import { get_totp_status, TotpStatusResponse } from "@/services/api/totp";
@@ -92,7 +92,6 @@ function SecuritySetting({
     </div>
   );
 }
-
 
 const SESSION_TIMEOUT_OPTIONS = [
   { value: 5, label: "5 minutes" },

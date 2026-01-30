@@ -194,11 +194,7 @@ export function extract_username_from_email(email: string): string | null {
   return parts[0];
 }
 
-const INTERNAL_DOMAINS = [
-  "astermail.org",
-  "aster.cx",
-  "gs-cloud.space",
-];
+const INTERNAL_DOMAINS = ["astermail.org", "aster.cx", "gs-cloud.space"];
 
 export function is_internal_email(email: string): boolean {
   const lower_email = email.toLowerCase();
@@ -211,22 +207,36 @@ interface PublishKeyResponse {
   url?: string;
 }
 
-export async function publish_key_to_wkd(): Promise<ApiResponse<PublishKeyResponse>> {
+export async function publish_key_to_wkd(): Promise<
+  ApiResponse<PublishKeyResponse>
+> {
   return api_client.post<PublishKeyResponse>("/keys/publish/wkd", {});
 }
 
-export async function unpublish_key_from_wkd(): Promise<ApiResponse<PublishKeyResponse>> {
+export async function unpublish_key_from_wkd(): Promise<
+  ApiResponse<PublishKeyResponse>
+> {
   return api_client.delete<PublishKeyResponse>("/keys/publish/wkd");
 }
 
-export async function publish_key_to_keyserver(): Promise<ApiResponse<PublishKeyResponse>> {
+export async function publish_key_to_keyserver(): Promise<
+  ApiResponse<PublishKeyResponse>
+> {
   return api_client.post<PublishKeyResponse>("/keys/publish/keyserver", {});
 }
 
-export async function get_wkd_publication_status(): Promise<ApiResponse<{ published: boolean; url?: string }>> {
-  return api_client.get<{ published: boolean; url?: string }>("/keys/publish/wkd/status");
+export async function get_wkd_publication_status(): Promise<
+  ApiResponse<{ published: boolean; url?: string }>
+> {
+  return api_client.get<{ published: boolean; url?: string }>(
+    "/keys/publish/wkd/status",
+  );
 }
 
-export async function get_keyserver_publication_status(): Promise<ApiResponse<{ published: boolean; fingerprint?: string }>> {
-  return api_client.get<{ published: boolean; fingerprint?: string }>("/keys/publish/keyserver/status");
+export async function get_keyserver_publication_status(): Promise<
+  ApiResponse<{ published: boolean; fingerprint?: string }>
+> {
+  return api_client.get<{ published: boolean; fingerprint?: string }>(
+    "/keys/publish/keyserver/status",
+  );
 }

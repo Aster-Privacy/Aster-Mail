@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SunFilledIcon, MoonFilledIcon } from "@/components/icons";
+import { SunFilledIcon, MoonFilledIcon } from "@/components/common/icons";
 import { ACCENT_COLOR_SWATCHES } from "@/constants/style_presets";
 
 function ThemeMockupLight() {

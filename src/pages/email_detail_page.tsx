@@ -39,23 +39,23 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Sidebar, MobileMenuButton } from "@/components/sidebar";
+import { Sidebar, MobileMenuButton } from "@/components/layout/sidebar";
 import {
   ComposeManager,
   useComposeManager,
-} from "@/components/compose_manager";
-import { ReplyModal } from "@/components/reply_modal";
-import { ConfirmationModal } from "@/components/confirmation_modal";
-import { ForwardModal } from "@/components/forward_modal";
+} from "@/components/compose/compose_manager";
+import { ReplyModal } from "@/components/modals/reply_modal";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { ForwardModal } from "@/components/modals/forward_modal";
 import { SettingsPanel } from "@/components/settings/settings_panel";
-import { ThreadMessagesList } from "@/components/thread_message_block";
+import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { get_draft } from "@/services/api/multi_drafts";
-import { show_action_toast } from "@/components/action_toast";
-import { show_toast } from "@/components/simple_toast";
+import { show_action_toast } from "@/components/toast/action_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   try_decrypt_ratchet_body,
   try_decrypt_pgp_body,

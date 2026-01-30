@@ -10,7 +10,7 @@ import {
 import { get_email_logo_url } from "@/lib/logo_service";
 
 const ProfilePopup = lazy(() =>
-  import("@/components/profile_popup").then((mod) => ({
+  import("@/components/profile/profile_popup").then((mod) => ({
     default: mod.ProfilePopup,
   })),
 );
@@ -34,7 +34,7 @@ const SIZE_MAP: Record<string, number> = {
   xl: 96,
 };
 
-const DEFAULT_PROFILE_IMAGE = "/profile.png";
+const DEFAULT_PROFILE_IMAGE = "/profile.webp";
 const ASTER_MAIL_DOMAINS = new Set(["aster.cx", "astermail.org"]);
 const MAX_CACHE_SIZE = 500;
 
@@ -296,7 +296,7 @@ export function ProfileAvatar({
   }, [email]);
 
   const actual_src = useMemo(() => {
-    if (is_aster_mail) return "/mail_logo.png";
+    if (is_aster_mail) return "/mail_logo.webp";
     if (image_url && !image_error) return image_url;
     if (domain_logo_url && !domain_logo_error) return domain_logo_url;
     if (gravatar_url && !image_error) return gravatar_url;

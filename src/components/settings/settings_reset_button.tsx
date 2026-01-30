@@ -6,7 +6,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 
-import { show_toast } from "@/components/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_preferences } from "@/contexts/preferences_context";
 
 interface SettingsResetButtonProps {

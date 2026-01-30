@@ -195,6 +195,7 @@ class MailStatsStore {
 
   adjust(field: keyof MailStats, delta: number): void {
     const current = this.cache.data[field];
+
     if (typeof current === "number") {
       this.cache.data = {
         ...this.cache.data,

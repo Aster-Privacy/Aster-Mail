@@ -283,6 +283,7 @@ class SyncClient {
       this.reconnect_timeout = null;
     }
     this.clear_pending_requests();
+    this.message_handlers.clear();
     this.authenticated = false;
     this.socket?.close();
     this.socket = null;

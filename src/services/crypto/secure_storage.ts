@@ -8,6 +8,24 @@ import {
   encrypted_clear_all,
 } from "./encrypted_storage";
 import { zero_uint8_array } from "./secure_memory";
+import { reset_search_crypto } from "./search_crypto";
+import { clear_key_manager_state } from "./key_manager";
+
+import { clear_search_cache } from "@/services/search/cache";
+import { reset_classifier } from "@/services/classification/classifier";
+import { clear_logo_cache } from "@/lib/logo_service";
+import { stop_session_timeout } from "@/services/session_timeout_service";
+import { close_session_sync } from "@/services/session_sync_service";
+import { sync_client } from "@/services/sync_client";
+import { undo_send_manager } from "@/services/undo_send_manager";
+import { clear_notification_state } from "@/services/notification_service";
+import { clear_external_key_cache } from "@/services/api/keys";
+import { clear_csrf_cache } from "@/services/api/csrf";
+import { clear_category_token_cache } from "@/services/classification/tokens";
+import {
+  reset_global_index,
+  clear_local_index,
+} from "@/services/search/index_manager";
 
 const CURRENT_VERSION = 1;
 const STORAGE_SALT_KEY = "aster_storage_salt";
@@ -481,6 +499,24 @@ export async function wipe_all_storage(): Promise<void> {
   clear_vault_from_memory();
 
   clear_secure_storage_cache();
+  clear_device_encryption_cache();
+
+  clear_key_manager_state();
+  reset_search_crypto();
+  clear_search_cache();
+  reset_classifier();
+  clear_logo_cache();
+  clear_notification_state();
+  clear_external_key_cache();
+  clear_csrf_cache();
+  clear_category_token_cache();
+  reset_global_index();
+  clear_local_index();
+
+  stop_session_timeout();
+  close_session_sync();
+  sync_client.disconnect();
+  undo_send_manager.destroy();
 
   try {
     await encrypted_clear_all();

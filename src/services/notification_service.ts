@@ -143,6 +143,14 @@ export function get_notification_permission(): NotificationPermission {
   return Notification.permission;
 }
 
+export function clear_notification_state(): void {
+  if (notification_sound) {
+    notification_sound.pause();
+    notification_sound.src = "";
+    notification_sound = null;
+  }
+}
+
 export async function load_notification_preferences(
   _vault?: unknown,
 ): Promise<{ enabled: boolean }> {

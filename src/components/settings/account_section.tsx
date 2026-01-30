@@ -6,7 +6,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 
-import { DeleteAccountModal } from "./delete_account_modal";
+import { DeleteAccountModal } from '@/components/modals/delete_account_modal';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,9 +18,8 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-
 import { PROFILE_COLORS } from "@/constants/profile";
-import { show_toast } from "@/components/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
@@ -273,7 +272,7 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
     } else throw new Error("Failed");
   };
 
-  const picture = preview || user?.profile_picture || "/profile.png";
+  const picture = preview || user?.profile_picture || "/profile.webp";
 
   return (
     <div className="space-y-6">
@@ -522,7 +521,10 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
                 Restore all preferences to their default values
               </p>
             </div>
-            <Button variant="secondary" onClick={() => set_show_reset_confirm(true)}>
+            <Button
+              variant="secondary"
+              onClick={() => set_show_reset_confirm(true)}
+            >
               Reset
             </Button>
           </div>
@@ -536,7 +538,10 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
             Erase all your content and data permanently
           </p>
         </div>
-        <Button variant="destructive" onClick={() => set_show_delete_modal(true)}>
+        <Button
+          variant="destructive"
+          onClick={() => set_show_delete_modal(true)}
+        >
           Delete
         </Button>
       </div>

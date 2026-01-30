@@ -10,7 +10,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SnoozeIcon } from "@/components/icons";
+import { SnoozeIcon } from "@/components/common/icons";
 import {
   list_subscriptions,
   get_subscription_stats,

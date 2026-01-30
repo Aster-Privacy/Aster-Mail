@@ -162,6 +162,11 @@ export class EmailClassifier {
     this.cache.clear();
   }
 
+  clear_all(): void {
+    this.cache.clear();
+    this.user_preferences.clear();
+  }
+
   private apply_user_preferences(
     input: ClassificationInput,
     signals: ClassificationSignal[],
@@ -339,7 +344,7 @@ export function get_classifier(): EmailClassifier {
 
 export function reset_classifier(): void {
   if (classifier_instance) {
-    classifier_instance.clear_cache();
+    classifier_instance.clear_all();
   }
   classifier_instance = null;
 }

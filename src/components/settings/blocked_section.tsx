@@ -18,7 +18,7 @@ import {
   block_sender,
   type DecryptedBlockedSender,
 } from "@/services/api/blocked_senders";
-import { show_toast } from "@/components/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 
 export function BlockedSection() {
   const [blocked_senders, set_blocked_senders] = useState<

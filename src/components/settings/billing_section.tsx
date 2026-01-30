@@ -32,7 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { show_toast } from "@/components/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 
 const TRUSTED_REDIRECT_DOMAINS = ["checkout.stripe.com", "billing.stripe.com"];
 

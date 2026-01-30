@@ -19,7 +19,7 @@ import {
   allow_sender,
   type DecryptedAllowedSender,
 } from "@/services/api/allowed_senders";
-import { show_toast } from "@/components/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 
 export function AllowlistSection() {
   const [allowed_senders, set_allowed_senders] = useState<

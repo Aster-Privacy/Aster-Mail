@@ -128,5 +128,6 @@ export function clear_logo_cache(domain?: string): void {
     LOGO_CACHE.delete(domain.toLowerCase());
   } else {
     LOGO_CACHE.clear();
+    PRELOAD_QUEUE.clear();
   }
 }

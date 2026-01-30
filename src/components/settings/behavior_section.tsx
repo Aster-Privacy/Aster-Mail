@@ -22,7 +22,7 @@ import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 import { use_preferences } from "@/contexts/preferences_context";
 import { get_dev_mode, save_dev_mode } from "@/services/api/preferences";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
-import { show_toast } from "@/components/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   publish_key_to_wkd,
   unpublish_key_from_wkd,

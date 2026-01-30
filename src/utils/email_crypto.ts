@@ -182,7 +182,8 @@ export async function discover_external_recipient_keys(
   return {
     recipients_with_keys,
     recipients_without_keys,
-    all_have_keys: recipients_without_keys.length === 0 && recipients_with_keys.length > 0,
+    all_have_keys:
+      recipients_without_keys.length === 0 && recipients_with_keys.length > 0,
     any_have_keys: recipients_with_keys.length > 0,
   };
 }

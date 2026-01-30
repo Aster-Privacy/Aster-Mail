@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 
 import { Button } from "@/components/ui/button";
 import { api_client } from "@/services/api/client";
-import { show_toast } from "@/components/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 
 const MAX_FEEDBACK_LENGTH = 2000;
 

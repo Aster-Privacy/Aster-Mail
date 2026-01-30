@@ -28,8 +28,18 @@ import {
   batch_archive as api_batch_archive,
   batch_unarchive as api_batch_unarchive,
 } from "@/services/api/archive";
-import { adjust_unread_count, adjust_inbox_count, adjust_trash_count, adjust_sent_count } from "@/hooks/use_mail_counts";
-import { adjust_stats_inbox, adjust_stats_sent, adjust_stats_trash, adjust_stats_unread } from "@/hooks/use_mail_stats";
+import {
+  adjust_unread_count,
+  adjust_inbox_count,
+  adjust_trash_count,
+  adjust_sent_count,
+} from "@/hooks/use_mail_counts";
+import {
+  adjust_stats_inbox,
+  adjust_stats_sent,
+  adjust_stats_trash,
+  adjust_stats_unread,
+} from "@/hooks/use_mail_stats";
 import { bulk_index_with_worker } from "@/services/crypto/search_worker_client";
 import {
   get_passphrase_bytes,

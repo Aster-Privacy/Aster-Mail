@@ -28,7 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
-import { SnoozeIcon } from "@/components/icons";
+import { SnoozeIcon } from "@/components/common/icons";
 import { get_dev_mode } from "@/services/api/preferences";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { AccountSection } from "@/components/settings/account_section";

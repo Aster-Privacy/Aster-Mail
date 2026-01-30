@@ -20,8 +20,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
-import { Loader2Icon } from "@/components/icons";
-import { show_toast } from "@/components/simple_toast";
+import { Loader2Icon } from "@/components/common/icons";
+import { show_toast } from "@/components/toast/simple_toast";
 import { api_client } from "@/services/api/client";
 import { get_user_info } from "@/services/api/auth";
 import {

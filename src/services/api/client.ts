@@ -108,6 +108,7 @@ class ApiClient {
 
     if (!csrf_token && !has_stored_token) {
       this.initial_auth_verified = true;
+
       return false;
     }
 

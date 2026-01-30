@@ -20,7 +20,7 @@ import {
   show_action_toast,
   update_progress_toast,
   hide_action_toast,
-} from "@/components/action_toast";
+} from "@/components/toast/action_toast";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 

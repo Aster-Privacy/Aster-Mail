@@ -167,10 +167,7 @@ export function NotificationsSection() {
           </p>
         </div>
         {permission_state === "default" && (
-          <Button
-            size="sm"
-            onClick={handle_request_permission}
-          >
+          <Button size="sm" onClick={handle_request_permission}>
             Enable
           </Button>
         )}
@@ -265,11 +262,7 @@ export function NotificationsSection() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handle_test_sound}
-              >
+              <Button size="sm" variant="ghost" onClick={handle_test_sound}>
                 <PlayIcon className="w-3 h-3" />
                 Preview
               </Button>

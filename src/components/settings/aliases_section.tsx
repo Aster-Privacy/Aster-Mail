@@ -19,7 +19,6 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_auth } from "@/contexts/auth_context";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -39,7 +38,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
-import { ConfirmationModal } from "@/components/confirmation_modal";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   list_aliases,
   create_alias,
@@ -88,7 +87,9 @@ function CreateAliasModal({
   available_domains,
 }: CreateAliasModalProps) {
   const [local_part, set_local_part] = useState("");
-  const [domain, set_domain] = useState(available_domains[0] || DEFAULT_DOMAINS[0]);
+  const [domain, set_domain] = useState(
+    available_domains[0] || DEFAULT_DOMAINS[0],
+  );
   const [display_name, set_display_name] = useState("");
   const [saving, set_saving] = useState(false);
   const [error, set_error] = useState<string | null>(null);
@@ -230,8 +231,8 @@ function CreateAliasModal({
                 className="text-xs mt-0.5"
                 style={{ color: "var(--text-muted)" }}
               >
-                You have reached the maximum of {max_aliases} aliases for
-                your plan. Upgrade to create more.
+                You have reached the maximum of {max_aliases} aliases for your
+                plan. Upgrade to create more.
               </p>
             </div>
           </div>
@@ -323,9 +324,7 @@ function CreateAliasModal({
                 style={{ color: "var(--text-primary)" }}
               >
                 Display Name{" "}
-                <span style={{ color: "var(--text-muted)" }}>
-                  (optional)
-                </span>
+                <span style={{ color: "var(--text-muted)" }}>(optional)</span>
               </label>
               <Input
                 className="bg-[var(--input-bg)] border-[var(--border-secondary)] text-[var(--text-primary)]"
@@ -386,7 +385,10 @@ function PrimaryEmailItem({ email, display_name }: PrimaryEmailItemProps) {
         className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
         style={{ backgroundColor: "var(--accent-primary-muted)" }}
       >
-        <StarIcon className="w-5 h-5" style={{ color: "var(--accent-primary)" }} />
+        <StarIcon
+          className="w-5 h-5"
+          style={{ color: "var(--accent-primary)" }}
+        />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
@@ -473,9 +475,15 @@ function AliasItem({
         }}
       >
         {alias.is_random ? (
-          <BoltIcon className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
+          <BoltIcon
+            className="w-5 h-5"
+            style={{ color: "var(--text-muted)" }}
+          />
         ) : (
-          <AtSymbolIcon className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
+          <AtSymbolIcon
+            className="w-5 h-5"
+            style={{ color: "var(--text-muted)" }}
+          />
         )}
       </div>
       <div className="flex-1 min-w-0">
@@ -609,9 +617,8 @@ function AddDomainModal({
         <ModalTitle>Add Custom Domain</ModalTitle>
         {!at_limit && (
           <ModalDescription>
-            Add a custom domain to send and receive email using your own
-            domain name. You will need to configure DNS records to verify
-            ownership.
+            Add a custom domain to send and receive email using your own domain
+            name. You will need to configure DNS records to verify ownership.
           </ModalDescription>
         )}
       </ModalHeader>
@@ -640,8 +647,8 @@ function AddDomainModal({
                 className="text-xs mt-0.5"
                 style={{ color: "var(--text-muted)" }}
               >
-                You have reached the maximum of {max_domains} domains for
-                your plan. Upgrade to add more.
+                You have reached the maximum of {max_domains} domains for your
+                plan. Upgrade to add more.
               </p>
             </div>
           </div>
@@ -685,9 +692,7 @@ function AddDomainModal({
         {!at_limit && (
           <Button
             disabled={
-              saving ||
-              !domain_name ||
-              !validate_domain_name(domain_name).valid
+              saving || !domain_name || !validate_domain_name(domain_name).valid
             }
             variant="primary"
             onClick={handle_create}
@@ -1035,15 +1040,20 @@ export function AliasesSection() {
   const [aliases, set_aliases] = useState<DecryptedEmailAlias[]>([]);
   const [aliases_loading, set_aliases_loading] = useState(true);
   const [max_aliases, set_max_aliases] = useState(3);
-  const [show_create_alias_modal, set_show_create_alias_modal] = useState(false);
+  const [show_create_alias_modal, set_show_create_alias_modal] =
+    useState(false);
   const [toggling_id, set_toggling_id] = useState<string | null>(null);
-  const [alias_deleting_id, set_alias_deleting_id] = useState<string | null>(null);
+  const [alias_deleting_id, set_alias_deleting_id] = useState<string | null>(
+    null,
+  );
   const [alias_delete_confirm, set_alias_delete_confirm] = useState<{
     is_open: boolean;
     id: string | null;
   }>({ is_open: false, id: null });
 
-  const [alias_counts, set_alias_counts] = useState<AliasCountsResponse | null>(null);
+  const [alias_counts, set_alias_counts] = useState<AliasCountsResponse | null>(
+    null,
+  );
   const [generating_random, set_generating_random] = useState(false);
   const [random_domain, set_random_domain] = useState(DEFAULT_DOMAINS[0]);
 
@@ -1052,7 +1062,9 @@ export function AliasesSection() {
   const [max_domains, set_max_domains] = useState(0);
   const [show_add_domain_modal, set_show_add_domain_modal] = useState(false);
   const [verifying_id, set_verifying_id] = useState<string | null>(null);
-  const [domain_deleting_id, set_domain_deleting_id] = useState<string | null>(null);
+  const [domain_deleting_id, set_domain_deleting_id] = useState<string | null>(
+    null,
+  );
   const [domain_delete_confirm, set_domain_delete_confirm] = useState<{
     is_open: boolean;
     id: string | null;
@@ -1089,8 +1101,7 @@ export function AliasesSection() {
       if (response.data) {
         set_alias_counts(response.data);
       }
-    } catch {
-    }
+    } catch {}
   }, []);
 
   const handle_generate_random = async () => {
@@ -1234,7 +1245,10 @@ export function AliasesSection() {
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <AtSymbolIcon className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
+            <AtSymbolIcon
+              className="w-5 h-5"
+              style={{ color: "var(--text-muted)" }}
+            />
             <h3
               className="text-lg font-semibold"
               style={{ color: "var(--text-primary)" }}
@@ -1245,7 +1259,10 @@ export function AliasesSection() {
           <div className="flex items-center gap-3">
             {alias_counts && (
               <>
-                <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                <span
+                  className="text-xs"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   Custom: {alias_counts.custom_count}/{alias_counts.max_custom}
                 </span>
                 {alias_counts.can_create_random && (
@@ -1264,7 +1281,10 @@ export function AliasesSection() {
           Create alternate email addresses that forward to your main inbox. Use
           them to protect your privacy or organize incoming mail.
           {domains.filter((d) => d.status === "active").length > 0 && (
-            <span className="block mt-1" style={{ color: "var(--text-tertiary)" }}>
+            <span
+              className="block mt-1"
+              style={{ color: "var(--text-tertiary)" }}
+            >
               You can also create aliases on your verified custom domains.
             </span>
           )}
@@ -1395,7 +1415,10 @@ export function AliasesSection() {
         {!domains_loading && max_domains === 0 ? (
           <>
             <div className="flex items-center gap-2 mb-2">
-              <GlobeAltIcon className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
+              <GlobeAltIcon
+                className="w-5 h-5"
+                style={{ color: "var(--text-muted)" }}
+              />
               <h3
                 className="text-lg font-semibold"
                 style={{ color: "var(--text-primary)" }}
@@ -1416,20 +1439,24 @@ export function AliasesSection() {
               >
                 Custom domains not available
               </p>
-              <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
-                Upgrade your plan to add custom domains and create aliases on your
-                own domain.
+              <p
+                className="text-sm mb-4"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Upgrade your plan to add custom domains and create aliases on
+                your own domain.
               </p>
-              <Button variant="primary">
-                Upgrade Plan
-              </Button>
+              <Button variant="primary">Upgrade Plan</Button>
             </div>
           </>
         ) : (
           <>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <GlobeAltIcon className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
+                <GlobeAltIcon
+                  className="w-5 h-5"
+                  style={{ color: "var(--text-muted)" }}
+                />
                 <h3
                   className="text-lg font-semibold"
                   style={{ color: "var(--text-primary)" }}
@@ -1442,8 +1469,8 @@ export function AliasesSection() {
               </span>
             </div>
             <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
-              Add your own domain to create aliases and send email from your domain.
-              Verified domains will appear in the alias domain selector.
+              Add your own domain to create aliases and send email from your
+              domain. Verified domains will appear in the alias domain selector.
             </p>
 
             <Button
@@ -1500,7 +1527,10 @@ export function AliasesSection() {
 
       <CreateAliasModal
         available_domains={available_domains_for_aliases}
-        current_count={alias_counts?.custom_count ?? aliases.filter((a) => !a.is_random).length}
+        current_count={
+          alias_counts?.custom_count ??
+          aliases.filter((a) => !a.is_random).length
+        }
         is_open={show_create_alias_modal}
         max_aliases={alias_counts?.max_custom ?? max_aliases}
         on_close={() => set_show_create_alias_modal(false)}
@@ -1532,7 +1562,9 @@ export function AliasesSection() {
         confirm_text="Delete"
         is_open={domain_delete_confirm.is_open}
         message="Are you sure you want to delete this domain? This action cannot be undone."
-        on_cancel={() => set_domain_delete_confirm({ is_open: false, id: null })}
+        on_cancel={() =>
+          set_domain_delete_confirm({ is_open: false, id: null })
+        }
         on_confirm={confirm_domain_delete}
         title="Delete Domain"
         variant="danger"

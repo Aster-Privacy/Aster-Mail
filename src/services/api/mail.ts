@@ -142,7 +142,8 @@ export async function list_mail_items(
   if (params.item_type) query_params.set("item_type", params.item_type);
   if (params.is_snoozed) query_params.set("is_snoozed", "true");
   if (params.is_trashed) query_params.set("is_trashed", "true");
-  if (params.category_token) query_params.set("category_token", params.category_token);
+  if (params.category_token)
+    query_params.set("category_token", params.category_token);
 
   const query_string = query_params.toString();
   const endpoint = `/mail${query_string ? `?${query_string}` : ""}`;

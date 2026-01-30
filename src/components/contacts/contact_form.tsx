@@ -1,4 +1,10 @@
-import type { DecryptedContact, ContactFormData } from "@/types/contacts";
+import type {
+  DecryptedContact,
+  ContactFormData,
+  DecryptedContactPhoto,
+  DecryptedContactAttachment,
+  DecryptedCustomFieldValue,
+} from "@/types/contacts";
 
 import { useState, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -16,6 +22,9 @@ import {
   DocumentTextIcon,
   GlobeAltIcon,
   StarIcon,
+  PhotoIcon,
+  PaperClipIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 
 import { cn, EMAIL_REGEX } from "@/lib/utils";
@@ -28,6 +37,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ContactPhotoUpload } from "./contact_photo_upload";
+import { ContactAttachmentsPanel } from "./contact_attachments_panel";
+import { ContactCustomFields } from "./contact_custom_fields";
 
 interface ContactFormProps {
   is_open: boolean;
@@ -35,6 +47,12 @@ interface ContactFormProps {
   on_submit: (data: ContactFormData) => Promise<void>;
   contact?: DecryptedContact | null;
   is_loading?: boolean;
+  current_photo?: DecryptedContactPhoto | null;
+  on_photo_change?: (photo: DecryptedContactPhoto | null) => void;
+  attachments?: DecryptedContactAttachment[];
+  on_attachments_change?: (attachments: DecryptedContactAttachment[]) => void;
+  custom_field_values?: DecryptedCustomFieldValue[];
+  on_custom_field_values_change?: (values: DecryptedCustomFieldValue[]) => void;
 }
 
 const initial_form_data: ContactFormData = {
@@ -61,7 +79,7 @@ const RELATIONSHIPS = [
   { value: "other", label: "Other" },
 ] as const;
 
-type TabId = "basic" | "details" | "address" | "social";
+type TabId = "basic" | "details" | "address" | "social" | "photo" | "files" | "fields";
 
 export function ContactForm({
   is_open,
@@ -69,6 +87,12 @@ export function ContactForm({
   on_submit,
   contact,
   is_loading = false,
+  current_photo,
+  on_photo_change,
+  attachments = [],
+  on_attachments_change,
+  custom_field_values = [],
+  on_custom_field_values_change,
 }: ContactFormProps) {
   const [form_data, set_form_data] =
     useState<ContactFormData>(initial_form_data);
@@ -209,12 +233,21 @@ export function ContactForm({
     on_close();
   };
 
-  const tabs: { id: TabId; label: string }[] = [
+  const base_tabs: { id: TabId; label: string }[] = [
     { id: "basic", label: "Basic" },
     { id: "details", label: "Details" },
     { id: "address", label: "Address" },
     { id: "social", label: "Social" },
   ];
+
+  const edit_tabs: { id: TabId; label: string }[] = [
+    { id: "photo", label: "Photo" },
+    { id: "files", label: "Files" },
+    { id: "fields", label: "Fields" },
+  ];
+
+  const tabs = is_edit_mode ? [...base_tabs, ...edit_tabs] : base_tabs;
+  const tab_count = tabs.length;
 
   return (
     <AnimatePresence>
@@ -297,25 +330,25 @@ export function ContactForm({
 
             <div className="px-6 pb-3">
               <div
-                className="relative grid grid-cols-4 p-1 rounded-lg"
+                className="relative flex p-1 rounded-lg overflow-x-auto"
                 style={{ backgroundColor: "var(--bg-secondary)" }}
               >
                 <motion.div
                   animate={{
-                    left: `calc(${tabs.findIndex((t) => t.id === active_tab)} * (100% - 8px) / 4 + 4px)`,
+                    left: `calc(${tabs.findIndex((t) => t.id === active_tab)} * (100% - 8px) / ${tab_count} + 4px)`,
                   }}
                   className="absolute top-1 bottom-1 rounded-md"
                   initial={false}
                   style={{
                     backgroundColor: "var(--bg-primary)",
-                    width: "calc((100% - 8px) / 4)",
+                    width: `calc((100% - 8px) / ${tab_count})`,
                   }}
                   transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
                 />
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
-                    className="relative z-10 px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors duration-150"
+                    className="relative z-10 flex-1 px-2 py-1.5 text-[11px] font-medium rounded-md transition-colors duration-150 whitespace-nowrap"
                     style={{
                       color:
                         active_tab === tab.id
@@ -865,6 +898,108 @@ export function ContactForm({
                           }
                         />
                       </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {active_tab === "photo" && is_edit_mode && contact && (
+                  <motion.div
+                    key="photo"
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <div className="space-y-4">
+                      <div
+                        className="flex items-center gap-2 pb-2 border-b"
+                        style={{ borderColor: "var(--border-secondary)" }}
+                      >
+                        <PhotoIcon
+                          className="w-4 h-4"
+                          style={{ color: "var(--text-muted)" }}
+                        />
+                        <span
+                          className="text-[11px] font-medium uppercase tracking-wider"
+                          style={{ color: "var(--text-muted)" }}
+                        >
+                          Profile Photo
+                        </span>
+                      </div>
+                      <ContactPhotoUpload
+                        contact_id={contact.id}
+                        current_photo={current_photo}
+                        on_photo_change={on_photo_change || (() => {})}
+                        disabled={is_loading}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+
+                {active_tab === "files" && is_edit_mode && contact && (
+                  <motion.div
+                    key="files"
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <div className="space-y-4">
+                      <div
+                        className="flex items-center gap-2 pb-2 border-b"
+                        style={{ borderColor: "var(--border-secondary)" }}
+                      >
+                        <PaperClipIcon
+                          className="w-4 h-4"
+                          style={{ color: "var(--text-muted)" }}
+                        />
+                        <span
+                          className="text-[11px] font-medium uppercase tracking-wider"
+                          style={{ color: "var(--text-muted)" }}
+                        >
+                          Attachments
+                        </span>
+                      </div>
+                      <ContactAttachmentsPanel
+                        contact_id={contact.id}
+                        attachments={attachments}
+                        on_attachments_change={on_attachments_change || (() => {})}
+                        disabled={is_loading}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+
+                {active_tab === "fields" && is_edit_mode && contact && (
+                  <motion.div
+                    key="fields"
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <div className="space-y-4">
+                      <div
+                        className="flex items-center gap-2 pb-2 border-b"
+                        style={{ borderColor: "var(--border-secondary)" }}
+                      >
+                        <AdjustmentsHorizontalIcon
+                          className="w-4 h-4"
+                          style={{ color: "var(--text-muted)" }}
+                        />
+                        <span
+                          className="text-[11px] font-medium uppercase tracking-wider"
+                          style={{ color: "var(--text-muted)" }}
+                        >
+                          Custom Fields
+                        </span>
+                      </div>
+                      <ContactCustomFields
+                        contact_id={contact.id}
+                        field_values={custom_field_values}
+                        on_field_values_change={on_custom_field_values_change || (() => {})}
+                        disabled={is_loading}
+                      />
                     </div>
                   </motion.div>
                 )}
