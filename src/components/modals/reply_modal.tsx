@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { TemplatePicker } from '@/components/compose/template_picker';
@@ -238,6 +238,13 @@ export function ReplyModal({
     is_open,
     MODAL_SIZES.large,
   );
+
+  const is_mac = useMemo(() => {
+    if (typeof navigator !== "undefined") {
+      return /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+    }
+    return false;
+  }, []);
 
   const format_date = useCallback((timestamp: string): string => {
     const date = new Date(timestamp);
@@ -1152,7 +1159,7 @@ export function ReplyModal({
                       className="text-xs"
                       style={{ color: "var(--text-muted)" }}
                     >
-                      ⌘↵ to send
+                      {is_mac ? "⌘↵" : "Ctrl+↵"} to send
                     </span>
                   </div>
                 </div>
