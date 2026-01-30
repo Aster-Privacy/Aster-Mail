@@ -18,6 +18,8 @@ import {
   FolderIcon,
   MapPinIcon,
   ArrowLeftIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
 import { InlineReplySection } from "@/components/email/inline_reply_section";
@@ -257,19 +259,11 @@ export function FullEmailViewer({
   snoozed_until,
   on_forward,
   on_edit_draft,
-  on_navigate_prev: _on_navigate_prev,
-  on_navigate_next: _on_navigate_next,
-  can_go_prev: _can_go_prev = false,
-  can_go_next: _can_go_next = false,
-  current_index: _current_index,
-  total_count: _total_count,
+  on_navigate_prev,
+  on_navigate_next,
+  can_go_prev = false,
+  can_go_next = false,
 }: FullEmailViewerProps): React.ReactElement {
-  void _on_navigate_prev;
-  void _on_navigate_next;
-  void _can_go_prev;
-  void _can_go_next;
-  void _current_index;
-  void _total_count;
 
   const { format_email_detail } = use_date_format();
   const { preferences } = use_preferences();
@@ -1142,6 +1136,27 @@ export function FullEmailViewer({
               )}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <div className="flex items-center gap-0.5 ml-2">
+            <button
+              className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
+              disabled={!can_go_prev}
+              style={{ color: "var(--text-muted)" }}
+              title="Previous email"
+              onClick={on_navigate_prev}
+            >
+              <ChevronUpIcon className="w-5 h-5" />
+            </button>
+            <button
+              className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
+              disabled={!can_go_next}
+              style={{ color: "var(--text-muted)" }}
+              title="Next email"
+              onClick={on_navigate_next}
+            >
+              <ChevronDownIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
 

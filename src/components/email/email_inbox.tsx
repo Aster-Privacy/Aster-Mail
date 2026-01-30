@@ -1917,10 +1917,14 @@ export function EmailInbox({
         {show_full_email_viewer && split_email_id ? (
           <div className="flex-1 overflow-hidden">
             <FullEmailViewer
+              can_go_next={can_go_next}
+              can_go_prev={can_go_prev}
               email_id={split_email_id}
               on_back={on_split_close || (() => {})}
               on_edit_draft={handle_edit_thread_draft}
               on_forward={on_forward}
+              on_navigate_next={on_navigate_next}
+              on_navigate_prev={on_navigate_prev}
               snoozed_until={split_email_snoozed_until}
             />
           </div>
@@ -1965,9 +1969,13 @@ export function EmailInbox({
                 />
               ) : split_email_id ? (
                 <SplitEmailViewer
+                  can_go_next={can_go_next}
+                  can_go_prev={can_go_prev}
                   email_id={split_email_id}
                   on_close={on_split_close || (() => {})}
                   on_forward={on_forward}
+                  on_navigate_next={on_navigate_next}
+                  on_navigate_prev={on_navigate_prev}
                   on_reply={on_reply}
                   snoozed_until={split_email_snoozed_until}
                 />
