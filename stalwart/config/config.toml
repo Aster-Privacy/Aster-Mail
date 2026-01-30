@@ -1,0 +1,58 @@
+[server]
+hostname = "mail.astermail.org"
+max-connections = 1024
+
+[server.tls]
+certificate = "file:///opt/stalwart/etc/certs/fullchain.pem"
+private-key = "file:///opt/stalwart/etc/certs/privkey.pem"
+
+[server.listener.smtp]
+bind = ["0.0.0.0:25"]
+protocol = "smtp"
+
+[server.listener.submission]
+bind = ["0.0.0.0:587"]
+protocol = "smtp"
+tls.starttls = true
+
+[server.listener.submissions]
+bind = ["0.0.0.0:465"]
+protocol = "smtp"
+tls.implicit = true
+
+[server.listener.imaps]
+bind = ["0.0.0.0:993"]
+protocol = "imap"
+tls.implicit = true
+
+[server.listener.http]
+bind = ["0.0.0.0:8080"]
+protocol = "http"
+
+[storage]
+data = "rocksdb"
+fts = "rocksdb"
+blob = "rocksdb"
+lookup = "rocksdb"
+directory = "internal"
+
+[store.rocksdb]
+type = "rocksdb"
+path = "/opt/stalwart/data"
+compression = "lz4"
+
+[directory.internal]
+type = "internal"
+store = "rocksdb"
+
+[tracer.stdout]
+type = "stdout"
+level = "info"
+enable = true
+
+[authentication.fallback-admin]
+user = "admin"
+secret = "%{env:STALWART_ADMIN_PASSWORD}%"
+
+[queue.outbound]
+hostname = "mail.astermail.org"

@@ -1,0 +1,71 @@
+[session.connect]
+script = "connect"
+
+[session.ehlo]
+script = "ehlo"
+require = true
+
+[session.auth]
+mechanisms = ["PLAIN", "LOGIN"]
+require = true
+allow-plain-text = false
+errors.total = 3
+errors.wait = "5s"
+
+[session.mail]
+script = "mail"
+rewrite = "sender"
+
+[session.rcpt]
+script = "rcpt"
+rewrite = "recipient"
+relay = false
+
+[session.data]
+script = "data"
+add-received = true
+add-return-path = true
+add-auth-results = true
+
+[mail]
+rewrite = [
+    { if = "matches('.*@astermail\\.com$', sender)", then = "sender" },
+    { else = "sender" }
+]
+
+[recipient]
+rewrite = [
+    { if = "matches('.*@astermail\\.com$', rcpt)", then = "rcpt" },
+    { else = "rcpt" }
+]
+
+[relay]
+enable = true
+hosts = ["*"]
+auth.require = true
+
+[extensions]
+pipelining = true
+chunking = true
+requiretls = true
+no-soliciting = "Advertising not accepted"
+dsn = true
+future-release = { max = "7d" }
+deliver-by = { max = "3d" }
+
+[limits]
+auth-errors = 3
+rcpt = 50
+message-size = 26214400
+messages = 1000
+bytes = 107374182400
+
+[milter]
+enable = false
+
+[mtasts]
+mode = "enforce"
+
+[dane]
+enable = true
+require = false

@@ -33,7 +33,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-astermail}
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ../../Aster-Backend/migrations:/docker-entrypoint-initdb.d:ro,z
+      - ../backend/migrations:/docker-entrypoint-initdb.d:ro,z
     networks:
       - astermail-network
     healthcheck:
@@ -44,7 +44,7 @@ services:
 
   backend:
     build:
-      context: ../../Aster-Backend
+      context: ../backend
       dockerfile: Dockerfile
     container_name: astermail-backend
     restart: unless-stopped
