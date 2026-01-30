@@ -452,7 +452,6 @@ export function FullEmailViewer({
       );
     } else {
       emit_mail_item_updated({ id: email_id, is_read: new_state });
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
     }
   }, [email_id, is_read, mail_item]);
 
@@ -828,6 +827,7 @@ export function FullEmailViewer({
       ) {
         const mark_read = async () => {
           if (cancelled) return;
+
           const result = await update_item_metadata(
             item.id,
             {
@@ -864,7 +864,10 @@ export function FullEmailViewer({
           const delay_ms =
             preferences.mark_as_read_delay === "1_second" ? 1000 : 3000;
 
-          mark_as_read_timeout.current = window.setTimeout(mark_read, delay_ms);
+          mark_as_read_timeout.current = window.setTimeout(
+            () => mark_read(),
+            delay_ms,
+          );
         }
       }
     }

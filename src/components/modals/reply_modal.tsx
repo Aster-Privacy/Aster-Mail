@@ -36,7 +36,7 @@ interface Attachment {
 const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
 const MAX_TOTAL_ATTACHMENTS_SIZE = 50 * 1024 * 1024;
 const ASTER_FOOTER =
-  '<br><br><span style="color: var(--text-tertiary); font-size: 12px;">Secured by <a href="https://astermail.org" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Aster Mail</a></span><br><br>';
+  '<br><br><span style="color: #6b7280; font-size: 12px;">Secured by <a href="https://astermail.org" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: none;">Aster Mail</a></span><br><br>';
 const ALLOWED_MIME_TYPES = new Set([
   "application/pdf",
   "application/msword",
@@ -241,6 +241,7 @@ export function ReplyModal({
   const save_draft_timeout = useRef<number | null>(null);
   const last_saved_text = useRef<string>("");
   const [active_formats, set_active_formats] = useState<Set<string>>(new Set());
+  const [show_format_menu, set_show_format_menu] = useState(false);
 
   const { handle_drag_start, get_position_style } = use_draggable_modal(
     is_open,
@@ -250,6 +251,13 @@ export function ReplyModal({
   const is_mac = useMemo(() => {
     if (typeof navigator !== "undefined") {
       return /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+    }
+    return false;
+  }, []);
+
+  const is_mobile = useMemo(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth < 640;
     }
     return false;
   }, []);
@@ -823,12 +831,21 @@ export function ReplyModal({
     <AnimatePresence>
       {is_open && (
         <>
+          <motion.div
+            key="reply-backdrop-mobile"
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={on_close}
+          />
           <AnimatePresence>
             {is_expanded && (
               <motion.div
                 key="reply-backdrop"
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-md"
+                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-md hidden sm:block"
                 exit={{ opacity: 0 }}
                 initial={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
@@ -837,20 +854,20 @@ export function ReplyModal({
           </AnimatePresence>
           <motion.div
             key="reply-modal"
-            animate={{ opacity: 1 }}
+            animate={{ opacity: 1, y: 0 }}
             className={`fixed z-50 flex flex-col shadow-2xl sm:border ${
               is_minimized
                 ? "sm:w-[320px] sm:h-auto sm:rounded-t-lg"
                 : is_expanded
                   ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-lg"
-                  : "inset-0 sm:inset-auto sm:w-[700px] sm:h-[600px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
+                  : "bottom-0 left-0 right-0 h-[85vh] rounded-t-2xl sm:inset-auto sm:bottom-auto sm:left-auto sm:right-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
             }`}
-            exit={{ opacity: 0 }}
-            initial={{ opacity: 0 }}
+            exit={{ opacity: 0, y: is_mobile ? 100 : 0 }}
+            initial={{ opacity: 0, y: is_mobile ? 100 : 0 }}
             style={{
               backgroundColor: "var(--modal-bg)",
               borderColor: "var(--border-primary)",
-              willChange: "opacity",
+              willChange: "opacity, transform",
               ...(window.innerWidth >= 640 && !is_expanded && !is_minimized
                 ? get_position_style()
                 : {}),
@@ -858,10 +875,14 @@ export function ReplyModal({
                 ? { bottom: 0, right: 24, top: "auto", left: "auto" }
                 : {}),
             }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+            transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
           >
             <div
-              className="flex items-center justify-between px-4 py-3 border-b cursor-move select-none"
+              className="w-12 h-1.5 bg-default-300 rounded-full mx-auto mt-2 mb-1 sm:hidden"
+              style={{ opacity: 0.5 }}
+            />
+            <div
+              className="flex items-center justify-between px-4 py-2 sm:py-3 border-b sm:cursor-move select-none"
               role="presentation"
               style={{ borderColor: "var(--border-primary)" }}
               onMouseDown={handle_drag_start}
@@ -878,7 +899,7 @@ export function ReplyModal({
                 onMouseDown={(e) => e.stopPropagation()}
               >
                 <button
-                  className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded"
+                  className="hidden sm:flex transition-colors duration-150 p-1.5 w-7 h-7 items-center justify-center rounded"
                   style={{ color: "var(--text-muted)" }}
                   onClick={() => set_is_minimized(!is_minimized)}
                   onMouseEnter={(e) =>
@@ -899,7 +920,7 @@ export function ReplyModal({
                   </svg>
                 </button>
                 <button
-                  className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded"
+                  className="hidden sm:flex transition-colors duration-150 p-1.5 w-7 h-7 items-center justify-center rounded"
                   style={{ color: "var(--text-muted)" }}
                   onClick={() => {
                     set_is_expanded(!is_expanded);
@@ -1225,11 +1246,37 @@ export function ReplyModal({
                   className="border-t px-3 py-2 flex items-center gap-2"
                   style={{ borderColor: "var(--border-primary)" }}
                 >
-                  <div className="flex items-center gap-0.5">
+                  <button
+                    className="h-8 w-[72px] flex items-center justify-center rounded-md text-sm font-medium text-white transition-colors duration-150 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={!can_send}
+                    style={{
+                      background: "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
+                    }}
+                    onClick={handle_send}
+                  >
+                    {is_sending ? "Sending" : "Send"}
+                  </button>
+
+                  <ToolbarButton
+                    disabled={is_sending}
+                    title="Schedule send"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </ToolbarButton>
+
+                  <div
+                    className="w-px h-5 mx-1 hidden sm:block"
+                    style={{ backgroundColor: "var(--border-secondary)" }}
+                  />
+
+                  <div className="hidden sm:flex items-center gap-0.5">
                     <ToolbarButton
                       active={active_formats.has("bold")}
                       disabled={is_sending}
-                      title="Bold (Ctrl+B)"
+                      title={`Bold (${is_mac ? "⌘" : "Ctrl"}+B)`}
                       onClick={() => exec_format_command("bold")}
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1239,7 +1286,7 @@ export function ReplyModal({
                     <ToolbarButton
                       active={active_formats.has("italic")}
                       disabled={is_sending}
-                      title="Italic (Ctrl+I)"
+                      title={`Italic (${is_mac ? "⌘" : "Ctrl"}+I)`}
                       onClick={() => exec_format_command("italic")}
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1249,7 +1296,7 @@ export function ReplyModal({
                     <ToolbarButton
                       active={active_formats.has("underline")}
                       disabled={is_sending}
-                      title="Underline (Ctrl+U)"
+                      title={`Underline (${is_mac ? "⌘" : "Ctrl"}+U)`}
                       onClick={() => exec_format_command("underline")}
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1265,12 +1312,6 @@ export function ReplyModal({
                         <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
                       </svg>
                     </ToolbarButton>
-
-                    <div
-                      className="w-px h-5 mx-1"
-                      style={{ backgroundColor: "var(--border-secondary)" }}
-                    />
-
                     <ToolbarButton
                       disabled={is_sending}
                       title="Attach file"
@@ -1280,30 +1321,87 @@ export function ReplyModal({
                     </ToolbarButton>
                   </div>
 
-                  <div className="ml-auto flex items-center gap-3">
-                    <span
-                      className="text-xs hidden sm:inline"
-                      style={{ color: "var(--text-muted)" }}
+                  <div className="relative sm:hidden">
+                    <ToolbarButton
+                      disabled={is_sending}
+                      title="Format"
+                      onClick={() => set_show_format_menu(!show_format_menu)}
                     >
-                      {is_mac ? "⌘↵" : "Ctrl+↵"}
-                    </span>
-                    <button
-                      className="h-8 px-4 flex items-center justify-center gap-2 rounded-md text-sm font-medium text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={!can_send}
-                      style={{
-                        background: can_send
-                          ? "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)"
-                          : "var(--bg-tertiary)",
-                        boxShadow: can_send
-                          ? "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)"
-                          : "none",
-                        color: can_send ? "white" : "var(--text-muted)",
-                      }}
-                      onClick={handle_send}
-                    >
-                      {is_sending ? "Sending..." : "Send"}
-                    </button>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M5 17v2h14v-2H5zm4.5-4.2h5l.9 2.2h2.1L12.75 4h-1.5L6.5 15h2.1l.9-2.2zM12 5.98L13.87 11h-3.74L12 5.98z" />
+                      </svg>
+                    </ToolbarButton>
+                    <AnimatePresence>
+                      {show_format_menu && (
+                        <motion.div
+                          animate={{ opacity: 1, y: 0 }}
+                          className="absolute bottom-full left-0 mb-2 p-1.5 rounded-lg shadow-lg border"
+                          exit={{ opacity: 0, y: 4 }}
+                          initial={{ opacity: 0, y: 4 }}
+                          style={{
+                            backgroundColor: "var(--modal-bg)",
+                            borderColor: "var(--border-primary)",
+                          }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          <div className="flex items-center gap-0.5">
+                            <ToolbarButton
+                              active={active_formats.has("bold")}
+                              title="Bold"
+                              onClick={() => { exec_format_command("bold"); set_show_format_menu(false); }}
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z" />
+                              </svg>
+                            </ToolbarButton>
+                            <ToolbarButton
+                              active={active_formats.has("italic")}
+                              title="Italic"
+                              onClick={() => { exec_format_command("italic"); set_show_format_menu(false); }}
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z" />
+                              </svg>
+                            </ToolbarButton>
+                            <ToolbarButton
+                              active={active_formats.has("underline")}
+                              title="Underline"
+                              onClick={() => { exec_format_command("underline"); set_show_format_menu(false); }}
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z" />
+                              </svg>
+                            </ToolbarButton>
+                            <ToolbarButton
+                              title="Link"
+                              onClick={() => { handle_insert_link(); set_show_format_menu(false); }}
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+                              </svg>
+                            </ToolbarButton>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
+
+                  <div className="sm:hidden">
+                    <ToolbarButton
+                      disabled={is_sending}
+                      title="Attach file"
+                      onClick={trigger_file_select}
+                    >
+                      <AttachmentIcon className="w-4 h-4" />
+                    </ToolbarButton>
+                  </div>
+
+                  <span
+                    className="ml-auto text-xs hidden sm:inline"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {is_mac ? "⌘↵" : "Ctrl+↵"}
+                  </span>
                 </div>
               </>
             )}

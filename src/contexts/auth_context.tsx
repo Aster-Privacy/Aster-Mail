@@ -181,12 +181,12 @@ function store_encrypted_vault(
   encrypted_vault: string,
   vault_nonce: string,
 ): void {
-  sessionStorage.setItem(
+  localStorage.setItem(
     ENCRYPTED_VAULT_KEY_PREFIX + account_id,
     encrypted_vault,
   );
-  sessionStorage.setItem(VAULT_NONCE_KEY_PREFIX + account_id, vault_nonce);
-  sessionStorage.setItem(
+  localStorage.setItem(VAULT_NONCE_KEY_PREFIX + account_id, vault_nonce);
+  localStorage.setItem(
     SESSION_TIMESTAMP_KEY_PREFIX + account_id,
     Date.now().toString(),
   );
@@ -203,10 +203,10 @@ function get_stored_encrypted_vault(account_id: string): {
     return null;
   }
 
-  const encrypted_vault = sessionStorage.getItem(
+  const encrypted_vault = localStorage.getItem(
     ENCRYPTED_VAULT_KEY_PREFIX + account_id,
   );
-  const vault_nonce = sessionStorage.getItem(
+  const vault_nonce = localStorage.getItem(
     VAULT_NONCE_KEY_PREFIX + account_id,
   );
 
@@ -234,11 +234,11 @@ async function store_session_passphrase(
   );
   const iv_base64 = btoa(String.fromCharCode(...iv));
 
-  sessionStorage.setItem(
+  localStorage.setItem(
     SESSION_PASSPHRASE_KEY_PREFIX + account_id,
     encrypted_base64,
   );
-  sessionStorage.setItem(
+  localStorage.setItem(
     SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id,
     iv_base64,
   );
@@ -247,10 +247,10 @@ async function store_session_passphrase(
 async function get_session_passphrase(
   account_id: string,
 ): Promise<string | null> {
-  const encrypted_base64 = sessionStorage.getItem(
+  const encrypted_base64 = localStorage.getItem(
     SESSION_PASSPHRASE_KEY_PREFIX + account_id,
   );
-  const iv_base64 = sessionStorage.getItem(
+  const iv_base64 = localStorage.getItem(
     SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id,
   );
 
@@ -287,15 +287,15 @@ async function get_session_passphrase(
 }
 
 async function clear_session_passphrase(account_id: string): Promise<void> {
-  sessionStorage.removeItem(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
-  sessionStorage.removeItem(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
+  localStorage.removeItem(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
+  localStorage.removeItem(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
 }
 
 async function clear_all_session_passphrases(): Promise<void> {
   const keys_to_remove: string[] = [];
 
-  for (let i = 0; i < sessionStorage.length; i++) {
-    const key = sessionStorage.key(i);
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
 
     if (
       key &&
@@ -309,14 +309,14 @@ async function clear_all_session_passphrases(): Promise<void> {
     }
   }
 
-  keys_to_remove.forEach((key) => sessionStorage.removeItem(key));
+  keys_to_remove.forEach((key) => localStorage.removeItem(key));
   await clear_session_key();
 }
 
 function clear_stored_encrypted_vault(account_id: string): void {
-  sessionStorage.removeItem(ENCRYPTED_VAULT_KEY_PREFIX + account_id);
-  sessionStorage.removeItem(VAULT_NONCE_KEY_PREFIX + account_id);
-  sessionStorage.removeItem(SESSION_TIMESTAMP_KEY_PREFIX + account_id);
+  localStorage.removeItem(ENCRYPTED_VAULT_KEY_PREFIX + account_id);
+  localStorage.removeItem(VAULT_NONCE_KEY_PREFIX + account_id);
+  localStorage.removeItem(SESSION_TIMESTAMP_KEY_PREFIX + account_id);
 }
 
 async function decrypt_vault_with_lock(

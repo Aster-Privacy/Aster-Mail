@@ -1,13 +1,11 @@
 import type { DecryptedContact } from "@/types/contacts";
 import type { DraftType } from "@/services/api/multi_drafts";
 
-import { useState, useEffect, useRef, useCallback, useReducer } from "react";
+import { useState, useEffect, useRef, useCallback, useReducer, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { TemplatePicker } from '@/components/compose/template_picker';
 import { CloseIcon, FileIcon, AttachmentIcon } from '@/components/common/icons';
 import { EmailAutocomplete } from '@/components/common/email_autocomplete';
-import { EditorToolbar } from '@/components/compose/editor_toolbar';
 import { ConfirmationModal } from '@/components/modals/confirmation_modal';
 import { SchedulePicker } from '@/components/compose/schedule_picker';
 import { SenderSelector } from '@/components/compose/sender_selector';
@@ -18,7 +16,6 @@ import {
   type SenderOption,
 } from "@/hooks/use_sender_aliases";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
-import { Button } from "@/components/ui/button";
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { undo_send_manager, type UndoSendEvent } from "@/hooks/use_undo_send";
 import { MODAL_SIZES } from "@/constants/modal";
@@ -64,7 +61,7 @@ interface Attachment {
 const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
 const MAX_TOTAL_ATTACHMENTS_SIZE = 50 * 1024 * 1024;
 const ASTER_FOOTER =
-  '<br><br><span style="color: var(--text-tertiary); font-size: 12px;">Secured by <a href="https://astermail.org" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Aster Mail</a></span><br><br>';
+  '<br><br><span style="color: #6b7280; font-size: 12px;">Secured by <a href="https://astermail.org" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: none;">Aster Mail</a></span><br><br>';
 const ALLOWED_MIME_TYPES = new Set([
   "application/pdf",
   "application/msword",
@@ -457,20 +454,31 @@ function RecipientField({
 interface ToolbarButtonProps {
   onClick?: () => void;
   children: React.ReactNode;
+  disabled?: boolean;
+  active?: boolean;
+  title?: string;
 }
 
-function ToolbarButton({ onClick, children }: ToolbarButtonProps) {
+function ToolbarButton({ onClick, children, disabled, active, title }: ToolbarButtonProps) {
   return (
     <button
-      className="p-2 rounded transition-colors duration-150"
-      style={{ color: "var(--text-tertiary)" }}
+      className={`p-1.5 rounded transition-colors duration-150 disabled:opacity-50 ${active ? "bg-blue-500/15" : ""}`}
+      disabled={disabled}
+      style={{ color: active ? "#3b82f6" : "var(--text-tertiary)" }}
+      title={title}
+      type="button"
       onClick={onClick}
-      onMouseEnter={(e) =>
-        (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-      }
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.backgroundColor = "transparent")
-      }
+      onMouseDown={(e) => e.preventDefault()}
+      onMouseEnter={(e) => {
+        if (!disabled && !active) {
+          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.backgroundColor = "transparent";
+        }
+      }}
     >
       {children}
     </button>
@@ -540,6 +548,8 @@ export function ComposeModal({
   const file_input_ref = useRef<HTMLInputElement>(null);
   const message_textarea_ref = useRef<HTMLDivElement>(null);
   const draft_context_id_ref = useRef<string | null>(null);
+  const [active_formats, set_active_formats] = useState<Set<string>>(new Set());
+  const [show_format_menu, set_show_format_menu] = useState(false);
 
   const [attachment_error, set_attachment_error] = useState<string | null>(
     null,
@@ -967,6 +977,129 @@ export function ComposeModal({
     if (editor) {
       set_message(editor.innerHTML);
     }
+  }, []);
+
+  const check_active_formats = useCallback(() => {
+    const editor = message_textarea_ref.current;
+    if (!editor) return;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    if (!editor.contains(range.commonAncestorContainer)) return;
+
+    const formats = new Set<string>();
+
+    try {
+      if (document.queryCommandState("bold")) formats.add("bold");
+      if (document.queryCommandState("italic")) formats.add("italic");
+      if (document.queryCommandState("underline")) formats.add("underline");
+    } catch {
+      return;
+    }
+
+    set_active_formats(formats);
+  }, []);
+
+  const exec_format_command = useCallback((command: string) => {
+    const editor = message_textarea_ref.current;
+    if (!editor) return;
+
+    editor.focus();
+    document.execCommand(command, false);
+    handle_editor_input();
+    requestAnimationFrame(check_active_formats);
+  }, [handle_editor_input, check_active_formats]);
+
+  const handle_insert_link = useCallback(() => {
+    const editor = message_textarea_ref.current;
+    if (!editor) return;
+
+    editor.focus();
+    const selection = window.getSelection();
+    const selected_text = selection?.toString() || "";
+    const url = prompt("Enter URL:", "https://");
+
+    if (url?.trim()) {
+      const trimmed_url = url.trim();
+      const lower_url = trimmed_url.toLowerCase();
+
+      if (
+        !lower_url.startsWith("http://") &&
+        !lower_url.startsWith("https://") &&
+        !lower_url.startsWith("mailto:")
+      ) {
+        return;
+      }
+
+      const safe_url = encodeURI(trimmed_url).replace(/"/g, "%22");
+
+      if (selected_text) {
+        document.execCommand("createLink", false, safe_url);
+        editor.querySelectorAll(`a[href="${safe_url}"]`).forEach((link) => {
+          (link as HTMLElement).style.color = "#3b82f6";
+          (link as HTMLElement).style.textDecoration = "underline";
+        });
+      } else {
+        const link_text = prompt("Enter link text:", trimmed_url) || trimmed_url;
+        const safe_text = link_text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+
+        document.execCommand(
+          "insertHTML",
+          false,
+          `<a href="${safe_url}" style="color: #3b82f6; text-decoration: underline;">${safe_text}</a>`,
+        );
+      }
+      handle_editor_input();
+    }
+  }, [handle_editor_input]);
+
+  useEffect(() => {
+    const handle_selection = () => {
+      requestAnimationFrame(check_active_formats);
+    };
+
+    document.addEventListener("selectionchange", handle_selection);
+    return () => document.removeEventListener("selectionchange", handle_selection);
+  }, [check_active_formats]);
+
+  useEffect(() => {
+    const editor = message_textarea_ref.current;
+    if (!editor) return;
+
+    const handle_keydown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        const key = e.key.toLowerCase();
+        if (key === "b" || key === "i" || key === "u") {
+          e.preventDefault();
+          const cmd = key === "b" ? "bold" : key === "i" ? "italic" : "underline";
+          document.execCommand(cmd, false);
+          handle_editor_input();
+          requestAnimationFrame(check_active_formats);
+        }
+      }
+    };
+
+    editor.addEventListener("keydown", handle_keydown);
+    return () => editor.removeEventListener("keydown", handle_keydown);
+  }, [handle_editor_input, check_active_formats]);
+
+  const is_mac = useMemo(() => {
+    if (typeof navigator !== "undefined") {
+      return /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+    }
+    return false;
+  }, []);
+
+  const is_mobile = useMemo(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth < 640;
+    }
+    return false;
   }, []);
 
   const do_internal_send = useCallback(
@@ -1412,12 +1545,21 @@ export function ComposeModal({
     <AnimatePresence>
       {is_open && (
         <>
+          <motion.div
+            key="compose-backdrop-mobile"
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={handle_close}
+          />
           <AnimatePresence>
             {is_expanded && (
               <motion.div
                 key="compose-backdrop"
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-md"
+                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-md hidden sm:block"
                 exit={{ opacity: 0 }}
                 initial={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
@@ -1426,20 +1568,20 @@ export function ComposeModal({
           </AnimatePresence>
           <motion.div
             key="compose-modal"
-            animate={{ opacity: 1 }}
+            animate={{ opacity: 1, y: 0 }}
             className={`fixed z-50 flex flex-col shadow-2xl sm:border ${
               is_minimized
                 ? "sm:w-[320px] sm:h-auto sm:rounded-t-lg"
                 : is_expanded
                   ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-lg"
-                  : "inset-0 sm:inset-auto sm:w-[700px] sm:h-[600px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
+                  : "bottom-0 left-0 right-0 h-[85vh] rounded-t-2xl sm:inset-auto sm:bottom-auto sm:left-auto sm:right-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
             }`}
-            exit={{ opacity: 0 }}
-            initial={{ opacity: 0 }}
+            exit={{ opacity: 0, y: is_mobile ? 100 : 0 }}
+            initial={{ opacity: 0, y: is_mobile ? 100 : 0 }}
             style={{
               backgroundColor: "var(--modal-bg)",
               borderColor: "var(--border-primary)",
-              willChange: "opacity",
+              willChange: "opacity, transform",
               ...(window.innerWidth >= 640 && !is_expanded && !is_minimized
                 ? get_position_style()
                 : {}),
@@ -1447,11 +1589,15 @@ export function ComposeModal({
                 ? { bottom: 0, right: 24, top: "auto", left: "auto" }
                 : {}),
             }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+            transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
           >
             <ErrorBoundary fallback={<ComposeErrorFallback />}>
               <div
-                className="flex items-center justify-between px-4 py-3 border-b cursor-move select-none"
+                className="w-12 h-1.5 bg-default-300 rounded-full mx-auto mt-2 mb-1 sm:hidden"
+                style={{ opacity: 0.5 }}
+              />
+              <div
+                className="flex items-center justify-between px-4 py-2 sm:py-3 border-b sm:cursor-move select-none"
                 role="presentation"
                 style={{ borderColor: "var(--border-primary)" }}
                 onMouseDown={handle_drag_start}
@@ -1468,7 +1614,7 @@ export function ComposeModal({
                   onMouseDown={(e) => e.stopPropagation()}
                 >
                   <button
-                    className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded"
+                    className="hidden sm:flex transition-colors duration-150 p-1.5 w-7 h-7 items-center justify-center rounded"
                     style={{ color: "var(--text-muted)" }}
                     onClick={() => set_is_minimized(!is_minimized)}
                     onMouseEnter={(e) =>
@@ -1490,7 +1636,7 @@ export function ComposeModal({
                     </svg>
                   </button>
                   <button
-                    className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded"
+                    className="hidden sm:flex transition-colors duration-150 p-1.5 w-7 h-7 items-center justify-center rounded"
                     style={{ color: "var(--text-muted)" }}
                     onClick={() => {
                       set_is_expanded(!is_expanded);
@@ -1665,51 +1811,32 @@ export function ComposeModal({
                     </div>
                   </div>
 
-                  <div className="flex-1 px-3 pt-2 pb-2 overflow-hidden flex flex-col min-h-0">
-                    <div
-                      className="flex-1 flex flex-col min-h-0 rounded-md overflow-hidden"
-                      style={{
-                        border: "1px solid var(--border-secondary)",
-                      }}
-                    >
-                      <div className="flex-1 overflow-auto px-3 py-3">
-                        <div
-                          ref={message_textarea_ref}
-                          contentEditable
-                          suppressContentEditableWarning
-                          className="w-full h-full text-sm leading-relaxed border-none outline-none bg-transparent"
-                          data-placeholder="Write message"
-                          style={{
-                            minHeight: "120px",
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-word",
-                            color: "var(--text-primary)",
-                          }}
-                          onBlur={handle_editor_input}
-                          onInput={handle_editor_input}
-                          onPaste={handle_editor_paste}
-                        />
-                      </div>
-
+                  <div className="flex-1 px-4 pt-2 pb-2 overflow-hidden flex flex-col min-h-0">
+                    <div className="flex-1 overflow-auto">
                       <div
-                        className="flex-shrink-0 px-1"
+                        ref={message_textarea_ref}
+                        contentEditable
+                        suppressContentEditableWarning
+                        className="w-full h-full text-sm leading-relaxed border-none outline-none bg-transparent"
+                        data-placeholder="Write message"
                         style={{
-                          borderTop: "1px solid var(--border-secondary)",
+                          minHeight: "150px",
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          color: "var(--text-primary)",
                         }}
-                      >
-                        <EditorToolbar
-                          editor_ref={message_textarea_ref}
-                          on_change={handle_editor_input}
-                        />
-                      </div>
+                        onBlur={handle_editor_input}
+                        onInput={handle_editor_input}
+                        onPaste={handle_editor_paste}
+                      />
                     </div>
                     <style>{`
-                  [contenteditable=true]:empty:before {
-                    content: attr(data-placeholder);
-                    color: var(--text-muted);
-                    pointer-events: none;
-                  }
-                `}</style>
+                      [contenteditable=true]:empty:before {
+                        content: attr(data-placeholder);
+                        color: var(--text-muted);
+                        pointer-events: none;
+                      }
+                    `}</style>
                   </div>
                 </div>
               )}
@@ -1846,60 +1973,161 @@ export function ComposeModal({
               />
 
               <div
-                className="border-t px-3 py-2.5 flex items-center gap-2"
+                className="border-t px-3 py-2 flex items-center gap-2"
                 style={{ borderColor: "var(--border-primary)" }}
               >
                 {scheduled_time ? (
-                  <Button
+                  <button
+                    className="h-8 w-[86px] flex items-center justify-center rounded-md text-sm font-medium text-white transition-colors duration-150 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
                     disabled={recipients.to.length === 0 || is_scheduling}
-                    size="sm"
-                    variant="primary"
+                    style={{
+                      background: "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
+                    }}
                     onClick={handle_scheduled_send}
                   >
-                    {is_scheduling ? (
-                      <span className="flex items-center gap-1.5">
-                        <svg
-                          className="w-3.5 h-3.5 animate-spin"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-                          <path
-                            d="M12 2a10 10 0 0 1 10 10"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        Scheduling...
-                      </span>
-                    ) : (
-                      "Schedule"
-                    )}
-                  </Button>
+                    {is_scheduling ? "Scheduling" : "Schedule"}
+                  </button>
                 ) : (
-                  <Button
+                  <button
+                    className="h-8 w-[72px] flex items-center justify-center rounded-md text-sm font-medium text-white transition-colors duration-150 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
                     disabled={recipients.to.length === 0}
-                    size="sm"
-                    variant="primary"
+                    style={{
+                      background: "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
+                    }}
                     onClick={handle_send}
                   >
                     Send
-                  </Button>
+                  </button>
                 )}
 
-                <div className="flex items-center gap-0.5">
-                  <SchedulePicker
-                    disabled={recipients.to.length === 0}
-                    on_schedule={set_scheduled_time}
-                    scheduled_time={scheduled_time}
-                  />
-                  <ToolbarButton onClick={trigger_file_select}>
-                    <AttachmentIcon className="w-4.5 h-4.5" />
+                <SchedulePicker
+                  disabled={recipients.to.length === 0}
+                  on_schedule={set_scheduled_time}
+                  scheduled_time={scheduled_time}
+                />
+
+                <div
+                  className="w-px h-5 mx-1 hidden sm:block"
+                  style={{ backgroundColor: "var(--border-secondary)" }}
+                />
+
+                <div className="hidden sm:flex items-center gap-0.5">
+                  <ToolbarButton
+                    active={active_formats.has("bold")}
+                    title={`Bold (${is_mac ? "⌘" : "Ctrl"}+B)`}
+                    onClick={() => exec_format_command("bold")}
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z" />
+                    </svg>
                   </ToolbarButton>
-                  <TemplatePicker
-                    on_select={(content) => set_message(content)}
-                  />
+                  <ToolbarButton
+                    active={active_formats.has("italic")}
+                    title={`Italic (${is_mac ? "⌘" : "Ctrl"}+I)`}
+                    onClick={() => exec_format_command("italic")}
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z" />
+                    </svg>
+                  </ToolbarButton>
+                  <ToolbarButton
+                    active={active_formats.has("underline")}
+                    title={`Underline (${is_mac ? "⌘" : "Ctrl"}+U)`}
+                    onClick={() => exec_format_command("underline")}
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z" />
+                    </svg>
+                  </ToolbarButton>
+                  <ToolbarButton
+                    title="Insert link"
+                    onClick={handle_insert_link}
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+                    </svg>
+                  </ToolbarButton>
+                  <ToolbarButton
+                    title="Attach file"
+                    onClick={trigger_file_select}
+                  >
+                    <AttachmentIcon className="w-4 h-4" />
+                  </ToolbarButton>
+                </div>
+
+                <div className="relative sm:hidden">
+                  <ToolbarButton
+                    title="Format"
+                    onClick={() => set_show_format_menu(!show_format_menu)}
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M5 17v2h14v-2H5zm4.5-4.2h5l.9 2.2h2.1L12.75 4h-1.5L6.5 15h2.1l.9-2.2zM12 5.98L13.87 11h-3.74L12 5.98z" />
+                    </svg>
+                  </ToolbarButton>
+                  <AnimatePresence>
+                    {show_format_menu && (
+                      <motion.div
+                        animate={{ opacity: 1, y: 0 }}
+                        className="absolute bottom-full left-0 mb-2 p-1.5 rounded-lg shadow-lg border"
+                        exit={{ opacity: 0, y: 4 }}
+                        initial={{ opacity: 0, y: 4 }}
+                        style={{
+                          backgroundColor: "var(--modal-bg)",
+                          borderColor: "var(--border-primary)",
+                        }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        <div className="flex items-center gap-0.5">
+                          <ToolbarButton
+                            active={active_formats.has("bold")}
+                            title="Bold"
+                            onClick={() => { exec_format_command("bold"); set_show_format_menu(false); }}
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z" />
+                            </svg>
+                          </ToolbarButton>
+                          <ToolbarButton
+                            active={active_formats.has("italic")}
+                            title="Italic"
+                            onClick={() => { exec_format_command("italic"); set_show_format_menu(false); }}
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z" />
+                            </svg>
+                          </ToolbarButton>
+                          <ToolbarButton
+                            active={active_formats.has("underline")}
+                            title="Underline"
+                            onClick={() => { exec_format_command("underline"); set_show_format_menu(false); }}
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z" />
+                            </svg>
+                          </ToolbarButton>
+                          <ToolbarButton
+                            title="Link"
+                            onClick={() => { handle_insert_link(); set_show_format_menu(false); }}
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+                            </svg>
+                          </ToolbarButton>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className="sm:hidden">
+                  <ToolbarButton
+                    title="Attach file"
+                    onClick={trigger_file_select}
+                  >
+                    <AttachmentIcon className="w-4 h-4" />
+                  </ToolbarButton>
                 </div>
 
                 <AnimatePresence>
@@ -1978,9 +2206,18 @@ export function ComposeModal({
                 </AnimatePresence>
 
                 <div className="ml-auto flex items-center gap-2">
-                  <ToolbarButton onClick={handle_show_delete_confirm}>
+                  <span
+                    className="text-xs hidden sm:inline"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {is_mac ? "⌘↵" : "Ctrl+↵"}
+                  </span>
+                  <ToolbarButton
+                    title="Delete draft"
+                    onClick={handle_show_delete_confirm}
+                  >
                     <svg
-                      className="w-4.5 h-4.5"
+                      className="w-4 h-4"
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >

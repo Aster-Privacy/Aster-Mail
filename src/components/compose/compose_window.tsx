@@ -1,12 +1,11 @@
 import type { DecryptedContact } from "@/types/contacts";
 import type { DraftType } from "@/services/api/multi_drafts";
 
-import { useState, useEffect, useRef, useCallback, useReducer } from "react";
+import { useState, useEffect, useRef, useCallback, useReducer, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { CloseIcon, FileIcon, AttachmentIcon } from '@/components/common/icons';
 import { EmailAutocomplete } from '@/components/common/email_autocomplete';
-import { EditorToolbar } from '@/components/compose/editor_toolbar';
 import { ConfirmationModal } from '@/components/modals/confirmation_modal';
 import { SchedulePicker } from '@/components/compose/schedule_picker';
 import { SenderSelector } from '@/components/compose/sender_selector';
@@ -18,7 +17,6 @@ import {
   type SenderOption,
 } from "@/hooks/use_sender_aliases";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
-import { Button } from "@/components/ui/button";
 import { undo_send_manager, type UndoSendEvent } from "@/hooks/use_undo_send";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -64,7 +62,7 @@ const MAX_TOTAL_ATTACHMENTS_SIZE = 50 * 1024 * 1024;
 const EVENT_DISPATCH_DELAY_MS = 100;
 const INITIAL_CONTENT_DELAY_MS = 0;
 const ASTER_FOOTER =
-  '<br><br><span style="color: var(--text-tertiary); font-size: 12px;">Secured by <a href="https://astermail.org" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Aster Mail</a></span><br><br>';
+  '<br><br><span style="color: #6b7280; font-size: 12px;">Secured by <a href="https://astermail.org" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: none;">Aster Mail</a></span><br><br>';
 const ALLOWED_MIME_TYPES = new Set([
   "application/pdf",
   "application/msword",
@@ -454,22 +452,31 @@ function RecipientField({
 interface ToolbarButtonProps {
   onClick?: () => void;
   children: React.ReactNode;
-  aria_label?: string;
+  disabled?: boolean;
+  active?: boolean;
+  title?: string;
 }
 
-function ToolbarButton({ onClick, children, aria_label }: ToolbarButtonProps) {
+function ToolbarButton({ onClick, children, disabled, active, title }: ToolbarButtonProps) {
   return (
     <button
-      aria-label={aria_label}
-      className="p-2 rounded transition-colors duration-150"
-      style={{ color: "var(--text-tertiary)" }}
+      className={`p-1.5 rounded transition-colors duration-150 disabled:opacity-50 ${active ? "bg-blue-500/15" : ""}`}
+      disabled={disabled}
+      style={{ color: active ? "#3b82f6" : "var(--text-tertiary)" }}
+      title={title}
+      type="button"
       onClick={onClick}
-      onMouseEnter={(e) =>
-        (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-      }
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.backgroundColor = "transparent")
-      }
+      onMouseDown={(e) => e.preventDefault()}
+      onMouseEnter={(e) => {
+        if (!disabled && !active) {
+          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.backgroundColor = "transparent";
+        }
+      }}
     >
       {children}
     </button>
@@ -575,6 +582,7 @@ export function ComposeWindow({
   const message_textarea_ref = useRef<HTMLDivElement>(null);
   const draft_context_id_ref = useRef<string | null>(null);
   const initialized_ref = useRef(false);
+  const [active_formats, set_active_formats] = useState<Set<string>>(new Set());
 
   const [attachment_error, set_attachment_error] = useState<string | null>(
     null,
@@ -972,6 +980,122 @@ export function ComposeWindow({
     if (editor) {
       set_message(editor.innerHTML);
     }
+  }, []);
+
+  const check_active_formats = useCallback(() => {
+    const editor = message_textarea_ref.current;
+    if (!editor) return;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    if (!editor.contains(range.commonAncestorContainer)) return;
+
+    const formats = new Set<string>();
+
+    try {
+      if (document.queryCommandState("bold")) formats.add("bold");
+      if (document.queryCommandState("italic")) formats.add("italic");
+      if (document.queryCommandState("underline")) formats.add("underline");
+    } catch {
+      return;
+    }
+
+    set_active_formats(formats);
+  }, []);
+
+  const exec_format_command = useCallback((command: string) => {
+    const editor = message_textarea_ref.current;
+    if (!editor) return;
+
+    editor.focus();
+    document.execCommand(command, false);
+    handle_editor_input();
+    requestAnimationFrame(check_active_formats);
+  }, [handle_editor_input, check_active_formats]);
+
+  const handle_insert_link = useCallback(() => {
+    const editor = message_textarea_ref.current;
+    if (!editor) return;
+
+    editor.focus();
+    const selection = window.getSelection();
+    const selected_text = selection?.toString() || "";
+    const url = prompt("Enter URL:", "https://");
+
+    if (url?.trim()) {
+      const trimmed_url = url.trim();
+      const lower_url = trimmed_url.toLowerCase();
+
+      if (
+        !lower_url.startsWith("http://") &&
+        !lower_url.startsWith("https://") &&
+        !lower_url.startsWith("mailto:")
+      ) {
+        return;
+      }
+
+      const safe_url = encodeURI(trimmed_url).replace(/"/g, "%22");
+
+      if (selected_text) {
+        document.execCommand("createLink", false, safe_url);
+        editor.querySelectorAll(`a[href="${safe_url}"]`).forEach((link) => {
+          (link as HTMLElement).style.color = "#3b82f6";
+          (link as HTMLElement).style.textDecoration = "underline";
+        });
+      } else {
+        const link_text = prompt("Enter link text:", trimmed_url) || trimmed_url;
+        const safe_text = link_text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+
+        document.execCommand(
+          "insertHTML",
+          false,
+          `<a href="${safe_url}" style="color: #3b82f6; text-decoration: underline;">${safe_text}</a>`,
+        );
+      }
+      handle_editor_input();
+    }
+  }, [handle_editor_input]);
+
+  useEffect(() => {
+    const handle_selection = () => {
+      requestAnimationFrame(check_active_formats);
+    };
+
+    document.addEventListener("selectionchange", handle_selection);
+    return () => document.removeEventListener("selectionchange", handle_selection);
+  }, [check_active_formats]);
+
+  useEffect(() => {
+    const editor = message_textarea_ref.current;
+    if (!editor) return;
+
+    const handle_keydown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        const key = e.key.toLowerCase();
+        if (key === "b" || key === "i" || key === "u") {
+          e.preventDefault();
+          const cmd = key === "b" ? "bold" : key === "i" ? "italic" : "underline";
+          document.execCommand(cmd, false);
+          handle_editor_input();
+          requestAnimationFrame(check_active_formats);
+        }
+      }
+    };
+
+    editor.addEventListener("keydown", handle_keydown);
+    return () => editor.removeEventListener("keydown", handle_keydown);
+  }, [handle_editor_input, check_active_formats]);
+
+  const is_mac = useMemo(() => {
+    if (typeof navigator !== "undefined") {
+      return /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+    }
+    return false;
   }, []);
 
   const do_internal_send = useCallback(
@@ -1661,46 +1785,24 @@ export function ComposeWindow({
                 </div>
               </div>
 
-              <div className="flex-1 px-3 pt-2 pb-2 overflow-hidden flex flex-col min-h-0">
-                <div
-                  className="flex-1 flex flex-col min-h-0 rounded-md overflow-hidden"
-                  style={{
-                    border: "1px solid var(--border-secondary)",
-                  }}
-                >
-                  <div className="flex-1 overflow-auto px-3 py-3">
-                    <div
-                      ref={message_textarea_ref}
-                      contentEditable
-                      suppressContentEditableWarning
-                      aria-label="Email message body"
-                      aria-multiline="true"
-                      className="w-full h-full text-sm leading-relaxed border-none outline-none bg-transparent"
-                      data-placeholder="Write your message..."
-                      role="textbox"
-                      style={{
-                        minHeight: "120px",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        color: "var(--text-primary)",
-                      }}
-                      onBlur={handle_editor_input}
-                      onInput={handle_editor_input}
-                      onPaste={handle_editor_paste}
-                    />
-                  </div>
-
+              <div className="flex-1 px-4 pt-2 pb-2 overflow-hidden flex flex-col min-h-0">
+                <div className="flex-1 overflow-auto">
                   <div
-                    className="flex-shrink-0 px-1"
+                    ref={message_textarea_ref}
+                    contentEditable
+                    suppressContentEditableWarning
+                    className="w-full h-full text-sm leading-relaxed border-none outline-none bg-transparent"
+                    data-placeholder="Write your message..."
                     style={{
-                      borderTop: "1px solid var(--border-secondary)",
+                      minHeight: "150px",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      color: "var(--text-primary)",
                     }}
-                  >
-                    <EditorToolbar
-                      editor_ref={message_textarea_ref}
-                      on_change={handle_editor_input}
-                    />
-                  </div>
+                    onBlur={handle_editor_input}
+                    onInput={handle_editor_input}
+                    onPaste={handle_editor_paste}
+                  />
                 </div>
                 <style>{`
                   [contenteditable=true]:empty:before {
@@ -1826,37 +1928,84 @@ export function ComposeWindow({
 
           {!is_minimized && (
             <div
-              className="border-t px-3 py-2.5 flex items-center gap-2 flex-shrink-0"
+              className="border-t px-3 py-2 flex items-center gap-2 flex-shrink-0"
               style={{ borderColor: "var(--border-primary)" }}
             >
               {scheduled_time ? (
-                <Button
+                <button
+                  className="h-8 w-[86px] flex items-center justify-center rounded-md text-sm font-medium text-white transition-colors duration-150 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
                   disabled={recipients.to.length === 0 || is_scheduling}
-                  size="sm"
-                  variant="primary"
+                  style={{
+                    background: "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
+                  }}
                   onClick={handle_scheduled_send}
                 >
-                  {is_scheduling ? "Scheduling..." : "Schedule"}
-                </Button>
+                  {is_scheduling ? "Scheduling" : "Schedule"}
+                </button>
               ) : (
-                <Button
+                <button
+                  className="h-8 w-[72px] flex items-center justify-center rounded-md text-sm font-medium text-white transition-colors duration-150 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
                   disabled={recipients.to.length === 0}
-                  size="sm"
-                  variant="primary"
+                  style={{
+                    background: "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
+                  }}
                   onClick={handle_send}
                 >
                   Send
-                </Button>
+                </button>
               )}
 
-              <div className="flex items-center gap-1">
-                <SchedulePicker
-                  disabled={recipients.to.length === 0}
-                  on_schedule={set_scheduled_time}
-                  scheduled_time={scheduled_time}
-                />
+              <SchedulePicker
+                disabled={recipients.to.length === 0}
+                on_schedule={set_scheduled_time}
+                scheduled_time={scheduled_time}
+              />
+
+              <div
+                className="w-px h-5 mx-1"
+                style={{ backgroundColor: "var(--border-secondary)" }}
+              />
+
+              <div className="flex items-center gap-0.5">
                 <ToolbarButton
-                  aria_label="Attach file"
+                  active={active_formats.has("bold")}
+                  title={`Bold (${is_mac ? "⌘" : "Ctrl"}+B)`}
+                  onClick={() => exec_format_command("bold")}
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z" />
+                  </svg>
+                </ToolbarButton>
+                <ToolbarButton
+                  active={active_formats.has("italic")}
+                  title={`Italic (${is_mac ? "⌘" : "Ctrl"}+I)`}
+                  onClick={() => exec_format_command("italic")}
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z" />
+                  </svg>
+                </ToolbarButton>
+                <ToolbarButton
+                  active={active_formats.has("underline")}
+                  title={`Underline (${is_mac ? "⌘" : "Ctrl"}+U)`}
+                  onClick={() => exec_format_command("underline")}
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z" />
+                  </svg>
+                </ToolbarButton>
+                <ToolbarButton
+                  title="Insert link"
+                  onClick={handle_insert_link}
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+                  </svg>
+                </ToolbarButton>
+                <ToolbarButton
+                  title="Attach file"
                   onClick={trigger_file_select}
                 >
                   <AttachmentIcon className="w-4 h-4" />
@@ -1867,28 +2016,86 @@ export function ComposeWindow({
                 {draft_status !== "idle" && (
                   <motion.div
                     animate={{ opacity: 1, x: 0 }}
-                    className="text-xs flex items-center gap-1 px-2 overflow-hidden"
-                    exit={{ opacity: 0, x: -4 }}
-                    initial={{ opacity: 0, x: -4 }}
+                    className="text-xs flex items-center gap-1.5 px-2 overflow-hidden"
+                    exit={{ opacity: 0, x: -8 }}
+                    initial={{ opacity: 0, x: -8 }}
                     style={{ color: "var(--text-muted)" }}
-                    transition={{ duration: 0.15 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
                   >
-                    {draft_status === "saving" ? (
-                      <span>Saving...</span>
-                    ) : (
-                      <span>
-                        {last_saved_time
-                          ? format_last_saved(last_saved_time)
-                          : "Saved"}
-                      </span>
-                    )}
+                    <AnimatePresence initial={false} mode="wait">
+                      {draft_status === "saving" ? (
+                        <motion.div
+                          key="saving"
+                          animate={{ opacity: 1 }}
+                          className="flex items-center gap-1.5"
+                          exit={{ opacity: 0 }}
+                          initial={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          <svg
+                            className="w-3.5 h-3.5 animate-spin"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              strokeOpacity="0.25"
+                            />
+                            <path
+                              d="M12 2a10 10 0 0 1 10 10"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <span>Saving...</span>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="saved"
+                          animate={{ opacity: 1 }}
+                          className="flex items-center gap-1.5"
+                          exit={{ opacity: 0 }}
+                          initial={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          <motion.svg
+                            animate={{ scale: 1 }}
+                            className="w-3.5 h-3.5"
+                            fill="currentColor"
+                            initial={{ scale: 0 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 20,
+                            }}
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                          </motion.svg>
+                          <span>
+                            {last_saved_time
+                              ? format_last_saved(last_saved_time)
+                              : "Saved"}
+                          </span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="ml-auto">
+              <div className="ml-auto flex items-center gap-2">
+                <span
+                  className="text-xs hidden sm:inline"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {is_mac ? "⌘↵" : "Ctrl+↵"}
+                </span>
                 <ToolbarButton
-                  aria_label="Delete draft"
+                  title="Delete draft"
                   onClick={handle_show_delete_confirm}
                 >
                   <svg

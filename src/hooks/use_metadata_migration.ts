@@ -57,13 +57,17 @@ export function use_metadata_migration(): {
 
     migration_started.current = true;
 
-    check_migration_status().then((status) => {
-      if (!status.is_migrated) {
-        run_migration();
-      } else {
-        sessionStorage.setItem(`${MIGRATION_CHECK_KEY}-${user.id}`, "true");
-      }
-    });
+    check_migration_status()
+      .then((status) => {
+        if (!status.is_migrated) {
+          run_migration();
+        } else {
+          sessionStorage.setItem(`${MIGRATION_CHECK_KEY}-${user.id}`, "true");
+        }
+      })
+      .catch(() => {
+        migration_started.current = false;
+      });
   }, [is_authenticated, has_keys, user?.id, run_migration]);
 
   return {

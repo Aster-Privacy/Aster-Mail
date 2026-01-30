@@ -280,10 +280,10 @@ export function SecuritySection() {
       let vault;
 
       try {
-        const stored_vault = sessionStorage.getItem(
+        const stored_vault = localStorage.getItem(
           `astermail_encrypted_vault_${user.id}`,
         );
-        const stored_nonce = sessionStorage.getItem(
+        const stored_nonce = localStorage.getItem(
           `astermail_vault_nonce_${user.id}`,
         );
 
@@ -390,11 +390,11 @@ export function SecuritySection() {
           );
 
           if (user?.id) {
-            sessionStorage.setItem(
+            localStorage.setItem(
               `astermail_encrypted_vault_${user.id}`,
               encrypted_vault,
             );
-            sessionStorage.setItem(
+            localStorage.setItem(
               `astermail_vault_nonce_${user.id}`,
               vault_nonce,
             );

@@ -135,18 +135,20 @@ export function use_key_rotation() {
           await store_vault_in_memory(result.new_vault, password);
 
           if (result.encrypted_vault && result.vault_nonce) {
-            sessionStorage.setItem(
+            localStorage.setItem(
               `astermail_encrypted_vault_${user.id}`,
               result.encrypted_vault,
             );
-            sessionStorage.setItem(
+            localStorage.setItem(
               `astermail_vault_nonce_${user.id}`,
               result.vault_nonce,
             );
           }
 
           if (result.new_vault.ratchet_identity_public) {
-            upload_prekey_bundle(result.new_vault).catch(() => {});
+            upload_prekey_bundle(result.new_vault).catch(() => {
+              show_toast("Failed to upload encryption keys", "error");
+            });
           }
 
           set_state((prev) => ({

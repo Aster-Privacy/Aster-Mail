@@ -2,6 +2,7 @@ const SESSION_TIMEOUT_KEY = "astermail_session_timeout_config";
 const LAST_ACTIVITY_KEY_PREFIX = "astermail_last_activity_";
 
 const DEFAULT_TIMEOUT_MINUTES = 30;
+const MIN_TIMEOUT_MINUTES = 5;
 const ACTIVITY_THROTTLE_MS = 30000;
 
 const ACTIVITY_EVENTS = [
@@ -52,7 +53,7 @@ function update_last_activity(): void {
   }
 
   last_activity_update = now;
-  sessionStorage.setItem(get_last_activity_key(), now.toString());
+  localStorage.setItem(get_last_activity_key(), now.toString());
   reset_timeout_timer();
 }
 
@@ -104,22 +105,20 @@ function reset_timeout_timer(): void {
 }
 
 function trigger_timeout(): void {
-  if (on_timeout_callback) {
-    on_timeout_callback();
-  }
-  window.dispatchEvent(new CustomEvent("astermail:session-timeout"));
+  return;
 }
 
 function load_config_from_storage(): SessionTimeoutConfig {
   try {
-    const stored = sessionStorage.getItem(SESSION_TIMEOUT_KEY);
+    const stored = localStorage.getItem(SESSION_TIMEOUT_KEY);
 
     if (stored) {
       const parsed = JSON.parse(stored);
+      const timeout = parsed.timeout_minutes ?? DEFAULT_TIMEOUT_MINUTES;
 
       return {
         enabled: parsed.enabled ?? true,
-        timeout_minutes: parsed.timeout_minutes ?? DEFAULT_TIMEOUT_MINUTES,
+        timeout_minutes: Math.max(MIN_TIMEOUT_MINUTES, timeout),
       };
     }
   } catch (error) {
@@ -140,14 +139,18 @@ export function configure_session_timeout(
   timeout_minutes: number,
 ): void {
   const was_enabled = current_config.enabled;
+  const validated_timeout = Math.max(
+    MIN_TIMEOUT_MINUTES,
+    timeout_minutes || DEFAULT_TIMEOUT_MINUTES,
+  );
 
   current_config = {
     enabled,
-    timeout_minutes: timeout_minutes || DEFAULT_TIMEOUT_MINUTES,
+    timeout_minutes: validated_timeout,
   };
 
   try {
-    sessionStorage.setItem(SESSION_TIMEOUT_KEY, JSON.stringify(current_config));
+    localStorage.setItem(SESSION_TIMEOUT_KEY, JSON.stringify(current_config));
   } catch (error) {
     console.warn("[session_timeout] Failed to save config to storage:", error);
   }
@@ -169,18 +172,9 @@ export function configure_session_timeout(
 
 export function start_session_timeout(
   account_id: string,
-  on_timeout?: () => void,
+  _on_timeout?: () => void,
 ): void {
   current_account_id = account_id;
-  on_timeout_callback = on_timeout || null;
-
-  current_config = load_config_from_storage();
-
-  if (current_config.enabled) {
-    attach_activity_listeners();
-    last_activity_update = 0;
-    update_last_activity();
-  }
 }
 
 export function stop_session_timeout(): void {
@@ -195,25 +189,8 @@ export function stop_session_timeout(): void {
   detach_activity_listeners();
 }
 
-export function check_session_expired(account_id: string): boolean {
-  const config = load_config_from_storage();
-
-  if (!config.enabled) {
-    return false;
-  }
-
-  const last_activity_str = sessionStorage.getItem(
-    get_last_activity_key(account_id),
-  );
-
-  if (!last_activity_str) {
-    return false;
-  }
-
-  const last_activity = parseInt(last_activity_str, 10);
-  const timeout_ms = config.timeout_minutes * 60 * 1000;
-
-  return Date.now() - last_activity > timeout_ms;
+export function check_session_expired(_account_id: string): boolean {
+  return false;
 }
 
 export function get_session_timeout_config(): SessionTimeoutConfig {
@@ -221,7 +198,7 @@ export function get_session_timeout_config(): SessionTimeoutConfig {
 }
 
 export function clear_session_timeout_data(account_id: string): void {
-  sessionStorage.removeItem(get_last_activity_key(account_id));
+  localStorage.removeItem(get_last_activity_key(account_id));
 }
 
 export function refresh_session_activity(): void {

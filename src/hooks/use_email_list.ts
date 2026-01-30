@@ -685,14 +685,21 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     }
 
     if (has_keys && has_passphrase_in_memory()) {
-      set_state((prev) => ({ ...prev, is_loading: true }));
       fetch_messages_ref.current?.();
     } else if (has_keys && !has_passphrase_in_memory()) {
-      set_state((prev) => ({ ...prev, is_loading: true }));
+      set_state((prev) =>
+        prev.is_loading ? prev : { ...prev, is_loading: true },
+      );
     } else if (is_authenticated && !has_keys) {
-      set_state((prev) => ({ ...prev, is_loading: true }));
+      set_state((prev) =>
+        prev.is_loading ? prev : { ...prev, is_loading: true },
+      );
     } else {
-      set_state({ emails: [], is_loading: false, total_messages: 0 });
+      set_state((prev) =>
+        !prev.is_loading && prev.emails.length === 0
+          ? prev
+          : { emails: [], is_loading: false, total_messages: 0 },
+      );
     }
 
     return () => abort_ref.current?.abort();
@@ -713,7 +720,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       clearInterval(passphrase_check_ref.current);
     }
 
-    set_state((prev) => ({ ...prev, is_loading: true }));
     let attempts = 0;
     const max_attempts = 20;
 
@@ -731,7 +737,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           clearInterval(passphrase_check_ref.current);
           passphrase_check_ref.current = null;
         }
-        set_state((prev) => ({ ...prev, is_loading: false }));
+        set_state((prev) =>
+          prev.is_loading ? { ...prev, is_loading: false } : prev,
+        );
       }
     }, 100);
 
