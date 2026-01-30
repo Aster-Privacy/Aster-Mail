@@ -477,7 +477,6 @@ export async function execute_external_send(
 
   const all_recipients = [...email.to, ...(email.cc || []), ...(email.bcc || [])];
   let body_to_send = email.body;
-  let is_pgp_encrypted = false;
 
   const encryption_opts = email.encryption_options;
 
@@ -515,7 +514,6 @@ export async function execute_external_send(
           email.body,
           recipient_keys,
         );
-        is_pgp_encrypted = true;
       }
     } else if (encryption_opts.require_encryption) {
       throw create_error(
