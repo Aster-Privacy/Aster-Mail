@@ -1733,407 +1733,325 @@ export function ContactsContent({
                   <motion.div
                     key="details"
                     animate={{ opacity: 1 }}
-                    className="max-w-lg mx-auto"
                     exit={{ opacity: 0 }}
                     initial={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
                   >
-                    <div className="flex items-start gap-4 mb-6">
+                    <div className="flex items-center gap-4 mb-6">
                       <ProfileAvatar
                         email={selected_contact.emails[0]}
                         image_url={selected_contact.avatar_url}
                         name={full_name}
                         size="xl"
                       />
-                      <div className="flex-1 min-w-0 pt-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <h3
-                            className="text-xl font-semibold"
+                            className="text-lg font-semibold truncate"
                             style={{ color: "var(--text-primary)" }}
                           >
                             {full_name || "Unnamed Contact"}
                           </h3>
                           {selected_contact.is_favorite && (
-                            <StarIconSolid className="w-5 h-5 text-amber-400" />
+                            <StarIconSolid className="w-4 h-4 text-amber-400 flex-shrink-0" />
                           )}
                         </div>
-                        {(selected_contact.job_title ||
-                          selected_contact.company) && (
+                        {(selected_contact.job_title || selected_contact.company) && (
                           <p
-                            className="text-[14px] mt-0.5"
+                            className="text-[13px] truncate"
                             style={{ color: "var(--text-secondary)" }}
                           >
-                            {selected_contact.job_title &&
-                            selected_contact.company
+                            {selected_contact.job_title && selected_contact.company
                               ? `${selected_contact.job_title} at ${selected_contact.company}`
-                              : selected_contact.job_title ||
-                                selected_contact.company}
+                              : selected_contact.job_title || selected_contact.company}
                           </p>
                         )}
-                        {selected_contact.emails[0] && (
-                          <Button
-                            className="mt-3 h-9 px-4 text-[13px] gap-2"
-                            onClick={() =>
-                              handle_compose_email(selected_contact.emails[0])
-                            }
-                          >
-                            <PaperAirplaneIcon className="w-3.5 h-3.5" />
-                            Send email
-                          </Button>
-                        )}
                       </div>
+                      {selected_contact.emails[0] && (
+                        <Button
+                          className="h-9 px-4 text-[13px] gap-2 flex-shrink-0"
+                          onClick={() => handle_compose_email(selected_contact.emails[0])}
+                        >
+                          <PaperAirplaneIcon className="w-3.5 h-3.5" />
+                          Email
+                        </Button>
+                      )}
                     </div>
 
-                    <div className="space-y-4">
-                      {selected_contact.emails.length > 0 && (
-                        <div>
-                          <h4
-                            className="text-[11px] font-medium uppercase tracking-wider mb-2"
+                    <div
+                      className="rounded-xl border divide-y"
+                      style={{
+                        borderColor: "var(--border-secondary)",
+                        backgroundColor: "var(--bg-secondary)",
+                      }}
+                    >
+                      {selected_contact.emails.map((email, index) => (
+                        <div
+                          key={`email-${index}`}
+                          className="flex items-center gap-3 px-4 py-3 group cursor-pointer hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => handle_compose_email(email)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              handle_compose_email(email);
+                            }
+                          }}
+                        >
+                          <EnvelopeIcon
+                            className="w-4 h-4 flex-shrink-0"
                             style={{ color: "var(--text-muted)" }}
+                          />
+                          <span
+                            className="text-[13px] flex-1 truncate"
+                            style={{ color: "var(--text-primary)" }}
                           >
-                            Email
-                          </h4>
-                          <div className="space-y-1">
-                            {selected_contact.emails.map((email, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center gap-3 p-2.5 rounded-lg group cursor-pointer hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => handle_compose_email(email)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter" || e.key === " ") {
-                                    e.preventDefault();
-                                    handle_compose_email(email);
-                                  }
-                                }}
-                              >
-                                <EnvelopeIcon
-                                  className="w-4 h-4 flex-shrink-0"
-                                  style={{ color: "var(--text-muted)" }}
-                                />
-                                <span
-                                  className="text-[13px] flex-1"
-                                  style={{ color: "var(--text-primary)" }}
-                                >
-                                  {email}
-                                </span>
-                                <button
-                                  className="p-1.5 rounded opacity-0 group-hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handle_copy(email, `email-${index}`);
-                                  }}
-                                >
-                                  {copied_field === `email-${index}` ? (
-                                    <CheckIcon className="w-3.5 h-3.5 text-green-500" />
-                                  ) : (
-                                    <ClipboardDocumentIcon
-                                      className="w-3.5 h-3.5"
-                                      style={{ color: "var(--text-muted)" }}
-                                    />
-                                  )}
-                                </button>
-                              </div>
-                            ))}
-                          </div>
+                            {email}
+                          </span>
+                          <button
+                            className="p-1.5 rounded opacity-0 group-hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handle_copy(email, `email-${index}`);
+                            }}
+                          >
+                            {copied_field === `email-${index}` ? (
+                              <CheckIcon className="w-3.5 h-3.5 text-green-500" />
+                            ) : (
+                              <ClipboardDocumentIcon
+                                className="w-3.5 h-3.5"
+                                style={{ color: "var(--text-muted)" }}
+                              />
+                            )}
+                          </button>
                         </div>
-                      )}
+                      ))}
 
                       {selected_contact.phone && (
-                        <div>
-                          <h4
-                            className="text-[11px] font-medium uppercase tracking-wider mb-2"
+                        <div className="flex items-center gap-3 px-4 py-3 group">
+                          <PhoneIcon
+                            className="w-4 h-4 flex-shrink-0"
                             style={{ color: "var(--text-muted)" }}
+                          />
+                          <span
+                            className="text-[13px] flex-1"
+                            style={{ color: "var(--text-primary)" }}
                           >
-                            Phone
-                          </h4>
-                          <div className="flex items-center gap-3 p-2.5 rounded-lg group">
-                            <PhoneIcon
-                              className="w-4 h-4 flex-shrink-0"
-                              style={{ color: "var(--text-muted)" }}
-                            />
-                            <span
-                              className="text-[13px] flex-1"
-                              style={{ color: "var(--text-primary)" }}
-                            >
-                              {selected_contact.phone}
-                            </span>
-                            <button
-                              className="p-1.5 rounded opacity-0 group-hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5"
-                              onClick={() =>
-                                handle_copy(selected_contact.phone!, "phone")
-                              }
-                            >
-                              {copied_field === "phone" ? (
-                                <CheckIcon className="w-3.5 h-3.5 text-green-500" />
-                              ) : (
-                                <ClipboardDocumentIcon
-                                  className="w-3.5 h-3.5"
-                                  style={{ color: "var(--text-muted)" }}
-                                />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {selected_contact.company && (
-                        <div>
-                          <h4
-                            className="text-[11px] font-medium uppercase tracking-wider mb-2"
-                            style={{ color: "var(--text-muted)" }}
+                            {selected_contact.phone}
+                          </span>
+                          <button
+                            className="p-1.5 rounded opacity-0 group-hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5"
+                            onClick={() => handle_copy(selected_contact.phone!, "phone")}
                           >
-                            Company
-                          </h4>
-                          <div className="flex items-center gap-3 p-2.5 rounded-lg">
-                            <BuildingOffice2Icon
-                              className="w-4 h-4 flex-shrink-0"
-                              style={{ color: "var(--text-muted)" }}
-                            />
-                            <span
-                              className="text-[13px]"
-                              style={{ color: "var(--text-primary)" }}
-                            >
-                              {selected_contact.company}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {selected_contact.job_title &&
-                        !selected_contact.company && (
-                          <div>
-                            <h4
-                              className="text-[11px] font-medium uppercase tracking-wider mb-2"
-                              style={{ color: "var(--text-muted)" }}
-                            >
-                              Job Title
-                            </h4>
-                            <div className="flex items-center gap-3 p-2.5 rounded-lg">
-                              <BriefcaseIcon
-                                className="w-4 h-4 flex-shrink-0"
+                            {copied_field === "phone" ? (
+                              <CheckIcon className="w-3.5 h-3.5 text-green-500" />
+                            ) : (
+                              <ClipboardDocumentIcon
+                                className="w-3.5 h-3.5"
                                 style={{ color: "var(--text-muted)" }}
                               />
-                              <span
-                                className="text-[13px]"
-                                style={{ color: "var(--text-primary)" }}
-                              >
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {(selected_contact.company ||
+                      selected_contact.relationship ||
+                      selected_contact.birthday) && (
+                      <div
+                        className="mt-4 rounded-xl border"
+                        style={{
+                          borderColor: "var(--border-secondary)",
+                          backgroundColor: "var(--bg-secondary)",
+                        }}
+                      >
+                        <div className="grid grid-cols-2 gap-px" style={{ backgroundColor: "var(--border-secondary)" }}>
+                          {selected_contact.company && (
+                            <div className="px-4 py-3" style={{ backgroundColor: "var(--bg-secondary)" }}>
+                              <p className="text-[11px] uppercase tracking-wider mb-0.5" style={{ color: "var(--text-muted)" }}>
+                                Company
+                              </p>
+                              <p className="text-[13px] truncate" style={{ color: "var(--text-primary)" }}>
+                                {selected_contact.company}
+                              </p>
+                            </div>
+                          )}
+                          {selected_contact.relationship && (
+                            <div className="px-4 py-3" style={{ backgroundColor: "var(--bg-secondary)" }}>
+                              <p className="text-[11px] uppercase tracking-wider mb-0.5" style={{ color: "var(--text-muted)" }}>
+                                Relationship
+                              </p>
+                              <p className="text-[13px]" style={{ color: "var(--text-primary)" }}>
+                                {RELATIONSHIP_LABELS[selected_contact.relationship] || selected_contact.relationship}
+                              </p>
+                            </div>
+                          )}
+                          {selected_contact.birthday && (
+                            <div className="px-4 py-3" style={{ backgroundColor: "var(--bg-secondary)" }}>
+                              <p className="text-[11px] uppercase tracking-wider mb-0.5" style={{ color: "var(--text-muted)" }}>
+                                Birthday
+                              </p>
+                              <p className="text-[13px]" style={{ color: "var(--text-primary)" }}>
+                                {new Date(selected_contact.birthday).toLocaleDateString(undefined, {
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </p>
+                            </div>
+                          )}
+                          {selected_contact.job_title && !selected_contact.company && (
+                            <div className="px-4 py-3" style={{ backgroundColor: "var(--bg-secondary)" }}>
+                              <p className="text-[11px] uppercase tracking-wider mb-0.5" style={{ color: "var(--text-muted)" }}>
+                                Title
+                              </p>
+                              <p className="text-[13px] truncate" style={{ color: "var(--text-primary)" }}>
                                 {selected_contact.job_title}
-                              </span>
+                              </p>
                             </div>
-                          </div>
-                        )}
-
-                      {selected_contact.relationship && (
-                        <div>
-                          <h4
-                            className="text-[11px] font-medium uppercase tracking-wider mb-2"
-                            style={{ color: "var(--text-muted)" }}
-                          >
-                            Relationship
-                          </h4>
-                          <div className="flex items-center gap-3 p-2.5 rounded-lg">
-                            <UserPlusIcon
-                              className="w-4 h-4 flex-shrink-0"
-                              style={{ color: "var(--text-muted)" }}
-                            />
-                            <span
-                              className="text-[13px]"
-                              style={{ color: "var(--text-primary)" }}
-                            >
-                              {RELATIONSHIP_LABELS[
-                                selected_contact.relationship
-                              ] || selected_contact.relationship}
-                            </span>
-                          </div>
+                          )}
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      {selected_contact.birthday && (
-                        <div>
-                          <h4
-                            className="text-[11px] font-medium uppercase tracking-wider mb-2"
-                            style={{ color: "var(--text-muted)" }}
-                          >
-                            Birthday
-                          </h4>
-                          <div className="flex items-center gap-3 p-2.5 rounded-lg">
-                            <CalendarIcon
-                              className="w-4 h-4 flex-shrink-0"
-                              style={{ color: "var(--text-muted)" }}
-                            />
-                            <span
-                              className="text-[13px]"
-                              style={{ color: "var(--text-primary)" }}
-                            >
-                              {new Date(
-                                selected_contact.birthday,
-                              ).toLocaleDateString(undefined, {
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {selected_contact.address &&
-                        (selected_contact.address.street ||
-                          selected_contact.address.city ||
-                          selected_contact.address.country) && (
-                          <div>
-                            <h4
-                              className="text-[11px] font-medium uppercase tracking-wider mb-2"
-                              style={{ color: "var(--text-muted)" }}
-                            >
-                              Address
-                            </h4>
-                            <div className="flex items-start gap-3 p-2.5 rounded-lg">
-                              <MapPinIcon
-                                className="w-4 h-4 flex-shrink-0 mt-0.5"
-                                style={{ color: "var(--text-muted)" }}
-                              />
-                              <span
-                                className="text-[13px] whitespace-pre-line"
-                                style={{ color: "var(--text-primary)" }}
-                              >
-                                {[
-                                  selected_contact.address.street,
-                                  [
-                                    selected_contact.address.city,
-                                    selected_contact.address.state,
-                                    selected_contact.address.postal_code,
-                                  ]
-                                    .filter(Boolean)
-                                    .join(", "),
-                                  selected_contact.address.country,
-                                ]
-                                  .filter(Boolean)
-                                  .join("\n")}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                      {selected_contact.social_links &&
-                        (selected_contact.social_links.website ||
-                          selected_contact.social_links.linkedin ||
-                          selected_contact.social_links.twitter ||
-                          selected_contact.social_links.github) && (
-                          <div>
-                            <h4
-                              className="text-[11px] font-medium uppercase tracking-wider mb-2"
-                              style={{ color: "var(--text-muted)" }}
-                            >
-                              Links
-                            </h4>
-                            <div className="flex items-center gap-3 p-2.5 rounded-lg">
-                              <GlobeAltIcon
-                                className="w-4 h-4 flex-shrink-0"
-                                style={{ color: "var(--text-muted)" }}
-                              />
-                              <div className="flex flex-wrap gap-2">
-                                {selected_contact.social_links.website && (
-                                  <a
-                                    className="text-[12px] px-2 py-1 rounded hover:underline"
-                                    href={
-                                      selected_contact.social_links.website.startsWith(
-                                        "http",
-                                      )
-                                        ? selected_contact.social_links.website
-                                        : `https://${selected_contact.social_links.website}`
-                                    }
-                                    rel="noopener noreferrer"
-                                    style={{ color: "var(--text-secondary)" }}
-                                    target="_blank"
-                                  >
-                                    Website
-                                  </a>
-                                )}
-                                {selected_contact.social_links.linkedin && (
-                                  <a
-                                    className="text-[12px] px-2 py-1 rounded hover:underline"
-                                    href={
-                                      selected_contact.social_links.linkedin.includes(
-                                        "linkedin.com",
-                                      )
-                                        ? selected_contact.social_links.linkedin
-                                        : `https://linkedin.com/in/${selected_contact.social_links.linkedin}`
-                                    }
-                                    rel="noopener noreferrer"
-                                    style={{ color: "var(--text-secondary)" }}
-                                    target="_blank"
-                                  >
-                                    LinkedIn
-                                  </a>
-                                )}
-                                {selected_contact.social_links.twitter && (
-                                  <a
-                                    className="text-[12px] px-2 py-1 rounded hover:underline"
-                                    href={
-                                      selected_contact.social_links.twitter.includes(
-                                        "twitter.com",
-                                      ) ||
-                                      selected_contact.social_links.twitter.includes(
-                                        "x.com",
-                                      )
-                                        ? selected_contact.social_links.twitter
-                                        : `https://x.com/${selected_contact.social_links.twitter.replace("@", "")}`
-                                    }
-                                    rel="noopener noreferrer"
-                                    style={{ color: "var(--text-secondary)" }}
-                                    target="_blank"
-                                  >
-                                    Twitter/X
-                                  </a>
-                                )}
-                                {selected_contact.social_links.github && (
-                                  <a
-                                    className="text-[12px] px-2 py-1 rounded hover:underline"
-                                    href={
-                                      selected_contact.social_links.github.includes(
-                                        "github.com",
-                                      )
-                                        ? selected_contact.social_links.github
-                                        : `https://github.com/${selected_contact.social_links.github}`
-                                    }
-                                    rel="noopener noreferrer"
-                                    style={{ color: "var(--text-secondary)" }}
-                                    target="_blank"
-                                  >
-                                    GitHub
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                      {selected_contact.notes && (
-                        <div>
-                          <h4
-                            className="text-[11px] font-medium uppercase tracking-wider mb-2"
-                            style={{ color: "var(--text-muted)" }}
-                          >
-                            Notes
-                          </h4>
-                          <div className="flex items-start gap-3 p-2.5 rounded-lg">
-                            <DocumentTextIcon
+                    {selected_contact.address &&
+                      (selected_contact.address.street ||
+                        selected_contact.address.city ||
+                        selected_contact.address.country) && (
+                        <div
+                          className="mt-4 rounded-xl border px-4 py-3"
+                          style={{
+                            borderColor: "var(--border-secondary)",
+                            backgroundColor: "var(--bg-secondary)",
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <MapPinIcon
                               className="w-4 h-4 flex-shrink-0 mt-0.5"
                               style={{ color: "var(--text-muted)" }}
                             />
-                            <p
-                              className="text-[13px] whitespace-pre-wrap"
-                              style={{ color: "var(--text-primary)" }}
-                            >
-                              {selected_contact.notes}
+                            <p className="text-[13px]" style={{ color: "var(--text-primary)" }}>
+                              {[
+                                selected_contact.address.street,
+                                [
+                                  selected_contact.address.city,
+                                  selected_contact.address.state,
+                                  selected_contact.address.postal_code,
+                                ]
+                                  .filter(Boolean)
+                                  .join(", "),
+                                selected_contact.address.country?.toUpperCase(),
+                              ]
+                                .filter(Boolean)
+                                .join(" · ")}
                             </p>
                           </div>
                         </div>
                       )}
-                    </div>
+
+                    {selected_contact.social_links &&
+                      (selected_contact.social_links.website ||
+                        selected_contact.social_links.linkedin ||
+                        selected_contact.social_links.twitter ||
+                        selected_contact.social_links.github) && (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {selected_contact.social_links.website && (
+                            <a
+                              className="inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full border transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+                              href={
+                                selected_contact.social_links.website.startsWith("http")
+                                  ? selected_contact.social_links.website
+                                  : `https://${selected_contact.social_links.website}`
+                              }
+                              rel="noopener noreferrer"
+                              style={{
+                                borderColor: "var(--border-secondary)",
+                                color: "var(--text-secondary)",
+                              }}
+                              target="_blank"
+                            >
+                              <GlobeAltIcon className="w-3.5 h-3.5" />
+                              Website
+                            </a>
+                          )}
+                          {selected_contact.social_links.linkedin && (
+                            <a
+                              className="inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full border transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+                              href={
+                                selected_contact.social_links.linkedin.includes("linkedin.com")
+                                  ? selected_contact.social_links.linkedin
+                                  : `https://linkedin.com/in/${selected_contact.social_links.linkedin}`
+                              }
+                              rel="noopener noreferrer"
+                              style={{
+                                borderColor: "var(--border-secondary)",
+                                color: "var(--text-secondary)",
+                              }}
+                              target="_blank"
+                            >
+                              LinkedIn
+                            </a>
+                          )}
+                          {selected_contact.social_links.twitter && (
+                            <a
+                              className="inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full border transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+                              href={
+                                selected_contact.social_links.twitter.includes("twitter.com") ||
+                                selected_contact.social_links.twitter.includes("x.com")
+                                  ? selected_contact.social_links.twitter
+                                  : `https://x.com/${selected_contact.social_links.twitter.replace("@", "")}`
+                              }
+                              rel="noopener noreferrer"
+                              style={{
+                                borderColor: "var(--border-secondary)",
+                                color: "var(--text-secondary)",
+                              }}
+                              target="_blank"
+                            >
+                              X
+                            </a>
+                          )}
+                          {selected_contact.social_links.github && (
+                            <a
+                              className="inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full border transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+                              href={
+                                selected_contact.social_links.github.includes("github.com")
+                                  ? selected_contact.social_links.github
+                                  : `https://github.com/${selected_contact.social_links.github}`
+                              }
+                              rel="noopener noreferrer"
+                              style={{
+                                borderColor: "var(--border-secondary)",
+                                color: "var(--text-secondary)",
+                              }}
+                              target="_blank"
+                            >
+                              GitHub
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                    {selected_contact.notes && (
+                      <div
+                        className="mt-4 rounded-xl border px-4 py-3"
+                        style={{
+                          borderColor: "var(--border-secondary)",
+                          backgroundColor: "var(--bg-secondary)",
+                        }}
+                      >
+                        <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>
+                          Notes
+                        </p>
+                        <p
+                          className="text-[13px] whitespace-pre-wrap"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          {selected_contact.notes}
+                        </p>
+                      </div>
+                    )}
                   </motion.div>
                     )}
                   </AnimatePresence>
