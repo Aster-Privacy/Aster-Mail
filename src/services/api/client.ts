@@ -366,15 +366,7 @@ class ApiClient {
           const error_code = get_error_code_from_status(response.status);
 
           if (response.status === 401) {
-            const was_authenticated = this.is_authenticated_flag;
-
             this.clear_auth_state();
-            if (was_authenticated) {
-              this.clear_session_cookies();
-              window.dispatchEvent(
-                new CustomEvent("astermail:session-expired"),
-              );
-            }
           }
 
           const sanitized_error = import.meta.env.DEV
