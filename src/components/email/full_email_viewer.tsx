@@ -818,7 +818,22 @@ export function FullEmailViewer({
             { is_read: true },
           );
 
-          if (result.success) {
+          if (result.success && !cancelled) {
+            set_is_read(true);
+            if (result.encrypted) {
+              set_mail_item((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      encrypted_metadata: result.encrypted!.encrypted_metadata,
+                      metadata_nonce: result.encrypted!.metadata_nonce,
+                      metadata: prev.metadata
+                        ? { ...prev.metadata, is_read: true }
+                        : undefined,
+                    }
+                  : prev,
+              );
+            }
             emit_mail_item_updated({ id: item.id, is_read: true });
           }
         };

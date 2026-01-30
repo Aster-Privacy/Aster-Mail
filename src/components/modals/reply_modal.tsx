@@ -23,6 +23,8 @@ import {
   type DraftContent,
 } from "@/services/api/multi_drafts";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import { api_client } from "@/services/api/client";
+import { has_csrf_token } from "@/services/api/csrf";
 
 interface Attachment {
   id: string;
@@ -362,11 +364,31 @@ export function ReplyModal({
 
   const save_thread_draft = useCallback(
     async (text: string) => {
-      if (!text.trim() || !original_email_id) return;
+      if (!text.trim() || !original_email_id) {
+        console.log("[Draft] Skip save - no text or email_id:", {
+          has_text: !!text.trim(),
+          original_email_id,
+        });
+        return;
+      }
 
       const vault = get_vault_from_memory();
 
-      if (!vault) return;
+      if (!vault) {
+        console.log("[Draft] Skip save - no vault");
+        return;
+      }
+
+      if (!has_csrf_token()) {
+        console.log("[Draft] CSRF token missing, refreshing session...");
+        await api_client.refresh_session();
+        if (!has_csrf_token()) {
+          console.log("[Draft] Failed to refresh CSRF token");
+          return;
+        }
+      }
+
+      console.log("[Draft] Saving...", { original_email_id, thread_token });
 
       const subject = original_subject.startsWith("Re:")
         ? original_subject
@@ -393,6 +415,7 @@ export function ReplyModal({
         );
 
         if (result.data) {
+          console.log("[Draft] Updated:", result.data.version);
           set_draft_version(result.data.version);
           last_saved_text.current = text;
           on_draft_saved?.({
@@ -400,6 +423,8 @@ export function ReplyModal({
             version: result.data.version,
             content,
           });
+        } else {
+          console.log("[Draft] Update failed:", result.error);
         }
       } else {
         const result = await create_draft(
@@ -412,6 +437,7 @@ export function ReplyModal({
         );
 
         if (result.data) {
+          console.log("[Draft] Created:", result.data.id);
           set_draft_id(result.data.id);
           set_draft_version(result.data.version);
           last_saved_text.current = text;
@@ -420,6 +446,8 @@ export function ReplyModal({
             version: result.data.version,
             content,
           });
+        } else {
+          console.log("[Draft] Create failed:", result.error);
         }
       }
     },
@@ -435,13 +463,19 @@ export function ReplyModal({
   );
 
   useEffect(() => {
-    if (!is_open || !original_email_id || !reply_message.trim()) return;
+    if (!is_open || !original_email_id || !reply_message.trim()) {
+      if (is_open && reply_message.trim()) {
+        console.log("[Draft] Auto-save blocked - missing email_id:", original_email_id);
+      }
+      return;
+    }
     if (reply_message === last_saved_text.current) return;
 
     if (save_draft_timeout.current) {
       clearTimeout(save_draft_timeout.current);
     }
 
+    console.log("[Draft] Auto-save scheduled (1.5s)");
     save_draft_timeout.current = window.setTimeout(() => {
       save_thread_draft(reply_message);
     }, 1500);
