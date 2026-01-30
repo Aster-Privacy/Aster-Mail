@@ -620,6 +620,26 @@ export function SplitEmailViewer({
 
       const unsubscribe = detect_unsubscribe_info("", body_text);
 
+      let decrypted_metadata = item.metadata;
+
+      if (!decrypted_metadata && item.encrypted_metadata && item.metadata_nonce) {
+        const { decrypt_mail_metadata } = await import(
+          "@/services/crypto/mail_metadata"
+        );
+
+        decrypted_metadata =
+          (await decrypt_mail_metadata(
+            item.encrypted_metadata,
+            item.metadata_nonce,
+            item.metadata_version,
+          )) ?? undefined;
+      }
+
+      const item_with_metadata = {
+        ...item,
+        metadata: decrypted_metadata,
+      };
+
       set_email({
         id: item.id,
         sender:
@@ -630,9 +650,9 @@ export function SplitEmailViewer({
         subject: envelope.subject || "(No subject)",
         preview: body_text.substring(0, 200),
         timestamp: item.created_at,
-        is_read: item.metadata?.is_read ?? false,
-        is_starred: item.metadata?.is_starred ?? false,
-        is_archived: item.metadata?.is_archived ?? false,
+        is_read: decrypted_metadata?.is_read ?? false,
+        is_starred: decrypted_metadata?.is_starred ?? false,
+        is_archived: decrypted_metadata?.is_archived ?? false,
         body: body_text,
         unsubscribe_info: unsubscribe,
         thread_token: item.thread_token,
@@ -642,9 +662,9 @@ export function SplitEmailViewer({
       });
       set_is_external(item.is_external);
       set_has_pq_protection(!!item.ephemeral_pq_key);
-      set_mail_item(item);
-      set_is_read(item.metadata?.is_read ?? false);
-      set_is_pinned(item.metadata?.is_pinned ?? false);
+      set_mail_item(item_with_metadata);
+      set_is_read(decrypted_metadata?.is_read ?? false);
+      set_is_pinned(decrypted_metadata?.is_pinned ?? false);
 
       const single_message: DecryptedThreadMessage = {
         id: item.id,
@@ -657,8 +677,8 @@ export function SplitEmailViewer({
         subject: envelope.subject || "(No subject)",
         body: body_text,
         timestamp: item.message_ts || item.created_at,
-        is_read: item.metadata?.is_read ?? false,
-        is_starred: item.metadata?.is_starred ?? false,
+        is_read: decrypted_metadata?.is_read ?? false,
+        is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
         is_external: item.is_external,
         encrypted_metadata: item.encrypted_metadata,
@@ -683,7 +703,7 @@ export function SplitEmailViewer({
       set_is_loading(false);
 
       if (
-        !(item.metadata?.is_read ?? false) &&
+        !(decrypted_metadata?.is_read ?? false) &&
         preferences.mark_as_read_delay !== "never"
       ) {
         const mark_read = async () => {

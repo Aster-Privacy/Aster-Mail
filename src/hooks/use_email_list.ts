@@ -398,10 +398,8 @@ function group_emails_by_thread(emails: InboxEmail[]): InboxEmail[] {
 
     representative.thread_message_count = thread_emails.length;
 
-    const has_unread = thread_emails.some((e) => !e.is_read);
     const has_starred = thread_emails.some((e) => e.is_starred);
 
-    representative.is_read = !has_unread;
     representative.is_starred = has_starred;
 
     grouped_emails.push(representative);
