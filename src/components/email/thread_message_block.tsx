@@ -3,9 +3,12 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import {
   ChevronDownIcon,
+  ChevronUpIcon,
   StarIcon,
   EyeIcon,
   EyeSlashIcon,
+  CheckIcon,
+  ArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
@@ -293,6 +296,7 @@ interface ThreadMessagesListProps {
   default_expanded_id?: string | null;
   subject: string;
   on_toggle_message_read?: (message_id: string) => void;
+  on_mark_all_read?: () => void;
   hide_counter?: boolean;
 }
 
@@ -302,6 +306,7 @@ export function ThreadMessagesList({
   default_expanded_id,
   subject: _subject,
   on_toggle_message_read,
+  on_mark_all_read,
   hide_counter = false,
 }: ThreadMessagesListProps): React.ReactElement {
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(() => {
@@ -612,29 +617,141 @@ export function ThreadMessagesList({
     [starred_ids, on_toggle_message_read],
   );
 
+  const expand_all = useCallback(() => {
+    set_expanded_ids(new Set(messages.map((m) => m.id)));
+  }, [messages]);
+
+  const collapse_all = useCallback(() => {
+    set_expanded_ids(new Set());
+  }, []);
+
+  const first_unread_ref = useRef<HTMLDivElement>(null);
+
+  const first_unread_id = useMemo(() => {
+    const unread = messages.find((m) => !m.is_read && !read_ids.has(m.id));
+
+    return unread?.id ?? null;
+  }, [messages, read_ids]);
+
+  const jump_to_first_unread = useCallback(() => {
+    if (!first_unread_id) return;
+
+    set_expanded_ids((prev) => {
+      const next = new Set(prev);
+
+      next.add(first_unread_id);
+
+      return next;
+    });
+
+    setTimeout(() => {
+      first_unread_ref.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 100);
+  }, [first_unread_id]);
+
+  const handle_mark_all_read = useCallback(() => {
+    const unread_messages = messages.filter(
+      (m) => !m.is_read && !read_ids.has(m.id),
+    );
+
+    if (unread_messages.length === 0) return;
+
+    unread_messages.forEach((msg) => {
+      mark_as_read(msg);
+    });
+
+    on_mark_all_read?.();
+  }, [messages, read_ids, mark_as_read, on_mark_all_read]);
+
+  const unread_count = useMemo(() => {
+    return messages.filter((m) => !m.is_read && !read_ids.has(m.id)).length;
+  }, [messages, read_ids]);
+
+  const all_expanded = useMemo(() => {
+    return messages.every((m) => expanded_ids.has(m.id));
+  }, [messages, expanded_ids]);
+
+  const all_collapsed = useMemo(() => {
+    return messages.every((m) => !expanded_ids.has(m.id));
+  }, [messages, expanded_ids]);
+
   return (
     <div className="flex flex-col gap-2">
-      {!hide_counter && (
-        <div className="flex items-center justify-end gap-2 px-1">
-          <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-            {messages.length} {messages.length === 1 ? "message" : "messages"}
-          </span>
+      {!hide_counter && messages.length > 1 && (
+        <div className="flex items-center justify-between gap-2 px-1">
+          <div className="flex items-center gap-1">
+            {unread_count > 0 && (
+              <button
+                className="flex items-center gap-1 px-2 py-1 text-[11px] rounded-md bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+                onClick={handle_mark_all_read}
+                title="Mark all as read"
+                type="button"
+              >
+                <CheckIcon className="w-3 h-3" />
+                <span>Mark all read</span>
+              </button>
+            )}
+            {first_unread_id && (
+              <button
+                className="flex items-center gap-1 px-2 py-1 text-[11px] rounded-md bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+                onClick={jump_to_first_unread}
+                title="Jump to first unread"
+                type="button"
+              >
+                <ArrowDownIcon className="w-3 h-3" />
+                <span>First unread</span>
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              className="p-1 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors disabled:opacity-50"
+              disabled={all_expanded}
+              onClick={expand_all}
+              title="Expand all"
+              type="button"
+            >
+              <ChevronDownIcon className="w-4 h-4 text-[var(--text-muted)]" />
+            </button>
+            <button
+              className="p-1 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors disabled:opacity-50"
+              disabled={all_collapsed}
+              onClick={collapse_all}
+              title="Collapse all"
+              type="button"
+            >
+              <ChevronUpIcon className="w-4 h-4 text-[var(--text-muted)]" />
+            </button>
+            <span
+              className="text-[11px] ml-1"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {messages.length} messages
+            </span>
+          </div>
         </div>
       )}
       {messages.map((msg) => (
-        <ThreadMessageBlock
+        <div
           key={msg.id}
-          is_expanded={expanded_ids.has(msg.id)}
-          is_own_message={
-            msg.sender_email.toLowerCase() === current_user_email.toLowerCase()
-          }
-          is_read={read_ids.has(msg.id)}
-          is_starred={starred_ids.has(msg.id)}
-          message={msg}
-          on_star_toggle={() => toggle_star(msg)}
-          on_toggle={() => toggle(msg)}
-          on_toggle_read={() => toggle_read(msg)}
-        />
+          ref={msg.id === first_unread_id ? first_unread_ref : undefined}
+        >
+          <ThreadMessageBlock
+            is_expanded={expanded_ids.has(msg.id)}
+            is_own_message={
+              msg.sender_email.toLowerCase() === current_user_email.toLowerCase()
+            }
+            is_read={read_ids.has(msg.id)}
+            is_starred={starred_ids.has(msg.id)}
+            message={msg}
+            on_star_toggle={() => toggle_star(msg)}
+            on_toggle={() => toggle(msg)}
+            on_toggle_read={() => toggle_read(msg)}
+          />
+        </div>
       ))}
     </div>
   );
