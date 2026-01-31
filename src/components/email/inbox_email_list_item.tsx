@@ -197,10 +197,10 @@ export const InboxEmailListItem = forwardRef<
             {email.thread_message_count && email.thread_message_count > 1 && (
               <span
                 className={cn(
-                  "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded",
+                  "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded border",
                   email.is_read
-                    ? "bg-[var(--bg-tertiary)] text-[var(--text-muted)]"
-                    : "bg-[var(--accent-blue)] text-white",
+                    ? "border-[var(--text-muted)] text-[var(--text-muted)]"
+                    : "border-[var(--text-secondary)] text-[var(--text-secondary)]",
                 )}
               >
                 {email.thread_message_count}
