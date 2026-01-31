@@ -240,6 +240,8 @@ export function ReplyModal({
   const pending_thread_token_ref = useRef<string | null>(null);
   const save_draft_timeout = useRef<number | null>(null);
   const last_saved_text = useRef<string>("");
+  const is_sending_ref = useRef(false);
+  const last_send_time_ref = useRef<number>(0);
   const [active_formats, set_active_formats] = useState<Set<string>>(new Set());
   const [show_format_menu, set_show_format_menu] = useState(false);
 
@@ -337,6 +339,7 @@ export function ReplyModal({
 
   useEffect(() => {
     if (is_open) {
+      is_sending_ref.current = false;
       set_is_sending(false);
       set_error_message(null);
       set_attachments([]);
@@ -632,8 +635,14 @@ export function ReplyModal({
   }, [handle_editor_input, check_active_formats]);
 
   const handle_send = useCallback(async () => {
+    if (is_sending_ref.current) return;
     if (!reply_message.trim() || is_sending) return;
 
+    const now = Date.now();
+    if (now - last_send_time_ref.current < 2000) return;
+
+    is_sending_ref.current = true;
+    last_send_time_ref.current = now;
     set_error_message(null);
     set_is_sending(true);
 
@@ -667,6 +676,7 @@ export function ReplyModal({
       },
       {
         on_complete: () => {
+          is_sending_ref.current = false;
           show_toast("Email sent.", "success");
           window.dispatchEvent(new CustomEvent("astermail:email-sent"));
 
@@ -687,9 +697,11 @@ export function ReplyModal({
           }
         },
         on_cancel: () => {
+          is_sending_ref.current = false;
           pending_thread_token_ref.current = null;
         },
         on_error: (error) => {
+          is_sending_ref.current = false;
           set_error_message(error);
           set_is_sending(false);
           pending_thread_token_ref.current = null;
@@ -712,6 +724,7 @@ export function ReplyModal({
 
       on_close();
     } else if (!result.success) {
+      is_sending_ref.current = false;
       set_error_message(result.error || "Failed to send reply");
       set_is_sending(false);
     }

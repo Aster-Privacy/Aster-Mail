@@ -86,6 +86,7 @@ export const InlineReplySection = forwardRef<
   const save_draft_timeout = useRef<number | null>(null);
   const last_saved_text = useRef<string>("");
   const is_sending_ref = useRef(false);
+  const last_send_time_ref = useRef<number>(0);
 
   const undo_enabled = preferences.undo_send_enabled ?? true;
   const undo_seconds = undo_enabled
@@ -240,7 +241,11 @@ export const InlineReplySection = forwardRef<
     if (is_sending_ref.current) return;
     if (!reply_text.trim() || send_state !== "idle") return;
 
+    const now = Date.now();
+    if (now - last_send_time_ref.current < 2000) return;
+
     is_sending_ref.current = true;
+    last_send_time_ref.current = now;
     set_error_message(null);
     set_send_state("queued");
     set_countdown(undo_seconds);

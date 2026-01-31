@@ -545,6 +545,7 @@ export function ComposeModal({
   const draft_data_ref = useRef<DraftRefData>({ recipients, subject, message });
   const just_loaded_draft_ref = useRef(false);
   const is_sending_ref = useRef(false);
+  const last_send_time_ref = useRef<number>(0);
   const file_input_ref = useRef<HTMLInputElement>(null);
   const message_textarea_ref = useRef<HTMLDivElement>(null);
   const draft_context_id_ref = useRef<string | null>(null);
@@ -1299,9 +1300,14 @@ export function ComposeModal({
   );
 
   const handle_send = useCallback(async () => {
+    if (is_sending_ref.current) return;
     if (recipients.to.length === 0 || !user) return;
 
+    const now = Date.now();
+    if (now - last_send_time_ref.current < 2000) return;
+
     is_sending_ref.current = true;
+    last_send_time_ref.current = now;
 
     if (save_timer_ref.current) {
       clearTimeout(save_timer_ref.current);

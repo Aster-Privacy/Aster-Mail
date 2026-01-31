@@ -792,7 +792,7 @@ export function InboxHeader({
             <Cog6ToothIcon className="w-[18px] h-[18px]" />
           </Button>
 
-          {(can_go_prev || can_go_next) && (
+          {(typeof email_count === "number" && email_count > 0) && (
             <div className="hidden lg:flex items-center gap-0.5 ml-1">
               <div
                 className="w-px h-4 mr-1"
@@ -816,16 +816,14 @@ export function InboxHeader({
               >
                 <ChevronRightIcon className="w-3.5 h-3.5" />
               </Button>
-              {typeof email_index === "number" &&
-                typeof email_count === "number" &&
-                email_count > 0 && (
-                  <span
-                    className="text-[11px] tabular-nums px-1"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {email_index + 1} of {email_count}
-                  </span>
-                )}
+              {typeof email_index === "number" && (
+                <span
+                  className="text-[11px] tabular-nums px-1"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {email_index + 1} of {email_count}
+                </span>
+              )}
             </div>
           )}
 

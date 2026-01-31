@@ -1,7 +1,7 @@
 import type { Email } from "@/types/email";
 
 import { motion } from "framer-motion";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import EmojiPicker from "@/components/compose/emoji_picker";
@@ -41,6 +41,8 @@ export function EmailReplySection({
   const { default_signature, get_formatted_signature } = use_signatures();
   const [show_emoji_picker, set_show_emoji_picker] = useState(false);
   const [send_state, set_send_state] = useState<SendState>("idle");
+  const is_sending_ref = useRef(false);
+  const last_send_time_ref = useRef<number>(0);
   const [error_message, set_error_message] = useState<string | null>(null);
   const [queued_id, set_queued_id] = useState<string | null>(null);
   const [countdown, set_countdown] = useState(0);
@@ -52,6 +54,7 @@ export function EmailReplySection({
 
   useEffect(() => {
     if (!show_reply_menu) {
+      is_sending_ref.current = false;
       set_send_state("idle");
       set_error_message(null);
       set_queued_id(null);
@@ -93,8 +96,14 @@ export function EmailReplySection({
   ]);
 
   const handle_send_reply = useCallback(async () => {
+    if (is_sending_ref.current) return;
     if (!reply_text.trim() || send_state !== "idle") return;
 
+    const now = Date.now();
+    if (now - last_send_time_ref.current < 2000) return;
+
+    is_sending_ref.current = true;
+    last_send_time_ref.current = now;
     set_error_message(null);
     set_send_state("queued");
     set_countdown(undo_seconds);
@@ -114,6 +123,7 @@ export function EmailReplySection({
       { original, message: message_with_signature },
       {
         on_complete: () => {
+          is_sending_ref.current = false;
           set_send_state("sent");
           show_toast("Email sent.", "success");
           setTimeout(() => {
@@ -122,10 +132,12 @@ export function EmailReplySection({
           }, 1000);
         },
         on_cancel: () => {
+          is_sending_ref.current = false;
           set_send_state("idle");
           set_queued_id(null);
         },
         on_error: (error) => {
+          is_sending_ref.current = false;
           set_send_state("error");
           set_error_message(error);
         },
@@ -136,6 +148,7 @@ export function EmailReplySection({
     if (result.success && result.queued_id) {
       set_queued_id(result.queued_id);
     } else if (!result.success) {
+      is_sending_ref.current = false;
       set_send_state("error");
       set_error_message(result.error || "Failed to send reply");
     }

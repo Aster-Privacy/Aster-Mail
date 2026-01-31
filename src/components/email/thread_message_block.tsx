@@ -1,6 +1,14 @@
 import type { DecryptedThreadMessage } from "@/types/thread";
 
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -298,17 +306,32 @@ interface ThreadMessagesListProps {
   on_toggle_message_read?: (message_id: string) => void;
   on_mark_all_read?: () => void;
   hide_counter?: boolean;
+  hide_expand_collapse?: boolean;
 }
 
-export function ThreadMessagesList({
-  messages,
-  current_user_email,
-  default_expanded_id,
-  subject: _subject,
-  on_toggle_message_read,
-  on_mark_all_read,
-  hide_counter = false,
-}: ThreadMessagesListProps): React.ReactElement {
+export interface ThreadMessagesListRef {
+  expand_all: () => void;
+  collapse_all: () => void;
+  all_expanded: boolean;
+  all_collapsed: boolean;
+}
+
+export const ThreadMessagesList = forwardRef<
+  ThreadMessagesListRef,
+  ThreadMessagesListProps
+>(function ThreadMessagesList(
+  {
+    messages,
+    current_user_email,
+    default_expanded_id,
+    subject: _subject,
+    on_toggle_message_read,
+    on_mark_all_read,
+    hide_counter = false,
+    hide_expand_collapse = false,
+  },
+  ref,
+): React.ReactElement {
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(() => {
     const initial = new Set<string>();
 
@@ -678,6 +701,21 @@ export function ThreadMessagesList({
     return messages.every((m) => !expanded_ids.has(m.id));
   }, [messages, expanded_ids]);
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      expand_all,
+      collapse_all,
+      get all_expanded() {
+        return all_expanded;
+      },
+      get all_collapsed() {
+        return all_collapsed;
+      },
+    }),
+    [expand_all, collapse_all, all_expanded, all_collapsed],
+  );
+
   return (
     <div className="flex flex-col gap-2">
       {messages.length > 1 && (
@@ -707,24 +745,28 @@ export function ThreadMessagesList({
             )}
           </div>
           <div className="flex items-center gap-1">
-            <button
-              className="p-1 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors disabled:opacity-50"
-              disabled={all_expanded}
-              onClick={expand_all}
-              title="Expand all"
-              type="button"
-            >
-              <ChevronDownIcon className="w-4 h-4 text-[var(--text-muted)]" />
-            </button>
-            <button
-              className="p-1 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors disabled:opacity-50"
-              disabled={all_collapsed}
-              onClick={collapse_all}
-              title="Collapse all"
-              type="button"
-            >
-              <ChevronUpIcon className="w-4 h-4 text-[var(--text-muted)]" />
-            </button>
+            {!hide_expand_collapse && (
+              <>
+                <button
+                  className="p-1 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors disabled:opacity-50"
+                  disabled={all_expanded}
+                  onClick={expand_all}
+                  title="Expand all"
+                  type="button"
+                >
+                  <ChevronDownIcon className="w-4 h-4 text-[var(--text-muted)]" />
+                </button>
+                <button
+                  className="p-1 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors disabled:opacity-50"
+                  disabled={all_collapsed}
+                  onClick={collapse_all}
+                  title="Collapse all"
+                  type="button"
+                >
+                  <ChevronUpIcon className="w-4 h-4 text-[var(--text-muted)]" />
+                </button>
+              </>
+            )}
             {!hide_counter && (
               <span
                 className="text-[11px] ml-1"
@@ -757,4 +799,4 @@ export function ThreadMessagesList({
       ))}
     </div>
   );
-}
+});

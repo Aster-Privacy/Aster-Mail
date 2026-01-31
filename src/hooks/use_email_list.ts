@@ -20,7 +20,7 @@ import {
   list_mail_items,
   update_mail_item,
   update_mail_item_metadata,
-  bulk_update_mail_items,
+  bulk_update_metadata,
   type ListMailItemsParams,
   type MailItem,
 } from "@/services/api/mail";
@@ -1160,7 +1160,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   const bulk_update = useCallback(
     async (
       ids: string[],
-      updates: { is_trashed?: boolean; is_archived?: boolean },
+      updates: { is_trashed?: boolean; is_archived?: boolean; is_spam?: boolean },
     ) => {
       if (ids.length === 0) return;
 
@@ -1202,7 +1202,60 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       }
 
       try {
-        await bulk_update_mail_items({ ids, ...updates });
+        const metadata_updates = await Promise.all(
+          emails_to_restore.map(async (email) => {
+            let current_metadata: MailItemMetadata | null = null;
+
+            if (email.encrypted_metadata && email.metadata_nonce) {
+              current_metadata = await decrypt_mail_metadata(
+                email.encrypted_metadata,
+                email.metadata_nonce,
+                email.metadata_version,
+              );
+            }
+
+            if (!current_metadata) {
+              current_metadata = {
+                is_read: email.is_read ?? false,
+                is_starred: email.is_starred ?? false,
+                is_pinned: email.is_pinned ?? false,
+                is_trashed: email.is_trashed ?? false,
+                is_archived: email.is_archived ?? false,
+                is_spam: email.is_spam ?? false,
+                size_bytes: 0,
+                has_attachments: email.has_attachment ?? false,
+                attachment_count: 0,
+                message_ts: email.raw_timestamp ?? new Date().toISOString(),
+                item_type: email.item_type ?? "received",
+              };
+            }
+
+            const updated_metadata: MailItemMetadata = {
+              ...current_metadata,
+              ...updates,
+            };
+
+            const encrypted = await encrypt_mail_metadata(updated_metadata);
+
+            if (!encrypted) return null;
+
+            return {
+              id: email.id,
+              encrypted_metadata: encrypted.encrypted_metadata,
+              metadata_nonce: encrypted.metadata_nonce,
+            };
+          }),
+        );
+
+        const valid_updates = metadata_updates.filter(
+          (u): u is { id: string; encrypted_metadata: string; metadata_nonce: string } =>
+            u !== null,
+        );
+
+        if (valid_updates.length > 0) {
+          await bulk_update_metadata({ items: valid_updates });
+        }
+
         emit_mail_changed();
       } catch {
         if (unread_received_count > 0) {

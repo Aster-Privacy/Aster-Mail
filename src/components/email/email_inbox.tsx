@@ -1692,6 +1692,7 @@ export function EmailInbox({
   const is_full_view_mode = preferences.email_view_mode === "fullpage";
   const show_full_email_viewer =
     is_full_view_mode && !!split_email_id && !split_scheduled_data;
+  const is_viewing_email = !!split_email_id && !split_scheduled_data;
 
   const split_email_snoozed_until = useMemo(() => {
     if (!split_email_id) return undefined;
@@ -1865,23 +1866,19 @@ export function EmailInbox({
           active_category={active_category}
           active_filter={active_filter}
           all_selected={all_selected}
-          can_go_next={show_full_email_viewer ? can_go_next : false}
-          can_go_prev={show_full_email_viewer ? can_go_prev : false}
+          can_go_next={is_viewing_email ? can_go_next : false}
+          can_go_prev={is_viewing_email ? can_go_prev : false}
           current_page={current_page}
-          email_count={show_full_email_viewer ? total_email_count : undefined}
-          email_index={show_full_email_viewer ? current_email_index : undefined}
+          email_count={is_viewing_email ? total_email_count : undefined}
+          email_index={is_viewing_email ? current_email_index : undefined}
           filtered_count={filtered_emails.length}
           is_trash_view={current_view === "trash"}
           on_category_change={set_active_category}
           on_compose={on_compose}
           on_empty_trash={handle_empty_trash}
           on_filter_change={handle_filter_change}
-          on_navigate_next={
-            show_full_email_viewer ? on_navigate_next : undefined
-          }
-          on_navigate_prev={
-            show_full_email_viewer ? on_navigate_prev : undefined
-          }
+          on_navigate_next={is_viewing_email ? on_navigate_next : undefined}
+          on_navigate_prev={is_viewing_email ? on_navigate_prev : undefined}
           on_page_change={
             show_full_email_viewer ? undefined : handle_page_change
           }

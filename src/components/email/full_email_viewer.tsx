@@ -18,6 +18,8 @@ import {
   FolderIcon,
   MapPinIcon,
   ArrowLeftIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
 import { InlineReplySection } from "@/components/email/inline_reply_section";
@@ -66,7 +68,10 @@ import { is_astermail_sender, get_email_username } from "@/lib/utils";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
 import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
-import { ThreadMessagesList } from "@/components/email/thread_message_block";
+import {
+  ThreadMessagesList,
+  type ThreadMessagesListRef,
+} from "@/components/email/thread_message_block";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
 import {
   get_draft_by_thread,
@@ -291,6 +296,11 @@ export function FullEmailViewer({
   const mark_as_read_timeout = useRef<number | null>(null);
   const loaded_email_id_ref = useRef<string | null>(null);
   const inline_reply_ref = useRef<HTMLDivElement>(null);
+  const thread_list_ref = useRef<ThreadMessagesListRef>(null);
+  const [thread_expand_state, set_thread_expand_state] = useState({
+    all_expanded: false,
+    all_collapsed: true,
+  });
 
   const copy_to_clipboard = useCallback(async (text: string, label: string) => {
     const clear_clipboard_after_timeout = () => {
@@ -924,6 +934,22 @@ export function FullEmailViewer({
     };
   }, [email?.thread_token, email_id, email]);
 
+  useEffect(() => {
+    const update_state = () => {
+      if (thread_list_ref.current) {
+        set_thread_expand_state({
+          all_expanded: thread_list_ref.current.all_expanded,
+          all_collapsed: thread_list_ref.current.all_collapsed,
+        });
+      }
+    };
+
+    update_state();
+    const interval = setInterval(update_state, 100);
+
+    return () => clearInterval(interval);
+  }, [thread_messages]);
+
   if (is_loading) {
     return (
       <div
@@ -1145,6 +1171,31 @@ export function FullEmailViewer({
               )}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {thread_messages.length > 1 && (
+            <div className="flex items-center gap-0.5 ml-2">
+              <Button
+                className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+                disabled={thread_expand_state.all_expanded}
+                size="icon"
+                variant="ghost"
+                title="Expand all"
+                onClick={() => thread_list_ref.current?.expand_all()}
+              >
+                <ChevronDownIcon className="w-4 h-4" />
+              </Button>
+              <Button
+                className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+                disabled={thread_expand_state.all_collapsed}
+                size="icon"
+                variant="ghost"
+                title="Collapse all"
+                onClick={() => thread_list_ref.current?.collapse_all()}
+              >
+                <ChevronUpIcon className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1389,7 +1440,9 @@ export function FullEmailViewer({
 
           <div className="mt-4">
             <ThreadMessagesList
+              ref={thread_list_ref}
               hide_counter
+              hide_expand_collapse
               current_user_email={current_user_email}
               default_expanded_id={email.id}
               messages={thread_messages}

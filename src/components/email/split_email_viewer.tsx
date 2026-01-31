@@ -64,7 +64,10 @@ import { is_astermail_sender, get_email_username } from "@/lib/utils";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
 import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
-import { ThreadMessagesList } from "@/components/email/thread_message_block";
+import {
+  ThreadMessagesList,
+  type ThreadMessagesListRef,
+} from "@/components/email/thread_message_block";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
 
 export interface SplitReplyData {
@@ -250,10 +253,10 @@ export function SplitEmailViewer({
   snoozed_until,
   on_reply,
   on_forward,
-  on_navigate_prev,
-  on_navigate_next,
-  can_go_prev = false,
-  can_go_next = false,
+  on_navigate_prev: _on_navigate_prev,
+  on_navigate_next: _on_navigate_next,
+  can_go_prev: _can_go_prev = false,
+  can_go_next: _can_go_next = false,
 }: SplitEmailViewerProps): React.ReactElement {
   const { format_email_detail } = use_date_format();
   const { preferences } = use_preferences();
@@ -273,8 +276,13 @@ export function SplitEmailViewer({
   const [current_user_email, set_current_user_email] = useState<string>("");
   const [is_external, set_is_external] = useState(false);
   const [has_pq_protection, set_has_pq_protection] = useState(false);
+  const [thread_expand_state, set_thread_expand_state] = useState({
+    all_expanded: false,
+    all_collapsed: true,
+  });
   const mark_as_read_timeout = useRef<number | null>(null);
   const loaded_email_id_ref = useRef<string | null>(null);
+  const thread_list_ref = useRef<ThreadMessagesListRef>(null);
 
   const copy_to_clipboard = useCallback(async (text: string, label: string) => {
     const clear_clipboard_after_timeout = () => {
@@ -813,6 +821,22 @@ export function SplitEmailViewer({
     };
   }, [email?.thread_token, email_id, email]);
 
+  useEffect(() => {
+    const update_state = () => {
+      if (thread_list_ref.current) {
+        set_thread_expand_state({
+          all_expanded: thread_list_ref.current.all_expanded,
+          all_collapsed: thread_list_ref.current.all_collapsed,
+        });
+      }
+    };
+
+    update_state();
+    const interval = setInterval(update_state, 100);
+
+    return () => clearInterval(interval);
+  }, [thread_messages]);
+
   if (is_loading) {
     return (
       <div
@@ -994,26 +1018,28 @@ export function SplitEmailViewer({
 
         <div className="flex-1" />
 
-        <div className="flex items-center gap-0.5 mr-1">
-          <button
-            className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
-            disabled={!can_go_prev}
-            style={{ color: "var(--text-muted)" }}
-            title="Previous email"
-            onClick={on_navigate_prev}
-          >
-            <ChevronUpIcon className="w-5 h-5" />
-          </button>
-          <button
-            className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
-            disabled={!can_go_next}
-            style={{ color: "var(--text-muted)" }}
-            title="Next email"
-            onClick={on_navigate_next}
-          >
-            <ChevronDownIcon className="w-5 h-5" />
-          </button>
-        </div>
+        {thread_messages.length > 1 && (
+          <div className="flex items-center gap-0.5 mr-1">
+            <button
+              className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
+              disabled={thread_expand_state.all_expanded}
+              style={{ color: "var(--text-muted)" }}
+              title="Expand all"
+              onClick={() => thread_list_ref.current?.expand_all()}
+            >
+              <ChevronDownIcon className="w-4 h-4" />
+            </button>
+            <button
+              className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
+              disabled={thread_expand_state.all_collapsed}
+              style={{ color: "var(--text-muted)" }}
+              title="Collapse all"
+              onClick={() => thread_list_ref.current?.collapse_all()}
+            >
+              <ChevronUpIcon className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         <button
           className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] flex-shrink-0"
@@ -1272,7 +1298,9 @@ export function SplitEmailViewer({
 
           <div className="mt-4">
             <ThreadMessagesList
+              ref={thread_list_ref}
               hide_counter
+              hide_expand_collapse
               current_user_email={current_user_email}
               default_expanded_id={email.id}
               messages={thread_messages}
