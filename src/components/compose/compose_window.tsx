@@ -1084,12 +1084,28 @@ export function ComposeWindow({
           handle_editor_input();
           requestAnimationFrame(check_active_formats);
         }
+        if (key === "enter" && !e.shiftKey) {
+          e.preventDefault();
+          window.dispatchEvent(new CustomEvent("astermail:compose-send"));
+        }
       }
     };
 
     editor.addEventListener("keydown", handle_keydown);
     return () => editor.removeEventListener("keydown", handle_keydown);
   }, [handle_editor_input, check_active_formats]);
+
+  useEffect(() => {
+    const handle_compose_send = () => {
+      if (recipients.to.length > 0) {
+        window.dispatchEvent(new CustomEvent("astermail:trigger-send"));
+      }
+    };
+
+    window.addEventListener("astermail:compose-send", handle_compose_send);
+    return () =>
+      window.removeEventListener("astermail:compose-send", handle_compose_send);
+  }, [recipients.to.length]);
 
   const is_mac = useMemo(() => {
     if (typeof navigator !== "undefined") {
@@ -1417,6 +1433,16 @@ export function ComposeWindow({
     edit_draft,
     on_draft_cleared,
   ]);
+
+  useEffect(() => {
+    const handle_trigger_send = () => {
+      handle_send();
+    };
+
+    window.addEventListener("astermail:trigger-send", handle_trigger_send);
+    return () =>
+      window.removeEventListener("astermail:trigger-send", handle_trigger_send);
+  }, [handle_send]);
 
   useEffect(() => {
     const handle_undo_event = (event: CustomEvent<UndoSendEvent>) => {
@@ -1951,6 +1977,7 @@ export function ComposeWindow({
                     background: "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
                     boxShadow: "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                   }}
+                  title={is_mac ? "⌘+Enter" : "Ctrl+Enter"}
                   onClick={handle_send}
                 >
                   Send

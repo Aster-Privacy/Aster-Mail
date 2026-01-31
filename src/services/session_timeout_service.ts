@@ -28,7 +28,6 @@ let current_config: SessionTimeoutConfig = {
 };
 let current_account_id: string | null = null;
 let activity_listener_attached = false;
-let on_timeout_callback: (() => void) | null = null;
 let last_activity_update: number = 0;
 
 function get_timeout_ms(): number {
@@ -108,32 +107,6 @@ function trigger_timeout(): void {
   return;
 }
 
-function load_config_from_storage(): SessionTimeoutConfig {
-  try {
-    const stored = localStorage.getItem(SESSION_TIMEOUT_KEY);
-
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      const timeout = parsed.timeout_minutes ?? DEFAULT_TIMEOUT_MINUTES;
-
-      return {
-        enabled: parsed.enabled ?? true,
-        timeout_minutes: Math.max(MIN_TIMEOUT_MINUTES, timeout),
-      };
-    }
-  } catch (error) {
-    console.warn(
-      "[session_timeout] Failed to load config from storage:",
-      error,
-    );
-  }
-
-  return {
-    enabled: true,
-    timeout_minutes: DEFAULT_TIMEOUT_MINUTES,
-  };
-}
-
 export function configure_session_timeout(
   enabled: boolean,
   timeout_minutes: number,
@@ -179,7 +152,6 @@ export function start_session_timeout(
 
 export function stop_session_timeout(): void {
   current_account_id = null;
-  on_timeout_callback = null;
 
   if (timeout_timer !== null) {
     window.clearTimeout(timeout_timer);

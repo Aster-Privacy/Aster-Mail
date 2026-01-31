@@ -1047,6 +1047,17 @@ export function FullEmailViewer({
             is_external={is_external}
             size={16}
           />
+          {thread_messages.length > 1 && (
+            <span
+              className="flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded-full"
+              style={{
+                backgroundColor: "var(--accent-color)",
+                color: "white",
+              }}
+            >
+              {thread_messages.length}
+            </span>
+          )}
           <span
             className="text-sm font-medium truncate"
             style={{ color: "var(--text-primary)" }}

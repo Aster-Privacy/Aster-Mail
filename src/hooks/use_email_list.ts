@@ -206,6 +206,35 @@ function format_timestamp(date: Date, options: FormatOptions): string {
   return format_email_list_timestamp(date, options);
 }
 
+async function try_decrypt_with_identity_key(
+  encrypted: string,
+  nonce_bytes: Uint8Array,
+  identity_key: string,
+): Promise<DecryptedEnvelope | null> {
+  try {
+    const key_hash = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(identity_key + "astermail-envelope-v1"),
+    );
+    const crypto_key = await crypto.subtle.importKey(
+      "raw",
+      key_hash,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["decrypt"],
+    );
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce_bytes },
+      crypto_key,
+      base64_to_array(encrypted),
+    );
+
+    return JSON.parse(new TextDecoder().decode(decrypted));
+  } catch {
+    return null;
+  }
+}
+
 async function decrypt_envelope(
   encrypted: string,
   nonce: string,
@@ -245,24 +274,27 @@ async function decrypt_envelope(
 
     if (!vault?.identity_key) return null;
 
-    const key_hash = await crypto.subtle.digest(
-      "SHA-256",
-      new TextEncoder().encode(vault.identity_key + "astermail-envelope-v1"),
-    );
-    const crypto_key = await crypto.subtle.importKey(
-      "raw",
-      key_hash,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["decrypt"],
-    );
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce_bytes },
-      crypto_key,
-      base64_to_array(encrypted),
+    const result = await try_decrypt_with_identity_key(
+      encrypted,
+      nonce_bytes,
+      vault.identity_key,
     );
 
-    return JSON.parse(new TextDecoder().decode(decrypted));
+    if (result) return result;
+
+    if (vault.previous_keys && vault.previous_keys.length > 0) {
+      for (const prev_key of vault.previous_keys) {
+        const prev_result = await try_decrypt_with_identity_key(
+          encrypted,
+          nonce_bytes,
+          prev_key,
+        );
+
+        if (prev_result) return prev_result;
+      }
+    }
+
+    return null;
   } catch {
     zero_uint8_array(passphrase);
 
