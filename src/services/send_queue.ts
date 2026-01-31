@@ -37,6 +37,7 @@ import {
 } from "@/utils/email_crypto";
 import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
 import { emit_email_sent } from "@/hooks/mail_events";
+import { mark_thread_read } from "./api/mail";
 
 const FIELD_ID_RECIPIENTS = 0x01;
 const FIELD_ID_SUBJECT = 0x02;
@@ -463,6 +464,10 @@ async function execute_send(email: QueuedEmailInternal): Promise<void> {
   if (!result.data?.success) {
     throw create_error("send_failed", result.error || "Failed to send email");
   }
+
+  if (email.thread_id) {
+    mark_thread_read(email.thread_id).catch(() => {});
+  }
 }
 
 export async function execute_external_send(
@@ -589,6 +594,10 @@ export async function execute_external_send(
       "send_failed",
       result.error || "Failed to send external email",
     );
+  }
+
+  if (email.thread_id) {
+    mark_thread_read(email.thread_id).catch(() => {});
   }
 }
 
