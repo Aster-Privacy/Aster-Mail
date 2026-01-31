@@ -1299,6 +1299,7 @@ export function ComposeWindow({
   );
 
   const handle_send = useCallback(async () => {
+    if (is_sending_ref.current) return;
     if (recipients.to.length === 0 || !user) return;
 
     is_sending_ref.current = true;

@@ -193,7 +193,19 @@ export const InboxEmailListItem = forwardRef<
 
       <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5">
         <div className="flex items-center gap-1 sm:contents">
-          <span className="flex items-center gap-1 truncate sm:max-w-44">
+          <span className="flex items-center gap-1.5 truncate sm:max-w-48">
+            {email.thread_message_count && email.thread_message_count > 1 && (
+              <span
+                className={cn(
+                  "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded",
+                  email.is_read
+                    ? "bg-[var(--bg-tertiary)] text-[var(--text-muted)]"
+                    : "bg-[var(--accent-blue)] text-white",
+                )}
+              >
+                {email.thread_message_count}
+              </span>
+            )}
             <span
               className={cn(
                 "truncate text-sm",
@@ -204,18 +216,6 @@ export const InboxEmailListItem = forwardRef<
             >
               {email.sender_name}
             </span>
-            {email.thread_message_count && email.thread_message_count > 1 && (
-              <span
-                className={cn(
-                  "text-xs flex-shrink-0",
-                  email.is_read
-                    ? "text-[var(--text-muted)]"
-                    : "text-[var(--text-secondary)]",
-                )}
-              >
-                {email.thread_message_count}
-              </span>
-            )}
           </span>
 
           {email.item_type === "scheduled" && (
