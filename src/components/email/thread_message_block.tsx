@@ -680,7 +680,7 @@ export function ThreadMessagesList({
 
   return (
     <div className="flex flex-col gap-2">
-      {!hide_counter && messages.length > 1 && (
+      {messages.length > 1 && (
         <div className="flex items-center justify-between gap-2 px-1">
           <div className="flex items-center gap-1">
             {unread_count > 0 && (
@@ -725,12 +725,14 @@ export function ThreadMessagesList({
             >
               <ChevronUpIcon className="w-4 h-4 text-[var(--text-muted)]" />
             </button>
-            <span
-              className="text-[11px] ml-1"
-              style={{ color: "var(--text-muted)" }}
-            >
-              {messages.length} messages
-            </span>
+            {!hide_counter && (
+              <span
+                className="text-[11px] ml-1"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {messages.length} messages
+              </span>
+            )}
           </div>
         </div>
       )}

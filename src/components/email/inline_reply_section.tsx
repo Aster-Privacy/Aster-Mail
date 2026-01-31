@@ -85,6 +85,7 @@ export const InlineReplySection = forwardRef<
   const textarea_ref = useRef<HTMLTextAreaElement>(null);
   const save_draft_timeout = useRef<number | null>(null);
   const last_saved_text = useRef<string>("");
+  const is_sending_ref = useRef(false);
 
   const undo_enabled = preferences.undo_send_enabled ?? true;
   const undo_seconds = undo_enabled
@@ -93,6 +94,7 @@ export const InlineReplySection = forwardRef<
 
   useEffect(() => {
     if (!is_visible) {
+      is_sending_ref.current = false;
       set_send_state("idle");
       set_error_message(null);
       set_queued_id(null);
@@ -235,8 +237,10 @@ export const InlineReplySection = forwardRef<
   ]);
 
   const handle_send_reply = useCallback(async () => {
+    if (is_sending_ref.current) return;
     if (!reply_text.trim() || send_state !== "idle") return;
 
+    is_sending_ref.current = true;
     set_error_message(null);
     set_send_state("queued");
     set_countdown(undo_seconds);
@@ -278,6 +282,7 @@ export const InlineReplySection = forwardRef<
       },
       {
         on_complete: () => {
+          is_sending_ref.current = false;
           set_send_state("sent");
           show_toast("Email sent.", "success");
           on_sending_end?.();
@@ -319,11 +324,13 @@ export const InlineReplySection = forwardRef<
           }, 500);
         },
         on_cancel: () => {
+          is_sending_ref.current = false;
           set_send_state("idle");
           set_queued_id(null);
           on_sending_end?.();
         },
         on_error: (error) => {
+          is_sending_ref.current = false;
           set_send_state("error");
           set_error_message(error);
           on_sending_end?.();
@@ -335,6 +342,7 @@ export const InlineReplySection = forwardRef<
     if (result.success && result.queued_id) {
       set_queued_id(result.queued_id);
     } else if (!result.success) {
+      is_sending_ref.current = false;
       set_send_state("error");
       set_error_message(result.error || "Failed to send reply");
       on_sending_end?.();
