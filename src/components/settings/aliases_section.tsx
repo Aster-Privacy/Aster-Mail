@@ -1263,7 +1263,7 @@ export function AliasesSection() {
                   className="text-xs"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  Custom: {alias_counts.custom_count}/{alias_counts.max_custom}
+                  Custom: {alias_counts.custom_count + 1}/{alias_counts.max_custom}
                 </span>
                 {alias_counts.can_create_random && (
                   <span
