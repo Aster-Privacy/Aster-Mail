@@ -1,6 +1,7 @@
 export const MAIL_EVENTS = {
   MAIL_CHANGED: "astermail:mail-changed",
   MAIL_ITEM_UPDATED: "astermail:mail-item-updated",
+  MAIL_ITEMS_REMOVED: "astermail:mail-items-removed",
   EMAIL_SENT: "astermail:email-sent",
   EMAIL_RECEIVED: "astermail:email-received",
   DRAFTS_CHANGED: "astermail:drafts-changed",
@@ -72,9 +73,14 @@ export interface MailItemUpdatedEventDetail {
   folders?: { folder_token: string; name: string; color?: string }[];
 }
 
+export interface MailItemsRemovedEventDetail {
+  ids: string[];
+}
+
 type EventDetailMap = {
   [MAIL_EVENTS.MAIL_CHANGED]: undefined;
   [MAIL_EVENTS.MAIL_ITEM_UPDATED]: MailItemUpdatedEventDetail;
+  [MAIL_EVENTS.MAIL_ITEMS_REMOVED]: MailItemsRemovedEventDetail;
   [MAIL_EVENTS.EMAIL_SENT]: undefined;
   [MAIL_EVENTS.EMAIL_RECEIVED]: EmailReceivedEventDetail;
   [MAIL_EVENTS.DRAFTS_CHANGED]: undefined;
@@ -232,4 +238,10 @@ export function emit_thread_reply_sent(
   detail: ThreadReplySentEventDetail,
 ): void {
   mail_event_bus.emit(MAIL_EVENTS.THREAD_REPLY_SENT, detail);
+}
+
+export function emit_mail_items_removed(
+  detail: MailItemsRemovedEventDetail,
+): void {
+  mail_event_bus.emit(MAIL_EVENTS.MAIL_ITEMS_REMOVED, detail);
 }

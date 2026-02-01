@@ -135,12 +135,6 @@ interface InboxHeaderProps {
   current_page?: number;
   page_size?: number;
   on_page_change?: (page: number) => void;
-  on_navigate_prev?: () => void;
-  on_navigate_next?: () => void;
-  can_go_prev?: boolean;
-  can_go_next?: boolean;
-  email_index?: number;
-  email_count?: number;
   is_trash_view?: boolean;
   on_empty_trash?: () => void;
   trash_count?: number;
@@ -164,12 +158,6 @@ export function InboxHeader({
   current_page = 0,
   page_size = 50,
   on_page_change,
-  on_navigate_prev,
-  on_navigate_next,
-  can_go_prev = false,
-  can_go_next = false,
-  email_index,
-  email_count,
   is_trash_view = false,
   on_empty_trash,
   trash_count = 0,
@@ -792,40 +780,6 @@ export function InboxHeader({
             <Cog6ToothIcon className="w-[18px] h-[18px]" />
           </Button>
 
-          {(typeof email_count === "number" && email_count > 0) && (
-            <div className="hidden lg:flex items-center gap-0.5 ml-1">
-              <div
-                className="w-px h-4 mr-1"
-                style={{ backgroundColor: "var(--border-secondary)" }}
-              />
-              <Button
-                className="h-6 w-6 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30"
-                disabled={!can_go_prev}
-                size="icon"
-                variant="ghost"
-                onClick={on_navigate_prev}
-              >
-                <ChevronLeftIcon className="w-3.5 h-3.5" />
-              </Button>
-              <Button
-                className="h-6 w-6 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30"
-                disabled={!can_go_next}
-                size="icon"
-                variant="ghost"
-                onClick={on_navigate_next}
-              >
-                <ChevronRightIcon className="w-3.5 h-3.5" />
-              </Button>
-              {typeof email_index === "number" && (
-                <span
-                  className="text-[11px] tabular-nums px-1"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  {email_index + 1} of {email_count}
-                </span>
-              )}
-            </div>
-          )}
 
           {on_page_change && (
             <div className="hidden xl:flex items-center gap-0.5 text-xs text-[var(--text-muted)] ml-1">

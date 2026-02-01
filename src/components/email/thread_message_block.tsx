@@ -15,8 +15,7 @@ import {
   EyeSlashIcon,
   CheckIcon,
   ArrowDownIcon,
-  Bars3BottomLeftIcon,
-  Bars3Icon,
+  QueueListIcon,
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
@@ -759,11 +758,7 @@ export const ThreadMessagesList = forwardRef<
                 title={all_expanded ? "Collapse all" : "Expand all"}
                 type="button"
               >
-                {all_expanded ? (
-                  <Bars3BottomLeftIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                ) : (
-                  <Bars3Icon className="w-4 h-4 text-[var(--text-muted)]" />
-                )}
+                <QueueListIcon className="w-4 h-4 text-[var(--text-muted)]" />
               </button>
             )}
             {!hide_counter && (

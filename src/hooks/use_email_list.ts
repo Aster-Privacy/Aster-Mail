@@ -12,6 +12,7 @@ import {
   emit_mail_changed,
   emit_mail_item_updated,
   type MailItemUpdatedEventDetail,
+  type MailItemsRemovedEventDetail,
 } from "./mail_events";
 
 import { strip_html_tags } from "@/lib/html_sanitizer";

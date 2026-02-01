@@ -17,8 +17,7 @@ import {
   PrinterIcon,
   FolderIcon,
   MapPinIcon,
-  Bars3BottomLeftIcon,
-  Bars3Icon,
+  QueueListIcon,
 } from "@heroicons/react/24/outline";
 
 import { show_toast } from "@/components/toast/simple_toast";
@@ -1004,6 +1003,20 @@ export function SplitEmailViewer({
               <PrinterIcon className="w-4 h-4 mr-2" />
               Print
             </DropdownMenuItem>
+            {thread_messages.length > 1 && (
+              <DropdownMenuItem
+                onClick={() => {
+                  if (thread_expand_state.all_expanded) {
+                    thread_list_ref.current?.collapse_all();
+                  } else {
+                    thread_list_ref.current?.expand_all();
+                  }
+                }}
+              >
+                <QueueListIcon className="w-4 h-4 mr-2" />
+                {thread_expand_state.all_expanded ? "Collapse all" : "Expand all"}
+              </DropdownMenuItem>
+            )}
             {email.unsubscribe_info?.has_unsubscribe && (
               <>
                 <DropdownMenuSeparator />
@@ -1017,27 +1030,6 @@ export function SplitEmailViewer({
         </DropdownMenu>
 
         <div className="flex-1" />
-
-        {thread_messages.length > 1 && (
-          <button
-            className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] mr-1"
-            style={{ color: "var(--text-muted)" }}
-            title={thread_expand_state.all_expanded ? "Collapse all" : "Expand all"}
-            onClick={() => {
-              if (thread_expand_state.all_expanded) {
-                thread_list_ref.current?.collapse_all();
-              } else {
-                thread_list_ref.current?.expand_all();
-              }
-            }}
-          >
-            {thread_expand_state.all_expanded ? (
-              <Bars3BottomLeftIcon className="w-4 h-4" />
-            ) : (
-              <Bars3Icon className="w-4 h-4" />
-            )}
-          </button>
-        )}
 
         <button
           className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] flex-shrink-0"

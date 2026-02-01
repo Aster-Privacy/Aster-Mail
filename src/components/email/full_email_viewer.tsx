@@ -18,8 +18,7 @@ import {
   FolderIcon,
   MapPinIcon,
   ArrowLeftIcon,
-  Bars3BottomLeftIcon,
-  Bars3Icon,
+  QueueListIcon,
 } from "@heroicons/react/24/outline";
 
 import { InlineReplySection } from "@/components/email/inline_reply_section";
@@ -1160,6 +1159,20 @@ export function FullEmailViewer({
                 <PrinterIcon className="w-4 h-4 mr-2" />
                 Print
               </DropdownMenuItem>
+              {thread_messages.length > 1 && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (thread_expand_state.all_expanded) {
+                      thread_list_ref.current?.collapse_all();
+                    } else {
+                      thread_list_ref.current?.expand_all();
+                    }
+                  }}
+                >
+                  <QueueListIcon className="w-4 h-4 mr-2" />
+                  {thread_expand_state.all_expanded ? "Collapse all" : "Expand all"}
+                </DropdownMenuItem>
+              )}
               {email.unsubscribe_info?.has_unsubscribe && (
                 <>
                   <DropdownMenuSeparator />
@@ -1171,28 +1184,6 @@ export function FullEmailViewer({
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {thread_messages.length > 1 && (
-            <Button
-              className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] ml-2"
-              size="icon"
-              variant="ghost"
-              title={thread_expand_state.all_expanded ? "Collapse all" : "Expand all"}
-              onClick={() => {
-                if (thread_expand_state.all_expanded) {
-                  thread_list_ref.current?.collapse_all();
-                } else {
-                  thread_list_ref.current?.expand_all();
-                }
-              }}
-            >
-              {thread_expand_state.all_expanded ? (
-                <Bars3BottomLeftIcon className="w-4 h-4" />
-              ) : (
-                <Bars3Icon className="w-4 h-4" />
-              )}
-            </Button>
-          )}
         </div>
       </div>
 
