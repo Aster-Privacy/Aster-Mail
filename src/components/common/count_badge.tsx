@@ -1,5 +1,5 @@
 interface CountBadgeProps {
-  count: number;
+  count: number | undefined | null;
   max_display?: number;
   show_zero?: boolean;
   is_active?: boolean;
@@ -13,12 +13,14 @@ export function CountBadge({
   is_active = false,
   className = "",
 }: CountBadgeProps) {
-  if (count === 0 && !show_zero) {
+  const safe_count = typeof count === "number" && Number.isFinite(count) ? count : 0;
+
+  if (safe_count === 0 && !show_zero) {
     return null;
   }
 
   const display_value =
-    count > max_display ? `${max_display}+` : count.toString();
+    safe_count > max_display ? `${max_display}+` : safe_count.toString();
 
   return (
     <span

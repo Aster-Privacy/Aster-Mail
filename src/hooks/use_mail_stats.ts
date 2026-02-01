@@ -319,6 +319,7 @@ class MailStatsStore {
       ]);
 
       const items = mail_items.status === "fulfilled" ? mail_items.value : [];
+
       const contacts_count =
         contacts_response.status === "fulfilled"
           ? (contacts_response.value.data?.count ?? 0)
@@ -434,11 +435,11 @@ export function use_mail_stats(): UseMailStatsReturn {
     if (!mounted_ref.current) return;
     const cache = stats_store.get_cache();
 
-    set_state((prev) => ({
-      ...prev,
-      stats: cache.data,
+    set_state({
+      stats: { ...cache.data },
       is_loading: cache.fetching,
-    }));
+      error: null,
+    });
   }, []);
 
   const refresh = useCallback(() => {
@@ -493,6 +494,10 @@ export function use_mail_stats(): UseMailStatsReturn {
     window.addEventListener(MAIL_EVENTS.SCHEDULED_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.SNOOZED_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.KEYS_READY, handle_keys_ready);
+
+    if (has_passphrase_in_memory() && has_encryption_key()) {
+      stats_store.fetch(true);
+    }
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
