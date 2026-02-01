@@ -45,9 +45,8 @@ import {
   clear_session_timeout_data,
 } from "@/services/session_timeout_service";
 import { is_auth_page } from "@/lib/auth_utils";
-import { clear_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_mail_cache } from "@/hooks/use_email_list";
-import { emit_keys_ready } from "@/hooks/mail_events";
 
 const ENCRYPTED_VAULT_KEY_PREFIX = "astermail_encrypted_vault_";
 const VAULT_NONCE_KEY_PREFIX = "astermail_vault_nonce_";
@@ -491,11 +490,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
             accounts: data.accounts,
             current_account_id: data.current_account_id,
           });
-
-          if (has_keys) {
-            emit_keys_ready();
-            invalidate_mail_stats();
-          }
         } else {
           api_client.set_authenticated(false);
           clear_vault_from_memory();
@@ -556,9 +550,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         current_account_id: user.id,
       });
       set_is_adding_account(false);
-
-      emit_keys_ready();
-      invalidate_mail_stats();
     },
     [],
   );
@@ -602,9 +593,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           current_account_id: user.id,
         });
         set_is_adding_account(false);
-
-        emit_keys_ready();
-        invalidate_mail_stats();
       }
 
       return result;
@@ -828,7 +816,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const handle_focus = () => {
-      if (state.is_loading) return;
       verify_auth_status().then((is_valid) => {
         if (!is_valid && state.is_authenticated) {
           clear_local_auth_data();
@@ -839,7 +826,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     window.addEventListener("focus", handle_focus);
 
     return () => window.removeEventListener("focus", handle_focus);
-  }, [clear_local_auth_data, state.is_authenticated, state.is_loading]);
+  }, [clear_local_auth_data, state.is_authenticated]);
 
   const set_vault = useCallback(
     async (vault: EncryptedVault, passphrase: string) => {
@@ -850,8 +837,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       set_state((prev) => ({ ...prev, has_keys: true }));
-
-      emit_keys_ready();
     },
     [state.current_account_id],
   );

@@ -13,63 +13,6 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 
-const KEYS_READY_TIMEOUT_MS = 5000;
-const KEYS_POLL_INTERVAL_MS = 50;
-
-function wait_for_keys_ready(): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (has_passphrase_in_memory() && has_encryption_key()) {
-      resolve(true);
-      return;
-    }
-
-    const start_time = Date.now();
-    let resolved = false;
-
-    const handle_keys_ready = () => {
-      if (resolved) return;
-      resolved = true;
-      cleanup();
-      resolve(true);
-    };
-
-    const check_keys = () => {
-      if (resolved) return;
-
-      if (has_passphrase_in_memory() && has_encryption_key()) {
-        resolved = true;
-        cleanup();
-        resolve(true);
-        return;
-      }
-
-      if (Date.now() - start_time >= KEYS_READY_TIMEOUT_MS) {
-        resolved = true;
-        cleanup();
-        resolve(false);
-        return;
-      }
-
-      poll_timer = setTimeout(check_keys, KEYS_POLL_INTERVAL_MS);
-    };
-
-    let poll_timer: ReturnType<typeof setTimeout> | null = setTimeout(
-      check_keys,
-      KEYS_POLL_INTERVAL_MS,
-    );
-
-    window.addEventListener(MAIL_EVENTS.KEYS_READY, handle_keys_ready);
-
-    const cleanup = () => {
-      if (poll_timer) {
-        clearTimeout(poll_timer);
-        poll_timer = null;
-      }
-      window.removeEventListener(MAIL_EVENTS.KEYS_READY, handle_keys_ready);
-    };
-  });
-}
-
 export interface MailStats {
   total_items: number;
   inbox: number;
@@ -282,13 +225,7 @@ class MailStatsStore {
       return this.cache.data;
     }
 
-    if (this.cache.fetching && this.active_request) {
-      return this.active_request;
-    }
-
-    const keys_ready = await wait_for_keys_ready();
-
-    if (!keys_ready) {
+    if (!has_passphrase_in_memory() || !has_encryption_key()) {
       return this.cache.data;
     }
 
@@ -319,7 +256,6 @@ class MailStatsStore {
       ]);
 
       const items = mail_items.status === "fulfilled" ? mail_items.value : [];
-
       const contacts_count =
         contacts_response.status === "fulfilled"
           ? (contacts_response.value.data?.count ?? 0)
@@ -415,8 +351,9 @@ const stats_store = new MailStatsStore();
 
 export function use_mail_stats(): UseMailStatsReturn {
   const mounted_ref = useRef(true);
-  const { user } = use_auth();
+  const { user, has_keys } = use_auth();
   const prev_user_id_ref = useRef<string | null>(null);
+  const prev_has_keys_ref = useRef<boolean>(false);
   const [state, set_state] = useState<{
     stats: MailStats;
     is_loading: boolean;
@@ -435,11 +372,11 @@ export function use_mail_stats(): UseMailStatsReturn {
     if (!mounted_ref.current) return;
     const cache = stats_store.get_cache();
 
-    set_state({
-      stats: { ...cache.data },
+    set_state((prev) => ({
+      ...prev,
+      stats: cache.data,
       is_loading: cache.fetching,
-      error: null,
-    });
+    }));
   }, []);
 
   const refresh = useCallback(() => {
@@ -452,6 +389,7 @@ export function use_mail_stats(): UseMailStatsReturn {
 
     const current_user_id = user?.id || null;
     const prev_user_id = prev_user_id_ref.current;
+    const prev_has_keys = prev_has_keys_ref.current;
 
     if (prev_user_id !== null && prev_user_id !== current_user_id) {
       stats_store.clear();
@@ -463,28 +401,27 @@ export function use_mail_stats(): UseMailStatsReturn {
     }
 
     prev_user_id_ref.current = current_user_id;
+    prev_has_keys_ref.current = has_keys;
 
     const unsubscribe = stats_store.subscribe(sync_state);
 
     sync_state();
 
-    if (stats_store.is_stale()) {
-      stats_store.fetch(false);
+    const keys_just_became_available = has_keys && !prev_has_keys;
+
+    if (stats_store.is_stale() || keys_just_became_available) {
+      stats_store.fetch(keys_just_became_available);
     }
 
     return () => {
       mounted_ref.current = false;
       unsubscribe();
     };
-  }, [sync_state, user?.id]);
+  }, [sync_state, user?.id, has_keys]);
 
   useEffect(() => {
     const handle_change = () => {
       stats_store.fetch_debounced();
-    };
-
-    const handle_keys_ready = () => {
-      stats_store.fetch(true);
     };
 
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
@@ -493,11 +430,6 @@ export function use_mail_stats(): UseMailStatsReturn {
     window.addEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.SCHEDULED_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.SNOOZED_CHANGED, handle_change);
-    window.addEventListener(MAIL_EVENTS.KEYS_READY, handle_keys_ready);
-
-    if (has_passphrase_in_memory() && has_encryption_key()) {
-      stats_store.fetch(true);
-    }
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
@@ -506,7 +438,6 @@ export function use_mail_stats(): UseMailStatsReturn {
       window.removeEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.SCHEDULED_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.SNOOZED_CHANGED, handle_change);
-      window.removeEventListener(MAIL_EVENTS.KEYS_READY, handle_keys_ready);
     };
   }, []);
 

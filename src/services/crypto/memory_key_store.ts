@@ -29,27 +29,18 @@ let session_expire_unsubscribe: (() => void) | null = null;
 
 if (import.meta.hot) {
   const hmr_state = import.meta.hot.data as HmrState | undefined;
-  let keys_restored = false;
 
   if (hmr_state?.vault_in_memory) {
     vault_in_memory = hmr_state.vault_in_memory;
   }
   if (hmr_state?.derived_encryption_key) {
     derived_encryption_key = hmr_state.derived_encryption_key;
-    keys_restored = true;
   }
   if (hmr_state?.passphrase_string) {
     secure_passphrase = SecureBuffer.from_string(
       hmr_state.passphrase_string,
       DEFAULT_AUTO_ZERO_TIMEOUT_MS,
     );
-    keys_restored = true;
-  }
-
-  if (keys_restored) {
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent("astermail:keys-ready"));
-    }, 0);
   }
 
   import.meta.hot.dispose((data: HmrState) => {
