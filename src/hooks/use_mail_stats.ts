@@ -11,7 +11,10 @@ import {
   has_encryption_key,
 } from "@/services/crypto/mail_metadata";
 import { use_auth } from "@/contexts/auth_context";
-import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
+import {
+  has_passphrase_in_memory,
+  on_keys_ready,
+} from "@/services/crypto/memory_key_store";
 
 export interface MailStats {
   total_items: number;
@@ -439,6 +442,14 @@ export function use_mail_stats(): UseMailStatsReturn {
       window.removeEventListener(MAIL_EVENTS.SCHEDULED_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.SNOOZED_CHANGED, handle_change);
     };
+  }, []);
+
+  useEffect(() => {
+    return on_keys_ready(() => {
+      if (stats_store.is_stale()) {
+        stats_store.fetch(true);
+      }
+    });
   }, []);
 
   return {

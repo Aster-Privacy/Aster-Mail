@@ -26,6 +26,7 @@ let vault_in_memory: EncryptedVault | null = null;
 let secure_passphrase: SecureBuffer | null = null;
 let derived_encryption_key: Uint8Array | null = null;
 let session_expire_unsubscribe: (() => void) | null = null;
+let keys_ready_listeners: Set<() => void> = new Set();
 
 if (import.meta.hot) {
   const hmr_state = import.meta.hot.data as HmrState | undefined;
@@ -148,6 +149,7 @@ export async function store_vault_in_memory(
 
   if (derived_encryption_key) {
     await import_and_cache_derived_key(derived_encryption_key);
+    notify_keys_ready();
   }
 }
 
@@ -267,6 +269,26 @@ export function has_vault_in_memory(): boolean {
 
 export function has_passphrase_in_memory(): boolean {
   return secure_passphrase !== null && !secure_passphrase.is_cleared();
+}
+
+export function on_keys_ready(callback: () => void): () => void {
+  if (derived_encryption_key !== null && has_passphrase_in_memory()) {
+    callback();
+  }
+  keys_ready_listeners.add(callback);
+  return () => {
+    keys_ready_listeners.delete(callback);
+  };
+}
+
+function notify_keys_ready(): void {
+  keys_ready_listeners.forEach((callback) => {
+    try {
+      callback();
+    } catch {
+      return;
+    }
+  });
 }
 
 export function extend_passphrase_timeout(): void {
