@@ -11,8 +11,10 @@ import {
   InboxIcon,
   MapPinIcon,
   PaperClipIcon,
+  StarIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,6 +41,7 @@ interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
   on_spam?: (email: InboxEmail) => void;
   on_delete?: (email: InboxEmail) => void;
   on_toggle_read?: (email: InboxEmail) => void;
+  on_toggle_star?: (email: InboxEmail) => void;
   on_restore?: (email: InboxEmail) => void;
   on_move_to_inbox?: (email: InboxEmail) => void;
   on_mark_not_spam?: (email: InboxEmail) => void;
@@ -81,6 +84,7 @@ export const InboxEmailListItem = forwardRef<
     on_spam,
     on_delete,
     on_toggle_read,
+    on_toggle_star,
     on_restore,
     on_move_to_inbox,
     on_mark_not_spam,
@@ -97,6 +101,7 @@ export const InboxEmailListItem = forwardRef<
     on_spam ||
     on_delete ||
     on_toggle_read ||
+    on_toggle_star ||
     on_restore ||
     on_move_to_inbox ||
     on_mark_not_spam;
@@ -190,6 +195,10 @@ export const InboxEmailListItem = forwardRef<
             size="sm"
           />
         ))}
+
+      {!email.is_read && (
+        <span className="w-2 h-2 rounded-full bg-[var(--accent-blue)] flex-shrink-0 hidden sm:block" />
+      )}
 
       <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5">
         <div className="flex items-center gap-1 sm:contents">
@@ -320,9 +329,6 @@ export const InboxEmailListItem = forwardRef<
         </div>
 
         <div className="flex items-center gap-1.5 sm:contents min-w-0">
-          {!email.is_read && (
-            <span className="w-2 h-2 rounded-full bg-[var(--accent-blue)] flex-shrink-0" />
-          )}
           <span
             className={cn(
               "truncate text-sm",
@@ -397,6 +403,19 @@ export const InboxEmailListItem = forwardRef<
                   <EnvelopeIcon className="w-4 h-4 text-[var(--text-muted)]" />
                 ) : (
                   <EnvelopeOpenIcon className="w-4 h-4 text-[var(--text-muted)]" />
+                )}
+              </button>
+            )}
+
+            {on_toggle_star && (
+              <button
+                className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                onClick={() => on_toggle_star(email)}
+              >
+                {email.is_starred ? (
+                  <StarIconSolid className="w-4 h-4 text-amber-400" />
+                ) : (
+                  <StarIcon className="w-4 h-4 text-[var(--text-muted)]" />
                 )}
               </button>
             )}

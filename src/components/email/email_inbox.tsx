@@ -268,12 +268,12 @@ export function EmailInbox({
   on_search_click,
   focused_email_id,
   active_email_id,
-  on_navigate_prev,
-  on_navigate_next,
-  can_go_prev = false,
-  can_go_next = false,
-  current_email_index,
-  total_email_count,
+  on_navigate_prev: _on_navigate_prev,
+  on_navigate_next: _on_navigate_next,
+  can_go_prev: _can_go_prev = false,
+  can_go_next: _can_go_next = false,
+  current_email_index: _current_email_index,
+  total_email_count: _total_email_count,
   on_navigate_to,
 }: EmailInboxProps): React.ReactElement {
   const navigate = useNavigate();
@@ -782,6 +782,43 @@ export function EmailInbox({
       }
     };
 
+    const handle_toggle_star = async (email: InboxEmail) => {
+      if (is_drafts_view || is_scheduled_view) return;
+
+      const new_state = !email.is_starred;
+
+      update_email(email.id, { is_starred: new_state });
+      const result = await update_item_metadata(
+        email.id,
+        {
+          encrypted_metadata: email.encrypted_metadata,
+          metadata_nonce: email.metadata_nonce,
+          metadata_version: email.metadata_version,
+        },
+        { is_starred: new_state },
+      );
+
+      if (result.success) {
+        emit_mail_item_updated({ id: email.id, is_starred: new_state });
+        show_action_toast({
+          message: new_state ? "Starred" : "Unstarred",
+          action_type: "star",
+          email_ids: [email.id],
+          on_undo: async () => {
+            await update_item_metadata(
+              email.id,
+              {
+                encrypted_metadata: result.encrypted?.encrypted_metadata,
+                metadata_nonce: result.encrypted?.metadata_nonce,
+              },
+              { is_starred: !new_state },
+            );
+            emit_mail_item_updated({ id: email.id, is_starred: !new_state });
+          },
+        });
+      }
+    };
+
     const handle_reply = (email: InboxEmail) => {
       handle_open_compose("reply", email);
     };
@@ -1012,6 +1049,7 @@ export function EmailInbox({
       handle_archive,
       handle_spam,
       handle_toggle_read,
+      handle_toggle_star,
       handle_toggle_pin,
       handle_reply,
       handle_forward,
@@ -1730,7 +1768,6 @@ export function EmailInbox({
   const is_full_view_mode = preferences.email_view_mode === "fullpage";
   const show_full_email_viewer =
     is_full_view_mode && !!split_email_id && !split_scheduled_data;
-  const is_viewing_email = !!split_email_id && !split_scheduled_data;
 
   const split_email_snoozed_until = useMemo(() => {
     if (!split_email_id) return undefined;
@@ -1882,6 +1919,7 @@ export function EmailInbox({
           on_spam={context_menu_actions.handle_spam}
           on_toggle_pin={context_menu_actions.handle_toggle_pin}
           on_toggle_read={context_menu_actions.handle_toggle_read}
+          on_toggle_star={context_menu_actions.handle_toggle_star}
           on_toggle_select={handle_toggle_select}
           on_unsnooze={(email) => handle_unsnooze(email.id)}
           pinned_emails={pinned_emails}
@@ -1904,23 +1942,13 @@ export function EmailInbox({
           active_category={active_category}
           active_filter={active_filter}
           all_selected={all_selected}
-          can_go_next={is_viewing_email ? local_can_go_next : false}
-          can_go_prev={is_viewing_email ? local_can_go_prev : false}
           current_page={current_page}
-          email_count={is_viewing_email ? visible_ids.length : undefined}
-          email_index={is_viewing_email ? local_email_index : undefined}
           filtered_count={filtered_emails.length}
           is_trash_view={current_view === "trash"}
           on_category_change={set_active_category}
           on_compose={on_compose}
           on_empty_trash={handle_empty_trash}
           on_filter_change={handle_filter_change}
-          on_navigate_next={
-            is_viewing_email ? handle_local_navigate_next : undefined
-          }
-          on_navigate_prev={
-            is_viewing_email ? handle_local_navigate_prev : undefined
-          }
           on_page_change={
             show_full_email_viewer ? undefined : handle_page_change
           }
@@ -2463,6 +2491,7 @@ interface EmailListProps {
   on_reply: (email: InboxEmail) => void;
   on_forward: (email: InboxEmail) => void;
   on_toggle_read: (email: InboxEmail) => void;
+  on_toggle_star: (email: InboxEmail) => void;
   on_toggle_pin: (email: InboxEmail) => void;
   on_snooze: (email: InboxEmail, snooze_until: Date) => Promise<void>;
   on_custom_snooze: (email: InboxEmail) => void;
@@ -2493,6 +2522,7 @@ function EmailList({
   on_reply,
   on_forward,
   on_toggle_read,
+  on_toggle_star,
   on_toggle_pin,
   on_snooze,
   on_custom_snooze,
@@ -2550,6 +2580,9 @@ function EmailList({
         on_spam={show_hover_actions ? () => on_spam(email) : undefined}
         on_toggle_read={
           show_hover_actions ? () => on_toggle_read(email) : undefined
+        }
+        on_toggle_star={
+          show_hover_actions ? () => on_toggle_star(email) : undefined
         }
         on_toggle_select={on_toggle_select}
         show_email_preview={show_email_preview}

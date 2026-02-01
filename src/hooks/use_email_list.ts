@@ -802,14 +802,12 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     };
 
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handler);
-    window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handler);
 
     return () => {
       if (debounce_timer) {
         clearTimeout(debounce_timer);
       }
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handler);
-      window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handler);
     };
   }, [has_keys, is_mail_view]);
 

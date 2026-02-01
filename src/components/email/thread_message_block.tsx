@@ -327,7 +327,7 @@ export const ThreadMessagesList = forwardRef<
     on_toggle_message_read,
     on_mark_all_read,
     hide_counter = false,
-    hide_expand_collapse = false,
+    hide_expand_collapse: _hide_expand_collapse = false,
   },
   ref,
 ): React.ReactElement {
@@ -654,25 +654,6 @@ export const ThreadMessagesList = forwardRef<
 
     return unread?.id ?? null;
   }, [messages, read_ids]);
-
-  const jump_to_first_unread = useCallback(() => {
-    if (!first_unread_id) return;
-
-    set_expanded_ids((prev) => {
-      const next = new Set(prev);
-
-      next.add(first_unread_id);
-
-      return next;
-    });
-
-    setTimeout(() => {
-      first_unread_ref.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }, 100);
-  }, [first_unread_id]);
 
   const handle_mark_all_read = useCallback(() => {
     const unread_messages = messages.filter(
