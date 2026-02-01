@@ -825,6 +825,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const handle_focus = () => {
+      if (state.is_loading) return;
       verify_auth_status().then((is_valid) => {
         if (!is_valid && state.is_authenticated) {
           clear_local_auth_data();
@@ -835,7 +836,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     window.addEventListener("focus", handle_focus);
 
     return () => window.removeEventListener("focus", handle_focus);
-  }, [clear_local_auth_data, state.is_authenticated]);
+  }, [clear_local_auth_data, state.is_authenticated, state.is_loading]);
 
   const set_vault = useCallback(
     async (vault: EncryptedVault, passphrase: string) => {

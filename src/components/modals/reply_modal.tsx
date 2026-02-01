@@ -1037,7 +1037,7 @@ export function ReplyModal({
                       <img
                         alt={recipient_name}
                         className="w-5 h-5 rounded-full object-cover flex-shrink-0"
-                        src={recipient_avatar}
+                        src={recipient_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(recipient_name || recipient_email)}&background=random&size=20`}
                         onError={(e) => {
                           (e.target as HTMLImageElement).src =
                             `https://ui-avatars.com/api/?name=${encodeURIComponent(recipient_name || recipient_email)}&background=random&size=20`;

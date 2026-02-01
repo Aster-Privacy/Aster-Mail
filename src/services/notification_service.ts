@@ -146,7 +146,8 @@ export function get_notification_permission(): NotificationPermission {
 export function clear_notification_state(): void {
   if (notification_sound) {
     notification_sound.pause();
-    notification_sound.src = "";
+    notification_sound.removeAttribute("src");
+    notification_sound.load();
     notification_sound = null;
   }
 }
