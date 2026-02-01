@@ -944,6 +944,16 @@ export function SplitEmailViewer({
           <ArchiveBoxIcon className="w-4 h-4" />
         </Button>
 
+        <Button
+          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          disabled={is_trash_loading}
+          size="icon"
+          variant="ghost"
+          onClick={handle_trash}
+        >
+          <TrashIcon className="w-4 h-4" />
+        </Button>
+
         {thread_messages.length > 1 && (
           <Button
             className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"

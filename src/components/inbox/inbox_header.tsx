@@ -43,6 +43,7 @@ import { encrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
+import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { use_folders } from "@/hooks/use_folders";
 import { decrypt_mail_envelope } from "@/services/crypto/envelope";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
@@ -232,8 +233,8 @@ export function InboxHeader({
           .map((item) => item.id);
 
         if (read_ids.length > 0) {
+          emit_mail_items_removed({ ids: read_ids });
           await batch_archive({ ids: read_ids, tier: "hot" });
-          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
           show_action_toast({
             message: `${read_ids.length} email${read_ids.length > 1 ? "s" : ""} archived`,
             action_type: "archive",

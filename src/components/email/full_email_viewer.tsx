@@ -1112,6 +1112,16 @@ export function FullEmailViewer({
             <ArchiveBoxIcon className="w-4 h-4" />
           </Button>
 
+          <Button
+            className="h-8 w-8 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10"
+            disabled={is_trash_loading}
+            size="icon"
+            variant="ghost"
+            onClick={handle_trash}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </Button>
+
           {thread_messages.length > 1 && (
             <Button
               className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
