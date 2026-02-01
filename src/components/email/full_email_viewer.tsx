@@ -299,6 +299,7 @@ export function FullEmailViewer({
   const [thread_expand_state, set_thread_expand_state] = useState({
     all_expanded: false,
     all_collapsed: true,
+    has_unread: false,
   });
 
   const copy_to_clipboard = useCallback(async (text: string, label: string) => {
@@ -939,6 +940,7 @@ export function FullEmailViewer({
         set_thread_expand_state({
           all_expanded: thread_list_ref.current.all_expanded,
           all_collapsed: thread_list_ref.current.all_collapsed,
+          has_unread: thread_list_ref.current.has_unread,
         });
       }
     };
@@ -1182,6 +1184,12 @@ export function FullEmailViewer({
                 <PrinterIcon className="w-4 h-4 mr-2" />
                 Print
               </DropdownMenuItem>
+              {thread_messages.length > 1 && thread_expand_state.has_unread && (
+                <DropdownMenuItem onClick={() => thread_list_ref.current?.mark_all_read()}>
+                  <CheckCircleIcon className="w-4 h-4 mr-2" />
+                  Mark all read
+                </DropdownMenuItem>
+              )}
               {email.unsubscribe_info?.has_unsubscribe && (
                 <DropdownMenuItem onClick={handle_unsubscribe}>
                   <XMarkIcon className="w-4 h-4 mr-2" />

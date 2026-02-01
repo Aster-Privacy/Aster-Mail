@@ -13,9 +13,6 @@ import {
   StarIcon,
   EyeIcon,
   EyeSlashIcon,
-  CheckIcon,
-  ArrowDownIcon,
-  QueueListIcon,
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
@@ -312,8 +309,10 @@ interface ThreadMessagesListProps {
 export interface ThreadMessagesListRef {
   expand_all: () => void;
   collapse_all: () => void;
+  mark_all_read: () => void;
   all_expanded: boolean;
   all_collapsed: boolean;
+  has_unread: boolean;
 }
 
 export const ThreadMessagesList = forwardRef<
@@ -706,70 +705,30 @@ export const ThreadMessagesList = forwardRef<
     () => ({
       expand_all,
       collapse_all,
+      mark_all_read: handle_mark_all_read,
       get all_expanded() {
         return all_expanded;
       },
       get all_collapsed() {
         return all_collapsed;
       },
+      get has_unread() {
+        return unread_count > 0;
+      },
     }),
-    [expand_all, collapse_all, all_expanded, all_collapsed],
+    [expand_all, collapse_all, handle_mark_all_read, all_expanded, all_collapsed, unread_count],
   );
 
   return (
     <div className="flex flex-col gap-2">
-      {messages.length > 1 && (
-        <div className="flex items-center justify-between gap-2 px-1">
-          <div className="flex items-center gap-1">
-            {unread_count > 0 && (
-              <button
-                className="flex items-center gap-1 px-2 py-1 text-[11px] rounded-md bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
-                onClick={handle_mark_all_read}
-                title="Mark all as read"
-                type="button"
-              >
-                <CheckIcon className="w-3 h-3" />
-                <span>Mark all read</span>
-              </button>
-            )}
-            {first_unread_id && (
-              <button
-                className="flex items-center gap-1 px-2 py-1 text-[11px] rounded-md bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
-                onClick={jump_to_first_unread}
-                title="Jump to first unread"
-                type="button"
-              >
-                <ArrowDownIcon className="w-3 h-3" />
-                <span>First unread</span>
-              </button>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            {!hide_expand_collapse && (
-              <button
-                className="p-1 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors"
-                onClick={() => {
-                  if (all_expanded) {
-                    collapse_all();
-                  } else {
-                    expand_all();
-                  }
-                }}
-                title={all_expanded ? "Collapse all" : "Expand all"}
-                type="button"
-              >
-                <QueueListIcon className="w-4 h-4 text-[var(--text-muted)]" />
-              </button>
-            )}
-            {!hide_counter && (
-              <span
-                className="text-[11px] ml-1"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {messages.length} messages
-              </span>
-            )}
-          </div>
+      {messages.length > 1 && !hide_counter && (
+        <div className="flex items-center justify-end px-1">
+          <span
+            className="text-[11px]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            {messages.length} messages
+          </span>
         </div>
       )}
       {messages.map((msg) => (

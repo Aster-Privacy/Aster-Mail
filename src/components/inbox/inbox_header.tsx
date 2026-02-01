@@ -296,7 +296,6 @@ export function InboxHeader({
             await bulk_update_metadata({ items: valid_updates });
           }
 
-          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
           show_action_toast({
             message: `${unread_items.length} email${unread_items.length > 1 ? "s" : ""} marked as read`,
             action_type: "read",
@@ -401,11 +400,12 @@ export function InboxHeader({
             } => u !== null,
           );
 
+          emit_mail_items_removed({ ids: old_items.map((item) => item.id) });
+
           if (valid_updates.length > 0) {
             await bulk_update_metadata({ items: valid_updates });
           }
 
-          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
           show_action_toast({
             message: `${old_items.length} email${old_items.length > 1 ? "s" : ""} moved to trash`,
             action_type: "trash",
@@ -488,8 +488,8 @@ export function InboxHeader({
         }
 
         if (newsletter_ids.length > 0) {
+          emit_mail_items_removed({ ids: newsletter_ids });
           await batch_archive({ ids: newsletter_ids, tier: "hot" });
-          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
           show_action_toast({
             message: `${newsletter_ids.length} newsletter${newsletter_ids.length > 1 ? "s" : ""} archived`,
             action_type: "archive",
