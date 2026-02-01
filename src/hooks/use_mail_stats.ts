@@ -445,6 +445,12 @@ export function use_mail_stats(): UseMailStatsReturn {
   }, []);
 
   useEffect(() => {
+    if (has_passphrase_in_memory() && has_encryption_key()) {
+      if (stats_store.is_stale()) {
+        stats_store.fetch(true);
+      }
+    }
+
     return on_keys_ready(() => {
       if (stats_store.is_stale()) {
         stats_store.fetch(true);
