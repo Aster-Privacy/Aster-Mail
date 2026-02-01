@@ -160,6 +160,7 @@ interface EmailInboxProps {
   can_go_next?: boolean;
   current_email_index?: number;
   total_email_count?: number;
+  on_navigate_to?: (id: string) => void;
 }
 
 export type { ReplyData, ForwardData, DraftClickData, ScheduledClickData };
@@ -273,6 +274,7 @@ export function EmailInbox({
   can_go_next = false,
   current_email_index,
   total_email_count,
+  on_navigate_to,
 }: EmailInboxProps): React.ReactElement {
   const navigate = useNavigate();
   const { user } = use_auth();
@@ -1185,6 +1187,11 @@ export function EmailInbox({
     return all_primary_emails.slice(start, end);
   }, [all_primary_emails, current_page, page_size]);
 
+  const visible_ids = useMemo(
+    () => [...pinned_emails, ...primary_emails].map((e) => e.id),
+    [pinned_emails, primary_emails],
+  );
+
   useEffect(() => {
     if (on_email_list_change) {
       const all_visible = [...pinned_emails, ...primary_emails];
@@ -1201,6 +1208,37 @@ export function EmailInbox({
       );
     }
   }, [pinned_emails, primary_emails, on_email_list_change]);
+
+  const local_email_index = useMemo(() => {
+    if (!split_email_id || visible_ids.length === 0) return -1;
+    return visible_ids.indexOf(split_email_id);
+  }, [split_email_id, visible_ids]);
+
+  const local_can_go_prev = local_email_index > 0;
+  const local_can_go_next =
+    local_email_index !== -1 && local_email_index < visible_ids.length - 1;
+
+  const handle_local_navigate_prev = useCallback(() => {
+    if (local_can_go_prev) {
+      const prev_id = visible_ids[local_email_index - 1];
+      if (on_navigate_to) {
+        on_navigate_to(prev_id);
+      } else if (on_email_click) {
+        on_email_click(prev_id);
+      }
+    }
+  }, [local_can_go_prev, local_email_index, visible_ids, on_navigate_to, on_email_click]);
+
+  const handle_local_navigate_next = useCallback(() => {
+    if (local_can_go_next) {
+      const next_id = visible_ids[local_email_index + 1];
+      if (on_navigate_to) {
+        on_navigate_to(next_id);
+      } else if (on_email_click) {
+        on_email_click(next_id);
+      }
+    }
+  }, [local_can_go_next, local_email_index, visible_ids, on_navigate_to, on_email_click]);
 
   const { all_selected, some_selected, selected_count } =
     get_selection_state(filtered_emails);
@@ -1866,19 +1904,23 @@ export function EmailInbox({
           active_category={active_category}
           active_filter={active_filter}
           all_selected={all_selected}
-          can_go_next={is_viewing_email ? can_go_next : false}
-          can_go_prev={is_viewing_email ? can_go_prev : false}
+          can_go_next={is_viewing_email ? local_can_go_next : false}
+          can_go_prev={is_viewing_email ? local_can_go_prev : false}
           current_page={current_page}
-          email_count={is_viewing_email ? total_email_count : undefined}
-          email_index={is_viewing_email ? current_email_index : undefined}
+          email_count={is_viewing_email ? visible_ids.length : undefined}
+          email_index={is_viewing_email ? local_email_index : undefined}
           filtered_count={filtered_emails.length}
           is_trash_view={current_view === "trash"}
           on_category_change={set_active_category}
           on_compose={on_compose}
           on_empty_trash={handle_empty_trash}
           on_filter_change={handle_filter_change}
-          on_navigate_next={is_viewing_email ? on_navigate_next : undefined}
-          on_navigate_prev={is_viewing_email ? on_navigate_prev : undefined}
+          on_navigate_next={
+            is_viewing_email ? handle_local_navigate_next : undefined
+          }
+          on_navigate_prev={
+            is_viewing_email ? handle_local_navigate_prev : undefined
+          }
           on_page_change={
             show_full_email_viewer ? undefined : handle_page_change
           }
@@ -1914,14 +1956,14 @@ export function EmailInbox({
         {show_full_email_viewer && split_email_id ? (
           <div className="flex-1 overflow-hidden">
             <FullEmailViewer
-              can_go_next={can_go_next}
-              can_go_prev={can_go_prev}
+              can_go_next={local_can_go_next}
+              can_go_prev={local_can_go_prev}
               email_id={split_email_id}
               on_back={on_split_close || (() => {})}
               on_edit_draft={handle_edit_thread_draft}
               on_forward={on_forward}
-              on_navigate_next={on_navigate_next}
-              on_navigate_prev={on_navigate_prev}
+              on_navigate_next={handle_local_navigate_next}
+              on_navigate_prev={handle_local_navigate_prev}
               snoozed_until={split_email_snoozed_until}
             />
           </div>
@@ -1966,13 +2008,13 @@ export function EmailInbox({
                 />
               ) : split_email_id ? (
                 <SplitEmailViewer
-                  can_go_next={can_go_next}
-                  can_go_prev={can_go_prev}
+                  can_go_next={local_can_go_next}
+                  can_go_prev={local_can_go_prev}
                   email_id={split_email_id}
                   on_close={on_split_close || (() => {})}
                   on_forward={on_forward}
-                  on_navigate_next={on_navigate_next}
-                  on_navigate_prev={on_navigate_prev}
+                  on_navigate_next={handle_local_navigate_next}
+                  on_navigate_prev={handle_local_navigate_prev}
                   on_reply={on_reply}
                   snoozed_until={split_email_snoozed_until}
                 />

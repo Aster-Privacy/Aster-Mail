@@ -188,6 +188,17 @@ export default function IndexPage() {
     split_email_id,
   ]);
 
+  const handle_navigate_to = useCallback(
+    (id: string) => {
+      if (preferences.email_view_mode === "popup") {
+        set_popup_email_id(id);
+      } else {
+        set_split_email_id(id);
+      }
+    },
+    [preferences.email_view_mode],
+  );
+
   const handle_email_click = useCallback(
     (id: string) => {
       set_edit_draft(null);
@@ -658,6 +669,7 @@ export default function IndexPage() {
                 on_forward={handle_popup_forward}
                 on_navigate_next={handle_navigate_next}
                 on_navigate_prev={handle_navigate_prev}
+                on_navigate_to={handle_navigate_to}
                 on_reply={handle_reply}
                 on_scheduled_click={handle_scheduled_click}
                 on_search_click={() => set_is_search_open(true)}
