@@ -413,9 +413,20 @@ export function use_mail_stats(): UseMailStatsReturn {
       stats_store.fetch(keys_just_became_available);
     }
 
+    let retry_timeout: ReturnType<typeof setTimeout> | null = null;
+
+    if (has_keys && stats_store.is_stale()) {
+      retry_timeout = setTimeout(() => {
+        if (mounted_ref.current && stats_store.is_stale()) {
+          stats_store.fetch(true);
+        }
+      }, 300);
+    }
+
     return () => {
       mounted_ref.current = false;
       unsubscribe();
+      if (retry_timeout) clearTimeout(retry_timeout);
     };
   }, [sync_state, user?.id, has_keys]);
 
