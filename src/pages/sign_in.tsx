@@ -23,6 +23,7 @@ import {
   is_totp_required_response,
   TotpVerifyResponse,
 } from "@/services/api/totp";
+import { emit_auth_ready } from "@/hooks/mail_events";
 
 const page_variants = {
   initial: { opacity: 0, y: 8 },
@@ -144,6 +145,7 @@ export default function SignInPage() {
             totp_response.vault_nonce,
           );
           navigate("/");
+          setTimeout(() => emit_auth_ready(), 50);
         } else {
           await login(
             user_data,
@@ -153,6 +155,7 @@ export default function SignInPage() {
             totp_response.vault_nonce,
           );
           navigate("/");
+          setTimeout(() => emit_auth_ready(), 50);
         }
       } catch (err) {
         if (err instanceof Error && err.message.includes("decrypt")) {
@@ -333,6 +336,7 @@ export default function SignInPage() {
         }
       }
       navigate("/");
+      setTimeout(() => emit_auth_ready(), 50);
     } catch (err) {
       const elapsed = Date.now() - start_time;
       const min_time = 1000;

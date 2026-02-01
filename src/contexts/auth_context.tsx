@@ -555,7 +555,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         current_account_id: user.id,
       });
       set_is_adding_account(false);
-      emit_auth_ready();
     },
     [],
   );
@@ -599,7 +598,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           current_account_id: user.id,
         });
         set_is_adding_account(false);
-        emit_auth_ready();
       }
 
       return result;

@@ -37,6 +37,7 @@ import {
   save_preferences,
   DEFAULT_PREFERENCES,
 } from "@/services/api/preferences";
+import { emit_auth_ready } from "@/hooks/mail_events";
 import {
   generate_recovery_pdf,
   download_recovery_text,
@@ -498,7 +499,10 @@ export default function RegisterPage() {
     }
 
     navigate("/");
-    setTimeout(() => set_is_completing_registration(false), 100);
+    setTimeout(() => {
+      set_is_completing_registration(false);
+      emit_auth_ready();
+    }, 100);
   };
 
   const handle_recovery_email_continue = async () => {
