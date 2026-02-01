@@ -45,6 +45,8 @@ import {
   clear_session_timeout_data,
 } from "@/services/session_timeout_service";
 import { is_auth_page } from "@/lib/auth_utils";
+import { clear_mail_stats } from "@/hooks/use_mail_stats";
+import { clear_mail_cache } from "@/hooks/use_email_list";
 
 const ENCRYPTED_VAULT_KEY_PREFIX = "astermail_encrypted_vault_";
 const VAULT_NONCE_KEY_PREFIX = "astermail_vault_nonce_";
@@ -613,6 +615,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       sync_client.disconnect();
       clear_vault_from_memory();
       clear_cache();
+      clear_mail_stats();
+      clear_mail_cache();
       clear_session();
       api_client.clear_auth_data();
 
@@ -661,6 +665,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (result.removed) {
         stop_session_timeout();
         clear_vault_from_memory();
+        clear_mail_stats();
+        clear_mail_cache();
         clear_stored_encrypted_vault(account_id);
         await clear_session_passphrase(account_id);
         clear_session_timeout_data(account_id);
@@ -732,6 +738,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     await storage_logout_all();
     clear_cache();
+    clear_mail_stats();
+    clear_mail_cache();
     clear_session();
     await clear_all_session_data();
     api_client.clear_auth_data();

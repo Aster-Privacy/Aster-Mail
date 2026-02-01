@@ -278,19 +278,20 @@ export function InboxHeader({
               const updated_metadata = { ...current_metadata, is_read: true };
               const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-              return encrypted ? { id: item.id, ...encrypted } : null;
+              return encrypted
+                ? { id: item.id, ...encrypted, is_read: true }
+                : null;
             }),
           );
 
           const valid_updates = metadata_updates.filter(
-            (
-              u,
-            ): u is {
-              id: string;
-              encrypted_metadata: string;
-              metadata_nonce: string;
-            } => u !== null,
-          );
+            (u) => u !== null,
+          ) as Array<{
+            id: string;
+            encrypted_metadata: string;
+            metadata_nonce: string;
+            is_read?: boolean;
+          }>;
 
           if (valid_updates.length > 0) {
             await bulk_update_metadata({ items: valid_updates });
@@ -325,19 +326,20 @@ export function InboxHeader({
                   const encrypted =
                     await encrypt_mail_metadata(updated_metadata);
 
-                  return encrypted ? { id: item.id, ...encrypted } : null;
+                  return encrypted
+                    ? { id: item.id, ...encrypted, is_read: false }
+                    : null;
                 }),
               );
 
               const valid_undo_updates = undo_updates.filter(
-                (
-                  u,
-                ): u is {
-                  id: string;
-                  encrypted_metadata: string;
-                  metadata_nonce: string;
-                } => u !== null,
-              );
+                (u) => u !== null,
+              ) as Array<{
+                id: string;
+                encrypted_metadata: string;
+                metadata_nonce: string;
+                is_read?: boolean;
+              }>;
 
               if (valid_undo_updates.length > 0) {
                 await bulk_update_metadata({ items: valid_undo_updates });
@@ -386,19 +388,20 @@ export function InboxHeader({
               };
               const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-              return encrypted ? { id: item.id, ...encrypted } : null;
+              return encrypted
+                ? { id: item.id, ...encrypted, is_trashed: true }
+                : null;
             }),
           );
 
           const valid_updates = metadata_updates.filter(
-            (
-              u,
-            ): u is {
-              id: string;
-              encrypted_metadata: string;
-              metadata_nonce: string;
-            } => u !== null,
-          );
+            (u) => u !== null,
+          ) as Array<{
+            id: string;
+            encrypted_metadata: string;
+            metadata_nonce: string;
+            is_trashed?: boolean;
+          }>;
 
           emit_mail_items_removed({ ids: old_items.map((item) => item.id) });
 
@@ -433,19 +436,20 @@ export function InboxHeader({
                   const encrypted =
                     await encrypt_mail_metadata(updated_metadata);
 
-                  return encrypted ? { id: item.id, ...encrypted } : null;
+                  return encrypted
+                    ? { id: item.id, ...encrypted, is_trashed: false }
+                    : null;
                 }),
               );
 
               const valid_undo_updates = undo_updates.filter(
-                (
-                  u,
-                ): u is {
-                  id: string;
-                  encrypted_metadata: string;
-                  metadata_nonce: string;
-                } => u !== null,
-              );
+                (u) => u !== null,
+              ) as Array<{
+                id: string;
+                encrypted_metadata: string;
+                metadata_nonce: string;
+                is_trashed?: boolean;
+              }>;
 
               if (valid_undo_updates.length > 0) {
                 await bulk_update_metadata({ items: valid_undo_updates });

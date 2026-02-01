@@ -252,6 +252,11 @@ export async function update_item_metadata(
   const request_body = {
     encrypted_metadata: encrypted.encrypted_metadata,
     metadata_nonce: encrypted.metadata_nonce,
+    is_read: updates.is_read,
+    is_starred: updates.is_starred,
+    is_trashed: updates.is_trashed,
+    is_archived: updates.is_archived,
+    is_spam: updates.is_spam,
   };
 
   const result = await update_mail_item_metadata(item_id, request_body);

@@ -11,6 +11,7 @@ import { list_snoozed_emails } from "@/services/api/snooze";
 import { use_auth } from "@/contexts/auth_context";
 
 export interface MailStats {
+  total_items: number;
   inbox: number;
   sent: number;
   drafts: number;
@@ -34,6 +35,7 @@ interface UseMailStatsReturn {
 }
 
 const DEFAULT_STATS: MailStats = {
+  total_items: 0,
   inbox: 0,
   sent: 0,
   drafts: 0,
@@ -140,6 +142,7 @@ class MailStatsStore {
         const data: MailUserStatsResponse = mail_stats;
 
         this.cache.data = {
+          total_items: data.total_items,
           inbox: data.inbox,
           sent: data.sent,
           drafts: data.drafts,
@@ -326,4 +329,40 @@ export function adjust_stats_trash(delta: number): void {
 
 export function adjust_stats_unread(delta: number): void {
   stats_store.adjust("unread", delta);
+}
+
+export function adjust_stats_drafts(delta: number): void {
+  stats_store.adjust("drafts", delta);
+}
+
+export function adjust_stats_scheduled(delta: number): void {
+  stats_store.adjust("scheduled", delta);
+}
+
+export function adjust_stats_snoozed(delta: number): void {
+  stats_store.adjust("snoozed", delta);
+}
+
+export function adjust_stats_starred(delta: number): void {
+  stats_store.adjust("starred", delta);
+}
+
+export function adjust_stats_archived(delta: number): void {
+  stats_store.adjust("archived", delta);
+}
+
+export function adjust_stats_spam(delta: number): void {
+  stats_store.adjust("spam", delta);
+}
+
+export function adjust_stats_contacts(delta: number): void {
+  stats_store.adjust("contacts", delta);
+}
+
+export function adjust_stats_total(delta: number): void {
+  stats_store.adjust("total_items", delta);
+}
+
+export function clear_mail_stats(): void {
+  stats_store.clear();
 }

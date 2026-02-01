@@ -309,12 +309,22 @@ export interface MigrationStatusResponse {
 export interface UpdateMetadataRequest {
   encrypted_metadata: string;
   metadata_nonce: string;
+  is_read?: boolean;
+  is_starred?: boolean;
+  is_trashed?: boolean;
+  is_archived?: boolean;
+  is_spam?: boolean;
 }
 
 export interface BulkUpdateMetadataItem {
   id: string;
   encrypted_metadata: string;
   metadata_nonce: string;
+  is_read?: boolean;
+  is_starred?: boolean;
+  is_trashed?: boolean;
+  is_archived?: boolean;
+  is_spam?: boolean;
 }
 
 export interface BulkUpdateMetadataRequest {

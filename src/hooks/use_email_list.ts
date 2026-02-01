@@ -1173,6 +1173,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     async (
       ids: string[],
       updates: {
+        is_read?: boolean;
+        is_starred?: boolean;
         is_trashed?: boolean;
         is_archived?: boolean;
         is_spam?: boolean;
@@ -1259,19 +1261,27 @@ export function use_email_list(current_view: string): UseEmailListReturn {
               id: email.id,
               encrypted_metadata: encrypted.encrypted_metadata,
               metadata_nonce: encrypted.metadata_nonce,
+              is_read: updates.is_read,
+              is_starred: updates.is_starred,
+              is_trashed: updates.is_trashed,
+              is_archived: updates.is_archived,
+              is_spam: updates.is_spam,
             };
           }),
         );
 
         const valid_updates = metadata_updates.filter(
-          (
-            u,
-          ): u is {
-            id: string;
-            encrypted_metadata: string;
-            metadata_nonce: string;
-          } => u !== null,
-        );
+          (u) => u !== null,
+        ) as Array<{
+          id: string;
+          encrypted_metadata: string;
+          metadata_nonce: string;
+          is_read?: boolean;
+          is_starred?: boolean;
+          is_trashed?: boolean;
+          is_archived?: boolean;
+          is_spam?: boolean;
+        }>;
 
         if (valid_updates.length > 0) {
           await bulk_update_metadata({ items: valid_updates });
@@ -1416,4 +1426,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
 export function invalidate_mail_cache(view?: string): void {
   mail_cache.invalidate(view);
+}
+
+export function clear_mail_cache(): void {
+  mail_cache.invalidate();
 }

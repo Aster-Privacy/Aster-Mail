@@ -1,3 +1,8 @@
+/**
+ * @deprecated This hook is deprecated. Use `use_mail_stats` instead.
+ * This file will be removed in a future version.
+ */
+
 import type { InboxEmail } from "@/types/email";
 
 import { useState, useEffect, useCallback, useRef } from "react";

@@ -305,6 +305,7 @@ interface ThreadMessagesListProps {
   on_mark_all_read?: () => void;
   hide_counter?: boolean;
   hide_expand_collapse?: boolean;
+  thread_message_count?: number;
 }
 
 export interface ThreadMessagesListRef {
@@ -329,6 +330,7 @@ export const ThreadMessagesList = forwardRef<
     on_mark_all_read,
     hide_counter = false,
     hide_expand_collapse: _hide_expand_collapse = false,
+    thread_message_count,
   },
   ref,
 ): React.ReactElement {
@@ -712,10 +714,10 @@ export const ThreadMessagesList = forwardRef<
 
   return (
     <div className="flex flex-col gap-2">
-      {messages.length > 1 && !hide_counter && (
+      {(thread_message_count ?? messages.length) > 1 && !hide_counter && (
         <div className="flex items-center justify-end px-1">
           <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-            {messages.length} messages
+            {thread_message_count ?? messages.length} messages
           </span>
         </div>
       )}

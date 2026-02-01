@@ -42,6 +42,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_folders } from "@/hooks/use_folders";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CountBadge } from "@/components/common/count_badge";
 import { format_bytes } from "@/lib/utils";
 
 let mail_logo_cached = false;
@@ -96,7 +97,7 @@ export const Sidebar = ({
   const { user } = use_auth();
   const { t } = use_i18n();
   const { stats } = use_mail_stats();
-  const { state: folders_state } = use_folders();
+  const { state: folders_state, counts: folder_counts } = use_folders();
 
   const [is_mobile, set_is_mobile] = useState(false);
   const [is_tablet, set_is_tablet] = useState(false);
@@ -581,7 +582,13 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.inbox")}</span>
+              <>
+                <span className="flex-1 text-left">{t("mail.inbox")}</span>
+                <CountBadge
+                  count={stats.inbox}
+                  is_active={effective_selected === "inbox"}
+                />
+              </>
             )}
           </button>
 
@@ -617,7 +624,13 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.sent")}</span>
+              <>
+                <span className="flex-1 text-left">{t("mail.sent")}</span>
+                <CountBadge
+                  count={stats.sent}
+                  is_active={effective_selected === "sent"}
+                />
+              </>
             )}
           </button>
 
@@ -653,7 +666,13 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.scheduled")}</span>
+              <>
+                <span className="flex-1 text-left">{t("mail.scheduled")}</span>
+                <CountBadge
+                  count={stats.scheduled}
+                  is_active={effective_selected === "scheduled"}
+                />
+              </>
             )}
           </button>
 
@@ -688,7 +707,15 @@ export const Sidebar = ({
                     : "var(--text-muted)",
               }}
             />
-            {!is_collapsed && <span className="flex-1 text-left">Snoozed</span>}
+            {!is_collapsed && (
+              <>
+                <span className="flex-1 text-left">Snoozed</span>
+                <CountBadge
+                  count={stats.snoozed}
+                  is_active={effective_selected === "snoozed"}
+                />
+              </>
+            )}
           </button>
 
           <button
@@ -723,7 +750,13 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.drafts")}</span>
+              <>
+                <span className="flex-1 text-left">{t("mail.drafts")}</span>
+                <CountBadge
+                  count={stats.drafts}
+                  is_active={effective_selected === "drafts"}
+                />
+              </>
             )}
           </button>
 
@@ -772,7 +805,13 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.starred")}</span>
+              <>
+                <span className="flex-1 text-left">{t("mail.starred")}</span>
+                <CountBadge
+                  count={stats.starred}
+                  is_active={effective_selected === "starred"}
+                />
+              </>
             )}
           </button>
 
@@ -808,7 +847,13 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">All Mail</span>
+              <>
+                <span className="flex-1 text-left">All Mail</span>
+                <CountBadge
+                  count={stats.total_items}
+                  is_active={effective_selected === "all"}
+                />
+              </>
             )}
           </button>
 
@@ -844,7 +889,13 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.archive")}</span>
+              <>
+                <span className="flex-1 text-left">{t("mail.archive")}</span>
+                <CountBadge
+                  count={stats.archived}
+                  is_active={effective_selected === "archive"}
+                />
+              </>
             )}
           </button>
 
@@ -880,7 +931,13 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.spam")}</span>
+              <>
+                <span className="flex-1 text-left">{t("mail.spam")}</span>
+                <CountBadge
+                  count={stats.spam}
+                  is_active={effective_selected === "spam"}
+                />
+              </>
             )}
           </button>
 
@@ -916,7 +973,13 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.trash")}</span>
+              <>
+                <span className="flex-1 text-left">{t("mail.trash")}</span>
+                <CountBadge
+                  count={stats.trash}
+                  is_active={effective_selected === "trash"}
+                />
+              </>
             )}
           </button>
 
@@ -952,7 +1015,13 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("common.contacts")}</span>
+              <>
+                <span className="flex-1 text-left">{t("common.contacts")}</span>
+                <CountBadge
+                  count={stats.contacts}
+                  is_active={effective_selected === "contacts"}
+                />
+              </>
             )}
           </button>
 
@@ -1099,20 +1168,25 @@ export const Sidebar = ({
                             )}
                           </div>
                           {!is_collapsed && (
-                            <span className="flex-1 text-left truncate">
-                              {folder.name}
-                            </span>
-                          )}
-                          {!is_collapsed &&
-                            (folder.is_locked ||
-                              (folder.is_password_protected &&
-                                (!folder.password_set ||
-                                  !is_folder_unlocked(folder.id)))) && (
-                              <LockClosedIcon
-                                className="w-3 h-3"
-                                style={{ color: "var(--text-muted)" }}
+                            <>
+                              <span className="flex-1 text-left truncate">
+                                {folder.name}
+                              </span>
+                              <CountBadge
+                                count={folder_counts[folder.folder_token] ?? 0}
+                                is_active={effective_selected === folder_item_id}
                               />
-                            )}
+                              {(folder.is_locked ||
+                                (folder.is_password_protected &&
+                                  (!folder.password_set ||
+                                    !is_folder_unlocked(folder.id)))) && (
+                                <LockClosedIcon
+                                  className="w-3 h-3 ml-1"
+                                  style={{ color: "var(--text-muted)" }}
+                                />
+                              )}
+                            </>
+                          )}
                         </button>
                       </FolderContextMenu>
                     );
