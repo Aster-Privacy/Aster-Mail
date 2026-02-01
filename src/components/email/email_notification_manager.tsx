@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { sync_client } from "@/services/sync_client";
-import { emit_email_received, emit_mail_changed } from "@/hooks/mail_events";
+import { emit_email_received } from "@/hooks/mail_events";
 import {
   notify_new_email,
   notify_reply,
@@ -55,8 +55,6 @@ export function EmailNotificationManager() {
             is_reply: data.is_reply,
             has_mention: data.has_mention,
           });
-
-          emit_mail_changed();
         }
       },
     );

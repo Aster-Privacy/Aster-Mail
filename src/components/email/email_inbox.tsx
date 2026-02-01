@@ -1407,11 +1407,38 @@ export function EmailInbox({
     ],
   );
 
-  const handle_toolbar_delete = useCallback((): void => {
+  const handle_toolbar_delete = useCallback(async (): Promise<void> => {
+    const is_trash_view = current_view === "trash";
+
     if (confirmations.skip_delete) {
       const ids = get_selected_ids(email_state.emails);
 
-      bulk_delete(ids);
+      if (is_trash_view) {
+        const selected_emails = email_state.emails.filter((e) =>
+          ids.includes(e.id),
+        );
+
+        for (const id of ids) {
+          remove_email(id);
+        }
+
+        const result = await batched_bulk_permanent_delete(ids);
+
+        if (result.success) {
+          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_CHANGED));
+          show_action_toast({
+            message: `${ids.length} email${ids.length > 1 ? "s" : ""} permanently deleted`,
+            action_type: "trash",
+            email_ids: ids,
+          });
+        } else {
+          for (const email of selected_emails) {
+            update_email(email.id, email);
+          }
+        }
+      } else {
+        bulk_delete(ids);
+      }
     } else {
       set_confirmations((prev) => ({ ...prev, show_delete: true }));
     }
@@ -1420,6 +1447,9 @@ export function EmailInbox({
     get_selected_ids,
     email_state.emails,
     bulk_delete,
+    current_view,
+    remove_email,
+    update_email,
   ]);
 
   const handle_toolbar_archive = useCallback((): void => {
@@ -1518,11 +1548,46 @@ export function EmailInbox({
       set_confirmations((prev) => ({ ...prev, skip_delete: true }));
     }
     const ids = get_selected_ids(email_state.emails);
+    const is_trash_view = current_view === "trash";
 
-    await bulk_delete(ids);
+    if (is_trash_view) {
+      const selected_emails = email_state.emails.filter((e) =>
+        ids.includes(e.id),
+      );
+
+      for (const id of ids) {
+        remove_email(id);
+      }
+
+      const result = await batched_bulk_permanent_delete(ids);
+
+      if (result.success) {
+        window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_CHANGED));
+        show_action_toast({
+          message: `${ids.length} email${ids.length > 1 ? "s" : ""} permanently deleted`,
+          action_type: "trash",
+          email_ids: ids,
+        });
+      } else {
+        for (const email of selected_emails) {
+          update_email(email.id, email);
+        }
+      }
+    } else {
+      await bulk_delete(ids);
+    }
+
     set_confirmations((prev) => ({ ...prev, show_delete: false }));
     set_dont_ask_delete(false);
-  }, [dont_ask_delete, get_selected_ids, email_state.emails, bulk_delete]);
+  }, [
+    dont_ask_delete,
+    get_selected_ids,
+    email_state.emails,
+    bulk_delete,
+    current_view,
+    remove_email,
+    update_email,
+  ]);
 
   const confirm_archive = useCallback(async (): Promise<void> => {
     if (dont_ask_archive) {
