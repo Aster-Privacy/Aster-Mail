@@ -10,13 +10,14 @@ import {
   forwardRef,
 } from "react";
 import {
-  ChevronDownIcon,
-  ChevronUpIcon,
   StarIcon,
   EyeIcon,
   EyeSlashIcon,
   CheckIcon,
   ArrowDownIcon,
+  Bars3BottomLeftIcon,
+  Bars3Icon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
@@ -746,26 +747,24 @@ export const ThreadMessagesList = forwardRef<
           </div>
           <div className="flex items-center gap-1">
             {!hide_expand_collapse && (
-              <>
-                <button
-                  className="p-1 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors disabled:opacity-50"
-                  disabled={all_expanded}
-                  onClick={expand_all}
-                  title="Expand all"
-                  type="button"
-                >
-                  <ChevronDownIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                </button>
-                <button
-                  className="p-1 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors disabled:opacity-50"
-                  disabled={all_collapsed}
-                  onClick={collapse_all}
-                  title="Collapse all"
-                  type="button"
-                >
-                  <ChevronUpIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                </button>
-              </>
+              <button
+                className="p-1 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors"
+                onClick={() => {
+                  if (all_expanded) {
+                    collapse_all();
+                  } else {
+                    expand_all();
+                  }
+                }}
+                title={all_expanded ? "Collapse all" : "Expand all"}
+                type="button"
+              >
+                {all_expanded ? (
+                  <Bars3BottomLeftIcon className="w-4 h-4 text-[var(--text-muted)]" />
+                ) : (
+                  <Bars3Icon className="w-4 h-4 text-[var(--text-muted)]" />
+                )}
+              </button>
             )}
             {!hide_counter && (
               <span

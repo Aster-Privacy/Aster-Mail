@@ -17,8 +17,8 @@ import {
   PrinterIcon,
   FolderIcon,
   MapPinIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
+  Bars3BottomLeftIcon,
+  Bars3Icon,
 } from "@heroicons/react/24/outline";
 
 import { show_toast } from "@/components/toast/simple_toast";
@@ -1019,26 +1019,24 @@ export function SplitEmailViewer({
         <div className="flex-1" />
 
         {thread_messages.length > 1 && (
-          <div className="flex items-center gap-0.5 mr-1">
-            <button
-              className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
-              disabled={thread_expand_state.all_expanded}
-              style={{ color: "var(--text-muted)" }}
-              title="Expand all"
-              onClick={() => thread_list_ref.current?.expand_all()}
-            >
-              <ChevronDownIcon className="w-4 h-4" />
-            </button>
-            <button
-              className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
-              disabled={thread_expand_state.all_collapsed}
-              style={{ color: "var(--text-muted)" }}
-              title="Collapse all"
-              onClick={() => thread_list_ref.current?.collapse_all()}
-            >
-              <ChevronUpIcon className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            className="p-1.5 rounded-md transition-colors hover:bg-[var(--bg-hover)] mr-1"
+            style={{ color: "var(--text-muted)" }}
+            title={thread_expand_state.all_expanded ? "Collapse all" : "Expand all"}
+            onClick={() => {
+              if (thread_expand_state.all_expanded) {
+                thread_list_ref.current?.collapse_all();
+              } else {
+                thread_list_ref.current?.expand_all();
+              }
+            }}
+          >
+            {thread_expand_state.all_expanded ? (
+              <Bars3BottomLeftIcon className="w-4 h-4" />
+            ) : (
+              <Bars3Icon className="w-4 h-4" />
+            )}
+          </button>
         )}
 
         <button

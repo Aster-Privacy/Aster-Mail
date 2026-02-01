@@ -18,8 +18,8 @@ import {
   FolderIcon,
   MapPinIcon,
   ArrowLeftIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
+  Bars3BottomLeftIcon,
+  Bars3Icon,
 } from "@heroicons/react/24/outline";
 
 import { InlineReplySection } from "@/components/email/inline_reply_section";
@@ -1173,28 +1173,25 @@ export function FullEmailViewer({
           </DropdownMenu>
 
           {thread_messages.length > 1 && (
-            <div className="flex items-center gap-0.5 ml-2">
-              <Button
-                className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-                disabled={thread_expand_state.all_expanded}
-                size="icon"
-                variant="ghost"
-                title="Expand all"
-                onClick={() => thread_list_ref.current?.expand_all()}
-              >
-                <ChevronDownIcon className="w-4 h-4" />
-              </Button>
-              <Button
-                className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-                disabled={thread_expand_state.all_collapsed}
-                size="icon"
-                variant="ghost"
-                title="Collapse all"
-                onClick={() => thread_list_ref.current?.collapse_all()}
-              >
-                <ChevronUpIcon className="w-4 h-4" />
-              </Button>
-            </div>
+            <Button
+              className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] ml-2"
+              size="icon"
+              variant="ghost"
+              title={thread_expand_state.all_expanded ? "Collapse all" : "Expand all"}
+              onClick={() => {
+                if (thread_expand_state.all_expanded) {
+                  thread_list_ref.current?.collapse_all();
+                } else {
+                  thread_list_ref.current?.expand_all();
+                }
+              }}
+            >
+              {thread_expand_state.all_expanded ? (
+                <Bars3BottomLeftIcon className="w-4 h-4" />
+              ) : (
+                <Bars3Icon className="w-4 h-4" />
+              )}
+            </Button>
           )}
         </div>
       </div>
