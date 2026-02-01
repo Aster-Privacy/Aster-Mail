@@ -427,12 +427,18 @@ export function use_mail_stats(): UseMailStatsReturn {
       stats_store.fetch_debounced();
     };
 
+    const handle_auth_ready = () => {
+      stats_store.invalidate();
+      stats_store.fetch(true);
+    };
+
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
     window.addEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.SCHEDULED_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.SNOOZED_CHANGED, handle_change);
+    window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
@@ -441,6 +447,7 @@ export function use_mail_stats(): UseMailStatsReturn {
       window.removeEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.SCHEDULED_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.SNOOZED_CHANGED, handle_change);
+      window.removeEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
     };
   }, []);
 
