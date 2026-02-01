@@ -166,14 +166,7 @@ export default function SignInPage() {
         set_totp_required(false);
       }
     },
-    [
-      password,
-      is_adding_account,
-      add_account,
-      login,
-      navigate,
-      t,
-    ],
+    [password, is_adding_account, add_account, login, navigate, t],
   );
 
   const handle_login = async () => {

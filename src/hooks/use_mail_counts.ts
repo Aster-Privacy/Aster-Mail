@@ -79,6 +79,14 @@ export function adjust_sent_count(delta: number): void {
   broadcast();
 }
 
+export function adjust_starred_count(delta: number): void {
+  cache.data = {
+    ...cache.data,
+    starred: Math.max(0, cache.data.starred + delta),
+  };
+  broadcast();
+}
+
 export interface ComputedMailStats {
   total_items: number;
   inbox: number;

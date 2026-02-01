@@ -59,7 +59,11 @@ import {
   try_decrypt_ratchet_body,
   try_decrypt_pgp_body,
 } from "@/utils/email_crypto";
-import { is_astermail_sender, get_email_username } from "@/lib/utils";
+import {
+  is_astermail_sender,
+  get_email_username,
+  is_system_email,
+} from "@/lib/utils";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
 import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
@@ -317,7 +321,7 @@ export function SplitEmailViewer({
   }, []);
 
   const handle_reply = useCallback(() => {
-    if (!email || !on_reply) return;
+    if (!email || !on_reply || is_system_email(email.sender_email)) return;
     on_reply({
       recipient_name: email.sender,
       recipient_email: email.sender_email,
@@ -631,7 +635,11 @@ export function SplitEmailViewer({
 
       let decrypted_metadata = item.metadata;
 
-      if (!decrypted_metadata && item.encrypted_metadata && item.metadata_nonce) {
+      if (
+        !decrypted_metadata &&
+        item.encrypted_metadata &&
+        item.metadata_nonce
+      ) {
         const { decrypt_mail_metadata } = await import(
           "@/services/crypto/mail_metadata"
         );
@@ -960,8 +968,10 @@ export function SplitEmailViewer({
           <Button
             className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             size="icon"
+            title={
+              thread_expand_state.all_expanded ? "Collapse all" : "Expand all"
+            }
             variant="ghost"
-            title={thread_expand_state.all_expanded ? "Collapse all" : "Expand all"}
             onClick={() => {
               if (thread_expand_state.all_expanded) {
                 thread_list_ref.current?.collapse_all();
@@ -1009,7 +1019,10 @@ export function SplitEmailViewer({
               <NoSymbolIcon className="w-4 h-4 mr-2" />
               Report spam
             </DropdownMenuItem>
-            <DropdownMenuItem disabled={is_trash_loading} onClick={handle_trash}>
+            <DropdownMenuItem
+              disabled={is_trash_loading}
+              onClick={handle_trash}
+            >
               <TrashIcon className="w-4 h-4 mr-2" />
               Move to trash
             </DropdownMenuItem>
@@ -1023,7 +1036,9 @@ export function SplitEmailViewer({
               Print
             </DropdownMenuItem>
             {thread_messages.length > 1 && thread_expand_state.has_unread && (
-              <DropdownMenuItem onClick={() => thread_list_ref.current?.mark_all_read()}>
+              <DropdownMenuItem
+                onClick={() => thread_list_ref.current?.mark_all_read()}
+              >
                 <CheckCircleIcon className="w-4 h-4 mr-2" />
                 Mark all read
               </DropdownMenuItem>
@@ -1344,47 +1359,54 @@ export function SplitEmailViewer({
       </div>
 
       <div
-          className="flex items-center gap-3 px-4 py-3 border-t"
+        className="flex items-center gap-3 px-4 py-3 border-t"
+        style={{
+          backgroundColor: "var(--bg-primary)",
+          borderColor: "var(--border-primary)",
+        }}
+      >
+        <button
+          className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-150"
+          disabled={is_system_email(email.sender_email)}
           style={{
-            backgroundColor: "var(--bg-primary)",
-            borderColor: "var(--border-primary)",
+            background:
+              "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+            color: "#ffffff",
+            boxShadow:
+              "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)",
+            opacity: is_system_email(email.sender_email) ? 0.6 : 1,
+            cursor: is_system_email(email.sender_email)
+              ? "not-allowed"
+              : "pointer",
           }}
+          onClick={
+            is_system_email(email.sender_email) ? undefined : handle_reply
+          }
         >
+          <ArrowUturnLeftIcon className="w-4 h-4" />
+          <span>Reply</span>
+          <KeyboardShortcutBadge
+            className="bg-white/20 border-white/30 text-white/80 shadow-none"
+            shortcut="r"
+          />
+        </button>
+        {on_forward && (
           <button
             className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-150"
             style={{
-              background:
-                "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-              color: "#ffffff",
+              background: "var(--bg-secondary)",
+              color: "var(--text-primary)",
               boxShadow:
-                "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)",
+                "0 1px 2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px var(--border-primary)",
             }}
-            onClick={handle_reply}
+            onClick={handle_forward}
           >
-            <ArrowUturnLeftIcon className="w-4 h-4" />
-            <span>Reply</span>
-            <KeyboardShortcutBadge
-              className="bg-white/20 border-white/30 text-white/80 shadow-none"
-              shortcut="r"
-            />
+            <ArrowUturnRightIcon className="w-4 h-4" />
+            <span>Forward</span>
+            <KeyboardShortcutBadge shortcut="f" />
           </button>
-          {on_forward && (
-            <button
-              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-150"
-              style={{
-                background: "var(--bg-secondary)",
-                color: "var(--text-primary)",
-                boxShadow:
-                  "0 1px 2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px var(--border-primary)",
-              }}
-              onClick={handle_forward}
-            >
-              <ArrowUturnRightIcon className="w-4 h-4" />
-              <span>Forward</span>
-              <KeyboardShortcutBadge shortcut="f" />
-            </button>
-          )}
-        </div>
+        )}
+      </div>
     </div>
   );
 }

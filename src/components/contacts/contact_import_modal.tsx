@@ -29,7 +29,10 @@ interface ContactImportModalProps {
 type ImportStep = "select" | "preview" | "mapping" | "importing" | "complete";
 type FileType = "vcard" | "csv";
 
-const CSV_FIELD_OPTIONS: { value: keyof ContactFormData | null; label: string }[] = [
+const CSV_FIELD_OPTIONS: {
+  value: keyof ContactFormData | null;
+  label: string;
+}[] = [
   { value: null, label: "Skip" },
   { value: "first_name", label: "First Name" },
   { value: "last_name", label: "Last Name" },
@@ -48,7 +51,9 @@ export function ContactImportModal({
   const [step, set_step] = useState<ImportStep>("select");
   const [file_type, set_file_type] = useState<FileType | null>(null);
   const [raw_content, set_raw_content] = useState<string>("");
-  const [parsed_contacts, set_parsed_contacts] = useState<ContactFormData[]>([]);
+  const [parsed_contacts, set_parsed_contacts] = useState<ContactFormData[]>(
+    [],
+  );
   const [csv_headers, set_csv_headers] = useState<string[]>([]);
   const [csv_mapping, set_csv_mapping] = useState<
     Record<string, keyof ContactFormData | null>
@@ -65,12 +70,14 @@ export function ContactImportModal({
   const handle_file_select = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
+
       if (!file) return;
 
       set_error(null);
 
       try {
         const content = await file.text();
+
         set_raw_content(content);
 
         const is_vcard =
@@ -81,20 +88,26 @@ export function ContactImportModal({
         if (is_vcard) {
           set_file_type("vcard");
           const contacts = parse_vcard(content);
+
           set_parsed_contacts(contacts);
           set_step("preview");
         } else {
           set_file_type("csv");
           const lines = content.split(/\r?\n/).filter(Boolean);
+
           if (lines.length > 0) {
             const headers = lines[0]
               .split(",")
               .map((h) => h.trim().replace(/^"|"$/g, ""));
+
             set_csv_headers(headers);
 
-            const auto_mapping: Record<string, keyof ContactFormData | null> = {};
+            const auto_mapping: Record<string, keyof ContactFormData | null> =
+              {};
+
             headers.forEach((header) => {
               const lower = header.toLowerCase();
+
               if (lower.includes("first") && lower.includes("name"))
                 auto_mapping[header] = "first_name";
               else if (lower.includes("last") && lower.includes("name"))
@@ -119,9 +132,7 @@ export function ContactImportModal({
           }
         }
       } catch (err) {
-        set_error(
-          err instanceof Error ? err.message : "Failed to read file",
-        );
+        set_error(err instanceof Error ? err.message : "Failed to read file");
       }
 
       if (input_ref.current) {
@@ -133,6 +144,7 @@ export function ContactImportModal({
 
   const handle_apply_csv_mapping = useCallback(() => {
     const contacts = parse_csv(raw_content, csv_mapping);
+
     set_parsed_contacts(contacts);
     set_step("preview");
   }, [raw_content, csv_mapping]);
@@ -149,6 +161,7 @@ export function ContactImportModal({
 
       if (response.error || !response.data) {
         set_error(response.error || "Import failed");
+
         return;
       }
 
@@ -176,17 +189,17 @@ export function ContactImportModal({
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }}
       onClick={on_close}
     >
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
         className="bg-background rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col"
+        exit={{ scale: 0.95, opacity: 0 }}
+        initial={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-divider">
@@ -195,10 +208,10 @@ export function ContactImportModal({
             <h2 className="text-lg font-semibold">Import Contacts</h2>
           </div>
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={on_close}
             className="p-1.5"
+            size="sm"
+            variant="ghost"
+            onClick={on_close}
           >
             <XMarkIcon className="w-5 h-5" />
           </Button>
@@ -209,10 +222,10 @@ export function ContactImportModal({
             {step === "select" && (
               <motion.div
                 key="select"
-                initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
                 className="space-y-4"
+                exit={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: 20 }}
               >
                 <p className="text-sm text-foreground-500">
                   Choose a file to import contacts from. Supported formats:
@@ -224,9 +237,7 @@ export function ContactImportModal({
                   onClick={() => input_ref.current?.click()}
                 >
                   <ArrowUpTrayIcon className="w-10 h-10 mx-auto text-foreground-400 mb-3" />
-                  <p className="text-sm font-medium">
-                    Click to select file
-                  </p>
+                  <p className="text-sm font-medium">Click to select file</p>
                   <p className="text-xs text-foreground-500 mt-1">
                     or drag and drop
                   </p>
@@ -253,9 +264,9 @@ export function ContactImportModal({
 
                 <input
                   ref={input_ref}
-                  type="file"
                   accept=".vcf,.vcard,.csv"
                   className="hidden"
+                  type="file"
                   onChange={handle_file_select}
                 />
               </motion.div>
@@ -264,10 +275,10 @@ export function ContactImportModal({
             {step === "mapping" && (
               <motion.div
                 key="mapping"
-                initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
                 className="space-y-4"
+                exit={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: 20 }}
               >
                 <p className="text-sm text-foreground-500">
                   Map CSV columns to contact fields:
@@ -284,15 +295,16 @@ export function ContactImportModal({
                       </span>
                       <ArrowRightIcon className="w-4 h-4 text-foreground-400" />
                       <select
+                        className="h-8 px-2 rounded border border-divider bg-background text-sm min-w-32"
                         value={csv_mapping[header] || ""}
                         onChange={(e) =>
                           set_csv_mapping((prev) => ({
                             ...prev,
-                            [header]: (e.target.value ||
-                              null) as keyof ContactFormData | null,
+                            [header]: (e.target.value || null) as
+                              | keyof ContactFormData
+                              | null,
                           }))
                         }
-                        className="h-8 px-2 rounded border border-divider bg-background text-sm min-w-32"
                       >
                         {CSV_FIELD_OPTIONS.map((opt) => (
                           <option key={opt.label} value={opt.value || ""}>
@@ -305,17 +317,11 @@ export function ContactImportModal({
                 </div>
 
                 <div className="flex items-center justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    onClick={() => set_step("select")}
-                  >
+                  <Button variant="ghost" onClick={() => set_step("select")}>
                     <ArrowLeftIcon className="w-4 h-4 mr-1" />
                     Back
                   </Button>
-                  <Button
-                    variant="primary"
-                    onClick={handle_apply_csv_mapping}
-                  >
+                  <Button variant="primary" onClick={handle_apply_csv_mapping}>
                     Continue
                     <ArrowRightIcon className="w-4 h-4 ml-1" />
                   </Button>
@@ -326,10 +332,10 @@ export function ContactImportModal({
             {step === "preview" && (
               <motion.div
                 key="preview"
-                initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
                 className="space-y-4"
+                exit={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: 20 }}
               >
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-foreground-500">
@@ -387,9 +393,9 @@ export function ContactImportModal({
                     Back
                   </Button>
                   <Button
+                    disabled={is_importing || parsed_contacts.length === 0}
                     variant="primary"
                     onClick={handle_import}
-                    disabled={is_importing || parsed_contacts.length === 0}
                   >
                     {is_importing ? (
                       <>
@@ -410,10 +416,10 @@ export function ContactImportModal({
             {step === "complete" && import_result && (
               <motion.div
                 key="complete"
-                initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
                 className="space-y-4 text-center py-4"
+                exit={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: 20 }}
               >
                 <CheckCircleIcon className="w-16 h-16 mx-auto text-success" />
                 <div>
@@ -445,9 +451,9 @@ export function ContactImportModal({
                 </div>
 
                 <Button
+                  className="w-full"
                   variant="primary"
                   onClick={handle_done}
-                  className="w-full"
                 >
                   Done
                 </Button>
@@ -458,10 +464,10 @@ export function ContactImportModal({
           <AnimatePresence>
             {error && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
                 className="mt-4 p-3 rounded-lg bg-danger/10 text-danger text-sm flex items-center gap-2"
+                exit={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -10 }}
               >
                 <ExclamationTriangleIcon className="w-4 h-4" />
                 {error}

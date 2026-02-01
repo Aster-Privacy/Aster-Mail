@@ -9,18 +9,22 @@ import { get_contacts_encryption_key } from "./contacts";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
+
   for (let i = 0; i < array.length; i++) {
     binary += String.fromCharCode(array[i]);
   }
+
   return btoa(binary);
 }
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
+
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
+
   return bytes;
 }
 
@@ -71,6 +75,7 @@ export async function get_contact_photo(
     if (response.error?.includes("not found")) {
       return { data: null };
     }
+
     return { error: response.error || "Failed to fetch photo" };
   }
 

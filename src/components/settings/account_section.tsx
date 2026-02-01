@@ -6,8 +6,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 
-import { DeleteAccountModal } from '@/components/modals/delete_account_modal';
-
+import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {

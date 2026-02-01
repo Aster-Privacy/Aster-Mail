@@ -242,6 +242,7 @@ export const InlineReplySection = forwardRef<
     if (!reply_text.trim() || send_state !== "idle") return;
 
     const now = Date.now();
+
     if (now - last_send_time_ref.current < 2000) return;
 
     is_sending_ref.current = true;

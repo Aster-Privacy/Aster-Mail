@@ -781,7 +781,6 @@ export function InboxHeader({
             <Cog6ToothIcon className="w-[18px] h-[18px]" />
           </Button>
 
-
           {on_page_change && (
             <div className="hidden xl:flex items-center gap-0.5 text-xs text-[var(--text-muted)] ml-1">
               <span className="tabular-nums text-[11px]">

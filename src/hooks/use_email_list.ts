@@ -429,7 +429,8 @@ function group_emails_by_thread(emails: InboxEmail[]): InboxEmail[] {
 
     const representative = { ...thread_emails[0] };
 
-    representative.thread_message_count = representative.thread_message_count ?? thread_emails.length;
+    representative.thread_message_count =
+      representative.thread_message_count ?? thread_emails.length;
 
     const has_starred = thread_emails.some((e) => e.is_starred);
 
@@ -837,7 +838,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     };
 
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_update);
-    window.addEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, handle_items_removed);
+    window.addEventListener(
+      MAIL_EVENTS.MAIL_ITEMS_REMOVED,
+      handle_items_removed,
+    );
 
     return () => {
       window.removeEventListener(
@@ -1168,7 +1172,11 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   const bulk_update = useCallback(
     async (
       ids: string[],
-      updates: { is_trashed?: boolean; is_archived?: boolean; is_spam?: boolean },
+      updates: {
+        is_trashed?: boolean;
+        is_archived?: boolean;
+        is_spam?: boolean;
+      },
     ) => {
       if (ids.length === 0) return;
 
@@ -1256,8 +1264,13 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         );
 
         const valid_updates = metadata_updates.filter(
-          (u): u is { id: string; encrypted_metadata: string; metadata_nonce: string } =>
-            u !== null,
+          (
+            u,
+          ): u is {
+            id: string;
+            encrypted_metadata: string;
+            metadata_nonce: string;
+          } => u !== null,
         );
 
         if (valid_updates.length > 0) {

@@ -37,6 +37,7 @@ function format_date(date_string: string): string {
   if (days < 7) return `${days} days ago`;
   if (days < 30)
     return date.toLocaleDateString([], { month: "short", day: "numeric" });
+
   return date.toLocaleDateString([], {
     year: "numeric",
     month: "short",
@@ -47,6 +48,7 @@ function format_date(date_string: string): string {
 function format_stat_date(date_string?: string): string {
   if (!date_string) return "Never";
   const date = new Date(date_string);
+
   return date.toLocaleDateString([], {
     year: "numeric",
     month: "short",
@@ -55,9 +57,9 @@ function format_stat_date(date_string?: string): string {
 }
 
 export function ContactHistoryPanel({ contact_id }: ContactHistoryPanelProps) {
-  const [activities, set_activities] = useState<DecryptedContactActivityEntry[]>(
-    [],
-  );
+  const [activities, set_activities] = useState<
+    DecryptedContactActivityEntry[]
+  >([]);
   const [stats, set_stats] = useState<ContactEmailStats | null>(null);
   const [is_loading, set_is_loading] = useState(true);
   const [is_loading_more, set_is_loading_more] = useState(false);
@@ -128,7 +130,7 @@ export function ContactHistoryPanel({ contact_id }: ContactHistoryPanelProps) {
     return (
       <div className="text-center py-8">
         <p className="text-sm text-danger mb-3">{error}</p>
-        <Button variant="ghost" size="sm" onClick={load_initial_data}>
+        <Button size="sm" variant="ghost" onClick={load_initial_data}>
           <ArrowPathIcon className="w-4 h-4 mr-1.5" />
           Retry
         </Button>
@@ -143,10 +145,10 @@ export function ContactHistoryPanel({ contact_id }: ContactHistoryPanelProps) {
           Communication History
         </h3>
         <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => set_show_stats(!show_stats)}
           className="gap-1.5"
+          size="sm"
+          variant="ghost"
+          onClick={() => set_show_stats(!show_stats)}
         >
           <ChartBarIcon className="w-4 h-4" />
           {show_stats ? "Hide" : "Show"} Stats
@@ -156,10 +158,10 @@ export function ContactHistoryPanel({ contact_id }: ContactHistoryPanelProps) {
       <AnimatePresence>
         {show_stats && stats && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
             className="grid grid-cols-2 gap-3"
+            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, height: 0 }}
           >
             <div className="bg-default-100 rounded-xl p-3">
               <div className="flex items-center gap-2 mb-2">
@@ -230,12 +232,12 @@ export function ContactHistoryPanel({ contact_id }: ContactHistoryPanelProps) {
                   )}
 
                   <motion.div
-                    initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
                     className={cn(
                       "flex items-start gap-3 p-2 rounded-lg hover:bg-default-50 transition-colors cursor-pointer",
                     )}
+                    exit={{ opacity: 0, x: -10 }}
+                    initial={{ opacity: 0, y: -5 }}
                   >
                     <div
                       className={cn(
@@ -286,11 +288,11 @@ export function ContactHistoryPanel({ contact_id }: ContactHistoryPanelProps) {
         {has_more && (
           <div className="pt-3 text-center">
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={handle_load_more}
-              disabled={is_loading_more}
               className="gap-1.5"
+              disabled={is_loading_more}
+              size="sm"
+              variant="ghost"
+              onClick={handle_load_more}
             >
               {is_loading_more ? (
                 <>

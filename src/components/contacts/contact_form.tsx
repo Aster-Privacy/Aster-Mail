@@ -27,6 +27,10 @@ import {
   AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 
+import { ContactPhotoUpload } from "./contact_photo_upload";
+import { ContactAttachmentsPanel } from "./contact_attachments_panel";
+import { ContactCustomFields } from "./contact_custom_fields";
+
 import { cn, EMAIL_REGEX } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -37,9 +41,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ContactPhotoUpload } from "./contact_photo_upload";
-import { ContactAttachmentsPanel } from "./contact_attachments_panel";
-import { ContactCustomFields } from "./contact_custom_fields";
 
 interface ContactFormProps {
   is_open: boolean;
@@ -79,7 +80,14 @@ const RELATIONSHIPS = [
   { value: "other", label: "Other" },
 ] as const;
 
-type TabId = "basic" | "details" | "address" | "social" | "photo" | "files" | "fields";
+type TabId =
+  | "basic"
+  | "details"
+  | "address"
+  | "social"
+  | "photo"
+  | "files"
+  | "fields";
 
 export function ContactForm({
   is_open,
@@ -929,8 +937,8 @@ export function ContactForm({
                       <ContactPhotoUpload
                         contact_id={contact.id}
                         current_photo={current_photo}
-                        on_photo_change={on_photo_change || (() => {})}
                         disabled={is_loading}
+                        on_photo_change={on_photo_change || (() => {})}
                       />
                     </div>
                   </motion.div>
@@ -961,10 +969,12 @@ export function ContactForm({
                         </span>
                       </div>
                       <ContactAttachmentsPanel
-                        contact_id={contact.id}
                         attachments={attachments}
-                        on_attachments_change={on_attachments_change || (() => {})}
+                        contact_id={contact.id}
                         disabled={is_loading}
+                        on_attachments_change={
+                          on_attachments_change || (() => {})
+                        }
                       />
                     </div>
                   </motion.div>
@@ -996,9 +1006,11 @@ export function ContactForm({
                       </div>
                       <ContactCustomFields
                         contact_id={contact.id}
-                        field_values={custom_field_values}
-                        on_field_values_change={on_custom_field_values_change || (() => {})}
                         disabled={is_loading}
+                        field_values={custom_field_values}
+                        on_field_values_change={
+                          on_custom_field_values_change || (() => {})
+                        }
                       />
                     </div>
                   </motion.div>

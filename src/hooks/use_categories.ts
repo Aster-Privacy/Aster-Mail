@@ -97,7 +97,7 @@ interface UseCategoriesReturn {
 export function use_categories(
   options: UseCategoriesOptions = {},
 ): UseCategoriesReturn {
-  const { enabled = true, auto_classify: _auto_classify = true } = options;
+  const { enabled = true } = options;
 
   const [active_category, set_active_category] = useState<
     EmailCategory | "all"

@@ -220,7 +220,7 @@ export default function EmailDetailPage() {
   const [auto_advance, set_auto_advance] = useState(
     DEFAULT_PREFERENCES.auto_advance,
   );
-  const [email_list, _set_email_list] = useState<string[]>([]);
+  const [email_list] = useState<string[]>([]);
   const [is_archive_loading, set_is_archive_loading] = useState(false);
   const [is_trash_loading, set_is_trash_loading] = useState(false);
   const [is_mobile_sidebar_open, set_is_mobile_sidebar_open] = useState(false);

@@ -6,11 +6,7 @@ import type {
 } from "@/types/contacts";
 
 import { api_client, type ApiResponse } from "./client";
-import {
-  decrypt_contact,
-  get_contact,
-  encrypt_contact_data,
-} from "./contacts";
+import { decrypt_contact, get_contact, encrypt_contact_data } from "./contacts";
 
 interface ListDuplicatesResponse {
   items: DuplicateCandidate[];
@@ -20,8 +16,9 @@ interface ListDuplicatesResponse {
 export async function list_duplicate_candidates(): Promise<
   ApiResponse<{ items: DuplicateCandidateWithContacts[]; total: number }>
 > {
-  const response =
-    await api_client.get<ListDuplicatesResponse>("/contacts/duplicates");
+  const response = await api_client.get<ListDuplicatesResponse>(
+    "/contacts/duplicates",
+  );
 
   if (response.error || !response.data) {
     return { error: response.error || "Failed to fetch duplicates" };
@@ -63,7 +60,8 @@ export async function list_duplicate_candidates(): Promise<
     return { data: { items, total: response.data.total } };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to process duplicates",
+      error:
+        err instanceof Error ? err.message : "Failed to process duplicates",
     };
   }
 }
@@ -73,7 +71,8 @@ export async function merge_contacts(
   secondary_contact_id: string,
   merged_data: ContactFormData,
 ): Promise<ApiResponse<{ success: boolean; merged_contact_id: string }>> {
-  const { encrypted_data, data_nonce } = await encrypt_contact_data(merged_data);
+  const { encrypted_data, data_nonce } =
+    await encrypt_contact_data(merged_data);
 
   return api_client.post<{ success: boolean; merged_contact_id: string }>(
     "/contacts/merge",
@@ -115,14 +114,14 @@ export function merge_contact_fields(
   const name_source = preferences.name === "contact_1" ? contact_1 : contact_2;
 
   let emails: string[];
+
   if (preferences.emails === "merge") {
     const combined = [...contact_1.emails, ...contact_2.emails];
+
     emails = [...new Set(combined)];
   } else {
     emails =
-      preferences.emails === "contact_1"
-        ? contact_1.emails
-        : contact_2.emails;
+      preferences.emails === "contact_1" ? contact_1.emails : contact_2.emails;
   }
 
   const phone_source =
@@ -136,19 +135,37 @@ export function merge_contact_fields(
     first_name: name_source.first_name,
     last_name: name_source.last_name,
     emails,
-    phone: phone_source.phone || (preferences.phone === "contact_1" ? contact_2.phone : contact_1.phone),
-    company: company_source.company || (preferences.company === "contact_1" ? contact_2.company : contact_1.company),
-    job_title: company_source.job_title || (preferences.company === "contact_1" ? contact_2.job_title : contact_1.job_title),
-    address: address_source.address || (preferences.address === "contact_1" ? contact_2.address : contact_1.address),
+    phone:
+      phone_source.phone ||
+      (preferences.phone === "contact_1" ? contact_2.phone : contact_1.phone),
+    company:
+      company_source.company ||
+      (preferences.company === "contact_1"
+        ? contact_2.company
+        : contact_1.company),
+    job_title:
+      company_source.job_title ||
+      (preferences.company === "contact_1"
+        ? contact_2.job_title
+        : contact_1.job_title),
+    address:
+      address_source.address ||
+      (preferences.address === "contact_1"
+        ? contact_2.address
+        : contact_1.address),
     birthday: contact_1.birthday || contact_2.birthday,
     social_links: {
       ...contact_2.social_links,
       ...contact_1.social_links,
     },
     relationship: contact_1.relationship || contact_2.relationship,
-    notes: [contact_1.notes, contact_2.notes].filter(Boolean).join("\n\n") || undefined,
+    notes:
+      [contact_1.notes, contact_2.notes].filter(Boolean).join("\n\n") ||
+      undefined,
     avatar_url: contact_1.avatar_url || contact_2.avatar_url,
     is_favorite: contact_1.is_favorite || contact_2.is_favorite,
-    groups: [...new Set([...(contact_1.groups || []), ...(contact_2.groups || [])])],
+    groups: [
+      ...new Set([...(contact_1.groups || []), ...(contact_2.groups || [])]),
+    ],
   };
 }

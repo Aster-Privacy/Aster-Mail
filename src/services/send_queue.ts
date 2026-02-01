@@ -29,6 +29,7 @@ import {
 } from "./undo_send_manager";
 import { type QueueEmailRequest } from "./api/undo_send";
 import { encrypt_mail_metadata } from "./crypto/mail_metadata";
+import { mark_thread_read } from "./api/mail";
 
 import {
   discover_external_recipient_keys,
@@ -37,7 +38,6 @@ import {
 } from "@/utils/email_crypto";
 import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
 import { emit_email_sent } from "@/hooks/mail_events";
-import { mark_thread_read } from "./api/mail";
 
 const FIELD_ID_RECIPIENTS = 0x01;
 const FIELD_ID_SUBJECT = 0x02;

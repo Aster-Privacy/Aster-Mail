@@ -206,9 +206,7 @@ function get_stored_encrypted_vault(account_id: string): {
   const encrypted_vault = localStorage.getItem(
     ENCRYPTED_VAULT_KEY_PREFIX + account_id,
   );
-  const vault_nonce = localStorage.getItem(
-    VAULT_NONCE_KEY_PREFIX + account_id,
-  );
+  const vault_nonce = localStorage.getItem(VAULT_NONCE_KEY_PREFIX + account_id);
 
   return encrypted_vault && vault_nonce
     ? { encrypted_vault, vault_nonce }
@@ -818,6 +816,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     window.addEventListener("focus", handle_focus);
+
     return () => window.removeEventListener("focus", handle_focus);
   }, [clear_local_auth_data, state.is_authenticated]);
 

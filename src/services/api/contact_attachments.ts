@@ -10,18 +10,22 @@ import { get_contacts_encryption_key } from "./contacts";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
+
   for (let i = 0; i < array.length; i++) {
     binary += String.fromCharCode(array[i]);
   }
+
   return btoa(binary);
 }
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
+
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
+
   return bytes;
 }
 
@@ -71,10 +75,11 @@ interface ListAttachmentsResponse {
   total: number;
 }
 
-export async function list_contact_attachments(
-  contact_id: string,
-): Promise<
-  ApiResponse<{ items: (ContactAttachmentListItem & { meta: ContactAttachmentMeta })[]; total: number }>
+export async function list_contact_attachments(contact_id: string): Promise<
+  ApiResponse<{
+    items: (ContactAttachmentListItem & { meta: ContactAttachmentMeta })[];
+    total: number;
+  }>
 > {
   const response = await api_client.get<ListAttachmentsResponse>(
     `/contacts/${contact_id}/attachments`,
@@ -177,6 +182,7 @@ export function download_attachment(
   const blob = new Blob([data], { type: meta.mime_type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
+
   a.href = url;
   a.download = meta.filename;
   document.body.appendChild(a);

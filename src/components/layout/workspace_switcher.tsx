@@ -5,9 +5,8 @@ import {
   ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
 
-import { show_toast } from '@/components/toast/simple_toast';
-import { ConfirmationModal } from '@/components/modals/confirmation_modal';
-
+import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   Popover,
   PopoverContent,

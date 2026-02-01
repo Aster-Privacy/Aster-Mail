@@ -23,6 +23,7 @@ import {
 } from "@/components/toast/action_toast";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
+import { adjust_starred_count } from "@/hooks/use_mail_counts";
 
 type ActionType =
   | "star"
@@ -370,12 +371,20 @@ export function use_email_actions(
     async (email: InboxEmail): Promise<boolean> => {
       const new_starred = !email.is_starred;
 
-      return execute_single_action(
+      adjust_starred_count(new_starred ? 1 : -1);
+
+      const success = await execute_single_action(
         email,
         "star",
         { is_starred: new_starred },
         () => update_with_metadata(email, { is_starred: new_starred }),
       );
+
+      if (!success) {
+        adjust_starred_count(new_starred ? -1 : 1);
+      }
+
+      return success;
     },
     [execute_single_action, update_with_metadata],
   );
@@ -703,6 +712,11 @@ export function use_email_actions(
       const show_progress =
         ids.length >= PROGRESS_THRESHOLDS.SHOW_TOAST_PROGRESS;
 
+      const emails_changing = emails.filter(
+        (e) => e.is_starred !== starred,
+      ).length;
+      const count_delta = starred ? emails_changing : -emails_changing;
+
       for (const email of emails) {
         create_pending_action(email.id, "star", {
           is_starred: email.is_starred,
@@ -710,6 +724,10 @@ export function use_email_actions(
       }
       set_action_loading("star", true);
       on_bulk_optimistic_update?.(ids, { is_starred: starred });
+
+      if (count_delta !== 0) {
+        adjust_starred_count(count_delta);
+      }
 
       bulk_abort_ref.current = new AbortController();
 
@@ -741,6 +759,14 @@ export function use_email_actions(
           for (const id of result.failed_ids) {
             rollback_action(id, "star");
           }
+          const failed_changing = emails.filter(
+            (e) => result.failed_ids.includes(e.id) && e.is_starred !== starred,
+          ).length;
+          const failed_delta = starred ? -failed_changing : failed_changing;
+
+          if (failed_delta !== 0) {
+            adjust_starred_count(failed_delta);
+          }
         }
 
         for (const id of ids.filter((i) => !result.failed_ids.includes(i))) {
@@ -766,6 +792,9 @@ export function use_email_actions(
       } catch {
         for (const id of ids) {
           rollback_action(id, "star");
+        }
+        if (count_delta !== 0) {
+          adjust_starred_count(-count_delta);
         }
         set_action_error("star", "Failed to update emails");
 

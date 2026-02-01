@@ -29,6 +29,7 @@ import { use_date_format } from "@/hooks/use_date_format";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
 import { show_toast } from "@/components/toast/simple_toast";
+import { adjust_starred_count } from "@/hooks/use_mail_counts";
 
 interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;
@@ -538,6 +539,7 @@ export const ThreadMessagesList = forwardRef<
         return next;
       });
 
+      adjust_starred_count(new_starred ? 1 : -1);
       emit_mail_item_updated({ id: msg.id, is_starred: new_starred });
 
       update_item_metadata(
@@ -560,6 +562,7 @@ export const ThreadMessagesList = forwardRef<
 
             return next;
           });
+          adjust_starred_count(new_starred ? -1 : 1);
           emit_mail_item_updated({ id: msg.id, is_starred: !new_starred });
         } else {
           window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
@@ -697,17 +700,21 @@ export const ThreadMessagesList = forwardRef<
         return unread_count > 0;
       },
     }),
-    [expand_all, collapse_all, handle_mark_all_read, all_expanded, all_collapsed, unread_count],
+    [
+      expand_all,
+      collapse_all,
+      handle_mark_all_read,
+      all_expanded,
+      all_collapsed,
+      unread_count,
+    ],
   );
 
   return (
     <div className="flex flex-col gap-2">
       {messages.length > 1 && !hide_counter && (
         <div className="flex items-center justify-end px-1">
-          <span
-            className="text-[11px]"
-            style={{ color: "var(--text-muted)" }}
-          >
+          <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
             {messages.length} messages
           </span>
         </div>
@@ -720,7 +727,8 @@ export const ThreadMessagesList = forwardRef<
           <ThreadMessageBlock
             is_expanded={expanded_ids.has(msg.id)}
             is_own_message={
-              msg.sender_email.toLowerCase() === current_user_email.toLowerCase()
+              msg.sender_email.toLowerCase() ===
+              current_user_email.toLowerCase()
             }
             is_read={read_ids.has(msg.id)}
             is_starred={starred_ids.has(msg.id)}

@@ -70,7 +70,10 @@ import {
   adjust_stats_unread,
 } from "@/hooks/use_mail_stats";
 import { MAIL_EVENTS, emit_mail_item_updated } from "@/hooks/mail_events";
-import { adjust_unread_count } from "@/hooks/use_mail_counts";
+import {
+  adjust_unread_count,
+  adjust_starred_count,
+} from "@/hooks/use_mail_counts";
 import {
   bulk_add_folder,
   bulk_remove_folder,
@@ -310,7 +313,6 @@ export function EmailInbox({
     active_category,
     set_active_category,
     filter_by_category,
-    unread_counts: _unread_counts,
     update_unread_counts,
   } = use_categories({
     enabled: preferences.categories_enabled && is_inbox_view,
@@ -788,6 +790,8 @@ export function EmailInbox({
       const new_state = !email.is_starred;
 
       update_email(email.id, { is_starred: new_state });
+      adjust_starred_count(new_state ? 1 : -1);
+
       const result = await update_item_metadata(
         email.id,
         {
@@ -805,6 +809,7 @@ export function EmailInbox({
           action_type: "star",
           email_ids: [email.id],
           on_undo: async () => {
+            adjust_starred_count(new_state ? -1 : 1);
             await update_item_metadata(
               email.id,
               {
@@ -1249,6 +1254,7 @@ export function EmailInbox({
 
   const local_email_index = useMemo(() => {
     if (!split_email_id || visible_ids.length === 0) return -1;
+
     return visible_ids.indexOf(split_email_id);
   }, [split_email_id, visible_ids]);
 
@@ -1259,24 +1265,38 @@ export function EmailInbox({
   const handle_local_navigate_prev = useCallback(() => {
     if (local_can_go_prev) {
       const prev_id = visible_ids[local_email_index - 1];
+
       if (on_navigate_to) {
         on_navigate_to(prev_id);
       } else if (on_email_click) {
         on_email_click(prev_id);
       }
     }
-  }, [local_can_go_prev, local_email_index, visible_ids, on_navigate_to, on_email_click]);
+  }, [
+    local_can_go_prev,
+    local_email_index,
+    visible_ids,
+    on_navigate_to,
+    on_email_click,
+  ]);
 
   const handle_local_navigate_next = useCallback(() => {
     if (local_can_go_next) {
       const next_id = visible_ids[local_email_index + 1];
+
       if (on_navigate_to) {
         on_navigate_to(next_id);
       } else if (on_email_click) {
         on_email_click(next_id);
       }
     }
-  }, [local_can_go_next, local_email_index, visible_ids, on_navigate_to, on_email_click]);
+  }, [
+    local_can_go_next,
+    local_email_index,
+    visible_ids,
+    on_navigate_to,
+    on_email_click,
+  ]);
 
   const { all_selected, some_selected, selected_count } =
     get_selection_state(filtered_emails);
@@ -1984,8 +2004,8 @@ export function EmailInbox({
           on_spam={context_menu_actions.handle_spam}
           on_toggle_pin={context_menu_actions.handle_toggle_pin}
           on_toggle_read={context_menu_actions.handle_toggle_read}
-          on_toggle_star={context_menu_actions.handle_toggle_star}
           on_toggle_select={handle_toggle_select}
+          on_toggle_star={context_menu_actions.handle_toggle_star}
           on_unsnooze={(email) => handle_unsnooze(email.id)}
           pinned_emails={pinned_emails}
           primary_emails={primary_emails}
@@ -2646,10 +2666,10 @@ function EmailList({
         on_toggle_read={
           show_hover_actions ? () => on_toggle_read(email) : undefined
         }
+        on_toggle_select={on_toggle_select}
         on_toggle_star={
           show_hover_actions ? () => on_toggle_star(email) : undefined
         }
-        on_toggle_select={on_toggle_select}
         show_email_preview={show_email_preview}
         show_profile_pictures={show_profile_pictures}
       />

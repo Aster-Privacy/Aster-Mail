@@ -62,8 +62,11 @@ export function ContactCustomFields({
   const [is_loading, set_is_loading] = useState(true);
   const [is_adding, set_is_adding] = useState(false);
   const [new_field_name, set_new_field_name] = useState("");
-  const [new_field_type, set_new_field_type] = useState<CustomFieldType>("text");
-  const [editing_field_id, set_editing_field_id] = useState<string | null>(null);
+  const [new_field_type, set_new_field_type] =
+    useState<CustomFieldType>("text");
+  const [editing_field_id, set_editing_field_id] = useState<string | null>(
+    null,
+  );
   const [editing_value, set_editing_value] = useState("");
   const [saving_field_id, set_saving_field_id] = useState<string | null>(null);
   const [deleting_definition_id, set_deleting_definition_id] = useState<
@@ -75,6 +78,7 @@ export function ContactCustomFields({
     set_is_loading(true);
     try {
       const response = await list_custom_field_definitions();
+
       if (response.data) {
         set_definitions(response.data);
       }
@@ -105,6 +109,7 @@ export function ContactCustomFields({
 
       if (response.error || !response.data) {
         set_error(response.error || "Failed to create field");
+
         return;
       }
 
@@ -128,6 +133,7 @@ export function ContactCustomFields({
 
         if (response.error) {
           set_error(response.error);
+
           return;
         }
 
@@ -136,7 +142,9 @@ export function ContactCustomFields({
           field_values.filter((v) => v.field_definition_id !== definition_id),
         );
       } catch (err) {
-        set_error(err instanceof Error ? err.message : "Failed to delete field");
+        set_error(
+          err instanceof Error ? err.message : "Failed to delete field",
+        );
       } finally {
         set_deleting_definition_id(null);
       }
@@ -149,6 +157,7 @@ export function ContactCustomFields({
       const existing_value = field_values.find(
         (v) => v.field_definition_id === definition.id,
       );
+
       set_editing_field_id(definition.id);
       set_editing_value(existing_value?.value || "");
     },
@@ -171,6 +180,7 @@ export function ContactCustomFields({
 
         if (response.error) {
           set_error(response.error);
+
           return;
         }
 
@@ -180,6 +190,7 @@ export function ContactCustomFields({
 
         if (existing_index >= 0) {
           const updated = [...field_values];
+
           updated[existing_index] = {
             ...updated[existing_index],
             value: editing_value.trim(),
@@ -187,6 +198,7 @@ export function ContactCustomFields({
           on_field_values_change(updated);
         } else {
           const definition = definitions.find((d) => d.id === editing_field_id);
+
           if (definition) {
             on_field_values_change([
               ...field_values,
@@ -206,6 +218,7 @@ export function ContactCustomFields({
         const existing = field_values.find(
           (v) => v.field_definition_id === editing_field_id,
         );
+
         if (existing) {
           await delete_contact_custom_field_value(contact_id, editing_field_id);
           on_field_values_change(
@@ -238,8 +251,10 @@ export function ContactCustomFields({
 
   const get_field_value = useCallback(
     (definition_id: string): string => {
-      return field_values.find((v) => v.field_definition_id === definition_id)
-        ?.value || "";
+      return (
+        field_values.find((v) => v.field_definition_id === definition_id)
+          ?.value || ""
+      );
     },
     [field_values],
   );
@@ -271,10 +286,10 @@ export function ContactCustomFields({
             return (
               <motion.div
                 key={definition.id}
-                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -10 }}
                 className="group"
+                exit={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0, y: -10 }}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs font-medium text-foreground-500">
@@ -285,11 +300,11 @@ export function ContactCustomFields({
                   </span>
                   <div className="flex-1" />
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handle_delete_definition(definition.id)}
-                    disabled={disabled || is_deleting}
                     className="p-1 h-auto opacity-0 group-hover:opacity-100 transition-opacity text-danger hover:bg-danger/10"
+                    disabled={disabled || is_deleting}
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handle_delete_definition(definition.id)}
                   >
                     {is_deleting ? (
                       <div className="w-3 h-3 border-2 border-danger border-t-transparent rounded-full animate-spin" />
@@ -302,23 +317,23 @@ export function ContactCustomFields({
                 {is_editing ? (
                   <div className="flex items-center gap-2">
                     <Input
+                      autoFocus
+                      className="flex-1"
+                      placeholder={`Enter ${definition.name.toLowerCase()}...`}
                       type={FIELD_TYPE_INPUTS[definition.field_type]}
                       value={editing_value}
                       onChange={(e) => set_editing_value(e.target.value)}
-                      placeholder={`Enter ${definition.name.toLowerCase()}...`}
-                      className="flex-1"
-                      autoFocus
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handle_save_value();
                         if (e.key === "Escape") handle_cancel_edit();
                       }}
                     />
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handle_save_value}
-                      disabled={is_saving}
                       className="p-1.5 h-auto text-success hover:bg-success/10"
+                      disabled={is_saving}
+                      size="sm"
+                      variant="ghost"
+                      onClick={handle_save_value}
                     >
                       {is_saving ? (
                         <div className="w-4 h-4 border-2 border-success border-t-transparent rounded-full animate-spin" />
@@ -327,11 +342,11 @@ export function ContactCustomFields({
                       )}
                     </Button>
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handle_cancel_edit}
-                      disabled={is_saving}
                       className="p-1.5 h-auto text-foreground-500 hover:bg-default-100"
+                      disabled={is_saving}
+                      size="sm"
+                      variant="ghost"
+                      onClick={handle_cancel_edit}
                     >
                       <XMarkIcon className="w-4 h-4" />
                     </Button>
@@ -370,20 +385,20 @@ export function ContactCustomFields({
         <p className="text-xs text-foreground-500 mb-3">Add new field type</p>
         <div className="flex items-center gap-2">
           <Input
+            className="flex-1"
+            placeholder="Field name..."
             value={new_field_name}
             onChange={(e) => set_new_field_name(e.target.value)}
-            placeholder="Field name..."
-            className="flex-1"
             onKeyDown={(e) => {
               if (e.key === "Enter") handle_create_definition();
             }}
           />
           <select
+            className="h-9 px-2 rounded-lg border border-divider bg-background text-sm"
             value={new_field_type}
             onChange={(e) =>
               set_new_field_type(e.target.value as CustomFieldType)
             }
-            className="h-9 px-2 rounded-lg border border-divider bg-background text-sm"
           >
             {Object.entries(FIELD_TYPE_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
@@ -392,11 +407,11 @@ export function ContactCustomFields({
             ))}
           </select>
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={handle_create_definition}
-            disabled={!new_field_name.trim() || is_adding}
             className="gap-1.5"
+            disabled={!new_field_name.trim() || is_adding}
+            size="sm"
+            variant="ghost"
+            onClick={handle_create_definition}
           >
             {is_adding ? (
               <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -411,10 +426,10 @@ export function ContactCustomFields({
       <AnimatePresence>
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
             className="flex items-center gap-2 text-xs text-danger"
+            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -10 }}
           >
             <XMarkIcon className="w-4 h-4" />
             {error}

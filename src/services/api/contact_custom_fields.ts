@@ -11,18 +11,22 @@ import { get_contacts_encryption_key } from "./contacts";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
+
   for (let i = 0; i < array.length; i++) {
     binary += String.fromCharCode(array[i]);
   }
+
   return btoa(binary);
 }
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
+
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
+
   return bytes;
 }
 
@@ -110,7 +114,9 @@ export async function create_custom_field_definition(
 export async function delete_custom_field_definition(
   field_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
-  return api_client.delete<{ success: boolean }>(`/contacts/fields/${field_id}`);
+  return api_client.delete<{ success: boolean }>(
+    `/contacts/fields/${field_id}`,
+  );
 }
 
 interface ListFieldValuesResponse {
@@ -131,9 +137,7 @@ export async function list_contact_custom_field_values(
 
   try {
     const key = await get_contacts_encryption_key();
-    const field_map = new Map(
-      field_definitions.map((f) => [f.id, f]),
-    );
+    const field_map = new Map(field_definitions.map((f) => [f.id, f]));
 
     const items = await Promise.all(
       response.data.items.map(async (item) => {

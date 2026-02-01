@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback, useRef, KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { TemplatePicker } from '@/components/compose/template_picker';
-import { CloseIcon } from '@/components/common/icons';
-
+import { TemplatePicker } from "@/components/compose/template_picker";
+import { CloseIcon } from "@/components/common/icons";
 import { Button } from "@/components/ui/button";
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { undo_send_manager } from "@/hooks/use_undo_send";

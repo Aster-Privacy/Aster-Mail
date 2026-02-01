@@ -58,6 +58,10 @@ export function is_astermail_sender(
   );
 }
 
+export function is_system_email(email?: string | null): boolean {
+  return email === "hello@astermail.org";
+}
+
 export function get_email_username(email: string): string {
   return email.split("@")[0] || "";
 }

@@ -16,18 +16,22 @@ import {
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
+
   for (let i = 0; i < array.length; i++) {
     binary += String.fromCharCode(array[i]);
   }
+
   return btoa(binary);
 }
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
+
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
+
   return bytes;
 }
 
@@ -153,6 +157,7 @@ async function generate_search_token(value: string): Promise<string> {
   const combined = new Uint8Array(
     new Uint8Array(raw_key).byteLength + info.length,
   );
+
   combined.set(new Uint8Array(raw_key), 0);
   combined.set(info, new Uint8Array(raw_key).byteLength);
 
@@ -179,7 +184,8 @@ export async function import_vcard(
   const contacts: ImportVCardContact[] = await Promise.all(
     parsed_contacts.map(async (contact) => {
       const contact_token = await generate_contact_token(contact);
-      const { encrypted_data, data_nonce } = await encrypt_contact_data(contact);
+      const { encrypted_data, data_nonce } =
+        await encrypt_contact_data(contact);
 
       const full_name = `${contact.first_name} ${contact.last_name}`.trim();
       const name_search_token = full_name
@@ -212,7 +218,8 @@ export async function import_csv(
   const contacts: ImportVCardContact[] = await Promise.all(
     parsed_contacts.map(async (contact) => {
       const contact_token = await generate_contact_token(contact);
-      const { encrypted_data, data_nonce } = await encrypt_contact_data(contact);
+      const { encrypted_data, data_nonce } =
+        await encrypt_contact_data(contact);
 
       const full_name = `${contact.first_name} ${contact.last_name}`.trim();
       const name_search_token = full_name
@@ -275,12 +282,14 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
       switch (key_upper) {
         case "FN": {
           const parts = value.split(" ");
+
           contact.first_name = parts[0] || "";
           contact.last_name = parts.slice(1).join(" ") || "";
           break;
         }
         case "N": {
           const [last, first] = value.split(";");
+
           if (first) contact.first_name = first;
           if (last) contact.last_name = last;
           break;
@@ -322,13 +331,18 @@ export function parse_csv(
   field_mapping: Record<string, keyof ContactFormData | null>,
 ): ContactFormData[] {
   const lines = csv_data.split(/\r?\n/).filter(Boolean);
+
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
+  const headers = lines[0]
+    .split(",")
+    .map((h) => h.trim().replace(/^"|"$/g, ""));
   const contacts: ContactFormData[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
+    const values = lines[i]
+      .split(",")
+      .map((v) => v.trim().replace(/^"|"$/g, ""));
     const contact: ContactFormData = {
       first_name: "",
       last_name: "",

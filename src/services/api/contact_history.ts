@@ -10,17 +10,21 @@ import { get_contacts_encryption_key } from "./contacts";
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
+
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
+
   return bytes;
 }
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
+
   for (let i = 0; i < array.length; i++) {
     binary += String.fromCharCode(array[i]);
   }
+
   return btoa(binary);
 }
 
@@ -36,6 +40,7 @@ export async function get_contact_history(
   limit?: number,
 ): Promise<ApiResponse<DecryptedHistoryResponse>> {
   const params = new URLSearchParams();
+
   if (cursor) params.set("cursor", cursor);
   if (limit) params.set("limit", limit.toString());
 
@@ -59,6 +64,7 @@ export async function get_contact_history(
               key,
               base64_to_array(item.encrypted_subject),
             );
+
             subject = new TextDecoder().decode(decrypted);
           } catch {
             subject = undefined;
@@ -114,6 +120,7 @@ export async function log_contact_activity(
       key,
       new TextEncoder().encode(subject),
     );
+
     encrypted_subject = array_to_base64(new Uint8Array(encrypted));
     subject_nonce = array_to_base64(nonce);
   }

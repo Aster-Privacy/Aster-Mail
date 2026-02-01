@@ -31,6 +31,7 @@ const MAX_FILE_SIZE = 25 * 1024 * 1024;
 function format_file_size(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
@@ -43,6 +44,7 @@ function get_file_icon_color(mime_type: string): string {
     return "text-blue-500";
   if (mime_type.includes("sheet") || mime_type.includes("excel"))
     return "text-emerald-500";
+
   return "text-foreground-500";
 }
 
@@ -65,6 +67,7 @@ export function ContactAttachmentsPanel({
 
       if (file.size > MAX_FILE_SIZE) {
         set_error("File must be smaller than 25MB");
+
         return;
       }
 
@@ -75,6 +78,7 @@ export function ContactAttachmentsPanel({
 
         if (response.error || !response.data) {
           set_error(response.error || "Failed to upload attachment");
+
           return;
         }
 
@@ -110,6 +114,7 @@ export function ContactAttachmentsPanel({
       set_drag_active(false);
 
       const file = e.dataTransfer.files[0];
+
       if (file) {
         handle_file_select(file);
       }
@@ -140,15 +145,19 @@ export function ContactAttachmentsPanel({
 
         if (response.error) {
           set_error(response.error);
+
           return;
         }
 
         const attachment = attachments.find((a) => a.id === attachment_id);
+
         if (attachment?.blob_url) {
           URL.revokeObjectURL(attachment.blob_url);
         }
 
-        on_attachments_change(attachments.filter((a) => a.id !== attachment_id));
+        on_attachments_change(
+          attachments.filter((a) => a.id !== attachment_id),
+        );
       } catch (err) {
         set_error(err instanceof Error ? err.message : "Delete failed");
       } finally {
@@ -179,6 +188,7 @@ export function ContactAttachmentsPanel({
   const handle_input_change = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
+
       if (file) {
         handle_file_select(file);
       }
@@ -196,11 +206,11 @@ export function ContactAttachmentsPanel({
           Attachments
         </label>
         <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => input_ref.current?.click()}
-          disabled={disabled || is_uploading}
           className="gap-1.5"
+          disabled={disabled || is_uploading}
+          size="sm"
+          variant="ghost"
+          onClick={() => input_ref.current?.click()}
         >
           <ArrowUpTrayIcon className="w-4 h-4" />
           Add File
@@ -246,10 +256,10 @@ export function ContactAttachmentsPanel({
               {attachments.map((attachment) => (
                 <motion.div
                   key={attachment.id}
-                  initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
                   className="flex items-center gap-3 p-2 rounded-lg bg-default-100 group"
+                  exit={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, y: -10 }}
                 >
                   <DocumentIcon
                     className={cn(
@@ -267,11 +277,11 @@ export function ContactAttachmentsPanel({
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handle_download(attachment)}
-                      disabled={downloading_id === attachment.id}
                       className="p-1.5 h-auto"
+                      disabled={downloading_id === attachment.id}
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handle_download(attachment)}
                     >
                       {downloading_id === attachment.id ? (
                         <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -280,11 +290,11 @@ export function ContactAttachmentsPanel({
                       )}
                     </Button>
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handle_delete(attachment.id)}
-                      disabled={disabled || deleting_id === attachment.id}
                       className="p-1.5 h-auto text-danger hover:bg-danger/10"
+                      disabled={disabled || deleting_id === attachment.id}
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handle_delete(attachment.id)}
                     >
                       {deleting_id === attachment.id ? (
                         <div className="w-4 h-4 border-2 border-danger border-t-transparent rounded-full animate-spin" />
@@ -299,9 +309,9 @@ export function ContactAttachmentsPanel({
 
             {is_uploading && (
               <motion.div
-                initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="flex items-center justify-center p-3"
+                initial={{ opacity: 0 }}
               >
                 <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 <span className="ml-2 text-sm text-foreground-500">
@@ -315,19 +325,19 @@ export function ContactAttachmentsPanel({
 
       <input
         ref={input_ref}
-        type="file"
         className="hidden"
-        onChange={handle_input_change}
         disabled={disabled || is_uploading}
+        type="file"
+        onChange={handle_input_change}
       />
 
       <AnimatePresence>
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
             className="flex items-center gap-2 text-xs text-danger"
+            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -10 }}
           >
             <XMarkIcon className="w-4 h-4" />
             {error}

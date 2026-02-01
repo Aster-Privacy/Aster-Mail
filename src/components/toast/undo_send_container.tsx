@@ -1,8 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { AnimatePresence } from "framer-motion";
 
-import { UndoSendToast } from '@/components/toast/undo_send_toast';
-
+import { UndoSendToast } from "@/components/toast/undo_send_toast";
 import { use_undo_send } from "@/hooks/use_undo_send";
 import { is_mac_platform } from "@/lib/utils";
 

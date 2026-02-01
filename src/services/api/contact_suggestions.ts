@@ -14,9 +14,11 @@ import {
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
+
   for (let i = 0; i < array.length; i++) {
     binary += String.fromCharCode(array[i]);
   }
+
   return btoa(binary);
 }
 
@@ -33,6 +35,7 @@ async function generate_search_token(value: string): Promise<string> {
   const combined = new Uint8Array(
     new Uint8Array(raw_key).byteLength + info.length,
   );
+
   combined.set(new Uint8Array(raw_key), 0);
   combined.set(info, new Uint8Array(raw_key).byteLength);
 
@@ -58,6 +61,7 @@ export async function get_contact_suggestions(
 ): Promise<ApiResponse<DecryptedRecentContact[]>> {
   const search_token = await generate_search_token(query);
   const params = new URLSearchParams();
+
   params.set("q", search_token);
   if (limit) params.set("limit", limit.toString());
 
@@ -114,6 +118,7 @@ export async function get_recent_contacts(
   limit?: number,
 ): Promise<ApiResponse<DecryptedRecentContact[]>> {
   const params = new URLSearchParams();
+
   params.set("q", "");
   if (limit) params.set("limit", limit.toString());
 

@@ -45,11 +45,13 @@ export function ContactPhotoUpload({
 
       if (!ACCEPTED_TYPES.includes(file.type)) {
         set_error("Please select a JPEG, PNG, WebP, or GIF image");
+
         return;
       }
 
       if (file.size > MAX_FILE_SIZE) {
         set_error("Image must be smaller than 10MB");
+
         return;
       }
 
@@ -60,6 +62,7 @@ export function ContactPhotoUpload({
 
         if (response.error || !response.data) {
           set_error(response.error || "Failed to upload photo");
+
           return;
         }
 
@@ -92,6 +95,7 @@ export function ContactPhotoUpload({
       set_drag_active(false);
 
       const file = e.dataTransfer.files[0];
+
       if (file) {
         handle_file_select(file);
       }
@@ -120,6 +124,7 @@ export function ContactPhotoUpload({
 
       if (response.error) {
         set_error(response.error);
+
         return;
       }
 
@@ -138,6 +143,7 @@ export function ContactPhotoUpload({
   const handle_input_change = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
+
       if (file) {
         handle_file_select(file);
       }
@@ -158,26 +164,26 @@ export function ContactPhotoUpload({
         <div className="relative group">
           <div className="relative w-32 h-32 rounded-xl overflow-hidden border-2 border-divider">
             <img
-              src={current_photo.blob_url}
               alt="Contact photo"
               className="w-full h-full object-cover"
+              src={current_photo.blob_url}
             />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <Button
-                variant="ghost"
-                size="sm"
                 className="text-white hover:bg-white/20"
-                onClick={() => input_ref.current?.click()}
                 disabled={disabled || is_uploading}
+                size="sm"
+                variant="ghost"
+                onClick={() => input_ref.current?.click()}
               >
                 <ArrowUpTrayIcon className="w-5 h-5" />
               </Button>
               <Button
-                variant="ghost"
-                size="sm"
                 className="text-white hover:bg-white/20"
-                onClick={handle_delete}
                 disabled={disabled || is_deleting}
+                size="sm"
+                variant="ghost"
+                onClick={handle_delete}
               >
                 <TrashIcon className="w-5 h-5" />
               </Button>
@@ -198,11 +204,11 @@ export function ContactPhotoUpload({
               : "border-divider hover:border-primary/50",
             disabled && "opacity-50 cursor-not-allowed",
           )}
+          onClick={() => !disabled && input_ref.current?.click()}
           onDragEnter={handle_drag}
           onDragLeave={handle_drag}
           onDragOver={handle_drag}
           onDrop={handle_drop}
-          onClick={() => !disabled && input_ref.current?.click()}
         >
           <div className="absolute inset-0 flex flex-col items-center justify-center text-foreground-500">
             {is_uploading ? (
@@ -221,20 +227,20 @@ export function ContactPhotoUpload({
 
       <input
         ref={input_ref}
-        type="file"
         accept={ACCEPTED_TYPES.join(",")}
         className="hidden"
-        onChange={handle_input_change}
         disabled={disabled || is_uploading}
+        type="file"
+        onChange={handle_input_change}
       />
 
       <AnimatePresence>
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
             className="flex items-center gap-2 text-xs text-danger"
+            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -10 }}
           >
             <XMarkIcon className="w-4 h-4" />
             {error}

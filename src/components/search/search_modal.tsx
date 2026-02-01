@@ -17,7 +17,6 @@ import { CustomCheckbox } from "@/components/common/custom_checkbox";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { format_relative_time } from "@/utils/date_utils";

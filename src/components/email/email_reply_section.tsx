@@ -15,6 +15,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { is_system_email } from "@/lib/utils";
 
 const ASTER_FOOTER =
   '<br><br><span style="color: var(--text-tertiary); font-size: 12px;">Secured by <a href="https://astermail.org" target="_blank" rel="noopener noreferrer" style="color: #3b82f6;">Aster Mail</a></span>';
@@ -100,6 +101,7 @@ export function EmailReplySection({
     if (!reply_text.trim() || send_state !== "idle") return;
 
     const now = Date.now();
+
     if (now - last_send_time_ref.current < 2000) return;
 
     is_sending_ref.current = true;
@@ -205,13 +207,28 @@ export function EmailReplySection({
     >
       {!show_reply_menu ? (
         <motion.button
-          className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
-          whileHover={{
-            scale: 1.02,
-            boxShadow: "0 8px 16px rgba(59, 130, 246, 0.3)",
+          className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg shadow-md transition-shadow duration-200"
+          disabled={is_system_email(email.sender.email)}
+          style={{
+            opacity: is_system_email(email.sender.email) ? 0.6 : 1,
+            cursor: is_system_email(email.sender.email)
+              ? "not-allowed"
+              : "pointer",
           }}
-          whileTap={{ scale: 0.96 }}
-          onClick={() => set_show_reply_menu(true)}
+          whileHover={
+            is_system_email(email.sender.email)
+              ? {}
+              : {
+                  scale: 1.02,
+                  boxShadow: "0 8px 16px rgba(59, 130, 246, 0.3)",
+                }
+          }
+          whileTap={is_system_email(email.sender.email) ? {} : { scale: 0.96 }}
+          onClick={
+            is_system_email(email.sender.email)
+              ? undefined
+              : () => set_show_reply_menu(true)
+          }
         >
           Reply
         </motion.button>

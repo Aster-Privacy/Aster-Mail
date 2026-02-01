@@ -3,8 +3,7 @@ import type { DraftType } from "@/services/api/multi_drafts";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { ComposeWindow } from '@/components/compose/compose_window';
-
+import { ComposeWindow } from "@/components/compose/compose_window";
 import { show_toast } from "@/components/toast/simple_toast";
 
 const MAX_COMPOSE_INSTANCES = 3;

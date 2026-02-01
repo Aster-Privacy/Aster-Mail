@@ -1,4 +1,4 @@
-import type { EditDraftData } from '@/components/compose/compose_manager';
+import type { EditDraftData } from "@/components/compose/compose_manager";
 
 import { useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -27,16 +27,15 @@ import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 
-import { ShareModal } from '@/components/modals/share_modal';
-import { CreateFolderModal } from '@/components/folders/create_folder_modal';
-import { KeyboardShortcutBadge } from '@/components/common/keyboard_shortcut_badge';
-import { FolderManagementModal } from '@/components/folders/folder_management_modal';
-import { FolderPasswordModal } from '@/components/folders/folder_password_modal';
-import { FolderContextMenu } from '@/components/folders/folder_context_menu';
-import { ContactsModal } from '@/components/modals/contacts_modal';
-import { InviteFriendsModal } from '@/components/modals/invite_friends_modal';
-import { WorkspaceSwitcher } from '@/components/layout/workspace_switcher';
-
+import { ShareModal } from "@/components/modals/share_modal";
+import { CreateFolderModal } from "@/components/folders/create_folder_modal";
+import { KeyboardShortcutBadge } from "@/components/common/keyboard_shortcut_badge";
+import { FolderManagementModal } from "@/components/folders/folder_management_modal";
+import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
+import { FolderContextMenu } from "@/components/folders/folder_context_menu";
+import { ContactsModal } from "@/components/modals/contacts_modal";
+import { InviteFriendsModal } from "@/components/modals/invite_friends_modal";
+import { WorkspaceSwitcher } from "@/components/layout/workspace_switcher";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_auth } from "@/contexts/auth_context";

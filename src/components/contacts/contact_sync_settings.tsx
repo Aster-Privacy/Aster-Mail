@@ -34,6 +34,7 @@ interface ContactSyncSettingsProps {
 function format_date(date_string?: string): string {
   if (!date_string) return "Never";
   const date = new Date(date_string);
+
   return date.toLocaleString([], {
     month: "short",
     day: "numeric",
@@ -85,6 +86,7 @@ export function ContactSyncSettings({
 
       if (response.error || !response.data) {
         set_error(response.error || "Failed to load sync sources");
+
         return;
       }
 
@@ -101,8 +103,13 @@ export function ContactSyncSettings({
   }, [load_sources]);
 
   const handle_add_source = useCallback(async () => {
-    if (!new_source.server_url || !new_source.username || !new_source.password) {
+    if (
+      !new_source.server_url ||
+      !new_source.username ||
+      !new_source.password
+    ) {
       set_error("Please fill in all required fields");
+
       return;
     }
 
@@ -114,6 +121,7 @@ export function ContactSyncSettings({
 
       if (response.error || !response.data) {
         set_error(response.error || "Failed to add sync source");
+
         return;
       }
 
@@ -141,6 +149,7 @@ export function ContactSyncSettings({
 
       if (response.error) {
         set_error(response.error);
+
         return;
       }
 
@@ -161,12 +170,15 @@ export function ContactSyncSettings({
 
       if (response.error || !response.data) {
         set_error(response.error || "Failed to toggle source");
+
         return;
       }
 
       set_sources((prev) =>
         prev.map((s) =>
-          s.id === source_id ? { ...s, is_enabled: response.data!.is_enabled } : s,
+          s.id === source_id
+            ? { ...s, is_enabled: response.data!.is_enabled }
+            : s,
         ),
       );
     } catch (err) {
@@ -186,6 +198,7 @@ export function ContactSyncSettings({
 
         if (response.error) {
           set_error(response.error);
+
           return;
         }
 
@@ -216,10 +229,10 @@ export function ContactSyncSettings({
           <h3 className="text-sm font-medium">Contact Sync</h3>
         </div>
         <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => set_show_add_form(!show_add_form)}
           className="gap-1.5"
+          size="sm"
+          variant="ghost"
+          onClick={() => set_show_add_form(!show_add_form)}
         >
           <PlusIcon className="w-4 h-4" />
           Add CardDAV
@@ -234,10 +247,10 @@ export function ContactSyncSettings({
       <AnimatePresence>
         {show_add_form && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
             className="p-4 rounded-xl border border-divider bg-default-50 space-y-3"
+            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, height: 0 }}
           >
             <div className="flex items-center gap-2 mb-2">
               <ServerIcon className="w-4 h-4 text-primary" />
@@ -245,7 +258,9 @@ export function ContactSyncSettings({
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm text-foreground-500">Display Name</label>
+              <label className="text-sm text-foreground-500">
+                Display Name
+              </label>
               <Input
                 placeholder="My Nextcloud"
                 value={new_source.display_name || ""}
@@ -289,8 +304,8 @@ export function ContactSyncSettings({
             <div className="space-y-1 relative">
               <label className="text-sm text-foreground-500">Password</label>
               <Input
-                type={show_password ? "text" : "password"}
                 placeholder="App password or regular password"
+                type={show_password ? "text" : "password"}
                 value={new_source.password}
                 onChange={(e) =>
                   set_new_source((prev) => ({
@@ -300,8 +315,8 @@ export function ContactSyncSettings({
                 }
               />
               <button
-                type="button"
                 className="absolute right-2 top-8 p-1 text-foreground-400 hover:text-foreground-600"
+                type="button"
                 onClick={() => set_show_password(!show_password)}
               >
                 {show_password ? (
@@ -314,17 +329,17 @@ export function ContactSyncSettings({
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <Button
-                variant="ghost"
                 size="sm"
+                variant="ghost"
                 onClick={() => set_show_add_form(false)}
               >
                 Cancel
               </Button>
               <Button
-                variant="primary"
-                size="sm"
-                onClick={handle_add_source}
                 disabled={is_adding}
+                size="sm"
+                variant="primary"
+                onClick={handle_add_source}
               >
                 {is_adding ? (
                   <>
@@ -343,10 +358,10 @@ export function ContactSyncSettings({
       <AnimatePresence>
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
             className="p-3 rounded-lg bg-danger/10 text-danger text-sm flex items-center gap-2"
+            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -10 }}
           >
             <ExclamationTriangleIcon className="w-4 h-4" />
             {error}
@@ -357,7 +372,9 @@ export function ContactSyncSettings({
       {sources.length === 0 ? (
         <div className="text-center py-8 bg-default-50 rounded-xl">
           <CloudArrowDownIcon className="w-10 h-10 mx-auto text-foreground-300 mb-3" />
-          <p className="text-sm text-foreground-500">No sync sources configured</p>
+          <p className="text-sm text-foreground-500">
+            No sync sources configured
+          </p>
           <p className="text-xs text-foreground-400 mt-1">
             Add a CardDAV server to sync contacts
           </p>
@@ -368,15 +385,15 @@ export function ContactSyncSettings({
             {sources.map((source) => (
               <motion.div
                 key={source.id}
-                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
                 className={cn(
                   "p-4 rounded-xl border transition-colors",
                   source.is_enabled
                     ? "border-divider bg-background"
                     : "border-divider bg-default-50 opacity-60",
                 )}
+                exit={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, y: -10 }}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -408,11 +425,11 @@ export function ContactSyncSettings({
 
                   <div className="flex items-center gap-1">
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handle_toggle_source(source.id)}
-                      disabled={toggling_id === source.id}
                       className="p-1.5"
+                      disabled={toggling_id === source.id}
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handle_toggle_source(source.id)}
                     >
                       {toggling_id === source.id ? (
                         <div className="w-4 h-4 border-2 border-foreground-500 border-t-transparent rounded-full animate-spin" />
@@ -423,11 +440,11 @@ export function ContactSyncSettings({
                       )}
                     </Button>
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handle_sync(source.id)}
-                      disabled={syncing_id === source.id || !source.is_enabled}
                       className="p-1.5"
+                      disabled={syncing_id === source.id || !source.is_enabled}
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handle_sync(source.id)}
                     >
                       {syncing_id === source.id ? (
                         <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -436,11 +453,11 @@ export function ContactSyncSettings({
                       )}
                     </Button>
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handle_delete_source(source.id)}
-                      disabled={deleting_id === source.id}
                       className="p-1.5 text-danger hover:bg-danger/10"
+                      disabled={deleting_id === source.id}
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handle_delete_source(source.id)}
                     >
                       {deleting_id === source.id ? (
                         <div className="w-4 h-4 border-2 border-danger border-t-transparent rounded-full animate-spin" />
