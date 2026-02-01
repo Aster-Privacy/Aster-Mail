@@ -1393,12 +1393,14 @@ export function FullEmailViewer({
                     </div>
                   </PopoverContent>
                 </Popover>
-                {(mail_item?.thread_message_count ?? thread_messages.length) > 1 && (
+                {(mail_item?.thread_message_count ?? thread_messages.length) >
+                  1 && (
                   <span
                     className="text-xs"
                     style={{ color: "var(--text-muted)" }}
                   >
-                    {mail_item?.thread_message_count ?? thread_messages.length} messages
+                    {mail_item?.thread_message_count ?? thread_messages.length}{" "}
+                    messages
                   </span>
                 )}
               </div>

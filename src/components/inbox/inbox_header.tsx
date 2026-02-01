@@ -38,7 +38,7 @@ import { SearchModal } from "@/components/search/search_modal";
 import { SenderActionModal } from "@/components/modals/sender_action_modal";
 import { MassUnsubscribeModal } from "@/components/modals/mass_unsubscribe_modal";
 import { SnoozeSimilarModal } from "@/components/modals/snooze_similar_modal";
-import { list_mail_items, bulk_update_metadata } from "@/services/api/mail";
+import { list_mail_items, bulk_patch_metadata } from "@/services/api/mail";
 import { encrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -278,9 +278,7 @@ export function InboxHeader({
               const updated_metadata = { ...current_metadata, is_read: true };
               const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-              return encrypted
-                ? { id: item.id, ...encrypted, is_read: true }
-                : null;
+              return encrypted ? { id: item.id, ...encrypted } : null;
             }),
           );
 
@@ -290,11 +288,10 @@ export function InboxHeader({
             id: string;
             encrypted_metadata: string;
             metadata_nonce: string;
-            is_read?: boolean;
           }>;
 
           if (valid_updates.length > 0) {
-            await bulk_update_metadata({ items: valid_updates });
+            await bulk_patch_metadata({ items: valid_updates });
           }
 
           show_action_toast({
@@ -326,9 +323,7 @@ export function InboxHeader({
                   const encrypted =
                     await encrypt_mail_metadata(updated_metadata);
 
-                  return encrypted
-                    ? { id: item.id, ...encrypted, is_read: false }
-                    : null;
+                  return encrypted ? { id: item.id, ...encrypted } : null;
                 }),
               );
 
@@ -338,11 +333,10 @@ export function InboxHeader({
                 id: string;
                 encrypted_metadata: string;
                 metadata_nonce: string;
-                is_read?: boolean;
               }>;
 
               if (valid_undo_updates.length > 0) {
-                await bulk_update_metadata({ items: valid_undo_updates });
+                await bulk_patch_metadata({ items: valid_undo_updates });
               }
 
               window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
@@ -388,9 +382,7 @@ export function InboxHeader({
               };
               const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-              return encrypted
-                ? { id: item.id, ...encrypted, is_trashed: true }
-                : null;
+              return encrypted ? { id: item.id, ...encrypted } : null;
             }),
           );
 
@@ -400,13 +392,12 @@ export function InboxHeader({
             id: string;
             encrypted_metadata: string;
             metadata_nonce: string;
-            is_trashed?: boolean;
           }>;
 
           emit_mail_items_removed({ ids: old_items.map((item) => item.id) });
 
           if (valid_updates.length > 0) {
-            await bulk_update_metadata({ items: valid_updates });
+            await bulk_patch_metadata({ items: valid_updates });
           }
 
           show_action_toast({
@@ -436,9 +427,7 @@ export function InboxHeader({
                   const encrypted =
                     await encrypt_mail_metadata(updated_metadata);
 
-                  return encrypted
-                    ? { id: item.id, ...encrypted, is_trashed: false }
-                    : null;
+                  return encrypted ? { id: item.id, ...encrypted } : null;
                 }),
               );
 
@@ -448,11 +437,10 @@ export function InboxHeader({
                 id: string;
                 encrypted_metadata: string;
                 metadata_nonce: string;
-                is_trashed?: boolean;
               }>;
 
               if (valid_undo_updates.length > 0) {
-                await bulk_update_metadata({ items: valid_undo_updates });
+                await bulk_patch_metadata({ items: valid_undo_updates });
               }
 
               window.dispatchEvent(new CustomEvent("astermail:mail-changed"));

@@ -5,7 +5,7 @@ import {
   get_migration_status,
   start_migration,
   complete_migration,
-  bulk_update_metadata,
+  bulk_patch_metadata,
   type MailItem,
 } from "@/services/api/mail";
 import { encrypt_mail_metadata } from "@/services/crypto/mail_metadata";
@@ -159,7 +159,7 @@ export async function run_metadata_migration(
         const encrypted_batch = await encrypt_batch(items_to_encrypt);
 
         if (encrypted_batch.length > 0) {
-          const update_response = await bulk_update_metadata({
+          const update_response = await bulk_patch_metadata({
             items: encrypted_batch,
           });
 
@@ -224,7 +224,7 @@ export async function migrate_single_item(item: MailItem): Promise<boolean> {
     return false;
   }
 
-  const response = await bulk_update_metadata({
+  const response = await bulk_patch_metadata({
     items: [
       {
         id: item.id,

@@ -209,6 +209,8 @@ export interface MailItemMetadata {
   snoozed_until?: string;
   trashed_at?: string;
   message_ts: string;
+  created_at?: string;
+  updated_at?: string;
   item_type: string;
   email_category?: EmailCategory;
   category_confidence?: number;

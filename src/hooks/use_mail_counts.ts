@@ -1,6 +1,9 @@
 /**
  * @deprecated This hook is deprecated. Use `use_mail_stats` instead.
  * This file will be removed in a future version.
+ *
+ * This hook now acts as a thin wrapper around use_mail_stats for backwards
+ * compatibility. All counting is now done client-side by decrypting metadata.
  */
 
 import type { InboxEmail } from "@/types/email";
@@ -8,14 +11,34 @@ import type { InboxEmail } from "@/types/email";
 import { useState, useEffect, useCallback, useRef } from "react";
 
 import { MAIL_EVENTS } from "./mail_events";
-
 import {
-  get_mail_stats,
-  type MailUserStatsResponse as MailStats,
-} from "@/services/api/mail";
+  adjust_stats_inbox,
+  adjust_stats_unread,
+  adjust_stats_trash,
+  adjust_stats_sent,
+  adjust_stats_starred,
+  invalidate_mail_stats,
+} from "./use_mail_stats";
 
-const CACHE_TTL_MS = 30_000;
-const REFETCH_DEBOUNCE_MS = 500;
+export interface MailStats {
+  total_items: number;
+  inbox: number;
+  unread: number;
+  starred: number;
+  sent: number;
+  drafts: number;
+  scheduled: number;
+  archived: number;
+  spam: number;
+  trash: number;
+  storage_used_bytes: number;
+  storage_total_bytes: number;
+}
+
+interface MailCountsState {
+  counts: MailStats;
+  is_loading: boolean;
+}
 
 const EMPTY_STATS: MailStats = {
   total_items: 0,
@@ -32,10 +55,8 @@ const EMPTY_STATS: MailStats = {
   storage_total_bytes: 1024 * 1024 * 1024,
 };
 
-interface MailCountsState {
-  counts: MailStats;
-  is_loading: boolean;
-}
+const CACHE_TTL_MS = 30_000;
+const REFETCH_DEBOUNCE_MS = 500;
 
 interface Cache {
   data: MailStats;
@@ -45,7 +66,6 @@ interface Cache {
 
 const cache: Cache = { data: EMPTY_STATS, timestamp: 0, fetching: false };
 const subscribers = new Set<() => void>();
-let active_request: Promise<MailStats | null> | null = null;
 let refetch_timeout: ReturnType<typeof setTimeout> | null = null;
 
 function broadcast(): void {
@@ -57,6 +77,7 @@ export function adjust_unread_count(delta: number): void {
     ...cache.data,
     unread: Math.max(0, cache.data.unread + delta),
   };
+  adjust_stats_unread(delta);
   broadcast();
 }
 
@@ -65,6 +86,7 @@ export function adjust_inbox_count(delta: number): void {
     ...cache.data,
     inbox: Math.max(0, cache.data.inbox + delta),
   };
+  adjust_stats_inbox(delta);
   broadcast();
 }
 
@@ -73,6 +95,7 @@ export function adjust_trash_count(delta: number): void {
     ...cache.data,
     trash: Math.max(0, cache.data.trash + delta),
   };
+  adjust_stats_trash(delta);
   broadcast();
 }
 
@@ -81,6 +104,7 @@ export function adjust_sent_count(delta: number): void {
     ...cache.data,
     sent: Math.max(0, cache.data.sent + delta),
   };
+  adjust_stats_sent(delta);
   broadcast();
 }
 
@@ -89,6 +113,7 @@ export function adjust_starred_count(delta: number): void {
     ...cache.data,
     starred: Math.max(0, cache.data.starred + delta),
   };
+  adjust_stats_starred(delta);
   broadcast();
 }
 
@@ -175,40 +200,13 @@ function debounced_refetch(): void {
   refetch_timeout = setTimeout(() => {
     refetch_timeout = null;
     cache.timestamp = 0;
-    fetch_stats();
+    invalidate_mail_stats();
   }, REFETCH_DEBOUNCE_MS);
-}
-
-async function fetch_stats(): Promise<MailStats | null> {
-  if (cache.fetching && active_request) {
-    return active_request;
-  }
-
-  cache.fetching = true;
-  broadcast();
-
-  active_request = get_mail_stats()
-    .then((res) => {
-      if (res.data) {
-        cache.data = res.data;
-        cache.timestamp = Date.now();
-      }
-
-      return cache.data;
-    })
-    .catch(() => cache.data)
-    .finally(() => {
-      cache.fetching = false;
-      active_request = null;
-      broadcast();
-    });
-
-  return active_request;
 }
 
 export function invalidate_mail_counts(): void {
   cache.timestamp = 0;
-  fetch_stats();
+  invalidate_mail_stats();
 }
 
 export function use_mail_counts(): MailCountsState {
@@ -230,7 +228,7 @@ export function use_mail_counts(): MailCountsState {
     set_state({ counts: cache.data, is_loading: false });
 
     if (Date.now() - cache.timestamp > CACHE_TTL_MS) {
-      fetch_stats();
+      invalidate_mail_stats();
     }
 
     return () => {

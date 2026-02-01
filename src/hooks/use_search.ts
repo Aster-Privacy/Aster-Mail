@@ -2,6 +2,7 @@ import type {
   InboxEmail,
   DecryptedEnvelope,
   MailItemType,
+  MailItemMetadata,
 } from "@/types/email";
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
@@ -33,6 +34,7 @@ import {
   base64_to_array,
 } from "@/services/crypto/envelope";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import {
   secure_store,
   secure_retrieve,
@@ -670,6 +672,7 @@ export function extract_query_terms(query: string): string[] {
 function mail_item_to_search_result(
   item: MailItem,
   envelope: DecryptedEnvelope | null,
+  metadata: MailItemMetadata | null,
   score: number = 0,
   matched_fields: SearchField[] = [],
 ): SearchResultItem {
@@ -678,6 +681,8 @@ function mail_item_to_search_result(
     name: f.name,
     color: f.color,
   }));
+
+  const effective_metadata = metadata ?? item.metadata;
 
   if (!envelope) {
     return {
@@ -688,14 +693,14 @@ function mail_item_to_search_result(
       subject: "Encrypted message",
       preview: "Unable to decrypt message preview",
       timestamp: format_timestamp(new Date(item.created_at)),
-      is_pinned: item.metadata?.is_pinned ?? false,
-      is_starred: item.metadata?.is_starred ?? false,
+      is_pinned: effective_metadata?.is_pinned ?? false,
+      is_starred: effective_metadata?.is_starred ?? false,
       is_selected: false,
-      is_read: item.metadata?.is_read ?? false,
-      is_trashed: item.metadata?.is_trashed ?? false,
-      is_archived: item.metadata?.is_archived ?? false,
-      is_spam: item.metadata?.is_spam ?? false,
-      has_attachment: item.metadata?.has_attachments ?? false,
+      is_read: effective_metadata?.is_read ?? false,
+      is_trashed: effective_metadata?.is_trashed ?? false,
+      is_archived: effective_metadata?.is_archived ?? false,
+      is_spam: effective_metadata?.is_spam ?? false,
+      has_attachment: effective_metadata?.has_attachments ?? false,
       category: "",
       category_color: "",
       avatar_url: "",
@@ -714,14 +719,14 @@ function mail_item_to_search_result(
     subject: envelope.subject || "(No subject)",
     preview: strip_html_tags(envelope.body_text).substring(0, 200),
     timestamp: format_timestamp(new Date(envelope.sent_at || item.created_at)),
-    is_pinned: item.metadata?.is_pinned ?? false,
-    is_starred: item.metadata?.is_starred ?? false,
+    is_pinned: effective_metadata?.is_pinned ?? false,
+    is_starred: effective_metadata?.is_starred ?? false,
     is_selected: false,
-    is_read: item.metadata?.is_read ?? false,
-    is_trashed: item.metadata?.is_trashed ?? false,
-    is_archived: item.metadata?.is_archived ?? false,
-    is_spam: item.metadata?.is_spam ?? false,
-    has_attachment: item.metadata?.has_attachments ?? false,
+    is_read: effective_metadata?.is_read ?? false,
+    is_trashed: effective_metadata?.is_trashed ?? false,
+    is_archived: effective_metadata?.is_archived ?? false,
+    is_spam: effective_metadata?.is_spam ?? false,
+    has_attachment: effective_metadata?.has_attachments ?? false,
     category: "Personal",
     category_color:
       "bg-blue-100 text-blue-700 border border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-500",
@@ -1015,16 +1020,23 @@ export function use_search(): UseSearchReturn {
             return null;
           }
 
-          const envelope = await decrypt_mail_envelope(
-            item.encrypted_envelope,
-            item.envelope_nonce,
-          );
+          const [envelope, metadata] = await Promise.all([
+            decrypt_mail_envelope(item.encrypted_envelope, item.envelope_nonce),
+            item.encrypted_metadata && item.metadata_nonce
+              ? decrypt_mail_metadata(
+                  item.encrypted_metadata,
+                  item.metadata_nonce,
+                  item.metadata_version,
+                )
+              : Promise.resolve(null),
+          ]);
 
           const worker_result = worker_result_map.get(mail_id);
 
           return mail_item_to_search_result(
             item,
             envelope,
+            metadata,
             worker_result?.score || 0,
             worker_result?.matched_fields || [],
           );
@@ -1075,10 +1087,19 @@ export function use_search(): UseSearchReturn {
 
               if (!item) continue;
 
-              const envelope = await decrypt_mail_envelope(
-                item.encrypted_envelope,
-                item.envelope_nonce,
-              );
+              const [envelope, metadata] = await Promise.all([
+                decrypt_mail_envelope(
+                  item.encrypted_envelope,
+                  item.envelope_nonce,
+                ),
+                item.encrypted_metadata && item.metadata_nonce
+                  ? decrypt_mail_metadata(
+                      item.encrypted_metadata,
+                      item.metadata_nonce,
+                      item.metadata_version,
+                    )
+                  : Promise.resolve(null),
+              ]);
 
               const worker_result = worker_result_map.get(mail_id);
 
@@ -1086,6 +1107,7 @@ export function use_search(): UseSearchReturn {
                 mail_item_to_search_result(
                   item,
                   envelope,
+                  metadata,
                   worker_result?.score || 0,
                   worker_result?.matched_fields || [],
                 ),
@@ -1442,10 +1464,19 @@ export function use_search(): UseSearchReturn {
 
               if (!item) continue;
 
-              const envelope = await decrypt_mail_envelope(
-                item.encrypted_envelope,
-                item.envelope_nonce,
-              );
+              const [envelope, metadata] = await Promise.all([
+                decrypt_mail_envelope(
+                  item.encrypted_envelope,
+                  item.envelope_nonce,
+                ),
+                item.encrypted_metadata && item.metadata_nonce
+                  ? decrypt_mail_metadata(
+                      item.encrypted_metadata,
+                      item.metadata_nonce,
+                      item.metadata_version,
+                    )
+                  : Promise.resolve(null),
+              ]);
 
               const worker_result = worker_result_map.get(mail_id);
 
@@ -1453,6 +1484,7 @@ export function use_search(): UseSearchReturn {
                 mail_item_to_search_result(
                   item,
                   envelope,
+                  metadata,
                   worker_result?.score || 0,
                   worker_result?.matched_fields || [],
                 ),
@@ -2114,12 +2146,20 @@ export function use_advanced_search(): UseAdvancedSearchReturn {
             return;
           }
 
-          const envelope = await decrypt_mail_envelope(
-            item.encrypted_envelope,
-            item.envelope_nonce,
-          );
+          const [envelope, metadata] = await Promise.all([
+            decrypt_mail_envelope(item.encrypted_envelope, item.envelope_nonce),
+            item.encrypted_metadata && item.metadata_nonce
+              ? decrypt_mail_metadata(
+                  item.encrypted_metadata,
+                  item.metadata_nonce,
+                  item.metadata_version,
+                )
+              : Promise.resolve(null),
+          ]);
 
-          results.push(mail_item_to_search_result(item, envelope, 0, []));
+          results.push(
+            mail_item_to_search_result(item, envelope, metadata, 0, []),
+          );
         }
 
         const filtered_results = filter_by_operators(results, parsed_operators);

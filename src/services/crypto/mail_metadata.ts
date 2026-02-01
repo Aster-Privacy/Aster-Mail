@@ -9,6 +9,30 @@ import { get_derived_encryption_key } from "./memory_key_store";
 
 const MAIL_METADATA_CONTEXT = "mail-item-metadata";
 
+export const ENCRYPTED_METADATA_FIELDS = [
+  "is_read",
+  "is_starred",
+  "is_trashed",
+  "is_archived",
+  "is_spam",
+  "is_pinned",
+  "item_type",
+  "message_ts",
+  "created_at",
+  "updated_at",
+  "trashed_at",
+  "size_bytes",
+  "has_attachments",
+  "attachment_count",
+  "scheduled_at",
+  "send_status",
+  "snoozed_until",
+  "email_category",
+  "category_confidence",
+  "category_user_override",
+  "category_classified_at",
+] as const;
+
 export interface EncryptedMailMetadataResult {
   encrypted_metadata: string;
   metadata_nonce: string;
@@ -17,6 +41,8 @@ export interface EncryptedMailMetadataResult {
 export function create_default_metadata(
   item_type: string = "received",
 ): MailItemMetadata {
+  const now = new Date().toISOString();
+
   return {
     is_read: false,
     is_starred: false,
@@ -27,7 +53,9 @@ export function create_default_metadata(
     size_bytes: 0,
     has_attachments: false,
     attachment_count: 0,
-    message_ts: new Date().toISOString(),
+    message_ts: now,
+    created_at: now,
+    updated_at: now,
     item_type,
   };
 }
@@ -222,7 +250,7 @@ export async function update_item_metadata(
   current: MetadataUpdateOptions,
   updates: Partial<MailItemMetadata>,
 ): Promise<{ success: boolean; encrypted?: MetadataUpdateResult }> {
-  const { update_mail_item_metadata } = await import("@/services/api/mail");
+  const { patch_mail_item_metadata } = await import("@/services/api/mail");
 
   let current_metadata: MailItemMetadata | null = null;
 
@@ -241,7 +269,14 @@ export async function update_item_metadata(
   const updated_metadata: MailItemMetadata = {
     ...current_metadata,
     ...updates,
+    updated_at: new Date().toISOString(),
   };
+
+  if (updates.is_trashed === true && !updated_metadata.trashed_at) {
+    updated_metadata.trashed_at = new Date().toISOString();
+  } else if (updates.is_trashed === false) {
+    updated_metadata.trashed_at = undefined;
+  }
 
   const encrypted = await encrypt_mail_metadata(updated_metadata);
 
@@ -249,17 +284,94 @@ export async function update_item_metadata(
     return { success: false };
   }
 
-  const request_body = {
+  const result = await patch_mail_item_metadata(item_id, {
     encrypted_metadata: encrypted.encrypted_metadata,
     metadata_nonce: encrypted.metadata_nonce,
-    is_read: updates.is_read,
-    is_starred: updates.is_starred,
-    is_trashed: updates.is_trashed,
-    is_archived: updates.is_archived,
-    is_spam: updates.is_spam,
-  };
-
-  const result = await update_mail_item_metadata(item_id, request_body);
+  });
 
   return { success: !!result.data, encrypted };
+}
+
+export async function bulk_update_items_metadata(
+  items: Array<{
+    id: string;
+    encrypted_metadata?: string;
+    metadata_nonce?: string;
+    metadata_version?: number;
+  }>,
+  updates: Partial<MailItemMetadata>,
+): Promise<{
+  success: boolean;
+  updated_count: number;
+  failed_ids: string[];
+}> {
+  const { bulk_patch_metadata } = await import("@/services/api/mail");
+
+  const bulk_items: Array<{
+    id: string;
+    encrypted_metadata: string;
+    metadata_nonce: string;
+  }> = [];
+  const failed_ids: string[] = [];
+  const now = new Date().toISOString();
+
+  for (const item of items) {
+    let current_metadata: MailItemMetadata | null = null;
+
+    if (item.encrypted_metadata && item.metadata_nonce) {
+      current_metadata = await decrypt_mail_metadata(
+        item.encrypted_metadata,
+        item.metadata_nonce,
+        item.metadata_version,
+      );
+    }
+
+    if (!current_metadata) {
+      current_metadata = create_default_metadata();
+    }
+
+    const updated_metadata: MailItemMetadata = {
+      ...current_metadata,
+      ...updates,
+      updated_at: now,
+    };
+
+    if (updates.is_trashed === true && !updated_metadata.trashed_at) {
+      updated_metadata.trashed_at = now;
+    } else if (updates.is_trashed === false) {
+      updated_metadata.trashed_at = undefined;
+    }
+
+    const encrypted = await encrypt_mail_metadata(updated_metadata);
+
+    if (encrypted) {
+      bulk_items.push({
+        id: item.id,
+        encrypted_metadata: encrypted.encrypted_metadata,
+        metadata_nonce: encrypted.metadata_nonce,
+      });
+    } else {
+      failed_ids.push(item.id);
+    }
+  }
+
+  if (bulk_items.length === 0) {
+    return { success: false, updated_count: 0, failed_ids };
+  }
+
+  const result = await bulk_patch_metadata({ items: bulk_items });
+
+  if (result.error) {
+    return {
+      success: false,
+      updated_count: 0,
+      failed_ids: items.map((i) => i.id),
+    };
+  }
+
+  return {
+    success: failed_ids.length === 0,
+    updated_count: result.data?.updated_count ?? 0,
+    failed_ids,
+  };
 }

@@ -16,7 +16,8 @@ export function CountBadge({
     return null;
   }
 
-  const display_value = count > max_display ? `${max_display}+` : count.toString();
+  const display_value =
+    count > max_display ? `${max_display}+` : count.toString();
 
   return (
     <span

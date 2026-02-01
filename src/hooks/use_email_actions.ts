@@ -21,7 +21,10 @@ import {
   update_progress_toast,
   hide_action_toast,
 } from "@/components/toast/action_toast";
-import { update_item_metadata } from "@/services/crypto/mail_metadata";
+import {
+  update_item_metadata,
+  bulk_update_items_metadata,
+} from "@/services/crypto/mail_metadata";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { adjust_starred_count } from "@/hooks/use_mail_counts";
 
@@ -344,27 +347,26 @@ export function use_email_actions(
         on_progress?: (completed: number, total: number) => void;
       },
     ): Promise<{ success: boolean; failed_ids: string[] }> => {
-      const failed_ids: string[] = [];
-      let completed = 0;
-
-      for (const email of emails) {
-        if (options?.signal?.aborted) {
-          return { success: false, failed_ids };
-        }
-
-        const result = await update_with_metadata(email, updates);
-
-        if (result.error) {
-          failed_ids.push(email.id);
-        }
-
-        completed++;
-        options?.on_progress?.(completed, emails.length);
+      if (options?.signal?.aborted) {
+        return { success: false, failed_ids: emails.map((e) => e.id) };
       }
 
-      return { success: failed_ids.length === 0, failed_ids };
+      const items = emails.map((email) => ({
+        id: email.id,
+        encrypted_metadata: email.encrypted_metadata,
+        metadata_nonce: email.metadata_nonce,
+        metadata_version: email.metadata_version,
+      }));
+
+      options?.on_progress?.(0, emails.length);
+
+      const result = await bulk_update_items_metadata(items, updates);
+
+      options?.on_progress?.(emails.length, emails.length);
+
+      return { success: result.success, failed_ids: result.failed_ids };
     },
-    [update_with_metadata],
+    [],
   );
 
   const toggle_star = useCallback(

@@ -57,6 +57,12 @@ export interface ListMailItemsParams {
   category_token?: string;
 }
 
+export interface ListEncryptedMailItemsParams {
+  limit?: number;
+  cursor?: string;
+  item_type?: "received" | "sent" | "draft" | "scheduled";
+}
+
 export interface CreateMailItemRequest {
   item_type: string;
   encrypted_envelope: string;
@@ -147,6 +153,21 @@ export async function list_mail_items(
 
   const query_string = query_params.toString();
   const endpoint = `/mail${query_string ? `?${query_string}` : ""}`;
+
+  return api_client.get<MailItemsListResponse>(endpoint);
+}
+
+export async function list_encrypted_mail_items(
+  params: ListEncryptedMailItemsParams = {},
+): Promise<ApiResponse<MailItemsListResponse>> {
+  const query_params = new URLSearchParams();
+
+  if (params.limit) query_params.set("limit", params.limit.toString());
+  if (params.cursor) query_params.set("cursor", params.cursor);
+  if (params.item_type) query_params.set("item_type", params.item_type);
+
+  const query_string = query_params.toString();
+  const endpoint = `/mail/encrypted${query_string ? `?${query_string}` : ""}`;
 
   return api_client.get<MailItemsListResponse>(endpoint);
 }
@@ -316,6 +337,11 @@ export interface UpdateMetadataRequest {
   is_spam?: boolean;
 }
 
+export interface PatchMetadataRequest {
+  encrypted_metadata: string;
+  metadata_nonce: string;
+}
+
 export interface BulkUpdateMetadataItem {
   id: string;
   encrypted_metadata: string;
@@ -327,8 +353,18 @@ export interface BulkUpdateMetadataItem {
   is_spam?: boolean;
 }
 
+export interface BulkPatchMetadataItem {
+  id: string;
+  encrypted_metadata: string;
+  metadata_nonce: string;
+}
+
 export interface BulkUpdateMetadataRequest {
   items: BulkUpdateMetadataItem[];
+}
+
+export interface BulkPatchMetadataRequest {
+  items: BulkPatchMetadataItem[];
 }
 
 export async function sync_mail_items(
@@ -377,10 +413,29 @@ export async function update_mail_item_metadata(
   );
 }
 
+export async function patch_mail_item_metadata(
+  item_id: string,
+  data: PatchMetadataRequest,
+): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
+  return api_client.patch<{ success: boolean; updated_count: number }>(
+    `/mail/${item_id}/metadata`,
+    data,
+  );
+}
+
 export async function bulk_update_metadata(
   data: BulkUpdateMetadataRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
   return api_client.put<{ success: boolean; updated_count: number }>(
+    "/mail/bulk/metadata",
+    data,
+  );
+}
+
+export async function bulk_patch_metadata(
+  data: BulkPatchMetadataRequest,
+): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
+  return api_client.patch<{ success: boolean; updated_count: number }>(
     "/mail/bulk/metadata",
     data,
   );

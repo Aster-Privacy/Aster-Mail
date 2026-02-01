@@ -19,12 +19,19 @@ import { strip_html_tags } from "@/lib/html_sanitizer";
 import { is_astermail_sender, get_email_username } from "@/lib/utils";
 import {
   list_mail_items,
+  list_encrypted_mail_items,
   update_mail_item,
-  update_mail_item_metadata,
-  bulk_update_metadata,
+  patch_mail_item_metadata,
+  bulk_patch_metadata,
   type ListMailItemsParams,
+  type ListEncryptedMailItemsParams,
   type MailItem,
 } from "@/services/api/mail";
+import {
+  type MailFolder,
+  filter_mail_items_by_metadata,
+  get_item_type_for_folder,
+} from "@/services/mail_filter";
 import {
   batch_archive as api_batch_archive,
   batch_unarchive as api_batch_unarchive,
@@ -105,6 +112,36 @@ const VIEW_PARAMS: Record<MailView, ViewParamValue> = {
   snoozed: { is_snoozed: true },
   all: {},
 };
+
+const CLIENT_SIDE_FILTERED_VIEWS: Set<MailView> = new Set([
+  "starred",
+  "trash",
+  "archive",
+  "spam",
+  "snoozed",
+  "all",
+]);
+
+function view_needs_client_side_filtering(view: string): boolean {
+  return CLIENT_SIDE_FILTERED_VIEWS.has(view as MailView);
+}
+
+function view_to_mail_folder(view: string): MailFolder {
+  const folder_map: Record<string, MailFolder> = {
+    inbox: "inbox",
+    sent: "sent",
+    drafts: "drafts",
+    scheduled: "scheduled",
+    starred: "starred",
+    trash: "trash",
+    archive: "archived",
+    spam: "spam",
+    snoozed: "snoozed",
+    all: "all",
+  };
+
+  return folder_map[view] ?? "inbox";
+}
 
 interface UseEmailListReturn {
   state: EmailListState;
@@ -452,24 +489,45 @@ async function fetch_mail_from_api(
   signal: AbortSignal,
   format_options: FormatOptions,
 ): Promise<{ emails: InboxEmail[]; total: number; expired: boolean } | null> {
-  const params: ListMailItemsParams = {
-    limit: MAIL_FETCH_LIMIT,
-    ...VIEW_PARAMS[view as MailView],
-  };
+  const use_encrypted_endpoint = view_needs_client_side_filtering(view);
+  const folder = view_to_mail_folder(view);
 
-  if (view.startsWith("folder-")) {
-    const folder_token = view.replace("folder-", "");
+  let items: MailItem[];
+  let total: number;
 
-    params.label_token = folder_token;
-  } else if (!VIEW_PARAMS[view as MailView]) {
-    params.item_type = "received";
+  if (use_encrypted_endpoint) {
+    const encrypted_params: ListEncryptedMailItemsParams = {
+      limit: MAIL_FETCH_LIMIT * 2,
+      item_type: get_item_type_for_folder(folder),
+    };
+
+    const response = await list_encrypted_mail_items(encrypted_params);
+
+    if (signal.aborted || !response.data) return null;
+
+    items = response.data.items;
+    total = response.data.total;
+  } else {
+    const params: ListMailItemsParams = {
+      limit: MAIL_FETCH_LIMIT,
+      ...VIEW_PARAMS[view as MailView],
+    };
+
+    if (view.startsWith("folder-")) {
+      const folder_token = view.replace("folder-", "");
+
+      params.label_token = folder_token;
+    } else if (!VIEW_PARAMS[view as MailView]) {
+      params.item_type = "received";
+    }
+
+    const response = await list_mail_items(params);
+
+    if (signal.aborted || !response.data) return null;
+
+    items = response.data.items;
+    total = response.data.total;
   }
-
-  const response = await list_mail_items(params);
-
-  if (signal.aborted || !response.data) return null;
-
-  const { items, total } = response.data;
 
   const results = await Promise.allSettled(
     items.map(async (item) => {
@@ -537,15 +595,36 @@ async function fetch_mail_from_api(
 
   const expired = decrypted.length === 0 && items.length > 0;
 
+  let filtered_emails = emails;
+
+  if (use_encrypted_endpoint && decrypted.length > 0) {
+    const metadata_map = new Map<string, MailItemMetadata>();
+
+    for (const { item, metadata } of successful) {
+      if (metadata) {
+        metadata_map.set(item.id, metadata);
+      }
+    }
+
+    const filter_result = filter_mail_items_by_metadata(items, metadata_map, {
+      folder,
+    });
+
+    const filtered_ids = new Set(filter_result.items.map((i) => i.id));
+
+    filtered_emails = emails.filter((e) => filtered_ids.has(e.id));
+    total = filter_result.total;
+  }
+
   const skip_grouping = view === "starred";
   const final_emails = skip_grouping
-    ? emails.sort((a, b) => {
+    ? filtered_emails.sort((a, b) => {
         const ts_a = a.raw_timestamp || a.timestamp;
         const ts_b = b.raw_timestamp || b.timestamp;
 
         return new Date(ts_b).getTime() - new Date(ts_a).getTime();
       })
-    : group_emails_by_thread(emails);
+    : group_emails_by_thread(filtered_emails);
 
   return { emails: final_emails, total, expired };
 }
@@ -928,6 +1007,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         };
       }
 
+      const now = new Date().toISOString();
       const updated_metadata: MailItemMetadata = {
         ...current_metadata,
         is_read: updates.is_read ?? current_metadata.is_read,
@@ -936,12 +1016,19 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         is_trashed: updates.is_trashed ?? current_metadata.is_trashed,
         is_archived: updates.is_archived ?? current_metadata.is_archived,
         is_spam: updates.is_spam ?? current_metadata.is_spam,
+        updated_at: now,
       };
+
+      if (updates.is_trashed === true && !updated_metadata.trashed_at) {
+        updated_metadata.trashed_at = now;
+      } else if (updates.is_trashed === false) {
+        updated_metadata.trashed_at = undefined;
+      }
 
       const encrypted = await encrypt_mail_metadata(updated_metadata);
 
       if (encrypted) {
-        const result = await update_mail_item_metadata(id, {
+        const result = await patch_mail_item_metadata(id, {
           encrypted_metadata: encrypted.encrypted_metadata,
           metadata_nonce: encrypted.metadata_nonce,
         });
@@ -1261,11 +1348,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
               id: email.id,
               encrypted_metadata: encrypted.encrypted_metadata,
               metadata_nonce: encrypted.metadata_nonce,
-              is_read: updates.is_read,
-              is_starred: updates.is_starred,
-              is_trashed: updates.is_trashed,
-              is_archived: updates.is_archived,
-              is_spam: updates.is_spam,
             };
           }),
         );
@@ -1276,15 +1358,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           id: string;
           encrypted_metadata: string;
           metadata_nonce: string;
-          is_read?: boolean;
-          is_starred?: boolean;
-          is_trashed?: boolean;
-          is_archived?: boolean;
-          is_spam?: boolean;
         }>;
 
         if (valid_updates.length > 0) {
-          await bulk_update_metadata({ items: valid_updates });
+          await bulk_patch_metadata({ items: valid_updates });
         }
       } catch {
         if (unread_received_count > 0) {

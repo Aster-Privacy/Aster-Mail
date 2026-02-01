@@ -2,13 +2,16 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 import { MAIL_EVENTS } from "./mail_events";
 
-import {
-  get_mail_stats,
-  type MailUserStatsResponse,
-} from "@/services/api/mail";
 import { get_contacts_count } from "@/services/api/contacts";
 import { list_snoozed_emails } from "@/services/api/snooze";
+import { sync_mail_items, type MailItem } from "@/services/api/mail";
+import { get_subscription } from "@/services/api/billing";
+import {
+  decrypt_mail_metadata_batch,
+  has_encryption_key,
+} from "@/services/crypto/mail_metadata";
 import { use_auth } from "@/contexts/auth_context";
+import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 
 export interface MailStats {
   total_items: number;
@@ -53,6 +56,7 @@ const DEFAULT_STATS: MailStats = {
 
 const CACHE_TTL_MS = 30_000;
 const DEBOUNCE_MS = 500;
+const SYNC_BATCH_SIZE = 500;
 
 interface StatsCache {
   data: MailStats;
@@ -62,6 +66,121 @@ interface StatsCache {
 
 interface SubscriberCallback {
   (): void;
+}
+
+interface ClientStatsResult {
+  total_items: number;
+  inbox: number;
+  sent: number;
+  drafts: number;
+  scheduled: number;
+  starred: number;
+  archived: number;
+  spam: number;
+  trash: number;
+  unread: number;
+  storage_used_bytes: number;
+}
+
+async function fetch_all_mail_metadata(): Promise<MailItem[]> {
+  const all_items: MailItem[] = [];
+  let cursor: string | undefined;
+  let has_more = true;
+
+  while (has_more) {
+    const response = await sync_mail_items({
+      limit: SYNC_BATCH_SIZE,
+      cursor,
+    });
+
+    if (response.error || !response.data) {
+      break;
+    }
+
+    all_items.push(...response.data.items);
+    cursor = response.data.next_cursor;
+    has_more = response.data.has_more;
+  }
+
+  return all_items;
+}
+
+async function compute_stats_from_metadata(
+  items: MailItem[],
+): Promise<ClientStatsResult> {
+  const stats: ClientStatsResult = {
+    total_items: 0,
+    inbox: 0,
+    sent: 0,
+    drafts: 0,
+    scheduled: 0,
+    starred: 0,
+    archived: 0,
+    spam: 0,
+    trash: 0,
+    unread: 0,
+    storage_used_bytes: 0,
+  };
+
+  if (items.length === 0) {
+    return stats;
+  }
+
+  const items_with_metadata = items.filter(
+    (item) => item.encrypted_metadata && item.metadata_nonce,
+  );
+
+  const decrypted_map = await decrypt_mail_metadata_batch(items_with_metadata);
+
+  for (const item of items) {
+    const metadata = decrypted_map.get(item.id);
+
+    if (!metadata) {
+      continue;
+    }
+
+    stats.total_items++;
+    stats.storage_used_bytes += metadata.size_bytes || 0;
+
+    if (metadata.is_trashed) {
+      stats.trash++;
+      continue;
+    }
+
+    if (metadata.is_spam) {
+      stats.spam++;
+      continue;
+    }
+
+    if (metadata.is_archived) {
+      stats.archived++;
+      if (metadata.is_starred) {
+        stats.starred++;
+      }
+      continue;
+    }
+
+    const item_type = metadata.item_type || item.item_type;
+
+    if (item_type === "received") {
+      stats.inbox++;
+      if (!metadata.is_read) {
+        stats.unread++;
+      }
+    } else if (item_type === "sent") {
+      stats.sent++;
+    } else if (item_type === "draft") {
+      stats.drafts++;
+    } else if (item_type === "scheduled") {
+      stats.scheduled++;
+    }
+
+    if (metadata.is_starred) {
+      stats.starred++;
+    }
+  }
+
+  return stats;
 }
 
 class MailStatsStore {
@@ -106,6 +225,10 @@ class MailStatsStore {
       return this.cache.data;
     }
 
+    if (!has_passphrase_in_memory() || !has_encryption_key()) {
+      return this.cache.data;
+    }
+
     if (this.cache.fetching && this.active_request) {
       return this.active_request;
     }
@@ -120,15 +243,19 @@ class MailStatsStore {
 
   private async execute_fetch(): Promise<MailStats | null> {
     try {
-      const [response, contacts_response, snoozed_response] =
-        await Promise.allSettled([
-          get_mail_stats(),
-          get_contacts_count(),
-          list_snoozed_emails(),
-        ]);
+      const [
+        mail_items,
+        contacts_response,
+        snoozed_response,
+        subscription_response,
+      ] = await Promise.allSettled([
+        fetch_all_mail_metadata(),
+        get_contacts_count(),
+        list_snoozed_emails(),
+        get_subscription(),
+      ]);
 
-      const mail_stats =
-        response.status === "fulfilled" ? response.value.data : null;
+      const items = mail_items.status === "fulfilled" ? mail_items.value : [];
       const contacts_count =
         contacts_response.status === "fulfilled"
           ? (contacts_response.value.data?.count ?? 0)
@@ -137,28 +264,31 @@ class MailStatsStore {
         snoozed_response.status === "fulfilled" && !snoozed_response.value.error
           ? (snoozed_response.value.data?.length ?? 0)
           : 0;
+      const storage_total =
+        subscription_response.status === "fulfilled" &&
+        subscription_response.value.data?.storage
+          ? subscription_response.value.data.storage.total_limit_bytes
+          : this.cache.data.storage_total_bytes;
 
-      if (mail_stats) {
-        const data: MailUserStatsResponse = mail_stats;
+      const client_stats = await compute_stats_from_metadata(items);
 
-        this.cache.data = {
-          total_items: data.total_items,
-          inbox: data.inbox,
-          sent: data.sent,
-          drafts: data.drafts,
-          scheduled: data.scheduled,
-          snoozed: snoozed_count,
-          starred: data.starred,
-          archived: data.archived,
-          spam: data.spam,
-          trash: data.trash,
-          unread: data.unread,
-          contacts: contacts_count,
-          storage_used_bytes: data.storage_used_bytes,
-          storage_total_bytes: data.storage_total_bytes ?? 1073741824,
-        };
-        this.cache.timestamp = Date.now();
-      }
+      this.cache.data = {
+        total_items: client_stats.total_items,
+        inbox: client_stats.inbox,
+        sent: client_stats.sent,
+        drafts: client_stats.drafts,
+        scheduled: client_stats.scheduled,
+        snoozed: snoozed_count,
+        starred: client_stats.starred,
+        archived: client_stats.archived,
+        spam: client_stats.spam,
+        trash: client_stats.trash,
+        unread: client_stats.unread,
+        contacts: contacts_count,
+        storage_used_bytes: client_stats.storage_used_bytes,
+        storage_total_bytes: storage_total,
+      };
+      this.cache.timestamp = Date.now();
 
       return this.cache.data;
     } catch {
@@ -206,6 +336,14 @@ class MailStatsStore {
       };
       this.notify();
     }
+  }
+
+  set_storage_total(bytes: number): void {
+    this.cache.data = {
+      ...this.cache.data,
+      storage_total_bytes: bytes,
+    };
+    this.notify();
   }
 }
 
@@ -365,4 +503,8 @@ export function adjust_stats_total(delta: number): void {
 
 export function clear_mail_stats(): void {
   stats_store.clear();
+}
+
+export function set_storage_total_bytes(bytes: number): void {
+  stats_store.set_storage_total(bytes);
 }

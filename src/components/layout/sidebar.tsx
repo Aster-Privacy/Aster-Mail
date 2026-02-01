@@ -1174,7 +1174,9 @@ export const Sidebar = ({
                               </span>
                               <CountBadge
                                 count={folder_counts[folder.folder_token] ?? 0}
-                                is_active={effective_selected === folder_item_id}
+                                is_active={
+                                  effective_selected === folder_item_id
+                                }
                               />
                               {(folder.is_locked ||
                                 (folder.is_password_protected &&
