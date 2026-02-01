@@ -401,11 +401,9 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
     };
 
     window.addEventListener(MAIL_EVENTS.SNOOZED_CHANGED, handle_change);
-    window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.SNOOZED_CHANGED, handle_change);
-      window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
     };
   }, [fetch_snoozed]);
 
