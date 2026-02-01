@@ -96,7 +96,7 @@ export const Sidebar = ({
   const { user } = use_auth();
   const { t } = use_i18n();
   const { stats } = use_mail_stats();
-  const { state: folders_state, counts: folder_counts } = use_folders();
+  const { state: folders_state } = use_folders();
 
   const [is_mobile, set_is_mobile] = useState(false);
   const [is_tablet, set_is_tablet] = useState(false);
@@ -583,19 +583,6 @@ export const Sidebar = ({
             {!is_collapsed && (
               <span className="flex-1 text-left">{t("mail.inbox")}</span>
             )}
-            {!is_collapsed && stats.inbox > 0 && (
-              <span
-                className="text-[10px] tabular-nums font-medium"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {stats.inbox}
-              </span>
-            )}
-            {is_collapsed && stats.inbox > 0 && (
-              <span className="absolute -top-1 -right-1 text-[9px] tabular-nums min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] font-medium">
-                {stats.inbox > 99 ? "99+" : stats.inbox}
-              </span>
-            )}
           </button>
 
           <button
@@ -631,14 +618,6 @@ export const Sidebar = ({
             />
             {!is_collapsed && (
               <span className="flex-1 text-left">{t("mail.sent")}</span>
-            )}
-            {!is_collapsed && stats.sent > 0 && (
-              <span
-                className="text-[10px] tabular-nums font-medium"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {stats.sent}
-              </span>
             )}
           </button>
 
@@ -676,19 +655,6 @@ export const Sidebar = ({
             {!is_collapsed && (
               <span className="flex-1 text-left">{t("mail.scheduled")}</span>
             )}
-            {!is_collapsed && stats.scheduled > 0 && (
-              <span
-                className="text-[10px] tabular-nums font-medium"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {stats.scheduled}
-              </span>
-            )}
-            {is_collapsed && stats.scheduled > 0 && (
-              <span className="absolute -top-1 -right-1 text-[9px] tabular-nums min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] font-medium">
-                {stats.scheduled > 99 ? "99+" : stats.scheduled}
-              </span>
-            )}
           </button>
 
           <button
@@ -723,19 +689,6 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && <span className="flex-1 text-left">Snoozed</span>}
-            {!is_collapsed && stats.snoozed > 0 && (
-              <span
-                className="text-[10px] tabular-nums font-medium"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {stats.snoozed}
-              </span>
-            )}
-            {is_collapsed && stats.snoozed > 0 && (
-              <span className="absolute -top-1 -right-1 text-[9px] tabular-nums min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] font-medium">
-                {stats.snoozed > 99 ? "99+" : stats.snoozed}
-              </span>
-            )}
           </button>
 
           <button
@@ -771,14 +724,6 @@ export const Sidebar = ({
             />
             {!is_collapsed && (
               <span className="flex-1 text-left">{t("mail.drafts")}</span>
-            )}
-            {!is_collapsed && stats.drafts > 0 && (
-              <span
-                className="text-[10px] tabular-nums font-medium"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {stats.drafts}
-              </span>
             )}
           </button>
 
@@ -828,14 +773,6 @@ export const Sidebar = ({
             />
             {!is_collapsed && (
               <span className="flex-1 text-left">{t("mail.starred")}</span>
-            )}
-            {!is_collapsed && stats.starred > 0 && (
-              <span
-                className="text-[10px] tabular-nums font-medium"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {stats.starred}
-              </span>
             )}
           </button>
 
@@ -909,14 +846,6 @@ export const Sidebar = ({
             {!is_collapsed && (
               <span className="flex-1 text-left">{t("mail.archive")}</span>
             )}
-            {!is_collapsed && stats.archived > 0 && (
-              <span
-                className="text-[10px] tabular-nums font-medium"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {stats.archived}
-              </span>
-            )}
           </button>
 
           <button
@@ -952,14 +881,6 @@ export const Sidebar = ({
             />
             {!is_collapsed && (
               <span className="flex-1 text-left">{t("mail.spam")}</span>
-            )}
-            {!is_collapsed && stats.spam > 0 && (
-              <span
-                className="text-[10px] tabular-nums font-medium"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {stats.spam}
-              </span>
             )}
           </button>
 
@@ -997,19 +918,6 @@ export const Sidebar = ({
             {!is_collapsed && (
               <span className="flex-1 text-left">{t("mail.trash")}</span>
             )}
-            {!is_collapsed && stats.trash > 0 && (
-              <span
-                className="text-[10px] tabular-nums font-medium"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {stats.trash}
-              </span>
-            )}
-            {is_collapsed && stats.trash > 0 && (
-              <span className="absolute -top-1 -right-1 text-[9px] tabular-nums min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] font-medium">
-                {stats.trash > 99 ? "99+" : stats.trash}
-              </span>
-            )}
           </button>
 
           <button
@@ -1045,19 +953,6 @@ export const Sidebar = ({
             />
             {!is_collapsed && (
               <span className="flex-1 text-left">{t("common.contacts")}</span>
-            )}
-            {!is_collapsed && stats.contacts > 0 && (
-              <span
-                className="text-[10px] tabular-nums font-medium"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {stats.contacts}
-              </span>
-            )}
-            {is_collapsed && stats.contacts > 0 && (
-              <span className="absolute -top-1 -right-1 text-[9px] tabular-nums min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] font-medium">
-                {stats.contacts > 99 ? "99+" : stats.contacts}
-              </span>
             )}
           </button>
 
@@ -1208,21 +1103,6 @@ export const Sidebar = ({
                               {folder.name}
                             </span>
                           )}
-                          {!is_collapsed &&
-                            !(
-                              folder.is_locked ||
-                              (folder.is_password_protected &&
-                                (!folder.password_set ||
-                                  !is_folder_unlocked(folder.id)))
-                            ) &&
-                            (folder_counts[folder.folder_token] || 0) > 0 && (
-                              <span
-                                className="text-[10px] tabular-nums font-medium"
-                                style={{ color: "var(--text-muted)" }}
-                              >
-                                {folder_counts[folder.folder_token]}
-                              </span>
-                            )}
                           {!is_collapsed &&
                             (folder.is_locked ||
                               (folder.is_password_protected &&

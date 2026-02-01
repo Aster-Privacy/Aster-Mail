@@ -73,6 +73,8 @@ import { MAIL_EVENTS, emit_mail_item_updated } from "@/hooks/mail_events";
 import {
   adjust_unread_count,
   adjust_starred_count,
+  adjust_inbox_count,
+  adjust_trash_count,
 } from "@/hooks/use_mail_counts";
 import {
   bulk_add_folder,
@@ -552,10 +554,12 @@ export function EmailInbox({
         adjust_stats_unread(-1);
       }
       if (email.item_type === "received") {
+        adjust_inbox_count(-1);
         adjust_stats_inbox(-1);
       } else if (email.item_type === "sent") {
         adjust_stats_sent(-1);
       }
+      adjust_trash_count(1);
       adjust_stats_trash(1);
       const result = await update_item_metadata(
         email.id,
@@ -579,10 +583,12 @@ export function EmailInbox({
               adjust_stats_unread(1);
             }
             if (email.item_type === "received") {
+              adjust_inbox_count(1);
               adjust_stats_inbox(1);
             } else if (email.item_type === "sent") {
               adjust_stats_sent(1);
             }
+            adjust_trash_count(-1);
             adjust_stats_trash(-1);
             await update_item_metadata(
               email.id,
@@ -608,6 +614,7 @@ export function EmailInbox({
         adjust_stats_unread(-1);
       }
       if (email.item_type === "received") {
+        adjust_inbox_count(-1);
         adjust_stats_inbox(-1);
       } else if (email.item_type === "sent") {
         adjust_stats_sent(-1);
@@ -626,6 +633,7 @@ export function EmailInbox({
               adjust_stats_unread(1);
             }
             if (email.item_type === "received") {
+              adjust_inbox_count(1);
               adjust_stats_inbox(1);
             } else if (email.item_type === "sent") {
               adjust_stats_sent(1);
@@ -647,6 +655,7 @@ export function EmailInbox({
         adjust_stats_unread(-1);
       }
       if (email.item_type === "received") {
+        adjust_inbox_count(-1);
         adjust_stats_inbox(-1);
       } else if (email.item_type === "sent") {
         adjust_stats_sent(-1);
@@ -673,6 +682,7 @@ export function EmailInbox({
               adjust_stats_unread(1);
             }
             if (email.item_type === "received") {
+              adjust_inbox_count(1);
               adjust_stats_inbox(1);
             } else if (email.item_type === "sent") {
               adjust_stats_sent(1);
@@ -694,6 +704,7 @@ export function EmailInbox({
           adjust_stats_unread(1);
         }
         if (email.item_type === "received") {
+          adjust_inbox_count(1);
           adjust_stats_inbox(1);
         } else if (email.item_type === "sent") {
           adjust_stats_sent(1);
@@ -910,10 +921,12 @@ export function EmailInbox({
         adjust_stats_unread(1);
       }
       if (email.item_type === "received") {
+        adjust_inbox_count(1);
         adjust_stats_inbox(1);
       } else if (email.item_type === "sent") {
         adjust_stats_sent(1);
       }
+      adjust_trash_count(-1);
       adjust_stats_trash(-1);
       const result = await update_item_metadata(
         email.id,
@@ -937,10 +950,12 @@ export function EmailInbox({
               adjust_stats_unread(-1);
             }
             if (email.item_type === "received") {
+              adjust_inbox_count(-1);
               adjust_stats_inbox(-1);
             } else if (email.item_type === "sent") {
               adjust_stats_sent(-1);
             }
+            adjust_trash_count(1);
             adjust_stats_trash(1);
             await update_item_metadata(
               email.id,
@@ -966,6 +981,7 @@ export function EmailInbox({
         adjust_stats_unread(1);
       }
       if (email.item_type === "received") {
+        adjust_inbox_count(1);
         adjust_stats_inbox(1);
       } else if (email.item_type === "sent") {
         adjust_stats_sent(1);
@@ -992,6 +1008,7 @@ export function EmailInbox({
               adjust_stats_unread(-1);
             }
             if (email.item_type === "received") {
+              adjust_inbox_count(-1);
               adjust_stats_inbox(-1);
             } else if (email.item_type === "sent") {
               adjust_stats_sent(-1);
@@ -1020,6 +1037,7 @@ export function EmailInbox({
         adjust_stats_unread(1);
       }
       if (email.item_type === "received") {
+        adjust_inbox_count(1);
         adjust_stats_inbox(1);
       } else if (email.item_type === "sent") {
         adjust_stats_sent(1);
@@ -1038,6 +1056,7 @@ export function EmailInbox({
               adjust_stats_unread(-1);
             }
             if (email.item_type === "received") {
+              adjust_inbox_count(-1);
               adjust_stats_inbox(-1);
             } else if (email.item_type === "sent") {
               adjust_stats_sent(-1);
