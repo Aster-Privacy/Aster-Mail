@@ -200,12 +200,6 @@ export async function delete_mail_item(
   return api_client.delete<{ status: string }>(`/mail/${item_id}`);
 }
 
-export async function get_mail_stats(): Promise<
-  ApiResponse<MailUserStatsResponse>
-> {
-  return api_client.get<MailUserStatsResponse>("/mail/stats");
-}
-
 export async function bulk_update_mail_items(
   data: BulkUpdateRequest,
 ): Promise<ApiResponse<{ status: string; affected: number }>> {
@@ -327,40 +321,15 @@ export interface MigrationStatusResponse {
   migration_version: number;
 }
 
-export interface UpdateMetadataRequest {
-  encrypted_metadata: string;
-  metadata_nonce: string;
-  is_read?: boolean;
-  is_starred?: boolean;
-  is_trashed?: boolean;
-  is_archived?: boolean;
-  is_spam?: boolean;
-}
-
 export interface PatchMetadataRequest {
   encrypted_metadata: string;
   metadata_nonce: string;
-}
-
-export interface BulkUpdateMetadataItem {
-  id: string;
-  encrypted_metadata: string;
-  metadata_nonce: string;
-  is_read?: boolean;
-  is_starred?: boolean;
-  is_trashed?: boolean;
-  is_archived?: boolean;
-  is_spam?: boolean;
 }
 
 export interface BulkPatchMetadataItem {
   id: string;
   encrypted_metadata: string;
   metadata_nonce: string;
-}
-
-export interface BulkUpdateMetadataRequest {
-  items: BulkUpdateMetadataItem[];
 }
 
 export interface BulkPatchMetadataRequest {
@@ -403,31 +372,12 @@ export async function complete_migration(): Promise<
   );
 }
 
-export async function update_mail_item_metadata(
-  item_id: string,
-  data: UpdateMetadataRequest,
-): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
-  return api_client.put<{ success: boolean; updated_count: number }>(
-    `/mail/${item_id}/metadata`,
-    data,
-  );
-}
-
 export async function patch_mail_item_metadata(
   item_id: string,
   data: PatchMetadataRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
   return api_client.patch<{ success: boolean; updated_count: number }>(
     `/mail/${item_id}/metadata`,
-    data,
-  );
-}
-
-export async function bulk_update_metadata(
-  data: BulkUpdateMetadataRequest,
-): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
-  return api_client.put<{ success: boolean; updated_count: number }>(
-    "/mail/bulk/metadata",
     data,
   );
 }
