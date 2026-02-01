@@ -497,6 +497,20 @@ export function EmailPopupViewer({
 
             if (result.success && current_email_id === email_id) {
               set_is_read(true);
+              if (result.encrypted) {
+                set_mail_item((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        encrypted_metadata: result.encrypted!.encrypted_metadata,
+                        metadata_nonce: result.encrypted!.metadata_nonce,
+                        metadata: prev.metadata
+                          ? { ...prev.metadata, is_read: true }
+                          : undefined,
+                      }
+                    : prev,
+                );
+              }
               emit_mail_item_updated({ id: current_email_id, is_read: true });
             }
           };
@@ -643,6 +657,8 @@ export function EmailPopupViewer({
         prev
           ? {
               ...prev,
+              encrypted_metadata: result.encrypted?.encrypted_metadata ?? prev.encrypted_metadata,
+              metadata_nonce: result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
               metadata: prev.metadata
                 ? { ...prev.metadata, is_read: new_state }
                 : undefined,
@@ -783,6 +799,8 @@ export function EmailPopupViewer({
         prev
           ? {
               ...prev,
+              encrypted_metadata: result.encrypted?.encrypted_metadata ?? prev.encrypted_metadata,
+              metadata_nonce: result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
               metadata: prev.metadata
                 ? { ...prev.metadata, is_pinned: new_state }
                 : undefined,
@@ -1460,6 +1478,18 @@ export function EmailPopupViewer({
                           id: message_id,
                           is_read: !new_read,
                         });
+                      } else if (result.encrypted) {
+                        set_thread_messages((prev) =>
+                          prev.map((m) =>
+                            m.id === message_id
+                              ? {
+                                  ...m,
+                                  encrypted_metadata: result.encrypted!.encrypted_metadata,
+                                  metadata_nonce: result.encrypted!.metadata_nonce,
+                                }
+                              : m,
+                          ),
+                        );
                       }
                     });
                   }}

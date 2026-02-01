@@ -351,8 +351,9 @@ const stats_store = new MailStatsStore();
 
 export function use_mail_stats(): UseMailStatsReturn {
   const mounted_ref = useRef(true);
-  const { user } = use_auth();
+  const { user, has_keys } = use_auth();
   const prev_user_id_ref = useRef<string | null>(null);
+  const prev_has_keys_ref = useRef<boolean>(false);
   const [state, set_state] = useState<{
     stats: MailStats;
     is_loading: boolean;
@@ -388,6 +389,7 @@ export function use_mail_stats(): UseMailStatsReturn {
 
     const current_user_id = user?.id || null;
     const prev_user_id = prev_user_id_ref.current;
+    const prev_has_keys = prev_has_keys_ref.current;
 
     if (prev_user_id !== null && prev_user_id !== current_user_id) {
       stats_store.clear();
@@ -399,20 +401,23 @@ export function use_mail_stats(): UseMailStatsReturn {
     }
 
     prev_user_id_ref.current = current_user_id;
+    prev_has_keys_ref.current = has_keys;
 
     const unsubscribe = stats_store.subscribe(sync_state);
 
     sync_state();
 
-    if (stats_store.is_stale()) {
-      stats_store.fetch();
+    const keys_just_became_available = has_keys && !prev_has_keys;
+
+    if (stats_store.is_stale() || keys_just_became_available) {
+      stats_store.fetch(keys_just_became_available);
     }
 
     return () => {
       mounted_ref.current = false;
       unsubscribe();
     };
-  }, [sync_state, user?.id]);
+  }, [sync_state, user?.id, has_keys]);
 
   useEffect(() => {
     const handle_change = () => {

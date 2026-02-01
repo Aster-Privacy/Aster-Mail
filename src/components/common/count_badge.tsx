@@ -10,6 +10,7 @@ export function CountBadge({
   count,
   max_display = 99,
   show_zero = false,
+  is_active = false,
   className = "",
 }: CountBadgeProps) {
   if (count === 0 && !show_zero) {
@@ -22,7 +23,7 @@ export function CountBadge({
   return (
     <span
       className={`text-[12px] font-medium tabular-nums ${className}`}
-      style={{ color: "var(--text-muted)" }}
+      style={{ color: is_active ? "var(--text-secondary)" : "var(--text-muted)" }}
     >
       {display_value}
     </span>

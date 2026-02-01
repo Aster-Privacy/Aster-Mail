@@ -457,6 +457,15 @@ export function FullEmailViewer({
           : prev,
       );
     } else {
+      set_mail_item((prev) =>
+        prev
+          ? {
+              ...prev,
+              encrypted_metadata: result.encrypted?.encrypted_metadata ?? prev.encrypted_metadata,
+              metadata_nonce: result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
+            }
+          : prev,
+      );
       emit_mail_item_updated({ id: email_id, is_read: new_state });
     }
   }, [email_id, is_read, mail_item]);
@@ -486,6 +495,8 @@ export function FullEmailViewer({
         prev
           ? {
               ...prev,
+              encrypted_metadata: result.encrypted?.encrypted_metadata ?? prev.encrypted_metadata,
+              metadata_nonce: result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
               metadata: prev.metadata
                 ? { ...prev.metadata, is_pinned: new_state }
                 : undefined,
@@ -1499,6 +1510,18 @@ export function FullEmailViewer({
                       id: message_id,
                       is_read: !new_read,
                     });
+                  } else if (result.encrypted) {
+                    set_thread_messages((prev) =>
+                      prev.map((m) =>
+                        m.id === message_id
+                          ? {
+                              ...m,
+                              encrypted_metadata: result.encrypted!.encrypted_metadata,
+                              metadata_nonce: result.encrypted!.metadata_nonce,
+                            }
+                          : m,
+                      ),
+                    );
                   }
                 });
               }}
