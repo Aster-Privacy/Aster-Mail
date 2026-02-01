@@ -45,7 +45,7 @@ import {
   clear_session_timeout_data,
 } from "@/services/session_timeout_service";
 import { is_auth_page } from "@/lib/auth_utils";
-import { clear_mail_stats } from "@/hooks/use_mail_stats";
+import { clear_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { emit_keys_ready } from "@/hooks/mail_events";
 
@@ -494,6 +494,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
           if (has_keys) {
             emit_keys_ready();
+            invalidate_mail_stats();
           }
         } else {
           api_client.set_authenticated(false);
@@ -557,6 +558,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       set_is_adding_account(false);
 
       emit_keys_ready();
+      invalidate_mail_stats();
     },
     [],
   );
@@ -602,6 +604,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         set_is_adding_account(false);
 
         emit_keys_ready();
+        invalidate_mail_stats();
       }
 
       return result;

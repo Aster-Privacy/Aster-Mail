@@ -47,6 +47,7 @@ import {
   adjust_stats_sent,
   adjust_stats_trash,
   adjust_stats_unread,
+  invalidate_mail_stats,
 } from "@/hooks/use_mail_stats";
 import { bulk_index_with_worker } from "@/services/crypto/search_worker_client";
 import {
@@ -748,6 +749,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         is_loading: false,
         total_messages: result.total,
       });
+      invalidate_mail_stats();
     } else {
       set_state((prev) => ({ ...prev, is_loading: false }));
     }
