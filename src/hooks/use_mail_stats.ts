@@ -413,9 +413,35 @@ export function use_mail_stats(): UseMailStatsReturn {
       stats_store.fetch(keys_just_became_available);
     }
 
+    let key_poll_interval: ReturnType<typeof setInterval> | null = null;
+    let poll_attempts = 0;
+    const MAX_POLL_ATTEMPTS = 20;
+
+    if (has_keys && stats_store.is_stale()) {
+      key_poll_interval = setInterval(() => {
+        poll_attempts++;
+
+        if (has_passphrase_in_memory() && has_encryption_key()) {
+          if (key_poll_interval) {
+            clearInterval(key_poll_interval);
+            key_poll_interval = null;
+          }
+          stats_store.fetch(true);
+        } else if (poll_attempts >= MAX_POLL_ATTEMPTS) {
+          if (key_poll_interval) {
+            clearInterval(key_poll_interval);
+            key_poll_interval = null;
+          }
+        }
+      }, 250);
+    }
+
     return () => {
       mounted_ref.current = false;
       unsubscribe();
+      if (key_poll_interval) {
+        clearInterval(key_poll_interval);
+      }
     };
   }, [sync_state, user?.id, has_keys]);
 
