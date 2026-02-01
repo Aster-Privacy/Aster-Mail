@@ -826,12 +826,29 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       mail_cache.update_item(detail.id, detail);
     };
 
+    const handle_items_removed = (event: Event) => {
+      const detail = (event as CustomEvent<MailItemsRemovedEventDetail>).detail;
+      const id_set = new Set(detail.ids);
+
+      set_state((prev) => ({
+        ...prev,
+        emails: prev.emails.filter((e) => !id_set.has(e.id)),
+        total_messages: Math.max(0, prev.total_messages - detail.ids.length),
+      }));
+      detail.ids.forEach((id) => mail_cache.remove_item(id));
+    };
+
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_update);
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, handle_items_removed);
 
     return () => {
       window.removeEventListener(
         MAIL_EVENTS.MAIL_ITEM_UPDATED,
         handle_item_update,
+      );
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEMS_REMOVED,
+        handle_items_removed,
       );
     };
   }, []);
@@ -1027,9 +1044,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         { is_trashed: true },
       );
 
-      if (result.success) {
-        emit_mail_changed();
-      } else {
+      if (!result.success) {
         if (should_adjust_unread) {
           adjust_unread_count(1);
           adjust_stats_unread(1);
@@ -1072,9 +1087,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       }
       const result = await api_batch_archive({ ids: [id], tier: "hot" });
 
-      if (result.data?.success) {
-        emit_mail_changed();
-      } else {
+      if (!result.data?.success) {
         if (should_adjust_unread) {
           adjust_unread_count(1);
         }
@@ -1106,9 +1119,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       }
       const result = await api_batch_unarchive({ ids: [id] });
 
-      if (result.data?.success) {
-        emit_mail_changed();
-      } else {
+      if (!result.data?.success) {
         if (should_adjust_unread) {
           adjust_unread_count(-1);
         }
@@ -1139,9 +1150,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         { is_spam: true },
       );
 
-      if (result.success) {
-        emit_mail_changed();
-      } else {
+      if (!result.success) {
         if (should_adjust_unread) {
           adjust_unread_count(1);
         }
@@ -1256,8 +1265,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         if (valid_updates.length > 0) {
           await bulk_update_metadata({ items: valid_updates });
         }
-
-        emit_mail_changed();
       } catch {
         if (unread_received_count > 0) {
           adjust_unread_count(unread_received_count);
@@ -1317,7 +1324,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
       try {
         await api_batch_archive({ ids, tier: "hot" });
-        emit_mail_changed();
       } catch {
         if (unread_received_count > 0) {
           adjust_unread_count(unread_received_count);
@@ -1359,7 +1365,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
       try {
         await api_batch_unarchive({ ids });
-        emit_mail_changed();
       } catch {
         if (unread_received_count > 0) {
           adjust_unread_count(-unread_received_count);

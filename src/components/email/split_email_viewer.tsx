@@ -944,25 +944,23 @@ export function SplitEmailViewer({
           <ArchiveBoxIcon className="w-4 h-4" />
         </Button>
 
-        <Button
-          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-          disabled={is_spam_loading}
-          size="icon"
-          variant="ghost"
-          onClick={handle_spam}
-        >
-          <NoSymbolIcon className="w-4 h-4" />
-        </Button>
-
-        <Button
-          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-          disabled={is_trash_loading}
-          size="icon"
-          variant="ghost"
-          onClick={handle_trash}
-        >
-          <TrashIcon className="w-4 h-4" />
-        </Button>
+        {thread_messages.length > 1 && (
+          <Button
+            className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            size="icon"
+            variant="ghost"
+            title={thread_expand_state.all_expanded ? "Collapse all" : "Expand all"}
+            onClick={() => {
+              if (thread_expand_state.all_expanded) {
+                thread_list_ref.current?.collapse_all();
+              } else {
+                thread_list_ref.current?.expand_all();
+              }
+            }}
+          >
+            <QueueListIcon className="w-4 h-4" />
+          </Button>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -995,36 +993,28 @@ export function SplitEmailViewer({
               {is_pinned ? "Unpin" : "Pin to top"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            <DropdownMenuItem disabled={is_spam_loading} onClick={handle_spam}>
+              <NoSymbolIcon className="w-4 h-4 mr-2" />
+              Report spam
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={is_trash_loading} onClick={handle_trash}>
+              <TrashIcon className="w-4 h-4 mr-2" />
+              Move to trash
+            </DropdownMenuItem>
             <DropdownMenuItem disabled>
               <FolderIcon className="w-4 h-4 mr-2" />
               Move to folder
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handle_print}>
               <PrinterIcon className="w-4 h-4 mr-2" />
               Print
             </DropdownMenuItem>
-            {thread_messages.length > 1 && (
-              <DropdownMenuItem
-                onClick={() => {
-                  if (thread_expand_state.all_expanded) {
-                    thread_list_ref.current?.collapse_all();
-                  } else {
-                    thread_list_ref.current?.expand_all();
-                  }
-                }}
-              >
-                <QueueListIcon className="w-4 h-4 mr-2" />
-                {thread_expand_state.all_expanded ? "Collapse all" : "Expand all"}
-              </DropdownMenuItem>
-            )}
             {email.unsubscribe_info?.has_unsubscribe && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handle_unsubscribe}>
-                  <XMarkIcon className="w-4 h-4 mr-2" />
-                  Unsubscribe
-                </DropdownMenuItem>
-              </>
+              <DropdownMenuItem onClick={handle_unsubscribe}>
+                <XMarkIcon className="w-4 h-4 mr-2" />
+                Unsubscribe
+              </DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
