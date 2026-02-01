@@ -14,6 +14,7 @@ export const MAIL_EVENTS = {
   CONTACTS_CHANGED: "astermail:contacts-changed",
   SNOOZED_CHANGED: "astermail:snoozed-changed",
   THREAD_REPLY_SENT: "astermail:thread-reply-sent",
+  KEYS_READY: "astermail:keys-ready",
 } as const;
 
 export type MailEventType = (typeof MAIL_EVENTS)[keyof typeof MAIL_EVENTS];
@@ -93,6 +94,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.CONTACTS_CHANGED]: undefined;
   [MAIL_EVENTS.SNOOZED_CHANGED]: undefined;
   [MAIL_EVENTS.THREAD_REPLY_SENT]: ThreadReplySentEventDetail;
+  [MAIL_EVENTS.KEYS_READY]: undefined;
 };
 
 type EventSubscription = () => void;
@@ -244,4 +246,8 @@ export function emit_mail_items_removed(
   detail: MailItemsRemovedEventDetail,
 ): void {
   mail_event_bus.emit(MAIL_EVENTS.MAIL_ITEMS_REMOVED, detail);
+}
+
+export function emit_keys_ready(): void {
+  mail_event_bus.emit(MAIL_EVENTS.KEYS_READY);
 }

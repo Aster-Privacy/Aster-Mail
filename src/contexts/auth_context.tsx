@@ -47,6 +47,7 @@ import {
 import { is_auth_page } from "@/lib/auth_utils";
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_mail_cache } from "@/hooks/use_email_list";
+import { emit_keys_ready } from "@/hooks/mail_events";
 
 const ENCRYPTED_VAULT_KEY_PREFIX = "astermail_encrypted_vault_";
 const VAULT_NONCE_KEY_PREFIX = "astermail_vault_nonce_";
@@ -490,6 +491,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
             accounts: data.accounts,
             current_account_id: data.current_account_id,
           });
+
+          if (has_keys) {
+            emit_keys_ready();
+          }
         } else {
           api_client.set_authenticated(false);
           clear_vault_from_memory();
@@ -550,6 +555,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         current_account_id: user.id,
       });
       set_is_adding_account(false);
+
+      emit_keys_ready();
     },
     [],
   );
@@ -593,6 +600,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           current_account_id: user.id,
         });
         set_is_adding_account(false);
+
+        emit_keys_ready();
       }
 
       return result;
@@ -837,6 +846,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       set_state((prev) => ({ ...prev, has_keys: true }));
+
+      emit_keys_ready();
     },
     [state.current_account_id],
   );

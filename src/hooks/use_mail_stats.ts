@@ -413,35 +413,9 @@ export function use_mail_stats(): UseMailStatsReturn {
       stats_store.fetch(keys_just_became_available);
     }
 
-    let key_poll_interval: ReturnType<typeof setInterval> | null = null;
-    let poll_attempts = 0;
-    const MAX_POLL_ATTEMPTS = 20;
-
-    if (has_keys && stats_store.is_stale()) {
-      key_poll_interval = setInterval(() => {
-        poll_attempts++;
-
-        if (has_passphrase_in_memory() && has_encryption_key()) {
-          if (key_poll_interval) {
-            clearInterval(key_poll_interval);
-            key_poll_interval = null;
-          }
-          stats_store.fetch(true);
-        } else if (poll_attempts >= MAX_POLL_ATTEMPTS) {
-          if (key_poll_interval) {
-            clearInterval(key_poll_interval);
-            key_poll_interval = null;
-          }
-        }
-      }, 250);
-    }
-
     return () => {
       mounted_ref.current = false;
       unsubscribe();
-      if (key_poll_interval) {
-        clearInterval(key_poll_interval);
-      }
     };
   }, [sync_state, user?.id, has_keys]);
 
@@ -450,12 +424,17 @@ export function use_mail_stats(): UseMailStatsReturn {
       stats_store.fetch_debounced();
     };
 
+    const handle_keys_ready = () => {
+      stats_store.fetch(true);
+    };
+
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
     window.addEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.SCHEDULED_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.SNOOZED_CHANGED, handle_change);
+    window.addEventListener(MAIL_EVENTS.KEYS_READY, handle_keys_ready);
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
@@ -464,6 +443,7 @@ export function use_mail_stats(): UseMailStatsReturn {
       window.removeEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.SCHEDULED_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.SNOOZED_CHANGED, handle_change);
+      window.removeEventListener(MAIL_EVENTS.KEYS_READY, handle_keys_ready);
     };
   }, []);
 
