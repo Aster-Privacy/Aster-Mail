@@ -376,7 +376,7 @@ export async function patch_mail_item_metadata(
   item_id: string,
   data: PatchMetadataRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
-  return api_client.patch<{ success: boolean; updated_count: number }>(
+  return api_client.put<{ success: boolean; updated_count: number }>(
     `/mail/${item_id}/metadata`,
     data,
   );
@@ -385,7 +385,7 @@ export async function patch_mail_item_metadata(
 export async function bulk_patch_metadata(
   data: BulkPatchMetadataRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
-  return api_client.patch<{ success: boolean; updated_count: number }>(
+  return api_client.put<{ success: boolean; updated_count: number }>(
     "/mail/bulk/metadata",
     data,
   );
