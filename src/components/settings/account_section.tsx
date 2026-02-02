@@ -4,6 +4,8 @@ import {
   CameraIcon,
   ArrowPathIcon,
   ExclamationTriangleIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 
 import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
@@ -28,6 +30,7 @@ import {
 import {
   get_recovery_email,
   save_recovery_email,
+  resend_recovery_verification,
 } from "@/services/api/recovery_email";
 
 const MAX_SIZE = 256;
@@ -64,6 +67,15 @@ function compress_image(file: File): Promise<string> {
     };
     img.src = url;
   });
+}
+
+function mask_email(email: string): string {
+  const [local, domain] = email.split("@");
+
+  if (!domain) return email;
+  const masked_local = local.length > 0 ? local[0] + "***" : "***";
+
+  return `${masked_local}@${domain}`;
 }
 
 interface RecoveryModalProps {
@@ -155,9 +167,13 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
   const [saving_name, set_saving_name] = useState(false);
   const [uploading, set_uploading] = useState(false);
   const [preview, set_preview] = useState<string | null>(null);
-  const [recovery, set_recovery] = useState<string | null>(null);
+  const [recovery, set_recovery] = useState<{
+    email: string | null;
+    verified: boolean;
+  }>({ email: null, verified: false });
   const [show_modal, set_show_modal] = useState(false);
   const [pending, set_pending] = useState(false);
+  const [resending, set_resending] = useState(false);
   const [show_delete_modal, set_show_delete_modal] = useState(false);
   const [show_reset_confirm, set_show_reset_confirm] = useState(false);
   const [reset_text, set_reset_text] = useState("");
@@ -171,7 +187,7 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
 
         set_recovery(r.data);
       } catch {
-        set_recovery(null);
+        set_recovery({ email: null, verified: false });
       }
     };
 
@@ -266,9 +282,28 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
     const r = await save_recovery_email(email, vault);
 
     if (r.data.success) {
-      set_recovery(email);
+      set_recovery({ email, verified: false });
       set_pending(true);
     } else throw new Error("Failed");
+  };
+
+  const handle_resend = async () => {
+    if (resending) return;
+    set_resending(true);
+    try {
+      const r = await resend_recovery_verification();
+
+      if (r.data.success) {
+        set_pending(true);
+        show_toast("Verification email sent", "success");
+      } else {
+        show_toast("Failed to send verification email", "error");
+      }
+    } catch {
+      show_toast("Failed to send verification email", "error");
+    } finally {
+      set_resending(false);
+    }
   };
 
   const picture = preview || user?.profile_picture || "/profile.webp";
@@ -416,13 +451,51 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
               This is the email used to recover your account
             </p>
           </div>
-          <Button variant="secondary" onClick={() => set_show_modal(true)}>
-            {recovery ? "Update" : "Add"}
-          </Button>
+          <div className="flex items-center gap-3">
+            {recovery.email && (
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  {mask_email(recovery.email)}
+                </span>
+                {recovery.verified ? (
+                  <span className="flex items-center gap-1 text-xs text-green-500">
+                    <CheckCircleIcon className="w-4 h-4" />
+                    Verified
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-xs text-amber-500">
+                    <ExclamationCircleIcon className="w-4 h-4" />
+                    Not verified
+                  </span>
+                )}
+              </div>
+            )}
+            {recovery.email && !recovery.verified && (
+              <Button
+                disabled={resending}
+                size="sm"
+                variant="ghost"
+                onClick={handle_resend}
+              >
+                {resending ? (
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Resend"
+                )}
+              </Button>
+            )}
+            <Button variant="secondary" onClick={() => set_show_modal(true)}>
+              {recovery.email ? "Update" : "Add"}
+            </Button>
+          </div>
         </div>
-        {pending && recovery && (
+        {pending && recovery.email && !recovery.verified && (
           <p className="text-sm mt-3" style={{ color: "var(--text-tertiary)" }}>
-            Confirmation email sent to {recovery}. Click the link to confirm.
+            Verification email sent to {mask_email(recovery.email)}. Check your
+            inbox and click the link to verify.
           </p>
         )}
       </div>
@@ -546,7 +619,7 @@ export function AccountSection({ on_account_deleted }: AccountSectionProps) {
       </div>
 
       <RecoveryModal
-        current={recovery}
+        current={recovery.email}
         is_open={show_modal}
         on_close={() => set_show_modal(false)}
         on_save={save_recovery}

@@ -5,9 +5,19 @@ import { api_client } from "./client";
 interface GetRecoveryEmailApiResponse {
   encrypted_email: string | null;
   email_nonce: string | null;
+  verified: boolean | null;
+}
+
+interface RecoveryEmailData {
+  email: string | null;
+  verified: boolean;
 }
 
 interface SaveRecoveryEmailApiResponse {
+  success: boolean;
+}
+
+interface ResendVerificationApiResponse {
   success: boolean;
 }
 
@@ -70,9 +80,9 @@ async function decrypt_recovery_email(
 
 export async function get_recovery_email(
   vault: EncryptedVault | null,
-): Promise<{ data: string | null }> {
+): Promise<{ data: RecoveryEmailData }> {
   if (!vault) {
-    return { data: null };
+    return { data: { email: null, verified: false } };
   }
 
   try {
@@ -80,13 +90,13 @@ export async function get_recovery_email(
       await api_client.get<GetRecoveryEmailApiResponse>("/core/v1/recovery/email");
 
     if (response.error || !response.data) {
-      return { data: null };
+      return { data: { email: null, verified: false } };
     }
 
-    const { encrypted_email, email_nonce } = response.data;
+    const { encrypted_email, email_nonce, verified } = response.data;
 
     if (!encrypted_email || !email_nonce) {
-      return { data: null };
+      return { data: { email: null, verified: false } };
     }
 
     const email = await decrypt_recovery_email(
@@ -95,9 +105,9 @@ export async function get_recovery_email(
       vault,
     );
 
-    return { data: email };
+    return { data: { email, verified: verified ?? false } };
   } catch {
-    return { data: null };
+    return { data: { email: null, verified: false } };
   }
 }
 
@@ -114,6 +124,23 @@ export async function save_recovery_email(
         encrypted_email: encrypted,
         email_nonce: nonce,
       },
+    );
+
+    return {
+      data: { success: !response.error && response.data?.success === true },
+    };
+  } catch {
+    return { data: { success: false } };
+  }
+}
+
+export async function resend_recovery_verification(): Promise<{
+  data: { success: boolean };
+}> {
+  try {
+    const response = await api_client.post<ResendVerificationApiResponse>(
+      "/core/v1/recovery/email/resend",
+      {},
     );
 
     return {
