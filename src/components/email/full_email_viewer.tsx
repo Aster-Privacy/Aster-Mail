@@ -466,7 +466,12 @@ export function FullEmailViewer({
             }
           : prev,
       );
-      emit_mail_item_updated({ id: email_id, is_read: new_state });
+      emit_mail_item_updated({
+        id: email_id,
+        is_read: new_state,
+        encrypted_metadata: result.encrypted?.encrypted_metadata,
+        metadata_nonce: result.encrypted?.metadata_nonce,
+      });
     }
   }, [email_id, is_read, mail_item]);
 
@@ -876,7 +881,12 @@ export function FullEmailViewer({
                   : prev,
               );
             }
-            emit_mail_item_updated({ id: item.id, is_read: true });
+            emit_mail_item_updated({
+              id: item.id,
+              is_read: true,
+              encrypted_metadata: result.encrypted?.encrypted_metadata,
+              metadata_nonce: result.encrypted?.metadata_nonce,
+            });
           }
         };
 
@@ -1490,7 +1500,6 @@ export function FullEmailViewer({
                     m.id === message_id ? { ...m, is_read: new_read } : m,
                   ),
                 );
-                emit_mail_item_updated({ id: message_id, is_read: new_read });
 
                 update_item_metadata(
                   message_id,
@@ -1506,10 +1515,6 @@ export function FullEmailViewer({
                         m.id === message_id ? { ...m, is_read: !new_read } : m,
                       ),
                     );
-                    emit_mail_item_updated({
-                      id: message_id,
-                      is_read: !new_read,
-                    });
                   } else if (result.encrypted) {
                     set_thread_messages((prev) =>
                       prev.map((m) =>
@@ -1522,6 +1527,12 @@ export function FullEmailViewer({
                           : m,
                       ),
                     );
+                    emit_mail_item_updated({
+                      id: message_id,
+                      is_read: new_read,
+                      encrypted_metadata: result.encrypted!.encrypted_metadata,
+                      metadata_nonce: result.encrypted!.metadata_nonce,
+                    });
                   }
                 });
               }}

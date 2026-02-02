@@ -72,6 +72,8 @@ export interface MailItemUpdatedEventDetail {
   is_trashed?: boolean;
   is_spam?: boolean;
   folders?: { folder_token: string; name: string; color?: string }[];
+  encrypted_metadata?: string;
+  metadata_nonce?: string;
 }
 
 export interface MailItemsRemovedEventDetail {

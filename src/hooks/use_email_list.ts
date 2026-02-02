@@ -533,12 +533,14 @@ async function fetch_mail_from_api(
     items.map(async (item) => {
       if (signal.aborted) throw new Error("aborted");
 
+      const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
+
       const [envelope, metadata] = await Promise.all([
         decrypt_envelope(item.encrypted_envelope, item.envelope_nonce),
-        item.encrypted_metadata && item.metadata_nonce
+        has_metadata
           ? decrypt_mail_metadata(
-              item.encrypted_metadata,
-              item.metadata_nonce,
+              item.encrypted_metadata!,
+              item.metadata_nonce!,
               item.metadata_version,
             )
           : Promise.resolve(null),

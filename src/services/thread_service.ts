@@ -22,6 +22,7 @@ import {
 } from "./crypto/ratchet_manager";
 import { zero_uint8_array } from "./crypto/secure_memory";
 import { decrypt_message } from "./crypto/key_manager";
+import { decrypt_mail_metadata } from "./crypto/mail_metadata";
 
 interface DecryptedEnvelope {
   subject: string;
@@ -111,10 +112,16 @@ export async function fetch_and_decrypt_thread_messages(
   const decrypted_messages: DecryptedThreadMessage[] = [];
 
   const decrypt_promises = thread_data.messages.map(async (msg) => {
-    const envelope = await decrypt_message_envelope(
-      msg.encrypted_envelope,
-      msg.envelope_nonce,
-    );
+    const [envelope, decrypted_metadata] = await Promise.all([
+      decrypt_message_envelope(msg.encrypted_envelope, msg.envelope_nonce),
+      msg.encrypted_metadata && msg.metadata_nonce
+        ? decrypt_mail_metadata(
+            msg.encrypted_metadata,
+            msg.metadata_nonce,
+            msg.metadata_version,
+          )
+        : Promise.resolve(msg.metadata ?? null),
+    ]);
 
     if (!envelope) {
       return {
@@ -125,8 +132,8 @@ export async function fetch_and_decrypt_thread_messages(
         subject: "(Could not decrypt)",
         body: "",
         timestamp: msg.created_at,
-        is_read: msg.metadata?.is_read ?? false,
-        is_starred: msg.metadata?.is_starred ?? false,
+        is_read: decrypted_metadata?.is_read ?? false,
+        is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
         is_external: msg.is_external ?? false,
         encrypted_metadata: msg.encrypted_metadata,
@@ -186,8 +193,8 @@ export async function fetch_and_decrypt_thread_messages(
       subject: envelope.subject,
       body: body_text,
       timestamp: envelope.sent_at || msg.created_at,
-      is_read: msg.metadata?.is_read ?? false,
-      is_starred: msg.metadata?.is_starred ?? false,
+      is_read: decrypted_metadata?.is_read ?? false,
+      is_starred: decrypted_metadata?.is_starred ?? false,
       is_deleted: false,
       is_external: msg.is_external ?? false,
       encrypted_metadata: msg.encrypted_metadata,

@@ -272,9 +272,29 @@ export function use_email_actions(
         if (is_view_changing_action(action_type)) {
           emit_mail_changed();
         } else {
+          const metadata_update =
+            result.data &&
+            typeof result.data === "object" &&
+            "encrypted_metadata" in result.data
+              ? {
+                  encrypted_metadata: (
+                    result.data as {
+                      encrypted_metadata?: string;
+                      metadata_nonce?: string;
+                    }
+                  ).encrypted_metadata,
+                  metadata_nonce: (
+                    result.data as {
+                      encrypted_metadata?: string;
+                      metadata_nonce?: string;
+                    }
+                  ).metadata_nonce,
+                }
+              : {};
           emit_mail_item_updated({
             id: email.id,
             ...optimistic_update,
+            ...metadata_update,
           } as MailItemUpdatedEventDetail);
         }
         emit_mail_action(action_type, [email.id]);
@@ -315,7 +335,10 @@ export function use_email_actions(
         is_archived: boolean;
         is_spam: boolean;
       }>,
-    ): Promise<{ data?: unknown; error?: string }> => {
+    ): Promise<{
+      data?: { encrypted_metadata?: string; metadata_nonce?: string };
+      error?: string;
+    }> => {
       const result = await update_item_metadata(
         email.id,
         {
@@ -326,7 +349,14 @@ export function use_email_actions(
         updates,
       );
 
-      return result.success ? { data: true } : { error: "Failed to update" };
+      return result.success
+        ? {
+            data: {
+              encrypted_metadata: result.encrypted?.encrypted_metadata,
+              metadata_nonce: result.encrypted?.metadata_nonce,
+            },
+          }
+        : { error: "Failed to update" };
     },
     [],
   );

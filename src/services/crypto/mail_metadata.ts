@@ -245,51 +245,101 @@ export interface MetadataUpdateResult {
   metadata_nonce: string;
 }
 
+type UpdateResult = { success: boolean; encrypted?: MetadataUpdateResult };
+
+const in_flight_requests = new Map<string, Promise<UpdateResult>>();
+const recently_completed = new Map<string, { result: UpdateResult; timestamp: number }>();
+const DEDUP_WINDOW_MS = 2000;
+
+function create_dedup_key(item_id: string, updates: Partial<MailItemMetadata>): string {
+  const sorted_keys = Object.keys(updates).sort();
+  const values = sorted_keys.map((k) => `${k}:${updates[k as keyof MailItemMetadata]}`);
+  return `${item_id}|${values.join(",")}`;
+}
+
+function cleanup_completed_cache(): void {
+  const now = Date.now();
+  for (const [key, entry] of recently_completed) {
+    if (now - entry.timestamp > DEDUP_WINDOW_MS) {
+      recently_completed.delete(key);
+    }
+  }
+}
+
 export async function update_item_metadata(
   item_id: string,
   current: MetadataUpdateOptions,
   updates: Partial<MailItemMetadata>,
-): Promise<{ success: boolean; encrypted?: MetadataUpdateResult }> {
-  const { patch_mail_item_metadata } = await import("@/services/api/mail");
+): Promise<UpdateResult> {
+  const dedup_key = create_dedup_key(item_id, updates);
 
-  let current_metadata: MailItemMetadata | null = null;
+  cleanup_completed_cache();
 
-  if (current.encrypted_metadata && current.metadata_nonce) {
-    current_metadata = await decrypt_mail_metadata(
-      current.encrypted_metadata,
-      current.metadata_nonce,
-      current.metadata_version,
-    );
+  const cached = recently_completed.get(dedup_key);
+  if (cached && cached.result.success) {
+    return cached.result;
   }
 
-  if (!current_metadata) {
-    current_metadata = create_default_metadata();
+  const in_flight = in_flight_requests.get(dedup_key);
+  if (in_flight) {
+    return in_flight;
   }
 
-  const updated_metadata: MailItemMetadata = {
-    ...current_metadata,
-    ...updates,
-    updated_at: new Date().toISOString(),
+  const execute = async (): Promise<UpdateResult> => {
+    const { patch_mail_item_metadata } = await import("@/services/api/mail");
+
+    let current_metadata: MailItemMetadata | null = null;
+
+    if (current.encrypted_metadata && current.metadata_nonce) {
+      current_metadata = await decrypt_mail_metadata(
+        current.encrypted_metadata,
+        current.metadata_nonce,
+        current.metadata_version,
+      );
+    }
+
+    if (!current_metadata) {
+      current_metadata = create_default_metadata();
+    }
+
+    const updated_metadata: MailItemMetadata = {
+      ...current_metadata,
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (updates.is_trashed === true && !updated_metadata.trashed_at) {
+      updated_metadata.trashed_at = new Date().toISOString();
+    } else if (updates.is_trashed === false) {
+      updated_metadata.trashed_at = undefined;
+    }
+
+    const encrypted = await encrypt_mail_metadata(updated_metadata);
+
+    if (!encrypted) {
+      return { success: false };
+    }
+
+    const result = await patch_mail_item_metadata(item_id, {
+      encrypted_metadata: encrypted.encrypted_metadata,
+      metadata_nonce: encrypted.metadata_nonce,
+    });
+
+    return { success: !!result.data, encrypted };
   };
 
-  if (updates.is_trashed === true && !updated_metadata.trashed_at) {
-    updated_metadata.trashed_at = new Date().toISOString();
-  } else if (updates.is_trashed === false) {
-    updated_metadata.trashed_at = undefined;
+  const promise = execute();
+  in_flight_requests.set(dedup_key, promise);
+
+  try {
+    const result = await promise;
+    if (result.success) {
+      recently_completed.set(dedup_key, { result, timestamp: Date.now() });
+    }
+    return result;
+  } finally {
+    in_flight_requests.delete(dedup_key);
   }
-
-  const encrypted = await encrypt_mail_metadata(updated_metadata);
-
-  if (!encrypted) {
-    return { success: false };
-  }
-
-  const result = await patch_mail_item_metadata(item_id, {
-    encrypted_metadata: encrypted.encrypted_metadata,
-    metadata_nonce: encrypted.metadata_nonce,
-  });
-
-  return { success: !!result.data, encrypted };
 }
 
 export async function bulk_update_items_metadata(

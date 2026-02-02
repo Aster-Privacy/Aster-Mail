@@ -386,10 +386,6 @@ export async function decrypt_metadata<T>(
   master_key: Uint8Array,
   context: string = "default",
 ): Promise<T | null> {
-  if (blob.version > METADATA_CURRENT_VERSION) {
-    return null;
-  }
-
   try {
     const crypto_key = await derive_metadata_key(master_key, context);
     const nonce = base64_to_array(blob.nonce);

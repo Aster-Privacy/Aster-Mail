@@ -88,6 +88,7 @@ import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
 import { print_email } from "@/utils/print_email";
+import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 
 interface DecryptedEmail {
   id: string;
@@ -343,24 +344,44 @@ export default function EmailDetailPage() {
 
       set_mail_item(response.data);
 
+      let decrypted_metadata = response.data.metadata ?? null;
+
       if (
-        !response.data.metadata?.is_read &&
+        !decrypted_metadata &&
+        response.data.encrypted_metadata &&
+        response.data.metadata_nonce
+      ) {
+        decrypted_metadata = await decrypt_mail_metadata(
+          response.data.encrypted_metadata,
+          response.data.metadata_nonce,
+          response.data.metadata_version,
+        );
+      }
+
+      if (
+        !decrypted_metadata?.is_read &&
         response.data.item_type === "received" &&
         preferences.mark_as_read_delay !== "never"
       ) {
         const mail_data = response.data;
         const mark_read = () => {
-          adjust_unread_count(-1);
           update_item_metadata(
             email_id,
             {
               encrypted_metadata: mail_data.encrypted_metadata,
               metadata_nonce: mail_data.metadata_nonce,
+              metadata_version: mail_data.metadata_version,
             },
             { is_read: true },
           ).then((result) => {
             if (result.success) {
-              emit_mail_item_updated({ id: email_id, is_read: true });
+              adjust_unread_count(-1);
+              emit_mail_item_updated({
+                id: email_id,
+                is_read: true,
+                encrypted_metadata: result.encrypted?.encrypted_metadata,
+                metadata_nonce: result.encrypted?.metadata_nonce,
+              });
             }
           });
         };
@@ -400,9 +421,9 @@ export default function EmailDetailPage() {
           timestamp: format_email_popup(
             new Date(envelope.sent_at || response.data.created_at),
           ),
-          is_read: response.data.metadata?.is_read ?? false,
-          is_starred: response.data.metadata?.is_starred ?? false,
-          has_attachment: response.data.metadata?.has_attachments ?? false,
+          is_read: decrypted_metadata?.is_read ?? false,
+          is_starred: decrypted_metadata?.is_starred ?? false,
+          has_attachment: decrypted_metadata?.has_attachments ?? false,
           thread_count: 1,
           body: body_text,
           to: envelope.to || [],
@@ -426,8 +447,8 @@ export default function EmailDetailPage() {
           subject: envelope.subject || "(No subject)",
           body: body_text || "",
           timestamp: response.data.message_ts || response.data.created_at,
-          is_read: response.data.metadata?.is_read ?? false,
-          is_starred: response.data.metadata?.is_starred ?? false,
+          is_read: decrypted_metadata?.is_read ?? false,
+          is_starred: decrypted_metadata?.is_starred ?? false,
           is_deleted: false,
           is_external: response.data.is_external,
           encrypted_metadata: response.data.encrypted_metadata,
@@ -1119,10 +1140,6 @@ export default function EmailDetailPage() {
                               : m,
                           ),
                         );
-                        emit_mail_item_updated({
-                          id: message_id,
-                          is_read: new_read,
-                        });
 
                         update_item_metadata(
                           message_id,
@@ -1140,9 +1157,12 @@ export default function EmailDetailPage() {
                                   : m,
                               ),
                             );
+                          } else if (result.encrypted) {
                             emit_mail_item_updated({
                               id: message_id,
-                              is_read: !new_read,
+                              is_read: new_read,
+                              encrypted_metadata: result.encrypted.encrypted_metadata,
+                              metadata_nonce: result.encrypted.metadata_nonce,
                             });
                           }
                         });

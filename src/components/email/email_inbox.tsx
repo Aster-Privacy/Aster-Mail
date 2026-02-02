@@ -734,7 +734,12 @@ export function EmailInbox({
       );
 
       if (result.success) {
-        emit_mail_item_updated({ id: email.id, is_read: new_state });
+        emit_mail_item_updated({
+          id: email.id,
+          is_read: new_state,
+          encrypted_metadata: result.encrypted?.encrypted_metadata,
+          metadata_nonce: result.encrypted?.metadata_nonce,
+        });
         show_action_toast({
           message: new_state ? "Marked as read" : "Marked as unread",
           action_type: "read",
@@ -744,7 +749,7 @@ export function EmailInbox({
               adjust_unread_count(new_state ? 1 : -1);
               adjust_stats_unread(new_state ? 1 : -1);
             }
-            await update_item_metadata(
+            const undo_result = await update_item_metadata(
               email.id,
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -752,7 +757,12 @@ export function EmailInbox({
               },
               { is_read: !new_state },
             );
-            emit_mail_item_updated({ id: email.id, is_read: !new_state });
+            emit_mail_item_updated({
+              id: email.id,
+              is_read: !new_state,
+              encrypted_metadata: undo_result.encrypted?.encrypted_metadata,
+              metadata_nonce: undo_result.encrypted?.metadata_nonce,
+            });
           },
         });
       }
@@ -775,13 +785,18 @@ export function EmailInbox({
       );
 
       if (result.success) {
-        emit_mail_item_updated({ id: email.id, is_pinned: new_state });
+        emit_mail_item_updated({
+          id: email.id,
+          is_pinned: new_state,
+          encrypted_metadata: result.encrypted?.encrypted_metadata,
+          metadata_nonce: result.encrypted?.metadata_nonce,
+        });
         show_action_toast({
           message: new_state ? "Pinned" : "Unpinned",
           action_type: "pin",
           email_ids: [email.id],
           on_undo: async () => {
-            await update_item_metadata(
+            const undo_result = await update_item_metadata(
               email.id,
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -789,7 +804,12 @@ export function EmailInbox({
               },
               { is_pinned: !new_state },
             );
-            emit_mail_item_updated({ id: email.id, is_pinned: !new_state });
+            emit_mail_item_updated({
+              id: email.id,
+              is_pinned: !new_state,
+              encrypted_metadata: undo_result.encrypted?.encrypted_metadata,
+              metadata_nonce: undo_result.encrypted?.metadata_nonce,
+            });
           },
         });
       }
@@ -814,14 +834,19 @@ export function EmailInbox({
       );
 
       if (result.success) {
-        emit_mail_item_updated({ id: email.id, is_starred: new_state });
+        emit_mail_item_updated({
+          id: email.id,
+          is_starred: new_state,
+          encrypted_metadata: result.encrypted?.encrypted_metadata,
+          metadata_nonce: result.encrypted?.metadata_nonce,
+        });
         show_action_toast({
           message: new_state ? "Starred" : "Unstarred",
           action_type: "star",
           email_ids: [email.id],
           on_undo: async () => {
             adjust_starred_count(new_state ? -1 : 1);
-            await update_item_metadata(
+            const undo_result = await update_item_metadata(
               email.id,
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -829,7 +854,12 @@ export function EmailInbox({
               },
               { is_starred: !new_state },
             );
-            emit_mail_item_updated({ id: email.id, is_starred: !new_state });
+            emit_mail_item_updated({
+              id: email.id,
+              is_starred: !new_state,
+              encrypted_metadata: undo_result.encrypted?.encrypted_metadata,
+              metadata_nonce: undo_result.encrypted?.metadata_nonce,
+            });
           },
         });
       }
@@ -1741,7 +1771,7 @@ export function EmailInbox({
       adjust_unread_count(unread_count_delta);
     }
 
-    await Promise.all(
+    const results = await Promise.all(
       selected.map((email) =>
         update_item_metadata(
           email.id,
@@ -1755,9 +1785,18 @@ export function EmailInbox({
       ),
     );
 
-    for (const email of selected) {
-      emit_mail_item_updated({ id: email.id, is_read: new_state });
-    }
+    selected.forEach((email, index) => {
+      const result = results[index];
+
+      if (result.success && result.encrypted) {
+        emit_mail_item_updated({
+          id: email.id,
+          is_read: new_state,
+          encrypted_metadata: result.encrypted.encrypted_metadata,
+          metadata_nonce: result.encrypted.metadata_nonce,
+        });
+      }
+    });
 
     show_action_toast({
       message: new_state

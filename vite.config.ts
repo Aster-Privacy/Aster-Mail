@@ -202,18 +202,7 @@ export default defineConfig({
           },
           {
             urlPattern: /\/api\/mail\?/i,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "mail-list-cache",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 5,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-              networkTimeoutSeconds: 10,
-            },
+            handler: "NetworkOnly",
           },
           {
             urlPattern: /\/api\/folders/i,

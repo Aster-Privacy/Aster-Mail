@@ -458,8 +458,6 @@ export const ThreadMessagesList = forwardRef<
         return next;
       });
 
-      emit_mail_item_updated({ id: msg.id, is_read: true });
-
       update_item_metadata(
         msg.id,
         {
@@ -476,8 +474,13 @@ export const ThreadMessagesList = forwardRef<
 
             return next;
           });
-          emit_mail_item_updated({ id: msg.id, is_read: false });
         } else {
+          emit_mail_item_updated({
+            id: msg.id,
+            is_read: true,
+            encrypted_metadata: result.encrypted?.encrypted_metadata,
+            metadata_nonce: result.encrypted?.metadata_nonce,
+          });
           window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         }
       });
@@ -542,7 +545,6 @@ export const ThreadMessagesList = forwardRef<
       });
 
       adjust_starred_count(new_starred ? 1 : -1);
-      emit_mail_item_updated({ id: msg.id, is_starred: new_starred });
 
       update_item_metadata(
         msg.id,
@@ -565,8 +567,13 @@ export const ThreadMessagesList = forwardRef<
             return next;
           });
           adjust_starred_count(new_starred ? -1 : 1);
-          emit_mail_item_updated({ id: msg.id, is_starred: !new_starred });
         } else {
+          emit_mail_item_updated({
+            id: msg.id,
+            is_starred: new_starred,
+            encrypted_metadata: result.encrypted?.encrypted_metadata,
+            metadata_nonce: result.encrypted?.metadata_nonce,
+          });
           window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         }
       });
@@ -608,8 +615,6 @@ export const ThreadMessagesList = forwardRef<
 
         const final_read_state = read_ids_ref.current.has(msg.id);
 
-        emit_mail_item_updated({ id: msg.id, is_read: final_read_state });
-
         update_item_metadata(
           msg.id,
           {
@@ -630,8 +635,13 @@ export const ThreadMessagesList = forwardRef<
 
               return next;
             });
-            emit_mail_item_updated({ id: msg.id, is_read: !final_read_state });
           } else {
+            emit_mail_item_updated({
+              id: msg.id,
+              is_read: final_read_state,
+              encrypted_metadata: result.encrypted?.encrypted_metadata,
+              metadata_nonce: result.encrypted?.metadata_nonce,
+            });
             window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
           }
         });
