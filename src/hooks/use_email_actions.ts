@@ -21,12 +21,18 @@ import {
   update_progress_toast,
   hide_action_toast,
 } from "@/components/toast/action_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   update_item_metadata,
   bulk_update_items_metadata,
 } from "@/services/crypto/mail_metadata";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { adjust_starred_count } from "@/hooks/use_mail_counts";
+import { get_network_status } from "@/native/capacitor_bridge";
+import {
+  enqueue_action,
+  type OfflineActionType,
+} from "@/native/offline_queue";
 
 type ActionType =
   | "star"
@@ -147,6 +153,73 @@ const VIEW_CHANGING_ACTIONS: ActionType[] = [
 
 function is_view_changing_action(action: ActionType): boolean {
   return VIEW_CHANGING_ACTIONS.includes(action);
+}
+
+const OFFLINE_SUPPORTED_ACTIONS: Record<ActionType, OfflineActionType | null> = {
+  star: "star",
+  archive: "archive",
+  delete: "delete",
+  read: "mark_read",
+  unread: "mark_read",
+  move: "move",
+  pin: null,
+  spam: null,
+  label: null,
+  restore: null,
+  permanent_delete: null,
+};
+
+function get_offline_action_type(action: ActionType): OfflineActionType | null {
+  return OFFLINE_SUPPORTED_ACTIONS[action];
+}
+
+async function try_enqueue_offline_action(
+  action_type: ActionType,
+  email_ids: string[],
+  extra_payload?: Record<string, unknown>,
+): Promise<{ queued: boolean; action_id?: string }> {
+  const offline_type = get_offline_action_type(action_type);
+
+  if (!offline_type) {
+    return { queued: false };
+  }
+
+  const status = await get_network_status();
+
+  if (status.connected) {
+    return { queued: false };
+  }
+
+  let payload: unknown;
+
+  switch (offline_type) {
+    case "star":
+      payload = {
+        email_ids,
+        starred: extra_payload?.starred ?? true,
+      };
+      break;
+    case "mark_read":
+      payload = {
+        email_ids,
+        read: extra_payload?.read ?? true,
+      };
+      break;
+    case "move":
+      payload = {
+        email_ids,
+        folder_id: extra_payload?.folder_id,
+      };
+      break;
+    default:
+      payload = { email_ids };
+  }
+
+  const action_id = await enqueue_action(offline_type, payload);
+
+  show_toast("You're offline. Action queued for when you reconnect.", "info");
+
+  return { queued: true, action_id };
 }
 
 export function use_email_actions(
@@ -403,6 +476,19 @@ export function use_email_actions(
     async (email: InboxEmail): Promise<boolean> => {
       const new_starred = !email.is_starred;
 
+      const offline_result = await try_enqueue_offline_action(
+        "star",
+        [email.id],
+        { starred: new_starred },
+      );
+
+      if (offline_result.queued) {
+        on_optimistic_update?.(email.id, { is_starred: new_starred });
+        adjust_starred_count(new_starred ? 1 : -1);
+
+        return true;
+      }
+
       adjust_starred_count(new_starred ? 1 : -1);
 
       const success = await execute_single_action(
@@ -418,7 +504,7 @@ export function use_email_actions(
 
       return success;
     },
-    [execute_single_action, update_with_metadata],
+    [execute_single_action, update_with_metadata, on_optimistic_update],
   );
 
   const toggle_pin = useCallback(
@@ -439,6 +525,18 @@ export function use_email_actions(
     async (email: InboxEmail): Promise<boolean> => {
       const new_read = !email.is_read;
 
+      const offline_result = await try_enqueue_offline_action(
+        new_read ? "read" : "unread",
+        [email.id],
+        { read: new_read },
+      );
+
+      if (offline_result.queued) {
+        on_optimistic_update?.(email.id, { is_read: new_read });
+
+        return true;
+      }
+
       return execute_single_action(
         email,
         new_read ? "read" : "unread",
@@ -446,33 +544,69 @@ export function use_email_actions(
         () => update_with_metadata(email, { is_read: new_read }),
       );
     },
-    [execute_single_action, update_with_metadata],
+    [execute_single_action, update_with_metadata, on_optimistic_update],
   );
 
   const mark_as_read = useCallback(
     async (email: InboxEmail): Promise<boolean> => {
       if (email.is_read) return true;
 
+      const offline_result = await try_enqueue_offline_action(
+        "read",
+        [email.id],
+        { read: true },
+      );
+
+      if (offline_result.queued) {
+        on_optimistic_update?.(email.id, { is_read: true });
+
+        return true;
+      }
+
       return execute_single_action(email, "read", { is_read: true }, () =>
         update_with_metadata(email, { is_read: true }),
       );
     },
-    [execute_single_action, update_with_metadata],
+    [execute_single_action, update_with_metadata, on_optimistic_update],
   );
 
   const mark_as_unread = useCallback(
     async (email: InboxEmail): Promise<boolean> => {
       if (!email.is_read) return true;
 
+      const offline_result = await try_enqueue_offline_action(
+        "unread",
+        [email.id],
+        { read: false },
+      );
+
+      if (offline_result.queued) {
+        on_optimistic_update?.(email.id, { is_read: false });
+
+        return true;
+      }
+
       return execute_single_action(email, "unread", { is_read: false }, () =>
         update_with_metadata(email, { is_read: false }),
       );
     },
-    [execute_single_action, update_with_metadata],
+    [execute_single_action, update_with_metadata, on_optimistic_update],
   );
 
   const archive_email = useCallback(
     async (email: InboxEmail): Promise<boolean> => {
+      const offline_result = await try_enqueue_offline_action(
+        "archive",
+        [email.id],
+      );
+
+      if (offline_result.queued) {
+        on_optimistic_update?.(email.id, { is_archived: true });
+        on_remove_from_list?.(email.id);
+
+        return true;
+      }
+
       const success = await execute_single_action(
         email,
         "archive",
@@ -495,7 +629,7 @@ export function use_email_actions(
 
       return success;
     },
-    [execute_single_action, update_with_metadata],
+    [execute_single_action, update_with_metadata, on_optimistic_update, on_remove_from_list],
   );
 
   const unarchive_email = useCallback(
@@ -513,6 +647,18 @@ export function use_email_actions(
 
   const delete_email = useCallback(
     async (email: InboxEmail): Promise<boolean> => {
+      const offline_result = await try_enqueue_offline_action(
+        "delete",
+        [email.id],
+      );
+
+      if (offline_result.queued) {
+        on_optimistic_update?.(email.id, { is_trashed: true });
+        on_remove_from_list?.(email.id);
+
+        return true;
+      }
+
       const success = await execute_single_action(
         email,
         "delete",
@@ -535,7 +681,7 @@ export function use_email_actions(
 
       return success;
     },
-    [execute_single_action, update_with_metadata],
+    [execute_single_action, update_with_metadata, on_optimistic_update, on_remove_from_list],
   );
 
   const mark_as_spam = useCallback(

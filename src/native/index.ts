@@ -76,13 +76,3 @@ export {
   retry_failed_actions,
   type QueuedAction,
 } from "./offline_queue";
-
-export {
-  update_widget_data,
-  get_widget_data,
-  create_email_preview,
-  sync_widget_with_inbox,
-  format_widget_timestamp,
-  type WidgetData,
-  type WidgetEmailPreview,
-} from "./widget_bridge";

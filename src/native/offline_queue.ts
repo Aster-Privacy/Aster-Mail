@@ -3,9 +3,17 @@ import { Preferences } from "@capacitor/preferences";
 import { is_native_platform, get_network_status } from "./capacitor_bridge";
 import { haptic_notification } from "./haptic_feedback";
 
+export type OfflineActionType =
+  | "send_email"
+  | "archive"
+  | "delete"
+  | "star"
+  | "mark_read"
+  | "move";
+
 export interface QueuedAction {
   id: string;
-  type: "send_email" | "archive" | "delete" | "star" | "mark_read" | "move";
+  type: OfflineActionType;
   payload: unknown;
   created_at: number;
   retry_count: number;
@@ -196,76 +204,128 @@ async function process_send_email(payload: SendEmailPayload): Promise<void> {
 }
 
 async function process_archive(payload: EmailActionPayload): Promise<void> {
-  const response = await fetch("/api/mail/v1/archive", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ email_ids: payload.email_ids }),
-  });
+  const { get_mail_item } = await import("@/services/api/mail");
+  const { update_item_metadata } = await import("@/services/crypto/mail_metadata");
 
-  if (!response.ok) {
-    throw new Error(`Failed to archive: ${response.status}`);
+  for (const email_id of payload.email_ids) {
+    const item_result = await get_mail_item(email_id);
+
+    if (item_result.error || !item_result.data) {
+      throw new Error(`Failed to fetch email ${email_id}`);
+    }
+
+    const item = item_result.data;
+    const result = await update_item_metadata(
+      email_id,
+      {
+        encrypted_metadata: item.encrypted_metadata,
+        metadata_nonce: item.metadata_nonce,
+        metadata_version: item.metadata_version,
+      },
+      { is_archived: true },
+    );
+
+    if (!result.success) {
+      throw new Error(`Failed to archive email ${email_id}`);
+    }
   }
 }
 
 async function process_delete(payload: EmailActionPayload): Promise<void> {
-  const response = await fetch("/api/mail/v1/messages/trash", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ email_ids: payload.email_ids }),
-  });
+  const { get_mail_item } = await import("@/services/api/mail");
+  const { update_item_metadata } = await import("@/services/crypto/mail_metadata");
 
-  if (!response.ok) {
-    throw new Error(`Failed to delete: ${response.status}`);
+  for (const email_id of payload.email_ids) {
+    const item_result = await get_mail_item(email_id);
+
+    if (item_result.error || !item_result.data) {
+      throw new Error(`Failed to fetch email ${email_id}`);
+    }
+
+    const item = item_result.data;
+    const result = await update_item_metadata(
+      email_id,
+      {
+        encrypted_metadata: item.encrypted_metadata,
+        metadata_nonce: item.metadata_nonce,
+        metadata_version: item.metadata_version,
+      },
+      { is_trashed: true },
+    );
+
+    if (!result.success) {
+      throw new Error(`Failed to delete email ${email_id}`);
+    }
   }
 }
 
 async function process_star(payload: StarPayload): Promise<void> {
-  const response = await fetch("/api/mail/v1/messages/star", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({
-      email_ids: payload.email_ids,
-      starred: payload.starred,
-    }),
-  });
+  const { get_mail_item } = await import("@/services/api/mail");
+  const { update_item_metadata } = await import("@/services/crypto/mail_metadata");
 
-  if (!response.ok) {
-    throw new Error(`Failed to star: ${response.status}`);
+  for (const email_id of payload.email_ids) {
+    const item_result = await get_mail_item(email_id);
+
+    if (item_result.error || !item_result.data) {
+      throw new Error(`Failed to fetch email ${email_id}`);
+    }
+
+    const item = item_result.data;
+    const result = await update_item_metadata(
+      email_id,
+      {
+        encrypted_metadata: item.encrypted_metadata,
+        metadata_nonce: item.metadata_nonce,
+        metadata_version: item.metadata_version,
+      },
+      { is_starred: payload.starred },
+    );
+
+    if (!result.success) {
+      throw new Error(`Failed to star email ${email_id}`);
+    }
   }
 }
 
 async function process_mark_read(payload: MarkReadPayload): Promise<void> {
-  const response = await fetch("/api/mail/v1/messages/read", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({
-      email_ids: payload.email_ids,
-      read: payload.read,
-    }),
-  });
+  const { get_mail_item } = await import("@/services/api/mail");
+  const { update_item_metadata } = await import("@/services/crypto/mail_metadata");
 
-  if (!response.ok) {
-    throw new Error(`Failed to mark read: ${response.status}`);
+  for (const email_id of payload.email_ids) {
+    const item_result = await get_mail_item(email_id);
+
+    if (item_result.error || !item_result.data) {
+      throw new Error(`Failed to fetch email ${email_id}`);
+    }
+
+    const item = item_result.data;
+    const result = await update_item_metadata(
+      email_id,
+      {
+        encrypted_metadata: item.encrypted_metadata,
+        metadata_nonce: item.metadata_nonce,
+        metadata_version: item.metadata_version,
+      },
+      { is_read: payload.read },
+    );
+
+    if (!result.success) {
+      throw new Error(`Failed to mark email ${email_id} as ${payload.read ? "read" : "unread"}`);
+    }
   }
 }
 
 async function process_move(payload: MovePayload): Promise<void> {
-  const response = await fetch("/api/mail/v1/messages/move", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({
-      email_ids: payload.email_ids,
-      folder_id: payload.folder_id,
-    }),
-  });
+  const { move_mail_item } = await import("@/services/api/mail");
 
-  if (!response.ok) {
-    throw new Error(`Failed to move: ${response.status}`);
+  for (const email_id of payload.email_ids) {
+    const result = await move_mail_item(email_id, {
+      folder_token: payload.folder_id,
+    });
+
+    if (result.error) {
+      throw new Error(`Failed to move email ${email_id}: ${result.error}`);
+    }
   }
 }
 

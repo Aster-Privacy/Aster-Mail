@@ -53,6 +53,8 @@ import {
   ComposeErrorFallback,
 } from "@/components/ui/error_boundary";
 import { format_bytes, get_email_username } from "@/lib/utils";
+import { get_network_status } from "@/native/capacitor_bridge";
+import { enqueue_action } from "@/native/offline_queue";
 
 interface Attachment {
   id: string;
@@ -1347,6 +1349,42 @@ export function ComposeWindow({
 
     clear_all_errors();
 
+    const network_status = await get_network_status();
+
+    if (!network_status.connected) {
+      try {
+        await enqueue_action("send_email", {
+          to: recipients.to,
+          cc: recipients.cc.length > 0 ? recipients.cc : undefined,
+          bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
+          subject,
+          body: message,
+        });
+
+        show_toast("You're offline. Email queued for when you reconnect.", "info");
+
+        if (draft_context_id_ref.current) {
+          await draft_manager.await_pending_save(draft_context_id_ref.current);
+          await draft_manager.delete_draft(draft_context_id_ref.current);
+          draft_manager.clear_context(draft_context_id_ref.current);
+          draft_context_id_ref.current = null;
+        }
+
+        reset_form();
+        on_close();
+
+        if (edit_draft && on_draft_cleared) {
+          on_draft_cleared();
+        }
+      } catch {
+        set_send_error("Failed to queue email for offline sending.");
+      } finally {
+        is_sending_ref.current = false;
+      }
+
+      return;
+    }
+
     if (draft_context_id_ref.current) {
       await draft_manager.await_pending_save(draft_context_id_ref.current);
       await draft_manager.delete_draft(draft_context_id_ref.current);
@@ -1398,6 +1436,10 @@ export function ComposeWindow({
     clear_all_errors,
     do_internal_send,
     do_external_send,
+    reset_form,
+    on_close,
+    edit_draft,
+    on_draft_cleared,
   ]);
 
   const handle_scheduled_send = useCallback(async () => {
