@@ -24,7 +24,7 @@ export async function update_display_name(
 ): Promise<ApiResponse<UpdateDisplayNameResponse>> {
   const sanitized_name = sanitize_display_name(display_name);
 
-  return api_client.patch<UpdateDisplayNameResponse>("/auth/me/display-name", {
+  return api_client.patch<UpdateDisplayNameResponse>("/core/v1/auth/me/display-name", {
     display_name: sanitized_name,
   });
 }
@@ -33,7 +33,7 @@ export async function update_profile_picture(
   profile_picture: string | null,
 ): Promise<ApiResponse<UpdateProfilePictureResponse>> {
   return api_client.patch<UpdateProfilePictureResponse>(
-    "/auth/me/profile-picture",
+    "/core/v1/auth/me/profile-picture",
     {
       profile_picture,
     },

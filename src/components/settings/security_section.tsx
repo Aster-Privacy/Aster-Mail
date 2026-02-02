@@ -425,7 +425,7 @@ export function SecuritySection() {
 
     try {
       const response = await api_client.post<LogoutOthersResponse>(
-        "/auth/logout-others",
+        "/core/v1/auth/logout-others",
         {},
       );
 

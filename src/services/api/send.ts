@@ -66,19 +66,19 @@ interface ExternalSendRequest {
 export async function send_simple_email(
   request: SimpleSendRequest,
 ): Promise<ApiResponse<SimpleSendResponse>> {
-  return api_client.post<SimpleSendResponse>("/send", request);
+  return api_client.post<SimpleSendResponse>("/mail/v1/send", request);
 }
 
 export async function queue_send_email(
   request: QueuedSendRequest,
 ): Promise<ApiResponse<QueuedSendResponse>> {
-  return api_client.post<QueuedSendResponse>("/undo-send/queue", request);
+  return api_client.post<QueuedSendResponse>("/mail/v1/undo_send/queue", request);
 }
 
 export async function send_external_email(
   request: ExternalSendRequest,
 ): Promise<ApiResponse<SimpleSendResponse>> {
-  return api_client.post<SimpleSendResponse>("/send/external", request);
+  return api_client.post<SimpleSendResponse>("/mail/v1/send/external", request);
 }
 
 export async function send_email(

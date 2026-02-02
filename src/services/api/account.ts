@@ -12,7 +12,7 @@ interface DeleteAccountResponse {
 export async function delete_account(
   password_hash: string,
 ): Promise<ApiResponse<DeleteAccountResponse>> {
-  const response = await api_client.delete<DeleteAccountResponse>("/auth/me", {
+  const response = await api_client.delete<DeleteAccountResponse>("/core/v1/account", {
     data: { password_hash },
   });
 

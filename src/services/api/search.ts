@@ -70,7 +70,7 @@ export async function search_mail(
 ): Promise<ApiResponse<SearchResponse>> {
   const request: SearchRequest = { search_tokens: tokens };
 
-  return api_client.post<SearchResponse>("/search", request);
+  return api_client.post<SearchResponse>("/mail/v1/search", request);
 }
 
 export async function encrypted_search(
@@ -195,7 +195,7 @@ export async function update_search_index(
 ): Promise<ApiResponse<{ status: string }>> {
   const request: UpdateSearchIndexRequest = { token, encrypted_mail_ids };
 
-  return api_client.put<{ status: string }>("/search/index", request);
+  return api_client.put<{ status: string }>("/mail/v1/search/index", request);
 }
 
 export async function bulk_update_search_index(
@@ -204,7 +204,7 @@ export async function bulk_update_search_index(
   const request: BulkIndexRequest = { entries };
 
   return api_client.post<{ status: string; indexed_count: number }>(
-    "/search/index/bulk",
+    "/mail/v1/search/index/bulk",
     request,
   );
 }
@@ -214,7 +214,7 @@ export async function delete_search_tokens(
 ): Promise<ApiResponse<{ status: string }>> {
   const request: DeleteSearchTokensRequest = { tokens };
 
-  return api_client.post<{ status: string }>("/search/delete", request);
+  return api_client.post<{ status: string }>("/mail/v1/search/delete", request);
 }
 
 export async function delete_from_index(
@@ -222,7 +222,7 @@ export async function delete_from_index(
 ): Promise<ApiResponse<{ status: string }>> {
   const request: DeleteFromIndexRequest = { message_ids };
 
-  return api_client.post<{ status: string }>("/search/index/delete", request);
+  return api_client.post<{ status: string }>("/mail/v1/search/index/delete", request);
 }
 
 export async function index_message(

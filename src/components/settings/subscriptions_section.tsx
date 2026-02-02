@@ -335,7 +335,7 @@ export function SubscriptionsSection() {
                 <img
                   alt={sub.sender_name}
                   className="w-[18px] h-[18px] object-contain"
-                  src={`/api/logos/${encodeURIComponent(sub.domain.toLowerCase())}`}
+                  src={`/api/sync/v1/logos/${encodeURIComponent(sub.domain.toLowerCase())}`}
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                     const parent = e.currentTarget.parentElement;

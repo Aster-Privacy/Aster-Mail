@@ -20,7 +20,7 @@ export function get_logo_url(domain: string): string {
   if (!domain || !domain.includes(".")) return "";
   const clean_domain = domain.toLowerCase().trim();
 
-  return `/api/logos/${encodeURIComponent(clean_domain)}`;
+  return `/api/sync/v1/logos/${encodeURIComponent(clean_domain)}`;
 }
 
 export function get_email_logo_url(email: string): string {

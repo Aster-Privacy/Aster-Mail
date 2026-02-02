@@ -32,25 +32,25 @@ export async function list_attachments(
   mail_id: string,
 ): Promise<ApiResponse<AttachmentsListResponse>> {
   return api_client.get<AttachmentsListResponse>(
-    `/mail/${mail_id}/attachments`,
+    `/mail/v1/attachments/${mail_id}`,
   );
 }
 
 export async function get_attachment(
   attachment_id: string,
 ): Promise<ApiResponse<MailAttachment>> {
-  return api_client.get<MailAttachment>(`/attachments/${attachment_id}`);
+  return api_client.get<MailAttachment>(`/mail/v1/attachments/${attachment_id}`);
 }
 
 export async function create_attachment(
   mail_id: string,
   data: CreateAttachmentRequest,
 ): Promise<ApiResponse<MailAttachment>> {
-  return api_client.post<MailAttachment>(`/mail/${mail_id}/attachments`, data);
+  return api_client.post<MailAttachment>(`/mail/v1/attachments/${mail_id}`, data);
 }
 
 export async function delete_attachment(
   attachment_id: string,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.delete<{ status: string }>(`/attachments/${attachment_id}`);
+  return api_client.delete<{ status: string }>(`/mail/v1/attachments/${attachment_id}`);
 }

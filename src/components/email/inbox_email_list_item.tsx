@@ -352,9 +352,11 @@ export const InboxEmailListItem = forwardRef<
         <div
           className={cn(
             "absolute right-0 top-0 bottom-0 w-52 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 hidden sm:block",
-            email.is_selected === true
-              ? "bg-gradient-to-r from-transparent via-[var(--bg-tertiary)] to-[var(--bg-tertiary)]"
-              : "bg-gradient-to-r from-transparent via-[var(--bg-primary)] to-[var(--bg-primary)]",
+            is_active
+              ? "bg-gradient-to-r from-transparent via-[var(--bg-hover)] to-[var(--bg-hover)]"
+              : email.is_selected === true
+                ? "bg-gradient-to-r from-transparent via-[var(--bg-tertiary)] to-[var(--bg-tertiary)]"
+                : "bg-gradient-to-r from-transparent via-[var(--bg-primary)] to-[var(--bg-primary)]",
           )}
           style={{
             ["--tw-gradient-via-position" as string]: "35%",
@@ -384,7 +386,14 @@ export const InboxEmailListItem = forwardRef<
 
         {show_hover_actions && (
           <div
-            className="absolute right-3 sm:right-4 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+            className={cn(
+              "absolute right-3 sm:right-4 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pl-6",
+              is_active
+                ? "bg-gradient-to-r from-transparent to-[var(--bg-hover)]"
+                : email.is_selected === true
+                  ? "bg-gradient-to-r from-transparent to-[var(--bg-tertiary)]"
+                  : "bg-gradient-to-r from-transparent to-[var(--bg-primary)]",
+            )}
             role="button"
             tabIndex={0}
             onClick={(e) => e.stopPropagation()}

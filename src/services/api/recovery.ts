@@ -23,7 +23,7 @@ interface SaveRecoveryBackupResponse {
 export async function initiate_recovery(
   code_hash: string,
 ): Promise<ApiResponse<InitiateRecoveryResponse>> {
-  return api_client.post<InitiateRecoveryResponse>("/recovery/initiate", {
+  return api_client.post<InitiateRecoveryResponse>("/core/v1/recovery/initiate", {
     code_hash,
   });
 }
@@ -39,7 +39,7 @@ export async function complete_recovery(
   new_vault_backup_nonce: string,
   new_recovery_key_salt: string,
 ): Promise<ApiResponse<CompleteRecoveryResponse>> {
-  return api_client.post<CompleteRecoveryResponse>("/recovery/complete", {
+  return api_client.post<CompleteRecoveryResponse>("/core/v1/recovery/complete", {
     recovery_token,
     new_password_hash,
     new_password_salt,
@@ -58,7 +58,7 @@ export async function save_recovery_backup(
   recovery_key_salt: string,
   recovery_shares: RecoveryShareData[],
 ): Promise<ApiResponse<SaveRecoveryBackupResponse>> {
-  return api_client.post<SaveRecoveryBackupResponse>("/recovery/backup", {
+  return api_client.post<SaveRecoveryBackupResponse>("/core/v1/recovery/backup", {
     encrypted_vault_backup,
     vault_backup_nonce,
     recovery_key_salt,

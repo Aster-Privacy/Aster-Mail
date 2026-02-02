@@ -134,7 +134,7 @@ export async function list_mail_items(
   params: ListMailItemsParams = {},
 ): Promise<ApiResponse<MailItemsListResponse>> {
   if (params.ids && params.ids.length > 0) {
-    return api_client.post<MailItemsListResponse>("/mail/batch", {
+    return api_client.post<MailItemsListResponse>("/mail/v1/messages/batch", {
       ids: params.ids,
       limit: params.limit,
     });
@@ -152,7 +152,7 @@ export async function list_mail_items(
     query_params.set("category_token", params.category_token);
 
   const query_string = query_params.toString();
-  const endpoint = `/mail${query_string ? `?${query_string}` : ""}`;
+  const endpoint = `/mail/v1/messages${query_string ? `?${query_string}` : ""}`;
 
   return api_client.get<MailItemsListResponse>(endpoint);
 }
@@ -167,7 +167,7 @@ export async function list_encrypted_mail_items(
   if (params.item_type) query_params.set("item_type", params.item_type);
 
   const query_string = query_params.toString();
-  const endpoint = `/mail/encrypted${query_string ? `?${query_string}` : ""}`;
+  const endpoint = `/mail/v1/messages/encrypted${query_string ? `?${query_string}` : ""}`;
 
   return api_client.get<MailItemsListResponse>(endpoint);
 }
@@ -175,13 +175,13 @@ export async function list_encrypted_mail_items(
 export async function get_mail_item(
   item_id: string,
 ): Promise<ApiResponse<MailItem>> {
-  return api_client.get<MailItem>(`/mail/${item_id}`);
+  return api_client.get<MailItem>(`/mail/v1/messages/${item_id}`);
 }
 
 export async function create_mail_item(
   data: CreateMailItemRequest,
 ): Promise<ApiResponse<CreateMailItemResponse>> {
-  return api_client.post<CreateMailItemResponse>("/mail", data);
+  return api_client.post<CreateMailItemResponse>("/mail/v1/messages", data);
 }
 
 export async function update_mail_item(
@@ -189,7 +189,7 @@ export async function update_mail_item(
   data: UpdateMailItemRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
   return api_client.put<{ success: boolean; updated_count: number }>(
-    `/mail/${item_id}`,
+    `/mail/v1/messages/${item_id}`,
     data,
   );
 }
@@ -197,14 +197,14 @@ export async function update_mail_item(
 export async function delete_mail_item(
   item_id: string,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.delete<{ status: string }>(`/mail/${item_id}`);
+  return api_client.delete<{ status: string }>(`/mail/v1/messages/${item_id}`);
 }
 
 export async function bulk_update_mail_items(
   data: BulkUpdateRequest,
 ): Promise<ApiResponse<{ status: string; affected: number }>> {
   return api_client.put<{ status: string; affected: number }>(
-    "/mail/bulk",
+    "/mail/v1/messages/bulk",
     data,
   );
 }
@@ -213,7 +213,7 @@ export async function add_mail_item_folder(
   item_id: string,
   data: MailItemFolderRequest,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.post<{ status: string }>(`/mail/${item_id}/labels`, data);
+  return api_client.post<{ status: string }>(`/mail/v1/messages/${item_id}/labels`, data);
 }
 
 export async function remove_mail_item_folder(
@@ -221,14 +221,14 @@ export async function remove_mail_item_folder(
   folder_token: string,
 ): Promise<ApiResponse<{ status: string }>> {
   return api_client.delete<{ status: string }>(
-    `/mail/${item_id}/labels/${folder_token}`,
+    `/mail/v1/messages/${item_id}/labels/${folder_token}`,
   );
 }
 
 export async function get_mail_item_folders(
   item_id: string,
 ): Promise<ApiResponse<MailItemFoldersResponse>> {
-  return api_client.get<MailItemFoldersResponse>(`/mail/${item_id}/labels`);
+  return api_client.get<MailItemFoldersResponse>(`/mail/v1/messages/${item_id}/labels`);
 }
 
 export const add_mail_item_label = add_mail_item_folder;
@@ -239,21 +239,21 @@ export async function move_mail_item(
   item_id: string,
   data: MoveToFolderRequest,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.put<{ status: string }>(`/mail/${item_id}/move`, data);
+  return api_client.put<{ status: string }>(`/mail/v1/messages/${item_id}/move`, data);
 }
 
 export async function restore_mail_item(
   item_id: string,
   data: RestoreMailItemRequest = {},
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.put<{ status: string }>(`/mail/${item_id}/restore`, data);
+  return api_client.put<{ status: string }>(`/mail/v1/messages/${item_id}/restore`, data);
 }
 
 export async function permanent_delete_mail_item(
   item_id: string,
 ): Promise<ApiResponse<{ success: boolean; deleted_count: number }>> {
   return api_client.delete<{ success: boolean; deleted_count: number }>(
-    `/mail/${item_id}/permanent`,
+    `/mail/v1/messages/${item_id}/permanent`,
   );
 }
 
@@ -261,7 +261,7 @@ export async function bulk_permanent_delete(
   ids: string[],
 ): Promise<ApiResponse<{ success: boolean; deleted_count: number }>> {
   return api_client.delete<{ success: boolean; deleted_count: number }>(
-    "/mail/trash/bulk",
+    "/mail/v1/messages/trash/bulk",
     { data: { ids } },
   );
 }
@@ -270,7 +270,7 @@ export async function empty_trash(): Promise<
   ApiResponse<{ success: boolean; deleted_count: number }>
 > {
   return api_client.delete<{ success: boolean; deleted_count: number }>(
-    "/mail/trash",
+    "/mail/v1/messages/trash",
   );
 }
 
@@ -279,7 +279,7 @@ export async function bulk_add_folder(
   folder_token: string,
 ): Promise<ApiResponse<{ status: string; affected: number }>> {
   return api_client.post<{ status: string; affected: number }>(
-    "/mail/bulk/labels",
+    "/mail/v1/messages/bulk/labels",
     {
       ids,
       label_token: folder_token,
@@ -292,7 +292,7 @@ export async function bulk_remove_folder(
   folder_token: string,
 ): Promise<ApiResponse<{ status: string; affected: number }>> {
   return api_client.post<{ status: string; affected: number }>(
-    "/mail/bulk/labels/remove",
+    "/mail/v1/messages/bulk/labels/remove",
     {
       ids,
       label_token: folder_token,
@@ -346,7 +346,7 @@ export async function sync_mail_items(
   if (params.cursor) query_params.set("cursor", params.cursor);
 
   const query_string = query_params.toString();
-  const endpoint = `/mail/sync${query_string ? `?${query_string}` : ""}`;
+  const endpoint = `/mail/v1/messages/sync${query_string ? `?${query_string}` : ""}`;
 
   return api_client.get<SyncMailItemsResponse>(endpoint);
 }
@@ -354,20 +354,20 @@ export async function sync_mail_items(
 export async function get_migration_status(): Promise<
   ApiResponse<MigrationStatusResponse>
 > {
-  return api_client.get<MigrationStatusResponse>("/mail/migration/status");
+  return api_client.get<MigrationStatusResponse>("/mail/v1/messages/migration/status");
 }
 
 export async function start_migration(): Promise<
   ApiResponse<MigrationStatusResponse>
 > {
-  return api_client.post<MigrationStatusResponse>("/mail/migration/start", {});
+  return api_client.post<MigrationStatusResponse>("/mail/v1/messages/migration/start", {});
 }
 
 export async function complete_migration(): Promise<
   ApiResponse<MigrationStatusResponse>
 > {
   return api_client.post<MigrationStatusResponse>(
-    "/mail/migration/complete",
+    "/mail/v1/messages/migration/complete",
     {},
   );
 }
@@ -377,7 +377,7 @@ export async function patch_mail_item_metadata(
   data: PatchMetadataRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
   return api_client.put<{ success: boolean; updated_count: number }>(
-    `/mail/${item_id}/metadata`,
+    `/mail/v1/messages/${item_id}/metadata`,
     data,
   );
 }
@@ -386,7 +386,7 @@ export async function bulk_patch_metadata(
   data: BulkPatchMetadataRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
   return api_client.put<{ success: boolean; updated_count: number }>(
-    "/mail/bulk/metadata",
+    "/mail/v1/messages/bulk/metadata",
     data,
   );
 }
@@ -548,7 +548,7 @@ export async function list_threads(
     query_params.set("folder_token", params.folder_token);
 
   const query_string = query_params.toString();
-  const endpoint = `/mail/threads${query_string ? `?${query_string}` : ""}`;
+  const endpoint = `/mail/v1/messages/threads${query_string ? `?${query_string}` : ""}`;
 
   return api_client.get<ThreadsListResponse>(endpoint);
 }
@@ -557,7 +557,7 @@ export async function get_thread(
   thread_token: string,
 ): Promise<ApiResponse<MailThread>> {
   return api_client.get<MailThread>(
-    `/mail/threads/${encodeURIComponent(thread_token)}`,
+    `/mail/v1/messages/threads/${encodeURIComponent(thread_token)}`,
   );
 }
 
@@ -565,7 +565,7 @@ export async function get_thread_messages(
   thread_token: string,
 ): Promise<ApiResponse<ThreadWithMessages>> {
   return api_client.get<ThreadWithMessages>(
-    `/mail/threads/${encodeURIComponent(thread_token)}/messages`,
+    `/mail/v1/messages/threads/${encodeURIComponent(thread_token)}/messages`,
   );
 }
 
@@ -573,7 +573,7 @@ export async function mark_thread_read(
   thread_token: string,
 ): Promise<ApiResponse<{ status: string }>> {
   return api_client.put<{ status: string }>(
-    `/mail/threads/${encodeURIComponent(thread_token)}/read`,
+    `/mail/v1/messages/threads/${encodeURIComponent(thread_token)}/read`,
     {},
   );
 }
@@ -582,7 +582,7 @@ export async function create_thread(
   request: CreateThreadRequest,
 ): Promise<ApiResponse<{ thread_token: string; success: boolean }>> {
   return api_client.post<{ thread_token: string; success: boolean }>(
-    "/mail/threads",
+    "/mail/v1/messages/threads",
     request,
   );
 }
@@ -591,7 +591,7 @@ export async function link_mail_to_thread(
   mail_item_id: string,
   thread_token: string,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.put<{ status: string }>(`/mail/${mail_item_id}/thread`, {
+  return api_client.put<{ status: string }>(`/mail/v1/messages/${mail_item_id}/thread`, {
     thread_token,
   });
 }

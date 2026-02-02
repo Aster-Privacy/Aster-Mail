@@ -10,5 +10,5 @@ export const STORAGE_KEYS = {
 
 export const ASSETS = {
   MAIL_LOGO: "/mail_logo.png",
-  API_LOGOS: "/api/logos/",
+  API_LOGOS: "/api/sync/v1/logos/",
 } as const;

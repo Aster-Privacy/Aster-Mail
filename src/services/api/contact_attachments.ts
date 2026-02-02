@@ -59,7 +59,7 @@ export async function upload_contact_attachment(
   );
 
   return api_client.post<ContactAttachment>(
-    `/contacts/${contact_id}/attachments`,
+    `/contacts/v1/${contact_id}/attachments`,
     {
       encrypted_data: array_to_base64(new Uint8Array(encrypted_data)),
       data_nonce: array_to_base64(data_nonce),
@@ -82,7 +82,7 @@ export async function list_contact_attachments(contact_id: string): Promise<
   }>
 > {
   const response = await api_client.get<ListAttachmentsResponse>(
-    `/contacts/${contact_id}/attachments`,
+    `/contacts/v1/${contact_id}/attachments`,
   );
 
   if (response.error || !response.data) {
@@ -121,7 +121,7 @@ export async function get_contact_attachment(
   attachment_id: string,
 ): Promise<ApiResponse<DecryptedContactAttachment>> {
   const response = await api_client.get<ContactAttachment>(
-    `/contacts/${contact_id}/attachments/${attachment_id}`,
+    `/contacts/v1/${contact_id}/attachments/${attachment_id}`,
   );
 
   if (response.error || !response.data) {
@@ -171,7 +171,7 @@ export async function delete_contact_attachment(
   attachment_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
-    `/contacts/${contact_id}/attachments/${attachment_id}`,
+    `/contacts/v1/${contact_id}/attachments/${attachment_id}`,
   );
 }
 

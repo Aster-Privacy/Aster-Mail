@@ -43,7 +43,7 @@ export async function list_sync_sources(): Promise<
   ApiResponse<DecryptedSyncSource[]>
 > {
   const response = await api_client.get<ListSyncSourcesResponse>(
-    "/contacts/sync/sources",
+    "/contacts/v1/sync/sources",
   );
 
   if (response.error || !response.data) {
@@ -98,7 +98,7 @@ export async function add_carddav_sync_source(
     new TextEncoder().encode(config_json),
   );
 
-  const response = await api_client.post<SyncSource>("/contacts/sync/sources", {
+  const response = await api_client.post<SyncSource>("/contacts/v1/sync/sources", {
     source_type: "carddav",
     encrypted_config: array_to_base64(new Uint8Array(encrypted_config)),
     config_nonce: array_to_base64(nonce),
@@ -126,7 +126,7 @@ export async function delete_sync_source(
   source_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
-    `/contacts/sync/sources/${source_id}`,
+    `/contacts/v1/sync/sources/${source_id}`,
   );
 }
 
@@ -134,7 +134,7 @@ export async function toggle_sync_source(
   source_id: string,
 ): Promise<ApiResponse<SyncSource>> {
   return api_client.post<SyncSource>(
-    `/contacts/sync/sources/${source_id}/toggle`,
+    `/contacts/v1/sync/sources/${source_id}/toggle`,
     {},
   );
 }
@@ -143,7 +143,7 @@ export async function trigger_sync(
   source_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.post<{ success: boolean }>(
-    `/contacts/sync/sources/${source_id}/sync`,
+    `/contacts/v1/sync/sources/${source_id}/sync`,
     {},
   );
 }
@@ -206,7 +206,7 @@ export async function import_vcard(
     }),
   );
 
-  return api_client.post<ImportResult>("/contacts/import/vcard", {
+  return api_client.post<ImportResult>("/contacts/v1/import/vcard", {
     vcard_data,
     contacts,
   });
@@ -240,7 +240,7 @@ export async function import_csv(
     }),
   );
 
-  return api_client.post<ImportResult>("/contacts/import/csv", {
+  return api_client.post<ImportResult>("/contacts/v1/import/csv", {
     contacts,
   });
 }
@@ -251,11 +251,11 @@ interface ExportResponse {
 }
 
 export async function export_vcard(): Promise<ApiResponse<ExportResponse>> {
-  return api_client.get<ExportResponse>("/contacts/export/vcard");
+  return api_client.get<ExportResponse>("/contacts/v1/export/vcard");
 }
 
 export async function export_csv(): Promise<ApiResponse<ExportResponse>> {
-  return api_client.get<ExportResponse>("/contacts/export/csv");
+  return api_client.get<ExportResponse>("/contacts/v1/export/csv");
 }
 
 export function parse_vcard(vcard_data: string): ContactFormData[] {

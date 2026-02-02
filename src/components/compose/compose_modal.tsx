@@ -293,7 +293,7 @@ interface RecipientBadgeProps {
 function RecipientBadge({ email, on_remove }: RecipientBadgeProps) {
   const [logo_error, set_logo_error] = useState(false);
   const domain = get_domain_from_email(email);
-  const logo_url = domain ? `/api/logos/${encodeURIComponent(domain)}` : "";
+  const logo_url = domain ? `/api/sync/v1/logos/${encodeURIComponent(domain)}` : "";
 
   return (
     <div

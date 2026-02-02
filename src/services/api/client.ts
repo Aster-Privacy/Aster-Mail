@@ -160,7 +160,7 @@ class ApiClient {
         const response = await this.post<{
           csrf_token: string;
           access_token?: string;
-        }>("/auth/refresh", {});
+        }>("/core/v1/auth/refresh", {});
 
         if (response.data?.csrf_token) {
           this.is_authenticated_flag = true;
@@ -240,7 +240,7 @@ class ApiClient {
 
     this.auth_check_promise = (async () => {
       try {
-        const response = await this.get<{ user_id: string }>("/auth/me");
+        const response = await this.get<{ user_id: string }>("/core/v1/auth/me");
         const is_valid = !response.error && !!response.data?.user_id;
 
         this.is_authenticated_flag = is_valid;
@@ -264,14 +264,7 @@ class ApiClient {
 
   async clear_session_cookies(): Promise<void> {
     try {
-      const url = `${API_BASE_URL}/auth/clear-session`;
-
-      await fetch(url, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: "{}",
-      });
+      await this.post("/core/v1/auth/clear-session", {});
     } catch {
       return;
     }
@@ -319,9 +312,9 @@ class ApiClient {
 
     const method = options.method || "GET";
     const is_auth_endpoint =
-      endpoint.startsWith("/auth/login") ||
-      endpoint.startsWith("/auth/register") ||
-      endpoint.startsWith("/auth/refresh");
+      endpoint.startsWith("/core/v1/auth/login") ||
+      endpoint.startsWith("/core/v1/auth/register") ||
+      endpoint.startsWith("/core/v1/auth/refresh");
 
     if (is_state_changing_method(method)) {
       const csrf_token = get_csrf_token_from_cookie();

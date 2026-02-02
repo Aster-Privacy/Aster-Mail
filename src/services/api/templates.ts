@@ -168,7 +168,7 @@ export async function decrypt_templates(
 export async function list_templates(): Promise<
   ApiResponse<{ templates: DecryptedTemplate[]; total: number }>
 > {
-  const response = await api_client.get<ListTemplatesResponse>("/templates");
+  const response = await api_client.get<ListTemplatesResponse>("/mail/v1/templates");
 
   if (response.error || !response.data) {
     return { error: response.error || "Failed to fetch templates" };
@@ -188,7 +188,7 @@ export async function list_templates(): Promise<
 export async function get_template(
   template_id: string,
 ): Promise<ApiResponse<DecryptedTemplate>> {
-  const response = await api_client.get<Template>(`/templates/${template_id}`);
+  const response = await api_client.get<Template>(`/mail/v1/templates/${template_id}`);
 
   if (response.error || !response.data) {
     return { error: response.error || "Failed to fetch template" };
@@ -226,7 +226,7 @@ export async function create_template(
       sort_order: data.sort_order ?? 0,
     };
 
-    return api_client.post<CreateTemplateResponse>("/templates", request);
+    return api_client.post<CreateTemplateResponse>("/mail/v1/templates", request);
   } catch (err) {
     return {
       error: err instanceof Error ? err.message : "Failed to encrypt template",
@@ -267,7 +267,7 @@ export async function update_template(
     }
 
     return api_client.put<UpdateTemplateResponse>(
-      `/templates/${template_id}`,
+      `/mail/v1/templates/${template_id}`,
       request,
     );
   } catch (err) {
@@ -280,11 +280,11 @@ export async function update_template(
 export async function delete_template(
   template_id: string,
 ): Promise<ApiResponse<DeleteTemplateResponse>> {
-  return api_client.delete<DeleteTemplateResponse>(`/templates/${template_id}`);
+  return api_client.delete<DeleteTemplateResponse>(`/mail/v1/templates/${template_id}`);
 }
 
 export async function get_templates_count(): Promise<
   ApiResponse<{ count: number }>
 > {
-  return api_client.get<{ count: number }>("/templates/count");
+  return api_client.get<{ count: number }>("/mail/v1/templates/count");
 }

@@ -126,7 +126,7 @@ export async function register_user(
   request: RegisterRequest,
 ): Promise<ApiResponse<RegisterResponse>> {
   const response = await api_client.post<RegisterResponse>(
-    "/auth/register",
+    "/core/v1/auth/register",
     request,
   );
 
@@ -144,13 +144,13 @@ export async function register_user(
 export async function get_user_salt(
   request: GetSaltRequest,
 ): Promise<ApiResponse<GetSaltResponse>> {
-  return api_client.post<GetSaltResponse>("/auth/salt", request);
+  return api_client.post<GetSaltResponse>("/core/v1/auth/salt", request);
 }
 
 export async function login_user(
   request: LoginRequest,
 ): Promise<ApiResponse<LoginResponse>> {
-  const response = await api_client.post<LoginResponse>("/auth/login", request);
+  const response = await api_client.post<LoginResponse>("/core/v1/auth/login", request);
 
   if (response.data) {
     clear_csrf_cache();
@@ -164,12 +164,12 @@ export async function login_user(
 }
 
 export async function get_user_info(): Promise<ApiResponse<UserInfoResponse>> {
-  return api_client.get<UserInfoResponse>("/auth/me");
+  return api_client.get<UserInfoResponse>("/core/v1/auth/me");
 }
 
 export async function logout_user(): Promise<void> {
   try {
-    await api_client.post("/auth/logout", {});
+    await api_client.post("/core/v1/auth/logout", {});
   } finally {
     api_client.set_authenticated(false);
   }
@@ -186,19 +186,19 @@ export async function verify_auth_status(): Promise<boolean> {
 export async function change_password(
   request: ChangePasswordRequest,
 ): Promise<ApiResponse<ChangePasswordResponse>> {
-  return api_client.patch<ChangePasswordResponse>("/auth/me/password", request);
+  return api_client.patch<ChangePasswordResponse>("/core/v1/auth/me/password", request);
 }
 
 export async function get_login_alerts_status(): Promise<
   ApiResponse<LoginAlertsStatusResponse>
 > {
-  return api_client.get<LoginAlertsStatusResponse>("/auth/login-alerts");
+  return api_client.get<LoginAlertsStatusResponse>("/core/v1/auth/login-alerts");
 }
 
 export async function set_login_alerts(
   enabled: boolean,
 ): Promise<ApiResponse<SetLoginAlertsResponse>> {
-  return api_client.put<SetLoginAlertsResponse>("/auth/login-alerts", {
+  return api_client.put<SetLoginAlertsResponse>("/core/v1/auth/login-alerts", {
     enabled,
   });
 }

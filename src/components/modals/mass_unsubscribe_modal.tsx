@@ -463,7 +463,7 @@ export function MassUnsubscribeModal({
                             <img
                               alt=""
                               className="w-4 h-4 object-contain"
-                              src={`/api/logos/${encodeURIComponent(sub.domain.toLowerCase())}`}
+                              src={`/api/sync/v1/logos/${encodeURIComponent(sub.domain.toLowerCase())}`}
                               onError={(e) => {
                                 e.currentTarget.style.display = "none";
                                 const parent = e.currentTarget.parentElement;

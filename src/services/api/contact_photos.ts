@@ -55,7 +55,7 @@ export async function upload_contact_photo(
     new TextEncoder().encode(JSON.stringify(meta)),
   );
 
-  return api_client.post<ContactPhoto>(`/contacts/${contact_id}/photo`, {
+  return api_client.post<ContactPhoto>(`/contacts/v1/${contact_id}/photo`, {
     encrypted_data: array_to_base64(new Uint8Array(encrypted_data)),
     data_nonce: array_to_base64(data_nonce),
     encrypted_meta: array_to_base64(new Uint8Array(encrypted_meta)),
@@ -68,7 +68,7 @@ export async function get_contact_photo(
   contact_id: string,
 ): Promise<ApiResponse<DecryptedContactPhoto | null>> {
   const response = await api_client.get<ContactPhoto>(
-    `/contacts/${contact_id}/photo`,
+    `/contacts/v1/${contact_id}/photo`,
   );
 
   if (response.error || !response.data) {
@@ -122,7 +122,7 @@ export async function delete_contact_photo(
   contact_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
-    `/contacts/${contact_id}/photo`,
+    `/contacts/v1/${contact_id}/photo`,
   );
 }
 

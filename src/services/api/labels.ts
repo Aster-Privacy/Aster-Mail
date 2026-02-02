@@ -144,7 +144,7 @@ export async function list_folders(
   }
 
   const query_string = query_params.toString();
-  const endpoint = `/folders${query_string ? `?${query_string}` : ""}`;
+  const endpoint = `/mail/v1/labels${query_string ? `?${query_string}` : ""}`;
 
   const response = await api_client.get<ApiLabelsListResponse>(endpoint);
 
@@ -184,7 +184,7 @@ export async function list_folders(
 export async function get_folder(
   folder_id: string,
 ): Promise<ApiResponse<FolderDefinition>> {
-  return api_client.get<FolderDefinition>(`/folders/${folder_id}`);
+  return api_client.get<FolderDefinition>(`/mail/v1/labels/${folder_id}`);
 }
 
 export async function create_folder(
@@ -222,7 +222,7 @@ export async function create_folder(
     id: string;
     label_token: string;
     success: boolean;
-  }>("/folders", api_data);
+  }>("/mail/v1/labels", api_data);
 
   if (response.data) {
     return {
@@ -242,19 +242,19 @@ export async function update_folder(
   folder_id: string,
   data: UpdateFolderRequest,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.put<{ status: string }>(`/folders/${folder_id}`, data);
+  return api_client.put<{ status: string }>(`/mail/v1/labels/${folder_id}`, data);
 }
 
 export async function delete_folder(
   folder_id: string,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.delete<{ status: string }>(`/folders/${folder_id}`);
+  return api_client.delete<{ status: string }>(`/mail/v1/labels/${folder_id}`);
 }
 
 export async function bulk_delete_folders(
   folder_ids: string[],
 ): Promise<ApiResponse<BulkDeleteFoldersResponse>> {
-  return api_client.post<BulkDeleteFoldersResponse>("/folders/bulk/delete", {
+  return api_client.post<BulkDeleteFoldersResponse>("/mail/v1/labels/bulk/delete", {
     label_ids: folder_ids,
   });
 }
@@ -262,7 +262,7 @@ export async function bulk_delete_folders(
 export async function bulk_reorder_folders(
   folders: { id: string; sort_order: number }[],
 ): Promise<ApiResponse<BulkReorderFoldersResponse>> {
-  return api_client.post<BulkReorderFoldersResponse>("/folders/bulk/reorder", {
+  return api_client.post<BulkReorderFoldersResponse>("/mail/v1/labels/bulk/reorder", {
     labels: folders,
   });
 }
@@ -270,7 +270,7 @@ export async function bulk_reorder_folders(
 export async function get_folder_stats(): Promise<
   ApiResponse<FolderStatsResponse>
 > {
-  return api_client.get<FolderStatsResponse>("/folders/stats");
+  return api_client.get<FolderStatsResponse>("/mail/v1/labels/stats");
 }
 
 export async function get_folder_counts(): Promise<
@@ -278,7 +278,7 @@ export async function get_folder_counts(): Promise<
 > {
   const response = await api_client.get<{
     counts: { label_token: string; count: number }[];
-  }>("/folders/counts");
+  }>("/mail/v1/labels/counts");
 
   if (response.data) {
     return {
@@ -364,7 +364,7 @@ export async function set_folder_password(
   data: SetFolderPasswordRequest,
 ): Promise<ApiResponse<SetFolderPasswordResponse>> {
   return api_client.post<SetFolderPasswordResponse>(
-    `/folders/${folder_id}/password`,
+    `/mail/v1/labels/${folder_id}/password`,
     data,
   );
 }
@@ -374,7 +374,7 @@ export async function verify_folder_password(
   data: VerifyFolderPasswordRequest,
 ): Promise<ApiResponse<VerifyFolderPasswordResponse>> {
   return api_client.post<VerifyFolderPasswordResponse>(
-    `/folders/${folder_id}/password/verify`,
+    `/mail/v1/labels/${folder_id}/password/verify`,
     data,
   );
 }
@@ -384,7 +384,7 @@ export async function change_folder_password(
   data: ChangeFolderPasswordRequest,
 ): Promise<ApiResponse<ChangeFolderPasswordResponse>> {
   return api_client.put<ChangeFolderPasswordResponse>(
-    `/folders/${folder_id}/password`,
+    `/mail/v1/labels/${folder_id}/password`,
     data,
   );
 }
@@ -394,7 +394,7 @@ export async function remove_folder_password(
   data: RemoveFolderPasswordRequest,
 ): Promise<ApiResponse<RemoveFolderPasswordResponse>> {
   return api_client.delete<RemoveFolderPasswordResponse>(
-    `/folders/${folder_id}/password`,
+    `/mail/v1/labels/${folder_id}/password`,
     { data },
   );
 }

@@ -216,7 +216,7 @@ export async function list_blocked_senders(): Promise<
     const response = await api_client.get<{
       blocked_senders: BlockedSenderResponse[];
       total: number;
-    }>("/blocked-senders");
+    }>("/contacts/v1/blocked_senders");
 
     if (response.error) {
       return { error: response.error };
@@ -271,7 +271,7 @@ export async function block_sender(
       await encrypt_block_data(block_data);
 
     const response = await api_client.post<BlockedSenderResponse>(
-      "/blocked-senders",
+      "/contacts/v1/blocked_senders",
       {
         sender_token,
         encrypted_sender_data,
@@ -309,7 +309,7 @@ export async function unblock_sender(
   try {
     const sender_token = await generate_sender_token(email);
     const response = await api_client.delete<{ success: boolean }>(
-      `/blocked-senders?sender_token=${encodeURIComponent(sender_token)}`,
+      `/contacts/v1/blocked_senders?sender_token=${encodeURIComponent(sender_token)}`,
     );
 
     return response;
@@ -325,7 +325,7 @@ export async function unblock_sender_by_token(
 ): Promise<ApiResponse<{ success: boolean }>> {
   try {
     const response = await api_client.delete<{ success: boolean }>(
-      `/blocked-senders?sender_token=${encodeURIComponent(sender_token)}`,
+      `/contacts/v1/blocked_senders?sender_token=${encodeURIComponent(sender_token)}`,
     );
 
     return response;
@@ -347,7 +347,7 @@ export async function bulk_unblock_senders(
     const response = await api_client.delete<{
       success: boolean;
       unblocked_count: number;
-    }>("/blocked-senders/bulk", {
+    }>("/contacts/v1/blocked_senders/bulk", {
       body: JSON.stringify({ sender_tokens }),
     });
 
@@ -367,7 +367,7 @@ export async function bulk_unblock_senders_by_tokens(
     const response = await api_client.delete<{
       success: boolean;
       unblocked_count: number;
-    }>("/blocked-senders/bulk", {
+    }>("/contacts/v1/blocked_senders/bulk", {
       body: JSON.stringify({ sender_tokens }),
     });
 
@@ -400,7 +400,7 @@ export async function check_blocked_senders(
 
     const tokens = Array.from(token_to_email.keys());
     const response = await api_client.get<{ blocked_tokens: string[] }>(
-      `/blocked-senders/check?tokens=${encodeURIComponent(tokens.join(","))}`,
+      `/contacts/v1/blocked_senders/check?tokens=${encodeURIComponent(tokens.join(","))}`,
     );
 
     if (response.error || !response.data) {

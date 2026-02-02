@@ -57,7 +57,7 @@ export async function list_messages(
   if (params.offset) query_params.set("offset", params.offset.toString());
 
   const query_string = query_params.toString();
-  const endpoint = `/messages/inbox${query_string ? `?${query_string}` : ""}`;
+  const endpoint = `/mail/v1/metadata/inbox${query_string ? `?${query_string}` : ""}`;
 
   return api_client.get<MessageListResponse>(endpoint);
 }
@@ -65,20 +65,20 @@ export async function list_messages(
 export async function get_message(
   message_id: string,
 ): Promise<ApiResponse<EncryptedMessage>> {
-  return api_client.get<EncryptedMessage>(`/messages/${message_id}`);
+  return api_client.get<EncryptedMessage>(`/mail/v1/metadata/${message_id}`);
 }
 
 export async function delete_message(
   message_id: string,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.delete<{ status: string }>(`/messages/${message_id}`);
+  return api_client.delete<{ status: string }>(`/mail/v1/metadata/${message_id}`);
 }
 
 export async function mark_message_delivered(
   message_id: string,
 ): Promise<ApiResponse<{ status: string }>> {
   return api_client.post<{ status: string }>(
-    `/messages/${message_id}/delivered`,
+    `/mail/v1/metadata/${message_id}/delivered`,
     {},
   );
 }
@@ -88,7 +88,7 @@ export async function update_message_metadata(
   metadata: UpdateMetadataRequest,
 ): Promise<ApiResponse<{ status: string }>> {
   return api_client.put<{ status: string }>(
-    `/messages/${message_id}/metadata`,
+    `/mail/v1/metadata/${message_id}/metadata`,
     metadata,
   );
 }
@@ -102,7 +102,7 @@ export async function list_mailbox_metadata(
   if (params.offset) query_params.set("offset", params.offset.toString());
 
   const query_string = query_params.toString();
-  const endpoint = `/messages/metadata${query_string ? `?${query_string}` : ""}`;
+  const endpoint = `/mail/v1/metadata${query_string ? `?${query_string}` : ""}`;
 
   return api_client.get<MailboxMetadataListResponse>(endpoint);
 }

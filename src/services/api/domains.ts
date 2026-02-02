@@ -261,19 +261,19 @@ export async function decrypt_domain_addresses(
 }
 
 export async function list_domains(): Promise<ApiResponse<DomainListResponse>> {
-  return api_client.get<DomainListResponse>("/domains");
+  return api_client.get<DomainListResponse>("/addresses/v1/domains");
 }
 
 export async function get_domain(
   domain_id: string,
 ): Promise<ApiResponse<CustomDomain>> {
-  return api_client.get<CustomDomain>(`/domains/${domain_id}`);
+  return api_client.get<CustomDomain>(`/addresses/v1/domains/${domain_id}`);
 }
 
 export async function add_domain(
   domain_name: string,
 ): Promise<ApiResponse<AddDomainResponse>> {
-  return api_client.post<AddDomainResponse>("/domains", { domain_name });
+  return api_client.post<AddDomainResponse>("/addresses/v1/domains", { domain_name });
 }
 
 export async function update_domain(
@@ -283,20 +283,20 @@ export async function update_domain(
     is_primary?: boolean;
   },
 ): Promise<ApiResponse<CustomDomain>> {
-  return api_client.patch<CustomDomain>(`/domains/${domain_id}`, updates);
+  return api_client.patch<CustomDomain>(`/addresses/v1/domains/${domain_id}`, updates);
 }
 
 export async function delete_domain(
   domain_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
-  return api_client.delete<{ success: boolean }>(`/domains/${domain_id}`);
+  return api_client.delete<{ success: boolean }>(`/addresses/v1/domains/${domain_id}`);
 }
 
 export async function trigger_verification(
   domain_id: string,
 ): Promise<ApiResponse<VerificationResult>> {
   return api_client.post<VerificationResult>(
-    `/domains/${domain_id}/verify`,
+    `/addresses/v1/domains/${domain_id}/verify`,
     {},
   );
 }
@@ -305,7 +305,7 @@ export async function get_dns_records(
   domain_id: string,
 ): Promise<ApiResponse<DnsRecordsResponse>> {
   return api_client.get<DnsRecordsResponse>(
-    `/domains/${domain_id}/dns-records`,
+    `/addresses/v1/domains/${domain_id}/dns-records`,
   );
 }
 
@@ -313,7 +313,7 @@ export async function rotate_dkim(
   domain_id: string,
 ): Promise<ApiResponse<DkimRotationResponse>> {
   return api_client.post<DkimRotationResponse>(
-    `/domains/${domain_id}/dkim/rotate`,
+    `/addresses/v1/domains/${domain_id}/dkim/rotate`,
     {},
   );
 }
@@ -321,13 +321,13 @@ export async function rotate_dkim(
 export async function get_domain_limit(): Promise<
   ApiResponse<DomainLimitResponse>
 > {
-  return api_client.get<DomainLimitResponse>("/domains/limit");
+  return api_client.get<DomainLimitResponse>("/addresses/v1/domains/limit");
 }
 
 export async function list_domain_addresses(
   domain_id: string,
 ): Promise<ApiResponse<AddressListResponse>> {
-  return api_client.get<AddressListResponse>(`/domains/${domain_id}/addresses`);
+  return api_client.get<AddressListResponse>(`/addresses/v1/domains/${domain_id}/addresses`);
 }
 
 export async function add_domain_address(
@@ -365,7 +365,7 @@ export async function add_domain_address(
   }
 
   return api_client.post<DomainAddress>(
-    `/domains/${domain_id}/addresses`,
+    `/addresses/v1/domains/${domain_id}/addresses`,
     request,
   );
 }
@@ -375,7 +375,7 @@ export async function delete_domain_address(
   address_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
-    `/domains/${domain_id}/addresses/${address_id}`,
+    `/addresses/v1/domains/${domain_id}/addresses/${address_id}`,
   );
 }
 

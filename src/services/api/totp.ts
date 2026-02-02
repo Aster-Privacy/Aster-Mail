@@ -69,7 +69,7 @@ export async function initiate_totp_setup(): Promise<
   ApiResponse<TotpSetupInitiateResponse>
 > {
   return api_client.post<TotpSetupInitiateResponse>(
-    "/auth/totp/setup/initiate",
+    "/core/v1/auth/totp/setup/initiate",
     {},
   );
 }
@@ -78,7 +78,7 @@ export async function verify_totp_setup(
   request: TotpSetupVerifyRequest,
 ): Promise<ApiResponse<TotpSetupVerifyResponse>> {
   return api_client.post<TotpSetupVerifyResponse>(
-    "/auth/totp/setup/verify",
+    "/core/v1/auth/totp/setup/verify",
     request,
   );
 }
@@ -87,7 +87,7 @@ export async function verify_totp_login(
   request: TotpVerifyRequest,
 ): Promise<ApiResponse<TotpVerifyResponse>> {
   const response = await api_client.post<TotpVerifyResponse>(
-    "/auth/totp/verify",
+    "/core/v1/auth/totp/verify",
     request,
   );
 
@@ -106,7 +106,7 @@ export async function verify_backup_code_login(
   request: TotpBackupCodeRequest,
 ): Promise<ApiResponse<TotpVerifyResponse>> {
   const response = await api_client.post<TotpVerifyResponse>(
-    "/auth/totp/backup-code",
+    "/core/v1/auth/totp/backup-code",
     request,
   );
 
@@ -124,20 +124,20 @@ export async function verify_backup_code_login(
 export async function get_totp_status(): Promise<
   ApiResponse<TotpStatusResponse>
 > {
-  return api_client.get<TotpStatusResponse>("/auth/totp/status");
+  return api_client.get<TotpStatusResponse>("/core/v1/auth/totp/status");
 }
 
 export async function disable_totp(
   request: TotpDisableRequest,
 ): Promise<ApiResponse<TotpDisableResponse>> {
-  return api_client.post<TotpDisableResponse>("/auth/totp/disable", request);
+  return api_client.post<TotpDisableResponse>("/core/v1/auth/totp/disable", request);
 }
 
 export async function regenerate_backup_codes(
   request: TotpRegenerateBackupCodesRequest,
 ): Promise<ApiResponse<TotpRegenerateBackupCodesResponse>> {
   return api_client.post<TotpRegenerateBackupCodesResponse>(
-    "/auth/totp/backup-codes/regenerate",
+    "/core/v1/auth/totp/backup-codes/regenerate",
     request,
   );
 }

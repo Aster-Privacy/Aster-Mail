@@ -624,13 +624,7 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <>
-                <span className="flex-1 text-left">{t("mail.sent")}</span>
-                <CountBadge
-                  count={stats.sent}
-                  is_active={effective_selected === "sent"}
-                />
-              </>
+              <span className="flex-1 text-left">{t("mail.sent")}</span>
             )}
           </button>
 
@@ -750,13 +744,7 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <>
-                <span className="flex-1 text-left">{t("mail.drafts")}</span>
-                <CountBadge
-                  count={stats.drafts}
-                  is_active={effective_selected === "drafts"}
-                />
-              </>
+              <span className="flex-1 text-left">{t("mail.drafts")}</span>
             )}
           </button>
 
@@ -805,13 +793,7 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <>
-                <span className="flex-1 text-left">{t("mail.starred")}</span>
-                <CountBadge
-                  count={stats.starred}
-                  is_active={effective_selected === "starred"}
-                />
-              </>
+              <span className="flex-1 text-left">{t("mail.starred")}</span>
             )}
           </button>
 
@@ -973,13 +955,7 @@ export const Sidebar = ({
               }}
             />
             {!is_collapsed && (
-              <>
-                <span className="flex-1 text-left">{t("mail.trash")}</span>
-                <CountBadge
-                  count={stats.trash}
-                  is_active={effective_selected === "trash"}
-                />
-              </>
+              <span className="flex-1 text-left">{t("mail.trash")}</span>
             )}
           </button>
 

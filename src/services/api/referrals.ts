@@ -122,7 +122,7 @@ export async function get_referral_stats(): Promise<{
   data?: { stats: ReferralStats };
   error?: string;
 }> {
-  return api_client.get<{ stats: ReferralStats }>("/referrals/stats");
+  return api_client.get<{ stats: ReferralStats }>("/payments/v1/referrals/stats");
 }
 
 export async function generate_referral_code(): Promise<{
@@ -130,7 +130,7 @@ export async function generate_referral_code(): Promise<{
   error?: string;
 }> {
   return api_client.post<{ code: string; referral_link: string }>(
-    "/referrals/code",
+    "/payments/v1/referrals/code",
     {},
   );
 }
@@ -142,7 +142,7 @@ export async function send_referral_invite(email: string): Promise<{
   const encrypted = await encrypt_email_for_invite(email);
 
   return api_client.post<{ success: boolean; invite_id: string }>(
-    "/referrals/invite",
+    "/payments/v1/referrals/invite",
     {
       encrypted_email: encrypted.encrypted_email,
       email_nonce: encrypted.email_nonce,
@@ -171,7 +171,7 @@ export async function bulk_send_invites(emails: string[]): Promise<{
     success: boolean;
     sent_count: number;
     failed_count: number;
-  }>("/referrals/invite/bulk", { invites });
+  }>("/payments/v1/referrals/invite/bulk", { invites });
 }
 
 export async function validate_referral_code(code: string): Promise<{
@@ -179,7 +179,7 @@ export async function validate_referral_code(code: string): Promise<{
   error?: string;
 }> {
   return api_client.post<{ valid: boolean; referrer_display_name?: string }>(
-    "/referrals/validate",
+    "/payments/v1/referrals/validate",
     { code },
   );
 }
@@ -189,7 +189,7 @@ export async function apply_referral_code(code: string): Promise<{
   error?: string;
 }> {
   return api_client.post<{ success: boolean; bonus_storage_mb: number }>(
-    "/referrals/apply",
+    "/payments/v1/referrals/apply",
     { code },
   );
 }
@@ -209,7 +209,7 @@ export async function get_referral_history(
     referrals: ReferralSummary[];
     total_count: number;
     has_more: boolean;
-  }>("/referrals/history", { limit, offset });
+  }>("/payments/v1/referrals/history", { limit, offset });
 }
 
 export async function get_pending_invites(limit?: number): Promise<{
@@ -217,7 +217,7 @@ export async function get_pending_invites(limit?: number): Promise<{
   error?: string;
 }> {
   return api_client.post<{ invites: PendingInvite[] }>(
-    "/referrals/invites/pending",
+    "/payments/v1/referrals/invites/pending",
     { limit },
   );
 }
@@ -229,7 +229,7 @@ export async function get_leaderboard(): Promise<{
   return api_client.get<{
     entries: LeaderboardEntry[];
     current_user_rank?: number;
-  }>("/referrals/leaderboard");
+  }>("/payments/v1/referrals/leaderboard");
 }
 
 export function format_storage_size(mb: number): string {

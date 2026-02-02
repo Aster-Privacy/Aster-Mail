@@ -248,7 +248,7 @@ export async function list_aliases(params?: {
   }
 
   const query_string = query_params.toString();
-  const endpoint = `/aliases${query_string ? `?${query_string}` : ""}`;
+  const endpoint = `/addresses/v1/aliases${query_string ? `?${query_string}` : ""}`;
 
   return api_client.get<AliasListResponse>(endpoint);
 }
@@ -256,7 +256,7 @@ export async function list_aliases(params?: {
 export async function get_alias(
   alias_id: string,
 ): Promise<ApiResponse<EmailAlias>> {
-  return api_client.get<EmailAlias>(`/aliases/${alias_id}`);
+  return api_client.get<EmailAlias>(`/addresses/v1/aliases/${alias_id}`);
 }
 
 export async function create_alias(
@@ -284,7 +284,7 @@ export async function create_alias(
     request.display_name_nonce = display_name_nonce;
   }
 
-  return api_client.post<CreateAliasResponse>("/aliases", request);
+  return api_client.post<CreateAliasResponse>("/addresses/v1/aliases", request);
 }
 
 export async function update_alias(
@@ -310,7 +310,7 @@ export async function update_alias(
   }
 
   return api_client.patch<{ success: boolean }>(
-    `/aliases/${alias_id}`,
+    `/addresses/v1/aliases/${alias_id}`,
     request,
   );
 }
@@ -318,7 +318,7 @@ export async function update_alias(
 export async function delete_alias(
   alias_id: string,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.delete<{ status: string }>(`/aliases/${alias_id}`);
+  return api_client.delete<{ status: string }>(`/addresses/v1/aliases/${alias_id}`);
 }
 
 export async function check_alias_availability(
@@ -328,7 +328,7 @@ export async function check_alias_availability(
   const normalized_local_part = local_part.toLowerCase().trim();
   const alias_hash = await compute_alias_hash(normalized_local_part, domain);
 
-  return api_client.post<CheckAvailabilityResponse>("/aliases/check", {
+  return api_client.post<CheckAvailabilityResponse>("/addresses/v1/aliases/check", {
     alias_address_hash: alias_hash,
   });
 }
@@ -336,7 +336,7 @@ export async function check_alias_availability(
 export async function get_alias_limit(): Promise<
   ApiResponse<AliasLimitResponse>
 > {
-  return api_client.get<AliasLimitResponse>("/aliases/limit");
+  return api_client.get<AliasLimitResponse>("/addresses/v1/aliases/limit");
 }
 
 export function validate_local_part(local_part: string): {
@@ -375,13 +375,13 @@ export function validate_local_part(local_part: string): {
 export async function get_alias_counts(): Promise<
   ApiResponse<AliasCountsResponse>
 > {
-  return api_client.get<AliasCountsResponse>("/aliases/counts");
+  return api_client.get<AliasCountsResponse>("/addresses/v1/aliases/counts");
 }
 
 export async function generate_random_alias(
   domain: string,
 ): Promise<ApiResponse<GenerateRandomAliasResponse>> {
-  return api_client.post<GenerateRandomAliasResponse>("/aliases/generate", {
+  return api_client.post<GenerateRandomAliasResponse>("/addresses/v1/aliases/random", {
     domain,
   });
 }

@@ -54,23 +54,23 @@ export interface PushSyncChangeRequest {
 export async function register_device(
   data: RegisterDeviceRequest,
 ): Promise<ApiResponse<SyncState>> {
-  return api_client.post<SyncState>("/sync/devices", data);
+  return api_client.post<SyncState>("/sync/v1/devices", data);
 }
 
 export async function get_sync_state(): Promise<ApiResponse<SyncState>> {
-  return api_client.get<SyncState>("/sync/state");
+  return api_client.get<SyncState>("/sync/v1/state");
 }
 
 export async function get_sync_changes(
   since_version: number,
 ): Promise<ApiResponse<SyncChangesResponse>> {
   return api_client.get<SyncChangesResponse>(
-    `/sync/changes?since=${since_version}`,
+    `/sync/v1/changes?since=${since_version}`,
   );
 }
 
 export async function push_sync_change(
   data: PushSyncChangeRequest,
 ): Promise<ApiResponse<SyncChange>> {
-  return api_client.post<SyncChange>("/sync/changes", data);
+  return api_client.post<SyncChange>("/sync/v1/changes", data);
 }

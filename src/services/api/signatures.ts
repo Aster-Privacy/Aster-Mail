@@ -166,7 +166,7 @@ export async function decrypt_signatures(
 export async function list_signatures(): Promise<
   ApiResponse<{ signatures: DecryptedSignature[]; total: number }>
 > {
-  const response = await api_client.get<ListSignaturesResponse>("/signatures");
+  const response = await api_client.get<ListSignaturesResponse>("/mail/v1/signatures");
 
   if (response.error || !response.data) {
     return { error: response.error || "Failed to fetch signatures" };
@@ -188,7 +188,7 @@ export async function get_signature(
   signature_id: string,
 ): Promise<ApiResponse<DecryptedSignature>> {
   const response = await api_client.get<Signature>(
-    `/signatures/${signature_id}`,
+    `/mail/v1/signatures/${signature_id}`,
   );
 
   if (response.error || !response.data) {
@@ -210,7 +210,7 @@ export async function get_default_signature(): Promise<
   ApiResponse<DecryptedSignature | null>
 > {
   const response = await api_client.get<Signature | null>(
-    "/signatures/default",
+    "/mail/v1/signatures/default",
   );
 
   if (response.error) {
@@ -251,7 +251,7 @@ export async function create_signature(
       is_html: data.is_html ?? false,
     };
 
-    return api_client.post<CreateSignatureResponse>("/signatures", request);
+    return api_client.post<CreateSignatureResponse>("/mail/v1/signatures", request);
   } catch (err) {
     return {
       error: err instanceof Error ? err.message : "Failed to encrypt signature",
@@ -285,7 +285,7 @@ export async function update_signature(
     }
 
     return api_client.put<UpdateSignatureResponse>(
-      `/signatures/${signature_id}`,
+      `/mail/v1/signatures/${signature_id}`,
       request,
     );
   } catch (err) {
@@ -299,7 +299,7 @@ export async function delete_signature(
   signature_id: string,
 ): Promise<ApiResponse<DeleteSignatureResponse>> {
   return api_client.delete<DeleteSignatureResponse>(
-    `/signatures/${signature_id}`,
+    `/mail/v1/signatures/${signature_id}`,
   );
 }
 
@@ -307,7 +307,7 @@ export async function set_default_signature(
   signature_id: string,
 ): Promise<ApiResponse<SetDefaultResponse>> {
   return api_client.patch<SetDefaultResponse>(
-    `/signatures/${signature_id}/default`,
+    `/mail/v1/signatures/${signature_id}/default`,
     {},
   );
 }
@@ -315,5 +315,5 @@ export async function set_default_signature(
 export async function get_signatures_count(): Promise<
   ApiResponse<{ count: number }>
 > {
-  return api_client.get<{ count: number }>("/signatures/count");
+  return api_client.get<{ count: number }>("/mail/v1/signatures/count");
 }

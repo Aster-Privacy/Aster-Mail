@@ -77,7 +77,7 @@ export function DeleteAccountModal({
       const response = await api_client.delete<{
         success: boolean;
         message?: string;
-      }>("/auth/me", { data: { password_hash } });
+      }>("/core/v1/auth/me", { data: { password_hash } });
 
       if (response.data?.success || response.data?.message) {
         await logout_all();

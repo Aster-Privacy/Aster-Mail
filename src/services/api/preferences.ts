@@ -80,7 +80,7 @@ export async function sync_quiet_hours_to_server(
   try {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    await api_client.put("/sync/quiet-hours", {
+    await api_client.put("/sync/v1/quiet-hours", {
       enabled,
       start_time,
       end_time,
@@ -226,7 +226,7 @@ async function get_preferences_via_http(
 ): Promise<UserPreferences> {
   try {
     const response =
-      await api_client.get<GetPreferencesApiResponse>("/preferences");
+      await api_client.get<GetPreferencesApiResponse>("/settings/v1/preferences");
 
     if (response.error || !response.data) {
       return DEFAULT_PREFERENCES;
@@ -255,7 +255,7 @@ async function save_preferences_via_http(
   const { encrypted, nonce } = await encrypt_preferences(preferences, vault);
 
   const response = await api_client.put<SavePreferencesApiResponse>(
-    "/preferences",
+    "/settings/v1/preferences",
     {
       encrypted_preferences: encrypted,
       preferences_nonce: nonce,
@@ -396,7 +396,7 @@ export async function get_dev_mode(
 
   try {
     const response = await api_client.get<GetDevModeApiResponse>(
-      "/preferences/dev-mode",
+      "/settings/v1/preferences/dev-mode",
     );
 
     if (response.error || !response.data) {
@@ -437,7 +437,7 @@ export async function save_dev_mode(
     const { encrypted, nonce } = await encrypt_dev_mode(enabled, vault);
 
     const response = await api_client.put<SaveDevModeApiResponse>(
-      "/preferences/dev-mode",
+      "/settings/v1/preferences/dev-mode",
       {
         encrypted_dev_mode: encrypted,
         dev_mode_nonce: nonce,

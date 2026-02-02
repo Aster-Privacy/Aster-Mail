@@ -17,7 +17,7 @@ export async function list_duplicate_candidates(): Promise<
   ApiResponse<{ items: DuplicateCandidateWithContacts[]; total: number }>
 > {
   const response = await api_client.get<ListDuplicatesResponse>(
-    "/contacts/duplicates",
+    "/contacts/v1/duplicates",
   );
 
   if (response.error || !response.data) {
@@ -75,7 +75,7 @@ export async function merge_contacts(
     await encrypt_contact_data(merged_data);
 
   return api_client.post<{ success: boolean; merged_contact_id: string }>(
-    "/contacts/merge",
+    "/contacts/v1/merge",
     {
       primary_contact_id,
       secondary_contact_id,
@@ -89,7 +89,7 @@ export async function dismiss_duplicate(
   duplicate_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.post<{ success: boolean }>(
-    `/contacts/duplicates/${duplicate_id}/dismiss`,
+    `/contacts/v1/duplicates/${duplicate_id}/dismiss`,
     {},
   );
 }
@@ -97,7 +97,7 @@ export async function dismiss_duplicate(
 export async function scan_for_duplicates(): Promise<
   ApiResponse<{ success: boolean }>
 > {
-  return api_client.post<{ success: boolean }>("/contacts/duplicates/scan", {});
+  return api_client.post<{ success: boolean }>("/contacts/v1/duplicates/scan", {});
 }
 
 export function merge_contact_fields(

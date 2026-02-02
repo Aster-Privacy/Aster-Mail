@@ -38,7 +38,7 @@ export async function list_custom_field_definitions(): Promise<
   ApiResponse<DecryptedCustomFieldDefinition[]>
 > {
   const response =
-    await api_client.get<ListFieldDefinitionsResponse>("/contacts/fields");
+    await api_client.get<ListFieldDefinitionsResponse>("/contacts/v1/fields");
 
   if (response.error || !response.data) {
     return { error: response.error || "Failed to fetch field definitions" };
@@ -88,7 +88,7 @@ export async function create_custom_field_definition(
   );
 
   const response = await api_client.post<CustomFieldDefinition>(
-    "/contacts/fields",
+    "/contacts/v1/fields",
     {
       encrypted_name: array_to_base64(new Uint8Array(encrypted_name)),
       name_nonce: array_to_base64(nonce),
@@ -115,7 +115,7 @@ export async function delete_custom_field_definition(
   field_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
-    `/contacts/fields/${field_id}`,
+    `/contacts/v1/fields/${field_id}`,
   );
 }
 
@@ -128,7 +128,7 @@ export async function list_contact_custom_field_values(
   field_definitions: DecryptedCustomFieldDefinition[],
 ): Promise<ApiResponse<DecryptedCustomFieldValue[]>> {
   const response = await api_client.get<ListFieldValuesResponse>(
-    `/contacts/${contact_id}/fields`,
+    `/contacts/v1/${contact_id}/fields`,
   );
 
   if (response.error || !response.data) {
@@ -184,7 +184,7 @@ export async function set_contact_custom_field_value(
   );
 
   return api_client.put<{ success: boolean }>(
-    `/contacts/${contact_id}/fields/${field_id}`,
+    `/contacts/v1/${contact_id}/fields/${field_id}`,
     {
       encrypted_value: array_to_base64(new Uint8Array(encrypted_value)),
       value_nonce: array_to_base64(nonce),
@@ -197,6 +197,6 @@ export async function delete_contact_custom_field_value(
   field_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
-    `/contacts/${contact_id}/fields/${field_id}`,
+    `/contacts/v1/${contact_id}/fields/${field_id}`,
   );
 }

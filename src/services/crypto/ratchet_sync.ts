@@ -4,7 +4,7 @@ import {
   load_ratchet_state,
 } from "./double_ratchet";
 
-const API_BASE = "/api/ratchet";
+const API_BASE = "/api/crypto/v1/ratchet";
 
 interface RatchetStateResponse {
   id: string;

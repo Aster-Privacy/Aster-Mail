@@ -58,7 +58,7 @@ export async function get_recipient_public_key(
   username: string,
 ): Promise<ApiResponse<PublicKeyResponse>> {
   return api_client.get<PublicKeyResponse>(
-    `/keys/public/${encodeURIComponent(username)}`,
+    `/crypto/v1/keys/public/${encodeURIComponent(username)}`,
   );
 }
 
@@ -72,7 +72,7 @@ export async function discover_external_key(
   }
 
   const response = await api_client.post<DiscoverKeyResponse>(
-    "/keys/external/discover",
+    "/crypto/v1/keys/external/discover",
     { email },
   );
 
@@ -119,7 +119,7 @@ export async function discover_external_keys_batch(
   }
 
   const response = await api_client.post<DiscoverKeysResponse>(
-    "/keys/external/discover/batch",
+    "/crypto/v1/keys/external/discover/batch",
     { emails: emails_to_fetch },
   );
 
@@ -210,26 +210,26 @@ interface PublishKeyResponse {
 export async function publish_key_to_wkd(): Promise<
   ApiResponse<PublishKeyResponse>
 > {
-  return api_client.post<PublishKeyResponse>("/keys/publish/wkd", {});
+  return api_client.post<PublishKeyResponse>("/crypto/v1/keys/publish/wkd", {});
 }
 
 export async function unpublish_key_from_wkd(): Promise<
   ApiResponse<PublishKeyResponse>
 > {
-  return api_client.delete<PublishKeyResponse>("/keys/publish/wkd");
+  return api_client.delete<PublishKeyResponse>("/crypto/v1/keys/publish/wkd");
 }
 
 export async function publish_key_to_keyserver(): Promise<
   ApiResponse<PublishKeyResponse>
 > {
-  return api_client.post<PublishKeyResponse>("/keys/publish/keyserver", {});
+  return api_client.post<PublishKeyResponse>("/crypto/v1/keys/publish/keyserver", {});
 }
 
 export async function get_wkd_publication_status(): Promise<
   ApiResponse<{ published: boolean; url?: string }>
 > {
   return api_client.get<{ published: boolean; url?: string }>(
-    "/keys/publish/wkd/status",
+    "/crypto/v1/keys/publish/wkd/status",
   );
 }
 
@@ -237,6 +237,6 @@ export async function get_keyserver_publication_status(): Promise<
   ApiResponse<{ published: boolean; fingerprint?: string }>
 > {
   return api_client.get<{ published: boolean; fingerprint?: string }>(
-    "/keys/publish/keyserver/status",
+    "/crypto/v1/keys/publish/keyserver/status",
   );
 }

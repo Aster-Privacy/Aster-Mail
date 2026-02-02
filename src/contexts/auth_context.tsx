@@ -612,7 +612,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       stop_session_timeout();
 
       try {
-        await api_client.post("/auth/logout", {});
+        await api_client.post("/core/v1/auth/logout", {});
       } catch {
         return false;
       }
@@ -658,9 +658,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (is_current) {
         sync_client.disconnect();
         try {
-          await api_client.post("/auth/logout", {});
+          await api_client.post("/core/v1/auth/logout", {});
         } catch {
-          // proceed with local cleanup
         }
         api_client.clear_auth_data();
       }
@@ -766,7 +765,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     sync_client.disconnect();
 
     try {
-      await api_client.post("/auth/logout-all", {});
+      await api_client.post("/core/v1/auth/logout-all", {});
     } catch {
       return;
     }

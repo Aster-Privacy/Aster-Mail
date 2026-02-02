@@ -66,7 +66,7 @@ export async function get_contact_suggestions(
   if (limit) params.set("limit", limit.toString());
 
   const response = await api_client.get<ListRecentResponse>(
-    `/contacts/suggestions?${params}`,
+    `/contacts/v1/suggestions?${params}`,
   );
 
   if (response.error || !response.data) {
@@ -123,7 +123,7 @@ export async function get_recent_contacts(
   if (limit) params.set("limit", limit.toString());
 
   const response = await api_client.get<ListRecentResponse>(
-    `/contacts/recent?${params}`,
+    `/contacts/v1/recent?${params}`,
   );
 
   if (response.error || !response.data) {
@@ -194,7 +194,7 @@ export async function create_contact_from_email(
   const email_search_token = await generate_search_token(email);
 
   return api_client.post<{ id: string; success: boolean }>(
-    "/contacts/from-email",
+    "/contacts/v1/from-email",
     {
       contact_token,
       encrypted_data,

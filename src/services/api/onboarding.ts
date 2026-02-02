@@ -97,7 +97,7 @@ export async function get_onboarding_state(
 
   try {
     const response =
-      await api_client.get<GetOnboardingApiResponse>("/onboarding");
+      await api_client.get<GetOnboardingApiResponse>("/core/v1/onboarding");
 
     if (response.error || !response.data) {
       return { data: null, is_completed: false, is_skipped: false };
@@ -132,7 +132,7 @@ export async function update_onboarding_state(
     const { encrypted, nonce } = await encrypt_onboarding_state(state, vault);
 
     const response = await api_client.put<UpdateOnboardingApiResponse>(
-      "/onboarding",
+      "/core/v1/onboarding",
       {
         encrypted_state: encrypted,
         state_nonce: nonce,

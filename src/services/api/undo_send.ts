@@ -58,32 +58,32 @@ export interface PendingEmailsResponse {
 export async function queue_email(
   request: QueueEmailRequest,
 ): Promise<ApiResponse<QueueEmailResponse>> {
-  return api_client.post<QueueEmailResponse>("/undo-send/queue", request);
+  return api_client.post<QueueEmailResponse>("/mail/v1/undo_send/queue", request);
 }
 
 export async function cancel_email(
   queue_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
-  return api_client.delete<{ success: boolean }>(`/undo-send/${queue_id}`);
+  return api_client.delete<{ success: boolean }>(`/mail/v1/undo_send/${queue_id}`);
 }
 
 export async function get_queued_email_status(
   queue_id: string,
 ): Promise<ApiResponse<QueuedEmailStatus>> {
-  return api_client.get<QueuedEmailStatus>(`/undo-send/${queue_id}/status`);
+  return api_client.get<QueuedEmailStatus>(`/mail/v1/undo_send/${queue_id}/status`);
 }
 
 export async function get_pending_emails(): Promise<
   ApiResponse<PendingEmailsResponse>
 > {
-  return api_client.get<PendingEmailsResponse>("/undo-send/pending");
+  return api_client.get<PendingEmailsResponse>("/mail/v1/undo_send/pending");
 }
 
 export async function send_queued_now(
   queue_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.patch<{ success: boolean }>(
-    `/undo-send/${queue_id}/send-now`,
+    `/mail/v1/undo_send/${queue_id}/send-now`,
     {},
   );
 }

@@ -94,25 +94,25 @@ export interface StripeConfigResponse {
 }
 
 export async function get_subscription() {
-  return api_client.get<SubscriptionResponse>("/billing/subscription");
+  return api_client.get<SubscriptionResponse>("/payments/v1/subscription");
 }
 
 export async function get_available_plans() {
-  return api_client.get<AvailablePlansResponse>("/billing/plans");
+  return api_client.get<AvailablePlansResponse>("/payments/v1/plans");
 }
 
 export async function create_checkout_session(
   plan_code: string,
   billing_interval: string = "month",
 ) {
-  return api_client.post<CheckoutSessionResponse>("/billing/checkout-session", {
+  return api_client.post<CheckoutSessionResponse>("/payments/v1/checkout-session", {
     plan_code,
     billing_interval,
   });
 }
 
 export async function create_portal_session() {
-  return api_client.post<PortalSessionResponse>("/billing/portal-session", {});
+  return api_client.post<PortalSessionResponse>("/payments/v1/portal-session", {});
 }
 
 export async function get_billing_history(
@@ -120,20 +120,20 @@ export async function get_billing_history(
   per_page: number = 20,
 ) {
   return api_client.get<BillingHistoryResponse>(
-    `/billing/history?page=${page}&per_page=${per_page}`,
+    `/payments/v1/history?page=${page}&per_page=${per_page}`,
   );
 }
 
 export async function cancel_subscription() {
-  return api_client.post<CancelSubscriptionResponse>("/billing/cancel", {});
+  return api_client.post<CancelSubscriptionResponse>("/payments/v1/cancel", {});
 }
 
 export async function reactivate_subscription() {
-  return api_client.post<ReactivateResponse>("/billing/reactivate", {});
+  return api_client.post<ReactivateResponse>("/payments/v1/reactivate", {});
 }
 
 export async function get_stripe_config() {
-  return api_client.get<StripeConfigResponse>("/billing/config");
+  return api_client.get<StripeConfigResponse>("/payments/v1/config");
 }
 
 export { format_bytes as format_storage };

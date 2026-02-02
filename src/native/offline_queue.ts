@@ -183,7 +183,7 @@ interface MovePayload {
 }
 
 async function process_send_email(payload: SendEmailPayload): Promise<void> {
-  const response = await fetch("/api/mail/send", {
+  const response = await fetch("/api/mail/v1/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -196,7 +196,7 @@ async function process_send_email(payload: SendEmailPayload): Promise<void> {
 }
 
 async function process_archive(payload: EmailActionPayload): Promise<void> {
-  const response = await fetch("/api/mail/archive", {
+  const response = await fetch("/api/mail/v1/archive", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -209,7 +209,7 @@ async function process_archive(payload: EmailActionPayload): Promise<void> {
 }
 
 async function process_delete(payload: EmailActionPayload): Promise<void> {
-  const response = await fetch("/api/mail/trash", {
+  const response = await fetch("/api/mail/v1/messages/trash", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -222,7 +222,7 @@ async function process_delete(payload: EmailActionPayload): Promise<void> {
 }
 
 async function process_star(payload: StarPayload): Promise<void> {
-  const response = await fetch("/api/mail/star", {
+  const response = await fetch("/api/mail/v1/messages/star", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -238,7 +238,7 @@ async function process_star(payload: StarPayload): Promise<void> {
 }
 
 async function process_mark_read(payload: MarkReadPayload): Promise<void> {
-  const response = await fetch("/api/mail/read", {
+  const response = await fetch("/api/mail/v1/messages/read", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -254,7 +254,7 @@ async function process_mark_read(payload: MarkReadPayload): Promise<void> {
 }
 
 async function process_move(payload: MovePayload): Promise<void> {
-  const response = await fetch("/api/mail/move", {
+  const response = await fetch("/api/mail/v1/messages/move", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

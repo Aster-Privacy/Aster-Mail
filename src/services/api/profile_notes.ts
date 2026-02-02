@@ -225,7 +225,7 @@ export async function get_profile_note(
   try {
     const email_token = await generate_email_token(email);
     const response = await api_client.get<ProfileNoteResponse | null>(
-      `/profile-notes?email_token=${encodeURIComponent(email_token)}`,
+      `/settings/v1/profile_notes?email_token=${encodeURIComponent(email_token)}`,
     );
 
     if (response.error) {
@@ -268,7 +268,7 @@ export async function save_profile_note(
       await encrypt_note(note);
 
     const response = await api_client.put<ProfileNoteResponse>(
-      "/profile-notes",
+      "/settings/v1/profile_notes",
       {
         email_token,
         encrypted_note,
@@ -303,7 +303,7 @@ export async function delete_profile_note(
   try {
     const email_token = await generate_email_token(email);
     const response = await api_client.delete<{ success: boolean }>(
-      `/profile-notes?email_token=${encodeURIComponent(email_token)}`,
+      `/settings/v1/profile_notes?email_token=${encodeURIComponent(email_token)}`,
     );
 
     return response;

@@ -328,7 +328,7 @@ export async function list_scheduled_emails(
   limit: number = 50,
 ): Promise<ApiResponse<ListScheduledResult>> {
   const response = await api_client.get<ScheduledListApiResponse>(
-    `/scheduled?limit=${limit}`,
+    `/mail/v1/scheduled?limit=${limit}`,
   );
 
   if (response.error || !response.data) {
@@ -372,7 +372,7 @@ export async function get_scheduled_email(
   vault: EncryptedVault,
 ): Promise<ApiResponse<ScheduledEmailWithContent | null>> {
   const response = await api_client.get<ScheduledEmailApiFullResponse>(
-    `/scheduled/${email_id}`,
+    `/mail/v1/scheduled/${email_id}`,
   );
 
   if (response.error || !response.data) {
@@ -424,7 +424,7 @@ export async function cancel_scheduled_email(
   email_id: string,
 ): Promise<ApiResponse<CancelScheduledResult>> {
   const response = await api_client.patch<{ status: string }>(
-    `/scheduled/${email_id}`,
+    `/mail/v1/scheduled/${email_id}`,
     { cancel: true },
   );
 
@@ -442,7 +442,7 @@ export async function reschedule_email(
   new_scheduled_at: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   const response = await api_client.patch<{ id: string; status: string }>(
-    `/scheduled/${email_id}`,
+    `/mail/v1/scheduled/${email_id}`,
     { scheduled_at: new_scheduled_at },
   );
 
@@ -489,7 +489,7 @@ export async function create_scheduled_email(
   };
 
   const response = await api_client.post<CreateScheduledApiResponse>(
-    "/scheduled",
+    "/mail/v1/scheduled",
     request,
   );
 

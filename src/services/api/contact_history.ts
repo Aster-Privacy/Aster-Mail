@@ -44,7 +44,7 @@ export async function get_contact_history(
   if (cursor) params.set("cursor", cursor);
   if (limit) params.set("limit", limit.toString());
 
-  const endpoint = `/contacts/${contact_id}/history${params.toString() ? `?${params}` : ""}`;
+  const endpoint = `/contacts/v1/${contact_id}/history${params.toString() ? `?${params}` : ""}`;
   const response = await api_client.get<ContactHistoryResponse>(endpoint);
 
   if (response.error || !response.data) {
@@ -100,7 +100,7 @@ export async function get_contact_history(
 export async function get_contact_stats(
   contact_id: string,
 ): Promise<ApiResponse<ContactEmailStats>> {
-  return api_client.get<ContactEmailStats>(`/contacts/${contact_id}/stats`);
+  return api_client.get<ContactEmailStats>(`/contacts/v1/${contact_id}/stats`);
 }
 
 export async function log_contact_activity(
@@ -126,7 +126,7 @@ export async function log_contact_activity(
   }
 
   return api_client.post<{ success: boolean }>(
-    `/contacts/${contact_id}/activity`,
+    `/contacts/v1/${contact_id}/activity`,
     {
       activity_type,
       mail_item_id,

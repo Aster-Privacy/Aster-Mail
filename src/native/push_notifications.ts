@@ -69,7 +69,7 @@ export async function register_push_notifications(): Promise<void> {
 
 async function send_push_token_to_server(token: string): Promise<void> {
   try {
-    const response = await fetch("/api/sync/push-token", {
+    const response = await fetch("/api/sync/v1/push-token", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -174,7 +174,7 @@ export async function unregister_push_notifications(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
 
   try {
-    await fetch("/api/sync/push-token", {
+    await fetch("/api/sync/v1/push-token", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

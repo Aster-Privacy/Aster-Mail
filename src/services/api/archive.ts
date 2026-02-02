@@ -91,14 +91,14 @@ export interface SearchArchiveResponse {
 export async function batch_archive(
   data: BatchArchiveRequest,
 ): Promise<ApiResponse<BatchArchiveResponse>> {
-  return api_client.post<BatchArchiveResponse>("/archive/batch", data);
+  return api_client.post<BatchArchiveResponse>("/mail/v1/archive/batch", data);
 }
 
 export async function batch_unarchive(
   data: BatchUnarchiveRequest,
 ): Promise<ApiResponse<BatchUnarchiveResponse>> {
   return api_client.post<BatchUnarchiveResponse>(
-    "/archive/unarchive/batch",
+    "/mail/v1/archive/unarchive/batch",
     data,
   );
 }
@@ -106,19 +106,19 @@ export async function batch_unarchive(
 export async function get_archive_stats(): Promise<
   ApiResponse<ArchiveStatsResponse>
 > {
-  return api_client.get<ArchiveStatsResponse>("/archive/stats");
+  return api_client.get<ArchiveStatsResponse>("/mail/v1/archive/stats");
 }
 
 export async function promote_archive_tier(
   data: PromoteTierRequest,
 ): Promise<ApiResponse<PromoteTierResponse>> {
-  return api_client.post<PromoteTierResponse>("/archive/promote", data);
+  return api_client.post<PromoteTierResponse>("/mail/v1/archive/promote", data);
 }
 
 export async function search_archive(
   data: SearchArchiveRequest,
 ): Promise<ApiResponse<SearchArchiveResponse>> {
-  return api_client.post<SearchArchiveResponse>("/archive/search", data);
+  return api_client.post<SearchArchiveResponse>("/mail/v1/archive/search", data);
 }
 
 export function format_archive_tier(tier: string): string {

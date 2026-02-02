@@ -236,7 +236,7 @@ export async function upload_contact_avatar(
     };
 
     return api_client.post<ContactAvatar>(
-      `/contacts/${contact_id}/avatar`,
+      `/contacts/v1/${contact_id}/avatar`,
       request,
     );
   } catch (err) {
@@ -250,7 +250,7 @@ export async function get_contact_avatar(
   contact_id: string,
 ): Promise<ApiResponse<string | null>> {
   const response = await api_client.get<ContactAvatar | null>(
-    `/contacts/${contact_id}/avatar`,
+    `/contacts/v1/${contact_id}/avatar`,
   );
 
   if (response.error || !response.data) {
@@ -278,7 +278,7 @@ export async function delete_contact_avatar(
   contact_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
-    `/contacts/${contact_id}/avatar`,
+    `/contacts/v1/${contact_id}/avatar`,
   );
 }
 

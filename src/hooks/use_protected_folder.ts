@@ -120,7 +120,7 @@ export function use_protected_folder(
       set_error(null);
 
       try {
-        const fetch_response = await fetch(`/api/folders/${folder_id}`, {
+        const fetch_response = await fetch(`/api/mail/v1/labels/${folder_id}`, {
           credentials: "include",
         });
 

@@ -227,7 +227,7 @@ export async function list_allowed_senders(
     const response = await api_client.get<{
       allowed_senders: AllowedSenderResponse[];
       total: number;
-    }>(`/allowed-senders?limit=${limit}&offset=${offset}`);
+    }>(`/contacts/v1/allowed_senders?limit=${limit}&offset=${offset}`);
 
     if (response.error) {
       return { error: response.error };
@@ -283,7 +283,7 @@ export async function allow_sender(
       await encrypt_allow_data(allow_data);
 
     const response = await api_client.post<AllowedSenderResponse>(
-      "/allowed-senders",
+      "/contacts/v1/allowed_senders",
       {
         sender_token,
         encrypted_sender_data,
@@ -322,7 +322,7 @@ export async function remove_allowed_sender(
   try {
     const sender_token = await generate_sender_token(email, is_domain);
     const response = await api_client.delete<{ success: boolean }>(
-      `/allowed-senders?sender_token=${encodeURIComponent(sender_token)}`,
+      `/contacts/v1/allowed_senders?sender_token=${encodeURIComponent(sender_token)}`,
     );
 
     return response;
@@ -339,7 +339,7 @@ export async function remove_allowed_sender_by_token(
 ): Promise<ApiResponse<{ success: boolean }>> {
   try {
     const response = await api_client.delete<{ success: boolean }>(
-      `/allowed-senders?sender_token=${encodeURIComponent(sender_token)}`,
+      `/contacts/v1/allowed_senders?sender_token=${encodeURIComponent(sender_token)}`,
     );
 
     return response;
@@ -358,7 +358,7 @@ export async function bulk_remove_allowed_senders_by_tokens(
     const response = await api_client.delete<{
       success: boolean;
       removed_count: number;
-    }>("/allowed-senders/bulk", {
+    }>("/contacts/v1/allowed_senders/bulk", {
       body: JSON.stringify({ sender_tokens }),
     });
 
@@ -393,7 +393,7 @@ export async function check_allowed_senders(
 
     const tokens = Array.from(token_to_email.keys());
     const response = await api_client.get<{ allowed_tokens: string[] }>(
-      `/allowed-senders/check?tokens=${encodeURIComponent(tokens.join(","))}`,
+      `/contacts/v1/allowed_senders/check?tokens=${encodeURIComponent(tokens.join(","))}`,
     );
 
     if (response.error || !response.data) {

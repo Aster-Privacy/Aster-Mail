@@ -77,7 +77,7 @@ export async function get_recovery_email(
 
   try {
     const response =
-      await api_client.get<GetRecoveryEmailApiResponse>("/recovery-email");
+      await api_client.get<GetRecoveryEmailApiResponse>("/core/v1/recovery/email");
 
     if (response.error || !response.data) {
       return { data: null };
@@ -109,7 +109,7 @@ export async function save_recovery_email(
     const { encrypted, nonce } = await encrypt_recovery_email(email, vault);
 
     const response = await api_client.put<SaveRecoveryEmailApiResponse>(
-      "/recovery-email",
+      "/core/v1/recovery/email",
       {
         encrypted_email: encrypted,
         email_nonce: nonce,

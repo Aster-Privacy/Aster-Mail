@@ -92,7 +92,7 @@ async function fetch_prekey_bundle(
   username: string,
 ): Promise<PrekeyBundle | null> {
   const response = await api_client.get<PrekeyBundle>(
-    `/ratchet/prekey-bundle/${encodeURIComponent(username)}`,
+    `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}`,
   );
 
   if (response.error || !response.data) {
@@ -115,7 +115,7 @@ export async function upload_prekey_bundle(
   const signature_hash = await crypto.subtle.digest("SHA-256", signature_input);
   const signature = array_to_base64(new Uint8Array(signature_hash));
 
-  const response = await api_client.put("/ratchet/prekey-bundle", {
+  const response = await api_client.put("/crypto/v1/ratchet/prekey-bundle", {
     ecdh_identity_key: vault.ratchet_identity_public,
     signed_prekey: vault.ratchet_signed_prekey_public,
     signed_prekey_signature: signature,

@@ -22,7 +22,7 @@ export async function snooze_email(
   mail_item_id: string,
   snoozed_until: Date,
 ): Promise<ApiResponse<SnoozeResponse>> {
-  return api_client.post("/snooze", {
+  return api_client.post("/mail/v1/snooze", {
     mail_item_id,
     snoozed_until: snoozed_until.toISOString(),
   });
@@ -32,7 +32,7 @@ export async function bulk_snooze_emails(
   mail_item_ids: string[],
   snoozed_until: Date,
 ): Promise<ApiResponse<BulkSnoozeResponse>> {
-  return api_client.post("/snooze/bulk", {
+  return api_client.post("/mail/v1/snooze/bulk", {
     mail_item_ids,
     snoozed_until: snoozed_until.toISOString(),
   });
@@ -41,17 +41,17 @@ export async function bulk_snooze_emails(
 export async function list_snoozed_emails(): Promise<
   ApiResponse<SnoozedItem[]>
 > {
-  return api_client.get("/snooze");
+  return api_client.get("/mail/v1/snooze");
 }
 
 export async function unsnooze_email(
   snooze_id: string,
 ): Promise<ApiResponse<void>> {
-  return api_client.delete(`/snooze/${snooze_id}`);
+  return api_client.delete(`/mail/v1/snooze/${snooze_id}`);
 }
 
 export async function unsnooze_by_mail_item(
   mail_item_id: string,
 ): Promise<ApiResponse<void>> {
-  return api_client.delete(`/snooze/mail/${mail_item_id}`);
+  return api_client.delete(`/mail/v1/snooze/mail/${mail_item_id}`);
 }

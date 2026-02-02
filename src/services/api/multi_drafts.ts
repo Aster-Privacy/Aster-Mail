@@ -290,7 +290,7 @@ export async function list_drafts(
   const params = build_list_drafts_params(limit, draft_type);
 
   const response = await api_client.get<ListDraftsApiResponse>(
-    `/drafts?${params.toString()}`,
+    `/mail/v1/drafts?${params.toString()}`,
   );
 
   if (response.error || !response.data) {
@@ -311,7 +311,7 @@ export async function get_draft(
   vault: EncryptedVault,
 ): Promise<ApiResponse<DraftWithContent | null>> {
   const response = await api_client.get<DraftApiResponse>(
-    `/drafts/${draft_id}`,
+    `/mail/v1/drafts/${draft_id}`,
   );
 
   if (response.error || !response.data) {
@@ -382,7 +382,7 @@ export async function create_draft(
   };
 
   const response = await api_client.post<CreateDraftApiResponse>(
-    "/drafts",
+    "/mail/v1/drafts",
     request,
   );
 
@@ -445,7 +445,7 @@ export async function update_draft(
   };
 
   const response = await api_client.put<UpdateDraftApiResponse>(
-    `/drafts/${draft_id}`,
+    `/mail/v1/drafts/${draft_id}`,
     request,
   );
 
@@ -480,7 +480,7 @@ export async function delete_draft(
   draft_id: string,
 ): Promise<ApiResponse<DeleteDraftResult>> {
   const response = await api_client.delete<DeleteDraftApiResponse>(
-    `/drafts/${draft_id}`,
+    `/mail/v1/drafts/${draft_id}`,
   );
 
   if (response.error || !response.data) {
@@ -497,7 +497,7 @@ export async function get_draft_by_thread(
   vault: EncryptedVault,
 ): Promise<ApiResponse<DraftWithContent | null>> {
   const response = await api_client.get<DraftApiResponse | null>(
-    `/drafts/thread/${encodeURIComponent(thread_token)}`,
+    `/mail/v1/drafts/thread/${encodeURIComponent(thread_token)}`,
   );
 
   if (response.error) {

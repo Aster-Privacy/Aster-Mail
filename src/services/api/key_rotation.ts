@@ -29,7 +29,7 @@ export async function get_identity_key_status(): Promise<{
   error?: string;
 }> {
   const response = await api_client.get<IdentityKeyStatus>(
-    "/keys/identity/status",
+    "/crypto/v1/keys/identity/status",
   );
 
   if (response.error) {
@@ -43,7 +43,7 @@ export async function rotate_identity_key(
   request: RotateIdentityKeyRequest,
 ): Promise<{ data?: RotateIdentityKeyResponse; error?: string }> {
   const response = await api_client.post<RotateIdentityKeyResponse>(
-    "/keys/identity/rotate",
+    "/crypto/v1/keys/identity/rotate",
     request,
   );
 

@@ -328,7 +328,7 @@ export async function list_contacts(
     query_params.set("group_id", params.group_id);
   }
   const query_string = query_params.toString();
-  const endpoint = `/contacts${query_string ? `?${query_string}` : ""}`;
+  const endpoint = `/contacts/v1${query_string ? `?${query_string}` : ""}`;
 
   return api_client.get<ContactsListResponse>(endpoint);
 }
@@ -336,13 +336,13 @@ export async function list_contacts(
 export async function get_contact(
   contact_id: string,
 ): Promise<ApiResponse<Contact>> {
-  return api_client.get<Contact>(`/contacts/${contact_id}`);
+  return api_client.get<Contact>(`/contacts/v1/${contact_id}`);
 }
 
 export async function create_contact(
   data: CreateContactRequest,
 ): Promise<ApiResponse<CreateContactResponse>> {
-  return api_client.post<CreateContactResponse>("/contacts", data);
+  return api_client.post<CreateContactResponse>("/contacts/v1", data);
 }
 
 export async function create_contact_encrypted(
@@ -376,7 +376,7 @@ export async function update_contact(
   contact_id: string,
   data: UpdateContactRequest,
 ): Promise<ApiResponse<UpdateContactResponse>> {
-  return api_client.put<UpdateContactResponse>(`/contacts/${contact_id}`, data);
+  return api_client.put<UpdateContactResponse>(`/contacts/v1/${contact_id}`, data);
 }
 
 export async function update_contact_encrypted(
@@ -407,13 +407,13 @@ export async function update_contact_encrypted(
 export async function delete_contact(
   contact_id: string,
 ): Promise<ApiResponse<DeleteContactResponse>> {
-  return api_client.delete<DeleteContactResponse>(`/contacts/${contact_id}`);
+  return api_client.delete<DeleteContactResponse>(`/contacts/v1/${contact_id}`);
 }
 
 export async function bulk_delete_contacts(
   data: BulkDeleteContactsRequest,
 ): Promise<ApiResponse<BulkDeleteContactsResponse>> {
-  return api_client.delete<BulkDeleteContactsResponse>("/contacts", {
+  return api_client.delete<BulkDeleteContactsResponse>("/contacts/v1", {
     body: JSON.stringify(data),
   });
 }
@@ -433,7 +433,7 @@ export async function search_contacts(
   }
 
   return api_client.get<SearchContactsResponse>(
-    `/contacts/search?${query_params.toString()}`,
+    `/contacts/v1/search?${query_params.toString()}`,
   );
 }
 
@@ -441,7 +441,7 @@ export async function list_contact_groups(): Promise<
   ApiResponse<{ groups: ContactGroup[] }>
 > {
   const response = await api_client.get<{ groups: ContactGroupEncrypted[] }>(
-    "/contacts/groups",
+    "/contacts/v1/groups",
   );
 
   if (response.error || !response.data) {
@@ -492,7 +492,7 @@ export async function create_contact_group(
   const group_token = await generate_search_token(data.name);
 
   const response = await api_client.post<CreateGroupResponse>(
-    "/contacts/groups",
+    "/contacts/v1/groups",
     {
       group_token,
       encrypted_name: array_to_base64(new Uint8Array(ciphertext)),
@@ -520,7 +520,7 @@ export async function delete_contact_group(
   group_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
-    `/contacts/groups/${group_id}`,
+    `/contacts/v1/groups/${group_id}`,
   );
 }
 
@@ -529,7 +529,7 @@ export async function add_contact_to_group(
   group_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.post<{ success: boolean }>(
-    `/contacts/${contact_id}/groups/${group_id}`,
+    `/contacts/v1/${contact_id}/groups/${group_id}`,
     {},
   );
 }
@@ -539,12 +539,12 @@ export async function remove_contact_from_group(
   group_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
-    `/contacts/${contact_id}/groups/${group_id}`,
+    `/contacts/v1/${contact_id}/groups/${group_id}`,
   );
 }
 
 export async function get_contacts_count(): Promise<
   ApiResponse<{ count: number }>
 > {
-  return api_client.get<{ count: number }>("/contacts/count");
+  return api_client.get<{ count: number }>("/contacts/v1/count");
 }

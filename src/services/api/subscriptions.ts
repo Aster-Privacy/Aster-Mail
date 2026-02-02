@@ -105,8 +105,8 @@ export async function list_subscriptions(
 
   const query_string = query_params.toString();
   const endpoint = query_string
-    ? `/subscriptions?${query_string}`
-    : "/subscriptions";
+    ? `/mail/v1/subscriptions?${query_string}`
+    : "/mail/v1/subscriptions";
 
   return api_client.get<ListSubscriptionsResponse>(endpoint);
 }
@@ -114,21 +114,21 @@ export async function list_subscriptions(
 export async function get_subscription(
   subscription_id: string,
 ): Promise<{ data?: Subscription; error?: string }> {
-  return api_client.get<Subscription>(`/subscriptions/${subscription_id}`);
+  return api_client.get<Subscription>(`/mail/v1/subscriptions/${subscription_id}`);
 }
 
 export async function get_subscription_stats(): Promise<{
   data?: SubscriptionStats;
   error?: string;
 }> {
-  return api_client.get<SubscriptionStats>("/subscriptions/stats");
+  return api_client.get<SubscriptionStats>("/mail/v1/subscriptions/stats");
 }
 
 export async function unsubscribe(
   subscription_id: string,
   method: "auto" | "list_unsubscribe" | "link" | "manual" = "auto",
 ): Promise<{ data?: UnsubscribeResponse; error?: string }> {
-  return api_client.post<UnsubscribeResponse>("/subscriptions/unsubscribe", {
+  return api_client.post<UnsubscribeResponse>("/mail/v1/subscriptions/unsubscribe", {
     subscription_id,
     method,
   });
@@ -138,7 +138,7 @@ export async function bulk_unsubscribe(
   subscription_ids: string[],
 ): Promise<{ data?: BulkUnsubscribeResponse; error?: string }> {
   return api_client.post<BulkUnsubscribeResponse>(
-    "/subscriptions/bulk-unsubscribe",
+    "/mail/v1/subscriptions/bulk-unsubscribe",
     { subscription_ids },
   );
 }
@@ -146,7 +146,7 @@ export async function bulk_unsubscribe(
 export async function reactivate_subscription(
   subscription_id: string,
 ): Promise<{ data?: UnsubscribeResponse; error?: string }> {
-  return api_client.post<UnsubscribeResponse>("/subscriptions/reactivate", {
+  return api_client.post<UnsubscribeResponse>("/mail/v1/subscriptions/reactivate", {
     subscription_id,
   });
 }
@@ -155,14 +155,14 @@ export async function scan_subscriptions(): Promise<{
   data?: ScanResponse;
   error?: string;
 }> {
-  return api_client.post<ScanResponse>("/subscriptions/scan", {});
+  return api_client.post<ScanResponse>("/mail/v1/subscriptions/scan", {});
 }
 
 export async function track_subscription(
   params: TrackSubscriptionParams,
 ): Promise<{ data?: TrackSubscriptionResponse; error?: string }> {
   return api_client.post<TrackSubscriptionResponse>(
-    "/subscriptions/track",
+    "/mail/v1/subscriptions/track",
     params,
   );
 }
@@ -171,6 +171,6 @@ export async function delete_subscription(
   subscription_id: string,
 ): Promise<{ data?: UnsubscribeResponse; error?: string }> {
   return api_client.delete<UnsubscribeResponse>(
-    `/subscriptions/${subscription_id}`,
+    `/mail/v1/subscriptions/${subscription_id}`,
   );
 }
