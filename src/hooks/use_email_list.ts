@@ -635,6 +635,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     is_loading: auth_loading,
     is_authenticated,
     user,
+    is_completing_registration,
   } = use_auth();
   const { preferences } = use_preferences();
   const [state, set_state] = useState<EmailListState>({
@@ -797,6 +798,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       mail_cache.invalidate(current_view);
     }
 
+    if (is_completing_registration) {
+      return () => abort_ref.current?.abort();
+    }
+
     if (has_keys && has_passphrase_in_memory()) {
       fetch_messages_ref.current?.();
     } else if (has_keys && !has_passphrase_in_memory()) {
@@ -823,10 +828,12 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     current_view,
     is_mail_view,
     user?.id,
+    is_completing_registration,
   ]);
 
   useEffect(() => {
-    if (auth_loading || !is_mail_view || !has_keys) return;
+    if (auth_loading || !is_mail_view || !has_keys || is_completing_registration)
+      return;
     if (has_passphrase_in_memory()) return;
 
     if (passphrase_check_ref.current) {
@@ -862,7 +869,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         passphrase_check_ref.current = null;
       }
     };
-  }, [auth_loading, has_keys, is_mail_view]);
+  }, [auth_loading, has_keys, is_mail_view, is_completing_registration]);
 
   useEffect(() => {
     if (!is_mail_view) return;
@@ -881,13 +888,20 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       }
     };
 
+    const handle_auth_ready = () => {
+      mail_cache.invalidate();
+      fetch_messages_ref.current?.();
+    };
+
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handler);
+    window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
 
     return () => {
       if (debounce_timer) {
         clearTimeout(debounce_timer);
       }
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handler);
+      window.removeEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
     };
   }, [has_keys, is_mail_view]);
 

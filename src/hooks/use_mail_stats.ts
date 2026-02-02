@@ -354,7 +354,7 @@ const stats_store = new MailStatsStore();
 
 export function use_mail_stats(): UseMailStatsReturn {
   const mounted_ref = useRef(true);
-  const { user, has_keys } = use_auth();
+  const { user, has_keys, is_completing_registration } = use_auth();
   const prev_user_id_ref = useRef<string | null>(null);
   const prev_has_keys_ref = useRef<boolean>(false);
   const [state, set_state] = useState<{
@@ -410,6 +410,13 @@ export function use_mail_stats(): UseMailStatsReturn {
 
     sync_state();
 
+    if (is_completing_registration) {
+      return () => {
+        mounted_ref.current = false;
+        unsubscribe();
+      };
+    }
+
     const keys_just_became_available = has_keys && !prev_has_keys;
 
     if (stats_store.is_stale() || keys_just_became_available) {
@@ -420,7 +427,7 @@ export function use_mail_stats(): UseMailStatsReturn {
       mounted_ref.current = false;
       unsubscribe();
     };
-  }, [sync_state, user?.id, has_keys]);
+  }, [sync_state, user?.id, has_keys, is_completing_registration]);
 
   useEffect(() => {
     const handle_change = () => {
@@ -452,6 +459,10 @@ export function use_mail_stats(): UseMailStatsReturn {
   }, []);
 
   useEffect(() => {
+    if (is_completing_registration) {
+      return;
+    }
+
     if (has_passphrase_in_memory() && has_encryption_key()) {
       if (stats_store.is_stale()) {
         stats_store.fetch(true);
@@ -459,11 +470,14 @@ export function use_mail_stats(): UseMailStatsReturn {
     }
 
     return on_keys_ready(() => {
+      if (is_completing_registration) {
+        return;
+      }
       if (stats_store.is_stale()) {
         stats_store.fetch(true);
       }
     });
-  }, []);
+  }, [is_completing_registration]);
 
   return {
     stats: state.stats,
