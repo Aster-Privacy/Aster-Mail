@@ -1412,6 +1412,12 @@ export function use_search(): UseSearchReturn {
         }
       }
 
+      const email_ids = state.results.map((r) => r.id);
+
+      sessionStorage.setItem(
+        "astermail_email_nav",
+        JSON.stringify({ view: "search", email_ids }),
+      );
       navigate(`/email/${mail_id}`, { state: { from_view } });
     },
     [navigate, state.results],
@@ -2403,6 +2409,12 @@ export function use_advanced_search(): UseAdvancedSearchReturn {
         }
       }
 
+      const email_ids = state.results.map((r) => r.id);
+
+      sessionStorage.setItem(
+        "astermail_email_nav",
+        JSON.stringify({ view: "search", email_ids }),
+      );
       navigate(`/email/${mail_id}`, { state: { from_view } });
     },
     [navigate, state.results],

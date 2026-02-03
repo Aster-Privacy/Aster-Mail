@@ -20,6 +20,8 @@ import {
   NoSymbolIcon,
   MapPinIcon,
   ClockIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
@@ -211,10 +213,10 @@ export function EmailPopupViewer({
   on_reply: _on_reply,
   on_forward,
   on_compose,
-  on_navigate_prev: _on_navigate_prev,
-  on_navigate_next: _on_navigate_next,
-  can_go_prev: _can_go_prev = false,
-  can_go_next: _can_go_next = false,
+  on_navigate_prev,
+  on_navigate_next,
+  can_go_prev = false,
+  can_go_next = false,
   current_index: _current_index,
   total_count: _total_count,
   snoozed_until,
@@ -1168,6 +1170,35 @@ export function EmailPopupViewer({
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {(can_go_prev || can_go_next) && (
+          <>
+            <div
+              className="w-px h-4 mx-1"
+              style={{ backgroundColor: "var(--border-secondary)" }}
+            />
+            <Button
+              data-no-drag
+              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              disabled={!can_go_prev}
+              size="icon"
+              variant="ghost"
+              onClick={on_navigate_prev}
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+            </Button>
+            <Button
+              data-no-drag
+              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              disabled={!can_go_next}
+              size="icon"
+              variant="ghost"
+              onClick={on_navigate_next}
+            >
+              <ChevronRightIcon className="w-4 h-4" />
+            </Button>
+          </>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto">

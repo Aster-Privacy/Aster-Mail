@@ -19,6 +19,8 @@ import {
   MapPinIcon,
   ArrowLeftIcon,
   QueueListIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
 import { InlineReplySection } from "@/components/email/inline_reply_section";
@@ -265,10 +267,10 @@ export function FullEmailViewer({
   snoozed_until,
   on_forward,
   on_edit_draft,
-  on_navigate_prev: _on_navigate_prev,
-  on_navigate_next: _on_navigate_next,
-  can_go_prev: _can_go_prev = false,
-  can_go_next: _can_go_next = false,
+  on_navigate_prev,
+  on_navigate_next,
+  can_go_prev = false,
+  can_go_next = false,
 }: FullEmailViewerProps): React.ReactElement {
   const { format_email_detail } = use_date_format();
   const { preferences } = use_preferences();
@@ -1236,6 +1238,33 @@ export function FullEmailViewer({
               )}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {(can_go_prev || can_go_next) && (
+            <>
+              <div
+                className="w-px h-5 mx-1"
+                style={{ backgroundColor: "var(--border-secondary)" }}
+              />
+              <Button
+                className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+                disabled={!can_go_prev}
+                size="icon"
+                variant="ghost"
+                onClick={on_navigate_prev}
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+              </Button>
+              <Button
+                className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+                disabled={!can_go_next}
+                size="icon"
+                variant="ghost"
+                onClick={on_navigate_next}
+              >
+                <ChevronRightIcon className="w-4 h-4" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

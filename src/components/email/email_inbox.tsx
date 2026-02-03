@@ -1301,11 +1301,13 @@ export function EmailInbox({
     }
   }, [pinned_emails, primary_emails, on_email_list_change]);
 
-  const local_email_index = useMemo(() => {
-    if (!split_email_id || visible_ids.length === 0) return -1;
+  const effective_email_id = active_email_id || split_email_id;
 
-    return visible_ids.indexOf(split_email_id);
-  }, [split_email_id, visible_ids]);
+  const local_email_index = useMemo(() => {
+    if (!effective_email_id || visible_ids.length === 0) return -1;
+
+    return visible_ids.indexOf(effective_email_id);
+  }, [effective_email_id, visible_ids]);
 
   const local_can_go_prev = local_email_index > 0;
   const local_can_go_next =
@@ -1462,6 +1464,10 @@ export function EmailInbox({
       if (on_email_click) {
         on_email_click(id);
       } else {
+        sessionStorage.setItem(
+          "astermail_email_nav",
+          JSON.stringify({ view: current_view, email_ids: visible_ids }),
+        );
         navigate(`/email/${id}`, { state: { from_view: current_view } });
       }
     },
@@ -1473,6 +1479,7 @@ export function EmailInbox({
       on_draft_click,
       on_scheduled_click,
       on_email_click,
+      visible_ids,
     ],
   );
 
@@ -2085,6 +2092,9 @@ export function EmailInbox({
           active_category={active_category}
           active_filter={active_filter}
           all_selected={all_selected}
+          can_go_next={local_can_go_next}
+          can_go_prev={local_can_go_prev}
+          current_email_index={local_email_index}
           current_page={current_page}
           filtered_count={filtered_emails.length}
           is_trash_view={current_view === "trash"}
@@ -2092,8 +2102,10 @@ export function EmailInbox({
           on_compose={on_compose}
           on_empty_trash={handle_empty_trash}
           on_filter_change={handle_filter_change}
+          on_navigate_next={effective_email_id ? handle_local_navigate_next : undefined}
+          on_navigate_prev={effective_email_id ? handle_local_navigate_prev : undefined}
           on_page_change={
-            show_full_email_viewer ? undefined : handle_page_change
+            show_full_email_viewer || effective_email_id ? undefined : handle_page_change
           }
           on_search_click={on_search_click}
           on_settings_click={on_settings_click}
@@ -2107,6 +2119,7 @@ export function EmailInbox({
             preferences.categories_enabled
           }
           some_selected={some_selected}
+          total_email_count={visible_ids.length}
           total_messages={email_state.total_messages}
           trash_count={mail_stats.trash}
           view_title={get_view_title(current_view, folders_state.folders)}

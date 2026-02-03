@@ -139,6 +139,12 @@ interface InboxHeaderProps {
   is_trash_view?: boolean;
   on_empty_trash?: () => void;
   trash_count?: number;
+  on_navigate_prev?: () => void;
+  on_navigate_next?: () => void;
+  can_go_prev?: boolean;
+  can_go_next?: boolean;
+  current_email_index?: number;
+  total_email_count?: number;
 }
 
 export function InboxHeader({
@@ -162,6 +168,12 @@ export function InboxHeader({
   is_trash_view = false,
   on_empty_trash,
   trash_count = 0,
+  on_navigate_prev,
+  on_navigate_next,
+  can_go_prev = false,
+  can_go_next = false,
+  current_email_index,
+  total_email_count = 0,
 }: InboxHeaderProps) {
   const navigate = useNavigate();
   const { state: folders_state } = use_folders();
@@ -773,36 +785,74 @@ export function InboxHeader({
             <Cog6ToothIcon className="w-[18px] h-[18px]" />
           </Button>
 
-          {on_page_change && (
+          {(on_navigate_prev || on_navigate_next || on_page_change) && (
             <div className="hidden xl:flex items-center gap-0.5 text-xs text-[var(--text-muted)] ml-1">
               <span className="tabular-nums text-[11px]">
-                {filtered_count > 0
-                  ? `${current_page * page_size + 1}-${Math.min((current_page + 1) * page_size, filtered_count)}`
-                  : "0"}
-                {total_messages > 0 && (
-                  <span className="hidden 2xl:inline">
-                    {" "}
-                    of {total_messages}
-                  </span>
+                {on_navigate_prev || on_navigate_next ? (
+                  <>
+                    {current_email_index !== undefined
+                      ? current_email_index + 1
+                      : 0}
+                    {total_email_count > 0 && (
+                      <span className="hidden 2xl:inline">
+                        {" "}
+                        of {total_email_count}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {filtered_count > 0
+                      ? `${current_page * page_size + 1}-${Math.min((current_page + 1) * page_size, filtered_count)}`
+                      : "0"}
+                    {total_messages > 0 && (
+                      <span className="hidden 2xl:inline">
+                        {" "}
+                        of {total_messages}
+                      </span>
+                    )}
+                  </>
                 )}
               </span>
               <Button
                 className="h-6 w-6"
-                disabled={current_page === 0}
+                disabled={
+                  on_navigate_prev
+                    ? !can_go_prev
+                    : on_page_change
+                      ? current_page === 0
+                      : true
+                }
                 size="icon"
                 variant="ghost"
-                onClick={() => on_page_change(current_page - 1)}
+                onClick={() => {
+                  if (on_navigate_prev && can_go_prev) {
+                    on_navigate_prev();
+                  } else if (on_page_change) {
+                    on_page_change(current_page - 1);
+                  }
+                }}
               >
                 <ChevronLeftIcon className="w-3.5 h-3.5" />
               </Button>
               <Button
                 className="h-6 w-6"
                 disabled={
-                  current_page >= Math.ceil(filtered_count / page_size) - 1
+                  on_navigate_next
+                    ? !can_go_next
+                    : on_page_change
+                      ? current_page >= Math.ceil(filtered_count / page_size) - 1
+                      : true
                 }
                 size="icon"
                 variant="ghost"
-                onClick={() => on_page_change(current_page + 1)}
+                onClick={() => {
+                  if (on_navigate_next && can_go_next) {
+                    on_navigate_next();
+                  } else if (on_page_change) {
+                    on_page_change(current_page + 1);
+                  }
+                }}
               >
                 <ChevronRightIcon className="w-3.5 h-3.5" />
               </Button>

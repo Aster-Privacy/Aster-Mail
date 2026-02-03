@@ -18,6 +18,8 @@ import {
   FolderIcon,
   MapPinIcon,
   QueueListIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
 import { show_toast } from "@/components/toast/simple_toast";
@@ -256,10 +258,10 @@ export function SplitEmailViewer({
   snoozed_until,
   on_reply,
   on_forward,
-  on_navigate_prev: _on_navigate_prev,
-  on_navigate_next: _on_navigate_next,
-  can_go_prev: _can_go_prev = false,
-  can_go_next: _can_go_next = false,
+  on_navigate_prev,
+  on_navigate_next,
+  can_go_prev = false,
+  can_go_next = false,
 }: SplitEmailViewerProps): React.ReactElement {
   const { format_email_detail } = use_date_format();
   const { preferences } = use_preferences();
@@ -1077,6 +1079,33 @@ export function SplitEmailViewer({
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {(can_go_prev || can_go_next) && (
+          <>
+            <div
+              className="w-px h-4 mx-1"
+              style={{ backgroundColor: "var(--border-secondary)" }}
+            />
+            <Button
+              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              disabled={!can_go_prev}
+              size="icon"
+              variant="ghost"
+              onClick={on_navigate_prev}
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+            </Button>
+            <Button
+              className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              disabled={!can_go_next}
+              size="icon"
+              variant="ghost"
+              onClick={on_navigate_next}
+            >
+              <ChevronRightIcon className="w-4 h-4" />
+            </Button>
+          </>
+        )}
 
         <div className="flex-1" />
 

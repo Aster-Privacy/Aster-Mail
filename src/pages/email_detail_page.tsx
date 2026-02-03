@@ -221,7 +221,21 @@ export default function EmailDetailPage() {
   const [auto_advance, set_auto_advance] = useState(
     DEFAULT_PREFERENCES.auto_advance,
   );
-  const [email_list] = useState<string[]>([]);
+  const [email_list] = useState<string[]>(() => {
+    try {
+      const stored = sessionStorage.getItem("astermail_email_nav");
+
+      if (stored) {
+        const parsed = JSON.parse(stored);
+
+        return parsed.email_ids || [];
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+
+    return [];
+  });
   const [is_archive_loading, set_is_archive_loading] = useState(false);
   const [is_trash_loading, set_is_trash_loading] = useState(false);
   const [is_mobile_sidebar_open, set_is_mobile_sidebar_open] = useState(false);

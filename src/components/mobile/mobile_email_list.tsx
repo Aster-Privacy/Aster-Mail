@@ -37,6 +37,7 @@ interface MobileEmailListProps {
   selected_ids?: string[];
   on_selection_change?: (ids: string[]) => void;
   empty_message?: string;
+  current_view?: string;
 }
 
 const LONG_PRESS_DURATION = 500;
@@ -53,6 +54,7 @@ export function MobileEmailList({
   selected_ids = [],
   on_selection_change,
   empty_message = "No emails",
+  current_view = "inbox",
 }: MobileEmailListProps) {
   const navigate = useNavigate();
   const [refreshing, set_refreshing] = useState(false);
@@ -104,10 +106,16 @@ export function MobileEmailList({
       if (is_selection_mode) {
         handle_toggle_selection(email.id);
       } else {
-        navigate(`/email/${email.id}`);
+        const email_ids = emails.map((e) => e.id);
+
+        sessionStorage.setItem(
+          "astermail_email_nav",
+          JSON.stringify({ view: current_view, email_ids }),
+        );
+        navigate(`/email/${email.id}`, { state: { from_view: current_view } });
       }
     },
-    [is_selection_mode, navigate],
+    [is_selection_mode, navigate, emails, current_view],
   );
 
   const handle_toggle_selection = useCallback(
