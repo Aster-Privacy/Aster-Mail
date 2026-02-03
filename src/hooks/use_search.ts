@@ -917,10 +917,29 @@ export function use_search(): UseSearchReturn {
           parsed_query.text_query = "";
         }
 
+        const id_operator = parsed_query.operators.find(
+          (op) => op.type === "id" && !op.negated,
+        );
+
         const has_operators = parsed_query.operators.length > 0;
         const search_text = parsed_query.text_query.replace(/"/g, "").trim();
 
-        if (!search_text && has_operators) {
+        if (id_operator && !search_text) {
+          const direct_response = await list_mail_items({
+            ids: [id_operator.value],
+            limit: 1,
+          });
+
+          if (direct_response.data?.items) {
+            mail_ids = direct_response.data.items.map((item) => item.id);
+            total = mail_ids.length;
+            is_cached = false;
+          } else {
+            mail_ids = [];
+            total = 0;
+            is_cached = false;
+          }
+        } else if (!search_text && has_operators) {
           const all_mail_response = await list_mail_items({ limit: 200 });
 
           if (all_mail_response.data?.items) {

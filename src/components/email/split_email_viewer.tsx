@@ -60,6 +60,7 @@ import {
 } from "@/utils/email_crypto";
 import {
   is_astermail_sender,
+  is_system_email,
   get_email_username,
 } from "@/lib/utils";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -70,7 +71,6 @@ import {
   type ThreadMessagesListRef,
 } from "@/components/email/thread_message_block";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
-import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
 import { ViewSourceModal } from "@/components/modals/view_source_modal";
 
 export interface SplitReplyData {
@@ -254,6 +254,7 @@ export function SplitEmailViewer({
   email_id,
   on_close,
   snoozed_until,
+  on_reply,
   on_forward,
   on_navigate_prev,
   on_navigate_next,
@@ -276,7 +277,6 @@ export function SplitEmailViewer({
     DecryptedThreadMessage[]
   >([]);
   const [current_user_email, set_current_user_email] = useState<string>("");
-  const [reply_target, set_reply_target] = useState<DecryptedThreadMessage | null>(null);
   const [view_source_message, set_view_source_message] = useState<DecryptedThreadMessage | null>(null);
   const [is_external, set_is_external] = useState(false);
   const [has_pq_protection, set_has_pq_protection] = useState(false);
@@ -323,9 +323,19 @@ export function SplitEmailViewer({
 
   const handle_per_message_reply = useCallback(
     (msg: DecryptedThreadMessage) => {
-      set_reply_target(msg);
+      if (!on_reply || is_system_email(msg.sender_email)) return;
+      on_reply({
+        recipient_name: msg.sender_name,
+        recipient_email: msg.sender_email,
+        recipient_avatar: "",
+        original_subject: msg.subject,
+        original_body: msg.body,
+        original_timestamp: new Date(msg.timestamp).toLocaleString(),
+        thread_token: email?.thread_token,
+        original_email_id: msg.id,
+      });
     },
-    [],
+    [on_reply, email?.thread_token],
   );
 
   const handle_per_message_forward = useCallback(
@@ -652,8 +662,20 @@ export function SplitEmailViewer({
 
   useEffect(() => {
     const handle_keyboard_reply = () => {
+      if (!on_reply || !email) return;
       const last_msg = thread_messages.length > 0 ? thread_messages[thread_messages.length - 1] : null;
-      if (last_msg) set_reply_target(last_msg);
+      if (last_msg && !is_system_email(last_msg.sender_email)) {
+        on_reply({
+          recipient_name: last_msg.sender_name,
+          recipient_email: last_msg.sender_email,
+          recipient_avatar: "",
+          original_subject: last_msg.subject,
+          original_body: last_msg.body,
+          original_timestamp: new Date(last_msg.timestamp).toLocaleString(),
+          thread_token: email.thread_token,
+          original_email_id: last_msg.id,
+        });
+      }
     };
     const handle_keyboard_forward = () => {
       if (!on_forward || !email) return;
@@ -676,7 +698,7 @@ export function SplitEmailViewer({
       window.removeEventListener("astermail:keyboard-reply", handle_keyboard_reply);
       window.removeEventListener("astermail:keyboard-forward", handle_keyboard_forward);
     };
-  }, [thread_messages, email, on_forward]);
+  }, [thread_messages, email, on_reply, on_forward]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1228,14 +1250,7 @@ export function SplitEmailViewer({
               {email.subject}
             </span>
           </div>
-          {thread_messages.length > 1 && (
-            <div className="mb-4">
-              <span className="text-xs text-[var(--text-muted)]">
-                {thread_messages.length} messages
-              </span>
-            </div>
-          )}
-          {thread_messages.length <= 1 && <div className="mb-4" />}
+          <div className="mb-4" />
 
           <div className="flex items-start gap-2 sm:gap-3 mb-6">
             {is_astermail_sender(email.sender, email.sender_email) ? (
@@ -1533,25 +1548,6 @@ export function SplitEmailViewer({
               subject={email.subject}
             />
 
-            {reply_target && (
-              <InlineReplyComposer
-                on_cancel={() => set_reply_target(null)}
-                on_sent={() => {
-                  set_reply_target(null);
-                  window.dispatchEvent(
-                    new CustomEvent("astermail:mail-changed"),
-                  );
-                }}
-                original_body={email.body}
-                original_email_id={email.id}
-                original_subject={email.subject}
-                original_timestamp={email.timestamp}
-                recipient_email={reply_target.sender_email}
-                recipient_name={reply_target.sender_name}
-                target_message={reply_target}
-                thread_token={email.thread_token}
-              />
-            )}
           </div>
         </div>
       </div>

@@ -43,7 +43,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { KeyboardShortcutBadge } from "@/components/common/keyboard_shortcut_badge";
+import { is_system_email } from "@/lib/utils";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
@@ -489,25 +489,23 @@ export function ThreadMessageBlock({
         >
           {on_reply && (
             <Button
-              className="gap-1.5"
+              className={`gap-1.5 ${is_system_email(message.sender_email) ? "opacity-50 pointer-events-none" : ""}`}
               size="sm"
               onClick={() => on_reply(message)}
             >
               <ArrowUturnLeftIcon className="w-4 h-4" />
               Reply
-              <KeyboardShortcutBadge shortcut="r" size="xs" variant="ghost" />
             </Button>
           )}
           {on_reply_all && (
             <Button
-              className="gap-1.5"
+              className={`gap-1.5 ${is_system_email(message.sender_email) ? "opacity-50 pointer-events-none" : ""}`}
               size="sm"
               variant="outline"
               onClick={() => on_reply_all(message)}
             >
               <ArrowUturnLeftIcon className="w-4 h-4" />
               Reply all
-              <KeyboardShortcutBadge shortcut="a" size="xs" variant="ghost" />
             </Button>
           )}
           {on_forward && (
@@ -519,7 +517,6 @@ export function ThreadMessageBlock({
             >
               <ArrowUturnRightIcon className="w-4 h-4" />
               Forward
-              <KeyboardShortcutBadge shortcut="f" size="xs" variant="ghost" />
             </Button>
           )}
         </div>
@@ -564,7 +561,7 @@ export const ThreadMessagesList = forwardRef<
   {
     messages,
     current_user_email,
-    default_expanded_id,
+    default_expanded_id: _default_expanded_id,
     subject: _subject,
     on_toggle_message_read,
     on_mark_all_read,
@@ -584,10 +581,6 @@ export const ThreadMessagesList = forwardRef<
 ): React.ReactElement {
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(() => {
     const initial = new Set<string>();
-
-    if (default_expanded_id) {
-      initial.add(default_expanded_id);
-    }
 
     if (messages.length > 0) {
       initial.add(messages[messages.length - 1].id);
@@ -674,10 +667,6 @@ export const ThreadMessagesList = forwardRef<
   useEffect(() => {
     const new_expanded = new Set<string>();
 
-    if (default_expanded_id) {
-      new_expanded.add(default_expanded_id);
-    }
-
     if (messages.length > 0) {
       new_expanded.add(messages[messages.length - 1].id);
     }
@@ -690,7 +679,7 @@ export const ThreadMessagesList = forwardRef<
     });
 
     set_expanded_ids(new_expanded);
-  }, [message_ids_key, default_expanded_id, messages]);
+  }, [message_ids_key, messages]);
 
   useEffect(() => {
     auto_read_ids.current = new Set();

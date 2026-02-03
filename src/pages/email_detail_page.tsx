@@ -24,7 +24,7 @@ import {
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 
-import { get_email_username } from "@/lib/utils";
+import { get_email_username, is_system_email } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Separator } from "@/components/ui/separator";
@@ -43,11 +43,11 @@ import {
 } from "@/components/compose/compose_manager";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { ForwardModal } from "@/components/modals/forward_modal";
+import { ReplyModal } from "@/components/modals/reply_modal";
 import { ViewSourceModal } from "@/components/modals/view_source_modal";
 import { SettingsPanel } from "@/components/settings/settings_panel";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
-import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
@@ -243,7 +243,16 @@ export default function EmailDetailPage() {
     null,
   );
   const [current_user_email, set_current_user_email] = useState("");
-  const [reply_target, set_reply_target] = useState<DecryptedThreadMessage | null>(null);
+  const [is_reply_modal_open, set_is_reply_modal_open] = useState(false);
+  const [reply_modal_data, set_reply_modal_data] = useState<{
+    recipient_name: string;
+    recipient_email: string;
+    original_subject: string;
+    original_body: string;
+    original_timestamp: string;
+    thread_token?: string;
+    original_email_id?: string;
+  } | null>(null);
   const [view_source_message, set_view_source_message] = useState<DecryptedThreadMessage | null>(null);
 
   use_document_title({ email_subject: email?.subject });
@@ -543,12 +552,22 @@ export default function EmailDetailPage() {
   useEffect(() => {
     const handle_keyboard_reply = () => {
       const last_msg = thread_messages.length > 0 ? thread_messages[thread_messages.length - 1] : null;
-      if (last_msg) set_reply_target(last_msg);
+      if (last_msg && !is_system_email(last_msg.sender_email)) {
+        set_reply_modal_data({
+          recipient_name: last_msg.sender_name,
+          recipient_email: last_msg.sender_email,
+          original_subject: last_msg.subject,
+          original_body: last_msg.body,
+          original_timestamp: new Date(last_msg.timestamp).toLocaleString(),
+          thread_token: mail_item?.thread_token,
+          original_email_id: last_msg.id,
+        });
+        set_is_reply_modal_open(true);
+      }
     };
     const handle_keyboard_forward = () => {
       const last_msg = thread_messages.length > 0 ? thread_messages[thread_messages.length - 1] : null;
       if (last_msg) {
-        set_reply_target(last_msg);
         set_is_forward_modal_open(true);
       }
     };
@@ -559,7 +578,7 @@ export default function EmailDetailPage() {
       window.removeEventListener("astermail:keyboard-reply", handle_keyboard_reply);
       window.removeEventListener("astermail:keyboard-forward", handle_keyboard_forward);
     };
-  }, [thread_messages]);
+  }, [thread_messages, mail_item?.thread_token]);
 
   const current_email_index = useMemo(() => {
     if (!email_id || email_list.length === 0) return -1;
@@ -749,14 +768,26 @@ export default function EmailDetailPage() {
 
   const handle_per_message_reply = useCallback(
     (msg: DecryptedThreadMessage) => {
-      set_reply_target(msg);
+      if (is_system_email(msg.sender_email)) return;
+      set_reply_modal_data({
+        recipient_name: msg.sender_name,
+        recipient_email: msg.sender_email,
+        original_subject: msg.subject,
+        original_body: msg.body,
+        original_timestamp: new Date(msg.timestamp).toLocaleString(),
+        thread_token: mail_item?.thread_token,
+        original_email_id: msg.id,
+      });
+      set_is_reply_modal_open(true);
     },
-    [],
+    [mail_item?.thread_token],
   );
+
+  const [forward_target, set_forward_target] = useState<DecryptedThreadMessage | null>(null);
 
   const handle_per_message_forward = useCallback(
     (msg: DecryptedThreadMessage) => {
-      set_reply_target(msg);
+      set_forward_target(msg);
       set_is_forward_modal_open(true);
     },
     [],
@@ -1310,26 +1341,6 @@ export default function EmailDetailPage() {
                       />
                     )}
 
-                    {reply_target && (
-                      <InlineReplyComposer
-                        on_cancel={() => set_reply_target(null)}
-                        on_draft_saved={handle_draft_saved}
-                        on_sent={() => {
-                          set_reply_target(null);
-                          window.dispatchEvent(
-                            new CustomEvent("astermail:mail-changed"),
-                          );
-                        }}
-                        original_body={email.body}
-                        original_email_id={mail_item?.id}
-                        original_subject={email.subject}
-                        original_timestamp={email.timestamp}
-                        recipient_email={reply_target.sender_email}
-                        recipient_name={reply_target.sender_name}
-                        target_message={reply_target}
-                        thread_token={mail_item?.thread_token}
-                      />
-                    )}
                   </div>
 
                   {email.attachments.length > 0 && (
@@ -1615,18 +1626,34 @@ export default function EmailDetailPage() {
         message_id={view_source_message?.id ?? ""}
         on_close={() => set_view_source_message(null)}
       />
+      <ReplyModal
+        is_open={is_reply_modal_open && !!reply_modal_data}
+        on_close={() => {
+          set_is_reply_modal_open(false);
+          set_reply_modal_data(null);
+        }}
+        on_draft_saved={handle_draft_saved}
+        original_body={reply_modal_data?.original_body ?? ""}
+        original_email_id={reply_modal_data?.original_email_id}
+        original_subject={reply_modal_data?.original_subject ?? ""}
+        original_timestamp={reply_modal_data?.original_timestamp ?? ""}
+        recipient_avatar=""
+        recipient_email={reply_modal_data?.recipient_email ?? ""}
+        recipient_name={reply_modal_data?.recipient_name ?? ""}
+        thread_token={reply_modal_data?.thread_token}
+      />
       <ForwardModal
-        email_body={reply_target?.body ?? email?.body}
-        email_subject={reply_target?.subject ?? email?.subject ?? ""}
-        email_timestamp={reply_target ? new Date(reply_target.timestamp).toLocaleString() : email?.timestamp}
+        email_body={forward_target?.body ?? email?.body}
+        email_subject={forward_target?.subject ?? email?.subject ?? ""}
+        email_timestamp={forward_target ? new Date(forward_target.timestamp).toLocaleString() : email?.timestamp}
         is_open={is_forward_modal_open && !!email}
         on_close={() => {
           set_is_forward_modal_open(false);
-          set_reply_target(null);
+          set_forward_target(null);
         }}
         sender_avatar=""
-        sender_email={reply_target?.sender_email ?? email?.sender_email ?? ""}
-        sender_name={reply_target?.sender_name ?? email?.sender ?? ""}
+        sender_email={forward_target?.sender_email ?? email?.sender_email ?? ""}
+        sender_name={forward_target?.sender_name ?? email?.sender ?? ""}
       />
       <SettingsPanel
         initial_section={settings_section as "billing" | "account" | undefined}
