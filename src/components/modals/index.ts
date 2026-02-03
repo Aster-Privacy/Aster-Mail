@@ -11,3 +11,4 @@ export { SnoozeSimilarModal } from "./snooze_similar_modal";
 export { SenderActionModal } from "./sender_action_modal";
 export { MassUnsubscribeModal } from "./mass_unsubscribe_modal";
 export { DeleteAccountModal } from "./delete_account_modal";
+export { ViewSourceModal } from "./view_source_modal";

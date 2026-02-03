@@ -14,6 +14,16 @@ import {
   EyeIcon,
   EyeSlashIcon,
   ChevronDownIcon,
+  ArrowUturnLeftIcon,
+  ArrowUturnRightIcon,
+  EllipsisHorizontalIcon,
+  ArchiveBoxIcon,
+  TrashIcon,
+  PrinterIcon,
+  ShieldExclamationIcon,
+  CodeBracketIcon,
+  ClipboardDocumentIcon,
+  FolderIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
@@ -23,7 +33,16 @@ import {
   sanitize_html,
   is_html_content,
   plain_text_to_html,
+  strip_html_tags,
 } from "@/lib/html_sanitizer";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
@@ -40,6 +59,14 @@ interface ThreadMessageBlockProps {
   is_read?: boolean;
   on_star_toggle?: () => void;
   on_toggle_read?: () => void;
+  on_reply?: (message: DecryptedThreadMessage) => void;
+  on_reply_all?: (message: DecryptedThreadMessage) => void;
+  on_forward?: (message: DecryptedThreadMessage) => void;
+  on_archive?: (message: DecryptedThreadMessage) => void;
+  on_trash?: (message: DecryptedThreadMessage) => void;
+  on_print?: (message: DecryptedThreadMessage) => void;
+  on_view_source?: (message: DecryptedThreadMessage) => void;
+  on_report_phishing?: (message: DecryptedThreadMessage) => void;
 }
 
 function strip_quotes(body: string): string {
@@ -61,10 +88,24 @@ export function ThreadMessageBlock({
   is_read = true,
   on_star_toggle,
   on_toggle_read,
+  on_reply,
+  on_reply_all,
+  on_forward,
+  on_archive,
+  on_trash,
+  on_print,
+  on_view_source,
+  on_report_phishing,
 }: ThreadMessageBlockProps): React.ReactElement {
   const { preferences } = use_preferences();
   const { format_email_detail } = use_date_format();
   const clean_body = useMemo(() => strip_quotes(message.body), [message.body]);
+
+  const collapsed_preview = useMemo(() => {
+    const plain = strip_html_tags(clean_body);
+
+    return plain.length > 80 ? plain.substring(0, 80) + "..." : plain;
+  }, [clean_body]);
 
   const name = is_own_message ? "Me" : message.sender_name;
 
@@ -82,62 +123,60 @@ export function ThreadMessageBlock({
   if (!is_expanded) {
     return (
       <div
-        className="thread-card-collapsed flex cursor-pointer items-center justify-between rounded-xl px-3 py-3 transition-colors"
+        className="group thread-card-collapsed flex cursor-pointer items-center justify-between rounded-xl px-3 py-3 transition-colors"
         role="button"
         tabIndex={0}
         onClick={on_toggle}
         onKeyDown={(e) => e.key === "Enter" && on_toggle()}
       >
-        <div className="flex items-center gap-1.5">
-          <div
-            className="h-2 w-2 flex-shrink-0 rounded-full"
-            style={{
-              backgroundColor: is_read ? "transparent" : "var(--accent-color)",
-            }}
-          />
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
           <span
-            className={`text-sm ${is_read ? "font-normal" : "font-semibold"}`}
+            className={`flex-shrink-0 text-sm ${is_read ? "font-normal" : "font-semibold"}`}
             style={{
               color: is_read ? "var(--text-muted)" : "var(--text-primary)",
             }}
           >
             {name}
           </span>
-          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-            ({message.sender_email})
-          </span>
+          {collapsed_preview && (
+            <span className="truncate text-sm text-[var(--text-muted)]">
+              — {collapsed_preview}
+            </span>
+          )}
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {on_toggle_read && (
+        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+            {on_toggle_read && (
+              <button
+                className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  on_toggle_read();
+                }}
+              >
+                {is_read ? (
+                  <EyeSlashIcon className="h-4 w-4 text-[var(--text-muted)]" />
+                ) : (
+                  <EyeIcon className="h-4 w-4 text-[var(--text-muted)]" />
+                )}
+              </button>
+            )}
             <button
               className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
               onClick={(e) => {
                 e.stopPropagation();
-                on_toggle_read();
+                on_star_toggle?.();
               }}
             >
-              {is_read ? (
-                <EyeSlashIcon className="h-4 w-4 text-[var(--text-muted)]" />
+              {is_starred ? (
+                <StarIconSolid className="h-4 w-4 text-amber-400" />
               ) : (
-                <EyeIcon className="h-4 w-4 text-[var(--text-muted)]" />
+                <StarIcon className="h-4 w-4 text-[var(--text-muted)]" />
               )}
             </button>
-          )}
-          <button
-            className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
-            onClick={(e) => {
-              e.stopPropagation();
-              on_star_toggle?.();
-            }}
-          >
-            {is_starred ? (
-              <StarIconSolid className="h-4 w-4 text-amber-400" />
-            ) : (
-              <StarIcon className="h-4 w-4 text-[var(--text-muted)]" />
-            )}
-          </button>
-          <span className="ml-1 text-sm" style={{ color: "var(--text-muted)" }}>
+          </div>
+          <span className="text-sm" style={{ color: "var(--text-muted)" }}>
             {format_email_detail(new Date(message.timestamp))}
           </span>
         </div>
@@ -209,6 +248,79 @@ export function ThreadMessageBlock({
               <StarIcon className="h-4 w-4 text-[var(--text-muted)]" />
             )}
           </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <EllipsisHorizontalIcon className="h-4 w-4 text-[var(--text-muted)]" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_star_toggle?.(); }}>
+                {is_starred ? (
+                  <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
+                ) : (
+                  <StarIcon className="w-4 h-4 mr-2" />
+                )}
+                {is_starred ? "Unstar" : "Star"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_toggle_read?.(); }}>
+                {is_read ? (
+                  <EyeSlashIcon className="w-4 h-4 mr-2" />
+                ) : (
+                  <EyeIcon className="w-4 h-4 mr-2" />
+                )}
+                {is_read ? "Mark unread" : "Mark read"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {on_archive && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_archive(message); }}>
+                  <ArchiveBoxIcon className="w-4 h-4 mr-2" />
+                  Archive
+                </DropdownMenuItem>
+              )}
+              {on_trash && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_trash(message); }}>
+                  <TrashIcon className="w-4 h-4 mr-2" />
+                  Move to trash
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem disabled>
+                <FolderIcon className="w-4 h-4 mr-2" />
+                Move to folder
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {on_print && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_print(message); }}>
+                  <PrinterIcon className="w-4 h-4 mr-2" />
+                  Print
+                </DropdownMenuItem>
+              )}
+              {on_view_source && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_view_source(message); }}>
+                  <CodeBracketIcon className="w-4 h-4 mr-2" />
+                  View source
+                </DropdownMenuItem>
+              )}
+              {on_report_phishing && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_report_phishing(message); }}>
+                  <ShieldExclamationIcon className="w-4 h-4 mr-2 text-amber-500" />
+                  <span className="text-amber-500">Report phishing</span>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(message.id);
+                show_toast("Message ID copied", "success");
+              }}>
+                <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
+                Copy message ID
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <ChevronDownIcon
             className="ml-1 h-4 w-4"
             style={{ color: "var(--text-muted)" }}
@@ -292,6 +404,49 @@ export function ThreadMessageBlock({
           className="email-body-content prose prose-sm max-w-none [&>*:last-child]:!mb-0 [&>p]:my-2"
         />
       </div>
+
+      {(on_reply || on_reply_all || on_forward) && (
+        <div
+          className="flex items-center gap-2 px-4 py-3 border-t"
+          style={{
+            borderColor: "var(--thread-card-border)",
+            backgroundColor: "var(--thread-content-bg)",
+          }}
+        >
+          {on_reply && (
+            <Button
+              className="gap-1.5"
+              size="sm"
+              onClick={() => on_reply(message)}
+            >
+              <ArrowUturnLeftIcon className="w-4 h-4" />
+              Reply
+            </Button>
+          )}
+          {on_reply_all && (
+            <Button
+              className="gap-1.5"
+              size="sm"
+              variant="outline"
+              onClick={() => on_reply_all(message)}
+            >
+              <ArrowUturnLeftIcon className="w-4 h-4" />
+              Reply all
+            </Button>
+          )}
+          {on_forward && (
+            <Button
+              className="gap-1.5"
+              size="sm"
+              variant="outline"
+              onClick={() => on_forward(message)}
+            >
+              <ArrowUturnRightIcon className="w-4 h-4" />
+              Forward
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -303,6 +458,14 @@ interface ThreadMessagesListProps {
   subject: string;
   on_toggle_message_read?: (message_id: string) => void;
   on_mark_all_read?: () => void;
+  on_reply?: (message: DecryptedThreadMessage) => void;
+  on_reply_all?: (message: DecryptedThreadMessage) => void;
+  on_forward?: (message: DecryptedThreadMessage) => void;
+  on_archive?: (message: DecryptedThreadMessage) => void;
+  on_trash?: (message: DecryptedThreadMessage) => void;
+  on_print?: (message: DecryptedThreadMessage) => void;
+  on_view_source?: (message: DecryptedThreadMessage) => void;
+  on_report_phishing?: (message: DecryptedThreadMessage) => void;
   hide_counter?: boolean;
   hide_expand_collapse?: boolean;
   thread_message_count?: number;
@@ -328,6 +491,14 @@ export const ThreadMessagesList = forwardRef<
     subject: _subject,
     on_toggle_message_read,
     on_mark_all_read,
+    on_reply,
+    on_reply_all,
+    on_forward,
+    on_archive,
+    on_trash,
+    on_print,
+    on_view_source,
+    on_report_phishing,
     hide_counter = false,
     hide_expand_collapse: _hide_expand_collapse = false,
     thread_message_count,
@@ -345,10 +516,11 @@ export const ThreadMessagesList = forwardRef<
       initial.add(messages[messages.length - 1].id);
     }
 
-    messages.forEach((msg) => {
-      if (!msg.is_read) {
-        initial.add(msg.id);
-      }
+    const unread = messages.filter((m) => !m.is_read);
+    const capped = unread.slice(-5);
+
+    capped.forEach((msg) => {
+      initial.add(msg.id);
     });
 
     return initial;
@@ -433,10 +605,11 @@ export const ThreadMessagesList = forwardRef<
       new_expanded.add(messages[messages.length - 1].id);
     }
 
-    messages.forEach((msg) => {
-      if (!msg.is_read) {
-        new_expanded.add(msg.id);
-      }
+    const unread = messages.filter((m) => !m.is_read);
+    const capped = unread.slice(-5);
+
+    capped.forEach((msg) => {
+      new_expanded.add(msg.id);
     });
 
     set_expanded_ids(new_expanded);
@@ -670,6 +843,22 @@ export const ThreadMessagesList = forwardRef<
     return unread?.id ?? null;
   }, [messages, read_ids]);
 
+  const has_scrolled = useRef(false);
+
+  useEffect(() => {
+    if (has_scrolled.current) return;
+    if (!first_unread_ref.current) return;
+
+    has_scrolled.current = true;
+
+    requestAnimationFrame(() => {
+      first_unread_ref.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, [first_unread_id]);
+
   const handle_mark_all_read = useCallback(() => {
     const unread_messages = messages.filter(
       (m) => !m.is_read && !read_ids.has(m.id),
@@ -745,7 +934,15 @@ export const ThreadMessagesList = forwardRef<
             is_read={read_ids.has(msg.id)}
             is_starred={starred_ids.has(msg.id)}
             message={msg}
+            on_archive={on_archive}
+            on_forward={on_forward}
+            on_print={on_print}
+            on_reply={on_reply}
+            on_reply_all={on_reply_all}
+            on_report_phishing={on_report_phishing}
             on_star_toggle={() => toggle_star(msg)}
+            on_trash={on_trash}
+            on_view_source={on_view_source}
             on_toggle={() => toggle(msg)}
             on_toggle_read={() => toggle_read(msg)}
           />

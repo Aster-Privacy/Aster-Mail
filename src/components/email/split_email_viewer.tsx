@@ -7,8 +7,6 @@ import {
   NoSymbolIcon,
   CheckCircleIcon,
   ClockIcon,
-  ArrowUturnLeftIcon,
-  ArrowUturnRightIcon,
   ArchiveBoxIcon,
   TrashIcon,
   EnvelopeIcon,
@@ -39,7 +37,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { KeyboardShortcutBadge } from "@/components/common/keyboard_shortcut_badge";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
@@ -74,6 +71,8 @@ import {
   type ThreadMessagesListRef,
 } from "@/components/email/thread_message_block";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
+import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
+import { ViewSourceModal } from "@/components/modals/view_source_modal";
 
 export interface SplitReplyData {
   recipient_name: string;
@@ -256,7 +255,6 @@ export function SplitEmailViewer({
   email_id,
   on_close,
   snoozed_until,
-  on_reply,
   on_forward,
   on_navigate_prev,
   on_navigate_next,
@@ -279,6 +277,8 @@ export function SplitEmailViewer({
     DecryptedThreadMessage[]
   >([]);
   const [current_user_email, set_current_user_email] = useState<string>("");
+  const [reply_target, set_reply_target] = useState<DecryptedThreadMessage | null>(null);
+  const [view_source_message, set_view_source_message] = useState<DecryptedThreadMessage | null>(null);
   const [is_external, set_is_external] = useState(false);
   const [has_pq_protection, set_has_pq_protection] = useState(false);
   const [thread_expand_state, set_thread_expand_state] = useState({
@@ -322,31 +322,119 @@ export function SplitEmailViewer({
     }
   }, []);
 
-  const handle_reply = useCallback(() => {
-    if (!email || !on_reply || is_system_email(email.sender_email)) return;
-    on_reply({
-      recipient_name: email.sender,
-      recipient_email: email.sender_email,
-      recipient_avatar: "/mail_logo.webp",
-      original_subject: email.subject,
-      original_body: email.body,
-      original_timestamp: email.timestamp,
-      thread_token: email.thread_token,
-      original_email_id: email.id,
-    });
-  }, [email, on_reply]);
+  const handle_per_message_reply = useCallback(
+    (msg: DecryptedThreadMessage) => {
+      if (is_system_email(msg.sender_email)) return;
+      set_reply_target(msg);
+    },
+    [],
+  );
 
-  const handle_forward = useCallback(() => {
-    if (!email || !on_forward) return;
-    on_forward({
-      sender_name: email.sender,
-      sender_email: email.sender_email,
-      sender_avatar: "/mail_logo.webp",
-      email_subject: email.subject,
-      email_body: email.body,
-      email_timestamp: email.timestamp,
-    });
-  }, [email, on_forward]);
+  const handle_per_message_forward = useCallback(
+    (msg: DecryptedThreadMessage) => {
+      if (!on_forward) return;
+      on_forward({
+        sender_name: msg.sender_name,
+        sender_email: msg.sender_email,
+        sender_avatar: "",
+        email_subject: msg.subject,
+        email_body: msg.body,
+        email_timestamp: new Date(msg.timestamp).toLocaleString(),
+      });
+    },
+    [on_forward],
+  );
+
+  const handle_per_message_archive = useCallback(
+    async (msg: DecryptedThreadMessage) => {
+      const result = await batch_archive({ ids: [msg.id], tier: "hot" });
+      if (result.data?.success) {
+        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        show_action_toast({
+          message: "Message archived",
+          action_type: "archive",
+          email_ids: [msg.id],
+          on_undo: async () => {
+            await batch_unarchive({ ids: [msg.id] });
+            window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+          },
+        });
+      }
+    },
+    [],
+  );
+
+  const handle_per_message_trash = useCallback(
+    async (msg: DecryptedThreadMessage) => {
+      const result = await update_item_metadata(
+        msg.id,
+        {
+          encrypted_metadata: msg.encrypted_metadata,
+          metadata_nonce: msg.metadata_nonce,
+        },
+        { is_trashed: true },
+      );
+      if (result.success) {
+        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        show_action_toast({
+          message: "Message moved to trash",
+          action_type: "trash",
+          email_ids: [msg.id],
+          on_undo: async () => {
+            await update_item_metadata(
+              msg.id,
+              {
+                encrypted_metadata: result.encrypted?.encrypted_metadata,
+                metadata_nonce: result.encrypted?.metadata_nonce,
+              },
+              { is_trashed: false },
+            );
+            window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+          },
+        });
+      }
+    },
+    [],
+  );
+
+  const handle_per_message_print = useCallback(
+    (msg: DecryptedThreadMessage) => {
+      print_email({
+        subject: msg.subject,
+        sender: msg.sender_name,
+        sender_email: msg.sender_email,
+        to: [],
+        timestamp: new Date(msg.timestamp).toLocaleString(),
+        body: msg.body,
+      });
+    },
+    [],
+  );
+
+  const handle_per_message_view_source = useCallback(
+    (msg: DecryptedThreadMessage) => {
+      set_view_source_message(msg);
+    },
+    [],
+  );
+
+  const handle_per_message_report_phishing = useCallback(
+    async (msg: DecryptedThreadMessage) => {
+      const result = await update_item_metadata(
+        msg.id,
+        {
+          encrypted_metadata: msg.encrypted_metadata,
+          metadata_nonce: msg.metadata_nonce,
+        },
+        { is_spam: true },
+      );
+      if (result.success) {
+        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        show_toast("Reported as phishing", "success");
+      }
+    },
+    [],
+  );
 
   const handle_read_toggle = useCallback(async () => {
     if (!email_id || !mail_item) return;
@@ -565,26 +653,34 @@ export function SplitEmailViewer({
   }, [email]);
 
   useEffect(() => {
-    const handle_keyboard_reply = () => handle_reply();
-    const handle_keyboard_forward = () => handle_forward();
+    const handle_keyboard_reply = () => {
+      const last_msg = thread_messages.length > 0 ? thread_messages[thread_messages.length - 1] : null;
+      if (last_msg && !is_system_email(last_msg.sender_email)) {
+        set_reply_target(last_msg);
+      }
+    };
+    const handle_keyboard_forward = () => {
+      if (!on_forward || !email) return;
+      const last_msg = thread_messages.length > 0 ? thread_messages[thread_messages.length - 1] : null;
+      if (last_msg) {
+        on_forward({
+          sender_name: last_msg.sender_name,
+          sender_email: last_msg.sender_email,
+          sender_avatar: "",
+          email_subject: last_msg.subject,
+          email_body: last_msg.body,
+          email_timestamp: new Date(last_msg.timestamp).toLocaleString(),
+        });
+      }
+    };
 
     window.addEventListener("astermail:keyboard-reply", handle_keyboard_reply);
-    window.addEventListener(
-      "astermail:keyboard-forward",
-      handle_keyboard_forward,
-    );
-
+    window.addEventListener("astermail:keyboard-forward", handle_keyboard_forward);
     return () => {
-      window.removeEventListener(
-        "astermail:keyboard-reply",
-        handle_keyboard_reply,
-      );
-      window.removeEventListener(
-        "astermail:keyboard-forward",
-        handle_keyboard_forward,
-      );
+      window.removeEventListener("astermail:keyboard-reply", handle_keyboard_reply);
+      window.removeEventListener("astermail:keyboard-forward", handle_keyboard_forward);
     };
-  }, [handle_reply, handle_forward]);
+  }, [thread_messages, email, on_forward]);
 
   useEffect(() => {
     let cancelled = false;
@@ -725,7 +821,7 @@ export function SplitEmailViewer({
         metadata_nonce: item.metadata_nonce,
       };
 
-      if (item.thread_token) {
+      if (item.thread_token && preferences.conversation_view) {
         const thread_result = await fetch_and_decrypt_thread_messages(
           item.thread_token,
           user_email,
@@ -1123,7 +1219,7 @@ export function SplitEmailViewer({
         style={{ scrollbarGutter: "stable" }}
       >
         <div className="p-4 sm:p-6">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-1">
             <EncryptionInfoDropdown
               has_pq_protection={has_pq_protection}
               is_external={is_external}
@@ -1136,6 +1232,14 @@ export function SplitEmailViewer({
               {email.subject}
             </span>
           </div>
+          {thread_messages.length > 1 && (
+            <div className="mb-4">
+              <span className="text-xs text-[var(--text-muted)]">
+                {thread_messages.length} messages
+              </span>
+            </div>
+          )}
+          {thread_messages.length <= 1 && <div className="mb-4" />}
 
           <div className="flex items-start gap-2 sm:gap-3 mb-6">
             {is_astermail_sender(email.sender, email.sender_email) ? (
@@ -1374,6 +1478,14 @@ export function SplitEmailViewer({
               current_user_email={current_user_email}
               default_expanded_id={email.id}
               messages={thread_messages}
+              on_archive={handle_per_message_archive}
+              on_forward={handle_per_message_forward}
+              on_print={handle_per_message_print}
+              on_reply={handle_per_message_reply}
+              on_reply_all={handle_per_message_reply}
+              on_report_phishing={handle_per_message_report_phishing}
+              on_trash={handle_per_message_trash}
+              on_view_source={handle_per_message_view_source}
               on_toggle_message_read={(message_id) => {
                 const msg = thread_messages.find((m) => m.id === message_id);
 
@@ -1424,59 +1536,35 @@ export function SplitEmailViewer({
               }}
               subject={email.subject}
             />
+
+            {reply_target && (
+              <InlineReplyComposer
+                on_cancel={() => set_reply_target(null)}
+                on_sent={() => {
+                  set_reply_target(null);
+                  window.dispatchEvent(
+                    new CustomEvent("astermail:mail-changed"),
+                  );
+                }}
+                original_body={email.body}
+                original_email_id={email.id}
+                original_subject={email.subject}
+                original_timestamp={email.timestamp}
+                recipient_email={reply_target.sender_email}
+                recipient_name={reply_target.sender_name}
+                target_message={reply_target}
+                thread_token={email.thread_token}
+              />
+            )}
           </div>
         </div>
       </div>
-
-      <div
-        className="flex items-center gap-3 px-4 py-3 border-t"
-        style={{
-          backgroundColor: "var(--bg-primary)",
-          borderColor: "var(--border-primary)",
-        }}
-      >
-        <button
-          className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-150"
-          disabled={is_system_email(email.sender_email)}
-          style={{
-            background:
-              "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
-            color: "#ffffff",
-            boxShadow:
-              "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)",
-            opacity: is_system_email(email.sender_email) ? 0.6 : 1,
-            cursor: is_system_email(email.sender_email)
-              ? "not-allowed"
-              : "pointer",
-          }}
-          onClick={
-            is_system_email(email.sender_email) ? undefined : handle_reply
-          }
-        >
-          <ArrowUturnLeftIcon className="w-4 h-4" />
-          <span>Reply</span>
-          <KeyboardShortcutBadge
-            className="bg-white/20 border-white/30 text-white/80 shadow-none"
-            shortcut="r"
-          />
-        </button>
-        {on_forward && (
-          <button
-            className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-150"
-            style={{
-              background: "var(--bg-secondary)",
-              color: "var(--text-primary)",
-              boxShadow:
-                "0 1px 2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px var(--border-primary)",
-            }}
-            onClick={handle_forward}
-          >
-            <ArrowUturnRightIcon className="w-4 h-4" />
-            <span>Forward</span>
-            <KeyboardShortcutBadge shortcut="f" />
-          </button>
-        )}
-      </div>
+      <ViewSourceModal
+        html_body={view_source_message?.body ?? ""}
+        is_open={!!view_source_message}
+        message_id={view_source_message?.id ?? ""}
+        on_close={() => set_view_source_message(null)}
+      />
     </div>
   );
 }

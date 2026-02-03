@@ -10,8 +10,6 @@ import {
   TrashIcon,
   TagIcon,
   EllipsisVerticalIcon,
-  ArrowUturnLeftIcon,
-  ArrowUturnRightIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ExclamationCircleIcon,
@@ -24,7 +22,6 @@ import {
   NoSymbolIcon,
   DocumentTextIcon,
   ArrowTopRightOnSquareIcon,
-  EllipsisHorizontalIcon,
 } from "@heroicons/react/24/outline";
 
 import { get_email_username } from "@/lib/utils";
@@ -44,12 +41,13 @@ import {
   ComposeManager,
   useComposeManager,
 } from "@/components/compose/compose_manager";
-import { ReplyModal } from "@/components/modals/reply_modal";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { ForwardModal } from "@/components/modals/forward_modal";
+import { ViewSourceModal } from "@/components/modals/view_source_modal";
 import { SettingsPanel } from "@/components/settings/settings_panel";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
+import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
@@ -203,7 +201,6 @@ export default function EmailDetailPage() {
     useState(false);
   const [is_block_sender_modal_open, set_is_block_sender_modal_open] =
     useState(false);
-  const [is_reply_modal_open, set_is_reply_modal_open] = useState(false);
   const [is_archive_confirm_open, set_is_archive_confirm_open] =
     useState(false);
   const [is_trash_confirm_open, set_is_trash_confirm_open] = useState(false);
@@ -246,6 +243,8 @@ export default function EmailDetailPage() {
     null,
   );
   const [current_user_email, set_current_user_email] = useState("");
+  const [reply_target, set_reply_target] = useState<DecryptedThreadMessage | null>(null);
+  const [view_source_message, set_view_source_message] = useState<DecryptedThreadMessage | null>(null);
 
   use_document_title({ email_subject: email?.subject });
 
@@ -469,7 +468,7 @@ export default function EmailDetailPage() {
           metadata_nonce: response.data.metadata_nonce,
         };
 
-        if (response.data.thread_token) {
+        if (response.data.thread_token && preferences.conversation_view) {
           const thread_result = await fetch_and_decrypt_thread_messages(
             response.data.thread_token,
             user?.email,
@@ -540,6 +539,27 @@ export default function EmailDetailPage() {
 
     load_preferences();
   }, [vault]);
+
+  useEffect(() => {
+    const handle_keyboard_reply = () => {
+      const last_msg = thread_messages.length > 0 ? thread_messages[thread_messages.length - 1] : null;
+      if (last_msg) set_reply_target(last_msg);
+    };
+    const handle_keyboard_forward = () => {
+      const last_msg = thread_messages.length > 0 ? thread_messages[thread_messages.length - 1] : null;
+      if (last_msg) {
+        set_reply_target(last_msg);
+        set_is_forward_modal_open(true);
+      }
+    };
+
+    window.addEventListener("astermail:keyboard-reply", handle_keyboard_reply);
+    window.addEventListener("astermail:keyboard-forward", handle_keyboard_forward);
+    return () => {
+      window.removeEventListener("astermail:keyboard-reply", handle_keyboard_reply);
+      window.removeEventListener("astermail:keyboard-forward", handle_keyboard_forward);
+    };
+  }, [thread_messages]);
 
   const current_email_index = useMemo(() => {
     if (!email_id || email_list.length === 0) return -1;
@@ -726,6 +746,112 @@ export default function EmailDetailPage() {
   const handle_thread_draft_deleted = useCallback(() => {
     set_thread_draft(null);
   }, []);
+
+  const handle_per_message_reply = useCallback(
+    (msg: DecryptedThreadMessage) => {
+      set_reply_target(msg);
+    },
+    [],
+  );
+
+  const handle_per_message_forward = useCallback(
+    (msg: DecryptedThreadMessage) => {
+      set_reply_target(msg);
+      set_is_forward_modal_open(true);
+    },
+    [],
+  );
+
+  const handle_per_message_archive = useCallback(
+    async (msg: DecryptedThreadMessage) => {
+      const result = await batch_archive({ ids: [msg.id], tier: "hot" });
+      if (result.data?.success) {
+        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        show_action_toast({
+          message: "Message archived",
+          action_type: "archive",
+          email_ids: [msg.id],
+          on_undo: async () => {
+            await batch_unarchive({ ids: [msg.id] });
+            window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+          },
+        });
+      }
+    },
+    [],
+  );
+
+  const handle_per_message_trash = useCallback(
+    async (msg: DecryptedThreadMessage) => {
+      const result = await update_item_metadata(
+        msg.id,
+        {
+          encrypted_metadata: msg.encrypted_metadata,
+          metadata_nonce: msg.metadata_nonce,
+        },
+        { is_trashed: true },
+      );
+      if (result.success) {
+        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        show_action_toast({
+          message: "Message moved to trash",
+          action_type: "trash",
+          email_ids: [msg.id],
+          on_undo: async () => {
+            await update_item_metadata(
+              msg.id,
+              {
+                encrypted_metadata: result.encrypted?.encrypted_metadata,
+                metadata_nonce: result.encrypted?.metadata_nonce,
+              },
+              { is_trashed: false },
+            );
+            window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+          },
+        });
+      }
+    },
+    [],
+  );
+
+  const handle_per_message_print = useCallback(
+    (msg: DecryptedThreadMessage) => {
+      print_email({
+        subject: msg.subject,
+        sender: msg.sender_name,
+        sender_email: msg.sender_email,
+        to: [],
+        timestamp: new Date(msg.timestamp).toLocaleString(),
+        body: msg.body,
+      });
+    },
+    [],
+  );
+
+  const handle_per_message_view_source = useCallback(
+    (msg: DecryptedThreadMessage) => {
+      set_view_source_message(msg);
+    },
+    [],
+  );
+
+  const handle_per_message_report_phishing = useCallback(
+    async (msg: DecryptedThreadMessage) => {
+      const result = await update_item_metadata(
+        msg.id,
+        {
+          encrypted_metadata: msg.encrypted_metadata,
+          metadata_nonce: msg.metadata_nonce,
+        },
+        { is_spam: true },
+      );
+      if (result.success) {
+        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        show_toast("Reported as phishing", "success");
+      }
+    },
+    [],
+  );
 
   return (
     <>
@@ -935,9 +1061,16 @@ export default function EmailDetailPage() {
                       <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--text-primary)] break-words mb-1 sm:mb-2">
                         {email.subject}
                       </h1>
-                      <span className="text-xs sm:text-sm text-[var(--text-muted)]">
-                        {email.timestamp}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs sm:text-sm text-[var(--text-muted)]">
+                          {email.timestamp}
+                        </span>
+                        {thread_messages.length > 1 && (
+                          <span className="text-xs text-[var(--text-muted)]">
+                            · {thread_messages.length} messages
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1062,31 +1195,6 @@ export default function EmailDetailPage() {
                         )}
                       </AnimatePresence>
                     </div>
-                    <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
-                      <Button
-                        className="gap-1.5"
-                        size="sm"
-                        onClick={() => {
-                          set_is_forward_modal_open(false);
-                          set_is_reply_modal_open(true);
-                        }}
-                      >
-                        <ArrowUturnLeftIcon className="w-4 h-4" />
-                        Reply
-                      </Button>
-                      <Button
-                        className="gap-1.5"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          set_is_reply_modal_open(false);
-                          set_is_forward_modal_open(true);
-                        }}
-                      >
-                        <ArrowUturnRightIcon className="w-4 h-4" />
-                        Forward
-                      </Button>
-                    </div>
                   </div>
 
                   <div className="mb-4 sm:mb-6">
@@ -1138,6 +1246,14 @@ export default function EmailDetailPage() {
                               },
                             ]
                       }
+                      on_archive={handle_per_message_archive}
+                      on_forward={handle_per_message_forward}
+                      on_print={handle_per_message_print}
+                      on_reply={handle_per_message_reply}
+                      on_reply_all={handle_per_message_reply}
+                      on_report_phishing={handle_per_message_report_phishing}
+                      on_trash={handle_per_message_trash}
+                      on_view_source={handle_per_message_view_source}
                       on_toggle_message_read={(message_id) => {
                         const msg = thread_messages.find(
                           (m) => m.id === message_id,
@@ -1184,13 +1300,34 @@ export default function EmailDetailPage() {
                       subject={email.subject}
                     />
 
-                    {thread_draft && !is_reply_modal_open && (
+                    {thread_draft && (
                       <ThreadDraftBadge
                         current_user_email={current_user_email}
                         current_user_name={user?.display_name}
                         draft={thread_draft}
                         on_deleted={handle_thread_draft_deleted}
                         on_edit={handle_edit_thread_draft}
+                      />
+                    )}
+
+                    {reply_target && (
+                      <InlineReplyComposer
+                        on_cancel={() => set_reply_target(null)}
+                        on_draft_saved={handle_draft_saved}
+                        on_sent={() => {
+                          set_reply_target(null);
+                          window.dispatchEvent(
+                            new CustomEvent("astermail:mail-changed"),
+                          );
+                        }}
+                        original_body={email.body}
+                        original_email_id={mail_item?.id}
+                        original_subject={email.subject}
+                        original_timestamp={email.timestamp}
+                        recipient_email={reply_target.sender_email}
+                        recipient_name={reply_target.sender_name}
+                        target_message={reply_target}
+                        thread_token={mail_item?.thread_token}
                       />
                     )}
                   </div>
@@ -1265,91 +1402,6 @@ export default function EmailDetailPage() {
               ) : null}
             </div>
 
-            {email && (
-              <div
-                className="sm:hidden flex-shrink-0 border-t px-2 py-2 flex items-center justify-around gap-1"
-                style={{
-                  borderColor: "var(--border-secondary)",
-                  backgroundColor: "var(--bg-primary)",
-                }}
-              >
-                <Button
-                  className="flex-1 gap-1.5 h-10"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    set_is_forward_modal_open(false);
-                    set_is_reply_modal_open(true);
-                  }}
-                >
-                  <ArrowUturnLeftIcon className="w-4 h-4" />
-                  <span className="text-xs">Reply</span>
-                </Button>
-                <Button
-                  className="flex-1 gap-1.5 h-10"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    set_is_reply_modal_open(false);
-                    set_is_forward_modal_open(true);
-                  }}
-                >
-                  <ArrowUturnRightIcon className="w-4 h-4" />
-                  <span className="text-xs">Forward</span>
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      className="flex-1 gap-1.5 h-10"
-                      size="sm"
-                      variant="ghost"
-                    >
-                      <EllipsisHorizontalIcon className="w-4 h-4" />
-                      <span className="text-xs">More</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" side="top">
-                    <DropdownMenuItem
-                      onClick={() =>
-                        preferences.confirm_before_archive
-                          ? set_is_archive_confirm_open(true)
-                          : handle_archive()
-                      }
-                    >
-                      <ArchiveBoxIcon className="w-4 h-4 mr-2" />
-                      Archive
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() =>
-                        preferences.confirm_before_delete
-                          ? set_is_trash_confirm_open(true)
-                          : handle_trash()
-                      }
-                    >
-                      <TrashIcon className="w-4 h-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <TagIcon className="w-4 h-4 mr-2" />
-                      Move to folder
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <ExclamationCircleIcon className="w-4 h-4 mr-2" />
-                      Report spam
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
-                      Download
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handle_print}>
-                      <PrinterIcon className="w-4 h-4 mr-2" />
-                      Print
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -1529,19 +1581,6 @@ export default function EmailDetailPage() {
         )}
       </AnimatePresence>
 
-      <ReplyModal
-        is_open={is_reply_modal_open && !!email}
-        on_close={() => set_is_reply_modal_open(false)}
-        on_draft_saved={handle_draft_saved}
-        original_body={email?.body}
-        original_email_id={mail_item?.id}
-        original_subject={email?.subject}
-        original_timestamp={email?.timestamp}
-        recipient_avatar=""
-        recipient_email={email?.sender_email || ""}
-        recipient_name={email?.sender || ""}
-        thread_token={mail_item?.thread_token}
-      />
       <ConfirmationModal
         show_dont_ask_again
         confirm_text="Archive"
@@ -1570,15 +1609,24 @@ export default function EmailDetailPage() {
         title="Move to Trash?"
         variant="danger"
       />
+      <ViewSourceModal
+        html_body={view_source_message?.body ?? ""}
+        is_open={!!view_source_message}
+        message_id={view_source_message?.id ?? ""}
+        on_close={() => set_view_source_message(null)}
+      />
       <ForwardModal
-        email_body={email?.body}
-        email_subject={email?.subject || ""}
-        email_timestamp={email?.timestamp}
+        email_body={reply_target?.body ?? email?.body}
+        email_subject={reply_target?.subject ?? email?.subject ?? ""}
+        email_timestamp={reply_target ? new Date(reply_target.timestamp).toLocaleString() : email?.timestamp}
         is_open={is_forward_modal_open && !!email}
-        on_close={() => set_is_forward_modal_open(false)}
+        on_close={() => {
+          set_is_forward_modal_open(false);
+          set_reply_target(null);
+        }}
         sender_avatar=""
-        sender_email={email?.sender_email || ""}
-        sender_name={email?.sender || ""}
+        sender_email={reply_target?.sender_email ?? email?.sender_email ?? ""}
+        sender_name={reply_target?.sender_name ?? email?.sender ?? ""}
       />
       <SettingsPanel
         initial_section={settings_section as "billing" | "account" | undefined}
