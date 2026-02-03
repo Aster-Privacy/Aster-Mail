@@ -43,6 +43,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { KeyboardShortcutBadge } from "@/components/common/keyboard_shortcut_badge";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
@@ -175,6 +176,79 @@ export function ThreadMessageBlock({
                 <StarIcon className="h-4 w-4 text-[var(--text-muted)]" />
               )}
             </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="-m-1 rounded-md p-1.5 transition-colors hover:bg-[var(--bg-hover)]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <EllipsisHorizontalIcon className="h-4 w-4 text-[var(--text-muted)]" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_star_toggle?.(); }}>
+                  {is_starred ? (
+                    <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
+                  ) : (
+                    <StarIcon className="w-4 h-4 mr-2" />
+                  )}
+                  {is_starred ? "Unstar" : "Star"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_toggle_read?.(); }}>
+                  {is_read ? (
+                    <EyeSlashIcon className="w-4 h-4 mr-2" />
+                  ) : (
+                    <EyeIcon className="w-4 h-4 mr-2" />
+                  )}
+                  {is_read ? "Mark unread" : "Mark read"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {on_archive && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_archive(message); }}>
+                    <ArchiveBoxIcon className="w-4 h-4 mr-2" />
+                    Archive
+                  </DropdownMenuItem>
+                )}
+                {on_trash && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_trash(message); }}>
+                    <TrashIcon className="w-4 h-4 mr-2" />
+                    Move to trash
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem disabled>
+                  <FolderIcon className="w-4 h-4 mr-2" />
+                  Move to folder
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {on_print && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_print(message); }}>
+                    <PrinterIcon className="w-4 h-4 mr-2" />
+                    Print
+                  </DropdownMenuItem>
+                )}
+                {on_view_source && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_view_source(message); }}>
+                    <CodeBracketIcon className="w-4 h-4 mr-2" />
+                    View source
+                  </DropdownMenuItem>
+                )}
+                {on_report_phishing && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_report_phishing(message); }}>
+                    <ShieldExclamationIcon className="w-4 h-4 mr-2 text-amber-500" />
+                    <span className="text-amber-500">Report phishing</span>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={(e) => {
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(message.id);
+                  show_toast("Message ID copied", "success");
+                }}>
+                  <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
+                  Copy message ID
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <span className="text-sm" style={{ color: "var(--text-muted)" }}>
             {format_email_detail(new Date(message.timestamp))}
@@ -421,6 +495,7 @@ export function ThreadMessageBlock({
             >
               <ArrowUturnLeftIcon className="w-4 h-4" />
               Reply
+              <KeyboardShortcutBadge shortcut="r" size="xs" variant="ghost" />
             </Button>
           )}
           {on_reply_all && (
@@ -432,6 +507,7 @@ export function ThreadMessageBlock({
             >
               <ArrowUturnLeftIcon className="w-4 h-4" />
               Reply all
+              <KeyboardShortcutBadge shortcut="a" size="xs" variant="ghost" />
             </Button>
           )}
           {on_forward && (
@@ -443,6 +519,7 @@ export function ThreadMessageBlock({
             >
               <ArrowUturnRightIcon className="w-4 h-4" />
               Forward
+              <KeyboardShortcutBadge shortcut="f" size="xs" variant="ghost" />
             </Button>
           )}
         </div>

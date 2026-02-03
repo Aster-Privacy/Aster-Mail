@@ -61,7 +61,6 @@ import {
 import {
   is_astermail_sender,
   get_email_username,
-  is_system_email,
 } from "@/lib/utils";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -324,7 +323,6 @@ export function SplitEmailViewer({
 
   const handle_per_message_reply = useCallback(
     (msg: DecryptedThreadMessage) => {
-      if (is_system_email(msg.sender_email)) return;
       set_reply_target(msg);
     },
     [],
@@ -655,9 +653,7 @@ export function SplitEmailViewer({
   useEffect(() => {
     const handle_keyboard_reply = () => {
       const last_msg = thread_messages.length > 0 ? thread_messages[thread_messages.length - 1] : null;
-      if (last_msg && !is_system_email(last_msg.sender_email)) {
-        set_reply_target(last_msg);
-      }
+      if (last_msg) set_reply_target(last_msg);
     };
     const handle_keyboard_forward = () => {
       if (!on_forward || !email) return;
