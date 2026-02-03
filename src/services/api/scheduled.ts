@@ -511,7 +511,16 @@ export async function create_scheduled_email(
 export async function send_scheduled_now(
   email_id: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
-  const now = new Date().toISOString();
+  const response = await api_client.patch<{ id: string; status: string }>(
+    `/mail/v1/scheduled/${email_id}`,
+    { send_now: true },
+  );
 
-  return reschedule_email(email_id, now);
+  if (response.error || !response.data) {
+    return create_error_response(response.error, response.code);
+  }
+
+  invalidate_mail_counts();
+
+  return { data: { success: true } };
 }
