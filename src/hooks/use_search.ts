@@ -425,6 +425,9 @@ function check_operator_match(
   op: ParsedOperator,
 ): boolean {
   switch (op.type) {
+    case "id":
+      return result.id?.toLowerCase().includes(op.value.toLowerCase()) || false;
+
     case "from":
       return (
         result.sender_email?.toLowerCase().includes(op.value.toLowerCase()) ||
@@ -901,6 +904,19 @@ export function use_search(): UseSearchReturn {
         let worker_results: WorkerSearchResult[] | null = null;
 
         const parsed_query = parse_search_query(query);
+
+        const uuid_pattern =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuid_pattern.test(parsed_query.text_query.trim())) {
+          parsed_query.operators.push({
+            type: "id",
+            value: parsed_query.text_query.trim(),
+            raw: `id:${parsed_query.text_query.trim()}`,
+            negated: false,
+          });
+          parsed_query.text_query = "";
+        }
+
         const has_operators = parsed_query.operators.length > 0;
         const search_text = parsed_query.text_query.replace(/"/g, "").trim();
 

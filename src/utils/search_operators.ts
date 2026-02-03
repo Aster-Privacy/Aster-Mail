@@ -13,7 +13,8 @@ export type SearchOperatorType =
   | "attachment"
   | "larger"
   | "smaller"
-  | "size";
+  | "size"
+  | "id";
 
 export type HasOperatorValue =
   | "attachment"
@@ -72,7 +73,7 @@ export interface SearchScope {
 }
 
 const OPERATOR_REGEX =
-  /(?:^|\s)(-)?(?:NOT\s+)?(from|to|subject|has|is|in|before|after|label|date|filename|attachment|larger|smaller|size):("([^"]+)"|(\S+))/gi;
+  /(?:^|\s)(-)?(?:NOT\s+)?(from|to|subject|has|is|in|before|after|label|date|filename|attachment|larger|smaller|size|id):("([^"]+)"|(\S+))/gi;
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -185,6 +186,7 @@ export function validate_operator(operator: ParsedOperator): boolean {
     case "label":
     case "filename":
     case "attachment":
+    case "id":
       return operator.value.length > 0;
 
     case "has":
@@ -276,6 +278,7 @@ export function get_operator_suggestions(
     { operator: "size:", description: "Size range (e.g., 1mb-10mb)" },
     { operator: "filename:", description: "Search attachment filename" },
     { operator: "label:", description: "Search by label" },
+    { operator: "id:", description: "Search by message ID" },
     { operator: "-from:", description: "Exclude sender" },
     { operator: "-has:attachment", description: "Without attachments" },
   ];
@@ -309,6 +312,7 @@ export interface ExtendedSearchFilters {
   filename?: string;
   size_min?: number;
   size_max?: number;
+  message_id?: string;
   negated_from?: string[];
   negated_subject?: string[];
   negated_has_attachments?: boolean;
@@ -394,6 +398,9 @@ export function operators_to_filters(
       case "filename":
       case "attachment":
         filters.filename = op.value;
+        break;
+      case "id":
+        filters.message_id = op.value;
         break;
       case "larger": {
         const size = parse_size_value(op.value);
@@ -554,6 +561,9 @@ export function create_active_filters(
       case "filename":
       case "attachment":
         label = `Filename: ${op.value}`;
+        break;
+      case "id":
+        label = `ID: ${op.value}`;
         break;
       case "larger":
         label = `Larger: ${op.value}`;
