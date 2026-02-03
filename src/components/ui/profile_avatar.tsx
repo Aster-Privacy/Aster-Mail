@@ -256,6 +256,7 @@ export function ProfileAvatar({
 }: ProfileAvatarProps) {
   const [image_error, set_image_error] = useState(false);
   const [domain_logo_error, set_domain_logo_error] = useState(false);
+  const [ddg_logo_error, set_ddg_logo_error] = useState(false);
   const [profile_open, set_profile_open] = useState(false);
 
   const pixel_size = SIZE_MAP[size];
@@ -265,6 +266,7 @@ export function ProfileAvatar({
   useEffect(() => {
     set_image_error(false);
     set_domain_logo_error(failed_domain_logos.has(domain));
+    set_ddg_logo_error(false);
   }, [email, image_url, domain]);
 
   const domain_logo_url = useMemo(() => {
@@ -285,10 +287,21 @@ export function ProfileAvatar({
     return get_gravatar_url(email, pixel_size * 2);
   }, [email, pixel_size]);
 
+  const ddg_logo_url = useMemo(() => {
+    if (!use_domain_logo || !domain || is_aster_mail || ddg_logo_error)
+      return null;
+
+    return `https://icons.duckduckgo.com/ip3/${domain}.ico`;
+  }, [use_domain_logo, domain, is_aster_mail, ddg_logo_error]);
+
   const handle_domain_logo_error = useCallback(() => {
     set_domain_logo_error(true);
     if (domain) add_to_cache(failed_domain_logos, domain);
   }, [domain]);
+
+  const handle_ddg_logo_error = useCallback(() => {
+    set_ddg_logo_error(true);
+  }, []);
 
   const handle_error = useCallback(() => {
     set_image_error(true);
@@ -299,6 +312,7 @@ export function ProfileAvatar({
     if (is_aster_mail) return "/mail_logo.webp";
     if (image_url && !image_error) return image_url;
     if (domain_logo_url && !domain_logo_error) return domain_logo_url;
+    if (ddg_logo_url && !ddg_logo_error) return ddg_logo_url;
     if (gravatar_url && !image_error) return gravatar_url;
 
     return DEFAULT_PROFILE_IMAGE;
@@ -306,15 +320,18 @@ export function ProfileAvatar({
     is_aster_mail,
     image_url,
     domain_logo_url,
+    ddg_logo_url,
     gravatar_url,
     image_error,
     domain_logo_error,
+    ddg_logo_error,
   ]);
 
   const error_handler = useMemo(() => {
     if (is_aster_mail) return undefined;
     if (image_url && !image_error) return handle_error;
     if (domain_logo_url && !domain_logo_error) return handle_domain_logo_error;
+    if (ddg_logo_url && !ddg_logo_error) return handle_ddg_logo_error;
     if (gravatar_url && !image_error) return handle_error;
 
     return undefined;
@@ -322,11 +339,14 @@ export function ProfileAvatar({
     is_aster_mail,
     image_url,
     domain_logo_url,
+    ddg_logo_url,
     gravatar_url,
     image_error,
     domain_logo_error,
+    ddg_logo_error,
     handle_error,
     handle_domain_logo_error,
+    handle_ddg_logo_error,
   ]);
 
   const handle_click = useCallback(

@@ -39,6 +39,7 @@ export function EmailViewerContent({ email }: { email: Email }) {
         >
           <ProfileAvatar
             clickable
+            use_domain_logo
             email={email.sender.email}
             name={email.sender.name}
             size="lg"

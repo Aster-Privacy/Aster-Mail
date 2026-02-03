@@ -295,8 +295,14 @@ interface RecipientBadgeProps {
 
 function RecipientBadge({ email, on_remove }: RecipientBadgeProps) {
   const [logo_error, set_logo_error] = useState(false);
+  const [ddg_error, set_ddg_error] = useState(false);
   const domain = get_domain_from_email(email);
-  const logo_url = domain ? `/api/sync/v1/logos/${encodeURIComponent(domain)}` : "";
+  const logo_url = domain
+    ? `/api/sync/v1/logos/${encodeURIComponent(domain)}`
+    : "";
+  const ddg_logo_url = domain
+    ? `https://icons.duckduckgo.com/ip3/${domain}.ico`
+    : "";
 
   return (
     <div
@@ -310,8 +316,16 @@ function RecipientBadge({ email, on_remove }: RecipientBadgeProps) {
           src={logo_url}
           onError={() => set_logo_error(true)}
         />
+      ) : !ddg_error && ddg_logo_url ? (
+        <img
+          alt=""
+          className="w-5 h-5 rounded-full object-contain flex-shrink-0"
+          src={ddg_logo_url}
+          onError={() => set_ddg_error(true)}
+        />
       ) : (
         <ProfileAvatar
+          use_domain_logo
           email={email}
           name={get_email_username(email)}
           size="xs"
@@ -1361,7 +1375,10 @@ export function ComposeWindow({
           body: message,
         });
 
-        show_toast("You're offline. Email queued for when you reconnect.", "info");
+        show_toast(
+          "You're offline. Email queued for when you reconnect.",
+          "info",
+        );
 
         if (draft_context_id_ref.current) {
           await draft_manager.await_pending_save(draft_context_id_ref.current);

@@ -436,7 +436,12 @@ export const InlineReplySection = forwardRef<
               }}
             >
               <div className="flex items-center gap-3">
-                <ProfileAvatar name={sender_name} size="sm" />
+                <ProfileAvatar
+                  use_domain_logo
+                  email={sender_email}
+                  name={sender_name}
+                  size="sm"
+                />
                 <div>
                   <p
                     className="text-sm font-medium"

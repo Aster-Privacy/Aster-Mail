@@ -79,6 +79,7 @@ export function SenderSelector({
     return (
       <div className="flex-1 flex items-center gap-1.5">
         <ProfileAvatar
+          use_domain_logo
           email={display_option.email}
           name={get_email_username(display_option.email)}
           size="xs"
@@ -107,6 +108,7 @@ export function SenderSelector({
         }}
       >
         <ProfileAvatar
+          use_domain_logo
           email={display_option.email}
           name={get_email_username(display_option.email)}
           size="xs"
@@ -164,6 +166,7 @@ export function SenderSelector({
                     }}
                   >
                     <ProfileAvatar
+                      use_domain_logo
                       email={option.email}
                       name={get_email_username(option.email)}
                       size="xs"

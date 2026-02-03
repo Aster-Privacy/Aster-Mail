@@ -92,6 +92,7 @@ export function DomainLogo({
   className = "",
 }: DomainLogoProps) {
   const [has_error, set_has_error] = useState(false);
+  const [ddg_error, set_ddg_error] = useState(false);
 
   const resolved_domain = useMemo(() => {
     if (domain) return domain.toLowerCase();
@@ -105,6 +106,7 @@ export function DomainLogo({
 
   useEffect(() => {
     set_has_error(failed_domains.has(resolved_domain));
+    set_ddg_error(false);
   }, [resolved_domain]);
 
   const logo_url = useMemo(() => {
@@ -113,6 +115,12 @@ export function DomainLogo({
 
     return get_logo_url(resolved_domain);
   }, [resolved_domain, has_error]);
+
+  const ddg_logo_url = useMemo(() => {
+    if (!resolved_domain || ddg_error) return null;
+
+    return `https://icons.duckduckgo.com/ip3/${resolved_domain}.ico`;
+  }, [resolved_domain, ddg_error]);
 
   const fallback_svg = useMemo(() => {
     const display_name = fallback_name || resolved_domain;
@@ -134,7 +142,23 @@ export function DomainLogo({
     }
   }, [resolved_domain]);
 
-  const src = logo_url && !has_error ? logo_url : fallback_svg;
+  const handle_ddg_error = useCallback(() => {
+    set_ddg_error(true);
+  }, []);
+
+  const src =
+    logo_url && !has_error
+      ? logo_url
+      : ddg_logo_url && !ddg_error
+        ? ddg_logo_url
+        : fallback_svg;
+
+  const on_error =
+    logo_url && !has_error
+      ? handle_error
+      : ddg_logo_url && !ddg_error
+        ? handle_ddg_error
+        : undefined;
 
   return (
     <img
@@ -147,7 +171,7 @@ export function DomainLogo({
       src={src}
       style={{ userSelect: "none" }}
       width={pixel_size}
-      onError={logo_url && !has_error ? handle_error : undefined}
+      onError={on_error}
     />
   );
 }

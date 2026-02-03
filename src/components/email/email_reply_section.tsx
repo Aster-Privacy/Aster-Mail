@@ -256,7 +256,12 @@ export function EmailReplySection({
             style={{ borderColor: "var(--border-secondary)" }}
             transition={{ delay: 0.1 }}
           >
-            <ProfileAvatar name={email.sender.name} size="sm" />
+            <ProfileAvatar
+              use_domain_logo
+              email={email.sender.email}
+              name={email.sender.name}
+              size="sm"
+            />
             <div className="flex-1">
               <p
                 className="text-sm font-semibold"

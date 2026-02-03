@@ -28,6 +28,7 @@ import {
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
 import {
   sanitize_html,
@@ -131,6 +132,12 @@ export function ThreadMessageBlock({
         onKeyDown={(e) => e.key === "Enter" && on_toggle()}
       >
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <ProfileAvatar
+            use_domain_logo
+            email={message.sender_email}
+            name={message.sender_name}
+            size="xs"
+          />
           <span
             className={`flex-shrink-0 text-sm ${is_read ? "font-normal" : "font-semibold"}`}
             style={{
@@ -186,7 +193,12 @@ export function ThreadMessageBlock({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_star_toggle?.(); }}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_star_toggle?.();
+                  }}
+                >
                   {is_starred ? (
                     <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
                   ) : (
@@ -194,7 +206,12 @@ export function ThreadMessageBlock({
                   )}
                   {is_starred ? "Unstar" : "Star"}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_toggle_read?.(); }}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_toggle_read?.();
+                  }}
+                >
                   {is_read ? (
                     <EyeSlashIcon className="w-4 h-4 mr-2" />
                   ) : (
@@ -204,13 +221,23 @@ export function ThreadMessageBlock({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {on_archive && (
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_archive(message); }}>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      on_archive(message);
+                    }}
+                  >
                     <ArchiveBoxIcon className="w-4 h-4 mr-2" />
                     Archive
                   </DropdownMenuItem>
                 )}
                 {on_trash && (
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_trash(message); }}>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      on_trash(message);
+                    }}
+                  >
                     <TrashIcon className="w-4 h-4 mr-2" />
                     Move to trash
                   </DropdownMenuItem>
@@ -221,29 +248,46 @@ export function ThreadMessageBlock({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {on_print && (
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_print(message); }}>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      on_print(message);
+                    }}
+                  >
                     <PrinterIcon className="w-4 h-4 mr-2" />
                     Print
                   </DropdownMenuItem>
                 )}
                 {on_view_source && (
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_view_source(message); }}>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      on_view_source(message);
+                    }}
+                  >
                     <CodeBracketIcon className="w-4 h-4 mr-2" />
                     View source
                   </DropdownMenuItem>
                 )}
                 {on_report_phishing && (
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_report_phishing(message); }}>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      on_report_phishing(message);
+                    }}
+                  >
                     <ShieldExclamationIcon className="w-4 h-4 mr-2 text-amber-500" />
                     <span className="text-amber-500">Report phishing</span>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={(e) => {
-                  e.stopPropagation();
-                  navigator.clipboard.writeText(message.id);
-                  show_toast("Message ID copied", "success");
-                }}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(message.id);
+                    show_toast("Message ID copied", "success");
+                  }}
+                >
                   <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
                   Copy message ID
                 </DropdownMenuItem>
@@ -279,6 +323,12 @@ export function ThreadMessageBlock({
             style={{
               backgroundColor: is_read ? "transparent" : "var(--accent-color)",
             }}
+          />
+          <ProfileAvatar
+            use_domain_logo
+            email={message.sender_email}
+            name={message.sender_name}
+            size="xs"
           />
           <span
             className={`text-sm ${is_read ? "font-normal" : "font-semibold"}`}
@@ -332,7 +382,12 @@ export function ThreadMessageBlock({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_star_toggle?.(); }}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  on_star_toggle?.();
+                }}
+              >
                 {is_starred ? (
                   <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
                 ) : (
@@ -340,7 +395,12 @@ export function ThreadMessageBlock({
                 )}
                 {is_starred ? "Unstar" : "Star"}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_toggle_read?.(); }}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  on_toggle_read?.();
+                }}
+              >
                 {is_read ? (
                   <EyeSlashIcon className="w-4 h-4 mr-2" />
                 ) : (
@@ -350,13 +410,23 @@ export function ThreadMessageBlock({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {on_archive && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_archive(message); }}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_archive(message);
+                  }}
+                >
                   <ArchiveBoxIcon className="w-4 h-4 mr-2" />
                   Archive
                 </DropdownMenuItem>
               )}
               {on_trash && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_trash(message); }}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_trash(message);
+                  }}
+                >
                   <TrashIcon className="w-4 h-4 mr-2" />
                   Move to trash
                 </DropdownMenuItem>
@@ -367,29 +437,46 @@ export function ThreadMessageBlock({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {on_print && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_print(message); }}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_print(message);
+                  }}
+                >
                   <PrinterIcon className="w-4 h-4 mr-2" />
                   Print
                 </DropdownMenuItem>
               )}
               {on_view_source && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_view_source(message); }}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_view_source(message);
+                  }}
+                >
                   <CodeBracketIcon className="w-4 h-4 mr-2" />
                   View source
                 </DropdownMenuItem>
               )}
               {on_report_phishing && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); on_report_phishing(message); }}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_report_phishing(message);
+                  }}
+                >
                   <ShieldExclamationIcon className="w-4 h-4 mr-2 text-amber-500" />
                   <span className="text-amber-500">Report phishing</span>
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={(e) => {
-                e.stopPropagation();
-                navigator.clipboard.writeText(message.id);
-                show_toast("Message ID copied", "success");
-              }}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(message.id);
+                  show_toast("Message ID copied", "success");
+                }}
+              >
                 <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
                 Copy message ID
               </DropdownMenuItem>
