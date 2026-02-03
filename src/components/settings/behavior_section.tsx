@@ -15,6 +15,7 @@ import {
   EyeIcon,
   GlobeAltIcon,
   ServerIcon,
+  ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
@@ -436,6 +437,25 @@ export function BehaviorSection() {
           ]}
           title="Remote Images"
           value={preferences.load_remote_images}
+        />
+
+        <ToggleSetting
+          description="Group related emails into conversation threads"
+          enabled={preferences.conversation_view}
+          icon={
+            <ChatBubbleLeftRightIcon
+              className="w-6 h-6"
+              style={{ color: "var(--text-secondary)" }}
+            />
+          }
+          on_toggle={() => {
+            update_preference(
+              "conversation_view",
+              !preferences.conversation_view,
+            );
+            window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+          }}
+          title="Conversation View"
         />
       </div>
 

@@ -202,29 +202,15 @@ export const InboxEmailListItem = forwardRef<
 
       <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5">
         <div className="flex items-center gap-1 sm:contents">
-          <span className="flex items-center gap-1.5 truncate sm:max-w-48">
-            {email.thread_message_count && email.thread_message_count > 1 && (
-              <span
-                className={cn(
-                  "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded border",
-                  email.is_read
-                    ? "border-[var(--text-muted)] text-[var(--text-muted)]"
-                    : "border-[var(--text-secondary)] text-[var(--text-secondary)]",
-                )}
-              >
-                {email.thread_message_count}
-              </span>
+          <span
+            className={cn(
+              "truncate text-sm",
+              email.is_read
+                ? "font-normal text-[var(--text-tertiary)]"
+                : "font-semibold text-[var(--text-primary)]",
             )}
-            <span
-              className={cn(
-                "truncate text-sm",
-                email.is_read
-                  ? "font-normal text-[var(--text-tertiary)]"
-                  : "font-semibold text-[var(--text-primary)]",
-              )}
-            >
-              {email.sender_name}
-            </span>
+          >
+            {email.subject || "(No subject)"}
           </span>
 
           {email.item_type === "scheduled" && (
@@ -329,15 +315,31 @@ export const InboxEmailListItem = forwardRef<
         </div>
 
         <div className="flex items-center gap-1.5 sm:contents min-w-0">
-          <span
-            className={cn(
-              "truncate text-sm",
-              email.is_read
-                ? "font-normal text-[var(--text-tertiary)]"
-                : "font-medium text-[var(--text-primary)]",
+          <span className="flex items-center gap-1.5 truncate sm:max-w-48">
+            {email.thread_message_count && email.thread_message_count > 1 && (
+              <span
+                className={cn(
+                  "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded border",
+                  email.is_read
+                    ? "border-[var(--text-muted)] text-[var(--text-muted)]"
+                    : "border-[var(--text-secondary)] text-[var(--text-secondary)]",
+                )}
+              >
+                {email.thread_message_count}
+              </span>
             )}
-          >
-            {email.subject || "(No subject)"}
+            <span
+              className={cn(
+                "truncate text-sm",
+                email.is_read
+                  ? "font-normal text-[var(--text-muted)]"
+                  : "font-medium text-[var(--text-secondary)]",
+              )}
+            >
+              {email.thread_participant_names && email.thread_participant_names.length > 0
+                ? email.thread_participant_names.join(", ")
+                : email.sender_name}
+            </span>
           </span>
 
           {show_email_preview && plain_preview && (

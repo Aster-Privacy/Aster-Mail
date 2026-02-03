@@ -186,6 +186,7 @@ export interface InboxEmail {
   snoozed_until?: string;
   thread_token?: string;
   thread_message_count?: number;
+  thread_participant_names?: string[];
   encrypted_metadata?: string;
   metadata_nonce?: string;
   metadata_version?: number;

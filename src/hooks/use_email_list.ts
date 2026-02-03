@@ -473,6 +473,20 @@ function group_emails_by_thread(emails: InboxEmail[]): InboxEmail[] {
 
     representative.is_starred = has_starred;
 
+    const has_unread = thread_emails.some((e) => !e.is_read);
+
+    representative.is_read = !has_unread;
+
+    const participant_names = [
+      ...new Set(
+        thread_emails
+          .map((e) => e.sender_name)
+          .filter(Boolean),
+      ),
+    ];
+
+    representative.thread_participant_names = participant_names;
+
     grouped_emails.push(representative);
   }
 
@@ -488,6 +502,7 @@ async function fetch_mail_from_api(
   view: string,
   signal: AbortSignal,
   format_options: FormatOptions,
+  conversation_view = true,
 ): Promise<{ emails: InboxEmail[]; total: number; expired: boolean } | null> {
   const use_encrypted_endpoint = view_needs_client_side_filtering(view);
   const folder = view_to_mail_folder(view);
@@ -618,7 +633,7 @@ async function fetch_mail_from_api(
     total = filter_result.total;
   }
 
-  const skip_grouping = view === "starred";
+  const skip_grouping = view === "starred" || !conversation_view;
   const final_emails = skip_grouping
     ? filtered_emails.sort((a, b) => {
         const ts_a = a.raw_timestamp || a.timestamp;
@@ -705,6 +720,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           current_view,
           signal,
           format_options,
+          preferences.conversation_view,
         );
 
         if (signal.aborted) return null;
@@ -754,7 +770,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     } else {
       set_state((prev) => ({ ...prev, is_loading: false }));
     }
-  }, [current_view, is_mail_view, format_options]);
+  }, [current_view, is_mail_view, format_options, preferences.conversation_view]);
 
   fetch_messages_ref.current = fetch_messages;
 
