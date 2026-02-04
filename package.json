@@ -24,7 +24,7 @@
     "@capacitor/core": "^6.0.0",
     "@capacitor/haptics": "^6.0.0",
     "@capacitor/keyboard": "^6.0.0",
-    "@capacitor/local-notifications": "^6.0.0",
+    "@capacitor/local-notifications": "^8.0.0",
     "@capacitor/network": "^6.0.0",
     "@capacitor/preferences": "^6.0.0",
     "@capacitor/push-notifications": "^6.0.0",
