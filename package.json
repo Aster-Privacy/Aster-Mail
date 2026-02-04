@@ -29,7 +29,7 @@
     "@capacitor/preferences": "^6.0.0",
     "@capacitor/push-notifications": "^6.0.0",
     "@capacitor/share": "^6.0.0",
-    "@capacitor/splash-screen": "^6.0.0",
+    "@capacitor/splash-screen": "^8.0.0",
     "@capacitor/status-bar": "^6.0.0",
     "@capawesome/capacitor-app-update": "^6.0.0",
     "@fontsource/google-sans-flex": "^5.2.2",
