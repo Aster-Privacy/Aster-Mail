@@ -81,7 +81,7 @@
     "@types/node": "^20.5.7",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
-    "@typescript-eslint/eslint-plugin": "8.31.1",
+    "@typescript-eslint/eslint-plugin": "8.54.0",
     "@typescript-eslint/parser": "8.31.1",
     "@vitejs/plugin-react": "4.7.0",
     "@vitest/coverage-v8": "^4.0.18",
