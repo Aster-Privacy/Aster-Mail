@@ -779,10 +779,8 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
       const touch = e.touches[0] || e.changedTouches[0];
 
       if (!touch) return;
-      const target_el =
-        document.elementFromPoint(touch.clientX, touch.clientY) || iframe;
 
-      target_el.dispatchEvent(
+      iframe.dispatchEvent(
         new TouchEvent(name, {
           bubbles: true,
           cancelable: true,
@@ -952,9 +950,10 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
           height: height_ready ? iframe_height : "auto",
           minHeight: height_ready ? undefined : "200px",
           maxHeight: "12000px",
-          overflow: "clip",
+          overflow: "hidden",
           display: show_preview ? "none" : "block",
           backgroundColor: effective_bg,
+          touchAction: "pan-y",
         }}
         title={t("mail.email_content")}
         onLoad={handle_load_with_swap}

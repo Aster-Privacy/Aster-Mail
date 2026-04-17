@@ -70,7 +70,7 @@ body {
   word-wrap: break-word;
   overflow-wrap: break-word;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: auto;
 }
 
 

@@ -636,11 +636,12 @@ export function use_reply_modal({
       window.dispatchEvent(new CustomEvent("astermail:email-sent"));
 
       if (draft_id) {
-        delete_draft(draft_id).then(() => {
-          set_draft_id(null);
-          set_draft_version(1);
-          last_saved_text.current = "";
-        });
+        const captured_draft_id = draft_id;
+
+        set_draft_id(null);
+        set_draft_version(1);
+        last_saved_text.current = "";
+        await delete_draft(captured_draft_id).catch(() => {});
       }
 
       on_close();
@@ -681,14 +682,6 @@ export function use_reply_modal({
           show_toast(t("common.email_sent"), "success");
           window.dispatchEvent(new CustomEvent("astermail:email-sent"));
 
-          if (draft_id) {
-            delete_draft(draft_id).then(() => {
-              set_draft_id(null);
-              set_draft_version(1);
-              last_saved_text.current = "";
-            });
-          }
-
           if (pending_thread_token_ref.current) {
             emit_thread_reply_sent({
               thread_token: pending_thread_token_ref.current,
@@ -713,6 +706,15 @@ export function use_reply_modal({
 
     if (result.success && result.queued_id) {
       pending_thread_token_ref.current = result.thread_token || null;
+
+      if (draft_id) {
+        const captured_draft_id = draft_id;
+
+        set_draft_id(null);
+        set_draft_version(1);
+        last_saved_text.current = "";
+        delete_draft(captured_draft_id).catch(() => {});
+      }
 
       undo_send_manager.add({
         id: result.queued_id,
@@ -786,11 +788,12 @@ export function use_reply_modal({
       }
 
       if (draft_id) {
-        delete_draft(draft_id).then(() => {
-          set_draft_id(null);
-          set_draft_version(1);
-          last_saved_text.current = "";
-        });
+        const captured_draft_id = draft_id;
+
+        set_draft_id(null);
+        set_draft_version(1);
+        last_saved_text.current = "";
+        await delete_draft(captured_draft_id).catch(() => {});
       }
 
       on_close();

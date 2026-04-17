@@ -694,16 +694,6 @@ export function get_quick_filters(t?: TranslateFn): {
       label: t ? t("mail.filter_has_attachment") : "Has attachment",
       operator: "has:attachment",
     },
-    {
-      id: "today",
-      label: t ? t("mail.filter_today") : "Today",
-      operator: `after:${format_date_for_operator(get_today_start())}`,
-    },
-    {
-      id: "this_week",
-      label: t ? t("mail.filter_this_week") : "This week",
-      operator: `after:${format_date_for_operator(get_week_start())}`,
-    },
   ];
 }
 

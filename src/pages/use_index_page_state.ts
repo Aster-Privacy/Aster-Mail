@@ -931,7 +931,10 @@ export function use_index_page_state() {
       on_toggle_star: handle_keyboard_star,
       on_mark_read: handle_keyboard_mark_read,
       on_mark_unread: handle_keyboard_mark_unread,
-      on_search: () => set_is_search_open(true),
+      on_search: () => {
+        set_is_search_open(true);
+        window.dispatchEvent(new CustomEvent("aster:focus-search"));
+      },
       on_command_palette: () => set_is_command_palette_open(true),
       on_show_shortcuts: () => set_is_shortcuts_open(true),
     },

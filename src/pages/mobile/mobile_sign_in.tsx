@@ -930,18 +930,6 @@ export default function MobileSignInPage() {
               </motion.button>
             </motion.div>
 
-            <motion.div
-              className="mt-4"
-              variants={reduce_motion ? undefined : fade_up_item}
-            >
-              <button
-                className="w-full py-2 text-center text-sm font-medium text-[var(--text-tertiary)]"
-                type="button"
-                onClick={() => navigate("/browser-login")}
-              >
-                Log in with Browser
-              </button>
-            </motion.div>
           </motion.div>
         </div>
       </div>

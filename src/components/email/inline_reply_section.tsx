@@ -332,14 +332,6 @@ export const InlineReplySection = forwardRef<
           show_toast(t("common.email_sent"), "success");
           on_sending_end?.();
 
-          if (draft_id) {
-            delete_draft(draft_id).then(() => {
-              set_draft_id(null);
-              set_draft_version(1);
-              last_saved_text.current = "";
-            });
-          }
-
           if (thread_token) {
             emit_thread_reply_sent({
               thread_token,
@@ -388,6 +380,15 @@ export const InlineReplySection = forwardRef<
 
     if (result.success && result.queued_id) {
       set_queued_id(result.queued_id);
+
+      if (draft_id) {
+        const captured_draft_id = draft_id;
+
+        set_draft_id(null);
+        set_draft_version(1);
+        last_saved_text.current = "";
+        delete_draft(captured_draft_id).catch(() => {});
+      }
     } else if (!result.success) {
       is_sending_ref.current = false;
       set_send_state("error");

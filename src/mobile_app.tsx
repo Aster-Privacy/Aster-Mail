@@ -132,9 +132,6 @@ import("@/pages/mobile/mobile_welcome").catch(() => {});
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/mobile/mobile_forgot_password"),
 );
-const BrowserLoginPage = lazy_with_retry(
-  () => import("@/pages/mobile/mobile_browser_login"),
-);
 const ExternalRedirect = ({ url }: { url: string }) => {
   window.location.href = url;
 
@@ -685,7 +682,6 @@ function MobileApp() {
               <Route element={<RegisterPage />} path="/register" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
-              <Route element={<BrowserLoginPage />} path="/browser-login" />
               <Route
                 element={<ExternalRedirect url="https://astermail.org/terms" />}
                 path="/terms"

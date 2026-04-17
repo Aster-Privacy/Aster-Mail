@@ -38,7 +38,6 @@ import {
   SortDropdown,
   FolderResultsBadges,
   OperatorSuggestions,
-  DateShortcutPills,
 } from "@/components/search/search_filters_panel";
 import { SearchResultRow } from "@/components/search/search_result_item";
 import { use_advanced_search_modal } from "@/components/search/use_advanced_search_modal";
@@ -191,9 +190,6 @@ export function AdvancedSearchModal({
                       on_click={() => add_quick_filter(filter.operator)}
                     />
                   ))}
-                  <DateShortcutPills
-                    on_select={(shortcut) => add_quick_filter(shortcut)}
-                  />
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <SortDropdown

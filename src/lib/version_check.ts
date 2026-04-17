@@ -101,8 +101,9 @@ async function check_once(): Promise<void> {
     aster_version_ref.__aster_version.manifest_ts = manifest.ts;
   }
 
-  if (loaded_build && manifest.build !== loaded_build) {
-    void hard_flush_and_reload();
+  if (aster_version_ref.__aster_version) {
+    aster_version_ref.__aster_version.update_available =
+      !!loaded_build && manifest.build !== loaded_build;
   }
 }
 

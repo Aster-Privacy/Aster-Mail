@@ -25,7 +25,7 @@ export const en: Translations = {
     app_name: "Aster Mail",
     loading: "Loading...",
     press_enter: "Enter",
-    press_enter_to_view_all: "press Enter to view all results",
+    press_enter_to_view_all: "Press Enter to view all results",
     save: "Save",
     cancel: "Cancel",
     delete: "Delete",

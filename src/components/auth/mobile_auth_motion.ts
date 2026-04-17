@@ -55,7 +55,7 @@ export const DEPTH_INPUT_CLASS =
   "h-[52px] w-full rounded-xl border border-[var(--border-secondary)] bg-[var(--bg-tertiary)] px-4 text-base text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] transition-all duration-150";
 
 export const DEPTH_INPUT_WRAPPER_CLASS =
-  "flex items-center rounded-xl border border-[var(--border-secondary)] bg-[var(--bg-tertiary)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] transition-all duration-150";
+  "flex items-center rounded-xl border border-[var(--border-secondary)] bg-[var(--bg-tertiary)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] transition-all duration-150 focus-within:border-[#3b82f6] focus-within:shadow-[0_0_0_2px_#3b82f6]";
 
 export const DEPTH_CTA_CLASS =
   "h-[52px] w-full rounded-xl font-semibold text-base text-white disabled:opacity-50 transition-colors duration-150";
@@ -80,10 +80,10 @@ export const BACK_BUTTON_STYLE: React.CSSProperties = {
     "linear-gradient(var(--bg-tertiary), var(--bg-tertiary)) padding-box, conic-gradient(from 315deg, rgba(255,255,255,0.2) 0deg, rgba(255,255,255,0.04) 90deg, rgba(255,255,255,0.12) 180deg, rgba(255,255,255,0.04) 270deg, rgba(255,255,255,0.2) 360deg) border-box",
 };
 
-export const INNER_INPUT_CLASS = "h-[52px] flex-1 min-w-0 bg-transparent";
+export const INNER_INPUT_CLASS = "h-[52px] flex-1 min-w-0 !bg-transparent !shadow-none !rounded-none !border-none focus:!shadow-none";
 
 export const INNER_INPUT_WITH_ICON_CLASS =
-  "h-[52px] flex-1 min-w-0 bg-transparent !pl-3";
+  "h-[52px] flex-1 min-w-0 !bg-transparent !pl-3 !shadow-none !rounded-none !border-none focus:!shadow-none";
 
 export const INPUT_ICON_CLASS =
   "flex items-center pl-4 text-[var(--text-muted)]";

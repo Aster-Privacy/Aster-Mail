@@ -223,10 +223,18 @@ export function SearchBar({
         set_is_open(true);
       }
     };
+    const on_focus_request = () => {
+      input_ref.current?.focus();
+      set_is_open(true);
+    };
 
     window.addEventListener("keydown", on_key);
+    window.addEventListener("aster:focus-search", on_focus_request);
 
-    return () => window.removeEventListener("keydown", on_key);
+    return () => {
+      window.removeEventListener("keydown", on_key);
+      window.removeEventListener("aster:focus-search", on_focus_request);
+    };
   }, []);
 
   useEffect(() => {

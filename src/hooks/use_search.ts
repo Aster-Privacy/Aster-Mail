@@ -44,6 +44,7 @@ import {
   expand_date_shortcut,
   parse_size_value,
   parse_size_range,
+  get_quick_filters,
   type ParsedOperator,
 } from "@/utils/search_operators";
 import { use_auth } from "@/contexts/auth_context";
@@ -604,11 +605,12 @@ function matches_operator(
 
       if (!range) return true;
       const ts = new Date(item.message_ts || item.created_at).getTime();
+      const [fy, fm, fd] = range.date_from.split("-").map(Number);
+      const [ty, tm, td] = range.date_to.split("-").map(Number);
+      const from_ts = new Date(fy, fm - 1, fd, 0, 0, 0, 0).getTime();
+      const to_ts = new Date(ty, tm - 1, td, 23, 59, 59, 999).getTime();
 
-      return (
-        ts >= new Date(range.date_from).getTime() &&
-        ts <= new Date(range.date_to).getTime()
-      );
+      return ts >= from_ts && ts <= to_ts;
     }
     case "filename":
     case "attachment": {
@@ -1001,7 +1003,7 @@ export function use_advanced_search() {
     result_folders: new Map(),
   };
 
-  const quick_filters: QuickFilter[] = [];
+  const quick_filters: QuickFilter[] = get_quick_filters();
 
   const search = useCallback(
     (query: string) => {
