@@ -132,11 +132,7 @@ export const RegisterStepPlanSelection = ({
 
   const handle_select_tier = useCallback(
     (tier: PlanTier) => {
-      const api_plan = plans.find(
-        (p) =>
-          p.code === tier.id &&
-          (p.billing_period === billing_interval || !p.billing_period),
-      );
+      const api_plan = plans.find((p) => p.code === tier.id);
 
       if (!api_plan) {
         return;
@@ -291,11 +287,7 @@ export const RegisterStepPlanSelection = ({
               currency,
             );
             const saves = billing_period === "yearly" ? tier.savings_cents : 0;
-            const has_api_plan = plans.some(
-              (p) =>
-                p.code === tier.id &&
-                (p.billing_period === billing_interval || !p.billing_period),
-            );
+            const has_api_plan = plans.some((p) => p.code === tier.id);
 
             return (
               <div
