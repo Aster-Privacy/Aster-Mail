@@ -1,0 +1,64 @@
+[server]
+hostname = "mx.astermail.org"
+max-connections = 1024
+
+[server.tls]
+certificate = "default"
+
+[certificate."default"]
+cert = "%{file:/opt/stalwart/certs/tls.crt}%"
+private-key = "%{file:/opt/stalwart/certs/tls.key}%"
+
+[server.listener.smtp]
+bind = ["0.0.0.0:25"]
+protocol = "smtp"
+tls.implicit = false
+
+[server.listener.submission]
+bind = ["0.0.0.0:587"]
+protocol = "smtp"
+tls.implicit = false
+
+[server.listener.submissions]
+bind = ["0.0.0.0:465"]
+protocol = "smtp"
+tls.implicit = true
+
+[server.listener.imaps]
+bind = ["0.0.0.0:993"]
+protocol = "imap"
+tls.implicit = true
+
+[server.listener.http]
+bind = ["0.0.0.0:8080"]
+protocol = "http"
+
+[store."rocksdb"]
+type = "rocksdb"
+path = "/opt/stalwart/data/db"
+
+[storage]
+data = "rocksdb"
+blob = "rocksdb"
+fts = "rocksdb"
+lookup = "rocksdb"
+
+[directory."internal"]
+type = "internal"
+store = "rocksdb"
+
+[authentication]
+fallback-admin.user = "admin"
+fallback-admin.secret = "%{env:STALWART_ADMIN_PASSWORD}%"
+
+[session.rcpt]
+max-recipients = 50
+
+[session.data]
+max-message-size = 26214400
+
+[queue]
+path = "/opt/stalwart/data/queue"
+
+[queue.outbound]
+hostname = "mx.astermail.org"

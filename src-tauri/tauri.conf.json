@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Aster Mail",
+  "version": "1.1.1",
+  "identifier": "com.astermail.mail",
+  "build": {
+    "beforeDevCommand": "npx vite --host 127.0.0.1 --port 1420",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Aster Mail",
+        "width": 1280,
+        "height": 860,
+        "resizable": true,
+        "decorations": true,
+        "minWidth": 900,
+        "minHeight": 600,
+        "center": true,
+        "theme": "Dark",
+        "backgroundColor": "#0a0a0a"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: blob: https:; connect-src 'self' ipc: http://ipc.localhost https://*.astermail.org wss://*.astermail.org https://*.astermail.com wss://*.astermail.com https://challenges.cloudflare.com https://api.stripe.com https://m.stripe.network https://r.stripe.com http://*.onion; frame-src 'self' blob: https://challenges.cloudflare.com https://js.stripe.com; media-src 'self' blob: data: https:; object-src 'none'",
+      "dangerousDisableAssetCspModification": true
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico",
+      "icons/icon.icns"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "10.15",
+      "signingIdentity": null
+    },
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    }
+  }
+}

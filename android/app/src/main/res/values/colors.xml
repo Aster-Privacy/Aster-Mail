@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#6366f1</color>
+    <color name="colorPrimaryDark">#4f46e5</color>
+    <color name="colorAccent">#6366f1</color>
+    <color name="splashBackground">#121212</color>
+    <color name="statusBarColor">#121212</color>
+    <color name="navigationBarColor">#121212</color>
+    <color name="widget_background">#F5F5F5</color>
+    <color name="widget_text_primary">#1a1a1a</color>
+    <color name="widget_text_secondary">#6b7280</color>
+    <color name="widget_divider">#d4d4d8</color>
+    <color name="widget_accent">#6366f1</color>
+</resources>

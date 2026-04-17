@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#ffffff" />
+    <script>
+      (function(){
+        try {
+          if (localStorage.getItem('astermail_theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0a0a0a');
+          }
+        } catch(e) {}
+      })();
+    </script>
+    <script>
+      (function(){
+        if (!window.__TAURI_INTERNALS__) return;
+        var ua = navigator.userAgent || '';
+        if (!/Macintosh|Mac OS/i.test(ua)) return;
+        var s = crypto.subtle;
+        var origImport = s.importKey.bind(s);
+        var origGenerate = s.generateKey.bind(s);
+        var origDeriveBits = s.deriveBits.bind(s);
+        var origEncrypt = s.encrypt.bind(s);
+        var origDecrypt = s.decrypt.bind(s);
+        var origSign = s.sign.bind(s);
+        var origDigest = s.digest.bind(s);
+        var keyStore = new WeakMap();
+        function algName(a) { return (typeof a === 'string' ? a : (a && a.name) || '').toUpperCase(); }
+        function isKdf(a) { var n = algName(a); return n === 'PBKDF2' || n === 'HKDF'; }
+        function isSymmetric(a) { var n = algName(a); return n === 'AES-GCM' || n === 'AES-CBC' || n === 'AES-CTR' || n === 'AES-KW' || n === 'HMAC' || isKdf(a); }
+        function invoke(cmd, args) { return window.__TAURI_INTERNALS__.invoke(cmd, args); }
+        function toArr(d) {
+          if (d instanceof ArrayBuffer) return Array.from(new Uint8Array(d));
+          if (ArrayBuffer.isView(d)) return Array.from(new Uint8Array(d.buffer, d.byteOffset, d.byteLength));
+          if (Array.isArray(d)) return d;
+          if (typeof d === 'string') return Array.from(new TextEncoder().encode(d));
+          return [];
+        }
+        function hashName(h) { return typeof h === 'string' ? h : (h && h.name) || 'SHA-256'; }
+        function fakeKey(alg, ext, usages, raw) {
+          var algObj = typeof alg === 'string' ? { name: alg } : alg;
+          var k = { type: 'secret', algorithm: algObj, extractable: ext, usages: usages };
+          keyStore.set(k, raw);
+          return k;
+        }
+        function getRaw(key) { return key ? keyStore.get(key) : null; }
+        s.importKey = function(format, keyData, algorithm, extractable, keyUsages) {
+          if (format === 'raw' && isSymmetric(algorithm)) {
+            return Promise.resolve(fakeKey(algorithm, isKdf(algorithm) ? false : true, keyUsages, toArr(keyData)));
+          }
+          return origImport(format, keyData, algorithm, extractable, keyUsages);
+        };
+        s.generateKey = function(algorithm, extractable, keyUsages) {
+          if (isSymmetric(algorithm)) {
+            var len = algorithm.length || 256;
+            var raw = new Uint8Array(len / 8);
+            crypto.getRandomValues(raw);
+            return Promise.resolve(fakeKey(algorithm, true, keyUsages, toArr(raw)));
+          }
+          return origGenerate(algorithm, extractable, keyUsages);
+        };
+        var origExport = s.exportKey.bind(s);
+        s.exportKey = function(format, key) {
+          var raw = getRaw(key);
+          if (raw && format === 'raw') {
+            return Promise.resolve(new Uint8Array(raw).buffer);
+          }
+          return origExport(format, key);
+        };
+        s.deriveBits = function(algorithm, baseKey, length) {
+          var raw = getRaw(baseKey);
+          if (raw) {
+            var n = algName(algorithm);
+            if (n === 'PBKDF2') {
+              return invoke('crypto_pbkdf2', { password: raw, salt: toArr(algorithm.salt), iterations: algorithm.iterations, hash: hashName(algorithm.hash), bits: length }).then(function(r) { return new Uint8Array(r).buffer; });
+            }
+            if (n === 'HKDF') {
+              return invoke('crypto_hkdf', { keyMaterial: raw, salt: toArr(algorithm.salt), info: toArr(algorithm.info), hash: hashName(algorithm.hash), bits: length }).then(function(r) { return new Uint8Array(r).buffer; });
+            }
+          }
+          return origDeriveBits(algorithm, baseKey, length);
+        };
+        s.deriveKey = function(algorithm, baseKey, derivedKeyType, extractable, keyUsages) {
+          var raw = getRaw(baseKey);
+          if (raw) {
+            var bits = derivedKeyType.length || 256;
+            return s.deriveBits(algorithm, baseKey, bits).then(function(derived) {
+              return s.importKey('raw', derived, derivedKeyType, isKdf(derivedKeyType) ? false : true, keyUsages);
+            });
+          }
+          return Promise.reject(new Error('deriveKey: unknown base key'));
+        };
+        s.encrypt = function(algorithm, key, data) {
+          var raw = getRaw(key);
+          if (raw && algName(algorithm) === 'AES-GCM') {
+            return invoke('crypto_aes_gcm_encrypt', { key: raw, iv: toArr(algorithm.iv), data: toArr(data) }).then(function(r) { return new Uint8Array(r).buffer; });
+          }
+          return origEncrypt(algorithm, key, data);
+        };
+        s.decrypt = function(algorithm, key, data) {
+          var raw = getRaw(key);
+          if (raw && algName(algorithm) === 'AES-GCM') {
+            return invoke('crypto_aes_gcm_decrypt', { key: raw, iv: toArr(algorithm.iv), data: toArr(data) }).then(function(r) { return new Uint8Array(r).buffer; });
+          }
+          return origDecrypt(algorithm, key, data);
+        };
+        s.sign = function(algorithm, key, data) {
+          var raw = getRaw(key);
+          if (raw) {
+            return invoke('crypto_hmac_sign', { key: raw, data: toArr(data) }).then(function(r) { return new Uint8Array(r).buffer; });
+          }
+          return origSign(algorithm, key, data);
+        };
+        s.digest = function(algorithm, data) { return origDigest(algorithm, data); };
+      })();
+    </script>
+    <style>
+      html, body { background-color: #ffffff; }
+      html.dark, html.dark body { background-color: #0a0a0a; }
+      @font-face {
+        font-family: 'Google Sans Flex';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/GoogleSansFlex-400.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Google Sans Flex';
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url('/fonts/GoogleSansFlex-500.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Google Sans Flex';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('/fonts/GoogleSansFlex-600.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Google Sans Flex';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('/fonts/GoogleSansFlex-700.woff2') format('woff2');
+      }
+      html, body { font-family: 'Google Sans Flex', system-ui, sans-serif; }
+      #initial-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        z-index: 10000;
+      }
+      html.dark #initial-loader {
+        background-color: #0a0a0a;
+      }
+      #initial-loader-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      #initial-loader-content img {
+        height: 1.75rem;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+      #initial-loader-spinner {
+        width: 24px !important;
+        height: 24px !important;
+        min-width: 24px !important;
+        min-height: 24px !important;
+        border: 2.5px solid rgba(0, 0, 0, 0.08) !important;
+        border-top-color: rgba(0, 0, 0, 0.5) !important;
+        border-radius: 50% !important;
+        animation: initial-loader-spin 0.7s linear infinite !important;
+        flex-shrink: 0 !important;
+        box-sizing: border-box !important;
+      }
+      html.dark #initial-loader-spinner {
+        border-color: rgba(255, 255, 255, 0.15) !important;
+        border-top-color: rgba(255, 255, 255, 0.7) !important;
+      }
+      @keyframes initial-loader-spin {
+        to { transform: rotate(360deg); }
+      }
+      @font-face {
+        font-family: 'OpenDyslexic';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/OpenDyslexic-Regular.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'OpenDyslexic';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('/fonts/OpenDyslexic-Bold.woff2') format('woff2');
+      }
+    </style>
+    <link rel="prefetch" as="image" href="/mail_logo.png" />
+    <link rel="preload" as="image" href="/text_logo.png" />
+    <link rel="prefetch" as="image" href="/profile.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Aster Mail</title>
+    <meta
+      key="viewport"
+      content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+      name="viewport"
+    />
+  </head>
+  <body>
+    <div id="initial-loader">
+      <div id="initial-loader-content">
+        <img alt="Aster" src="/text_logo.png" />
+        <div id="initial-loader-spinner"></div>
+      </div>
+    </div>
+    <div id="root"></div>
+    <script src="/font-loader.js"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

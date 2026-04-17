@@ -1,0 +1,383 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the AGPLv3 as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// AGPLv3 for more details.
+//
+// You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import { useMemo, useState, useCallback, memo, lazy, Suspense } from "react";
+
+import {
+  is_icon_failed,
+  mark_icon_failed,
+  mark_icon_ok,
+} from "@/lib/icon_cache";
+import { get_favicon_url } from "@/lib/favicon_url";
+import { get_gradient_background } from "@/constants/profile";
+import { get_root_domain } from "@/lib/utils";
+import { use_auth } from "@/contexts/auth_context";
+
+const ProfileDropdown = lazy(() =>
+  import("@/components/profile/profile_dropdown").then((mod) => ({
+    default: mod.ProfileDropdown,
+  })),
+);
+
+interface ProfileAvatarProps {
+  name: string;
+  email?: string;
+  image_url?: string;
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  className?: string;
+  use_domain_logo?: boolean;
+  clickable?: boolean;
+  on_compose?: (email: string) => void;
+  profile_color?: string;
+}
+
+const SIZE_MAP: Record<string, number> = {
+  xs: 24,
+  sm: 32,
+  md: 40,
+  lg: 48,
+  xl: 96,
+};
+
+const ASTER_SYSTEM_EMAILS = new Set([
+  "noreply@astermail.org",
+  "no-reply@astermail.org",
+  "noreply@aster.cx",
+  "no-reply@aster.cx",
+  "system@astermail.org",
+  "system@aster.cx",
+]);
+
+const SYSTEM_LOCAL_PARTS = new Set(["mailer-daemon", "postmaster"]);
+
+const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
+
+function extract_domain(email: string): string {
+  const match = email.match(/@([^@]+)$/);
+
+  if (!match) return "";
+
+  return get_root_domain(match[1]);
+}
+
+function get_initials(name: string, email?: string): string {
+  const source = name || email || "?";
+  const trimmed = source.trim();
+
+  if (!trimmed) return "?";
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+
+  if (parts.length >= 2) {
+    return (
+      parts[0].charAt(0) + parts[parts.length - 1].charAt(0)
+    ).toUpperCase();
+  }
+
+  return trimmed.charAt(0).toUpperCase();
+}
+
+export const ProfileAvatar = memo(function ProfileAvatar({
+  name,
+  email,
+  image_url,
+  size = "md",
+  className = "",
+  use_domain_logo = false,
+  clickable = false,
+  on_compose,
+  profile_color,
+}: ProfileAvatarProps) {
+  const { user } = use_auth();
+  const is_current_user =
+    !!email &&
+    !!user?.email &&
+    email.trim().toLowerCase() === user.email.trim().toLowerCase();
+  const resolved_image_url =
+    image_url || (is_current_user ? user?.profile_picture : undefined);
+
+  const [image_error, set_image_error] = useState(false);
+  const [ddg_logo_error, set_ddg_logo_error] = useState(false);
+  const [img_loaded, set_img_loaded] = useState(false);
+  const [prev_email, set_prev_email] = useState(email);
+  const [prev_image_url, set_prev_image_url] = useState(resolved_image_url);
+  const pixel_size = SIZE_MAP[size];
+  const domain = useMemo(() => (email ? extract_domain(email) : ""), [email]);
+  const normalized_email = (email || "").trim().toLowerCase();
+  const is_aster_mail =
+    ASTER_SYSTEM_EMAILS.has(normalized_email) ||
+    SYSTEM_LOCAL_PARTS.has(normalized_email.split("@")[0]);
+
+  if (email !== prev_email || resolved_image_url !== prev_image_url) {
+    set_prev_email(email);
+    set_prev_image_url(resolved_image_url);
+    set_image_error(false);
+    set_img_loaded(false);
+    set_ddg_logo_error(domain ? is_icon_failed(domain) : false);
+  }
+
+  const is_aster_domain = ASTER_DOMAINS.has(domain);
+
+  const ddg_logo_url = useMemo(() => {
+    if (
+      !use_domain_logo ||
+      !domain ||
+      is_aster_mail ||
+      is_aster_domain ||
+      ddg_logo_error ||
+      is_icon_failed(domain)
+    )
+      return null;
+
+    return get_favicon_url(domain);
+  }, [use_domain_logo, domain, is_aster_mail, is_aster_domain, ddg_logo_error]);
+
+  const handle_ddg_logo_error = useCallback(() => {
+    if (domain) mark_icon_failed(domain);
+    set_ddg_logo_error(true);
+  }, [domain]);
+
+  const handle_image_error = useCallback(() => {
+    set_image_error(true);
+  }, []);
+
+  const actual_src = useMemo(() => {
+    if (resolved_image_url && !image_error) return resolved_image_url;
+    if (is_aster_mail) return "/mail_logo.webp";
+    if (ddg_logo_url && !ddg_logo_error) return ddg_logo_url;
+
+    return null;
+  }, [
+    is_aster_mail,
+    resolved_image_url,
+    ddg_logo_url,
+    image_error,
+    ddg_logo_error,
+  ]);
+
+  const error_handler = useMemo(() => {
+    if (resolved_image_url && !image_error) return handle_image_error;
+    if (is_aster_mail) return undefined;
+    if (ddg_logo_url && !ddg_logo_error) return handle_ddg_logo_error;
+
+    return undefined;
+  }, [
+    is_aster_mail,
+    resolved_image_url,
+    ddg_logo_url,
+    image_error,
+    ddg_logo_error,
+    handle_image_error,
+    handle_ddg_logo_error,
+  ]);
+
+  const is_favicon_source =
+    (actual_src?.includes("/api/images/v1/favicon/") ||
+      actual_src?.includes("/proxy?url=")) ??
+    false;
+
+  const resolved_color =
+    profile_color ||
+    (is_current_user && user?.profile_color ? user.profile_color : undefined) ||
+    (is_aster_domain &&
+    !is_aster_mail &&
+    !resolved_image_url &&
+    !is_current_user
+      ? "#6366f1"
+      : undefined);
+  const show_gradient =
+    !!resolved_color && (!resolved_image_url || image_error);
+
+  const handle_load = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      const img = e.currentTarget;
+
+      if (is_favicon_source) {
+        if (img.naturalWidth <= 1 || img.naturalHeight <= 1) {
+          if (domain) mark_icon_failed(domain);
+          set_ddg_logo_error(true);
+
+          return;
+        }
+        if (domain) mark_icon_ok(domain);
+      }
+      set_img_loaded(true);
+    },
+    [is_favicon_source, domain],
+  );
+
+  if (show_gradient) {
+    const logo_size = Math.round(pixel_size * 0.65);
+    const gradient_element = (
+      <div
+        className={`rounded-full flex-shrink-0 flex items-center justify-center ${className}`}
+        style={{
+          width: pixel_size,
+          height: pixel_size,
+          background: get_gradient_background(resolved_color!),
+        }}
+      >
+        <img
+          alt=""
+          draggable={false}
+          src="/aster.webp"
+          style={{
+            width: logo_size,
+            height: logo_size,
+            filter: "brightness(0) invert(1)",
+            objectFit: "contain" as const,
+            userSelect: "none" as const,
+            pointerEvents: "none" as const,
+          }}
+        />
+      </div>
+    );
+
+    if (clickable && email) {
+      return (
+        <Suspense fallback={gradient_element}>
+          <ProfileDropdown email={email} name={name} on_compose={on_compose}>
+            <button
+              className="rounded-full flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+              type="button"
+            >
+              {gradient_element}
+            </button>
+          </ProfileDropdown>
+        </Suspense>
+      );
+    }
+
+    return gradient_element;
+  }
+
+  if (!actual_src) {
+    const initials =
+      use_domain_logo && domain
+        ? domain.charAt(0).toUpperCase()
+        : get_initials(name, email);
+    const font_size = Math.round(
+      pixel_size * (initials.length > 1 ? 0.36 : 0.44),
+    );
+
+    const letter_element = (
+      <div
+        className={`rounded-full flex-shrink-0 flex items-center justify-center ${className}`}
+        style={{
+          width: pixel_size,
+          height: pixel_size,
+          minWidth: pixel_size,
+          minHeight: pixel_size,
+          backgroundColor: "var(--avatar-bg)",
+          userSelect: "none",
+        }}
+      >
+        <span
+          style={{
+            fontSize: font_size,
+            fontWeight: 600,
+            color: "var(--avatar-text)",
+            lineHeight: 1,
+            userSelect: "none",
+            letterSpacing: initials.length > 1 ? "-0.02em" : undefined,
+          }}
+        >
+          {initials}
+        </span>
+      </div>
+    );
+
+    if (clickable && email) {
+      return (
+        <Suspense fallback={letter_element}>
+          <ProfileDropdown email={email} name={name} on_compose={on_compose}>
+            <button
+              className="rounded-full flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+              type="button"
+            >
+              {letter_element}
+            </button>
+          </ProfileDropdown>
+        </Suspense>
+      );
+    }
+
+    return letter_element;
+  }
+
+  const img_element = (
+    <div
+      className={`rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden relative ${className}`}
+      style={{
+        width: pixel_size,
+        height: pixel_size,
+        minWidth: pixel_size,
+        minHeight: pixel_size,
+        backgroundColor: "var(--avatar-bg)",
+        userSelect: "none",
+      }}
+    >
+      {!img_loaded && (
+        <div
+          className="absolute inset-0 rounded-full animate-pulse"
+          style={{ backgroundColor: "var(--border-primary)" }}
+        />
+      )}
+      <img
+        alt={name}
+        className={`w-full h-full object-cover ${is_favicon_source ? "rounded-full" : ""}`}
+        crossOrigin={is_favicon_source ? undefined : "anonymous"}
+        decoding="async"
+        draggable={false}
+        referrerPolicy="no-referrer"
+        src={actual_src}
+        style={
+          img_loaded
+            ? is_favicon_source
+              ? { backgroundColor: "#ffffff" }
+              : undefined
+            : {
+                position: "absolute",
+                opacity: 0,
+                ...(is_favicon_source && { backgroundColor: "#ffffff" }),
+              }
+        }
+        onError={error_handler}
+        onLoad={handle_load}
+      />
+    </div>
+  );
+
+  if (clickable && email) {
+    return (
+      <Suspense fallback={img_element}>
+        <ProfileDropdown email={email} name={name} on_compose={on_compose}>
+          <button
+            className="rounded-full flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+            type="button"
+          >
+            {img_element}
+          </button>
+        </ProfileDropdown>
+      </Suspense>
+    );
+  }
+
+  return img_element;
+});

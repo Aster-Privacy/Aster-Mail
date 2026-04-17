@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:padding="16dp">
+
+    <ImageView
+        android:id="@+id/unread_icon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:src="@drawable/widget_mail_icon"
+        android:contentDescription="@string/widget_unread_count_description" />
+
+    <TextView
+        android:id="@+id/unread_count_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="0"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:textColor="@color/widget_text_primary"
+        android:fontFamily="sans-serif-medium" />
+
+    <TextView
+        android:id="@+id/unread_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/unread_count_text"
+        android:layout_centerHorizontal="true"
+        android:text="@string/widget_unread_label"
+        android:textSize="13sp"
+        android:textColor="@color/widget_text_secondary" />
+
+</RelativeLayout>

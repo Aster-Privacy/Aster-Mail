@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Aster Mail</string>
+    <string name="title_activity_main">Aster Mail</string>
+    <string name="package_name">com.astermail.app</string>
+    <string name="custom_url_scheme">com.astermail.app</string>
+    <string name="widget_unread_count_description">Shows your unread email count</string>
+    <string name="widget_mail_stats_description">Shows unread, starred, and draft counts</string>
+    <string name="widget_quick_compose_description">Quickly compose a new email</string>
+    <string name="widget_unread_label">Unread</string>
+    <string name="widget_compose_label">New Email</string>
+    <string name="widget_stats_unread">Unread</string>
+    <string name="widget_stats_starred">Starred</string>
+    <string name="widget_stats_drafts">Drafts</string>
+    <string name="widget_unread_count_name">Unread Count</string>
+    <string name="widget_mail_stats_name">Mail Stats</string>
+    <string name="widget_quick_compose_name">Quick Compose</string>
+</resources>

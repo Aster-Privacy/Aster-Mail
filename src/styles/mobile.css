@@ -1,0 +1,44 @@
+/*
+ * Aster Communications Inc.
+ *
+ * Copyright (c) 2026 Aster Communications Inc.
+ *
+ * Mobile-specific color tokens.
+ * This file controls ALL colors for mobile (iOS / Android) views,
+ * independently from the desktop web client in globals.css.
+ *
+ * Usage: reference these variables in mobile pages/components,
+ * e.g. bg-[var(--mobile-bg-card)]
+ */
+
+:root {
+  --mobile-bg-primary: #ffffff;
+  --mobile-bg-card: #f3f4f6;
+  --mobile-bg-card-hover: #e5e7eb;
+  --mobile-bg-elevated: #ffffff;
+  --mobile-sidebar-bg: #f5f5f5;
+  --mobile-border: #e8e8e8;
+  --mobile-border-divider: #e5e7eb;
+  --mobile-text-primary: #111827;
+  --mobile-text-secondary: #374151;
+  --mobile-text-muted: #9ca3af;
+  --mobile-accent: #3b82f6;
+  --mobile-danger: #ef4444;
+  --mobile-indicator-bg: #ffffff;
+}
+
+.dark {
+  --mobile-bg-primary: #000000;
+  --mobile-bg-card: #161618;
+  --mobile-bg-card-hover: #232325;
+  --mobile-bg-elevated: #1c1c1e;
+  --mobile-sidebar-bg: #0c0c0c;
+  --mobile-border: #2c2c2e;
+  --mobile-border-divider: #2c2c2e;
+  --mobile-text-primary: #ffffff;
+  --mobile-text-secondary: #e5e5e5;
+  --mobile-text-muted: #737373;
+  --mobile-accent: #3b82f6;
+  --mobile-danger: #ef4444;
+  --mobile-indicator-bg: #121212;
+}

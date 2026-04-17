@@ -1,0 +1,88 @@
+[resolver]
+type = "system"
+preserve-intermediates = true
+cache-size = 1024
+timeout = "5s"
+attempts = 2
+
+[auth.dkim]
+verify = "relaxed"
+sign = ["rsa"]
+
+[auth.dkim.sign.rsa]
+private-key = "/opt/stalwart/etc/dkim/rsa.key"
+domain = "astermail.org"
+selector = "rsa"
+headers = ["From", "To", "Subject", "Date", "Message-ID", "Reply-To", "Content-Type", "MIME-Version", "List-Unsubscribe", "List-Unsubscribe-Post"]
+algorithm = "rsa-sha256"
+canonicalization = "relaxed/relaxed"
+expire = "7d"
+
+[auth.spf]
+verify = "relaxed"
+ehlo = "relaxed"
+mail-from = "relaxed"
+
+[auth.arc]
+verify = "relaxed"
+seal = ["rsa"]
+
+[auth.arc.seal.rsa]
+private-key = "/opt/stalwart/etc/dkim/rsa.key"
+domain = "astermail.org"
+selector = "rsa"
+headers = ["From", "To", "Subject", "Date", "Message-ID", "Reply-To", "Content-Type", "MIME-Version", "List-Unsubscribe", "List-Unsubscribe-Post", "DKIM-Signature"]
+algorithm = "rsa-sha256"
+
+[auth.dmarc]
+verify = "relaxed"
+
+[auth.iprev]
+verify = "relaxed"
+
+[auth.results]
+header = "Authentication-Results"
+
+[spam]
+enable = false
+
+[spam.header]
+is-spam = "X-Spam-Status"
+result = "X-Spam-Result"
+score = "X-Spam-Score"
+
+[anti-virus]
+enable = false
+
+[sieve]
+enable = true
+max-scripts = 256
+max-script-size = 1048576
+max-redirects = 3
+max-nested-includes = 3
+
+[sieve.extensions]
+notify = true
+vacation = true
+fcc = true
+variables = true
+
+[security.fail2ban]
+enable = true
+ban-threshold = 10
+ban-duration = "1h"
+rate-limit = "1/s"
+
+[security.ratelimit]
+enable = true
+anonymous = "50/h"
+authenticated = "500/h"
+account = "5000/d"
+
+[security.webhook]
+enable = true
+url = "http://backend:3000/api/external/webhook/stalwart"
+events = ["delivery.delivered", "delivery.failed", "delivery.message-rejected", "delivery.dsn-perm-fail", "delivery.dsn-temp-fail", "queue.queue-message-authenticated"]
+format = "json"
+timeout = "30s"
+retry = 3

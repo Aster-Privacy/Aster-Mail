@@ -1,0 +1,117 @@
+[server]
+hostname = "mx.astermail.org"
+max-connections = 1024
+
+[server.tls]
+certificate = "file:///opt/stalwart/etc/certs/fullchain.pem"
+private-key = "file:///opt/stalwart/etc/certs/privkey.pem"
+
+[server.listener.smtp]
+bind = ["0.0.0.0:25"]
+protocol = "smtp"
+
+[server.listener.submission]
+bind = ["0.0.0.0:587"]
+protocol = "smtp"
+tls.starttls = true
+
+[server.listener.submissions]
+bind = ["0.0.0.0:465"]
+protocol = "smtp"
+tls.implicit = true
+
+[server.listener.imaps]
+bind = ["0.0.0.0:993"]
+protocol = "imap"
+tls.implicit = true
+
+[server.listener.http]
+bind = ["0.0.0.0:8080"]
+protocol = "http"
+
+[storage]
+data = "rocksdb"
+fts = "rocksdb"
+blob = "rocksdb"
+lookup = "rocksdb"
+directory = "internal"
+
+[store.rocksdb]
+type = "rocksdb"
+path = "/opt/stalwart/data"
+compression = "lz4"
+
+[directory.internal]
+type = "internal"
+store = "rocksdb"
+subaddressing = true
+
+[tracer.stdout]
+type = "stdout"
+level = "info"
+enable = true
+
+[authentication.fallback-admin]
+user = "admin"
+secret = "%{env:STALWART_ADMIN_PASSWORD}%"
+
+[queue.schedule]
+retry = "[30s, 1m, 5m, 15m, 30m, 1h, 2h]"
+notify = "[1d, 3d]"
+expire = "5d"
+
+[queue.outbound]
+hostname = "'mx.astermail.org'"
+ip-strategy = "ipv4_then_ipv6"
+next-hop = false
+
+[queue.outbound.timeouts]
+ehlo = "3m"
+mail-from = "3m"
+rcpt-to = "3m"
+data = "10m"
+mta-sts = "5m"
+
+[queue.outbound.limits]
+mx = 7
+multihomed = 3
+
+[queue.outbound.tls]
+starttls = "optional"
+allow-invalid-certs = false
+
+[signature."rsa"]
+private-key = "file:///opt/stalwart/etc/dkim/rsa.key"
+domain = "astermail.org"
+selector = "rsa"
+headers = "['From', 'To', 'Date', 'Subject', 'Message-ID', 'Reply-To', 'Content-Type', 'MIME-Version', 'List-Unsubscribe', 'List-Unsubscribe-Post']"
+algorithm = "rsa-sha256"
+canonicalization = "relaxed/relaxed"
+expire = "10d"
+set-body-length = false
+report = true
+
+[signature."ed"]
+private-key = "file:///opt/stalwart/etc/dkim/ed.key"
+domain = "astermail.org"
+selector = "ed"
+headers = "['From', 'To', 'Date', 'Subject', 'Message-ID', 'Reply-To', 'Content-Type', 'MIME-Version', 'List-Unsubscribe', 'List-Unsubscribe-Post']"
+algorithm = "ed25519-sha256"
+canonicalization = "relaxed/relaxed"
+expire = "10d"
+set-body-length = false
+report = true
+
+[auth.dkim]
+sign = "['rsa', 'ed']"
+verify = "relaxed"
+
+[auth.spf]
+verify.ehlo = "relaxed"
+verify.mail-from = "relaxed"
+
+[auth.dmarc]
+verify = "relaxed"
+
+[auth.iprev]
+verify = "relaxed"

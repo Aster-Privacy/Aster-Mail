@@ -1,0 +1,58 @@
+[package]
+name = "aster-mail-desktop"
+version = "1.0.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+tauri-plugin-shell = "2"
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+arti-client = { version = "0.19", features = ["tokio"] }
+arti-hyper = "0.19"
+tor-rtcompat = { version = "0.19", features = ["tokio"] }
+hyper = { version = "0.14", features = ["client", "http1", "http2"] }
+tls-api = "0.9"
+tls-api-native-tls = "0.9"
+dirs = "5"
+libsqlite3-sys = { version = "0.28", features = ["bundled"] }
+reqwest = { version = "0.12", default-features = false, features = ["socks", "rustls-tls", "charset", "http2", "macos-system-configuration"] }
+tracing = "0.1"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+ml-kem = "0.2"
+chacha20poly1305 = "0.10"
+aes-gcm = "0.10"
+hkdf = "0.12"
+hmac = "0.12"
+pbkdf2 = "0.12"
+sha2 = "0.10"
+zeroize = "1"
+base64 = "0.22"
+rand_core = "0.6"
+whoami = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+
+[target.'cfg(windows)'.dependencies]
+webview2-com = "0.38"
+windows-core = "0.61"
+keyring = "3"
+
+[patch.crates-io]
+glib = { path = "patches/glib-0.18.5" }
+atty = { path = "patches/atty-0.2.14" }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

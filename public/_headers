@@ -1,0 +1,8 @@
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-rLubYWUmFV1jNJEoQe3BFXRGu6l6Z67ACK9VJv2+Jcs=' 'sha256-z/v6TNON5XgJVq0Apd8q29zpDtwhJy2D61fdF956rtM=' 'sha256-V3sRasHc3L8+eC8zPzA8gxhFC9tpyE4YTyOtv+9D9dk=' https://challenges.cloudflare.com https://js.stripe.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://icons.duckduckgo.com; font-src 'self' data:; connect-src 'self' wss://app.astermail.org wss://api.astermail.org https://app.astermail.org https://api.astermail.org https://portal.astermail.org https://challenges.cloudflare.com https://api.stripe.com https://m.stripe.network https://api.pwnedpasswords.com; frame-src https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com https://*.hcaptcha.com https://hcaptcha.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-XSS-Protection: 0

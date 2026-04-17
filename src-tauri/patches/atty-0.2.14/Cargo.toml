@@ -1,0 +1,4 @@
+[package]
+name = "atty"
+version = "0.2.14"
+edition = "2021"
