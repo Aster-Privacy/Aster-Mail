@@ -133,7 +133,7 @@ function get_features(
     },
     {
       name: t("settings.feature_custom_domains"),
-      free: "3",
+      free: "1",
       star: "5",
       nova: "30",
       supernova: unlimited,

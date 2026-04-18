@@ -76,7 +76,7 @@ export function get_plan_comparison_rows(
     },
     {
       label: cap(t("settings.plan_f_domains", { value: "" })),
-      free: "3",
+      free: "1",
       star: "5",
       nova: "30",
       supernova: t("settings.unlimited"),

@@ -31,7 +31,7 @@ interface ModalProps {
   is_open: boolean;
   on_close: () => void;
   children: React.ReactNode;
-  size?: "sm" | "md" | "lg" | "xl" | "full";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
   show_close_button?: boolean;
   close_on_overlay?: boolean;
   z_index?: number;
@@ -57,6 +57,7 @@ const SIZE_CLASSES = {
   md: "max-w-[440px]",
   lg: "max-w-[520px]",
   xl: "max-w-[640px]",
+  "2xl": "max-w-[860px]",
   full: "max-w-[800px]",
 };
 
@@ -131,11 +132,11 @@ export function Modal({
           >
             {show_close_button && (
               <button
-                className="aster_modal_close absolute right-3 top-3 z-10 p-1.5 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                className="aster_modal_close absolute right-5 top-4 z-10 p-1.5 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                 type="button"
                 onClick={on_close}
               >
-                <XMarkIcon className="w-4 h-4" />
+                <XMarkIcon className="w-6 h-6" />
               </button>
             )}
             {children}

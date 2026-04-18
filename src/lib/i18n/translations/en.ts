@@ -2366,6 +2366,8 @@ export const en: Translations = {
     no_domains_yet: "No custom domains yet",
     add_first_domain: "Add your first custom domain to get started",
     continue_setup: "Continue Setup",
+    domain_pending_hint:
+      "Click Continue Setup to configure your DNS records and verify your domain.",
     verified_count: "{{count}}/5 verified",
     used_count: "{{current}} / {{max}} used",
     dns_records_for_domain: "DNS records for this domain:",
@@ -2822,6 +2824,61 @@ export const en: Translations = {
     scanning: "Scanning...",
     all_clear: "All clear",
     no_subscriptions_found: "No subscriptions found",
+    instructions_for_provider: "Instructions for {{ provider }}",
+    record_not_detected: "Record not detected",
+    error_tip_txt:
+      "Make sure you added the TXT record with the exact value shown above. It may take a few minutes to propagate.",
+    error_tip_mx:
+      "Make sure your MX record priority is set to 10 and points to the correct mail server.",
+    error_tip_spf:
+      "If you already have an SPF record, merge it with the one shown above instead of adding a second one.",
+    error_tip_dkim:
+      "DKIM records can be long - make sure the full value was pasted without being truncated.",
+    error_tip_dmarc:
+      "The DMARC record should be added at _dmarc.yourdomain.com, not the root domain.",
+    verify_all_records: "Verify All Records",
+    need_help_link: "Need help?",
+    catch_all_enabled_toast: "Catch-all enabled",
+    catch_all_disabled: "Catch-all disabled",
+    rotate_dkim_key: "Rotate DKIM Key",
+    rotate_dkim_description:
+      "Generate a new DKIM signing key. You will need to update the DNS record.",
+    rotate_label: "Rotate",
+    dkim_rotated: "DKIM key rotated successfully",
+    delete_domain_warning:
+      "All email addresses on this domain will stop receiving mail. This action cannot be undone.",
+    delete_domain_cooldown:
+      "After deletion, this domain cannot be re-added for 30 days.",
+    provider_cf_login: "Log in to the Cloudflare dashboard",
+    provider_cf_select_domain:
+      "Select your domain, then go to DNS > Records",
+    provider_cf_add_record:
+      "Click Add Record, select TXT, and paste the values below",
+    provider_cf_save: "Click Save",
+    provider_cf_add_mx:
+      "Click Add Record, select MX, set priority and paste the values below",
+    provider_cf_add_txt_record:
+      "Click Add Record, select TXT, and paste the values below",
+    provider_gd_login: "Log in to your GoDaddy account",
+    provider_gd_manage_dns:
+      "Go to My Products > your domain > DNS > Manage",
+    provider_gd_add_record:
+      "Click Add, select TXT, and enter the values below",
+    provider_gd_save: "Click Save",
+    provider_gd_add_mx:
+      "Click Add, select MX, set priority and enter the values below",
+    provider_gd_add_txt:
+      "Click Add, select TXT, and enter the values below",
+    provider_nc_login: "Log in to your Namecheap account",
+    provider_nc_advanced_dns:
+      "Go to Domain List > your domain > Advanced DNS",
+    provider_nc_add_record:
+      "Click Add New Record, select TXT, and enter the values below",
+    provider_nc_save: "Click Save All Changes",
+    provider_nc_add_mx:
+      "Click Add New Record, select MX, set priority and enter the values below",
+    provider_nc_add_txt:
+      "Click Add New Record, select TXT, and enter the values below",
   },
   mail: {
     inbox: "Inbox",

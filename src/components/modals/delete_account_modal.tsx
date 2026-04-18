@@ -27,7 +27,6 @@ import {
   Modal,
   ModalHeader,
   ModalTitle,
-  ModalDescription,
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
@@ -162,9 +161,6 @@ export function DeleteAccountModal({
     >
       <ModalHeader>
         <ModalTitle>{t("settings.delete_your_account")}</ModalTitle>
-        <ModalDescription>
-          {t("settings.all_info_permanently_deleted")}
-        </ModalDescription>
       </ModalHeader>
 
       <ModalBody>

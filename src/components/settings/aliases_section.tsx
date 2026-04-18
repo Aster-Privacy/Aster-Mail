@@ -40,10 +40,11 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_aliases } from "@/components/settings/hooks/use_aliases";
 import { CreateAliasModal } from "@/components/settings/aliases/alias_form";
 import { AliasList } from "@/components/settings/aliases/alias_list";
-import { DomainSetupModal } from "@/components/settings/aliases/domain_setup_modal";
-import { DomainItem } from "@/components/settings/aliases/domain_item";
+import { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
+import { DomainCardV2 } from "@/components/settings/aliases/domain_card_v2";
+import { DomainDeleteModal } from "@/components/settings/aliases/domain_delete_modal";
 
-export { DomainSetupModal } from "@/components/settings/aliases/domain_setup_modal";
+export { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 
 export function AliasesSection() {
   const { t } = use_i18n();
@@ -258,11 +259,12 @@ export function AliasesSection() {
             ) : (
               <div className="space-y-3">
                 {hook.domains.map((domain) => (
-                  <DomainItem
+                  <DomainCardV2
                     key={domain.id}
                     deleting={hook.domain_deleting_id === domain.id}
                     domain={domain}
                     on_delete={hook.handle_domain_delete}
+                    on_domains_changed={hook.load_domains}
                     on_setup={hook.handle_open_setup}
                   />
                 ))}
@@ -287,7 +289,7 @@ export function AliasesSection() {
         }}
       />
 
-      <DomainSetupModal
+      <DomainSetupWizard
         current_count={hook.domains.length}
         dns_records={hook.wizard_dns_records}
         domain_id={hook.wizard_domain_id}
@@ -370,16 +372,16 @@ export function AliasesSection() {
         variant="danger"
       />
 
-      <ConfirmationModal
-        confirm_text={t("common.delete")}
+      <DomainDeleteModal
+        domain_name={
+          hook.domains.find((d) => d.id === hook.domain_delete_confirm.id)
+            ?.domain_name ?? ""
+        }
         is_open={hook.domain_delete_confirm.is_open}
-        message={t("settings.delete_domain_confirmation")}
         on_cancel={() =>
           hook.set_domain_delete_confirm({ is_open: false, id: null })
         }
         on_confirm={hook.confirm_domain_delete}
-        title={t("common.delete_domain")}
-        variant="danger"
       />
 
       <ConfirmationModal

@@ -2042,6 +2042,7 @@ export interface SettingsTranslations {
   no_domains_yet: string;
   add_first_domain: string;
   continue_setup: string;
+  domain_pending_hint: string;
   verified_count: string;
   used_count: string;
   dns_records_for_domain: string;
@@ -2559,6 +2560,41 @@ export interface SettingsTranslations {
   scanning: string;
   all_clear: string;
   no_subscriptions_found: string;
+  instructions_for_provider: string;
+  record_not_detected: string;
+  error_tip_txt: string;
+  error_tip_mx: string;
+  error_tip_spf: string;
+  error_tip_dkim: string;
+  error_tip_dmarc: string;
+  verify_all_records: string;
+  need_help_link: string;
+  catch_all_enabled_toast: string;
+  catch_all_disabled: string;
+  rotate_dkim_key: string;
+  rotate_dkim_description: string;
+  rotate_label: string;
+  dkim_rotated: string;
+  delete_domain_warning: string;
+  delete_domain_cooldown: string;
+  provider_cf_login: string;
+  provider_cf_select_domain: string;
+  provider_cf_add_record: string;
+  provider_cf_save: string;
+  provider_cf_add_mx: string;
+  provider_cf_add_txt_record: string;
+  provider_gd_login: string;
+  provider_gd_manage_dns: string;
+  provider_gd_add_record: string;
+  provider_gd_save: string;
+  provider_gd_add_mx: string;
+  provider_gd_add_txt: string;
+  provider_nc_login: string;
+  provider_nc_advanced_dns: string;
+  provider_nc_add_record: string;
+  provider_nc_save: string;
+  provider_nc_add_mx: string;
+  provider_nc_add_txt: string;
 }
 
 export interface MailTranslations {

@@ -41,7 +41,7 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_aliases } from "@/components/settings/hooks/use_aliases";
 import { CreateAliasModal } from "@/components/settings/aliases/alias_form";
-import { DomainSetupModal } from "@/components/settings/aliases_section";
+import { DomainSetupWizard } from "@/components/settings/aliases_section";
 import {
   get_dns_records,
   get_status_color,
@@ -555,7 +555,7 @@ export function AliasesSection({
         }}
       />
 
-      <DomainSetupModal
+      <DomainSetupWizard
         current_count={hook.domains.length}
         dns_records={hook.wizard_dns_records}
         domain_id={hook.wizard_domain_id}

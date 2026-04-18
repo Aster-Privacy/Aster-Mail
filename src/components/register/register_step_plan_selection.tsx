@@ -441,7 +441,7 @@ function plan_bullets(
     return [
       t("settings.plan_f_storage", { value: "10 GB" }),
       t("settings.plan_f_aliases", { value: "5" }),
-      t("settings.plan_f_domains", { value: "3" }),
+      t("settings.plan_f_domains", { value: "1" }),
       t("settings.plan_f_templates", { value: "3" }),
       t("settings.plan_f_imap_smtp"),
     ];
