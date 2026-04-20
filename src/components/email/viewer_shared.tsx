@@ -25,7 +25,7 @@ import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import type { DecryptedEmail } from "@/components/email/use_email_viewer";
 import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload_cache";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   XMarkIcon,
   NoSymbolIcon,
@@ -38,7 +38,12 @@ import {
   PrinterIcon,
   FolderIcon,
   MapPinIcon,
-  QueueListIcon,
+  ChevronDoubleUpIcon,
+  ChevronDoubleDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ClockIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -59,6 +64,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { is_system_email } from "@/lib/utils";
 import {
   EmailTag,
@@ -73,7 +79,6 @@ import {
 } from "@/components/email/thread_message_block";
 import { ViewSourceModal } from "@/components/modals/view_source_modal";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
-import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
 import { SendingMessageBlock } from "@/components/email/sending_message_block";
 
 let loaded_content_email_id: string | null = null;
@@ -113,6 +118,7 @@ interface ViewerToolbarActionsProps {
   is_spam?: boolean;
   on_print: () => void;
   on_unsubscribe: () => void;
+  on_snooze?: () => void;
   can_go_prev?: boolean;
   can_go_next?: boolean;
   on_navigate_prev?: () => void;
@@ -124,6 +130,7 @@ interface ViewerToolbarActionsProps {
   icon_size?: string;
   dropdown_align?: "start" | "end";
   hide_class?: string;
+  spread_layout?: boolean;
 }
 
 export function ViewerToolbarActions({
@@ -147,13 +154,23 @@ export function ViewerToolbarActions({
   is_spam,
   on_print,
   on_unsubscribe,
-  button_size = "h-8 w-8",
+  on_snooze,
+  button_size = "h-9 w-9",
   button_px,
-  icon_size = "w-4 h-4",
+  icon_size = "w-5 h-5",
   dropdown_align = "end",
   hide_class = "",
+  spread_layout = false,
+  can_go_prev,
+  can_go_next,
+  on_navigate_prev,
+  on_navigate_next,
+  current_index,
+  total_count,
 }: ViewerToolbarActionsProps): React.ReactElement {
   const { t } = use_i18n();
+  const { preferences, update_preference } = use_preferences();
+  const is_advanced = preferences.viewer_toolbar_mode === "advanced";
   const btn_style = button_px
     ? {
         width: button_px,
@@ -163,14 +180,85 @@ export function ViewerToolbarActions({
       }
     : undefined;
 
+  const muted_style = btn_style
+    ? { ...btn_style, color: "var(--text-muted)" }
+    : { color: "var(--text-muted)" };
+  const btn_base = `${hide_class} ${button_size} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`;
+  const btn_trash = `${hide_class} ${button_size} hover:!text-red-500 hover:bg-red-500/10`;
+  const btn_spam = `${hide_class} ${button_size} hover:!text-amber-500 hover:bg-amber-500/10`;
+
+  const collapse_expand_button = thread_messages.length > 1 ? (
+    <Tooltip
+      tip={
+        thread_expand_state.all_expanded
+          ? t("common.collapse_all")
+          : t("common.expand_all")
+      }
+    >
+      <Button
+        className={btn_base}
+        size="icon"
+        style={muted_style}
+        variant="ghost"
+        onClick={() => {
+          if (thread_expand_state.all_expanded) {
+            thread_list_ref.current?.collapse_all();
+          } else {
+            thread_list_ref.current?.expand_all();
+          }
+        }}
+      >
+        {thread_expand_state.all_expanded ? (
+          <ChevronDoubleUpIcon className={icon_size} />
+        ) : (
+          <ChevronDoubleDownIcon className={icon_size} />
+        )}
+      </Button>
+    </Tooltip>
+  ) : null;
+
+  const nav_buttons = spread_layout && (on_navigate_prev || on_navigate_next) ? (
+    <div className="flex items-center gap-0.5">
+      {current_index != null && total_count != null && (
+        <span className="text-xs text-txt-muted px-1">
+          {current_index + 1}/{total_count}
+        </span>
+      )}
+      <Tooltip tip={t("mail.shortcut_previous_email")}>
+        <Button
+          className={`${button_size} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`}
+          disabled={!can_go_prev}
+          size="icon"
+          style={muted_style}
+          variant="ghost"
+          onClick={on_navigate_prev}
+        >
+          <ChevronLeftIcon className={icon_size} />
+        </Button>
+      </Tooltip>
+      <Tooltip tip={t("mail.shortcut_next_email")}>
+        <Button
+          className={`${button_size} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`}
+          disabled={!can_go_next}
+          size="icon"
+          style={muted_style}
+          variant="ghost"
+          onClick={on_navigate_next}
+        >
+          <ChevronRightIcon className={icon_size} />
+        </Button>
+      </Tooltip>
+    </div>
+  ) : null;
+
   return (
     <>
       <Tooltip tip={is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}>
         <Button
-          className={`${hide_class} ${button_size} ${is_pinned ? "text-blue-500 bg-blue-500/10" : "text-[var(--text-muted)] hover:text-blue-500 hover:bg-blue-500/10"}`}
+          className={`${hide_class} ${button_size} ${is_pinned ? "!text-blue-500 bg-blue-500/10" : "hover:!text-blue-500 hover:bg-blue-500/10"}`}
           disabled={is_pin_loading}
           size="icon"
-          style={btn_style}
+          style={is_pinned ? btn_style : muted_style}
           variant="ghost"
           onClick={on_pin_toggle}
         >
@@ -182,10 +270,10 @@ export function ViewerToolbarActions({
 
       <Tooltip tip={t("mail.archive")}>
         <Button
-          className={`${hide_class} ${button_size} text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`}
+          className={btn_base}
           disabled={is_archive_loading}
           size="icon"
-          style={btn_style}
+          style={muted_style}
           variant="ghost"
           onClick={on_archive}
         >
@@ -195,10 +283,10 @@ export function ViewerToolbarActions({
 
       <Tooltip tip={t("mail.move_to_trash")}>
         <Button
-          className={`${hide_class} ${button_size} text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10`}
+          className={btn_trash}
           disabled={is_trash_loading}
           size="icon"
-          style={btn_style}
+          style={muted_style}
           variant="ghost"
           onClick={on_trash}
         >
@@ -206,38 +294,88 @@ export function ViewerToolbarActions({
         </Button>
       </Tooltip>
 
-      {thread_messages.length > 1 && (
-        <Tooltip
-          tip={
-            thread_expand_state.all_expanded
-              ? t("common.collapse_all")
-              : t("common.expand_all")
-          }
-        >
-          <Button
-            className={`${hide_class} ${button_size} text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`}
-            size="icon"
-            style={btn_style}
-            variant="ghost"
-            onClick={() => {
-              if (thread_expand_state.all_expanded) {
-                thread_list_ref.current?.collapse_all();
-              } else {
-                thread_list_ref.current?.expand_all();
-              }
-            }}
-          >
-            <QueueListIcon className={icon_size} />
-          </Button>
-        </Tooltip>
+      {is_advanced && (
+        <>
+          {is_spam && on_not_spam ? (
+            <Tooltip tip={t("mail.not_spam")}>
+              <Button
+                className={btn_base}
+                disabled={is_spam_loading}
+                size="icon"
+                style={muted_style}
+                variant="ghost"
+                onClick={on_not_spam}
+              >
+                <NoSymbolIcon className={icon_size} />
+              </Button>
+            </Tooltip>
+          ) : (
+            <Tooltip tip={t("mail.report_spam")}>
+              <Button
+                className={btn_spam}
+                disabled={is_spam_loading}
+                size="icon"
+                style={muted_style}
+                variant="ghost"
+                onClick={on_spam}
+              >
+                <NoSymbolIcon className={icon_size} />
+              </Button>
+            </Tooltip>
+          )}
+
+          <Tooltip tip={is_read ? t("mail.mark_as_unread") : t("mail.mark_as_read")}>
+            <Button
+              className={btn_base}
+              size="icon"
+              style={muted_style}
+              variant="ghost"
+              onClick={on_read_toggle}
+            >
+              {is_read ? (
+                <EnvelopeIcon className={icon_size} />
+              ) : (
+                <EnvelopeOpenIcon className={icon_size} />
+              )}
+            </Button>
+          </Tooltip>
+
+          {on_snooze && (
+            <Tooltip tip={t("mail.snooze")}>
+              <Button
+                className={btn_base}
+                size="icon"
+                style={muted_style}
+                variant="ghost"
+                onClick={on_snooze}
+              >
+                <ClockIcon className={icon_size} />
+              </Button>
+            </Tooltip>
+          )}
+
+          <Tooltip tip={t("mail.move_to_folder")}>
+            <Button
+              className={btn_base}
+              disabled
+              size="icon"
+              style={muted_style}
+              variant="ghost"
+            >
+              <FolderIcon className={icon_size} />
+            </Button>
+          </Tooltip>
+        </>
       )}
+
+      {!spread_layout && collapse_expand_button}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            className={`${button_size} text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`}
+            className={`${button_size} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`}
             size="icon"
-            style={btn_style}
+            style={muted_style}
             title={t("common.more")}
             variant="ghost"
           >
@@ -305,8 +443,42 @@ export function ViewerToolbarActions({
               {t("mail.unsubscribe")}
             </DropdownMenuItem>
           )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() =>
+              update_preference(
+                "viewer_toolbar_mode",
+                is_advanced ? "simple" : "advanced",
+              )
+            }
+          >
+            <AdjustmentsHorizontalIcon className="w-4 h-4 mr-2" />
+            {is_advanced
+              ? t("common.switch_to_simple")
+              : t("common.switch_to_advanced")}
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {spread_layout && <div className="flex-1" />}
+
+      {spread_layout && collapse_expand_button}
+
+      {spread_layout && (
+        <Tooltip tip={t("mail.print")}>
+          <Button
+            className={`${button_size} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`}
+            size="icon"
+            style={muted_style}
+            variant="ghost"
+            onClick={on_print}
+          >
+            <PrinterIcon className={icon_size} />
+          </Button>
+        </Tooltip>
+      )}
+
+      {nav_buttons}
     </>
   );
 }
@@ -330,6 +502,7 @@ interface ViewerEmailHeaderProps {
   email_button_hide_class?: string;
   flex_wrap_class?: string;
   popover_content_class?: string;
+  tracking_report?: ExternalContentReport | null;
 }
 
 export function ViewerEmailHeader({
@@ -350,6 +523,7 @@ export function ViewerEmailHeader({
   gap_class = "gap-3 sm:gap-4",
   email_button_hide_class = "hidden sm:inline",
   flex_wrap_class = "flex-wrap sm:flex-nowrap",
+  tracking_report,
 }: ViewerEmailHeaderProps): React.ReactElement {
   const { t } = use_i18n();
 
@@ -357,12 +531,20 @@ export function ViewerEmailHeader({
     <>
       {!hide_subject && (
         <div className="flex items-center gap-2 mb-6">
-          <EncryptionInfoDropdown
-            has_pq_protection={has_pq_protection}
-            has_recipient_key={has_recipient_key}
-            is_external={is_external}
-            size={encryption_size}
-          />
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <EncryptionInfoDropdown
+              has_pq_protection={has_pq_protection}
+              has_recipient_key={has_recipient_key}
+              is_external={is_external}
+              size={encryption_size}
+            />
+            {tracking_report && (
+              <TrackingProtectionShield
+                report={tracking_report}
+                size={encryption_size}
+              />
+            )}
+          </div>
           <h1 className={`${subject_class} text-txt-primary`}>
             {email.subject}
           </h1>
@@ -679,7 +861,7 @@ export function ViewerUnsubscribeBanner({
   };
 
   return (
-    <div className="mb-4">
+    <div className="mb-4 px-4">
       <div className="rounded-lg bg-surf-tertiary text-txt-secondary border border-edge-primary">
         <div className="flex items-center justify-between px-4 py-2.5">
           <div className="flex items-center gap-3 min-w-0">
@@ -751,10 +933,20 @@ interface ViewerThreadContentProps {
   on_toggle_message_read: (message_id: string) => void;
   on_edit_thread_draft?: (draft: DraftWithContent) => void;
   on_thread_draft_deleted?: () => void;
+  on_draft_saved?: (draft: {
+    id: string;
+    version: number;
+    content: import("@/services/api/multi_drafts").DraftContent;
+  }) => void;
   external_content_mode?: "always";
   on_external_content_detected?: (report: ExternalContentReport) => void;
   thread_sanitized?: Map<string, PreloadedSanitizedContent>;
   size_bytes?: number;
+  on_unsubscribe?: () => Promise<"success" | "manual">;
+  on_manual_unsubscribed?: () => void;
+  unsubscribe_url?: string;
+  loaded_content_types?: Set<string>;
+  on_load_external_content?: (types?: string[]) => void;
 }
 
 export function ViewerThreadContent({
@@ -775,12 +967,18 @@ export function ViewerThreadContent({
   on_report_phishing,
   on_not_spam,
   on_toggle_message_read,
-  on_edit_thread_draft,
-  on_thread_draft_deleted,
+  on_edit_thread_draft: _on_edit_thread_draft,
+  on_thread_draft_deleted: _on_thread_draft_deleted,
+  on_draft_saved,
   external_content_mode,
   on_external_content_detected,
   thread_sanitized,
   size_bytes,
+  on_unsubscribe,
+  on_manual_unsubscribed,
+  unsubscribe_url,
+  loaded_content_types,
+  on_load_external_content,
 }: ViewerThreadContentProps): React.ReactElement {
   const { preferences } = use_preferences();
   const [inline_reply_msg, set_inline_reply_msg] =
@@ -833,6 +1031,19 @@ export function ViewerThreadContent({
       window.removeEventListener("astermail:keyboard-reply", handle_kb_reply);
   }, [thread_messages]);
 
+  const memoized_draft = useMemo(
+    () =>
+      thread_draft
+        ? {
+            id: thread_draft.id,
+            version: thread_draft.version,
+            reply_to_id: thread_draft.reply_to_id,
+            content: thread_draft.content,
+          }
+        : null,
+    [thread_draft?.id, thread_draft?.version, thread_draft?.reply_to_id, thread_draft?.content],
+  );
+
   return (
     <div className="mt-4">
       <ThreadMessagesList
@@ -842,6 +1053,7 @@ export function ViewerThreadContent({
         hide_expand_collapse
         current_user_email={current_user_email}
         default_expanded_id={email.id}
+        existing_draft={memoized_draft}
         external_content_mode={external_content_mode}
         force_all_dark_mode={preferences.force_dark_mode_emails}
         inline_mode={inline_mode}
@@ -851,6 +1063,7 @@ export function ViewerThreadContent({
         messages={thread_messages}
         on_archive={on_archive}
         on_close_inline_reply={handle_close_inline_reply}
+        on_draft_saved={on_draft_saved}
         on_external_content_detected={on_external_content_detected}
         on_forward={handle_inline_forward}
         on_not_spam={on_not_spam}
@@ -862,23 +1075,16 @@ export function ViewerThreadContent({
         on_toggle_message_read={on_toggle_message_read}
         on_trash={on_trash}
         on_view_source={on_view_source}
+        on_unsubscribe={on_unsubscribe}
+        on_manual_unsubscribed={on_manual_unsubscribed}
+        unsubscribe_url={unsubscribe_url}
+        loaded_content_types={loaded_content_types}
+        on_load_external_content={on_load_external_content}
         preloaded_sanitized={thread_sanitized}
         size_bytes={size_bytes}
         subject={email.subject}
       />
 
-      {thread_draft &&
-        !sending_message &&
-        on_edit_thread_draft &&
-        !inline_reply_msg && (
-          <ThreadDraftBadge
-            current_user_email={current_user_email}
-            current_user_name={current_user_name ?? ""}
-            draft={thread_draft}
-            on_deleted={on_thread_draft_deleted ?? (() => {})}
-            on_edit={on_edit_thread_draft}
-          />
-        )}
 
       {sending_message && (
         <div className="mt-4">

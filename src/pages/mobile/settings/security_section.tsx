@@ -51,6 +51,7 @@ import {
   encrypt_vault,
   decrypt_vault,
 } from "@/services/crypto/key_manager";
+import { store_vault_in_memory } from "@/services/crypto/memory_key_store";
 import { get_totp_status, type TotpStatusResponse } from "@/services/api/totp";
 import {
   get_login_alerts_status,
@@ -83,7 +84,7 @@ export function SecuritySection({
   on_navigate_section?: (s: SettingsSection) => void;
 }) {
   const { t } = use_i18n();
-  const { user, logout_all } = use_auth();
+  const { user } = use_auth();
   const { preferences, update_preference } = use_preferences();
   const { is_feature_locked } = use_plan_limits();
 
@@ -257,12 +258,32 @@ export function SecuritySection({
 
         return;
       }
+
+      try {
+        localStorage.setItem(
+          `astermail_encrypted_vault_${user.id}`,
+          new_enc_vault,
+        );
+        localStorage.setItem(
+          `astermail_vault_nonce_${user.id}`,
+          new_v_nonce,
+        );
+      } catch {}
+
+      await store_vault_in_memory(vault, new_password);
+
+      if (res.data?.csrf_token) {
+        api_client.set_csrf(res.data.csrf_token);
+      }
+      if (res.data?.access_token) {
+        api_client.set_dev_token(res.data.access_token);
+      }
+
       set_pw_success(true);
       set_show_password_change(false);
       set_current_password("");
       set_new_password("");
       set_confirm_password("");
-      setTimeout(() => logout_all(), 2000);
     } catch (err) {
       set_pw_error(
         err instanceof Error
@@ -272,7 +293,7 @@ export function SecuritySection({
     } finally {
       set_pw_loading(false);
     }
-  }, [user, current_password, new_password, confirm_password, t, logout_all]);
+  }, [user, current_password, new_password, confirm_password, t]);
 
   const handle_logout_others = useCallback(async () => {
     set_logout_others_loading(true);

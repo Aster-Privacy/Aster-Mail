@@ -20,20 +20,22 @@
 //
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   EnvelopeIcon,
   ShieldExclamationIcon,
   XMarkIcon,
-  CheckIcon,
 } from "@heroicons/react/24/outline";
 
 import { is_system_email } from "@/lib/utils";
 import {
-  perform_unsubscribe,
+  execute_unsubscribe,
   get_sender_domain,
 } from "@/utils/unsubscribe_detector";
 import { track_subscription } from "@/services/api/subscriptions";
+import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
+import { show_action_toast } from "@/components/toast/action_toast";
+import { use_preferences } from "@/contexts/preferences_context";
 
 export function MobileUnsubscribeBanner({
   email,
@@ -52,10 +54,18 @@ export function MobileUnsubscribeBanner({
   };
   t: (key: never) => string;
 }) {
-  const [status, set_status] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
+  const { preferences } = use_preferences();
   const [dismissed, set_dismissed] = useState(false);
+  const pending_timeout_ref = useRef<NodeJS.Timeout | null>(null);
+  const cancelled_ref = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      if (pending_timeout_ref.current) {
+        clearTimeout(pending_timeout_ref.current);
+      }
+    };
+  }, []);
 
   if (dismissed || !email.unsubscribe_info?.has_unsubscribe) return null;
   if (is_system_email(email.sender_email)) return null;
@@ -63,56 +73,87 @@ export function MobileUnsubscribeBanner({
   const info = email.unsubscribe_info;
   const domain = get_sender_domain(email.sender_email);
 
-  const handle_unsubscribe = async () => {
-    set_status("loading");
-    try {
-      await track_subscription({
-        sender_email: email.sender_email,
-        sender_name: email.sender,
-        unsubscribe_link: info.unsubscribe_link,
-        list_unsubscribe_header: info.list_unsubscribe_header,
-      });
-      await perform_unsubscribe(
-        email.sender_email,
-        email.sender,
-        info as never,
-      );
-      set_status("success");
-    } catch {
-      set_status("error");
-    }
+  const handle_unsubscribe = () => {
+    cancelled_ref.current = false;
+    set_dismissed(true);
+
+    const delay_seconds = preferences.undo_send_seconds ?? 10;
+    const delay_ms = delay_seconds * 1000;
+
+    track_subscription({
+      sender_email: email.sender_email,
+      sender_name: email.sender,
+      unsubscribe_link: info.unsubscribe_link,
+      list_unsubscribe_header: info.list_unsubscribe_header,
+    }).catch(() => {});
+
+    show_action_toast({
+      message: t("mail.successfully_unsubscribed" as never),
+      action_type: "not_spam",
+      email_ids: [],
+      duration_ms: delay_ms,
+      on_undo: async () => {
+        cancelled_ref.current = true;
+        if (pending_timeout_ref.current) {
+          clearTimeout(pending_timeout_ref.current);
+          pending_timeout_ref.current = null;
+        }
+        set_dismissed(false);
+      },
+    });
+
+    pending_timeout_ref.current = setTimeout(async () => {
+      pending_timeout_ref.current = null;
+      if (cancelled_ref.current) return;
+
+      try {
+        const result = await execute_unsubscribe(info as never);
+        if (result === "api") {
+          persist_unsubscribe(email.sender_email, email.sender || "", {
+            unsubscribe_link: info.unsubscribe_link,
+            list_unsubscribe_header: info.list_unsubscribe_header,
+          }, "auto");
+        }
+        if (result !== "api") {
+          const url = info.unsubscribe_link || info.unsubscribe_mailto;
+          show_action_toast({
+            message: t("mail.unsubscribe_manual_required" as never),
+            action_type: "not_spam",
+            email_ids: [],
+            duration_ms: 15000,
+            action_label: t("mail.open_unsubscribe_page" as never),
+            on_undo: async () => {
+              if (url) window.open(url, "_blank", "noopener,noreferrer");
+            },
+          });
+        }
+      } catch {
+        show_action_toast({
+          message: t("mail.unsubscribe_failed" as never),
+          action_type: "not_spam",
+          email_ids: [],
+        });
+      }
+    }, delay_ms);
   };
 
   return (
     <div className="mx-4 mt-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2.5">
       <div className="flex items-center gap-3">
-        {status === "success" ? (
-          <CheckIcon className="h-5 w-5 shrink-0 text-brand" />
-        ) : (
-          <EnvelopeIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
-        )}
+        <EnvelopeIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
         <div className="min-w-0 flex-1">
           <p className="text-[13px] text-[var(--text-primary)]">
-            {status === "success"
-              ? t("mail.successfully_unsubscribed" as never)
-              : status === "error"
-                ? t("mail.unsubscribe_failed" as never)
-                : `${t("mail.stop_receiving_from" as never)} ${domain}`}
+            {`${t("mail.stop_receiving_from" as never)} ${domain}`}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          {status === "idle" && (
-            <button
-              className="rounded-md bg-brand px-2.5 py-1 text-[12px] font-medium text-white active:opacity-70"
-              type="button"
-              onClick={handle_unsubscribe}
-            >
-              {t("mail.unsubscribe" as never)}
-            </button>
-          )}
-          {status === "loading" && (
-            <span className="text-[12px] text-[var(--text-muted)]">...</span>
-          )}
+          <button
+            className="rounded-md bg-brand px-2.5 py-1 text-[12px] font-medium text-white active:opacity-70"
+            type="button"
+            onClick={handle_unsubscribe}
+          >
+            {t("mail.unsubscribe" as never)}
+          </button>
           <button
             className="rounded-md p-1 text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
             type="button"

@@ -534,6 +534,8 @@ export interface CommonTranslations {
   select_label: string;
   simple_toolbar: string;
   advanced_toolbar: string;
+  switch_to_simple: string;
+  switch_to_advanced: string;
   star_selected: string;
   unstar_selected: string;
   all_short: string;
@@ -744,6 +746,7 @@ export interface CommonTranslations {
   message_archived: string;
   message_moved_to_trash: string;
   undo_failed: string;
+  action_undone: string;
   expired: string;
   expires_in: string;
   report_phishing: string;
@@ -1073,6 +1076,8 @@ export interface CommonTranslations {
   sender_type_domain: string;
   sender_type_external: string;
   sender_type_ghost: string;
+  pin_preferred_sender: string;
+  unpin_preferred_sender: string;
   recovery_email_label: string;
   vault_access_error: string;
   recovery_email_already_used: string;
@@ -1350,15 +1355,25 @@ export interface SettingsTranslations {
   show_message_size_description: string;
   force_dark_mode_emails: string;
   force_dark_mode_emails_description: string;
-  block_external_content: string;
-  block_external_content_description: string;
-  blocking_mode: string;
-  blocking_mode_description: string;
-  trackers_only: string;
-  images_only: string;
-  images_and_trackers: string;
-  show_tracking_protection: string;
-  show_tracking_protection_description: string;
+  images_section_title: string;
+  block_remote_images_label: string;
+  block_remote_images_description: string;
+  remote_image_loading: string;
+  remote_image_loading_description: string;
+  remote_images_always: string;
+  remote_images_ask: string;
+  remote_images_never: string;
+  tracking_protection_title: string;
+  tracking_protection_enabled: string;
+  tracking_protection_enabled_description: string;
+  block_spy_pixels: string;
+  block_spy_pixels_description: string;
+  block_tracking_links: string;
+  block_tracking_links_description: string;
+  block_remote_fonts_label: string;
+  block_remote_fonts_description: string;
+  block_remote_css_label: string;
+  block_remote_css_description: string;
   enable_undo_send: string;
   undo_send_delay_description: string;
   cancellation_period: string;
@@ -1705,6 +1720,7 @@ export interface SettingsTranslations {
   setup_two_factor_auth: string;
   verify_2fa_setup: string;
   two_factor_auth_enabled: string;
+  two_factor_auth_disabled: string;
   backup_code_security_note: string;
   delete_alias_confirmation: string;
   alias_too_new_title: string;
@@ -2490,6 +2506,7 @@ export interface SettingsTranslations {
   credit_type_reversal: string;
   credit_type_purchase: string;
   credit_transactions: string;
+  refer_a_friend: string;
   referral_program: string;
   referral_program_description: string;
   your_referral_link: string;
@@ -2499,6 +2516,11 @@ export interface SettingsTranslations {
   pending_referrals: string;
   completed_referrals: string;
   credits_earned: string;
+  referral_how_it_works: string;
+  referral_step_share: string;
+  referral_step_signup: string;
+  referral_step_earn: string;
+  referral_rewards: string;
   referral_not_eligible: string;
   referral_not_eligible_description: string;
   referral_loading: string;
@@ -2598,6 +2620,9 @@ export interface SettingsTranslations {
 }
 
 export interface MailTranslations {
+  all_on_page_selected: string;
+  select_all_in_folder: string;
+  all_in_folder_selected: string;
   inbox: string;
   sent: string;
   drafts: string;
@@ -2698,6 +2723,14 @@ export interface MailTranslations {
   block: string;
   unblock_sender: string;
   unsubscribe: string;
+  load_external_content: string;
+  image: string;
+  images: string;
+  tracker: string;
+  trackers: string;
+  font: string;
+  fonts: string;
+  stylesheet: string;
   unsubscribe_title: string;
   unsubscribe_confirm_message: string;
   manual_unsubscribe_link: string;
@@ -3026,6 +3059,7 @@ export interface MailTranslations {
   unsubscribe_failed: string;
   unsubscribe_try_again: string;
   unsubscribe_manual_required: string;
+  open_unsubscribe_page: string;
   stop_receiving_from: string;
   send_email: string;
   purchase_receipt: string;
@@ -3048,6 +3082,7 @@ export interface MailTranslations {
   no_trackers_detected: string;
   email_is_clean: string;
   param_removed_from_n_links: string;
+  n_blocked: string;
   tracker_domain: string;
   remote_content_blocked: string;
   remote_images_blocked_count: string;
@@ -3056,6 +3091,8 @@ export interface MailTranslations {
   lines_count: string;
   message_label: string;
   messages_label: string;
+  older_messages: string;
+  older_message: string;
   star: string;
   unstar: string;
   mark_unread: string;

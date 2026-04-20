@@ -92,6 +92,12 @@ interface UseReplyModalProps {
     version: number;
     content: DraftContent;
   }) => void;
+  existing_draft?: {
+    id: string;
+    version: number;
+    reply_to_id?: string;
+    content: DraftContent;
+  } | null;
 }
 
 export function use_reply_modal({
@@ -111,6 +117,7 @@ export function use_reply_modal({
   thread_ghost_email,
   reply_from_address,
   on_draft_saved,
+  existing_draft,
 }: UseReplyModalProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -165,7 +172,11 @@ export function use_reply_modal({
   const is_sending_ref = useRef(false);
   const last_send_time_ref = useRef<number>(0);
   const content_initialized_ref = useRef(false);
+  const initial_content_ref = useRef<string>("");
 
+  const reply_message_ref = useRef("");
+  const save_draft_fn_ref = useRef<(text: string) => Promise<void>>(async () => {});
+  const prev_is_open_ref = useRef(false);
   const files_drop_ref = useRef<((files: File[]) => void) | null>(null);
 
   const editor = use_editor({
@@ -334,10 +345,21 @@ export function use_reply_modal({
     return () => document.removeEventListener("keydown", handle_escape);
   }, [is_open, on_close]);
 
+  const existing_draft_ref = useRef(existing_draft);
+  existing_draft_ref.current = existing_draft;
+
   useEffect(() => {
     content_initialized_ref.current = false;
 
     if (!is_open) return;
+
+    const draft_snapshot = existing_draft_ref.current;
+    const matching_draft =
+      draft_snapshot &&
+      (!draft_snapshot.reply_to_id ||
+        draft_snapshot.reply_to_id === original_email_id)
+        ? draft_snapshot
+        : null;
 
     is_sending_ref.current = false;
     set_is_sending(false);
@@ -345,19 +367,45 @@ export function use_reply_modal({
     set_attachments([]);
     set_attachment_error(null);
     set_show_quoted(false);
-    set_draft_id(null);
-    set_draft_version(1);
+    set_draft_id(matching_draft?.id ?? null);
+    set_draft_version(matching_draft?.version ?? 1);
     set_scheduled_time(null);
     set_is_scheduling(false);
-    set_draft_status("idle");
+    set_draft_status(matching_draft ? "saved" : "idle");
     set_last_saved_time(null);
     set_show_delete_confirm(false);
     set_is_plain_text_mode(false);
-    last_saved_text.current = "";
-  }, [is_open]);
+    last_saved_text.current = matching_draft?.content.message ?? "";
+  }, [is_open, original_email_id]);
 
   useEffect(() => {
     if (!is_open || content_initialized_ref.current) return;
+
+    const draft_snapshot = existing_draft_ref.current;
+    const matching_draft =
+      draft_snapshot &&
+      (!draft_snapshot.reply_to_id ||
+        draft_snapshot.reply_to_id === original_email_id)
+        ? draft_snapshot
+        : null;
+
+    if (matching_draft) {
+      content_initialized_ref.current = true;
+
+      setTimeout(() => {
+        if (!message_editor_ref.current) return;
+
+        const sanitized_result = sanitize_html(matching_draft.content.message, {
+          external_content_mode: "always",
+        });
+
+        message_editor_ref.current.innerHTML = sanitized_result.html;
+        set_reply_message(message_editor_ref.current.innerHTML);
+        message_editor_ref.current.focus();
+      }, 0);
+
+      return;
+    }
 
     if (preferences.signature_mode === "auto" && signatures_loading) return;
     if (preferences.show_badges_in_signature && !badges_loaded) return;
@@ -388,11 +436,13 @@ export function use_reply_modal({
       });
 
       message_editor_ref.current.innerHTML = sanitized_result.html;
+      initial_content_ref.current = message_editor_ref.current.innerHTML;
       set_reply_message(message_editor_ref.current.innerHTML);
       message_editor_ref.current.focus();
     }, 0);
   }, [
     is_open,
+    original_email_id,
     signatures_loading,
     default_signature,
     preferences.show_aster_branding,
@@ -404,29 +454,15 @@ export function use_reply_modal({
     t,
   ]);
 
-  useEffect(() => {
-    const scroll_container = attachments_scroll_ref.current;
-
-    if (!scroll_container || !is_open) return;
-
-    const handle_wheel = (e: WheelEvent) => {
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        e.stopPropagation();
-        scroll_container.scrollLeft += e.deltaY;
-      }
-    };
-
-    scroll_container.addEventListener("wheel", handle_wheel, {
-      passive: false,
-    });
-
-    return () => scroll_container.removeEventListener("wheel", handle_wheel);
-  }, [is_open, attachments.length]);
+  const has_user_content = useCallback((text: string) => {
+    if (!text.trim()) return false;
+    if (text === initial_content_ref.current) return false;
+    return true;
+  }, []);
 
   const save_thread_draft = useCallback(
     async (text: string) => {
-      if (!text.trim() || !original_email_id) return;
+      if (!has_user_content(text) || !original_email_id) return;
 
       const draft_vault = get_vault_from_memory();
 
@@ -517,8 +553,31 @@ export function use_reply_modal({
     ],
   );
 
+  save_draft_fn_ref.current = save_thread_draft;
+  reply_message_ref.current = reply_message;
+
   useEffect(() => {
-    if (!is_open || !original_email_id || !reply_message.trim()) return;
+    if (prev_is_open_ref.current && !is_open) {
+      if (save_draft_timeout.current) {
+        clearTimeout(save_draft_timeout.current);
+        save_draft_timeout.current = null;
+      }
+      if (!is_sending_ref.current) {
+        const current_text = reply_message_ref.current;
+        if (
+          current_text !== last_saved_text.current &&
+          has_user_content(current_text) &&
+          original_email_id
+        ) {
+          save_draft_fn_ref.current(current_text);
+        }
+      }
+    }
+    prev_is_open_ref.current = is_open;
+  }, [is_open, original_email_id, has_user_content]);
+
+  useEffect(() => {
+    if (!is_open || !original_email_id || !has_user_content(reply_message)) return;
     if (reply_message === last_saved_text.current) return;
 
     if (save_draft_timeout.current) {
@@ -534,7 +593,7 @@ export function use_reply_modal({
         clearTimeout(save_draft_timeout.current);
       }
     };
-  }, [is_open, original_email_id, reply_message, save_thread_draft]);
+  }, [is_open, original_email_id, reply_message, save_thread_draft, has_user_content]);
 
   useEffect(() => {
     return () => {
@@ -1046,6 +1105,7 @@ export function use_reply_modal({
     handle_close,
     handle_delete_draft,
     handle_file_select,
+    handle_files_drop,
     remove_attachment,
     trigger_file_select,
     is_valid,

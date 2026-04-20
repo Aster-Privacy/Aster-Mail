@@ -219,6 +219,18 @@ export function ComposeWindow({
             ? get_position_style()
             : {}),
         }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const files = Array.from(e.dataTransfer?.files || []);
+          if (files.length > 0) {
+            compose.handle_files_drop(files);
+          }
+        }}
       >
         <ErrorBoundary fallback={<ComposeErrorFallback />}>
           <div
@@ -323,7 +335,9 @@ export function ComposeWindow({
                     on_set_ghost_expiry={
                       compose.ghost_mode.set_ghost_expiry_days
                     }
+                    on_set_preferred={compose.set_preferred_sender}
                     options={compose.sender_options}
+                    preferred_id={compose.preferred_sender_id}
                     selected={compose.selected_sender}
                   />
                 </div>

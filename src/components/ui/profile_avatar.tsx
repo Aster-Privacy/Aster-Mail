@@ -69,6 +69,35 @@ const SYSTEM_LOCAL_PARTS = new Set(["mailer-daemon", "postmaster"]);
 
 const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
 
+const AVATAR_COLORS = [
+  "#1e88e5",
+  "#e53935",
+  "#43a047",
+  "#fb8c00",
+  "#8e24aa",
+  "#d81b60",
+  "#00acc1",
+  "#5e35b1",
+  "#f4511e",
+  "#00897b",
+  "#3949ab",
+  "#c0ca33",
+  "#6d4c41",
+  "#039be5",
+  "#7cb342",
+  "#ff6f00",
+];
+
+function get_avatar_color(identifier: string): string {
+  let hash = 0;
+
+  for (let i = 0; i < identifier.length; i++) {
+    hash = ((hash << 5) - hash + identifier.charCodeAt(i)) | 0;
+  }
+
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 function extract_domain(email: string): string {
   const match = email.match(/@([^@]+)$/);
 
@@ -268,13 +297,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   }
 
   if (!actual_src) {
-    const initials =
-      use_domain_logo && domain
-        ? domain.charAt(0).toUpperCase()
-        : get_initials(name, email);
+    const initials = get_initials(name, email);
     const font_size = Math.round(
       pixel_size * (initials.length > 1 ? 0.36 : 0.44),
     );
+    const avatar_bg = get_avatar_color(email || name || "?");
 
     const letter_element = (
       <div
@@ -284,7 +311,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           height: pixel_size,
           minWidth: pixel_size,
           minHeight: pixel_size,
-          backgroundColor: "var(--avatar-bg)",
+          backgroundColor: avatar_bg,
           userSelect: "none",
         }}
       >
@@ -292,7 +319,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           style={{
             fontSize: font_size,
             fontWeight: 600,
-            color: "var(--avatar-text)",
+            color: "#ffffff",
             lineHeight: 1,
             userSelect: "none",
             letterSpacing: initials.length > 1 ? "-0.02em" : undefined,

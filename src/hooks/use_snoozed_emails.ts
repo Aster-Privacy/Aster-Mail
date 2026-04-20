@@ -238,6 +238,7 @@ function mail_to_email(
     snoozed_until: item.snoozed_until,
     message_ts: item.message_ts,
     item_type: item.item_type,
+    is_read: item.is_read,
   });
 
   if (!envelope) {

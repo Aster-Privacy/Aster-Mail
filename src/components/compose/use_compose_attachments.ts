@@ -56,25 +56,6 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
     attachments_ref.current = attachments;
   }, [attachments]);
 
-  useEffect(() => {
-    const scroll_container = attachments_scroll_ref.current;
-
-    if (!scroll_container) return;
-
-    const handle_wheel = (e: WheelEvent) => {
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        e.stopPropagation();
-        scroll_container.scrollLeft += e.deltaY;
-      }
-    };
-
-    scroll_container.addEventListener("wheel", handle_wheel, {
-      passive: false,
-    });
-
-    return () => scroll_container.removeEventListener("wheel", handle_wheel);
-  }, [attachments.length]);
 
   const remove_attachment = useCallback((id: string) => {
     set_attachments((prev) => prev.filter((a) => a.id !== id));

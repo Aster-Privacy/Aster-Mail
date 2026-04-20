@@ -66,6 +66,12 @@ interface InlineReplyComposerProps {
     version: number;
     content: DraftContent;
   }) => void;
+  existing_draft?: {
+    id: string;
+    version: number;
+    reply_to_id?: string;
+    content: DraftContent;
+  } | null;
   inline_mode?: "reply" | "reply_all" | "forward";
   on_set_inline_mode?: (mode: "reply" | "reply_all" | "forward") => void;
 }
@@ -92,6 +98,7 @@ export const InlineReplyComposer = forwardRef<
     reply_from_address,
     on_close,
     on_draft_saved,
+    existing_draft,
     inline_mode = "reply",
     on_set_inline_mode,
   },
@@ -178,6 +185,7 @@ export const InlineReplyComposer = forwardRef<
     thread_ghost_email,
     reply_from_address,
     on_draft_saved,
+    existing_draft,
   });
 
   const forward_modal = use_forward_modal({
@@ -251,13 +259,12 @@ export const InlineReplyComposer = forwardRef<
 
   const header = (
     <div
-      className="flex items-center justify-between px-3 py-2 border-b border-edge-secondary flex-shrink-0"
-      style={{ backgroundColor: "var(--thread-content-bg)" }}
+      className="flex items-center justify-between px-4 py-2 flex-shrink-0"
     >
       <div className="flex items-center gap-2 text-sm text-txt-secondary min-w-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1 p-0.5 rounded hover:bg-surf-hover transition-colors">
+            <button className="flex items-center gap-1 p-1.5 rounded hover:bg-surf-hover transition-colors">
               {render_mode_icon(
                 inline_mode,
                 "w-4 h-4 flex-shrink-0 text-txt-muted",
@@ -325,7 +332,7 @@ export const InlineReplyComposer = forwardRef<
   );
 
   const reply_sender_field = is_reply_mode ? (
-    <div className="px-3 pt-2 pb-1 flex-shrink-0 overflow-visible relative z-20 border-b border-edge-secondary">
+    <div className="px-4 pt-1 pb-1 flex-shrink-0 overflow-visible relative z-20">
       <div className="flex items-center gap-2 py-1.5">
         <span className="text-sm flex-shrink-0 text-txt-tertiary">
           {t("common.from_label")}
@@ -341,7 +348,7 @@ export const InlineReplyComposer = forwardRef<
 
   const forward_fields =
     inline_mode === "forward" ? (
-      <div className="px-3 pt-2 pb-1 flex-shrink-0 overflow-visible relative z-20 border-b border-edge-secondary">
+      <div className="px-4 pt-1 pb-1 flex-shrink-0 overflow-visible relative z-20">
         <div className="flex items-center gap-2 py-1.5">
           <span className="text-sm flex-shrink-0 text-txt-tertiary">
             {t("common.from_label")}
@@ -475,6 +482,7 @@ export const InlineReplyComposer = forwardRef<
       t={forward_modal.t}
       toggle_plain_text_mode={forward_modal.toggle_plain_text_mode}
       trigger_file_select={forward_modal.trigger_file_select}
+      on_discard={on_close}
     />
   );
 
@@ -497,7 +505,24 @@ export const InlineReplyComposer = forwardRef<
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
           onClick={toggle_fullscreen}
         />
-        <div className="fixed inset-4 sm:inset-8 md:inset-12 z-50 flex flex-col rounded-xl border border-edge-primary bg-surf-primary shadow-2xl overflow-hidden">
+        <div
+          className="fixed inset-4 sm:inset-8 md:inset-12 z-50 flex flex-col rounded-xl border border-edge-primary bg-surf-primary shadow-2xl overflow-hidden"
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const files = Array.from(e.dataTransfer?.files || []);
+            if (files.length > 0) {
+              const drop_handler = is_reply_mode
+                ? reply_modal.handle_files_drop
+                : forward_modal.handle_files_drop;
+              drop_handler(files);
+            }
+          }}
+        >
           {header}
           {reply_sender_field}
           {forward_fields}
@@ -510,7 +535,22 @@ export const InlineReplyComposer = forwardRef<
   return (
     <div
       ref={set_refs}
-      className="border-t border-edge-secondary bg-surf-primary"
+      className="mx-3 mb-3 mt-1 border border-edge-primary rounded-xl bg-surf-primary overflow-hidden"
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const files = Array.from(e.dataTransfer?.files || []);
+        if (files.length > 0) {
+          const drop_handler = is_reply_mode
+            ? reply_modal.handle_files_drop
+            : forward_modal.handle_files_drop;
+          drop_handler(files);
+        }
+      }}
     >
       {header}
       {reply_sender_field}

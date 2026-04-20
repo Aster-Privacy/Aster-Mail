@@ -24,10 +24,12 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { get_cached_iframe_height } from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { use_preferences } from "@/contexts/preferences_context";
-import { ExternalContentBanner } from "@/components/email/external_content_banner";
+import { is_system_email } from "@/lib/utils";
 import {
   use_email_viewer,
   type ReplyData,
@@ -35,14 +37,18 @@ import {
 } from "@/components/email/use_email_viewer";
 import {
   ViewerToolbarActions,
-  ViewerEmailHeader,
-  ViewerUnsubscribeBanner,
   ViewerThreadContent,
   ViewerErrorState,
   get_external_content_mode,
   set_external_content_mode,
 } from "@/components/email/viewer_shared";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  persist_unsubscribe,
+  use_unsubscribed_senders,
+} from "@/hooks/use_unsubscribed_senders";
 
 export type SplitReplyData = ReplyData;
 export type SplitForwardData = ForwardData;
@@ -65,7 +71,7 @@ interface SplitEmailViewerProps {
 export function SplitEmailViewer({
   email_id,
   on_close,
-  snoozed_until,
+  snoozed_until: _snoozed_until,
   on_reply,
   on_forward,
   on_navigate_prev,
@@ -78,6 +84,7 @@ export function SplitEmailViewer({
 }: SplitEmailViewerProps): React.ReactElement {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
+  const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
   const viewer = use_email_viewer({
     email_id,
     on_dismiss: on_close,
@@ -115,12 +122,14 @@ export function SplitEmailViewer({
 
     return { mode: cached || "blocked", report: null };
   });
+  const [loaded_content_types, set_loaded_content_types] = useState<Set<string>>(new Set());
 
   if (prev_email_id_ref.current !== email_id) {
     prev_email_id_ref.current = email_id;
     const cached = get_external_content_mode(email_id);
 
     set_external_content_state({ mode: cached || "blocked", report: null });
+    set_loaded_content_types(new Set());
   }
 
   const handle_external_content_detected = useCallback(
@@ -157,14 +166,61 @@ export function SplitEmailViewer({
     [],
   );
 
-  const handle_load_external_content = useCallback(() => {
-    set_external_content_state({ mode: "loaded", report: null });
-    set_external_content_mode(email_id);
+  const handle_load_external_content = useCallback((types?: string[]) => {
+    if (!types) {
+      set_external_content_state((prev) => ({ mode: "loaded", report: prev.report }));
+      set_external_content_mode(email_id);
+      set_loaded_content_types(new Set());
+      return;
+    }
+    set_loaded_content_types((prev) => {
+      const next = new Set(prev);
+      for (const t of types) next.add(t);
+      return next;
+    });
   }, [email_id]);
 
-  const handle_dismiss_external_content = useCallback(() => {
-    set_external_content_state((prev) => ({ ...prev, mode: "dismissed" }));
-  }, []);
+  const handle_unsubscribe = useCallback(async (): Promise<"success" | "manual"> => {
+    const email = viewer.email;
+    if (!email?.unsubscribe_info?.has_unsubscribe) return "success";
+    if (is_system_email(email.sender_email)) return "success";
+
+    const info = email.unsubscribe_info;
+
+    try {
+      const result = await execute_unsubscribe(info);
+      if (result === "api") {
+        show_action_toast({
+          message: t("mail.successfully_unsubscribed"),
+          action_type: "not_spam",
+          email_ids: [],
+        });
+        mark_unsubscribed(email.sender_email);
+        persist_unsubscribe(email.sender_email, email.sender || "", {
+          unsubscribe_link: info.unsubscribe_link,
+          list_unsubscribe_header: info.list_unsubscribe_header,
+        }, "auto");
+        return "success";
+      }
+      show_action_toast({
+        message: t("mail.unsubscribe_manual_required"),
+        action_type: "not_spam",
+        email_ids: [],
+      });
+      persist_unsubscribe(email.sender_email, email.sender || "", {
+        unsubscribe_link: info.unsubscribe_link,
+        list_unsubscribe_header: info.list_unsubscribe_header,
+      }, "manual");
+      return "manual";
+    } catch {
+      show_action_toast({
+        message: t("mail.unsubscribe_failed"),
+        action_type: "not_spam",
+        email_ids: [],
+      });
+      return "manual";
+    }
+  }, [viewer.email, t, mark_unsubscribed]);
 
   const external_content_mode =
     external_content_state.mode === "loaded" ? "always" : undefined;
@@ -254,15 +310,15 @@ export function SplitEmailViewer({
       <div className="flex items-center gap-1 px-2 @md:px-3 py-2 border-b border-edge-primary flex-shrink-0">
         {email ? (
           <ViewerToolbarActions
-            button_px={28}
-            button_size="h-7 w-7"
+            button_px={32}
+            button_size="h-8 w-8"
             can_go_next={can_go_next}
             can_go_prev={can_go_prev}
             current_index={current_index}
             dropdown_align="start"
             email={email}
             hide_class="hidden @lg:flex"
-            icon_size="w-3.5 h-3.5"
+            icon_size="w-4 h-4"
             is_archive_loading={viewer.is_archive_loading}
             is_pin_loading={viewer.is_pin_loading}
             is_pinned={viewer.is_pinned}
@@ -328,46 +384,34 @@ export function SplitEmailViewer({
           </div>
         )}
         {email && (
-          <div className="px-1 py-2 @md:px-2 @md:py-3">
-            <ViewerEmailHeader
-              avatar_class="w-8 h-8 @lg:w-10 @lg:h-10"
-              avatar_size="md"
-              copy_to_clipboard={viewer.copy_to_clipboard}
-              email={email}
-              email_button_hide_class="hidden @xl:inline"
-              encryption_size={18}
-              flex_wrap_class="flex-wrap @xl:flex-nowrap"
-              format_email_detail={viewer.format_email_detail}
-              gap_class="gap-2 @lg:gap-3"
-              has_pq_protection={viewer.has_pq_protection}
-              has_recipient_key={viewer.has_recipient_key}
-              is_external={viewer.is_external}
-              mail_item={viewer.mail_item}
-              popover_content_class="max-w-80 w-[calc(100vw-2rem)] p-3 text-xs space-y-2"
-              snoozed_until={snoozed_until}
-              subject_class="text-base @md:text-lg @2xl:text-xl font-semibold break-words min-w-0 flex-1 text-left"
-              thread_messages={viewer.thread_messages}
-            />
-
-            <ViewerUnsubscribeBanner email={email} />
-
-            {external_content_state.mode === "blocked" &&
-              external_content_state.report &&
-              external_content_state.report.blocked_count > 0 && (
-                <ExternalContentBanner
-                  blocked_content={external_content_state.report}
-                  on_dismiss={handle_dismiss_external_content}
-                  on_load={handle_load_external_content}
+          <div className="py-2 @md:py-3">
+            <h1 className="px-3 @md:px-4 text-base @md:text-lg @2xl:text-xl font-semibold text-txt-primary break-words mb-3">
+              <span className="inline-flex items-center gap-1 mr-1.5" style={{ verticalAlign: "-0.15em" }}>
+                <EncryptionInfoDropdown
+                  has_pq_protection={viewer.has_pq_protection}
+                  has_recipient_key={viewer.has_recipient_key}
+                  is_external={viewer.is_external}
+                  size={18}
                 />
-              )}
+                {external_content_state.report && (
+                  <TrackingProtectionShield
+                    report={external_content_state.report}
+                    size={18}
+                  />
+                )}
+              </span>
+              {email.subject}
+            </h1>
 
             <ViewerThreadContent
               current_user_email={viewer.current_user_email}
               email={email}
               external_content_mode={external_content_mode}
+              loaded_content_types={loaded_content_types}
               on_archive={viewer.handle_per_message_archive}
               on_external_content_detected={handle_external_content_detected}
               on_forward={viewer.handle_per_message_forward}
+              on_load_external_content={handle_load_external_content}
               on_not_spam={
                 viewer.mail_item?.is_spam
                   ? viewer.handle_per_message_not_spam
@@ -379,8 +423,21 @@ export function SplitEmailViewer({
               on_report_phishing={viewer.handle_per_message_report_phishing}
               on_toggle_message_read={viewer.handle_toggle_message_read}
               on_trash={viewer.handle_per_message_trash}
+              on_draft_saved={viewer.handle_draft_saved}
+              on_edit_thread_draft={viewer.handle_edit_thread_draft}
+              on_thread_draft_deleted={viewer.handle_thread_draft_deleted}
+              on_unsubscribe={
+                email.unsubscribe_info?.has_unsubscribe && !is_system_email(email.sender_email) && !is_unsubscribed(email.sender_email)
+                  ? handle_unsubscribe
+                  : undefined
+              }
+              on_manual_unsubscribed={() => {
+                if (email) mark_unsubscribed(email.sender_email);
+              }}
+              unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
               on_view_source={viewer.handle_per_message_view_source}
               size_bytes={viewer.mail_item?.metadata?.size_bytes}
+              thread_draft={viewer.thread_draft}
               thread_list_ref={viewer.thread_list_ref}
               thread_messages={viewer.thread_messages}
               thread_sanitized={viewer.thread_sanitized}

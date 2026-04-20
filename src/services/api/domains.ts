@@ -309,9 +309,11 @@ export async function get_domain(
 
 export async function add_domain(
   domain_name: string,
+  captcha_token?: string,
 ): Promise<ApiResponse<AddDomainResponse>> {
   return api_client.post<AddDomainResponse>("/addresses/v1/domains", {
     domain_name,
+    captcha_token,
   });
 }
 
@@ -381,6 +383,7 @@ export async function add_domain_address(
   domain_id: string,
   local_part: string,
   domain_name: string,
+  captcha_token?: string,
   display_name?: string,
   profile_picture?: string,
 ): Promise<ApiResponse<DomainAddress>> {
@@ -404,11 +407,13 @@ export async function add_domain_address(
     encrypted_display_name?: string;
     display_name_nonce?: string;
     profile_picture?: string;
+    captcha_token?: string;
   } = {
     encrypted_local_part,
     local_part_nonce,
     local_part_hash: address_hash,
     address_routing_hash,
+    captcha_token,
   };
 
   if (display_name) {

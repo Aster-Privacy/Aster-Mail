@@ -26,6 +26,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
   ModalHeader,
@@ -143,11 +144,13 @@ export function TotpDisableModal({
         return;
       }
 
+      show_toast(t("settings.two_factor_auth_disabled"), "success");
       on_success();
       on_close();
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       set_error(t("common.failed_to_disable_2fa"));
+      show_toast(t("common.failed_to_disable_2fa"), "error");
     } finally {
       set_is_loading(false);
     }
@@ -156,8 +159,8 @@ export function TotpDisableModal({
   return (
     <Modal is_open={is_open} on_close={on_close} size="md">
       <ModalHeader>
-        <div className="flex items-center gap-3 mb-2">
-          <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
+        <div className="flex items-center gap-3">
+          <ExclamationTriangleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
           <ModalTitle>{t("settings.disable_two_factor_auth")}</ModalTitle>
         </div>
         <ModalDescription>
@@ -180,7 +183,7 @@ export function TotpDisableModal({
                   ref={(el) => {
                     input_refs.current[index] = el;
                   }}
-                  className="w-10 h-12 text-center text-lg font-semibold"
+                  className="w-11 h-14 text-center text-xl font-semibold"
                   disabled={is_loading}
                   id={index === 0 ? "totp-code-0" : undefined}
                   inputMode="numeric"

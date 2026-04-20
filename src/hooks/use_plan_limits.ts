@@ -64,7 +64,7 @@ export function use_plan_limits() {
 
   const is_feature_locked = useCallback(
     (feature_key: string): boolean => {
-      if (!limits) return false;
+      if (!limits) return true;
       const info = limits.limits[feature_key];
 
       if (!info) return false;

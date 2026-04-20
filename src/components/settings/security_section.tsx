@@ -20,7 +20,10 @@
 //
 import { useState } from "react";
 import { Button, Switch } from "@aster/ui";
-import { ShieldCheckIcon } from "@heroicons/react/24/outline";
+import {
+  ShieldCheckIcon,
+  PhotoIcon,
+} from "@heroicons/react/24/outline";
 
 import { TotpSetupModal } from "./totp_setup_modal";
 import { TotpDisableModal } from "./totp_disable_modal";
@@ -58,8 +61,8 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
       <div>
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("mail.tracking_protection")}
+            <PhotoIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.images_section_title")}
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
@@ -67,85 +70,56 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
             <p className="text-sm font-medium text-txt-primary">
-              {t("settings.block_external_content")}
+              {t("settings.block_remote_images_label")}
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.block_external_content_description")}
+              {t("settings.block_remote_images_description")}
             </p>
           </div>
           <Switch
-            checked={preferences.block_external_content}
+            checked={preferences.block_remote_images}
             onCheckedChange={() => {
-              const new_value = !preferences.block_external_content;
+              const new_value = !preferences.block_remote_images;
 
-              if (new_value) {
-                const mode =
-                  preferences.external_content_blocking_mode || "trackers";
-                const block_images = mode === "images" || mode === "both";
-                const block_trackers = mode === "trackers" || mode === "both";
-
-                update_preferences({
-                  block_external_content: true,
-                  external_content_blocking_mode: mode,
-                  block_remote_images: block_images,
-                  block_remote_fonts: block_trackers,
-                  block_remote_css: block_trackers,
-                  block_tracking_pixels: block_trackers,
-                  load_remote_images: block_images ? "never" : "always",
-                });
-              } else {
-                update_preferences({
-                  block_external_content: false,
-                  block_remote_images: false,
-                  block_remote_fonts: false,
-                  block_remote_css: false,
-                  block_tracking_pixels: false,
-                  load_remote_images: "always",
-                });
-              }
+              update_preferences({
+                block_remote_images: new_value,
+                load_remote_images: new_value ? "never" : "always",
+              });
             }}
           />
         </div>
 
-        {preferences.block_external_content && (
+        {preferences.block_remote_images && (
           <div className="flex items-center justify-between py-4">
             <div className="flex-1 pr-4">
               <p className="text-sm font-medium text-txt-primary">
-                {t("settings.blocking_mode")}
+                {t("settings.remote_image_loading")}
               </p>
               <p className="text-sm mt-0.5 text-txt-muted">
-                {t("settings.blocking_mode_description")}
+                {t("settings.remote_image_loading_description")}
               </p>
             </div>
             <Select
-              value={preferences.external_content_blocking_mode || "trackers"}
+              value={preferences.load_remote_images || "never"}
               onValueChange={(v) => {
-                const mode = v as "trackers" | "images" | "both";
-                const block_images = mode === "images" || mode === "both";
-                const block_trackers = mode === "trackers" || mode === "both";
-
-                update_preferences({
-                  external_content_blocking_mode: mode,
-                  block_remote_images: block_images,
-                  block_remote_fonts: block_trackers,
-                  block_remote_css: block_trackers,
-                  block_tracking_pixels: block_trackers,
-                  load_remote_images: block_images ? "never" : "always",
-                });
+                update_preference(
+                  "load_remote_images",
+                  v as "always" | "ask" | "never",
+                );
               }}
             >
               <SelectTrigger className="w-[200px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="trackers">
-                  {t("settings.trackers_only")}
+                <SelectItem value="never">
+                  {t("settings.remote_images_never")}
                 </SelectItem>
-                <SelectItem value="images">
-                  {t("settings.images_only")}
+                <SelectItem value="ask">
+                  {t("settings.remote_images_ask")}
                 </SelectItem>
-                <SelectItem value="both">
-                  {t("settings.images_and_trackers")}
+                <SelectItem value="always">
+                  {t("settings.remote_images_always")}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -155,22 +129,120 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
             <p className="text-sm font-medium text-txt-primary">
-              {t("settings.show_tracking_protection")}
+              {t("settings.block_remote_fonts_label")}
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.show_tracking_protection_description")}
+              {t("settings.block_remote_fonts_description")}
             </p>
           </div>
           <Switch
-            checked={preferences.show_tracking_protection !== false}
+            checked={preferences.block_remote_fonts}
             onCheckedChange={() =>
               update_preference(
-                "show_tracking_protection",
-                preferences.show_tracking_protection === false,
+                "block_remote_fonts",
+                !preferences.block_remote_fonts,
               )
             }
           />
         </div>
+
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.block_remote_css_label")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.block_remote_css_description")}
+            </p>
+          </div>
+          <Switch
+            checked={preferences.block_remote_css}
+            onCheckedChange={() =>
+              update_preference(
+                "block_remote_css",
+                !preferences.block_remote_css,
+              )
+            }
+          />
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.tracking_protection_title")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.tracking_protection_enabled")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.tracking_protection_enabled_description")}
+            </p>
+          </div>
+          <Switch
+            checked={preferences.block_external_content}
+            onCheckedChange={() => {
+              const new_value = !preferences.block_external_content;
+
+              if (new_value) {
+                update_preferences({
+                  block_external_content: true,
+                  block_tracking_pixels: true,
+                });
+              } else {
+                update_preferences({
+                  block_external_content: false,
+                  block_tracking_pixels: false,
+                });
+              }
+            }}
+          />
+        </div>
+
+        {preferences.block_external_content && (
+          <>
+            <div className="flex items-center justify-between py-4">
+              <div className="flex-1 pr-4">
+                <p className="text-sm font-medium text-txt-primary">
+                  {t("settings.block_spy_pixels")}
+                </p>
+                <p className="text-sm mt-0.5 text-txt-muted">
+                  {t("settings.block_spy_pixels_description")}
+                </p>
+              </div>
+              <Switch
+                checked={preferences.block_tracking_pixels}
+                onCheckedChange={() =>
+                  update_preference(
+                    "block_tracking_pixels",
+                    !preferences.block_tracking_pixels,
+                  )
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between py-4">
+              <div className="flex-1 pr-4">
+                <p className="text-sm font-medium text-txt-primary">
+                  {t("settings.block_tracking_links")}
+                </p>
+                <p className="text-sm mt-0.5 text-txt-muted">
+                  {t("settings.block_tracking_links_description")}
+                </p>
+              </div>
+              <Switch
+                checked={preferences.block_external_content}
+                disabled
+              />
+            </div>
+          </>
+        )}
       </div>
 
       <TwoFactorSection

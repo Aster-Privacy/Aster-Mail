@@ -59,7 +59,7 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
       animate="animate"
       className="flex flex-col items-center w-full max-w-sm px-4 text-center"
       exit="exit"
-      initial="initial"
+      initial={false}
       transition={page_transition}
       variants={page_variants}
     >

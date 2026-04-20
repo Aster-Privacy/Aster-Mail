@@ -27,6 +27,7 @@ import App from "@/App";
 import { Provider } from "@/provider";
 import { initialize_capacitor, hide_splash } from "@/native/capacitor_bridge";
 import { start_version_check } from "@/lib/version_check";
+import { connection_store } from "@/services/routing/connection_store";
 import "@/styles/fonts.css";
 import "@/styles/globals.css";
 import "@/styles/mobile.css";
@@ -53,6 +54,8 @@ initialize_capacitor().catch((e) => {
 });
 
 start_version_check();
+
+connection_store.initialize().catch(() => {});
 
 const is_tauri_runtime =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;

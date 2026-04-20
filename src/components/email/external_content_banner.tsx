@@ -183,7 +183,7 @@ export function ExternalContentBanner({
     blocked_content.blocked_items && blocked_content.blocked_items.length > 0;
 
   return (
-    <div className="mb-4">
+    <div className="mb-4 px-4">
       <div className="rounded-lg bg-surf-tertiary text-txt-secondary border border-edge-primary">
         <div className="flex items-center justify-between px-4 py-2.5">
           <div className="flex items-center gap-3 min-w-0">

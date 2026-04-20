@@ -73,3 +73,5 @@ payment_smoke_*.png
 payment_smoke_results.json
 dist_old/
 tsconfig.node.tsbuildinfo
+
+_tmp/

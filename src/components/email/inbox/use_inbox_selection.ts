@@ -20,7 +20,7 @@
 //
 import type { InboxEmail } from "@/types/email";
 
-import { useMemo, useCallback, useRef } from "react";
+import { useMemo, useCallback, useRef, useState } from "react";
 
 import { use_email_selection } from "@/hooks/use_email_selection";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
@@ -77,11 +77,21 @@ export function use_inbox_selection({
   const shift_ref = use_shift_key_ref();
   const last_selected_id_ref = useRef<string | null>(null);
 
+  const [select_all_mode, set_select_all_mode] = useState(false);
+  const activate_select_all_mode = useCallback(() => {
+    set_select_all_mode(true);
+  }, []);
+  const exit_select_all_mode = useCallback(() => {
+    set_select_all_mode(false);
+  }, []);
+
   const handle_toggle_select = useCallback(
     (id: string): void => {
       const shift = shift_ref.current;
       const last_id = last_selected_id_ref.current;
       const update_fn = get_update_fn();
+
+      set_select_all_mode(false);
 
       if (shift && last_id !== null && last_id !== id) {
         const last_index = page_emails.findIndex((e) => e.id === last_id);
@@ -118,6 +128,8 @@ export function use_inbox_selection({
     const all_page_selected = page_emails.every((e) => e.is_selected);
     const update_fn = get_update_fn();
 
+    set_select_all_mode(false);
+
     emails.forEach((e) => {
       if (page_id_set.has(e.id)) {
         update_fn(e.id, { is_selected: !all_page_selected });
@@ -127,6 +139,8 @@ export function use_inbox_selection({
 
   const handle_clear_selection = useCallback((): void => {
     const update_fn = get_update_fn();
+
+    set_select_all_mode(false);
 
     emails.forEach((e) => {
       if (e.is_selected) {
@@ -216,5 +230,8 @@ export function use_inbox_selection({
     handle_select_by_filter,
     get_folder_status_for_selection,
     get_tag_status_for_selection,
+    select_all_mode,
+    activate_select_all_mode,
+    exit_select_all_mode,
   };
 }

@@ -55,6 +55,7 @@ export interface MailItem {
   snoozed_until?: string;
   is_trashed?: boolean;
   is_spam?: boolean;
+  is_read?: boolean;
   folders?: MailItemFolder[];
   tag_tokens?: string[];
   metadata?: MailItemMetadata;
@@ -348,6 +349,62 @@ export async function empty_trash(): Promise<
 > {
   return api_client.delete<{ success: boolean; deleted_count: number }>(
     "/mail/v1/messages/trash",
+    { timeout: 120000 },
+  );
+}
+
+export type BulkScopeAction =
+  | "trash"
+  | "archive"
+  | "unarchive"
+  | "mark_read"
+  | "mark_unread"
+  | "star"
+  | "unstar"
+  | "mark_spam"
+  | "unmark_spam"
+  | "restore_trash";
+
+export interface BulkScopeFilter {
+  item_type?: string;
+  is_archived?: boolean;
+  is_trashed?: boolean;
+  is_spam?: boolean;
+  is_starred?: boolean;
+  is_snoozed?: boolean;
+}
+
+export interface BulkScopeRequest {
+  action: BulkScopeAction;
+  scope: BulkScopeFilter;
+  exclude_ids?: string[];
+}
+
+export interface BulkScopeResponse {
+  batch_id: string;
+  affected_count: number;
+  undoable: boolean;
+}
+
+export async function bulk_action_by_scope(
+  data: BulkScopeRequest,
+): Promise<ApiResponse<BulkScopeResponse>> {
+  return api_client.post<BulkScopeResponse>("/mail/v1/messages/bulk/scope", data, {
+    timeout: 120000,
+  });
+}
+
+export interface BulkUndoResponse {
+  success: boolean;
+  restored_count: number;
+}
+
+export async function bulk_undo(
+  batch_id: string,
+): Promise<ApiResponse<BulkUndoResponse>> {
+  return api_client.post<BulkUndoResponse>(
+    "/mail/v1/messages/bulk/undo",
+    { batch_id },
     { timeout: 120000 },
   );
 }

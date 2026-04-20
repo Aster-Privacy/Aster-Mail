@@ -27,7 +27,7 @@ export interface step_generating_props {
 
 export function StepGenerating({ reg }: step_generating_props) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6">
+    <div className="flex flex-1 flex-col items-center justify-center px-6 bg-[var(--bg-primary)]">
       <Spinner className="h-10 w-10 text-[#4a7aff]" size="lg" />
       <h2 className="mt-8 text-2xl font-bold text-[var(--text-primary)]">
         {reg.t("auth.setting_up_account")}

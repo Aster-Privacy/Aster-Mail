@@ -676,7 +676,9 @@ export function strip_html_tags(html: string): string {
     .replace(/&amp;/gi, "&");
 
   result = result
+    .replace(/<head[^>]*>[\s\S]*?<\/head>/gi, "")
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<style[^>]*\/>/gi, "")
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/<br\s*\/?>/gi, " ")
     .replace(/<\/p>/gi, " ")

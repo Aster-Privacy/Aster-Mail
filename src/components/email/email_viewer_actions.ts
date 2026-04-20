@@ -40,8 +40,8 @@ import {
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
 import { print_email } from "@/utils/print_email";
-import { open_external } from "@/utils/open_link";
-import { confirm_unsubscribe } from "@/components/modals/unsubscribe_confirmation_modal";
+import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import { set_forward_mail_id } from "@/services/forward_store";
 
@@ -474,29 +474,47 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     });
   }, [deps.email, deps.format_email_detail]);
 
-  const handle_unsubscribe = useCallback(() => {
+  const handle_unsubscribe = useCallback(async () => {
     if (!deps.email?.unsubscribe_info) return;
     const info = deps.email.unsubscribe_info;
-    const sender_name = deps.email.sender ?? "";
 
-    if (info.unsubscribe_link) {
-      confirm_unsubscribe("url", info.unsubscribe_link, sender_name).then(
-        (confirmed) => {
-          if (confirmed) {
-            open_external(info.unsubscribe_link!);
-          }
-        },
-      );
-    } else if (info.unsubscribe_mailto) {
-      confirm_unsubscribe("mailto", info.unsubscribe_mailto, sender_name).then(
-        (confirmed) => {
-          if (confirmed) {
-            window.location.href = `mailto:${encodeURIComponent(info.unsubscribe_mailto!)}?subject=Unsubscribe`;
-          }
-        },
-      );
+    try {
+      const result = await execute_unsubscribe(info);
+      if (result === "api") {
+        show_action_toast({
+          message: deps.t("mail.successfully_unsubscribed"),
+          action_type: "not_spam",
+          email_ids: [],
+        });
+        persist_unsubscribe(deps.email.sender_email, deps.email.sender || "", {
+          unsubscribe_link: info.unsubscribe_link,
+          list_unsubscribe_header: info.list_unsubscribe_header,
+        }, "auto");
+      } else {
+        const url = info.unsubscribe_link || info.unsubscribe_mailto;
+        show_action_toast({
+          message: deps.t("mail.unsubscribe_manual_required"),
+          action_type: "not_spam",
+          email_ids: [],
+          duration_ms: 15000,
+          action_label: deps.t("mail.open_unsubscribe_page"),
+          on_undo: async () => {
+            if (url) window.open(url, "_blank", "noopener,noreferrer");
+          },
+        });
+        persist_unsubscribe(deps.email.sender_email, deps.email.sender || "", {
+          unsubscribe_link: info.unsubscribe_link,
+          list_unsubscribe_header: info.list_unsubscribe_header,
+        }, "manual");
+      }
+    } catch {
+      show_action_toast({
+        message: deps.t("mail.unsubscribe_failed"),
+        action_type: "not_spam",
+        email_ids: [],
+      });
     }
-  }, [deps.email]);
+  }, [deps.email, deps.t]);
 
   const build_reply_data = useCallback(
     (msg: DecryptedThreadMessage, is_reply_all: boolean): ReplyData => {

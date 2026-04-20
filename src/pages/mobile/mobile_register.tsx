@@ -38,6 +38,7 @@ import { StepGenerating } from "@/pages/mobile/mobile_register/step_generating";
 import { StepRecoveryKey } from "@/pages/mobile/mobile_register/step_recovery_key";
 import { StepRecoveryEmail } from "@/pages/mobile/mobile_register/step_recovery_email";
 import { StepRecoveryEmailVerification } from "@/pages/mobile/mobile_register/step_recovery_email_verification";
+import { RegisterStepPlanSelection } from "@/components/register/register_step_plan_selection";
 
 const MOBILE_STEP_ORDER = [
   "email",
@@ -46,6 +47,7 @@ const MOBILE_STEP_ORDER = [
   "recovery_key",
   "recovery_email",
   "recovery_email_verification",
+  "plan_selection",
 ] as const;
 
 function get_step_progress(step: string): number {
@@ -111,8 +113,11 @@ export default function MobileRegisterPage() {
   });
 
   const show_back =
-    effective_step !== "email" && effective_step !== "generating";
-  const show_progress = effective_step !== "generating";
+    effective_step !== "email" &&
+    effective_step !== "generating" &&
+    effective_step !== "plan_selection";
+  const show_progress =
+    effective_step !== "generating" && effective_step !== "plan_selection";
 
   const render_step = () => {
     switch (effective_step) {
@@ -159,6 +164,9 @@ export default function MobileRegisterPage() {
             reg={reg}
           />
         );
+
+      case "plan_selection":
+        return <RegisterStepPlanSelection reg={reg} />;
 
       default:
         return null;
@@ -252,9 +260,13 @@ export default function MobileRegisterPage() {
         <motion.div
           key={effective_step}
           animate="animate"
-          className="flex flex-1 min-h-0 flex-col overflow-hidden"
+          className={`flex flex-1 min-h-0 flex-col ${effective_step === "plan_selection" ? "overflow-y-auto" : "overflow-hidden"}`}
           exit="exit"
-          initial="initial"
+          initial={
+            effective_step === "generating" || reduce_motion
+              ? false
+              : "initial"
+          }
           transition={reduce_motion ? { duration: 0 } : page_slide_transition}
           variants={reduce_motion ? undefined : get_slide_variants()}
         >

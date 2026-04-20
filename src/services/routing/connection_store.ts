@@ -48,7 +48,7 @@ class ConnectionStore {
     try {
       const server_method = await this.load_method_from_server();
 
-      if (server_method && method === "direct") {
+      if (server_method) {
         method = server_method;
         await this.persist_value(STORAGE_KEY, method);
       }
@@ -147,79 +147,16 @@ class ConnectionStore {
     this.listeners.forEach((listener) => listener(snapshot));
   }
 
-  private async derive_encryption_key(): Promise<CryptoKey | null> {
-    try {
-      const csrf_token =
-        document.cookie
-          .split("; ")
-          .find((c) => c.startsWith("csrf_token="))
-          ?.split("=")[1] || "";
-
-      if (!csrf_token) return null;
-      const key_material = new TextEncoder().encode(
-        csrf_token + "aster-connection-pref-v1",
-      );
-      const hash = await crypto.subtle.digest("SHA-256", key_material);
-
-      return crypto.subtle.importKey("raw", hash, "AES-GCM", false, [
-        "encrypt",
-        "decrypt",
-      ]);
-    } catch {
-      return null;
-    }
-  }
-
   private async sync_method_to_server(method: ConnectionMethod): Promise<void> {
-    const key = await this.derive_encryption_key();
-
-    if (!key) return;
-    const payload = JSON.stringify({ method, timestamp: Date.now() });
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encrypted = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      key,
-      new TextEncoder().encode(payload),
-    );
-    const encrypted_b64 = btoa(
-      String.fromCharCode(...new Uint8Array(encrypted)),
-    );
-    const nonce_b64 = btoa(String.fromCharCode(...iv));
-
-    await api_client.put("/settings/v1/preferences/connection", {
-      encrypted_connection: encrypted_b64,
-      connection_nonce: nonce_b64,
-    });
+    await api_client.put("/settings/v1/preferences/connection", { method });
   }
 
   private async load_method_from_server(): Promise<ConnectionMethod | null> {
-    const key = await this.derive_encryption_key();
+    const response = await api_client.get<{ method: string | null }>(
+      "/settings/v1/preferences/connection",
+    );
 
-    if (!key) return null;
-    const response = await api_client.get<{
-      encrypted_connection: string | null;
-      connection_nonce: string | null;
-    }>("/settings/v1/preferences/connection");
-
-    if (
-      !response.data?.encrypted_connection ||
-      !response.data?.connection_nonce
-    )
-      return null;
-    const encrypted = Uint8Array.from(
-      atob(response.data.encrypted_connection),
-      (c) => c.charCodeAt(0),
-    );
-    const iv = Uint8Array.from(atob(response.data.connection_nonce), (c) =>
-      c.charCodeAt(0),
-    );
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      encrypted,
-    );
-    const parsed = JSON.parse(new TextDecoder().decode(decrypted));
-    const server_method = parsed.method;
+    const server_method = response.data?.method;
 
     if (
       server_method === "direct" ||

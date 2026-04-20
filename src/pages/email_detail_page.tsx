@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SettingsSection } from "@/components/settings/settings_panel";
+
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EnvelopeIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -38,6 +41,21 @@ import { EmailDetailBody } from "@/components/email/email_detail/email_detail_bo
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
   const detail = use_email_detail();
+
+  useEffect(() => {
+    const handle_navigate = (e: Event) => {
+      const section = (e as CustomEvent<string>).detail as SettingsSection;
+
+      detail.set_settings_section(section);
+      detail.set_is_settings_open(true);
+    };
+
+    window.addEventListener("navigate-settings", handle_navigate);
+
+    return () => {
+      window.removeEventListener("navigate-settings", handle_navigate);
+    };
+  }, [detail]);
 
   return (
     <>
@@ -315,6 +333,16 @@ export default function EmailDetailPage() {
         on_close={() => detail.set_view_source_message(null)}
       />
       <ReplyModal
+        existing_draft={
+          detail.thread_draft
+            ? {
+                id: detail.thread_draft.id,
+                version: detail.thread_draft.version,
+                reply_to_id: detail.thread_draft.reply_to_id,
+                content: detail.thread_draft.content,
+              }
+            : null
+        }
         is_external={detail.reply_modal_data?.is_external}
         is_open={detail.is_reply_modal_open && !!detail.reply_modal_data}
         on_close={() => {

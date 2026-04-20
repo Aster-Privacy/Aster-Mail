@@ -154,12 +154,24 @@ export const ALLOWED_MIME_TYPES = new Set([
   "image/webp",
   "image/svg+xml",
   "image/bmp",
+  "image/heic",
+  "image/heif",
+  "image/avif",
+  "image/tiff",
   "audio/mpeg",
   "audio/wav",
   "audio/ogg",
+  "audio/aac",
+  "audio/mp4",
+  "audio/x-m4a",
+  "audio/webm",
+  "audio/flac",
   "video/mp4",
   "video/webm",
   "video/quicktime",
+  "video/3gpp",
+  "video/x-matroska",
+  "video/x-msvideo",
 ]);
 
 export const INITIAL_RECIPIENTS: RecipientsState = { to: [], cc: [], bcc: [] };
@@ -167,7 +179,7 @@ export const INITIAL_INPUTS: InputsState = { to: "", cc: "", bcc: "" };
 export const INITIAL_VISIBILITY: VisibilityState = { cc: false, bcc: false };
 
 export const FILE_INPUT_ACCEPT =
-  ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.txt,.csv,.html,.css,.js,.json,.xml,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.mp3,.wav,.ogg,.mp4,.webm,.mov";
+  ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.txt,.csv,.html,.css,.js,.json,.xml,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.heic,.heif,.avif,.tif,.tiff,.mp3,.wav,.ogg,.aac,.m4a,.weba,.flac,.mp4,.webm,.mov,.3gp,.mkv,.avi";
 
 export function generate_attachment_id(): string {
   return `att_${crypto.randomUUID()}`;
@@ -382,6 +394,7 @@ export {
 } from "@/components/compose/compose_toolbar";
 export {
   ComposeAttachments,
+  AttachmentListSimple,
   ComposeErrors,
   ComposeFileInput,
   ComposeFileInputSimple,

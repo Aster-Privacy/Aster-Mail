@@ -22,6 +22,7 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 import type { TranslationKey } from "@/lib/i18n";
 import type { MailItem } from "@/services/api/mail";
 import type { DecryptedEmail } from "@/components/email/hooks/use_popup_viewer";
+import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
 import { useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -34,6 +35,7 @@ import {
 } from "@/components/ui/popover";
 import { show_toast } from "@/components/toast/simple_toast";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
 
@@ -48,6 +50,7 @@ interface PopupEmailHeaderProps {
   format_email_popup: (date: Date) => string;
   on_close: () => void;
   on_compose?: (email: string) => void;
+  tracking_report?: ExternalContentReport | null;
 }
 
 export function PopupEmailHeader({
@@ -61,18 +64,24 @@ export function PopupEmailHeader({
   format_email_popup,
   on_close,
   on_compose,
+  tracking_report,
 }: PopupEmailHeaderProps) {
   const [show_headers, set_show_headers] = useState(false);
 
   return (
     <>
       <div className="flex items-center gap-2 mb-4">
-        <EncryptionInfoDropdown
-          has_pq_protection={!!mail_item?.ephemeral_pq_key}
-          has_recipient_key={!!mail_item?.has_recipient_key}
-          is_external={!!mail_item?.is_external}
-          size={18}
-        />
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <EncryptionInfoDropdown
+            has_pq_protection={!!mail_item?.ephemeral_pq_key}
+            has_recipient_key={!!mail_item?.has_recipient_key}
+            is_external={!!mail_item?.is_external}
+            size={20}
+          />
+          {tracking_report && (
+            <TrackingProtectionShield report={tracking_report} size={20} />
+          )}
+        </div>
         <h1 className="text-lg font-semibold leading-snug flex-1 break-words min-w-0 text-txt-primary">
           {email.subject}
         </h1>
@@ -92,42 +101,43 @@ export function PopupEmailHeader({
         )}
       </div>
 
-      <div className="flex items-start gap-3">
-        <ProfileAvatar
-          clickable
-          use_domain_logo
-          email={email.sender_email}
-          name={email.sender}
-          on_compose={on_compose}
-          size="md"
-        />
+      {thread_messages.length > 1 && (
+        <div className="flex items-start gap-3">
+          <ProfileAvatar
+            clickable
+            use_domain_logo
+            email={email.sender_email}
+            name={email.sender}
+            on_compose={on_compose}
+            size="md"
+          />
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-sm text-txt-primary">
-              {email.sender}
-            </span>
-            {snoozed_until && (
-              <SnoozeBadge
-                className="flex-shrink-0"
-                size="default"
-                snoozed_until={snoozed_until}
-              />
-            )}
-          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-sm text-txt-primary">
+                {email.sender}
+              </span>
+              {snoozed_until && (
+                <SnoozeBadge
+                  className="flex-shrink-0"
+                  size="default"
+                  snoozed_until={snoozed_until}
+                />
+              )}
+            </div>
 
-          <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="text-xs text-txt-muted hover:text-txt-secondary transition-colors text-left max-w-[32ch] truncate">
-                  {email.to.length > 0
-                    ? `${t("common.to_label")} ${email.to
-                        .map((r) => r.name || r.email)
-                        .join(", ")}`
-                    : t("common.to_me")}{" "}
-                  &#x25BC;
-                </button>
-              </PopoverTrigger>
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="text-xs text-txt-muted hover:text-txt-secondary transition-colors text-left max-w-[32ch] truncate">
+                    {email.to.length > 0
+                      ? `${t("common.to_label")} ${email.to
+                          .map((r) => r.name || r.email)
+                          .join(", ")}`
+                      : t("common.to_me")}{" "}
+                    &#x25BC;
+                  </button>
+                </PopoverTrigger>
               <PopoverContent
                 align="start"
                 className="w-80 p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
@@ -282,6 +292,7 @@ export function PopupEmailHeader({
           </div>
         </div>
       </div>
+      )}
     </>
   );
 }

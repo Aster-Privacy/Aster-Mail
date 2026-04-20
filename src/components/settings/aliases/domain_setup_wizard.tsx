@@ -21,7 +21,12 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { DnsProvider } from "@/data/dns_providers";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import {
+  TurnstileWidget,
+  type TurnstileWidgetRef,
+  TURNSTILE_SITE_KEY,
+} from "@/components/auth/turnstile_widget";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRightIcon,
@@ -163,12 +168,17 @@ export function DomainSetupWizard({
   >(null);
   const [detected_provider, set_detected_provider] =
     useState<DnsProvider | null>(null);
+  const [captcha_token, set_captcha_token] = useState<string | null>(null);
+  const turnstile_ref = useRef<TurnstileWidgetRef>(null);
+  const turnstile_required = !!TURNSTILE_SITE_KEY;
 
   useEffect(() => {
     if (is_open && mode === "input") {
       set_domain_input("");
       set_error(null);
       set_detected_provider(null);
+      set_captcha_token(null);
+      turnstile_ref.current?.reset();
     }
     if (is_open) {
       set_current_step(0);
@@ -198,10 +208,15 @@ export function DomainSetupWizard({
     set_error(null);
 
     try {
-      const response = await add_domain(domain_input);
+      const response = await add_domain(
+        domain_input,
+        captcha_token ?? undefined,
+      );
 
       if (response.error) {
         set_error(response.error);
+        set_captcha_token(null);
+        turnstile_ref.current?.reset();
       } else if (response.data) {
         on_domain_added(response.data);
       }
@@ -209,6 +224,8 @@ export function DomainSetupWizard({
       set_error(
         err instanceof Error ? err.message : t("settings.failed_add_domain"),
       );
+      set_captcha_token(null);
+      turnstile_ref.current?.reset();
     } finally {
       set_saving(false);
     }
@@ -314,6 +331,15 @@ export function DomainSetupWizard({
               <p className="text-xs mt-2 text-txt-muted">
                 {t("settings.domain_without_www_note")}
               </p>
+              {turnstile_required && (
+                <div className="flex justify-center mt-4">
+                  <TurnstileWidget
+                    ref={turnstile_ref}
+                    on_expire={() => set_captcha_token(null)}
+                    on_verify={set_captcha_token}
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -341,7 +367,8 @@ export function DomainSetupWizard({
               disabled={
                 saving ||
                 !domain_input ||
-                !validate_domain_name(domain_input).valid
+                !validate_domain_name(domain_input).valid ||
+                (turnstile_required && !captcha_token)
               }
               variant="depth"
               onClick={handle_add}

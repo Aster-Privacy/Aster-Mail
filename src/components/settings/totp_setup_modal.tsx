@@ -318,8 +318,8 @@ export function TotpSetupModal({
   const render_backup_codes_step = () => (
     <>
       <ModalHeader>
-        <div className="flex items-center gap-3 mb-2">
-          <ShieldCheckIcon className="w-5 h-5 text-green-500" />
+        <div className="flex items-center gap-3">
+          <ShieldCheckIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
           <ModalTitle>{t("settings.two_factor_auth_enabled")}</ModalTitle>
         </div>
         <ModalDescription>

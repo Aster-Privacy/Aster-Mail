@@ -41,7 +41,7 @@ import { get_image_proxy_url } from "@/lib/image_proxy";
 import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_preferences } from "@/contexts/preferences_context";
-import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
+
 
 export function format_safe_date(
   timestamp: string | number | undefined,
@@ -197,13 +197,6 @@ export function MobileThreadMessage({
               >
                 {message.sender_name}
               </span>
-              {preferences.show_tracking_protection !== false &&
-                sanitize_result.external_content && (
-                  <TrackingProtectionShield
-                    t={t as never}
-                    tracking_report={sanitize_result.external_content}
-                  />
-                )}
               <span className="shrink-0 text-[11px] tabular-nums text-[var(--text-muted)]">
                 {format_safe_date(message.timestamp, format_detail)}
               </span>
@@ -296,13 +289,6 @@ export function MobileThreadMessage({
             </p>
           )}
           <div className="flex items-center gap-1">
-            {preferences.show_tracking_protection !== false &&
-              sanitize_result.external_content && (
-                <TrackingProtectionShield
-                  t={t as never}
-                  tracking_report={sanitize_result.external_content}
-                />
-              )}
             <span className="text-[11px] leading-tight tabular-nums text-[var(--text-muted)]">
               {format_safe_date(message.timestamp, format_detail)}
             </span>

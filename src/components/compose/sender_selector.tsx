@@ -157,6 +157,44 @@ interface SenderSelectorProps {
   ghost_expiry_days?: number;
   on_set_ghost_expiry?: (days: number) => void;
   ghost_error?: string | null;
+  preferred_id?: string | null;
+  on_set_preferred?: (id: string | null) => void;
+}
+
+function PinIcon({
+  filled,
+  className,
+}: {
+  filled: boolean;
+  className?: string;
+}) {
+  if (filled) {
+    return (
+      <svg
+        className={className}
+        fill="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="M14 4V2h-4v2H8l-2 7h4v7l2 2 2-2v-7h4l-2-7z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M14 4V2h-4v2H8l-2 7h4v7l2 2 2-2v-7h4l-2-7z" />
+    </svg>
+  );
 }
 
 function get_email_username(email: string): string {
@@ -166,15 +204,17 @@ function get_email_username(email: string): string {
 function render_option(
   option: SenderOption,
   is_selected: boolean,
+  is_preferred: boolean,
   on_click: () => void,
+  on_toggle_preferred: ((id: string) => void) | null,
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ) {
+  const pin_enabled = !!on_toggle_preferred && option.type !== "ghost";
+
   return (
-    <button
+    <div
       key={option.id}
-      className={`w-full px-3 py-2 flex items-center gap-2 text-left transition-colors ${is_selected ? "bg-surf-secondary" : ""}`}
-      type="button"
-      onClick={on_click}
+      className={`group w-full px-3 py-2 flex items-center gap-2 transition-colors ${is_selected ? "bg-surf-secondary" : ""}`}
       onMouseEnter={(e) => {
         if (!is_selected) {
           e.currentTarget.style.backgroundColor = "var(--bg-hover)";
@@ -186,63 +226,51 @@ function render_option(
         }
       }}
     >
-      <SenderOptionIcon option={option} size="xs" />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm truncate text-txt-primary">{option.email}</p>
-        {option.display_name && (
-          <p className="text-xs truncate text-txt-muted">
-            {option.display_name}
-          </p>
-        )}
-      </div>
-      {option.type === "alias" && (
-        <span
-          className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0"
-          style={{
-            backgroundColor: "var(--accent-muted)",
-            color: "var(--accent)",
+      <button
+        className="flex items-center gap-2 text-left flex-1 min-w-0"
+        type="button"
+        onClick={on_click}
+      >
+        <SenderOptionIcon option={option} size="xs" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm truncate text-txt-primary">{option.email}</p>
+          {option.display_name && (
+            <p className="text-xs truncate text-txt-muted">
+              {option.display_name}
+            </p>
+          )}
+        </div>
+      </button>
+      {pin_enabled && (
+        <button
+          aria-label={
+            is_preferred
+              ? t("common.unpin_preferred_sender")
+              : t("common.pin_preferred_sender")
+          }
+          className={`flex-shrink-0 p-1 rounded transition-opacity ${
+            is_preferred
+              ? "opacity-100 text-txt-primary"
+              : "opacity-0 group-hover:opacity-60 text-txt-muted hover:opacity-100"
+          }`}
+          title={
+            is_preferred
+              ? t("common.unpin_preferred_sender")
+              : t("common.pin_preferred_sender")
+          }
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            on_toggle_preferred!(option.id);
           }}
         >
-          {t("common.sender_type_alias")}
-        </span>
-      )}
-      {option.type === "domain" && (
-        <span
-          className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0"
-          style={{
-            backgroundColor: "rgba(147, 51, 234, 0.15)",
-            color: "rgb(147, 51, 234)",
-          }}
-        >
-          {t("common.sender_type_domain")}
-        </span>
-      )}
-      {option.type === "external" && (
-        <span
-          className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0"
-          style={{
-            backgroundColor: "rgba(20, 184, 166, 0.15)",
-            color: "rgb(20, 184, 166)",
-          }}
-        >
-          {t("common.sender_type_external")}
-        </span>
-      )}
-      {option.type === "ghost" && (
-        <span
-          className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0"
-          style={{
-            backgroundColor: "rgba(168, 85, 247, 0.15)",
-            color: "rgb(168, 85, 247)",
-          }}
-        >
-          {t("common.sender_type_ghost")}
-        </span>
+          <PinIcon className="w-3.5 h-3.5" filled={is_preferred} />
+        </button>
       )}
       {is_selected && (
         <CheckIcon className="w-4 h-4 flex-shrink-0 text-txt-primary" />
       )}
-    </button>
+    </div>
   );
 }
 
@@ -257,7 +285,14 @@ export function SenderSelector({
   ghost_expiry_days = 30,
   on_set_ghost_expiry,
   ghost_error,
+  preferred_id = null,
+  on_set_preferred,
 }: SenderSelectorProps) {
+  const toggle_preferred = on_set_preferred
+    ? (id: string) => {
+        on_set_preferred(preferred_id === id ? null : id);
+      }
+    : null;
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
   const [is_open, set_is_open] = useState(false);
@@ -394,10 +429,12 @@ export function SenderSelector({
                     render_option(
                       option,
                       selected?.id === option.id,
+                      preferred_id === option.id,
                       () => {
                         on_select(option);
                         set_is_open(false);
                       },
+                      toggle_preferred,
                       t,
                     ),
                   )}
@@ -414,10 +451,12 @@ export function SenderSelector({
                     render_option(
                       option,
                       selected?.id === option.id,
+                      preferred_id === option.id,
                       () => {
                         on_select(option);
                         set_is_open(false);
                       },
+                      toggle_preferred,
                       t,
                     ),
                   )}
@@ -434,10 +473,12 @@ export function SenderSelector({
                     render_option(
                       option,
                       selected?.id === option.id,
+                      preferred_id === option.id,
                       () => {
                         on_select(option);
                         set_is_open(false);
                       },
+                      toggle_preferred,
                       t,
                     ),
                   )}
@@ -454,10 +495,12 @@ export function SenderSelector({
                     render_option(
                       option,
                       selected?.id === option.id,
+                      preferred_id === option.id,
                       () => {
                         on_select(option);
                         set_is_open(false);
                       },
+                      toggle_preferred,
                       t,
                     ),
                   )}
@@ -472,10 +515,12 @@ export function SenderSelector({
                     render_option(
                       option,
                       selected?.id === option.id,
+                      false,
                       () => {
                         on_select(option);
                         set_is_open(false);
                       },
+                      null,
                       t,
                     ),
                   )}

@@ -126,6 +126,8 @@ interface ChangePasswordRequest {
 interface ChangePasswordResponse {
   success: boolean;
   message: string;
+  csrf_token?: string;
+  access_token?: string;
 }
 
 interface LoginAlertsStatusResponse {

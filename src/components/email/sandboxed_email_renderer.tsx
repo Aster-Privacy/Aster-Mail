@@ -159,8 +159,8 @@ export function SandboxedEmailRenderer({
   const base_font =
     "'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
 
-  const quote_toggle_css = `.aster-quote-toggle { background: rgba(128, 128, 128, 0.12) !important; border-color: rgba(128, 128, 128, 0.25) !important; color: rgba(100, 100, 100, 0.8) !important; }
-.aster-quote-toggle:hover { background: rgba(128, 128, 128, 0.2) !important; border-color: rgba(128, 128, 128, 0.4) !important; }
+  const quote_toggle_css = `.aster-quote-toggle { display: inline-block !important; padding: 0 3px !important; font-size: 6px !important; line-height: 12px !important; letter-spacing: 1px !important; background: rgba(128, 128, 128, 0.1) !important; border: 1px solid rgba(128, 128, 128, 0.15) !important; border-radius: 99px !important; color: rgba(100, 100, 100, 0.55) !important; cursor: pointer !important; vertical-align: middle !important; }
+.aster-quote-toggle:hover { background: rgba(128, 128, 128, 0.2) !important; border-color: rgba(128, 128, 128, 0.3) !important; }
 .aster-quoted-content { border-left-color: #60a5fa !important; }`;
 
   const plain_dark_css =
@@ -273,7 +273,8 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
         toggle_btn.className = "aster-quote-toggle";
         toggle_btn.type = "button";
-        toggle_btn.textContent = "\u2022\u2006\u2022\u2006\u2022";
+        toggle_btn.textContent = "\u2022\u2022\u2022";
+        toggle_btn.title = "Show trimmed content";
 
         const content_div = doc.createElement("div");
 
@@ -512,7 +513,8 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
     toggle_btn.className = "aster-quote-toggle";
     toggle_btn.type = "button";
-    toggle_btn.textContent = "\u2022\u2006\u2022\u2006\u2022";
+    toggle_btn.textContent = "\u2022\u2022\u2022";
+    toggle_btn.title = "Show trimmed content";
 
     const content_div = doc.createElement("div");
 
@@ -663,29 +665,42 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
     };
 
     let last_height = 0;
+    let last_width = 0;
 
-    const update_height = () => {
+    const measure_and_apply = () => {
+      const doc = iframe.contentDocument;
+      const body = doc?.body;
+
+      if (!body || !doc) return;
+
+      const doc_el = doc.documentElement;
+      const height = Math.min(
+        Math.max(body.scrollHeight, doc_el.scrollHeight) + 24,
+        MAX_IFRAME_HEIGHT,
+      );
+
+      if (height === last_height) return;
+      last_height = height;
+
+      set_iframe_height(`${height}px`);
+      set_height_ready(true);
+      if (email_id) {
+        iframe_height_cache.set(email_id, height);
+        schedule_ready();
+      }
+    };
+
+    const update_height = (reset_first: unknown = false) => {
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);
-      raf_ref.current = requestAnimationFrame(() => {
-        const body = iframe.contentDocument?.body;
-
-        if (!body) return;
-
+      if (reset_first === true) {
         iframe.style.height = "0px";
-        const height = Math.min(body.scrollHeight + 24, MAX_IFRAME_HEIGHT);
-
-        iframe.style.height = `${height}px`;
-
-        if (height === last_height) return;
-        last_height = height;
-
-        set_iframe_height(`${height}px`);
-        set_height_ready(true);
-        if (email_id) {
-          iframe_height_cache.set(email_id, height);
-          schedule_ready();
-        }
-      });
+        raf_ref.current = requestAnimationFrame(() => {
+          last_height = 0;
+          measure_and_apply();
+        });
+      } else {
+        raf_ref.current = requestAnimationFrame(measure_and_apply);
+      }
     };
 
     const immediate_height = iframe.contentDocument.body.scrollHeight;
@@ -714,7 +729,17 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
     const attach_observer = () => {
       if (!iframe.contentDocument?.body) return;
-      observer_ref.current = new ResizeObserver(update_height);
+      observer_ref.current = new ResizeObserver((entries) => {
+        let width_changed = false;
+        for (const entry of entries) {
+          const w = entry.contentRect.width;
+          if (last_width !== 0 && Math.abs(w - last_width) > 1) {
+            width_changed = true;
+          }
+          last_width = w;
+        }
+        update_height(width_changed);
+      });
       observer_ref.current.observe(iframe.contentDocument.body);
       update_height();
 
@@ -753,7 +778,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
     const doc = iframe.contentDocument;
 
     if (doc.fonts?.ready) {
-      doc.fonts.ready.then(update_height);
+      doc.fonts.ready.then(() => update_height());
     }
 
     iframe.contentDocument.addEventListener(
@@ -947,11 +972,11 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         style={{
           border: "none",
           width: "100%",
-          height: height_ready ? iframe_height : "auto",
-          minHeight: height_ready ? undefined : "200px",
+          height: height_ready ? iframe_height : "0px",
           maxHeight: "12000px",
           overflow: "hidden",
           display: show_preview ? "none" : "block",
+          opacity: height_ready ? 1 : 0,
           backgroundColor: effective_bg,
           touchAction: "pan-y",
         }}

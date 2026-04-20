@@ -115,9 +115,11 @@ export async function derive_conversation_id(
 
 async function fetch_prekey_bundle(
   username: string,
+  email?: string,
 ): Promise<PrekeyBundle | null> {
+  const params = email ? `?email=${encodeURIComponent(email)}` : "";
   const response = await api_client.get<PrekeyBundle>(
-    `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}`,
+    `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}${params}`,
   );
 
   if (response.error || !response.data) {
@@ -184,7 +186,7 @@ export async function encrypt_for_ratchet_recipient(
     let ephemeral_key_base64 = "";
 
     if (!ratchet) {
-      const bundle = await fetch_prekey_bundle(recipient_username);
+      const bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
 
       if (!bundle) {
         return null;

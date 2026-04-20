@@ -52,6 +52,7 @@ import {
   FunnelIcon,
   ChatBubbleBottomCenterTextIcon,
   ComputerDesktopIcon,
+  UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -65,8 +66,6 @@ import {
   get_plan_limits,
   get_storage_addons,
   get_credits,
-  get_referral_info,
-  get_referral_history,
 } from "@/services/api/billing";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { AccountSection } from "@/components/settings/account_section";
@@ -90,6 +89,7 @@ import { TemplatesSection } from "@/components/settings/templates_section";
 import { MailManagementSection } from "@/components/settings/mail_management_section";
 import { FeedbackSection } from "@/components/settings/feedback_section";
 import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section";
+import { ReferralTab } from "@/components/settings/referral_tab";
 import { TrustedDevicesPanel } from "@/components/settings/trusted_devices_panel";
 import { SettingsSaveIndicator } from "@/components/settings/settings_save_indicator";
 import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_prefetch";
@@ -106,6 +106,7 @@ export type SettingsSection =
   | "aliases"
   | "ghost_aliases"
   | "billing"
+  | "referral"
   | "import"
   | "notifications"
   | "signature"
@@ -174,6 +175,11 @@ function get_nav_items(t: (key: TranslationKey) => string): {
         icon: EyeSlashIcon,
       },
       { id: "billing", label: t("settings.billing"), icon: CreditCardIcon },
+      {
+        id: "referral",
+        label: t("settings.refer_a_friend"),
+        icon: UserGroupIcon,
+      },
     ],
     mail: [
       { id: "import", label: t("common.import"), icon: ArrowDownTrayIcon },
@@ -259,6 +265,7 @@ function SettingsPanelInner({
     aliases: null,
     ghost_aliases: null,
     billing: null,
+    referral: null,
     import: null,
     notifications: null,
     signature: null,
@@ -286,8 +293,6 @@ function SettingsPanelInner({
       get_plan_limits();
       get_storage_addons();
       get_credits();
-      get_referral_info();
-      get_referral_history();
       list_devices().then((res) => {
         set_has_devices((res.data?.devices?.length ?? 0) > 0);
       });
@@ -495,6 +500,8 @@ function SettingsPanelInner({
             <BillingSection />
           </Suspense>
         );
+      case "referral":
+        return <ReferralTab />;
       case "import":
         return <ImportSection />;
       case "notifications":

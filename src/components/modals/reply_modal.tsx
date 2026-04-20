@@ -48,6 +48,12 @@ interface ReplyModalProps {
     version: number;
     content: DraftContent;
   }) => void;
+  existing_draft?: {
+    id: string;
+    version: number;
+    reply_to_id?: string;
+    content: DraftContent;
+  } | null;
 }
 
 export function ReplyModal({
@@ -67,6 +73,7 @@ export function ReplyModal({
   thread_ghost_email,
   reply_from_address,
   on_draft_saved,
+  existing_draft,
 }: ReplyModalProps) {
   const modal = use_reply_modal({
     is_open,
@@ -85,6 +92,7 @@ export function ReplyModal({
     thread_ghost_email,
     reply_from_address,
     on_draft_saved,
+    existing_draft,
   });
 
   return (
@@ -142,6 +150,18 @@ export function ReplyModal({
             transition={{
               duration: modal.reduce_motion ? 0 : 0.25,
               ease: [0.32, 0.72, 0, 1],
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const files = Array.from(e.dataTransfer?.files || []);
+              if (files.length > 0) {
+                modal.handle_files_drop(files);
+              }
             }}
           >
             <ReplyHeader

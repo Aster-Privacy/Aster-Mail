@@ -529,6 +529,10 @@ class ApiClient {
     if (authenticated) {
       this.intentional_logout = false;
       this.session_expired_dispatched = false;
+      this.initial_auth_verified = true;
+      if (!this.last_refresh_timestamp) {
+        this.last_refresh_timestamp = Date.now();
+      }
       this.schedule_token_refresh();
     } else {
       this.clear_auth_state();

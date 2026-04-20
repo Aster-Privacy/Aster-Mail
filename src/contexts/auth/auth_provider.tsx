@@ -206,18 +206,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
             current_account_id: data.current_account_id,
           });
         }
-      } catch {
-        api_client.clear_auth_data();
-        api_client.set_authenticated(false);
+      } catch (e) {
+        safe_log_error(e);
         sync_client.disconnect();
-        set_state({
-          user: null,
+        set_state((prev) => ({
+          ...prev,
           is_loading: false,
-          is_authenticated: false,
-          has_keys: false,
-          accounts: [],
-          current_account_id: null,
-        });
+        }));
       }
     };
 
@@ -533,12 +528,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     sync_client.disconnect();
 
     try {
-      await api_client.post("/core/v1/auth/logout-all", {});
+      await api_client.post("/core/v1/auth/logout", {});
     } catch (e) {
       safe_log_error(e);
     }
 
     await clear_local_auth_data();
+    window.location.replace("/sign-in");
   }, [clear_local_auth_data]);
 
   const logout_all_handler = useCallback(async () => {
@@ -552,22 +548,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     await clear_local_auth_data();
+    window.location.replace("/sign-in");
   }, [clear_local_auth_data]);
 
   useEffect(() => {
-    const handle_session_expired = () => {
+    const handle_session_expired = async () => {
       sync_client.disconnect();
       api_client.clear_auth_data();
       api_client.set_authenticated(false);
-      set_state({
-        user: null,
-        is_loading: false,
-        is_authenticated: false,
-        has_keys: false,
-        accounts: [],
-        current_account_id: null,
-      });
+      await clear_local_auth_data();
       show_toast(t("common.session_expired_sign_in"), "info");
+      window.location.replace("/sign-in");
     };
 
     const handle_session_timeout = async () => {
@@ -581,11 +572,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       await clear_local_auth_data();
       show_toast(t("common.signed_out_inactivity"), "info");
+      window.location.replace("/sign-in");
     };
 
     const handle_session_revoked = async () => {
       await clear_local_auth_data();
       show_toast(t("common.device_revoked"), "info");
+      window.location.replace("/sign-in");
     };
 
     window.addEventListener(

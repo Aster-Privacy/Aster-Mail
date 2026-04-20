@@ -73,6 +73,7 @@ export interface CreateAliasRequest {
   alias_address_hash: string;
   routing_address_hash: string;
   domain: string;
+  captcha_token?: string;
 }
 
 export interface CreateAliasResponse {
@@ -297,6 +298,7 @@ export async function create_alias(
   local_part: string,
   domain: string,
   display_name?: string,
+  captcha_token?: string,
 ): Promise<ApiResponse<CreateAliasResponse>> {
   const normalized_local_part = local_part.toLowerCase().trim();
   const alias_hash = await compute_alias_hash(normalized_local_part, domain);
@@ -313,6 +315,7 @@ export async function create_alias(
     alias_address_hash: alias_hash,
     routing_address_hash: routing_hash,
     domain,
+    captcha_token,
   };
 
   if (display_name) {

@@ -160,6 +160,7 @@ export function use_editor({
 
       if (dragged_image_ref.current && editor) {
         e.preventDefault();
+        e.stopPropagation();
         const img = dragged_image_ref.current;
 
         dragged_image_ref.current = null;
@@ -192,6 +193,7 @@ export function use_editor({
       if (!files || files.length === 0) return;
 
       e.preventDefault();
+      e.stopPropagation();
 
       const drop_editor = editor_ref.current;
       const image_files: File[] = [];

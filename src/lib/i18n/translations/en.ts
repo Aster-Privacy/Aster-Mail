@@ -528,6 +528,8 @@ export const en: Translations = {
     select_label: "Select",
     simple_toolbar: "Simple",
     advanced_toolbar: "Advanced",
+    switch_to_simple: "Switch to simple",
+    switch_to_advanced: "Switch to advanced",
     star_selected: "Star",
     unstar_selected: "Remove star",
     all_short: "All",
@@ -759,6 +761,7 @@ export const en: Translations = {
     message_archived: "Message archived",
     message_moved_to_trash: "Message moved to trash",
     undo_failed: "Undo failed. Please try again.",
+    action_undone: "Action undone",
     expired: "Expired",
     expires_in: "Expires in ",
     report_phishing: "Report phishing",
@@ -1105,6 +1108,8 @@ export const en: Translations = {
     sender_type_domain: "Domain",
     sender_type_external: "External",
     sender_type_ghost: "Ghost",
+    pin_preferred_sender: "Pin as preferred sender",
+    unpin_preferred_sender: "Unpin preferred sender",
     recovery_email_label: "Recovery email",
     vault_access_error:
       "Unable to access your vault. Please sign out and back in.",
@@ -1424,17 +1429,32 @@ export const en: Translations = {
     force_dark_mode_emails: "Force Dark Mode for Emails",
     force_dark_mode_emails_description:
       "Always render email content in dark mode, overriding the email's original styling",
-    block_external_content: "Block External Content",
-    block_external_content_description:
-      "Block external content until you choose to load it",
-    blocking_mode: "Blocking Mode",
-    blocking_mode_description: "Choose what external content to block",
-    trackers_only: "Trackers only",
-    images_only: "Images only",
-    images_and_trackers: "Images & trackers",
-    show_tracking_protection: "Tracking Protection Shield",
-    show_tracking_protection_description:
-      "Show a shield icon in the email toolbar that displays how many trackers were blocked and which tracking links were cleaned",
+    images_section_title: "Images",
+    block_remote_images_label: "Block Remote Images",
+    block_remote_images_description:
+      "Prevent emails from loading images hosted on external servers",
+    remote_image_loading: "Remote Image Loading",
+    remote_image_loading_description:
+      "Control when remote images are loaded in emails",
+    remote_images_always: "Always load",
+    remote_images_ask: "Ask before loading",
+    remote_images_never: "Never load",
+    tracking_protection_title: "Tracking Protection",
+    tracking_protection_enabled: "Enable Tracking Protection",
+    tracking_protection_enabled_description:
+      "Block tracking elements embedded in emails to protect your privacy",
+    block_spy_pixels: "Block Spy Pixels",
+    block_spy_pixels_description:
+      "Block invisible tracking pixels that notify senders when you open an email",
+    block_tracking_links: "Clean Tracking Links",
+    block_tracking_links_description:
+      "Remove tracking parameters from links in emails",
+    block_remote_fonts_label: "Block Remote Fonts",
+    block_remote_fonts_description:
+      "Prevent emails from loading fonts from external servers",
+    block_remote_css_label: "Block Remote CSS",
+    block_remote_css_description:
+      "Prevent emails from loading stylesheets from external servers",
     enable_undo_send: "Enable Undo Send",
     undo_send_delay_description:
       "Delay sending emails so you can undo if needed",
@@ -1819,6 +1839,7 @@ export const en: Translations = {
     credit_type_reversal: "Reversal",
     credit_type_purchase: "Purchase",
     credit_transactions: "Credit Transactions",
+    refer_a_friend: "Refer a Friend",
     referral_program: "Referral Program",
     referral_program_description:
       "Invite friends to Aster and earn credits when they subscribe to a paid plan.",
@@ -1829,6 +1850,14 @@ export const en: Translations = {
     pending_referrals: "Pending",
     completed_referrals: "Completed",
     credits_earned: "Credits Earned",
+    referral_how_it_works: "How It Works",
+    referral_step_share:
+      "Share your unique referral link with friends, family, or colleagues.",
+    referral_step_signup:
+      "They sign up for Aster using your link and subscribe to a paid plan.",
+    referral_step_earn:
+      "You both earn credits - $2.00 for you and $1.00 for them, applied to your next renewal.",
+    referral_rewards: "Rewards",
     referral_not_eligible: "Referrals are not available at this time.",
     referral_not_eligible_description: "Please try again later.",
     referral_loading: "Loading referral info...",
@@ -1978,6 +2007,7 @@ export const en: Translations = {
     verify_2fa_setup:
       "Enter the 6-digit code from your authenticator app to verify the setup",
     two_factor_auth_enabled: "Two-Factor Authentication Enabled",
+    two_factor_auth_disabled: "Two-factor authentication has been disabled",
     backup_code_security_note:
       "Each backup code can only be used once. Store them securely.",
     delete_alias_confirmation:
@@ -2881,6 +2911,12 @@ export const en: Translations = {
       "Click Add New Record, select TXT, and enter the values below",
   },
   mail: {
+    all_on_page_selected:
+      "All {{ count }} conversations on this page are selected.",
+    select_all_in_folder:
+      "Select all {{ count }} conversations in {{ folder }}",
+    all_in_folder_selected:
+      "All {{ count }} conversations are selected.",
     inbox: "Inbox",
     sent: "Sent",
     drafts: "Drafts",
@@ -2983,6 +3019,14 @@ export const en: Translations = {
     block: "Block",
     unblock_sender: "Unblock sender",
     unsubscribe: "Unsubscribe",
+    load_external_content: "Load external content",
+    image: "image",
+    images: "images",
+    tracker: "tracker",
+    trackers: "trackers",
+    font: "font",
+    fonts: "fonts",
+    stylesheet: "stylesheet",
     unsubscribe_title: "Unsubscribe",
     unsubscribe_confirm_message:
       "Are you sure you want to unsubscribe from this mailing list?",
@@ -3329,7 +3373,8 @@ export const en: Translations = {
     unsubscribe_failed: "Unsubscribe failed",
     unsubscribe_try_again: "Please try again or use the link below",
     unsubscribe_manual_required:
-      "Opened unsubscribe page. Please complete it manually.",
+      "Failed to unsubscribe automatically. Please do it manually.",
+    open_unsubscribe_page: "Open unsubscribe page",
     stop_receiving_from: "Stop receiving emails from",
     send_email: "Send Email",
     purchase_receipt: "Purchase Receipt",
@@ -3354,6 +3399,7 @@ export const en: Translations = {
     email_is_clean:
       "This email appears clean - no tracking elements were detected.",
     param_removed_from_n_links: "{{param}} removed from {{count}} link(s)",
+    n_blocked: "{{count}} blocked",
     tracker_domain: "{{domain}}",
     remote_content_blocked: "Remote content blocked",
     remote_images_blocked_count: "{{count}} remote image(s) blocked",
@@ -3362,6 +3408,8 @@ export const en: Translations = {
     lines_count: "{{count}} lines",
     message_label: "message",
     messages_label: "messages",
+    older_messages: "{{count}} older messages",
+    older_message: "1 older message",
     star: "Star",
     unstar: "Unstar",
     mark_unread: "Mark unread",

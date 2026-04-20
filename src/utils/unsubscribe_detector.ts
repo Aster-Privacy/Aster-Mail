@@ -237,6 +237,59 @@ export function get_sender_domain(email: string): string {
 
 export type UnsubscribeResult = "api" | "link" | "mailto";
 
+export async function execute_unsubscribe(
+  unsub_info: UnsubscribeInfo,
+): Promise<UnsubscribeResult> {
+  const confirm_destination =
+    unsub_info.unsubscribe_link || unsub_info.unsubscribe_mailto || "";
+
+  if (!confirm_destination) {
+    throw new Error("No unsubscribe method available");
+  }
+
+  if (unsub_info.method === "one-click" && unsub_info.unsubscribe_link) {
+    const result = await proxy_unsubscribe({
+      method: "one-click",
+      url: unsub_info.unsubscribe_link,
+      list_unsubscribe_post: unsub_info.list_unsubscribe_post,
+    });
+
+    if (result.data?.success) {
+      return "api";
+    }
+  }
+
+  if (unsub_info.unsubscribe_link) {
+    if (unsub_info.method === "link" || unsub_info.method === "one-click") {
+      const result = await proxy_unsubscribe({
+        method: "link",
+        url: unsub_info.unsubscribe_link,
+      });
+
+      if (result.data?.success) {
+        return "api";
+      }
+    }
+
+    return "link";
+  }
+
+  if (unsub_info.unsubscribe_mailto) {
+    const result = await proxy_unsubscribe({
+      method: "mailto",
+      mailto_address: unsub_info.unsubscribe_mailto,
+    });
+
+    if (result.data?.success) {
+      return "api";
+    }
+
+    return "mailto";
+  }
+
+  throw new Error("No unsubscribe method available");
+}
+
 export async function perform_unsubscribe(
   _sender_email: string,
   sender_name: string,

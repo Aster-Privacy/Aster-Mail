@@ -264,29 +264,20 @@ export async function encrypt_for_recipients(
     const username = await resolve_username_for_key_lookup(recipient);
 
     if (!username) {
-      throw create_error(
-        "recipient_error",
-        `Invalid email format: ${recipient}`,
-      );
+      return { encrypted_body: body, is_encrypted: false };
     }
 
-    const key_response = await get_recipient_public_key(username);
+    const key_response = await get_recipient_public_key(username, recipient);
 
     if (key_response.error || !key_response.data) {
-      throw create_error(
-        "encryption_failed",
-        `Could not fetch encryption key for ${recipient}. Cannot send unencrypted.`,
-      );
+      return { encrypted_body: body, is_encrypted: false };
     }
 
     public_keys.push(key_response.data.public_key);
   }
 
   if (public_keys.length === 0) {
-    throw create_error(
-      "encryption_failed",
-      "No encryption keys available for recipients. Cannot send unencrypted.",
-    );
+    return { encrypted_body: body, is_encrypted: false };
   }
 
   try {
@@ -312,7 +303,7 @@ export async function fetch_internal_public_keys(
 
     if (!username) continue;
 
-    const key_response = await get_recipient_public_key(username);
+    const key_response = await get_recipient_public_key(username, recipient);
 
     if (key_response.data) {
       public_keys.push(key_response.data.public_key);

@@ -24,11 +24,12 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { get_cached_iframe_height } from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { use_i18n } from "@/lib/i18n/context";
-import { ExternalContentBanner } from "@/components/email/external_content_banner";
 import { type DraftWithContent } from "@/services/api/multi_drafts";
+import { is_system_email } from "@/lib/utils";
 import {
   use_email_viewer,
   type ReplyData,
@@ -36,13 +37,17 @@ import {
 } from "@/components/email/use_email_viewer";
 import {
   ViewerToolbarActions,
-  ViewerEmailHeader,
-  ViewerUnsubscribeBanner,
   ViewerThreadContent,
   ViewerErrorState,
   get_external_content_mode,
   set_external_content_mode,
 } from "@/components/email/viewer_shared";
+import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  persist_unsubscribe,
+  use_unsubscribed_senders,
+} from "@/hooks/use_unsubscribed_senders";
 
 export type FullReplyData = ReplyData;
 export type FullForwardData = ForwardData;
@@ -66,7 +71,7 @@ interface FullEmailViewerProps {
 export function FullEmailViewer({
   email_id,
   on_back,
-  snoozed_until,
+  snoozed_until: _snoozed_until,
   on_reply,
   on_forward,
   on_edit_draft,
@@ -79,6 +84,7 @@ export function FullEmailViewer({
   grouped_email_ids,
 }: FullEmailViewerProps): React.ReactElement {
   const { t } = use_i18n();
+  const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
   const viewer = use_email_viewer({
     email_id,
     on_dismiss: on_back,
@@ -117,12 +123,14 @@ export function FullEmailViewer({
 
     return { mode: cached || "blocked", report: null };
   });
+  const [loaded_content_types, set_loaded_content_types] = useState<Set<string>>(new Set());
 
   if (prev_email_id_ref.current !== email_id) {
     prev_email_id_ref.current = email_id;
     const cached = get_external_content_mode(email_id);
 
     set_external_content_state({ mode: cached || "blocked", report: null });
+    set_loaded_content_types(new Set());
   }
 
   const handle_external_content_detected = useCallback(
@@ -159,14 +167,61 @@ export function FullEmailViewer({
     [],
   );
 
-  const handle_load_external_content = useCallback(() => {
-    set_external_content_state({ mode: "loaded", report: null });
-    set_external_content_mode(email_id);
+  const handle_load_external_content = useCallback((types?: string[]) => {
+    if (!types) {
+      set_external_content_state((prev) => ({ mode: "loaded", report: prev.report }));
+      set_external_content_mode(email_id);
+      set_loaded_content_types(new Set());
+      return;
+    }
+    set_loaded_content_types((prev) => {
+      const next = new Set(prev);
+      for (const t of types) next.add(t);
+      return next;
+    });
   }, [email_id]);
 
-  const handle_dismiss_external_content = useCallback(() => {
-    set_external_content_state((prev) => ({ ...prev, mode: "dismissed" }));
-  }, []);
+  const handle_unsubscribe = useCallback(async (): Promise<"success" | "manual"> => {
+    const email = viewer.email;
+    if (!email?.unsubscribe_info?.has_unsubscribe) return "success";
+    if (is_system_email(email.sender_email)) return "success";
+
+    const info = email.unsubscribe_info;
+
+    try {
+      const result = await execute_unsubscribe(info);
+      if (result === "api") {
+        show_action_toast({
+          message: t("mail.successfully_unsubscribed"),
+          action_type: "not_spam",
+          email_ids: [],
+        });
+        mark_unsubscribed(email.sender_email);
+        persist_unsubscribe(email.sender_email, email.sender || "", {
+          unsubscribe_link: info.unsubscribe_link,
+          list_unsubscribe_header: info.list_unsubscribe_header,
+        }, "auto");
+        return "success";
+      }
+      show_action_toast({
+        message: t("mail.unsubscribe_manual_required"),
+        action_type: "not_spam",
+        email_ids: [],
+      });
+      persist_unsubscribe(email.sender_email, email.sender || "", {
+        unsubscribe_link: info.unsubscribe_link,
+        list_unsubscribe_header: info.list_unsubscribe_header,
+      }, "manual");
+      return "manual";
+    } catch {
+      show_action_toast({
+        message: t("mail.unsubscribe_failed"),
+        action_type: "not_spam",
+        email_ids: [],
+      });
+      return "manual";
+    }
+  }, [viewer.email, t, mark_unsubscribed]);
 
   const external_content_mode =
     external_content_state.mode === "loaded" ? "always" : undefined;
@@ -247,72 +302,53 @@ export function FullEmailViewer({
 
   return (
     <div className="flex flex-col h-full bg-surf-primary">
-      <div className="flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-3 border-b border-edge-primary flex-shrink-0">
+      <div className="flex items-center gap-1 px-2 sm:px-3 py-2 border-b border-edge-primary flex-shrink-0">
         <button
-          className="flex items-center gap-2 px-3 py-1.5 -ml-3 rounded-lg text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
+          className="flex items-center gap-1.5 px-2 py-1.5 mr-1 rounded-lg text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
           onClick={on_back}
         >
           <ArrowLeftIcon className="w-4 h-4" />
-          <span>{t("common.back")}</span>
         </button>
 
         {email ? (
           <>
-            <EncryptionInfoDropdown
-              has_pq_protection={viewer.has_pq_protection}
-              has_recipient_key={viewer.has_recipient_key}
-              is_external={viewer.is_external}
-              size={16}
+            <ViewerToolbarActions
+              spread_layout
+              can_go_next={can_go_next}
+              can_go_prev={can_go_prev}
+              current_index={current_index}
+              dropdown_align="end"
+              email={email}
+              is_archive_loading={viewer.is_archive_loading}
+              is_pin_loading={viewer.is_pin_loading}
+              is_pinned={viewer.is_pinned}
+              is_read={viewer.is_read}
+              is_spam={viewer.mail_item?.is_spam === true}
+              is_spam_loading={viewer.is_spam_loading}
+              is_trash_loading={viewer.is_trash_loading}
+              mail_item={viewer.mail_item}
+              on_archive={viewer.handle_archive}
+              on_navigate_next={on_navigate_next}
+              on_navigate_prev={on_navigate_prev}
+              on_not_spam={viewer.handle_not_spam}
+              on_pin_toggle={viewer.handle_pin_toggle}
+              on_print={viewer.handle_print}
+              on_read_toggle={viewer.handle_read_toggle}
+              on_spam={viewer.handle_spam}
+              on_trash={viewer.handle_trash}
+              on_unsubscribe={viewer.handle_unsubscribe}
+              thread_expand_state={viewer.thread_expand_state}
+              thread_list_ref={viewer.thread_list_ref}
+              thread_messages={viewer.thread_messages}
+              total_count={total_count}
             />
-            <div className="flex-1 min-w-0 flex items-center gap-3">
-              <span className="text-sm font-medium truncate text-txt-primary">
-                {email.subject}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <ViewerToolbarActions
-                can_go_next={can_go_next}
-                can_go_prev={can_go_prev}
-                current_index={current_index}
-                dropdown_align="end"
-                email={email}
-                is_archive_loading={viewer.is_archive_loading}
-                is_pin_loading={viewer.is_pin_loading}
-                is_pinned={viewer.is_pinned}
-                is_read={viewer.is_read}
-                is_spam={viewer.mail_item?.is_spam === true}
-                is_spam_loading={viewer.is_spam_loading}
-                is_trash_loading={viewer.is_trash_loading}
-                mail_item={viewer.mail_item}
-                on_archive={viewer.handle_archive}
-                on_navigate_next={on_navigate_next}
-                on_navigate_prev={on_navigate_prev}
-                on_not_spam={viewer.handle_not_spam}
-                on_pin_toggle={viewer.handle_pin_toggle}
-                on_print={viewer.handle_print}
-                on_read_toggle={viewer.handle_read_toggle}
-                on_spam={viewer.handle_spam}
-                on_trash={viewer.handle_trash}
-                on_unsubscribe={viewer.handle_unsubscribe}
-                thread_expand_state={viewer.thread_expand_state}
-                thread_list_ref={viewer.thread_list_ref}
-                thread_messages={viewer.thread_messages}
-                total_count={total_count}
-              />
-            </div>
           </>
         ) : (
-          <>
-            <div className="flex-1 min-w-0 flex items-center gap-3 overflow-hidden">
-              <Skeleton className="h-4 flex-1 max-w-[180px]" />
-            </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Skeleton className="w-8 h-8 rounded-md" />
-              <Skeleton className="w-8 h-8 rounded-md" />
-              <Skeleton className="w-8 h-8 rounded-md" />
-            </div>
-          </>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Skeleton className="w-8 h-8 rounded-md" />
+            <Skeleton className="w-8 h-8 rounded-md" />
+            <Skeleton className="w-8 h-8 rounded-md" />
+          </div>
         )}
       </div>
 
@@ -341,41 +377,36 @@ export function FullEmailViewer({
           </div>
         )}
         {email && (
-          <div className="px-2 py-3 sm:px-3 sm:py-4">
-            <ViewerEmailHeader
-              hide_subject
-              copy_to_clipboard={viewer.copy_to_clipboard}
-              email={email}
-              format_email_detail={viewer.format_email_detail}
-              has_pq_protection={viewer.has_pq_protection}
-              has_recipient_key={viewer.has_recipient_key}
-              is_external={viewer.is_external}
-              mail_item={viewer.mail_item}
-              snoozed_until={snoozed_until}
-              thread_messages={viewer.thread_messages}
-            />
-
-            <ViewerUnsubscribeBanner email={email} />
-
-            {external_content_state.mode === "blocked" &&
-              external_content_state.report &&
-              external_content_state.report.blocked_count > 0 && (
-                <ExternalContentBanner
-                  blocked_content={external_content_state.report}
-                  on_dismiss={handle_dismiss_external_content}
-                  on_load={handle_load_external_content}
+          <div className="py-4 sm:py-5">
+            <h1 className="px-4 sm:px-6 text-xl sm:text-2xl font-semibold text-txt-primary break-words mb-4">
+              <span className="inline-flex items-center gap-1 mr-2" style={{ verticalAlign: "-0.15em" }}>
+                <EncryptionInfoDropdown
+                  has_pq_protection={viewer.has_pq_protection}
+                  has_recipient_key={viewer.has_recipient_key}
+                  is_external={viewer.is_external}
+                  size={22}
                 />
-              )}
+                {external_content_state.report && (
+                  <TrackingProtectionShield
+                    report={external_content_state.report}
+                    size={22}
+                  />
+                )}
+              </span>
+              {email.subject}
+            </h1>
 
             <ViewerThreadContent
               current_user_email={viewer.current_user_email}
               current_user_name={viewer.current_user_name}
               email={email}
               external_content_mode={external_content_mode}
+              loaded_content_types={loaded_content_types}
               on_archive={viewer.handle_per_message_archive}
               on_edit_thread_draft={viewer.handle_edit_thread_draft}
               on_external_content_detected={handle_external_content_detected}
               on_forward={viewer.handle_per_message_forward}
+              on_load_external_content={handle_load_external_content}
               on_not_spam={
                 viewer.mail_item?.is_spam
                   ? viewer.handle_per_message_not_spam
@@ -385,9 +416,19 @@ export function FullEmailViewer({
               on_reply={viewer.handle_per_message_reply}
               on_reply_all={viewer.handle_per_message_reply_all}
               on_report_phishing={viewer.handle_per_message_report_phishing}
+              on_draft_saved={viewer.handle_draft_saved}
               on_thread_draft_deleted={viewer.handle_thread_draft_deleted}
               on_toggle_message_read={viewer.handle_toggle_message_read}
               on_trash={viewer.handle_per_message_trash}
+              on_unsubscribe={
+                email.unsubscribe_info?.has_unsubscribe && !is_system_email(email.sender_email) && !is_unsubscribed(email.sender_email)
+                  ? handle_unsubscribe
+                  : undefined
+              }
+              on_manual_unsubscribed={() => {
+                if (email) mark_unsubscribed(email.sender_email);
+              }}
+              unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
               on_view_source={viewer.handle_per_message_view_source}
               sending_message={viewer.sending_message}
               size_bytes={viewer.mail_item?.metadata?.size_bytes}

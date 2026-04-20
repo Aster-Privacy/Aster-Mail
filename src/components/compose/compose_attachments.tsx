@@ -19,15 +19,105 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UseComposeReturn } from "@/components/compose/use_compose";
+import type { Attachment } from "@/components/compose/compose_shared";
 
 import { useRef, useState, useCallback, useEffect } from "react";
 
-import { CloseIcon, FileIcon } from "@/components/common/icons";
+import { CloseIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   get_file_icon_color,
   FILE_INPUT_ACCEPT,
 } from "@/components/compose/compose_shared";
+
+function get_file_type_icon(mime_type: string): React.ReactNode {
+  const cls = "w-3.5 h-3.5";
+
+  if (mime_type.startsWith("image/")) {
+    return (
+      <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+      </svg>
+    );
+  }
+  if (mime_type.startsWith("video/")) {
+    return (
+      <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
+      </svg>
+    );
+  }
+  if (mime_type.startsWith("audio/")) {
+    return (
+      <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z" />
+      </svg>
+    );
+  }
+  if (mime_type === "application/pdf") {
+    return (
+      <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z" />
+      </svg>
+    );
+  }
+  if (mime_type.includes("spreadsheet") || mime_type.includes("excel") || mime_type === "text/csv") {
+    return (
+      <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z" />
+      </svg>
+    );
+  }
+  if (mime_type.includes("zip") || mime_type.includes("compressed") || mime_type.includes("rar")) {
+    return (
+      <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-2 6h-2v2h2v2h-2v2h-2v-2h2v-2h-2v-2h2v-2h-2V8h2v2h2v2z" />
+      </svg>
+    );
+  }
+  return (
+    <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z" />
+    </svg>
+  );
+}
+
+function AttachmentRow({
+  attachment,
+  on_remove,
+}: {
+  attachment: Attachment;
+  on_remove: (id: string) => void;
+}) {
+  const color = get_file_icon_color(attachment.mime_type);
+
+  return (
+    <div className="flex items-center gap-2 px-2 py-1 rounded group hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+      <span
+        className="flex-shrink-0"
+        style={{ color: color.text }}
+      >
+        {get_file_type_icon(attachment.mime_type)}
+      </span>
+      <span
+        className="text-xs truncate flex-1 min-w-0 text-txt-primary"
+        title={attachment.name}
+      >
+        {attachment.name}
+      </span>
+      <span className="text-[11px] text-txt-tertiary flex-shrink-0">
+        {attachment.size}
+      </span>
+      <button
+        className="text-txt-tertiary hover:text-txt-primary transition-colors duration-150 flex-shrink-0 opacity-0 group-hover:opacity-100"
+        type="button"
+        onClick={() => on_remove(attachment.id)}
+      >
+        <CloseIcon className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
 
 interface ComposeAttachmentsProps {
   compose: UseComposeReturn;
@@ -43,61 +133,80 @@ export function ComposeAttachments({
   if (compose.attachments.length === 0) return null;
 
   return (
-    <div className="border-t flex-shrink-0 border-edge-primary">
-      <div className="min-h-[48px] px-3 flex items-start pt-3 pb-2">
-        <div
-          ref={compose.attachments_scroll_ref}
-          className="flex gap-2 overflow-x-auto w-full pb-1 scrollbar-hide"
+    <div
+      ref={compose.attachments_scroll_ref}
+      className="border-t flex-shrink-0 border-edge-primary flex flex-col px-2 py-1.5 max-h-[140px] overflow-y-auto overscroll-contain"
+    >
+      {compose.attachments.map((attachment) => (
+        <AttachmentRow
+          key={attachment.id}
+          attachment={attachment}
+          on_remove={compose.remove_attachment}
+        />
+      ))}
+      {show_add_button && (
+        <button
+          className="flex items-center gap-2 px-2 py-1 text-[11px] text-txt-tertiary hover:text-txt-primary border border-dashed border-edge-primary rounded hover:border-edge-secondary transition-colors mt-0.5"
+          type="button"
+          onClick={compose.trigger_file_select}
         >
-          {compose.attachments.map((attachment) => {
-            const color = get_file_icon_color(attachment.mime_type);
+          <svg
+            className="w-3.5 h-3.5"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+          </svg>
+          <span>{t("mail.add_file")}</span>
+        </button>
+      )}
+    </div>
+  );
+}
 
-            return (
-              <div
-                key={attachment.id}
-                className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs whitespace-nowrap flex-shrink-0"
-                style={{
-                  backgroundColor: color.bg,
-                  border: `1px solid ${color.border}`,
-                }}
-              >
-                <span style={{ color: color.text }}>
-                  <FileIcon className="w-4 h-4 flex-shrink-0" />
-                </span>
-                <span
-                  className="font-medium whitespace-nowrap max-w-[120px] truncate text-txt-primary"
-                  title={attachment.name}
-                >
-                  {attachment.name}
-                </span>
-                <button
-                  className="attachment_close_btn transition-colors duration-150 flex-shrink-0"
-                  type="button"
-                  onClick={() => compose.remove_attachment(attachment.id)}
-                >
-                  <CloseIcon className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            );
-          })}
-          {show_add_button && (
-            <button
-              className="inline-flex items-center gap-1.5 px-2 py-1 text-xs text-default-500 hover:text-default-700 border border-dashed border-default-300 rounded hover:border-default-400 transition-colors whitespace-nowrap flex-shrink-0"
-              type="button"
-              onClick={compose.trigger_file_select}
-            >
-              <svg
-                className="w-3.5 h-3.5"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-              </svg>
-              <span>{t("mail.add_file")}</span>
-            </button>
-          )}
-        </div>
-      </div>
+interface AttachmentListSimpleProps {
+  attachments: Attachment[];
+  attachments_scroll_ref: React.RefObject<HTMLDivElement>;
+  remove_attachment: (id: string) => void;
+  trigger_file_select: () => void;
+  add_label: string;
+}
+
+export function AttachmentListSimple({
+  attachments,
+  attachments_scroll_ref,
+  remove_attachment,
+  trigger_file_select,
+  add_label,
+}: AttachmentListSimpleProps) {
+  if (attachments.length === 0) return null;
+
+  return (
+    <div
+      ref={attachments_scroll_ref}
+      className="border-t border-edge-primary flex flex-col px-2 py-1.5 max-h-[140px] overflow-y-auto overscroll-contain"
+    >
+      {attachments.map((attachment) => (
+        <AttachmentRow
+          key={attachment.id}
+          attachment={attachment}
+          on_remove={remove_attachment}
+        />
+      ))}
+      <button
+        className="flex items-center gap-2 px-2 py-1 text-[11px] text-txt-tertiary hover:text-txt-primary border border-dashed border-edge-primary rounded hover:border-edge-secondary transition-colors mt-0.5"
+        type="button"
+        onClick={trigger_file_select}
+      >
+        <svg
+          className="w-3.5 h-3.5"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+        </svg>
+        <span>{add_label}</span>
+      </button>
     </div>
   );
 }

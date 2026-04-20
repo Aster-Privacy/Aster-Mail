@@ -20,7 +20,12 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import {
+  TurnstileWidget,
+  type TurnstileWidgetRef,
+  TURNSTILE_SITE_KEY,
+} from "@/components/auth/turnstile_widget";
 import {
   ClipboardDocumentIcon,
   CheckIcon,
@@ -185,6 +190,9 @@ export function DomainForm({
   const [verification_message, set_verification_message] = useState<
     string | null
   >(null);
+  const [captcha_token, set_captcha_token] = useState<string | null>(null);
+  const turnstile_ref = useRef<TurnstileWidgetRef>(null);
+  const turnstile_required = !!TURNSTILE_SITE_KEY;
 
   useEffect(() => {
     if (is_open) {
@@ -204,6 +212,8 @@ export function DomainForm({
       set_verification_message(null);
       set_saving(false);
       set_is_verifying(false);
+      set_captcha_token(null);
+      turnstile_ref.current?.reset();
     }
   }, [is_open, mode, initial_domain_id, initial_records]);
 
@@ -230,11 +240,13 @@ export function DomainForm({
     set_error(null);
 
     try {
-      const response = await add_domain(trimmed);
+      const response = await add_domain(trimmed, captcha_token ?? undefined);
 
       if (response.error) {
         set_error(response.error);
         set_saving(false);
+        set_captcha_token(null);
+        turnstile_ref.current?.reset();
 
         return;
       }
@@ -377,6 +389,15 @@ export function DomainForm({
                   {validate_domain_name(domain_name).error}
                 </p>
               )}
+              {turnstile_required && (
+                <div className="flex justify-center mt-4">
+                  <TurnstileWidget
+                    ref={turnstile_ref}
+                    on_expire={() => set_captcha_token(null)}
+                    on_verify={set_captcha_token}
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -404,7 +425,8 @@ export function DomainForm({
               disabled={
                 saving ||
                 !domain_name ||
-                !validate_domain_name(domain_name).valid
+                !validate_domain_name(domain_name).valid ||
+                (turnstile_required && !captcha_token)
               }
               variant="depth"
               onClick={handle_create_domain}

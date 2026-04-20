@@ -35,6 +35,8 @@ import {
   forwardRef,
 } from "react";
 
+import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
+
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
@@ -70,8 +72,24 @@ interface ThreadMessagesListProps {
   on_close_inline_reply?: () => void;
   inline_mode?: "reply" | "reply_all" | "forward";
   on_set_inline_mode?: (mode: "reply" | "reply_all" | "forward") => void;
+  on_draft_saved?: (draft: {
+    id: string;
+    version: number;
+    content: import("@/services/api/multi_drafts").DraftContent;
+  }) => void;
+  existing_draft?: {
+    id: string;
+    version: number;
+    reply_to_id?: string;
+    content: import("@/services/api/multi_drafts").DraftContent;
+  } | null;
   preloaded_sanitized?: Map<string, PreloadedSanitizedContent>;
   size_bytes?: number;
+  on_unsubscribe?: () => Promise<"success" | "manual">;
+  on_manual_unsubscribed?: () => void;
+  unsubscribe_url?: string;
+  loaded_content_types?: Set<string>;
+  on_load_external_content?: (types?: string[]) => void;
 }
 
 export interface ThreadMessagesListRef {
@@ -117,8 +135,15 @@ export const ThreadMessagesList = forwardRef<
     on_close_inline_reply,
     inline_mode,
     on_set_inline_mode,
+    on_draft_saved,
+    existing_draft,
     preloaded_sanitized,
     size_bytes,
+    on_unsubscribe,
+    on_manual_unsubscribed,
+    unsubscribe_url,
+    loaded_content_types,
+    on_load_external_content,
   },
   ref,
 ): React.ReactElement {
@@ -132,6 +157,7 @@ export const ThreadMessagesList = forwardRef<
     [messages, preferences.conversation_order],
   );
   const [dark_mode_ids, set_dark_mode_ids] = useState<Set<string>>(new Set());
+  const [hidden_group_revealed, set_hidden_group_revealed] = useState(false);
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(() => {
     const initial = new Set<string>();
 
@@ -139,12 +165,13 @@ export const ThreadMessagesList = forwardRef<
       initial.add(messages[messages.length - 1].id);
     }
 
-    const unread = messages.filter((m) => !m.is_read);
-    const capped = unread.slice(-5);
+    if (messages.length <= 4) {
+      const unread = messages.filter((m) => !m.is_read);
 
-    capped.forEach((msg) => {
-      initial.add(msg.id);
-    });
+      unread.slice(-5).forEach((msg) => {
+        initial.add(msg.id);
+      });
+    }
 
     return initial;
   });
@@ -217,26 +244,30 @@ export const ThreadMessagesList = forwardRef<
     [messages],
   );
 
+  const prev_message_ids_key = useRef(message_ids_key);
+
   useEffect(() => {
+    if (prev_message_ids_key.current === message_ids_key) return;
+    prev_message_ids_key.current = message_ids_key;
+
     const new_expanded = new Set<string>();
 
     if (messages.length > 0) {
       new_expanded.add(messages[messages.length - 1].id);
     }
 
-    const unread = messages.filter((m) => !m.is_read);
-    const capped = unread.slice(-5);
+    if (messages.length <= 4) {
+      const unread = messages.filter((m) => !m.is_read);
 
-    capped.forEach((msg) => {
-      new_expanded.add(msg.id);
-    });
+      unread.slice(-5).forEach((msg) => {
+        new_expanded.add(msg.id);
+      });
+    }
 
     set_expanded_ids(new_expanded);
-  }, [message_ids_key, messages]);
-
-  useEffect(() => {
     auto_read_ids.current = new Set();
-  }, [message_ids_key]);
+    set_hidden_group_revealed(false);
+  }, [message_ids_key, messages]);
 
   const mark_as_read = useCallback(
     (msg: DecryptedThreadMessage) => {
@@ -310,6 +341,10 @@ export const ThreadMessagesList = forwardRef<
 
   const toggle = useCallback(
     (msg: DecryptedThreadMessage) => {
+      const is_last = messages.length > 0 && msg.id === messages[messages.length - 1].id;
+
+      if (is_last && expanded_ids.has(msg.id)) return;
+
       const is_expanding = !expanded_ids.has(msg.id);
 
       set_expanded_ids((prev) => {
@@ -462,8 +497,12 @@ export const ThreadMessagesList = forwardRef<
   }, [messages]);
 
   const collapse_all = useCallback(() => {
-    set_expanded_ids(new Set());
-  }, []);
+    if (messages.length > 0) {
+      set_expanded_ids(new Set([messages[messages.length - 1].id]));
+    } else {
+      set_expanded_ids(new Set());
+    }
+  }, [messages]);
 
   const first_unread_ref = useRef<HTMLDivElement>(null);
 
@@ -584,8 +623,96 @@ export const ThreadMessagesList = forwardRef<
     ],
   );
 
+  const visible_tail_count = 2;
+
+  const hidden_count = useMemo(() => {
+    if (hidden_group_revealed || display_messages.length <= visible_tail_count + 2) {
+      return 0;
+    }
+
+    return display_messages.length - 1 - visible_tail_count;
+  }, [display_messages.length, hidden_group_revealed]);
+
+  const hidden_ids = useMemo(() => {
+    if (hidden_count === 0) return null;
+
+    const ids = new Set<string>();
+
+    for (let i = 1; i <= hidden_count; i++) {
+      ids.add(display_messages[i].id);
+    }
+
+    return ids;
+  }, [display_messages, hidden_count]);
+
+  const render_message = (
+    msg: DecryptedThreadMessage,
+    display_idx: number,
+    extra_props?: { hide_bottom_border?: boolean },
+  ) => {
+    const is_last = msg.id === messages[messages.length - 1]?.id;
+
+    return (
+    <div
+      key={msg.id}
+      ref={msg.id === first_unread_id ? first_unread_ref : undefined}
+    >
+      <ThreadMessageBlock
+        external_content_mode={external_content_mode}
+        loaded_content_types={loaded_content_types}
+        hide_bottom_border={extra_props?.hide_bottom_border}
+        on_load_external_content={on_load_external_content}
+        on_unsubscribe={is_last ? on_unsubscribe : undefined}
+        on_manual_unsubscribed={is_last ? on_manual_unsubscribed : undefined}
+        unsubscribe_url={is_last ? unsubscribe_url : undefined}
+        force_dark_mode={force_all_dark_mode || dark_mode_ids.has(msg.id)}
+        inline_mode={inline_mode}
+        inline_reply_is_external={inline_reply_is_external}
+        inline_reply_thread_token={inline_reply_thread_token}
+        is_expanded={expanded_ids.has(msg.id)}
+        is_single_message={messages.length === 1}
+        is_last_in_thread={
+          messages.length > 1 && msg.id === messages[messages.length - 1].id
+        }
+        is_own_message={
+          msg.sender_email.toLowerCase() === current_user_email.toLowerCase()
+        }
+        is_read={read_ids.has(msg.id)}
+        is_reply={
+          preferences.conversation_order === "desc"
+            ? display_idx < display_messages.length - 1
+            : display_idx > 0
+        }
+        is_starred={starred_ids.has(msg.id)}
+        message={msg}
+        on_archive={on_archive}
+        on_close_inline_reply={on_close_inline_reply}
+        on_external_content_detected={on_external_content_detected}
+        on_forward={on_forward}
+        on_not_spam={on_not_spam}
+        on_print={on_print}
+        on_reply={on_reply}
+        on_reply_all={on_reply_all}
+        on_report_phishing={on_report_phishing}
+        on_set_inline_mode={on_set_inline_mode}
+        on_star_toggle={() => toggle_star(msg)}
+        on_toggle={() => toggle(msg)}
+        on_toggle_dark_mode={() => toggle_dark_mode(msg.id)}
+        on_toggle_read={() => toggle_read(msg)}
+        on_trash={on_trash}
+        on_draft_saved={on_draft_saved}
+        on_view_source={on_view_source}
+        existing_draft={existing_draft}
+        preloaded_sanitized={preloaded_sanitized?.get(msg.id)}
+        show_inline_reply={inline_reply_msg?.id === msg.id}
+        size_bytes={size_bytes}
+      />
+    </div>
+    );
+  };
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col ${messages.length > 1 ? "gap-0" : "gap-2"}`}>
       {(thread_message_count ?? messages.length) > 1 && !hide_counter && (
         <div className="flex items-center justify-end px-1">
           <span className="text-[11px] text-txt-muted">
@@ -593,52 +720,32 @@ export const ThreadMessagesList = forwardRef<
           </span>
         </div>
       )}
-      {display_messages.map((msg, idx) => (
-        <div
-          key={msg.id}
-          ref={msg.id === first_unread_id ? first_unread_ref : undefined}
-        >
-          <ThreadMessageBlock
-            external_content_mode={external_content_mode}
-            force_dark_mode={force_all_dark_mode || dark_mode_ids.has(msg.id)}
-            inline_mode={inline_mode}
-            inline_reply_is_external={inline_reply_is_external}
-            inline_reply_thread_token={inline_reply_thread_token}
-            is_expanded={expanded_ids.has(msg.id)}
-            is_own_message={
-              msg.sender_email.toLowerCase() ===
-              current_user_email.toLowerCase()
-            }
-            is_read={read_ids.has(msg.id)}
-            is_reply={
-              preferences.conversation_order === "desc"
-                ? idx < display_messages.length - 1
-                : idx > 0
-            }
-            is_starred={starred_ids.has(msg.id)}
-            message={msg}
-            on_archive={on_archive}
-            on_close_inline_reply={on_close_inline_reply}
-            on_external_content_detected={on_external_content_detected}
-            on_forward={on_forward}
-            on_not_spam={on_not_spam}
-            on_print={on_print}
-            on_reply={on_reply}
-            on_reply_all={on_reply_all}
-            on_report_phishing={on_report_phishing}
-            on_set_inline_mode={on_set_inline_mode}
-            on_star_toggle={() => toggle_star(msg)}
-            on_toggle={() => toggle(msg)}
-            on_toggle_dark_mode={() => toggle_dark_mode(msg.id)}
-            on_toggle_read={() => toggle_read(msg)}
-            on_trash={on_trash}
-            on_view_source={on_view_source}
-            preloaded_sanitized={preloaded_sanitized?.get(msg.id)}
-            show_inline_reply={inline_reply_msg?.id === msg.id}
-            size_bytes={size_bytes}
-          />
-        </div>
-      ))}
+      {display_messages.map((msg, idx) => {
+        if (hidden_ids?.has(msg.id)) {
+          if (idx === 1) {
+            return (
+              <div key="hidden-group" className="group/collapse relative h-[36px] -mt-px">
+                <div className="absolute left-0 right-0 top-1/2 border-t border-[var(--border-thread-divider)]" />
+                <button
+                  className="absolute left-0 right-0 top-0 h-full flex items-center px-[18px] cursor-pointer select-none z-10 hover:bg-surf-hover/10 transition-colors"
+                  onClick={() => set_hidden_group_revealed(true)}
+                >
+                  <span className="flex items-center justify-center w-[40px] h-[40px] rounded-full border border-[var(--border-thread-divider)] bg-[var(--bg-primary)] text-[15px] font-semibold text-txt-muted transition-colors">
+                    <span className="group-hover/collapse:hidden">{hidden_count}</span>
+                    <ChevronUpDownIcon className="w-5 h-5 hidden group-hover/collapse:block text-txt-muted" />
+                  </span>
+                </button>
+              </div>
+            );
+          }
+
+          return null;
+        }
+
+        return render_message(msg, idx, {
+          hide_bottom_border: idx === 0 && !!hidden_ids,
+        });
+      })}
     </div>
   );
 });

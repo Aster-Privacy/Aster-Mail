@@ -31,8 +31,6 @@ import {
   get_plan_limits,
   get_storage_addons,
   get_credits,
-  get_referral_info,
-  get_referral_history,
   get_stripe_config,
   format_price,
   type SubscriptionResponse,
@@ -42,8 +40,6 @@ import {
   type StorageAddonItem,
   type UserActiveAddon,
   type CreditBalanceResponse,
-  type ReferralInfo,
-  type ReferralHistoryItem,
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { use_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -58,7 +54,6 @@ import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card
 import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
 import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
-import { ReferralSection } from "@/components/settings/billing/referral_section";
 import { BillingHistorySection } from "@/components/settings/billing/billing_history_section";
 import { BillingDialogs } from "@/components/settings/billing/billing_dialogs";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
@@ -114,12 +109,6 @@ export function BillingSection() {
   const [show_manage_plan, set_show_manage_plan] = useState(false);
   const [credit_balance, set_credit_balance] =
     useState<CreditBalanceResponse | null>(null);
-  const [referral_info, set_referral_info] = useState<ReferralInfo | null>(
-    null,
-  );
-  const [referral_history_list, set_referral_history_list] = useState<
-    ReferralHistoryItem[]
-  >([]);
   const [is_initial_load, set_is_initial_load] = useState(true);
 
   const handle_currency_change = useCallback(
@@ -208,8 +197,6 @@ export function BillingSection() {
         limits_response,
         addons_response,
         credits_response,
-        referral_response,
-        referral_history_response,
       ] = await Promise.all([
         get_subscription(),
         get_available_plans(),
@@ -217,8 +204,6 @@ export function BillingSection() {
         get_plan_limits(),
         get_storage_addons(),
         get_credits(),
-        get_referral_info(),
-        get_referral_history(),
       ]);
 
       if (sub_response.data) {
@@ -239,12 +224,6 @@ export function BillingSection() {
       }
       if (credits_response.data) {
         set_credit_balance(credits_response.data);
-      }
-      if (referral_response.data) {
-        set_referral_info(referral_response.data);
-      }
-      if (referral_history_response.data) {
-        set_referral_history_list(referral_history_response.data.referrals);
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -496,11 +475,6 @@ export function BillingSection() {
       <CreditsSection
         credit_balance={credit_balance}
         set_credit_balance={set_credit_balance}
-      />
-
-      <ReferralSection
-        referral_history_list={referral_history_list}
-        referral_info={referral_info}
       />
 
       <BillingDialogs

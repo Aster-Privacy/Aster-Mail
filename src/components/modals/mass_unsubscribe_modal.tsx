@@ -37,6 +37,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { SnoozeIcon } from "@/components/common/icons";
 import { list_mail_items, bulk_patch_metadata } from "@/services/api/mail";
 import { batch_archive } from "@/services/api/archive";
+import { invalidate_mail_cache } from "@/hooks/email_list_cache";
 import {
   decrypt_mail_envelope,
   normalize_envelope_from,
@@ -378,6 +379,7 @@ export function MassUnsubscribeModal({
         await bulk_patch_metadata({ items: valid_updates });
       }
 
+      invalidate_mail_cache();
       await batch_archive({ ids: all_mail_ids, tier: "hot" });
       emit_mail_items_removed({ ids: all_mail_ids });
       invalidate_mail_stats();

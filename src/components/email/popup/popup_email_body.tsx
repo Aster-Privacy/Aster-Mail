@@ -26,19 +26,28 @@ import type {
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import type { MailItem } from "@/services/api/mail";
 import type { TranslationKey } from "@/lib/i18n";
+import type { DraftContent } from "@/services/api/multi_drafts";
 import type { DecryptedEmail } from "@/components/email/hooks/use_popup_viewer";
 
+import { useState, useCallback } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { ExternalContentBanner } from "@/components/email/external_content_banner";
-import { ViewerUnsubscribeBanner } from "@/components/email/viewer_shared";
+
+
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { get_latest_expanded_id } from "@/services/thread_service";
 import { use_preferences } from "@/contexts/preferences_context";
 import { PopupEmailHeader } from "@/components/email/popup/popup_email_header";
+import { is_system_email } from "@/lib/utils";
+import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  persist_unsubscribe,
+  use_unsubscribed_senders,
+} from "@/hooks/use_unsubscribed_senders";
 
 interface ExtractionResult {
   has_purchase_details: boolean;
@@ -67,7 +76,8 @@ interface PopupEmailBodyProps {
   on_close: () => void;
   on_compose?: (email: string) => void;
   on_external_content_detected: (report: ExternalContentReport) => void;
-  on_load_external_content: () => void;
+  on_load_external_content: (types?: string[]) => void;
+  loaded_content_types: Set<string>;
   on_dismiss_external_content: () => void;
   on_per_message_reply: (msg: DecryptedThreadMessage) => void;
   on_per_message_reply_all: (msg: DecryptedThreadMessage) => void;
@@ -79,6 +89,18 @@ interface PopupEmailBodyProps {
   on_per_message_not_spam?: (msg: DecryptedThreadMessage) => void;
   is_spam?: boolean;
   on_toggle_message_read: (message_id: string) => void;
+  on_draft_saved?: (draft: {
+    id: string;
+    version: number;
+    content: DraftContent;
+  }) => void;
+  existing_draft?: {
+    id: string;
+    version: number;
+    reply_to_id?: string;
+    content: DraftContent;
+  } | null;
+  thread_token?: string;
 }
 
 export function PopupEmailBody({
@@ -99,10 +121,11 @@ export function PopupEmailBody({
   on_compose,
   on_external_content_detected,
   on_load_external_content,
-  on_dismiss_external_content,
-  on_per_message_reply,
-  on_per_message_reply_all,
-  on_per_message_forward,
+  loaded_content_types,
+  on_dismiss_external_content: _on_dismiss_external_content,
+  on_per_message_reply: _on_per_message_reply,
+  on_per_message_reply_all: _on_per_message_reply_all,
+  on_per_message_forward: _on_per_message_forward,
   on_per_message_archive,
   on_per_message_trash,
   on_per_message_print,
@@ -110,8 +133,81 @@ export function PopupEmailBody({
   on_per_message_not_spam,
   is_spam,
   on_toggle_message_read,
+  on_draft_saved,
+  existing_draft,
+  thread_token,
 }: PopupEmailBodyProps) {
   const { preferences } = use_preferences();
+  const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
+  const [inline_reply_msg, set_inline_reply_msg] =
+    useState<DecryptedThreadMessage | null>(null);
+  const [inline_mode, set_inline_mode] = useState<
+    "reply" | "reply_all" | "forward"
+  >("reply");
+
+  const handle_inline_reply = useCallback((msg: DecryptedThreadMessage) => {
+    if (is_system_email(msg.sender_email)) return;
+    set_inline_reply_msg(msg);
+    set_inline_mode("reply");
+  }, []);
+
+  const handle_inline_reply_all = useCallback((msg: DecryptedThreadMessage) => {
+    if (is_system_email(msg.sender_email)) return;
+    set_inline_reply_msg(msg);
+    set_inline_mode("reply_all");
+  }, []);
+
+  const handle_inline_forward = useCallback((msg: DecryptedThreadMessage) => {
+    set_inline_reply_msg(msg);
+    set_inline_mode("forward");
+  }, []);
+
+  const handle_close_inline_reply = useCallback(() => {
+    set_inline_reply_msg(null);
+  }, []);
+
+  const is_external_thread = thread_messages.some((m) => m.is_external);
+
+  const handle_unsubscribe = useCallback(async (): Promise<"success" | "manual"> => {
+    if (!email?.unsubscribe_info?.has_unsubscribe) return "success";
+    if (is_system_email(email.sender_email)) return "success";
+
+    const info = email.unsubscribe_info;
+
+    try {
+      const result = await execute_unsubscribe(info);
+      if (result === "api") {
+        show_action_toast({
+          message: t("mail.successfully_unsubscribed"),
+          action_type: "not_spam",
+          email_ids: [],
+        });
+        mark_unsubscribed(email.sender_email);
+        persist_unsubscribe(email.sender_email, email.sender || "", {
+          unsubscribe_link: info.unsubscribe_link,
+          list_unsubscribe_header: info.list_unsubscribe_header,
+        }, "auto");
+        return "success";
+      }
+      show_action_toast({
+        message: t("mail.unsubscribe_manual_required"),
+        action_type: "not_spam",
+        email_ids: [],
+      });
+      persist_unsubscribe(email.sender_email, email.sender || "", {
+        unsubscribe_link: info.unsubscribe_link,
+        list_unsubscribe_header: info.list_unsubscribe_header,
+      }, "manual");
+      return "manual";
+    } catch {
+      show_action_toast({
+        message: t("mail.unsubscribe_failed"),
+        action_type: "not_spam",
+        email_ids: [],
+      });
+      return "manual";
+    }
+  }, [email, t, mark_unsubscribed]);
 
   if (error) {
     return (
@@ -175,42 +271,46 @@ export function PopupEmailBody({
             t={t}
             thread_messages={thread_messages}
             timestamp_date={timestamp_date}
+            tracking_report={external_content_state.report}
           />
-
-          <div className="mt-4">
-            <ViewerUnsubscribeBanner email={email} />
-          </div>
-
-          {external_content_state.mode === "blocked" &&
-            external_content_state.report &&
-            external_content_state.report.blocked_count > 0 && (
-              <div className="mt-4">
-                <ExternalContentBanner
-                  blocked_content={external_content_state.report}
-                  on_dismiss={on_dismiss_external_content}
-                  on_load={on_load_external_content}
-                />
-              </div>
-            )}
 
           <div className="mt-4">
             <ThreadMessagesList
               hide_counter
               current_user_email={current_user_email}
               default_expanded_id={get_latest_expanded_id(thread_messages)}
+              existing_draft={existing_draft}
               external_content_mode={external_content_mode}
               force_all_dark_mode={preferences.force_dark_mode_emails}
+              loaded_content_types={loaded_content_types}
+              inline_mode={inline_mode}
+              inline_reply_is_external={is_external_thread}
+              inline_reply_msg={inline_reply_msg}
+              inline_reply_thread_token={thread_token}
               messages={thread_messages}
               on_archive={on_per_message_archive}
+              on_close_inline_reply={handle_close_inline_reply}
+              on_draft_saved={on_draft_saved}
               on_external_content_detected={on_external_content_detected}
-              on_forward={on_per_message_forward}
+              on_forward={handle_inline_forward}
+              on_load_external_content={on_load_external_content}
               on_not_spam={is_spam ? on_per_message_not_spam : undefined}
               on_print={on_per_message_print}
-              on_reply={on_per_message_reply}
-              on_reply_all={on_per_message_reply_all}
+              on_reply={handle_inline_reply}
+              on_reply_all={handle_inline_reply_all}
               on_report_phishing={on_per_message_report_phishing}
+              on_set_inline_mode={set_inline_mode}
               on_toggle_message_read={on_toggle_message_read}
               on_trash={on_per_message_trash}
+              on_unsubscribe={
+                email.unsubscribe_info?.has_unsubscribe && !is_system_email(email.sender_email) && !is_unsubscribed(email.sender_email)
+                  ? handle_unsubscribe
+                  : undefined
+              }
+              on_manual_unsubscribed={() => {
+                if (email) mark_unsubscribed(email.sender_email);
+              }}
+              unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
               subject={email.subject}
             />
           </div>

@@ -130,6 +130,7 @@ export interface UserPreferences {
   show_message_size: boolean;
   show_badges_in_signature: boolean;
   show_aster_branding: boolean;
+  viewer_toolbar_mode: "simple" | "advanced";
   migration_haptic_v1_done: boolean;
   migration_tracker_blocking_v2_done: boolean;
 }
@@ -346,6 +347,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   show_message_size: false,
   show_badges_in_signature: true,
   show_aster_branding: true,
+  viewer_toolbar_mode: "simple",
   migration_haptic_v1_done: false,
   migration_tracker_blocking_v2_done: false,
 };

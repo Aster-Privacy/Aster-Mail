@@ -107,6 +107,7 @@ interface SearchResultsPageProps {
   on_search_submit?: (query: string) => void;
   split_email_id?: string | null;
   on_split_close?: () => void;
+  on_settings_click?: () => void;
 }
 
 function SearchResultSkeleton() {
@@ -134,6 +135,7 @@ export function SearchResultsPage({
   on_search_submit,
   split_email_id,
   on_split_close,
+  on_settings_click,
 }: SearchResultsPageProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -661,6 +663,31 @@ export function SearchResultsPage({
     },
     [],
   );
+
+  const search_nav_index = useMemo(() => {
+    if (!split_email_id) return -1;
+    return filtered_results.findIndex((r) => r.id === split_email_id);
+  }, [split_email_id, filtered_results]);
+
+  const search_can_go_prev = search_nav_index > 0;
+  const search_can_go_next =
+    search_nav_index >= 0 && search_nav_index < filtered_results.length - 1;
+
+  const handle_search_navigate_prev = useCallback(() => {
+    if (search_nav_index > 0) {
+      on_result_click(filtered_results[search_nav_index - 1].id);
+    }
+  }, [search_nav_index, filtered_results, on_result_click]);
+
+  const handle_search_navigate_next = useCallback(() => {
+    if (
+      search_nav_index >= 0 &&
+      search_nav_index < filtered_results.length - 1
+    ) {
+      on_result_click(filtered_results[search_nav_index + 1].id);
+    }
+  }, [search_nav_index, filtered_results, on_result_click]);
+
   const show_full_email_viewer = is_fullpage_mode && !!split_email_id;
 
   const sort_dropdown = (
@@ -821,10 +848,17 @@ export function SearchResultsPage({
               leading_toolbar_slot={sort_dropdown}
               active_filter={active_inbox_filter}
               all_selected={selection_all_selected}
+              can_go_next={is_split_view ? search_can_go_next : false}
+              can_go_prev={is_split_view ? search_can_go_prev : false}
+              current_email_index={is_split_view ? search_nav_index : undefined}
               current_page={search_page}
               filtered_count={filtered_results.length}
+              hide_quick_actions={true}
+              hide_refresh={true}
               hide_view_switcher={true}
-              on_page_change={set_search_page}
+              on_navigate_next={is_split_view ? handle_search_navigate_next : undefined}
+              on_navigate_prev={is_split_view ? handle_search_navigate_prev : undefined}
+              on_page_change={is_split_view ? undefined : set_search_page}
               page_size={SEARCH_PAGE_SIZE}
               total_email_count={filtered_results.length}
               on_archive={handle_bulk_archive}
@@ -835,7 +869,7 @@ export function SearchResultsPage({
               on_search_result_click={on_result_click}
               on_search_submit={on_search_submit}
               on_select_by_filter={handle_select_by_filter}
-              on_settings_click={() => {}}
+              on_settings_click={on_settings_click || (() => {})}
               on_spam={handle_bulk_spam}
               on_toggle_select_all={handle_select_all_visible}
               on_toggle_star={handle_bulk_toggle_star}
@@ -850,8 +884,14 @@ export function SearchResultsPage({
       {show_full_email_viewer && split_email_id ? (
         <div className="flex-1 overflow-hidden">
           <FullEmailViewer
+            can_go_next={search_can_go_next}
+            can_go_prev={search_can_go_prev}
+            current_index={search_nav_index >= 0 ? search_nav_index : undefined}
             email_id={split_email_id}
             on_back={on_split_close || (() => {})}
+            on_navigate_next={handle_search_navigate_next}
+            on_navigate_prev={handle_search_navigate_prev}
+            total_count={filtered_results.length}
           />
         </div>
       ) : is_split_view && !is_fullpage_mode ? (
@@ -895,8 +935,14 @@ export function SearchResultsPage({
             }}
           >
             <SplitEmailViewer
+              can_go_next={search_can_go_next}
+              can_go_prev={search_can_go_prev}
+              current_index={search_nav_index >= 0 ? search_nav_index : undefined}
               email_id={split_email_id}
               on_close={on_split_close || (() => {})}
+              on_navigate_next={handle_search_navigate_next}
+              on_navigate_prev={handle_search_navigate_prev}
+              total_count={filtered_results.length}
             />
           </div>
           {is_dragging && (

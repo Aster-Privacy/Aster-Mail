@@ -407,13 +407,24 @@ export function use_single_actions(
         true,
       );
 
-      if (!success) {
+      if (success) {
+        show_action_toast({
+          message: t("common.moved_to_inbox_toast"),
+          action_type: "restore",
+          email_ids: [email.id],
+          on_undo: async () => {
+            revert_stat_deltas(deltas);
+            await update_with_metadata(email, { is_archived: true });
+            emit_mail_soft_refresh();
+          },
+        });
+      } else {
         revert_stat_deltas(deltas);
       }
 
       return success;
     },
-    [execute_single_action, update_with_metadata],
+    [execute_single_action, update_with_metadata, t],
   );
 
   const delete_email = useCallback(
@@ -523,13 +534,26 @@ export function use_single_actions(
         true,
       );
 
-      if (!success) {
+      if (success) {
+        remove_spam_sender(email.sender_email).catch(() => {});
+        show_action_toast({
+          message: t("common.marked_as_not_spam"),
+          action_type: "not_spam",
+          email_ids: [email.id],
+          on_undo: async () => {
+            adjust_stats_spam(1);
+            await update_with_metadata(email, { is_spam: true });
+            report_spam_sender(email.sender_email).catch(() => {});
+            emit_mail_soft_refresh();
+          },
+        });
+      } else {
         adjust_stats_spam(1);
       }
 
       return success;
     },
-    [execute_single_action, update_with_metadata],
+    [execute_single_action, update_with_metadata, t],
   );
 
   const add_folder = useCallback(
@@ -549,6 +573,16 @@ export function use_single_actions(
         emit_mail_changed();
         emit_mail_action("label", [email.id]);
         config.on_success?.("label", email.id);
+
+        show_action_toast({
+          message: t("common.added_label", { label: folder_token }),
+          action_type: "folder",
+          email_ids: [email.id],
+          on_undo: async () => {
+            await remove_mail_item_folder(email.id, folder_token);
+            emit_mail_changed();
+          },
+        });
 
         return true;
       } catch (err) {
@@ -586,6 +620,16 @@ export function use_single_actions(
         emit_mail_changed();
         emit_mail_action("label", [email.id]);
         config.on_success?.("label", email.id);
+
+        show_action_toast({
+          message: t("common.removed_label", { label: folder_token }),
+          action_type: "folder",
+          email_ids: [email.id],
+          on_undo: async () => {
+            await add_mail_item_folder(email.id, { folder_token });
+            emit_mail_changed();
+          },
+        });
 
         return true;
       } catch (err) {
@@ -627,6 +671,12 @@ export function use_single_actions(
         emit_mail_action("move", [email.id]);
         config.on_success?.("move", email.id);
 
+        show_action_toast({
+          message: t("common.moved_to_folder", { folder: folder_token }),
+          action_type: "folder",
+          email_ids: [email.id],
+        });
+
         return true;
       } catch (err) {
         const error_message =
@@ -661,16 +711,29 @@ export function use_single_actions(
       );
 
       if (success) {
+        adjust_trash_count(-1);
         invalidate_mail_cache();
         emit_mail_changed();
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.REFRESH_REQUESTED));
         }, 450);
+
+        show_action_toast({
+          message: t("common.restored_from_trash"),
+          action_type: "restore",
+          email_ids: [email.id],
+          on_undo: async () => {
+            adjust_trash_count(1);
+            await update_with_metadata(email, { is_trashed: true });
+            invalidate_mail_cache();
+            emit_mail_soft_refresh();
+          },
+        });
       }
 
       return success;
     },
-    [execute_single_action],
+    [execute_single_action, update_with_metadata, t],
   );
 
   const permanently_delete = useCallback(

@@ -213,7 +213,16 @@ export function AliasesSection() {
               <p className="text-sm mb-4 text-txt-muted">
                 {t("settings.upgrade_plan_more_domains")}
               </p>
-              <Button variant="depth">{t("common.upgrade_plan")}</Button>
+              <Button
+                variant="depth"
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("navigate-settings", { detail: "billing" }),
+                  )
+                }
+              >
+                {t("common.upgrade_plan")}
+              </Button>
             </div>
           </>
         ) : (

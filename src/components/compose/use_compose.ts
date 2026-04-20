@@ -40,6 +40,10 @@ import {
 } from "@/services/api/recent_recipients";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import {
+  get_preferred_sender_id,
+  set_preferred_sender_id,
+} from "@/lib/preferred_sender";
+import {
   use_ghost_mode,
   type UseGhostModeReturn,
 } from "@/hooks/use_ghost_mode";
@@ -112,6 +116,8 @@ export interface UseComposeReturn {
   aliases_loading: boolean;
   selected_sender: SenderOption | null;
   set_selected_sender: (val: SenderOption | null) => void;
+  preferred_sender_id: string | null;
+  set_preferred_sender: (id: string | null) => void;
   ghost_mode: UseGhostModeReturn;
   editor: UseEditorReturn;
   active_formats: Set<string>;
@@ -143,6 +149,7 @@ export interface UseComposeReturn {
   clear_all_errors: () => void;
   remove_attachment: (id: string) => void;
   handle_file_select: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handle_files_drop: (files: File[]) => Promise<void>;
   trigger_file_select: () => void;
   handle_editor_input: () => void;
   handle_editor_paste: (e: React.ClipboardEvent) => void;
@@ -217,6 +224,14 @@ export function use_compose({
   const [selected_sender, set_selected_sender] = useState<SenderOption | null>(
     null,
   );
+  const [preferred_sender_id, set_preferred_sender_id_state] = useState<
+    string | null
+  >(() => get_preferred_sender_id());
+
+  const set_preferred_sender = useCallback((id: string | null) => {
+    set_preferred_sender_id_state(id);
+    set_preferred_sender_id(id);
+  }, []);
   const ghost_mode = use_ghost_mode();
 
   const attachment_hook = use_compose_attachments();
@@ -298,9 +313,13 @@ export function use_compose({
 
   useEffect(() => {
     if (sender_options.length > 0 && !selected_sender) {
-      set_selected_sender(sender_options[0]);
+      const preferred = preferred_sender_id
+        ? sender_options.find((o) => o.id === preferred_sender_id)
+        : null;
+
+      set_selected_sender(preferred ?? sender_options[0]);
     }
-  }, [sender_options, selected_sender]);
+  }, [sender_options, selected_sender, preferred_sender_id]);
 
   useEffect(() => {
     if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
@@ -684,6 +703,8 @@ export function use_compose({
     aliases_loading,
     selected_sender,
     set_selected_sender,
+    preferred_sender_id,
+    set_preferred_sender,
     ghost_mode,
     editor: editor_hook.editor,
     active_formats: editor_hook.editor.format_state.active_formats,
@@ -718,6 +739,7 @@ export function use_compose({
     clear_all_errors,
     remove_attachment: attachment_hook.remove_attachment,
     handle_file_select: attachment_hook.handle_file_select,
+    handle_files_drop: attachment_hook.handle_files_drop,
     trigger_file_select: attachment_hook.trigger_file_select,
     handle_editor_input: editor_hook.handle_editor_input,
     handle_editor_paste: editor_hook.handle_editor_paste,

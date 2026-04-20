@@ -40,6 +40,11 @@ import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
+import {
+  bulk_action_by_scope,
+  type BulkScopeAction,
+  type BulkScopeFilter,
+} from "@/services/api/mail";
 import { thread_imported_emails } from "@/services/import/repair_threads";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { SplitEmailViewer } from "@/components/email/split_email_viewer";
@@ -662,6 +667,121 @@ export function EmailInbox({
     ) => void,
   });
 
+  const scope_for_view = useMemo((): BulkScopeFilter => {
+    switch (current_view) {
+      case "trash":
+        return { is_trashed: true };
+      case "spam":
+        return { is_spam: true };
+      case "archive":
+        return { is_archived: true };
+      case "starred":
+        return { is_starred: true, is_trashed: false };
+      case "snoozed":
+        return { is_snoozed: true, is_trashed: false };
+      case "sent":
+        return { item_type: "sent", is_trashed: false };
+      default:
+        return { is_archived: false, is_trashed: false, is_spam: false };
+    }
+  }, [current_view]);
+
+  const run_scope_action = useCallback(
+    async (action: BulkScopeAction) => {
+      try {
+        const res = await bulk_action_by_scope({
+          action,
+          scope: scope_for_view,
+        });
+
+        if (res.error) throw new Error(res.error);
+        selection.exit_select_all_mode();
+        selection.handle_clear_selection();
+        set_current_page(0);
+        fetch_page(0, page_size);
+        mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+        show_toast(t("common.something_went_wrong"), "error");
+      }
+    },
+    [scope_for_view, selection, fetch_page, set_current_page, t],
+  );
+
+  const handle_delete_wrapped = useCallback(() => {
+    if (selection.select_all_mode) {
+      if (current_view === "trash") {
+        toolbar.handle_empty_trash();
+        selection.exit_select_all_mode();
+        selection.handle_clear_selection();
+        return;
+      }
+      void run_scope_action("trash");
+      return;
+    }
+    toolbar.handle_toolbar_delete();
+  }, [selection, toolbar, current_view, run_scope_action]);
+
+  const handle_archive_wrapped = useCallback(() => {
+    if (selection.select_all_mode) {
+      void run_scope_action("archive");
+      return;
+    }
+    toolbar.handle_toolbar_archive();
+  }, [selection, toolbar, run_scope_action]);
+
+  const handle_unarchive_wrapped = useCallback(() => {
+    if (selection.select_all_mode) {
+      void run_scope_action("unarchive");
+      return;
+    }
+    toolbar.handle_toolbar_unarchive();
+  }, [selection, toolbar, run_scope_action]);
+
+  const handle_spam_wrapped = useCallback(() => {
+    if (selection.select_all_mode) {
+      if (current_view === "spam") {
+        void run_scope_action("unmark_spam");
+      } else {
+        void run_scope_action("mark_spam");
+      }
+      return;
+    }
+    toolbar.handle_toolbar_spam();
+  }, [selection, toolbar, current_view, run_scope_action]);
+
+  const handle_mark_read_wrapped = useCallback(() => {
+    if (selection.select_all_mode) {
+      void run_scope_action("mark_read");
+      return;
+    }
+    toolbar.handle_toolbar_mark_read();
+  }, [selection, toolbar, run_scope_action]);
+
+  const handle_mark_unread_wrapped = useCallback(() => {
+    if (selection.select_all_mode) {
+      void run_scope_action("mark_unread");
+      return;
+    }
+    toolbar.handle_toolbar_mark_unread();
+  }, [selection, toolbar, run_scope_action]);
+
+  const handle_toggle_star_wrapped = useCallback(() => {
+    if (selection.select_all_mode) {
+      void run_scope_action(current_view === "starred" ? "unstar" : "star");
+      return;
+    }
+    toolbar.handle_toolbar_toggle_star();
+  }, [selection, toolbar, current_view, run_scope_action]);
+
+  const handle_restore_wrapped = useCallback(() => {
+    if (selection.select_all_mode) {
+      void run_scope_action("restore_trash");
+      return;
+    }
+    toolbar.handle_toolbar_restore();
+  }, [selection, toolbar, run_scope_action]);
+
   const nav = use_inbox_navigation({
     current_view,
     emails: email_state.emails,
@@ -846,9 +966,9 @@ export function EmailInbox({
           is_archive_view={is_archive_view}
           is_spam_view={current_view === "spam"}
           is_trash_view={current_view === "trash"}
-          on_archive={toolbar.handle_toolbar_archive}
+          on_archive={handle_archive_wrapped}
           on_compose={on_compose}
-          on_delete={toolbar.handle_toolbar_delete}
+          on_delete={handle_delete_wrapped}
           on_empty_spam={toolbar.handle_empty_spam}
           on_empty_trash={toolbar.handle_empty_trash}
           on_filter_change={handle_filter_change}
@@ -858,8 +978,8 @@ export function EmailInbox({
               selection.get_folder_status_for_selection(folder_token) === "all",
             );
           }}
-          on_mark_read={toolbar.handle_toolbar_mark_read}
-          on_mark_unread={toolbar.handle_toolbar_mark_unread}
+          on_mark_read={handle_mark_read_wrapped}
+          on_mark_unread={handle_mark_unread_wrapped}
           on_navigate_next={
             nav.effective_email_id ? nav.handle_local_navigate_next : undefined
           }
@@ -871,14 +991,14 @@ export function EmailInbox({
               ? undefined
               : handle_page_change
           }
-          on_restore={toolbar.handle_toolbar_restore}
+          on_restore={handle_restore_wrapped}
           on_search_click={on_search_click}
           on_search_result_click={on_search_result_click}
           on_search_submit={on_search_submit}
           on_select_by_filter={selection.handle_select_by_filter}
           on_settings_click={on_settings_click}
           on_snooze={toolbar.handle_toolbar_snooze}
-          on_spam={toolbar.handle_toolbar_spam}
+          on_spam={handle_spam_wrapped}
           on_tag_toggle={(tag_token) => {
             toolbar.handle_toolbar_toggle_tag(
               tag_token,
@@ -890,8 +1010,12 @@ export function EmailInbox({
               ? undefined
               : selection.handle_toggle_select_all
           }
-          on_toggle_star={toolbar.handle_toolbar_toggle_star}
-          on_unarchive={toolbar.handle_toolbar_unarchive}
+          select_all_mode={selection.select_all_mode}
+          on_activate_select_all_mode={selection.activate_select_all_mode}
+          on_clear_selection={selection.handle_clear_selection}
+          page_selected_count={selection.selected_count}
+          on_toggle_star={handle_toggle_star_wrapped}
+          on_unarchive={handle_unarchive_wrapped}
           on_view_change={on_view_change}
           page_size={page_size}
           search_context={get_search_context(

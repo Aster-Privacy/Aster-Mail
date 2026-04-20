@@ -126,8 +126,14 @@ interface InboxHeaderProps {
   tags?: TagOption[];
   on_tag_toggle?: (tag_token: string) => void;
   hide_view_switcher?: boolean;
+  hide_refresh?: boolean;
+  hide_quick_actions?: boolean;
   leading_toolbar_slot?: React.ReactNode;
   leading_left_slot?: React.ReactNode;
+  select_all_mode?: boolean;
+  on_activate_select_all_mode?: () => void;
+  on_clear_selection?: () => void;
+  page_selected_count?: number;
 }
 
 export function InboxHeader({
@@ -145,7 +151,6 @@ export function InboxHeader({
   on_toggle_select_all,
   filtered_count = 0,
   display_count,
-  total_messages: _total_messages = 0,
   current_page = 0,
   page_size = 30,
   on_page_change,
@@ -179,13 +184,30 @@ export function InboxHeader({
   tags = [],
   on_tag_toggle,
   hide_view_switcher = false,
+  hide_refresh = false,
+  hide_quick_actions = false,
   leading_toolbar_slot,
   leading_left_slot,
+  select_all_mode = false,
+  on_activate_select_all_mode,
+  on_clear_selection,
+  page_selected_count = 0,
+  total_messages = 0,
 }: InboxHeaderProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
   const is_native = Capacitor.isNativePlatform();
   const has_selection = all_selected || some_selected;
+  const display_selected = select_all_mode ? total_messages : selected_count;
+  const show_select_all_banner =
+    has_selection &&
+    all_selected &&
+    !select_all_mode &&
+    total_messages > page_selected_count &&
+    page_selected_count > 0 &&
+    !!on_activate_select_all_mode;
+  const show_all_selected_banner =
+    select_all_mode && total_messages > 0 && !!on_clear_selection;
   const [advanced_toolbar, set_advanced_toolbar] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -368,19 +390,19 @@ export function InboxHeader({
           )}
         </div>
 
-        {has_selection ? (
-          <div className="flex-1 flex items-center gap-0.5 min-w-0">
+        {has_selection && (
+          <div className="flex items-center gap-0.5 min-w-0 flex-shrink">
             <span className="text-base leading-tight font-extrabold text-blue-500 tabular-nums px-1.5 flex-shrink-0">
-              {selected_count}
+              {display_selected.toLocaleString()}
             </span>
             <span
-              className="text-base leading-tight flex-shrink-0 mr-2"
+              className="text-base leading-tight flex-shrink-0 mr-2 hidden sm:inline"
               style={{ color: "var(--text-muted)" }}
             >
               {t("common.selected")}
             </span>
 
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-0.5 flex-shrink min-w-0 overflow-hidden">
               {(is_trash_view || is_spam_view) && on_restore && (
                 <Tooltip tip={t("mail.restore")}>
                   <button
@@ -451,15 +473,16 @@ export function InboxHeader({
 
               {advanced_toolbar && on_snooze && (
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      aria-label={t("common.snooze_until")}
-                      className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
-                      title={t("common.snooze_until")}
-                    >
-                      <ClockIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-                    </button>
-                  </DropdownMenuTrigger>
+                  <Tooltip tip={t("common.snooze_until")}>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        aria-label={t("common.snooze_until")}
+                        className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
+                      >
+                        <ClockIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                      </button>
+                    </DropdownMenuTrigger>
+                  </Tooltip>
                   <DropdownMenuContent align="start" sideOffset={8}>
                     <DropdownMenuLabel>
                       {t("common.snooze_until")}
@@ -522,15 +545,16 @@ export function InboxHeader({
                 folders.length > 0 &&
                 on_folder_toggle && (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        aria-label={t("common.folders")}
-                        className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
-                        title={t("common.folders")}
-                      >
-                        <FolderIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-                      </button>
-                    </DropdownMenuTrigger>
+                    <Tooltip tip={t("common.folders")}>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          aria-label={t("common.folders")}
+                          className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
+                        >
+                          <FolderIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                        </button>
+                      </DropdownMenuTrigger>
+                    </Tooltip>
                     <DropdownMenuContent
                       align="start"
                       className="max-h-64 overflow-y-auto"
@@ -563,15 +587,16 @@ export function InboxHeader({
                 tags.length > 0 &&
                 on_tag_toggle && (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        aria-label={t("common.labels")}
-                        className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
-                        title={t("common.labels")}
-                      >
-                        <TagIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-                      </button>
-                    </DropdownMenuTrigger>
+                    <Tooltip tip={t("common.labels")}>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          aria-label={t("common.labels")}
+                          className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
+                        >
+                          <TagIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                        </button>
+                      </DropdownMenuTrigger>
+                    </Tooltip>
                     <DropdownMenuContent
                       align="start"
                       className="max-h-64 overflow-y-auto"
@@ -599,15 +624,16 @@ export function InboxHeader({
                 )}
 
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    aria-label={t("common.more")}
-                    className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
-                    title={t("common.more")}
-                  >
-                    <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-                  </button>
-                </DropdownMenuTrigger>
+                <Tooltip tip={t("common.more")}>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      aria-label={t("common.more")}
+                      className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
+                    >
+                      <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                    </button>
+                  </DropdownMenuTrigger>
+                </Tooltip>
                 <DropdownMenuContent align="start" sideOffset={8}>
                   {on_mark_unread && (
                     <DropdownMenuItem onClick={on_mark_unread}>
@@ -718,63 +744,103 @@ export function InboxHeader({
               </DropdownMenu>
             </div>
           </div>
-        ) : (
-          <>
-            <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
-              <SearchBar
-                on_result_click={on_search_result_click}
-                on_search_submit={on_search_submit}
-                search_context={search_context}
-              />
-            </div>
-
-            <div className="flex items-center gap-0.5 flex-shrink-0">
-              <HeaderToolbar
-                leading_slot={leading_toolbar_slot}
-                filter_slot={
-                  <FilterDropdown
-                    active_filter={active_filter}
-                    on_filter_change={on_filter_change}
-                  />
-                }
-                handle_batch_action={handle_batch_action}
-                handle_refresh={handle_refresh}
-                is_refreshing={is_refreshing}
-                is_spam_view={is_spam_view}
-                is_trash_view={is_trash_view}
-                on_empty_spam={on_empty_spam}
-                on_empty_trash={on_empty_trash}
-                on_settings_click={on_settings_click}
-                spam_count={spam_count}
-                trash_count={trash_count}
-              />
-
-              <HeaderPagination
-                can_go_next={can_go_next}
-                can_go_prev={can_go_prev}
-                current_email_index={current_email_index}
-                current_page={current_page}
-                filtered_count={filtered_count}
-                on_navigate_next={on_navigate_next}
-                on_navigate_prev={on_navigate_prev}
-                on_page_change={on_page_change}
-                page_size={page_size}
-                total_email_count={total_email_count}
-              />
-
-              <div className="md:hidden">
-                <MobileOverflowMenu
-                  active_filter={active_filter}
-                  handle_batch_action={handle_batch_action}
-                  handle_refresh={handle_refresh}
-                  on_filter_change={on_filter_change}
-                  on_settings_click={on_settings_click}
-                />
-              </div>
-            </div>
-          </>
         )}
+
+        {!has_selection && (
+          <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
+            <SearchBar
+              on_result_click={on_search_result_click}
+              on_search_submit={on_search_submit}
+              search_context={search_context}
+            />
+          </div>
+        )}
+        {has_selection && <div className="flex-1 min-w-0" />}
+
+        <div className="flex items-center gap-0.5 flex-shrink-0">
+          <HeaderToolbar
+            leading_slot={leading_toolbar_slot}
+            filter_slot={
+              <FilterDropdown
+                active_filter={active_filter}
+                on_filter_change={on_filter_change}
+              />
+            }
+            handle_batch_action={handle_batch_action}
+            handle_refresh={handle_refresh}
+            hide_quick_actions={hide_quick_actions}
+            hide_refresh={hide_refresh}
+            is_refreshing={is_refreshing}
+            is_spam_view={is_spam_view}
+            is_trash_view={is_trash_view}
+            on_empty_spam={on_empty_spam}
+            on_empty_trash={on_empty_trash}
+            on_settings_click={on_settings_click}
+            spam_count={spam_count}
+            trash_count={trash_count}
+          />
+
+          <HeaderPagination
+            can_go_next={can_go_next}
+            can_go_prev={can_go_prev}
+            current_email_index={current_email_index}
+            current_page={current_page}
+            filtered_count={filtered_count}
+            on_navigate_next={on_navigate_next}
+            on_navigate_prev={on_navigate_prev}
+            on_page_change={on_page_change}
+            page_size={page_size}
+            total_email_count={total_email_count}
+          />
+
+          <div className="md:hidden">
+            <MobileOverflowMenu
+              active_filter={active_filter}
+              handle_batch_action={handle_batch_action}
+              handle_refresh={handle_refresh}
+              on_filter_change={on_filter_change}
+              on_settings_click={on_settings_click}
+            />
+          </div>
+        </div>
       </div>
+
+      {(show_select_all_banner || show_all_selected_banner) && (
+        <div className="flex items-center justify-center gap-2 px-4 py-2 border-b border-[var(--border-secondary)] bg-[var(--bg-secondary)] text-sm text-[var(--text-secondary)]">
+          {show_select_all_banner ? (
+            <>
+              <span>
+                {t("mail.all_on_page_selected", {
+                  count: page_selected_count.toLocaleString(),
+                })}
+              </span>
+              <button
+                className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+                onClick={on_activate_select_all_mode}
+              >
+                {t("mail.select_all_in_folder", {
+                  count: total_messages.toLocaleString(),
+                  folder: view_title,
+                })}
+              </button>
+            </>
+          ) : (
+            <>
+              <span>
+                {t("mail.all_in_folder_selected", {
+                  count: total_messages.toLocaleString(),
+                })}
+              </span>
+              <button
+                className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+                onClick={on_clear_selection}
+              >
+                {t("mail.clear_selection")}
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       <ToolbarModals
         is_sender_modal_open={is_sender_modal_open}

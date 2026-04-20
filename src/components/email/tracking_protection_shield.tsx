@@ -19,26 +19,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
-import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useMemo } from "react";
-import { ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-
-type TFunc = (
-  key: TranslationKey,
-  params?: Record<string, string | number>,
-) => string;
-
-interface TrackingProtectionShieldProps {
-  tracking_report: ExternalContentReport;
-  t: TFunc;
-}
+import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 
 const extract_domain = (url: string): string => {
   try {
@@ -48,16 +39,23 @@ const extract_domain = (url: string): string => {
   }
 };
 
+interface TrackingProtectionShieldProps {
+  report: ExternalContentReport;
+  size?: number;
+}
+
 export function TrackingProtectionShield({
-  tracking_report,
-  t,
+  report,
+  size = 16,
 }: TrackingProtectionShieldProps) {
+  const { t } = use_i18n();
+  const { preferences } = use_preferences();
+
+  if (!preferences.block_external_content) return null;
+
   const spy_pixels = useMemo(
-    () =>
-      tracking_report.blocked_items.filter(
-        (item) => item.type === "tracking_pixel",
-      ),
-    [tracking_report.blocked_items],
+    () => report.blocked_items.filter((item) => item.type === "tracking_pixel"),
+    [report.blocked_items],
   );
 
   const pixel_domains = useMemo(() => {
@@ -75,93 +73,103 @@ export function TrackingProtectionShield({
   const param_summary = useMemo(() => {
     const counts = new Map<string, number>();
 
-    for (const link of tracking_report.cleaned_links) {
+    for (const link of report.cleaned_links) {
       for (const param of link.params_removed) {
         counts.set(param, (counts.get(param) || 0) + 1);
       }
     }
 
     return counts;
-  }, [tracking_report.cleaned_links]);
+  }, [report.cleaned_links]);
 
-  const total_tracker_count =
-    spy_pixels.length + tracking_report.cleaned_links.length;
-  const has_trackers = total_tracker_count > 0;
+  const total_count =
+    spy_pixels.length + report.cleaned_links.length;
+
+  if (total_count === 0) return null;
 
   return (
     <Popover modal>
       <PopoverTrigger asChild>
         <button
-          className="inline-flex items-center rounded p-0.5 transition-colors hover:text-txt-secondary"
+          className="flex-shrink-0 inline-flex items-center gap-1 transition-colors hover:opacity-80"
+          style={{ color: "rgb(16, 185, 129)" }}
           type="button"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
         >
           <ShieldCheckIcon
-            className={`w-4 h-4 ${has_trackers ? "text-blue-500" : "text-txt-muted"}`}
+            className="flex-shrink-0"
+            style={{ width: size, height: size, color: "inherit" }}
           />
+          <span className="text-[11px] font-semibold tabular-nums" style={{ color: "inherit" }}>
+            {total_count}
+          </span>
         </button>
       </PopoverTrigger>
 
       <PopoverContent
-        align="end"
-        className="w-72 p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
+        align="start"
+        className="w-80 p-0 bg-surf-primary border-edge-primary shadow-lg"
         sideOffset={8}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2 pb-1">
-          <ShieldCheckIcon
-            className={`w-4 h-4 flex-shrink-0 ${has_trackers ? "text-blue-500" : "text-txt-muted"}`}
-          />
-          <span className="font-medium text-txt-primary">
+        <div className="flex items-center gap-2.5 px-4 py-3 border-b border-edge-secondary">
+          <ShieldCheckIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-500 flex-shrink-0" />
+          <span className="text-[13px] font-semibold text-txt-primary">
             {t("mail.tracking_protection")}
+          </span>
+          <span className="ml-auto text-[11px] font-medium tabular-nums text-txt-muted">
+            {t("mail.n_blocked", { count: total_count })}
           </span>
         </div>
 
-        {!has_trackers ? (
-          <div className="text-txt-muted">{t("mail.no_trackers_detected")}</div>
-        ) : (
-          <div className="space-y-2">
-            {spy_pixels.length > 0 && (
-              <div>
-                <div className="font-medium text-txt-muted mb-1">
-                  {t("mail.spy_pixels_blocked")}
-                </div>
+        <div className="px-4 py-3 space-y-3 max-h-64 overflow-y-auto">
+          {spy_pixels.length > 0 && (
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-txt-muted mb-1.5">
+                {t("mail.spy_pixels_blocked")}
+              </div>
+              <div className="space-y-0.5">
                 {Array.from(pixel_domains.entries()).map(([domain, count]) => (
                   <div
                     key={domain}
-                    className="flex items-center justify-between py-0.5"
+                    className="flex items-center justify-between py-1 px-2 rounded text-[12px]"
                   >
-                    <span className="text-txt-secondary font-mono truncate mr-2">
+                    <span className="text-txt-secondary font-mono truncate mr-3">
                       {domain}
                     </span>
                     {count > 1 && (
-                      <span className="text-txt-muted flex-shrink-0">
+                      <span className="text-txt-muted flex-shrink-0 tabular-nums text-[11px]">
                         x{count}
                       </span>
                     )}
                   </div>
                 ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {tracking_report.cleaned_links.length > 0 && (
-              <div>
-                {spy_pixels.length > 0 && (
-                  <div className="border-t border-edge-secondary -mx-3 mb-2" />
-                )}
-                <div className="font-medium text-txt-muted mb-1">
-                  {t("mail.links_cleaned")}
-                </div>
+          {report.cleaned_links.length > 0 && (
+            <div>
+              {spy_pixels.length > 0 && (
+                <div className="border-t border-edge-secondary -mx-4 mb-3" />
+              )}
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-txt-muted mb-1.5">
+                {t("mail.links_cleaned")}
+              </div>
+              <div className="space-y-0.5">
                 {Array.from(param_summary.entries()).map(([param, count]) => (
-                  <div key={param} className="text-txt-secondary py-0.5">
+                  <div
+                    key={param}
+                    className="py-1 px-2 rounded text-[12px] text-txt-secondary"
+                  >
                     {t("mail.param_removed_from_n_links", { param, count })}
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </PopoverContent>
     </Popover>
   );

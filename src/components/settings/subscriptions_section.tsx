@@ -34,6 +34,7 @@ import { Checkbox } from "@aster/ui";
 import { Spinner } from "@/components/ui/spinner";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { SnoozeIcon } from "@/components/common/icons";
+import { show_action_toast } from "@/components/toast/action_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
@@ -192,6 +193,17 @@ export function SubscriptionsSection() {
         );
         set_selected_ids(new Set());
         await fetch_subscriptions();
+        show_action_toast({
+          message: t("mail.successfully_unsubscribed"),
+          action_type: "not_spam",
+          email_ids: [],
+        });
+      } else {
+        show_action_toast({
+          message: t("mail.unsubscribe_failed"),
+          action_type: "not_spam",
+          email_ids: [],
+        });
       }
     } finally {
       set_is_unsubscribing(false);

@@ -89,7 +89,7 @@ interface LogoutOthersResponse {
 export function use_security() {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
-  const { user, logout_all } = use_auth();
+  const { user } = use_auth();
   const {
     key_age_hours,
     key_fingerprint,
@@ -407,15 +407,31 @@ export function use_security() {
         return;
       }
 
+      try {
+        localStorage.setItem(
+          `astermail_encrypted_vault_${user.id}`,
+          new_encrypted_vault,
+        );
+        localStorage.setItem(
+          `astermail_vault_nonce_${user.id}`,
+          new_vault_nonce,
+        );
+      } catch {}
+
+      await store_vault_in_memory(vault, new_password);
+
+      if (response.data?.csrf_token) {
+        api_client.set_csrf(response.data.csrf_token);
+      }
+      if (response.data?.access_token) {
+        api_client.set_dev_token(response.data.access_token);
+      }
+
       set_password_success(true);
       set_show_password_section(false);
       set_current_password("");
       set_new_password("");
       set_confirm_password("");
-
-      setTimeout(async () => {
-        await logout_all();
-      }, 2000);
     } catch (err) {
       set_password_error(
         err instanceof Error

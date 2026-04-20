@@ -331,6 +331,11 @@ export function AliasesSection({
                     "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                 }}
                 type="button"
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("navigate-settings", { detail: "billing" }),
+                  )
+                }
               >
                 {t("common.upgrade_plan")}
               </motion.button>

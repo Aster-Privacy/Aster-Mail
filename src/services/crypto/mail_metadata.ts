@@ -275,6 +275,7 @@ export function extract_metadata_from_server(
     snoozed_until?: string;
     message_ts?: string;
     item_type?: string;
+    is_read?: boolean;
   },
 ): MailItemMetadata {
   if (!decrypted) {
@@ -284,7 +285,7 @@ export function extract_metadata_from_server(
       server_data.item_type === "scheduled";
 
     return {
-      is_read: is_sent_type,
+      is_read: is_sent_type ? true : (server_data.is_read ?? false),
       is_starred: false,
       is_pinned: false,
       is_trashed: false,
@@ -308,7 +309,9 @@ export function extract_metadata_from_server(
 
   return {
     ...decrypted,
-    is_read: is_sent_type ? true : decrypted.is_read,
+    is_read: is_sent_type
+      ? true
+      : (server_data.is_read ?? decrypted.is_read),
     scheduled_at: server_data.scheduled_at ?? decrypted.scheduled_at,
     send_status: server_data.send_status ?? decrypted.send_status,
     snoozed_until: server_data.snoozed_until ?? decrypted.snoozed_until,
@@ -525,12 +528,24 @@ export async function bulk_update_items_metadata(
         id: item.id,
         encrypted_metadata: encrypted.encrypted_metadata,
         metadata_nonce: encrypted.metadata_nonce,
-        is_read: updated_metadata.is_read,
-        is_starred: updated_metadata.is_starred,
-        is_pinned: updated_metadata.is_pinned,
-        is_trashed: updated_metadata.is_trashed,
-        is_archived: updated_metadata.is_archived,
-        is_spam: updated_metadata.is_spam,
+        ...(updates.is_read !== undefined && {
+          is_read: updated_metadata.is_read,
+        }),
+        ...(updates.is_starred !== undefined && {
+          is_starred: updated_metadata.is_starred,
+        }),
+        ...(updates.is_pinned !== undefined && {
+          is_pinned: updated_metadata.is_pinned,
+        }),
+        ...(updates.is_trashed !== undefined && {
+          is_trashed: updated_metadata.is_trashed,
+        }),
+        ...(updates.is_archived !== undefined && {
+          is_archived: updated_metadata.is_archived,
+        }),
+        ...(updates.is_spam !== undefined && {
+          is_spam: updated_metadata.is_spam,
+        }),
       });
     } else {
       failed_ids.push(item.id);

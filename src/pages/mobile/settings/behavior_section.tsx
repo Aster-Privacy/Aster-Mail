@@ -66,13 +66,13 @@ export function BehaviorSection({
     { value: "reply_all", label: t("settings.reply_to_all") },
   ];
 
-  const blocking_options: {
-    value: "trackers" | "images" | "both";
+  const image_loading_options: {
+    value: "never" | "ask" | "always";
     label: string;
   }[] = [
-    { value: "trackers", label: t("settings.trackers_only") },
-    { value: "images", label: t("settings.images_only") },
-    { value: "both", label: t("settings.images_and_trackers") },
+    { value: "never", label: t("settings.remote_images_never") },
+    { value: "ask", label: t("settings.remote_images_ask") },
+    { value: "always", label: t("settings.remote_images_always") },
   ];
 
   const undo_presets = [3, 5, 10, 15, 30];
@@ -122,40 +122,42 @@ export function BehaviorSection({
           />
         </SettingsGroup>
 
-        <SettingsGroup title={t("settings.block_external_content")}>
+        <SettingsGroup title={t("settings.images_section_title")}>
           <SettingsRow
-            label={t("settings.block_external_content")}
+            label={t("settings.block_remote_images_label")}
             trailing={
               <Switch
-                checked={preferences.block_external_content}
-                onCheckedChange={(v) =>
-                  update_preference("block_external_content", v)
-                }
+                checked={preferences.block_remote_images}
+                onCheckedChange={(v) => {
+                  update_preference("block_remote_images", v);
+                  if (v) {
+                    update_preference("load_remote_images", "never");
+                  } else {
+                    update_preference("load_remote_images", "always");
+                  }
+                }}
               />
             }
           />
-          {preferences.block_external_content && (
+          {preferences.block_remote_images && (
             <div className="px-4 py-2">
               <div className="flex flex-wrap gap-2">
-                {blocking_options.map((opt) => (
+                {image_loading_options.map((opt) => (
                   <button
                     key={opt.value}
                     className={`rounded-lg px-3 py-1.5 text-[13px] font-medium ${
-                      preferences.external_content_blocking_mode === opt.value
+                      preferences.load_remote_images === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
                     }`}
                     style={
-                      preferences.external_content_blocking_mode === opt.value
+                      preferences.load_remote_images === opt.value
                         ? chip_selected_style
                         : undefined
                     }
                     type="button"
                     onClick={() =>
-                      update_preference(
-                        "external_content_blocking_mode",
-                        opt.value,
-                      )
+                      update_preference("load_remote_images", opt.value)
                     }
                   >
                     {opt.label}
@@ -163,6 +165,68 @@ export function BehaviorSection({
                 ))}
               </div>
             </div>
+          )}
+          <SettingsRow
+            label={t("settings.block_remote_fonts_label")}
+            trailing={
+              <Switch
+                checked={preferences.block_remote_fonts}
+                onCheckedChange={(v) =>
+                  update_preference("block_remote_fonts", v)
+                }
+              />
+            }
+          />
+          <SettingsRow
+            label={t("settings.block_remote_css_label")}
+            trailing={
+              <Switch
+                checked={preferences.block_remote_css}
+                onCheckedChange={(v) =>
+                  update_preference("block_remote_css", v)
+                }
+              />
+            }
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title={t("settings.tracking_protection_title")}>
+          <SettingsRow
+            label={t("settings.tracking_protection_enabled")}
+            trailing={
+              <Switch
+                checked={preferences.block_external_content}
+                onCheckedChange={(v) => {
+                  update_preference("block_external_content", v);
+                  if (v) {
+                    update_preference("block_tracking_pixels", true);
+                  } else {
+                    update_preference("block_tracking_pixels", false);
+                  }
+                }}
+              />
+            }
+          />
+          {preferences.block_external_content && (
+            <>
+              <SettingsRow
+                label={t("settings.block_spy_pixels")}
+                trailing={
+                  <Switch
+                    checked={preferences.block_tracking_pixels}
+                    onCheckedChange={(v) =>
+                      update_preference("block_tracking_pixels", v)
+                    }
+                  />
+                }
+              />
+              <SettingsRow
+                label={t("settings.block_tracking_links")}
+                trailing={
+                  <Switch checked={preferences.block_external_content} disabled />
+                }
+              />
+            </>
           )}
         </SettingsGroup>
 

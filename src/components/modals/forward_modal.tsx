@@ -116,6 +116,18 @@ export function ForwardModal({
               duration: modal.reduce_motion ? 0 : 0.25,
               ease: [0.32, 0.72, 0, 1],
             }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const files = Array.from(e.dataTransfer?.files || []);
+              if (files.length > 0) {
+                modal.handle_files_drop(files);
+              }
+            }}
           >
             <ForwardHeader
               contacts={modal.contacts}

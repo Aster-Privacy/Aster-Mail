@@ -30,7 +30,6 @@ import {
   StarIcon,
   EyeIcon,
   EyeSlashIcon,
-  ChevronDownIcon,
   EllipsisHorizontalIcon,
   ArchiveBoxIcon,
   TrashIcon,
@@ -39,10 +38,11 @@ import {
   CodeBracketIcon,
   ClipboardDocumentIcon,
   FolderIcon,
-  ArrowUturnLeftIcon,
   MoonIcon,
   SunIcon,
   InformationCircleIcon,
+  ArrowUturnLeftIcon,
+  ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
@@ -79,7 +79,6 @@ import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
 import { ThreadMessageBody } from "@/components/email/thread_message_body";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
-import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import {
   extract_cid_references,
   extract_cid_inline_filenames,
@@ -92,6 +91,9 @@ interface ThreadMessageBlockProps {
   is_own_message: boolean;
   is_expanded: boolean;
   is_reply?: boolean;
+  is_single_message?: boolean;
+  is_last_in_thread?: boolean;
+  hide_bottom_border?: boolean;
   on_toggle: () => void;
   is_starred?: boolean;
   is_read?: boolean;
@@ -116,8 +118,24 @@ interface ThreadMessageBlockProps {
   on_close_inline_reply?: () => void;
   inline_mode?: "reply" | "reply_all" | "forward";
   on_set_inline_mode?: (mode: "reply" | "reply_all" | "forward") => void;
+  on_draft_saved?: (draft: {
+    id: string;
+    version: number;
+    content: import("@/services/api/multi_drafts").DraftContent;
+  }) => void;
+  existing_draft?: {
+    id: string;
+    version: number;
+    reply_to_id?: string;
+    content: import("@/services/api/multi_drafts").DraftContent;
+  } | null;
   preloaded_sanitized?: PreloadedSanitizedContent;
   size_bytes?: number;
+  on_unsubscribe?: () => Promise<"success" | "manual">;
+  on_manual_unsubscribed?: () => void;
+  unsubscribe_url?: string;
+  loaded_content_types?: Set<string>;
+  on_load_external_content?: (types?: string[]) => void;
 }
 
 function strip_quotes(body: string): string {
@@ -134,7 +152,10 @@ export function ThreadMessageBlock({
   message,
   is_own_message,
   is_expanded,
-  is_reply = false,
+  is_reply: _is_reply = false,
+  is_single_message = false,
+  is_last_in_thread = false,
+  hide_bottom_border = false,
   on_toggle,
   is_starred = false,
   is_read = true,
@@ -146,7 +167,7 @@ export function ThreadMessageBlock({
   on_archive,
   on_trash,
   on_print,
-  on_view_source,
+  on_view_source: _on_view_source,
   on_report_phishing,
   on_not_spam,
   external_content_mode,
@@ -159,8 +180,15 @@ export function ThreadMessageBlock({
   on_close_inline_reply,
   inline_mode = "reply",
   on_set_inline_mode,
+  on_draft_saved,
+  existing_draft,
   preloaded_sanitized,
   size_bytes,
+  on_unsubscribe,
+  on_manual_unsubscribed,
+  unsubscribe_url,
+  loaded_content_types,
+  on_load_external_content,
 }: ThreadMessageBlockProps): React.ReactElement {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -168,6 +196,7 @@ export function ThreadMessageBlock({
   const [viewing_source, set_viewing_source] = useState(false);
   const [wrap_source, set_wrap_source] = useState(false);
   const [show_details_modal, set_show_details_modal] = useState(false);
+  const [unsub_state, set_unsub_state] = useState<"idle" | "loading" | "manual" | "done">("idle");
   const clean_body = useMemo(() => {
     if (message.html_content && is_html_content(message.html_content)) {
       return message.html_content;
@@ -178,9 +207,9 @@ export function ThreadMessageBlock({
   const has_reported_external_content = useRef(false);
 
   const collapsed_preview = useMemo(() => {
-    const plain = strip_html_tags(clean_body);
+    const plain = strip_html_tags(clean_body).replace(/\s+/g, " ").trim();
 
-    return plain.length > 80 ? plain.substring(0, 80) + "..." : plain;
+    return plain.length > 120 ? plain.substring(0, 120) + "..." : plain;
   }, [clean_body]);
 
   const is_system = is_system_email(message.sender_email);
@@ -196,8 +225,10 @@ export function ThreadMessageBlock({
 
   const load_remote_content = external_content_mode === "always";
 
+  const has_loaded_types = loaded_content_types && loaded_content_types.size > 0;
+
   const sanitized_content = useMemo(() => {
-    if (preloaded_sanitized && base_image_mode !== "always") {
+    if (preloaded_sanitized && base_image_mode !== "always" && !has_loaded_types) {
       const report: ExternalContentReport | null =
         preloaded_sanitized.external_content.blocked_count > 0
           ? preloaded_sanitized.external_content
@@ -218,6 +249,19 @@ export function ThreadMessageBlock({
       };
     }
 
+    const block_images = loaded_content_types?.has("image")
+      ? false
+      : preferences.block_remote_images;
+    const block_fonts = loaded_content_types?.has("font")
+      ? false
+      : preferences.block_remote_fonts;
+    const block_css = loaded_content_types?.has("css")
+      ? false
+      : preferences.block_remote_css;
+    const block_pixels = loaded_content_types?.has("tracking_pixel")
+      ? false
+      : preferences.block_tracking_pixels;
+
     const result = sanitize_html(clean_body, {
       external_content_mode: base_image_mode,
       image_proxy_url: get_image_proxy_url(),
@@ -225,10 +269,10 @@ export function ThreadMessageBlock({
       content_blocking:
         !is_system && preferences.block_external_content
           ? {
-              block_remote_images: preferences.block_remote_images,
-              block_remote_fonts: preferences.block_remote_fonts,
-              block_remote_css: preferences.block_remote_css,
-              block_tracking_pixels: preferences.block_tracking_pixels,
+              block_remote_images: block_images,
+              block_remote_fonts: block_fonts,
+              block_remote_css: block_css,
+              block_tracking_pixels: block_pixels,
             }
           : undefined,
     });
@@ -247,6 +291,8 @@ export function ThreadMessageBlock({
     preloaded_sanitized,
     clean_body,
     base_image_mode,
+    has_loaded_types,
+    loaded_content_types,
     preferences.block_external_content,
     preferences.block_remote_images,
     preferences.block_remote_fonts,
@@ -329,10 +375,11 @@ export function ThreadMessageBlock({
   }, [sanitized_content.html]);
 
   const name = is_own_message ? t("common.me") : message.sender_name;
+  const can_collapse = !is_single_message && !is_last_in_thread;
 
   if (message.is_deleted) {
     return (
-      <div className="thread-card-collapsed rounded-xl px-5 py-3.5 text-sm italic text-txt-muted">
+      <div className="px-4 py-3 text-sm italic text-txt-muted border-b border-[var(--border-thread-divider)]">
         {t("mail.message_deleted")}
       </div>
     );
@@ -341,124 +388,148 @@ export function ThreadMessageBlock({
   if (!is_expanded) {
     return (
       <div
-        className="group thread-card-collapsed flex cursor-pointer items-center justify-between rounded-xl px-3 py-3"
+        className={`group flex cursor-pointer select-none gap-3 px-4 py-3 hover:bg-surf-hover/20 ${hide_bottom_border ? "" : "border-b border-[var(--border-thread-divider)]"}`}
         role="button"
         tabIndex={0}
         onClick={on_toggle}
         onKeyDown={(e) => e["key"] === "Enter" && on_toggle()}
       >
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
-          {is_reply && (
-            <ArrowUturnLeftIcon className="h-3.5 w-3.5 flex-shrink-0 text-txt-muted" />
-          )}
-          <ProfileAvatar
-            use_domain_logo
-            email={message.sender_email}
-            name={message.sender_name}
-            size="xs"
-          />
-          <span
-            className={`truncate text-sm ${is_read ? "font-normal text-txt-muted" : "font-semibold text-txt-primary"}`}
-          >
-            {name}
-          </span>
-          {is_ghost_sender && (
-            <EmailTag
-              className="flex-shrink-0"
-              icon="eye-slash"
-              label={t("common.ghost_label")}
-              muted={is_read}
-              size="sm"
-              title={t("common.ghost_mode_tooltip")}
-              variant="purple"
-            />
-          )}
-          {collapsed_preview && (
-            <span className="truncate text-sm text-txt-muted">
-              - {collapsed_preview}
+        <ProfileAvatar
+          use_domain_logo
+          className="flex-shrink-0 mt-0.5"
+          email={message.sender_email}
+          name={message.sender_name}
+          size="md"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-txt-primary truncate">
+              {name}
             </span>
+            {is_ghost_sender && (
+              <EmailTag
+                className="flex-shrink-0"
+                icon="eye-slash"
+                label={t("common.ghost_label")}
+                muted={is_read}
+                size="sm"
+                title={t("common.ghost_mode_tooltip")}
+                variant="purple"
+              />
+            )}
+          </div>
+          {collapsed_preview && (
+            <p className="text-sm text-txt-muted truncate mt-0.5">
+              {collapsed_preview}
+            </p>
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
-            {on_toggle_read && (
+        <div className="flex items-center gap-0.5 flex-shrink-0 mt-0.5">
+          <button
+            className="rounded-full p-1.5 hover:bg-surf-hover"
+            title={is_starred ? t("mail.unstar") : t("mail.star")}
+            onClick={(e) => {
+              e.stopPropagation();
+              on_star_toggle?.();
+            }}
+          >
+            {is_starred ? (
+              <StarIconSolid className="h-[18px] w-[18px] text-amber-400" />
+            ) : (
+              <StarIcon className="h-[18px] w-[18px] text-txt-muted" />
+            )}
+          </button>
+          {on_reply && !is_system && (
+            <button
+              className="rounded-full p-1.5 hover:bg-surf-hover"
+              title={t("mail.reply")}
+              onClick={(e) => {
+                e.stopPropagation();
+                on_toggle();
+                on_reply(message);
+              }}
+            >
+              <ArrowUturnLeftIcon className="h-[18px] w-[18px] text-txt-muted" />
+            </button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <button
-                className="-m-1 rounded-md p-1.5 hover:bg-surf-hover"
+                className="rounded-full p-1.5 hover:bg-surf-hover"
+                title={t("common.more")}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <EllipsisHorizontalIcon className="h-[18px] w-[18px] text-txt-muted" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              {on_reply && !is_system && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_toggle();
+                    on_reply(message);
+                  }}
+                >
+                  <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />
+                  {t("mail.reply")}
+                </DropdownMenuItem>
+              )}
+              {on_reply_all && !is_system && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_toggle();
+                    on_reply_all(message);
+                  }}
+                >
+                  <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />
+                  {t("mail.reply_all")}
+                </DropdownMenuItem>
+              )}
+              {on_forward && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_toggle();
+                    on_forward(message);
+                  }}
+                >
+                  <ArrowUturnRightIcon className="w-4 h-4 mr-2" />
+                  {t("mail.forward")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
-                  on_toggle_read();
+                  on_toggle_read?.();
                 }}
               >
                 {is_read ? (
-                  <EyeSlashIcon className="h-4 w-4 text-txt-muted" />
+                  <EyeSlashIcon className="w-4 h-4 mr-2" />
                 ) : (
-                  <EyeIcon className="h-4 w-4 text-txt-muted" />
+                  <EyeIcon className="w-4 h-4 mr-2" />
                 )}
-              </button>
-            )}
-            <button
-              className="-m-1 rounded-md p-1.5 hover:bg-surf-hover"
-              onClick={(e) => {
-                e.stopPropagation();
-                on_star_toggle?.();
-              }}
-            >
-              {is_starred ? (
-                <StarIconSolid className="h-4 w-4 text-amber-400" />
-              ) : (
-                <StarIcon className="h-4 w-4 text-txt-muted" />
-              )}
-            </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="-m-1 rounded-md p-1.5 hover:bg-surf-hover"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <EllipsisHorizontalIcon className="h-4 w-4 text-txt-muted" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_star_toggle?.();
-                  }}
-                >
-                  {is_starred ? (
-                    <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
-                  ) : (
-                    <StarIcon className="w-4 h-4 mr-2" />
-                  )}
-                  {is_starred ? t("mail.unstar") : t("mail.star")}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_toggle_read?.();
-                  }}
-                >
-                  {is_read ? (
-                    <EyeSlashIcon className="w-4 h-4 mr-2" />
-                  ) : (
-                    <EyeIcon className="w-4 h-4 mr-2" />
-                  )}
-                  {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {on_archive && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_archive(message);
-                    }}
-                  >
-                    <ArchiveBoxIcon className="w-4 h-4 mr-2" />
-                    {t("mail.archive")}
-                  </DropdownMenuItem>
+                {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  on_star_toggle?.();
+                }}
+              >
+                {is_starred ? (
+                  <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
+                ) : (
+                  <StarIcon className="w-4 h-4 mr-2" />
                 )}
-                {on_trash && (
+                {is_starred ? t("mail.unstar") : t("mail.star")}
+              </DropdownMenuItem>
+              {on_trash && (
+                <>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
@@ -466,96 +537,13 @@ export function ThreadMessageBlock({
                     }}
                   >
                     <TrashIcon className="w-4 h-4 mr-2" />
-                    {message.is_deleted
-                      ? t("mail.delete_permanently")
-                      : t("mail.move_to_trash")}
+                    {t("mail.move_to_trash")}
                   </DropdownMenuItem>
-                )}
-                <DropdownMenuItem disabled>
-                  <FolderIcon className="w-4 h-4 mr-2" />
-                  {t("mail.move_to_folder")}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {on_print && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_print(message);
-                    }}
-                  >
-                    <PrinterIcon className="w-4 h-4 mr-2" />
-                    {t("mail.print")}
-                  </DropdownMenuItem>
-                )}
-                {on_view_source && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_view_source(message);
-                    }}
-                  >
-                    <CodeBracketIcon className="w-4 h-4 mr-2" />
-                    {t("mail.view_source")}
-                  </DropdownMenuItem>
-                )}
-                {on_not_spam ? (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_not_spam(message);
-                    }}
-                  >
-                    <ShieldExclamationIcon className="w-4 h-4 mr-2" />
-                    {t("mail.not_spam")}
-                  </DropdownMenuItem>
-                ) : on_report_phishing ? (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_report_phishing(message);
-                    }}
-                  >
-                    <ShieldExclamationIcon className="w-4 h-4 mr-2 text-amber-500" />
-                    <span className="text-amber-500">
-                      {t("common.report_phishing")}
-                    </span>
-                  </DropdownMenuItem>
-                ) : null}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard
-                      .writeText(message.id)
-                      .then(() => {
-                        show_toast(t("common.message_id_copied"), "success");
-                      })
-                      .catch(() => {});
-                  }}
-                >
-                  <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
-                  Copy message ID
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    set_show_details_modal(true);
-                  }}
-                >
-                  <InformationCircleIcon className="w-4 h-4 mr-2" />
-                  {t("mail.message_details")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          {preferences.show_tracking_protection !== false &&
-            sanitized_content.report && (
-              <TrackingProtectionShield
-                t={t}
-                tracking_report={sanitized_content.report}
-              />
-            )}
-          <span className="text-sm text-txt-muted">
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <span className="text-[13px] text-txt-muted whitespace-nowrap ml-1.5 flex-shrink-0">
             {format_email_detail(new Date(message.timestamp))}
           </span>
         </div>
@@ -571,30 +559,28 @@ export function ThreadMessageBlock({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl bg-[var(--thread-card-bg)] border border-[var(--thread-card-border)]">
+    <div className={`overflow-hidden ${show_inline_reply || is_last_in_thread || is_single_message || hide_bottom_border ? "" : "border-b border-[var(--border-thread-divider)]"}`}>
       <div
-        className="group flex cursor-pointer items-start gap-3 px-3 @md:px-4 py-3"
-        role="button"
-        tabIndex={0}
-        onClick={on_toggle}
-        onKeyDown={(e) => e["key"] === "Enter" && on_toggle()}
+        className={`group flex items-start gap-3 px-4 pt-3 pb-1 ${can_collapse ? "cursor-pointer select-none" : ""}`}
+        role={can_collapse ? "button" : undefined}
+        tabIndex={can_collapse ? 0 : undefined}
+        onClick={can_collapse ? on_toggle : undefined}
+        onKeyDown={can_collapse ? (e) => e["key"] === "Enter" && on_toggle() : undefined}
       >
         <ProfileAvatar
           use_domain_logo
           className="flex-shrink-0 mt-0.5"
           email={message.sender_email}
           name={message.sender_name}
-          size="sm"
+          size="md"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
-            {is_reply && (
-              <ArrowUturnLeftIcon className="h-3.5 w-3.5 flex-shrink-0 text-txt-muted" />
-            )}
-            <span
-              className={`text-sm truncate ${is_read ? "font-normal text-txt-muted" : "font-semibold text-txt-primary"}`}
-            >
+            <span className="text-sm font-semibold truncate text-txt-primary">
               {name}
+            </span>
+            <span className="text-xs text-txt-muted truncate hidden sm:inline">
+              &lt;{message.sender_email}&gt;
             </span>
             {is_ghost_sender && (
               <EmailTag
@@ -607,190 +593,73 @@ export function ThreadMessageBlock({
                 variant="purple"
               />
             )}
-            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
-              {on_toggle_read && (
-                <button
-                  className="-m-1 rounded-md p-1.5 hover:bg-surf-hover"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_toggle_read();
-                  }}
-                >
-                  {is_read ? (
-                    <EyeSlashIcon className="h-4 w-4 text-txt-muted" />
-                  ) : (
-                    <EyeIcon className="h-4 w-4 text-txt-muted" />
-                  )}
-                </button>
-              )}
+            {on_unsubscribe && unsub_state === "idle" && (
               <button
-                className="-m-1 rounded-md p-1.5 hover:bg-surf-hover"
-                onClick={(e) => {
+                className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+                onClick={async (e) => {
                   e.stopPropagation();
-                  on_star_toggle?.();
+                  set_unsub_state("loading");
+                  const result = await on_unsubscribe();
+                  set_unsub_state(result === "success" ? "done" : "manual");
                 }}
               >
-                {is_starred ? (
-                  <StarIconSolid className="h-4 w-4 text-amber-400" />
-                ) : (
-                  <StarIcon className="h-4 w-4 text-txt-muted" />
-                )}
+                {t("mail.unsubscribe")}
               </button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className="-m-1 rounded-md p-1.5 hover:bg-surf-hover"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <EllipsisHorizontalIcon className="h-4 w-4 text-txt-muted" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_star_toggle?.();
-                    }}
-                  >
-                    {is_starred ? (
-                      <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
-                    ) : (
-                      <StarIcon className="w-4 h-4 mr-2" />
-                    )}
-                    {is_starred ? t("mail.unstar") : t("mail.star")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_toggle_read?.();
-                    }}
-                  >
-                    {is_read ? (
-                      <EyeSlashIcon className="w-4 h-4 mr-2" />
-                    ) : (
-                      <EyeIcon className="w-4 h-4 mr-2" />
-                    )}
-                    {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {on_archive && (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        on_archive(message);
-                      }}
+            )}
+            {unsub_state === "manual" && unsubscribe_url && (
+              <button
+                className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(unsubscribe_url, "_blank", "noopener,noreferrer");
+                  set_unsub_state("done");
+                  on_manual_unsubscribed?.();
+                }}
+              >
+                {t("mail.open_unsubscribe_page")}
+              </button>
+            )}
+            {sanitized_content.report && sanitized_content.report.blocked_count > 0 && on_load_external_content && (() => {
+              const report = sanitized_content.report!;
+              const image_count = report.blocked_items.filter((i) => i.type === "image").length;
+              const tracker_count = report.blocked_items.filter((i) => i.type === "tracking_pixel").length;
+              const font_count = report.blocked_items.filter((i) => i.type === "font").length;
+              const css_count = report.blocked_items.filter((i) => i.type === "css").length;
+              const btn_class = "flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors";
+              return (
+                <>
+                  {image_count > 0 && (
+                    <button
+                      className={btn_class}
+                      onClick={(e) => { e.stopPropagation(); on_load_external_content(["image"]); }}
                     >
-                      <ArchiveBoxIcon className="w-4 h-4 mr-2" />
-                      {t("mail.archive")}
-                    </DropdownMenuItem>
+                      {`${t("mail.load_external_content")} (${image_count} ${image_count === 1 ? t("mail.image") : t("mail.images")})`}
+                    </button>
                   )}
-                  {on_trash && (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        on_trash(message);
-                      }}
+                  {tracker_count > 0 && (
+                    <button
+                      className={btn_class}
+                      onClick={(e) => { e.stopPropagation(); on_load_external_content(["tracking_pixel"]); }}
                     >
-                      <TrashIcon className="w-4 h-4 mr-2" />
-                      {message.is_deleted
-                        ? t("mail.delete_permanently")
-                        : t("mail.move_to_trash")}
-                    </DropdownMenuItem>
+                      {`${t("mail.load_external_content")} (${tracker_count} ${tracker_count === 1 ? t("mail.tracker") : t("mail.trackers")})`}
+                    </button>
                   )}
-                  <DropdownMenuItem disabled>
-                    <FolderIcon className="w-4 h-4 mr-2" />
-                    {t("mail.move_to_folder")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {on_print && (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        on_print(message);
-                      }}
+                  {(font_count > 0 || css_count > 0) && (
+                    <button
+                      className={btn_class}
+                      onClick={(e) => { e.stopPropagation(); on_load_external_content(["font", "css"]); }}
                     >
-                      <PrinterIcon className="w-4 h-4 mr-2" />
-                      Print
-                    </DropdownMenuItem>
+                      {(() => {
+                        const parts: string[] = [];
+                        if (font_count > 0) parts.push(`${font_count} ${font_count === 1 ? t("mail.font") : t("mail.fonts")}`);
+                        if (css_count > 0) parts.push(`${css_count} ${t("mail.stylesheet")}`);
+                        return `${t("mail.load_external_content")} (${parts.join(", ")})`;
+                      })()}
+                    </button>
                   )}
-                  {on_toggle_dark_mode && (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        on_toggle_dark_mode();
-                      }}
-                    >
-                      {force_dark_mode ? (
-                        <SunIcon className="w-4 h-4 mr-2" />
-                      ) : (
-                        <MoonIcon className="w-4 h-4 mr-2" />
-                      )}
-                      {force_dark_mode
-                        ? t("mail.exit_dark_mode")
-                        : t("mail.view_dark_mode")}
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      set_viewing_source(!viewing_source);
-                    }}
-                  >
-                    <CodeBracketIcon className="w-4 h-4 mr-2" />
-                    {viewing_source
-                      ? t("mail.hide_source")
-                      : t("mail.view_source")}
-                  </DropdownMenuItem>
-                  {on_not_spam ? (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        on_not_spam(message);
-                      }}
-                    >
-                      <ShieldExclamationIcon className="w-4 h-4 mr-2" />
-                      {t("mail.not_spam")}
-                    </DropdownMenuItem>
-                  ) : on_report_phishing ? (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        on_report_phishing(message);
-                      }}
-                    >
-                      <ShieldExclamationIcon className="w-4 h-4 mr-2 text-amber-500" />
-                      <span className="text-amber-500">
-                        {t("common.report_phishing")}
-                      </span>
-                    </DropdownMenuItem>
-                  ) : null}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigator.clipboard
-                        .writeText(message.id)
-                        .then(() => {
-                          show_toast(t("common.message_id_copied"), "success");
-                        })
-                        .catch(() => {});
-                    }}
-                  >
-                    <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
-                    {t("mail.copy_message_id")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      set_show_details_modal(true);
-                    }}
-                  >
-                    <InformationCircleIcon className="w-4 h-4 mr-2" />
-                    {t("mail.message_details")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                </>
+              );
+            })()}
           </div>
           <Popover>
             <PopoverTrigger asChild>
@@ -866,18 +735,225 @@ export function ThreadMessageBlock({
           </Popover>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {preferences.show_tracking_protection !== false &&
-            sanitized_content.report && (
-              <TrackingProtectionShield
-                t={t}
-                tracking_report={sanitized_content.report}
-              />
+        <div className="flex items-center gap-0.5 flex-shrink-0">
+          <button
+            className="rounded-full p-1.5 hover:bg-surf-hover"
+            title={is_starred ? t("mail.unstar") : t("mail.star")}
+            onClick={(e) => {
+              e.stopPropagation();
+              on_star_toggle?.();
+            }}
+          >
+            {is_starred ? (
+              <StarIconSolid className="h-[18px] w-[18px] text-amber-400" />
+            ) : (
+              <StarIcon className="h-[18px] w-[18px] text-txt-muted" />
             )}
-          <span className="text-sm text-txt-muted">
+          </button>
+          {on_reply && !is_system && (
+            <button
+              className="rounded-full p-1.5 hover:bg-surf-hover"
+              title={t("mail.reply")}
+              onClick={(e) => {
+                e.stopPropagation();
+                on_reply(message);
+              }}
+            >
+              <ArrowUturnLeftIcon className="h-[18px] w-[18px] text-txt-muted" />
+            </button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="rounded-full p-1.5 hover:bg-surf-hover"
+                title={t("common.more")}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <EllipsisHorizontalIcon className="h-[18px] w-[18px] text-txt-muted" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              {on_reply && !is_system && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_reply(message);
+                  }}
+                >
+                  <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />
+                  {t("mail.reply")}
+                </DropdownMenuItem>
+              )}
+              {on_reply_all && !is_system && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_reply_all(message);
+                  }}
+                >
+                  <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />
+                  {t("mail.reply_all")}
+                </DropdownMenuItem>
+              )}
+              {on_forward && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_forward(message);
+                  }}
+                >
+                  <ArrowUturnRightIcon className="w-4 h-4 mr-2" />
+                  {t("mail.forward")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  on_toggle_read?.();
+                }}
+              >
+                {is_read ? (
+                  <EyeSlashIcon className="w-4 h-4 mr-2" />
+                ) : (
+                  <EyeIcon className="w-4 h-4 mr-2" />
+                )}
+                {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  on_star_toggle?.();
+                }}
+              >
+                {is_starred ? (
+                  <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
+                ) : (
+                  <StarIcon className="w-4 h-4 mr-2" />
+                )}
+                {is_starred ? t("mail.unstar") : t("mail.star")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {on_archive && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_archive(message);
+                  }}
+                >
+                  <ArchiveBoxIcon className="w-4 h-4 mr-2" />
+                  {t("mail.archive")}
+                </DropdownMenuItem>
+              )}
+              {on_trash && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_trash(message);
+                  }}
+                >
+                  <TrashIcon className="w-4 h-4 mr-2" />
+                  {message.is_deleted
+                    ? t("mail.delete_permanently")
+                    : t("mail.move_to_trash")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem disabled>
+                <FolderIcon className="w-4 h-4 mr-2" />
+                {t("mail.move_to_folder")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {on_print && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_print(message);
+                  }}
+                >
+                  <PrinterIcon className="w-4 h-4 mr-2" />
+                  {t("mail.print")}
+                </DropdownMenuItem>
+              )}
+              {on_toggle_dark_mode && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_toggle_dark_mode();
+                  }}
+                >
+                  {force_dark_mode ? (
+                    <SunIcon className="w-4 h-4 mr-2" />
+                  ) : (
+                    <MoonIcon className="w-4 h-4 mr-2" />
+                  )}
+                  {force_dark_mode
+                    ? t("mail.exit_dark_mode")
+                    : t("mail.view_dark_mode")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  set_viewing_source(!viewing_source);
+                }}
+              >
+                <CodeBracketIcon className="w-4 h-4 mr-2" />
+                {viewing_source
+                  ? t("mail.hide_source")
+                  : t("mail.view_source")}
+              </DropdownMenuItem>
+              {on_not_spam ? (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_not_spam(message);
+                  }}
+                >
+                  <ShieldExclamationIcon className="w-4 h-4 mr-2" />
+                  {t("mail.not_spam")}
+                </DropdownMenuItem>
+              ) : on_report_phishing ? (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_report_phishing(message);
+                  }}
+                >
+                  <ShieldExclamationIcon className="w-4 h-4 mr-2 text-amber-500" />
+                  <span className="text-amber-500">
+                    {t("common.report_phishing")}
+                  </span>
+                </DropdownMenuItem>
+              ) : null}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigator.clipboard
+                    .writeText(message.id)
+                    .then(() => {
+                      show_toast(t("common.message_id_copied"), "success");
+                    })
+                    .catch(() => {});
+                }}
+              >
+                <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
+                {t("mail.copy_message_id")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  set_show_details_modal(true);
+                }}
+              >
+                <InformationCircleIcon className="w-4 h-4 mr-2" />
+                {t("mail.message_details")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <span className="text-[13px] text-txt-muted whitespace-nowrap ml-1.5">
             {format_email_detail(new Date(message.timestamp))}
           </span>
-          <ChevronDownIcon className="ml-1 h-4 w-4 text-txt-muted" />
         </div>
       </div>
 
@@ -888,34 +964,41 @@ export function ThreadMessageBlock({
         size_bytes={size_bytes}
       />
 
-      <ThreadMessageBody
-        body_background={sanitized_content.body_background}
-        clean_body={clean_body}
-        email_id={message.id}
-        force_dark_mode={force_dark_mode}
-        is_plain_text={is_plain_text}
-        load_remote_content={load_remote_content}
-        sanitized_html={effective_html}
-        set_wrap_source={set_wrap_source}
-        viewing_source={viewing_source}
-        wrap_source={wrap_source}
-      />
-
-      <AttachmentList
-        has_recipient_key={message.has_recipient_key}
-        inline_cids={inline_cids}
-        inline_filenames={inline_filenames}
-        is_external={message.is_external}
-        mail_item_id={message.id}
-      />
-
-      {!show_inline_reply && (
-        <ThreadMessageActions
-          message={message}
-          on_forward={on_forward}
-          on_reply={on_reply}
-          on_reply_all={on_reply_all}
+      <div className={`${is_plain_text ? "pl-[52px] pb-4" : "pb-0"} pt-1`}>
+        <ThreadMessageBody
+          body_background={sanitized_content.body_background}
+          clean_body={clean_body}
+          email_id={message.id}
+          force_dark_mode={force_dark_mode}
+          is_plain_text={is_plain_text}
+          load_remote_content={load_remote_content}
+          sanitized_html={effective_html}
+          set_wrap_source={set_wrap_source}
+          viewing_source={viewing_source}
+          wrap_source={wrap_source}
         />
+
+        <div className={is_plain_text ? "" : "pl-[52px]"} onClick={(e) => e.stopPropagation()}>
+          <AttachmentList
+            has_recipient_key={message.has_recipient_key}
+            inline_cids={inline_cids}
+            inline_filenames={inline_filenames}
+            is_external={message.is_external}
+            mail_item_id={message.id}
+          />
+        </div>
+
+      </div>
+
+      {!show_inline_reply && (is_single_message || is_last_in_thread) && (
+        <div className="sticky bottom-0 bg-[var(--bg-primary)] z-10" onClick={(e) => e.stopPropagation()}>
+          <ThreadMessageActions
+            message={message}
+            on_forward={on_forward}
+            on_reply={on_reply}
+            on_reply_all={on_reply_all}
+          />
+        </div>
       )}
 
       {show_inline_reply &&
@@ -950,24 +1033,28 @@ export function ThreadMessageBlock({
             : undefined;
 
           return (
-            <InlineReplyComposer
-              inline_mode={inline_mode}
-              is_external={inline_reply_is_external}
-              on_close={on_close_inline_reply}
-              on_set_inline_mode={on_set_inline_mode}
-              original_body={message.body || ""}
-              original_cc={original_cc_emails}
-              original_email_id={message.id}
-              original_subject={message.subject}
-              original_timestamp={message.timestamp}
-              original_to={all_to_emails}
-              recipient_email={inline_recipient_email}
-              recipient_name={inline_recipient_name}
-              reply_from_address={inline_reply_from}
-              sender_email={message.sender_email}
-              sender_name={message.sender_name}
-              thread_token={inline_reply_thread_token}
-            />
+            <div onClick={(e) => e.stopPropagation()}>
+              <InlineReplyComposer
+                existing_draft={existing_draft}
+                inline_mode={inline_mode}
+                is_external={inline_reply_is_external}
+                on_close={on_close_inline_reply}
+                on_draft_saved={on_draft_saved}
+                on_set_inline_mode={on_set_inline_mode}
+                original_body={message.body || ""}
+                original_cc={original_cc_emails}
+                original_email_id={message.id}
+                original_subject={message.subject}
+                original_timestamp={message.timestamp}
+                original_to={all_to_emails}
+                recipient_email={inline_recipient_email}
+                recipient_name={inline_recipient_name}
+                reply_from_address={inline_reply_from}
+                sender_email={message.sender_email}
+                sender_name={message.sender_name}
+                thread_token={inline_reply_thread_token}
+              />
+            </div>
           );
         })()}
     </div>

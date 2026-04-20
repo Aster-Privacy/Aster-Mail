@@ -53,7 +53,7 @@ export function ThreadMessageActions({
   }
 
   return (
-    <div className="flex items-center gap-2 px-3 @md:px-4 py-3 border-t border-[var(--thread-card-border)] bg-[var(--thread-content-bg)]">
+    <div className="flex items-center gap-2 px-4 pt-2 pb-3 border-t border-[var(--border-thread-divider)]">
       {on_reply && (
         <Button
           className={`gap-1.5 ${is_system_email(message.sender_email) ? "opacity-50 pointer-events-none" : ""}`}

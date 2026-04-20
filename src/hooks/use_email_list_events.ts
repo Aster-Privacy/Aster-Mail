@@ -282,6 +282,13 @@ export function use_email_list_events({
         }
       }
 
+      if (
+        current_view !== "archive" &&
+        detail.is_archived === true
+      ) {
+        return true;
+      }
+
       switch (current_view) {
         case "starred":
           return detail.is_starred === false;

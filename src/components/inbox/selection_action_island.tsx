@@ -38,6 +38,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Capacitor } from "@capacitor/core";
 
+import { Tooltip } from "@aster/ui";
+
 import { set_island_visible } from "@/components/toast/action_toast";
 import {
   DropdownMenu,
@@ -62,10 +64,9 @@ function ActionButton({
   variant = "default",
   title,
 }: ActionButtonProps): ReactElement {
-  return (
+  const btn = (
     <motion.button
       className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
-      title={title}
       onClick={on_click}
     >
       <Icon
@@ -73,6 +74,12 @@ function ActionButton({
       />
     </motion.button>
   );
+
+  if (title) {
+    return <Tooltip tip={title}>{btn}</Tooltip>;
+  }
+
+  return btn;
 }
 
 interface FolderOption {
@@ -217,14 +224,15 @@ export function SelectionActionIsland({
 
             {!is_native && folders.length > 0 && on_folder_toggle && (
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <motion.button
-                    className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
-                    title={t("common.folders")}
-                  >
-                    <FolderIcon className="w-[18px] h-[18px] text-[var(--text-primary)]" />
-                  </motion.button>
-                </DropdownMenuTrigger>
+                <Tooltip tip={t("common.folders")}>
+                  <DropdownMenuTrigger asChild>
+                    <motion.button
+                      className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
+                    >
+                      <FolderIcon className="w-[18px] h-[18px] text-[var(--text-primary)]" />
+                    </motion.button>
+                  </DropdownMenuTrigger>
+                </Tooltip>
                 <DropdownMenuContent
                   align="center"
                   className="max-h-64 overflow-y-auto"
@@ -255,14 +263,15 @@ export function SelectionActionIsland({
 
             {!is_native && tags.length > 0 && on_tag_toggle && (
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <motion.button
-                    className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
-                    title={t("common.labels")}
-                  >
-                    <TagIcon className="w-[18px] h-[18px] text-[var(--text-primary)]" />
-                  </motion.button>
-                </DropdownMenuTrigger>
+                <Tooltip tip={t("common.labels")}>
+                  <DropdownMenuTrigger asChild>
+                    <motion.button
+                      className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
+                    >
+                      <TagIcon className="w-[18px] h-[18px] text-[var(--text-primary)]" />
+                    </motion.button>
+                  </DropdownMenuTrigger>
+                </Tooltip>
                 <DropdownMenuContent
                   align="center"
                   className="max-h-64 overflow-y-auto"
@@ -291,14 +300,15 @@ export function SelectionActionIsland({
             )}
 
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <motion.button
-                  className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
-                  title={t("common.more")}
-                >
-                  <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--text-primary)]" />
-                </motion.button>
-              </DropdownMenuTrigger>
+              <Tooltip tip={t("common.more")}>
+                <DropdownMenuTrigger asChild>
+                  <motion.button
+                    className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
+                  >
+                    <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--text-primary)]" />
+                  </motion.button>
+                </DropdownMenuTrigger>
+              </Tooltip>
               <DropdownMenuContent align="center" side="top" sideOffset={8}>
                 {!is_trash_view && !is_spam_view && (
                   <DropdownMenuItem onClick={on_spam}>
@@ -356,13 +366,14 @@ export function SelectionActionIsland({
                 className="w-px h-5 ml-1"
                 style={{ backgroundColor: "var(--border-secondary)" }}
               />
-              <motion.button
-                className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
-                title={t("mail.clear_selection")}
-                onClick={on_clear_selection}
-              >
-                <XMarkIcon className="w-[18px] h-[18px] text-[var(--text-muted)]" />
-              </motion.button>
+              <Tooltip tip={t("mail.clear_selection")}>
+                <motion.button
+                  className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
+                  onClick={on_clear_selection}
+                >
+                  <XMarkIcon className="w-[18px] h-[18px] text-[var(--text-muted)]" />
+                </motion.button>
+              </Tooltip>
             </>
           )}
         </motion.div>

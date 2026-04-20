@@ -21,7 +21,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { CloseIcon, FileIcon } from "@/components/common/icons";
+import { CloseIcon } from "@/components/common/icons";
+import { ComposeAttachments } from "@/components/compose/compose_attachments";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
@@ -44,7 +45,6 @@ import {
   ComposeFileInput,
   ComposeToolbar,
   ComposeFormatBar,
-  get_file_icon_color,
   type EditDraftData,
 } from "@/components/compose/compose_shared";
 
@@ -158,6 +158,18 @@ export function ComposeModal({
               duration: reduce_motion ? 0 : 0.25,
               ease: [0.32, 0.72, 0, 1],
             }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const files = Array.from(e.dataTransfer?.files || []);
+              if (files.length > 0) {
+                compose.handle_files_drop(files);
+              }
+            }}
           >
             <ErrorBoundary fallback={<ComposeErrorFallback />}>
               <div
@@ -251,7 +263,9 @@ export function ComposeModal({
                         on_set_ghost_expiry={
                           compose.ghost_mode.set_ghost_expiry_days
                         }
+                        on_set_preferred={compose.set_preferred_sender}
                         options={compose.sender_options}
+                        preferred_id={compose.preferred_sender_id}
                         selected={compose.selected_sender}
                       />
                     </div>
@@ -269,67 +283,7 @@ export function ComposeModal({
                 </div>
               )}
 
-              {compose.attachments.length > 0 && (
-                <div className="border-t border-edge-primary">
-                  <div className="min-h-[52px] px-4 flex items-start pt-3 pb-2">
-                    <div
-                      ref={compose.attachments_scroll_ref}
-                      className="flex gap-2 overflow-x-auto w-full pb-2 scrollbar-hide"
-                    >
-                      {compose.attachments.map((attachment) => {
-                        const color = get_file_icon_color(attachment.mime_type);
-
-                        return (
-                          <div
-                            key={attachment.id}
-                            className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs whitespace-nowrap flex-shrink-0"
-                            style={{
-                              backgroundColor: color.bg,
-                              border: `1px solid ${color.border}`,
-                            }}
-                          >
-                            <span style={{ color: color.text }}>
-                              <FileIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                            </span>
-                            <span
-                              className="font-medium whitespace-nowrap max-w-[150px] truncate text-txt-primary"
-                              title={attachment.name}
-                            >
-                              {attachment.name}
-                            </span>
-                            <span className="whitespace-nowrap text-txt-tertiary">
-                              {attachment.size}
-                            </span>
-                            <button
-                              className="attachment_close_btn transition-colors duration-150 ml-0.5 flex-shrink-0"
-                              type="button"
-                              onClick={() =>
-                                compose.remove_attachment(attachment.id)
-                              }
-                            >
-                              <CloseIcon className="w-5 h-5" />
-                            </button>
-                          </div>
-                        );
-                      })}
-                      <button
-                        className="inline-flex items-center gap-1.5 px-2 py-1 text-xs text-default-500 hover:text-default-700 border border-dashed border-default-300 rounded hover:border-default-400 transition-colors whitespace-nowrap flex-shrink-0"
-                        type="button"
-                        onClick={compose.trigger_file_select}
-                      >
-                        <svg
-                          className="w-3.5 h-3.5"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                        </svg>
-                        <span>{t("mail.add_file")}</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <ComposeAttachments compose={compose} show_add_button />
 
               <ComposeErrors compose={compose} />
 

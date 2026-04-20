@@ -75,22 +75,22 @@ export function UpgradeGate({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center text-center min-h-[60vh] gap-2 px-6">
-      <LockClosedIcon className="w-6 h-6 text-txt-muted mb-4" />
+    <div className="flex flex-col items-center justify-center text-center py-6 gap-2 px-6">
+      <LockClosedIcon className="w-5 h-5 text-txt-muted mb-2" />
 
-      <h3 className="text-base font-semibold text-txt-primary mb-2">
+      <h3 className="text-sm font-semibold text-txt-primary">
         {feature_name}
       </h3>
 
-      <p className="text-sm text-txt-secondary mb-2 max-w-md">{description}</p>
+      <p className="text-xs text-txt-secondary max-w-md">{description}</p>
 
-      <p className="text-sm text-txt-muted mb-5">
+      <p className="text-xs text-txt-muted mb-3">
         {t("settings.available_on_plan" as TranslationKey, {
           plan: min_plan,
         })}
       </p>
 
-      <Button size="lg" variant="depth" onClick={navigate_to_billing}>
+      <Button variant="depth" onClick={navigate_to_billing}>
         {t("settings.upgrade_to_unlock" as TranslationKey)}
       </Button>
     </div>

@@ -469,26 +469,6 @@ export function use_forward_modal({
     load_contacts_fn();
   }, [is_open]);
 
-  useEffect(() => {
-    const scroll_container = attachments_scroll_ref.current;
-
-    if (!scroll_container || !is_open) return;
-
-    const handle_wheel = (e: WheelEvent) => {
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        e.stopPropagation();
-        scroll_container.scrollLeft += e.deltaY;
-      }
-    };
-
-    scroll_container.addEventListener("wheel", handle_wheel, {
-      passive: false,
-    });
-
-    return () => scroll_container.removeEventListener("wheel", handle_wheel);
-  }, [is_open, attachments.length]);
-
   const exec_format_command = useCallback(
     (command: string) => {
       editor.exec_format(command);
@@ -929,6 +909,7 @@ export function use_forward_modal({
     handle_scheduled_send,
     handle_close,
     handle_file_select,
+    handle_files_drop,
     remove_attachment,
     trigger_file_select,
     can_send,

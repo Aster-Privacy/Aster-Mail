@@ -82,7 +82,9 @@ export function HeaderPagination({
       <span className="tabular-nums text-sm min-w-[3ch] text-center">
         {on_navigate_prev || on_navigate_next ? (
           <>
-            {current_email_index !== undefined ? current_email_index + 1 : 0}
+            {current_email_index !== undefined && current_email_index >= 0
+              ? current_email_index + 1
+              : "—"}
             {total_email_count > 0 && (
               <>
                 {" "}

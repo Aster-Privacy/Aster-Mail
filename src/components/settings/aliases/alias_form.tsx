@@ -49,6 +49,11 @@ import {
   type DecryptedDomainAddress,
 } from "@/services/api/domains";
 import { DEFAULT_DOMAINS } from "@/components/settings/hooks/use_aliases";
+import {
+  TurnstileWidget,
+  type TurnstileWidgetRef,
+  TURNSTILE_SITE_KEY,
+} from "@/components/auth/turnstile_widget";
 
 interface CreateAliasModalProps {
   is_open: boolean;
@@ -80,7 +85,10 @@ export function CreateAliasModal({
   const [error, set_error] = useState<string | null>(null);
   const [checking, set_checking] = useState(false);
   const [is_available, set_is_available] = useState<boolean | null>(null);
+  const [captcha_token, set_captcha_token] = useState<string | null>(null);
   const check_timeout_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const turnstile_ref = useRef<TurnstileWidgetRef>(null);
+  const turnstile_required = !!TURNSTILE_SITE_KEY;
 
   const is_custom_domain = !DEFAULT_DOMAINS.includes(domain);
   const matched_custom_domain = custom_domains.find(
@@ -93,6 +101,8 @@ export function CreateAliasModal({
       set_domain(available_domains[0] || DEFAULT_DOMAINS[0]);
       set_error(null);
       set_is_available(null);
+      set_captcha_token(null);
+      turnstile_ref.current?.reset();
     }
   }, [is_open]);
 
@@ -185,16 +195,24 @@ export function CreateAliasModal({
           matched_custom_domain.id,
           local_part,
           domain,
+          captcha_token ?? undefined,
         );
 
         if (response.error) {
           set_error(response.error);
+          set_captcha_token(null);
+          turnstile_ref.current?.reset();
         } else {
           on_created();
           on_close();
         }
       } else {
-        const response = await create_alias(local_part, domain);
+        const response = await create_alias(
+          local_part,
+          domain,
+          undefined,
+          captcha_token ?? undefined,
+        );
 
         if (response.error) {
           if (response.code === "CONFLICT") {
@@ -202,6 +220,8 @@ export function CreateAliasModal({
           } else {
             set_error(response.error);
           }
+          set_captcha_token(null);
+          turnstile_ref.current?.reset();
         } else {
           on_created();
           on_close();
@@ -213,6 +233,8 @@ export function CreateAliasModal({
           ? err.message
           : t("settings.failed_create_address"),
       );
+      set_captcha_token(null);
+      turnstile_ref.current?.reset();
     } finally {
       set_saving(false);
     }
@@ -359,6 +381,15 @@ export function CreateAliasModal({
                 </p>
               )}
             </div>
+            {turnstile_required && (
+              <div className="flex justify-center">
+                <TurnstileWidget
+                  ref={turnstile_ref}
+                  on_expire={() => set_captcha_token(null)}
+                  on_verify={set_captcha_token}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -393,7 +424,8 @@ export function CreateAliasModal({
               saving ||
               !local_part ||
               (!is_custom_domain && is_available === false) ||
-              !current_validation.valid
+              !current_validation.valid ||
+              (turnstile_required && !captcha_token)
             }
             variant="depth"
             onClick={handle_create}

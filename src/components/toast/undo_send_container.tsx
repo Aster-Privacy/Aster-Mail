@@ -18,68 +18,32 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useMemo } from "react";
-import { AnimatePresence } from "framer-motion";
+import { useEffect, useMemo, useRef } from "react";
 
-import { UndoSendToast } from "@/components/toast/undo_send_toast";
 import { use_undo_send } from "@/hooks/use_undo_send";
 import { undo_send_manager as server_undo_manager } from "@/services/undo_send_manager";
 import { is_mac_platform } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
-
-type ContainerPosition =
-  | "bottom-left"
-  | "bottom-right"
-  | "bottom-center"
-  | "top-left"
-  | "top-right"
-  | "top-center";
+import { show_action_toast } from "@/components/toast/action_toast";
 
 interface UndoSendContainerProps {
-  position?: ContainerPosition;
+  position?: string;
   max_visible?: number;
   is_mobile?: boolean;
 }
 
-function get_position_classes(position: ContainerPosition): string {
-  switch (position) {
-    case "bottom-left":
-      return "left-6 bottom-6";
-    case "bottom-right":
-      return "right-6 bottom-6";
-    case "bottom-center":
-      return "left-1/2 -translate-x-1/2 bottom-6";
-    case "top-left":
-      return "left-6";
-    case "top-right":
-      return "right-6";
-    case "top-center":
-      return "left-1/2 -translate-x-1/2";
-  }
-}
-
-function is_top_position(position: ContainerPosition): boolean {
-  return position.startsWith("top");
-}
-
 export function UndoSendContainer({
-  position = "bottom-left",
-  max_visible = 3,
-  is_mobile = false,
+  position: _position,
+  max_visible: _max_visible,
+  is_mobile: _is_mobile,
 }: UndoSendContainerProps) {
   const { t } = use_i18n();
   const { is_authenticated } = use_auth();
-  const {
-    pending_sends,
-    cancel_send,
-    send_immediately,
-    get_time_remaining,
-    remove_pending,
-  } = use_undo_send();
+  const { pending_sends, cancel_send, get_time_remaining } = use_undo_send();
 
   const is_mac = useMemo(() => is_mac_platform(), []);
-  const is_top = is_top_position(position);
+  const shown_ids_ref = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (is_authenticated) {
@@ -110,63 +74,32 @@ export function UndoSendContainer({
     return () => window.removeEventListener("keydown", handle_keydown);
   }, [pending_sends, cancel_send, is_mac]);
 
-  const visible_sends = pending_sends.slice(0, max_visible);
-  const overflow_count = Math.max(0, pending_sends.length - max_visible);
-  const position_classes = get_position_classes(position);
+  useEffect(() => {
+    for (const pending of pending_sends) {
+      if (shown_ids_ref.current.has(pending.id)) continue;
+      shown_ids_ref.current.add(pending.id);
 
-  if (pending_sends.length === 0) {
-    return null;
-  }
+      const remaining = get_time_remaining(pending.id);
 
-  return (
-    <div
-      aria-label={t("common.pending_email_notifications")}
-      aria-live="polite"
-      className={`fixed z-[100] flex gap-2 ${is_top ? "flex-col" : "flex-col-reverse"} ${position_classes}`}
-      role="region"
-      style={
-        is_top
-          ? { top: `calc(env(safe-area-inset-top, 0px) + 12px)` }
-          : undefined
+      show_action_toast({
+        message: t("common.email_sent"),
+        action_type: "archive",
+        email_ids: [],
+        duration_ms: remaining * 1000,
+        on_undo: async () => {
+          cancel_send(pending.id);
+        },
+      });
+    }
+
+    const current_ids = new Set(pending_sends.map((p) => p.id));
+
+    for (const id of shown_ids_ref.current) {
+      if (!current_ids.has(id)) {
+        shown_ids_ref.current.delete(id);
       }
-    >
-      <AnimatePresence>
-        {visible_sends.map((pending) => {
-          const time_remaining = get_time_remaining(pending.id);
-          const recipient =
-            pending.to.length > 0
-              ? pending.to[0]
-              : pending.cc?.[0] ||
-                pending.bcc?.[0] ||
-                t("mail.unknown" as never);
+    }
+  }, [pending_sends, cancel_send, get_time_remaining, t]);
 
-          return (
-            <UndoSendToast
-              key={pending.id}
-              bcc_list={pending.bcc}
-              body={pending.body}
-              cc_list={pending.cc}
-              is_mac={is_mac}
-              is_mobile={is_mobile}
-              is_top={is_top}
-              on_dismiss={() => remove_pending(pending.id)}
-              on_send_now={() => send_immediately(pending.id)}
-              on_undo={() => cancel_send(pending.id)}
-              queue_id={pending.id}
-              recipient={recipient}
-              seconds_remaining={time_remaining}
-              subject={pending.subject}
-              to_list={pending.to}
-              total_seconds={pending.total_seconds}
-            />
-          );
-        })}
-      </AnimatePresence>
-      {overflow_count > 0 && (
-        <div className="text-xs px-3 py-1.5 rounded-full self-start bg-surf-secondary text-txt-secondary">
-          +{overflow_count} more pending
-        </div>
-      )}
-    </div>
-  );
+  return null;
 }

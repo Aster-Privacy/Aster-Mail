@@ -216,10 +216,10 @@ export function use_email_list_bulk({
         adjust_inbox_count(-received_count);
       }
       adjust_stats_archived(expanded_ids.length);
+      invalidate_mail_cache();
 
       try {
         await api_batch_archive({ ids: expanded_ids, tier: "hot" });
-        invalidate_mail_cache();
 
         const remaining = state.emails.filter((e) => !id_set.has(e.id));
 
@@ -288,10 +288,10 @@ export function use_email_list_bulk({
         adjust_inbox_count(received_count);
       }
       adjust_stats_archived(-expanded_ids.length);
+      invalidate_mail_cache();
 
       try {
         await api_batch_unarchive({ ids: expanded_ids });
-        invalidate_mail_cache();
 
         const remaining = state.emails.filter((e) => !id_set.has(e.id));
 

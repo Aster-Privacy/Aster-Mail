@@ -45,7 +45,7 @@ export function ReferralSection({
   const { t } = use_i18n();
 
   return (
-    <div className="border-t border-edge-secondary pt-8">
+    <div className="border-t border-edge-secondary pt-8" id="referral_section">
       <div className="mb-2">
         <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
           <UserGroupIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />

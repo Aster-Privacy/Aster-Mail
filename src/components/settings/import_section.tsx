@@ -467,6 +467,10 @@ export function ImportSection() {
     null,
   );
   const setup_account_tokens_ref = useRef<Set<string>>(new Set());
+  const oauth_cancelled_ref = useRef(false);
+  const [oauth_setup_token, set_oauth_setup_token] = useState<string | null>(
+    null,
+  );
 
   const load_jobs = async () => {
     if (has_error) return;
@@ -517,6 +521,8 @@ export function ImportSection() {
       }
 
       setup_account_tokens_ref.current.add(account_token);
+      oauth_cancelled_ref.current = false;
+      set_oauth_setup_token(account_token);
       set_folder_setup_status("setting_up");
       set_syncing_accounts((prev) => new Set(prev).add(account_token));
 
@@ -606,15 +612,20 @@ export function ImportSection() {
           }
         }
 
+        if (oauth_cancelled_ref.current) return;
+
         if (Object.keys(mapping).length > 0) {
           await save_folder_mapping(account_token, mapping);
         }
 
         set_folder_setup_status("idle");
+        set_oauth_setup_token(null);
 
         await trigger_sync(account_token);
       } catch {
         set_folder_setup_status("idle");
+        set_oauth_setup_token(null);
+        if (oauth_cancelled_ref.current) return;
         show_toast(t("settings.oauth_folders_error"), "error");
 
         await trigger_sync(account_token).catch(() => {});
@@ -697,6 +708,31 @@ export function ImportSection() {
     }
   }, [disconnect_token, t]);
 
+  const handle_cancel_oauth_setup = useCallback(async () => {
+    oauth_cancelled_ref.current = true;
+    const token = oauth_setup_token;
+
+    set_oauth_setup_token(null);
+    set_folder_setup_status("idle");
+
+    if (token) {
+      set_syncing_accounts((prev) => {
+        const next = new Set(prev);
+
+        next.delete(token);
+
+        return next;
+      });
+
+      try {
+        await delete_external_account(token);
+        set_connected_accounts((prev) =>
+          prev.filter((a) => a.account_token !== token),
+        );
+      } catch {}
+    }
+  }, [oauth_setup_token]);
+
   const handle_modal_close = () => {
     set_selected_provider(null);
     if (!has_error) {
@@ -710,10 +746,17 @@ export function ImportSection() {
 
       if (!oauth_provider) return;
 
+      oauth_cancelled_ref.current = false;
       set_oauth_loading(provider_id);
 
       try {
         const result = await start_oauth_authorize(oauth_provider);
+
+        if (oauth_cancelled_ref.current) {
+          set_oauth_loading(null);
+
+          return;
+        }
 
         if (result.error) {
           show_toast(
@@ -729,6 +772,12 @@ export function ImportSection() {
           window.location.href = result.data.authorize_url;
         }
       } catch {
+        if (oauth_cancelled_ref.current) {
+          set_oauth_loading(null);
+
+          return;
+        }
+
         show_toast(
           t("settings.oauth_import_error", { reason: "unexpected_error" }),
           "error",
@@ -868,9 +917,16 @@ export function ImportSection() {
       {folder_setup_status === "setting_up" && (
         <div className="flex items-center gap-2 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary">
           <Spinner className="text-brand" size="sm" />
-          <span className="text-sm text-txt-secondary">
+          <span className="flex-1 text-sm text-txt-secondary">
             {t("settings.oauth_setting_up_folders")}
           </span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handle_cancel_oauth_setup}
+          >
+            {t("common.cancel")}
+          </Button>
         </div>
       )}
 

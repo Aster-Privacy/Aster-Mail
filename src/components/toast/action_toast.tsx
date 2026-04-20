@@ -53,6 +53,7 @@ interface ActionToastState {
     | "refresh";
   email_ids: string[];
   on_undo?: () => Promise<void>;
+  action_label?: string;
   progress?: { completed: number; total: number };
   on_cancel?: () => void;
 }
@@ -61,7 +62,9 @@ const toast_listeners = new Set<(toast: ActionToastState | null) => void>();
 let current_toast: ActionToastState | null = null;
 let toast_timeout: NodeJS.Timeout | null = null;
 
-export function show_action_toast(toast: Omit<ActionToastState, "id">) {
+export function show_action_toast(
+  toast: Omit<ActionToastState, "id"> & { duration_ms?: number },
+) {
   if (toast_timeout) {
     clearTimeout(toast_timeout);
     toast_timeout = null;
@@ -75,10 +78,13 @@ export function show_action_toast(toast: Omit<ActionToastState, "id">) {
   toast_listeners.forEach((listener) => listener(current_toast));
 
   if (!toast.progress) {
-    toast_timeout = setTimeout(() => {
-      current_toast = null;
-      toast_listeners.forEach((listener) => listener(null));
-    }, 5000);
+    toast_timeout = setTimeout(
+      () => {
+        current_toast = null;
+        toast_listeners.forEach((listener) => listener(null));
+      },
+      toast.duration_ms && toast.duration_ms > 0 ? toast.duration_ms : 5000,
+    );
   }
 }
 
@@ -177,7 +183,23 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
     set_is_undoing(true);
     try {
       await toast.on_undo();
-      hide_action_toast();
+      if (toast_timeout) {
+        clearTimeout(toast_timeout);
+        toast_timeout = null;
+      }
+      set_toast((prev) =>
+        prev
+          ? {
+              ...prev,
+              message: t("common.action_undone"),
+              on_undo: undefined,
+            }
+          : null,
+      );
+      toast_timeout = setTimeout(() => {
+        current_toast = null;
+        toast_listeners.forEach((listener) => listener(null));
+      }, 2000);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       set_toast((prev) =>
@@ -192,7 +214,7 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
     } finally {
       set_is_undoing(false);
     }
-  }, [toast, is_undoing]);
+  }, [toast, is_undoing, t]);
 
   const handle_cancel = useCallback(() => {
     toast?.on_cancel?.();
@@ -238,11 +260,11 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
               </span>
               {toast.on_undo && !toast.progress && (
                 <button
-                  className="text-[13px] font-medium ml-1 hover:underline text-brand"
+                  className="text-[13px] font-medium ml-1 underline text-brand"
                   disabled={is_undoing}
                   onClick={handle_undo}
                 >
-                  {is_undoing ? "..." : t("common.undo")}
+                  {is_undoing ? "..." : (toast.action_label || t("common.undo"))}
                 </button>
               )}
               {toast.on_cancel && toast.progress && (

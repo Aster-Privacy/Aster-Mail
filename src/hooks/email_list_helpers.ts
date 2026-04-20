@@ -74,7 +74,7 @@ export type MailView =
   | "all";
 
 export const VIEW_PARAMS: Record<MailView, Partial<ListMailItemsParams>> = {
-  inbox: { item_type: "received", is_trashed: false, is_spam: false },
+  inbox: { item_type: "received", is_trashed: false, is_spam: false, is_archived: false },
   sent: { item_type: "sent", is_trashed: false, is_spam: false },
   scheduled: { item_type: "scheduled", is_trashed: false, is_spam: false },
   starred: { is_starred: true, is_trashed: false, is_spam: false },
@@ -256,6 +256,7 @@ export function mail_to_email(
     snoozed_until: item.snoozed_until,
     message_ts: item.message_ts,
     item_type: item.item_type,
+    is_read: item.is_read,
   });
 
   if (!envelope) {
@@ -526,7 +527,12 @@ export async function fetch_mail_from_api(
   );
 
   if (should_exclude_trashed_spam(view)) {
-    emails = emails.filter((e) => !e.is_trashed && !e.is_spam);
+    emails = emails.filter(
+      (e) =>
+        !e.is_trashed &&
+        !e.is_spam &&
+        (view === "archive" || !e.is_archived),
+    );
   }
 
   const sorted_emails = emails.sort((a, b) => {

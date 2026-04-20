@@ -54,6 +54,7 @@ import {
   type MailItem,
 } from "@/services/api/mail";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
+import { invalidate_mail_cache } from "@/hooks/email_list_cache";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { has_protected_folder_label } from "@/hooks/use_folders";
@@ -331,6 +332,7 @@ export function CommandPalette({
         }
 
         const ids = result.items.map((i) => i.id);
+        invalidate_mail_cache();
         const archive_result = await batch_archive({ ids, tier: "hot" });
 
         if (archive_result.error) {

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SettingsSection } from "@/components/settings/settings_panel";
+
 import { useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 
@@ -60,6 +62,21 @@ export default function IndexPage() {
       show_toast(t("auth.verification_failed"), "error");
     }
   }, [t]);
+
+  useEffect(() => {
+    const handle_navigate = (e: Event) => {
+      const section = (e as CustomEvent<string>).detail as SettingsSection;
+
+      state.set_settings_section(section);
+      state.set_is_settings_open(true);
+    };
+
+    window.addEventListener("navigate-settings", handle_navigate);
+
+    return () => {
+      window.removeEventListener("navigate-settings", handle_navigate);
+    };
+  }, [state]);
 
   return (
     <>
@@ -168,6 +185,12 @@ export default function IndexPage() {
                       on_result_click={state.handle_search_result_click}
                       on_search_click={() => state.set_is_search_open(true)}
                       on_search_submit={state.handle_search_submit}
+                      on_settings_click={() => {
+                        state.set_popup_email_id(null);
+                        state.set_popup_scheduled(null);
+                        state.set_split_scheduled_data(null);
+                        state.set_is_settings_open(true);
+                      }}
                       on_split_close={state.handle_search_split_close}
                       query={state.active_search_query}
                       split_email_id={

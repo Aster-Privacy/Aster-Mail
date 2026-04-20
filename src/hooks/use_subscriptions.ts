@@ -31,6 +31,7 @@ import {
   SUBSCRIPTION_CACHE_VERSION,
 } from "@/services/subscription_cache";
 import { perform_unsubscribe } from "@/utils/unsubscribe_detector";
+import { UNSUBSCRIBE_EVENT } from "@/hooks/use_unsubscribed_senders";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -82,6 +83,43 @@ export function use_subscriptions() {
       if (poll_ref.current) clearInterval(poll_ref.current);
     };
   }, [load_cache]);
+
+  useEffect(() => {
+    const handle_external_unsub = (e: Event) => {
+      const sender_email = (e as CustomEvent).detail?.sender_email;
+      if (!sender_email || !vault || mutating_ref.current > 0) return;
+
+      const current_subs = cache_ref.current?.subscriptions || subscriptions;
+      const already_tracked = current_subs.some(
+        (s) => s.sender_email === sender_email,
+      );
+      if (!already_tracked) return;
+
+      const updated = current_subs.map((s) =>
+        s.sender_email === sender_email
+          ? {
+              ...s,
+              status: "unsubscribed" as const,
+              unsubscribed_at: new Date().toISOString(),
+            }
+          : s,
+      );
+
+      cache_ref.current = {
+        subscriptions: updated,
+        last_scan_ts:
+          cache_ref.current?.last_scan_ts || new Date().toISOString(),
+        version: SUBSCRIPTION_CACHE_VERSION,
+      };
+      set_subscriptions(updated);
+      save_subscription_cache(cache_ref.current, vault);
+    };
+
+    window.addEventListener(UNSUBSCRIBE_EVENT, handle_external_unsub);
+    return () => {
+      window.removeEventListener(UNSUBSCRIBE_EVENT, handle_external_unsub);
+    };
+  }, [subscriptions, vault]);
 
   const unsubscribe_sender = useCallback(
     async (sender_email: string): Promise<"success" | "manual" | "failed"> => {
@@ -138,6 +176,9 @@ export function use_subscriptions() {
 
         await save_subscription_cache(cache_ref.current, vault!);
         mutating_ref.current--;
+        window.dispatchEvent(
+          new CustomEvent(UNSUBSCRIBE_EVENT, { detail: { sender_email } }),
+        );
 
         return result === "link" || result === "mailto" ? "manual" : "success";
       } catch {

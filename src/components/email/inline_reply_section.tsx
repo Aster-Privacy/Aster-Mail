@@ -71,6 +71,12 @@ interface InlineReplySectionProps {
     version: number;
     content: DraftContent;
   }) => void;
+  existing_draft?: {
+    id: string;
+    version: number;
+    reply_to_id?: string;
+    content: DraftContent;
+  } | null;
 }
 
 export const InlineReplySection = forwardRef<
@@ -91,6 +97,7 @@ export const InlineReplySection = forwardRef<
     on_sending_start,
     on_sending_end,
     on_draft_saved,
+    existing_draft,
   },
   ref,
 ) {
@@ -99,19 +106,39 @@ export const InlineReplySection = forwardRef<
   const { preferences } = use_preferences();
   const { default_signature, get_formatted_signature } = use_signatures();
   const reduce_motion = use_should_reduce_motion();
-  const [reply_text, set_reply_text] = useState("");
+
+  const matching_draft =
+    existing_draft &&
+    (!existing_draft.reply_to_id || existing_draft.reply_to_id === email_id)
+      ? existing_draft
+      : null;
+
+  const [reply_text, set_reply_text] = useState(
+    matching_draft?.content.message ?? "",
+  );
   const [show_emoji_picker, set_show_emoji_picker] = useState(false);
   const [send_state, set_send_state] = useState<SendState>("idle");
   const [error_message, set_error_message] = useState<string | null>(null);
   const [queued_id, set_queued_id] = useState<string | null>(null);
   const [countdown, set_countdown] = useState(0);
-  const [draft_id, set_draft_id] = useState<string | null>(null);
-  const [draft_version, set_draft_version] = useState<number>(1);
+  const [draft_id, set_draft_id] = useState<string | null>(
+    matching_draft?.id ?? null,
+  );
+  const [draft_version, set_draft_version] = useState<number>(
+    matching_draft?.version ?? 1,
+  );
   const textarea_ref = useRef<HTMLTextAreaElement>(null);
   const save_draft_timeout = useRef<number | null>(null);
-  const last_saved_text = useRef<string>("");
+  const last_saved_text = useRef<string>(
+    matching_draft?.content.message ?? "",
+  );
   const is_sending_ref = useRef(false);
   const last_send_time_ref = useRef<number>(0);
+  const reply_text_ref = useRef(reply_text);
+  const save_draft_fn_ref = useRef<(text: string) => Promise<void>>(
+    async () => {},
+  );
+  const prev_visible_ref = useRef(false);
   const [badges, set_badges] = useState<Badge[]>([]);
 
   useEffect(() => {
@@ -208,6 +235,29 @@ export const InlineReplySection = forwardRef<
       on_draft_saved,
     ],
   );
+
+  save_draft_fn_ref.current = save_thread_draft;
+  reply_text_ref.current = reply_text;
+
+  useEffect(() => {
+    if (prev_visible_ref.current && !is_visible) {
+      if (save_draft_timeout.current) {
+        clearTimeout(save_draft_timeout.current);
+        save_draft_timeout.current = null;
+      }
+      if (!is_sending_ref.current) {
+        const current_text = reply_text_ref.current;
+        if (
+          current_text !== last_saved_text.current &&
+          current_text.trim() &&
+          thread_token
+        ) {
+          save_draft_fn_ref.current(current_text);
+        }
+      }
+    }
+    prev_visible_ref.current = is_visible;
+  }, [is_visible, thread_token]);
 
   useEffect(() => {
     if (!is_visible || !thread_token || !reply_text.trim()) return;

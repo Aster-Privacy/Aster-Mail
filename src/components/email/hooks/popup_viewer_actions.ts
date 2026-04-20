@@ -43,8 +43,8 @@ import {
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
 import { print_email } from "@/utils/print_email";
-import { open_external } from "@/utils/open_link";
-import { confirm_unsubscribe } from "@/components/modals/unsubscribe_confirmation_modal";
+import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import { set_forward_mail_id } from "@/services/forward_store";
 
@@ -392,33 +392,60 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
   }, [deps.email]);
 
   const handle_unsubscribe = useCallback(
-    (
+    async (
       unsubscribe_info: {
         unsubscribe_link?: string;
         unsubscribe_mailto?: string;
+        has_unsubscribe?: boolean;
+        method?: string;
+        list_unsubscribe_header?: string;
+        list_unsubscribe_post?: string;
       } | null,
-    ) => {
+    ): Promise<void> => {
       if (!unsubscribe_info) return;
 
-      if (unsubscribe_info.unsubscribe_link) {
-        const link = unsubscribe_info.unsubscribe_link;
-
-        confirm_unsubscribe("url", link).then((confirmed) => {
-          if (confirmed) {
-            open_external(link);
+      try {
+        const result = await execute_unsubscribe(unsubscribe_info as never);
+        if (result === "api") {
+          show_action_toast({
+            message: deps.t("mail.successfully_unsubscribed"),
+            action_type: "not_spam",
+            email_ids: [],
+          });
+          if (deps.email) {
+            persist_unsubscribe(deps.email.sender_email, deps.email.sender || "", {
+              unsubscribe_link: unsubscribe_info.unsubscribe_link,
+              list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
+            }, "auto");
           }
-        });
-      } else if (unsubscribe_info.unsubscribe_mailto) {
-        const mailto = unsubscribe_info.unsubscribe_mailto;
-
-        confirm_unsubscribe("mailto", mailto).then((confirmed) => {
-          if (confirmed) {
-            window.location.href = `mailto:${encodeURIComponent(mailto)}?subject=Unsubscribe`;
+        } else {
+          const url = unsubscribe_info.unsubscribe_link || unsubscribe_info.unsubscribe_mailto;
+          show_action_toast({
+            message: deps.t("mail.unsubscribe_manual_required"),
+            action_type: "not_spam",
+            email_ids: [],
+            duration_ms: 15000,
+            action_label: deps.t("mail.open_unsubscribe_page"),
+            on_undo: async () => {
+              if (url) window.open(url, "_blank", "noopener,noreferrer");
+            },
+          });
+          if (deps.email) {
+            persist_unsubscribe(deps.email.sender_email, deps.email.sender || "", {
+              unsubscribe_link: unsubscribe_info.unsubscribe_link,
+              list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
+            }, "manual");
           }
+        }
+      } catch {
+        show_action_toast({
+          message: deps.t("mail.unsubscribe_failed"),
+          action_type: "not_spam",
+          email_ids: [],
         });
       }
     },
-    [],
+    [deps.t, deps.email],
   );
 
   const build_popup_reply_data = useCallback(

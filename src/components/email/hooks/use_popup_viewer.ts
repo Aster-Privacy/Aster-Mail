@@ -26,6 +26,11 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { use_popup_drag_resize } from "@/components/email/hooks/popup_viewer_drag";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import {
+  get_draft_by_thread,
+  type DraftContent,
+  type DraftWithContent,
+} from "@/services/api/multi_drafts";
+import {
   update_item_metadata,
   decrypt_mail_metadata,
 } from "@/services/crypto/mail_metadata";
@@ -119,6 +124,9 @@ export function use_popup_viewer({
   const [current_thread_token, set_current_thread_token] = useState<
     string | null
   >(null);
+  const [thread_draft, set_thread_draft] = useState<DraftWithContent | null>(
+    null,
+  );
   const [external_content_state, set_external_content_state] = useState<{
     mode: "blocked" | "loaded" | "dismissed";
     report: ExternalContentReport | null;
@@ -183,9 +191,20 @@ export function use_popup_viewer({
     [],
   );
 
-  const handle_load_external_content = useCallback(() => {
-    set_external_content_state({ mode: "loaded", report: null });
-    if (email_id) set_external_content_mode(email_id);
+  const [loaded_content_types, set_loaded_content_types] = useState<Set<string>>(new Set());
+
+  const handle_load_external_content = useCallback((types?: string[]) => {
+    if (!types) {
+      set_external_content_state((prev) => ({ mode: "loaded", report: prev.report }));
+      if (email_id) set_external_content_mode(email_id);
+      set_loaded_content_types(new Set());
+      return;
+    }
+    set_loaded_content_types((prev) => {
+      const next = new Set(prev);
+      for (const t of types) next.add(t);
+      return next;
+    });
   }, [email_id]);
 
   const handle_dismiss_external_content = useCallback(() => {
@@ -252,6 +271,7 @@ export function use_popup_viewer({
     set_error(null);
     set_thread_messages([]);
     set_current_thread_token(null);
+    set_thread_draft(null);
 
     const preloaded = await await_preloaded_email(
       email_id,
@@ -291,6 +311,24 @@ export function use_popup_viewer({
       set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
       set_thread_messages(preloaded.thread_messages);
       set_current_thread_token(preloaded.mail_item.thread_token || null);
+
+      if (preloaded.mail_item.thread_token) {
+        const { get_vault_from_memory } = await import(
+          "@/services/crypto/memory_key_store"
+        );
+        const current_vault = get_vault_from_memory();
+
+        if (current_vault) {
+          const draft_result = await get_draft_by_thread(
+            preloaded.mail_item.thread_token,
+            current_vault,
+          );
+
+          if (draft_result.data) {
+            set_thread_draft(draft_result.data);
+          }
+        }
+      }
 
       return;
     }
@@ -407,6 +445,24 @@ export function use_popup_viewer({
           }
         } else {
           set_thread_messages([single_message]);
+        }
+
+        if (response.data.thread_token) {
+          const { get_vault_from_memory } = await import(
+            "@/services/crypto/memory_key_store"
+          );
+          const current_vault = get_vault_from_memory();
+
+          if (current_vault) {
+            const draft_result = await get_draft_by_thread(
+              response.data.thread_token,
+              current_vault,
+            );
+
+            if (draft_result.data) {
+              set_thread_draft(draft_result.data);
+            }
+          }
         }
 
         const mail_data = response.data;
@@ -776,6 +832,28 @@ export function use_popup_viewer({
     is_read,
   ]);
 
+  const handle_draft_saved = useCallback(
+    (draft: { id: string; version: number; content: DraftContent }) => {
+      if (!mail_item?.id) return;
+      const now = new Date().toISOString();
+      const expires = new Date(
+        Date.now() + 30 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      set_thread_draft({
+        id: draft.id,
+        version: draft.version,
+        draft_type: "reply",
+        reply_to_id: mail_item.id,
+        thread_token: mail_item.thread_token,
+        content: draft.content,
+        created_at: now,
+        updated_at: now,
+        expires_at: expires,
+      });
+    },
+    [mail_item?.id, mail_item?.thread_token],
+  );
+
   return {
     t,
     user,
@@ -797,6 +875,8 @@ export function use_popup_viewer({
     popup_ref: drag.popup_ref,
     timestamp_date,
     thread_messages,
+    thread_draft,
+    handle_draft_saved,
     unsubscribe_info,
     extraction_result,
     external_content_state,
@@ -816,10 +896,12 @@ export function use_popup_viewer({
     handle_reply: actions.handle_reply,
     handle_forward: actions.handle_forward,
     handle_print: actions.handle_print,
-    handle_unsubscribe: () => actions.handle_unsubscribe(unsubscribe_info),
+    handle_unsubscribe: () =>
+      actions.handle_unsubscribe(unsubscribe_info),
     handle_external_content_detected,
     handle_load_external_content,
     handle_dismiss_external_content,
+    loaded_content_types,
     handle_per_message_reply: actions.handle_per_message_reply,
     handle_per_message_reply_all: actions.handle_per_message_reply_all,
     handle_per_message_forward: actions.handle_per_message_forward,

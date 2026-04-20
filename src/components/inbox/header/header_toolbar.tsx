@@ -53,6 +53,7 @@ import {
   create_default_metadata,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
+import { invalidate_mail_cache } from "@/hooks/email_list_cache";
 import {
   show_action_toast,
   hide_action_toast,
@@ -160,6 +161,8 @@ interface HeaderToolbarProps {
   handle_batch_action: (action: string) => Promise<void>;
   filter_slot?: React.ReactNode;
   leading_slot?: React.ReactNode;
+  hide_refresh?: boolean;
+  hide_quick_actions?: boolean;
 }
 
 export function HeaderToolbar({
@@ -175,6 +178,8 @@ export function HeaderToolbar({
   handle_batch_action,
   filter_slot,
   leading_slot,
+  hide_refresh = false,
+  hide_quick_actions = false,
 }: HeaderToolbarProps) {
   const { t } = use_i18n();
 
@@ -204,84 +209,88 @@ export function HeaderToolbar({
 
       {leading_slot}
 
-      <Tooltip tip={t("common.refresh")}>
-        <Button
-          className="hidden md:flex h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-          size="icon"
-          variant="ghost"
-          onClick={handle_refresh}
-        >
-          <ArrowPathIcon
-            className={`w-4 h-4 ${is_refreshing ? "animate-spin" : ""}`}
-          />
-        </Button>
-      </Tooltip>
+      {!hide_refresh && (
+        <Tooltip tip={t("common.refresh")}>
+          <Button
+            className="hidden md:flex h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+            size="icon"
+            variant="ghost"
+            onClick={handle_refresh}
+          >
+            <ArrowPathIcon
+              className={`w-4 h-4 ${is_refreshing ? "animate-spin" : ""}`}
+            />
+          </Button>
+        </Tooltip>
+      )}
 
       {filter_slot}
 
-      <DropdownMenu>
-        <Tooltip tip={t("mail.quick_actions")}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              className="hidden md:flex h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-              size="icon"
-              variant="ghost"
+      {!hide_quick_actions && (
+        <DropdownMenu>
+          <Tooltip tip={t("mail.quick_actions")}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                className="hidden md:flex h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+                size="icon"
+                variant="ghost"
+              >
+                <BoltIcon className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+          </Tooltip>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>{t("mail.quick_actions")}</DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => handle_batch_action("mark_all_read")}
             >
-              <BoltIcon className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-        </Tooltip>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>{t("mail.quick_actions")}</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => handle_batch_action("mark_all_read")}
-          >
-            {t("mail.mark_all_read")}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => handle_batch_action("archive_all_read")}
-          >
-            {t("mail.archive_all_read_emails")}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handle_batch_action("delete_old")}>
-            {t("mail.delete_emails_older_than_30_days")}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel>{t("mail.sender_actions")}</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => handle_batch_action("archive_from_sender")}
-          >
-            {t("mail.archive_all_from_sender")}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => handle_batch_action("delete_from_sender")}
-          >
-            {t("mail.delete_all_from_sender")}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => handle_batch_action("move_from_sender")}
-          >
-            {t("mail.move_all_from_sender")}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel>{t("mail.smart_actions")}</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => handle_batch_action("snooze_similar")}
-          >
-            {t("mail.snooze_similar_emails")}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => handle_batch_action("unsubscribe_bulk")}
-          >
-            {t("mail.bulk_unsubscribe")}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => handle_batch_action("archive_newsletters")}
-          >
-            {t("mail.archive_all_newsletters")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+              {t("mail.mark_all_read")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handle_batch_action("archive_all_read")}
+            >
+              {t("mail.archive_all_read_emails")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handle_batch_action("delete_old")}>
+              {t("mail.delete_emails_older_than_30_days")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>{t("mail.sender_actions")}</DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => handle_batch_action("archive_from_sender")}
+            >
+              {t("mail.archive_all_from_sender")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handle_batch_action("delete_from_sender")}
+            >
+              {t("mail.delete_all_from_sender")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handle_batch_action("move_from_sender")}
+            >
+              {t("mail.move_all_from_sender")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>{t("mail.smart_actions")}</DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => handle_batch_action("snooze_similar")}
+            >
+              {t("mail.snooze_similar_emails")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handle_batch_action("unsubscribe_bulk")}
+            >
+              {t("mail.bulk_unsubscribe")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handle_batch_action("archive_newsletters")}
+            >
+              {t("mail.archive_all_newsletters")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
 
       <Tooltip tip={t("settings.title")}>
         <Button
@@ -552,6 +561,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               await bulk_patch_metadata({ items: valid_updates });
             }
 
+            invalidate_mail_cache();
             await batch_archive({ ids: read_ids, tier: "hot" });
             emit_mail_items_removed({ ids: read_ids });
             invalidate_mail_stats();
@@ -906,6 +916,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               await bulk_patch_metadata({ items: valid_updates });
             }
 
+            invalidate_mail_cache();
             await batch_archive({ ids: newsletter_ids, tier: "hot" });
             emit_mail_items_removed({ ids: newsletter_ids });
             invalidate_mail_stats();

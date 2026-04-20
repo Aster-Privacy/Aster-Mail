@@ -76,9 +76,12 @@ function set_cached_key(email: string, key: ExternalKeyInfo): void {
 
 export async function get_recipient_public_key(
   username: string,
+  email?: string,
 ): Promise<ApiResponse<PublicKeyResponse>> {
+  const params = email ? `?email=${encodeURIComponent(email)}` : "";
+
   return api_client.get<PublicKeyResponse>(
-    `/crypto/v1/keys/public/${encodeURIComponent(username)}`,
+    `/crypto/v1/keys/public/${encodeURIComponent(username)}${params}`,
   );
 }
 

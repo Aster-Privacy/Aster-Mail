@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 
 import { use_should_reduce_motion } from "@/provider";
@@ -50,6 +51,19 @@ export function EmailPopupViewer({
     snoozed_until,
     grouped_email_ids,
   });
+
+  const memoized_draft = useMemo(
+    () =>
+      viewer.thread_draft
+        ? {
+            id: viewer.thread_draft.id,
+            version: viewer.thread_draft.version,
+            reply_to_id: viewer.thread_draft.reply_to_id,
+            content: viewer.thread_draft.content,
+          }
+        : null,
+    [viewer.thread_draft?.id, viewer.thread_draft?.version, viewer.thread_draft?.reply_to_id, viewer.thread_draft?.content],
+  );
 
   if (!email_id && !local_email) return null;
 
@@ -127,6 +141,7 @@ export function EmailPopupViewer({
         current_user_email={viewer.user?.email || ""}
         email={viewer.email}
         error={viewer.error}
+        existing_draft={memoized_draft}
         external_content_mode={viewer.external_content_mode}
         external_content_state={viewer.external_content_state}
         extraction_result={viewer.extraction_result}
@@ -137,7 +152,9 @@ export function EmailPopupViewer({
         on_close={on_close}
         on_compose={on_compose}
         on_dismiss_external_content={viewer.handle_dismiss_external_content}
+        on_draft_saved={viewer.handle_draft_saved}
         on_external_content_detected={viewer.handle_external_content_detected}
+        loaded_content_types={viewer.loaded_content_types}
         on_load_external_content={viewer.handle_load_external_content}
         on_per_message_archive={viewer.handle_per_message_archive}
         on_per_message_forward={viewer.handle_per_message_forward}
@@ -157,6 +174,7 @@ export function EmailPopupViewer({
         snoozed_until={snoozed_until}
         t={viewer.t}
         thread_messages={viewer.thread_messages}
+        thread_token={viewer.mail_item?.thread_token}
         timestamp_date={viewer.timestamp_date}
       />
     </motion.div>

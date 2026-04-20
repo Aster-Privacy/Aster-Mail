@@ -149,7 +149,7 @@ export function Modal({
 
 export function ModalHeader({ children, className }: ModalHeaderProps) {
   return (
-    <div className={cn("aster_modal_header px-6 pt-6 pb-5 pr-12", className)}>
+    <div className={cn("aster_modal_header flex flex-col px-6 pt-6 pb-5 pr-12", className)}>
       {children}
     </div>
   );
@@ -165,7 +165,7 @@ export function ModalTitle({
   return (
     <h3
       className={cn(
-        "aster_modal_title text-base font-semibold leading-tight",
+        "aster_modal_title w-full text-base font-semibold leading-tight",
         className,
       )}
       style={{ color: "var(--text-primary)" }}
@@ -184,7 +184,7 @@ export function ModalDescription({
 }) {
   return (
     <p
-      className={cn("text-[13px] mt-1.5 leading-relaxed", className)}
+      className={cn("text-[13px] w-full mt-2.5 leading-relaxed", className)}
       style={{ color: "var(--text-tertiary)" }}
     >
       {children}

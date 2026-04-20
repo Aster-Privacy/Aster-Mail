@@ -24,7 +24,7 @@ import type {
   UseEmailViewerOptions,
 } from "@/components/email/email_viewer_types";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
@@ -51,6 +51,7 @@ import {
 } from "@/services/thread_service";
 import {
   get_draft_by_thread,
+  type DraftContent,
   type DraftWithContent,
 } from "@/services/api/multi_drafts";
 import {
@@ -791,6 +792,28 @@ export function use_email_viewer({
     return () => clearInterval(interval);
   }, [thread_messages]);
 
+  const handle_draft_saved = useCallback(
+    (draft: { id: string; version: number; content: DraftContent }) => {
+      if (!mail_item?.id) return;
+      const now = new Date().toISOString();
+      const expires = new Date(
+        Date.now() + 30 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      set_thread_draft({
+        id: draft.id,
+        version: draft.version,
+        draft_type: "reply",
+        reply_to_id: mail_item.id,
+        thread_token: mail_item.thread_token,
+        content: draft.content,
+        created_at: now,
+        updated_at: now,
+        expires_at: expires,
+      });
+    },
+    [mail_item?.id, mail_item?.thread_token],
+  );
+
   return {
     email,
     mail_item,
@@ -821,6 +844,7 @@ export function use_email_viewer({
     copy_to_clipboard: actions.copy_to_clipboard,
     handle_reply: actions.handle_reply,
     handle_forward: actions.handle_forward,
+    handle_draft_saved,
     handle_edit_thread_draft: actions.handle_edit_thread_draft,
     handle_thread_draft_deleted: actions.handle_thread_draft_deleted,
     handle_read_toggle: actions.handle_read_toggle,

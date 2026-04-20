@@ -23,7 +23,7 @@ import type { SettingsSection } from "@/components/settings/settings_panel";
 
 import { memo } from "react";
 import {
-  ChatBubbleBottomCenterTextIcon,
+  UserGroupIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -165,13 +165,13 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
           <div className="flex flex-col items-center gap-1">
             <button
               className="p-2 rounded-md hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
-              title={t("common.send_feedback")}
+              title={t("settings.refer_a_friend")}
               onClick={() => {
                 on_modal_open?.();
-                on_settings_click("feedback");
+                on_settings_click("referral");
               }}
             >
-              <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
+              <UserGroupIcon className="w-4 h-4" />
             </button>
             <button
               className="p-2 rounded-md hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
@@ -187,11 +187,11 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
               className="flex-1 flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
               onClick={() => {
                 on_modal_open?.();
-                on_settings_click("feedback");
+                on_settings_click("referral");
               }}
             >
-              <ChatBubbleBottomCenterTextIcon className="w-3.5 h-3.5" />
-              <span>{t("common.send_feedback")}</span>
+              <UserGroupIcon className="w-3.5 h-3.5" />
+              <span>{t("settings.refer_a_friend")}</span>
             </button>
             <button
               className="p-1.5 rounded-md hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
