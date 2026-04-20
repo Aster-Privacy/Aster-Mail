@@ -34,6 +34,7 @@ import { ConnectionSection } from "@/components/settings/connection_section";
 import { TwoFactorSection } from "@/components/settings/security/two_factor_section";
 import { PasswordSection } from "@/components/settings/security/password_section";
 import { SessionSection } from "@/components/settings/security/session_section";
+import { TrustedDevicesSection } from "@/components/settings/security/trusted_devices_section";
 import { use_security } from "@/components/settings/hooks/use_security";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -313,6 +314,8 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         sessions_error={security.sessions_error}
         sessions_loading={security.sessions_loading}
       />
+
+      <TrustedDevicesSection />
 
       <div className="flex items-center justify-between py-4 px-1 mt-4 border-t border-edge-secondary">
         <div>

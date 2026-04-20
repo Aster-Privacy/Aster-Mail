@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { MailItemMetadata } from "@/types/email";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import {
   encrypt_metadata,
@@ -170,11 +171,7 @@ async function decrypt_with_key<T>(
     const nonce = base64_to_array(blob.nonce);
     const ciphertext = base64_to_array(blob.encrypted_data);
 
-    const plaintext = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce },
-      crypto_key,
-      ciphertext,
-    );
+    const plaintext = await decrypt_aes_gcm_with_fallback(crypto_key, ciphertext, nonce);
 
     return JSON.parse(new TextDecoder().decode(plaintext)) as T;
   } catch {

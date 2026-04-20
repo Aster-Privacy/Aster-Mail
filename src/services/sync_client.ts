@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "./crypto/key_manager";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { api_client } from "./api/client";
 import { check_and_replenish_prekeys } from "./crypto/prekey_service";
@@ -517,11 +518,7 @@ async function decrypt_data<T>(
   );
   const nonce_bytes = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce_bytes },
-    key,
-    encrypted_bytes,
-  );
+  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted_bytes, nonce_bytes);
 
   return JSON.parse(new TextDecoder().decode(decrypted));
 }

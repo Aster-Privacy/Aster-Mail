@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { api_client, type ApiResponse, type ApiErrorCode } from "./client";
 
@@ -315,11 +316,7 @@ async function decrypt_content(
   let plaintext_buffer: ArrayBuffer;
 
   try {
-    plaintext_buffer = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce_bytes },
-      key,
-      ciphertext,
-    );
+    plaintext_buffer = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce_bytes);
   } catch {
     throw new DraftDecryptionError("Failed to decrypt draft content");
   }

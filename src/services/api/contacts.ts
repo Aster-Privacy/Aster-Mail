@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import type {
   Contact,
   ContactFormData,
@@ -255,11 +256,7 @@ export async function decrypt_contact_data(
   const key = await get_contacts_encryption_key();
   const ciphertext = base64_to_array(encrypted_data);
   const nonce = base64_to_array(data_nonce);
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    key,
-    ciphertext,
-  );
+  const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
   const decoder = new TextDecoder();
   const parsed = JSON.parse(decoder.decode(decrypted));
 
@@ -312,11 +309,7 @@ export async function decrypt_contact_group(
   const key = await get_contacts_encryption_key();
   const ciphertext = base64_to_array(group.encrypted_name);
   const nonce = base64_to_array(group.name_nonce);
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    key,
-    ciphertext,
-  );
+  const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
   const decoder = new TextDecoder();
   const name = decoder.decode(decrypted);
 

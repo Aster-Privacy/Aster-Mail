@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   list_mail_items,
   link_mail_to_thread,
@@ -116,11 +117,7 @@ async function decrypt_subject_from_item(
           false,
           ["decrypt"],
         );
-        const decrypted = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: nonce_bytes },
-          crypto_key,
-          enc_bytes,
-        );
+        const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
         const parsed = JSON.parse(new TextDecoder().decode(decrypted));
 
         return parsed.subject || null;

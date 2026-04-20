@@ -40,19 +40,10 @@ class ConnectionStore {
   private listeners: Set<ConnectionListener> = new Set();
 
   async initialize(): Promise<void> {
-    let method = await this.load_persisted_method();
+    const method = await this.load_persisted_method();
     const cdn_relay_url = await this.load_persisted_value(CDN_RELAY_URL_KEY);
     const api_onion_url = await this.load_persisted_value(ONION_API_KEY);
     const mail_onion_url = await this.load_persisted_value(ONION_MAIL_KEY);
-
-    try {
-      const server_method = await this.load_method_from_server();
-
-      if (server_method) {
-        method = server_method;
-        await this.persist_value(STORAGE_KEY, method);
-      }
-    } catch {}
 
     this.state = {
       ...DEFAULT_CONNECTION_STATE,
@@ -64,7 +55,28 @@ class ConnectionStore {
 
     this.notify_listeners();
 
+    this.sync_from_server().catch(() => {});
     this.fetch_connection_info().catch(() => {});
+  }
+
+  async sync_from_server(): Promise<void> {
+    try {
+      const server_method = await this.load_method_from_server();
+
+      if (server_method && server_method !== this.state.method) {
+        this.state.method = server_method;
+        this.state.status =
+          server_method === "direct" ? "disconnected" : "connecting";
+        await this.persist_value(STORAGE_KEY, server_method);
+        this.notify_listeners();
+
+        return;
+      }
+
+      if (!server_method) {
+        await this.sync_method_to_server(this.state.method).catch(() => {});
+      }
+    } catch {}
   }
 
   async fetch_connection_info(): Promise<void> {
@@ -213,3 +225,9 @@ class ConnectionStore {
 }
 
 export const connection_store = new ConnectionStore();
+
+if (typeof window !== "undefined") {
+  window.addEventListener("astermail:authenticated", () => {
+    connection_store.sync_from_server().catch(() => {});
+  });
+}

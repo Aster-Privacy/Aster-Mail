@@ -20,6 +20,7 @@
 //
 import type { DecryptedThreadMessage, ThreadContext } from "@/types/thread";
 import type { MailItem, ThreadWithMessages } from "@/services/api/mail";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import {
   get_thread_messages,
@@ -145,11 +146,7 @@ async function decrypt_message_envelope(
           false,
           ["decrypt"],
         );
-        const decrypted = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: nonce_bytes },
-          crypto_key,
-          enc_bytes,
-        );
+        const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
 
         const parsed = JSON.parse(new TextDecoder().decode(decrypted));
         const from = normalize_envelope_from(parsed.from);

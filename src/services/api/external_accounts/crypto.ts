@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ExternalAccountData } from "./types";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { array_to_base64, base64_to_array } from "../sender_utils";
 
@@ -162,11 +163,7 @@ export async function decrypt_account_data(
   const key = await get_external_accounts_encryption_key();
   const ciphertext = base64_to_array(encrypted_account_data);
   const nonce = base64_to_array(account_data_nonce);
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    key,
-    ciphertext,
-  );
+  const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
   const decoder = new TextDecoder();
   const parsed = JSON.parse(decoder.decode(decrypted));
 

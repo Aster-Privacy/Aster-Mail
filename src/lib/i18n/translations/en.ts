@@ -113,6 +113,7 @@ export const en: Translations = {
     failed_remove_recovery_email: "Failed to remove recovery email",
     profile_picture_updated: "Profile picture updated",
     failed_save_profile_picture: "Failed to save profile picture",
+    failed_save_profile_color: "Failed to save profile color",
     failed_upload_image: "Failed to upload image",
     valid_image_error: "Please select a valid image (JPEG, PNG, or WebP)",
     image_size_error: "Image must be smaller than 5MB",
@@ -1334,6 +1335,20 @@ export const en: Translations = {
     updating: "Updating...",
     password_changed_signing_out:
       "Password changed successfully. Signing you out...",
+    vault_recovery_title: "Recover Encrypted Data",
+    vault_recovery_description:
+      "If you recently changed your password and can no longer see your aliases or other encrypted data, enter your previous password here to restore access.",
+    vault_recovery_button: "Recover Data",
+    vault_recovery_modal_description:
+      "Enter the password you used before your most recent password change. This will restore access to data encrypted under your old password.",
+    vault_recovery_old_password_label: "Previous Password",
+    vault_recovery_old_password_placeholder: "Enter your previous password",
+    vault_recovery_enter_password: "Please enter your previous password",
+    vault_recovery_success:
+      "Data recovery successful. Your aliases and encrypted data should now be visible.",
+    vault_recovery_failed: "Failed to recover data. Please try again.",
+    vault_recovery_recovering: "Recovering...",
+    vault_recovery_recover_button: "Recover",
     session_security: "Session Security",
     session_privacy_description:
       "For your privacy, we don't track session details or device information",
@@ -1354,6 +1369,14 @@ export const en: Translations = {
     sign_out_all_other: "Sign out all other sessions",
     sign_out_session_confirm: "Are you sure you want to sign out this session?",
     no_active_sessions: "No active sessions found",
+    trusted_2fa_title: "Trusted 2FA devices",
+    trusted_2fa_description:
+      "Devices you marked as trusted skip the 2FA prompt for 30 days. A password change instantly invalidates every trusted device.",
+    trusted_2fa_empty: "No trusted devices.",
+    trusted_2fa_revoke: "Revoke",
+    trusted_2fa_revoke_all: "Revoke all trusted devices",
+    trusted_2fa_last_used: "Last used {{when}}",
+    trusted_2fa_expires: "Expires {{when}}",
     failed_load_sessions: "Failed to load sessions",
     load_more_sessions: "Load {{count}} more sessions",
     two_fa_enabled: "Enabled ({{count}} backup codes remaining)",
@@ -3524,6 +3547,7 @@ export const en: Translations = {
     two_factor_auth_title: "Two-Factor Authentication",
     enter_2fa_code: "Enter the 6-digit code from your authenticator app",
     use_backup_code_instead: "Use a backup code instead",
+    trust_this_device_30_days: "Trust this device for 30 days",
     security_key_verification: "Security Key Verification",
     tap_security_key: "Tap your security key or use your passkey to sign in",
     use_another_method: "Use another verification method",

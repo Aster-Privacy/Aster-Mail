@@ -45,6 +45,11 @@ import {
 } from "@/services/crypto/key_manager";
 import { reprotect_pgp_key } from "@/services/crypto/key_manager_pgp";
 import {
+  derive_kek_from_password,
+  serialize_kek_for_vault,
+  prepend_kek_to_list,
+} from "@/services/crypto/legacy_keks";
+import {
   get_vault_from_memory,
   store_vault_in_memory,
   get_passphrase_from_memory,
@@ -386,6 +391,13 @@ export function use_security() {
       const new_salt = crypto.getRandomValues(new Uint8Array(16));
       const { hash: new_password_hash, salt: new_password_salt } =
         await derive_password_hash(new_password, new_salt);
+
+      const old_kek_raw = await derive_kek_from_password(current_password);
+
+      vault.legacy_keks = prepend_kek_to_list(
+        vault.legacy_keks,
+        serialize_kek_for_vault(old_kek_raw),
+      );
 
       const {
         encrypted_vault: new_encrypted_vault,

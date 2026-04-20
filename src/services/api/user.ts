@@ -48,6 +48,11 @@ interface UpdateProfilePictureResponse {
   profile_picture: string | null;
 }
 
+interface UpdateProfileColorResponse {
+  success: boolean;
+  profile_color: string | null;
+}
+
 export async function update_display_name(
   display_name: string,
 ): Promise<ApiResponse<UpdateDisplayNameResponse>> {
@@ -68,6 +73,17 @@ export async function update_profile_picture(
     "/core/v1/auth/me/profile-picture",
     {
       profile_picture,
+    },
+  );
+}
+
+export async function update_profile_color(
+  profile_color: string | null,
+): Promise<ApiResponse<UpdateProfileColorResponse>> {
+  return api_client.patch<UpdateProfileColorResponse>(
+    "/core/v1/auth/me/profile-color",
+    {
+      profile_color,
     },
   );
 }

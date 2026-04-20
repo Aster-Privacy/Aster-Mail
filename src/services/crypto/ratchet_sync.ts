@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   DoubleRatchet,
   save_ratchet_state,
@@ -84,11 +85,7 @@ async function decrypt_state_from_server(
   const ciphertext = base64_to_array(encrypted_state);
   const nonce = base64_to_array(state_nonce);
 
-  const plaintext = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    encryption_key,
-    ciphertext,
-  );
+  const plaintext = await decrypt_aes_gcm_with_fallback(encryption_key, ciphertext, nonce);
 
   const decoder = new TextDecoder();
 

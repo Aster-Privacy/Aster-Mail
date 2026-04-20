@@ -42,6 +42,7 @@ import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import {
   get_preferred_sender_id,
   set_preferred_sender_id,
+  subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
 import {
   use_ghost_mode,
@@ -231,6 +232,12 @@ export function use_compose({
   const set_preferred_sender = useCallback((id: string | null) => {
     set_preferred_sender_id_state(id);
     set_preferred_sender_id(id);
+  }, []);
+
+  useEffect(() => {
+    return subscribe_preferred_sender((id) => {
+      set_preferred_sender_id_state(id);
+    });
   }, []);
   const ghost_mode = use_ghost_mode();
 

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { zero_uint8_array } from "./secure_memory";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_passphrase_from_memory,
   get_vault_from_memory,
@@ -212,11 +213,7 @@ export async function decrypt_envelope_with_bytes<T>(
       salt,
     );
 
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce },
-      crypto_key,
-      ciphertext,
-    );
+    const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, ciphertext, nonce);
 
     const decoder = new TextDecoder();
     const json = decoder.decode(decrypted);
@@ -321,11 +318,7 @@ async function try_decrypt_with_key<T>(
         false,
         ["decrypt"],
       );
-      const decrypted = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: nonce_bytes },
-        crypto_key,
-        encrypted_bytes,
-      );
+      const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, encrypted_bytes, nonce_bytes);
 
       return normalize_parsed_envelope(
         JSON.parse(new TextDecoder().decode(decrypted)) as T,
@@ -483,11 +476,7 @@ export async function decrypt_metadata<T>(
     const nonce = base64_to_array(blob.nonce);
     const ciphertext = base64_to_array(blob.encrypted_data);
 
-    const plaintext = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce },
-      crypto_key,
-      ciphertext,
-    );
+    const plaintext = await decrypt_aes_gcm_with_fallback(crypto_key, ciphertext, nonce);
 
     const decoder = new TextDecoder();
 

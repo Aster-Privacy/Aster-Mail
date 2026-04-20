@@ -188,6 +188,14 @@ class DraftManager {
       return { success: false, error: "Draft was deleted" };
     }
 
+    if (context.pending_save) {
+      try {
+        await context.pending_save;
+      } catch {
+        /* proceed with new save */
+      }
+    }
+
     const content_hash = await compute_content_hash(data);
 
     if (context.last_content_hash === content_hash) {

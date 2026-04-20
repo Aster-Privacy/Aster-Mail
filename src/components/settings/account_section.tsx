@@ -26,6 +26,9 @@ import {
   CameraIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import {
   StarIcon,
@@ -56,6 +59,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 import {
   update_display_name,
   update_profile_picture,
+  update_profile_color,
   fetch_my_badges,
 } from "@/services/api/user";
 import {
@@ -64,6 +68,18 @@ import {
   resend_recovery_verification,
   remove_recovery_email,
 } from "@/services/api/recovery_email";
+import {
+  derive_kek_from_password,
+  serialize_kek_for_vault,
+  prepend_kek_to_list,
+} from "@/services/crypto/legacy_keks";
+import {
+  get_vault_from_memory,
+  get_passphrase_from_memory,
+  store_vault_in_memory,
+} from "@/services/crypto/memory_key_store";
+import { encrypt_vault } from "@/services/crypto/key_manager";
+import { api_client } from "@/services/api/client";
 
 const MAX_SIZE = 256;
 
@@ -222,6 +238,14 @@ export function AccountSection() {
   const [photo_error, set_photo_error] = useState<string | null>(null);
   const [badges, set_badges] = useState<Badge[]>([]);
   const [is_initial_load, set_is_initial_load] = useState(true);
+  const [show_vault_recovery, set_show_vault_recovery] = useState(false);
+  const [vault_recovery_password, set_vault_recovery_password] = useState("");
+  const [vault_recovery_loading, set_vault_recovery_loading] = useState(false);
+  const [vault_recovery_error, set_vault_recovery_error] = useState("");
+  const [vault_recovery_success, set_vault_recovery_success] = useState(false);
+  const [show_recovery_password, set_show_recovery_password] = useState(false);
+
+  const needs_vault_recovery = user?.email === "timo@astermail.org";
 
   useEffect(() => {
     const run = async () => {
@@ -388,6 +412,88 @@ export function AccountSection() {
     }
   };
 
+  const handle_vault_recovery = async () => {
+    set_vault_recovery_error("");
+    set_vault_recovery_success(false);
+
+    if (!vault_recovery_password) {
+      set_vault_recovery_error(t("settings.vault_recovery_enter_password"));
+
+      return;
+    }
+
+    if (!user?.id) {
+      set_vault_recovery_error(t("settings.user_not_found"));
+
+      return;
+    }
+
+    set_vault_recovery_loading(true);
+
+    try {
+      const current_vault = get_vault_from_memory();
+      const current_passphrase = get_passphrase_from_memory();
+
+      if (!current_vault || !current_passphrase) {
+        set_vault_recovery_error(t("settings.session_expired_sign_in"));
+        set_vault_recovery_loading(false);
+
+        return;
+      }
+
+      const old_kek_raw = await derive_kek_from_password(vault_recovery_password);
+
+      current_vault.legacy_keks = prepend_kek_to_list(
+        current_vault.legacy_keks,
+        serialize_kek_for_vault(old_kek_raw),
+      );
+
+      const {
+        encrypted_vault: new_encrypted_vault,
+        vault_nonce: new_vault_nonce,
+      } = await encrypt_vault(current_vault, current_passphrase);
+
+      const response = await api_client.put<{ success: boolean }>(
+        "/crypto/v1/keys/vault",
+        {
+          encrypted_vault: new_encrypted_vault,
+          vault_nonce: new_vault_nonce,
+        },
+      );
+
+      if (response.error) {
+        set_vault_recovery_error(response.error);
+        set_vault_recovery_loading(false);
+
+        return;
+      }
+
+      try {
+        localStorage.setItem(
+          `astermail_encrypted_vault_${user.id}`,
+          new_encrypted_vault,
+        );
+        localStorage.setItem(
+          `astermail_vault_nonce_${user.id}`,
+          new_vault_nonce,
+        );
+      } catch {}
+
+      await store_vault_in_memory(current_vault, current_passphrase);
+
+      set_vault_recovery_success(true);
+      set_vault_recovery_password("");
+    } catch (err) {
+      set_vault_recovery_error(
+        err instanceof Error
+          ? err.message
+          : t("settings.vault_recovery_failed"),
+      );
+    } finally {
+      set_vault_recovery_loading(false);
+    }
+  };
+
   const has_custom_picture = !!(preview || user?.profile_picture);
   const picture = preview || user?.profile_picture || "/profile.webp";
 
@@ -494,9 +600,30 @@ export function AccountSection() {
                       ? `0 0 0 2px var(--bg-tertiary), 0 0 0 3.5px ${c}, 0 2px 8px ${c}50`
                       : `inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.15), 0 2px 6px ${c}30`,
                   }}
-                  onClick={() => {
+                  onClick={async () => {
+                    const prev = color;
+
                     set_color(c);
                     update_preference("profile_color", c, true);
+                    if (user) {
+                      await update_user({ ...user, profile_color: c });
+                    }
+                    const response = await update_profile_color(c);
+
+                    if (response.error) {
+                      set_color(prev);
+                      update_preference("profile_color", prev, true);
+                      if (user) {
+                        await update_user({
+                          ...user,
+                          profile_color: prev || undefined,
+                        });
+                      }
+                      show_toast(
+                        t("common.failed_save_profile_color"),
+                        "error",
+                      );
+                    }
                   }}
                 />
               );
@@ -647,6 +774,133 @@ export function AccountSection() {
           </Button>
         </div>
       </div>
+
+      {needs_vault_recovery && (
+        <div className="py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
+                <ArrowPathIcon className="w-4 h-4 flex-shrink-0" />
+                {t("settings.vault_recovery_title")}
+              </p>
+              <p className="text-sm mt-0.5 text-txt-muted">
+                {t("settings.vault_recovery_description")}
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              onClick={() => set_show_vault_recovery(true)}
+            >
+              {t("settings.vault_recovery_button")}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <Modal
+        is_open={show_vault_recovery}
+        on_close={() => {
+          set_show_vault_recovery(false);
+          set_vault_recovery_password("");
+          set_vault_recovery_error("");
+          set_vault_recovery_success(false);
+          set_show_recovery_password(false);
+        }}
+        size="sm"
+        z_index={70}
+      >
+        <ModalHeader>
+          <ModalTitle>{t("settings.vault_recovery_title")}</ModalTitle>
+          <ModalDescription>
+            {t("settings.vault_recovery_modal_description")}
+          </ModalDescription>
+        </ModalHeader>
+
+        <ModalBody>
+          <div className="space-y-4">
+            <div>
+              <label
+                className="text-sm font-medium block mb-2 text-txt-primary"
+                htmlFor="recovery-old-password"
+              >
+                {t("settings.vault_recovery_old_password_label")}
+              </label>
+              <div className="relative">
+                <Input
+                  className="pr-10"
+                  disabled={vault_recovery_loading}
+                  id="recovery-old-password"
+                  placeholder={t("settings.vault_recovery_old_password_placeholder")}
+                  type={show_recovery_password ? "text" : "password"}
+                  value={vault_recovery_password}
+                  onChange={(e) => set_vault_recovery_password(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && vault_recovery_password) {
+                      handle_vault_recovery();
+                    }
+                  }}
+                />
+                <button
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted"
+                  type="button"
+                  onClick={() => set_show_recovery_password(!show_recovery_password)}
+                >
+                  {show_recovery_password ? (
+                    <EyeSlashIcon className="w-4 h-4" />
+                  ) : (
+                    <EyeIcon className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {vault_recovery_error && (
+              <div
+                className="flex items-center gap-2 p-3 rounded-lg text-sm"
+                style={{ backgroundColor: "#dc2626", color: "#fff" }}
+              >
+                <ExclamationCircleIcon className="w-4 h-4 flex-shrink-0" />
+                <span>{vault_recovery_error}</span>
+              </div>
+            )}
+
+            {vault_recovery_success && (
+              <div
+                className="flex items-center gap-2 p-3 rounded-lg text-sm"
+                style={{ backgroundColor: "#16a34a", color: "#fff" }}
+              >
+                <CheckCircleIcon className="w-4 h-4 flex-shrink-0" />
+                <span>{t("settings.vault_recovery_success")}</span>
+              </div>
+            )}
+          </div>
+        </ModalBody>
+
+        <ModalFooter>
+          <Button
+            disabled={vault_recovery_loading}
+            variant="outline"
+            onClick={() => {
+              set_show_vault_recovery(false);
+              set_vault_recovery_password("");
+              set_vault_recovery_error("");
+              set_vault_recovery_success(false);
+              set_show_recovery_password(false);
+            }}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            disabled={vault_recovery_loading || !vault_recovery_password || vault_recovery_success}
+            variant="depth"
+            onClick={handle_vault_recovery}
+          >
+            {vault_recovery_loading
+              ? t("settings.vault_recovery_recovering")
+              : t("settings.vault_recovery_recover_button")}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       <ConfirmationModal
         cancel_text={t("common.cancel")}

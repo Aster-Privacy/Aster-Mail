@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import type {
   SyncSource,
   DecryptedSyncSource,
@@ -76,11 +77,7 @@ export async function list_sync_sources(): Promise<
     const key = await get_contacts_encryption_key();
     const items = await Promise.all(
       response.data.items.map(async (item) => {
-        const decrypted_config = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: base64_to_array(item.config_nonce) },
-          key,
-          base64_to_array(item.encrypted_config),
-        );
+        const decrypted_config = await decrypt_aes_gcm_with_fallback(key, base64_to_array(item.encrypted_config), base64_to_array(item.config_nonce));
 
         const config: CardDAVConfig = JSON.parse(
           new TextDecoder().decode(decrypted_config),

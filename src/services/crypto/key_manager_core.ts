@@ -40,6 +40,11 @@ export interface PgpKeyData {
   key_size: number;
 }
 
+export interface LegacyDerivedKek {
+  k: string;
+  added_at: string;
+}
+
 export interface EncryptedVault {
   identity_key: string;
   previous_keys?: string[];
@@ -50,6 +55,7 @@ export interface EncryptedVault {
   ratchet_identity_public?: string;
   ratchet_signed_prekey?: string;
   ratchet_signed_prekey_public?: string;
+  legacy_keks?: LegacyDerivedKek[];
 }
 
 export interface VaultEncryptionResult {

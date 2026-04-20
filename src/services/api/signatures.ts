@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { get_or_create_derived_encryption_crypto_key } from "@/services/crypto/memory_key_store";
 
@@ -148,11 +149,7 @@ async function decrypt_string(
   const key = await get_encryption_key();
   const ciphertext = base64_to_array(encrypted);
   const iv = base64_to_array(nonce);
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    key,
-    ciphertext,
-  );
+  const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, iv);
   const decoder = new TextDecoder();
 
   return decoder.decode(decrypted);

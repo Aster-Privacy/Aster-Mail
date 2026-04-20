@@ -42,6 +42,7 @@ export function TotpVerification({
   const [code, set_code] = useState("");
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
+  const [trust_device, set_trust_device] = useState(false);
   const input_refs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handle_verify = useCallback(async () => {
@@ -53,6 +54,7 @@ export function TotpVerification({
     const response = await verify_totp_login({
       code,
       pending_login_token,
+      trust_device,
     });
 
     if (response.error) {
@@ -72,7 +74,7 @@ export function TotpVerification({
     }
 
     set_is_loading(false);
-  }, [code, pending_login_token, on_success]);
+  }, [code, pending_login_token, on_success, trust_device]);
 
   useEffect(() => {
     if (code.length === 6 && !is_loading) {
@@ -156,6 +158,17 @@ export function TotpVerification({
             />
           ))}
         </div>
+
+        <label className="flex items-center justify-center gap-2 text-sm text-txt-muted cursor-pointer select-none">
+          <input
+            checked={trust_device}
+            className="h-4 w-4 accent-brand cursor-pointer"
+            disabled={is_loading}
+            type="checkbox"
+            onChange={(e) => set_trust_device(e.target.checked)}
+          />
+          {t("auth.trust_this_device_30_days")}
+        </label>
 
         {error && <p className="text-sm text-center text-red-500">{error}</p>}
 

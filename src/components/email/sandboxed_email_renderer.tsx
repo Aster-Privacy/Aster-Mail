@@ -665,7 +665,6 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
     };
 
     let last_height = 0;
-    let last_width = 0;
 
     const measure_and_apply = () => {
       const doc = iframe.contentDocument;
@@ -673,13 +672,14 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
       if (!body || !doc) return;
 
-      const doc_el = doc.documentElement;
-      const height = Math.min(
-        Math.max(body.scrollHeight, doc_el.scrollHeight) + 24,
-        MAX_IFRAME_HEIGHT,
-      );
+      const prev_iframe_h = iframe.style.height;
+      iframe.style.height = "0px";
+      const measured = body.scrollHeight;
+      iframe.style.height = prev_iframe_h;
 
-      if (height === last_height) return;
+      const height = Math.min(measured + 8, MAX_IFRAME_HEIGHT);
+
+      if (Math.abs(height - last_height) < 2) return;
       last_height = height;
 
       set_iframe_height(`${height}px`);
@@ -690,17 +690,9 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
       }
     };
 
-    const update_height = (reset_first: unknown = false) => {
+    const update_height = () => {
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);
-      if (reset_first === true) {
-        iframe.style.height = "0px";
-        raf_ref.current = requestAnimationFrame(() => {
-          last_height = 0;
-          measure_and_apply();
-        });
-      } else {
-        raf_ref.current = requestAnimationFrame(measure_and_apply);
-      }
+      raf_ref.current = requestAnimationFrame(() => measure_and_apply());
     };
 
     const immediate_height = iframe.contentDocument.body.scrollHeight;
@@ -729,16 +721,8 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
     const attach_observer = () => {
       if (!iframe.contentDocument?.body) return;
-      observer_ref.current = new ResizeObserver((entries) => {
-        let width_changed = false;
-        for (const entry of entries) {
-          const w = entry.contentRect.width;
-          if (last_width !== 0 && Math.abs(w - last_width) > 1) {
-            width_changed = true;
-          }
-          last_width = w;
-        }
-        update_height(width_changed);
+      observer_ref.current = new ResizeObserver(() => {
+        update_height();
       });
       observer_ref.current.observe(iframe.contentDocument.body);
       update_height();

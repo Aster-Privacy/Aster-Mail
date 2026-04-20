@@ -222,7 +222,28 @@ export function AccountSection({
                       : "none",
                 }}
                 type="button"
-                onClick={() => update_preference("profile_color", color)}
+                onClick={async () => {
+                  const prev = preferences.profile_color;
+
+                  update_preference("profile_color", color);
+                  if (user) {
+                    await update_user({ ...user, profile_color: color });
+                  }
+                  const { update_profile_color } = await import(
+                    "@/services/api/user"
+                  );
+                  const response = await update_profile_color(color);
+
+                  if (response.error) {
+                    update_preference("profile_color", prev);
+                    if (user) {
+                      await update_user({
+                        ...user,
+                        profile_color: prev || undefined,
+                      });
+                    }
+                  }
+                }}
               >
                 {preferences.profile_color === color && (
                   <CheckIcon

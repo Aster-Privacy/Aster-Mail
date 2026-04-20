@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_derived_encryption_key,
   has_vault_in_memory,
@@ -353,11 +354,7 @@ export async function secure_decrypt(encrypted_data: string): Promise<string> {
     throw new Error("Data integrity check failed. Storage may be compromised.");
   }
 
-  const plaintext_buffer = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    storage_key,
-    ciphertext,
-  );
+  const plaintext_buffer = await decrypt_aes_gcm_with_fallback(storage_key, ciphertext, nonce);
 
   const decoder = new TextDecoder();
 
@@ -466,6 +463,21 @@ function secure_clear_session_storage(): void {
   }
 }
 
+const PRESERVED_LOCAL_KEYS: ReadonlySet<string> = new Set([
+  "astermail_theme",
+  "astermail_language",
+  "astermail_session_timeout_migrated_v2",
+  "aster_preferred_sender_id",
+  "aster_preferred_currency",
+  "aster_connection_method",
+  "aster_icon_cache_v9",
+  "aster_sw_reset_v1",
+]);
+
+function should_preserve_local_key(key: string): boolean {
+  return PRESERVED_LOCAL_KEYS.has(key);
+}
+
 function secure_clear_local_storage(): void {
   for (const key of SENSITIVE_STORAGE_KEYS) {
     const value = localStorage.getItem(key);
@@ -487,7 +499,11 @@ function secure_clear_local_storage(): void {
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
 
-    if (key && (key.startsWith("astermail_") || key.startsWith("aster_"))) {
+    if (
+      key &&
+      (key.startsWith("astermail_") || key.startsWith("aster_")) &&
+      !should_preserve_local_key(key)
+    ) {
       astermail_keys.push(key);
     }
   }
@@ -619,11 +635,7 @@ export async function device_decrypt(encrypted_data: string): Promise<string> {
   const nonce = base64_to_array(payload.n);
   const ciphertext = base64_to_array(payload.c);
 
-  const plaintext_buffer = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    key,
-    ciphertext,
-  );
+  const plaintext_buffer = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
 
   const decoder = new TextDecoder();
 

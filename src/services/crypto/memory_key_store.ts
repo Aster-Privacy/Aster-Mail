@@ -35,6 +35,10 @@ import {
   on_session_expire,
   has_key,
 } from "./crypto_key_cache";
+import {
+  load_legacy_keks_into_memory,
+  clear_legacy_keks_from_memory,
+} from "./legacy_keks";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -140,7 +144,10 @@ export async function store_vault_in_memory(
     ratchet_identity_public: vault.ratchet_identity_public,
     ratchet_signed_prekey: vault.ratchet_signed_prekey,
     ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public,
+    legacy_keks: vault.legacy_keks ? [...vault.legacy_keks] : undefined,
   };
+
+  await load_legacy_keks_into_memory(vault.legacy_keks);
 
   secure_passphrase = SecureBuffer.from_string(
     passphrase,
@@ -276,6 +283,7 @@ export function clear_passphrase(): void {
 
 export function clear_vault_from_memory(): void {
   clear_passphrase();
+  clear_legacy_keks_from_memory();
   vault_in_memory = null;
   clear_crypto_key_cache();
 

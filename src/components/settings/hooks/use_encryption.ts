@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect } from "react";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -286,11 +287,7 @@ export function use_encryption() {
           ["decrypt"],
         );
 
-        const decrypted = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: nonce },
-          decryption_key,
-          ciphertext,
-        );
+        const decrypted = await decrypt_aes_gcm_with_fallback(decryption_key, ciphertext, nonce);
 
         armored_key = new TextDecoder().decode(decrypted);
       } else {

@@ -148,6 +148,7 @@ class ApiClient {
   private last_refresh_timestamp: number = 0;
   private session_expired_dispatched: boolean = false;
   private intentional_logout: boolean = false;
+  private has_ever_authenticated: boolean = false;
 
   constructor() {
     this.load_stored_tokens();
@@ -498,6 +499,7 @@ class ApiClient {
   private dispatch_session_expired(): void {
     if (this.intentional_logout) return;
     if (this.session_expired_dispatched) return;
+    if (!this.has_ever_authenticated) return;
     this.session_expired_dispatched = true;
     window.dispatchEvent(new Event("astermail:session-expired"));
   }
@@ -527,6 +529,7 @@ class ApiClient {
   set_authenticated(authenticated: boolean): void {
     this.is_authenticated_flag = authenticated;
     if (authenticated) {
+      this.has_ever_authenticated = true;
       this.intentional_logout = false;
       this.session_expired_dispatched = false;
       this.initial_auth_verified = true;
@@ -534,6 +537,11 @@ class ApiClient {
         this.last_refresh_timestamp = Date.now();
       }
       this.schedule_token_refresh();
+      try {
+        window.dispatchEvent(new Event("astermail:authenticated"));
+      } catch {
+        /* ignore */
+      }
     } else {
       this.clear_auth_state();
     }
@@ -570,6 +578,7 @@ class ApiClient {
 
         if (response.data?.user_id) {
           this.is_authenticated_flag = true;
+          this.has_ever_authenticated = true;
           this._cached_user_info = response.data;
 
           return true;
@@ -745,12 +754,14 @@ class ApiClient {
           if (
             response.status === 401 &&
             error_data.code !== "INVALID_CREDENTIALS" &&
-            !endpoint.includes("/auth/switch")
+            !endpoint.includes("/auth/switch") &&
+            !endpoint.includes("/auth/clear-session")
           ) {
             if (
               !has_attempted_refresh &&
               !endpoint.includes("/auth/refresh") &&
-              !endpoint.includes("/auth/logout")
+              !endpoint.includes("/auth/logout") &&
+              !endpoint.includes("/auth/clear-session")
             ) {
               has_attempted_refresh = true;
               try {

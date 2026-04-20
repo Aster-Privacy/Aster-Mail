@@ -1,3 +1,4 @@
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 //
 // Aster Communications Inc.
 //
@@ -186,11 +187,7 @@ export async function encrypted_get<T>(
   }
 
   try {
-    const decrypted_buffer = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: entry.iv },
-      storage_key,
-      entry.ciphertext,
-    );
+    const decrypted_buffer = await decrypt_aes_gcm_with_fallback(storage_key, entry.ciphertext, entry.iv);
 
     const decoder = new TextDecoder();
     const json_string = decoder.decode(decrypted_buffer);

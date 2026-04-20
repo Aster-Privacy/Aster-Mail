@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import type {
   CustomFieldDefinition,
   CustomFieldValue,
@@ -69,11 +70,7 @@ export async function list_custom_field_definitions(): Promise<
     const key = await get_contacts_encryption_key();
     const items = await Promise.all(
       response.data.items.map(async (item) => {
-        const decrypted_name = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: base64_to_array(item.name_nonce) },
-          key,
-          base64_to_array(item.encrypted_name),
-        );
+        const decrypted_name = await decrypt_aes_gcm_with_fallback(key, base64_to_array(item.encrypted_name), base64_to_array(item.name_nonce));
 
         return {
           id: item.id,
@@ -162,11 +159,7 @@ export async function list_contact_custom_field_values(
 
     const items = await Promise.all(
       response.data.items.map(async (item) => {
-        const decrypted_value = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: base64_to_array(item.value_nonce) },
-          key,
-          base64_to_array(item.encrypted_value),
-        );
+        const decrypted_value = await decrypt_aes_gcm_with_fallback(key, base64_to_array(item.encrypted_value), base64_to_array(item.value_nonce));
 
         const definition = field_map.get(item.field_definition_id);
 

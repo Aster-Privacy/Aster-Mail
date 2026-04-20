@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import type {
   RecentRecipient,
   DecryptedRecentRecipient,
@@ -127,11 +128,7 @@ async function decrypt_email(
   const key = await get_encryption_key();
   const ciphertext = base64_to_array(encrypted_email);
   const nonce = base64_to_array(email_nonce);
-  const plaintext = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    key,
-    ciphertext,
-  );
+  const plaintext = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
 
   return new TextDecoder().decode(plaintext);
 }

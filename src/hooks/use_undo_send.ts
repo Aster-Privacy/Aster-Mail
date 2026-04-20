@@ -23,6 +23,8 @@ import { useState, useEffect, useCallback } from "react";
 import {
   cancel_send as cancel_queue_send,
   send_now as send_queue_now,
+  cancel_server_queued_email,
+  send_server_queued_immediately,
 } from "@/services/send_queue";
 
 export interface PendingSend {
@@ -36,6 +38,8 @@ export interface PendingSend {
   total_seconds: number;
   timeout_id?: number;
   is_external?: boolean;
+  is_server_queued?: boolean;
+  server_queue_id?: string;
   on_send_immediately?: () => void;
 }
 
@@ -198,7 +202,13 @@ export function use_undo_send(): UseUndoSendReturn {
     if (!pending) return false;
 
     undo_send_manager.remove(id);
-    cancel_queue_send(id);
+
+    if (pending.is_server_queued && pending.server_queue_id) {
+      cancel_server_queued_email(pending.server_queue_id).catch(() => {});
+    } else {
+      cancel_queue_send(id);
+    }
+
     dispatch_undo_send_event(id, pending);
 
     return true;
@@ -207,11 +217,15 @@ export function use_undo_send(): UseUndoSendReturn {
   const send_immediately = useCallback((id: string): void => {
     const pending = undo_send_manager.get(id);
 
-    if (pending?.on_send_immediately) {
-      undo_send_manager.remove(id);
+    if (!pending) return;
+
+    undo_send_manager.remove(id);
+
+    if (pending.is_server_queued && pending.server_queue_id) {
+      send_server_queued_immediately(pending.server_queue_id).catch(() => {});
+    } else if (pending.on_send_immediately) {
       pending.on_send_immediately();
     } else {
-      undo_send_manager.remove(id);
       send_queue_now(id);
     }
   }, []);

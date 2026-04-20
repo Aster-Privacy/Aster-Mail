@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { api_client } from "./client";
 import { save_email_recovery_backup } from "./recovery";
@@ -102,11 +103,7 @@ async function decrypt_recovery_email(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce_data },
-    key,
-    encrypted_data,
-  );
+  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data);
 
   return new TextDecoder().decode(decrypted);
 }

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedEnvelope } from "@/types/email";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import {
   get_passphrase_bytes,
@@ -106,11 +107,7 @@ export async function decrypt_mail_envelope<
           false,
           ["decrypt"],
         );
-        const decrypted = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: nonce_bytes },
-          crypto_key,
-          enc_bytes,
-        );
+        const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
 
         const parsed = JSON.parse(new TextDecoder().decode(decrypted));
 
@@ -135,11 +132,7 @@ export async function decrypt_mail_envelope<
               false,
               ["decrypt"],
             );
-            const decrypted = await crypto.subtle.decrypt(
-              { name: "AES-GCM", iv: nonce_bytes },
-              crypto_key,
-              enc_bytes,
-            );
+            const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
 
             const parsed = JSON.parse(new TextDecoder().decode(decrypted));
 

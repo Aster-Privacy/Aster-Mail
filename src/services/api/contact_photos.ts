@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import type {
   ContactPhoto,
   ContactPhotoMeta,
@@ -102,17 +103,9 @@ export async function get_contact_photo(
   try {
     const key = await get_contacts_encryption_key();
 
-    const decrypted_data = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: base64_to_array(response.data.data_nonce) },
-      key,
-      base64_to_array(response.data.encrypted_data),
-    );
+    const decrypted_data = await decrypt_aes_gcm_with_fallback(key, base64_to_array(response.data.encrypted_data), base64_to_array(response.data.data_nonce));
 
-    const decrypted_meta = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: base64_to_array(response.data.meta_nonce) },
-      key,
-      base64_to_array(response.data.encrypted_meta),
-    );
+    const decrypted_meta = await decrypt_aes_gcm_with_fallback(key, base64_to_array(response.data.encrypted_meta), base64_to_array(response.data.meta_nonce));
 
     const meta: ContactPhotoMeta = JSON.parse(
       new TextDecoder().decode(decrypted_meta),

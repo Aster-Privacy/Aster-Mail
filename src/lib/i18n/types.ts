@@ -137,6 +137,7 @@ export interface CommonTranslations {
   failed_remove_recovery_email: string;
   profile_picture_updated: string;
   failed_save_profile_picture: string;
+  failed_save_profile_color: string;
   failed_upload_image: string;
   valid_image_error: string;
   image_size_error: string;
@@ -1273,6 +1274,17 @@ export interface SettingsTranslations {
   update_password: string;
   updating: string;
   password_changed_signing_out: string;
+  vault_recovery_title: string;
+  vault_recovery_description: string;
+  vault_recovery_button: string;
+  vault_recovery_modal_description: string;
+  vault_recovery_old_password_label: string;
+  vault_recovery_old_password_placeholder: string;
+  vault_recovery_enter_password: string;
+  vault_recovery_success: string;
+  vault_recovery_failed: string;
+  vault_recovery_recovering: string;
+  vault_recovery_recover_button: string;
   session_security: string;
   session_privacy_description: string;
   sign_out_everywhere: string;
@@ -1290,6 +1302,13 @@ export interface SettingsTranslations {
   sign_out_all_other: string;
   sign_out_session_confirm: string;
   no_active_sessions: string;
+  trusted_2fa_title: string;
+  trusted_2fa_description: string;
+  trusted_2fa_empty: string;
+  trusted_2fa_revoke: string;
+  trusted_2fa_revoke_all: string;
+  trusted_2fa_last_used: string;
+  trusted_2fa_expires: string;
   failed_load_sessions: string;
   load_more_sessions: string;
   two_fa_enabled: string;
@@ -3200,6 +3219,7 @@ export interface AuthTranslations {
   two_factor_auth_title: string;
   enter_2fa_code: string;
   use_backup_code_instead: string;
+  trust_this_device_30_days: string;
   security_key_verification: string;
   tap_security_key: string;
   use_another_method: string;

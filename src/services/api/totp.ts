@@ -40,6 +40,8 @@ export interface TotpSetupVerifyResponse {
 export interface TotpVerifyRequest {
   code: string;
   pending_login_token: string;
+  trust_device?: boolean;
+  device_label?: string;
 }
 
 export interface TotpVerifyResponse {
@@ -59,6 +61,8 @@ export interface TotpVerifyResponse {
 export interface TotpBackupCodeRequest {
   code: string;
   pending_login_token: string;
+  trust_device?: boolean;
+  device_label?: string;
 }
 
 export interface TotpStatusResponse {

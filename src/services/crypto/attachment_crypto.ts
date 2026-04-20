@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Attachment } from "@/components/compose/compose_shared";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import {
   encrypt_envelope_with_bytes,
@@ -256,11 +257,7 @@ export async function decrypt_attachment_data(
 
   zero_uint8_array(key_bytes);
 
-  return crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    session_key,
-    encrypted_data,
-  );
+  return decrypt_aes_gcm_with_fallback(session_key, encrypted_data, nonce);
 }
 
 export function download_decrypted_attachment(

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   trigger_sync,
   type DecryptedExternalAccount,
@@ -605,11 +606,7 @@ class ExternalSyncScheduler {
       const iv = base64_to_array(envelope.iv as string);
       const ciphertext = base64_to_array(envelope.data as string);
 
-      const decrypted = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv },
-        key,
-        ciphertext,
-      );
+      const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, iv);
 
       const decoder = new TextDecoder();
       const configs: unknown = JSON.parse(decoder.decode(decrypted));

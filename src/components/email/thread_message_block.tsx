@@ -575,11 +575,11 @@ export function ThreadMessageBlock({
           size="md"
         />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-sm font-semibold truncate text-txt-primary">
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 min-w-0">
+            <span className="text-sm font-semibold truncate text-txt-primary max-w-full">
               {name}
             </span>
-            <span className="text-xs text-txt-muted truncate hidden sm:inline">
+            <span className="text-xs text-txt-muted truncate hidden sm:inline max-w-full">
               &lt;{message.sender_email}&gt;
             </span>
             {is_ghost_sender && (

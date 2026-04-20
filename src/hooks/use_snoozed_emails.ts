@@ -20,6 +20,7 @@
 //
 import type { InboxEmail, DecryptedEnvelope } from "@/types/email";
 import type { MailItemMetadata } from "@/types/email";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { useState, useCallback, useEffect, useRef } from "react";
 
@@ -117,11 +118,7 @@ async function try_decrypt_with_identity_key(
         false,
         ["decrypt"],
       );
-      const decrypted = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: nonce_bytes },
-        crypto_key,
-        encrypted_bytes,
-      );
+      const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, encrypted_bytes, nonce_bytes);
 
       const parsed = JSON.parse(new TextDecoder().decode(decrypted));
       const from = normalize_envelope_from(parsed.from);

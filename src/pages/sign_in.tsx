@@ -22,6 +22,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button, Checkbox } from "@aster/ui";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_auth } from "@/contexts/auth_context";
@@ -122,11 +123,7 @@ async function decrypt_checkout_password(
     false,
     ["decrypt"],
   );
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    key,
-    encrypted,
-  );
+  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted, nonce);
 
   return new TextDecoder().decode(decrypted);
 }

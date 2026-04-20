@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   array_to_base64,
   base64_to_array,
@@ -171,11 +172,7 @@ export async function decrypt_block_data(
   const key = await get_blocked_senders_encryption_key();
   const ciphertext = base64_to_array(encrypted_sender_data);
   const nonce = base64_to_array(sender_data_nonce);
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    key,
-    ciphertext,
-  );
+  const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
   const decoder = new TextDecoder();
   const parsed = JSON.parse(decoder.decode(decrypted));
 

@@ -73,6 +73,8 @@ import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_preload_cache } from "@/components/email/hooks/use_email_detail";
 import { ensure_email_recovery_backup } from "@/services/api/recovery_email";
 import { emit_auth_ready } from "@/hooks/mail_events";
+import { connection_store } from "@/services/routing/connection_store";
+import { load_preferred_sender_from_server } from "@/lib/preferred_sender";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -120,6 +122,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         if (is_auth_valid) {
           api_client.set_authenticated(true);
+          connection_store.sync_from_server().catch(() => {});
+          load_preferred_sender_from_server().catch(() => {});
           sync_client.connect().catch((e) => {
             safe_log_error(e);
           });
@@ -250,6 +254,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await storage_add_account(user);
 
       api_client.set_authenticated(true);
+      connection_store.sync_from_server().catch(() => {});
+      load_preferred_sender_from_server().catch(() => {});
       sync_client.connect().catch((e) => {
         safe_log_error(e);
       });

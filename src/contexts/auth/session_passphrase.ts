@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_or_create_session_key,
   clear_session_key,
@@ -142,11 +143,7 @@ export async function get_session_passphrase(
     );
     const iv = Uint8Array.from(atob(iv_base64), (c) => c.charCodeAt(0));
 
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      current_key,
-      encrypted,
-    );
+    const decrypted = await decrypt_aes_gcm_with_fallback(current_key, encrypted, iv);
 
     return new TextDecoder().decode(decrypted);
   } catch {

@@ -24,6 +24,7 @@ import {
   get_or_create_derived_encryption_crypto_key,
   get_derived_encryption_key,
 } from "@/services/crypto/memory_key_store";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -212,11 +213,7 @@ export async function decrypt_alias_field(
   const key = await get_alias_encryption_key();
   const ciphertext = base64_to_array(encrypted);
   const iv = base64_to_array(nonce);
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    key,
-    ciphertext,
-  );
+  const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, iv);
   const decoder = new TextDecoder();
 
   return decoder.decode(decrypted);
