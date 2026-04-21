@@ -349,24 +349,32 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   migration_tracker_blocking_v2_done: false,
 };
 
+type GetPreferencesViaHttpResult = UserPreferences | "not_found" | null;
+
 async function get_preferences_via_http(
   vault: EncryptedVault,
-): Promise<UserPreferences | null> {
+): Promise<GetPreferencesViaHttpResult> {
+  let response;
+
   try {
-    const response = await api_client.get<GetPreferencesApiResponse>(
+    response = await api_client.get<GetPreferencesApiResponse>(
       "/settings/v1/preferences",
     );
+  } catch {
+    return null;
+  }
 
-    if (response.error || !response.data) {
-      return null;
-    }
+  if (response.error || !response.data) {
+    return null;
+  }
 
-    const { encrypted_preferences, preferences_nonce } = response.data;
+  const { encrypted_preferences, preferences_nonce } = response.data;
 
-    if (!encrypted_preferences || !preferences_nonce) {
-      return null;
-    }
+  if (!encrypted_preferences || !preferences_nonce) {
+    return "not_found";
+  }
 
+  try {
     return await decrypt_preferences(
       encrypted_preferences,
       preferences_nonce,
@@ -402,11 +410,30 @@ export async function get_preferences(
   }
 
   try {
-    const preferences = await get_preferences_via_http(vault);
+    const result = await get_preferences_via_http(vault);
 
-    if (!preferences) {
+    if (result === "not_found") {
+      const initial: UserPreferences = {
+        ...DEFAULT_PREFERENCES,
+        migration_haptic_v1_done: true,
+        migration_tracker_blocking_v2_done: true,
+      };
+      const saved = await save_preferences_via_http(initial, vault).catch(
+        () => false,
+      );
+
+      if (saved) {
+        return { data: initial, loaded_from_server: true };
+      }
+
       return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
     }
+
+    if (!result) {
+      return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
+    }
+
+    const preferences = result;
 
     const cleaned = Object.fromEntries(
       Object.entries(preferences as unknown as Record<string, unknown>).filter(
