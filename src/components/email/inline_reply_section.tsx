@@ -379,7 +379,9 @@ export const InlineReplySection = forwardRef<
         on_complete: () => {
           is_sending_ref.current = false;
           set_send_state("sent");
-          show_toast(t("common.email_sent"), "success");
+          if (!undo_enabled) {
+            show_toast(t("common.email_sent"), "success");
+          }
           on_sending_end?.();
 
           if (thread_token) {

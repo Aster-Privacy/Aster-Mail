@@ -581,7 +581,9 @@ export function use_forward_modal({
       {
         on_complete: () => {
           is_sending_ref.current = false;
-          show_toast(t("common.email_sent"), "success");
+          if (delay_seconds === 0) {
+            show_toast(t("common.email_sent"), "success");
+          }
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent("astermail:email-sent"));
           }, 100);
@@ -600,14 +602,16 @@ export function use_forward_modal({
     );
 
     if (result.success && result.queued_id) {
-      undo_send_manager.add({
-        id: result.queued_id,
-        to: recipients.to,
-        subject: `Fwd: ${email_subject}`,
-        body: forward_message,
-        scheduled_time: Date.now() + delay_ms,
-        total_seconds: delay_seconds,
-      });
+      if (delay_seconds > 0) {
+        undo_send_manager.add({
+          id: result.queued_id,
+          to: recipients.to,
+          subject: `Fwd: ${email_subject}`,
+          body: forward_message,
+          scheduled_time: Date.now() + delay_ms,
+          total_seconds: delay_seconds,
+        });
+      }
 
       on_close();
     } else if (!result.success) {

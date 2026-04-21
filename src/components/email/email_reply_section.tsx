@@ -150,7 +150,9 @@ export function EmailReplySection({
         on_complete: () => {
           is_sending_ref.current = false;
           set_send_state("sent");
-          show_toast(t("common.email_sent"), "success");
+          if (!undo_enabled) {
+            show_toast(t("common.email_sent"), "success");
+          }
           setTimeout(() => {
             set_reply_text("");
             set_show_reply_menu(false);

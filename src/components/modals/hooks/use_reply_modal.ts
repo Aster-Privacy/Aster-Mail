@@ -738,7 +738,9 @@ export function use_reply_modal({
       {
         on_complete: () => {
           is_sending_ref.current = false;
-          show_toast(t("common.email_sent"), "success");
+          if (delay_seconds === 0) {
+            show_toast(t("common.email_sent"), "success");
+          }
           window.dispatchEvent(new CustomEvent("astermail:email-sent"));
 
           if (pending_thread_token_ref.current) {
@@ -775,14 +777,16 @@ export function use_reply_modal({
         delete_draft(captured_draft_id).catch(() => {});
       }
 
-      undo_send_manager.add({
-        id: result.queued_id,
-        to: [recipient_email],
-        subject: `Re: ${original_subject.replace(/^Re:\s*/i, "")}`,
-        body: message_with_signature,
-        scheduled_time: Date.now() + delay_ms,
-        total_seconds: delay_seconds,
-      });
+      if (delay_seconds > 0) {
+        undo_send_manager.add({
+          id: result.queued_id,
+          to: [recipient_email],
+          subject: `Re: ${original_subject.replace(/^Re:\s*/i, "")}`,
+          body: message_with_signature,
+          scheduled_time: Date.now() + delay_ms,
+          total_seconds: delay_seconds,
+        });
+      }
 
       on_close();
     } else if (!result.success) {
