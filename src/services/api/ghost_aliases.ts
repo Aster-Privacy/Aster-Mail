@@ -265,7 +265,16 @@ export async function decrypt_ghost_alias(
 export async function decrypt_ghost_aliases(
   aliases: GhostAlias[],
 ): Promise<DecryptedGhostAlias[]> {
-  return Promise.all(aliases.map(decrypt_ghost_alias));
+  const results = await Promise.allSettled(
+    aliases.map(decrypt_ghost_alias),
+  );
+
+  return results
+    .filter(
+      (r): r is PromiseFulfilledResult<DecryptedGhostAlias> =>
+        r.status === "fulfilled",
+    )
+    .map((r) => r.value);
 }
 
 export async function create_ghost_alias(

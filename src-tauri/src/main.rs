@@ -75,6 +75,49 @@ fn open_external_url(url: String) -> std::result::Result<(), String> {
     Ok(())
 }
 
+#[cfg(all(unix, not(target_os = "macos")))]
+fn ensure_system_wayland() {
+    use std::os::unix::process::CommandExt;
+
+    if std::env::var("_ASTER_REEXEC").is_ok() {
+        return;
+    }
+
+    if std::env::var("APPIMAGE").is_err() {
+        return;
+    }
+
+    let search_paths = [
+        "/usr/lib64/libwayland-client.so",
+        "/usr/lib/x86_64-linux-gnu/libwayland-client.so",
+        "/usr/lib/libwayland-client.so",
+    ];
+
+    let Some(system_lib) = search_paths
+        .iter()
+        .find(|p| std::path::Path::new(p).exists())
+    else {
+        return;
+    };
+
+    let current_preload = std::env::var("LD_PRELOAD").unwrap_or_default();
+    let new_preload = if current_preload.is_empty() {
+        system_lib.to_string()
+    } else {
+        format!("{system_lib}:{current_preload}")
+    };
+
+    std::env::set_var("LD_PRELOAD", new_preload);
+    std::env::set_var("_ASTER_REEXEC", "1");
+
+    let Ok(exe) = std::env::current_exe() else {
+        return;
+    };
+
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let _err = std::process::Command::new(exe).args(&args).exec();
+}
+
 #[cfg(target_os = "macos")]
 fn clear_stale_webkit_keychain() {
     use std::process::Command;
@@ -90,6 +133,14 @@ fn clear_stale_webkit_keychain() {
 }
 
 fn main() {
+    #[cfg(all(unix, not(target_os = "macos")))]
+    ensure_system_wayland();
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(window) = app.get_webview_window("main") {

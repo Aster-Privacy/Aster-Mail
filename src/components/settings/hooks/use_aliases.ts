@@ -31,6 +31,10 @@ import {
   type AliasCountsResponse,
 } from "@/services/api/aliases";
 import {
+  has_passphrase_in_memory,
+  get_derived_encryption_key,
+} from "@/services/crypto/memory_key_store";
+import {
   list_domains,
   delete_domain,
   get_dns_records,
@@ -143,6 +147,12 @@ export function use_aliases() {
   );
 
   const load_aliases = useCallback(async () => {
+    if (!has_passphrase_in_memory() || !get_derived_encryption_key()) {
+      set_aliases_loading(false);
+
+      return;
+    }
+
     if (!aliases_cache.loaded) {
       set_aliases_loading(true);
     }

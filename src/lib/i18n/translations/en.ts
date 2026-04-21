@@ -1349,6 +1349,9 @@ export const en: Translations = {
     vault_recovery_failed: "Failed to recover data. Please try again.",
     vault_recovery_recovering: "Recovering...",
     vault_recovery_recover_button: "Recover",
+    vault_recovery_known_aliases_label: "Known Alias Addresses (optional)",
+    vault_recovery_known_aliases_hint:
+      "If you remember your alias addresses, enter them here separated by commas to help restore them.",
     session_security: "Session Security",
     session_privacy_description:
       "For your privacy, we don't track session details or device information",

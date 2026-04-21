@@ -80,6 +80,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { encrypt_vault } from "@/services/crypto/key_manager";
 import { api_client } from "@/services/api/client";
+import { emit_aliases_changed } from "@/hooks/mail_events";
 
 const MAX_SIZE = 256;
 
@@ -480,6 +481,8 @@ export function AccountSection() {
       } catch {}
 
       await store_vault_in_memory(current_vault, current_passphrase);
+
+      emit_aliases_changed();
 
       set_vault_recovery_success(true);
       set_vault_recovery_password("");

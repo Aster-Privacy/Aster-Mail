@@ -81,6 +81,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@rollup/rollup-linux-x64-gnu": "^4.60.2",
     "@stripe/react-stripe-js": "^5.6.1",
     "@stripe/stripe-js": "^8.11.0",
     "@tauri-apps/api": "^2.10.1",

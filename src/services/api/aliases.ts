@@ -35,6 +35,7 @@ export interface EmailAlias {
   encrypted_display_name?: string;
   display_name_nonce?: string;
   alias_address_hash: string;
+  routing_address_hash?: string;
   domain: string;
   is_enabled: boolean;
   is_random: boolean;
@@ -87,6 +88,8 @@ export interface UpdateAliasRequest {
   display_name_nonce?: string;
   is_enabled?: boolean;
   profile_picture?: string | null;
+  encrypted_local_part?: string;
+  local_part_nonce?: string;
 }
 
 export interface AliasLimitResponse {
@@ -263,7 +266,16 @@ export async function decrypt_alias(
 export async function decrypt_aliases(
   aliases: EmailAlias[],
 ): Promise<DecryptedEmailAlias[]> {
-  return Promise.all(aliases.map((alias) => decrypt_alias(alias)));
+  const results = await Promise.allSettled(
+    aliases.map((alias) => decrypt_alias(alias)),
+  );
+
+  return results
+    .filter(
+      (r): r is PromiseFulfilledResult<DecryptedEmailAlias> =>
+        r.status === "fulfilled",
+    )
+    .map((r) => r.value);
 }
 
 export async function list_aliases(params?: {
@@ -356,6 +368,21 @@ export async function update_alias(
   return api_client.patch<{ success: boolean }>(
     `/addresses/v1/aliases/${alias_id}`,
     request,
+  );
+}
+
+export async function reencrypt_alias_local_part(
+  alias_id: string,
+  local_part: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  const { encrypted, nonce } = await encrypt_alias_field(local_part);
+
+  return api_client.patch<{ success: boolean }>(
+    `/addresses/v1/aliases/${alias_id}`,
+    {
+      encrypted_local_part: encrypted,
+      local_part_nonce: nonce,
+    },
   );
 }
 

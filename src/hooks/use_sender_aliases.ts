@@ -33,6 +33,10 @@ import {
   compute_address_hash,
 } from "@/services/api/domains";
 import { get_current_account, type User } from "@/services/account_manager";
+import {
+  has_passphrase_in_memory,
+  get_derived_encryption_key,
+} from "@/services/crypto/memory_key_store";
 import { list_external_accounts } from "@/services/api/external_accounts";
 import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
 import {
@@ -82,6 +86,12 @@ export function use_sender_aliases() {
   const [user, set_user] = useState<User | null>(cached_user);
 
   const load_aliases = useCallback(async () => {
+    if (!has_passphrase_in_memory() || !get_derived_encryption_key()) {
+      set_loading(false);
+
+      return;
+    }
+
     set_loading(true);
 
     try {

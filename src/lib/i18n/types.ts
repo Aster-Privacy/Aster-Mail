@@ -1285,6 +1285,8 @@ export interface SettingsTranslations {
   vault_recovery_failed: string;
   vault_recovery_recovering: string;
   vault_recovery_recover_button: string;
+  vault_recovery_known_aliases_label: string;
+  vault_recovery_known_aliases_hint: string;
   session_security: string;
   session_privacy_description: string;
   sign_out_everywhere: string;

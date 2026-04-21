@@ -290,9 +290,16 @@ export async function decrypt_domain_address(
 export async function decrypt_domain_addresses(
   addresses: DomainAddress[],
 ): Promise<DecryptedDomainAddress[]> {
-  return Promise.all(
+  const results = await Promise.allSettled(
     addresses.map((address) => decrypt_domain_address(address)),
   );
+
+  return results
+    .filter(
+      (r): r is PromiseFulfilledResult<DecryptedDomainAddress> =>
+        r.status === "fulfilled",
+    )
+    .map((r) => r.value);
 }
 
 export async function list_domains(): Promise<ApiResponse<DomainListResponse>> {

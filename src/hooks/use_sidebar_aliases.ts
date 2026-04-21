@@ -24,7 +24,10 @@ import {
   list_aliases,
   decrypt_aliases,
   get_alias_counts,
+  reencrypt_alias_local_part,
+  compute_routing_hash,
   type DecryptedEmailAlias,
+  type EmailAlias,
   type AliasCountsResponse,
 } from "@/services/api/aliases";
 import {
@@ -39,6 +42,54 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
+
+let repair_attempted = false;
+
+async function attempt_alias_repair(
+  failed: EmailAlias[],
+  merged: DecryptedEmailAlias[],
+): Promise<void> {
+  if (repair_attempted || failed.length === 0) return;
+  repair_attempted = true;
+
+  const recovery_candidates = [
+    { local_part: "timo", domain: "aster.cx" },
+    { local_part: "job", domain: "astermail.org" },
+    { local_part: "social", domain: "aster.cx" },
+    { local_part: "games", domain: "aster.cx" },
+    { local_part: "trades", domain: "aster.cx" },
+  ];
+
+  for (const alias of failed) {
+    if (!alias.routing_address_hash) continue;
+
+    for (const candidate of recovery_candidates) {
+      try {
+        const routing = await compute_routing_hash(
+          candidate.local_part,
+          candidate.domain,
+        );
+
+        if (routing === alias.routing_address_hash) {
+          await reencrypt_alias_local_part(alias.id, candidate.local_part);
+
+          merged.push({
+            id: alias.id,
+            local_part: candidate.local_part,
+            alias_address_hash: alias.alias_address_hash,
+            domain: alias.domain,
+            full_address: `${candidate.local_part}@${alias.domain}`,
+            is_enabled: alias.is_enabled,
+            is_random: alias.is_random,
+            created_at: alias.created_at,
+            updated_at: alias.updated_at,
+          });
+          break;
+        }
+      } catch {}
+    }
+  }
+}
 
 const cached_aliases: { data: DecryptedEmailAlias[] } = {
   data: [],
@@ -111,9 +162,17 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       const merged: DecryptedEmailAlias[] = [];
 
       if (list_response.data) {
-        const decrypted = await decrypt_aliases(list_response.data.aliases);
+        const raw_aliases = list_response.data.aliases;
+        const decrypted = await decrypt_aliases(raw_aliases);
 
         merged.push(...decrypted);
+
+        if (decrypted.length < raw_aliases.length) {
+          const decrypted_ids = new Set(decrypted.map((a) => a.id));
+          const failed = raw_aliases.filter((a) => !decrypted_ids.has(a.id));
+
+          await attempt_alias_repair(failed, merged);
+        }
       }
 
       try {
