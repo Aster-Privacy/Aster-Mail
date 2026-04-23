@@ -535,7 +535,21 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   }, [preferences.haptic_enabled]);
 
   useEffect(() => {
+    const flush_pending = () => {
+      if (pending_preferences.current && vault) {
+        if (save_timeout.current) {
+          clearTimeout(save_timeout.current);
+          save_timeout.current = null;
+        }
+        save_debounced(pending_preferences.current);
+      }
+    };
+
+    window.addEventListener("beforeunload", flush_pending);
+
     return () => {
+      window.removeEventListener("beforeunload", flush_pending);
+      flush_pending();
       if (save_timeout.current) {
         clearTimeout(save_timeout.current);
       }
@@ -543,7 +557,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         clearTimeout(saved_indicator_timeout.current);
       }
     };
-  }, []);
+  }, [vault, save_debounced]);
 
   const has_unsaved_changes =
     save_status === "pending" || save_status === "saving";
