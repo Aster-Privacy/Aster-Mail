@@ -39,9 +39,12 @@ import {
   sync_quiet_hours_to_server,
   cache_sidebar_state,
   get_cached_sidebar_state,
+  prepare_preferences_payload,
   DEFAULT_PREFERENCES,
   type UserPreferences,
 } from "@/services/api/preferences";
+import { get_csrf_token_from_cookie } from "@/services/api/csrf";
+import { get_effective_base_url } from "@/services/routing/routing_provider";
 import { sync_haptic_state } from "@/native/haptic_feedback";
 import {
   load_notification_preferences,
@@ -115,6 +118,10 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   const pending_preferences = useRef<UserPreferences | null>(null);
   const saved_indicator_timeout = useRef<number | null>(null);
   const initial_load_done = useRef(false);
+  const beacon_payload = useRef<{
+    encrypted: string;
+    nonce: string;
+  } | null>(null);
   const set_theme_preference_ref = useRef(set_theme_preference);
 
   set_theme_preference_ref.current = set_theme_preference;
@@ -155,6 +162,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         save_timeout.current = null;
       }
       pending_preferences.current = null;
+      beacon_payload.current = null;
 
       const merged = { ...DEFAULT_PREFERENCES, ...response.data };
 
@@ -269,9 +277,27 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       }
 
       try {
-        await save_preferences(prefs, vault);
+        const result = await save_preferences(prefs, vault);
+
+        if (!result.data.success) {
+          pending_preferences.current = prefs;
+          set_save_status("error");
+          window.dispatchEvent(
+            new CustomEvent("astermail:preferences-save-failed"),
+          );
+
+          save_timeout.current = window.setTimeout(() => {
+            if (pending_preferences.current) {
+              save_debounced(pending_preferences.current);
+            }
+          }, 3000);
+
+          return;
+        }
+
         await load_notification_preferences(vault);
         pending_preferences.current = null;
+        beacon_payload.current = null;
         set_save_status("saved");
 
         saved_indicator_timeout.current = window.setTimeout(() => {
@@ -279,14 +305,16 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           saved_indicator_timeout.current = null;
         }, 2000);
       } catch {
+        pending_preferences.current = prefs;
         set_save_status("error");
         window.dispatchEvent(
           new CustomEvent("astermail:preferences-save-failed"),
         );
 
-        saved_indicator_timeout.current = window.setTimeout(() => {
-          set_save_status("idle");
-          saved_indicator_timeout.current = null;
+        save_timeout.current = window.setTimeout(() => {
+          if (pending_preferences.current) {
+            save_debounced(pending_preferences.current);
+          }
         }, 3000);
       }
     },
@@ -307,13 +335,21 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         clearTimeout(save_timeout.current);
       }
 
+      if (vault) {
+        prepare_preferences_payload(updated, vault).then((payload) => {
+          if (pending_preferences.current === updated) {
+            beacon_payload.current = payload;
+          }
+        });
+      }
+
       save_timeout.current = window.setTimeout(() => {
         if (pending_preferences.current) {
           save_debounced(pending_preferences.current);
         }
       }, 1000);
     },
-    [save_debounced],
+    [save_debounced, vault],
   );
 
   const update_preference = useCallback(
@@ -535,6 +571,35 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   }, [preferences.haptic_enabled]);
 
   useEffect(() => {
+    const flush_via_beacon = () => {
+      if (!pending_preferences.current || !beacon_payload.current) return;
+
+      const api_base = import.meta.env.VITE_API_URL || "/api";
+      const url = `${get_effective_base_url(api_base)}/settings/v1/preferences`;
+      const csrf = get_csrf_token_from_cookie();
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (csrf) {
+        headers["X-CSRF-Token"] = csrf;
+      }
+
+      fetch(url, {
+        method: "PUT",
+        headers,
+        credentials: "include",
+        keepalive: true,
+        body: JSON.stringify({
+          encrypted_preferences: beacon_payload.current.encrypted,
+          preferences_nonce: beacon_payload.current.nonce,
+        }),
+      }).catch(() => {});
+
+      beacon_payload.current = null;
+      pending_preferences.current = null;
+    };
+
     const flush_pending = () => {
       if (pending_preferences.current && vault) {
         if (save_timeout.current) {
@@ -545,10 +610,10 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       }
     };
 
-    window.addEventListener("beforeunload", flush_pending);
+    window.addEventListener("beforeunload", flush_via_beacon);
 
     return () => {
-      window.removeEventListener("beforeunload", flush_pending);
+      window.removeEventListener("beforeunload", flush_via_beacon);
       flush_pending();
       if (save_timeout.current) {
         clearTimeout(save_timeout.current);

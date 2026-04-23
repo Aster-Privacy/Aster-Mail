@@ -533,6 +533,19 @@ export async function save_preferences(
   }
 }
 
+export async function prepare_preferences_payload(
+  preferences: UserPreferences,
+  vault: EncryptedVault,
+): Promise<{ encrypted: string; nonce: string } | null> {
+  try {
+    const { encrypted, nonce } = await encrypt_preferences(preferences, vault);
+
+    return { encrypted, nonce };
+  } catch {
+    return null;
+  }
+}
+
 interface GetDevModeApiResponse {
   encrypted_dev_mode: string | null;
   dev_mode_nonce: string | null;
