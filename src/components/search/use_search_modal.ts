@@ -360,7 +360,7 @@ export function use_search_modal({
   const handle_folder_click = useCallback(
     (folder: DecryptedFolder) => {
       on_close();
-      navigate(`/folder/${folder.folder_token}`);
+      navigate(`/folder/${encodeURIComponent(folder.folder_token)}`);
     },
     [on_close, navigate],
   );

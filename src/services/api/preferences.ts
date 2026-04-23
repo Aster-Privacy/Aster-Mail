@@ -164,17 +164,25 @@ interface SavePreferencesApiResponse {
   success: boolean;
 }
 
-async function derive_preferences_key(
-  vault: EncryptedVault,
-): Promise<CryptoKey> {
+export async function derive_preferences_key_raw(
+  identity_key: string,
+): Promise<Uint8Array> {
   const key_material = new TextEncoder().encode(
-    vault.identity_key + "astermail-preferences-v1",
+    identity_key + "astermail-preferences-v1",
   );
   const hash = await crypto.subtle.digest(HASH_ALG, key_material);
 
+  return new Uint8Array(hash);
+}
+
+async function derive_preferences_key(
+  vault: EncryptedVault,
+): Promise<CryptoKey> {
+  const raw = await derive_preferences_key_raw(vault.identity_key);
+
   return crypto.subtle.importKey(
     "raw",
-    hash,
+    raw,
     { name: "AES-GCM", length: 256 },
     false,
     ["encrypt", "decrypt"],
@@ -534,15 +542,23 @@ interface SaveDevModeApiResponse {
   success: boolean;
 }
 
-async function derive_dev_mode_key(vault: EncryptedVault): Promise<CryptoKey> {
+export async function derive_dev_mode_key_raw(
+  identity_key: string,
+): Promise<Uint8Array> {
   const key_material = new TextEncoder().encode(
-    vault.identity_key + "astermail-devmode-v1",
+    identity_key + "astermail-devmode-v1",
   );
   const hash = await crypto.subtle.digest(HASH_ALG, key_material);
 
+  return new Uint8Array(hash);
+}
+
+async function derive_dev_mode_key(vault: EncryptedVault): Promise<CryptoKey> {
+  const raw = await derive_dev_mode_key_raw(vault.identity_key);
+
   return crypto.subtle.importKey(
     "raw",
-    hash,
+    raw,
     { name: "AES-GCM", length: 256 },
     false,
     ["encrypt", "decrypt"],

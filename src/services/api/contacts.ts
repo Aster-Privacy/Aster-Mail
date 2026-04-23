@@ -561,6 +561,42 @@ export async function remove_contact_from_group(
   );
 }
 
+export async function reencrypt_all_contacts(): Promise<void> {
+  let cursor: string | undefined;
+
+  for (;;) {
+    const response = await list_contacts({ limit: 100, cursor });
+
+    if (!response.data?.items) return;
+
+    for (const contact of response.data.items) {
+      try {
+        const decrypted = await decrypt_contact_data(
+          contact.encrypted_data,
+          contact.data_nonce,
+        );
+        const { encrypted_data, data_nonce, integrity_hash } =
+          await encrypt_contact_data(decrypted);
+        const search_tokens = await generate_search_tokens(decrypted);
+
+        await update_contact(contact.id, {
+          encrypted_data,
+          data_nonce,
+          integrity_hash,
+          name_search_token: search_tokens.name_token,
+          email_search_token: search_tokens.email_token,
+          company_search_token: search_tokens.company_token,
+        });
+      } catch {
+        continue;
+      }
+    }
+
+    if (!response.data.has_more || !response.data.next_cursor) break;
+    cursor = response.data.next_cursor;
+  }
+}
+
 export async function get_contacts_count(): Promise<
   ApiResponse<{ count: number }>
 > {

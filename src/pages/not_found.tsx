@@ -29,10 +29,7 @@ export default function NotFoundPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-surf-secondary">
-      <style>{`
-        .err_404_gradient { background: linear-gradient(135deg, var(--accent-color, #3b82f6), #60a5fa, #93c5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-      `}</style>
-      <div className="err_404_gradient text-7xl font-extrabold tracking-tighter mb-3 select-none">
+      <div className="text-7xl font-extrabold tracking-tighter mb-3 select-none" style={{ color: 'var(--accent-color, #3b82f6)' }}>
         404
       </div>
       <div className="text-sm mb-8 text-txt-muted max-w-xs">

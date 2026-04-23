@@ -477,6 +477,36 @@ export function validate_local_part(local_part: string): {
   return { valid: true };
 }
 
+export async function reencrypt_all_aliases(): Promise<void> {
+  const response = await list_aliases({ limit: 500 });
+
+  if (!response.data?.aliases) return;
+
+  for (const alias of response.data.aliases) {
+    if (alias.is_random) continue;
+
+    try {
+      const decrypted = await decrypt_alias(alias);
+      await reencrypt_alias_local_part(alias.id, decrypted.local_part);
+
+      if (alias.encrypted_display_name && alias.display_name_nonce) {
+        const display = await decrypt_alias_field(
+          alias.encrypted_display_name,
+          alias.display_name_nonce,
+        );
+        const { encrypted, nonce } = await encrypt_alias_field(display);
+
+        await api_client.patch(`/addresses/v1/aliases/${alias.id}`, {
+          encrypted_display_name: encrypted,
+          display_name_nonce: nonce,
+        });
+      }
+    } catch {
+      continue;
+    }
+  }
+}
+
 export async function get_alias_counts(): Promise<
   ApiResponse<AliasCountsResponse>
 > {

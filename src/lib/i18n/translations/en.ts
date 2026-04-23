@@ -1300,7 +1300,7 @@ export const en: Translations = {
     storage_format_ipfs_confirm_description:
       "Are you sure you want to switch to end-to-end encrypted IPFS?",
     storage_format_ipfs_hint:
-      "IPFS is a peer-to-peer network that stores your encrypted files across many independent nodes instead of a single server: resilient, censorship-resistant, and still zero-knowledge.",
+      "IPFS is a peer-to-peer network that stores your encrypted files across many independent nodes instead of a single server: resilient, censorship-resistant, and still zero-access.",
     forward_secrecy: "Forward Secrecy",
     forward_secrecy_enabled_description: "Keys rotate {{frequency}}",
     forward_secrecy_disabled_description:

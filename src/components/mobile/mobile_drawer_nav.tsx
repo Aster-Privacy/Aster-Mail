@@ -321,7 +321,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
         </p>
       )}
       {folders.map((folder) => {
-        const path = `/folder/${folder.folder_token}`;
+        const path = `/folder/${encodeURIComponent(folder.folder_token)}`;
         const count = folder_counts[folder.folder_token];
         const folder_color = folder.color || "#3b82f6";
 
@@ -402,7 +402,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
         </p>
       )}
       {tags.map((tag) => {
-        const path = `/tag/${tag.tag_token}`;
+        const path = `/tag/${encodeURIComponent(tag.tag_token)}`;
         const count = tag_counts[tag.tag_token];
         const tag_color = tag.color || "#3b82f6";
         const TagIconComponent = tag.icon ? tag_icon_map[tag.icon] : null;

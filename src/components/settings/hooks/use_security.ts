@@ -50,6 +50,16 @@ import {
   prepend_kek_to_list,
 } from "@/services/crypto/legacy_keks";
 import {
+  get_preferences,
+  save_preferences,
+  derive_preferences_key_raw,
+  derive_dev_mode_key_raw,
+  get_dev_mode,
+  save_dev_mode,
+} from "@/services/api/preferences";
+import { reencrypt_all_aliases } from "@/services/api/aliases";
+import { reencrypt_all_contacts } from "@/services/api/contacts";
+import {
   get_vault_from_memory,
   store_vault_in_memory,
   get_passphrase_from_memory,
@@ -365,6 +375,13 @@ export function use_security() {
         return;
       }
 
+      const old_identity_key = vault.identity_key;
+
+      const old_prefs_key_raw =
+        await derive_preferences_key_raw(old_identity_key);
+      const old_dev_mode_key_raw =
+        await derive_dev_mode_key_raw(old_identity_key);
+
       if (!vault.previous_keys) {
         vault.previous_keys = [];
       }
@@ -397,6 +414,14 @@ export function use_security() {
       vault.legacy_keks = prepend_kek_to_list(
         vault.legacy_keks,
         serialize_kek_for_vault(old_kek_raw),
+      );
+      vault.legacy_keks = prepend_kek_to_list(
+        vault.legacy_keks,
+        serialize_kek_for_vault(old_prefs_key_raw),
+      );
+      vault.legacy_keks = prepend_kek_to_list(
+        vault.legacy_keks,
+        serialize_kek_for_vault(old_dev_mode_key_raw),
       );
 
       const {
@@ -438,6 +463,25 @@ export function use_security() {
       if (response.data?.access_token) {
         api_client.set_dev_token(response.data.access_token);
       }
+
+      try {
+        const prefs_result = await get_preferences(vault);
+
+        if (prefs_result.loaded_from_server) {
+          await save_preferences(prefs_result.data, vault);
+        }
+      } catch {}
+
+      try {
+        const dev_mode_result = await get_dev_mode(vault);
+
+        if (dev_mode_result.data !== undefined) {
+          await save_dev_mode(dev_mode_result.data, vault);
+        }
+      } catch {}
+
+      reencrypt_all_aliases().catch(() => {});
+      reencrypt_all_contacts().catch(() => {});
 
       set_password_success(true);
       set_show_password_section(false);
