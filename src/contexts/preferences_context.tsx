@@ -98,6 +98,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   const { vault, is_completing_registration } = use_auth();
   const { set_theme_preference } = useTheme();
   const { set_language } = use_i18n();
+
   const [preferences, set_preferences] = useState<UserPreferences>(() => ({
     ...DEFAULT_PREFERENCES,
     sidebar_more_collapsed: get_cached_sidebar_state("sidebar_more_collapsed"),
@@ -114,243 +115,140 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   const [is_loading, set_is_loading] = useState(true);
   const [has_loaded_from_server, set_has_loaded_from_server] = useState(false);
   const [save_status, set_save_status] = useState<SaveStatus>("idle");
-  const save_timeout = useRef<number | null>(null);
-  const pending_preferences = useRef<UserPreferences | null>(null);
-  const saved_indicator_timeout = useRef<number | null>(null);
-  const initial_load_done = useRef(false);
-  const beacon_payload = useRef<{
+
+  const vault_ref = useRef(vault);
+
+  if (vault) {
+    vault_ref.current = vault;
+  }
+
+  const set_theme_ref = useRef(set_theme_preference);
+  set_theme_ref.current = set_theme_preference;
+
+  const set_language_ref = useRef(set_language);
+  set_language_ref.current = set_language;
+
+  const debounce_timer = useRef<number | null>(null);
+  const saved_indicator_timer = useRef<number | null>(null);
+  const latest_prefs_ref = useRef<UserPreferences | null>(null);
+  const is_saving_ref = useRef(false);
+  const beacon_payload_ref = useRef<{
     encrypted: string;
     nonce: string;
   } | null>(null);
-  const set_theme_preference_ref = useRef(set_theme_preference);
 
-  set_theme_preference_ref.current = set_theme_preference;
-  const set_language_ref = useRef(set_language);
+  const do_save = useCallback(async (prefs: UserPreferences): Promise<boolean> => {
+    const v = vault_ref.current;
 
-  set_language_ref.current = set_language;
-
-  const load_preferences = useCallback(async () => {
-    if (!vault || is_completing_registration) {
-      initial_load_done.current = false;
-      set_has_loaded_from_server(false);
-      set_is_loading(false);
-
-      return;
+    if (!v || !v.identity_key) {
+      return false;
     }
 
-    initial_load_done.current = false;
-    let response = await get_preferences(vault);
-    let attempt = 0;
+    try {
+      const result = await save_preferences(prefs, v);
 
-    while (!response.loaded_from_server && attempt < 6) {
-      attempt += 1;
-      const delay_ms = Math.min(500 * 2 ** (attempt - 1), 8000);
+      if (!result.data.success) {
+        return false;
+      }
 
-      await new Promise((resolve) => setTimeout(resolve, delay_ms));
-      response = await get_preferences(vault);
+      return true;
+    } catch (err) {
+      console.error("[prefs] do_save: exception during save_preferences:", err);
+
+      return false;
+    }
+  }, []);
+
+  const flush_save = useCallback(async () => {
+    if (is_saving_ref.current) return;
+
+    const prefs = latest_prefs_ref.current;
+
+    if (!prefs) return;
+
+    is_saving_ref.current = true;
+    latest_prefs_ref.current = null;
+    set_save_status("saving");
+
+    if (saved_indicator_timer.current) {
+      clearTimeout(saved_indicator_timer.current);
+      saved_indicator_timer.current = null;
     }
 
-    if (!response.loaded_from_server) {
-      set_is_loading(false);
+    const ok = await do_save(prefs);
 
-      return;
-    }
+    if (ok) {
+      beacon_payload_ref.current = null;
+      set_save_status("saved");
 
-    if (response.loaded_from_server && response.data) {
-      if (save_timeout.current) {
-        clearTimeout(save_timeout.current);
-        save_timeout.current = null;
-      }
-      pending_preferences.current = null;
-      beacon_payload.current = null;
-
-      const merged = { ...DEFAULT_PREFERENCES, ...response.data };
-
-      set_preferences(merged);
-      cache_sidebar_state(
-        "sidebar_more_collapsed",
-        merged.sidebar_more_collapsed,
-      );
-      cache_sidebar_state(
-        "sidebar_folders_collapsed",
-        merged.sidebar_folders_collapsed,
-      );
-      cache_sidebar_state(
-        "sidebar_labels_collapsed",
-        merged.sidebar_labels_collapsed,
-      );
-      cache_sidebar_state(
-        "sidebar_aliases_collapsed",
-        merged.sidebar_aliases_collapsed,
-      );
-      set_theme_preference_ref.current(response.data.theme);
-
-      const language_code = label_to_language_code(response.data.language);
-
-      if (language_code) {
-        set_language_ref.current(language_code);
-      }
-
-      configure_session_timeout(
-        response.data.session_timeout_enabled,
-        response.data.session_timeout_minutes,
-      );
-
-      if (response.data.accent_color) {
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          response.data.accent_color,
-        );
-      }
-      if (response.data.accent_color_hover) {
-        document.documentElement.style.setProperty(
-          "--accent-color-hover",
-          response.data.accent_color_hover,
-        );
-      }
-
-      const root = document.documentElement;
-
-      root.classList.toggle("reduce-motion", response.data.reduce_motion);
-      root.classList.toggle("compact-mode", response.data.compact_mode);
-
-      root.classList.remove(
-        "font-size-small",
-        "font-size-large",
-        "font-size-extra-large",
-      );
-      if (response.data.font_size_scale === "small")
-        root.classList.add("font-size-small");
-      else if (response.data.font_size_scale === "large")
-        root.classList.add("font-size-large");
-      else if (response.data.font_size_scale === "extra_large")
-        root.classList.add("font-size-extra-large");
-
-      root.classList.toggle("high-contrast", response.data.high_contrast);
-      root.classList.toggle(
-        "reduce-transparency",
-        response.data.reduce_transparency,
-      );
-      root.classList.toggle("link-underlines", response.data.link_underlines);
-      root.classList.toggle("dyslexia-font", response.data.dyslexia_font);
-      root.classList.toggle("text-spacing", response.data.text_spacing);
-
-      await load_notification_preferences(vault);
-
-      if (response.data.desktop_notifications && "Notification" in window) {
-        if (Notification.permission === "default") {
-          request_notification_permission();
-        }
-      }
-
-      if (response.data.quiet_hours_enabled) {
-        sync_quiet_hours_to_server(
-          response.data.quiet_hours_enabled,
-          response.data.quiet_hours_start,
-          response.data.quiet_hours_end,
-        );
-      }
-    }
-    initial_load_done.current = true;
-    set_has_loaded_from_server(true);
-    set_is_loading(false);
-  }, [vault, is_completing_registration]);
-
-  const save_debounced = useCallback(
-    async (prefs: UserPreferences) => {
-      if (!vault || is_completing_registration) {
+      saved_indicator_timer.current = window.setTimeout(() => {
         set_save_status("idle");
-        pending_preferences.current = null;
+        saved_indicator_timer.current = null;
+      }, 2000);
 
-        return;
+      const v = vault_ref.current;
+
+      if (v) {
+        load_notification_preferences(v).catch(() => {});
       }
+    } else {
+      set_save_status("error");
 
-      if (!initial_load_done.current) {
-        return;
-      }
+      window.setTimeout(() => {
+        is_saving_ref.current = false;
 
-      set_save_status("saving");
-
-      if (saved_indicator_timeout.current) {
-        clearTimeout(saved_indicator_timeout.current);
-        saved_indicator_timeout.current = null;
-      }
-
-      try {
-        const result = await save_preferences(prefs, vault);
-
-        if (!result.data.success) {
-          pending_preferences.current = prefs;
-          set_save_status("error");
-          window.dispatchEvent(
-            new CustomEvent("astermail:preferences-save-failed"),
-          );
-
-          save_timeout.current = window.setTimeout(() => {
-            if (pending_preferences.current) {
-              save_debounced(pending_preferences.current);
-            }
-          }, 3000);
-
-          return;
+        if (latest_prefs_ref.current) {
+          flush_save_ref.current();
         }
+      }, 3000);
 
-        await load_notification_preferences(vault);
-        pending_preferences.current = null;
-        beacon_payload.current = null;
-        set_save_status("saved");
+      is_saving_ref.current = false;
 
-        saved_indicator_timeout.current = window.setTimeout(() => {
-          set_save_status("idle");
-          saved_indicator_timeout.current = null;
-        }, 2000);
-      } catch {
-        pending_preferences.current = prefs;
-        set_save_status("error");
-        window.dispatchEvent(
-          new CustomEvent("astermail:preferences-save-failed"),
-        );
+      return;
+    }
 
-        save_timeout.current = window.setTimeout(() => {
-          if (pending_preferences.current) {
-            save_debounced(pending_preferences.current);
-          }
-        }, 3000);
-      }
-    },
-    [vault, is_completing_registration],
-  );
+    is_saving_ref.current = false;
 
-  const schedule_save = useCallback(
-    (updated: UserPreferences) => {
-      pending_preferences.current = updated;
-      set_save_status("pending");
+    if (latest_prefs_ref.current) {
+      flush_save_ref.current();
+    }
+  }, [do_save]);
 
-      if (saved_indicator_timeout.current) {
-        clearTimeout(saved_indicator_timeout.current);
-        saved_indicator_timeout.current = null;
-      }
+  const flush_save_ref = useRef(flush_save);
+  flush_save_ref.current = flush_save;
 
-      if (save_timeout.current) {
-        clearTimeout(save_timeout.current);
-      }
+  const schedule_save = useCallback((prefs: UserPreferences) => {
+    latest_prefs_ref.current = prefs;
+    set_save_status("pending");
 
-      if (vault) {
-        prepare_preferences_payload(updated, vault).then((payload) => {
-          if (pending_preferences.current === updated) {
-            beacon_payload.current = payload;
-          }
-        });
-      }
+    if (saved_indicator_timer.current) {
+      clearTimeout(saved_indicator_timer.current);
+      saved_indicator_timer.current = null;
+    }
 
-      save_timeout.current = window.setTimeout(() => {
-        if (pending_preferences.current) {
-          save_debounced(pending_preferences.current);
+    if (debounce_timer.current) {
+      clearTimeout(debounce_timer.current);
+    }
+
+    const v = vault_ref.current;
+
+    if (v) {
+      prepare_preferences_payload(prefs, v).then((payload) => {
+        if (latest_prefs_ref.current === prefs) {
+          beacon_payload_ref.current = payload;
         }
-      }, 1000);
-    },
-    [save_debounced, vault],
-  );
+      });
+    }
+
+    debounce_timer.current = window.setTimeout(() => {
+      debounce_timer.current = null;
+      flush_save_ref.current();
+    }, 400);
+  }, []);
+
+  const trigger_save = useCallback((prefs: UserPreferences) => {
+    schedule_save(prefs);
+  }, [schedule_save]);
 
   const update_preference = useCallback(
     <K extends keyof UserPreferences>(
@@ -384,20 +282,29 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         }
 
         if (immediate) {
-          if (save_timeout.current) {
-            clearTimeout(save_timeout.current);
-            save_timeout.current = null;
+          latest_prefs_ref.current = updated;
+
+          if (debounce_timer.current) {
+            clearTimeout(debounce_timer.current);
+            debounce_timer.current = null;
           }
-          pending_preferences.current = updated;
-          save_debounced(updated);
+
+          do_save(updated).then((ok) => {
+            if (ok) {
+              set_save_status("saved");
+              window.setTimeout(() => set_save_status("idle"), 2000);
+            } else {
+              set_save_status("error");
+            }
+          });
         } else {
-          schedule_save(updated);
+          trigger_save(updated);
         }
 
         return updated;
       });
     },
-    [schedule_save, save_debounced],
+    [trigger_save, do_save],
   );
 
   const update_preferences = useCallback(
@@ -405,17 +312,17 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       set_preferences((prev) => {
         const updated = { ...prev, ...updates };
 
-        schedule_save(updated);
+        trigger_save(updated);
 
         return updated;
       });
     },
-    [schedule_save],
+    [trigger_save],
   );
 
   const reset_to_defaults = useCallback(() => {
     set_preferences(DEFAULT_PREFERENCES);
-    set_theme_preference_ref.current(DEFAULT_PREFERENCES.theme);
+    set_theme_ref.current(DEFAULT_PREFERENCES.theme);
 
     const language_code = label_to_language_code(DEFAULT_PREFERENCES.language);
 
@@ -439,8 +346,10 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
     sync_haptic_state(false);
 
-    if (vault) {
-      save_dev_mode(false, vault);
+    const v = vault_ref.current;
+
+    if (v) {
+      save_dev_mode(false, v);
     }
 
     sync_quiet_hours_to_server(
@@ -449,13 +358,14 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       DEFAULT_PREFERENCES.quiet_hours_end,
     );
 
-    if (save_timeout.current) {
-      clearTimeout(save_timeout.current);
-      save_timeout.current = null;
+    if (debounce_timer.current) {
+      clearTimeout(debounce_timer.current);
+      debounce_timer.current = null;
     }
-    pending_preferences.current = DEFAULT_PREFERENCES;
-    save_debounced(DEFAULT_PREFERENCES);
-  }, [vault, save_debounced]);
+
+    latest_prefs_ref.current = DEFAULT_PREFERENCES;
+    do_save(DEFAULT_PREFERENCES);
+  }, [do_save]);
 
   const reset_section = useCallback(
     (keys: (keyof UserPreferences)[]) => {
@@ -466,40 +376,213 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           (updated as Record<string, unknown>)[key] = DEFAULT_PREFERENCES[key];
         }
 
-        if (save_timeout.current) {
-          clearTimeout(save_timeout.current);
-          save_timeout.current = null;
+        if (debounce_timer.current) {
+          clearTimeout(debounce_timer.current);
+          debounce_timer.current = null;
         }
-        pending_preferences.current = updated;
-        save_debounced(updated);
+
+        latest_prefs_ref.current = updated;
+        do_save(updated);
 
         return updated;
       });
     },
-    [save_debounced],
+    [do_save],
   );
 
   const reload_preferences = useCallback(async () => {
-    await load_preferences();
-  }, [load_preferences]);
+    const v = vault_ref.current;
+
+    if (!v) return;
+
+    let response = await get_preferences(v);
+    let attempt = 0;
+
+    while (!response.loaded_from_server && attempt < 6) {
+      attempt += 1;
+      const delay_ms = Math.min(500 * 2 ** (attempt - 1), 8000);
+
+      await new Promise((resolve) => setTimeout(resolve, delay_ms));
+      response = await get_preferences(v);
+    }
+
+    if (response.loaded_from_server && response.data) {
+      const merged = { ...DEFAULT_PREFERENCES, ...response.data };
+
+      set_preferences(merged);
+    }
+
+    set_has_loaded_from_server(response.loaded_from_server);
+  }, []);
 
   const save_now = useCallback(async () => {
-    if (!vault || !pending_preferences.current) return;
-    if (save_timeout.current) {
-      clearTimeout(save_timeout.current);
-      save_timeout.current = null;
+    if (!vault_ref.current) return;
+
+    if (debounce_timer.current) {
+      clearTimeout(debounce_timer.current);
+      debounce_timer.current = null;
     }
-    await save_debounced(pending_preferences.current);
-  }, [vault, save_debounced]);
+
+    if (latest_prefs_ref.current) {
+      await do_save(latest_prefs_ref.current);
+      latest_prefs_ref.current = null;
+    }
+  }, [do_save]);
+
+  const vault_identity = vault?.identity_key ?? null;
 
   useEffect(() => {
-    if (save_timeout.current) {
-      clearTimeout(save_timeout.current);
-      save_timeout.current = null;
+    if (!vault_identity || is_completing_registration) {
+      set_has_loaded_from_server(false);
+      set_is_loading(false);
+
+      return;
     }
-    pending_preferences.current = null;
-    load_preferences();
-  }, [load_preferences]);
+
+    const v = vault_ref.current;
+
+    if (!v) {
+      set_is_loading(false);
+
+      return;
+    }
+
+    let cancelled = false;
+
+    if (debounce_timer.current) {
+      clearTimeout(debounce_timer.current);
+      debounce_timer.current = null;
+    }
+    latest_prefs_ref.current = null;
+
+    (async () => {
+      try {
+        let response = await get_preferences(v);
+        let attempt = 0;
+
+        while (!response.loaded_from_server && attempt < 6) {
+          if (cancelled) return;
+          attempt += 1;
+          const delay_ms = Math.min(500 * 2 ** (attempt - 1), 8000);
+
+          await new Promise((resolve) => setTimeout(resolve, delay_ms));
+          response = await get_preferences(v);
+        }
+
+        if (cancelled) return;
+
+        if (response.loaded_from_server && response.data) {
+          if (debounce_timer.current) {
+            clearTimeout(debounce_timer.current);
+            debounce_timer.current = null;
+          }
+          latest_prefs_ref.current = null;
+          beacon_payload_ref.current = null;
+
+          const merged = { ...DEFAULT_PREFERENCES, ...response.data };
+
+          set_preferences(merged);
+          cache_sidebar_state(
+            "sidebar_more_collapsed",
+            merged.sidebar_more_collapsed,
+          );
+          cache_sidebar_state(
+            "sidebar_folders_collapsed",
+            merged.sidebar_folders_collapsed,
+          );
+          cache_sidebar_state(
+            "sidebar_labels_collapsed",
+            merged.sidebar_labels_collapsed,
+          );
+          cache_sidebar_state(
+            "sidebar_aliases_collapsed",
+            merged.sidebar_aliases_collapsed,
+          );
+          set_theme_ref.current(response.data.theme);
+
+          const language_code = label_to_language_code(response.data.language);
+
+          if (language_code) {
+            set_language_ref.current(language_code);
+          }
+
+          configure_session_timeout(
+            response.data.session_timeout_enabled,
+            response.data.session_timeout_minutes,
+          );
+
+          if (response.data.accent_color) {
+            document.documentElement.style.setProperty(
+              "--accent-color",
+              response.data.accent_color,
+            );
+          }
+          if (response.data.accent_color_hover) {
+            document.documentElement.style.setProperty(
+              "--accent-color-hover",
+              response.data.accent_color_hover,
+            );
+          }
+
+          const root = document.documentElement;
+
+          root.classList.toggle("reduce-motion", response.data.reduce_motion);
+          root.classList.toggle("compact-mode", response.data.compact_mode);
+
+          root.classList.remove(
+            "font-size-small",
+            "font-size-large",
+            "font-size-extra-large",
+          );
+          if (response.data.font_size_scale === "small")
+            root.classList.add("font-size-small");
+          else if (response.data.font_size_scale === "large")
+            root.classList.add("font-size-large");
+          else if (response.data.font_size_scale === "extra_large")
+            root.classList.add("font-size-extra-large");
+
+          root.classList.toggle("high-contrast", response.data.high_contrast);
+          root.classList.toggle(
+            "reduce-transparency",
+            response.data.reduce_transparency,
+          );
+          root.classList.toggle(
+            "link-underlines",
+            response.data.link_underlines,
+          );
+          root.classList.toggle("dyslexia-font", response.data.dyslexia_font);
+          root.classList.toggle("text-spacing", response.data.text_spacing);
+
+          await load_notification_preferences(v);
+
+          if (
+            response.data.desktop_notifications &&
+            "Notification" in window
+          ) {
+            if (Notification.permission === "default") {
+              request_notification_permission();
+            }
+          }
+
+          if (response.data.quiet_hours_enabled) {
+            sync_quiet_hours_to_server(
+              response.data.quiet_hours_enabled,
+              response.data.quiet_hours_start,
+              response.data.quiet_hours_end,
+            );
+          }
+        }
+
+        set_has_loaded_from_server(response.loaded_from_server);
+      } finally {
+        set_is_loading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [vault_identity, is_completing_registration]);
 
   useEffect(() => {
     document.documentElement.classList.toggle(
@@ -572,7 +655,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
   useEffect(() => {
     const flush_via_beacon = () => {
-      if (!pending_preferences.current || !beacon_payload.current) return;
+      if (!latest_prefs_ref.current || !beacon_payload_ref.current) return;
 
       const api_base = import.meta.env.VITE_API_URL || "/api";
       const url = `${get_effective_base_url(api_base)}/settings/v1/preferences`;
@@ -591,38 +674,33 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         credentials: "include",
         keepalive: true,
         body: JSON.stringify({
-          encrypted_preferences: beacon_payload.current.encrypted,
-          preferences_nonce: beacon_payload.current.nonce,
+          encrypted_preferences: beacon_payload_ref.current.encrypted,
+          preferences_nonce: beacon_payload_ref.current.nonce,
         }),
       }).catch(() => {});
 
-      beacon_payload.current = null;
-      pending_preferences.current = null;
-    };
-
-    const flush_pending = () => {
-      if (pending_preferences.current && vault) {
-        if (save_timeout.current) {
-          clearTimeout(save_timeout.current);
-          save_timeout.current = null;
-        }
-        save_debounced(pending_preferences.current);
-      }
+      beacon_payload_ref.current = null;
+      latest_prefs_ref.current = null;
     };
 
     window.addEventListener("beforeunload", flush_via_beacon);
 
     return () => {
       window.removeEventListener("beforeunload", flush_via_beacon);
-      flush_pending();
-      if (save_timeout.current) {
-        clearTimeout(save_timeout.current);
+
+      if (latest_prefs_ref.current) {
+        do_save(latest_prefs_ref.current);
       }
-      if (saved_indicator_timeout.current) {
-        clearTimeout(saved_indicator_timeout.current);
+
+      if (debounce_timer.current) {
+        clearTimeout(debounce_timer.current);
+      }
+
+      if (saved_indicator_timer.current) {
+        clearTimeout(saved_indicator_timer.current);
       }
     };
-  }, [vault, save_debounced]);
+  }, [do_save]);
 
   const has_unsaved_changes =
     save_status === "pending" || save_status === "saving";

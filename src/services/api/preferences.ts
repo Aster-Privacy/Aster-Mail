@@ -476,20 +476,6 @@ export async function get_preferences(
       }
     }
 
-    if (merged.block_external_content) {
-      const mode = merged.external_content_blocking_mode;
-
-      merged.block_remote_images = mode === "images" || mode === "both";
-      merged.block_tracking_pixels = mode === "trackers" || mode === "both";
-      merged.block_remote_fonts = mode === "trackers" || mode === "both";
-      merged.block_remote_css = mode === "trackers" || mode === "both";
-      merged.load_remote_images = merged.block_remote_images
-        ? "never"
-        : "always";
-    } else {
-      merged.load_remote_images = "always";
-    }
-
     let needs_migration_save = false;
 
     if (!merged.migration_haptic_v1_done) {
