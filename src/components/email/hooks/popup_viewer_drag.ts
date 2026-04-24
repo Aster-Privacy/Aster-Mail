@@ -26,8 +26,10 @@ import {
   FULLSCREEN_MARGIN,
 } from "@/components/email/hooks/popup_viewer_types";
 
-export function use_popup_drag_resize(initial_fullscreen?: boolean) {
-  const [popup_size, set_popup_size] = useState<PopupSize>(initial_fullscreen ? "fullscreen" : "default");
+export function use_popup_drag_resize(preview_mode?: "popup" | "split" | "fullpage") {
+  const is_split_mode = preview_mode === "split";
+  const is_fullpage_mode = preview_mode === "fullpage";
+  const [popup_size, set_popup_size] = useState<PopupSize>(is_fullpage_mode ? "fullscreen" : "default");
   const [position, set_position] = useState({ x: 0, y: 0 });
   const [is_dragging, set_is_dragging] = useState(false);
   const [is_exiting_fullscreen, set_is_exiting_fullscreen] = useState(false);
@@ -37,6 +39,13 @@ export function use_popup_drag_resize(initial_fullscreen?: boolean) {
   const is_fullscreen = popup_size === "fullscreen";
 
   const dimensions = useMemo(() => {
+    if (is_split_mode) {
+      return {
+        width: Math.min(Math.round(window.innerWidth * 0.5), 800),
+        height: window.innerHeight - POPUP_MARGIN * 2,
+      };
+    }
+
     if (is_fullscreen) {
       return {
         width: window.innerWidth - FULLSCREEN_MARGIN * 2,
@@ -48,18 +57,25 @@ export function use_popup_drag_resize(initial_fullscreen?: boolean) {
       width: 680,
       height: popup_size === "expanded" ? 860 : 720,
     };
-  }, [popup_size, is_fullscreen]);
+  }, [popup_size, is_fullscreen, is_split_mode]);
 
   useEffect(() => {
-    set_position({
-      x: window.innerWidth - dimensions.width - POPUP_MARGIN,
-      y: window.innerHeight - dimensions.height - POPUP_MARGIN,
-    });
+    if (is_split_mode) {
+      set_position({
+        x: window.innerWidth - dimensions.width - POPUP_MARGIN,
+        y: POPUP_MARGIN,
+      });
+    } else {
+      set_position({
+        x: window.innerWidth - dimensions.width - POPUP_MARGIN,
+        y: window.innerHeight - dimensions.height - POPUP_MARGIN,
+      });
+    }
   }, []);
 
   const handle_drag_start = useCallback(
     (e: React.MouseEvent) => {
-      if (is_fullscreen) return;
+      if (is_fullscreen || is_split_mode) return;
       if ((e.target as HTMLElement).closest("button")) return;
       if ((e.target as HTMLElement).closest("[data-no-drag]")) return;
       set_is_dragging(true);
@@ -70,7 +86,7 @@ export function use_popup_drag_resize(initial_fullscreen?: boolean) {
         pos_y: position.y,
       };
     },
-    [position, is_fullscreen],
+    [position, is_fullscreen, is_split_mode],
   );
 
   useEffect(() => {
@@ -100,7 +116,7 @@ export function use_popup_drag_resize(initial_fullscreen?: boolean) {
   }, [is_dragging]);
 
   const toggle_size = useCallback(() => {
-    if (is_fullscreen) return;
+    if (is_fullscreen || is_split_mode) return;
 
     const new_size = popup_size === "default" ? "expanded" : "default";
     const new_height = new_size === "expanded" ? 820 : 640;
@@ -133,6 +149,7 @@ export function use_popup_drag_resize(initial_fullscreen?: boolean) {
     position,
     is_dragging,
     is_fullscreen,
+    is_split_mode,
     is_exiting_fullscreen,
     dimensions,
     popup_ref,

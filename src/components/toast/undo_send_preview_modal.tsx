@@ -62,9 +62,9 @@ export function UndoSendPreviewModal() {
       {data && (
         <EmailPopupViewer
           email_id={null}
-          initial_fullscreen={view_mode !== "popup"}
           local_email={data}
           on_close={handle_close}
+          preview_mode={view_mode}
         />
       )}
     </AnimatePresence>
