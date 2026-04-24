@@ -39,7 +39,6 @@ export function EmailPopupViewer({
   on_compose,
   snoozed_until,
   grouped_email_ids,
-  preview_mode,
 }: EmailPopupViewerProps) {
   const reduce_motion = use_should_reduce_motion();
 
@@ -51,7 +50,6 @@ export function EmailPopupViewer({
     on_forward,
     snoozed_until,
     grouped_email_ids,
-    preview_mode,
   });
 
   const memoized_draft = useMemo(
@@ -182,12 +180,12 @@ export function EmailPopupViewer({
     </motion.div>
   );
 
-  if (viewer.is_fullscreen || viewer.is_split_mode) {
+  if (viewer.is_fullscreen) {
     return (
       <>
         <motion.div
           animate={{ opacity: viewer.is_exiting_fullscreen ? 0 : 1 }}
-          className={`fixed inset-0 z-[60] ${viewer.is_split_mode ? "flex justify-end" : "flex items-center justify-center"}`}
+          className="fixed inset-0 z-[60] flex items-center justify-center"
           initial={reduce_motion ? false : { opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.2 }}
         >

@@ -91,7 +91,6 @@ export interface EmailPopupViewerProps {
   total_count?: number;
   snoozed_until?: string;
   grouped_email_ids?: string[];
-  preview_mode?: "popup" | "split" | "fullpage";
 }
 
 export type PopupSize = "default" | "expanded" | "fullscreen";

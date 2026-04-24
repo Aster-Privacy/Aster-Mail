@@ -52,8 +52,11 @@ import {
 export type FullReplyData = ReplyData;
 export type FullForwardData = ForwardData;
 
+import type { LocalEmailData } from "@/components/email/email_viewer_types";
+
 interface FullEmailViewerProps {
   email_id: string;
+  local_email?: LocalEmailData;
   on_back: () => void;
   snoozed_until?: string;
   on_reply?: (data: FullReplyData) => void;
@@ -70,6 +73,7 @@ interface FullEmailViewerProps {
 
 export function FullEmailViewer({
   email_id,
+  local_email,
   on_back,
   snoozed_until: _snoozed_until,
   on_reply,
@@ -87,11 +91,12 @@ export function FullEmailViewer({
   const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
   const viewer = use_email_viewer({
     email_id,
+    local_email,
     on_dismiss: on_back,
     on_reply,
     on_forward,
     on_edit_draft,
-    use_refresh_listener: false,
+    use_refresh_listener: !local_email,
     grouped_email_ids,
   });
 

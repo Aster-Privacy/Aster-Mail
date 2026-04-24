@@ -74,8 +74,19 @@ export interface ForwardData {
   original_mail_id?: string;
 }
 
+export interface LocalEmailData {
+  subject: string;
+  body: string;
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  sender_email?: string;
+  sender_name?: string;
+}
+
 export interface UseEmailViewerOptions {
   email_id: string;
+  local_email?: LocalEmailData;
   on_dismiss: () => void;
   on_reply?: (data: ReplyData) => void;
   on_forward?: (data: ForwardData) => void;

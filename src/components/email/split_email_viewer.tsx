@@ -53,8 +53,11 @@ import {
 export type SplitReplyData = ReplyData;
 export type SplitForwardData = ForwardData;
 
+import type { LocalEmailData } from "@/components/email/email_viewer_types";
+
 interface SplitEmailViewerProps {
   email_id: string;
+  local_email?: LocalEmailData;
   on_close: () => void;
   snoozed_until?: string;
   on_reply?: (data: SplitReplyData) => void;
@@ -70,6 +73,7 @@ interface SplitEmailViewerProps {
 
 export function SplitEmailViewer({
   email_id,
+  local_email,
   on_close,
   snoozed_until: _snoozed_until,
   on_reply,
@@ -87,10 +91,11 @@ export function SplitEmailViewer({
   const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
   const viewer = use_email_viewer({
     email_id,
+    local_email,
     on_dismiss: on_close,
     on_reply,
     on_forward,
-    use_refresh_listener: true,
+    use_refresh_listener: !local_email,
     grouped_email_ids,
   });
 

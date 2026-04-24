@@ -44,6 +44,7 @@ import { is_ghost_email } from "@/stores/ghost_alias_store";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_auth } from "@/contexts/auth_context";
 import { type ThreadMessagesListRef } from "@/components/email/thread_message_block";
 import {
   fetch_and_decrypt_thread_messages,
@@ -166,6 +167,7 @@ export function format_snooze_target(
 
 export function use_email_viewer({
   email_id,
+  local_email,
   on_dismiss,
   on_reply,
   on_forward,
@@ -176,6 +178,7 @@ export function use_email_viewer({
   const { t } = use_i18n();
   const { format_email_detail } = use_date_format();
   const { preferences } = use_preferences();
+  const { user } = use_auth();
   const [email, set_email] = useState<DecryptedEmail | null>(null);
   const [mail_item, set_mail_item] = useState<MailItem | null>(null);
   const [is_loading, set_is_loading] = useState(true);
@@ -288,6 +291,56 @@ export function use_email_viewer({
   });
 
   useEffect(() => {
+    if (!local_email) return;
+
+    const s_email = local_email.sender_email || user?.email || "me";
+    const s_name = local_email.sender_name || user?.email || "Me";
+    const now_str = format_email_detail(new Date());
+
+    set_email({
+      id: "undo-send-preview",
+      sender: s_name,
+      sender_email: s_email,
+      subject: local_email.subject || t("mail.no_subject"),
+      preview: "",
+      timestamp: now_str,
+      is_read: true,
+      is_starred: false,
+      is_trashed: false,
+      is_archived: false,
+      body: local_email.body,
+      html_content: local_email.body,
+      to: local_email.to.map((e) => ({ name: "", email: e })),
+      cc: (local_email.cc || []).map((e) => ({ name: "", email: e })),
+      bcc: (local_email.bcc || []).map((e) => ({ name: "", email: e })),
+    });
+
+    const msg: DecryptedThreadMessage = {
+      id: "undo-send-preview",
+      item_type: "sent",
+      sender_name: s_name,
+      sender_email: s_email,
+      subject: local_email.subject || t("mail.no_subject"),
+      body: local_email.body,
+      html_content: local_email.body,
+      timestamp: new Date().toISOString(),
+      is_read: true,
+      is_starred: false,
+      is_deleted: false,
+      is_external: false,
+      is_sending: true,
+      to_recipients: local_email.to.map((e) => ({ name: "", email: e })),
+    };
+
+    set_thread_messages([msg]);
+    set_current_user_email(s_email);
+    set_current_user_name(s_name);
+    set_is_loading(false);
+    set_error(null);
+  }, [local_email, user, format_email_detail, t]);
+
+  useEffect(() => {
+    if (local_email) return;
     let cancelled = false;
 
     async function load_email() {
