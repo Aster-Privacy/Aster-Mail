@@ -26,6 +26,7 @@ import { is_mac_platform } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { show_action_toast } from "@/components/toast/action_toast";
+import { dispatch_undo_send_preview } from "@/components/toast/undo_send_preview_modal";
 
 interface UndoSendContainerProps {
   position?: string;
@@ -86,13 +87,24 @@ export function UndoSendContainer({
 
       const remaining = get_time_remaining(pending.id);
 
+      const pending_data = pending;
+
       show_action_toast({
         message: t("common.email_sent"),
         action_type: "archive",
         email_ids: [],
         duration_ms: remaining * 1000,
         on_undo: async () => {
-          cancel_send(pending.id);
+          cancel_send(pending_data.id);
+        },
+        on_view_message: () => {
+          dispatch_undo_send_preview({
+            subject: pending_data.subject,
+            body: pending_data.body,
+            to: pending_data.to,
+            cc: pending_data.cc,
+            bcc: pending_data.bcc,
+          });
         },
       });
     }

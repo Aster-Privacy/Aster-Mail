@@ -56,6 +56,7 @@ interface ActionToastState {
   action_label?: string;
   progress?: { completed: number; total: number };
   on_cancel?: () => void;
+  on_view_message?: () => void;
 }
 
 const toast_listeners = new Set<(toast: ActionToastState | null) => void>();
@@ -265,6 +266,14 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
                   onClick={handle_undo}
                 >
                   {is_undoing ? "..." : (toast.action_label || t("common.undo"))}
+                </button>
+              )}
+              {toast.on_view_message && (
+                <button
+                  className="text-[13px] font-medium ml-1 underline text-brand"
+                  onClick={toast.on_view_message}
+                >
+                  {t("mail.view_message")}
                 </button>
               )}
               {toast.on_cancel && toast.progress && (
