@@ -173,7 +173,7 @@ function MobileSettingsPage() {
   }, [preferences.skip_logout_confirmation, do_logout]);
 
   const handle_logout_dont_ask_again = useCallback(async () => {
-    update_preference("skip_logout_confirmation", true);
+    update_preference("skip_logout_confirmation", true, true);
     await save_now();
   }, [update_preference, save_now]);
 

@@ -205,6 +205,7 @@ export function BehaviorSection() {
             update_preference(
               "mark_as_read_delay",
               v as "immediate" | "1_second" | "3_seconds" | "never",
+              true,
             )
           }
           options={[
@@ -223,6 +224,7 @@ export function BehaviorSection() {
             update_preference(
               "reading_pane_position",
               v as "right" | "bottom" | "hidden",
+              true,
             )
           }
           options={[
@@ -249,6 +251,7 @@ export function BehaviorSection() {
               update_preference(
                 "conversation_grouping",
                 preferences.conversation_grouping === false,
+                true,
               )
             }
           />
@@ -257,7 +260,7 @@ export function BehaviorSection() {
         <SelectSetting
           description={t("settings.conversation_order_description")}
           on_change={(v) =>
-            update_preference("conversation_order", v as "asc" | "desc")
+            update_preference("conversation_order", v as "asc" | "desc", true)
           }
           options={[
             { value: "asc", label: t("settings.oldest_first") },
@@ -282,6 +285,7 @@ export function BehaviorSection() {
               update_preference(
                 "show_message_size",
                 !preferences.show_message_size,
+                true,
               )
             }
           />
@@ -294,6 +298,7 @@ export function BehaviorSection() {
             update_preference(
               "force_dark_mode_emails",
               !preferences.force_dark_mode_emails,
+              true,
             )
           }
           title={t("settings.force_dark_mode_emails")}
@@ -315,6 +320,7 @@ export function BehaviorSection() {
             update_preference(
               "default_reply_behavior",
               v as "reply" | "reply_all",
+              true,
             )
           }
           options={[
@@ -334,6 +340,7 @@ export function BehaviorSection() {
             update_preference(
               "auto_save_recent_recipients",
               !preferences.auto_save_recent_recipients,
+              true,
             );
           }}
           title={t("settings.auto_save_recipients_to_contacts")}
@@ -355,6 +362,7 @@ export function BehaviorSection() {
             update_preference(
               "protected_folder_lock_mode",
               v as "session" | "on_leave",
+              true,
             )
           }
           options={[
@@ -382,7 +390,7 @@ export function BehaviorSection() {
             const undo_enabled = preferences.undo_send_enabled ?? true;
 
             if (undo_enabled) {
-              update_preferences({ undo_send_enabled: false });
+              update_preferences({ undo_send_enabled: false }, true);
             } else {
               const seconds = clamp_undo_seconds(
                 preferences.undo_send_seconds ?? UNDO_DEFAULT_SECONDS,
@@ -392,7 +400,7 @@ export function BehaviorSection() {
                 undo_send_enabled: true,
                 undo_send_seconds: seconds,
                 undo_send_period: `${seconds} seconds`,
-              });
+              }, true);
             }
           }}
           title={t("settings.enable_undo_send")}
@@ -433,7 +441,7 @@ export function BehaviorSection() {
                     update_preferences({
                       undo_send_seconds: clamped,
                       undo_send_period: `${clamped} seconds`,
-                    });
+                    }, true);
                     set_undo_input_value(null);
                   }}
                   onChange={(e) => {
@@ -474,7 +482,7 @@ export function BehaviorSection() {
                       update_preferences({
                         undo_send_seconds: seconds,
                         undo_send_period: `${seconds} seconds`,
-                      });
+                      }, true);
                     }}
                   >
                     {seconds}s
@@ -502,6 +510,7 @@ export function BehaviorSection() {
             update_preference(
               "confirm_before_delete",
               !preferences.confirm_before_delete,
+              true,
             )
           }
           title={t("settings.confirm_delete")}
@@ -514,6 +523,7 @@ export function BehaviorSection() {
             update_preference(
               "confirm_before_archive",
               !preferences.confirm_before_archive,
+              true,
             )
           }
           title={t("settings.confirm_archive")}
@@ -526,6 +536,7 @@ export function BehaviorSection() {
             update_preference(
               "confirm_before_spam",
               !preferences.confirm_before_spam,
+              true,
             )
           }
           title={t("settings.confirm_spam")}
@@ -577,7 +588,7 @@ export function BehaviorSection() {
             <AlertDialogAction
               className="max-sm:flex-1"
               onClick={() => {
-                update_preference("conversation_grouping", false);
+                update_preference("conversation_grouping", false, true);
                 set_show_grouping_dialog(false);
               }}
             >

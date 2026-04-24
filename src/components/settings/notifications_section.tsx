@@ -268,7 +268,7 @@ export function NotificationsSection() {
         <ToggleSetting
           description={t("settings.sound_new_notifications")}
           enabled={preferences.sound}
-          on_toggle={() => update_preference("sound", !preferences.sound)}
+          on_toggle={() => update_preference("sound", !preferences.sound, true)}
           title={t("settings.sound")}
         />
         <ToggleSetting
@@ -278,6 +278,7 @@ export function NotificationsSection() {
             update_preference(
               "push_notifications",
               !preferences.push_notifications,
+              true,
             )
           }
           title={t("settings.push")}
@@ -297,7 +298,7 @@ export function NotificationsSection() {
           description={t("settings.new_email_description")}
           enabled={preferences.notify_new_email}
           on_toggle={() =>
-            update_preference("notify_new_email", !preferences.notify_new_email)
+            update_preference("notify_new_email", !preferences.notify_new_email, true)
           }
           title={t("settings.new_emails")}
         />
@@ -305,7 +306,7 @@ export function NotificationsSection() {
           description={t("settings.replies_description")}
           enabled={preferences.notify_replies}
           on_toggle={() =>
-            update_preference("notify_replies", !preferences.notify_replies)
+            update_preference("notify_replies", !preferences.notify_replies, true)
           }
           title={t("settings.replies")}
         />
@@ -313,7 +314,7 @@ export function NotificationsSection() {
           description={t("settings.mentions_description")}
           enabled={preferences.notify_mentions}
           on_toggle={() =>
-            update_preference("notify_mentions", !preferences.notify_mentions)
+            update_preference("notify_mentions", !preferences.notify_mentions, true)
           }
           title={t("settings.mentions")}
         />
@@ -342,6 +343,7 @@ export function NotificationsSection() {
                 update_preference(
                   "quiet_hours_enabled",
                   !preferences.quiet_hours_enabled,
+                  true,
                 )
               }
               title={t("settings.enable_quiet_hours")}
@@ -359,12 +361,12 @@ export function NotificationsSection() {
                 <div className="flex items-center gap-4">
                   <QuietHoursTimeSelect
                     label={t("settings.from")}
-                    on_change={(v) => update_preference("quiet_hours_start", v)}
+                    on_change={(v) => update_preference("quiet_hours_start", v, true)}
                     value={preferences.quiet_hours_start}
                   />
                   <QuietHoursTimeSelect
                     label={t("settings.to")}
-                    on_change={(v) => update_preference("quiet_hours_end", v)}
+                    on_change={(v) => update_preference("quiet_hours_end", v, true)}
                     value={preferences.quiet_hours_end}
                   />
                 </div>

@@ -85,7 +85,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
               update_preferences({
                 block_remote_images: new_value,
                 load_remote_images: new_value ? "never" : "always",
-              });
+              }, true);
             }}
           />
         </div>
@@ -106,6 +106,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
                 update_preference(
                   "load_remote_images",
                   v as "always" | "ask" | "never",
+                  true,
                 );
               }}
             >
@@ -142,6 +143,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
               update_preference(
                 "block_remote_fonts",
                 !preferences.block_remote_fonts,
+                true,
               )
             }
           />
@@ -162,6 +164,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
               update_preference(
                 "block_remote_css",
                 !preferences.block_remote_css,
+                true,
               )
             }
           />
@@ -195,12 +198,12 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
                 update_preferences({
                   block_external_content: true,
                   block_tracking_pixels: true,
-                });
+                }, true);
               } else {
                 update_preferences({
                   block_external_content: false,
                   block_tracking_pixels: false,
-                });
+                }, true);
               }
             }}
           />
@@ -223,6 +226,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
                   update_preference(
                     "block_tracking_pixels",
                     !preferences.block_tracking_pixels,
+                    true,
                   )
                 }
               />
@@ -260,14 +264,15 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
           security.update_preference(
             "external_link_warning_dismissed",
             !security.preferences.external_link_warning_dismissed,
+            true,
           )
         }
         on_forward_secrecy_toggle={security.handle_forward_secrecy_toggle}
         on_key_history_change={(limit) =>
-          security.update_preference("key_history_limit", limit)
+          security.update_preference("key_history_limit", limit, true)
         }
         on_key_rotation_change={(hours) =>
-          security.update_preference("key_rotation_hours", hours)
+          security.update_preference("key_rotation_hours", hours, true)
         }
         on_login_alerts_toggle={security.handle_login_alerts_toggle}
         on_rotate_keys_now={security.show_manual_rotation_modal}

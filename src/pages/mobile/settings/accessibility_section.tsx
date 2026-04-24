@@ -76,7 +76,7 @@ export function AccessibilitySection({
       <div className="flex-1 overflow-y-auto pb-8">
         <SettingsGroup title={t("settings.font_size")}>
           <OptionList
-            on_change={(v) => update_preference("font_size_scale", v)}
+            on_change={(v) => update_preference("font_size_scale", v, true)}
             options={font_size_options}
             value={preferences.font_size_scale}
           />
@@ -88,7 +88,7 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.high_contrast}
-                onCheckedChange={(v) => update_preference("high_contrast", v)}
+                onCheckedChange={(v) => update_preference("high_contrast", v, true)}
               />
             }
           />
@@ -98,7 +98,7 @@ export function AccessibilitySection({
               <Switch
                 checked={preferences.reduce_transparency}
                 onCheckedChange={(v) =>
-                  update_preference("reduce_transparency", v)
+                  update_preference("reduce_transparency", v, true)
                 }
               />
             }
@@ -108,7 +108,7 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.link_underlines}
-                onCheckedChange={(v) => update_preference("link_underlines", v)}
+                onCheckedChange={(v) => update_preference("link_underlines", v, true)}
               />
             }
           />
@@ -116,7 +116,7 @@ export function AccessibilitySection({
 
         <SettingsGroup title={t("settings.color_vision")}>
           <OptionList
-            on_change={(v) => update_preference("color_vision_mode", v)}
+            on_change={(v) => update_preference("color_vision_mode", v, true)}
             options={color_vision_options}
             value={preferences.color_vision_mode}
           />
@@ -128,7 +128,7 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.dyslexia_font}
-                onCheckedChange={(v) => update_preference("dyslexia_font", v)}
+                onCheckedChange={(v) => update_preference("dyslexia_font", v, true)}
               />
             }
           />
@@ -137,7 +137,7 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.text_spacing}
-                onCheckedChange={(v) => update_preference("text_spacing", v)}
+                onCheckedChange={(v) => update_preference("text_spacing", v, true)}
               />
             }
           />
@@ -149,7 +149,7 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.reduce_motion}
-                onCheckedChange={(v) => update_preference("reduce_motion", v)}
+                onCheckedChange={(v) => update_preference("reduce_motion", v, true)}
               />
             }
           />
@@ -158,7 +158,7 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.compact_mode}
-                onCheckedChange={(v) => update_preference("compact_mode", v)}
+                onCheckedChange={(v) => update_preference("compact_mode", v, true)}
               />
             }
           />

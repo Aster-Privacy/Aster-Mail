@@ -39,6 +39,7 @@ export function EmailPopupViewer({
   on_compose,
   snoozed_until,
   grouped_email_ids,
+  initial_fullscreen,
 }: EmailPopupViewerProps) {
   const reduce_motion = use_should_reduce_motion();
 
@@ -50,6 +51,7 @@ export function EmailPopupViewer({
     on_forward,
     snoozed_until,
     grouped_email_ids,
+    initial_fullscreen,
   });
 
   const memoized_draft = useMemo(

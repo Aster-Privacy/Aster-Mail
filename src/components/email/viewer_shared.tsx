@@ -449,6 +449,7 @@ export function ViewerToolbarActions({
               update_preference(
                 "viewer_toolbar_mode",
                 is_advanced ? "simple" : "advanced",
+                true,
               )
             }
           >

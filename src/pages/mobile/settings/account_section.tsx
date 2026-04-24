@@ -225,7 +225,7 @@ export function AccountSection({
                 onClick={async () => {
                   const prev = preferences.profile_color;
 
-                  update_preference("profile_color", color);
+                  update_preference("profile_color", color, true);
                   if (user) {
                     await update_user({ ...user, profile_color: color });
                   }
@@ -235,7 +235,7 @@ export function AccountSection({
                   const response = await update_profile_color(color);
 
                   if (response.error) {
-                    update_preference("profile_color", prev);
+                    update_preference("profile_color", prev, true);
                     if (user) {
                       await update_user({
                         ...user,

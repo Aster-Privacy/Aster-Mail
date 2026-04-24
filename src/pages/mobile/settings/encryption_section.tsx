@@ -147,7 +147,7 @@ export function EncryptionSection({
 
         return;
       }
-      enc.update_preference("storage_format", format);
+      enc.update_preference("storage_format", format, true);
     },
     [enc],
   );
@@ -579,7 +579,7 @@ export function EncryptionSection({
               <Switch
                 checked={enc.preferences.auto_discover_keys}
                 onCheckedChange={(v) =>
-                  enc.update_preference("auto_discover_keys", v)
+                  enc.update_preference("auto_discover_keys", v, true)
                 }
               />
             }
@@ -590,7 +590,7 @@ export function EncryptionSection({
               <Switch
                 checked={enc.preferences.encrypt_emails}
                 onCheckedChange={(v) =>
-                  enc.update_preference("encrypt_emails", v)
+                  enc.update_preference("encrypt_emails", v, true)
                 }
               />
             }
@@ -601,7 +601,7 @@ export function EncryptionSection({
               <Switch
                 checked={enc.preferences.require_encryption}
                 onCheckedChange={(v) =>
-                  enc.update_preference("require_encryption", v)
+                  enc.update_preference("require_encryption", v, true)
                 }
               />
             }
@@ -612,7 +612,7 @@ export function EncryptionSection({
               <Switch
                 checked={enc.preferences.show_encryption_indicators}
                 onCheckedChange={(v) =>
-                  enc.update_preference("show_encryption_indicators", v)
+                  enc.update_preference("show_encryption_indicators", v, true)
                 }
               />
             }
@@ -626,7 +626,7 @@ export function EncryptionSection({
               <Switch
                 checked={enc.preferences.forward_secrecy_enabled}
                 onCheckedChange={(v) =>
-                  enc.update_preference("forward_secrecy_enabled", v)
+                  enc.update_preference("forward_secrecy_enabled", v, true)
                 }
               />
             }
@@ -686,7 +686,7 @@ export function EncryptionSection({
                     }
                     type="button"
                     onClick={() =>
-                      enc.update_preference("key_rotation_hours", opt.value)
+                      enc.update_preference("key_rotation_hours", opt.value, true)
                     }
                   >
                     {opt.label}
@@ -719,7 +719,7 @@ export function EncryptionSection({
                     }
                     type="button"
                     onClick={() =>
-                      enc.update_preference("key_history_limit", opt.value)
+                      enc.update_preference("key_history_limit", opt.value, true)
                     }
                   >
                     {opt.label}
@@ -948,7 +948,7 @@ export function EncryptionSection({
         message={t("settings.storage_format_ipfs_confirm_description")}
         on_cancel={() => set_show_ipfs_confirm(false)}
         on_confirm={() => {
-          enc.update_preference("storage_format", "ipfs");
+          enc.update_preference("storage_format", "ipfs", true);
           set_show_ipfs_confirm(false);
         }}
         title={t("settings.storage_format_ipfs_confirm_title")}

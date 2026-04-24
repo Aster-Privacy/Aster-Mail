@@ -108,7 +108,7 @@ export function BehaviorSection({
       <div className="flex-1 overflow-y-auto pb-8">
         <SettingsGroup title={t("settings.mark_as_read")}>
           <OptionList
-            on_change={(v) => update_preference("mark_as_read_delay", v)}
+            on_change={(v) => update_preference("mark_as_read_delay", v, true)}
             options={mark_read_options}
             value={preferences.mark_as_read_delay}
           />
@@ -116,7 +116,7 @@ export function BehaviorSection({
 
         <SettingsGroup title={t("settings.default_reply")}>
           <OptionList
-            on_change={(v) => update_preference("default_reply_behavior", v)}
+            on_change={(v) => update_preference("default_reply_behavior", v, true)}
             options={reply_options}
             value={preferences.default_reply_behavior}
           />
@@ -129,11 +129,11 @@ export function BehaviorSection({
               <Switch
                 checked={preferences.block_remote_images}
                 onCheckedChange={(v) => {
-                  update_preference("block_remote_images", v);
+                  update_preference("block_remote_images", v, true);
                   if (v) {
-                    update_preference("load_remote_images", "never");
+                    update_preference("load_remote_images", "never", true);
                   } else {
-                    update_preference("load_remote_images", "always");
+                    update_preference("load_remote_images", "always", true);
                   }
                 }}
               />
@@ -157,7 +157,7 @@ export function BehaviorSection({
                     }
                     type="button"
                     onClick={() =>
-                      update_preference("load_remote_images", opt.value)
+                      update_preference("load_remote_images", opt.value, true)
                     }
                   >
                     {opt.label}
@@ -172,7 +172,7 @@ export function BehaviorSection({
               <Switch
                 checked={preferences.block_remote_fonts}
                 onCheckedChange={(v) =>
-                  update_preference("block_remote_fonts", v)
+                  update_preference("block_remote_fonts", v, true)
                 }
               />
             }
@@ -183,7 +183,7 @@ export function BehaviorSection({
               <Switch
                 checked={preferences.block_remote_css}
                 onCheckedChange={(v) =>
-                  update_preference("block_remote_css", v)
+                  update_preference("block_remote_css", v, true)
                 }
               />
             }
@@ -197,11 +197,11 @@ export function BehaviorSection({
               <Switch
                 checked={preferences.block_external_content}
                 onCheckedChange={(v) => {
-                  update_preference("block_external_content", v);
+                  update_preference("block_external_content", v, true);
                   if (v) {
-                    update_preference("block_tracking_pixels", true);
+                    update_preference("block_tracking_pixels", true, true);
                   } else {
-                    update_preference("block_tracking_pixels", false);
+                    update_preference("block_tracking_pixels", false, true);
                   }
                 }}
               />
@@ -215,7 +215,7 @@ export function BehaviorSection({
                   <Switch
                     checked={preferences.block_tracking_pixels}
                     onCheckedChange={(v) =>
-                      update_preference("block_tracking_pixels", v)
+                      update_preference("block_tracking_pixels", v, true)
                     }
                   />
                 }
@@ -237,7 +237,7 @@ export function BehaviorSection({
               <Switch
                 checked={preferences.auto_save_recent_recipients}
                 onCheckedChange={(v) =>
-                  update_preference("auto_save_recent_recipients", v)
+                  update_preference("auto_save_recent_recipients", v, true)
                 }
               />
             }
@@ -251,7 +251,7 @@ export function BehaviorSection({
               <Switch
                 checked={preferences.undo_send_enabled}
                 onCheckedChange={(v) =>
-                  update_preference("undo_send_enabled", v)
+                  update_preference("undo_send_enabled", v, true)
                 }
               />
             }
@@ -277,7 +277,7 @@ export function BehaviorSection({
                     }
                     type="button"
                     onClick={() => {
-                      update_preference("undo_send_seconds", sec);
+                      update_preference("undo_send_seconds", sec, true);
                       set_undo_custom_input(null);
                     }}
                   >
@@ -315,7 +315,7 @@ export function BehaviorSection({
                         parsed >= 1 &&
                         parsed <= 30
                       ) {
-                        update_preference("undo_send_seconds", parsed);
+                        update_preference("undo_send_seconds", parsed, true);
                       }
                       set_undo_custom_input(null);
                     }}
@@ -337,7 +337,7 @@ export function BehaviorSection({
 
         <SettingsGroup title={t("settings.signature")}>
           <OptionList
-            on_change={(v) => update_preference("signature_mode", v)}
+            on_change={(v) => update_preference("signature_mode", v, true)}
             options={signature_mode_options}
             value={preferences.signature_mode}
           />
@@ -349,7 +349,7 @@ export function BehaviorSection({
                 disabled={!is_paid_plan}
                 onCheckedChange={(v) => {
                   if (!is_paid_plan) return;
-                  update_preference("show_aster_branding", v);
+                  update_preference("show_aster_branding", v, true);
                 }}
               />
             }
@@ -363,7 +363,7 @@ export function BehaviorSection({
               <Switch
                 checked={preferences.confirm_before_delete}
                 onCheckedChange={(v) =>
-                  update_preference("confirm_before_delete", v)
+                  update_preference("confirm_before_delete", v, true)
                 }
               />
             }
@@ -374,7 +374,7 @@ export function BehaviorSection({
               <Switch
                 checked={preferences.confirm_before_archive}
                 onCheckedChange={(v) =>
-                  update_preference("confirm_before_archive", v)
+                  update_preference("confirm_before_archive", v, true)
                 }
               />
             }
@@ -385,7 +385,7 @@ export function BehaviorSection({
               <Switch
                 checked={preferences.confirm_before_spam}
                 onCheckedChange={(v) =>
-                  update_preference("confirm_before_spam", v)
+                  update_preference("confirm_before_spam", v, true)
                 }
               />
             }
@@ -398,7 +398,7 @@ export function BehaviorSection({
             trailing={
               <Switch
                 checked={preferences.haptic_enabled}
-                onCheckedChange={(v) => update_preference("haptic_enabled", v)}
+                onCheckedChange={(v) => update_preference("haptic_enabled", v, true)}
               />
             }
           />
@@ -407,7 +407,7 @@ export function BehaviorSection({
         <SettingsGroup title={t("settings.protected_folders")}>
           <OptionList
             on_change={(v) =>
-              update_preference("protected_folder_lock_mode", v)
+              update_preference("protected_folder_lock_mode", v, true)
             }
             options={lock_mode_options}
             value={preferences.protected_folder_lock_mode}
@@ -431,7 +431,7 @@ export function BehaviorSection({
                     key={id}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)]"
                     type="button"
-                    onClick={() => update_preference("swipe_left_action", id)}
+                    onClick={() => update_preference("swipe_left_action", id, true)}
                   >
                     {def && (
                       <span
@@ -463,7 +463,7 @@ export function BehaviorSection({
                     key={id}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)]"
                     type="button"
-                    onClick={() => update_preference("swipe_right_action", id)}
+                    onClick={() => update_preference("swipe_right_action", id, true)}
                   >
                     {def && (
                       <span
@@ -526,7 +526,7 @@ export function BehaviorSection({
                         ? [...current, action.id]
                         : current.filter((a: string) => a !== action.id);
 
-                      update_preference("mobile_toolbar_actions", next);
+                      update_preference("mobile_toolbar_actions", next, true);
                     }}
                   />
                 </div>

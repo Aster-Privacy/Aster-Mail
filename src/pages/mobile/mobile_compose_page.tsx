@@ -169,7 +169,7 @@ function MobileComposePage({
   }, [preferences.skip_draft_delete_confirmation, compose]);
 
   const handle_dont_ask_delete = useCallback(async () => {
-    update_preference("skip_draft_delete_confirmation", true);
+    update_preference("skip_draft_delete_confirmation", true, true);
     await save_now();
   }, [update_preference, save_now]);
 

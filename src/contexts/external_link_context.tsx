@@ -104,7 +104,7 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handle_dismiss_permanently = useCallback(() => {
-    update_preference("external_link_warning_dismissed", true);
+    update_preference("external_link_warning_dismissed", true, true);
   }, [update_preference]);
 
   useEffect(() => {

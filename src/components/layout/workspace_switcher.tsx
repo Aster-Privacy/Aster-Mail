@@ -103,7 +103,7 @@ export function WorkspaceSwitcher({
     set_is_adding_account,
   } = use_auth();
 
-  const { preferences, update_preference, save_now } = use_preferences();
+  const { preferences, update_preference } = use_preferences();
   const { sender_options } = use_sender_aliases();
 
   const [show_logout_confirm, set_show_logout_confirm] = useState(false);
@@ -168,9 +168,8 @@ export function WorkspaceSwitcher({
   }, [do_logout]);
 
   const handle_logout_dont_ask_again = useCallback(async () => {
-    update_preference("skip_logout_confirmation", true);
-    await save_now();
-  }, [update_preference, save_now]);
+    update_preference("skip_logout_confirmation", true, true);
+  }, [update_preference]);
 
   const handle_switch_account = useCallback(
     async (account_id: string) => {

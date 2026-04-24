@@ -306,8 +306,7 @@ export default function EmailDetailPage() {
         on_cancel={() => detail.set_is_archive_confirm_open(false)}
         on_confirm={detail.handle_archive}
         on_dont_ask_again={async () => {
-          detail.update_preference("confirm_before_archive", false);
-          await detail.save_now();
+          detail.update_preference("confirm_before_archive", false, true);
         }}
         title={detail.t("mail.archive_email_question")}
         variant="info"
@@ -320,8 +319,7 @@ export default function EmailDetailPage() {
         on_cancel={() => detail.set_is_trash_confirm_open(false)}
         on_confirm={detail.handle_trash}
         on_dont_ask_again={async () => {
-          detail.update_preference("confirm_before_delete", false);
-          await detail.save_now();
+          detail.update_preference("confirm_before_delete", false, true);
         }}
         title={detail.t("mail.move_to_trash_question")}
         variant="danger"

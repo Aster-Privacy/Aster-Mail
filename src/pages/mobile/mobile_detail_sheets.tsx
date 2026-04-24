@@ -521,6 +521,7 @@ export function MobileToolbarCustomizerSheet({
   update_preference: <K extends keyof UserPreferences>(
     key: K,
     value: UserPreferences[K],
+    immediate?: boolean,
   ) => void;
   t: (key: never) => string;
 }) {
@@ -567,7 +568,7 @@ export function MobileToolbarCustomizerSheet({
                           ? current.filter((a) => a !== id)
                           : [...current, id];
 
-                        update_preference("mobile_toolbar_actions", next);
+                        update_preference("mobile_toolbar_actions", next, true);
                       }}
                     >
                       <Icon

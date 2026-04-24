@@ -26,8 +26,8 @@ import {
   FULLSCREEN_MARGIN,
 } from "@/components/email/hooks/popup_viewer_types";
 
-export function use_popup_drag_resize() {
-  const [popup_size, set_popup_size] = useState<PopupSize>("default");
+export function use_popup_drag_resize(initial_fullscreen?: boolean) {
+  const [popup_size, set_popup_size] = useState<PopupSize>(initial_fullscreen ? "fullscreen" : "default");
   const [position, set_position] = useState({ x: 0, y: 0 });
   const [is_dragging, set_is_dragging] = useState(false);
   const [is_exiting_fullscreen, set_is_exiting_fullscreen] = useState(false);

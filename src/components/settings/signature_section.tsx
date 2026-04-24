@@ -205,12 +205,12 @@ export function SignatureSection() {
 
   const handle_mode_change = (mode: SignatureMode) => {
     set_local_mode(mode);
-    update_preference("signature_mode", mode);
+    update_preference("signature_mode", mode, true);
   };
 
   const handle_placement_change = (placement: "below" | "above") => {
     set_local_placement(placement);
-    update_preference("signature_placement", placement);
+    update_preference("signature_placement", placement, true);
   };
 
   const open_create_editor = () => {
@@ -451,6 +451,7 @@ export function SignatureSection() {
                 update_preference(
                   "show_badges_in_signature",
                   !preferences.show_badges_in_signature,
+                  true,
                 )
               }
             >
@@ -846,6 +847,7 @@ export function SignatureSection() {
               update_preference(
                 "show_aster_branding",
                 !preferences.show_aster_branding,
+                true,
               );
             }}
           >

@@ -24,6 +24,7 @@ import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence } from "framer-motion";
 
 import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
+import { use_preferences } from "@/contexts/preferences_context";
 
 export type UndoSendPreviewData = LocalEmailData;
 
@@ -37,6 +38,8 @@ export function dispatch_undo_send_preview(data: UndoSendPreviewData): void {
 
 export function UndoSendPreviewModal() {
   const [data, set_data] = useState<UndoSendPreviewData | null>(null);
+  const { preferences } = use_preferences();
+  const view_mode = preferences.email_view_mode;
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -59,6 +62,7 @@ export function UndoSendPreviewModal() {
       {data && (
         <EmailPopupViewer
           email_id={null}
+          initial_fullscreen={view_mode !== "popup"}
           local_email={data}
           on_close={handle_close}
         />

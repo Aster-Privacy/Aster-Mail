@@ -73,6 +73,7 @@ interface UseInboxToolbarActionsOptions {
   update_preference: <K extends keyof UserPreferences>(
     key: K,
     value: UserPreferences[K],
+    immediate?: boolean,
   ) => void;
   save_now: () => Promise<void>;
   is_drafts_view: boolean;
@@ -190,8 +191,7 @@ export function use_inbox_toolbar_actions({
   const confirm_single_spam = useCallback(async (): Promise<void> => {
     if (!pending_spam_email) return;
     if (dont_ask_single_spam) {
-      update_preference("confirm_before_spam", false);
-      await save_now();
+      update_preference("confirm_before_spam", false, true);
     }
     const email = pending_spam_email;
     const deltas = compute_removal_deltas(email);
@@ -488,8 +488,7 @@ export function use_inbox_toolbar_actions({
 
   const confirm_spam = useCallback(async (): Promise<void> => {
     if (dont_ask_spam) {
-      update_preference("confirm_before_spam", false);
-      await save_now();
+      update_preference("confirm_before_spam", false, true);
     }
     await perform_toolbar_spam();
     set_confirmations((prev) => ({ ...prev, show_spam: false }));

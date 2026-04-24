@@ -38,6 +38,7 @@ interface StorageFormatPickerProps {
   update_preference: <K extends keyof UserPreferences>(
     key: K,
     value: UserPreferences[K],
+    immediate?: boolean,
   ) => void;
 }
 
@@ -57,11 +58,11 @@ export function StorageFormatPicker({
       return;
     }
 
-    update_preference("storage_format", format);
+    update_preference("storage_format", format, true);
   };
 
   const handle_confirm_ipfs = () => {
-    update_preference("storage_format", "ipfs");
+    update_preference("storage_format", "ipfs", true);
     set_show_ipfs_confirm(false);
   };
 

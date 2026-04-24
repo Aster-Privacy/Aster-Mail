@@ -54,7 +54,7 @@ export function NotificationsSection({
               <Switch
                 checked={preferences.desktop_notifications}
                 onCheckedChange={(v) =>
-                  update_preference("desktop_notifications", v)
+                  update_preference("desktop_notifications", v, true)
                 }
               />
             }
@@ -64,7 +64,7 @@ export function NotificationsSection({
             trailing={
               <Switch
                 checked={preferences.sound}
-                onCheckedChange={(v) => update_preference("sound", v)}
+                onCheckedChange={(v) => update_preference("sound", v, true)}
               />
             }
           />
@@ -74,7 +74,7 @@ export function NotificationsSection({
               <Switch
                 checked={preferences.push_notifications}
                 onCheckedChange={(v) =>
-                  update_preference("push_notifications", v)
+                  update_preference("push_notifications", v, true)
                 }
               />
             }
@@ -88,7 +88,7 @@ export function NotificationsSection({
               <Switch
                 checked={preferences.notify_new_email}
                 onCheckedChange={(v) =>
-                  update_preference("notify_new_email", v)
+                  update_preference("notify_new_email", v, true)
                 }
               />
             }
@@ -98,7 +98,7 @@ export function NotificationsSection({
             trailing={
               <Switch
                 checked={preferences.notify_replies}
-                onCheckedChange={(v) => update_preference("notify_replies", v)}
+                onCheckedChange={(v) => update_preference("notify_replies", v, true)}
               />
             }
           />
@@ -107,7 +107,7 @@ export function NotificationsSection({
             trailing={
               <Switch
                 checked={preferences.notify_mentions}
-                onCheckedChange={(v) => update_preference("notify_mentions", v)}
+                onCheckedChange={(v) => update_preference("notify_mentions", v, true)}
               />
             }
           />
@@ -120,7 +120,7 @@ export function NotificationsSection({
               <Switch
                 checked={preferences.quiet_hours_enabled}
                 onCheckedChange={(v) =>
-                  update_preference("quiet_hours_enabled", v)
+                  update_preference("quiet_hours_enabled", v, true)
                 }
               />
             }
@@ -136,7 +136,7 @@ export function NotificationsSection({
                   type="time"
                   value={quiet_start}
                   onChange={(e) =>
-                    update_preference("quiet_hours_start", e.target.value)
+                    update_preference("quiet_hours_start", e.target.value, true)
                   }
                 />
               </div>
@@ -149,7 +149,7 @@ export function NotificationsSection({
                   type="time"
                   value={quiet_end}
                   onChange={(e) =>
-                    update_preference("quiet_hours_end", e.target.value)
+                    update_preference("quiet_hours_end", e.target.value, true)
                   }
                 />
               </div>

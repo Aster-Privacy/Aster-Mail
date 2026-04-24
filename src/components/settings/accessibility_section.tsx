@@ -133,7 +133,7 @@ export function AccessibilitySection() {
                     : "transparent",
                 }}
                 type="button"
-                onClick={() => update_preference("font_size_scale", option.id)}
+                onClick={() => update_preference("font_size_scale", option.id, true)}
               >
                 <span
                   className="text-xs font-medium"
@@ -168,7 +168,7 @@ export function AccessibilitySection() {
         >
           <Switch
             checked={preferences.high_contrast}
-            onCheckedChange={(v) => update_preference("high_contrast", v)}
+            onCheckedChange={(v) => update_preference("high_contrast", v, true)}
           />
         </SettingRow>
         <SettingRow
@@ -177,7 +177,7 @@ export function AccessibilitySection() {
         >
           <Switch
             checked={preferences.reduce_transparency}
-            onCheckedChange={(v) => update_preference("reduce_transparency", v)}
+            onCheckedChange={(v) => update_preference("reduce_transparency", v, true)}
           />
         </SettingRow>
         <SettingRow
@@ -186,7 +186,7 @@ export function AccessibilitySection() {
         >
           <Switch
             checked={preferences.link_underlines}
-            onCheckedChange={(v) => update_preference("link_underlines", v)}
+            onCheckedChange={(v) => update_preference("link_underlines", v, true)}
           />
         </SettingRow>
       </div>
@@ -220,7 +220,7 @@ export function AccessibilitySection() {
                 }}
                 type="button"
                 onClick={() =>
-                  update_preference("color_vision_mode", option.id)
+                  update_preference("color_vision_mode", option.id, true)
                 }
               >
                 <div className="flex gap-0.5">
@@ -265,7 +265,7 @@ export function AccessibilitySection() {
         >
           <Switch
             checked={preferences.dyslexia_font}
-            onCheckedChange={(v) => update_preference("dyslexia_font", v)}
+            onCheckedChange={(v) => update_preference("dyslexia_font", v, true)}
           />
         </SettingRow>
         <SettingRow
@@ -274,7 +274,7 @@ export function AccessibilitySection() {
         >
           <Switch
             checked={preferences.text_spacing}
-            onCheckedChange={(v) => update_preference("text_spacing", v)}
+            onCheckedChange={(v) => update_preference("text_spacing", v, true)}
           />
         </SettingRow>
       </div>
@@ -296,7 +296,7 @@ export function AccessibilitySection() {
         >
           <Switch
             checked={preferences.reduce_motion}
-            onCheckedChange={(v) => update_preference("reduce_motion", v)}
+            onCheckedChange={(v) => update_preference("reduce_motion", v, true)}
           />
         </SettingRow>
         <SettingRow
@@ -305,7 +305,7 @@ export function AccessibilitySection() {
         >
           <Switch
             checked={preferences.compact_mode}
-            onCheckedChange={(v) => update_preference("compact_mode", v)}
+            onCheckedChange={(v) => update_preference("compact_mode", v, true)}
           />
         </SettingRow>
       </div>
@@ -344,7 +344,7 @@ export function AccessibilitySection() {
             <Switch
               checked={preferences.keyboard_shortcuts_enabled}
               onCheckedChange={(v) =>
-                update_preference("keyboard_shortcuts_enabled", v)
+                update_preference("keyboard_shortcuts_enabled", v, true)
               }
             />
           </div>

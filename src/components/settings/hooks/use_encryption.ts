@@ -456,13 +456,13 @@ export function use_encryption() {
   const handle_wkd_toggle = async () => {
     const new_value = !preferences.publish_to_wkd;
 
-    update_preference("publish_to_wkd", new_value);
+    update_preference("publish_to_wkd", new_value, true);
 
     if (new_value) {
       const result = await publish_key_to_wkd();
 
       if (result.error) {
-        update_preference("publish_to_wkd", false);
+        update_preference("publish_to_wkd", false, true);
         show_toast(t("settings.failed_publish_wkd"), "error");
       } else {
         show_toast(t("settings.key_published_wkd"), "success");
@@ -471,7 +471,7 @@ export function use_encryption() {
       const result = await unpublish_key_from_wkd();
 
       if (result.error) {
-        update_preference("publish_to_wkd", true);
+        update_preference("publish_to_wkd", true, true);
         show_toast(t("settings.failed_remove_wkd"), "error");
       } else {
         show_toast(t("settings.key_removed_wkd"), "success");
@@ -482,13 +482,13 @@ export function use_encryption() {
   const handle_keyserver_toggle = async () => {
     const new_value = !preferences.publish_to_keyservers;
 
-    update_preference("publish_to_keyservers", new_value);
+    update_preference("publish_to_keyservers", new_value, true);
 
     if (new_value) {
       const result = await publish_key_to_keyserver();
 
       if (result.error) {
-        update_preference("publish_to_keyservers", false);
+        update_preference("publish_to_keyservers", false, true);
         show_toast(t("settings.failed_publish_keyserver"), "error");
       } else {
         show_toast(t("settings.key_published_keyserver"), "success");

@@ -403,6 +403,7 @@ export function SecuritySection({
                   update_preference(
                     "external_link_warning_dismissed",
                     !preferences.external_link_warning_dismissed,
+                    true,
                   )
                 }
               />
@@ -417,7 +418,7 @@ export function SecuritySection({
               <Switch
                 checked={preferences.biometric_app_lock_enabled}
                 onCheckedChange={(v) =>
-                  update_preference("biometric_app_lock_enabled", v)
+                  update_preference("biometric_app_lock_enabled", v, true)
                 }
               />
             }
@@ -428,7 +429,7 @@ export function SecuritySection({
               <Switch
                 checked={preferences.biometric_send_enabled}
                 onCheckedChange={(v) =>
-                  update_preference("biometric_send_enabled", v)
+                  update_preference("biometric_send_enabled", v, true)
                 }
               />
             }
@@ -442,7 +443,7 @@ export function SecuritySection({
               <Switch
                 checked={preferences.forward_secrecy_enabled}
                 onCheckedChange={(v) =>
-                  update_preference("forward_secrecy_enabled", v)
+                  update_preference("forward_secrecy_enabled", v, true)
                 }
               />
             }
@@ -456,7 +457,7 @@ export function SecuritySection({
               <Switch
                 checked={preferences.session_timeout_enabled}
                 onCheckedChange={(v) =>
-                  update_preference("session_timeout_enabled", v)
+                  update_preference("session_timeout_enabled", v, true)
                 }
               />
             }
@@ -479,7 +480,7 @@ export function SecuritySection({
                     }
                     type="button"
                     onClick={() =>
-                      update_preference("session_timeout_minutes", opt.value)
+                      update_preference("session_timeout_minutes", opt.value, true)
                     }
                   >
                     {opt.label}
@@ -517,7 +518,7 @@ export function SecuritySection({
                     }
                     type="button"
                     onClick={() =>
-                      update_preference("key_rotation_hours", opt.value)
+                      update_preference("key_rotation_hours", opt.value, true)
                     }
                   >
                     {opt.label}
@@ -545,7 +546,7 @@ export function SecuritySection({
                     }
                     type="button"
                     onClick={() =>
-                      update_preference("key_history_limit", opt.value)
+                      update_preference("key_history_limit", opt.value, true)
                     }
                   >
                     {opt.label}
@@ -567,7 +568,7 @@ export function SecuritySection({
             trailing={
               <Switch
                 checked={preferences.publish_to_wkd}
-                onCheckedChange={(v) => update_preference("publish_to_wkd", v)}
+                onCheckedChange={(v) => update_preference("publish_to_wkd", v, true)}
               />
             }
           />
@@ -577,7 +578,7 @@ export function SecuritySection({
               <Switch
                 checked={preferences.publish_to_keyservers}
                 onCheckedChange={(v) =>
-                  update_preference("publish_to_keyservers", v)
+                  update_preference("publish_to_keyservers", v, true)
                 }
               />
             }

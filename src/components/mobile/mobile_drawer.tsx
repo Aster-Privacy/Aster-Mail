@@ -83,7 +83,7 @@ export const MobileDrawer = memo(function MobileDrawer({
 
     return parts && parts.length === 2 ? parts[1] : "astermail.org";
   }, [user?.email]);
-  const { preferences, update_preference, save_now } = use_preferences();
+  const { preferences, update_preference } = use_preferences();
   const [show_logout_confirm, set_show_logout_confirm] = useState(false);
   const {
     state: folders_state,
@@ -479,9 +479,8 @@ export const MobileDrawer = memo(function MobileDrawer({
   }, [preferences.skip_logout_confirmation, do_logout]);
 
   const handle_logout_dont_ask_again = useCallback(async () => {
-    update_preference("skip_logout_confirmation", true);
-    await save_now();
-  }, [update_preference, save_now]);
+    update_preference("skip_logout_confirmation", true, true);
+  }, [update_preference]);
 
   const folders = folders_state.folders ?? [];
   const tags = tags_state.tags ?? [];

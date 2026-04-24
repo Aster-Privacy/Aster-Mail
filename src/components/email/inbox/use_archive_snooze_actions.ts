@@ -54,6 +54,7 @@ interface UseArchiveSnoozeActionsOptions {
   update_preference: <K extends keyof UserPreferences>(
     key: K,
     value: UserPreferences[K],
+    immediate?: boolean,
   ) => void;
   save_now: () => Promise<void>;
   set_confirmations: React.Dispatch<
@@ -117,8 +118,7 @@ export function use_archive_snooze_actions({
 
   const confirm_archive = useCallback(async (): Promise<void> => {
     if (dont_ask_archive) {
-      update_preference("confirm_before_archive", false);
-      await save_now();
+      update_preference("confirm_before_archive", false, true);
     }
     const ids = get_selected_ids(email_state.emails);
 
@@ -144,8 +144,7 @@ export function use_archive_snooze_actions({
   const confirm_single_archive = useCallback(async (): Promise<void> => {
     if (!pending_archive_email) return;
     if (dont_ask_single_archive) {
-      update_preference("confirm_before_archive", false);
-      await save_now();
+      update_preference("confirm_before_archive", false, true);
     }
     const email = pending_archive_email;
     const deltas = compute_archive_deltas(email);

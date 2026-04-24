@@ -503,17 +503,18 @@ export function use_security() {
     update_preference(
       "session_timeout_enabled",
       !preferences.session_timeout_enabled,
+      true,
     );
   };
 
   const handle_timeout_change = (minutes: number) => {
-    update_preference("session_timeout_minutes", minutes);
+    update_preference("session_timeout_minutes", minutes, true);
   };
 
   const handle_forward_secrecy_toggle = async () => {
     const enabling = !preferences.forward_secrecy_enabled;
 
-    update_preference("forward_secrecy_enabled", enabling);
+    update_preference("forward_secrecy_enabled", enabling, true);
 
     if (enabling) {
       try {

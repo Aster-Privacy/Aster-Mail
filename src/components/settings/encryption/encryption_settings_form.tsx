@@ -61,6 +61,7 @@ interface EncryptionSettingsFormProps {
   update_preference: <K extends keyof UserPreferences>(
     key: K,
     value: UserPreferences[K],
+    immediate?: boolean,
   ) => void;
   handle_wkd_toggle: () => Promise<void>;
   handle_keyserver_toggle: () => Promise<void>;
@@ -94,6 +95,7 @@ export function EncryptionSettingsForm({
           update_preference(
             "auto_discover_keys",
             !preferences.auto_discover_keys,
+            true,
           )
         }
         title={t("settings.auto_discover_keys_title")}
@@ -102,7 +104,7 @@ export function EncryptionSettingsForm({
         description={t("settings.encrypt_by_default_description")}
         enabled={preferences.encrypt_emails}
         on_toggle={() =>
-          update_preference("encrypt_emails", !preferences.encrypt_emails)
+          update_preference("encrypt_emails", !preferences.encrypt_emails, true)
         }
         title={t("settings.encrypt_by_default_title")}
       />
@@ -113,6 +115,7 @@ export function EncryptionSettingsForm({
           update_preference(
             "require_encryption",
             !preferences.require_encryption,
+            true,
           )
         }
         title={t("settings.require_encryption_title")}
@@ -124,6 +127,7 @@ export function EncryptionSettingsForm({
           update_preference(
             "show_encryption_indicators",
             !preferences.show_encryption_indicators,
+            true,
           )
         }
         title={t("settings.show_encryption_indicators_title")}

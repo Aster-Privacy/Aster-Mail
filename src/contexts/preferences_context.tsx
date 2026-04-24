@@ -77,7 +77,7 @@ interface PreferencesContextType {
     value: UserPreferences[K],
     immediate?: boolean,
   ) => void;
-  update_preferences: (updates: Partial<UserPreferences>) => void;
+  update_preferences: (updates: Partial<UserPreferences>, immediate?: boolean) => void;
   reset_to_defaults: () => void;
   reset_section: (keys: (keyof UserPreferences)[]) => void;
   save_now: () => Promise<void>;
@@ -308,16 +308,34 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   );
 
   const update_preferences = useCallback(
-    (updates: Partial<UserPreferences>) => {
+    (updates: Partial<UserPreferences>, immediate?: boolean) => {
       set_preferences((prev) => {
         const updated = { ...prev, ...updates };
 
-        trigger_save(updated);
+        if (immediate) {
+          latest_prefs_ref.current = updated;
+
+          if (debounce_timer.current) {
+            clearTimeout(debounce_timer.current);
+            debounce_timer.current = null;
+          }
+
+          do_save(updated).then((ok) => {
+            if (ok) {
+              set_save_status("saved");
+              window.setTimeout(() => set_save_status("idle"), 2000);
+            } else {
+              set_save_status("error");
+            }
+          });
+        } else {
+          trigger_save(updated);
+        }
 
         return updated;
       });
     },
-    [trigger_save],
+    [trigger_save, do_save],
   );
 
   const reset_to_defaults = useCallback(() => {

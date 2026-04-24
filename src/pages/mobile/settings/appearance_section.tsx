@@ -107,7 +107,7 @@ export function AppearanceSection({
                 type="button"
                 onClick={() => {
                   set_theme_preference(opt.value);
-                  update_preference("theme", opt.value);
+                  update_preference("theme", opt.value, true);
                 }}
               >
                 <span className="flex h-5 w-5 items-center justify-center text-[var(--text-muted)]">
@@ -127,7 +127,7 @@ export function AppearanceSection({
         <SettingsGroup title={t("settings.language")}>
           <OptionList
             on_change={(v) => {
-              update_preference("language", v);
+              update_preference("language", v, true);
               const entry = language_entries.find((l) => l.display === v);
 
               if (entry) set_language(entry.code as never);
@@ -139,7 +139,7 @@ export function AppearanceSection({
 
         <SettingsGroup title={t("settings.time_format")}>
           <OptionList
-            on_change={(v) => update_preference("time_format", v)}
+            on_change={(v) => update_preference("time_format", v, true)}
             options={time_format_options}
             value={preferences.time_format}
           />
@@ -147,7 +147,7 @@ export function AppearanceSection({
 
         <SettingsGroup title={t("settings.date_format")}>
           <OptionList
-            on_change={(v) => update_preference("date_format", v)}
+            on_change={(v) => update_preference("date_format", v, true)}
             options={date_format_options}
             value={preferences.date_format}
           />

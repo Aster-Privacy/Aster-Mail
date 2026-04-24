@@ -62,6 +62,7 @@ interface UseDeleteActionsOptions {
   update_preference: <K extends keyof UserPreferences>(
     key: K,
     value: UserPreferences[K],
+    immediate?: boolean,
   ) => void;
   save_now: () => Promise<void>;
   is_drafts_view: boolean;
@@ -204,8 +205,7 @@ export function use_delete_actions({
 
   const confirm_delete = useCallback(async (): Promise<void> => {
     if (dont_ask_delete) {
-      update_preference("confirm_before_delete", false);
-      await save_now();
+      update_preference("confirm_before_delete", false, true);
     }
     const ids = get_selected_ids(email_state.emails);
     const is_trash_view = current_view === "trash";
@@ -309,8 +309,7 @@ export function use_delete_actions({
   const confirm_single_delete = useCallback(async (): Promise<void> => {
     if (!pending_delete_email) return;
     if (dont_ask_single_delete) {
-      update_preference("confirm_before_delete", false);
-      await save_now();
+      update_preference("confirm_before_delete", false, true);
     }
     const email = pending_delete_email;
     const is_trash_view = current_view === "trash";
