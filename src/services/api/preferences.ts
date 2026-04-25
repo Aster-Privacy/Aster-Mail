@@ -660,3 +660,44 @@ export async function save_dev_mode(
     return { data: { success: false } };
   }
 }
+
+export interface SpamSettings {
+  spam_retention_days: number;
+  spam_sensitivity: string;
+  spam_filter_enabled: boolean;
+}
+
+export async function get_spam_settings(): Promise<{
+  data: SpamSettings | null;
+}> {
+  try {
+    const response = await api_client.get<SpamSettings>(
+      "/settings/v1/preferences/spam",
+    );
+
+    if (response.error || !response.data) {
+      return { data: null };
+    }
+
+    return { data: response.data };
+  } catch {
+    return { data: null };
+  }
+}
+
+export async function save_spam_settings(
+  settings: SpamSettings,
+): Promise<{ data: { success: boolean } }> {
+  try {
+    const response = await api_client.put<{ success: boolean }>(
+      "/settings/v1/preferences/spam",
+      settings,
+    );
+
+    return {
+      data: { success: !response.error && response.data?.success === true },
+    };
+  } catch {
+    return { data: { success: false } };
+  }
+}
