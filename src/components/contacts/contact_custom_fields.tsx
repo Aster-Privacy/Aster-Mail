@@ -303,7 +303,7 @@ export function ContactCustomFields({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-foreground-600">
-          Custom Fields
+          {t("common.custom_fields")}
         </label>
       </div>
 
@@ -403,7 +403,7 @@ export function ContactCustomFields({
                       <span className="text-sm flex-1">{current_value}</span>
                     ) : (
                       <span className="text-sm text-foreground-400 flex-1 italic">
-                        Click to add value...
+                        {t("common.click_to_add_value")}
                       </span>
                     )}
                     <PencilIcon className="w-4 h-4 text-foreground-400 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -416,7 +416,7 @@ export function ContactCustomFields({
 
         {definitions.length === 0 && (
           <p className="text-sm text-foreground-500 text-center py-4">
-            No custom fields defined yet
+            {t("common.no_custom_fields_yet")}
           </p>
         )}
       </div>
@@ -460,7 +460,7 @@ export function ContactCustomFields({
             ) : (
               <PlusIcon className="w-4 h-4" />
             )}
-            Add
+            {t("common.add")}
           </Button>
         </div>
       </div>

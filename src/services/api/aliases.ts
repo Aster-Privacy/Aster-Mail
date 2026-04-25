@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { en } from "@/lib/i18n/translations/en";
 
 import {
   get_or_create_derived_encryption_crypto_key,
@@ -445,15 +446,15 @@ export function validate_local_part(local_part: string): {
   error?: string;
 } {
   if (!local_part || local_part.length === 0) {
-    return { valid: false, error: "Alias cannot be empty" };
+    return { valid: false, error: en.errors.alias_empty };
   }
 
   if (local_part.length < 3) {
-    return { valid: false, error: "Alias must be at least 3 characters" };
+    return { valid: false, error: en.errors.alias_too_short };
   }
 
   if (local_part.length > 64) {
-    return { valid: false, error: "Alias must be 64 characters or less" };
+    return { valid: false, error: en.errors.alias_too_long };
   }
 
   const valid_pattern = /^[a-z0-9][a-z0-9._-]*[a-z0-9]$|^[a-z0-9]$/;
@@ -461,17 +462,16 @@ export function validate_local_part(local_part: string): {
   if (!valid_pattern.test(local_part.toLowerCase())) {
     return {
       valid: false,
-      error:
-        "Alias can only contain letters, numbers, dots, underscores, and hyphens",
+      error: en.errors.alias_invalid_chars,
     };
   }
 
   if (local_part.includes("..")) {
-    return { valid: false, error: "Alias cannot contain consecutive dots" };
+    return { valid: false, error: en.errors.alias_consecutive_dots };
   }
 
   if (RESERVED_ALIAS_NAMES.has(local_part.toLowerCase())) {
-    return { valid: false, error: "This alias is not available" };
+    return { valid: false, error: en.errors.alias_not_available };
   }
 
   return { valid: true };

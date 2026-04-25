@@ -176,7 +176,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
       }
       if (status.contacts !== "granted") {
         show_toast(
-          t("common.permission_denied" as never) || "Permission denied",
+          t("common.permission_denied"),
           "error",
         );
 
@@ -282,7 +282,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         show_toast(t("common.no_new_contacts_imported"), "info");
       } else {
         show_toast(
-          `${imported} ${t("common.contacts" as never).toLowerCase()} imported`,
+          t("common.n_contacts_imported", { count: imported }),
           "success",
         );
       }
@@ -627,10 +627,10 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
   );
 
   const create_tabs: { id: CreateTab; label: string }[] = [
-    { id: "basic", label: "Basic" },
-    { id: "details", label: "Details" },
-    { id: "address", label: "Address" },
-    { id: "social", label: "Social" },
+    { id: "basic", label: t("common.basic") },
+    { id: "details", label: t("common.details") },
+    { id: "address", label: t("common.address") },
+    { id: "social", label: t("common.social") },
   ];
 
   return {

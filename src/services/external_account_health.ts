@@ -22,6 +22,7 @@ import {
   check_account_health,
   type ExternalAccountHealthStatus,
 } from "@/services/api/external_accounts";
+import { en } from "@/lib/i18n/translations/en";
 
 export type HealthErrorType =
   | "auth_failure"
@@ -121,7 +122,7 @@ const SERVER_ERROR_PATTERNS = [
 
 function sanitize_error_message(message: string): string {
   if (!message) {
-    return "Unknown error";
+    return en.errors.unknown_error;
   }
 
   const truncated =
@@ -348,7 +349,7 @@ class ExternalAccountHealthMonitor {
       }
 
       const error_message = sanitize_error_message(
-        response.error || "Health check failed",
+        response.error || en.errors.health_check_failed,
       );
       const error_type = this.classify_error(error_message);
       const new_consecutive_failures = base_failures + 1;
@@ -408,7 +409,7 @@ class ExternalAccountHealthMonitor {
         : current_state.consecutive_failures;
 
       const error_message = sanitize_error_message(
-        err instanceof Error ? err.message : "Unexpected health check error",
+        err instanceof Error ? err.message : en.errors.unexpected_health_check_error,
       );
       const error_type = this.classify_error(error_message);
       const new_consecutive_failures = base_failures_catch + 1;

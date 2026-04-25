@@ -183,7 +183,7 @@ function ImportJobCard({ job }: { job: ImportJob }) {
   const { t } = use_i18n();
   const source_label = job.source.charAt(0).toUpperCase() + job.source.slice(1);
   const skipped_text =
-    job.skipped_emails > 0 ? `, ${job.skipped_emails} skipped` : "";
+    job.skipped_emails > 0 ? `, ${t("settings.n_skipped", { count: job.skipped_emails })}` : "";
 
   return (
     <div className="flex items-center justify-between p-3 rounded-lg bg-surf-secondary">
@@ -538,7 +538,7 @@ export function ImportSection() {
         }
 
         const normalize_name = (name: string) => {
-          if (name.toUpperCase() === "INBOX") return "Inbox";
+          if (name.toUpperCase() === "INBOX") return t("mail.inbox");
 
           return name;
         };

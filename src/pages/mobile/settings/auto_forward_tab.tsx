@@ -191,7 +191,7 @@ export function AutoForwardTab() {
   );
 
   const format_rule_date = useCallback((date_string: string) => {
-    return new Date(date_string).toLocaleDateString("en-US", {
+    return new Date(date_string).toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -297,7 +297,7 @@ export function AutoForwardTab() {
                   </p>
                   {rule.forwarded_count > 0 && (
                     <p className="text-[11px] text-[var(--mobile-text-muted)] mt-0.5">
-                      {rule.forwarded_count} forwarded
+                      {t("mail.forwarded_count", { count: rule.forwarded_count })}
                       {rule.last_forwarded_at &&
                         ` · ${format_rule_date(rule.last_forwarded_at)}`}
                     </p>

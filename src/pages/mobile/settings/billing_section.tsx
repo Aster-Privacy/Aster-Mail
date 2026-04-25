@@ -446,7 +446,7 @@ export function BillingSection({
                         <span className="text-[14px] font-medium text-[var(--text-secondary)]">
                           {format_price(subscription.plan.price_cents)}
                           <span className="text-[11px] font-normal text-[var(--text-muted)]">
-                            /{subscription.plan.billing_period || "mo"}
+                            /{subscription.plan.billing_period || t("settings.per_month_short")}
                           </span>
                         </span>
                         <p className="text-[11px] mt-0.5 text-[var(--text-muted)]">
@@ -810,7 +810,7 @@ export function BillingSection({
                               : "bg-yellow-500/20 text-yellow-500"
                         }`}
                       >
-                        {item.status}
+                        {t(`settings.invoice_status_${item.status}` as any)}
                       </span>
                       <p className="text-[14px] font-medium text-[var(--text-primary)]">
                         {format_price(item.amount_cents, item.currency)}
@@ -822,7 +822,7 @@ export function BillingSection({
                           rel="noopener noreferrer"
                           target="_blank"
                         >
-                          PDF
+                          {t("settings.pdf")}
                         </a>
                       )}
                     </div>

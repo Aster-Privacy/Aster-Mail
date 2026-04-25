@@ -294,7 +294,7 @@ export function DomainSetupModal({
                 autoFocus
                 className="w-full h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
                 id="domain-name"
-                placeholder="example.com"
+                placeholder={t("settings.domain_placeholder")}
                 value={domain_input}
                 onChange={(e) =>
                   set_domain_input(e.target.value.toLowerCase().trim())

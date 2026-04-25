@@ -92,7 +92,7 @@ export function use_key_rotation() {
       return result;
     } catch (error) {
       const error_message =
-        error instanceof Error ? error.message : "Unknown error";
+        error instanceof Error ? error.message : t("common.unknown_error");
 
       set_state((prev) => ({
         ...prev,

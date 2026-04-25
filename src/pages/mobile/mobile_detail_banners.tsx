@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
+import type { TranslationKey } from "@/lib/i18n";
 
 import { useState, useRef, useEffect } from "react";
 import {
@@ -52,7 +53,7 @@ export function MobileUnsubscribeBanner({
       method: string;
     };
   };
-  t: (key: never) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   const { preferences } = use_preferences();
   const [dismissed, set_dismissed] = useState(false);
@@ -88,7 +89,7 @@ export function MobileUnsubscribeBanner({
     }).catch(() => {});
 
     show_action_toast({
-      message: t("mail.successfully_unsubscribed" as never),
+      message: t("mail.successfully_unsubscribed"),
       action_type: "not_spam",
       email_ids: [],
       duration_ms: delay_ms,
@@ -117,11 +118,11 @@ export function MobileUnsubscribeBanner({
         if (result !== "api") {
           const url = info.unsubscribe_link || info.unsubscribe_mailto;
           show_action_toast({
-            message: t("mail.unsubscribe_manual_required" as never),
+            message: t("mail.unsubscribe_manual_required"),
             action_type: "not_spam",
             email_ids: [],
             duration_ms: 15000,
-            action_label: t("mail.open_unsubscribe_page" as never),
+            action_label: t("mail.open_unsubscribe_page"),
             on_undo: async () => {
               if (url) window.open(url, "_blank", "noopener,noreferrer");
             },
@@ -129,7 +130,7 @@ export function MobileUnsubscribeBanner({
         }
       } catch {
         show_action_toast({
-          message: t("mail.unsubscribe_failed" as never),
+          message: t("mail.unsubscribe_failed"),
           action_type: "not_spam",
           email_ids: [],
         });
@@ -143,7 +144,7 @@ export function MobileUnsubscribeBanner({
         <EnvelopeIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
         <div className="min-w-0 flex-1">
           <p className="text-[13px] text-[var(--text-primary)]">
-            {`${t("mail.stop_receiving_from" as never)} ${domain}`}
+            {`${t("mail.stop_receiving_from")} ${domain}`}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -152,7 +153,7 @@ export function MobileUnsubscribeBanner({
             type="button"
             onClick={handle_unsubscribe}
           >
-            {t("mail.unsubscribe" as never)}
+            {t("mail.unsubscribe")}
           </button>
           <button
             className="rounded-md p-1 text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
@@ -174,7 +175,7 @@ export function MobileExternalContentBanner({
 }: {
   report: ExternalContentReport;
   on_load: () => void;
-  t: (key: never) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   const [dismissed, set_dismissed] = useState(false);
 
@@ -185,21 +186,21 @@ export function MobileExternalContentBanner({
   if (report.has_remote_images) {
     const count = report.blocked_items.filter((i) => i.type === "image").length;
 
-    if (count > 0) parts.push(`${count} image${count !== 1 ? "s" : ""}`);
+    if (count > 0) parts.push(count === 1 ? t("common.images_count").replace("{{count}}", "1") : t("common.images_count_plural").replace("{{count}}", String(count)));
   }
   if (report.has_tracking_pixels)
-    parts.push(t("common.tracking_pixels" as never));
-  if (report.has_remote_fonts) parts.push(t("common.fonts" as never));
-  if (report.has_remote_css) parts.push(t("common.stylesheets" as never));
+    parts.push(t("common.tracking_pixels"));
+  if (report.has_remote_fonts) parts.push(t("common.fonts"));
+  if (report.has_remote_css) parts.push(t("common.stylesheets"));
   const message =
-    parts.length > 0 ? parts.join(", ") : `${report.blocked_count} items`;
+    parts.length > 0 ? parts.join(", ") : t("common.blocked_items_count").replace("{{count}}", String(report.blocked_count));
 
   return (
     <div className="mx-4 mt-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2.5">
       <div className="flex items-center gap-3">
         <ShieldExclamationIcon className="h-5 w-5 shrink-0 text-amber-500" />
         <p className="min-w-0 flex-1 text-[13px] text-[var(--text-primary)]">
-          {t("mail.external_content_blocked" as never).replace(
+          {t("mail.external_content_blocked").replace(
             "{{message}}",
             message,
           )}
@@ -210,7 +211,7 @@ export function MobileExternalContentBanner({
             type="button"
             onClick={on_load}
           >
-            {t("common.load_content" as never)}
+            {t("common.load_content")}
           </button>
           <button
             className="rounded-md p-1 text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"

@@ -152,7 +152,7 @@ export function IncomingMailSection({
             className="w-full"
             id="ext-account-username"
             maxLength={254}
-            placeholder="user@example.com"
+            placeholder={t("settings.username_placeholder")}
             type="text"
             value={form_username}
             onChange={(e) => handle_username_change(e.target.value)}

@@ -47,6 +47,7 @@ import { get_current_account } from "./account_manager";
 import { emit_email_sent } from "@/hooks/mail_events";
 import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
 import { show_toast } from "@/components/toast/simple_toast";
+import { en } from "@/lib/i18n/translations/en";
 
 export type {
   SendErrorType,
@@ -105,7 +106,7 @@ class SendQueue {
       return create_error("send_failed", err.message);
     }
 
-    return create_error("send_failed", "An unexpected error occurred");
+    return create_error("send_failed", en.common.unexpected_error);
   }
 
   private find_and_remove(id: string): QueuedEmailInternal | null {
@@ -139,7 +140,7 @@ class SendQueue {
           current_email.callbacks.on_error(error);
         }
         current_email.callbacks.on_cancel();
-        show_toast(error.message || "Failed to send email", "error");
+        show_toast(error.message || en.common.failed_to_send_email, "error");
       }
     });
   }
@@ -225,7 +226,7 @@ class SendQueue {
           current_email.callbacks.on_error(error);
         }
         current_email.callbacks.on_cancel();
-        show_toast(error.message || "Failed to send email", "error");
+        show_toast(error.message || en.common.failed_to_send_email, "error");
       }
     });
   }
@@ -400,7 +401,7 @@ async function prepare_email_for_server_queue(
   const current_account = await get_current_account();
 
   if (!current_account?.user?.email) {
-    throw new SendError("No authenticated account found");
+    throw new SendError(en.errors.no_authenticated_account);
   }
   const sender_email = email.sender_email || current_account.user.email;
 
@@ -499,7 +500,7 @@ export async function queue_email_to_server(
   } catch (err) {
     const error = err as SendError;
 
-    callbacks.on_error?.(error.message || "Failed to queue email");
+    callbacks.on_error?.(error.message || en.errors.failed_queue_email);
 
     return null;
   }

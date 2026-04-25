@@ -347,7 +347,7 @@ export const is_valid_email = (email: string): boolean =>
 
 export function format_last_saved(
   saved_time: Date,
-  t?: (key: never, params?: Record<string, string | number>) => string,
+  t?: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ): string {
   const now = new Date();
   const is_today =
@@ -362,7 +362,7 @@ export function format_last_saved(
 
   if (is_today) {
     return t
-      ? t("common.saved_at_time" as never, { time: time_str })
+      ? t("common.saved_at_time", { time: time_str })
       : `Saved at ${time_str}`;
   }
 
@@ -372,7 +372,7 @@ export function format_last_saved(
   });
 
   return t
-    ? t("common.saved_on_date" as never, { date: date_str })
+    ? t("common.saved_on_date", { date: date_str })
     : `Saved ${date_str}`;
 }
 

@@ -63,15 +63,15 @@ function get_local_storage_size(): string {
   return format_bytes(total);
 }
 
-function get_connection_type(): string {
+function get_connection_type(fallback: string): string {
   const nav = navigator as Navigator & {
     connection?: { effectiveType?: string; downlink?: number; rtt?: number };
   };
 
-  return nav.connection?.effectiveType?.toUpperCase() || "Unknown";
+  return nav.connection?.effectiveType?.toUpperCase() || fallback;
 }
 
-function get_connection_speed(): string {
+function get_connection_speed(fallback: string): string {
   const nav = navigator as Navigator & {
     connection?: { downlink?: number };
   };
@@ -80,10 +80,10 @@ function get_connection_speed(): string {
     return `${nav.connection.downlink} Mbps`;
   }
 
-  return "Unknown";
+  return fallback;
 }
 
-function get_connection_latency(): string {
+function get_connection_latency(fallback: string): string {
   const nav = navigator as Navigator & {
     connection?: { rtt?: number };
   };
@@ -92,10 +92,10 @@ function get_connection_latency(): string {
     return `${nav.connection.rtt}ms`;
   }
 
-  return "Unknown";
+  return fallback;
 }
 
-function get_memory_usage(): string {
+function get_memory_usage(fallback: string): string {
   const perf = performance as Performance & {
     memory?: { usedJSHeapSize?: number; jsHeapSizeLimit?: number };
   };
@@ -104,10 +104,10 @@ function get_memory_usage(): string {
     return `${format_bytes(perf.memory.usedJSHeapSize)} / ${format_bytes(perf.memory.jsHeapSizeLimit || 0)}`;
   }
 
-  return "Unavailable";
+  return fallback;
 }
 
-function get_page_load_time(): string {
+function get_page_load_time(fallback: string): string {
   const entries = performance.getEntriesByType(
     "navigation",
   ) as PerformanceNavigationTiming[];
@@ -118,10 +118,10 @@ function get_page_load_time(): string {
     return `${Math.round(nav.loadEventEnd - nav.startTime)}ms`;
   }
 
-  return "Unavailable";
+  return fallback;
 }
 
-function get_dom_content_loaded(): string {
+function get_dom_content_loaded(fallback: string): string {
   const entries = performance.getEntriesByType(
     "navigation",
   ) as PerformanceNavigationTiming[];
@@ -132,20 +132,29 @@ function get_dom_content_loaded(): string {
     return `${Math.round(nav.domContentLoadedEventEnd - nav.startTime)}ms`;
   }
 
-  return "Unavailable";
+  return fallback;
 }
 
 function count_local_storage_keys(): number {
   return localStorage.length;
 }
 
-function get_indexed_db_info(): Promise<string> {
-  if (!("indexedDB" in window)) return Promise.resolve("Unsupported");
+function get_indexed_db_info(
+  unsupported: string,
+  unknown: string,
+  db_one: (count: string) => string,
+  db_other: (count: string) => string,
+): Promise<string> {
+  if (!("indexedDB" in window)) return Promise.resolve(unsupported);
 
   return indexedDB
     .databases()
-    .then((dbs) => `${dbs.length} database${dbs.length === 1 ? "" : "s"}`)
-    .catch(() => "Unknown");
+    .then((dbs) =>
+      dbs.length === 1
+        ? db_one(String(dbs.length))
+        : db_other(String(dbs.length)),
+    )
+    .catch(() => unknown);
 }
 
 function get_screen_info(): string {
@@ -156,7 +165,7 @@ function get_viewport_info(): string {
   return `${window.innerWidth}x${window.innerHeight}`;
 }
 
-function get_session_duration(): string {
+function get_session_duration(fallback: string): string {
   const nav_entries = performance.getEntriesByType(
     "navigation",
   ) as PerformanceNavigationTiming[];
@@ -174,7 +183,7 @@ function get_session_duration(): string {
     return `${hours}h ${minutes % 60}m`;
   }
 
-  return "Unknown";
+  return fallback;
 }
 
 export function DeveloperSection() {
@@ -184,16 +193,16 @@ export function DeveloperSection() {
   const folders_hook = use_folders();
   const { is_online } = use_online_status();
 
-  const [sw_status, set_sw_status] = useState("Checking...");
+  const [sw_status, set_sw_status] = useState(t("settings.dev_checking"));
   const [key_status, set_key_status] = useState<IdentityKeyStatus | null>(null);
   const [key_loading, set_key_loading] = useState(true);
   const [wkd_published, set_wkd_published] = useState<boolean | null>(null);
   const [keyserver_published, set_keyserver_published] = useState<
     boolean | null
   >(null);
-  const [idb_info, set_idb_info] = useState("Checking...");
+  const [idb_info, set_idb_info] = useState(t("settings.dev_checking"));
   const [session_duration, set_session_duration] = useState(
-    get_session_duration(),
+    get_session_duration(t("settings.dev_unknown")),
   );
 
   useEffect(() => {
@@ -202,18 +211,23 @@ export function DeveloperSection() {
         if (registrations.length > 0) {
           const active = registrations.filter((r) => r.active).length;
 
-          set_sw_status(`${active} active`);
+          set_sw_status(t("settings.dev_active_count", { count: String(active) }));
         } else {
-          set_sw_status("None registered");
+          set_sw_status(t("settings.dev_none_registered"));
         }
       });
     } else {
-      set_sw_status("Unsupported");
+      set_sw_status(t("settings.dev_unsupported"));
     }
   }, []);
 
   useEffect(() => {
-    get_indexed_db_info()
+    get_indexed_db_info(
+      t("settings.dev_unsupported"),
+      t("settings.dev_unknown"),
+      (count) => t("settings.dev_databases_count_one", { count }),
+      (count) => t("settings.dev_databases_count_other", { count }),
+    )
       .then(set_idb_info)
       .catch((e) => {
         if (import.meta.env.DEV) console.error(e);
@@ -222,7 +236,7 @@ export function DeveloperSection() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      set_session_duration(get_session_duration());
+      set_session_duration(get_session_duration(t("settings.dev_unknown")));
     }, 10000);
 
     return () => clearInterval(interval);
@@ -272,16 +286,16 @@ export function DeveloperSection() {
     const delta_ms = Date.now() - ts;
     const seconds = Math.max(0, Math.floor(delta_ms / 1000));
 
-    if (seconds < 60) return `${seconds}s ago`;
+    if (seconds < 60) return t("settings.dev_seconds_ago", { count: String(seconds) });
     const minutes = Math.floor(seconds / 60);
 
-    if (minutes < 60) return `${minutes}m ago`;
+    if (minutes < 60) return t("settings.dev_minutes_ago", { count: String(minutes) });
     const hours = Math.floor(minutes / 60);
 
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return t("settings.dev_hours_ago", { count: String(hours) });
     const days = Math.floor(hours / 24);
 
-    return `${days}d ago`;
+    return t("settings.dev_days_ago", { count: String(days) });
   };
   const loaded_ago_text = loaded_ts ? format_relative_time(loaded_ts) : null;
   const total_emails = stats.inbox + stats.sent + stats.archived + stats.trash;
@@ -318,7 +332,7 @@ export function DeveloperSection() {
       const registrations = await navigator.serviceWorker.getRegistrations();
 
       await Promise.all(registrations.map((r) => r.unregister()));
-      set_sw_status("Unregistered");
+      set_sw_status(t("settings.dev_unregistered"));
     }
   };
 
@@ -349,14 +363,14 @@ export function DeveloperSection() {
       },
       network: {
         online: is_online,
-        connection: get_connection_type(),
-        speed: get_connection_speed(),
-        latency: get_connection_latency(),
+        connection: get_connection_type(t("settings.dev_unknown")),
+        speed: get_connection_speed(t("settings.dev_unknown")),
+        latency: get_connection_latency(t("settings.dev_unknown")),
       },
       performance: {
-        memory: get_memory_usage(),
-        page_load: get_page_load_time(),
-        dom_ready: get_dom_content_loaded(),
+        memory: get_memory_usage(t("settings.dev_unavailable")),
+        page_load: get_page_load_time(t("settings.dev_unavailable")),
+        dom_ready: get_dom_content_loaded(t("settings.dev_unavailable")),
         session_duration: session_duration,
       },
       storage: {
@@ -396,8 +410,8 @@ export function DeveloperSection() {
   };
 
   const format_key_age = (hours: number | null): string => {
-    if (hours === null) return "Unknown";
-    if (hours < 1) return "< 1 hour";
+    if (hours === null) return t("settings.dev_unknown");
+    if (hours < 1) return t("settings.dev_less_than_one_hour");
     if (hours < 24) return `${Math.round(hours)}h`;
     const days = Math.floor(hours / 24);
 
@@ -497,7 +511,7 @@ export function DeveloperSection() {
               </button>
               {loaded_ago_text && (
                 <p className="text-[11px] text-txt-muted">
-                  loaded {loaded_ago_text}
+                  {t("settings.dev_loaded_ago", { time: loaded_ago_text || "" })}
                 </p>
               )}
             </div>
@@ -548,7 +562,7 @@ export function DeveloperSection() {
               )}
               {dev_row(
                 t("settings.fingerprint"),
-                key_status?.key_fingerprint?.slice(0, 16) || "None",
+                key_status?.key_fingerprint?.slice(0, 16) || t("settings.dev_none"),
                 !!key_status?.key_fingerprint,
               )}
               {dev_row_with_status(
@@ -566,10 +580,10 @@ export function DeveloperSection() {
                 keyserver_published,
               )}
               <div className="border-t pt-2 mt-2 border-edge-secondary">
-                {dev_row("Encryption", "AES-256-GCM")}
-                {dev_row("Key Exchange", "KEM-768")}
-                {dev_row("Signatures", "PGP RSA-4096")}
-                {dev_row("Password KDF", "Argon2id")}
+                {dev_row(t("settings.dev_encryption_label"), "AES-256-GCM")}
+                {dev_row(t("settings.dev_key_exchange_label"), "KEM-768")}
+                {dev_row(t("settings.dev_signatures_label"), "PGP RSA-4096")}
+                {dev_row(t("settings.dev_password_kdf_label"), "Argon2id")}
               </div>
             </>,
           )
@@ -619,9 +633,9 @@ export function DeveloperSection() {
         {section_header(t("settings.performance"), BoltIcon)}
         {section_box(
           <>
-            {dev_row(t("settings.page_load"), get_page_load_time())}
-            {dev_row(t("settings.dom_ready"), get_dom_content_loaded())}
-            {dev_row(t("settings.js_heap"), get_memory_usage())}
+            {dev_row(t("settings.page_load"), get_page_load_time(t("settings.dev_unavailable")))}
+            {dev_row(t("settings.dom_ready"), get_dom_content_loaded(t("settings.dev_unavailable")))}
+            {dev_row(t("settings.js_heap"), get_memory_usage(t("settings.dev_unavailable")))}
             {dev_row(t("settings.screen"), get_screen_info())}
             {dev_row(t("settings.viewport"), get_viewport_info())}
           </>,
@@ -637,9 +651,9 @@ export function DeveloperSection() {
               is_online ? t("settings.online") : t("common.offline"),
               is_online,
             )}
-            {dev_row(t("settings.connection"), get_connection_type())}
-            {dev_row(t("settings.speed"), get_connection_speed())}
-            {dev_row(t("settings.latency"), get_connection_latency())}
+            {dev_row(t("settings.connection"), get_connection_type(t("settings.dev_unknown")))}
+            {dev_row(t("settings.speed"), get_connection_speed(t("settings.dev_unknown")))}
+            {dev_row(t("settings.latency"), get_connection_latency(t("settings.dev_unknown")))}
           </>,
         )}
       </div>
@@ -651,11 +665,11 @@ export function DeveloperSection() {
             {dev_row(t("settings.service_worker"), sw_status)}
             {dev_row(
               t("settings.local_storage"),
-              `${get_local_storage_size()} (${count_local_storage_keys()} keys)`,
+              `${get_local_storage_size()} (${t("settings.dev_keys_count", { count: String(count_local_storage_keys()) })})`,
             )}
             {dev_row(
               t("settings.session_storage"),
-              `${Object.keys(sessionStorage).length} keys`,
+              t("settings.dev_keys_count", { count: String(Object.keys(sessionStorage).length) }),
             )}
             {dev_row(t("settings.indexed_db"), idb_info)}
           </>,

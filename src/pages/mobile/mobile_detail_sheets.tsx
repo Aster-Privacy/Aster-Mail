@@ -20,6 +20,7 @@
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { UserPreferences } from "@/services/api/preferences";
+import type { TranslationKey } from "@/lib/i18n";
 
 import {
   StarIcon,
@@ -127,7 +128,7 @@ export function MobileActionMenuSheet({
   dark_mode_ids: Set<string>;
   preferences_force_dark: boolean;
   format_detail: (date: Date) => string;
-  t: (key: never) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   return (
     <MobileBottomSheet is_open={!!menu_message} on_close={on_close}>
@@ -159,7 +160,7 @@ export function MobileActionMenuSheet({
           >
             <ArrowUturnLeftIcon className="h-5 w-5 text-[var(--text-muted)]" />
             <span className="text-[14px] text-[var(--text-primary)]">
-              {t("mail.reply" as never)}
+              {t("mail.reply")}
             </span>
           </button>
           {menu_message &&
@@ -173,7 +174,7 @@ export function MobileActionMenuSheet({
               >
                 <ArrowUturnLeftIcon className="h-5 w-5 text-[var(--text-muted)]" />
                 <span className="text-[14px] text-[var(--text-primary)]">
-                  {t("mail.reply_all" as never)}
+                  {t("mail.reply_all")}
                 </span>
               </button>
             )}
@@ -184,7 +185,7 @@ export function MobileActionMenuSheet({
           >
             <ArrowUturnRightIcon className="h-5 w-5 text-[var(--text-muted)]" />
             <span className="text-[14px] text-[var(--text-primary)]">
-              {t("mail.forward" as never)}
+              {t("mail.forward")}
             </span>
           </button>
 
@@ -201,7 +202,7 @@ export function MobileActionMenuSheet({
               <StarIcon className="h-5 w-5 text-[var(--text-muted)]" />
             )}
             <span className="text-[14px] text-[var(--text-primary)]">
-              {is_starred ? t("mail.unstar" as never) : t("mail.star" as never)}
+              {is_starred ? t("mail.unstar") : t("mail.star")}
             </span>
           </button>
           <button
@@ -216,8 +217,8 @@ export function MobileActionMenuSheet({
             )}
             <span className="text-[14px] text-[var(--text-primary)]">
               {menu_message?.is_read
-                ? t("mail.mark_unread" as never)
-                : t("mail.mark_read" as never)}
+                ? t("mail.mark_unread")
+                : t("mail.mark_read")}
             </span>
           </button>
 
@@ -230,7 +231,7 @@ export function MobileActionMenuSheet({
           >
             <BellSnoozeIcon className="h-5 w-5 text-[var(--text-muted)]" />
             <span className="text-[14px] text-[var(--text-primary)]">
-              {t("common.snooze_label" as never)}
+              {t("common.snooze_label")}
             </span>
           </button>
           <button
@@ -240,7 +241,7 @@ export function MobileActionMenuSheet({
           >
             <ArchiveBoxIcon className="h-5 w-5 text-[var(--text-muted)]" />
             <span className="text-[14px] text-[var(--text-primary)]">
-              {t("mail.archive" as never)}
+              {t("mail.archive")}
             </span>
           </button>
           {is_spam ? (
@@ -251,7 +252,7 @@ export function MobileActionMenuSheet({
             >
               <ShieldCheckIcon className="h-5 w-5 text-emerald-500" />
               <span className="text-[14px] text-[var(--text-primary)]">
-                {t("mail.not_spam" as never)}
+                {t("mail.not_spam")}
               </span>
             </button>
           ) : (
@@ -262,7 +263,7 @@ export function MobileActionMenuSheet({
             >
               <NoSymbolIcon className="h-5 w-5 text-[var(--text-muted)]" />
               <span className="text-[14px] text-[var(--text-primary)]">
-                {t("mail.report_spam" as never)}
+                {t("mail.report_spam")}
               </span>
             </button>
           )}
@@ -273,7 +274,7 @@ export function MobileActionMenuSheet({
           >
             <TrashIcon className="h-5 w-5 text-[var(--color-danger,#ef4444)]" />
             <span className="text-[14px] text-[var(--color-danger,#ef4444)]">
-              {t("mail.move_to_trash" as never)}
+              {t("mail.move_to_trash")}
             </span>
           </button>
 
@@ -296,8 +297,8 @@ export function MobileActionMenuSheet({
                 {menu_message &&
                 (preferences_force_dark_mode ||
                   dark_mode_ids.has(menu_message.id))
-                  ? t("mail.exit_dark_mode" as never)
-                  : t("mail.view_dark_mode" as never)}
+                  ? t("mail.exit_dark_mode")
+                  : t("mail.view_dark_mode")}
               </span>
             </button>
           )}
@@ -314,8 +315,8 @@ export function MobileActionMenuSheet({
               )}
               <span className="text-[14px] text-[var(--text-primary)]">
                 {is_all_dark
-                  ? t("mail.exit_all_dark_mode" as never)
-                  : t("mail.view_all_dark_mode" as never)}
+                  ? t("mail.exit_all_dark_mode")
+                  : t("mail.view_all_dark_mode")}
               </span>
             </button>
           )}
@@ -326,7 +327,7 @@ export function MobileActionMenuSheet({
           >
             <PrinterIcon className="h-5 w-5 text-[var(--text-muted)]" />
             <span className="text-[14px] text-[var(--text-primary)]">
-              {t("mail.print" as never)}
+              {t("mail.print")}
             </span>
           </button>
           <button
@@ -336,7 +337,7 @@ export function MobileActionMenuSheet({
           >
             <CodeBracketIcon className="h-5 w-5 text-[var(--text-muted)]" />
             <span className="text-[14px] text-[var(--text-primary)]">
-              {t("mail.view_source" as never)}
+              {t("mail.view_source")}
             </span>
           </button>
           <button
@@ -346,7 +347,7 @@ export function MobileActionMenuSheet({
           >
             <ClipboardDocumentIcon className="h-5 w-5 text-[var(--text-muted)]" />
             <span className="text-[14px] text-[var(--text-primary)]">
-              {t("mail.copy_message_id" as never)}
+              {t("mail.copy_message_id")}
             </span>
           </button>
           <button
@@ -356,7 +357,7 @@ export function MobileActionMenuSheet({
           >
             <InformationCircleIcon className="h-5 w-5 text-[var(--text-muted)]" />
             <span className="text-[14px] text-[var(--text-primary)]">
-              {t("mail.message_details" as never)}
+              {t("mail.message_details")}
             </span>
           </button>
 
@@ -367,7 +368,7 @@ export function MobileActionMenuSheet({
           >
             <HandRaisedIcon className="h-5 w-5 text-[var(--color-danger,#ef4444)]" />
             <span className="text-[14px] text-[var(--color-danger,#ef4444)]">
-              {t("mail.block_sender" as never)}
+              {t("mail.block_sender")}
             </span>
           </button>
 
@@ -380,7 +381,7 @@ export function MobileActionMenuSheet({
           >
             <ShieldExclamationIcon className="h-5 w-5 text-amber-500" />
             <span className="text-[14px] text-amber-500">
-              {t("common.report_phishing" as never)}
+              {t("common.report_phishing")}
             </span>
           </button>
 
@@ -393,7 +394,7 @@ export function MobileActionMenuSheet({
           >
             <AdjustmentsHorizontalIcon className="h-5 w-5 text-[var(--text-muted)]" />
             <span className="text-[14px] text-[var(--text-primary)]">
-              {t("settings.customize_toolbar" as never) || "Customize toolbar"}
+              {t("settings.customize_toolbar")}
             </span>
           </button>
         </div>
@@ -409,14 +410,14 @@ export function MobileViewSourceSheet({
 }: {
   message: DecryptedThreadMessage | null;
   on_close: () => void;
-  t: (key: never) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   return (
     <MobileBottomSheet is_open={!!message} on_close={on_close}>
       <div className="px-4 pb-4">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">
-            {t("mail.view_source" as never)}
+            {t("mail.view_source")}
           </h3>
           <button
             className="rounded-lg px-2.5 py-1 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
@@ -428,13 +429,13 @@ export function MobileViewSourceSheet({
                 navigator.clipboard
                   .writeText(source)
                   .then(() => {
-                    show_toast(t("common.copied" as never), "success");
+                    show_toast(t("common.copied"), "success");
                   })
                   .catch(() => {});
               }
             }}
           >
-            {t("common.copy" as never)}
+            {t("common.copy")}
           </button>
         </div>
         <pre className="max-h-[60vh] overflow-auto rounded-xl bg-[var(--bg-tertiary)] p-4 text-[12px] leading-relaxed text-[var(--text-secondary)]">
@@ -523,23 +524,23 @@ export function MobileToolbarCustomizerSheet({
     value: UserPreferences[K],
     immediate?: boolean,
   ) => void;
-  t: (key: never) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   return (
     <MobileBottomSheet is_open={is_open} on_close={on_close}>
       <div className="px-4 pb-4" style={{ minHeight: 320 }}>
         <h3 className="mb-1 text-[16px] font-semibold text-[var(--text-primary)]">
-          {t("settings.customize_toolbar" as never)}
+          {t("settings.customize_toolbar")}
         </h3>
         <p className="mb-4 text-[13px] text-[var(--text-muted)]">
-          {t("settings.customize_toolbar_description" as never)}
+          {t("settings.customize_toolbar_description")}
         </p>
 
         {(["quick", "organize"] as const).map((group) => {
           const group_label =
             group === "quick"
-              ? t("settings.toolbar_section_quick_actions" as never)
-              : t("settings.toolbar_section_organize" as never);
+              ? t("settings.toolbar_section_quick_actions")
+              : t("settings.toolbar_section_organize");
           const group_actions = ALL_TOOLBAR_ACTION_IDS.filter(
             (id) => TOOLBAR_ACTION_MAP[id].group === group,
           );
@@ -575,7 +576,7 @@ export function MobileToolbarCustomizerSheet({
                         className={`h-5 w-5 ${config.is_danger ? "text-[var(--color-danger,#ef4444)]" : "text-[var(--text-muted)]"}`}
                       />
                       <span className="flex-1 text-left text-[14px] text-[var(--text-primary)]">
-                        {t(config.label_key as never)}
+                        {t(config.label_key as TranslationKey)}
                       </span>
                       <div
                         className={`flex h-5 w-5 items-center justify-center rounded-md ${
@@ -617,7 +618,7 @@ export function MobileToolbarCustomizerSheet({
         })}
 
         <p className="mt-1 text-[12px] text-[var(--text-muted)]">
-          {t("settings.toolbar_dots_hint" as never)}
+          {t("settings.toolbar_dots_hint")}
         </p>
       </div>
     </MobileBottomSheet>
@@ -649,13 +650,13 @@ function build_message_headers(message: DecryptedThreadMessage): string {
 
 function get_mobile_location_label(
   message: DecryptedThreadMessage,
-  t: (key: never) => string,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ): string {
-  if (message.is_deleted) return t("mail.trashed_label" as never);
-  if (message.item_type === "sent") return t("mail.sent_label" as never);
-  if (message.item_type === "draft") return t("mail.draft" as never);
+  if (message.is_deleted) return t("mail.trashed_label");
+  if (message.item_type === "sent") return t("mail.sent_label");
+  if (message.item_type === "draft") return t("mail.draft");
 
-  return t("common.mail" as never);
+  return t("common.mail");
 }
 
 export function MobileMessageDetailsSheet({
@@ -669,7 +670,7 @@ export function MobileMessageDetailsSheet({
   on_close: () => void;
   size_bytes?: number;
   format_detail: (date: Date) => string;
-  t: (key: never) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   const headers = message ? build_message_headers(message) : "";
 
@@ -677,7 +678,7 @@ export function MobileMessageDetailsSheet({
     navigator.clipboard
       .writeText(headers)
       .then(() => {
-        show_toast(t("mail.headers_copied" as never), "success");
+        show_toast(t("mail.headers_copied"), "success");
       })
       .catch(() => {});
   };
@@ -701,14 +702,14 @@ export function MobileMessageDetailsSheet({
     <MobileBottomSheet is_open={!!message} on_close={on_close}>
       <div className="px-4 pb-4">
         <h3 className="mb-3 text-[16px] font-semibold text-[var(--text-primary)]">
-          {t("mail.message_details" as never)}
+          {t("mail.message_details")}
         </h3>
 
         {message && (
           <div className="space-y-2.5 mb-4">
             <div className="flex">
               <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
-                {t("common.from_label" as never)}
+                {t("common.from_label")}
               </span>
               <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
                 {message.sender_name} &lt;{message.sender_email}&gt;
@@ -718,7 +719,7 @@ export function MobileMessageDetailsSheet({
             {message.to_recipients && message.to_recipients.length > 0 && (
               <div className="flex">
                 <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
-                  {t("common.to_label" as never)}
+                  {t("common.to_label")}
                 </span>
                 <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
                   {message.to_recipients
@@ -730,7 +731,7 @@ export function MobileMessageDetailsSheet({
 
             <div className="flex">
               <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
-                {t("common.date_label" as never)}
+                {t("common.date_label")}
               </span>
               <span className="text-[12px] text-[var(--text-secondary)]">
                 {format_safe_date(message.timestamp, format_detail)}
@@ -739,7 +740,7 @@ export function MobileMessageDetailsSheet({
 
             <div className="flex">
               <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
-                {t("common.subject_label" as never)}
+                {t("common.subject_label")}
               </span>
               <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-words">
                 {message.subject}
@@ -748,7 +749,7 @@ export function MobileMessageDetailsSheet({
 
             <div className="flex">
               <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
-                {t("mail.message_id_label" as never)}
+                {t("mail.message_id_label")}
               </span>
               <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
                 &lt;{message.id}@astermail.org&gt;
@@ -758,7 +759,7 @@ export function MobileMessageDetailsSheet({
             {size_bytes != null && size_bytes > 0 && (
               <div className="flex">
                 <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
-                  {t("mail.size_label" as never)}
+                  {t("mail.size_label")}
                 </span>
                 <span className="text-[12px] text-[var(--text-secondary)]">
                   {format_bytes(size_bytes)}
@@ -768,7 +769,7 @@ export function MobileMessageDetailsSheet({
 
             <div className="flex">
               <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
-                {t("mail.location_label" as never)}
+                {t("mail.location_label")}
               </span>
               <span className="text-[12px] text-[var(--text-secondary)]">
                 {get_mobile_location_label(message, t)}
@@ -777,7 +778,7 @@ export function MobileMessageDetailsSheet({
 
             <div className="flex items-center">
               <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
-                {t("mail.encryption_label" as never)}
+                {t("mail.encryption_label")}
               </span>
               <EncryptionInfoDropdown
                 has_pq_protection={false}
@@ -785,8 +786,8 @@ export function MobileMessageDetailsSheet({
                 is_external={message.is_external}
                 label={
                   message.is_external && !message.has_recipient_key
-                    ? t("common.protected_in_transit" as never)
-                    : t("mail.zero_access_encrypted" as never)
+                    ? t("common.protected_in_transit")
+                    : t("mail.zero_access_encrypted")
                 }
                 size={14}
               />
@@ -797,7 +798,7 @@ export function MobileMessageDetailsSheet({
         <div>
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-[14px] font-semibold text-[var(--text-primary)]">
-              {t("mail.message_headers" as never)}
+              {t("mail.message_headers")}
             </h4>
             <div className="flex items-center gap-1">
               <button
@@ -806,7 +807,7 @@ export function MobileMessageDetailsSheet({
                 onClick={handle_copy_headers}
               >
                 <ClipboardDocumentIcon className="h-3.5 w-3.5" />
-                {t("mail.copy_headers" as never)}
+                {t("mail.copy_headers")}
               </button>
               <button
                 className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
@@ -814,7 +815,7 @@ export function MobileMessageDetailsSheet({
                 onClick={handle_download_headers}
               >
                 <ArrowDownTrayIcon className="h-3.5 w-3.5" />
-                {t("mail.download_headers" as never)}
+                {t("mail.download_headers")}
               </button>
             </div>
           </div>

@@ -176,7 +176,7 @@ export function use_single_actions(
       } catch (err) {
         rollback_action(email.id, action_type);
         const error_message =
-          err instanceof Error ? err.message : "An unexpected error occurred";
+          err instanceof Error ? err.message : t("common.unexpected_error");
 
         set_action_error(action_type, error_message);
 

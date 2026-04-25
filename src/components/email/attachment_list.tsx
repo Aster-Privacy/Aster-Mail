@@ -205,6 +205,7 @@ function AttachmentCard({
   on_click: () => void;
   on_download: (e: React.MouseEvent) => void;
 }) {
+  const { t } = use_i18n();
   const is_pdf = is_previewable_pdf(att.content_type);
   const has_preview =
     (is_previewable_image(att.content_type) || is_pdf) && att.preview_url;
@@ -263,7 +264,7 @@ function AttachmentCard({
         </div>
         <button
           className="flex-shrink-0 p-1.5 rounded-md text-txt-muted hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-          title={`Download ${att.filename}`}
+          title={t("mail.download_file_named", { filename: att.filename })}
           onClick={on_download}
         >
           <DownloadIcon className="w-4 h-4" />
@@ -548,7 +549,7 @@ export function AttachmentList({
           </svg>
           {attachments.length}{" "}
           {attachments.length === 1
-            ? t("mail.attachments").replace(/s$/i, "")
+            ? t("mail.attachment_singular")
             : t("mail.attachments")}
           <span className="text-txt-muted/40">·</span>
           <EncryptionInfoDropdown

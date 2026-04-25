@@ -136,7 +136,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
                   {t("common.aster_mail_locked")}
                 </h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Use {biometry_name} to unlock
+                  {t("common.use_biometry_to_unlock", { name: biometry_name })}
                 </p>
               </div>
 
@@ -157,8 +157,8 @@ export function AppLock({ children }: { children: React.ReactNode }) {
                 )}
                 <span>
                   {is_authenticating
-                    ? "Authenticating..."
-                    : `Unlock with ${biometry_name}`}
+                    ? t("auth.authenticating")
+                    : t("common.unlock_with_biometry", { name: biometry_name })}
                 </span>
               </button>
             </motion.div>

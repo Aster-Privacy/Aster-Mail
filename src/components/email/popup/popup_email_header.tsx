@@ -181,7 +181,7 @@ export function PopupEmailHeader({
                               name={r.name || ""}
                               size="xs"
                             />
-                            <span>{r.name || r.email || "Unknown"}</span>
+                            <span>{r.name || r.email || t("common.unknown")}</span>
                             {i < email.to.length - 1 && <span>,</span>}
                           </span>
                         ))
@@ -205,7 +205,7 @@ export function PopupEmailHeader({
                             name={r.name || ""}
                             size="xs"
                           />
-                          <span>{r.name || r.email || "Unknown"}</span>
+                          <span>{r.name || r.email || t("common.unknown")}</span>
                           {i < email.cc.length - 1 && <span>,</span>}
                         </span>
                       ))}
@@ -229,7 +229,7 @@ export function PopupEmailHeader({
                             name={r.name || ""}
                             size="xs"
                           />
-                          <span>{r.name || r.email || "Unknown"}</span>
+                          <span>{r.name || r.email || t("common.unknown")}</span>
                           {i < email.bcc.length - 1 && <span>,</span>}
                         </span>
                       ))}

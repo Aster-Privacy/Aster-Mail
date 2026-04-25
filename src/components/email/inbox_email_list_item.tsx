@@ -376,7 +376,7 @@ export const InboxEmailListItem = memo(
           {show_profile_pictures &&
             (is_system_email(email.sender_email) ? (
               <img
-                alt="Aster Mail"
+                alt={t("common.aster_mail")}
                 className="hidden sm:flex w-8 h-8 rounded-full flex-shrink-0 object-cover"
                 draggable={false}
                 src="/mail_logo.webp"

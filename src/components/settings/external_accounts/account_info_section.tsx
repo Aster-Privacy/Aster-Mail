@@ -58,7 +58,7 @@ export function AccountInfoSection({
             className="w-full"
             id="ext-account-email"
             maxLength={254}
-            placeholder="user@example.com"
+            placeholder={t("settings.username_placeholder")}
             type="email"
             value={form_email}
             onChange={(e) => handle_email_change(e.target.value)}

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n";
+
 import { useState, useEffect, useMemo } from "react";
 
 import { EmailTag } from "@/components/ui/email_tag";
@@ -33,13 +35,13 @@ interface SnoozeBadgeProps {
 
 function format_time_remaining(
   target: Date,
-  t?: (key: never) => string,
+  t?: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ): string {
   const now = new Date();
   const diff = target.getTime() - now.getTime();
 
   if (diff <= 0) {
-    return t ? t("common.now" as never) : "Now";
+    return t ? t("common.now") : "Now";
   }
 
   const minutes = Math.floor(diff / 60000);

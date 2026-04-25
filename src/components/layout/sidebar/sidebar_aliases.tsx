@@ -221,7 +221,7 @@ export const SidebarAliases = memo(function SidebarAliases({
             <span>
               {aliases_expanded
                 ? t("common.show_less")
-                : `${hidden_count} more`}
+                : t("common.more_aliases", { count: hidden_count })}
             </span>
           </button>
         )}

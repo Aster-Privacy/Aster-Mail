@@ -130,7 +130,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
     if (result.data?.success) {
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_action_toast({
-        message: "Conversation archived",
+        message: deps.t("common.conversation_archived"),
         action_type: "archive",
         email_ids: [deps.email_id],
         on_undo: async () => {
@@ -251,7 +251,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       if (result.data?.success) {
         emit_mail_items_removed({ ids: [msg.id] });
         show_action_toast({
-          message: "Message archived",
+          message: deps.t("common.message_archived"),
           action_type: "archive",
           email_ids: [msg.id],
           on_undo: async () => {

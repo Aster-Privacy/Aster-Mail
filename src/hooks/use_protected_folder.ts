@@ -269,7 +269,7 @@ export function use_protected_folder(
         return true;
       } catch (err) {
         set_error(
-          err instanceof Error ? err.message : "Failed to set password",
+          err instanceof Error ? err.message : t("common.failed_to_set_folder_password"),
         );
 
         return false;
@@ -317,7 +317,7 @@ export function use_protected_folder(
         return true;
       } catch (err) {
         set_error(
-          err instanceof Error ? err.message : "Failed to change password",
+          err instanceof Error ? err.message : t("common.failed_to_change_folder_password"),
         );
 
         return false;
@@ -369,7 +369,7 @@ export function use_protected_folder(
         return true;
       } catch (err) {
         set_error(
-          err instanceof Error ? err.message : "Failed to remove password",
+          err instanceof Error ? err.message : t("common.failed_to_remove_folder_password"),
         );
 
         return false;

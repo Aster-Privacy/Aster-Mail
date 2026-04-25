@@ -20,7 +20,10 @@
 //
 import { useState, useEffect, useCallback } from "react";
 
+import { use_i18n } from "@/lib/i18n/context";
+
 export function ProbationBanner() {
+  const { t } = use_i18n();
   const [is_visible, set_is_visible] = useState(false);
   const [is_dismissed, set_is_dismissed] = useState(false);
 
@@ -64,8 +67,7 @@ export function ProbationBanner() {
           />
         </svg>
         <span className="truncate">
-          Your account has temporary sending restrictions. These will be lifted
-          automatically.
+          {t("common.probation_message")}
         </span>
       </div>
       <button

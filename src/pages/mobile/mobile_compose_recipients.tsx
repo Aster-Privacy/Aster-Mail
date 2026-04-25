@@ -20,6 +20,7 @@
 //
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
+import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Input } from "@/components/ui/input";
 
@@ -48,6 +49,8 @@ export function MobileRecipientRow({
   on_expand: () => void;
   placeholder?: string;
 }) {
+  const { t } = use_i18n();
+
   return (
     <div className="flex items-center gap-2">
       <span className="text-[13px] leading-none text-[var(--text-muted)]">
@@ -105,7 +108,7 @@ export function MobileRecipientRow({
             <span className="max-w-[140px] truncate">{recipients[0]}</span>
           </span>
           <span className="shrink-0 text-[13px] font-medium text-[var(--accent-color,#3b82f6)]">
-            +{recipients.length - 1} more
+            {t("common.n_more", { count: recipients.length - 1 })}
           </span>
         </div>
       )}

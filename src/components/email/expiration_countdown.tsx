@@ -23,6 +23,7 @@ import { FireIcon } from "@heroicons/react/24/outline";
 import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 interface ExpirationCountdownProps {
   expires_at: Date | string;
@@ -58,25 +59,25 @@ function calculate_time_remaining(expires_at: Date): TimeRemaining {
 
 function format_countdown(
   time: TimeRemaining,
-  t: (key: never) => string,
+  t: (key: TranslationKey) => string,
 ): string {
   if (time.total_ms <= 0) {
-    return t("common.expired" as never);
+    return t("common.expired");
   }
 
   if (time.days > 0) {
-    return `${time.days}d ${time.hours}h`;
+    return `${time.days}${t("common.time_days_short")} ${time.hours}${t("common.time_hours_short")}`;
   }
 
   if (time.hours > 0) {
-    return `${time.hours}h ${time.minutes}m`;
+    return `${time.hours}${t("common.time_hours_short")} ${time.minutes}${t("common.time_minutes_short")}`;
   }
 
   if (time.minutes > 0) {
-    return `${time.minutes}m ${time.seconds}s`;
+    return `${time.minutes}${t("common.time_minutes_short")} ${time.seconds}${t("common.time_seconds_short")}`;
   }
 
-  return `${time.seconds}s`;
+  return `${time.seconds}${t("common.time_seconds_short")}`;
 }
 
 function get_urgency_color(time: TimeRemaining): {

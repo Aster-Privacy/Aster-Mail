@@ -31,6 +31,7 @@ import {
   type SnoozedItem,
   type BulkSnoozeResponse,
 } from "@/services/api/snooze";
+import { use_i18n } from "@/lib/i18n/context";
 
 interface UseSnoozeReturn {
   snooze: (mail_item_id: string, snoozed_until: Date) => Promise<void>;
@@ -46,6 +47,7 @@ interface UseSnoozeReturn {
 }
 
 export function use_snooze(): UseSnoozeReturn {
+  const { t } = use_i18n();
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
@@ -58,7 +60,7 @@ export function use_snooze(): UseSnoozeReturn {
         const response = await snooze_email(mail_item_id, snoozed_until);
 
         if (response.error) {
-          throw new Error(response.error || "failed to snooze email");
+          throw new Error(response.error || t("errors.failed_to_snooze_email"));
         }
 
         window.dispatchEvent(
@@ -72,7 +74,7 @@ export function use_snooze(): UseSnoozeReturn {
         emit_snoozed_changed();
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "failed to snooze email";
+          err instanceof Error ? err.message : t("errors.failed_to_snooze_email");
 
         set_error(message);
         throw err;
@@ -95,7 +97,7 @@ export function use_snooze(): UseSnoozeReturn {
         const response = await bulk_snooze_emails(mail_item_ids, snoozed_until);
 
         if (response.error) {
-          throw new Error(response.error || "failed to snooze emails");
+          throw new Error(response.error || t("errors.failed_to_snooze_emails"));
         }
 
         window.dispatchEvent(
@@ -135,7 +137,7 @@ export function use_snooze(): UseSnoozeReturn {
       const response = await unsnooze_email(snooze_id);
 
       if (response.error) {
-        throw new Error(response.error || "failed to unsnooze email");
+        throw new Error(response.error || t("errors.failed_to_unsnooze_email"));
       }
 
       window.dispatchEvent(
@@ -163,7 +165,7 @@ export function use_snooze(): UseSnoozeReturn {
       const response = await unsnooze_by_mail_item(mail_item_id);
 
       if (response.error) {
-        throw new Error(response.error || "failed to unsnooze email");
+        throw new Error(response.error || t("errors.failed_to_unsnooze_email"));
       }
 
       window.dispatchEvent(
@@ -191,7 +193,7 @@ export function use_snooze(): UseSnoozeReturn {
       const response = await list_snoozed_emails();
 
       if (response.error) {
-        throw new Error(response.error || "failed to list snoozed emails");
+        throw new Error(response.error || t("errors.failed_to_list_snoozed"));
       }
 
       return response.data || [];

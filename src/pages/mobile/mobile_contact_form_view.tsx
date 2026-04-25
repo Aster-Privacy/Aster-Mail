@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
+import type { TranslationKey } from "@/lib/i18n";
 
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -121,7 +122,7 @@ export function ContactFormView({
   on_update_address: (key: string, value: string) => void;
   on_update_social: (key: string, value: string) => void;
   reduce_motion: boolean;
-  t: (key: never) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   return (
     <motion.div
@@ -141,8 +142,8 @@ export function ContactFormView({
         </button>
         <span className="flex-1 text-[16px] font-semibold text-[var(--text-primary)]">
           {contact
-            ? t("common.edit" as never)
-            : t("common.add_contact" as never)}
+            ? t("common.edit")
+            : t("common.add_contact")}
         </span>
         <button
           className="rounded-lg px-4 py-1.5 text-[14px] font-semibold text-white disabled:opacity-40"
@@ -156,7 +157,7 @@ export function ContactFormView({
           type="button"
           onClick={on_save}
         >
-          {is_saving ? "..." : t("common.save" as never)}
+          {is_saving ? "..." : t("common.save")}
         </button>
       </div>
 
@@ -167,7 +168,7 @@ export function ContactFormView({
           name={
             [form_data.first_name, form_data.last_name]
               .filter(Boolean)
-              .join(" ") || t("common.add_contact" as never)
+              .join(" ") || t("common.add_contact")
           }
           size="lg"
         />
@@ -177,8 +178,8 @@ export function ContactFormView({
               .filter(Boolean)
               .join(" ") ||
               (contact
-                ? t("common.edit" as never)
-                : t("common.add_contact" as never))}
+                ? t("common.edit")
+                : t("common.add_contact"))}
           </p>
           {form_data.emails[0] && (
             <p className="truncate text-[13px] text-[var(--text-muted)]">
@@ -231,31 +232,31 @@ export function ContactFormView({
             >
               <FormSection
                 icon={<UsersIcon className="h-4 w-4" />}
-                label={t("common.name_section" as never)}
+                label={t("common.name_section")}
               >
                 <div className="flex gap-2">
                   <FormInput
                     autoFocus
                     on_change={(v) => on_update_form("first_name", v)}
-                    placeholder={t("common.first_name" as never)}
+                    placeholder={t("common.first_name")}
                     value={form_data.first_name}
                   />
                   <FormInput
                     on_change={(v) => on_update_form("last_name", v)}
-                    placeholder={t("common.last_name" as never)}
+                    placeholder={t("common.last_name")}
                     value={form_data.last_name}
                   />
                 </div>
               </FormSection>
               <FormSection
                 icon={<EnvelopeIcon className="h-4 w-4" />}
-                label={t("common.email_section" as never)}
+                label={t("common.email_section")}
               >
                 {form_data.emails.map((email, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <FormInput
                       on_change={(v) => on_update_email(i, v)}
-                      placeholder={t("auth.email" as never)}
+                      placeholder={t("auth.email")}
                       type="email"
                       value={email}
                     />
@@ -277,7 +278,7 @@ export function ContactFormView({
                     onClick={on_add_email}
                   >
                     <PlusIcon className="h-3.5 w-3.5" />
-                    {t("common.add" as never)}
+                    {t("common.add")}
                   </button>
                 )}
               </FormSection>
@@ -295,38 +296,38 @@ export function ContactFormView({
             >
               <FormSection
                 icon={<PhoneIcon className="h-4 w-4" />}
-                label={t("common.phone_section" as never)}
+                label={t("common.phone_section")}
               >
                 <FormInput
                   on_change={(v) => on_update_form("phone", v)}
-                  placeholder={t("common.phone" as never)}
+                  placeholder={t("common.phone")}
                   type="tel"
                   value={form_data.phone ?? ""}
                 />
               </FormSection>
               <FormSection
                 icon={<BuildingOfficeIcon className="h-4 w-4" />}
-                label={t("common.company" as never)}
+                label={t("common.company")}
               >
                 <FormInput
                   on_change={(v) => on_update_form("company", v)}
-                  placeholder={t("common.company" as never)}
+                  placeholder={t("common.company")}
                   value={form_data.company ?? ""}
                 />
               </FormSection>
               <FormSection
                 icon={<BriefcaseIcon className="h-4 w-4" />}
-                label={t("common.job_title" as never)}
+                label={t("common.job_title")}
               >
                 <FormInput
                   on_change={(v) => on_update_form("job_title", v)}
-                  placeholder={t("common.job_title" as never)}
+                  placeholder={t("common.job_title")}
                   value={form_data.job_title ?? ""}
                 />
               </FormSection>
               <FormSection
                 icon={<CakeIcon className="h-4 w-4" />}
-                label={t("common.birthday_section" as never)}
+                label={t("common.birthday_section")}
               >
                 <FormInput
                   on_change={(v) => on_update_form("birthday", v)}
@@ -336,11 +337,11 @@ export function ContactFormView({
               </FormSection>
               <FormSection
                 icon={<ChatBubbleLeftIcon className="h-4 w-4" />}
-                label={t("common.notes_section" as never)}
+                label={t("common.notes_section")}
               >
                 <textarea
                   className="w-full rounded-lg border border-[var(--border-primary)] bg-transparent px-3 py-2.5 text-[14px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
-                  placeholder={t("common.notes" as never)}
+                  placeholder={t("common.notes")}
                   rows={3}
                   value={form_data.notes ?? ""}
                   onChange={(e) => on_update_form("notes", e.target.value)}
@@ -360,34 +361,34 @@ export function ContactFormView({
             >
               <FormSection
                 icon={<MapPinIcon className="h-4 w-4" />}
-                label={t("common.address_section" as never)}
+                label={t("common.address_section")}
               >
                 <FormInput
                   on_change={(v) => on_update_address("street", v)}
-                  placeholder={t("common.street" as never)}
+                  placeholder={t("common.street")}
                   value={form_data.address?.street ?? ""}
                 />
                 <div className="flex gap-2">
                   <FormInput
                     on_change={(v) => on_update_address("city", v)}
-                    placeholder={t("common.city" as never)}
+                    placeholder={t("common.city")}
                     value={form_data.address?.city ?? ""}
                   />
                   <FormInput
                     on_change={(v) => on_update_address("state", v)}
-                    placeholder={t("common.state" as never)}
+                    placeholder={t("common.state")}
                     value={form_data.address?.state ?? ""}
                   />
                 </div>
                 <div className="flex gap-2">
                   <FormInput
                     on_change={(v) => on_update_address("postal_code", v)}
-                    placeholder={t("common.postal_code" as never)}
+                    placeholder={t("common.postal_code")}
                     value={form_data.address?.postal_code ?? ""}
                   />
                   <FormInput
                     on_change={(v) => on_update_address("country", v)}
-                    placeholder={t("common.country" as never)}
+                    placeholder={t("common.country")}
                     value={form_data.address?.country ?? ""}
                   />
                 </div>
@@ -406,27 +407,27 @@ export function ContactFormView({
             >
               <FormSection
                 icon={<GlobeAltIcon className="h-4 w-4" />}
-                label={t("common.social_section" as never)}
+                label={t("common.social_section")}
               >
                 <FormInput
                   on_change={(v) => on_update_social("website", v)}
-                  placeholder={t("common.website" as never)}
+                  placeholder={t("common.website")}
                   type="url"
                   value={form_data.social_links?.website ?? ""}
                 />
                 <FormInput
                   on_change={(v) => on_update_social("linkedin", v)}
-                  placeholder={t("common.linkedin" as never)}
+                  placeholder={t("common.linkedin")}
                   value={form_data.social_links?.linkedin ?? ""}
                 />
                 <FormInput
                   on_change={(v) => on_update_social("twitter", v)}
-                  placeholder={t("common.twitter_x" as never)}
+                  placeholder={t("common.twitter_x")}
                   value={form_data.social_links?.twitter ?? ""}
                 />
                 <FormInput
                   on_change={(v) => on_update_social("github", v)}
-                  placeholder={t("common.github" as never)}
+                  placeholder={t("common.github")}
                   value={form_data.social_links?.github ?? ""}
                 />
               </FormSection>

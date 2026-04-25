@@ -73,6 +73,7 @@ import {
   encrypt_for_external_recipients,
 } from "@/utils/email_crypto";
 import { is_ghost_email } from "@/stores/ghost_alias_store";
+import { en } from "@/lib/i18n/translations/en";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 const FIELD_ID_RECIPIENTS = 0x01;
@@ -173,7 +174,7 @@ export function check_send_readiness_internal(): SendReadinessResult {
       ready: false,
       error: create_error(
         "vault_unavailable",
-        "Your encryption keys are not loaded. Please re-enter your password to unlock your vault.",
+        en.errors.encryption_keys_not_loaded,
       ),
     };
   }
@@ -183,7 +184,7 @@ export function check_send_readiness_internal(): SendReadinessResult {
       ready: false,
       error: create_error(
         "vault_unavailable",
-        "Your session has expired. Please re-enter your password to continue.",
+        en.errors.session_expired_reenter,
       ),
     };
   }
@@ -323,14 +324,14 @@ export async function create_sent_envelope(
   if (!vault || !vault.identity_key) {
     throw create_error(
       "vault_unavailable",
-      "Encryption keys not available. Please log in again.",
+      en.errors.encryption_keys_unavailable,
     );
   }
 
   if (!passphrase_bytes) {
     throw create_error(
       "vault_unavailable",
-      "Session expired. Please log in again to send emails.",
+      en.errors.session_expired_send,
     );
   }
 
@@ -386,7 +387,7 @@ export async function create_sent_envelope(
     if ((err as SendError).type) {
       throw err;
     }
-    throw create_error("encryption_failed", "Failed to encrypt sent envelope");
+    throw create_error("encryption_failed", en.errors.failed_encrypt_envelope);
   }
 }
 
@@ -400,7 +401,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
   const current_account = await get_current_account();
 
   if (!current_account?.user?.email) {
-    throw new SendError("No authenticated account found");
+    throw new SendError(en.errors.no_authenticated_account);
   }
   const sender_email = email.sender_email || current_account.user.email;
 
@@ -484,10 +485,10 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
 
       throw create_error(
         "rate_limited",
-        `Daily sending limit reached. Try again in ${time}.`,
+        en.errors.daily_limit_reached.replace("{{ time }}", time),
       );
     }
-    throw create_error("send_failed", result.error || "Failed to send email");
+    throw create_error("send_failed", result.error || en.errors.failed_send_email);
   }
 
   if (effective_thread_id) {
@@ -571,7 +572,7 @@ export async function execute_external_send(
       } else if (encryption_opts.require_encryption) {
         throw create_error(
           "encryption_failed",
-          "Cannot send: encryption is required but no recipient keys were found",
+          en.errors.cannot_send_no_recipient_keys,
         );
       }
     } catch (enc_err) {
@@ -598,7 +599,7 @@ export async function execute_external_send(
   const current_account = await get_current_account();
 
   if (!current_account?.user?.email) {
-    throw new SendError("No authenticated account found");
+    throw new SendError(en.errors.no_authenticated_account);
   }
   const sender_email = email.sender_email || current_account.user.email;
 
@@ -670,12 +671,12 @@ export async function execute_external_send(
 
       throw create_error(
         "rate_limited",
-        `Daily sending limit reached. Try again in ${time}.`,
+        en.errors.daily_limit_reached.replace("{{ time }}", time),
       );
     }
     throw create_error(
       "send_failed",
-      result.error || "Failed to send external email",
+      result.error || en.errors.failed_send_external,
     );
   }
 

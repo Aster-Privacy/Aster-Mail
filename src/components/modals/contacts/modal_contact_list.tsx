@@ -142,7 +142,7 @@ export function ModalContactList({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-baseline gap-2.5">
             <h2 className="text-[17px] font-semibold text-txt-primary">
-              {t("common.contacts" as never)}
+              {t("common.contacts")}
             </h2>
             {contacts.length > 0 && (
               <span className="text-[13px] px-2 py-0.5 rounded-full bg-surf-secondary text-txt-muted">
@@ -153,7 +153,7 @@ export function ModalContactList({
           <div className="flex items-center gap-2">
             <Button className="h-10" variant="depth" onClick={on_add}>
               <PlusIcon className="w-4 h-4" />
-              {t("common.add" as never)}
+              {t("common.add")}
             </Button>
             <motion.button
               className="p-2 rounded-lg text-txt-muted"
@@ -203,7 +203,7 @@ export function ModalContactList({
           {has_selection ? (
             <div className="flex items-center gap-1 ml-1 flex-1">
               <span className="text-[13px] font-medium mr-2 text-txt-primary">
-                {t("common.selected_count" as never, {
+                {t("common.selected_count", {
                   count: selection_state.selected_count,
                 })}
               </span>
@@ -266,13 +266,13 @@ export function ModalContactList({
               <span className="text-[13px] ml-1 text-txt-muted">
                 {filtered_contacts.length === contacts.length
                   ? contacts.length === 1
-                    ? t("common.contact_count_one" as never, {
+                    ? t("common.contact_count_one", {
                         count: contacts.length,
                       })
-                    : t("common.contact_count_other" as never, {
+                    : t("common.contact_count_other", {
                         count: contacts.length,
                       })
-                  : t("common.n_of_n_contacts" as never, {
+                  : t("common.n_of_n_contacts", {
                       filtered: filtered_contacts.length,
                       total: contacts.length,
                     })}
@@ -402,7 +402,7 @@ export function ModalContactList({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-44">
                     <DropdownMenuItem onClick={() => on_export_contacts(false)}>
-                      {t("common.export_all_contacts" as never)}
+                      {t("common.export_all_contacts")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       disabled={filtered_contacts.length === contacts.length}
@@ -415,7 +415,7 @@ export function ModalContactList({
                         on_export_contacts(true);
                       }}
                     >
-                      {t("common.export_filtered_count" as never, {
+                      {t("common.export_filtered_count", {
                         count: filtered_contacts.length,
                       })}
                     </DropdownMenuItem>
@@ -458,24 +458,24 @@ export function ModalContactList({
           <div className="flex flex-col items-center justify-center py-20 px-8">
             <UserPlusIcon className="w-10 h-10 mb-4 text-txt-muted" />
             <h3 className="text-[15px] font-medium mb-1 text-txt-primary">
-              {t("common.no_contacts_yet" as never)}
+              {t("common.no_contacts_yet")}
             </h3>
             <p className="text-[13px] text-center mb-5 max-w-[240px] text-txt-muted">
-              {t("common.add_contacts_quick_email_hint" as never)}
+              {t("common.add_contacts_quick_email_hint")}
             </p>
             <Button className="h-10" variant="depth" onClick={on_add}>
               <PlusIcon className="w-3.5 h-3.5" />
-              {t("common.add_contact" as never)}
+              {t("common.add_contact")}
             </Button>
           </div>
         ) : filtered_contacts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <MagnifyingGlassIcon className="w-8 h-8 mb-3 text-txt-muted" />
             <p className="text-[14px] font-medium mb-0.5 text-txt-primary">
-              {t("common.no_results" as never)}
+              {t("common.no_results")}
             </p>
             <p className="text-[13px] text-txt-muted">
-              {t("common.no_contacts_match" as never, { query: search_query })}
+              {t("common.no_contacts_match", { query: search_query })}
             </p>
           </div>
         ) : (

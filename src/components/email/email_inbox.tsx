@@ -94,6 +94,7 @@ export function EmailInbox({
   on_scheduled_click,
   on_email_click,
   split_email_id,
+  split_local_email,
   on_split_close,
   split_scheduled_data,
   on_split_scheduled_close,
@@ -1054,6 +1055,7 @@ export function EmailInbox({
             <FullEmailViewer
               email_id={split_email_id}
               grouped_email_ids={split_email_grouped_ids}
+              local_email={split_local_email ?? undefined}
               on_back={on_split_close || (() => {})}
               on_edit_draft={handle_edit_thread_draft}
               on_forward={on_forward}
@@ -1114,6 +1116,7 @@ export function EmailInbox({
                 <SplitEmailViewer
                   email_id={split_email_id}
                   grouped_email_ids={split_email_grouped_ids}
+                  local_email={split_local_email ?? undefined}
                   on_close={on_split_close || (() => {})}
                   on_forward={on_forward}
                   on_reply={on_reply}

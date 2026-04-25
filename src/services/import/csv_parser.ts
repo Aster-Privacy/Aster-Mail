@@ -25,6 +25,7 @@ import type {
   CsvRow,
 } from "./types";
 
+import { en } from "@/lib/i18n/translations/en";
 import { MAX_FILE_SIZE } from "./types";
 import { secure_hex } from "./mime_utils";
 
@@ -161,7 +162,7 @@ export async function parse_csv_file(
     return {
       emails: [],
       errors: [
-        `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB exceeds 500MB limit`,
+        en.errors.file_too_large.replace("{{ size }}", (file.size / 1024 / 1024).toFixed(1)).replace("{{ limit }}", "500"),
       ],
       warnings: [],
     };
@@ -174,7 +175,7 @@ export async function parse_csv_file(
     if (rows.length === 0) {
       return {
         emails: [],
-        errors: ["No data found in CSV file"],
+        errors: [en.errors.no_data_in_csv],
         warnings: [],
       };
     }
@@ -189,7 +190,7 @@ export async function parse_csv_file(
       if (email) {
         emails.push(email);
       } else {
-        warnings.push(`Row ${i + 2} skipped: insufficient data`);
+        warnings.push(en.errors.row_skipped.replace("{{ number }}", String(i + 2)));
       }
 
       if (on_progress && i % 100 === 0) {
@@ -210,17 +211,17 @@ export async function parse_csv_file(
     }
 
     if (emails.length === 0) {
-      errors.push(
-        "No valid emails found. CSV should have columns like: from, to, subject, body, date",
-      );
+      errors.push(en.errors.no_valid_emails_csv);
     }
 
     return { emails, errors, warnings };
   } catch (err) {
+    const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
+
     return {
       emails: [],
       errors: [
-        `Failed to parse CSV: ${err instanceof Error ? err.message : "Unknown error"}`,
+        en.errors.failed_parse_csv.replace("{{ error }}", error_msg),
       ],
       warnings: [],
     };

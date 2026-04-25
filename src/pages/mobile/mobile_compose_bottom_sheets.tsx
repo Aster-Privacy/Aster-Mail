@@ -235,7 +235,7 @@ export function MobileScheduleSheet({
           <div className="space-y-3">
             <div>
               <label className="mb-1 block text-[12px] font-medium text-[var(--text-muted)]">
-                {t("mail.date_label" as never)}
+                {t("common.date_label")}
               </label>
               <Input
                 className="w-full"
@@ -247,7 +247,7 @@ export function MobileScheduleSheet({
             </div>
             <div>
               <label className="mb-1 block text-[12px] font-medium text-[var(--text-muted)]">
-                {t("mail.time_label" as never)}
+                {t("common.time_label")}
               </label>
               <Input
                 className="w-full"
@@ -476,7 +476,7 @@ export function MobileExpirationSheet({
           <div className="space-y-3">
             <div>
               <label className="mb-1 block text-[12px] font-medium text-[var(--text-muted)]">
-                {t("mail.date_label" as never)}
+                {t("common.date_label")}
               </label>
               <Input
                 className="w-full"
@@ -488,7 +488,7 @@ export function MobileExpirationSheet({
             </div>
             <div>
               <label className="mb-1 block text-[12px] font-medium text-[var(--text-muted)]">
-                {t("mail.time_label" as never)}
+                {t("common.time_label")}
               </label>
               <Input
                 className="w-full"

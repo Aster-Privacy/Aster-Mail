@@ -302,10 +302,11 @@ export function VacationReplyTab() {
 
           {vacation && vacation.reply_count > 0 && (
             <div className="rounded-xl bg-[var(--mobile-bg-card)] px-4 py-3 text-[13px] text-[var(--mobile-text-muted)]">
-              {vacation.reply_count}{" "}
-              {vacation.reply_count === 1 ? "reply" : "replies"} sent
+              {vacation.reply_count === 1
+                ? t("settings.vacation_one_reply_sent")
+                : t("settings.vacation_n_replies_sent", { count: vacation.reply_count })}
               {vacation.last_replied_at &&
-                ` · ${new Date(vacation.last_replied_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+                ` · ${new Date(vacation.last_replied_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`}
             </div>
           )}
 

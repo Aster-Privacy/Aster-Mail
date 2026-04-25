@@ -20,6 +20,7 @@
 //
 import type { ParsedEmail, ParseResult, ParseProgressCallback } from "./types";
 
+import { en } from "@/lib/i18n/translations/en";
 import { MAX_FILE_SIZE, MAX_SINGLE_EMAIL_SIZE } from "./types";
 import { parse_eml } from "./eml_parser";
 
@@ -31,7 +32,7 @@ export async function parse_mbox_file(
     return {
       emails: [],
       errors: [
-        `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB exceeds 500MB limit`,
+        en.errors.file_too_large.replace("{{ size }}", (file.size / 1024 / 1024).toFixed(1)).replace("{{ limit }}", "500"),
       ],
       warnings: [],
     };
@@ -63,7 +64,7 @@ export async function parse_mbox_file(
   if (total === 0) {
     return {
       emails: [],
-      errors: ["No emails found in MBOX file"],
+      errors: [en.errors.no_emails_in_mbox],
       warnings: [],
     };
   }
@@ -74,7 +75,7 @@ export async function parse_mbox_file(
     const raw_email = text.substring(start, end).trim();
 
     if (raw_email.length > MAX_SINGLE_EMAIL_SIZE) {
-      warnings.push(`Email ${i + 1} skipped: exceeds 50MB size limit`);
+      warnings.push(en.errors.email_skipped_size.replace("{{ number }}", String(i + 1)));
       continue;
     }
 
@@ -84,8 +85,10 @@ export async function parse_mbox_file(
 
         emails.push(parsed);
       } catch (err) {
+        const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
+
         errors.push(
-          `Failed to parse email ${i + 1}: ${err instanceof Error ? err.message : "Unknown error"}`,
+          en.errors.failed_parse_email.replace("{{ number }}", String(i + 1)).replace("{{ error }}", error_msg),
         );
       }
     }

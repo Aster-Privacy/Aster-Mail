@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { en } from "@/lib/i18n/translations/en";
 
 interface PublicKeyResponse {
   username: string;
@@ -196,17 +197,17 @@ export function format_fingerprint(fingerprint: string | null): string {
 export function get_key_source_label(source: string | null): string {
   switch (source) {
     case "wkd":
-      return "Web Key Directory";
+      return en.settings.key_source_wkd;
     case "keyserver":
-      return "Public Keyserver";
+      return en.settings.key_source_keyserver;
     case "autocrypt":
-      return "Autocrypt";
+      return en.settings.key_source_autocrypt;
     case "dane":
-      return "DANE";
+      return en.settings.key_source_dane;
     case "database":
-      return "Cached";
+      return en.settings.key_source_cached;
     default:
-      return "Unknown";
+      return en.settings.key_source_unknown;
   }
 }
 

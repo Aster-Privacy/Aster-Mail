@@ -655,7 +655,7 @@ export function CreateAliasSheet({
           <Input
             className="flex-1 !rounded-r-none"
             disabled={creating}
-            placeholder="myalias"
+            placeholder={t("settings.alias_local_part_placeholder")}
             status={alias_error ? "error" : "default"}
             value={alias_local}
             onChange={(e) => {

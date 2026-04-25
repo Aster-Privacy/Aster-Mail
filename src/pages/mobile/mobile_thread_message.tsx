@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
+import type { TranslationKey } from "@/lib/i18n";
 
 import { useMemo, useEffect } from "react";
 import {
@@ -89,7 +90,7 @@ export function MobileThreadMessage({
   on_open_menu: (msg: DecryptedThreadMessage) => void;
   on_external_content_detected?: (report: ExternalContentReport) => void;
   format_detail: (date: Date) => string;
-  t: (key: never) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   force_dark_mode?: boolean;
 }) {
   const { preferences } = use_preferences();
@@ -164,7 +165,7 @@ export function MobileThreadMessage({
   if (message.is_deleted) {
     return (
       <div className="px-4 py-3 text-[14px] italic text-[var(--text-muted)]">
-        {t("mail.message_deleted" as never)}
+        {t("mail.message_deleted")}
       </div>
     );
   }
@@ -278,10 +279,10 @@ export function MobileThreadMessage({
           </div>
           {is_own_message ? (
             <p className="-mt-0.5 text-[12px] leading-tight text-[var(--text-muted)]">
-              {t("mail.to_label" as never)}{" "}
+              {t("mail.to_label")}{" "}
               {message.to_recipients && message.to_recipients.length > 0
                 ? message.to_recipients.map((r) => r.name || r.email).join(", ")
-                : t("mail.unknown_recipient" as never)}
+                : t("mail.unknown_recipient")}
             </p>
           ) : (
             <p className="-mt-0.5 text-[12px] leading-tight text-[var(--text-muted)]">
@@ -334,7 +335,7 @@ export function MobileThreadMessage({
           onClick={() => on_reply(message)}
         >
           <ArrowUturnLeftIcon className="h-4 w-4" />
-          {t("mail.reply" as never)}
+          {t("mail.reply")}
         </button>
         <button
           className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
@@ -348,7 +349,7 @@ export function MobileThreadMessage({
           onClick={() => on_forward(message)}
         >
           <ArrowUturnRightIcon className="h-4 w-4" />
-          {t("mail.forward" as never)}
+          {t("mail.forward")}
         </button>
       </div>
     </div>

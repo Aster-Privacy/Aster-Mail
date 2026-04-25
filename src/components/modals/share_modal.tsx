@@ -143,7 +143,7 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
             <Input
               className="flex-1"
               id="share-invite-email"
-              placeholder="friend@example.com"
+              placeholder={t("common.email_placeholder")}
               type="email"
               value={email}
               onChange={(e) => set_email(e.target.value)}

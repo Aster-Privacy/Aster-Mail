@@ -99,7 +99,7 @@ export function ThreadDraftBadge({
         <div className="flex items-start gap-3">
           <ProfileAvatar
             email={current_user_email}
-            name={current_user_name || t("mail.me" as never)}
+            name={current_user_name || t("common.me")}
             size="md"
           />
           <div className="flex-1 min-w-0">
@@ -115,7 +115,7 @@ export function ThreadDraftBadge({
                 {t("mail.draft")}
               </span>
               <span className="text-xs font-medium text-txt-secondary">
-                {current_user_name || t("mail.me" as never)}
+                {current_user_name || t("common.me")}
               </span>
             </div>
 

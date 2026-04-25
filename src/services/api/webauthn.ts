@@ -21,6 +21,7 @@
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
 import { TotpVerifyResponse } from "./totp";
+import { en } from "@/lib/i18n/translations/en";
 
 export interface HardwareKeyInfo {
   id: string;
@@ -212,11 +213,11 @@ export async function perform_webauthn_registration(
       publicKey: public_key,
     })) as PublicKeyCredential | null;
   } catch {
-    return { data: undefined, error: "Registration failed or was cancelled" };
+    return { data: undefined, error: en.errors.registration_failed };
   }
 
   if (!credential) {
-    return { data: undefined, error: "Registration cancelled" };
+    return { data: undefined, error: en.errors.registration_cancelled };
   }
 
   const attestation_response =
@@ -264,11 +265,11 @@ export async function perform_webauthn_assertion(
       publicKey: public_key,
     })) as PublicKeyCredential | null;
   } catch {
-    return { data: undefined, error: "Authentication failed or was cancelled" };
+    return { data: undefined, error: en.errors.authentication_failed_webauthn };
   }
 
   if (!credential) {
-    return { data: undefined, error: "Authentication cancelled" };
+    return { data: undefined, error: en.errors.authentication_cancelled };
   }
 
   const assertion_response =

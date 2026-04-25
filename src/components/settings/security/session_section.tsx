@@ -184,7 +184,7 @@ export function SessionSection({
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-txt-primary flex items-center gap-2 flex-wrap">
                         <span className="truncate">
-                          {session.browser} on {session.os}
+                          {t("settings.browser_on_os", { browser: session.browser, os: session.os })}
                         </span>
                         {session.is_current && (
                           <Badge color="blue">

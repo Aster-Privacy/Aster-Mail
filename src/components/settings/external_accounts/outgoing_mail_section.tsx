@@ -101,7 +101,7 @@ export function OutgoingMailSection({
                 className="w-full"
                 id="ext-account-smtp-host"
                 maxLength={253}
-                placeholder="smtp.example.com"
+                placeholder={t("settings.smtp_host_placeholder")}
                 type="text"
                 value={form_smtp_host}
                 onChange={(e) => handle_smtp_host_change(e.target.value)}
@@ -138,7 +138,7 @@ export function OutgoingMailSection({
                 className="w-full"
                 id="ext-account-smtp-username"
                 maxLength={254}
-                placeholder="user@example.com"
+                placeholder={t("settings.username_placeholder")}
                 type="text"
                 value={form_smtp_username}
                 onChange={(e) => handle_smtp_username_change(e.target.value)}

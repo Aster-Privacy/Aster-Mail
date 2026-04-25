@@ -118,7 +118,7 @@ export function FeedbackSection() {
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-xs text-txt-muted">
-          Email:{" "}
+          {t("settings.email_label")}{" "}
           <a
             className="text-[var(--accent-color)] hover:underline cursor-pointer"
             href="mailto:hello@astermail.org"

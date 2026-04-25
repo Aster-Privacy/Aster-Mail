@@ -329,8 +329,9 @@ export function SearchModal({
             ))}
             {filtered_folders.length > 5 && (
               <div className="px-3 py-1.5 text-[11px] text-txt-muted">
-                +{filtered_folders.length - 5} more folder
-                {filtered_folders.length - 5 !== 1 ? "s" : ""}
+                {t("mail.more_folders_count", {
+                  count: filtered_folders.length - 5,
+                })}
               </div>
             )}
           </div>

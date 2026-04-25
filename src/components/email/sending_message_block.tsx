@@ -58,7 +58,7 @@ export function SendingMessageBlock({
   const { preferences } = use_preferences();
   const clean_body = useMemo(() => strip_quotes(message.body), [message.body]);
   const display_name =
-    current_user_name || message.sender_name || t("mail.me" as never);
+    current_user_name || message.sender_name || t("common.me");
 
   return (
     <div

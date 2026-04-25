@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UnsubscribeInfo } from "@/types/email";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { proxy_unsubscribe } from "@/services/api/subscriptions";
 import { open_external } from "@/utils/open_link";
@@ -216,14 +217,23 @@ export function has_unsubscribe_content(content?: string): boolean {
   return false;
 }
 
-export function get_unsubscribe_display_text(info: UnsubscribeInfo): string {
+export function get_unsubscribe_display_text(
+  info: UnsubscribeInfo,
+  t?: (key: TranslationKey) => string,
+): string {
   switch (info.method) {
     case "one-click":
-      return "One-click unsubscribe available";
+      return t
+        ? t("common.one_click_unsubscribe_available")
+        : "One-click unsubscribe available";
     case "link":
-      return "Unsubscribe link found";
+      return t
+        ? t("common.unsubscribe_link_available")
+        : "Unsubscribe link available";
     case "mailto":
-      return "Email unsubscribe available";
+      return t
+        ? t("common.email_unsubscribe_available")
+        : "Email unsubscribe available";
     default:
       return "";
   }

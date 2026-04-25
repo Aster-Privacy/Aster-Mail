@@ -58,7 +58,7 @@ export function ProfilePopup({
   const handle_copy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(email);
-      on_copy?.(email, "Email");
+      on_copy?.(email, t("common.email"));
       show_toast(t("common.email_copied"), "success");
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -71,10 +71,10 @@ export function ProfilePopup({
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
-      on_copy?.(email, "Email");
+      on_copy?.(email, t("common.email"));
       show_toast(t("common.email_copied"), "success");
     }
-  }, [email, on_copy]);
+  }, [email, on_copy, t]);
 
   const handle_compose = useCallback(() => {
     on_compose?.(email);
@@ -129,7 +129,7 @@ export function ProfilePopup({
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-edge-secondary">
               <span className="text-[13px] font-medium text-txt-primary">
-                Profile
+                {t("common.profile")}
               </span>
               <button
                 className="p-1.5 rounded-lg transition-colors hover:bg-surf-hover"
@@ -160,7 +160,7 @@ export function ProfilePopup({
                 <EnvelopeIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-medium uppercase tracking-wider text-txt-muted">
-                    Email
+                    {t("common.email")}
                   </p>
                   <p className="text-[13px] truncate text-txt-primary">
                     {email}
@@ -184,7 +184,7 @@ export function ProfilePopup({
                     onClick={handle_compose}
                   >
                     <PaperAirplaneIcon className="w-4 h-4" />
-                    Send Email
+                    {t("mail.send_email")}
                   </Button>
                 </div>
               )}

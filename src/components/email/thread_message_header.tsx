@@ -93,19 +93,19 @@ export function ThreadMessageHeader({
         {message.send_status === "bounced" && (
           <span className="inline-flex items-center gap-1 text-xs text-red-500">
             <ExclamationTriangleIcon className="h-3.5 w-3.5" />
-            Bounced
+            {t("mail.bounced")}
           </span>
         )}
         {message.send_status === "failed" && (
           <span className="inline-flex items-center gap-1 text-xs text-red-500">
             <ExclamationTriangleIcon className="h-3.5 w-3.5" />
-            Failed
+            {t("mail.failed_status")}
           </span>
         )}
         {message.send_status === "delivered" && (
           <span className="inline-flex items-center gap-1 text-xs text-green-500">
             <CheckCircleIcon className="h-3.5 w-3.5" />
-            Delivered
+            {t("mail.delivered")}
           </span>
         )}
       </div>

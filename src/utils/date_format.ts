@@ -41,20 +41,6 @@ function pad(n: number): string {
   return n < 10 ? `0${n}` : `${n}`;
 }
 
-function ordinal_suffix(day: number): string {
-  if (day >= 11 && day <= 13) return `${day}th`;
-  switch (day % 10) {
-    case 1:
-      return `${day}st`;
-    case 2:
-      return `${day}nd`;
-    case 3:
-      return `${day}rd`;
-    default:
-      return `${day}th`;
-  }
-}
-
 export function format_date(
   date: Date,
   options: FormatOptions = DEFAULT_OPTIONS,
@@ -85,7 +71,11 @@ export function format_time(
     return `${pad(hours)}:${minutes}`;
   }
 
-  const period = hours >= 12 ? "PM" : "AM";
+  const parts = new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    hour12: true,
+  }).formatToParts(date);
+  const period = parts.find((p) => p.type === "dayPeriod")?.value ?? (hours >= 12 ? "PM" : "AM");
   const hours_12 = hours % 12 || 12;
 
   return `${hours_12}:${minutes} ${period}`;
@@ -96,81 +86,39 @@ export function format_date_short(
   options: FormatOptions = DEFAULT_OPTIONS,
 ): string {
   const day = date.getDate();
-  const month_names = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  const month = month_names[date.getMonth()];
-
-  const day_str = ordinal_suffix(day);
+  const month = new Intl.DateTimeFormat(undefined, { month: "short" }).format(date);
 
   switch (options.date_format) {
     case "DD/MM/YYYY":
-      return `${day_str} ${month}`;
+      return `${day} ${month}`;
     case "YYYY-MM-DD":
-      return `${month} ${day_str}`;
+      return `${month} ${day}`;
     case "MM/DD/YYYY":
     default:
-      return `${month} ${day_str}`;
+      return `${month} ${day}`;
   }
 }
 
 export function format_weekday_short(date: Date): string {
-  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-  return weekdays[date.getDay()];
+  return new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(date);
 }
 
 export function format_full_date(
   date: Date,
   options: FormatOptions = DEFAULT_OPTIONS,
 ): string {
-  const weekdays = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-
-  const weekday = weekdays[date.getDay()];
-  const month = months[date.getMonth()];
-  const day_str = ordinal_suffix(date.getDate());
+  const weekday = new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(date);
+  const month = new Intl.DateTimeFormat(undefined, { month: "long" }).format(date);
+  const day = date.getDate();
 
   switch (options.date_format) {
     case "DD/MM/YYYY":
-      return `${weekday}, ${day_str} ${month}`;
+      return `${weekday}, ${day} ${month}`;
     case "YYYY-MM-DD":
-      return `${weekday}, ${month} ${day_str}`;
+      return `${weekday}, ${month} ${day}`;
     case "MM/DD/YYYY":
     default:
-      return `${weekday}, ${month} ${day_str}`;
+      return `${weekday}, ${month} ${day}`;
   }
 }
 
@@ -186,7 +134,14 @@ export function format_full_datetime(
     });
   }
 
-  return `${format_full_date(date, options)} at ${format_time(date, options)}`;
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: options.time_format === "12h",
+  }).format(date);
 }
 
 export function format_timestamp_smart(

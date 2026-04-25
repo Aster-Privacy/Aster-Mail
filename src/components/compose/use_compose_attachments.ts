@@ -20,6 +20,7 @@
 //
 import { useState, useEffect, useRef, useCallback } from "react";
 
+import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
 import {
   type Attachment,
@@ -44,6 +45,7 @@ export interface UseComposeAttachmentsReturn {
 }
 
 export function use_compose_attachments(): UseComposeAttachmentsReturn {
+  const { t } = use_i18n();
   const [attachments, set_attachments] = useState<Attachment[]>([]);
   const [attachment_error, set_attachment_error] = useState<string | null>(
     null,
@@ -81,12 +83,12 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         const file = files[i];
 
         if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(`"${file.name}" exceeds max size of 25MB`);
+          set_attachment_error(t("common.file_exceeds_max_size", { name: file.name }));
           continue;
         }
 
         if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          set_attachment_error(`Total attachments exceed 50MB limit`);
+          set_attachment_error(t("common.total_attachments_exceed_limit"));
           continue;
         }
 
@@ -96,14 +98,14 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           !ALLOWED_MIME_TYPES.has(mime_type) &&
           !mime_type.startsWith("text/")
         ) {
-          set_attachment_error(`Unsupported file type`);
+          set_attachment_error(t("common.unsupported_file_type"));
           continue;
         }
 
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(`"${file.name}" already attached`);
+          set_attachment_error(t("common.file_already_attached", { name: file.name }));
           continue;
         }
 
@@ -121,7 +123,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           running_total += file.size;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(`Failed to read "${file.name}"`);
+          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
         }
       }
 
@@ -133,7 +135,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         file_input_ref.current.value = "";
       }
     },
-    [attachments, get_total_attachments_size],
+    [attachments, get_total_attachments_size, t],
   );
 
   const handle_files_drop = useCallback(
@@ -145,12 +147,12 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
       for (const file of files) {
         if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(`"${file.name}" exceeds max size of 25MB`);
+          set_attachment_error(t("common.file_exceeds_max_size", { name: file.name }));
           continue;
         }
 
         if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          set_attachment_error(`Total attachments exceed 50MB limit`);
+          set_attachment_error(t("common.total_attachments_exceed_limit"));
           continue;
         }
 
@@ -160,14 +162,14 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           !ALLOWED_MIME_TYPES.has(mime_type) &&
           !mime_type.startsWith("text/")
         ) {
-          set_attachment_error(`Unsupported file type`);
+          set_attachment_error(t("common.unsupported_file_type"));
           continue;
         }
 
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(`"${file.name}" already attached`);
+          set_attachment_error(t("common.file_already_attached", { name: file.name }));
           continue;
         }
 
@@ -185,7 +187,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           running_total += file.size;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(`Failed to read "${file.name}"`);
+          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
         }
       }
 
@@ -193,7 +195,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         set_attachments((prev) => [...prev, ...new_attachments]);
       }
     },
-    [attachments, get_total_attachments_size],
+    [attachments, get_total_attachments_size, t],
   );
 
   const trigger_file_select = useCallback(() => {

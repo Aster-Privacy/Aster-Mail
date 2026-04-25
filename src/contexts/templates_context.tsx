@@ -29,6 +29,7 @@ import {
 } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
+import { use_i18n } from "@/lib/i18n/context";
 import {
   list_templates,
   type DecryptedTemplate,
@@ -50,6 +51,7 @@ interface TemplatesProviderProps {
 
 export function TemplatesProvider({ children }: TemplatesProviderProps) {
   const { vault, is_authenticated, is_completing_registration } = use_auth();
+  const { t } = use_i18n();
   const [templates, set_templates] = useState<DecryptedTemplate[]>([]);
   const [is_loading, set_is_loading] = useState(true);
 
@@ -85,7 +87,7 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
   const grouped_templates = useMemo(() => {
     return templates.reduce(
       (acc, template) => {
-        const category = template.category || "Uncategorized";
+        const category = template.category || t("common.uncategorized");
 
         if (!acc[category]) {
           acc[category] = [];
@@ -96,7 +98,7 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
       },
       {} as Record<string, DecryptedTemplate[]>,
     );
-  }, [templates]);
+  }, [templates, t]);
 
   const get_template_by_id = useCallback(
     (id: string): DecryptedTemplate | undefined => {

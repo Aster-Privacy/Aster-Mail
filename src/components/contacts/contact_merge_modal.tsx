@@ -32,6 +32,7 @@ import { Button } from "@aster/ui";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { cn } from "@/lib/utils";
 import {
   merge_contacts,
@@ -56,8 +57,8 @@ interface MergePreferences {
   address: FieldPreference;
 }
 
-function get_full_name(contact: DecryptedContact): string {
-  return `${contact.first_name} ${contact.last_name}`.trim() || "No name";
+function get_full_name(contact: DecryptedContact, t: (key: TranslationKey) => string): string {
+  return `${contact.first_name} ${contact.last_name}`.trim() || t("common.no_name");
 }
 
 function get_initials(contact: DecryptedContact): string {
@@ -185,7 +186,7 @@ export function ContactMergeModal({
                   get_initials(contact_1)
                 )}
               </div>
-              <p className="font-medium text-sm">{get_full_name(contact_1)}</p>
+              <p className="font-medium text-sm">{get_full_name(contact_1, t)}</p>
               {contact_1.emails[0] && (
                 <p className="text-xs text-foreground-500 truncate">
                   {contact_1.emails[0]}
@@ -205,7 +206,7 @@ export function ContactMergeModal({
                   get_initials(contact_2)
                 )}
               </div>
-              <p className="font-medium text-sm">{get_full_name(contact_2)}</p>
+              <p className="font-medium text-sm">{get_full_name(contact_2, t)}</p>
               {contact_2.emails[0] && (
                 <p className="text-xs text-foreground-500 truncate">
                   {contact_2.emails[0]}
@@ -223,8 +224,8 @@ export function ContactMergeModal({
               label={t("common.name")}
               on_select={(v) => update_preference("name", v as FieldPreference)}
               selected={preferences.name}
-              value_1={get_full_name(contact_1)}
-              value_2={get_full_name(contact_2)}
+              value_1={get_full_name(contact_1, t)}
+              value_2={get_full_name(contact_2, t)}
             />
 
             <EmailFieldSelector
@@ -463,7 +464,7 @@ function EmailFieldSelector({
             )}
           </div>
           <span className="text-xs text-foreground-500">
-            {merged_emails.length} email{merged_emails.length !== 1 ? "s" : ""}
+            {merged_emails.length === 1 ? t("common.one_email") : t("common.n_emails", { count: merged_emails.length })}
           </span>
         </button>
         <button
@@ -483,7 +484,7 @@ function EmailFieldSelector({
             )}
           </div>
           <span className="text-xs text-foreground-500">
-            {emails_1.length} email{emails_1.length !== 1 ? "s" : ""}
+            {emails_1.length === 1 ? t("common.one_email") : t("common.n_emails", { count: emails_1.length })}
           </span>
         </button>
         <button
@@ -503,7 +504,7 @@ function EmailFieldSelector({
             )}
           </div>
           <span className="text-xs text-foreground-500">
-            {emails_2.length} email{emails_2.length !== 1 ? "s" : ""}
+            {emails_2.length === 1 ? t("common.one_email") : t("common.n_emails", { count: emails_2.length })}
           </span>
         </button>
       </div>

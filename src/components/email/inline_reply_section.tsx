@@ -178,7 +178,7 @@ export const InlineReplySection = forwardRef<
         to_recipients: [sender_email],
         cc_recipients: [],
         bcc_recipients: [],
-        subject: subject.startsWith("Re:") ? subject : `Re: ${subject}`,
+        subject: subject.startsWith(t("mail.reply_subject_prefix")) ? subject : `${t("mail.reply_subject_prefix")} ${subject}`,
         message: text,
       };
 
@@ -336,9 +336,9 @@ export const InlineReplySection = forwardRef<
     const sending_message: DecryptedThreadMessage = {
       id: `sending_${Date.now()}`,
       item_type: "sent",
-      sender_name: user?.display_name || user?.email || t("mail.me" as never),
+      sender_name: user?.display_name || user?.email || t("common.me"),
       sender_email: user?.email || "",
-      subject: subject.startsWith("Re:") ? subject : `Re: ${subject}`,
+      subject: subject.startsWith(t("mail.reply_subject_prefix")) ? subject : `${t("mail.reply_subject_prefix")} ${subject}`,
       body: reply_text.trim(),
       timestamp: new Date().toISOString(),
       is_read: true,
@@ -395,9 +395,9 @@ export const InlineReplySection = forwardRef<
             id: `temp_${Date.now()}`,
             item_type: "sent",
             sender_name:
-              user?.display_name || user?.email || t("mail.me" as never),
+              user?.display_name || user?.email || t("common.me"),
             sender_email: user?.email || "",
-            subject: subject.startsWith("Re:") ? subject : `Re: ${subject}`,
+            subject: subject.startsWith(t("mail.reply_subject_prefix")) ? subject : `${t("mail.reply_subject_prefix")} ${subject}`,
             body: reply_text.trim(),
             timestamp: new Date().toISOString(),
             is_read: true,

@@ -256,7 +256,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         });
 
         if (job_response.error || !job_response.data) {
-          throw new Error(job_response.error || "Failed to create import job");
+          throw new Error(job_response.error || t("settings.failed_create_import_job"));
         }
 
         job_id = job_response.data.id;

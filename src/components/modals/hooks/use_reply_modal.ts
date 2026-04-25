@@ -261,7 +261,7 @@ export function use_reply_modal({
   const format_date = useCallback((timestamp: string): string => {
     const date = new Date(timestamp);
 
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(undefined, {
       weekday: "short",
       year: "numeric",
       month: "short",
@@ -282,7 +282,7 @@ export function use_reply_modal({
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
-      const header = `On ${formatted_date}, ${safe_name} &lt;${safe_email}&gt; wrote:`;
+      const header = t("mail.reply_quote_header", { date: formatted_date, name: `${safe_name} &lt;${safe_email}&gt;` });
 
       if (for_display) {
         const plain_body = original_body
@@ -321,6 +321,7 @@ export function use_reply_modal({
       return `<br><br><div class="aster_quote"><div class="aster_quote_attr">${header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${original_body}</blockquote></div>`;
     },
     [
+      t,
       original_body,
       original_timestamp,
       recipient_email,
@@ -479,9 +480,9 @@ export function use_reply_modal({
 
       set_draft_status("saving");
 
-      const subject = original_subject.startsWith("Re:")
+      const subject = original_subject.startsWith(t("mail.reply_subject_prefix"))
         ? original_subject
-        : `Re: ${original_subject}`;
+        : `${t("mail.reply_subject_prefix")} ${original_subject}`;
 
       const content: DraftContent = {
         to_recipients: [recipient_email],
@@ -543,6 +544,7 @@ export function use_reply_modal({
       }
     },
     [
+      t,
       thread_token,
       original_email_id,
       original_subject,
@@ -611,7 +613,7 @@ export function use_reply_modal({
   );
 
   const handle_insert_link = useCallback(() => {
-    const url = prompt("Enter URL:", "https://");
+    const url = prompt(t("common.enter_url"), "https://");
 
     if (url?.trim()) {
       const trimmed_url = url.trim();
@@ -620,7 +622,7 @@ export function use_reply_modal({
 
       if (!selected_text) {
         const link_text =
-          prompt("Enter link text:", trimmed_url) || trimmed_url;
+          prompt(t("common.enter_link_text"), trimmed_url) || trimmed_url;
 
         editor.insert_link(trimmed_url, link_text);
       } else {
@@ -667,7 +669,7 @@ export function use_reply_modal({
     const message_with_signature = reply_message.trim() + quoted_content;
 
     if (selected_sender?.type === "external" && selected_sender.address_hash) {
-      const subject = `Re: ${original_subject.replace(/^Re:\s*/i, "")}`;
+      const subject = `${t("mail.reply_subject_prefix")} ${original_subject.replace(/^Re:\s*/i, "")}`;
       const external_attachments =
         attachments.length > 0
           ? prepare_external_attachments(attachments)
@@ -781,7 +783,7 @@ export function use_reply_modal({
         undo_send_manager.add({
           id: result.queued_id,
           to: [recipient_email],
-          subject: `Re: ${original_subject.replace(/^Re:\s*/i, "")}`,
+          subject: `${t("mail.reply_subject_prefix")} ${original_subject.replace(/^Re:\s*/i, "")}`,
           body: message_with_signature,
           scheduled_time: Date.now() + delay_ms,
           total_seconds: delay_seconds,
@@ -795,6 +797,7 @@ export function use_reply_modal({
       set_is_sending(false);
     }
   }, [
+    t,
     reply_message,
     is_sending,
     recipient_email,
@@ -832,9 +835,9 @@ export function use_reply_modal({
       to_recipients: [recipient_email],
       cc_recipients: [],
       bcc_recipients: [],
-      subject: original_subject.startsWith("Re:")
+      subject: original_subject.startsWith(t("mail.reply_subject_prefix"))
         ? original_subject
-        : `Re: ${original_subject}`,
+        : `${t("mail.reply_subject_prefix")} ${original_subject}`,
       body: message_with_signature,
       scheduled_at: scheduled_time.toISOString(),
     };
@@ -873,6 +876,7 @@ export function use_reply_modal({
       is_sending_ref.current = false;
     }
   }, [
+    t,
     reply_message,
     user,
     vault,
@@ -921,14 +925,14 @@ export function use_reply_modal({
 
         if (file.size > MAX_ATTACHMENT_SIZE) {
           set_attachment_error(
-            `"${file.name}" exceeds the maximum file size of 25MB`,
+            t("common.file_exceeds_max_size", { name: file.name }),
           );
           continue;
         }
 
         if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
           set_attachment_error(
-            `Adding "${file.name}" would exceed the total attachment limit of 50MB`,
+            t("common.adding_file_would_exceed_limit", { name: file.name }),
           );
           continue;
         }
@@ -939,14 +943,14 @@ export function use_reply_modal({
           !ALLOWED_MIME_TYPES.has(mime_type) &&
           !mime_type.startsWith("text/")
         ) {
-          set_attachment_error(`"${file.name}" has an unsupported file type`);
+          set_attachment_error(t("common.unsupported_file_type", { name: file.name }));
           continue;
         }
 
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(`"${file.name}" is already attached`);
+          set_attachment_error(t("common.file_already_attached", { name: file.name }));
           continue;
         }
 
@@ -964,7 +968,7 @@ export function use_reply_modal({
           running_total += file.size;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(`Failed to read "${file.name}"`);
+          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
         }
       }
 
@@ -976,7 +980,7 @@ export function use_reply_modal({
         file_input_ref.current.value = "";
       }
     },
-    [attachments, get_total_attachments_size],
+    [attachments, get_total_attachments_size, t],
   );
 
   const handle_files_drop = useCallback(
@@ -989,14 +993,14 @@ export function use_reply_modal({
       for (const file of files) {
         if (file.size > MAX_ATTACHMENT_SIZE) {
           set_attachment_error(
-            `"${file.name}" exceeds the maximum file size of 25MB`,
+            t("common.file_exceeds_max_size", { name: file.name }),
           );
           continue;
         }
 
         if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
           set_attachment_error(
-            `Adding "${file.name}" would exceed the total attachment limit of 50MB`,
+            t("common.adding_file_would_exceed_limit", { name: file.name }),
           );
           continue;
         }
@@ -1007,14 +1011,14 @@ export function use_reply_modal({
           !ALLOWED_MIME_TYPES.has(mime_type) &&
           !mime_type.startsWith("text/")
         ) {
-          set_attachment_error(`"${file.name}" has an unsupported file type`);
+          set_attachment_error(t("common.unsupported_file_type", { name: file.name }));
           continue;
         }
 
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(`"${file.name}" is already attached`);
+          set_attachment_error(t("common.file_already_attached", { name: file.name }));
           continue;
         }
 
@@ -1032,7 +1036,7 @@ export function use_reply_modal({
           running_total += file.size;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(`Failed to read "${file.name}"`);
+          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
         }
       }
 
@@ -1040,7 +1044,7 @@ export function use_reply_modal({
         set_attachments((prev) => [...prev, ...new_attachments]);
       }
     },
-    [attachments, get_total_attachments_size],
+    [attachments, get_total_attachments_size, t],
   );
 
   files_drop_ref.current = handle_files_drop;

@@ -320,11 +320,9 @@ export function AccountSection() {
         set_photo_error(t("common.failed_save_profile_picture"));
         set_preview(null);
       }
-    } catch (err) {
+    } catch {
       set_preview(null);
-      set_photo_error(
-        err instanceof Error ? err.message : t("common.failed_upload_image"),
-      );
+      set_photo_error(t("common.failed_upload_image"));
     } finally {
       set_uploading(false);
       if (file_ref.current) {

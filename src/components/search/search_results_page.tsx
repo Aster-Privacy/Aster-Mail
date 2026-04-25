@@ -758,15 +758,15 @@ export function SearchResultsPage({
             className="text-sm font-medium mb-1"
             style={{ color: "var(--text-primary)" }}
           >
-            No results found
+            {t("mail.no_results_found")}
           </p>
           <p
             className="text-xs text-center max-w-[280px]"
             style={{ color: "var(--text-muted)" }}
           >
             {active_filter_count > 0
-              ? "Try adjusting your filters or search for something else"
-              : `No emails match "${query}"`}
+              ? t("mail.try_adjusting_filters")
+              : t("mail.no_emails_match_query", { query })}
           </p>
         </div>
       ) : (

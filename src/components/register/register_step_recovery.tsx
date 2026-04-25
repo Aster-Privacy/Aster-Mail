@@ -292,7 +292,7 @@ export const RegisterStepRecoveryEmail = ({
           autoFocus
           autoComplete="email"
           disabled={reg.is_saving_recovery_email}
-          placeholder="backup@email.com"
+          placeholder={reg.t("auth.backup_email_placeholder")}
           status={reg.recovery_email_error ? "error" : "default"}
           type="email"
           value={reg.recovery_email}

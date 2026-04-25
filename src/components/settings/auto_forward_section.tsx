@@ -253,7 +253,7 @@ export function AutoForwardSection() {
   const format_date = (date_string: string) => {
     const date = new Date(date_string);
 
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -262,9 +262,9 @@ export function AutoForwardSection() {
 
   const format_count = (count: number): string => {
     if (count === 0) return "";
-    if (count >= 1000) return `${(count / 1000).toFixed(1)}k forwarded`;
+    if (count >= 1000) return t("mail.forwarded_count_k", { count: (count / 1000).toFixed(1) });
 
-    return `${count} forwarded`;
+    return t("mail.forwarded_count", { count });
   };
 
   const get_forward_favicon_url = (forward_to: string[]): string | null => {
@@ -489,7 +489,7 @@ export function AutoForwardSection() {
                     <p className="text-[11px] mt-0.5 text-txt-muted">
                       {format_count(rule.forwarded_count)}
                       {rule.last_forwarded_at &&
-                        ` · Last: ${format_date(rule.last_forwarded_at)}`}
+                        ` · ${t("mail.last_forwarded", { date: format_date(rule.last_forwarded_at) })}`}
                     </p>
                   )}
                 </div>

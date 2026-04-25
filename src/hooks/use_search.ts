@@ -50,6 +50,7 @@ import {
 } from "@/utils/search_operators";
 import { use_auth } from "@/contexts/auth_context";
 import { decrypt_body_text } from "@/utils/email_crypto";
+import { use_i18n } from "@/lib/i18n/context";
 
 export interface ActiveFilter {
   id: string;
@@ -771,6 +772,7 @@ function to_search_result(
 
 export function use_search() {
   const { user } = use_auth();
+  const { t } = use_i18n();
   const [state, set_state] = useState<SearchState>({
     query: "",
     results: [],
@@ -914,7 +916,7 @@ export function use_search() {
           has_more: false,
         }));
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Search failed";
+        const message = err instanceof Error ? err.message : "";
         const is_fetch_error = message.startsWith("search_fetch_failed:");
 
         set_state((prev) => ({
@@ -922,8 +924,8 @@ export function use_search() {
           is_searching: false,
           index_building: false,
           error: is_fetch_error
-            ? "Unable to load emails for search. Please try again."
-            : "Search failed. Please try again.",
+            ? t("common.search_load_failed_try_again")
+            : t("common.search_failed_try_again"),
         }));
       }
     },

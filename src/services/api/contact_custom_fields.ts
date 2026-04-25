@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { en } from "@/lib/i18n/translations/en";
 import type {
   CustomFieldDefinition,
   CustomFieldValue,
@@ -167,7 +168,7 @@ export async function list_contact_custom_field_values(
           id: item.id,
           contact_id: item.contact_id,
           field_definition_id: item.field_definition_id,
-          field_name: definition?.name || "Unknown",
+          field_name: definition?.name || en.common.unknown,
           field_type: definition?.field_type || "text",
           value: new TextDecoder().decode(decrypted_value),
           created_at: item.created_at,

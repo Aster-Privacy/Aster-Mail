@@ -481,7 +481,7 @@ export function use_context_menu_actions({
       if (is_drafts_view || is_scheduled_view) return;
 
       const folder_data = folders_lookup.get(folder_token);
-      const folder_name = folder_data?.name || "folder";
+      const folder_name = folder_data?.name || t("common.folder_fallback");
       const previous_folders = email.folders || [];
       const is_already_assigned = previous_folders.some(
         (f) => f.folder_token === folder_token,
@@ -560,7 +560,7 @@ export function use_context_menu_actions({
       if (is_drafts_view || is_scheduled_view) return;
 
       const tag_data = tags_lookup.get(tag_token);
-      const tag_name = tag_data?.name || "label";
+      const tag_name = tag_data?.name || t("common.label_fallback");
       const previous_tags = email.tags || [];
       const is_already_assigned = previous_tags.some((t) => t.id === tag_token);
       const all_ids =

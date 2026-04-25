@@ -22,6 +22,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
+import { use_i18n } from "@/lib/i18n/context";
 
 import {
   BACK_BUTTON_CLASS,
@@ -103,10 +104,11 @@ const SECTIONS = [
 
 export default function TermsOfServicePage() {
   const navigate = useNavigate();
+  const { t } = use_i18n();
 
   useEffect(() => {
-    document.title = "Terms of Service | Aster Mail";
-  }, []);
+    document.title = `${t("auth.terms_of_service")} | ${t("common.aster_mail")}`;
+  }, [t]);
 
   return (
     <motion.div
@@ -138,20 +140,16 @@ export default function TermsOfServicePage() {
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-txt-primary">
-            Terms of Service
+            {t("auth.terms_of_service_heading")}
           </h1>
           <p className="mt-2 text-xs text-txt-muted">
-            Effective date: {LAST_UPDATED}
+            {t("auth.effective_date", { date: LAST_UPDATED })}
           </p>
         </div>
 
         <div className="rounded-xl border p-5 mb-5 bg-surf-card border-edge-primary">
           <p className="text-sm text-txt-secondary leading-relaxed">
-            Welcome to Aster Mail, operated by Aster Communications Inc. These
-            Terms of Service constitute a legally binding agreement between you
-            and Aster Communications Inc. governing your use of our end-to-end
-            encrypted email service and related products. Please read these
-            terms carefully before using our services.
+            {t("auth.terms_of_service_intro")}
           </p>
         </div>
 
@@ -176,9 +174,9 @@ export default function TermsOfServicePage() {
             className="transition-colors hover:text-txt-secondary"
             to="/privacy"
           >
-            View Privacy Policy &rarr;
+            {t("auth.view_privacy_policy")} &rarr;
           </Link>
-          <span>&copy; 2026 Aster Communications Inc.</span>
+          <span>{t("auth.copyright", { year: "2026" })}</span>
         </div>
       </div>
     </motion.div>

@@ -21,6 +21,7 @@
 import { get_sync_progress } from "@/services/api/external_accounts";
 import { show_toast } from "@/components/toast/simple_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { en } from "@/lib/i18n/translations/en";
 
 export interface SyncProgressState {
   status: string;
@@ -109,10 +110,10 @@ export function start_sync_polling(
               }),
             );
           } else {
-            show_toast("Sync complete", "success");
+            show_toast(en.common.sync_complete, "success");
           }
         } else {
-          show_toast(result.data.error_message || "Sync failed", "error");
+          show_toast(result.data.error_message || en.common.sync_failed, "error");
         }
 
         setTimeout(() => {

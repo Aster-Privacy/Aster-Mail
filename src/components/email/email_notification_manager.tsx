@@ -48,7 +48,7 @@ export function EmailNotificationManager() {
       show_notification(
         "new_email",
         {
-          title: "AsterMail",
+          title: t("common.aster_mail"),
           body: t("common.new_email_body"),
           tag: `email-${email_id}`,
           data: email_id ? { email_id } : undefined,

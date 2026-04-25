@@ -28,12 +28,19 @@ import {
   ArrowUturnLeftIcon,
   QuestionMarkCircleIcon,
   Cog6ToothIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 
 import { use_preferences } from "@/contexts/preferences_context";
-import { get_dev_mode, save_dev_mode } from "@/services/api/preferences";
+import {
+  get_dev_mode,
+  save_dev_mode,
+  get_spam_settings,
+  save_spam_settings,
+} from "@/services/api/preferences";
+import type { SpamSettings } from "@/services/api/preferences";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
   Select,
@@ -138,6 +145,9 @@ export function BehaviorSection() {
     null,
   );
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
+  const [spam_settings, set_spam_settings] = useState<SpamSettings | null>(
+    null,
+  );
   const [show_grouping_dialog, set_show_grouping_dialog] = useState(false);
   const [mailto_registered, set_mailto_registered] = useState(() => {
     try {
@@ -152,6 +162,9 @@ export function BehaviorSection() {
     const vault = get_vault_from_memory();
 
     get_dev_mode(vault).then((result) => set_dev_mode_enabled(result.data));
+    get_spam_settings().then((result) => {
+      if (result.data) set_spam_settings(result.data);
+    });
   }, []);
 
   const handle_dev_mode_toggle = async () => {
@@ -540,6 +553,75 @@ export function BehaviorSection() {
             )
           }
           title={t("settings.confirm_spam")}
+        />
+      </div>
+
+      <div>
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.spam_filtering_title")}
+          </h3>
+          <p className="text-sm text-txt-muted mt-1">
+            {t("settings.spam_filtering_description")}
+          </p>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+
+        <ToggleSetting
+          description={t("settings.spam_filter_enabled_description")}
+          enabled={spam_settings?.spam_filter_enabled ?? true}
+          on_toggle={() => {
+            if (!spam_settings) return;
+            const updated = {
+              ...spam_settings,
+              spam_filter_enabled: !spam_settings.spam_filter_enabled,
+            };
+
+            set_spam_settings(updated);
+            save_spam_settings(updated);
+          }}
+          title={t("settings.spam_filter_enabled")}
+        />
+
+        <SelectSetting
+          description={t("settings.spam_sensitivity_description")}
+          on_change={(value) => {
+            if (!spam_settings) return;
+            const updated = { ...spam_settings, spam_sensitivity: value };
+
+            set_spam_settings(updated);
+            save_spam_settings(updated);
+          }}
+          options={[
+            { value: "low", label: t("settings.spam_low") },
+            { value: "medium", label: t("settings.spam_medium") },
+            { value: "high", label: t("settings.spam_high") },
+          ]}
+          title={t("settings.spam_sensitivity")}
+          value={spam_settings?.spam_sensitivity ?? "medium"}
+        />
+
+        <SelectSetting
+          description={t("settings.auto_delete_spam_description")}
+          on_change={(value) => {
+            if (!spam_settings) return;
+            const updated = {
+              ...spam_settings,
+              spam_retention_days: parseInt(value, 10),
+            };
+
+            set_spam_settings(updated);
+            save_spam_settings(updated);
+          }}
+          options={[
+            { value: "7", label: t("settings.retention_7_days") },
+            { value: "14", label: t("settings.retention_14_days") },
+            { value: "30", label: t("settings.retention_30_days") },
+            { value: "0", label: t("settings.retention_never") },
+          ]}
+          title={t("settings.auto_delete_spam_after")}
+          value={String(spam_settings?.spam_retention_days ?? 30)}
         />
       </div>
 

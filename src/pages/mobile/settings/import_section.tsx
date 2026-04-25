@@ -229,7 +229,7 @@ export function ImportSection({
                   <span
                     className={`text-[12px] font-medium capitalize ${status_color(job.status)}`}
                   >
-                    {job.status}
+                    {t(`settings.import_status_${job.status}` as any)}
                   </span>
                   {(job.status === "completed" || job.status === "failed") && (
                     <button

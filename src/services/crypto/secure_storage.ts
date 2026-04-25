@@ -24,6 +24,7 @@ import {
   has_vault_in_memory,
   clear_vault_from_memory,
 } from "./memory_key_store";
+import { en } from "@/lib/i18n/translations/en";
 import {
   delete_database as delete_encrypted_db,
   encrypted_clear_all,
@@ -229,13 +230,13 @@ async function hkdf_derive_hmac_key(
 
 async function get_derived_keys(): Promise<DerivedKeys> {
   if (!has_vault_in_memory()) {
-    throw new Error("Session expired. Please log in again.");
+    throw new Error(en.errors.session_expired_login);
   }
 
   const encryption_key = get_derived_encryption_key();
 
   if (!encryption_key) {
-    throw new Error("Key material unavailable. Please log in again.");
+    throw new Error(en.errors.key_material_unavailable);
   }
 
   const key_fingerprint = await fingerprint_key(encryption_key);
@@ -351,7 +352,7 @@ export async function secure_decrypt(encrypted_data: string): Promise<string> {
   const hmac_valid = constant_time_compare(stored_hmac, computed_hmac);
 
   if (!hmac_valid) {
-    throw new Error("Data integrity check failed. Storage may be compromised.");
+    throw new Error(en.errors.storage_compromised);
   }
 
   const plaintext_buffer = await decrypt_aes_gcm_with_fallback(storage_key, ciphertext, nonce);

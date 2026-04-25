@@ -477,7 +477,7 @@ export function PaymentForm({
 
   const interval_label =
     billing_interval === "biennial"
-      ? "/2yr"
+      ? t("settings.per_two_years")
       : billing_interval === "year"
         ? t("settings.per_year_short")
         : t("settings.per_month_short");

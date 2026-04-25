@@ -668,10 +668,10 @@ export function ThreadMessageBlock({
                 onClick={(e) => e.stopPropagation()}
               >
                 {message.to_recipients && message.to_recipients.length > 0
-                  ? `to ${message.to_recipients.map((r) => r.name || r.email.split("@")[0]).join(", ")}`
+                  ? t("mail.to_recipients_prefix", { recipients: message.to_recipients.map((r) => r.name || r.email.split("@")[0]).join(", ") })
                   : is_own_message
                     ? ""
-                    : `to ${t("common.me")}`}{" "}
+                    : t("mail.to_recipients_prefix", { recipients: t("common.me") })}{" "}
                 &#9660;
               </button>
             </PopoverTrigger>

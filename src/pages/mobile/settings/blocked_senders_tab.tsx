@@ -111,7 +111,7 @@ export function BlockedSendersTab() {
             <Input
               autoFocus
               className="w-full"
-              placeholder="email@example.com"
+              placeholder={t("common.email_placeholder")}
               type="email"
               value={new_email}
               onChange={(e) => set_new_email(e.target.value)}

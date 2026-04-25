@@ -20,6 +20,7 @@
 //
 import { Capacitor } from "@capacitor/core";
 
+import { en } from "@/lib/i18n/translations/en";
 import {
   get_csrf_token_from_cookie,
   set_csrf_token,
@@ -880,25 +881,25 @@ class ApiClient {
   private get_generic_error_message(code: ApiErrorCode): string {
     switch (code) {
       case "UNAUTHORIZED":
-        return "Authentication required. Please log in.";
+        return en.errors.auth_required;
       case "FORBIDDEN":
-        return "You do not have permission to perform this action.";
+        return en.errors.no_permission;
       case "NOT_FOUND":
-        return "The requested resource was not found.";
+        return en.errors.not_found;
       case "VALIDATION_ERROR":
-        return "Invalid request data.";
+        return en.errors.invalid_request;
       case "CONFLICT":
-        return "A conflict occurred with the current state.";
+        return en.errors.conflict;
       case "RATE_LIMIT_EXCEEDED":
-        return "Rate limit exceeded. Please try again later.";
+        return en.errors.rate_limited;
       case "SERVER_ERROR":
-        return "An internal error occurred. Please try again later.";
+        return en.errors.internal_error;
       case "NETWORK_ERROR":
-        return "Unable to connect to the server.";
+        return en.errors.connection_failed;
       case "TIMEOUT_ERROR":
-        return "Request timed out. Please try again.";
+        return en.errors.request_timeout;
       default:
-        return "An unexpected error occurred.";
+        return en.errors.unexpected_error;
     }
   }
 

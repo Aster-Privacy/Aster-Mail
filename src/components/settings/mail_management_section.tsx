@@ -20,6 +20,7 @@
 //
 import { useState } from "react";
 
+import { use_i18n } from "@/lib/i18n/context";
 import { BlockedSection } from "@/components/settings/blocked_section";
 import { AllowlistSection } from "@/components/settings/allowlist_section";
 import { AutoForwardSection } from "@/components/settings/auto_forward_section";
@@ -34,6 +35,7 @@ type FilterTab =
   | "vacation_reply";
 
 export function MailManagementSection() {
+  const { t } = use_i18n();
   const [active_tab, set_active_tab] = useState<FilterTab>("external_accounts");
 
   return (
@@ -57,7 +59,7 @@ export function MailManagementSection() {
           }}
           onClick={() => set_active_tab("external_accounts")}
         >
-          External Accounts
+          {t("settings.external_accounts_tab")}
         </button>
         <button
           className="relative px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 outline-none"
@@ -75,7 +77,7 @@ export function MailManagementSection() {
           }}
           onClick={() => set_active_tab("blocked")}
         >
-          Blocked
+          {t("settings.blocked_tab")}
         </button>
         <button
           className="relative px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 outline-none"
@@ -93,7 +95,7 @@ export function MailManagementSection() {
           }}
           onClick={() => set_active_tab("allowlist")}
         >
-          Allowlist
+          {t("settings.allowlist_tab")}
         </button>
         <button
           className="relative px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 outline-none"
@@ -113,7 +115,7 @@ export function MailManagementSection() {
           }}
           onClick={() => set_active_tab("auto_forward")}
         >
-          Auto-Forward
+          {t("settings.auto_forward_tab_label")}
         </button>
         <button
           className="relative px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 outline-none"
@@ -133,7 +135,7 @@ export function MailManagementSection() {
           }}
           onClick={() => set_active_tab("vacation_reply")}
         >
-          Vacation Reply
+          {t("settings.vacation_reply_tab_label")}
         </button>
       </div>
 

@@ -224,7 +224,7 @@ export function VerificationGate({ children }: { children: React.ReactNode }) {
                     <input
                       className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none transition-colors duration-150"
                       id="recovery-email"
-                      placeholder="your@email.com"
+                      placeholder={t("common.email_placeholder")}
                       style={{
                         backgroundColor: "var(--input-bg, var(--bg-primary))",
                         borderColor: error

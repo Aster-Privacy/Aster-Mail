@@ -22,6 +22,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
+import { use_i18n } from "@/lib/i18n/context";
 
 import {
   BACK_BUTTON_CLASS,
@@ -87,10 +88,11 @@ const SECTIONS = [
 
 export default function PrivacyPolicyPage() {
   const navigate = useNavigate();
+  const { t } = use_i18n();
 
   useEffect(() => {
-    document.title = "Privacy Policy | Aster Mail";
-  }, []);
+    document.title = `${t("auth.privacy_policy")} | ${t("common.aster_mail")}`;
+  }, [t]);
 
   return (
     <motion.div
@@ -122,20 +124,16 @@ export default function PrivacyPolicyPage() {
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-txt-primary">
-            Privacy Policy
+            {t("auth.privacy_policy_heading")}
           </h1>
           <p className="mt-2 text-xs text-txt-muted">
-            Last updated: {LAST_UPDATED}
+            {t("auth.last_updated", { date: LAST_UPDATED })}
           </p>
         </div>
 
         <div className="rounded-xl border p-5 mb-5 bg-surf-card border-edge-primary">
           <p className="text-sm text-txt-secondary leading-relaxed">
-            At Aster Communications Inc., privacy is the foundation of
-            everything we build. This Privacy Policy explains how we handle your
-            data when you use Aster Mail and related services. Our guiding
-            principle is simple: your data belongs to you, and we should never
-            be able to access it.
+            {t("auth.privacy_policy_intro")}
           </p>
         </div>
 
@@ -160,9 +158,9 @@ export default function PrivacyPolicyPage() {
             className="transition-colors hover:text-txt-secondary"
             to="/terms"
           >
-            View Terms of Service &rarr;
+            {t("auth.view_terms_of_service")} &rarr;
           </Link>
-          <span>&copy; 2026 Aster Communications Inc.</span>
+          <span>{t("auth.copyright", { year: "2026" })}</span>
         </div>
       </div>
     </motion.div>

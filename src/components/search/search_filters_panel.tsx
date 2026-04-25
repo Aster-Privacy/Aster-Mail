@@ -240,6 +240,7 @@ export function OperatorSuggestions({
   partial: string;
   on_select: (operator: string) => void;
 }) {
+  const { t } = use_i18n();
   const suggestions = useMemo(() => {
     const last_word = partial.split(/\s+/).pop() || "";
 
@@ -247,8 +248,8 @@ export function OperatorSuggestions({
       return [];
     }
 
-    return get_operator_suggestions(last_word).slice(0, 5);
-  }, [partial]);
+    return get_operator_suggestions(last_word, t).slice(0, 5);
+  }, [partial, t]);
 
   if (suggestions.length === 0) return null;
 

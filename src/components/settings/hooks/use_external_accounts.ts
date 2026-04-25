@@ -384,7 +384,7 @@ export function use_external_accounts() {
     if (diff_hours < 24)
       return t("common.hours_ago_short", { count: diff_hours });
 
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
     });

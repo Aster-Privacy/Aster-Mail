@@ -229,7 +229,7 @@ export function AllowlistSection() {
   const format_date = (date_string: string) => {
     const date = new Date(date_string);
 
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
       year: "numeric",

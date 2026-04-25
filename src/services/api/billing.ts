@@ -275,7 +275,7 @@ export { format_bytes as format_storage };
 export function format_price(cents: number, currency: string = "usd"): string {
   const amount = cents / 100;
 
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: currency.toUpperCase(),
   }).format(amount);
@@ -284,7 +284,7 @@ export function format_price(cents: number, currency: string = "usd"): string {
 export function format_date(date_string: string | null): string {
   if (!date_string) return "-";
 
-  return new Date(date_string).toLocaleDateString("en-US", {
+  return new Date(date_string).toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",

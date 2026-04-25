@@ -97,7 +97,7 @@ function MobileContactsPage({
                   {s.t("common.contacts").toLowerCase()}?
                 </h3>
                 <p className="mt-2 text-[14px] leading-relaxed text-[var(--text-muted)]">
-                  This action cannot be undone.
+                  {s.t("common.action_cannot_be_undone")}
                 </p>
               </div>
               <div className="mt-5 flex gap-3">

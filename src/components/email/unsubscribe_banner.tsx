@@ -149,7 +149,7 @@ export function UnsubscribeBanner({
   }
 
   const domain = get_sender_domain(sender_email);
-  const display_text = get_unsubscribe_display_text(unsubscribe_info);
+  const display_text = get_unsubscribe_display_text(unsubscribe_info, t);
 
   return (
     <AnimatePresence>

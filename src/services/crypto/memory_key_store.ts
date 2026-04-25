@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "./key_manager";
+import { en } from "@/lib/i18n/translations/en";
 
 import {
   SecureBuffer,
@@ -355,12 +356,12 @@ export function get_key_fingerprint(): string | null {
 
 function validate_passphrase(entered: string): string | null {
   if (!secure_passphrase || secure_passphrase.is_cleared())
-    return "Session expired. Please log in again.";
+    return en.errors.session_expired_login;
 
   const entered_bytes = new TextEncoder().encode(entered);
   const stored_bytes = secure_passphrase.get_bytes();
 
-  if (!stored_bytes) return "Session expired. Please log in again.";
+  if (!stored_bytes) return en.errors.session_expired_login;
 
   const max_len = Math.max(entered_bytes.length, stored_bytes.length);
   const padded_entered = new Uint8Array(max_len);
@@ -380,8 +381,8 @@ function validate_passphrase(entered: string): string | null {
   zero_uint8_array(padded_entered);
   zero_uint8_array(padded_stored);
 
-  if (result !== 0) return "Incorrect password.";
-  if (!vault_in_memory) return "No keys available.";
+  if (result !== 0) return en.errors.incorrect_password;
+  if (!vault_in_memory) return en.errors.no_keys_available;
 
   return null;
 }

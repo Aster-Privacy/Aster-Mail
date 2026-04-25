@@ -129,7 +129,7 @@ export function ModalContactDetail({
           {(selected_contact.job_title || selected_contact.company) && (
             <p className="text-[14px] mt-0.5 text-txt-secondary">
               {selected_contact.job_title && selected_contact.company
-                ? t("common.job_title_at_company" as never, {
+                ? t("common.job_title_at_company", {
                     job_title: selected_contact.job_title,
                     company: selected_contact.company,
                   })
@@ -145,7 +145,7 @@ export function ModalContactDetail({
                 onClick={() => on_compose_email(selected_contact.emails[0])}
               >
                 <PaperAirplaneIcon className="w-3.5 h-3.5" />
-                {t("common.send_email" as never)}
+                {t("common.send_email")}
               </Button>
             )}
             <Button
@@ -154,7 +154,7 @@ export function ModalContactDetail({
               onClick={() => on_edit(selected_contact)}
             >
               <PencilIcon className="w-3.5 h-3.5" />
-              {t("common.edit" as never)}
+              {t("common.edit")}
             </Button>
             <Button
               className="h-10 w-10 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 border-transparent hover:border-red-200 dark:hover:border-red-500/30"
@@ -260,7 +260,7 @@ export function ModalContactDetail({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-medium uppercase tracking-wider text-txt-muted">
-                  {t("common.job_title" as never)}
+                  {t("common.job_title")}
                 </p>
                 <p className="text-[14px] -mt-0.5 text-txt-primary">
                   {selected_contact.job_title}
@@ -276,7 +276,7 @@ export function ModalContactDetail({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-medium uppercase tracking-wider text-txt-muted">
-                  {t("common.relationship" as never)}
+                  {t("common.relationship")}
                 </p>
                 <p className="text-[14px] -mt-0.5 text-txt-primary">
                   {RELATIONSHIP_LABELS[selected_contact.relationship] ||
@@ -319,7 +319,7 @@ export function ModalContactDetail({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-medium uppercase tracking-wider text-txt-muted">
-                    {t("common.address" as never)}
+                    {t("common.address")}
                   </p>
                   <p className="text-[14px] -mt-0.5 leading-relaxed text-txt-primary">
                     {[
@@ -351,7 +351,7 @@ export function ModalContactDetail({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-medium uppercase tracking-wider mb-1 text-txt-muted">
-                    {t("common.social_links" as never)}
+                    {t("common.social_links")}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {selected_contact.social_links.website && (
@@ -367,7 +367,7 @@ export function ModalContactDetail({
                         rel="noopener noreferrer"
                         target="_blank"
                       >
-                        {t("common.website" as never)}
+                        {t("common.website")}
                       </a>
                     )}
                     {selected_contact.social_links.linkedin && (
@@ -383,7 +383,7 @@ export function ModalContactDetail({
                         rel="noopener noreferrer"
                         target="_blank"
                       >
-                        {t("common.linkedin" as never)}
+                        {t("common.linkedin")}
                       </a>
                     )}
                     {selected_contact.social_links.twitter && (
@@ -402,7 +402,7 @@ export function ModalContactDetail({
                         rel="noopener noreferrer"
                         target="_blank"
                       >
-                        {t("common.twitter_x" as never)}
+                        {t("common.twitter_x")}
                       </a>
                     )}
                     {selected_contact.social_links.github && (
@@ -418,7 +418,7 @@ export function ModalContactDetail({
                         rel="noopener noreferrer"
                         target="_blank"
                       >
-                        {t("common.github" as never)}
+                        {t("common.github")}
                       </a>
                     )}
                   </div>

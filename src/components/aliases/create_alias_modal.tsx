@@ -144,7 +144,7 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
                       className={`flex-1 h-10 px-3 rounded-l-lg bg-transparent border border-r-0 border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none ${error ? "border-red-500" : ""}`}
                       disabled={is_creating}
                       id="create-alias-local-part"
-                      placeholder="myalias"
+                      placeholder={t("settings.alias_local_part_placeholder")}
                       type="text"
                       value={local_part}
                       onChange={(e) => {

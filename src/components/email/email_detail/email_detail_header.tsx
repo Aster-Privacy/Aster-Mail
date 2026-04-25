@@ -242,7 +242,7 @@ export function EmailDetailHeader({
 
       {email_list.length > 0 && current_email_index !== -1 && (
         <span className="hidden sm:inline text-xs text-txt-muted mr-1">
-          {current_email_index + 1} of {email_list.length}
+          {t("common.x_of_y", { current: current_email_index + 1, total: email_list.length })}
         </span>
       )}
       <Tooltip tip={t("common.previous")}>

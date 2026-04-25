@@ -183,7 +183,7 @@ export function ContactPhotoUpload({
   return (
     <div className="space-y-3">
       <label className="text-sm font-medium text-foreground-600">
-        Profile Photo
+        {t("common.profile_photo")}
       </label>
 
       {current_photo?.blob_url ? (
@@ -243,7 +243,7 @@ export function ContactPhotoUpload({
               <>
                 <PhotoIcon className="w-8 h-8 mb-2" />
                 <span className="text-xs text-center px-2">
-                  Drop image or click
+                  {t("common.drop_image_or_click")}
                 </span>
               </>
             )}
@@ -275,7 +275,7 @@ export function ContactPhotoUpload({
       </AnimatePresence>
 
       <p className="text-xs text-foreground-500">
-        JPEG, PNG, WebP, or GIF. Max 10MB.
+        {t("common.photo_format_hint")}
       </p>
     </div>
   );

@@ -22,6 +22,7 @@ import {
   device_store,
   device_retrieve,
 } from "@/services/crypto/secure_storage";
+import { en } from "@/lib/i18n/translations/en";
 
 const ACCOUNTS_KEY = "astermail_accounts_v6";
 const LEGACY_ACCOUNTS_KEY = "astermail_accounts_v5";
@@ -212,7 +213,7 @@ export async function add_account(
   if (data.accounts.length >= DEFAULT_MAX_ACCOUNTS) {
     return {
       success: false,
-      error: `Maximum of ${DEFAULT_MAX_ACCOUNTS} accounts allowed`,
+      error: en.errors.max_accounts.replace("{{ max }}", String(DEFAULT_MAX_ACCOUNTS)),
     };
   }
 

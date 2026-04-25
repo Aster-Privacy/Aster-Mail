@@ -341,8 +341,9 @@ export function ContactImportModal({
           {step === "preview" && (
             <div className="space-y-4">
               <p className="text-sm text-txt-secondary">
-                Found {parsed_contacts.length} contact
-                {parsed_contacts.length !== 1 ? "s" : ""}
+                {parsed_contacts.length === 1
+                  ? t("common.found_one_contact")
+                  : t("common.found_n_contacts", { count: parsed_contacts.length })}
               </p>
 
               <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -366,7 +367,7 @@ export function ContactImportModal({
                 ))}
                 {parsed_contacts.length > 5 && (
                   <p className="text-xs text-txt-muted text-center py-2">
-                    And {parsed_contacts.length - 5} more...
+                    {t("common.and_n_more", { count: parsed_contacts.length - 5 })}
                   </p>
                 )}
               </div>
@@ -393,8 +394,9 @@ export function ContactImportModal({
                     </>
                   ) : (
                     <>
-                      Import {parsed_contacts.length} Contact
-                      {parsed_contacts.length !== 1 ? "s" : ""}
+                      {parsed_contacts.length === 1
+                        ? t("common.import_one_contact")
+                        : t("common.import_n_contacts", { count: parsed_contacts.length })}
                     </>
                   )}
                 </Button>

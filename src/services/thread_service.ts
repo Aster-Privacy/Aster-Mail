@@ -21,6 +21,7 @@
 import type { DecryptedThreadMessage, ThreadContext } from "@/types/thread";
 import type { MailItem, ThreadWithMessages } from "@/services/api/mail";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { en } from "@/lib/i18n/translations/en";
 
 import {
   get_thread_messages,
@@ -223,7 +224,7 @@ export async function fetch_and_decrypt_thread_messages(
       return {
         id: msg.id,
         item_type: msg.item_type as "received" | "sent" | "draft",
-        sender_name: "Unknown",
+        sender_name: en.common.unknown_sender,
         sender_email: "",
         subject: "(Could not decrypt)",
         body: "",
@@ -373,7 +374,7 @@ export async function fetch_and_decrypt_virtual_group(
       return {
         id: item.id,
         item_type: item.item_type as "received" | "sent" | "draft",
-        sender_name: "Unknown",
+        sender_name: en.common.unknown_sender,
         sender_email: "",
         subject: "(Could not decrypt)",
         body: "",

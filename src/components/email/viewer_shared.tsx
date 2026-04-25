@@ -621,7 +621,7 @@ export function ViewerEmailHeader({
             <Popover>
               <PopoverTrigger asChild>
                 <button className="text-xs hover:text-[var(--text-secondary)] transition-colors text-left text-txt-muted">
-                  to {t("common.me")} &#9660;
+                  {t("common.to_recipient")} {t("common.me")} &#9660;
                 </button>
               </PopoverTrigger>
               <PopoverContent
@@ -742,8 +742,7 @@ export function ViewerEmailHeader({
             {(mail_item?.thread_message_count ?? thread_messages.length) >
               1 && (
               <span className="text-xs text-txt-muted">
-                {mail_item?.thread_message_count ?? thread_messages.length}{" "}
-                messages
+                {t("mail.n_messages", { count: mail_item?.thread_message_count ?? thread_messages.length })}
               </span>
             )}
           </div>
@@ -1143,7 +1142,7 @@ export function ViewerErrorState({
             className="mt-4 px-4 py-2 text-sm font-medium rounded-lg transition-colors bg-surf-secondary text-txt-primary"
             onClick={on_dismiss}
           >
-            Back to Inbox
+            {t("common.back_to_inbox")}
           </button>
         )}
       </div>

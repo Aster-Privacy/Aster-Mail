@@ -190,7 +190,11 @@ export function FolderResultRow({
         </span>
         {folder.item_count !== undefined && folder.item_count > 0 && (
           <span className="text-[11px] ml-2 text-txt-muted">
-            {folder.item_count} item{folder.item_count !== 1 ? "s" : ""}
+            {folder.item_count === 1
+              ? t("mail.folder_item_count_singular", {
+                  count: folder.item_count,
+                })
+              : t("mail.folder_item_count", { count: folder.item_count })}
           </span>
         )}
       </div>

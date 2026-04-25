@@ -23,6 +23,7 @@ import {
   type QueueEmailRequest,
   type QueuedEmailStatus,
 } from "./api/undo_send";
+import { en } from "@/lib/i18n/translations/en";
 
 export interface PendingSend {
   queue_id: string;
@@ -58,7 +59,7 @@ class UndoSendManager {
 
     if (response.error || !response.data) {
       if (options.on_error) {
-        options.on_error(response.error || "Failed to queue email");
+        options.on_error(response.error || en.errors.failed_queue_email);
       }
 
       return null;
@@ -142,7 +143,7 @@ class UndoSendManager {
     if (response.error || !response.data?.success) {
       pending.status = "failed";
       if (pending.on_error) {
-        pending.on_error(response.error || "Failed to send email");
+        pending.on_error(response.error || en.errors.failed_send_email);
       }
       this.notify_listeners();
 
@@ -251,7 +252,7 @@ class UndoSendManager {
         pending.status = "failed";
         if (pending.on_error) {
           pending.on_error(
-            status_response.data.error_message || "Failed to send",
+            status_response.data.error_message || en.errors.failed_send,
           );
         }
         this.pending_sends.delete(queue_id);
@@ -365,7 +366,7 @@ class UndoSendManager {
       } else if (status.status === "failed") {
         pending.status = "failed";
         if (pending.on_error) {
-          pending.on_error(status.error_message || "Failed to send");
+          pending.on_error(status.error_message || en.errors.failed_send);
         }
       }
 

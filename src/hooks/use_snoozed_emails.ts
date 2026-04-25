@@ -220,6 +220,7 @@ function mail_to_email(
   metadata: MailItemMetadata | null,
   format_options: FormatOptions,
   no_subject_text: string,
+  unknown_sender_text: string,
   snoozed_until?: string,
 ): InboxEmail {
   const folders = item.labels?.map((label) => ({
@@ -277,7 +278,7 @@ function mail_to_email(
   return {
     id: item.id,
     item_type: item.item_type,
-    sender_name: from_name || get_email_username(from_email) || "Unknown",
+    sender_name: from_name || get_email_username(from_email) || unknown_sender_text,
     sender_email: from_email,
     subject: envelope.subject || no_subject_text,
     preview: strip_html_tags(envelope.body_text).substring(0, 100),
@@ -426,6 +427,7 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
             metadata,
             format_options,
             t("mail.no_subject"),
+            t("common.unknown_sender"),
             snooze_time,
           );
         }),

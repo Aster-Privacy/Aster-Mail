@@ -651,8 +651,7 @@ export function SecuritySection({
                   className="text-sm"
                   style={{ color: "var(--color-warning, #f59e0b)" }}
                 >
-                  This password has appeared in a data breach. Consider using a
-                  different one.
+                  {t("settings.password_breach_warning")}
                 </p>
               )}
               <Input

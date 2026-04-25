@@ -142,7 +142,7 @@ function MobileComposePage({
     haptic_impact("medium");
     if (preferences.biometric_send_enabled) {
       const authenticated = await authenticate_biometric(
-        "Authenticate to send email",
+        t("common.authenticate_to_send"),
       );
 
       if (!authenticated) return;

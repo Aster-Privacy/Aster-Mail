@@ -27,6 +27,7 @@ import type {
   PstFolder,
 } from "./types";
 
+import { en } from "@/lib/i18n/translations/en";
 import { MAX_FILE_SIZE } from "./types";
 import { secure_hex } from "./mime_utils";
 
@@ -112,7 +113,7 @@ export async function parse_pst_file(
     return {
       emails: [],
       errors: [
-        `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB exceeds 500MB limit`,
+        en.errors.file_too_large.replace("{{ size }}", (file.size / 1024 / 1024).toFixed(1)).replace("{{ limit }}", "500"),
       ],
       warnings: [],
     };
@@ -143,8 +144,10 @@ export async function parse_pst_file(
 
             emails.push(parsed);
           } catch (err) {
+            const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
+
             warnings.push(
-              `Failed to parse PST message: ${err instanceof Error ? err.message : "Unknown error"}`,
+              en.errors.failed_parse_pst.replace("{{ error }}", error_msg),
             );
           }
           processed++;
@@ -180,12 +183,12 @@ export async function parse_pst_file(
     }
 
     if (emails.length === 0) {
-      errors.push("No emails found in PST file");
+      errors.push(en.errors.no_emails_in_pst);
     }
 
     return { emails, errors, warnings };
   } catch (err) {
-    const error_message = err instanceof Error ? err.message : "Unknown error";
+    const error_message = err instanceof Error ? err.message : en.errors.unknown_error;
 
     if (
       error_message.includes("Buffer") ||
@@ -194,7 +197,7 @@ export async function parse_pst_file(
       return {
         emails: [],
         errors: [
-          "PST files require conversion. Please export your emails from Outlook as MBOX format instead, or use individual EML files.",
+          en.errors.pst_conversion_required,
         ],
         warnings: [],
       };
@@ -203,7 +206,7 @@ export async function parse_pst_file(
     return {
       emails: [],
       errors: [
-        `Failed to parse PST file: ${error_message}. Try exporting as MBOX format from your email client.`,
+        en.errors.failed_parse_pst_file.replace("{{ error }}", error_message),
       ],
       warnings: [],
     };

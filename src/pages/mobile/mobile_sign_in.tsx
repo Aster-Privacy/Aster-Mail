@@ -723,7 +723,7 @@ export default function MobileSignInPage() {
                   className={INNER_INPUT_WITH_ICON_CLASS}
                   disabled={is_loading}
                   maxLength={55}
-                  placeholder="yourname"
+                  placeholder={t("common.yourname_placeholder")}
                   status={error ? "error" : "default"}
                   type="text"
                   value={username}

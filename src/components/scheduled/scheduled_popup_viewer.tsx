@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n";
+
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -82,7 +84,7 @@ interface ScheduledPopupViewerProps {
 
 function format_scheduled_time(
   iso_string: string,
-  t: (key: never, params?: Record<string, string | number>) => string,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ): string {
   const date = new Date(iso_string);
   const now = new Date();
@@ -90,15 +92,15 @@ function format_scheduled_time(
   const diff_hours = diff_ms / (1000 * 60 * 60);
 
   if (diff_hours < 0) {
-    return t("common.sending_soon" as never);
+    return t("common.sending_soon");
   }
 
   if (diff_hours < 1) {
     const mins = Math.round(diff_hours * 60);
 
     return mins !== 1
-      ? t("common.in_n_minutes_plural" as never, { count: mins })
-      : t("common.in_n_minutes" as never, { count: mins });
+      ? t("common.in_n_minutes_plural", { count: mins })
+      : t("common.in_n_minutes", { count: mins });
   }
 
   if (diff_hours < 24) {
@@ -491,7 +493,7 @@ export function ScheduledPopupViewer({
                 className="text-xs text-txt-muted hover:text-txt-secondary transition-colors text-left"
                 onClick={() => set_show_details(!show_details)}
               >
-                {show_details ? "Hide details ▲" : "Show details ▼"}
+                {show_details ? t("common.hide_details") + " ▲" : t("common.show_details") + " ▼"}
               </button>
 
               <AnimatePresence>

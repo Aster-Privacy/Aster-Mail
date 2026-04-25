@@ -42,6 +42,7 @@ import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n/types";
 import {
   format_time,
   format_weekday_short,
@@ -118,9 +119,10 @@ function transform_scheduled(
   scheduled: ScheduledEmailWithContent,
   format_options: FormatOptions,
   labels: ScheduledTimestampLabels,
+  t: (key: TranslationKey) => string,
 ): ScheduledListItem {
   const recipients =
-    scheduled.content.to_recipients.join(", ") || "No recipients";
+    scheduled.content.to_recipients.join(", ") || t("common.no_recipients");
   const display_name =
     recipients.length > 30 ? `${recipients.substring(0, 30)}...` : recipients;
 
@@ -144,7 +146,7 @@ function transform_scheduled(
     is_archived: false,
     is_spam: false,
     has_attachment: false,
-    category: "Scheduled",
+    category: t("common.scheduled_category"),
     category_color: SCHEDULED_CATEGORY_STYLE,
     avatar_url: "",
     is_encrypted: true,
@@ -161,6 +163,7 @@ async function fetch_scheduled_from_api(
   signal: AbortSignal,
   format_options: FormatOptions,
   labels: ScheduledTimestampLabels,
+  t: (key: TranslationKey) => string,
 ): Promise<{ emails: ScheduledListItem[]; has_more: boolean } | null> {
   const vault = get_vault_from_memory();
 
@@ -176,7 +179,7 @@ async function fetch_scheduled_from_api(
       const detail = await get_scheduled_email(email.id, vault);
 
       return detail.data
-        ? transform_scheduled(detail.data, format_options, labels)
+        ? transform_scheduled(detail.data, format_options, labels, t)
         : null;
     }),
   );
@@ -250,6 +253,7 @@ export function use_scheduled_emails(
         signal,
         format_options,
         timestamp_labels,
+        t,
       );
 
       clearTimeout(timeout_id);

@@ -274,7 +274,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         toggle_btn.className = "aster-quote-toggle";
         toggle_btn.type = "button";
         toggle_btn.textContent = "\u2022\u2022\u2022";
-        toggle_btn.title = "Show trimmed content";
+        toggle_btn.title = t("mail.show_trimmed_content");
 
         const content_div = doc.createElement("div");
 
@@ -514,7 +514,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
     toggle_btn.className = "aster-quote-toggle";
     toggle_btn.type = "button";
     toggle_btn.textContent = "\u2022\u2022\u2022";
-    toggle_btn.title = "Show trimmed content";
+    toggle_btn.title = t("mail.show_trimmed_content");
 
     const content_div = doc.createElement("div");
 

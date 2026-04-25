@@ -504,7 +504,7 @@ export function RecipientField({
               className="flex items-center px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0"
               style={{ border: "1px solid transparent" }}
             >
-              +{recipients.length - 1} more
+              {t("common.n_more_recipients", { count: recipients.length - 1 })}
             </div>
           </div>
         )}
@@ -536,7 +536,7 @@ export function RecipientField({
                 e.currentTarget.style.backgroundColor = "var(--bg-tertiary)";
               }}
             >
-              +{hidden_count} more
+              {t("common.n_more_recipients", { count: hidden_count })}
             </button>
           )}
           {is_expanded && overflow_count > 0 && (
@@ -551,7 +551,7 @@ export function RecipientField({
                 e.currentTarget.style.color = "var(--text-muted)";
               }}
             >
-              Show less
+              {t("common.show_less")}
             </button>
           )}
           <div className="flex-1 min-w-[120px] compose_recipient_input">

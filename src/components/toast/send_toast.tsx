@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@aster/ui";
 
 import { use_should_reduce_motion } from "@/provider";
+import { use_i18n } from "@/lib/i18n/context";
 
 interface SendToastProps {
   email_id: string;
@@ -40,6 +41,7 @@ export function SendToast({
   position = "bottom",
 }: SendToastProps) {
   const reduce_motion = use_should_reduce_motion();
+  const { t } = use_i18n();
   const [remaining_seconds, set_remaining_seconds] = useState(total_seconds);
   const [is_visible, set_is_visible] = useState(true);
 
@@ -87,11 +89,13 @@ export function SendToast({
               <div className="flex items-center gap-3">
                 <div>
                   <p className="text-sm font-medium text-txt-primary">
-                    Sending in {remaining_seconds} second
-                    {remaining_seconds !== 1 ? "s" : ""}...
+                    {t("common.sending_in_seconds", {
+                      seconds: remaining_seconds,
+                      plural: remaining_seconds !== 1 ? "s" : "",
+                    })}
                   </p>
                   <p className="text-xs text-txt-tertiary">
-                    Your message will be sent shortly
+                    {t("common.message_will_be_sent_shortly")}
                   </p>
                 </div>
               </div>
@@ -102,7 +106,7 @@ export function SendToast({
                   variant="ghost"
                   onClick={on_undo}
                 >
-                  Undo
+                  {t("common.undo")}
                 </Button>
                 <Button
                   className="font-medium"
@@ -110,7 +114,7 @@ export function SendToast({
                   variant="ghost"
                   onClick={on_send_now}
                 >
-                  Send Now
+                  {t("common.send_now")}
                 </Button>
               </div>
             </div>

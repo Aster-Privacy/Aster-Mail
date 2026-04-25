@@ -29,6 +29,7 @@ import type {
 } from "./types";
 
 import { CARRIER_TRACKING_URLS, CARRIER_NAMES } from "./types";
+import { en } from "@/lib/i18n/translations/en";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   $: "USD",
@@ -362,7 +363,7 @@ function extract_merchant_name(from_email: string, from_name: string): string {
     }
   }
 
-  return from_name || "Unknown Merchant";
+  return from_name || en.common.unknown_merchant;
 }
 
 export function extract_purchase_details(

@@ -454,10 +454,11 @@ export function VacationReplySection() {
               color: "var(--text-secondary)",
             }}
           >
-            {vacation.reply_count}{" "}
-            {vacation.reply_count === 1 ? "reply" : "replies"} sent
+            {vacation.reply_count === 1
+              ? t("settings.vacation_reply_count_one", { count: String(vacation.reply_count) })
+              : t("settings.vacation_reply_count_other", { count: String(vacation.reply_count) })}
             {vacation.last_replied_at &&
-              ` · Last: ${new Date(vacation.last_replied_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+              ` · ${t("settings.vacation_reply_last", { date: new Date(vacation.last_replied_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) })}`}
           </div>
         )}
 

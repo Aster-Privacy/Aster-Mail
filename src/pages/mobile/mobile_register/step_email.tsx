@@ -117,7 +117,7 @@ export function StepEmail({ reg, reduce_motion, navigate }: step_email_props) {
                 autoComplete="username"
                 className={`${INNER_INPUT_WITH_ICON_CLASS} notranslate`}
                 maxLength={55}
-                placeholder="yourname"
+                placeholder={reg.t("common.yourname_placeholder")}
                 status={reg.error ? "error" : "default"}
                 translate="no"
                 type="text"

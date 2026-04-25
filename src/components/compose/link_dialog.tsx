@@ -118,11 +118,11 @@ export function LinkDialog({
         <div className="px-6 pt-6 pb-5">
           <AlertDialogHeader className="space-y-2">
             <AlertDialogTitle className="text-[16px] font-semibold">
-              Insert Link
+              {t("mail.insert_link_title")}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[14px] leading-normal">
               {selected_text
-                ? `Add a link to "${selected_text.length > 40 ? selected_text.slice(0, 40) + "..." : selected_text}"`
+                ? t("mail.add_link_to_selection", { text: selected_text.length > 40 ? selected_text.slice(0, 40) + "..." : selected_text })
                 : t("common.enter_url_display_text")}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -133,7 +133,7 @@ export function LinkDialog({
                 className="block text-xs font-medium mb-1.5 text-txt-secondary"
                 htmlFor="link-dialog-url"
               >
-                URL
+                {t("mail.url_label")}
               </label>
               <Input
                 ref={url_input_ref}
@@ -163,7 +163,7 @@ export function LinkDialog({
                   className="block text-xs font-medium mb-1.5 text-txt-secondary"
                   htmlFor="link-dialog-text"
                 >
-                  Link text (optional)
+                  {t("mail.link_text_optional")}
                 </label>
                 <Input
                   className="w-full"

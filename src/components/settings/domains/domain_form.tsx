@@ -360,7 +360,7 @@ export function DomainForm({
               <Input
                 autoFocus
                 id="domain-name-input"
-                placeholder="example.com"
+                placeholder={t("settings.domain_placeholder")}
                 size="lg"
                 status={
                   domain_name && !validate_domain_name(domain_name).valid

@@ -398,7 +398,7 @@ function MobileMailDetail() {
     (msg: DecryptedThreadMessage, mode: "reply" | "reply_all" | "forward") => {
       const subject = msg.subject || "";
       const body = msg.body || "";
-      const quoted = `\n\nOn ${new Date(msg.timestamp).toLocaleString()}, ${msg.sender_name} wrote:\n${body
+      const quoted = `\n\n${t("mail.reply_quote_header", { date: new Date(msg.timestamp).toLocaleString(), name: msg.sender_name })}\n${body
         .split("\n")
         .map((l) => "> " + l)
         .join("\n")}`;
@@ -413,7 +413,7 @@ function MobileMailDetail() {
               to_recipients: [],
               cc_recipients: [],
               bcc_recipients: [],
-              subject: subject.startsWith("Fwd:") ? subject : `Fwd: ${subject}`,
+              subject: subject.startsWith(t("mail.forward_subject_prefix")) ? subject : `${t("mail.forward_subject_prefix")} ${subject}`,
               message: message_with_footer,
               draft_type: "forward",
               forward_from_id: msg.id,
@@ -444,7 +444,7 @@ function MobileMailDetail() {
               to_recipients: to,
               cc_recipients: cc,
               bcc_recipients: [],
-              subject: subject.startsWith("Re:") ? subject : `Re: ${subject}`,
+              subject: subject.startsWith(t("mail.reply_subject_prefix")) ? subject : `${t("mail.reply_subject_prefix")} ${subject}`,
               message: message_with_footer,
               draft_type: "reply",
               reply_to_id: msg.id,
@@ -454,7 +454,7 @@ function MobileMailDetail() {
         );
       }
     },
-    [detail.current_user_email, detail.mail_item?.thread_token],
+    [t, detail.current_user_email, detail.mail_item?.thread_token],
   );
 
   const handle_toggle_dark_mode = useCallback(() => {
@@ -543,7 +543,7 @@ function MobileMailDetail() {
       navigator.clipboard
         .writeText(menu_message.id)
         .then(() => {
-          show_toast(detail.t("common.message_id_copied" as never), "success");
+          show_toast(detail.t("common.message_id_copied"), "success");
         })
         .catch(() => {});
     }
@@ -820,14 +820,14 @@ function MobileMailDetail() {
         </div>
 
         {email.unsubscribe_info?.has_unsubscribe && (
-          <MobileUnsubscribeBanner email={email} t={detail.t as never} />
+          <MobileUnsubscribeBanner email={email} t={detail.t} />
         )}
 
         {external_content_report && !external_content_loaded && (
           <MobileExternalContentBanner
             on_load={handle_load_external_content}
             report={external_content_report}
-            t={detail.t as never}
+            t={detail.t}
           />
         )}
 
@@ -861,7 +861,7 @@ function MobileMailDetail() {
                 }}
                 on_reply={(m) => dispatch_compose(m, "reply")}
                 on_toggle={() => handle_toggle_expand(msg)}
-                t={detail.t as never}
+                t={detail.t}
               />
             </div>
           ))}
@@ -957,13 +957,13 @@ function MobileMailDetail() {
         on_trash={handle_menu_trash}
         on_view_source={handle_view_source}
         preferences_force_dark={preferences.force_dark_mode_emails}
-        t={detail.t as never}
+        t={detail.t}
       />
 
       <MobileViewSourceSheet
         message={view_source_message}
         on_close={() => set_view_source_message(null)}
-        t={detail.t as never}
+        t={detail.t}
       />
 
       <MobileMessageDetailsSheet
@@ -971,7 +971,7 @@ function MobileMailDetail() {
         message={details_message}
         on_close={() => set_details_message(null)}
         size_bytes={detail.mail_item?.metadata?.size_bytes}
-        t={detail.t as never}
+        t={detail.t}
       />
 
       <MobileSnoozeSheet
@@ -984,7 +984,7 @@ function MobileMailDetail() {
         is_open={show_toolbar_customizer}
         on_close={() => set_show_toolbar_customizer(false)}
         preferences_toolbar_actions={preferences.mobile_toolbar_actions}
-        t={detail.t as never}
+        t={detail.t}
         update_preference={update_preference}
       />
 

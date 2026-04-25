@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { en } from "@/lib/i18n/translations/en";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
@@ -466,11 +467,11 @@ export function validate_domain_name(domain: string): {
   error?: string;
 } {
   if (!domain || domain.length === 0) {
-    return { valid: false, error: "Domain name cannot be empty" };
+    return { valid: false, error: en.errors.domain_empty };
   }
 
   if (domain.length > 253) {
-    return { valid: false, error: "Domain name is too long" };
+    return { valid: false, error: en.errors.domain_too_long };
   }
 
   const domain_lower = domain.toLowerCase();
@@ -483,25 +484,25 @@ export function validate_domain_name(domain: string): {
   ) {
     return {
       valid: false,
-      error: "Cannot use astermail.org or aster.cx domains",
+      error: en.errors.domain_reserved,
     };
   }
 
   const parts = domain.split(".");
 
   if (parts.length < 2) {
-    return { valid: false, error: "Invalid domain format" };
+    return { valid: false, error: en.errors.domain_invalid_format };
   }
 
   const valid_label_pattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i;
 
   for (const part of parts) {
     if (part.length === 0 || part.length > 63) {
-      return { valid: false, error: "Invalid domain label length" };
+      return { valid: false, error: en.errors.domain_invalid_label };
     }
 
     if (!valid_label_pattern.test(part)) {
-      return { valid: false, error: "Domain contains invalid characters" };
+      return { valid: false, error: en.errors.domain_invalid_chars };
     }
   }
 
@@ -513,15 +514,15 @@ export function validate_local_part(local_part: string): {
   error?: string;
 } {
   if (!local_part || local_part.length === 0) {
-    return { valid: false, error: "Address cannot be empty" };
+    return { valid: false, error: en.errors.address_empty };
   }
 
   if (local_part.length < 1) {
-    return { valid: false, error: "Address must be at least 1 character" };
+    return { valid: false, error: en.errors.address_too_short };
   }
 
   if (local_part.length > 64) {
-    return { valid: false, error: "Address must be 64 characters or less" };
+    return { valid: false, error: en.errors.address_too_long };
   }
 
   const valid_pattern = /^[a-z0-9][a-z0-9._-]*[a-z0-9]$|^[a-z0-9]$/;
@@ -529,13 +530,12 @@ export function validate_local_part(local_part: string): {
   if (!valid_pattern.test(local_part.toLowerCase())) {
     return {
       valid: false,
-      error:
-        "Address can only contain letters, numbers, dots, underscores, and hyphens",
+      error: en.errors.address_invalid_chars,
     };
   }
 
   if (local_part.includes("..")) {
-    return { valid: false, error: "Address cannot contain consecutive dots" };
+    return { valid: false, error: en.errors.address_consecutive_dots };
   }
 
   return { valid: true };
@@ -560,17 +560,17 @@ export function get_status_color(status: string): string {
 export function get_status_label(status: string): string {
   switch (status) {
     case "active":
-      return "Active";
+      return en.settings.status_active;
     case "pending":
-      return "Pending";
+      return en.settings.status_pending;
     case "verifying":
-      return "Verifying";
+      return en.settings.status_verifying;
     case "dns_pending":
-      return "DNS Pending";
+      return en.settings.status_dns_pending;
     case "suspended":
-      return "Suspended";
+      return en.settings.status_suspended;
     case "failed":
-      return "Failed";
+      return en.settings.status_failed;
     default:
       return status;
   }

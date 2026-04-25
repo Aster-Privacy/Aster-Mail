@@ -455,11 +455,10 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
             >
               <Logo />
               <h1 className="text-xl font-semibold mt-6 text-txt-primary text-center">
-                {t("auth.link_device_failed") || "Linking failed"}
+                {t("auth.link_device_failed")}
               </h1>
               <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-                {t("auth.link_device_try_again") ||
-                  "Something went wrong. Please try again."}
+                {t("auth.link_device_try_again")}
               </p>
               <Button
                 className="w-full mt-6"
@@ -467,7 +466,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                 variant="depth"
                 onClick={handle_new_code}
               >
-                {t("auth.device_code_get_new") || "Get new code"}
+                {t("auth.device_code_get_new")}
               </Button>
             </motion.div>
           )}
@@ -484,11 +483,10 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
             >
               <Logo />
               <h1 className="text-xl font-semibold mt-6 text-txt-primary text-center">
-                {t("auth.device_code_expired") || "Code expired"}
+                {t("auth.device_code_expired")}
               </h1>
               <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-                {t("auth.device_code_expired_description") ||
-                  "The code has expired. Generate a new one to continue."}
+                {t("auth.device_code_expired_description")}
               </p>
               <Button
                 className="w-full mt-6"
@@ -496,7 +494,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                 variant="depth"
                 onClick={handle_new_code}
               >
-                {t("auth.device_code_get_new") || "Get new code"}
+                {t("auth.device_code_get_new")}
               </Button>
             </motion.div>
           )}
@@ -514,17 +512,16 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
               <Logo />
 
               <h1 className="text-xl font-semibold mt-6 text-txt-primary text-center">
-                {t("auth.device_code_title") || "Link this device"}
+                {t("auth.device_code_title")}
               </h1>
               <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-                {t("auth.device_code_instruction") ||
-                  "Enter this code at app.astermail.org/link-device to link your account."}
+                {t("auth.device_code_instruction")}
               </p>
 
               <div className="w-full mt-6">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-medium text-txt-muted">
-                    {t("auth.device_code_expires_in") || "Expires in"}{" "}
+                    {t("auth.device_code_expires_in")}{" "}
                     {format_time(time_left)}
                   </span>
                   <button
@@ -588,8 +585,8 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                   onClick={handle_copy_code}
                 >
                   {copied
-                    ? t("auth.device_code_copied") || "Copied!"
-                    : t("auth.device_code_copy") || "Copy code"}
+                    ? t("auth.device_code_copied")
+                    : t("auth.device_code_copy")}
                 </Button>
                 <Button
                   className="flex-1"
@@ -597,15 +594,14 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                   variant="depth"
                   onClick={handle_open_browser}
                 >
-                  {t("auth.device_code_open_browser") || "Open browser"}
+                  {t("auth.device_code_open_browser")}
                 </Button>
               </div>
 
               <div className="mt-6 flex items-center gap-2">
                 <Spinner size="xs" />
                 <span className="text-xs text-txt-muted">
-                  {t("auth.device_code_waiting") ||
-                    "Listening for confirmation"}
+                  {t("auth.device_code_waiting")}
                 </span>
               </div>
             </motion.div>

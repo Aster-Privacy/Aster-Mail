@@ -63,7 +63,7 @@ export default function LinkDevice() {
   const [is_verifying, set_is_verifying] = useState(false);
 
   useEffect(() => {
-    document.title = `${t("auth.link_device_title") || "Link device"} | ${t("common.aster_mail")}`;
+    document.title = `${t("auth.link_device_title")} | ${t("common.aster_mail")}`;
   }, [t]);
 
   useEffect(() => {
@@ -97,10 +97,7 @@ export default function LinkDevice() {
     const normalized = code_input.replace(/-/g, "");
 
     if (normalized.length !== 8) {
-      set_error(
-        t("auth.link_device_invalid_code") ||
-          "Please enter a valid 8-character code.",
-      );
+      set_error(t("auth.link_device_invalid_code"));
 
       return;
     }
@@ -112,10 +109,7 @@ export default function LinkDevice() {
       const response = await verify_device_code(normalized);
 
       if (response.error || !response.data) {
-        set_error(
-          t("auth.link_device_expired_code") ||
-            "Invalid or expired code. Check the code on your desktop app and try again.",
-        );
+        set_error(t("auth.link_device_expired_code"));
         set_is_verifying(false);
 
         return;
@@ -124,10 +118,7 @@ export default function LinkDevice() {
       set_device_info(response.data);
       set_page_state("confirming_device");
     } catch {
-      set_error(
-        t("auth.link_device_failed") ||
-          "Something went wrong. Please try again.",
-      );
+      set_error(t("auth.link_device_failed"));
     } finally {
       set_is_verifying(false);
     }
@@ -168,7 +159,7 @@ export default function LinkDevice() {
       const message =
         err instanceof Error && err.message === "vault_locked"
           ? t("common.session_expired_sign_in")
-          : t("auth.link_device_failed") || "Linking failed. Please try again.";
+          : t("auth.link_device_failed");
 
       set_error(message);
       show_toast(message, "error");
@@ -197,7 +188,7 @@ export default function LinkDevice() {
         <div className="min-h-full flex items-center justify-center px-4">
           <div className="flex flex-col items-center w-full max-w-sm text-center">
             <h1 className="text-xl font-semibold text-txt-primary">
-              {t("auth.link_device_title") || "Link device"}
+              {t("auth.link_device_title")}
             </h1>
             <p className="text-sm mt-3 leading-relaxed text-txt-tertiary">
               {t("common.session_expired_sign_in")}
@@ -241,11 +232,10 @@ export default function LinkDevice() {
               />
             </svg>
             <h1 className="text-xl font-semibold text-txt-primary">
-              {t("auth.link_device_success") || "Device linked"}
+              {t("auth.link_device_success")}
             </h1>
             <p className="text-sm mt-3 leading-relaxed text-txt-tertiary">
-              {t("auth.link_device_success_description") ||
-                "Your desktop app is now linked. You can close this tab."}
+              {t("auth.link_device_success_description")}
             </p>
             <Button
               className="w-full mt-8"
@@ -253,7 +243,7 @@ export default function LinkDevice() {
               variant="secondary"
               onClick={() => window.close()}
             >
-              {t("common.done") || "Done"}
+              {t("common.done")}
             </Button>
           </div>
         </div>
@@ -267,7 +257,7 @@ export default function LinkDevice() {
         <div className="flex flex-col items-center">
           <Spinner size="md" />
           <p className="text-sm mt-4 text-txt-secondary">
-            {t("auth.link_device_confirming") || "Linking device..."}
+            {t("auth.link_device_confirming")}
           </p>
         </div>
       </div>
@@ -286,11 +276,10 @@ export default function LinkDevice() {
               src="/text_logo.png"
             />
             <h1 className="text-xl font-semibold text-txt-primary text-center">
-              {t("auth.link_device_title") || "Link device"}
+              {t("auth.link_device_title")}
             </h1>
             <p className="text-sm mt-4 leading-relaxed text-txt-secondary text-center">
-              {t("auth.link_device_confirm_prompt") ||
-                "Do you want to link this device to your account?"}
+              {t("auth.link_device_confirm_prompt")}
             </p>
 
             <div className="w-full rounded-xl border border-border-secondary bg-surf-secondary px-5 py-4 mt-5">
@@ -315,7 +304,7 @@ export default function LinkDevice() {
                     {device_info.machine_name}
                   </p>
                   <p className="text-xs text-txt-quaternary">
-                    {t("auth.link_device_desktop") || "Desktop app"}
+                    {t("auth.link_device_desktop")}
                   </p>
                 </div>
               </div>
@@ -331,7 +320,7 @@ export default function LinkDevice() {
               variant="depth"
               onClick={handle_confirm}
             >
-              {t("auth.link_device_confirm_button") || "Link device"}
+              {t("auth.link_device_confirm_button")}
             </Button>
             <Button
               className="w-full mt-3"
@@ -339,7 +328,7 @@ export default function LinkDevice() {
               variant="secondary"
               onClick={handle_cancel}
             >
-              {t("auth.link_device_cancel") || "Cancel"}
+              {t("auth.link_device_cancel")}
             </Button>
           </div>
         </div>
@@ -358,11 +347,10 @@ export default function LinkDevice() {
             src="/text_logo.png"
           />
           <h1 className="text-xl font-semibold text-txt-primary text-center">
-            {t("auth.link_device_title") || "Link device"}
+            {t("auth.link_device_title")}
           </h1>
           <p className="text-sm mt-3 mb-6 leading-relaxed text-txt-tertiary text-center">
-            {t("auth.link_device_enter_code") ||
-              "Enter the code shown on your desktop app."}
+            {t("auth.link_device_enter_code")}
           </p>
 
           <input
@@ -370,7 +358,7 @@ export default function LinkDevice() {
             autoComplete="off"
             className="w-full rounded-xl border border-border-secondary bg-surf-secondary px-5 py-4 text-center text-2xl font-mono font-bold tracking-[0.15em] text-txt-primary placeholder:text-txt-quaternary placeholder:font-normal placeholder:text-xl placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
             maxLength={9}
-            placeholder={t("auth.link_device_code_placeholder") || "XXXX-XXXX"}
+            placeholder={t("auth.link_device_code_placeholder")}
             spellCheck={false}
             type="text"
             value={code_input}
@@ -394,10 +382,10 @@ export default function LinkDevice() {
             {is_verifying ? (
               <>
                 <Spinner className="mr-2" size="sm" />
-                {t("auth.link_device_verifying") || "Verifying..."}
+                {t("auth.link_device_verifying")}
               </>
             ) : (
-              t("auth.link_device_verify_button") || "Continue"
+              t("auth.link_device_verify_button")
             )}
           </Button>
           <Button
@@ -406,7 +394,7 @@ export default function LinkDevice() {
             variant="secondary"
             onClick={() => navigate("/")}
           >
-            {t("auth.link_device_cancel") || "Cancel"}
+            {t("auth.link_device_cancel")}
           </Button>
         </div>
       </div>

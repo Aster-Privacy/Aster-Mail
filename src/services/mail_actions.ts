@@ -27,6 +27,7 @@ import {
 import { get_or_create_thread_token } from "./thread_service";
 
 import { get_aster_footer } from "@/components/compose/compose_shared";
+import { en } from "@/lib/i18n/translations/en";
 
 export type MailActionType = "reply" | "reply_all" | "forward";
 
@@ -85,7 +86,7 @@ function build_reply_subject(original_subject: string): string {
     return trimmed;
   }
 
-  return `Re: ${trimmed}`;
+  return `${en.mail.reply_subject_prefix} ${trimmed}`;
 }
 
 function build_reply_recipients(
@@ -131,7 +132,7 @@ export async function send_reply(
   const current_account = await get_current_account();
 
   if (!current_account) {
-    const error = "No active account found";
+    const error = en.errors.no_active_account;
 
     callbacks.on_error?.(error);
 
@@ -174,7 +175,7 @@ export async function send_reply(
   );
 
   if (!queued_id) {
-    const error = "Failed to queue reply";
+    const error = en.errors.failed_queue_reply;
 
     callbacks.on_error?.(error);
 
@@ -191,16 +192,16 @@ export async function send_forward(
   show_aster_branding: boolean = true,
 ): Promise<MailActionResult> {
   if (params.recipients.length === 0) {
-    const error = "No recipients specified";
+    const error = en.errors.no_recipients;
 
     callbacks.on_error?.(error);
 
     return { success: false, error };
   }
 
-  const subject = params.original.subject.trim().startsWith("Fwd:")
+  const subject = params.original.subject.trim().startsWith(en.mail.forward_subject_prefix)
     ? params.original.subject
-    : `Fwd: ${params.original.subject}`;
+    : `${en.mail.forward_subject_prefix} ${params.original.subject}`;
 
   const safe_name = params.original.sender_name
     .replace(/&/g, "&amp;")
@@ -216,10 +217,10 @@ export async function send_forward(
     .replace(/>/g, "&gt;");
 
   const forwarded_header =
-    `---------- Forwarded message ---------<br>` +
-    `From: ${safe_name} &lt;${safe_email}&gt;<br>` +
-    `Date: ${params.original.timestamp}<br>` +
-    `Subject: ${safe_subject}<br><br>` +
+    `${en.common.forwarded_message_header}<br>` +
+    `${en.common.from_label} ${safe_name} &lt;${safe_email}&gt;<br>` +
+    `${en.common.date_label} ${params.original.timestamp}<br>` +
+    `${en.common.subject_label} ${safe_subject}<br><br>` +
     params.original.body;
 
   const badge_block = params.badge_html ?? "";
@@ -250,7 +251,7 @@ export async function send_forward(
   );
 
   if (!queued_id) {
-    const error = "Failed to queue forward";
+    const error = en.errors.failed_queue_forward;
 
     callbacks.on_error?.(error);
 

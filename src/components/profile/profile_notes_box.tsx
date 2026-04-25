@@ -232,7 +232,7 @@ export function ProfileNotesBox({
         <div className="flex items-center gap-2">
           <DocumentTextIcon className="w-4 h-4 text-txt-muted" />
           <span className="text-[11px] font-medium uppercase tracking-wider text-txt-muted">
-            Notes
+            {t("common.notes")}
           </span>
         </div>
         {save_status === "saving" && (

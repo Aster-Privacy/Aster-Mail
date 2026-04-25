@@ -32,12 +32,12 @@ export function get_sync_frequency_options(
   t: I18nTranslate,
 ): { value: SyncFrequency; label: string }[] {
   return [
-    { value: "5m", label: "5 min" },
-    { value: "15m", label: "15 min" },
-    { value: "30m", label: "30 min" },
-    { value: "1h", label: "1 hour" },
-    { value: "2h", label: "2 hours" },
-    { value: "6h", label: "6 hours" },
+    { value: "5m", label: t("settings.sync_5_min") },
+    { value: "15m", label: t("settings.sync_15_min") },
+    { value: "30m", label: t("settings.sync_30_min") },
+    { value: "1h", label: t("settings.sync_1_hour") },
+    { value: "2h", label: t("settings.sync_2_hours") },
+    { value: "6h", label: t("settings.sync_6_hours") },
     { value: "manual", label: t("settings.security_manual") },
   ];
 }

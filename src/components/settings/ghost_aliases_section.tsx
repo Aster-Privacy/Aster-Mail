@@ -166,17 +166,16 @@ export function GhostAliasesSection() {
           <div className="flex items-center justify-between">
             <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
               <EyeSlashIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-              Ghost Aliases
+              {t("settings.ghost_aliases_title")}
             </h3>
             <span className="text-xs text-txt-muted">
-              {this_month_count} this month
+              {t("settings.ghost_aliases_this_month", { count: this_month_count })}
             </span>
           </div>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-3 text-txt-muted">
-          Disposable aliases created via Ghost Mode. Your real address stays
-          hidden.
+          {t("settings.ghost_aliases_description")}
         </p>
       </div>
 
@@ -184,7 +183,7 @@ export function GhostAliasesSection() {
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
           <EyeSlashIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
           <p className="text-sm text-txt-muted">
-            No ghost aliases yet. Use Ghost Mode when composing to create one.
+            {t("settings.ghost_aliases_empty")}
           </p>
         </div>
       ) : (
@@ -192,7 +191,7 @@ export function GhostAliasesSection() {
           {active_aliases.length > 0 && (
             <div>
               <h3 className="text-xs font-medium uppercase tracking-wider text-txt-muted mb-2">
-                Active
+                {t("settings.ghost_alias_active")}
               </h3>
               <div className="space-y-2">
                 {active_aliases.map((alias) => (
@@ -214,8 +213,8 @@ export function GhostAliasesSection() {
                         {alias.full_address}
                       </p>
                       <p className="text-xs text-txt-muted">
-                        Expires in {days_until(alias.expires_at)} days (
-                        {format_date(alias.expires_at)})
+                        {t("settings.ghost_alias_expires_in", { days: days_until(alias.expires_at) ?? 0 })}{" "}
+                        ({format_date(alias.expires_at)})
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -228,7 +227,7 @@ export function GhostAliasesSection() {
                         variant="depth"
                         onClick={() => handle_extend(alias.id)}
                       >
-                        Extend
+                        {t("settings.ghost_alias_extend")}
                       </Button>
                       <button
                         className="px-3 py-1.5 text-xs font-medium rounded-[14px] text-white transition-all hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -241,7 +240,7 @@ export function GhostAliasesSection() {
                         }}
                         onClick={() => handle_expire(alias.id)}
                       >
-                        Expire
+                        {t("settings.ghost_alias_expire_now")}
                       </button>
                     </div>
                   </div>
@@ -253,7 +252,7 @@ export function GhostAliasesSection() {
           {expired_aliases.length > 0 && (
             <div>
               <h3 className="text-xs font-medium uppercase tracking-wider text-txt-muted mb-2">
-                Expired (grace period)
+                {t("settings.ghost_alias_expired_grace")}
               </h3>
               <div className="space-y-2">
                 {expired_aliases.map((alias) => (
@@ -275,7 +274,7 @@ export function GhostAliasesSection() {
                         {alias.full_address}
                       </p>
                       <p className="text-xs text-txt-muted">
-                        Grace period until {format_date(alias.grace_expires_at)}
+                        {t("settings.ghost_alias_grace_until", { date: format_date(alias.grace_expires_at) })}
                       </p>
                     </div>
                   </div>

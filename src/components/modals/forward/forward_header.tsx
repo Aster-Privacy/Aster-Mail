@@ -301,7 +301,7 @@ export function ForwardHeader({
               {t("common.subject_label")}
             </span>
             <span className="text-sm truncate text-txt-primary">
-              Fwd: {email_subject}
+              {t("mail.forward_subject_prefix")} {email_subject}
             </span>
           </div>
         </div>

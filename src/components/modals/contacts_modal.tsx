@@ -67,10 +67,10 @@ export function ContactsModal({
           <div className="flex flex-col items-center justify-center py-20 px-8">
             <UserPlusIcon className="w-10 h-10 mb-4 text-txt-muted" />
             <p className="text-[15px] font-medium mb-1 text-txt-primary">
-              {modal.t("common.vault_locked" as never)}
+              {modal.t("common.vault_locked")}
             </p>
             <p className="text-[13px] text-txt-muted">
-              {modal.t("common.unlock_vault_to_view" as never)}
+              {modal.t("common.unlock_vault_to_view")}
             </p>
           </div>
         ) : (
@@ -140,10 +140,10 @@ export function ContactsModal({
         cancel_text={modal.t("common.cancel")}
         confirm_text={modal.t("common.delete")}
         is_open={!!modal.contact_to_delete}
-        message={modal.t("common.delete_contact_confirm" as never, {
+        message={modal.t("common.delete_contact_confirm", {
           name: modal.contact_to_delete
             ? `${modal.contact_to_delete.first_name} ${modal.contact_to_delete.last_name}`.trim()
-            : modal.t("common.this_contact" as never),
+            : modal.t("common.this_contact"),
         })}
         on_cancel={() => modal.set_contact_to_delete(null)}
         on_confirm={modal.handle_confirm_delete}
@@ -155,7 +155,7 @@ export function ContactsModal({
         cancel_text={modal.t("common.cancel")}
         confirm_text={`${modal.t("common.delete")} ${modal.selected_ids.size} contact${modal.selected_ids.size === 1 ? "" : "s"}`}
         is_open={modal.is_bulk_deleting}
-        message={modal.t("common.delete_contacts_confirm" as never, {
+        message={modal.t("common.delete_contacts_confirm", {
           count: modal.selected_ids.size,
         })}
         on_cancel={() => modal.set_is_bulk_deleting(false)}

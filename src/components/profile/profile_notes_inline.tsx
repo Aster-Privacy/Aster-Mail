@@ -234,7 +234,7 @@ export function ProfileNotesInline({ email }: ProfileNotesInlineProps) {
     >
       <div className="flex items-center justify-between mb-1">
         <span className="text-[10px] font-medium uppercase tracking-wider text-txt-muted">
-          Notes
+          {t("common.notes")}
         </span>
         {save_status === "saving" && (
           <div className="flex items-center gap-1">

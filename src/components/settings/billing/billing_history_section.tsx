@@ -74,7 +74,7 @@ export function BillingHistorySection({ history }: BillingHistorySectionProps) {
                         : "bg-yellow-500/20 text-yellow-500"
                   }`}
                 >
-                  {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                  {t(`settings.invoice_status_${item.status}` as any)}
                 </span>
                 <p className="text-sm font-medium text-txt-primary">
                   {format_price(item.amount_cents, item.currency)}

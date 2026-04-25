@@ -279,43 +279,47 @@ export interface OperatorSuggestion {
 
 export function get_operator_suggestions(
   partial: string,
+  t?: TranslateFn,
 ): OperatorSuggestion[] {
+  const tr = (key: TranslationKey, fallback: string) =>
+    t ? t(key) : fallback;
+
   const operators: OperatorSuggestion[] = [
-    { operator: "from:", description: "Search by sender" },
-    { operator: "to:", description: "Search by recipient" },
-    { operator: "subject:", description: "Search in subject" },
-    { operator: "has:attachment", description: "Has attachments" },
-    { operator: "has:pdf", description: "Has PDF attachments" },
-    { operator: "has:image", description: "Has image attachments" },
-    { operator: "has:document", description: "Has document attachments" },
-    { operator: "has:spreadsheet", description: "Has spreadsheet attachments" },
-    { operator: "has:video", description: "Has video attachments" },
-    { operator: "has:audio", description: "Has audio attachments" },
-    { operator: "has:archive", description: "Has archive attachments" },
-    { operator: "is:unread", description: "Unread emails" },
-    { operator: "is:starred", description: "Starred emails" },
-    { operator: "is:read", description: "Read emails" },
-    { operator: "in:inbox", description: "In inbox" },
-    { operator: "in:sent", description: "In sent folder" },
-    { operator: "in:trash", description: "In trash" },
-    { operator: "in:drafts", description: "In drafts" },
-    { operator: "before:", description: "Before date (YYYY-MM-DD)" },
-    { operator: "after:", description: "After date (YYYY-MM-DD)" },
-    { operator: "date:today", description: "From today" },
-    { operator: "date:yesterday", description: "From yesterday" },
-    { operator: "date:this_week", description: "From this week" },
-    { operator: "date:last_week", description: "From last week" },
-    { operator: "date:this_month", description: "From this month" },
-    { operator: "date:last_month", description: "From last month" },
-    { operator: "larger:", description: "Larger than size (e.g., 5mb)" },
-    { operator: "smaller:", description: "Smaller than size (e.g., 1mb)" },
-    { operator: "size:", description: "Size range (e.g., 1mb-10mb)" },
-    { operator: "filename:", description: "Search attachment filename" },
-    { operator: "label:", description: "Search by label" },
-    { operator: "folder:", description: "Search by folder" },
-    { operator: "id:", description: "Search by message ID" },
-    { operator: "-from:", description: "Exclude sender" },
-    { operator: "-has:attachment", description: "Without attachments" },
+    { operator: "from:", description: tr("mail.op_search_by_sender", "Search by sender") },
+    { operator: "to:", description: tr("mail.op_search_by_recipient", "Search by recipient") },
+    { operator: "subject:", description: tr("mail.op_search_in_subject", "Search in subject") },
+    { operator: "has:attachment", description: tr("mail.op_has_attachments", "Has attachments") },
+    { operator: "has:pdf", description: tr("mail.op_has_pdf", "Has PDF attachments") },
+    { operator: "has:image", description: tr("mail.op_has_image", "Has image attachments") },
+    { operator: "has:document", description: tr("mail.op_has_document", "Has document attachments") },
+    { operator: "has:spreadsheet", description: tr("mail.op_has_spreadsheet", "Has spreadsheet attachments") },
+    { operator: "has:video", description: tr("mail.op_has_video", "Has video attachments") },
+    { operator: "has:audio", description: tr("mail.op_has_audio", "Has audio attachments") },
+    { operator: "has:archive", description: tr("mail.op_has_archive", "Has archive attachments") },
+    { operator: "is:unread", description: tr("mail.op_unread_emails", "Unread emails") },
+    { operator: "is:starred", description: tr("mail.op_starred_emails", "Starred emails") },
+    { operator: "is:read", description: tr("mail.op_read_emails", "Read emails") },
+    { operator: "in:inbox", description: tr("mail.op_in_inbox", "In inbox") },
+    { operator: "in:sent", description: tr("mail.op_in_sent", "In sent folder") },
+    { operator: "in:trash", description: tr("mail.op_in_trash", "In trash") },
+    { operator: "in:drafts", description: tr("mail.op_in_drafts", "In drafts") },
+    { operator: "before:", description: tr("mail.op_before_date", "Before date (YYYY-MM-DD)") },
+    { operator: "after:", description: tr("mail.op_after_date", "After date (YYYY-MM-DD)") },
+    { operator: "date:today", description: tr("mail.op_from_today", "From today") },
+    { operator: "date:yesterday", description: tr("mail.op_from_yesterday", "From yesterday") },
+    { operator: "date:this_week", description: tr("mail.op_from_this_week", "From this week") },
+    { operator: "date:last_week", description: tr("mail.op_from_last_week", "From last week") },
+    { operator: "date:this_month", description: tr("mail.op_from_this_month", "From this month") },
+    { operator: "date:last_month", description: tr("mail.op_from_last_month", "From last month") },
+    { operator: "larger:", description: tr("mail.op_larger_than", "Larger than size (e.g., 5mb)") },
+    { operator: "smaller:", description: tr("mail.op_smaller_than", "Smaller than size (e.g., 1mb)") },
+    { operator: "size:", description: tr("mail.op_size_range", "Size range (e.g., 1mb-10mb)") },
+    { operator: "filename:", description: tr("mail.op_search_filename", "Search attachment filename") },
+    { operator: "label:", description: tr("mail.op_search_by_label", "Search by label") },
+    { operator: "folder:", description: tr("mail.op_search_by_folder", "Search by folder") },
+    { operator: "id:", description: tr("mail.op_search_by_message_id", "Search by message ID") },
+    { operator: "-from:", description: tr("mail.op_exclude_sender", "Exclude sender") },
+    { operator: "-has:attachment", description: tr("mail.op_without_attachments", "Without attachments") },
   ];
 
   if (!partial) {
@@ -515,65 +519,91 @@ export function create_active_filters(
 ): ActiveFilter[] {
   return operators.map((op, index) => {
     let label = "";
-    const negation_prefix = op.negated ? "Not " : "";
+    const negation_prefix = op.negated
+      ? (t ? t("mail.filter_not_prefix") : "Not ")
+      : "";
 
     switch (op.type) {
       case "from":
-        label = `${negation_prefix}From: ${op.value}`;
+        label =
+          negation_prefix +
+          (t
+            ? t("mail.filter_from", { value: op.value })
+            : `From: ${op.value}`);
         break;
       case "to":
-        label = `${negation_prefix}To: ${op.value}`;
+        label =
+          negation_prefix +
+          (t ? t("mail.filter_to", { value: op.value }) : `To: ${op.value}`);
         break;
       case "subject":
-        label = `${negation_prefix}Subject: ${op.value}`;
+        label =
+          negation_prefix +
+          (t
+            ? t("mail.filter_subject", { value: op.value })
+            : `Subject: ${op.value}`);
         break;
       case "has": {
         const has_value = op.value.toLowerCase();
 
         if (["attachment", "attachments"].includes(has_value)) {
-          label = op.negated ? "No attachments" : "Has attachment";
+          label = op.negated
+            ? (t ? t("mail.filter_no_attachments") : "No attachments")
+            : (t ? t("mail.filter_has_attachment") : "Has attachment");
         } else {
           const type_labels: Record<string, string> = {
-            pdf: "PDF",
-            image: "Image",
-            document: "Document",
-            spreadsheet: "Spreadsheet",
-            video: "Video",
-            audio: "Audio",
-            archive: "Archive",
+            pdf: t ? t("mail.filter_type_pdf") : "PDF",
+            image: t ? t("mail.filter_type_image") : "Image",
+            document: t ? t("mail.filter_type_document") : "Document",
+            spreadsheet: t ? t("mail.filter_type_spreadsheet") : "Spreadsheet",
+            video: t ? t("mail.filter_type_video") : "Video",
+            audio: t ? t("mail.filter_type_audio") : "Audio",
+            archive: t ? t("mail.filter_type_archive") : "Archive",
           };
           const type_label = type_labels[has_value] || has_value;
 
-          label = op.negated ? `No ${type_label}` : `Has ${type_label}`;
+          label = op.negated
+            ? (t
+                ? t("mail.filter_no_type", { type: type_label })
+                : `No ${type_label}`)
+            : (t
+                ? t("mail.filter_has_type", { type: type_label })
+                : `Has ${type_label}`);
         }
         break;
       }
       case "is":
         switch (op.value.toLowerCase()) {
           case "unread":
-            label = "Unread";
+            label = t ? t("mail.filter_unread") : "Unread";
             break;
           case "read":
-            label = "Read";
+            label = t ? t("mail.filter_read") : "Read";
             break;
           case "starred":
-            label = "Starred";
+            label = t ? t("mail.filter_starred") : "Starred";
             break;
           case "unstarred":
-            label = "Not starred";
+            label = t ? t("mail.filter_not_starred") : "Not starred";
             break;
           default:
             label = op.value;
         }
         break;
       case "in":
-        label = `In: ${op.value}`;
+        label = t
+          ? t("mail.filter_in", { value: op.value })
+          : `In: ${op.value}`;
         break;
       case "before":
-        label = `Before: ${op.value}`;
+        label = t
+          ? t("mail.filter_before", { value: op.value })
+          : `Before: ${op.value}`;
         break;
       case "after":
-        label = `After: ${op.value}`;
+        label = t
+          ? t("mail.filter_after", { value: op.value })
+          : `After: ${op.value}`;
         break;
       case "date": {
         if (is_valid_date_shortcut(op.value)) {
@@ -588,31 +618,47 @@ export function create_active_filters(
 
           label = shortcut_labels[op.value.toLowerCase()] || op.value;
         } else {
-          label = `Date: ${op.value}`;
+          label = t
+            ? t("mail.filter_date", { value: op.value })
+            : `Date: ${op.value}`;
         }
         break;
       }
       case "label":
-        label = `Label: ${op.value}`;
+        label = t
+          ? t("mail.filter_label", { value: op.value })
+          : `Label: ${op.value}`;
         break;
       case "folder":
-        label = `Folder: ${op.value}`;
+        label = t
+          ? t("mail.filter_folder", { value: op.value })
+          : `Folder: ${op.value}`;
         break;
       case "filename":
       case "attachment":
-        label = `Filename: ${op.value}`;
+        label = t
+          ? t("mail.filter_filename", { value: op.value })
+          : `Filename: ${op.value}`;
         break;
       case "id":
-        label = `ID: ${op.value}`;
+        label = t
+          ? t("mail.filter_id", { value: op.value })
+          : `ID: ${op.value}`;
         break;
       case "larger":
-        label = `Larger: ${op.value}`;
+        label = t
+          ? t("mail.filter_larger", { value: op.value })
+          : `Larger: ${op.value}`;
         break;
       case "smaller":
-        label = `Smaller: ${op.value}`;
+        label = t
+          ? t("mail.filter_smaller", { value: op.value })
+          : `Smaller: ${op.value}`;
         break;
       case "size":
-        label = `Size: ${op.value}`;
+        label = t
+          ? t("mail.filter_size", { value: op.value })
+          : `Size: ${op.value}`;
         break;
       default:
         label = `${op.type}: ${op.value}`;

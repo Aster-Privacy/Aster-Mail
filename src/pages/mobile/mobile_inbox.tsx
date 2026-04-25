@@ -583,7 +583,7 @@ function MobileInbox({
                   type="button"
                   onClick={load_new_emails}
                 >
-                  {new_email_count} new
+                  {t("common.n_new", { count: new_email_count })}
                 </button>
               )}
               {is_trash_view && active_emails.length > 0 && (
@@ -802,19 +802,19 @@ function MobileInbox({
           <div className="space-y-1">
             {[
               {
-                label: t("mail.later_today" as never),
+                label: t("common.later_today"),
                 date: addHours(new Date(), 4),
               },
               {
-                label: t("mail.tomorrow" as never),
+                label: t("common.tomorrow"),
                 date: setMinutes(setHours(addDays(new Date(), 1), 9), 0),
               },
               {
-                label: t("mail.this_weekend" as never),
+                label: t("common.this_weekend"),
                 date: setMinutes(setHours(nextSaturday(new Date()), 9), 0),
               },
               {
-                label: t("mail.next_week" as never),
+                label: t("common.next_week"),
                 date: setMinutes(setHours(nextMonday(new Date()), 9), 0),
               },
             ].map((opt) => (

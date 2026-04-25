@@ -126,7 +126,7 @@ export function ExternalAccountsSection({
                   autoComplete="email"
                   className="w-full"
                   maxLength={254}
-                  placeholder="user@example.com"
+                  placeholder={state.t("settings.username_placeholder")}
                   type="email"
                   value={state.form_email}
                   onChange={(e) => state.handle_email_change(e.target.value)}
@@ -219,7 +219,7 @@ export function ExternalAccountsSection({
                   autoComplete="username"
                   className="w-full"
                   maxLength={254}
-                  placeholder="user@example.com"
+                  placeholder={state.t("settings.username_placeholder")}
                   type="text"
                   value={state.form_username}
                   onChange={(e) => state.handle_username_change(e.target.value)}
@@ -297,7 +297,7 @@ export function ExternalAccountsSection({
                         autoComplete="off"
                         className="w-full"
                         maxLength={253}
-                        placeholder="smtp.example.com"
+                        placeholder={state.t("settings.smtp_host_placeholder")}
                         type="text"
                         value={state.form_smtp_host}
                         onChange={(e) =>
@@ -329,7 +329,7 @@ export function ExternalAccountsSection({
                       autoComplete="username"
                       className="w-full"
                       maxLength={254}
-                      placeholder="user@example.com"
+                      placeholder={state.t("settings.username_placeholder")}
                       type="text"
                       value={state.form_smtp_username}
                       onChange={(e) =>

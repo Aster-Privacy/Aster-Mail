@@ -175,7 +175,7 @@ export function ReplyHeader({
               {t("mail.subject")}
             </span>
             <span className="text-sm truncate text-txt-primary">
-              Re: {original_subject.replace(/^Re:\s*/i, "")}
+              {t("mail.reply_subject_prefix")} {original_subject.replace(/^Re:\s*/i, "")}
             </span>
           </div>
         </div>

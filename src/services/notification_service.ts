@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UserPreferences } from "@/services/api/preferences";
+import { en } from "@/lib/i18n/translations/en";
 
 export type NotificationType = "new_email" | "reply" | "mention";
 
@@ -256,7 +257,7 @@ export function notify_new_email(
   return show_notification(
     "new_email",
     {
-      title: `New email from ${sender}`,
+      title: en.mail.notification_new_email.replace("{{ sender }}", sender),
       body: subject,
       tag: `email-${email_id}`,
       data: { email_id },
@@ -274,7 +275,7 @@ export function notify_reply(
   return show_notification(
     "reply",
     {
-      title: `${sender} replied`,
+      title: en.mail.notification_reply.replace("{{ sender }}", sender),
       body: subject,
       tag: `reply-${email_id}`,
       data: { email_id },
@@ -292,7 +293,7 @@ export function notify_mention(
   return show_notification(
     "mention",
     {
-      title: `${sender} mentioned you`,
+      title: en.mail.notification_mention.replace("{{ sender }}", sender),
       body: subject,
       tag: `mention-${email_id}`,
       data: { email_id },

@@ -574,7 +574,7 @@ export function use_security() {
       "{{duration}}",
       option
         ? t(option.label_key)
-        : preferences.session_timeout_minutes + " minutes",
+        : t("settings.n_minutes", { count: preferences.session_timeout_minutes }),
     );
   };
 

@@ -104,7 +104,7 @@ export function use_encryption() {
   };
 
   const format_date = (date_string: string): string => {
-    return new Date(date_string).toLocaleDateString("en-US", {
+    return new Date(date_string).toLocaleDateString(undefined, {
       year: "numeric",
       month: "short",
       day: "numeric",

@@ -87,6 +87,7 @@ function transform_draft(
   format_options: FormatOptions,
   no_recipients_text: string,
   no_subject_text: string,
+  draft_category_text: string,
 ): DraftListItem {
   const recipients =
     draft.content.to_recipients.join(", ") || no_recipients_text;
@@ -112,7 +113,7 @@ function transform_draft(
     is_archived: false,
     is_spam: false,
     has_attachment: (draft.content.attachments?.length ?? 0) > 0,
-    category: "Draft",
+    category: draft_category_text,
     category_color: DRAFT_CATEGORY_STYLE,
     avatar_url: "",
     is_encrypted: true,
@@ -134,6 +135,7 @@ async function fetch_drafts_from_api(
   format_options: FormatOptions,
   no_recipients_text: string,
   no_subject_text: string,
+  draft_category_text: string,
 ): Promise<{ drafts: DraftListItem[]; has_more: boolean } | null> {
   const vault = get_vault_from_memory();
 
@@ -154,6 +156,7 @@ async function fetch_drafts_from_api(
             format_options,
             no_recipients_text,
             no_subject_text,
+            draft_category_text,
           )
         : null;
     }),
@@ -223,6 +226,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
         format_options,
         t("common.no_recipients"),
         t("mail.no_subject"),
+        t("common.draft_category"),
       );
 
       clearTimeout(timeout_id);

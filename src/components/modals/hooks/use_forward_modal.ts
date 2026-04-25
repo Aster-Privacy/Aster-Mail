@@ -207,7 +207,7 @@ export function use_forward_modal({
   const format_date = useCallback((timestamp: string): string => {
     const date = new Date(timestamp);
 
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(undefined, {
       weekday: "short",
       year: "numeric",
       month: "short",
@@ -237,6 +237,7 @@ export function use_forward_modal({
 
     return header + sanitized_body;
   }, [
+    t,
     email_body,
     email_subject,
     email_timestamp,
@@ -497,7 +498,7 @@ export function use_forward_modal({
     set_is_sending(true);
 
     if (selected_sender?.type === "external" && selected_sender.address_hash) {
-      const subject = `Fwd: ${email_subject}`;
+      const subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
       const ext_body =
         (forward_message ? forward_message + "<br><br>" : "") +
         forward_content_ref.current +
@@ -606,7 +607,7 @@ export function use_forward_modal({
         undo_send_manager.add({
           id: result.queued_id,
           to: recipients.to,
-          subject: `Fwd: ${email_subject}`,
+          subject: `${t("mail.forward_subject_prefix")} ${email_subject}`,
           body: forward_message,
           scheduled_time: Date.now() + delay_ms,
           total_seconds: delay_seconds,
@@ -620,6 +621,7 @@ export function use_forward_modal({
       set_is_sending(false);
     }
   }, [
+    t,
     recipients.to,
     recipients.cc,
     recipients.bcc,
@@ -657,7 +659,7 @@ export function use_forward_modal({
       to_recipients: recipients.to,
       cc_recipients: recipients.cc,
       bcc_recipients: recipients.bcc,
-      subject: `Fwd: ${email_subject}`,
+      subject: `${t("mail.forward_subject_prefix")} ${email_subject}`,
       body: scheduled_body,
       scheduled_at: scheduled_time.toISOString(),
     };
@@ -687,6 +689,7 @@ export function use_forward_modal({
       is_sending_ref.current = false;
     }
   }, [
+    t,
     recipients.to,
     recipients.cc,
     recipients.bcc,
@@ -722,14 +725,14 @@ export function use_forward_modal({
 
         if (file.size > MAX_ATTACHMENT_SIZE) {
           set_attachment_error(
-            `"${file.name}" exceeds the maximum file size of 25MB`,
+            t("common.file_exceeds_max_size", { name: file.name }),
           );
           continue;
         }
 
         if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
           set_attachment_error(
-            `Adding "${file.name}" would exceed the total attachment limit of 50MB`,
+            t("common.adding_file_would_exceed_limit", { name: file.name }),
           );
           continue;
         }
@@ -740,14 +743,14 @@ export function use_forward_modal({
           !ALLOWED_MIME_TYPES.has(mime_type) &&
           !mime_type.startsWith("text/")
         ) {
-          set_attachment_error(`"${file.name}" has an unsupported file type`);
+          set_attachment_error(t("common.unsupported_file_type", { name: file.name }));
           continue;
         }
 
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(`"${file.name}" is already attached`);
+          set_attachment_error(t("common.file_already_attached", { name: file.name }));
           continue;
         }
 
@@ -765,7 +768,7 @@ export function use_forward_modal({
           running_total += file.size;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(`Failed to read "${file.name}"`);
+          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
         }
       }
 
@@ -777,7 +780,7 @@ export function use_forward_modal({
         file_input_ref.current.value = "";
       }
     },
-    [attachments, get_total_attachments_size],
+    [attachments, get_total_attachments_size, t],
   );
 
   const handle_files_drop = useCallback(
@@ -790,14 +793,14 @@ export function use_forward_modal({
       for (const file of files) {
         if (file.size > MAX_ATTACHMENT_SIZE) {
           set_attachment_error(
-            `"${file.name}" exceeds the maximum file size of 25MB`,
+            t("common.file_exceeds_max_size", { name: file.name }),
           );
           continue;
         }
 
         if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
           set_attachment_error(
-            `Adding "${file.name}" would exceed the total attachment limit of 50MB`,
+            t("common.adding_file_would_exceed_limit", { name: file.name }),
           );
           continue;
         }
@@ -808,14 +811,14 @@ export function use_forward_modal({
           !ALLOWED_MIME_TYPES.has(mime_type) &&
           !mime_type.startsWith("text/")
         ) {
-          set_attachment_error(`"${file.name}" has an unsupported file type`);
+          set_attachment_error(t("common.unsupported_file_type", { name: file.name }));
           continue;
         }
 
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(`"${file.name}" is already attached`);
+          set_attachment_error(t("common.file_already_attached", { name: file.name }));
           continue;
         }
 
@@ -833,7 +836,7 @@ export function use_forward_modal({
           running_total += file.size;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(`Failed to read "${file.name}"`);
+          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
         }
       }
 
@@ -841,7 +844,7 @@ export function use_forward_modal({
         set_attachments((prev) => [...prev, ...new_attachments]);
       }
     },
-    [attachments, get_total_attachments_size],
+    [attachments, get_total_attachments_size, t],
   );
 
   files_drop_ref.current = handle_files_drop;

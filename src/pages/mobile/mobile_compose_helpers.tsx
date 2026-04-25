@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { SenderOption } from "@/hooks/use_sender_aliases";
+import type { TranslationKey } from "@/lib/i18n";
 import type { EditDraftData } from "@/components/compose/compose_shared";
 
 import { useMemo } from "react";
@@ -86,12 +87,12 @@ export interface MobileComposePageProps {
 
 export function format_expiry_relative(
   date: Date,
-  t?: (key: never) => string,
+  t?: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ): string {
   const now = new Date();
   const diff_ms = date.getTime() - now.getTime();
 
-  if (diff_ms <= 0) return t ? t("common.expired" as never) : "Expired";
+  if (diff_ms <= 0) return t ? t("common.expired") : "Expired";
   const hours = Math.floor(diff_ms / (1000 * 60 * 60));
   const minutes = Math.floor((diff_ms % (1000 * 60 * 60)) / (1000 * 60));
 
@@ -108,18 +109,18 @@ export function format_expiry_relative(
 
 export function sender_type_label(
   type: SenderOption["type"],
-  t?: (key: never) => string,
+  t?: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ): string {
   if (t) {
     switch (type) {
       case "alias":
-        return t("common.sender_type_alias" as never);
+        return t("common.sender_type_alias");
       case "domain":
-        return t("common.sender_type_domain" as never);
+        return t("common.sender_type_domain");
       case "external":
-        return t("common.sender_type_external" as never);
+        return t("common.sender_type_external");
       case "ghost":
-        return t("common.sender_type_ghost" as never);
+        return t("common.sender_type_ghost");
       default:
         return "";
     }

@@ -320,7 +320,7 @@ export function CreateAliasModal({
                           : "border-edge-secondary"
                   }`}
                   id="alias-address"
-                  placeholder="newsletter"
+                  placeholder={t("settings.alias_local_part_placeholder")}
                   value={local_part}
                   onChange={(e) =>
                     set_local_part(e.target.value.toLowerCase().trim())
