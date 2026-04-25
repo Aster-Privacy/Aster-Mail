@@ -29,11 +29,15 @@ import {
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/png",
   "image/jpeg",
+  "image/jpg",
   "image/gif",
   "image/webp",
   "image/svg+xml",
   "image/bmp",
   "image/tiff",
+  "image/heic",
+  "image/heif",
+  "image/avif",
 ]);
 
 export interface CidResolutionResult {

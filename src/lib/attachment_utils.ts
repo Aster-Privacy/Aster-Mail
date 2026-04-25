@@ -65,14 +65,22 @@ export function get_type_color(content_type: string): string {
   return "#6b7280";
 }
 
+const PREVIEWABLE_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/bmp",
+  "image/tiff",
+  "image/svg+xml",
+  "image/heic",
+  "image/heif",
+  "image/avif",
+]);
+
 export function is_previewable_image(content_type: string): boolean {
-  return (
-    content_type === "image/jpeg" ||
-    content_type === "image/png" ||
-    content_type === "image/gif" ||
-    content_type === "image/webp" ||
-    content_type === "image/bmp"
-  );
+  return PREVIEWABLE_IMAGE_TYPES.has(content_type.toLowerCase());
 }
 
 export function is_previewable_pdf(content_type: string): boolean {

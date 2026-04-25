@@ -83,6 +83,7 @@ export interface EmailInboxProps {
   on_scheduled_click?: (data: ScheduledClickData) => void;
   on_email_click?: (id: string) => void;
   split_email_id?: string | null;
+  split_local_email?: import("@/components/email/email_viewer_types").LocalEmailData | null;
   on_split_close?: () => void;
   split_scheduled_data?: ScheduledClickData | null;
   active_email_id?: string | null;

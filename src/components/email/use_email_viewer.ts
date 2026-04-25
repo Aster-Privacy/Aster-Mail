@@ -85,86 +85,6 @@ interface LocalDecryptedEnvelope {
   list_unsubscribe_post?: string;
 }
 
-export function format_snooze_time(
-  snooze_date: Date,
-  t?: (key: string, params?: Record<string, string | number>) => string,
-): string {
-  const now = new Date();
-  const diff_ms = snooze_date.getTime() - now.getTime();
-
-  if (diff_ms <= 0) {
-    return t ? t("common.snooze_expired") : "Snooze expired";
-  }
-
-  const diff_minutes = Math.floor(diff_ms / (1000 * 60));
-  const diff_hours = Math.floor(diff_ms / (1000 * 60 * 60));
-  const diff_days = Math.floor(diff_ms / (1000 * 60 * 60 * 24));
-
-  if (diff_minutes < 60) {
-    return t
-      ? t("common.minutes_remaining", { count: diff_minutes })
-      : `${diff_minutes} minute${diff_minutes !== 1 ? "s" : ""} remaining`;
-  } else if (diff_hours < 24) {
-    return t
-      ? t("common.hours_remaining", { count: diff_hours })
-      : `${diff_hours} hour${diff_hours !== 1 ? "s" : ""} remaining`;
-  } else if (diff_days < 7) {
-    return t
-      ? t("common.days_remaining", { count: diff_days })
-      : `${diff_days} day${diff_days !== 1 ? "s" : ""} remaining`;
-  } else {
-    const weeks = Math.floor(diff_days / 7);
-
-    return t
-      ? t("common.weeks_remaining", { count: weeks })
-      : `${weeks} week${weeks !== 1 ? "s" : ""} remaining`;
-  }
-}
-
-export function format_snooze_target(
-  snooze_date: Date,
-  t?: (key: string, params?: Record<string, string | number>) => string,
-): string {
-  const now = new Date();
-  const tomorrow = new Date(now);
-
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
-
-  const snooze_day = new Date(snooze_date);
-
-  snooze_day.setHours(0, 0, 0, 0);
-
-  const today = new Date(now);
-
-  today.setHours(0, 0, 0, 0);
-
-  const time_str = snooze_date.toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-
-  if (snooze_day.getTime() === today.getTime()) {
-    return t
-      ? t("common.today_at_time", { time: time_str })
-      : `Today at ${time_str}`;
-  } else if (snooze_day.getTime() === tomorrow.getTime()) {
-    return t
-      ? t("common.tomorrow_at_time", { time: time_str })
-      : `Tomorrow at ${time_str}`;
-  } else {
-    const date_str = snooze_date.toLocaleDateString([], {
-      weekday: "long",
-      month: "short",
-      day: "numeric",
-    });
-
-    return t
-      ? t("common.date_at_time", { date: date_str, time: time_str })
-      : `${date_str} at ${time_str}`;
-  }
-}
-
 export function use_email_viewer({
   email_id,
   local_email,
@@ -294,7 +214,7 @@ export function use_email_viewer({
     if (!local_email) return;
 
     const s_email = local_email.sender_email || user?.email || "me";
-    const s_name = local_email.sender_name || user?.email || "Me";
+    const s_name = local_email.sender_name || user?.email || t("common.me");
     const now_str = format_email_detail(new Date());
 
     set_email({
@@ -573,7 +493,7 @@ export function use_email_viewer({
         sender:
           envelope.from.name ||
           get_email_username(envelope.from.email) ||
-          "Unknown",
+          t("common.unknown"),
         sender_email: envelope.from.email || "",
         subject: envelope.subject || t("mail.no_subject"),
         preview: build_preview_text(body_text, safe_html),

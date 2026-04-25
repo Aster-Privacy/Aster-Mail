@@ -23,6 +23,8 @@ import type {
   DraftClickData,
   ScheduledClickData,
 } from "@/components/email/email_inbox";
+import type { TranslationKey } from "@/lib/i18n";
+import type { LocalEmailData } from "@/components/email/email_viewer_types";
 import type { CachedSubscription } from "@/services/subscription_cache";
 import type { SettingsSection } from "@/components/settings/settings_panel";
 
@@ -165,20 +167,21 @@ export function use_index_page_state() {
       set_is_settings_open(true);
     } else if (oauth_status === "error") {
       const raw_reason = search_params.get("reason") || "";
-      const known_reasons: Record<string, string> = {
-        provider_denied: "Access was denied by provider",
-        missing_code: "Authorization code missing",
-        missing_state: "Invalid request state",
-        internal_error: "Internal server error",
-        invalid_state: "Invalid or expired session",
-        expired_state: "Session expired",
-        invalid_provider: "Unknown provider",
-        provider_not_configured: "Provider not configured",
-        token_exchange_failed: "Token exchange failed",
-        encryption_error: "Encryption error",
-        account_creation_failed: "Account creation failed",
+      const reason_key_map: Record<string, string> = {
+        provider_denied: "settings.oauth_reason_provider_denied",
+        missing_code: "settings.oauth_reason_missing_code",
+        missing_state: "settings.oauth_reason_missing_state",
+        internal_error: "settings.oauth_reason_internal_error",
+        invalid_state: "settings.oauth_reason_invalid_state",
+        expired_state: "settings.oauth_reason_expired_state",
+        invalid_provider: "settings.oauth_reason_invalid_provider",
+        provider_not_configured: "settings.oauth_reason_provider_not_configured",
+        token_exchange_failed: "settings.oauth_reason_token_exchange_failed",
+        encryption_error: "settings.oauth_reason_encryption_error",
+        account_creation_failed: "settings.oauth_reason_account_creation_failed",
       };
-      const reason = known_reasons[raw_reason] || "Unknown error";
+      const reason_i18n_key = reason_key_map[raw_reason] || "settings.oauth_reason_unknown";
+      const reason = t(reason_i18n_key as TranslationKey);
 
       show_toast(t("settings.oauth_import_error", { reason }), "error");
     }
@@ -219,6 +222,8 @@ export function use_index_page_state() {
   const [split_email_id, set_split_email_id] = useState<string | null>(null);
   const [split_scheduled_data, set_split_scheduled_data] =
     useState<ScheduledClickData | null>(null);
+  const [preview_local_email, set_preview_local_email] =
+    useState<LocalEmailData | null>(null);
   const [visible_email_ids, set_visible_email_ids] = useState<string[]>([]);
   const [email_snooze_map, set_email_snooze_map] = useState<
     Record<string, string | undefined>
@@ -376,11 +381,37 @@ export function use_index_page_state() {
 
   const handle_split_close = useCallback(() => {
     set_split_email_id(null);
+    set_preview_local_email(null);
   }, []);
 
   const handle_popup_close = useCallback(() => {
     set_popup_email_id(null);
+    set_preview_local_email(null);
   }, []);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const data = (e as CustomEvent<LocalEmailData>).detail;
+
+      set_preview_local_email(data);
+      set_edit_draft(null);
+      set_popup_scheduled(null);
+      set_split_scheduled_data(null);
+
+      if (use_popup_mode) {
+        set_split_email_id(null);
+        set_popup_email_id("undo-send-preview");
+      } else {
+        set_popup_email_id(null);
+        set_split_email_id("undo-send-preview");
+      }
+    };
+
+    window.addEventListener("astermail:undo-send-preview", handler);
+
+    return () =>
+      window.removeEventListener("astermail:undo-send-preview", handler);
+  }, [use_popup_mode]);
 
   const handle_popup_reply = useCallback((data: ReplyData) => {
     set_popup_email_id(null);
@@ -1013,6 +1044,7 @@ export function use_index_page_state() {
     handle_draft_cleared,
     split_email_id,
     set_split_email_id,
+    preview_local_email,
     split_scheduled_data,
     set_split_scheduled_data,
     visible_email_ids,
