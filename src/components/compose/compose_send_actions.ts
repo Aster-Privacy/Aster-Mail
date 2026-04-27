@@ -27,12 +27,14 @@ import type {
 import { undo_send_manager } from "@/hooks/use_undo_send";
 import {
   queue_email,
+  queue_email_to_server,
   get_undo_send_delay_ms,
   execute_external_send,
 } from "@/services/send_queue";
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { show_toast } from "@/components/toast/simple_toast";
+import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
 
 export interface SendActionContext {
   undo_send_enabled: boolean;
@@ -101,34 +103,34 @@ export async function execute_internal_send(
 ) {
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
-  const email_id = queue_email(
-    {
-      ...email_data,
-      on_complete: () => {
-        ctx.set_queued_email_id(null);
-        ctx.on_close();
-        if (delay_seconds === 0) {
-          show_toast(ctx.t("common.email_sent"), "success");
-        }
-        dispatch_email_sent();
-      },
-      on_cancel: () => {
-        ctx.set_queued_email_id(null);
-      },
-      on_error: (error: string) => {
-        show_toast(error, "error");
-      },
-    },
-    delay_ms,
-  );
-
-  if (email_id === null) {
-    return;
-  }
-
   if (delay_seconds > 0) {
+    const result = await queue_email_to_server(
+      {
+        ...email_data,
+      },
+      delay_seconds,
+      {
+        on_sent: () => {
+          ctx.set_queued_email_id(null);
+          invalidate_mail_counts();
+          dispatch_email_sent();
+        },
+        on_cancelled: () => {
+          ctx.set_queued_email_id(null);
+        },
+        on_error: (error: string) => {
+          ctx.set_queued_email_id(null);
+          show_toast(error, "error");
+        },
+      },
+    );
+
+    if (!result) {
+      return;
+    }
+
     undo_send_manager.add({
-      id: email_id,
+      id: result.queue_id,
       to: email_data.to,
       cc: email_data.cc,
       bcc: email_data.bcc,
@@ -136,10 +138,36 @@ export async function execute_internal_send(
       body: email_data.body,
       scheduled_time: Date.now() + delay_ms,
       total_seconds: delay_seconds,
+      is_server_queued: true,
+      server_queue_id: result.queue_id,
     });
-  }
 
-  save_and_close(ctx, email_id, email_data);
+    save_and_close(ctx, result.queue_id, email_data);
+  } else {
+    const email_id = queue_email(
+      {
+        ...email_data,
+        on_complete: () => {
+          ctx.set_queued_email_id(null);
+          show_toast(ctx.t("common.email_sent"), "success");
+          dispatch_email_sent();
+        },
+        on_cancel: () => {
+          ctx.set_queued_email_id(null);
+        },
+        on_error: (error: string) => {
+          show_toast(error, "error");
+        },
+      },
+      0,
+    );
+
+    if (email_id === null) {
+      return;
+    }
+
+    save_and_close(ctx, email_id, email_data);
+  }
 }
 
 export async function execute_external_email_send(
@@ -167,27 +195,34 @@ export async function execute_external_email_send(
   };
 
   if (delay_seconds > 0) {
-    const email_id = crypto.randomUUID();
+    const result = await queue_email_to_server(
+      external_email_data,
+      delay_seconds,
+      {
+        on_sent: () => {
+          ctx.set_queued_email_id(null);
+          invalidate_mail_counts();
+          dispatch_email_sent();
+        },
+        on_cancelled: () => {
+          ctx.set_queued_email_id(null);
+        },
+        on_error: (error: string) => {
+          ctx.set_queued_email_id(null);
+          show_toast(
+            error || ctx.t("common.failed_to_send_external_email"),
+            "error",
+          );
+        },
+      },
+    );
 
-    const timeout_id = window.setTimeout(async () => {
-      try {
-        await execute_external_send(external_email_data, true);
-        undo_send_manager.remove(email_id);
-        ctx.set_queued_email_id(null);
-        dispatch_email_sent();
-      } catch (err) {
-        undo_send_manager.remove(email_id);
-        ctx.set_queued_email_id(null);
-        show_toast(
-          (err as Error).message ||
-            ctx.t("common.failed_to_send_external_email"),
-          "error",
-        );
-      }
-    }, delay_ms);
+    if (!result) {
+      return;
+    }
 
     undo_send_manager.add({
-      id: email_id,
+      id: result.queue_id,
       to: email_data.to,
       cc: email_data.cc,
       bcc: email_data.bcc,
@@ -195,44 +230,29 @@ export async function execute_external_email_send(
       body: email_data.body,
       scheduled_time: Date.now() + delay_ms,
       total_seconds: delay_seconds,
-      timeout_id,
       is_external: true,
-      on_send_immediately: async () => {
-        window.clearTimeout(timeout_id);
-        try {
-          await execute_external_send(external_email_data, true);
-          ctx.set_queued_email_id(null);
-          dispatch_email_sent();
-        } catch (err) {
-          ctx.set_queued_email_id(null);
-          show_toast(
-            (err as Error).message ||
-              ctx.t("common.failed_to_send_external_email"),
-            "error",
-          );
-        }
-      },
+      is_server_queued: true,
+      server_queue_id: result.queue_id,
     });
 
-    save_and_close(ctx, email_id, email_data);
-
-    return;
-  }
-
-  try {
-    await execute_external_send(external_email_data, true);
-    show_toast(ctx.t("common.email_sent"), "success");
-    dispatch_email_sent();
-    ctx.reset_form();
-    ctx.on_close();
-    if (ctx.edit_draft && ctx.on_draft_cleared) {
-      ctx.on_draft_cleared();
+    save_and_close(ctx, result.queue_id, email_data);
+  } else {
+    try {
+      await execute_external_send(external_email_data, true);
+      show_toast(ctx.t("common.email_sent"), "success");
+      dispatch_email_sent();
+      ctx.reset_form();
+      ctx.on_close();
+      if (ctx.edit_draft && ctx.on_draft_cleared) {
+        ctx.on_draft_cleared();
+      }
+    } catch (err) {
+      show_toast(
+        (err as Error).message ||
+          ctx.t("common.failed_to_send_external_email"),
+        "error",
+      );
     }
-  } catch (err) {
-    show_toast(
-      (err as Error).message || ctx.t("common.failed_to_send_external_email"),
-      "error",
-    );
   }
 }
 

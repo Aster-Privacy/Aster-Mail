@@ -438,24 +438,20 @@ async function prepare_email_for_server_queue(
   }
 
   const request: QueueEmailRequest = {
-    recipient: email.to[0],
-    subject: email.subject,
-    body: encrypted_body,
-    is_encrypted,
+    to: email.to,
     cc: email.cc,
     bcc: email.bcc,
-    thread_id: effective_thread_id,
-    in_reply_to: email.in_reply_to,
-    attachments: email.server_attachments,
+    subject: email.subject,
+    body: encrypted_body,
+    is_e2e_encrypted: is_encrypted,
     encrypted_envelope: envelope_data.encrypted_envelope,
     envelope_nonce: envelope_data.envelope_nonce,
     folder_token: envelope_data.folder_token,
     encrypted_metadata: envelope_data.encrypted_metadata,
     metadata_nonce: envelope_data.metadata_nonce,
+    thread_token: effective_thread_id,
     sender_email: email.sender_email,
     sender_alias_hash: email.sender_alias_hash,
-    sender_display_name: email.sender_display_name,
-    forward_original_mail_id: email.forward_original_mail_id,
   };
 
   return { request, is_encrypted };

@@ -28,46 +28,46 @@ export interface AttachmentRef {
 }
 
 export interface QueueEmailRequest {
-  recipient: string;
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
   subject: string;
   body: string;
   delay_seconds?: number;
-  is_encrypted?: boolean;
-  attachments?: AttachmentRef[];
-  thread_id?: string;
-  in_reply_to?: string;
-  cc?: string[];
-  bcc?: string[];
+  is_e2e_encrypted?: boolean;
   encrypted_envelope?: string;
   envelope_nonce?: string;
   folder_token?: string;
   encrypted_metadata?: string;
   metadata_nonce?: string;
+  attachment_ids?: string[];
+  thread_token?: string;
+  reply_to_id?: string;
   sender_email?: string;
   sender_alias_hash?: string;
-  sender_display_name?: string;
-  forward_original_mail_id?: string;
 }
 
 export interface QueueEmailResponse {
   queue_id: string;
-  scheduled_send_at: string;
+  scheduled_send_time: string;
   can_cancel_until: string;
+  delay_seconds: number;
 }
 
 export interface QueuedEmailStatus {
   queue_id: string;
   status: "pending" | "sending" | "sent" | "cancelled" | "failed";
-  scheduled_send_at: string;
+  scheduled_send_time: string;
+  can_cancel_until: string;
+  recipient_count: number;
+  subject_preview?: string;
   created_at: string;
-  recipient: string;
-  subject: string;
   error_message?: string;
 }
 
 export interface PendingEmailsResponse {
   emails: QueuedEmailStatus[];
-  total: number;
+  total_count: number;
 }
 
 export async function queue_email(

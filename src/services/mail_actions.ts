@@ -20,8 +20,11 @@
 //
 import {
   queue_email,
+  queue_email_to_server,
   cancel_send,
   send_now,
+  cancel_server_queued_email,
+  send_server_queued_immediately,
   parse_undo_send_period,
 } from "./send_queue";
 import { get_or_create_thread_token } from "./thread_service";
@@ -71,6 +74,7 @@ export interface MailActionResult {
   queued_id?: string;
   thread_token?: string;
   error?: string;
+  is_server_queued?: boolean;
 }
 
 export interface MailActionCallbacks {
@@ -143,6 +147,7 @@ export async function send_reply(
   const recipients = build_reply_recipients(params, current_user_email);
   const subject = build_reply_subject(params.original.subject);
   const delay_ms = parse_undo_send_period(undo_send_period);
+  const delay_seconds = delay_ms / 1000;
 
   let thread_token = params.thread_token;
 
@@ -155,6 +160,42 @@ export async function send_reply(
     if (resolved_token) {
       thread_token = resolved_token;
     }
+  }
+
+  if (delay_seconds > 0) {
+    const result = await queue_email_to_server(
+      {
+        to: recipients,
+        subject,
+        envelope_subject: params.original.subject,
+        body: params.message,
+        thread_id: thread_token,
+        expires_at: params.expires_at,
+        sender_email: params.sender_email,
+        sender_alias_hash: params.sender_alias_hash,
+      },
+      delay_seconds,
+      {
+        on_sent: callbacks.on_complete,
+        on_cancelled: callbacks.on_cancel,
+        on_error: callbacks.on_error,
+      },
+    );
+
+    if (!result) {
+      const error = en.errors.failed_queue_reply;
+
+      callbacks.on_error?.(error);
+
+      return { success: false, error };
+    }
+
+    return {
+      success: true,
+      queued_id: result.queue_id,
+      thread_token,
+      is_server_queued: true,
+    };
   }
 
   const queued_id = queue_email(
@@ -171,7 +212,7 @@ export async function send_reply(
       on_cancel: callbacks.on_cancel,
       on_error: callbacks.on_error,
     },
-    delay_ms,
+    0,
   );
 
   if (!queued_id) {
@@ -229,6 +270,41 @@ export async function send_forward(
     : `${forwarded_header}${badge_block}${get_aster_footer(undefined, show_aster_branding)}`;
 
   const delay_ms = parse_undo_send_period(undo_send_period);
+  const delay_seconds = delay_ms / 1000;
+
+  if (delay_seconds > 0) {
+    const result = await queue_email_to_server(
+      {
+        to: params.recipients,
+        cc: params.cc_recipients,
+        bcc: params.bcc_recipients,
+        subject,
+        envelope_subject: params.original.subject,
+        body: full_body,
+        expires_at: params.expires_at,
+        sender_email: params.sender_email,
+        sender_alias_hash: params.sender_alias_hash,
+        attachments: params.attachments,
+        forward_original_mail_id: params.forward_original_mail_id,
+      },
+      delay_seconds,
+      {
+        on_sent: callbacks.on_complete,
+        on_cancelled: callbacks.on_cancel,
+        on_error: callbacks.on_error,
+      },
+    );
+
+    if (!result) {
+      const error = en.errors.failed_queue_forward;
+
+      callbacks.on_error?.(error);
+
+      return { success: false, error };
+    }
+
+    return { success: true, queued_id: result.queue_id, is_server_queued: true };
+  }
 
   const queued_id = queue_email(
     {
@@ -247,7 +323,7 @@ export async function send_forward(
       on_cancel: callbacks.on_cancel,
       on_error: callbacks.on_error,
     },
-    delay_ms,
+    0,
   );
 
   if (!queued_id) {
@@ -264,9 +340,17 @@ export async function send_forward(
 export function cancel_mail_action(queued_id: string): boolean {
   const cancelled = cancel_send(queued_id);
 
-  return cancelled !== null;
+  if (cancelled !== null) {
+    return true;
+  }
+
+  cancel_server_queued_email(queued_id).catch(() => {});
+
+  return true;
 }
 
 export function send_mail_now(queued_id: string): void {
-  send_now(queued_id);
+  send_now(queued_id).catch(() => {
+    send_server_queued_immediately(queued_id).catch(() => {});
+  });
 }

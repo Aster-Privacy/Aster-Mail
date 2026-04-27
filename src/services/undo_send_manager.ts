@@ -65,13 +65,13 @@ class UndoSendManager {
       return null;
     }
 
-    const { queue_id, scheduled_send_at, can_cancel_until } = response.data;
+    const { queue_id, scheduled_send_time, can_cancel_until } = response.data;
 
     const pending: PendingSend = {
       queue_id,
-      recipient: request.recipient,
+      recipient: request.to[0] || "",
       subject: request.subject,
-      scheduled_send_at: new Date(scheduled_send_at),
+      scheduled_send_at: new Date(scheduled_send_time),
       can_cancel_until: new Date(can_cancel_until),
       timeout_id: 0,
       status: "pending",
@@ -331,10 +331,10 @@ class UndoSendManager {
 
     const pending: PendingSend = {
       queue_id: status.queue_id,
-      recipient: status.recipient,
-      subject: status.subject,
-      scheduled_send_at: new Date(status.scheduled_send_at),
-      can_cancel_until: new Date(status.scheduled_send_at),
+      recipient: status.subject_preview || "",
+      subject: status.subject_preview || "",
+      scheduled_send_at: new Date(status.scheduled_send_time),
+      can_cancel_until: new Date(status.can_cancel_until),
       timeout_id: 0,
       status: "pending",
     };

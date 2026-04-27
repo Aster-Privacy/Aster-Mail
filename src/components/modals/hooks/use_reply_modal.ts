@@ -787,6 +787,8 @@ export function use_reply_modal({
           body: message_with_signature,
           scheduled_time: Date.now() + delay_ms,
           total_seconds: delay_seconds,
+          is_server_queued: result.is_server_queued,
+          server_queue_id: result.is_server_queued ? result.queued_id : undefined,
         });
       }
 
