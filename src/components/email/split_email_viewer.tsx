@@ -69,6 +69,8 @@ interface SplitEmailViewerProps {
   current_index?: number;
   total_count?: number;
   grouped_email_ids?: string[];
+  folders?: { id: string; name: string; color: string }[];
+  on_folder_toggle?: (folder_id: string) => void;
 }
 
 export function SplitEmailViewer({
@@ -85,6 +87,8 @@ export function SplitEmailViewer({
   current_index,
   total_count,
   grouped_email_ids,
+  folders,
+  on_folder_toggle,
 }: SplitEmailViewerProps): React.ReactElement {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -333,6 +337,8 @@ export function SplitEmailViewer({
             is_trash_loading={viewer.is_trash_loading}
             mail_item={viewer.mail_item}
             on_archive={viewer.handle_archive}
+            folders={folders}
+            on_folder_toggle={on_folder_toggle}
             on_navigate_next={on_navigate_next}
             on_navigate_prev={on_navigate_prev}
             on_not_spam={viewer.handle_not_spam}

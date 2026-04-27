@@ -43,6 +43,7 @@ import { print_email } from "@/utils/print_email";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
+import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { set_forward_mail_id } from "@/services/forward_store";
 
 export interface EmailViewerActionsDeps {
@@ -361,6 +362,11 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
     deps.set_is_spam_loading(false);
     if (result.success) {
+      const sender = deps.email?.sender_email;
+
+      if (sender) {
+        report_spam_sender(sender).catch(() => {});
+      }
       emit_mail_items_removed({ ids: [deps.email_id] });
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
       show_action_toast({
@@ -376,6 +382,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             },
             { is_spam: false },
           );
+          if (sender) {
+            remove_spam_sender(sender).catch(() => {});
+          }
           window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
         },
       });
@@ -383,6 +392,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     }
   }, [
     deps.email_id,
+    deps.email?.sender_email,
     deps.is_spam_loading,
     deps.on_dismiss,
     deps.mail_item,
@@ -404,6 +414,11 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
     deps.set_is_spam_loading(false);
     if (result.success) {
+      const sender = deps.email?.sender_email;
+
+      if (sender) {
+        remove_spam_sender(sender).catch(() => {});
+      }
       emit_mail_items_removed({ ids: [deps.email_id] });
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
       show_toast(deps.t("common.marked_as_not_spam"), "success");
@@ -411,6 +426,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     }
   }, [
     deps.email_id,
+    deps.email?.sender_email,
     deps.is_spam_loading,
     deps.on_dismiss,
     deps.mail_item,
@@ -683,6 +699,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       );
 
       if (result.success) {
+        if (msg.sender_email) {
+          report_spam_sender(msg.sender_email).catch(() => {});
+        }
         window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         show_toast(deps.t("common.reported_as_phishing"), "success");
         deps.on_dismiss();
@@ -704,6 +723,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       );
 
       if (result.success) {
+        if (msg.sender_email) {
+          remove_spam_sender(msg.sender_email).catch(() => {});
+        }
         window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         deps.on_dismiss();

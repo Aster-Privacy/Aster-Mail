@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/error_boundary";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
+import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { emit_mail_changed, emit_mail_soft_refresh } from "@/hooks/mail_events";
@@ -130,6 +131,11 @@ export function EmailViewer({
 
     set_is_spam_loading(false);
     if (result.success) {
+      const sender = email.sender?.email;
+
+      if (sender) {
+        report_spam_sender(sender).catch(() => {});
+      }
       emit_mail_changed();
       show_action_toast({
         message: t("common.conversation_marked_as_spam_toast"),
@@ -145,12 +151,15 @@ export function EmailViewer({
           if (!undo_result.success) {
             throw new Error(t("common.failed_to_undo_spam"));
           }
+          if (sender) {
+            remove_spam_sender(sender).catch(() => {});
+          }
           emit_mail_soft_refresh();
         },
       });
       on_close();
     }
-  }, [email.id, is_spam_loading, on_close, t]);
+  }, [email.id, email.sender?.email, is_spam_loading, on_close, t]);
 
   const handle_trash = useCallback(async () => {
     if (is_trash_loading) return;

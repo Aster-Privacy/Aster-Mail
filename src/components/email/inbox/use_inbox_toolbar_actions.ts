@@ -46,7 +46,11 @@ import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
-import { batched_bulk_permanent_delete } from "@/services/api/mail";
+import {
+  batched_bulk_permanent_delete,
+  report_spam_sender,
+  remove_spam_sender,
+} from "@/services/api/mail";
 
 interface UseInboxToolbarActionsOptions {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -194,31 +198,69 @@ export function use_inbox_toolbar_actions({
       update_preference("confirm_before_spam", false, true);
     }
     const email = pending_spam_email;
+    const sender = email.sender_email;
+    const same_sender_emails = sender
+      ? email_state.emails.filter(
+          (e) =>
+            e.sender_email === sender &&
+            e.id !== email.id &&
+            !e.is_spam,
+        )
+      : [];
+
     const deltas = compute_removal_deltas(email);
+    const same_sender_deltas = same_sender_emails.map(compute_removal_deltas);
     const all_ids =
       email.grouped_email_ids && email.grouped_email_ids.length > 1
         ? email.grouped_email_ids
         : [email.id];
 
+    const same_sender_ids = same_sender_emails.flatMap((e) =>
+      e.grouped_email_ids && e.grouped_email_ids.length > 1
+        ? e.grouped_email_ids
+        : [e.id],
+    );
+
+    const combined_ids = [...all_ids, ...same_sender_ids];
+
     remove_email(email.id);
+    for (const e of same_sender_emails) {
+      remove_email(e.id);
+    }
     apply_stat_deltas(deltas);
-    const result = await bulk_update_metadata_by_ids(all_ids, {
+    for (const d of same_sender_deltas) {
+      apply_stat_deltas(d);
+    }
+
+    const result = await bulk_update_metadata_by_ids(combined_ids, {
       is_spam: true,
     });
 
     if (result.success) {
+      if (sender) {
+        report_spam_sender(sender).catch(() => {});
+      }
       show_action_toast({
         message: t("common.conversation_marked_as_spam"),
         action_type: "spam",
-        email_ids: all_ids,
+        email_ids: combined_ids,
         on_undo: async () => {
           revert_stat_deltas(deltas);
-          await bulk_update_metadata_by_ids(all_ids, { is_spam: false });
+          for (const d of same_sender_deltas) {
+            revert_stat_deltas(d);
+          }
+          await bulk_update_metadata_by_ids(combined_ids, { is_spam: false });
+          if (sender) {
+            remove_spam_sender(sender).catch(() => {});
+          }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
     } else {
       revert_stat_deltas(deltas);
+      for (const d of same_sender_deltas) {
+        revert_stat_deltas(d);
+      }
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_CHANGED));
       show_toast(t("common.failed_to_mark_as_spam"), "error");
     }
@@ -231,6 +273,7 @@ export function use_inbox_toolbar_actions({
     remove_email,
     update_preference,
     save_now,
+    email_state.emails,
   ]);
 
   const cancel_single_spam = useCallback((): void => {
@@ -462,6 +505,13 @@ export function use_inbox_toolbar_actions({
     });
 
     if (!result.success) return;
+    const unique_senders = new Set(
+      selected.map((e) => e.sender_email).filter(Boolean),
+    );
+
+    for (const sender of unique_senders) {
+      report_spam_sender(sender).catch(() => {});
+    }
     for (const email of selected) {
       remove_email(email.id);
     }
@@ -473,6 +523,9 @@ export function use_inbox_toolbar_actions({
       email_ids: expanded_ids,
       on_undo: async () => {
         await bulk_update_metadata_by_ids(expanded_ids, { is_spam: false });
+        for (const sender of unique_senders) {
+          remove_spam_sender(sender).catch(() => {});
+        }
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       },
     });
@@ -525,6 +578,15 @@ export function use_inbox_toolbar_actions({
     );
 
     if (results.some((r) => !r.success)) return;
+    if (is_spam_restore) {
+      const unique_senders = new Set(
+        selected.map((e) => e.sender_email).filter(Boolean),
+      );
+
+      for (const sender of unique_senders) {
+        remove_spam_sender(sender).catch(() => {});
+      }
+    }
     for (const email of selected) {
       if (is_spam_restore) {
         const deltas = compute_restore_deltas(email);
@@ -545,6 +607,15 @@ export function use_inbox_toolbar_actions({
       action_type: "restore",
       email_ids: ids,
       on_undo: async () => {
+        if (is_spam_restore) {
+          const unique_senders = new Set(
+            selected.map((e) => e.sender_email).filter(Boolean),
+          );
+
+          for (const sender of unique_senders) {
+            report_spam_sender(sender).catch(() => {});
+          }
+        }
         await Promise.all(
           selected.map((email, index) => {
             const metadata_update = is_spam_restore

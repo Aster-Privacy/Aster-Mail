@@ -69,6 +69,8 @@ interface FullEmailViewerProps {
   current_index?: number;
   total_count?: number;
   grouped_email_ids?: string[];
+  folders?: { id: string; name: string; color: string }[];
+  on_folder_toggle?: (folder_id: string) => void;
 }
 
 export function FullEmailViewer({
@@ -86,6 +88,8 @@ export function FullEmailViewer({
   current_index,
   total_count,
   grouped_email_ids,
+  folders,
+  on_folder_toggle,
 }: FullEmailViewerProps): React.ReactElement {
   const { t } = use_i18n();
   const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
@@ -324,6 +328,7 @@ export function FullEmailViewer({
               current_index={current_index}
               dropdown_align="end"
               email={email}
+              folders={folders}
               is_archive_loading={viewer.is_archive_loading}
               is_pin_loading={viewer.is_pin_loading}
               is_pinned={viewer.is_pinned}
@@ -333,6 +338,7 @@ export function FullEmailViewer({
               is_trash_loading={viewer.is_trash_loading}
               mail_item={viewer.mail_item}
               on_archive={viewer.handle_archive}
+              on_folder_toggle={on_folder_toggle}
               on_navigate_next={on_navigate_next}
               on_navigate_prev={on_navigate_prev}
               on_not_spam={viewer.handle_not_spam}

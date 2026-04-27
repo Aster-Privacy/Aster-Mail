@@ -36,6 +36,7 @@ import { mark_view_stale, invalidate_mail_cache, remove_email_from_view_cache } 
 import {
   update_mail_item,
   patch_mail_item_metadata,
+  report_spam_sender,
 } from "@/services/api/mail";
 import {
   batch_archive as api_batch_archive,
@@ -370,7 +371,11 @@ export function use_email_list_actions({
         is_spam: true,
       });
 
-      if (!result.success) {
+      if (result.success) {
+        if (email?.sender_email) {
+          report_spam_sender(email.sender_email).catch(() => {});
+        }
+      } else {
         if (should_adjust_unread) {
           adjust_unread_count(1);
         }

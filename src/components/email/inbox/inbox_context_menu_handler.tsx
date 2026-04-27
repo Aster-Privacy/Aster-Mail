@@ -53,6 +53,8 @@ import {
   bulk_remove_folder,
   batched_bulk_permanent_delete,
   trash_thread,
+  report_spam_sender,
+  remove_spam_sender,
 } from "@/services/api/mail";
 import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
 import {
@@ -64,6 +66,7 @@ import { batch_archive, batch_unarchive } from "@/services/api/archive";
 interface UseContextMenuActionsParams {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   current_view: string;
+  emails: InboxEmail[];
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
   handle_open_compose: (mode: "reply" | "forward", email: InboxEmail) => void;
@@ -120,6 +123,7 @@ export interface ContextMenuActions {
 export function use_context_menu_actions({
   t,
   current_view,
+  emails,
   update_email,
   remove_email,
   handle_open_compose,
@@ -274,26 +278,63 @@ export function use_context_menu_actions({
     };
 
     const handle_spam = async (email: InboxEmail) => {
+      const sender = email.sender_email;
+      const same_sender_emails = sender
+        ? emails.filter(
+            (e) =>
+              e.sender_email === sender &&
+              e.id !== email.id &&
+              !e.is_spam,
+          )
+        : [];
+
       const deltas = compute_removal_deltas(email);
+      const same_sender_deltas = same_sender_emails.map(compute_removal_deltas);
       const all_ids =
         email.grouped_email_ids && email.grouped_email_ids.length > 1
           ? email.grouped_email_ids
           : [email.id];
 
+      const same_sender_ids = same_sender_emails.flatMap((e) =>
+        e.grouped_email_ids && e.grouped_email_ids.length > 1
+          ? e.grouped_email_ids
+          : [e.id],
+      );
+
+      const combined_ids = [...all_ids, ...same_sender_ids];
+
       remove_email(email.id);
+      for (const e of same_sender_emails) {
+        remove_email(e.id);
+      }
       apply_stat_deltas(deltas);
-      const result = await bulk_update_metadata_by_ids(all_ids, {
+      for (const d of same_sender_deltas) {
+        apply_stat_deltas(d);
+      }
+
+      const result = await bulk_update_metadata_by_ids(combined_ids, {
         is_spam: true,
       });
 
       if (result.success) {
+        if (sender) {
+          report_spam_sender(sender).catch(() => {});
+        }
         show_action_toast({
           message: t("common.conversation_marked_as_spam"),
           action_type: "spam",
-          email_ids: all_ids,
+          email_ids: combined_ids,
           on_undo: async () => {
             revert_stat_deltas(deltas);
-            await bulk_update_metadata_by_ids(all_ids, { is_spam: false });
+            for (const d of same_sender_deltas) {
+              revert_stat_deltas(d);
+            }
+            await bulk_update_metadata_by_ids(combined_ids, {
+              is_spam: false,
+            });
+            if (sender) {
+              remove_spam_sender(sender).catch(() => {});
+            }
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -301,6 +342,9 @@ export function use_context_menu_actions({
         });
       } else {
         revert_stat_deltas(deltas);
+        for (const d of same_sender_deltas) {
+          revert_stat_deltas(d);
+        }
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_CHANGED));
         show_toast(t("common.failed_to_mark_as_spam"), "error");
       }
@@ -696,6 +740,9 @@ export function use_context_menu_actions({
       );
 
       if (result.success) {
+        if (email.sender_email) {
+          remove_spam_sender(email.sender_email).catch(() => {});
+        }
         show_action_toast({
           message: t("common.marked_as_not_spam"),
           action_type: "not_spam",
@@ -710,6 +757,9 @@ export function use_context_menu_actions({
               },
               { is_spam: true },
             );
+            if (email.sender_email) {
+              report_spam_sender(email.sender_email).catch(() => {});
+            }
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -792,6 +842,7 @@ export function use_context_menu_actions({
   }, [
     t,
     current_view,
+    emails,
     update_email,
     remove_email,
     handle_open_compose,

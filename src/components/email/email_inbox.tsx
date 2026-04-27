@@ -431,6 +431,7 @@ export function EmailInbox({
   const context_menu_actions = use_context_menu_actions({
     t,
     current_view,
+    emails: email_state.emails,
     update_email,
     remove_email,
     handle_open_compose,
@@ -816,6 +817,26 @@ export function EmailInbox({
     return email_state.emails.find((e) => e.id === split_email_id)
       ?.grouped_email_ids;
   }, [split_email_id, email_state.emails]);
+  const viewer_folders = useMemo(
+    () =>
+      folders_state.folders.map((f) => ({
+        id: f.folder_token,
+        name: f.name,
+        color: f.color || "#6366f1",
+      })),
+    [folders_state.folders],
+  );
+  const handle_viewer_folder_toggle = useCallback(
+    (folder_id: string) => {
+      if (!split_email_id) return;
+      const email = email_state.emails.find((e) => e.id === split_email_id);
+
+      if (email) {
+        context_menu_actions.handle_folder_toggle(email, folder_id);
+      }
+    },
+    [split_email_id, email_state.emails, context_menu_actions],
+  );
 
   const is_bottom_pane = preferences.reading_pane_position === "bottom";
   const split_pane = use_split_pane({
@@ -1054,10 +1075,12 @@ export function EmailInbox({
           <div className="flex-1 overflow-hidden">
             <FullEmailViewer
               email_id={split_email_id}
+              folders={viewer_folders}
               grouped_email_ids={split_email_grouped_ids}
               local_email={split_local_email ?? undefined}
               on_back={on_split_close || (() => {})}
               on_edit_draft={handle_edit_thread_draft}
+              on_folder_toggle={handle_viewer_folder_toggle}
               on_forward={on_forward}
               on_reply={on_reply}
               snoozed_until={split_email_snoozed_until}
@@ -1115,9 +1138,11 @@ export function EmailInbox({
               ) : split_email_id ? (
                 <SplitEmailViewer
                   email_id={split_email_id}
+                  folders={viewer_folders}
                   grouped_email_ids={split_email_grouped_ids}
                   local_email={split_local_email ?? undefined}
                   on_close={on_split_close || (() => {})}
+                  on_folder_toggle={handle_viewer_folder_toggle}
                   on_forward={on_forward}
                   on_reply={on_reply}
                   snoozed_until={split_email_snoozed_until}

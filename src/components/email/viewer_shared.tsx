@@ -44,6 +44,7 @@ import {
   ChevronRightIcon,
   ClockIcon,
   AdjustmentsHorizontalIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -56,6 +57,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import {
@@ -119,6 +123,8 @@ interface ViewerToolbarActionsProps {
   on_print: () => void;
   on_unsubscribe: () => void;
   on_snooze?: () => void;
+  folders?: { id: string; name: string; color: string }[];
+  on_folder_toggle?: (folder_id: string) => void;
   can_go_prev?: boolean;
   can_go_next?: boolean;
   on_navigate_prev?: () => void;
@@ -155,6 +161,8 @@ export function ViewerToolbarActions({
   on_print,
   on_unsubscribe,
   on_snooze,
+  folders = [],
+  on_folder_toggle,
   button_size = "h-9 w-9",
   button_px,
   icon_size = "w-5 h-5",
@@ -354,17 +362,64 @@ export function ViewerToolbarActions({
             </Tooltip>
           )}
 
-          <Tooltip tip={t("mail.move_to_folder")}>
-            <Button
-              className={btn_base}
-              disabled
-              size="icon"
-              style={muted_style}
-              variant="ghost"
-            >
-              <FolderIcon className={icon_size} />
-            </Button>
-          </Tooltip>
+          {folders.length > 0 && on_folder_toggle ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className={btn_base}
+                  size="icon"
+                  style={muted_style}
+                  title={t("mail.move_to_folder")}
+                  variant="ghost"
+                >
+                  <FolderIcon className={icon_size} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                {folders.map((folder) => {
+                  const current_folders = mail_item?.folders || [];
+                  const is_current = current_folders.some(
+                    (f) => f.token === folder.id,
+                  );
+
+                  return (
+                    <DropdownMenuItem
+                      key={folder.id}
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        on_folder_toggle(folder.id);
+                      }}
+                    >
+                      {is_current && (
+                        <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                      )}
+                      <span
+                        className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                        style={
+                          folder.color.startsWith("#")
+                            ? { backgroundColor: folder.color }
+                            : {}
+                        }
+                      />
+                      <span className="truncate">{folder.name}</span>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Tooltip tip={t("mail.move_to_folder")}>
+              <Button
+                className={btn_base}
+                disabled
+                size="icon"
+                style={muted_style}
+                variant="ghost"
+              >
+                <FolderIcon className={icon_size} />
+              </Button>
+            </Tooltip>
+          )}
         </>
       )}
 
@@ -420,10 +475,50 @@ export function ViewerToolbarActions({
               ? t("mail.delete_permanently")
               : t("mail.move_to_trash")}
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
-            <FolderIcon className="w-4 h-4 mr-2" />
-            {t("mail.move_to_folder")}
-          </DropdownMenuItem>
+          {folders.length > 0 && on_folder_toggle ? (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <FolderIcon className="w-4 h-4 mr-2" />
+                {t("mail.move_to_folder")}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-48">
+                {folders.map((folder) => {
+                  const current_folders = mail_item?.folders || [];
+                  const is_current = current_folders.some(
+                    (f) => f.token === folder.id,
+                  );
+
+                  return (
+                    <DropdownMenuItem
+                      key={folder.id}
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        on_folder_toggle(folder.id);
+                      }}
+                    >
+                      {is_current && (
+                        <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                      )}
+                      <span
+                        className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                        style={
+                          folder.color.startsWith("#")
+                            ? { backgroundColor: folder.color }
+                            : {}
+                        }
+                      />
+                      <span className="truncate">{folder.name}</span>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          ) : (
+            <DropdownMenuItem disabled>
+              <FolderIcon className="w-4 h-4 mr-2" />
+              {t("mail.move_to_folder")}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={on_print}>
             <PrinterIcon className="w-4 h-4 mr-2" />

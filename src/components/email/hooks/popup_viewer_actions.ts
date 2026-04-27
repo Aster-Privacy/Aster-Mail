@@ -46,6 +46,7 @@ import { print_email } from "@/utils/print_email";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
+import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { set_forward_mail_id } from "@/services/forward_store";
 
 export interface PopupActionsDeps {
@@ -179,6 +180,11 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.set_is_spam_loading(false);
 
     if (result.success) {
+      const sender = deps.email?.sender_email;
+
+      if (sender) {
+        report_spam_sender(sender).catch(() => {});
+      }
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_action_toast({
         message: deps.t("common.conversation_marked_as_spam"),
@@ -193,6 +199,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             },
             { is_spam: false },
           );
+          if (sender) {
+            remove_spam_sender(sender).catch(() => {});
+          }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
@@ -200,6 +209,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     }
   }, [
     deps.email_id,
+    deps.email?.sender_email,
     deps.is_spam_loading,
     deps.on_close,
     deps.mail_item,
@@ -610,6 +620,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       );
 
       if (result.success) {
+        if (msg.sender_email) {
+          report_spam_sender(msg.sender_email).catch(() => {});
+        }
         show_toast(deps.t("common.reported_as_phishing"), "success");
         deps.on_close();
       }
@@ -630,6 +643,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       );
 
       if (result.success) {
+        if (msg.sender_email) {
+          remove_spam_sender(msg.sender_email).catch(() => {});
+        }
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         deps.on_close();
       }

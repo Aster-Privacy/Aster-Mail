@@ -29,7 +29,11 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useCallback } from "react";
 
 import { get_email_username, is_system_email } from "@/lib/utils";
-import { permanent_delete_mail_item } from "@/services/api/mail";
+import {
+  permanent_delete_mail_item,
+  report_spam_sender,
+  remove_spam_sender,
+} from "@/services/api/mail";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -348,6 +352,9 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       );
 
       if (result.success) {
+        if (msg.sender_email) {
+          report_spam_sender(msg.sender_email).catch(() => {});
+        }
         emit_mail_items_removed({ ids: [msg.id] });
         show_toast(deps.t("common.reported_as_phishing"), "success");
         deps.navigate(deps.get_next_email_destination());
@@ -368,6 +375,9 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       );
 
       if (result.success) {
+        if (msg.sender_email) {
+          remove_spam_sender(msg.sender_email).catch(() => {});
+        }
         emit_mail_items_removed({ ids: [msg.id] });
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         deps.navigate(deps.get_next_email_destination());
