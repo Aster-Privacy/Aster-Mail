@@ -3996,6 +3996,7 @@ export const en: Translations = {
     creating_recovery_backup: "Creating recovery backup...",
     preparing_pgp_key: "Preparing PGP key...",
     creating_your_account: "Creating your account...",
+    username_in_use: "This username is already taken. Please choose a different one.",
     by_continuing: "By continuing, you agree to our",
     copyright: "Copyright {{year}} Aster Communications Inc.",
     display_name_optional: "Display name (optional)",

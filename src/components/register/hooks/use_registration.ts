@@ -368,6 +368,12 @@ export function use_registration() {
         if (response.code === "ABUSE_ACCOUNT_LIMIT") {
           set_is_abuse_blocked(true);
         }
+        if (response.code === "USERNAME_IN_USE") {
+          set_error(t("auth.username_in_use"));
+          set_step("email");
+          registration_promise_ref.current = null;
+          return;
+        }
         set_error(response.error);
         set_step("email");
         registration_promise_ref.current = null;

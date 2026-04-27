@@ -70,7 +70,8 @@ export type ApiErrorCode =
   | "RATE_LIMIT_EXCEEDED"
   | "SERVER_ERROR"
   | "UNKNOWN_ERROR"
-  | "ABUSE_ACCOUNT_LIMIT";
+  | "ABUSE_ACCOUNT_LIMIT"
+  | "USERNAME_IN_USE";
 
 export interface ApiError {
   message: string;
@@ -749,6 +750,16 @@ class ApiClient {
             return {
               error: error_data.error || "Account limit reached",
               code: "ABUSE_ACCOUNT_LIMIT",
+            };
+          }
+
+          if (
+            response.status === 409 &&
+            error_data.code === "USERNAME_IN_USE"
+          ) {
+            return {
+              error: error_data.error || "This username is already taken",
+              code: "USERNAME_IN_USE",
             };
           }
 
