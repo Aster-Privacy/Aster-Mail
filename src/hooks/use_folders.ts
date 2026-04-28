@@ -886,13 +886,22 @@ export function use_folders(): UseFoldersReturn {
       }
     };
 
+    const auth_ready_handler = () => {
+      if (has_passphrase_in_memory()) {
+        fetch_folders();
+        fetch_counts();
+      }
+    };
+
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, counts_handler);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
+    window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
 
     return () => {
       if (counts_debounce) clearTimeout(counts_debounce);
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, counts_handler);
       window.removeEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
+      window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
     };
   }, [fetch_counts, fetch_folders]);
 
