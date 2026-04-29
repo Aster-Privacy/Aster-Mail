@@ -69,6 +69,7 @@ interface UseContextMenuActionsParams {
   emails: InboxEmail[];
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
+  remove_emails: (ids: string[]) => void;
   handle_open_compose: (mode: "reply" | "forward", email: InboxEmail) => void;
   folders_lookup: Map<string, { name: string; color?: string }>;
   tags_lookup: Map<string, { name: string; color?: string; icon?: string }>;
@@ -126,6 +127,7 @@ export function use_context_menu_actions({
   emails,
   update_email,
   remove_email,
+  remove_emails,
   handle_open_compose,
   folders_lookup,
   tags_lookup,
@@ -197,8 +199,16 @@ export function use_context_menu_actions({
       }
 
       const deltas = compute_trash_deltas(email);
+      const grouped_ids =
+        email.grouped_email_ids && email.grouped_email_ids.length > 1
+          ? email.grouped_email_ids
+          : [email.id];
 
-      remove_email(email.id);
+      if (grouped_ids.length > 1) {
+        remove_emails(grouped_ids);
+      } else {
+        remove_email(email.id);
+      }
       apply_stat_deltas(deltas);
 
       if (email.thread_token) {
@@ -208,7 +218,7 @@ export function use_context_menu_actions({
           show_action_toast({
             message: t("common.conversation_moved_to_trash"),
             action_type: "trash",
-            email_ids: [email.id],
+            email_ids: grouped_ids,
             on_undo: async () => {
               revert_stat_deltas(deltas);
               await trash_thread(email.thread_token!, false);
@@ -217,13 +227,12 @@ export function use_context_menu_actions({
               );
             },
           });
+          window.dispatchEvent(
+            new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
+          );
         }
       } else {
-        const all_ids =
-          email.grouped_email_ids && email.grouped_email_ids.length > 1
-            ? email.grouped_email_ids
-            : [email.id];
-        const result = await bulk_update_metadata_by_ids(all_ids, {
+        const result = await bulk_update_metadata_by_ids(grouped_ids, {
           is_trashed: true,
         });
 
@@ -231,10 +240,10 @@ export function use_context_menu_actions({
           show_action_toast({
             message: t("common.conversation_moved_to_trash"),
             action_type: "trash",
-            email_ids: all_ids,
+            email_ids: grouped_ids,
             on_undo: async () => {
               revert_stat_deltas(deltas);
-              await bulk_update_metadata_by_ids(all_ids, { is_trashed: false });
+              await bulk_update_metadata_by_ids(grouped_ids, { is_trashed: false });
               window.dispatchEvent(
                 new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
               );
@@ -845,6 +854,7 @@ export function use_context_menu_actions({
     emails,
     update_email,
     remove_email,
+    remove_emails,
     handle_open_compose,
     folders_lookup,
     tags_lookup,

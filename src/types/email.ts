@@ -141,6 +141,7 @@ export interface InboxEmail {
   sender_email: string;
   subject: string;
   preview: string;
+  body_html?: string;
   timestamp: string;
   raw_timestamp?: string;
   is_pinned: boolean;

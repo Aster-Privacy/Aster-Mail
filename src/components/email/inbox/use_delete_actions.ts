@@ -54,6 +54,7 @@ interface UseDeleteActionsOptions {
   get_selected_ids: (emails: InboxEmail[]) => string[];
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
+  remove_emails: (ids: string[]) => void;
   bulk_delete: (ids: string[]) => Promise<void>;
   schedule_delete_drafts: (ids: string[]) => () => void;
   preferences: {
@@ -89,6 +90,7 @@ export function use_delete_actions({
   get_selected_ids,
   update_email,
   remove_email,
+  remove_emails,
   bulk_delete,
   schedule_delete_drafts,
   preferences,
@@ -343,8 +345,16 @@ export function use_delete_actions({
       });
     } else {
       const deltas = compute_trash_deltas(email);
+      const grouped_ids =
+        email.grouped_email_ids && email.grouped_email_ids.length > 1
+          ? email.grouped_email_ids
+          : [email.id];
 
-      remove_email(email.id);
+      if (grouped_ids.length > 1) {
+        remove_emails(grouped_ids);
+      } else {
+        remove_email(email.id);
+      }
       apply_stat_deltas(deltas);
 
       if (email.thread_token) {
@@ -354,7 +364,7 @@ export function use_delete_actions({
           show_action_toast({
             message: t("common.conversation_moved_to_trash"),
             action_type: "trash",
-            email_ids: [email.id],
+            email_ids: grouped_ids,
             on_undo: async () => {
               revert_stat_deltas(deltas);
               await trash_thread(email.thread_token!, false);
@@ -363,13 +373,12 @@ export function use_delete_actions({
               );
             },
           });
+          window.dispatchEvent(
+            new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
+          );
         }
       } else {
-        const all_ids =
-          email.grouped_email_ids && email.grouped_email_ids.length > 1
-            ? email.grouped_email_ids
-            : [email.id];
-        const result = await bulk_update_metadata_by_ids(all_ids, {
+        const result = await bulk_update_metadata_by_ids(grouped_ids, {
           is_trashed: true,
         });
 
@@ -377,10 +386,10 @@ export function use_delete_actions({
           show_action_toast({
             message: t("common.conversation_moved_to_trash"),
             action_type: "trash",
-            email_ids: all_ids,
+            email_ids: grouped_ids,
             on_undo: async () => {
               revert_stat_deltas(deltas);
-              await bulk_update_metadata_by_ids(all_ids, { is_trashed: false });
+              await bulk_update_metadata_by_ids(grouped_ids, { is_trashed: false });
               window.dispatchEvent(
                 new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
               );
@@ -397,6 +406,7 @@ export function use_delete_actions({
     dont_ask_single_delete,
     current_view,
     remove_email,
+    remove_emails,
     is_drafts_view,
     schedule_delete_drafts,
     update_preference,

@@ -308,6 +308,7 @@ export function mail_to_email(
     preview: strip_html_tags(
       envelope.body_text || envelope.body_html || "",
     ).substring(0, 100),
+    body_html: envelope.body_html || envelope.body_text || "",
     timestamp: format_timestamp(new Date(raw_ts), format_options),
     raw_timestamp: raw_ts,
     is_pinned: effective_metadata.is_pinned,
@@ -432,7 +433,8 @@ export async function fetch_mail_from_api(
 } | null> {
   const should_group =
     conversation_grouping &&
-    (view === "inbox" || view.startsWith("folder-") || view.startsWith("tag-"));
+    view !== "scheduled" &&
+    view !== "snoozed";
 
   const params: ListMailItemsParams = {
     limit,

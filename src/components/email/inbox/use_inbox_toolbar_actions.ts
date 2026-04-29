@@ -62,6 +62,7 @@ interface UseInboxToolbarActionsOptions {
   get_selected_ids: (emails: InboxEmail[]) => string[];
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
+  remove_emails: (ids: string[]) => void;
   bulk_delete: (ids: string[]) => Promise<void>;
   schedule_delete_drafts: (ids: string[]) => () => void;
   bulk_archive: (ids: string[]) => Promise<void>;
@@ -91,6 +92,7 @@ export function use_inbox_toolbar_actions({
   get_selected_ids,
   update_email,
   remove_email,
+  remove_emails,
   bulk_delete,
   schedule_delete_drafts,
   bulk_archive,
@@ -141,6 +143,7 @@ export function use_inbox_toolbar_actions({
     get_selected_ids,
     update_email,
     remove_email,
+    remove_emails,
     bulk_delete,
     schedule_delete_drafts,
     preferences,
