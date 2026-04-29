@@ -161,10 +161,10 @@ export function sanitize_html(
   }
 
   const head_styles: string[] = [];
-  const head_match = html.match(/<head[\s>][\s\S]*?<\/head>/i);
+  const head_match = html.match(/<head[\s>][\s\S]*?<\/head\s*>/i);
 
   if (head_match) {
-    const style_regex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+    const style_regex = /<style[^>]*>([\s\S]*?)<\/style\s*>/gi;
     let style_match;
 
     while ((style_match = style_regex.exec(head_match[0])) !== null) {
