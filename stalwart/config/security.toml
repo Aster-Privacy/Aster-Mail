@@ -13,7 +13,7 @@ sign = ["rsa"]
 private-key = "/opt/stalwart/etc/dkim/rsa.key"
 domain = "astermail.org"
 selector = "rsa"
-headers = ["From", "To", "Subject", "Date", "Message-ID", "Reply-To", "Content-Type", "MIME-Version", "List-Unsubscribe", "List-Unsubscribe-Post"]
+headers = ["From", "To", "Subject", "Date", "Message-ID", "Reply-To", "Cc", "In-Reply-To", "References", "Content-Type", "MIME-Version", "List-Unsubscribe", "List-Unsubscribe-Post"]
 algorithm = "rsa-sha256"
 canonicalization = "relaxed/relaxed"
 expire = "7d"
@@ -31,7 +31,7 @@ seal = ["rsa"]
 private-key = "/opt/stalwart/etc/dkim/rsa.key"
 domain = "astermail.org"
 selector = "rsa"
-headers = ["From", "To", "Subject", "Date", "Message-ID", "Reply-To", "Content-Type", "MIME-Version", "List-Unsubscribe", "List-Unsubscribe-Post", "DKIM-Signature"]
+headers = ["From", "To", "Subject", "Date", "Message-ID", "Reply-To", "Cc", "In-Reply-To", "References", "Content-Type", "MIME-Version", "List-Unsubscribe", "List-Unsubscribe-Post", "DKIM-Signature"]
 algorithm = "rsa-sha256"
 
 [auth.dmarc]

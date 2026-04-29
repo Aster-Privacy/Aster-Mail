@@ -22,6 +22,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
   Select,
   SelectContent,
@@ -203,6 +204,7 @@ export function CreateAliasModal({
           set_captcha_token(null);
           turnstile_ref.current?.reset();
         } else {
+          emit_aliases_changed();
           on_created();
           on_close();
         }
@@ -223,6 +225,7 @@ export function CreateAliasModal({
           set_captcha_token(null);
           turnstile_ref.current?.reset();
         } else {
+          emit_aliases_changed();
           on_created();
           on_close();
         }

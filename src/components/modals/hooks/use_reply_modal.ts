@@ -33,7 +33,11 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_bytes } from "@/lib/utils";
-import { emit_thread_reply_sent } from "@/hooks/mail_events";
+import {
+  emit_thread_reply_sent,
+  emit_thread_reply_optimistic,
+  emit_thread_reply_cancelled,
+} from "@/hooks/mail_events";
 import {
   create_scheduled_email,
   type ScheduledEmailContent,
@@ -167,6 +171,7 @@ export function use_reply_modal({
   const file_input_ref = useRef<HTMLInputElement>(null);
   const attachments_scroll_ref = useRef<HTMLDivElement>(null);
   const pending_thread_token_ref = useRef<string | null>(null);
+  const optimistic_id_ref = useRef<string | null>(null);
   const save_draft_timeout = useRef<number | null>(null);
   const last_saved_text = useRef<string>("");
   const is_sending_ref = useRef(false);
@@ -752,13 +757,28 @@ export function use_reply_modal({
             });
             pending_thread_token_ref.current = null;
           }
+          optimistic_id_ref.current = null;
         },
         on_cancel: () => {
           is_sending_ref.current = false;
+          if (optimistic_id_ref.current && pending_thread_token_ref.current) {
+            emit_thread_reply_cancelled({
+              optimistic_id: optimistic_id_ref.current,
+              thread_token: pending_thread_token_ref.current,
+            });
+          }
+          optimistic_id_ref.current = null;
           pending_thread_token_ref.current = null;
         },
         on_error: (error) => {
           is_sending_ref.current = false;
+          if (optimistic_id_ref.current && pending_thread_token_ref.current) {
+            emit_thread_reply_cancelled({
+              optimistic_id: optimistic_id_ref.current,
+              thread_token: pending_thread_token_ref.current,
+            });
+          }
+          optimistic_id_ref.current = null;
           set_error_message(error);
           set_is_sending(false);
           pending_thread_token_ref.current = null;
@@ -769,6 +789,32 @@ export function use_reply_modal({
 
     if (result.success && result.queued_id) {
       pending_thread_token_ref.current = result.thread_token || null;
+
+      const reply_thread_token = result.thread_token || thread_token;
+
+      if (reply_thread_token) {
+        const opt_id = crypto.randomUUID();
+
+        optimistic_id_ref.current = opt_id;
+
+        const sender_name =
+          selected_sender?.display_name || user?.display_name || user?.username || "";
+        const sender_email_addr =
+          selected_sender && selected_sender.type !== "primary"
+            ? selected_sender.email
+            : (user?.email || "");
+
+        emit_thread_reply_optimistic({
+          thread_token: reply_thread_token,
+          original_email_id,
+          optimistic_id: opt_id,
+          sender_name,
+          sender_email: sender_email_addr,
+          subject: `${t("mail.reply_subject_prefix")} ${original_subject.replace(/^Re:\s*/i, "")}`,
+          body: message_with_signature,
+          to_recipients: [{ name: recipient_name, email: recipient_email }],
+        });
+      }
 
       if (draft_id) {
         const captured_draft_id = draft_id;
@@ -789,6 +835,8 @@ export function use_reply_modal({
           total_seconds: delay_seconds,
           is_server_queued: result.is_server_queued,
           server_queue_id: result.is_server_queued ? result.queued_id : undefined,
+          optimistic_id: optimistic_id_ref.current || undefined,
+          thread_token: reply_thread_token || undefined,
         });
       }
 
@@ -821,6 +869,7 @@ export function use_reply_modal({
     draft_id,
     expires_at,
     build_quoted_content,
+    user,
   ]);
 
   const handle_scheduled_send = useCallback(async () => {

@@ -20,6 +20,7 @@
 //
 import { useState, useEffect, useCallback, useMemo } from "react";
 
+import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
   list_aliases,
   update_alias,
@@ -348,6 +349,7 @@ export function use_aliases() {
           return updated;
         });
         load_alias_counts();
+        emit_aliases_changed();
 
         if (
           deleted_alias?.full_address &&
@@ -410,6 +412,7 @@ export function use_aliases() {
 
           return updated;
         });
+        emit_aliases_changed();
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);

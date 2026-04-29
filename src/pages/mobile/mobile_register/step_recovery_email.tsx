@@ -65,6 +65,17 @@ export function StepRecoveryEmail({
             </p>
           </motion.div>
 
+          {reg.recovery_email_required && (
+            <motion.div
+              className="mt-4"
+              variants={reduce_motion ? undefined : fade_up_item}
+            >
+              <div className="px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-sm text-amber-400 text-center">
+                {reg.t("auth.recovery_email_required_notice")}
+              </div>
+            </motion.div>
+          )}
+
           <AnimatePresence>
             {reg.recovery_email_error && (
               <motion.p

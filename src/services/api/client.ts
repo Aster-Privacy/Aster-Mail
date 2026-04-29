@@ -71,7 +71,8 @@ export type ApiErrorCode =
   | "SERVER_ERROR"
   | "UNKNOWN_ERROR"
   | "ABUSE_ACCOUNT_LIMIT"
-  | "USERNAME_IN_USE";
+  | "USERNAME_IN_USE"
+  | "REGISTRATION_SUSPENDED";
 
 export interface ApiError {
   message: string;
@@ -726,6 +727,18 @@ class ApiClient {
           }
 
           const error_code = get_error_code_from_status(response.status);
+
+          if (
+            response.status === 403 &&
+            error_data.code === "VERIFICATION_REQUIRED"
+          ) {
+            window.dispatchEvent(new Event("aster:verification-required"));
+
+            return {
+              error: "Recovery email verification required",
+              code: "FORBIDDEN",
+            };
+          }
 
           if (
             response.status === 403 &&

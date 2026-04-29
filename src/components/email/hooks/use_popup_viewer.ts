@@ -39,7 +39,10 @@ import {
   emit_mail_item_updated,
   type MailItemUpdatedEventDetail,
   type ThreadReplySentEventDetail,
+  type ThreadReplyOptimisticEventDetail,
+  type ThreadReplyCancelledEventDetail,
 } from "@/hooks/mail_events";
+import type { UndoSendEvent } from "@/hooks/use_undo_send";
 import {
   get_external_content_mode,
   set_external_content_mode,
@@ -698,6 +701,94 @@ export function use_popup_viewer({
       );
     };
   }, [current_thread_token, email_id]);
+
+  useEffect(() => {
+    const handle_optimistic = (event: Event) => {
+      const detail = (event as CustomEvent<ThreadReplyOptimisticEventDetail>)
+        .detail;
+
+      const matches_thread =
+        current_thread_token && detail.thread_token === current_thread_token;
+      const matches_email =
+        detail.original_email_id && detail.original_email_id === email_id;
+
+      if (!matches_thread && !matches_email) return;
+      if (preferences.conversation_grouping === false) return;
+
+      const optimistic_message: DecryptedThreadMessage = {
+        id: detail.optimistic_id,
+        item_type: "sent",
+        sender_name: detail.sender_name,
+        sender_email: detail.sender_email,
+        subject: detail.subject,
+        body: detail.body,
+        timestamp: new Date().toISOString(),
+        is_read: true,
+        is_starred: false,
+        is_deleted: false,
+        is_external: false,
+        to_recipients: detail.to_recipients,
+      };
+
+      set_thread_messages((prev) => [...prev, optimistic_message]);
+
+      if (!current_thread_token) {
+        set_current_thread_token(detail.thread_token);
+      }
+    };
+
+    const handle_cancelled = (event: Event) => {
+      const detail = (event as CustomEvent<ThreadReplyCancelledEventDetail>)
+        .detail;
+
+      const matches_thread =
+        current_thread_token && detail.thread_token === current_thread_token;
+
+      if (!matches_thread) return;
+
+      set_thread_messages((prev) =>
+        prev.filter((msg) => msg.id !== detail.optimistic_id),
+      );
+    };
+
+    const handle_undo_send = (event: Event) => {
+      const { pending } = (event as CustomEvent<UndoSendEvent>).detail;
+
+      if (!pending.optimistic_id || !pending.thread_token) return;
+
+      const matches_thread =
+        current_thread_token &&
+        pending.thread_token === current_thread_token;
+
+      if (!matches_thread) return;
+
+      set_thread_messages((prev) =>
+        prev.filter((msg) => msg.id !== pending.optimistic_id),
+      );
+    };
+
+    window.addEventListener(
+      MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC,
+      handle_optimistic,
+    );
+    window.addEventListener(
+      MAIL_EVENTS.THREAD_REPLY_CANCELLED,
+      handle_cancelled,
+    );
+    window.addEventListener(MAIL_EVENTS.UNDO_SEND, handle_undo_send);
+
+    return () => {
+      window.removeEventListener(
+        MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC,
+        handle_optimistic,
+      );
+      window.removeEventListener(
+        MAIL_EVENTS.THREAD_REPLY_CANCELLED,
+        handle_cancelled,
+      );
+      window.removeEventListener(MAIL_EVENTS.UNDO_SEND, handle_undo_send);
+    };
+  }, [current_thread_token, email_id, preferences.conversation_grouping]);
 
   useEffect(() => {
     const handle_keyboard_reply = () => actions.handle_reply();

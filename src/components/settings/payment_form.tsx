@@ -398,7 +398,7 @@ export function PaymentForm({
               name: cardholder_name || "Aster User",
             },
           },
-          return_url: window.location.href,
+          return_url: `${window.location.origin}${window.location.pathname}?stripe_redirect=1`,
         });
 
         error = result.error;

@@ -2570,6 +2570,7 @@ export interface SettingsTranslations {
   payment_complete: string;
   payment_success: string;
   payment_failed: string;
+  payment_processing_delayed: string;
   payment_details: string;
   card_number: string;
   card_expiry: string;
@@ -3542,6 +3543,7 @@ export interface AuthTranslations {
   add_backup_email: string;
   skip_for_now: string;
   recovery_email_required_notice: string;
+  account_flagged_notice: string;
   username_min_length: string;
   username_max_length: string;
   username_alphanumeric: string;
@@ -3554,6 +3556,7 @@ export interface AuthTranslations {
   passwords_do_not_match_register: string;
   registration_failed: string;
   abuse_account_limit: string;
+  registration_suspended: string;
   abuse_flagged_message: string;
   contact_support: string;
   recovery_codes_copied: string;

@@ -119,6 +119,17 @@ export function StepRecoveryEmailVerification({
             </p>
           </motion.div>
 
+          {reg.is_email_verified && reg.recovery_email_required && (
+            <motion.div
+              className="mt-4"
+              variants={reduce_motion ? undefined : fade_up_item}
+            >
+              <div className="px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-sm text-amber-400 text-center">
+                {reg.t("auth.account_flagged_notice")}
+              </div>
+            </motion.div>
+          )}
+
           {!reg.is_email_verified && (
             <motion.div
               className="mt-3"

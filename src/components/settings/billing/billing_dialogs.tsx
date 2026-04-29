@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { useEffect, useRef } from "react";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -50,6 +51,7 @@ import {
   format_price,
   get_subscription,
   cancel_storage_addon,
+  activate_subscription,
   type SubscriptionResponse,
   type AvailablePlan,
   type StorageAddonItem,
@@ -147,6 +149,58 @@ export function BillingDialogs({
   load_data,
 }: BillingDialogsProps) {
   const { t } = use_i18n();
+  const redirect_handled = useRef(false);
+
+  useEffect(() => {
+    if (redirect_handled.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const redirect_status = params.get("redirect_status");
+    const is_stripe_redirect = params.get("stripe_redirect");
+
+    if (!is_stripe_redirect || !redirect_status) return;
+    redirect_handled.current = true;
+
+    const clean_url = `${window.location.pathname}`;
+
+    window.history.replaceState({}, "", clean_url);
+
+    if (redirect_status === "succeeded") {
+      (async () => {
+        try {
+          const result = await activate_subscription();
+
+          if (result.data?.activated) {
+            show_toast(t("settings.payment_success"), "success");
+            request_cache.invalidate("/payments/v1");
+            request_cache.invalidate("/sync/v1");
+            invalidate_mail_stats();
+            await load_data();
+          } else {
+            for (let attempt = 0; attempt < 8; attempt++) {
+              await new Promise((r) => setTimeout(r, 3000));
+              const retry = await activate_subscription();
+
+              if (retry.data?.activated) {
+                show_toast(t("settings.payment_success"), "success");
+                request_cache.invalidate("/payments/v1");
+                request_cache.invalidate("/sync/v1");
+                invalidate_mail_stats();
+                await load_data();
+                return;
+              }
+            }
+            show_toast(t("settings.payment_processing_delayed"), "info");
+            request_cache.invalidate("/payments/v1");
+            await load_data();
+          }
+        } catch {
+          show_toast(t("settings.payment_failed"), "error");
+        }
+      })();
+    } else {
+      show_toast(t("settings.payment_failed"), "error");
+    }
+  }, [t, load_data]);
 
   return (
     <>

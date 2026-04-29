@@ -188,8 +188,8 @@ export async function execute_external_email_send(
   const external_email_data = {
     ...email_data,
     encryption_options: {
-      auto_discover_keys: true,
-      encrypt_emails: true,
+      auto_discover_keys: false,
+      encrypt_emails: false,
       require_encryption: false,
     },
   };

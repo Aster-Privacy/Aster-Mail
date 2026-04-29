@@ -1897,6 +1897,8 @@ export const en: Translations = {
     payment_complete: "Payment Complete",
     payment_success: "Payment successful!",
     payment_failed: "Payment failed. Please try again.",
+    payment_processing_delayed:
+      "Your payment is being processed. It may take a moment to activate.",
     payment_details: "Payment Details",
     card_number: "Card number",
     card_expiry: "Expiration",
@@ -3889,6 +3891,8 @@ export const en: Translations = {
     skip_for_now: "Skip for now",
     recovery_email_required_notice:
       "A backup email is required to prevent spam.",
+    account_flagged_notice:
+      "Your account has been flagged by our automated security system. You can continue using your account, but some features may be temporarily limited.",
     username_min_length: "Username must be at least 3 characters",
     username_max_length: "Username must be less than 40 characters",
     username_alphanumeric: "Username can only contain letters and numbers",
@@ -3902,6 +3906,8 @@ export const en: Translations = {
     registration_failed: "Registration failed",
     abuse_account_limit:
       "Your registration was flagged by our security system. If you think this was a mistake, please contact support.",
+    registration_suspended:
+      "Maximum accounts reached. All linked accounts have been suspended for violating our multi-account policy. You can appeal at https://astermail.org/appeal",
     abuse_flagged_message:
       "Hey! It looks like your registration was flagged by our security system. If you think this was a mistake, feel free to",
     contact_support: "contact support",

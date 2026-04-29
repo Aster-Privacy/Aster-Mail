@@ -41,6 +41,8 @@ export interface PendingSend {
   is_server_queued?: boolean;
   server_queue_id?: string;
   on_send_immediately?: () => void;
+  optimistic_id?: string;
+  thread_token?: string;
 }
 
 type UndoSendListener = (pending_sends: PendingSend[]) => void;

@@ -215,6 +215,12 @@ export const RegisterStepRecoveryEmailVerification = ({
             })}
       </p>
 
+      {reg.is_email_verified && reg.recovery_email_required && (
+        <div className="w-full mt-4 px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-sm text-amber-400 text-center">
+          {reg.t("auth.account_flagged_notice")}
+        </div>
+      )}
+
       {!reg.is_email_verified && (
         <>
           <p className="text-xs mt-3 text-txt-muted text-center leading-relaxed">
@@ -279,6 +285,12 @@ export const RegisterStepRecoveryEmail = ({
       <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
         {reg.t("auth.optional_backup_email_desc")}
       </p>
+
+      {reg.recovery_email_required && (
+        <div className="w-full mt-4 px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-sm text-amber-400 text-center">
+          {reg.t("auth.recovery_email_required_notice")}
+        </div>
+      )}
 
       <AnimatePresence>
         {reg.recovery_email_error && (

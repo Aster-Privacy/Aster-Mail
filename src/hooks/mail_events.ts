@@ -36,6 +36,8 @@ export const MAIL_EVENTS = {
   TAGS_CHANGED: "astermail:tags-changed",
   ALIASES_CHANGED: "astermail:aliases-changed",
   THREAD_REPLY_SENT: "astermail:thread-reply-sent",
+  THREAD_REPLY_OPTIMISTIC: "astermail:thread-reply-optimistic",
+  THREAD_REPLY_CANCELLED: "astermail:thread-reply-cancelled",
   AUTH_READY: "astermail:auth-ready",
   PROTECTED_FOLDERS_READY: "astermail:protected-folders-ready",
   REFRESH_REQUESTED: "astermail:refresh-requested",
@@ -88,6 +90,22 @@ export interface ThreadReplySentEventDetail {
   original_email_id?: string;
 }
 
+export interface ThreadReplyOptimisticEventDetail {
+  thread_token: string;
+  original_email_id?: string;
+  optimistic_id: string;
+  sender_name: string;
+  sender_email: string;
+  subject: string;
+  body: string;
+  to_recipients: { name: string; email: string }[];
+}
+
+export interface ThreadReplyCancelledEventDetail {
+  optimistic_id: string;
+  thread_token: string;
+}
+
 export interface MailItemUpdatedEventDetail {
   id: string;
   is_starred?: boolean;
@@ -124,6 +142,8 @@ type EventDetailMap = {
   [MAIL_EVENTS.TAGS_CHANGED]: undefined;
   [MAIL_EVENTS.ALIASES_CHANGED]: undefined;
   [MAIL_EVENTS.THREAD_REPLY_SENT]: ThreadReplySentEventDetail;
+  [MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC]: ThreadReplyOptimisticEventDetail;
+  [MAIL_EVENTS.THREAD_REPLY_CANCELLED]: ThreadReplyCancelledEventDetail;
   [MAIL_EVENTS.AUTH_READY]: undefined;
   [MAIL_EVENTS.PROTECTED_FOLDERS_READY]: undefined;
   [MAIL_EVENTS.REFRESH_REQUESTED]: undefined;
@@ -299,6 +319,18 @@ export function emit_protected_folders_ready(): void {
 
 export function emit_mail_soft_refresh(): void {
   mail_event_bus.emit(MAIL_EVENTS.MAIL_SOFT_REFRESH);
+}
+
+export function emit_thread_reply_optimistic(
+  detail: ThreadReplyOptimisticEventDetail,
+): void {
+  mail_event_bus.emit(MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC, detail);
+}
+
+export function emit_thread_reply_cancelled(
+  detail: ThreadReplyCancelledEventDetail,
+): void {
+  mail_event_bus.emit(MAIL_EVENTS.THREAD_REPLY_CANCELLED, detail);
 }
 
 export function on_mail_event<K extends MailEventType>(
