@@ -297,6 +297,7 @@ export function use_reply_modal({
           .replace(/<br\s*\/?>/gi, "\n")
           .replace(/<\/p>/gi, "\n")
           .replace(/<\/div>/gi, "\n")
+          .replace(/<div[^>]*>/gi, "\n")
           .replace(/<\/tr>/gi, "\n")
           .replace(/<\/li>/gi, "\n")
           .replace(/<[^>]+>/g, "")
@@ -671,7 +672,10 @@ export function use_reply_modal({
     };
 
     const quoted_content = build_quoted_content();
-    const message_with_signature = reply_message.trim() + quoted_content;
+    const reply_body = is_plain_text_mode
+      ? reply_message.trim().replace(/\n/g, "<br>")
+      : reply_message.trim();
+    const message_with_signature = reply_body + quoted_content;
 
     if (selected_sender?.type === "external" && selected_sender.address_hash) {
       const subject = `${t("mail.reply_subject_prefix")} ${original_subject.replace(/^Re:\s*/i, "")}`;
@@ -870,6 +874,7 @@ export function use_reply_modal({
     expires_at,
     build_quoted_content,
     user,
+    is_plain_text_mode,
   ]);
 
   const handle_scheduled_send = useCallback(async () => {
@@ -880,7 +885,10 @@ export function use_reply_modal({
     set_error_message(null);
 
     const quoted_content = build_quoted_content();
-    const message_with_signature = reply_message.trim() + quoted_content;
+    const sched_reply_body = is_plain_text_mode
+      ? reply_message.trim().replace(/\n/g, "<br>")
+      : reply_message.trim();
+    const message_with_signature = sched_reply_body + quoted_content;
 
     const content: ScheduledEmailContent = {
       to_recipients: [recipient_email],
@@ -938,6 +946,7 @@ export function use_reply_modal({
     build_quoted_content,
     on_close,
     draft_id,
+    is_plain_text_mode,
   ]);
 
   const handle_close = useCallback(() => {

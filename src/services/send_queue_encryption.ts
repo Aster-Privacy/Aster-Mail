@@ -335,11 +335,15 @@ export async function create_sent_envelope(
     );
   }
 
+  const body_is_plain_text = !/<[a-z][\s\S]*>/i.test(email.body);
+
   const envelope: MailEnvelope = {
     version: 1,
     subject: email.envelope_subject || email.subject,
     body_text: email.body,
-    body_html: email.body,
+    body_html: body_is_plain_text
+      ? email.body.replace(/\n/g, "<br>")
+      : email.body,
     from: { name: "", email: sender_email },
     to: email.to.map((e) => ({ name: "", email: e })),
     cc: (email.cc || []).map((e) => ({ name: "", email: e })),

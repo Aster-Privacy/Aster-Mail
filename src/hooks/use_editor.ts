@@ -57,9 +57,9 @@ export function use_editor({
     const editor = editor_ref.current;
 
     if (editor) {
-      on_change?.(editor.innerHTML);
+      on_change?.(is_plain_text_mode ? editor.innerText : editor.innerHTML);
     }
-  }, [editor_ref, on_change]);
+  }, [editor_ref, on_change, is_plain_text_mode]);
 
   const fmt = use_editor_format(editor_ref, is_plain_text_mode, handle_input);
 
