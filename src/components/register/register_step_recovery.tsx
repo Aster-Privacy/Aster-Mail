@@ -216,7 +216,7 @@ export const RegisterStepRecoveryEmailVerification = ({
       </p>
 
       {reg.is_email_verified && reg.recovery_email_required && (
-        <div className="w-full mt-4 px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-sm text-amber-400 text-center">
+        <div className="w-full mt-4 px-4 py-3 rounded-lg bg-amber-500 text-sm text-black font-medium text-center">
           {reg.t("auth.account_flagged_notice")}
         </div>
       )}
@@ -287,7 +287,7 @@ export const RegisterStepRecoveryEmail = ({
       </p>
 
       {reg.recovery_email_required && (
-        <div className="w-full mt-4 px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-sm text-amber-400 text-center">
+        <div className="w-full mt-4 px-4 py-3 rounded-lg bg-amber-500 text-sm text-black font-medium text-center">
           {reg.t("auth.recovery_email_required_notice")}
         </div>
       )}

@@ -124,7 +124,7 @@ export function BillingSection() {
   const plan_features: Record<string, string[]> = useMemo(
     () => ({
       star: [
-        t("settings.plan_f_storage", { value: "15 GB" }),
+        t("settings.plan_f_storage", { value: "50 GB" }),
         t("settings.plan_f_attachments", { value: "50 MB" }),
         t("settings.plan_f_aliases", { value: "15" }),
         t("settings.plan_f_domains", { value: "5" }),

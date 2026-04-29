@@ -448,7 +448,7 @@ function plan_bullets(
   }
   if (tier_id === "star") {
     return [
-      t("settings.plan_f_storage", { value: "15 GB" }),
+      t("settings.plan_f_storage", { value: "50 GB" }),
       t("settings.plan_f_aliases", { value: "15" }),
       t("settings.plan_f_domains", { value: "5" }),
       t("settings.plan_f_templates", { value: "10" }),

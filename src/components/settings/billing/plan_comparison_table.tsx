@@ -56,7 +56,7 @@ export function get_plan_comparison_rows(
     {
       label: cap(t("settings.plan_f_storage", { value: "" })),
       free: "10 GB",
-      star: "15 GB",
+      star: "50 GB",
       nova: "500 GB",
       supernova: "5 TB",
     },

@@ -3890,7 +3890,7 @@ export const en: Translations = {
     add_backup_email: "Add a backup email",
     skip_for_now: "Skip for now",
     recovery_email_required_notice:
-      "A backup email is required to prevent spam.",
+      "Recovery email is required to prevent spam.",
     account_flagged_notice:
       "Your account has been flagged by our automated security system. You can continue using your account, but some features may be temporarily limited.",
     username_min_length: "Username must be at least 3 characters",
@@ -3907,9 +3907,9 @@ export const en: Translations = {
     abuse_account_limit:
       "Your registration was flagged by our security system. If you think this was a mistake, please contact support.",
     registration_suspended:
-      "Maximum accounts reached. All linked accounts have been suspended for violating our multi-account policy. You can appeal at https://astermail.org/appeal",
+      "Registration blocked. Our security system has determined the maximum number of accounts has been reached. If you think this was a mistake, please contact support.",
     abuse_flagged_message:
-      "Hey! It looks like your registration was flagged by our security system. If you think this was a mistake, feel free to",
+      "Registration blocked. Our security system has determined the maximum number of accounts has been reached. If you think this was a mistake, please",
     contact_support: "contact support",
     recovery_codes_copied: "Recovery codes copied",
     recovery_code_copied: "Recovery code copied",

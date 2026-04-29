@@ -76,7 +76,7 @@ function get_features(
     {
       name: t("settings.feature_secure_storage"),
       free: "10 GB",
-      star: "15 GB",
+      star: "50 GB",
       nova: "500 GB",
       supernova: "5 TB",
     },
