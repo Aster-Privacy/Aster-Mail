@@ -933,6 +933,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
   }, [handle_load]);
 
   const show_preview = height_ready && !iframe_loaded;
+  const show_skeleton = !height_ready && !iframe_loaded;
 
   return (
     <div
@@ -942,6 +943,61 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         position: "relative",
       }}
     >
+      {show_skeleton && (
+        <div
+          style={{
+            padding: "20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+          }}
+        >
+          <div
+            className="animate-pulse"
+            style={{
+              height: "14px",
+              width: "85%",
+              borderRadius: "4px",
+              backgroundColor: is_dark_theme
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(0,0,0,0.06)",
+            }}
+          />
+          <div
+            className="animate-pulse"
+            style={{
+              height: "14px",
+              width: "70%",
+              borderRadius: "4px",
+              backgroundColor: is_dark_theme
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(0,0,0,0.06)",
+            }}
+          />
+          <div
+            className="animate-pulse"
+            style={{
+              height: "14px",
+              width: "60%",
+              borderRadius: "4px",
+              backgroundColor: is_dark_theme
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(0,0,0,0.06)",
+            }}
+          />
+          <div
+            className="animate-pulse"
+            style={{
+              height: "14px",
+              width: "40%",
+              borderRadius: "4px",
+              backgroundColor: is_dark_theme
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(0,0,0,0.06)",
+            }}
+          />
+        </div>
+      )}
       {show_preview && (
         <div
           ref={preview_ref}

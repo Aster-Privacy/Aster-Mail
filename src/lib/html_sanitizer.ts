@@ -160,6 +160,47 @@ export function sanitize_html(
     }
   }
 
+  if (!body_background) {
+    const first_el_match = html.match(
+      /<body[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*<(table|div|center)\b[^>]*/i,
+    );
+
+    if (first_el_match) {
+      const tag_str = first_el_match[0];
+      const bg_attr = tag_str.match(
+        /bgcolor\s*=\s*["']?([^"'\s>]+)["']?/i,
+      );
+
+      if (bg_attr) {
+        const bg_val = bg_attr[1].trim();
+
+        if (/^[#a-zA-Z0-9]+$/.test(bg_val)) {
+          body_background = bg_val;
+        }
+      }
+
+      if (!body_background) {
+        const style_attr = tag_str.match(
+          /style\s*=\s*["']([^"']*)["']/i,
+        );
+
+        if (style_attr) {
+          const bg_style = style_attr[1].match(
+            /background(?:-color)?\s*:\s*([^;]+)/i,
+          );
+
+          if (bg_style) {
+            const bg_val = bg_style[1].trim();
+
+            if (/^[#a-zA-Z0-9(),.\s%]+$/.test(bg_val)) {
+              body_background = bg_val;
+            }
+          }
+        }
+      }
+    }
+  }
+
   const head_styles: string[] = [];
   const head_match = html.match(/<head[\s>][\s\S]*?<\/head\s*>/i);
 
