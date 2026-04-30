@@ -37,7 +37,7 @@ import {
   adjust_sent_count,
 } from "@/hooks/use_mail_counts";
 import { adjust_stats_archived } from "@/hooks/use_mail_stats";
-import { invalidate_mail_cache } from "@/hooks/email_list_cache";
+import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
 
 interface UseEmailListBulkParams {
   state: EmailListState;
@@ -113,6 +113,12 @@ export function use_email_list_bulk({
         emails: prev.emails.filter((e) => !id_set.has(e.id)),
         total_messages: Math.max(0, prev.total_messages - ids.length),
       }));
+      for (const id of ids) {
+        remove_email_from_view_cache(id);
+      }
+      for (const nid of non_threaded_ids) {
+        remove_email_from_view_cache(nid);
+      }
       if (unread_received_count > 0) {
         adjust_unread_count(-unread_received_count);
       }

@@ -42,7 +42,7 @@ import {
   trash_thread,
 } from "@/services/api/mail";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
-import { invalidate_mail_cache } from "@/hooks/email_list_cache";
+import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
 
 interface UseDeleteActionsOptions {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -130,6 +130,9 @@ export function use_delete_actions({
 
         for (const id of ids) {
           remove_email(id);
+        }
+        for (const eid of expanded_ids) {
+          remove_email_from_view_cache(eid);
         }
         const result = await batched_bulk_permanent_delete(expanded_ids);
 
@@ -229,6 +232,9 @@ export function use_delete_actions({
       for (const id of ids) {
         remove_email(id);
       }
+      for (const eid of expanded_ids) {
+        remove_email_from_view_cache(eid);
+      }
       const result = await batched_bulk_permanent_delete(expanded_ids);
 
       if (result.success) {
@@ -318,6 +324,7 @@ export function use_delete_actions({
 
     if (is_trash_view) {
       remove_email(email.id);
+      remove_email_from_view_cache(email.id);
       const result = await permanent_delete_mail_item(email.id);
 
       if (result.data) {

@@ -56,7 +56,7 @@ import {
   invalidate_mail_stats,
   adjust_stats_spam,
 } from "@/hooks/use_mail_stats";
-import { invalidate_mail_cache } from "@/hooks/email_list_cache";
+import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import {
   compute_trash_deltas,
   compute_archive_deltas,
@@ -446,6 +446,7 @@ export function use_single_actions(
       }
 
       apply_stat_deltas(deltas);
+      remove_email_from_view_cache(email.id);
 
       const success = await execute_single_action(
         email,
@@ -752,6 +753,7 @@ export function use_single_actions(
         clear_action_state("permanent_delete");
         adjust_trash_count(-1);
         invalidate_mail_stats();
+        remove_email_from_view_cache(email.id);
         config.on_remove_from_list?.(email.id);
         emit_mail_changed();
         emit_mail_action("permanent_delete", [email.id]);

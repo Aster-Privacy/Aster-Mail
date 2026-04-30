@@ -155,7 +155,7 @@ export function SandboxedEmailRenderer({
   const html_text_color = force_dark_mode ? "#e5e5e5" : "#111827";
   const html_bg = force_dark_mode
     ? "transparent"
-    : body_background || "#ffffff";
+    : body_background || "transparent";
   const base_font =
     "'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
 
@@ -638,11 +638,25 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         s.textContent?.includes("light only"),
     );
 
-    if (!has_rich_layout) {
-      doc_body.style.padding = "8px 16px 16px 16px";
-      if (!is_plain_text && !forces_light) {
-        doc_body.classList.add("aster-simple");
+    doc_body.style.padding = "8px 16px 16px 16px";
+
+    if (is_html_email && (!doc_body.style.backgroundColor || doc_body.style.backgroundColor === "transparent")) {
+      const first_el = doc_body.firstElementChild as HTMLElement | null;
+      const detected_bg =
+        first_el?.getAttribute("bgcolor") ||
+        first_el?.style.backgroundColor ||
+        (first_el?.tagName === "TABLE" || first_el?.tagName === "DIV"
+          ? iframe.contentWindow?.getComputedStyle(first_el).backgroundColor
+          : undefined);
+
+      if (detected_bg && detected_bg !== "transparent" && detected_bg !== "rgba(0, 0, 0, 0)") {
+        doc_body.style.backgroundColor = detected_bg;
+        iframe.contentDocument.documentElement.style.backgroundColor = detected_bg;
       }
+    }
+
+    if (!has_rich_layout && !is_plain_text && !forces_light) {
+      doc_body.classList.add("aster-simple");
     }
 
     collapse_forwarded_content(iframe.contentDocument);
@@ -884,7 +898,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
       const shadow = el.attachShadow({ mode: "open" });
 
       const body_style = is_html_email
-        ? `margin:0;background-color:${html_bg}`
+        ? `margin:0;background-color:${html_bg};padding:8px 16px 16px 16px`
         : `margin:0;background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
 
       shadow.innerHTML =

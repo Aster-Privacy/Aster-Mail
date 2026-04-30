@@ -49,6 +49,7 @@ import {
   adjust_trash_count,
 } from "@/hooks/use_mail_counts";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { set_forward_mail_id } from "@/services/forward_store";
 
 export interface EmailDetailActionsDeps {
@@ -165,6 +166,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       if (!result.error) {
         adjust_trash_count(-1);
         invalidate_mail_stats();
+        remove_email_from_view_cache(deps.email_id);
         emit_mail_items_removed({ ids: [deps.email_id] });
         show_action_toast({
           message: deps.t("common.email_permanently_deleted"),
@@ -187,6 +189,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       deps.set_is_trash_loading(false);
 
       if (result.success) {
+        remove_email_from_view_cache(deps.email_id);
         emit_mail_items_removed({ ids: [deps.email_id] });
         show_action_toast({
           message: deps.t("common.conversation_moved_to_trash"),
@@ -276,6 +279,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         const result = await permanent_delete_mail_item(msg.id);
 
         if (!result.error) {
+          remove_email_from_view_cache(msg.id);
           emit_mail_items_removed({ ids: [msg.id] });
           show_action_toast({
             message: deps.t("common.email_permanently_deleted"),

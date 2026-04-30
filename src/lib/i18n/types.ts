@@ -2995,6 +2995,7 @@ export interface MailTranslations {
   delete_all: string;
   archive_subtitle: string;
   trash_subtitle: string;
+  trash_auto_delete_notice: string;
   compose_email: string;
   one_hour_option: string;
   twenty_four_hours_option: string;

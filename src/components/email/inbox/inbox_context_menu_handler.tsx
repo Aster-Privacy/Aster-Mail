@@ -45,7 +45,7 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { invalidate_mail_cache } from "@/hooks/email_list_cache";
+import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { emit_mail_changed } from "@/hooks/email_action_types";
 import {
   permanent_delete_mail_item,
@@ -172,6 +172,9 @@ export function use_context_menu_actions({
             : [email.id];
 
         remove_email(email.id);
+        for (const eid of all_ids) {
+          remove_email_from_view_cache(eid);
+        }
         const succeeded =
           all_ids.length === 1
             ? !!(await permanent_delete_mail_item(email.id)).data

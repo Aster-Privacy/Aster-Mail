@@ -168,6 +168,10 @@ export function BillingSection({
   );
   const [show_checkout_modal, set_show_checkout_modal] = useState(false);
   const [show_payment_methods, set_show_payment_methods] = useState(false);
+  const [checkout_addon, set_checkout_addon] = useState<StorageAddon | null>(
+    null,
+  );
+  const [show_addon_checkout, set_show_addon_checkout] = useState(false);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
   >("monthly");
@@ -636,12 +640,16 @@ export function BillingSection({
                       "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                   }}
                   type="button"
-                  onClick={() =>
-                    show_toast(
-                      t("settings.storage_purchase_coming_soon"),
-                      "info",
-                    )
-                  }
+                  onClick={() => {
+                    const addon = STORAGE_ADDONS.find(
+                      (a) => a.id === selected_storage,
+                    );
+
+                    if (addon) {
+                      set_checkout_addon(addon);
+                      set_show_addon_checkout(true);
+                    }
+                  }}
                 >
                   {t("settings.add_storage")}
                 </motion.button>
@@ -1144,6 +1152,31 @@ export function BillingSection({
                 : PLAN_TIERS.find((t) => t.id === selected_plan.code)
                     ?.monthly_cents || selected_plan.price_cents,
           )}
+        />
+      )}
+
+      {checkout_addon && (
+        <CheckoutModal
+          addon_id={checkout_addon.id}
+          billing_interval="month"
+          currency="usd"
+          on_close={() => {
+            set_show_addon_checkout(false);
+            set_checkout_addon(null);
+          }}
+          on_success={async () => {
+            set_show_addon_checkout(false);
+            set_checkout_addon(null);
+            request_cache.invalidate("/payments/v1");
+            request_cache.invalidate("/sync/v1");
+            invalidate_mail_stats();
+            await load_data();
+          }}
+          open={show_addon_checkout}
+          plan_code="addon"
+          plan_name={checkout_addon.label}
+          price_cents={checkout_addon.price_cents}
+          price_display={format_price(checkout_addon.price_cents)}
         />
       )}
 

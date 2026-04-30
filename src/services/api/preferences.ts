@@ -225,6 +225,28 @@ async function decrypt_preferences(
   return JSON.parse(new TextDecoder().decode(decrypted));
 }
 
+const PREFS_CACHE_KEY = "aster_preferences_cache";
+
+export function cache_preferences_locally(prefs: UserPreferences): void {
+  try {
+    localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(prefs));
+  } catch {}
+}
+
+export function get_cached_preferences(): UserPreferences | null {
+  try {
+    const cached = localStorage.getItem(PREFS_CACHE_KEY);
+
+    if (cached) {
+      const parsed = JSON.parse(cached) as UserPreferences;
+
+      return { ...DEFAULT_PREFERENCES, ...parsed };
+    }
+  } catch {}
+
+  return null;
+}
+
 const SIDEBAR_CACHE_KEY = "aster_sidebar_state";
 
 export function get_cached_sidebar_state(key: string): boolean {

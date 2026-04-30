@@ -39,6 +39,8 @@ import {
   sync_quiet_hours_to_server,
   cache_sidebar_state,
   get_cached_sidebar_state,
+  cache_preferences_locally,
+  get_cached_preferences,
   prepare_preferences_payload,
   DEFAULT_PREFERENCES,
   type UserPreferences,
@@ -128,6 +130,8 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   const set_language_ref = useRef(set_language);
   set_language_ref.current = set_language;
 
+  const has_loaded_ref = useRef(false);
+
   const debounce_timer = useRef<number | null>(null);
   const saved_indicator_timer = useRef<number | null>(null);
   const latest_prefs_ref = useRef<UserPreferences | null>(null);
@@ -138,6 +142,10 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   } | null>(null);
 
   const do_save = useCallback(async (prefs: UserPreferences): Promise<boolean> => {
+    if (!has_loaded_ref.current) {
+      return false;
+    }
+
     const v = vault_ref.current;
 
     if (!v || !v.identity_key) {
@@ -178,6 +186,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     const ok = await do_save(prefs);
 
     if (ok) {
+      cache_preferences_locally(prefs);
       beacon_payload_ref.current = null;
       set_save_status("saved");
 
@@ -291,6 +300,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
           do_save(updated).then((ok) => {
             if (ok) {
+              cache_preferences_locally(updated);
               set_save_status("saved");
               window.setTimeout(() => set_save_status("idle"), 2000);
             } else {
@@ -322,6 +332,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
           do_save(updated).then((ok) => {
             if (ok) {
+              cache_preferences_locally(updated);
               set_save_status("saved");
               window.setTimeout(() => set_save_status("idle"), 2000);
             } else {
@@ -472,6 +483,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       debounce_timer.current = null;
     }
     latest_prefs_ref.current = null;
+    has_loaded_ref.current = false;
 
     (async () => {
       try {
@@ -489,7 +501,18 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
         if (cancelled) return;
 
+        if (!response.loaded_from_server) {
+          const cached = get_cached_preferences();
+
+          if (cached) {
+            response = { data: cached, loaded_from_server: false };
+            set_preferences(cached);
+          }
+        }
+
         if (response.loaded_from_server && response.data) {
+          has_loaded_ref.current = true;
+          cache_preferences_locally(response.data);
           if (debounce_timer.current) {
             clearTimeout(debounce_timer.current);
             debounce_timer.current = null;

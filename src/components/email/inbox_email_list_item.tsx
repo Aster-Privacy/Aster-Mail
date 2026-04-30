@@ -640,7 +640,7 @@ export const InboxEmailListItem = memo(
               {attachment_previews?.state === "loaded" &&
                 attachment_previews.attachments.length > 0 && (
                   <div
-                    className="hidden md:flex items-center gap-1 mt-1 pb-0.5"
+                    className="hidden md:flex items-center gap-1 mt-1 mb-0.5"
                     data-testid="attachment-chips-container"
                   >
                     {attachment_previews.attachments.slice(0, 3).map((att) => (

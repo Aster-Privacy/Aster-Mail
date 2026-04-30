@@ -218,6 +218,9 @@ export function use_email_list_actions({
           : [id];
 
       remove_email(id);
+      for (const aid of all_ids) {
+        remove_email_from_view_cache(aid);
+      }
       if (should_adjust_unread) {
         adjust_unread_count(-1);
       }

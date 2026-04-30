@@ -261,7 +261,7 @@ function premeasure_height(
 
   const body_style = is_plain_text
     ? "margin:0;padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word"
-    : `margin:0;background-color:${body_background || "#ffffff"}`;
+    : `margin:0;padding:8px 16px 16px 16px;background-color:${body_background || "transparent"}`;
 
   shadow.innerHTML =
     `<style>${EMAIL_BODY_CSS}</style>` +

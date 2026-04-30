@@ -69,6 +69,8 @@ import {
 } from "@/components/email/inbox/inbox_email_list";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
+import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
+import { get_spam_settings } from "@/services/api/preferences";
 import { NewEmailPill } from "@/components/email/inbox/inbox_new_email_pill";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_toolbar_actions";
@@ -129,6 +131,15 @@ export function EmailInbox({
   const is_snoozed_view = current_view === "snoozed";
   const is_archive_view = current_view === "archive";
   const [folder_unlock_key, set_folder_unlock_key] = useState(0);
+  const [trash_retention_days, set_trash_retention_days] = useState(30);
+
+  useEffect(() => {
+    get_spam_settings().then((result) => {
+      if (result.data && result.data.spam_retention_days > 0) {
+        set_trash_retention_days(result.data.spam_retention_days);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const handle_folders_changed = () => {
@@ -1073,6 +1084,12 @@ export function EmailInbox({
           storage_total_bytes={mail_stats.storage_total_bytes}
           storage_used_bytes={mail_stats.storage_used_bytes}
         />
+
+        {current_view === "trash" &&
+          !selection.some_selected &&
+          !selection.all_selected && (
+            <TrashBanner retention_days={trash_retention_days} />
+          )}
 
         {show_full_email_viewer && split_email_id ? (
           <div className="flex-1 overflow-hidden">

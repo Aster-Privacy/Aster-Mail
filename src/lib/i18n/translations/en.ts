@@ -3312,6 +3312,8 @@ export const en: Translations = {
     delete_all: "Delete all",
     archive_subtitle: "Archive emails to keep your inbox clean",
     trash_subtitle: "Deleted emails will appear here",
+    trash_auto_delete_notice:
+      "Items in trash will be automatically deleted after {{ days }} days.",
     compose_email: "Compose email",
     one_hour_option: "1 hour",
     twenty_four_hours_option: "24 hours",
