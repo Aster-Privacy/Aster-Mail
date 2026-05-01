@@ -3184,7 +3184,7 @@ export const en: Translations = {
     forward: "Forward",
     reply_subject_prefix: "Re:",
     forward_subject_prefix: "Fwd:",
-    reply_quote_header: "On {{ date }}, {{ name }} <{{ email }}> wrote:",
+    reply_quote_header: "On {{ date }}, {{ name }} wrote:",
     to: "To",
     cc: "Cc",
     bcc: "Bcc",
