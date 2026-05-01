@@ -53,6 +53,7 @@ export interface ReplyParams {
   expires_at?: string;
   sender_email?: string;
   sender_alias_hash?: string;
+  in_reply_to?: string;
 }
 
 export interface ForwardParams {
@@ -170,6 +171,7 @@ export async function send_reply(
         envelope_subject: params.original.subject,
         body: params.message,
         thread_id: thread_token,
+        in_reply_to: params.in_reply_to,
         expires_at: params.expires_at,
         sender_email: params.sender_email,
         sender_alias_hash: params.sender_alias_hash,
@@ -205,6 +207,7 @@ export async function send_reply(
       envelope_subject: params.original.subject,
       body: params.message,
       thread_id: thread_token,
+      in_reply_to: params.in_reply_to,
       expires_at: params.expires_at,
       sender_email: params.sender_email,
       sender_alias_hash: params.sender_alias_hash,

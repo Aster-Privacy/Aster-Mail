@@ -57,6 +57,7 @@ interface SimpleSendRequest {
   expires_at?: string;
   attachments?: SendAttachmentPayload[];
   forward_original_mail_id?: string;
+  in_reply_to?: string;
 }
 
 interface SimpleSendResponse {

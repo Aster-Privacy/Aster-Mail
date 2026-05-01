@@ -274,6 +274,7 @@ export default function IndexPage() {
           original_body={state.reply_data.original_body}
           original_cc={state.reply_data.original_cc}
           original_email_id={state.reply_data.original_email_id}
+          original_rfc_message_id={state.reply_data.original_rfc_message_id}
           original_subject={state.reply_data.original_subject}
           original_timestamp={state.reply_data.original_timestamp}
           original_to={state.reply_data.original_to}

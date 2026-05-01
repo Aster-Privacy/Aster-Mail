@@ -351,6 +351,7 @@ export default function EmailDetailPage() {
         original_body={detail.reply_modal_data?.original_body ?? ""}
         original_cc={detail.reply_modal_data?.original_cc}
         original_email_id={detail.reply_modal_data?.original_email_id}
+        original_rfc_message_id={detail.reply_modal_data?.original_rfc_message_id}
         original_subject={detail.reply_modal_data?.original_subject ?? ""}
         original_timestamp={detail.reply_modal_data?.original_timestamp ?? ""}
         original_to={detail.reply_modal_data?.original_to}

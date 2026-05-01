@@ -81,6 +81,7 @@ export interface EmailParams {
   expiry_password?: string;
   attachments?: import("@/components/compose/compose_shared").Attachment[];
   forward_original_mail_id?: string;
+  in_reply_to?: string;
 }
 
 export interface QueueCallbacks {
@@ -136,7 +137,6 @@ export type SendReadinessResult =
 
 export interface ServerQueueEmailParams extends EmailParams {
   thread_id?: string;
-  in_reply_to?: string;
   server_attachments?: Array<{
     id: string;
     filename: string;

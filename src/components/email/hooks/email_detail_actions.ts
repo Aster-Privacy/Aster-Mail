@@ -103,6 +103,10 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         is_own_message,
       );
 
+      const msg_rfc_message_id = msg.raw_headers?.find(
+        (h) => h.name.toLowerCase() === "message-id",
+      )?.value;
+
       const data: ReplyModalData = {
         recipient_name: reply_name,
         recipient_email: reply_email,
@@ -115,6 +119,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         thread_ghost_email: deps.thread_ghost_email,
         reply_from_address,
         original_to: to_emails,
+        original_rfc_message_id: msg_rfc_message_id,
       };
 
       if (is_reply_all) {

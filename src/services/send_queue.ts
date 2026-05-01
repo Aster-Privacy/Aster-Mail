@@ -41,12 +41,19 @@ import {
   execute_send,
   encrypt_for_recipients,
   create_sent_envelope,
+  fetch_internal_public_keys,
 } from "./send_queue_encryption";
+import { encrypt_attachments_for_send } from "./crypto/attachment_crypto";
 import { get_current_account } from "./account_manager";
 
 import { emit_email_sent } from "@/hooks/mail_events";
 import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  extract_inline_images,
+  type Attachment,
+} from "@/components/compose/compose_shared";
+import { format_bytes } from "@/lib/utils";
 import { en } from "@/lib/i18n/translations/en";
 
 export type {
@@ -179,6 +186,7 @@ class SendQueue {
       expires_at: email.expires_at,
       attachments: email.attachments,
       forward_original_mail_id: email.forward_original_mail_id,
+      in_reply_to: email.in_reply_to,
       scheduled_time,
       timeout_id,
       callbacks: {
@@ -393,8 +401,25 @@ async function prepare_email_for_server_queue(
     ...(email.bcc || []),
   ];
 
+  const { processed_html: recipient_body, images: inline_images } =
+    extract_inline_images(email.body);
+
+  const inline_attachments: Attachment[] = inline_images.map((img) => ({
+    id: img.id,
+    name: img.filename,
+    size: format_bytes(img.data.byteLength),
+    size_bytes: img.data.byteLength,
+    mime_type: img.mime_type,
+    data: img.data,
+    content_id: img.cid,
+  }));
+
+  const body_for_encryption =
+    inline_images.length > 0 ? recipient_body : email.body;
+  const all_attachments = [...(email.attachments || []), ...inline_attachments];
+
   const { encrypted_body, is_encrypted } = await encrypt_for_recipients(
-    email.body,
+    body_for_encryption,
     all_recipients,
   );
 
@@ -416,6 +441,7 @@ async function prepare_email_for_server_queue(
     sender_email: email.sender_email,
     sender_alias_hash: email.sender_alias_hash,
     sender_display_name: email.sender_display_name,
+    attachments: email.attachments,
     scheduled_time: Date.now(),
     timeout_id: 0,
     callbacks: {
@@ -437,6 +463,18 @@ async function prepare_email_for_server_queue(
     effective_thread_id = array_to_base64(random_bytes);
   }
 
+  let encrypted_attachments;
+
+  if (all_attachments.length > 0) {
+    const recipient_public_keys =
+      await fetch_internal_public_keys(all_recipients);
+
+    encrypted_attachments = await encrypt_attachments_for_send(
+      all_attachments,
+      recipient_public_keys.length > 0 ? recipient_public_keys : undefined,
+    );
+  }
+
   const request: QueueEmailRequest = {
     to: email.to,
     cc: email.cc,
@@ -452,6 +490,10 @@ async function prepare_email_for_server_queue(
     thread_token: effective_thread_id,
     sender_email: email.sender_email,
     sender_alias_hash: email.sender_alias_hash,
+    sender_display_name: email.sender_display_name,
+    attachments: encrypted_attachments,
+    forward_original_mail_id: email.forward_original_mail_id,
+    in_reply_to: email.in_reply_to,
   };
 
   return { request, is_encrypted };

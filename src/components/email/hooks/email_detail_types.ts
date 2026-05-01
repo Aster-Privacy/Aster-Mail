@@ -65,4 +65,5 @@ export interface ReplyModalData {
   is_external?: boolean;
   thread_ghost_email?: string;
   reply_from_address?: string;
+  original_rfc_message_id?: string;
 }

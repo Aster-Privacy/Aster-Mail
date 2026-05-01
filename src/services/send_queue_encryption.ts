@@ -479,6 +479,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     thread_token: effective_thread_id,
     attachments: encrypted_attachments,
     forward_original_mail_id: email.forward_original_mail_id,
+    in_reply_to: email.in_reply_to,
   };
 
   const result = await send_simple_email(request);

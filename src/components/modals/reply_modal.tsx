@@ -43,6 +43,7 @@ interface ReplyModalProps {
   is_external?: boolean;
   thread_ghost_email?: string;
   reply_from_address?: string;
+  original_rfc_message_id?: string;
   on_draft_saved?: (draft: {
     id: string;
     version: number;
@@ -72,6 +73,7 @@ export function ReplyModal({
   is_external = false,
   thread_ghost_email,
   reply_from_address,
+  original_rfc_message_id,
   on_draft_saved,
   existing_draft,
 }: ReplyModalProps) {
@@ -91,6 +93,7 @@ export function ReplyModal({
     is_external,
     thread_ghost_email,
     reply_from_address,
+    original_rfc_message_id,
     on_draft_saved,
     existing_draft,
   });

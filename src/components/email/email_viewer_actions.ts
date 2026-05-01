@@ -149,6 +149,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       is_own_message,
     );
 
+    const rfc_message_id = deps.email.raw_headers?.find(
+      (h) => h.name.toLowerCase() === "message-id",
+    )?.value;
+
     const data: ReplyData = {
       recipient_name,
       recipient_email,
@@ -161,6 +165,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       is_external: deps.is_external,
       original_to: to_emails,
       reply_from_address,
+      original_rfc_message_id: rfc_message_id,
     };
 
     if (is_reply_all) {
@@ -568,6 +573,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         is_own_message,
       );
 
+      const msg_rfc_message_id = msg.raw_headers?.find(
+        (h) => h.name.toLowerCase() === "message-id",
+      )?.value;
+
       const base: ReplyData = {
         recipient_name,
         recipient_email,
@@ -581,6 +590,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         thread_ghost_email: deps.thread_ghost_email,
         original_to: to_emails,
         reply_from_address,
+        original_rfc_message_id: msg_rfc_message_id,
       };
 
       if (is_reply_all) {

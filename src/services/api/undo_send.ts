@@ -41,10 +41,21 @@ export interface QueueEmailRequest {
   encrypted_metadata?: string;
   metadata_nonce?: string;
   attachment_ids?: string[];
+  attachments?: Array<{
+    encrypted_data: string;
+    data_nonce: string;
+    sender_encrypted_meta: string;
+    sender_meta_nonce: string;
+    recipient_encrypted_meta?: string;
+    size_bytes: number;
+  }>;
   thread_token?: string;
   reply_to_id?: string;
   sender_email?: string;
   sender_alias_hash?: string;
+  sender_display_name?: string;
+  forward_original_mail_id?: string;
+  in_reply_to?: string;
 }
 
 export interface QueueEmailResponse {

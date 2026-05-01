@@ -91,6 +91,7 @@ interface UseReplyModalProps {
   is_external: boolean;
   thread_ghost_email?: string;
   reply_from_address?: string;
+  original_rfc_message_id?: string;
   on_draft_saved?: (draft: {
     id: string;
     version: number;
@@ -120,6 +121,7 @@ export function use_reply_modal({
   is_external,
   thread_ghost_email,
   reply_from_address,
+  original_rfc_message_id,
   on_draft_saved,
   existing_draft,
 }: UseReplyModalProps) {
@@ -745,6 +747,7 @@ export function use_reply_modal({
         expires_at: expires_at?.toISOString(),
         sender_email: sender_email_value,
         sender_alias_hash: sender_alias_hash_value,
+        in_reply_to: original_rfc_message_id,
       },
       {
         on_complete: () => {
