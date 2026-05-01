@@ -101,19 +101,24 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   const { set_theme_preference } = useTheme();
   const { set_language } = use_i18n();
 
-  const [preferences, set_preferences] = useState<UserPreferences>(() => ({
-    ...DEFAULT_PREFERENCES,
-    sidebar_more_collapsed: get_cached_sidebar_state("sidebar_more_collapsed"),
-    sidebar_folders_collapsed: get_cached_sidebar_state(
-      "sidebar_folders_collapsed",
-    ),
-    sidebar_labels_collapsed: get_cached_sidebar_state(
-      "sidebar_labels_collapsed",
-    ),
-    sidebar_aliases_collapsed: get_cached_sidebar_state(
-      "sidebar_aliases_collapsed",
-    ),
-  }));
+  const [preferences, set_preferences] = useState<UserPreferences>(() => {
+    const cached = get_cached_preferences();
+    const base = cached ?? DEFAULT_PREFERENCES;
+
+    return {
+      ...base,
+      sidebar_more_collapsed: get_cached_sidebar_state("sidebar_more_collapsed"),
+      sidebar_folders_collapsed: get_cached_sidebar_state(
+        "sidebar_folders_collapsed",
+      ),
+      sidebar_labels_collapsed: get_cached_sidebar_state(
+        "sidebar_labels_collapsed",
+      ),
+      sidebar_aliases_collapsed: get_cached_sidebar_state(
+        "sidebar_aliases_collapsed",
+      ),
+    };
+  });
   const [is_loading, set_is_loading] = useState(true);
   const [has_loaded_from_server, set_has_loaded_from_server] = useState(false);
   const [save_status, set_save_status] = useState<SaveStatus>("idle");
@@ -419,6 +424,64 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     [do_save],
   );
 
+  const apply_visual_preferences = useCallback((prefs: Partial<UserPreferences>) => {
+    if (prefs.theme) {
+      set_theme_ref.current(prefs.theme);
+    }
+
+    const language_code = prefs.language
+      ? label_to_language_code(prefs.language)
+      : null;
+
+    if (language_code) {
+      set_language_ref.current(language_code);
+    }
+
+    configure_session_timeout(
+      prefs.session_timeout_enabled ?? DEFAULT_PREFERENCES.session_timeout_enabled,
+      prefs.session_timeout_minutes ?? DEFAULT_PREFERENCES.session_timeout_minutes,
+    );
+
+    if (prefs.accent_color) {
+      document.documentElement.style.setProperty(
+        "--accent-color",
+        prefs.accent_color,
+      );
+    }
+    if (prefs.accent_color_hover) {
+      document.documentElement.style.setProperty(
+        "--accent-color-hover",
+        prefs.accent_color_hover,
+      );
+    }
+
+    const root = document.documentElement;
+
+    root.classList.toggle("reduce-motion", prefs.reduce_motion ?? false);
+    root.classList.toggle("compact-mode", prefs.compact_mode ?? false);
+
+    root.classList.remove(
+      "font-size-small",
+      "font-size-large",
+      "font-size-extra-large",
+    );
+    if (prefs.font_size_scale === "small")
+      root.classList.add("font-size-small");
+    else if (prefs.font_size_scale === "large")
+      root.classList.add("font-size-large");
+    else if (prefs.font_size_scale === "extra_large")
+      root.classList.add("font-size-extra-large");
+
+    root.classList.toggle("high-contrast", prefs.high_contrast ?? false);
+    root.classList.toggle(
+      "reduce-transparency",
+      prefs.reduce_transparency ?? false,
+    );
+    root.classList.toggle("link-underlines", prefs.link_underlines ?? false);
+    root.classList.toggle("dyslexia-font", prefs.dyslexia_font ?? false);
+    root.classList.toggle("text-spacing", prefs.text_spacing ?? false);
+  }, []);
+
   const reload_preferences = useCallback(async () => {
     const v = vault_ref.current;
 
@@ -439,10 +502,18 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       const merged = { ...DEFAULT_PREFERENCES, ...response.data };
 
       set_preferences(merged);
+      apply_visual_preferences(response.data);
+    } else {
+      const cached = get_cached_preferences();
+
+      if (cached) {
+        set_preferences(cached);
+        apply_visual_preferences(cached);
+      }
     }
 
     set_has_loaded_from_server(response.loaded_from_server);
-  }, []);
+  }, [apply_visual_preferences]);
 
   const save_now = useCallback(async () => {
     if (!vault_ref.current) return;
@@ -507,6 +578,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           if (cached) {
             response = { data: cached, loaded_from_server: false };
             set_preferences(cached);
+            apply_visual_preferences(cached);
           }
         }
 
@@ -539,60 +611,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
             "sidebar_aliases_collapsed",
             merged.sidebar_aliases_collapsed,
           );
-          set_theme_ref.current(response.data.theme);
-
-          const language_code = label_to_language_code(response.data.language);
-
-          if (language_code) {
-            set_language_ref.current(language_code);
-          }
-
-          configure_session_timeout(
-            response.data.session_timeout_enabled,
-            response.data.session_timeout_minutes,
-          );
-
-          if (response.data.accent_color) {
-            document.documentElement.style.setProperty(
-              "--accent-color",
-              response.data.accent_color,
-            );
-          }
-          if (response.data.accent_color_hover) {
-            document.documentElement.style.setProperty(
-              "--accent-color-hover",
-              response.data.accent_color_hover,
-            );
-          }
-
-          const root = document.documentElement;
-
-          root.classList.toggle("reduce-motion", response.data.reduce_motion);
-          root.classList.toggle("compact-mode", response.data.compact_mode);
-
-          root.classList.remove(
-            "font-size-small",
-            "font-size-large",
-            "font-size-extra-large",
-          );
-          if (response.data.font_size_scale === "small")
-            root.classList.add("font-size-small");
-          else if (response.data.font_size_scale === "large")
-            root.classList.add("font-size-large");
-          else if (response.data.font_size_scale === "extra_large")
-            root.classList.add("font-size-extra-large");
-
-          root.classList.toggle("high-contrast", response.data.high_contrast);
-          root.classList.toggle(
-            "reduce-transparency",
-            response.data.reduce_transparency,
-          );
-          root.classList.toggle(
-            "link-underlines",
-            response.data.link_underlines,
-          );
-          root.classList.toggle("dyslexia-font", response.data.dyslexia_font);
-          root.classList.toggle("text-spacing", response.data.text_spacing);
+          apply_visual_preferences(response.data);
 
           await load_notification_preferences(v);
 

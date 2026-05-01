@@ -133,7 +133,9 @@ export function build_stripe_element_style(tokens: StripeThemeTokens) {
       fontSmoothing: "antialiased",
       iconColor: tokens.text_placeholder,
       "::placeholder": { color: tokens.text_placeholder },
-      ":-webkit-autofill": { color: tokens.text_primary },
+      ":-webkit-autofill": {
+        color: "#111827",
+      },
     },
     invalid: {
       color: tokens.danger,
@@ -178,6 +180,9 @@ export function build_stripe_appearance(tokens: StripeThemeTokens) {
       ".Input--invalid": {
         border: `1px solid ${tokens.danger}`,
         color: tokens.danger,
+      },
+      ".Input:-webkit-autofill": {
+        color: "#111827",
       },
       ".Label": {
         color: tokens.text_secondary,
