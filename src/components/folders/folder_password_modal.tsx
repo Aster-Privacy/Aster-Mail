@@ -474,21 +474,16 @@ export function FolderPasswordModal({
   const render_remove_content = () => (
     <div className="space-y-4">
       <div
-        className="flex items-start gap-3 p-3 rounded-lg"
-        style={{
-          backgroundColor: "rgba(239, 68, 68, 0.1)",
-          border: "1px solid rgba(239, 68, 68, 0.2)",
-        }}
+        className="flex items-start gap-3 p-3 rounded-lg bg-red-600 dark:bg-red-700"
       >
         <ExclamationTriangleIcon
-          className="w-5 h-5 flex-shrink-0 mt-0.5"
-          style={{ color: "var(--color-danger)" }}
+          className="w-5 h-5 flex-shrink-0 mt-0.5 text-white"
         />
         <div>
-          <p className="text-[13px] font-medium mb-0.5 text-txt-primary">
+          <p className="text-[13px] font-medium mb-0.5 text-white">
             {t("settings.remove_protection_warning_title")}
           </p>
-          <p className="text-[12px] text-txt-secondary">
+          <p className="text-[12px] text-red-100">
             {t("settings.remove_protection_warning_desc")}
           </p>
         </div>

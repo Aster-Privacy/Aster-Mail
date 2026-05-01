@@ -430,19 +430,15 @@ export function FolderManagementModal({
 
             <ModalBody>
               <div
-                className="rounded-lg p-4 mb-4 border"
-                style={{
-                  backgroundColor: "rgba(239, 68, 68, 0.12)",
-                  borderColor: "rgba(239, 68, 68, 0.35)",
-                }}
+                className="rounded-lg p-4 mb-4 bg-red-600 dark:bg-red-700"
               >
                 <div className="flex items-start gap-3">
-                  <ExclamationTriangleIcon className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <ExclamationTriangleIcon className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[13px] font-medium text-red-600 dark:text-red-400 mb-1">
+                    <p className="text-[13px] font-medium text-white mb-1">
                       {t("common.action_cannot_be_undone")}
                     </p>
-                    <p className="text-[12px] text-txt-secondary">
+                    <p className="text-[12px] text-red-100">
                       {t("common.delete_folder_warning")}
                       {hasChildren && t("common.delete_folder_subfolders")}
                     </p>
