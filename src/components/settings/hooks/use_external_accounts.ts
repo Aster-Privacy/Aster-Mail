@@ -35,6 +35,7 @@ import {
 } from "@/services/api/external_accounts";
 import {
   start_sync_polling as global_start_sync_polling,
+  stop_sync_polling as global_stop_sync_polling,
   subscribe_sync_manager,
   is_syncing as check_is_syncing,
 } from "@/services/sync_manager";
@@ -252,6 +253,10 @@ export function use_external_accounts() {
   const handle_toggle = useCallback(
     async (account: DecryptedExternalAccount) => {
       const new_enabled = !account.is_enabled;
+
+      if (!new_enabled) {
+        global_stop_sync_polling(account.id);
+      }
 
       set_accounts((prev) =>
         prev.map((a) =>

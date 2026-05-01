@@ -80,7 +80,16 @@ export function start_sync_polling(
     try {
       const result = await get_sync_progress(account_token);
 
-      if (!result.data) return;
+      if (!result.data) {
+        if (result.error) {
+          clearInterval(interval);
+          polling_intervals.delete(account_id);
+          account_token_map.delete(account_id);
+          progress_state.delete(account_id);
+          notify_listeners();
+        }
+        return;
+      }
 
       progress_state.set(account_id, {
         status: result.data.status,

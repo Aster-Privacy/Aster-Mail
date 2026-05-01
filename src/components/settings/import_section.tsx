@@ -67,6 +67,7 @@ import {
   type DecryptedExternalAccount,
   type SyncProgressEvent,
 } from "@/services/api/external_accounts";
+import { stop_sync_polling } from "@/services/sync_manager";
 import {
   list_oauth_folders,
   save_folder_mapping,
@@ -693,6 +694,17 @@ export function ImportSection() {
 
     set_disconnect_token(null);
 
+    const account = connected_accounts.find((a) => a.account_token === token);
+    if (account) {
+      stop_sync_polling(account.id);
+    }
+
+    set_syncing_accounts((prev) => {
+      const next = new Set(prev);
+      next.delete(token);
+      return next;
+    });
+
     try {
       const result = await delete_external_account(token);
 
@@ -706,7 +718,7 @@ export function ImportSection() {
     } catch {
       show_toast(t("settings.connected_accounts_error"), "error");
     }
-  }, [disconnect_token, t]);
+  }, [disconnect_token, t, connected_accounts]);
 
   const handle_cancel_oauth_setup = useCallback(async () => {
     oauth_cancelled_ref.current = true;
