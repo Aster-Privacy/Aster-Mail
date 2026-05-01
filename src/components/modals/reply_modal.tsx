@@ -200,6 +200,8 @@ export function ReplyModal({
                   ? () => {}
                   : modal.set_selected_sender
               }
+              preferred_id={modal.preferred_sender_id}
+              on_set_preferred={modal.handle_set_preferred}
             />
 
             <ReplyBody

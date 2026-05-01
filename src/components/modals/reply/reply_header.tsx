@@ -43,6 +43,8 @@ interface ReplyHeaderProps {
   on_set_ghost_expiry?: (days: number) => void;
   ghost_error?: string | null;
   ghost_locked?: boolean;
+  preferred_id?: string | null;
+  on_set_preferred?: (id: string | null) => void;
 }
 
 export function ReplyHeader({
@@ -63,6 +65,8 @@ export function ReplyHeader({
   on_set_ghost_expiry,
   ghost_error,
   ghost_locked,
+  preferred_id,
+  on_set_preferred,
 }: ReplyHeaderProps) {
   const { t } = use_i18n();
 
@@ -159,7 +163,9 @@ export function ReplyHeader({
               on_create_ghost={on_create_ghost}
               on_select={set_selected_sender}
               on_set_ghost_expiry={on_set_ghost_expiry}
+              on_set_preferred={on_set_preferred}
               options={sender_options}
+              preferred_id={preferred_id}
               selected={selected_sender}
             />
           </div>

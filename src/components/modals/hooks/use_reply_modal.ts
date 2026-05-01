@@ -69,6 +69,11 @@ import {
   type SenderOption,
 } from "@/hooks/use_sender_aliases";
 import { use_ghost_mode } from "@/hooks/use_ghost_mode";
+import {
+  get_preferred_sender_id,
+  set_preferred_sender_id,
+  subscribe_preferred_sender,
+} from "@/lib/preferred_sender";
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { sanitize_html } from "@/lib/html_sanitizer";
@@ -148,6 +153,9 @@ export function use_reply_modal({
     null,
   );
   const ghost_mode = use_ghost_mode(thread_token, thread_ghost_email);
+  const [preferred_sender_id, set_preferred_sender_state] = useState<
+    string | null
+  >(() => get_preferred_sender_id());
   const [reply_message, set_reply_message] = useState("");
   const [is_sending, set_is_sending] = useState(false);
   const [error_message, set_error_message] = useState<string | null>(null);
@@ -250,6 +258,31 @@ export function use_reply_modal({
     reply_from_address,
     original_to,
   ]);
+
+  useEffect(() => {
+    return subscribe_preferred_sender((id) => set_preferred_sender_state(id));
+  }, []);
+
+  useEffect(() => {
+    if (sender_loading || selected_sender) return;
+    if (!preferred_sender_id) return;
+
+    const match = sender_options.find(
+      (s) => s.is_enabled && s.id === preferred_sender_id,
+    );
+
+    if (match) {
+      set_selected_sender(match);
+    }
+  }, [sender_options, sender_loading, selected_sender, preferred_sender_id]);
+
+  const handle_set_preferred = useCallback(
+    (id: string | null) => {
+      set_preferred_sender_id(id);
+      set_preferred_sender_state(id);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
@@ -658,6 +691,11 @@ export function use_reply_modal({
 
     if (now - last_send_time_ref.current < 2000) return;
 
+    if (save_draft_timeout.current) {
+      clearTimeout(save_draft_timeout.current);
+      save_draft_timeout.current = null;
+    }
+
     is_sending_ref.current = true;
     last_send_time_ref.current = now;
     set_error_message(null);
@@ -882,6 +920,11 @@ export function use_reply_modal({
 
   const handle_scheduled_send = useCallback(async () => {
     if (!reply_message.trim() || !user || !vault || !scheduled_time) return;
+
+    if (save_draft_timeout.current) {
+      clearTimeout(save_draft_timeout.current);
+      save_draft_timeout.current = null;
+    }
 
     is_sending_ref.current = true;
     set_is_scheduling(true);
@@ -1185,5 +1228,7 @@ export function use_reply_modal({
     recipient_email,
     original_subject,
     original_body,
+    preferred_sender_id,
+    handle_set_preferred,
   };
 }
