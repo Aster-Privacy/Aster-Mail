@@ -255,6 +255,7 @@ export function EmailList({
           {pinned_emails.map((email) => (
             <div
               key={email.id}
+              className="border-b border-edge-secondary"
               style={{
                 contentVisibility: "auto",
                 containIntrinsicSize: email.has_attachment
@@ -274,6 +275,7 @@ export function EmailList({
           {primary_emails.map((email) => (
             <div
               key={email.id}
+              className="border-b border-edge-secondary"
               style={{
                 contentVisibility: "auto",
                 containIntrinsicSize: email.has_attachment

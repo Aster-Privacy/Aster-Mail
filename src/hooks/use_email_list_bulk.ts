@@ -38,6 +38,7 @@ import {
 } from "@/hooks/use_mail_counts";
 import { adjust_stats_archived } from "@/hooks/use_mail_stats";
 import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import { MAIL_EVENTS } from "@/hooks/mail_events";
 
 interface UseEmailListBulkParams {
   state: EmailListState;
@@ -304,6 +305,12 @@ export function use_email_list_bulk({
         if (remaining.length === 0 && state.has_more) {
           fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
         }
+
+        setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
+          );
+        }, 300);
       } catch {
         if (unread_received_count > 0) {
           adjust_unread_count(-unread_received_count);

@@ -783,6 +783,7 @@ export function SearchResultsPage({
             return (
               <InboxEmailListItem
                 key={email.id}
+                className="border-b border-edge-secondary"
                 current_view="search"
                 density={preferences.density}
                 email={email as InboxEmail}

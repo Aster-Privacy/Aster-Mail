@@ -27,6 +27,7 @@ import type {
 import { useCallback } from "react";
 
 import {
+  MAIL_EVENTS,
   emit_mail_changed,
   emit_mail_item_updated,
   type MailItemUpdatedEventDetail,
@@ -340,6 +341,14 @@ export function use_email_list_actions({
         is_archived: false,
       } as MailItemUpdatedEventDetail);
       const result = await api_batch_unarchive({ ids: [id] });
+
+      if (result.data?.success) {
+        setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
+          );
+        }, 300);
+      }
 
       if (!result.data?.success) {
         if (should_adjust_unread) {

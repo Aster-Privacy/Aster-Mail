@@ -408,6 +408,7 @@ export function use_single_actions(
       );
 
       if (success) {
+        emit_mail_soft_refresh();
         show_action_toast({
           message: t("common.moved_to_inbox_toast"),
           action_type: "restore",
