@@ -29,6 +29,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useCallback } from "react";
 
 import { get_email_username, is_system_email } from "@/lib/utils";
+import { build_reply_from_address } from "@/components/email/build_reply_from_address";
 import {
   permanent_delete_mail_item,
   report_spam_sender,
@@ -92,8 +93,15 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       const reply_email =
         is_own_message && first_to ? first_to.email : msg.sender_email;
 
-      const reply_from =
-        msg.to_recipients?.map((r) => r.email).find(Boolean) ?? undefined;
+      const to_emails = msg.to_recipients?.map((r) => r.email) ?? [];
+      const cc_emails =
+        msg.cc_recipients
+          ?.map((r) => r.email)
+          .filter((e): e is string => !!e) ?? [];
+      const reply_from_address = build_reply_from_address(
+        { sender_email: msg.sender_email },
+        is_own_message,
+      );
 
       const data: ReplyModalData = {
         recipient_name: reply_name,
@@ -105,16 +113,13 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         original_email_id: msg.id,
         is_external: msg.is_external,
         thread_ghost_email: deps.thread_ghost_email,
-        reply_from_address: reply_from,
+        reply_from_address,
+        original_to: to_emails,
       };
 
       if (is_reply_all) {
         data.reply_all = true;
-        data.original_to = msg.to_recipients?.map((r) => r.email) ?? [];
-        data.original_cc =
-          msg.cc_recipients
-            ?.map((r) => r.email)
-            .filter((e): e is string => !!e) ?? [];
+        data.original_cc = cc_emails;
       }
 
       return data;

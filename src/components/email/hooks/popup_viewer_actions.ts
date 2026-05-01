@@ -28,11 +28,10 @@ import type {
 
 import { useCallback } from "react";
 
-import {
-  get_email_username,
-  is_system_email,
-  is_astermail_sender,
-} from "@/lib/utils";
+import { is_system_email, is_astermail_sender } from "@/lib/utils";
+import { extract_reply_to } from "@/utils/reply_to";
+import { build_reply_recipient } from "@/components/email/build_reply_recipient";
+import { build_reply_from_address } from "@/components/email/build_reply_from_address";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -326,17 +325,26 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     const is_reply_all =
       deps.preferences_default_reply_behavior === "reply_all";
     const is_own_message = deps.mail_item?.item_type === "sent";
-    const first_to = deps.email.to?.[0];
-    const reply_name =
-      is_own_message && first_to
-        ? first_to.name || get_email_username(first_to.email) || first_to.email
-        : deps.email.sender;
-    const reply_email =
-      is_own_message && first_to ? first_to.email : deps.email.sender_email;
+    const { recipient_name, recipient_email } = build_reply_recipient(
+      {
+        sender_name: deps.email.sender,
+        sender_email: deps.email.sender_email,
+        first_to: deps.email.to?.[0],
+        reply_to: deps.email.reply_to,
+      },
+      is_own_message,
+    );
+
+    const to_emails = deps.email.to?.map((r) => r.email) ?? [];
+    const cc_emails = deps.email.cc?.map((r) => r.email) ?? [];
+    const reply_from_address = build_reply_from_address(
+      { sender_email: deps.email.sender_email },
+      is_own_message,
+    );
 
     const data: Parameters<NonNullable<typeof deps.on_reply>>[0] = {
-      recipient_name: reply_name,
-      recipient_email: reply_email,
+      recipient_name,
+      recipient_email,
       recipient_avatar: is_astermail_sender(
         deps.email.sender,
         deps.email.sender_email,
@@ -349,12 +357,13 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       thread_token: deps.current_thread_token || undefined,
       original_email_id: deps.email.id,
       is_external: !!deps.mail_item?.is_external,
+      original_to: to_emails,
+      reply_from_address,
     };
 
     if (is_reply_all) {
       data.reply_all = true;
-      data.original_to = deps.email.to?.map((r) => r.email) ?? [];
-      data.original_cc = deps.email.cc?.map((r) => r.email) ?? [];
+      data.original_cc = cc_emails;
     }
 
     deps.on_reply(data);
@@ -461,19 +470,29 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
   const build_popup_reply_data = useCallback(
     (msg: DecryptedThreadMessage, is_reply_all: boolean) => {
       const is_own_message = msg.item_type === "sent";
-      const first_to = msg.to_recipients?.[0];
-      const reply_name =
-        is_own_message && first_to
-          ? first_to.name ||
-            get_email_username(first_to.email) ||
-            first_to.email
-          : msg.sender_name;
-      const reply_email =
-        is_own_message && first_to ? first_to.email : msg.sender_email;
+      const parsed_reply_to = extract_reply_to(msg.raw_headers);
+      const { recipient_name, recipient_email } = build_reply_recipient(
+        {
+          sender_name: msg.sender_name,
+          sender_email: msg.sender_email,
+          first_to: msg.to_recipients?.[0],
+          reply_to: parsed_reply_to
+            ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
+            : undefined,
+        },
+        is_own_message,
+      );
+
+      const to_emails = msg.to_recipients?.map((r) => r.email) ?? [];
+      const cc_emails = msg.cc_recipients?.map((r) => r.email) ?? [];
+      const reply_from_address = build_reply_from_address(
+        { sender_email: msg.sender_email },
+        is_own_message,
+      );
 
       const data: Parameters<NonNullable<typeof deps.on_reply>>[0] = {
-        recipient_name: reply_name,
-        recipient_email: reply_email,
+        recipient_name,
+        recipient_email,
         recipient_avatar: "",
         original_subject: msg.subject,
         original_body: msg.body,
@@ -481,12 +500,13 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         thread_token: deps.current_thread_token || undefined,
         original_email_id: msg.id,
         is_external: msg.is_external,
+        original_to: to_emails,
+        reply_from_address,
       };
 
       if (is_reply_all) {
         data.reply_all = true;
-        data.original_to = msg.to_recipients?.map((r) => r.email) ?? [];
-        data.original_cc = msg.cc_recipients?.map((r) => r.email) ?? [];
+        data.original_cc = cc_emails;
       }
 
       return data;

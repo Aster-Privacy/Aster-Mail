@@ -258,7 +258,7 @@ export function EmailList({
               style={{
                 contentVisibility: "auto",
                 containIntrinsicSize: email.has_attachment
-                  ? "auto 68px"
+                  ? "auto 88px"
                   : "auto 52px",
               }}
               onMouseEnter={() => handle_hover_preload(email.id)}
@@ -277,7 +277,7 @@ export function EmailList({
               style={{
                 contentVisibility: "auto",
                 containIntrinsicSize: email.has_attachment
-                  ? "auto 68px"
+                  ? "auto 88px"
                   : "auto 52px",
               }}
               onMouseEnter={() => handle_hover_preload(email.id)}

@@ -38,6 +38,7 @@ import {
 } from "@/hooks/mail_events";
 import type { UndoSendEvent } from "@/hooks/use_undo_send";
 import { get_email_username } from "@/lib/utils";
+import { extract_reply_to } from "@/utils/reply_to";
 import {
   process_envelope_body,
   build_preview_text,
@@ -86,6 +87,7 @@ interface LocalDecryptedEnvelope {
   sent_at: string;
   list_unsubscribe?: string;
   list_unsubscribe_post?: string;
+  raw_headers?: { name: string; value: string }[];
 }
 
 export function use_email_viewer({
@@ -491,6 +493,8 @@ export function use_email_viewer({
         metadata: decrypted_metadata,
       };
 
+      const parsed_reply_to = extract_reply_to(envelope.raw_headers);
+
       set_email({
         id: item.id,
         sender:
@@ -513,6 +517,10 @@ export function use_email_viewer({
         cc: envelope.cc || [],
         bcc: envelope.bcc || [],
         expires_at: item.expires_at,
+        raw_headers: envelope.raw_headers,
+        reply_to: parsed_reply_to
+          ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
+          : undefined,
       });
       set_is_external(item.is_external);
       set_has_recipient_key(!!item.has_recipient_key);

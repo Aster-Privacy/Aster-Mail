@@ -30,7 +30,10 @@ import type {
 
 import { useCallback } from "react";
 
-import { get_email_username, is_system_email } from "@/lib/utils";
+import { is_system_email } from "@/lib/utils";
+import { extract_reply_to } from "@/utils/reply_to";
+import { build_reply_recipient } from "@/components/email/build_reply_recipient";
+import { build_reply_from_address } from "@/components/email/build_reply_from_address";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -126,20 +129,29 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       deps.preferences_default_reply_behavior === "reply_all";
     const is_own_message =
       deps.mail_item?.item_type === "sent" ||
-      (deps.current_user_email &&
+      (!!deps.current_user_email &&
         deps.email.sender_email.toLowerCase() ===
           deps.current_user_email.toLowerCase());
-    const first_to = deps.email.to?.[0];
-    const reply_name =
-      is_own_message && first_to
-        ? first_to.name || get_email_username(first_to.email) || first_to.email
-        : deps.email.sender;
-    const reply_email =
-      is_own_message && first_to ? first_to.email : deps.email.sender_email;
+    const { recipient_name, recipient_email } = build_reply_recipient(
+      {
+        sender_name: deps.email.sender,
+        sender_email: deps.email.sender_email,
+        first_to: deps.email.to?.[0],
+        reply_to: deps.email.reply_to,
+      },
+      is_own_message,
+    );
+
+    const to_emails = deps.email.to?.map((r) => r.email) ?? [];
+    const cc_emails = deps.email.cc?.map((r) => r.email) ?? [];
+    const reply_from_address = build_reply_from_address(
+      { sender_email: deps.email.sender_email },
+      is_own_message,
+    );
 
     const data: ReplyData = {
-      recipient_name: reply_name,
-      recipient_email: reply_email,
+      recipient_name,
+      recipient_email,
       recipient_avatar: "",
       original_subject: deps.email.subject,
       original_body: deps.email.body,
@@ -147,12 +159,13 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       thread_token: deps.email.thread_token,
       original_email_id: deps.email.id,
       is_external: deps.is_external,
+      original_to: to_emails,
+      reply_from_address,
     };
 
     if (is_reply_all) {
       data.reply_all = true;
-      data.original_to = deps.email.to?.map((r) => r.email) ?? [];
-      data.original_cc = deps.email.cc?.map((r) => r.email) ?? [];
+      data.original_cc = cc_emails;
     }
 
     deps.on_reply(data);
@@ -535,19 +548,29 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
   const build_reply_data = useCallback(
     (msg: DecryptedThreadMessage, is_reply_all: boolean): ReplyData => {
       const is_own_message = msg.item_type === "sent";
-      const first_to = msg.to_recipients?.[0];
-      const reply_name =
-        is_own_message && first_to
-          ? first_to.name ||
-            get_email_username(first_to.email) ||
-            first_to.email
-          : msg.sender_name;
-      const reply_email =
-        is_own_message && first_to ? first_to.email : msg.sender_email;
+      const parsed_reply_to = extract_reply_to(msg.raw_headers);
+      const { recipient_name, recipient_email } = build_reply_recipient(
+        {
+          sender_name: msg.sender_name,
+          sender_email: msg.sender_email,
+          first_to: msg.to_recipients?.[0],
+          reply_to: parsed_reply_to
+            ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
+            : undefined,
+        },
+        is_own_message,
+      );
+
+      const to_emails = msg.to_recipients?.map((r) => r.email) ?? [];
+      const cc_emails = msg.cc_recipients?.map((r) => r.email) ?? [];
+      const reply_from_address = build_reply_from_address(
+        { sender_email: msg.sender_email },
+        is_own_message,
+      );
 
       const base: ReplyData = {
-        recipient_name: reply_name,
-        recipient_email: reply_email,
+        recipient_name,
+        recipient_email,
         recipient_avatar: "",
         original_subject: msg.subject,
         original_body: msg.body,
@@ -556,12 +579,13 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         original_email_id: msg.id,
         is_external: msg.is_external || deps.is_external,
         thread_ghost_email: deps.thread_ghost_email,
+        original_to: to_emails,
+        reply_from_address,
       };
 
       if (is_reply_all) {
         base.reply_all = true;
-        base.original_to = msg.to_recipients?.map((r) => r.email) ?? [];
-        base.original_cc = msg.cc_recipients?.map((r) => r.email) ?? [];
+        base.original_cc = cc_emails;
       }
 
       return base;

@@ -35,6 +35,7 @@ export interface ReplyData {
   original_to?: string[];
   is_external?: boolean;
   thread_ghost_email?: string;
+  reply_from_address?: string;
 }
 
 export interface ForwardData {

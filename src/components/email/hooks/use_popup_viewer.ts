@@ -55,6 +55,7 @@ import { use_date_format } from "@/hooks/use_date_format";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { extract_email_details } from "@/services/extraction/extractor";
 import { get_email_username } from "@/lib/utils";
+import { extract_reply_to } from "@/utils/reply_to";
 import {
   process_envelope_body,
   build_preview_text,
@@ -401,6 +402,13 @@ export function use_popup_viewer({
           bcc: envelope.bcc || [],
           expires_at: response.data.expires_at,
           raw_headers: envelope.raw_headers,
+          reply_to: (() => {
+            const parsed = extract_reply_to(envelope.raw_headers);
+
+            return parsed
+              ? { name: parsed.name ?? "", email: parsed.email }
+              : undefined;
+          })(),
         };
 
         set_email(decrypted);

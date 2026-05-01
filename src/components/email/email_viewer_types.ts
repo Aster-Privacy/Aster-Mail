@@ -45,6 +45,8 @@ export interface DecryptedEmail {
   cc: EmailRecipient[];
   bcc: EmailRecipient[];
   expires_at?: string;
+  raw_headers?: { name: string; value: string }[];
+  reply_to?: EmailRecipient;
 }
 
 export interface ReplyData {
@@ -61,6 +63,7 @@ export interface ReplyData {
   original_to?: string[];
   is_external?: boolean;
   thread_ghost_email?: string;
+  reply_from_address?: string;
 }
 
 export interface ForwardData {

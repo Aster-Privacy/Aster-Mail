@@ -42,6 +42,7 @@ export interface DecryptedEmail {
   bcc: EmailRecipient[];
   expires_at?: string;
   raw_headers?: { name: string; value: string }[];
+  reply_to?: EmailRecipient;
 }
 
 export interface LocalEmailData {
@@ -71,6 +72,7 @@ export interface EmailPopupViewerProps {
     original_cc?: string[];
     original_to?: string[];
     is_external?: boolean;
+    reply_from_address?: string;
   }) => void;
   on_forward?: (data: {
     sender_name: string;

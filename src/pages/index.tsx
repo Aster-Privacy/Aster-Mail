@@ -281,6 +281,7 @@ export default function IndexPage() {
           recipient_email={state.reply_data.recipient_email}
           recipient_name={state.reply_data.recipient_name}
           reply_all={state.reply_data.reply_all}
+          reply_from_address={state.reply_data.reply_from_address}
           thread_ghost_email={state.reply_data.thread_ghost_email}
           thread_token={state.reply_data.thread_token}
         />
