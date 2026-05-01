@@ -251,7 +251,7 @@ function render_option(
           className={`flex-shrink-0 p-1 rounded transition-opacity ${
             is_preferred
               ? "opacity-100 text-txt-primary"
-              : "opacity-0 group-hover:opacity-60 text-txt-muted hover:opacity-100"
+              : "sm:opacity-0 opacity-60 sm:group-hover:opacity-60 text-txt-muted hover:opacity-100"
           }`}
           title={
             is_preferred

@@ -41,6 +41,7 @@ import {
   is_native_platform,
 } from "@/native/capacitor_bridge";
 import { enqueue_action } from "@/native/offline_queue";
+import { array_to_base64 } from "@/services/crypto/envelope";
 import {
   type Attachment,
   type RecipientsState,
@@ -187,12 +188,22 @@ export function use_compose_send({
 
       if (!network_status.connected) {
         try {
+          const offline_attachments =
+            attachments.length > 0
+              ? attachments.map((a) => ({
+                  name: a.name,
+                  data: array_to_base64(new Uint8Array(a.data)),
+                  type: a.mime_type,
+                }))
+              : undefined;
+
           await enqueue_action("send_email", {
             to: recipients.to,
             cc: recipients.cc.length > 0 ? recipients.cc : undefined,
             bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
             subject,
             body: message,
+            attachments: offline_attachments,
           });
 
           show_toast(t("common.offline_email_queued"), "info");
