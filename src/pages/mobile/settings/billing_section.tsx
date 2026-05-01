@@ -191,6 +191,7 @@ export function BillingSection({
         t("settings.plan_f_catch_all"),
         t("settings.plan_f_auto_forwarding"),
         t("settings.plan_f_quiet_hours"),
+        t("settings.plan_f_external_accounts"),
         t("settings.plan_f_support_priority"),
       ],
       nova: [
@@ -206,6 +207,7 @@ export function BillingSection({
         t("settings.plan_f_encrypted_export"),
         t("settings.plan_f_password_folders"),
         t("settings.plan_f_custom_key_rotation"),
+        t("settings.plan_f_external_accounts"),
       ],
       supernova: [
         t("settings.plan_f_storage", { value: "5 TB" }),
@@ -214,6 +216,7 @@ export function BillingSection({
         t("settings.plan_f_domains", { value: t("settings.unlimited") }),
         t("settings.plan_f_send_limit", { value: t("settings.unlimited") }),
         t("settings.plan_f_receipt_tracking"),
+        t("settings.plan_f_external_accounts"),
         t("settings.plan_f_support_dedicated"),
         t("settings.plan_f_early_access"),
       ],

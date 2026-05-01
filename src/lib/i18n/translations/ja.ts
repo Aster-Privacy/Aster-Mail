@@ -2436,6 +2436,7 @@ export const ja = {
     plan_f_read_receipts: "開封確認",
     plan_f_smart_folders: "スマートフォルダ",
     plan_f_imap_smtp: "IMAP & SMTPアクセス",
+    plan_f_external_accounts: "外部アカウント (IMAP & POP3)",
     plan_f_caldav: "CalDAV同期",
     plan_f_encrypted_exports: "暗号化エクスポート",
     plan_f_hardware_keys: "ハードウェアセキュリティキー",

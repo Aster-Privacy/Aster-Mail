@@ -2439,6 +2439,7 @@ export const es = {
     plan_f_read_receipts: "Acuses de recibo",
     plan_f_smart_folders: "Carpetas inteligentes",
     plan_f_imap_smtp: "Acceso IMAP y SMTP",
+    plan_f_external_accounts: "Cuentas externas (IMAP & POP3)",
     plan_f_caldav: "Sincronización CalDAV",
     plan_f_encrypted_exports: "Exportaciones cifradas",
     plan_f_hardware_keys: "Llaves de seguridad de hardware",

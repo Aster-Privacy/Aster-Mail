@@ -2434,6 +2434,7 @@ export const de = {
     plan_f_read_receipts: "Lesebestätigungen",
     plan_f_smart_folders: "Intelligente Ordner",
     plan_f_imap_smtp: "IMAP- & SMTP-Zugang",
+    plan_f_external_accounts: "Externe Konten (IMAP & POP3)",
     plan_f_caldav: "CalDAV-Synchronisierung",
     plan_f_encrypted_exports: "Verschlüsselte Exporte",
     plan_f_hardware_keys: "Hardware-Sicherheitsschlüssel",

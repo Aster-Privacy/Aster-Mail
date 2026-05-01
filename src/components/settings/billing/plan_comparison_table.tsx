@@ -145,6 +145,13 @@ export function get_plan_comparison_rows(
       supernova: "✓",
     },
     {
+      label: t("settings.plan_f_external_accounts"),
+      free: "-",
+      star: "2",
+      nova: "5",
+      supernova: "5",
+    },
+    {
       label: t("settings.plan_f_alias_avatars"),
       free: "-",
       star: "✓",

@@ -1818,6 +1818,7 @@ export const en: Translations = {
     plan_f_read_receipts: "Read receipts",
     plan_f_smart_folders: "Smart folders",
     plan_f_imap_smtp: "IMAP & SMTP access",
+    plan_f_external_accounts: "External accounts (IMAP & POP3)",
     plan_f_caldav: "CalDAV sync",
     plan_f_encrypted_exports: "Encrypted exports",
     plan_f_hardware_keys: "Hardware security keys",

@@ -2368,6 +2368,7 @@ export const ko = {
     plan_f_read_receipts: "읽음 확인",
     plan_f_smart_folders: "스마트 폴더",
     plan_f_imap_smtp: "IMAP 및 SMTP 접근",
+    plan_f_external_accounts: "외부 계정 (IMAP & POP3)",
     plan_f_caldav: "CalDAV 동기화",
     plan_f_encrypted_exports: "암호화된 내보내기",
     plan_f_hardware_keys: "하드웨어 보안 키",

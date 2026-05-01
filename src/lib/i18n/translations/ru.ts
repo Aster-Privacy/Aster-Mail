@@ -2418,6 +2418,7 @@ export const ru = {
     plan_f_read_receipts: "Уведомления о прочтении",
     plan_f_smart_folders: "Умные папки",
     plan_f_imap_smtp: "Доступ по IMAP и SMTP",
+    plan_f_external_accounts: "Внешние аккаунты (IMAP & POP3)",
     plan_f_caldav: "Синхронизация CalDAV",
     plan_f_encrypted_exports: "Зашифрованный экспорт",
     plan_f_hardware_keys: "Аппаратные ключи безопасности",

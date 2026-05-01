@@ -2398,6 +2398,7 @@ export const tr = {
     plan_f_read_receipts: "Okundu bilgileri",
     plan_f_smart_folders: "Akıllı klasörler",
     plan_f_imap_smtp: "IMAP ve SMTP erişimi",
+    plan_f_external_accounts: "Harici hesaplar (IMAP & POP3)",
     plan_f_caldav: "CalDAV senkronizasyonu",
     plan_f_encrypted_exports: "Şifreli dışa aktarımlar",
     plan_f_hardware_keys: "Donanım güvenlik anahtarları",

@@ -2408,6 +2408,7 @@ export const nl = {
     plan_f_read_receipts: "Leesbevestigingen",
     plan_f_smart_folders: "Slimme mappen",
     plan_f_imap_smtp: "IMAP- en SMTP-toegang",
+    plan_f_external_accounts: "Externe accounts (IMAP & POP3)",
     plan_f_caldav: "CalDAV-synchronisatie",
     plan_f_encrypted_exports: "Versleutelde exports",
     plan_f_hardware_keys: "Hardware-beveiligingssleutels",

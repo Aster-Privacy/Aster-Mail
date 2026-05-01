@@ -2271,6 +2271,7 @@ export const zh_CN = {
     plan_f_read_receipts: "已读回执",
     plan_f_smart_folders: "智能文件夹",
     plan_f_imap_smtp: "IMAP 和 SMTP 访问",
+    plan_f_external_accounts: "外部账户 (IMAP & POP3)",
     plan_f_caldav: "CalDAV 同步",
     plan_f_encrypted_exports: "加密导出",
     plan_f_hardware_keys: "硬件安全密钥",

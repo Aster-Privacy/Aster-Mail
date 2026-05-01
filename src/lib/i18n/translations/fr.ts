@@ -2471,6 +2471,7 @@ export const fr = {
     plan_f_read_receipts: "Accusés de réception",
     plan_f_smart_folders: "Dossiers intelligents",
     plan_f_imap_smtp: "Accès IMAP et SMTP",
+    plan_f_external_accounts: "Comptes externes (IMAP & POP3)",
     plan_f_caldav: "Synchronisation CalDAV",
     plan_f_encrypted_exports: "Exports chiffrés",
     plan_f_hardware_keys: "Clés de sécurité matérielles",

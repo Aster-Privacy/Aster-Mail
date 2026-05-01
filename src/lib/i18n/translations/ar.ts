@@ -2360,6 +2360,7 @@ export const ar = {
     plan_f_read_receipts: "إيصالات القراءة",
     plan_f_smart_folders: "مجلدات ذكية",
     plan_f_imap_smtp: "وصول IMAP وSMTP",
+    plan_f_external_accounts: "حسابات خارجية (IMAP & POP3)",
     plan_f_caldav: "مزامنة CalDAV",
     plan_f_encrypted_exports: "تصديرات مشفرة",
     plan_f_hardware_keys: "مفاتيح أمان الأجهزة",

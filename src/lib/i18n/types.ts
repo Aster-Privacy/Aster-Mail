@@ -1698,6 +1698,7 @@ export interface SettingsTranslations {
   plan_f_read_receipts: string;
   plan_f_smart_folders: string;
   plan_f_imap_smtp: string;
+  plan_f_external_accounts: string;
   plan_f_caldav: string;
   plan_f_encrypted_exports: string;
   plan_f_hardware_keys: string;
