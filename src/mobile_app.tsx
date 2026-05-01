@@ -377,6 +377,40 @@ function MobileApp() {
   }, []);
 
   useEffect(() => {
+    const handle_prefilled_compose = (e: Event) => {
+      const detail = (e as CustomEvent).detail as {
+        to: string[];
+        subject: string;
+        body: string;
+      };
+
+      edit_draft_ref.current = {
+        id: "",
+        version: 0,
+        draft_type: "new",
+        to_recipients: detail.to,
+        cc_recipients: [],
+        bcc_recipients: [],
+        subject: detail.subject,
+        message: detail.body,
+        updated_at: new Date().toISOString(),
+      };
+      set_is_compose_open(true);
+    };
+
+    window.addEventListener(
+      "aster:open-compose-prefilled",
+      handle_prefilled_compose,
+    );
+
+    return () =>
+      window.removeEventListener(
+        "aster:open-compose-prefilled",
+        handle_prefilled_compose,
+      );
+  }, []);
+
+  useEffect(() => {
     const handle_internal_link = (e: Event) => {
       const path = (e as CustomEvent<{ path: string }>).detail?.path || "";
 

@@ -34,6 +34,8 @@ import {
   EyeSlashIcon,
   UserGroupIcon,
   ClipboardDocumentIcon,
+  EnvelopeIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
 import { SettingsGroup, SettingsHeader } from "./shared";
@@ -55,6 +57,10 @@ import {
 import { CheckoutModal } from "@/components/settings/checkout_modal";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  list_contacts,
+  decrypt_contacts,
+} from "@/services/api/contacts";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
@@ -177,6 +183,65 @@ export function BillingSection({
   >("monthly");
   const [referral_info, set_referral_info] = useState<ReferralInfo | null>(null);
   const [referral_history_list, set_referral_history_list] = useState<ReferralHistoryItem[]>([]);
+  const [is_sending_referral, set_is_sending_referral] = useState(false);
+
+  const handle_send_referral = useCallback(async () => {
+    if (!referral_info) return;
+
+    set_is_sending_referral(true);
+
+    try {
+      const all_emails: string[] = [];
+      let cursor: string | undefined;
+      let has_more = true;
+
+      while (has_more) {
+        const res = await list_contacts({ limit: 100, cursor });
+
+        if (!res.data?.items?.length) break;
+
+        const decrypted = await decrypt_contacts(res.data.items);
+
+        for (const contact of decrypted) {
+          if (contact.emails) {
+            all_emails.push(...contact.emails);
+          }
+        }
+
+        has_more = res.data.has_more;
+        cursor = res.data.next_cursor || undefined;
+      }
+
+      if (all_emails.length === 0) {
+        show_toast(t("settings.referral_no_contacts"), "error");
+
+        return;
+      }
+
+      const body_text = t("settings.referral_email_body", {
+        referral_link: referral_info.referral_link,
+      });
+
+      const body_html = body_text
+        .split("\n")
+        .map((line: string) =>
+          line.trim() === "" ? "<br>" : `<p>${line}</p>`,
+        )
+        .join("");
+
+      window.dispatchEvent(
+        new CustomEvent("aster:open-compose-prefilled", {
+          detail: {
+            to: all_emails,
+            subject: t("settings.referral_email_subject"),
+            body: body_html,
+          },
+        }),
+      );
+    } finally {
+      set_is_sending_referral(false);
+    }
+  }, [referral_info, t]);
 
   const plan_features: Record<string, string[]> = useMemo(
     () => ({
@@ -922,6 +987,18 @@ export function BillingSection({
                           {t("settings.copy_link")}
                         </button>
                       </div>
+                      <button
+                        className="w-full mt-2 h-9 px-3 text-sm rounded-lg border border-edge-secondary text-txt-primary flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                        disabled={is_sending_referral}
+                        onClick={handle_send_referral}
+                      >
+                        {is_sending_referral ? (
+                          <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <EnvelopeIcon className="w-4 h-4" />
+                        )}
+                        {t("settings.send_referral_to_contacts")}
+                      </button>
                       <p className="text-xs text-txt-muted mt-2">
                         {t("settings.referral_reward_info")}
                       </p>

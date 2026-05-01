@@ -130,6 +130,7 @@ export function BillingSection() {
         t("settings.plan_f_domains", { value: "5" }),
         t("settings.plan_f_send_limit", { value: t("settings.unlimited") }),
         t("settings.plan_f_templates", { value: "10" }),
+        t("settings.plan_f_tracker_protection"),
         t("settings.plan_f_vacation_reply"),
         t("settings.plan_f_catch_all"),
         t("settings.plan_f_auto_forwarding"),
@@ -146,6 +147,7 @@ export function BillingSection() {
         t("settings.plan_f_send_limit", { value: t("settings.unlimited") }),
         t("settings.plan_f_templates", { value: t("settings.unlimited") }),
         t("settings.plan_f_signatures", { value: t("settings.unlimited") }),
+        t("settings.plan_f_tracker_protection"),
         t("settings.plan_f_carddav_import"),
         t("settings.plan_f_contact_merge"),
         t("settings.plan_f_encrypted_export"),
@@ -165,6 +167,7 @@ export function BillingSection() {
         t("settings.plan_f_send_limit", {
           value: t("settings.unlimited"),
         }),
+        t("settings.plan_f_tracker_protection"),
         t("settings.plan_f_receipt_tracking"),
         t("settings.plan_f_external_accounts"),
         t("settings.plan_f_support_dedicated"),

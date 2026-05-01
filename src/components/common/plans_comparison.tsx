@@ -341,6 +341,13 @@ function get_features(
       supernova: true,
     },
     {
+      name: t("settings.feature_tracker_protection"),
+      free: true,
+      star: true,
+      nova: true,
+      supernova: true,
+    },
+    {
       name: t("settings.feature_remote_image_blocking"),
       free: true,
       star: true,

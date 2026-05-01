@@ -673,6 +673,39 @@ export function use_index_page_state() {
   }, [location.pathname, search_params, open_compose_instance, navigate]);
 
   useEffect(() => {
+    const handle_prefilled_compose = (e: Event) => {
+      const detail = (e as CustomEvent).detail as {
+        to: string[];
+        subject: string;
+        body: string;
+      };
+
+      open_compose_instance({
+        id: "",
+        version: 0,
+        draft_type: "new",
+        to_recipients: detail.to,
+        cc_recipients: [],
+        bcc_recipients: [],
+        subject: detail.subject,
+        message: detail.body,
+        updated_at: new Date().toISOString(),
+      });
+    };
+
+    window.addEventListener(
+      "aster:open-compose-prefilled",
+      handle_prefilled_compose,
+    );
+
+    return () =>
+      window.removeEventListener(
+        "aster:open-compose-prefilled",
+        handle_prefilled_compose,
+      );
+  }, [open_compose_instance]);
+
+  useEffect(() => {
     const handle_open_search_with_query = (e: Event) => {
       const custom_event = e as CustomEvent<{ query?: string }>;
 
