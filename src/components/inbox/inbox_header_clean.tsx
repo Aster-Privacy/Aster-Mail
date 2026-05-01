@@ -42,7 +42,11 @@ import {
   bulk_update_mail_items,
   type MailItem,
 } from "@/services/api/mail";
-import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  show_action_toast,
+  update_progress_toast,
+  hide_action_toast,
+} from "@/components/toast/action_toast";
 import { use_folders, has_protected_folder_label } from "@/hooks/use_folders";
 import { is_mac_platform } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
@@ -188,10 +192,24 @@ export function InboxHeader({
             }
           }
         } else if (action === "mark_all_read") {
+          let cancelled = false;
+
+          show_action_toast({
+            message: t("common.scanning_mailbox"),
+            action_type: "progress",
+            email_ids: [],
+            progress: { completed: 0, total: 1 },
+            on_cancel: () => {
+              cancelled = true;
+            },
+          });
+
           let all_items: MailItem[] = [];
           let cursor: string | undefined;
+          let page_count = 0;
 
           do {
+            if (cancelled) break;
             const response = await list_mail_items({
               item_type: "received",
               cursor,
@@ -200,41 +218,77 @@ export function InboxHeader({
             if (!response.data?.items) break;
             all_items.push(...response.data.items);
             cursor = response.data.next_cursor;
+            page_count++;
+            update_progress_toast(page_count, cursor ? page_count + 1 : page_count, t);
           } while (cursor);
 
-          const unread_ids = all_items
-            .filter(
-              (item) =>
-                !item.metadata?.is_read &&
-                !item.metadata?.is_trashed &&
-                !has_protected_folder_label(item.labels),
-            )
-            .map((item) => item.id);
+          if (!cancelled) {
+            const unread_ids = all_items
+              .filter(
+                (item) =>
+                  !item.metadata?.is_read &&
+                  !item.metadata?.is_trashed &&
+                  !has_protected_folder_label(item.labels),
+              )
+              .map((item) => item.id);
 
-          if (unread_ids.length > 0) {
-            await bulk_update_mail_items({ ids: unread_ids });
-            window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-            show_action_toast({
-              message: t("common.emails_marked_as_read", {
-                count: String(unread_ids.length),
-              }),
-              action_type: "read",
-              email_ids: unread_ids,
-              on_undo: async () => {
-                await bulk_update_mail_items({
-                  ids: unread_ids,
+            if (unread_ids.length > 0) {
+              const batch_size = 200;
+              const total_batches = Math.ceil(unread_ids.length / batch_size);
+
+              for (let i = 0; i < total_batches; i++) {
+                if (cancelled) break;
+                const batch = unread_ids.slice(i * batch_size, (i + 1) * batch_size);
+
+                show_action_toast({
+                  message: t("common.marking_as_read_count", {
+                    completed: String(Math.min((i + 1) * batch_size, unread_ids.length)),
+                    total: String(unread_ids.length),
+                  }),
+                  action_type: "progress",
+                  email_ids: [],
+                  progress: {
+                    completed: (i + 1) * batch_size,
+                    total: unread_ids.length,
+                  },
+                  on_cancel: () => {
+                    cancelled = true;
+                  },
                 });
-                window.dispatchEvent(
-                  new CustomEvent("astermail:mail-soft-refresh"),
-                );
-              },
-            });
+
+                await bulk_update_mail_items({ ids: batch });
+              }
+
+              window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+
+              if (!cancelled) {
+                show_action_toast({
+                  message: t("common.emails_marked_as_read", {
+                    count: String(unread_ids.length),
+                  }),
+                  action_type: "read",
+                  email_ids: unread_ids,
+                  on_undo: async () => {
+                    await bulk_update_mail_items({
+                      ids: unread_ids,
+                    });
+                    window.dispatchEvent(
+                      new CustomEvent("astermail:mail-soft-refresh"),
+                    );
+                  },
+                });
+              } else {
+                hide_action_toast();
+              }
+            } else {
+              show_action_toast({
+                message: t("common.no_unread_emails"),
+                action_type: "read",
+                email_ids: [],
+              });
+            }
           } else {
-            show_action_toast({
-              message: t("common.no_unread_emails"),
-              action_type: "read",
-              email_ids: [],
-            });
+            hide_action_toast();
           }
         } else if (action === "delete_old") {
           let all_items: MailItem[] = [];

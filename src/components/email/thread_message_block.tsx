@@ -668,7 +668,7 @@ export function ThreadMessageBlock({
                 onClick={(e) => e.stopPropagation()}
               >
                 {message.to_recipients && message.to_recipients.length > 0
-                  ? t("mail.to_recipients_prefix", { recipients: message.to_recipients.map((r) => r.name || r.email.split("@")[0]).join(", ") })
+                  ? t("mail.to_recipients_prefix", { recipients: message.to_recipients.map((r) => r.name || r.email?.split("@")[0] || "").join(", ") })
                   : is_own_message
                     ? ""
                     : t("mail.to_recipients_prefix", { recipients: t("common.me") })}{" "}
@@ -1013,15 +1013,15 @@ export function ThreadMessageBlock({
           const inline_recipient_name =
             is_own_msg && first_to_recipient
               ? first_to_recipient.name ||
-                first_to_recipient.email.split("@")[0]
+                first_to_recipient.email?.split("@")[0] || ""
               : message.sender_name;
 
           const original_cc_emails =
             message.to_recipients
               ?.filter(
                 (r) =>
-                  r.email.toLowerCase() !==
-                  inline_recipient_email.toLowerCase(),
+                  r.email?.toLowerCase() !==
+                  inline_recipient_email?.toLowerCase(),
               )
               .map((r) => r.email) ?? [];
 

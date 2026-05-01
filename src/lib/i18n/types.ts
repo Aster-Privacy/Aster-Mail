@@ -302,6 +302,8 @@ export interface CommonTranslations {
   action_cannot_be_undone: string;
   select_placeholder: string;
   processing_count: string;
+  scanning_mailbox: string;
+  marking_as_read_count: string;
   add_to_contacts: string;
   work: string;
   personal: string;
@@ -1705,6 +1707,7 @@ export interface SettingsTranslations {
   plan_f_api_access: string;
   plan_f_support_email: string;
   plan_f_support_priority: string;
+  plan_f_tracker_protection: string;
   plan_f_support_dedicated: string;
   plan_f_ghost_aliases: string;
   plan_f_signatures: string;
@@ -2036,6 +2039,7 @@ export interface SettingsTranslations {
   feature_tor_support: string;
   feature_link_tracking: string;
   feature_remote_image_blocking: string;
+  feature_tracker_protection: string;
   feature_import_gmail: string;
   feature_import_outlook: string;
   feature_export_emails: string;
@@ -2668,6 +2672,11 @@ export interface SettingsTranslations {
   referral_commission_info: string;
   referral_max_credits: string;
   total_earned: string;
+  send_referral_to_contacts: string;
+  referral_email_subject: string;
+  referral_email_body: string;
+  referral_no_contacts: string;
+  referral_loading_contacts: string;
   billing_address: string;
   billing_address_description: string;
   company_name: string;
