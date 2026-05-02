@@ -3850,7 +3850,10 @@ export interface ErrorTranslations {
   failed_parse_pst_file: string;
   no_valid_emails_csv: string;
   failed_parse_csv: string;
+  failed_parse_eml: string;
   row_skipped: string;
+  emails_skipped_invalid: string;
+  unrecognized_format: string;
   unknown_error: string;
   health_check_failed: string;
   unexpected_health_check_error: string;

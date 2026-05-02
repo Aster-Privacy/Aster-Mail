@@ -443,7 +443,6 @@ function plan_bullets(
       t("settings.plan_f_aliases", { value: "5" }),
       t("settings.plan_f_domains", { value: "1" }),
       t("settings.plan_f_templates", { value: "3" }),
-      t("settings.plan_f_imap_smtp"),
     ];
   }
   if (tier_id === "star") {

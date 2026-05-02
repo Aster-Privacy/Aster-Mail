@@ -4250,7 +4250,12 @@ export const en: Translations = {
     no_valid_emails_csv:
       "No valid emails found. CSV should have columns like: from, to, subject, body, date",
     failed_parse_csv: "Failed to parse CSV: {{ error }}",
+    failed_parse_eml: "Failed to parse EML: {{ error }}",
     row_skipped: "Row {{ number }} skipped: insufficient data",
+    emails_skipped_invalid:
+      "Skipped {{ count }} email(s) with no sender or no content",
+    unrecognized_format:
+      "Could not detect file format for {{ name }}. Supported formats: MBOX, EML, CSV, PST.",
     unknown_error: "Unknown error",
     health_check_failed: "Health check failed",
     unexpected_health_check_error: "Unexpected health check error",
