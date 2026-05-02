@@ -73,13 +73,21 @@ export interface ImportEnvelope {
   from: string;
   to: string[];
   cc: string[];
+  bcc: string[];
   subject: string;
+  sent_at: string;
   date: string;
+  body_html: string | null;
+  body_text: string | null;
   html_body: string | null;
   text_body: string | null;
   attachment_count: number;
   source: string;
   imported_at: string;
+  reply_to?: string;
+  list_unsubscribe?: string;
+  list_unsubscribe_post?: string;
+  raw_headers?: { name: string; value: string }[];
 }
 
 export interface EncryptedImportEmail {
@@ -88,6 +96,7 @@ export interface EncryptedImportEmail {
   envelope_nonce: string;
   received_at: string;
   thread_token?: string;
+  item_type?: string;
 }
 
 export async function encrypt_imported_email(
@@ -96,18 +105,50 @@ export async function encrypt_imported_email(
   source: string,
   message_id_hash: string,
 ): Promise<EncryptedImportEmail> {
+  const date_iso = email.date.toISOString();
+
+  const reply_to = email.raw_headers["reply-to"];
+  const list_unsub = email.raw_headers["list-unsubscribe"];
+  const list_unsub_post = email.raw_headers["list-unsubscribe-post"];
+
+  const preserved_headers: { name: string; value: string }[] = [];
+
+  for (const [key, value] of Object.entries(email.raw_headers)) {
+    const lower = key.toLowerCase();
+
+    if (
+      lower === "reply-to" ||
+      lower === "list-unsubscribe" ||
+      lower === "list-unsubscribe-post" ||
+      lower === "in-reply-to" ||
+      lower === "references" ||
+      lower === "x-mailer" ||
+      lower === "message-id"
+    ) {
+      preserved_headers.push({ name: key, value });
+    }
+  }
+
   const envelope: ImportEnvelope = {
     message_id: email.message_id,
     from: email.from,
     to: email.to,
     cc: email.cc,
+    bcc: email.bcc,
     subject: email.subject,
-    date: email.date.toISOString(),
+    sent_at: date_iso,
+    date: date_iso,
+    body_html: email.html_body,
+    body_text: email.text_body,
     html_body: email.html_body,
     text_body: email.text_body,
     attachment_count: email.attachments.length,
     source,
     imported_at: new Date().toISOString(),
+    reply_to: reply_to || undefined,
+    list_unsubscribe: list_unsub || undefined,
+    list_unsubscribe_post: list_unsub_post || undefined,
+    raw_headers: preserved_headers.length > 0 ? preserved_headers : undefined,
   };
 
   const key = await derive_import_encryption_key(vault);

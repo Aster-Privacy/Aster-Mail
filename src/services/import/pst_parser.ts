@@ -44,6 +44,7 @@ function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
 
   const to: string[] = [];
   const cc: string[] = [];
+  const bcc: string[] = [];
 
   if (msg.displayTo) {
     to.push(
@@ -96,6 +97,7 @@ function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
     from,
     to,
     cc,
+    bcc,
     subject,
     date: date instanceof Date ? date : new Date(date),
     html_body,

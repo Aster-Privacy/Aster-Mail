@@ -51,6 +51,11 @@ import { emit_mail_changed } from "@/hooks/mail_events";
 import { invalidate_mail_cache } from "@/hooks/use_email_list";
 import { thread_imported_emails } from "@/services/import/repair_threads";
 import { use_i18n } from "@/lib/i18n/context";
+import { extract_email_address } from "@/services/import/mime_utils";
+import {
+  list_aliases,
+  decrypt_aliases,
+} from "@/services/api/aliases";
 
 interface ImportModalProps {
   is_open: boolean;
@@ -197,9 +202,20 @@ async function build_thread_map(
   return thread_tokens;
 }
 
+function detect_item_type(
+  email: ParsedEmail,
+  user_addresses: Set<string>,
+): "sent" | "received" {
+  const from_addr = extract_email_address(email.from).toLowerCase();
+
+  if (user_addresses.has(from_addr)) return "sent";
+
+  return "received";
+}
+
 export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const { t } = use_i18n();
-  const { vault } = use_auth();
+  const { vault, user } = use_auth();
   const reduce_motion = use_should_reduce_motion();
   const [step, set_step] = useState<ImportStep>("upload");
   const [is_processing, set_is_processing] = useState(false);
@@ -209,7 +225,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     skipped: number;
     failed: number;
     quota_exceeded?: boolean;
+    warnings?: string[];
   } | null>(null);
+  const [parse_warnings, set_parse_warnings] = useState<string[]>([]);
   const [error, set_error] = useState<string | null>(null);
   const [is_dragging, set_is_dragging] = useState(false);
   const file_input_ref = useRef<HTMLInputElement>(null);
@@ -222,6 +240,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     set_import_result(null);
     set_error(null);
     set_is_dragging(false);
+    set_parse_warnings([]);
     cancel_ref.current = false;
   }, []);
 
@@ -246,6 +265,38 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
       set_step("progress");
       set_is_processing(true);
       set_error(null);
+
+      const user_addresses = new Set<string>();
+
+      if (user?.email) {
+        user_addresses.add(user.email.toLowerCase());
+        const domain = user.email.split("@")[1];
+
+        if (domain) {
+          const local = user.email.split("@")[0];
+
+          if (domain === "astermail.org" || domain === "aster.cx") {
+            user_addresses.add(`${local}@astermail.org`);
+            user_addresses.add(`${local}@aster.cx`);
+          }
+        }
+      }
+
+      try {
+        const alias_response = await list_aliases({ limit: 100 });
+
+        if (alias_response.data?.aliases) {
+          const decrypted = await decrypt_aliases(alias_response.data.aliases);
+
+          for (const alias of decrypted) {
+            if (alias.is_enabled && alias.full_address) {
+              user_addresses.add(alias.full_address.toLowerCase());
+            }
+          }
+        }
+      } catch {
+        // proceed with primary address only
+      }
 
       let job_id: string | null = null;
 
@@ -360,6 +411,12 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 encrypted.thread_token = token;
               }
 
+              const type = detect_item_type(email, user_addresses);
+
+              if (type === "sent") {
+                encrypted.item_type = "sent";
+              }
+
               encrypted_batch.push(encrypted);
             } catch (error) {
               if (import.meta.env.DEV) console.error(error);
@@ -446,7 +503,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         set_is_processing(false);
       }
     },
-    [vault],
+    [vault, user],
   );
 
   const handle_file_select = useCallback(
@@ -481,7 +538,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           throw new Error(error_message);
         }
 
-        if (all_warnings.length > 0 && all_warnings.length <= 5) {
+        if (all_warnings.length > 0) {
+          set_parse_warnings(all_warnings.slice(0, 10));
         }
 
         await process_emails(all_emails, provider);
@@ -653,6 +711,15 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                   <p className="text-xs text-amber-500 mt-2">
                     {t("settings.storage_quota_reached")}
                   </p>
+                )}
+                {parse_warnings.length > 0 && (
+                  <div className="mt-3 text-left max-h-24 overflow-y-auto rounded-md bg-bg-tertiary p-2">
+                    {parse_warnings.map((w, i) => (
+                      <p key={i} className="text-xs text-txt-muted truncate">
+                        {w}
+                      </p>
+                    ))}
+                  </div>
                 )}
               </div>
             )}

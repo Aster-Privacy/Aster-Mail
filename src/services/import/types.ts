@@ -30,6 +30,7 @@ export interface ParsedEmail {
   from: string;
   to: string[];
   cc: string[];
+  bcc: string[];
   subject: string;
   date: Date;
   html_body: string | null;

@@ -21,6 +21,7 @@
 import type { ParsedEmail, ParseResult } from "./types";
 
 import { MAX_SINGLE_EMAIL_SIZE } from "./types";
+import { en } from "@/lib/i18n/translations/en";
 import {
   split_header_body,
   parse_headers,
@@ -41,6 +42,7 @@ export function parse_eml(raw: string): ParsedEmail {
   const from = headers["from"] || "";
   const to = parse_address_list(headers["to"] || "");
   const cc = parse_address_list(headers["cc"] || "");
+  const bcc = parse_address_list(headers["bcc"] || "");
   const subject = headers["subject"] || "(No Subject)";
 
   let date: Date;
@@ -61,6 +63,9 @@ export function parse_eml(raw: string): ParsedEmail {
   let text_body: string | null = null;
   let attachments: ParsedEmail["attachments"] = [];
 
+  const charset_match = content_type.match(/charset=["']?([^"';\s]+)["']?/i);
+  const charset = charset_match ? charset_match[1] : undefined;
+
   if (content_type.includes("multipart/")) {
     const boundary = extract_boundary(content_type);
 
@@ -72,9 +77,9 @@ export function parse_eml(raw: string): ParsedEmail {
       attachments = parsed.attachments;
     }
   } else if (content_type.includes("text/html")) {
-    html_body = decode_body(body, encoding);
+    html_body = decode_body(body, encoding, charset);
   } else {
-    text_body = decode_body(body, encoding);
+    text_body = decode_body(body, encoding, charset);
   }
 
   return {
@@ -82,6 +87,7 @@ export function parse_eml(raw: string): ParsedEmail {
     from,
     to,
     cc,
+    bcc,
     subject,
     date,
     html_body,
@@ -96,14 +102,15 @@ export async function parse_eml_file(file: File): Promise<ParseResult> {
     return {
       emails: [],
       errors: [
-        `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB exceeds 50MB limit`,
+        en.errors.file_too_large.replace("{{ size }}", (file.size / 1024 / 1024).toFixed(1)).replace("{{ limit }}", "50"),
       ],
       warnings: [],
     };
   }
 
   try {
-    const text = await file.text();
+    const buffer = await file.arrayBuffer();
+    const text = new TextDecoder("iso-8859-1").decode(buffer);
     const email = parse_eml(text);
 
     return { emails: [email], errors: [], warnings: [] };
@@ -111,7 +118,7 @@ export async function parse_eml_file(file: File): Promise<ParseResult> {
     return {
       emails: [],
       errors: [
-        `Failed to parse EML: ${err instanceof Error ? err.message : "Unknown error"}`,
+        en.errors.failed_parse_eml.replace("{{ error }}", err instanceof Error ? err.message : en.errors.unknown_error),
       ],
       warnings: [],
     };

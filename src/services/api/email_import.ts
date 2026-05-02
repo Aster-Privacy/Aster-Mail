@@ -81,6 +81,7 @@ export interface ImportedEmailData {
   encrypted_envelope: string;
   envelope_nonce: string;
   folder_token?: string;
+  item_type?: string;
   received_at?: string;
   thread_token?: string;
 }

@@ -39,6 +39,7 @@ import { parse_eml_file } from "./eml_parser";
 import { parse_csv_file } from "./csv_parser";
 import { parse_pst_file } from "./pst_parser";
 import { extract_email_address } from "./mime_utils";
+import { en } from "@/lib/i18n/translations/en";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -160,7 +161,7 @@ function filter_valid_emails(result: ParseResult): ParseResult {
   const warnings = [...result.warnings];
 
   if (skipped > 0) {
-    warnings.push(`Skipped ${skipped} email(s) with no sender or no content.`);
+    warnings.push(en.errors.emails_skipped_invalid.replace("{{ count }}", String(skipped)));
   }
 
   return { emails: valid, errors: result.errors, warnings };
@@ -176,7 +177,7 @@ export async function parse_import_file(
     return {
       emails: [],
       errors: [
-        `"${file.name}" is not a supported email file. Supported formats: MBOX, EML, CSV, PST.`,
+        en.errors.unrecognized_format.replace("{{ name }}", file.name),
       ],
       warnings: [],
     };
@@ -203,7 +204,7 @@ export async function parse_import_file(
       return {
         emails: [],
         errors: [
-          `Could not detect file format for: ${file.name}. Supported formats: MBOX, EML, CSV, PST. Try renaming your file with the correct extension.`,
+          en.errors.unrecognized_format.replace("{{ name }}", file.name),
         ],
         warnings: [],
       };

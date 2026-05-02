@@ -108,6 +108,7 @@ function csv_row_to_email(row: CsvRow, index: number): ParsedEmail | null {
     find_column(row, "date", "sent", "received", "timestamp") ||
     find_column(row, "sent_at", "received_at", "created_at");
   const cc_raw = find_column(row, "cc", "carbon_copy");
+  const bcc_raw = find_column(row, "bcc", "blind_carbon_copy");
 
   if (!from && !to_raw && !body) {
     return null;
@@ -135,6 +136,12 @@ function csv_row_to_email(row: CsvRow, index: number): ParsedEmail | null {
         .map((e) => e.trim())
         .filter(Boolean)
     : [];
+  const bcc = bcc_raw
+    ? bcc_raw
+        .split(/[,;]/)
+        .map((e) => e.trim())
+        .filter(Boolean)
+    : [];
 
   const message_id = `csv-import-${index}-${Date.now().toString(36)}-${secure_hex(4)}@astermail.local`;
 
@@ -145,6 +152,7 @@ function csv_row_to_email(row: CsvRow, index: number): ParsedEmail | null {
     from: from || "unknown@unknown.com",
     to,
     cc,
+    bcc,
     subject,
     date,
     html_body: is_html ? body : null,
@@ -169,7 +177,8 @@ export async function parse_csv_file(
   }
 
   try {
-    const content = await file.text();
+    const buffer = await file.arrayBuffer();
+    const content = new TextDecoder("iso-8859-1").decode(buffer);
     const rows = parse_csv(content);
 
     if (rows.length === 0) {

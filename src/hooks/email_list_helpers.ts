@@ -295,7 +295,13 @@ export function mail_to_email(
 
   const recipient_addresses = envelope.to?.map((r) => r.email).filter(Boolean);
 
-  const raw_ts = envelope.sent_at || item.created_at;
+  const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
+  const resolved_html =
+    envelope.body_html ?? envelope.html_body ?? "";
+  const raw_ts =
+    envelope.sent_at ||
+    (envelope as unknown as Record<string, string>).date ||
+    item.created_at;
 
   const sender_profile = get_cached_profile(envelope.from.email);
 
@@ -305,10 +311,8 @@ export function mail_to_email(
     sender_name: envelope.from.name || get_email_username(envelope.from.email),
     sender_email: envelope.from.email,
     subject: envelope.subject || "",
-    preview: strip_html_tags(
-      envelope.body_text || envelope.body_html || "",
-    ).substring(0, 100),
-    body_html: envelope.body_html || envelope.body_text || "",
+    preview: strip_html_tags(resolved_text || resolved_html).substring(0, 100),
+    body_html: resolved_html || resolved_text,
     timestamp: format_timestamp(new Date(raw_ts), format_options),
     raw_timestamp: raw_ts,
     is_pinned: effective_metadata.is_pinned,

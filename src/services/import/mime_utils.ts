@@ -28,6 +28,88 @@ export function decode_quoted_printable(input: string): string {
     );
 }
 
+function decode_quoted_printable_bytes(input: string): Uint8Array {
+  const stripped = input.replace(/=\r?\n/g, "");
+  const bytes: number[] = [];
+
+  for (let i = 0; i < stripped.length; i++) {
+    if (stripped[i] === "=" && i + 2 < stripped.length) {
+      const hex = stripped.substring(i + 1, i + 3);
+
+      if (/^[0-9A-Fa-f]{2}$/.test(hex)) {
+        bytes.push(parseInt(hex, 16));
+        i += 2;
+        continue;
+      }
+    }
+    bytes.push(stripped.charCodeAt(i));
+  }
+
+  return new Uint8Array(bytes);
+}
+
+function decode_charset(bytes: Uint8Array, charset: string): string {
+  const normalized = charset.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  try {
+    const label = CHARSET_LABELS[normalized] || charset;
+
+    return new TextDecoder(label).decode(bytes);
+  } catch {
+    try {
+      return new TextDecoder("utf-8").decode(bytes);
+    } catch {
+      return Array.from(bytes)
+        .map((b) => String.fromCharCode(b))
+        .join("");
+    }
+  }
+}
+
+const CHARSET_LABELS: Record<string, string> = {
+  utf8: "utf-8",
+  ascii: "utf-8",
+  usascii: "utf-8",
+  latin1: "iso-8859-1",
+  iso88591: "iso-8859-1",
+  iso88592: "iso-8859-2",
+  iso88593: "iso-8859-3",
+  iso88594: "iso-8859-4",
+  iso88595: "iso-8859-5",
+  iso88596: "iso-8859-6",
+  iso88597: "iso-8859-7",
+  iso88598: "iso-8859-8",
+  iso88599: "iso-8859-9",
+  iso885910: "iso-8859-10",
+  iso885913: "iso-8859-13",
+  iso885914: "iso-8859-14",
+  iso885915: "iso-8859-15",
+  iso885916: "iso-8859-16",
+  windows1250: "windows-1250",
+  windows1251: "windows-1251",
+  windows1252: "windows-1252",
+  windows1253: "windows-1253",
+  windows1254: "windows-1254",
+  windows1255: "windows-1255",
+  windows1256: "windows-1256",
+  windows1257: "windows-1257",
+  windows1258: "windows-1258",
+  cp1252: "windows-1252",
+  cp1250: "windows-1250",
+  cp1251: "windows-1251",
+  koi8r: "koi8-r",
+  koi8u: "koi8-u",
+  big5: "big5",
+  gbk: "gbk",
+  gb2312: "gb2312",
+  gb18030: "gb18030",
+  eucjp: "euc-jp",
+  euckr: "euc-kr",
+  shiftjis: "shift_jis",
+  sjis: "shift_jis",
+  iso2022jp: "iso-2022-jp",
+};
+
 export function decode_base64_safe(input: string): string {
   try {
     const cleaned = input.replace(/[\r\n\s]/g, "");
@@ -50,16 +132,15 @@ function decode_mime_word(word: string): string {
   try {
     if (encoding.toLowerCase() === "b") {
       const decoded = decode_base64_safe(content);
+      const bytes = new Uint8Array([...decoded].map((c) => c.charCodeAt(0)));
 
-      if (charset.toLowerCase().includes("utf-8")) {
-        return new TextDecoder("utf-8").decode(
-          new Uint8Array([...decoded].map((c) => c.charCodeAt(0))),
-        );
-      }
-
-      return decoded;
+      return decode_charset(bytes, charset);
     } else if (encoding.toLowerCase() === "q") {
-      return decode_quoted_printable(content.replace(/_/g, " "));
+      const bytes = decode_quoted_printable_bytes(
+        content.replace(/_/g, " "),
+      );
+
+      return decode_charset(bytes, charset);
     }
   } catch {
     return word;
@@ -71,7 +152,9 @@ function decode_mime_word(word: string): string {
 export function decode_header(value: string): string {
   if (!value) return "";
 
-  return value.replace(/=\?[^?]+\?[BbQq]\?[^?]*\?=/g, decode_mime_word);
+  const collapsed = value.replace(/(\?=)\s+(=\?)/g, "$1$2");
+
+  return collapsed.replace(/=\?[^?]+\?[BbQq]\?[^?]*\?=/g, decode_mime_word);
 }
 
 export function parse_address_list(value: string): string[] {
@@ -95,9 +178,13 @@ export function extract_email_address(value: string): string {
 }
 
 export function extract_boundary(content_type: string): string | null {
-  const match = content_type.match(/boundary=["']?([^"';\s]+)["']?/i);
+  const quoted = content_type.match(/boundary=["']([^"']+)["']/i);
 
-  return match ? match[1] : null;
+  if (quoted) return quoted[1];
+
+  const unquoted = content_type.match(/boundary=([^;\s]+)/i);
+
+  return unquoted ? unquoted[1] : null;
 }
 
 export function split_header_body(raw: string): {
@@ -152,20 +239,55 @@ export function parse_headers(headers_raw: string): Record<string, string> {
   return headers;
 }
 
+function extract_charset(content_type: string): string {
+  const match = content_type.match(/charset=["']?([^"';\s]+)["']?/i);
+
+  return match ? match[1] : "utf-8";
+}
+
 export function decode_body(
   body: string,
   encoding: string | undefined,
+  charset?: string,
 ): string {
-  if (!encoding) return body;
-  const enc = encoding.toLowerCase();
+  if (!encoding && !charset) return body;
 
-  if (enc === "quoted-printable") {
-    return decode_quoted_printable(body);
-  } else if (enc === "base64") {
-    return decode_base64_safe(body);
+  let result = body;
+  const enc = encoding?.toLowerCase();
+
+  if (enc === "base64") {
+    const decoded = decode_base64_safe(body);
+
+    if (charset) {
+      const bytes = new Uint8Array(
+        [...decoded].map((c) => c.charCodeAt(0)),
+      );
+
+      return decode_charset(bytes, charset);
+    }
+
+    return decoded;
   }
 
-  return body;
+  if (enc === "quoted-printable") {
+    if (charset) {
+      const bytes = decode_quoted_printable_bytes(body);
+
+      return decode_charset(bytes, charset);
+    }
+
+    return decode_quoted_printable(body);
+  }
+
+  if (charset && charset.toLowerCase() !== "utf-8" && charset.toLowerCase() !== "us-ascii") {
+    const bytes = new Uint8Array(
+      [...result].map((c) => c.charCodeAt(0)),
+    );
+
+    return decode_charset(bytes, charset);
+  }
+
+  return result;
 }
 
 export function parse_multipart(
@@ -230,9 +352,9 @@ export function parse_multipart(
         size: content.length,
       });
     } else if (content_type.includes("text/html") && !html) {
-      html = decode_body(part_body, encoding);
+      html = decode_body(part_body, encoding, extract_charset(content_type));
     } else if (content_type.includes("text/plain") && !text) {
-      text = decode_body(part_body, encoding);
+      text = decode_body(part_body, encoding, extract_charset(content_type));
     } else if (content_type.includes("multipart/")) {
       const nested_boundary = extract_boundary(content_type);
 
@@ -243,6 +365,41 @@ export function parse_multipart(
         if (!text && nested.text) text = nested.text;
         attachments.push(...nested.attachments);
       }
+    } else if (
+      !content_type.includes("text/") &&
+      part_body.trim().length > 0
+    ) {
+      const filename_match =
+        disposition.match(/filename=["']?([^"';\n]+)["']?/i) ||
+        content_type.match(/name=["']?([^"';\n]+)["']?/i);
+
+      const filename = filename_match
+        ? decode_header(filename_match[1].trim())
+        : "attachment";
+
+      let content: Uint8Array;
+
+      if (encoding?.toLowerCase() === "base64") {
+        try {
+          const binary = atob(part_body.replace(/[\r\n\s]/g, ""));
+
+          content = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            content[i] = binary.charCodeAt(i);
+          }
+        } catch {
+          content = new TextEncoder().encode(part_body);
+        }
+      } else {
+        content = new TextEncoder().encode(part_body);
+      }
+
+      attachments.push({
+        filename,
+        content_type: content_type.split(";")[0].trim(),
+        content,
+        size: content.length,
+      });
     }
   }
 

@@ -38,16 +38,19 @@ export async function parse_mbox_file(
     };
   }
 
-  const text = await file.text();
+  const buffer = await file.arrayBuffer();
+  const text = new TextDecoder("iso-8859-1").decode(buffer);
   const emails: ParsedEmail[] = [];
   const errors: string[] = [];
   const warnings: string[] = [];
 
   const message_starts: number[] = [];
+  const separator_starts: number[] = [];
   const from_pattern = /^From [^\r\n]+\r?\n/gm;
   let match;
 
   while ((match = from_pattern.exec(text)) !== null) {
+    separator_starts.push(match.index);
     message_starts.push(match.index + match[0].length);
   }
 
@@ -55,6 +58,7 @@ export async function parse_mbox_file(
     const alt_pattern = /^From:/im;
 
     if (alt_pattern.test(text)) {
+      separator_starts.push(0);
       message_starts.push(0);
     }
   }
@@ -71,8 +75,9 @@ export async function parse_mbox_file(
 
   for (let i = 0; i < message_starts.length; i++) {
     const start = message_starts[i];
-    const end = message_starts[i + 1] ?? text.length;
-    const raw_email = text.substring(start, end).trim();
+    const end = separator_starts[i + 1] ?? text.length;
+    const raw_segment = text.substring(start, end).trim();
+    const raw_email = raw_segment.replace(/^>From /gm, "From ");
 
     if (raw_email.length > MAX_SINGLE_EMAIL_SIZE) {
       warnings.push(en.errors.email_skipped_size.replace("{{ number }}", String(i + 1)));
