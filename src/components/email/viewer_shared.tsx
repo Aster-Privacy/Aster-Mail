@@ -644,6 +644,20 @@ export function ViewerEmailHeader({
           <h1 className={`${subject_class} text-txt-primary`}>
             {email.subject}
           </h1>
+          {mail_item?.labels
+            ?.filter((l) => l.name)
+            .map((label) => (
+              <EmailTag
+                key={label.token}
+                className="flex-shrink-0"
+                custom_color={label.color}
+                icon={(label.icon as TagIconName) || "folder"}
+                label={label.name}
+                variant={
+                  label.color ? hex_to_variant(label.color) : "neutral"
+                }
+              />
+            ))}
           {email.expires_at && (
             <ExpirationCountdown expires_at={email.expires_at} size="md" />
           )}
@@ -687,20 +701,6 @@ export function ViewerEmailHeader({
                   variant="blue"
                 />
               )}
-              {mail_item?.labels
-                ?.filter((l) => l.name)
-                .map((label) => (
-                  <EmailTag
-                    key={label.token}
-                    className="flex-shrink-0"
-                    custom_color={label.color}
-                    icon={(label.icon as TagIconName) || "folder"}
-                    label={label.name}
-                    variant={
-                      label.color ? hex_to_variant(label.color) : "neutral"
-                    }
-                  />
-                ))}
               {snoozed_until && (
                 <SnoozeBadge
                   className="flex-shrink-0"

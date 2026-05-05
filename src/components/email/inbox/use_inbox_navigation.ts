@@ -26,6 +26,8 @@ import type { DraftClickData, ScheduledClickData } from "./inbox_types";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useCallback, useEffect } from "react";
 
+import { set_recipient_hint } from "@/stores/recipient_hint_store";
+
 interface ScheduledEmail {
   id: string;
   to_recipients: string[];
@@ -194,9 +196,12 @@ export function use_inbox_navigation({
         return;
       }
       if (on_email_click) {
+        const hinted = emails.find((e) => e.id === id);
+        set_recipient_hint(id, hinted?.recipient_addresses || []);
         on_email_click(id);
       } else {
         const clicked = emails.find((e) => e.id === id);
+        set_recipient_hint(id, clicked?.recipient_addresses || []);
 
         sessionStorage.setItem(
           "astermail_email_nav",

@@ -75,6 +75,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown_menu";
 import { haptic_impact } from "@/native/haptic_feedback";
+import { set_recipient_hint } from "@/stores/recipient_hint_store";
 
 type Mailbox =
   | "inbox"
@@ -319,6 +320,7 @@ function MobileInbox({
       const clicked = active_emails.find((e) => e.id === id);
       const visible_ids = active_emails.map((e) => e.id);
 
+      set_recipient_hint(id, clicked?.recipient_addresses || []);
       sessionStorage.setItem(
         "astermail_email_nav",
         JSON.stringify({
@@ -410,10 +412,15 @@ function MobileInbox({
 
   const handle_delete = useCallback(
     async (email: InboxEmail) => {
-      await actions.delete_email(email);
-      remove_email(email.id);
+      if (is_trash_view) {
+        remove_email(email.id);
+        await actions.permanently_delete(email);
+      } else {
+        await actions.delete_email(email);
+        remove_email(email.id);
+      }
     },
-    [actions, remove_email],
+    [actions, remove_email, is_trash_view],
   );
 
   const handle_toggle_star = useCallback(

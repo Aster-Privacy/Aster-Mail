@@ -440,19 +440,6 @@ export function ThreadMessageBlock({
               <StarIcon className="h-[18px] w-[18px] text-txt-muted" />
             )}
           </button>
-          {on_reply && !is_system && (
-            <button
-              className="rounded-full p-1.5 hover:bg-surf-hover"
-              title={t("mail.reply")}
-              onClick={(e) => {
-                e.stopPropagation();
-                on_toggle();
-                on_reply(message);
-              }}
-            >
-              <ArrowUturnLeftIcon className="h-[18px] w-[18px] text-txt-muted" />
-            </button>
-          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -464,30 +451,6 @@ export function ThreadMessageBlock({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
-              {on_reply && !is_system && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_toggle();
-                    on_reply(message);
-                  }}
-                >
-                  <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />
-                  {t("mail.reply")}
-                </DropdownMenuItem>
-              )}
-              {on_reply_all && !is_system && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_toggle();
-                    on_reply_all(message);
-                  }}
-                >
-                  <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />
-                  {t("mail.reply_all")}
-                </DropdownMenuItem>
-              )}
               {on_forward && (
                 <DropdownMenuItem
                   onClick={(e) => {

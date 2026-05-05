@@ -43,6 +43,7 @@ import {
   SunIcon,
   InformationCircleIcon,
   ArrowDownTrayIcon,
+  MapPinIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import {
@@ -77,6 +78,7 @@ export function MobileActionMenuSheet({
   on_reply_all,
   on_forward,
   on_toggle_star,
+  on_toggle_pin,
   on_toggle_read,
   on_snooze,
   on_archive,
@@ -94,6 +96,7 @@ export function MobileActionMenuSheet({
   on_report_phishing,
   on_customize_toolbar,
   is_starred,
+  is_pinned,
   is_all_dark,
   dark_mode_ids,
   preferences_force_dark: preferences_force_dark_mode,
@@ -107,6 +110,7 @@ export function MobileActionMenuSheet({
   on_reply_all: () => void;
   on_forward: () => void;
   on_toggle_star: () => void;
+  on_toggle_pin: () => void;
   on_toggle_read: () => void;
   on_snooze: () => void;
   on_archive: () => void;
@@ -124,6 +128,7 @@ export function MobileActionMenuSheet({
   on_report_phishing: () => void;
   on_customize_toolbar: () => void;
   is_starred: boolean;
+  is_pinned: boolean;
   is_all_dark: boolean;
   dark_mode_ids: Set<string>;
   preferences_force_dark: boolean;
@@ -203,6 +208,16 @@ export function MobileActionMenuSheet({
             )}
             <span className="text-[14px] text-[var(--text-primary)]">
               {is_starred ? t("mail.unstar") : t("mail.star")}
+            </span>
+          </button>
+          <button
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            type="button"
+            onClick={on_toggle_pin}
+          >
+            <MapPinIcon className={`h-5 w-5 ${is_pinned ? "text-[var(--accent-color,#3b82f6)]" : "text-[var(--text-muted)]"}`} />
+            <span className="text-[14px] text-[var(--text-primary)]">
+              {is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}
             </span>
           </button>
           <button

@@ -285,21 +285,33 @@ export function use_aliases() {
 
   const handle_alias_toggle = async (id: string, enabled: boolean) => {
     set_toggling_id(id);
+    set_aliases((prev) => {
+      const updated = prev.map((a) =>
+        a.id === id ? { ...a, is_enabled: enabled } : a,
+      );
+      aliases_cache.aliases = updated;
+      return updated;
+    });
     try {
       const response = await update_alias(id, { is_enabled: enabled });
 
-      if (!response.error) {
+      if (response.error) {
         set_aliases((prev) => {
-          const updated = prev.map((a) =>
-            a.id === id ? { ...a, is_enabled: enabled } : a,
+          const reverted = prev.map((a) =>
+            a.id === id ? { ...a, is_enabled: !enabled } : a,
           );
-
-          aliases_cache.aliases = updated;
-
-          return updated;
+          aliases_cache.aliases = reverted;
+          return reverted;
         });
       }
     } catch (error) {
+      set_aliases((prev) => {
+        const reverted = prev.map((a) =>
+          a.id === id ? { ...a, is_enabled: !enabled } : a,
+        );
+        aliases_cache.aliases = reverted;
+        return reverted;
+      });
       if (import.meta.env.DEV) console.error(error);
     } finally {
       set_toggling_id(null);

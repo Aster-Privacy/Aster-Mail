@@ -108,6 +108,9 @@ export function SandboxedEmailRenderer({
   email_id,
 }: SandboxedEmailRendererProps) {
   const { t } = use_i18n();
+  const [zoomed_image, set_zoomed_image] = useState<string | null>(null);
+  const zoom_fn_ref = useRef<((src: string | null) => void) | null>(null);
+  zoom_fn_ref.current = set_zoomed_image;
   const cached_height = email_id
     ? iframe_height_cache.get(email_id)
     : undefined;
@@ -205,6 +208,7 @@ ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
 ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important; }</style>` : ""}
 <style>${quote_toggle_css}</style>
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
+<style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; }</style>
 </head>
 <body style="${is_html_email ? html_body_style : plain_body_style}">${sanitized_html}</body>
 </html>`;
@@ -838,7 +842,24 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
     );
 
     iframe.contentDocument.body.addEventListener("click", (e) => {
-      const link = (e.target as HTMLElement).closest("a");
+      const target = e.target as HTMLElement;
+
+      if (target.tagName === "IMG" && !target.closest("a")) {
+        if (target.getAttribute("data-blocked") !== "true") {
+          const img_el = target as HTMLImageElement;
+
+          if (img_el.naturalWidth >= 16 && img_el.naturalHeight >= 16) {
+            e.preventDefault();
+            const src = img_el.currentSrc || img_el.src;
+
+            if (src) zoom_fn_ref.current?.(src);
+
+            return;
+          }
+        }
+      }
+
+      const link = target.closest("a");
 
       if (!link) return;
       const href = link.getAttribute("href") || "";
@@ -894,6 +915,17 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
     };
   }, []);
 
+  useEffect(() => {
+    if (!zoomed_image) return;
+    const handle_key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") set_zoomed_image(null);
+    };
+
+    window.addEventListener("keydown", handle_key);
+
+    return () => window.removeEventListener("keydown", handle_key);
+  }, [zoomed_image]);
+
   const effective_bg = is_html_email ? html_bg : plain_bg;
 
   const preview_ref = useCallback(
@@ -943,6 +975,62 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
   const show_skeleton = !height_ready && !iframe_loaded;
 
   return (
+    <>
+    {zoomed_image && (
+      <div
+        aria-label={t("common.close")}
+        role="button"
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 9999,
+          backgroundColor: "rgba(0,0,0,0.88)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "zoom-out",
+        }}
+        tabIndex={0}
+        onClick={() => set_zoomed_image(null)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") set_zoomed_image(null); }}
+      >
+        <button
+          aria-label={t("common.close")}
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            background: "rgba(255,255,255,0.12)",
+            border: "none",
+            borderRadius: "50%",
+            width: 36,
+            height: 36,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            color: "#fff",
+            fontSize: 20,
+            lineHeight: 1,
+          }}
+          onClick={() => set_zoomed_image(null)}
+        >
+          &#x2715;
+        </button>
+        <img
+          alt=""
+          src={zoomed_image}
+          style={{
+            maxWidth: "90vw",
+            maxHeight: "90vh",
+            objectFit: "contain",
+            borderRadius: 4,
+            cursor: "default",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+    )}
     <div
       className={`email-frame-container ${class_name || ""}`}
       style={{
@@ -1045,5 +1133,6 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         onLoad={handle_load_with_swap}
       />
     </div>
+    </>
   );
 }

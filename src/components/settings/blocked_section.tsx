@@ -380,15 +380,15 @@ export function BlockedSection() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  {sender.name && (
-                    <span className="text-[13px] font-medium truncate text-txt-primary">
-                      {sender.name}
-                    </span>
-                  )}
+                  <span className="text-[13px] font-medium truncate text-txt-primary">
+                    {sender.email}
+                  </span>
                 </div>
-                <p className="text-[12px] truncate text-txt-muted">
-                  {sender.email}
-                </p>
+                {sender.name && (
+                  <p className="text-[12px] truncate text-txt-muted">
+                    {sender.name}
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center gap-4 flex-shrink-0">

@@ -71,6 +71,7 @@ import {
 } from "@/services/thread_service";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { await_preloaded_email } from "@/components/email/hooks/preload_cache";
+import { get_recipient_hint } from "@/stores/recipient_hint_store";
 import {
   type DecryptedEmail,
   type EmailPopupViewerProps,
@@ -299,7 +300,9 @@ export function use_popup_viewer({
         body: pe.html_content || pe.body,
         html_content: pe.html_content,
         unsubscribe_info: pe.unsubscribe_info,
-        to: pe.to?.map((r) => ({ name: r.name || "", email: r.email })) || [],
+        to: pe.to?.length
+          ? pe.to.map((r) => ({ name: r.name || "", email: r.email }))
+          : get_recipient_hint(email_id).map((e) => ({ name: "", email: e })),
         cc:
           pe.cc?.map((r) => ({ name: r.name || "", email: r.email || "" })) ||
           [],
@@ -397,7 +400,9 @@ export function use_popup_viewer({
           body: safe_html || body_text,
           html_content: safe_html,
           unsubscribe_info: unsubscribe,
-          to: envelope.to || [],
+          to: envelope.to?.length
+            ? envelope.to
+            : get_recipient_hint(email_id).map((e) => ({ name: "", email: e })),
           cc: envelope.cc || [],
           bcc: envelope.bcc || [],
           expires_at: response.data.expires_at,

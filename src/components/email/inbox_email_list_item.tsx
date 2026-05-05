@@ -568,7 +568,7 @@ export const InboxEmailListItem = memo(
 
               {named_folders.length > 0 && (
                 <>
-                  {named_folders.slice(0, 2).map((folder) => (
+                  {named_folders.slice(0, 3).map((folder) => (
                     <EmailTag
                       key={folder.folder_token}
                       className="flex-shrink-0 hidden sm:inline-flex"
@@ -581,9 +581,9 @@ export const InboxEmailListItem = memo(
                       }
                     />
                   ))}
-                  {named_folders.length > 2 && (
+                  {named_folders.length > 3 && (
                     <span className="text-[11px] text-txt-muted hidden sm:inline">
-                      +{named_folders.length - 2}
+                      +{named_folders.length - 3}
                     </span>
                   )}
                 </>
@@ -591,7 +591,7 @@ export const InboxEmailListItem = memo(
 
               {named_tags.length > 0 && (
                 <>
-                  {named_tags.slice(0, 2).map((tag) => (
+                  {named_tags.slice(0, 3).map((tag) => (
                     <EmailTag
                       key={tag.id}
                       className="flex-shrink-0 hidden sm:inline-flex"
@@ -605,9 +605,9 @@ export const InboxEmailListItem = memo(
                       }
                     />
                   ))}
-                  {named_tags.length > 2 && (
+                  {named_tags.length > 3 && (
                     <span className="text-[11px] text-txt-muted hidden sm:inline">
-                      +{named_tags.length - 2}
+                      +{named_tags.length - 3}
                     </span>
                   )}
                 </>

@@ -27,6 +27,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 import { get_email_username, is_system_email } from "@/lib/utils";
 import { is_ghost_email } from "@/stores/ghost_alias_store";
+import { get_recipient_hint } from "@/stores/recipient_hint_store";
 import { get_mail_item } from "@/services/api/mail";
 import {
   fetch_and_decrypt_thread_messages,
@@ -607,7 +608,9 @@ export function use_email_detail() {
             thread_count: 1,
             body: body_text,
             html_content: safe_html,
-            to: envelope.to || [],
+            to: envelope.to?.length
+              ? envelope.to
+              : get_recipient_hint(email_id).map((e) => ({ email: e })),
             cc: envelope.cc || [],
             bcc: envelope.bcc || [],
             replies: [],

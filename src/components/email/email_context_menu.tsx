@@ -390,9 +390,9 @@ export function EmailContextMenu({
           </ContextMenuItem>
         )}
 
-        {(is_trash ||
+        {!is_drafts && !is_scheduled && (is_trash ||
           is_spam ||
-          (!is_trash && !is_spam && !is_drafts && !is_scheduled && (on_archive || on_spam)) ||
+          (!is_trash && !is_spam && (on_archive || on_spam)) ||
           on_delete) && <ContextMenuSeparator />}
 
         {is_trash && on_restore && (

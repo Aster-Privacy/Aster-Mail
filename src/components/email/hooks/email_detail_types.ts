@@ -29,6 +29,7 @@ export interface DecryptedEmail {
   timestamp: string;
   is_read: boolean;
   is_starred: boolean;
+  is_pinned?: boolean;
   has_attachment: boolean;
   thread_count: number;
   body: string;

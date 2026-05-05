@@ -72,6 +72,7 @@ function MobileMailDetail() {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
   const [is_starred, set_is_starred] = useState<boolean | null>(null);
+  const [is_pinned, set_is_pinned] = useState<boolean | null>(null);
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(new Set());
   const [read_ids, set_read_ids] = useState<Set<string>>(new Set());
   const [menu_message, set_menu_message] =
@@ -334,6 +335,21 @@ function MobileMailDetail() {
       }
     }
   }, [detail.email, email_actions, is_starred]);
+
+  const handle_toggle_pin = useCallback(async () => {
+    if (detail.email) {
+      haptic_impact("light");
+      const current = is_pinned ?? detail.email.is_pinned ?? false;
+
+      set_is_pinned(!current);
+      set_menu_message(null);
+      try {
+        await email_actions.toggle_pin(detail.email as never);
+      } catch {
+        set_is_pinned(current);
+      }
+    }
+  }, [detail.email, email_actions, is_pinned]);
 
   const action_in_flight = useRef(false);
 
@@ -748,6 +764,7 @@ function MobileMailDetail() {
 
   const email = detail.email;
   const starred = is_starred ?? email.is_starred;
+  const pinned = is_pinned ?? email.is_pinned ?? false;
   const thread_count = display_messages.length;
 
   const entrance_x =
@@ -901,6 +918,7 @@ function MobileMailDetail() {
           display_messages.every((m) => dark_mode_ids.has(m.id))
         }
         is_spam={!!detail.mail_item?.is_spam}
+        is_pinned={pinned}
         is_starred={starred}
         menu_message={menu_message}
         menu_source={menu_source}
@@ -953,6 +971,7 @@ function MobileMailDetail() {
           }
           set_menu_message(null);
         }}
+        on_toggle_pin={handle_toggle_pin}
         on_toggle_star={handle_toggle_star}
         on_trash={handle_menu_trash}
         on_view_source={handle_view_source}
