@@ -93,7 +93,7 @@ export function PopupEmailHeader({
           <h1 className="text-lg font-semibold leading-snug break-words text-txt-primary">
             {email.subject}
           </h1>
-          {mail_item?.folders?.filter((f) => f.name).map((folder) => (
+          {mail_item?.labels?.filter((f) => f.name).map((folder) => (
             <EmailTag
               key={folder.token}
               className="flex-shrink-0"

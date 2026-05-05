@@ -414,7 +414,7 @@ export function FullEmailViewer({
                 </span>
                 {email.subject}
               </h1>
-              {viewer.mail_item?.folders?.filter((f) => f.name).map((folder) => (
+              {viewer.mail_item?.labels?.filter((f) => f.name).map((folder) => (
                 <EmailTag
                   key={folder.token}
                   className="flex-shrink-0"
