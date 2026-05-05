@@ -358,6 +358,7 @@ export const pl = {
     emails_starred: "{{count}} e-mail(i) oznaczonych gwiazdką",
     emails_unstarred: "{{count}} e-mail(i) odznaczonych z gwiazdki",
     emails_permanently_deleted: "{{count}} e-mail(i) trwale usuniętych",
+    drafts_deleted: "{{count}} szkic(ów) trwale usuniętych",
     spam_emails_moved_to_trash:
       "{{count}} wiadomości spam przeniesiono do kosza",
     trash_already_empty: "Kosz jest już pusty",
@@ -599,7 +600,7 @@ export const pl = {
     no_unread_emails: "Brak nieprzeczytanych e-maili",
     email_copied: "E-mail skopiowany",
     message_id_copied: "ID wiadomości skopiowany",
-    draft_deleted: "Szkic usunięty",
+    draft_deleted: "Szkic trwale usunięty",
     no_recipients: "Brak odbiorców",
     sync_complete: "Synchronizacja zakończona",
     session_expired_login: "Sesja wygasła. Zaloguj się ponownie.",

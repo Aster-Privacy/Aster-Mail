@@ -46,10 +46,48 @@ import {
 } from "@/utils/date_format";
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_action_toast } from "@/components/toast/action_toast";
 
 const DRAFT_FETCH_LIMIT = 50;
 const FETCH_TIMEOUT_MS = 15_000;
 const UNDO_WINDOW_MS = 6_000;
+
+const PENDING_DELETES_KEY = "aster_draft_pending_deletes";
+
+interface PersistedDelete {
+  ids: string[];
+  scheduled_at: number;
+}
+
+function read_persisted_deletes(): PersistedDelete[] {
+  try {
+    const raw = localStorage.getItem(PENDING_DELETES_KEY);
+    return raw ? (JSON.parse(raw) as PersistedDelete[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function write_persisted_deletes(entries: PersistedDelete[]) {
+  try {
+    if (entries.length === 0) localStorage.removeItem(PENDING_DELETES_KEY);
+    else localStorage.setItem(PENDING_DELETES_KEY, JSON.stringify(entries));
+  } catch {}
+}
+
+function add_to_persisted_deletes(ids: string[], scheduled_at: number) {
+  const existing = read_persisted_deletes().filter(
+    (e) => !e.ids.some((id) => ids.includes(id)),
+  );
+  write_persisted_deletes([...existing, { ids, scheduled_at }]);
+}
+
+function remove_from_persisted_deletes(ids: string[]) {
+  const id_set = new Set(ids);
+  write_persisted_deletes(
+    read_persisted_deletes().filter((e) => !e.ids.some((id) => id_set.has(id))),
+  );
+}
 
 const DRAFT_CATEGORY_STYLE =
   "bg-orange-100 text-orange-700 border border-orange-300 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-500";
@@ -190,6 +228,8 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
   const [has_more, set_has_more] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
+  const [suppressed_ids, set_suppressed_ids] = useState<ReadonlySet<string>>(new Set());
+
   const abort_ref = useRef<AbortController | null>(null);
   const vault_check_ref = useRef<NodeJS.Timeout | null>(null);
 
@@ -272,14 +312,6 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     Map<string, { timer: number; draft: DraftListItem; position: number }>
   >(new Map());
 
-  const flush_pending_deletes = useCallback(() => {
-    for (const [id, pending] of pending_deletes.current) {
-      clearTimeout(pending.timer);
-      delete_draft(id).catch(() => {});
-    }
-    pending_deletes.current.clear();
-  }, []);
-
   const schedule_delete_drafts = useCallback((ids: string[]): (() => void) => {
     if (ids.length === 0) return () => {};
 
@@ -298,10 +330,20 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
 
     set_drafts((prev) => prev.filter((d) => !id_set.has(d.id)));
     adjust_stats_drafts(-to_delete.length);
+    set_suppressed_ids((prev) => new Set([...prev, ...ids]));
+
+    const scheduled_at = Date.now();
+    add_to_persisted_deletes(ids, scheduled_at);
 
     for (const { draft, position } of to_delete) {
       const timer = window.setTimeout(() => {
         pending_deletes.current.delete(draft.id);
+        remove_from_persisted_deletes([draft.id]);
+        set_suppressed_ids((prev) => {
+          const next = new Set(prev);
+          next.delete(draft.id);
+          return next;
+        });
         delete_draft(draft.id)
           .then((result) => {
             if (result.data?.success) {
@@ -331,6 +373,13 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
         restored.push({ draft: pending.draft, position: pending.position });
       }
 
+      remove_from_persisted_deletes(ids);
+      set_suppressed_ids((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      });
+
       if (restored.length === 0) return;
 
       restored.sort((a, b) => a.position - b.position);
@@ -350,15 +399,96 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
   }, []);
 
   useEffect(() => {
-    const handler = () => flush_pending_deletes();
+    const persisted = read_persisted_deletes();
+    if (persisted.length === 0) return;
 
-    window.addEventListener("beforeunload", handler);
+    const now = Date.now();
+    const to_suppress = new Set<string>();
+    const expired_ids: string[] = [];
+    const still_live: PersistedDelete[] = [];
 
-    return () => {
-      window.removeEventListener("beforeunload", handler);
-      flush_pending_deletes();
+    for (const entry of persisted) {
+      if (now - entry.scheduled_at >= UNDO_WINDOW_MS) {
+        expired_ids.push(...entry.ids);
+      } else {
+        still_live.push(entry);
+        entry.ids.forEach((id) => to_suppress.add(id));
+      }
+    }
+
+    if (expired_ids.length > 0) {
+      for (const id of expired_ids) {
+        delete_draft(id).catch(() => {});
+      }
+      remove_from_persisted_deletes(expired_ids);
+      invalidate_mail_stats();
+    }
+
+    if (to_suppress.size === 0) return;
+
+    set_suppressed_ids(to_suppress);
+    adjust_stats_drafts(-to_suppress.size);
+
+    const all_live_ids = still_live.flatMap((e) => e.ids);
+
+    for (const entry of still_live) {
+      const remaining_ms = UNDO_WINDOW_MS - (now - entry.scheduled_at);
+
+      for (const id of entry.ids) {
+        const timer = window.setTimeout(() => {
+          pending_deletes.current.delete(id);
+          remove_from_persisted_deletes([id]);
+          set_suppressed_ids((prev) => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          });
+          delete_draft(id)
+            .then((result) => {
+              if (result.data?.success) invalidate_mail_stats();
+            })
+            .catch(() => {});
+        }, remaining_ms);
+
+        pending_deletes.current.set(id, {
+          timer,
+          draft: { id } as DraftListItem,
+          position: 0,
+        });
+      }
+    }
+
+    const undo = () => {
+      for (const id of all_live_ids) {
+        const pending = pending_deletes.current.get(id);
+        if (!pending) continue;
+        clearTimeout(pending.timer);
+        pending_deletes.current.delete(id);
+      }
+      remove_from_persisted_deletes(all_live_ids);
+      set_suppressed_ids((prev) => {
+        if (prev.size === 0) return prev;
+        const next = new Set(prev);
+        all_live_ids.forEach((id) => next.delete(id));
+        return next;
+      });
+      adjust_stats_drafts(all_live_ids.length);
     };
-  }, [flush_pending_deletes]);
+
+    const count = all_live_ids.length;
+
+    show_action_toast({
+      message:
+        count === 1
+          ? t("common.draft_deleted")
+          : t("common.drafts_deleted", { count }),
+      action_type: "trash",
+      email_ids: all_live_ids,
+      on_undo: async () => {
+        undo();
+      },
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (auth_loading || !is_active) return;
@@ -495,15 +625,23 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     return () => clearTimeout(safety_timeout);
   }, [is_loading]);
 
+  const visible_drafts = useMemo(
+    () =>
+      suppressed_ids.size > 0
+        ? drafts.filter((d) => !suppressed_ids.has(d.id))
+        : drafts,
+    [drafts, suppressed_ids],
+  );
+
   const state = useMemo(
     () => ({
-      drafts,
+      drafts: visible_drafts,
       is_loading,
-      total_count: drafts.length,
+      total_count: visible_drafts.length,
       has_more,
       error,
     }),
-    [drafts, is_loading, has_more, error],
+    [visible_drafts, is_loading, has_more, error],
   );
 
   return useMemo(

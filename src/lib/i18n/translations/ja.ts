@@ -356,6 +356,7 @@ export const ja = {
     emails_starred: "{{count}}件のメールにスターを付けました",
     emails_unstarred: "{{count}}件のメールのスターを外しました",
     emails_permanently_deleted: "{{count}}件のメールを完全に削除しました",
+    drafts_deleted: "{{count}}件の下書きを完全に削除しました",
     spam_emails_moved_to_trash:
       "{{count}}件のスパムメールをゴミ箱に移動しました",
     trash_already_empty: "ゴミ箱は既に空です",
@@ -596,7 +597,7 @@ export const ja = {
     no_unread_emails: "未読メールがありません",
     email_copied: "メールをコピーしました",
     message_id_copied: "メッセージIDをコピーしました",
-    draft_deleted: "下書きを削除しました",
+    draft_deleted: "下書きを完全に削除しました",
     no_recipients: "宛先がありません",
     sync_complete: "同期完了",
     session_expired_login:

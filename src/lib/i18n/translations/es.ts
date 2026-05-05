@@ -362,6 +362,7 @@ export const es = {
     emails_unstarred: "{{count}} correo(s) sin estrella",
     emails_permanently_deleted:
       "{{count}} correo(s) eliminado(s) permanentemente",
+    drafts_deleted: "{{count}} borrador(es) eliminado(s) permanentemente",
     spam_emails_moved_to_trash:
       "{{count}} correo(s) de spam movido(s) a la papelera",
     trash_already_empty: "La papelera ya está vacía",
@@ -607,7 +608,7 @@ export const es = {
     no_unread_emails: "No hay correos no leídos",
     email_copied: "Correo copiado",
     message_id_copied: "ID de mensaje copiado",
-    draft_deleted: "Borrador eliminado",
+    draft_deleted: "Borrador eliminado permanentemente",
     no_recipients: "Sin destinatarios",
     sync_complete: "Sincronización completada",
     session_expired_login:

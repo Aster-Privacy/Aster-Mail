@@ -358,6 +358,7 @@ export const ru = {
     emails_starred: "{{count}} письм(о/а) отмечено звёздочкой",
     emails_unstarred: "{{count}} письм(о/а) снято звёздочку",
     emails_permanently_deleted: "{{count}} письм(о/а) удалено навсегда",
+    drafts_deleted: "{{count}} черновик(ов) удалено навсегда",
     spam_emails_moved_to_trash:
       "{{count}} спам-письм(о/а) перемещено в корзину",
     trash_already_empty: "Корзина уже пуста",
@@ -603,7 +604,7 @@ export const ru = {
     no_unread_emails: "Нет непрочитанных писем",
     email_copied: "Адрес скопирован",
     message_id_copied: "ID сообщения скопирован",
-    draft_deleted: "Черновик удалён",
+    draft_deleted: "Черновик удалён навсегда",
     no_recipients: "Нет получателей",
     sync_complete: "Синхронизация завершена",
     session_expired_login: "Сессия истекла. Пожалуйста, войдите снова.",

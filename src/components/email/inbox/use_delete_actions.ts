@@ -152,15 +152,12 @@ export function use_delete_actions({
           }
         }
       } else if (is_drafts_view) {
-        const undo = schedule_delete_drafts(ids);
+        schedule_delete_drafts(ids);
 
         show_action_toast({
           message: t("common.drafts_deleted", { count: ids.length }),
           action_type: "trash",
           email_ids: ids,
-          on_undo: async () => {
-            undo();
-          },
         });
       } else {
         const selected_emails = email_state.emails.filter((e) =>
@@ -253,15 +250,12 @@ export function use_delete_actions({
         }
       }
     } else if (is_drafts_view) {
-      const undo = schedule_delete_drafts(ids);
+      schedule_delete_drafts(ids);
 
       show_action_toast({
         message: t("common.drafts_deleted", { count: ids.length }),
         action_type: "trash",
         email_ids: ids,
-        on_undo: async () => {
-          undo();
-        },
       });
     } else {
       const selected_emails = email_state.emails.filter((e) =>
@@ -340,15 +334,12 @@ export function use_delete_actions({
         update_email(email.id, email);
       }
     } else if (is_drafts_view) {
-      const undo = schedule_delete_drafts([email.id]);
+      schedule_delete_drafts([email.id]);
 
       show_action_toast({
         message: t("common.draft_deleted"),
         action_type: "trash",
         email_ids: [email.id],
-        on_undo: async () => {
-          undo();
-        },
       });
     } else {
       const deltas = compute_trash_deltas(email);

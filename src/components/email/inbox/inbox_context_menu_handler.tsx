@@ -151,15 +151,12 @@ export function use_context_menu_actions({
 
     const perform_delete = async (email: InboxEmail) => {
       if (is_drafts_view) {
-        const undo = schedule_delete_drafts([email.id]);
+        schedule_delete_drafts([email.id]);
 
         show_action_toast({
           message: t("common.draft_deleted"),
           action_type: "trash",
           email_ids: [email.id],
-          on_undo: async () => {
-            undo();
-          },
         });
 
         return;

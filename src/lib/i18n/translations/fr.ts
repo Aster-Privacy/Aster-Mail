@@ -363,6 +363,7 @@ export const fr = {
     emails_unstarred: "{{count}} e-mail(s) sans étoile",
     emails_permanently_deleted:
       "{{count}} e-mail(s) supprimé(s) définitivement",
+    drafts_deleted: "{{count}} brouillon(s) supprimé(s) définitivement",
     spam_emails_moved_to_trash:
       "{{count}} e-mail(s) indésirable(s) déplacé(s) vers la corbeille",
     trash_already_empty: "La corbeille est déjà vide",
@@ -611,7 +612,7 @@ export const fr = {
     no_unread_emails: "Aucun e-mail non lu",
     email_copied: "E-mail copié",
     message_id_copied: "ID du message copié",
-    draft_deleted: "Brouillon supprimé",
+    draft_deleted: "Brouillon supprimé définitivement",
     no_recipients: "Aucun destinataire",
     sync_complete: "Synchronisation terminée",
     session_expired_login: "Session expirée. Veuillez vous reconnecter.",

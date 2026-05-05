@@ -301,6 +301,7 @@ export const pt = {
     emails_unstarred: "{{count}} e-mail(s) desmarcado(s)",
     emails_permanently_deleted:
       "{{count}} e-mail(s) excluído(s) permanentemente",
+    drafts_deleted: "{{count}} rascunho(s) excluído(s) permanentemente",
     spam_emails_moved_to_trash:
       "{{count}} e-mail(s) de spam movido(s) para a lixeira",
     trash_already_empty: "A lixeira já está vazia",
@@ -521,7 +522,7 @@ export const pt = {
     no_unread_emails: "Nenhum e-mail não lido",
     email_copied: "E-mail copiado",
     message_id_copied: "ID da mensagem copiado",
-    draft_deleted: "Rascunho excluído",
+    draft_deleted: "Rascunho excluído permanentemente",
     no_recipients: "Nenhum destinatário",
     sync_complete: "Sincronização concluída",
     session_expired_login: "Sessão expirada. Por favor, faça login novamente.",
