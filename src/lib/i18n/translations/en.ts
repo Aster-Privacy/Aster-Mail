@@ -3038,7 +3038,10 @@ export const en: Translations = {
     rotate_dkim_description:
       "Generate a new DKIM signing key. You will need to update the DNS record.",
     rotate_label: "Rotate",
-    dkim_rotated: "DKIM key rotated successfully",
+    dkim_rotated: "DKIM key rotated successfully. Update your DNS with the new record below.",
+    dkim_rotated_update_dns:
+      "Update the DKIM DNS record for your domain with the new value shown below.",
+    view_dns_records: "View DNS Records",
     delete_domain_warning:
       "All email addresses on this domain will stop receiving mail. This action cannot be undone.",
     delete_domain_cooldown:

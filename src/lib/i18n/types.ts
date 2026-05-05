@@ -2744,6 +2744,8 @@ export interface SettingsTranslations {
   rotate_dkim_description: string;
   rotate_label: string;
   dkim_rotated: string;
+  dkim_rotated_update_dns: string;
+  view_dns_records: string;
   delete_domain_warning: string;
   delete_domain_cooldown: string;
   provider_cf_login: string;

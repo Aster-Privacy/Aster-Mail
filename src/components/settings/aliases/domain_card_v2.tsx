@@ -13,7 +13,7 @@
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// AGPLv3 for more details.
+// GNU Affero General Public License for more details.
 //
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
@@ -38,9 +38,12 @@ import {
   get_status_label,
   update_domain,
   rotate_dkim,
+  get_dns_records,
   type CustomDomain,
+  type DnsRecord,
 } from "@/services/api/domains";
 import { show_toast } from "@/components/toast/simple_toast";
+import { DnsRecordCard } from "./dns_record_card";
 
 interface DomainCardV2Props {
   domain: CustomDomain;
@@ -68,6 +71,10 @@ export function DomainCardV2({
   const [show_advanced, set_show_advanced] = useState(false);
   const [catch_all_loading, set_catch_all_loading] = useState(false);
   const [dkim_rotating, set_dkim_rotating] = useState(false);
+  const [rotated_dkim_record, set_rotated_dkim_record] = useState<DnsRecord | null>(null);
+  const [dns_records, set_dns_records] = useState<DnsRecord[] | null>(null);
+  const [dns_loading, set_dns_loading] = useState(false);
+  const [show_dns, set_show_dns] = useState(false);
 
   const verification_count = [
     domain.txt_verified,
@@ -106,6 +113,7 @@ export function DomainCardV2({
       const response = await rotate_dkim(domain.id);
 
       if (response.data?.success) {
+        set_rotated_dkim_record(response.data.dns_record);
         show_toast(t("settings.dkim_rotated"), "success");
         on_domains_changed();
       }
@@ -114,6 +122,30 @@ export function DomainCardV2({
     } finally {
       set_dkim_rotating(false);
     }
+  };
+
+  const handle_view_dns = async () => {
+    if (show_dns) {
+      set_show_dns(false);
+      return;
+    }
+
+    if (!dns_records) {
+      set_dns_loading(true);
+      try {
+        const response = await get_dns_records(domain.id);
+
+        if (response.data) {
+          set_dns_records(response.data.records);
+        }
+      } catch (err) {
+        if (import.meta.env.DEV) console.error(err);
+      } finally {
+        set_dns_loading(false);
+      }
+    }
+
+    set_show_dns(true);
   };
 
   return (
@@ -203,83 +235,117 @@ export function DomainCardV2({
             </p>
           )}
 
-          {domain.status === "active" && (
-            <div>
-              <button
-                className="flex items-center gap-2 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors mb-3"
-                type="button"
-                onClick={() => set_show_advanced(!show_advanced)}
-              >
-                {show_advanced ? (
-                  <ChevronDownIcon className="w-4 h-4" />
-                ) : (
-                  <ChevronRightIcon className="w-4 h-4" />
-                )}
-                {t("settings.advanced_settings")}
-              </button>
-
-              {show_advanced && (
-                <div className="space-y-4 pl-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-txt-primary">
-                        {t("settings.catch_all_label")}
-                      </p>
-                      <p className="text-xs text-txt-muted">
-                        {t("settings.catch_all_description")}
-                      </p>
-                    </div>
-                    <button
-                      className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out"
-                      disabled={catch_all_loading}
-                      role="switch"
-                      style={{
-                        backgroundColor: domain.catch_all_enabled
-                          ? "var(--accent-color, #3b82f6)"
-                          : "var(--bg-tertiary)",
-                        opacity: catch_all_loading ? 0.6 : 1,
-                      }}
-                      type="button"
-                      onClick={handle_toggle_catch_all}
-                    >
-                      <span
-                        className="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out"
-                        style={{
-                          transform: domain.catch_all_enabled
-                            ? "translate(20px, 2px)"
-                            : "translate(2px, 2px)",
-                        }}
-                      />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-txt-primary">
-                        {t("settings.rotate_dkim_key")}
-                      </p>
-                      <p className="text-xs text-txt-muted">
-                        {t("settings.rotate_dkim_description")}
-                      </p>
-                    </div>
-                    <Button
-                      disabled={dkim_rotating}
-                      size="sm"
-                      variant="outline"
-                      onClick={handle_rotate_dkim}
-                    >
-                      {dkim_rotating ? (
-                        <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <ArrowPathIcon className="w-3.5 h-3.5" />
-                      )}
-                      {t("settings.rotate_label")}
-                    </Button>
-                  </div>
-                </div>
+          <div>
+            <button
+              className="flex items-center gap-2 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors mb-3"
+              type="button"
+              onClick={handle_view_dns}
+            >
+              {dns_loading ? (
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
+              ) : show_dns ? (
+                <ChevronDownIcon className="w-4 h-4" />
+              ) : (
+                <ChevronRightIcon className="w-4 h-4" />
               )}
-            </div>
-          )}
+              {t("settings.view_dns_records")}
+            </button>
+
+            {show_dns && dns_records && (
+              <div className="space-y-2 mb-4 pl-6">
+                {dns_records.map((record, index) => (
+                  <DnsRecordCard key={index} record={record} />
+                ))}
+              </div>
+            )}
+
+            {domain.status === "active" && (
+              <>
+                <button
+                  className="flex items-center gap-2 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors mb-3"
+                  type="button"
+                  onClick={() => set_show_advanced(!show_advanced)}
+                >
+                  {show_advanced ? (
+                    <ChevronDownIcon className="w-4 h-4" />
+                  ) : (
+                    <ChevronRightIcon className="w-4 h-4" />
+                  )}
+                  {t("settings.advanced_settings")}
+                </button>
+
+                {show_advanced && (
+                  <div className="space-y-4 pl-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-txt-primary">
+                          {t("settings.catch_all_label")}
+                        </p>
+                        <p className="text-xs text-txt-muted">
+                          {t("settings.catch_all_description")}
+                        </p>
+                      </div>
+                      <button
+                        className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out"
+                        disabled={catch_all_loading}
+                        role="switch"
+                        style={{
+                          backgroundColor: domain.catch_all_enabled
+                            ? "var(--accent-color, #3b82f6)"
+                            : "var(--bg-tertiary)",
+                          opacity: catch_all_loading ? 0.6 : 1,
+                        }}
+                        type="button"
+                        onClick={handle_toggle_catch_all}
+                      >
+                        <span
+                          className="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out"
+                          style={{
+                            transform: domain.catch_all_enabled
+                              ? "translate(20px, 2px)"
+                              : "translate(2px, 2px)",
+                          }}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-txt-primary">
+                          {t("settings.rotate_dkim_key")}
+                        </p>
+                        <p className="text-xs text-txt-muted">
+                          {t("settings.rotate_dkim_description")}
+                        </p>
+                      </div>
+                      <Button
+                        disabled={dkim_rotating}
+                        size="sm"
+                        variant="outline"
+                        onClick={handle_rotate_dkim}
+                      >
+                        {dkim_rotating ? (
+                          <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <ArrowPathIcon className="w-3.5 h-3.5" />
+                        )}
+                        {t("settings.rotate_label")}
+                      </Button>
+                    </div>
+
+                    {rotated_dkim_record && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-txt-muted">
+                          {t("settings.dkim_rotated_update_dns")}
+                        </p>
+                        <DnsRecordCard record={rotated_dkim_record} />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>
