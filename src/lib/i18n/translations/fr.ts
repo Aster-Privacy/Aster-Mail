@@ -3306,12 +3306,12 @@ export const fr = {
     decrypting_vault: "Déchiffrement de votre coffre-fort de clés...",
     getting_user_info: "Récupération des informations utilisateur...",
     enter_backup_code: "Saisir le code de secours",
-    backup_code_length_error: "Le code de secours doit contenir 8 caractères",
+    backup_code_length_error: "Le code de secours doit contenir 12 caractères",
     backup_code_description:
       "Saisissez un de vos codes de secours pour vous connecter",
     backup_code_single_use:
       "Chaque code de secours ne peut être utilisé qu'une seule fois",
-    backup_code_placeholder: "XXXX-XXXX",
+    backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead:
       "Utiliser l'application d'authentification à la place",
     two_factor_auth_title: "Authentification à deux facteurs",

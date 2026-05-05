@@ -224,7 +224,15 @@ export async function decrypt_recovery_key_with_code(
 }
 
 export async function hash_recovery_code(code: string): Promise<string> {
-  const normalized_code = code.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  const stripped = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  let normalized_code: string;
+
+  if (stripped.startsWith("ASTER") && stripped.length === 17) {
+    normalized_code = `ASTER-${stripped.slice(5, 9)}-${stripped.slice(9, 13)}-${stripped.slice(13)}`;
+  } else {
+    normalized_code = code.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  }
+
   const code_bytes = new TextEncoder().encode(normalized_code);
   const hash = await crypto.subtle.digest(HASH_ALG, code_bytes);
 

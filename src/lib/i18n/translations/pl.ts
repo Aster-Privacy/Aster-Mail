@@ -3232,11 +3232,11 @@ export const pl = {
     decrypting_vault: "Odszyfrowywanie sejfu kluczy...",
     getting_user_info: "Pobieranie informacji o użytkowniku...",
     enter_backup_code: "Wprowadź kod zapasowy",
-    backup_code_length_error: "Kod zapasowy musi mieć 8 znaków",
+    backup_code_length_error: "Kod zapasowy musi mieć 12 znaków",
     backup_code_description:
       "Wprowadź jeden z kodów zapasowych, aby się zalogować",
     backup_code_single_use: "Każdy kod zapasowy może być użyty tylko raz",
-    backup_code_placeholder: "XXXX-XXXX",
+    backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Użyj zamiast tego aplikacji uwierzytelniającej",
     two_factor_auth_title: "Uwierzytelnianie dwuskładnikowe",
     enter_2fa_code: "Wprowadź 6-cyfrowy kod z aplikacji uwierzytelniającej",

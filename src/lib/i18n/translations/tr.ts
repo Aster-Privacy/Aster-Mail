@@ -3228,11 +3228,11 @@ export const tr = {
     decrypting_vault: "Anahtar kasanız çözülüyor...",
     getting_user_info: "Kullanıcı bilgileri alınıyor...",
     enter_backup_code: "Yedek Kodu Girin",
-    backup_code_length_error: "Yedek kod 8 karakter olmalıdır",
+    backup_code_length_error: "Yedek kod 12 karakter olmalıdır",
     backup_code_description:
       "Giriş yapmak için yedek kodlarınızdan birini girin",
     backup_code_single_use: "Her yedek kod yalnızca bir kez kullanılabilir",
-    backup_code_placeholder: "XXXX-XXXX",
+    backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead:
       "Bunun yerine kimlik doğrulama uygulamasını kullan",
     two_factor_auth_title: "İki Faktörlü Kimlik Doğrulama",

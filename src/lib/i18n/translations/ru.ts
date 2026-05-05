@@ -3250,11 +3250,11 @@ export const ru = {
     decrypting_vault: "Расшифровка вашего хранилища ключей...",
     getting_user_info: "Получение информации о пользователе...",
     enter_backup_code: "Введите резервный код",
-    backup_code_length_error: "Резервный код должен содержать 8 символов",
+    backup_code_length_error: "Резервный код должен содержать 12 символов",
     backup_code_description: "Введите один из ваших резервных кодов для входа",
     backup_code_single_use:
       "Каждый резервный код можно использовать только один раз",
-    backup_code_placeholder: "XXXX-XXXX",
+    backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Использовать приложение-аутентификатор",
     two_factor_auth_title: "Двухфакторная аутентификация",
     enter_2fa_code: "Введите 6-значный код из приложения-аутентификатора",

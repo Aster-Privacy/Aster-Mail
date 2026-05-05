@@ -3277,12 +3277,12 @@ export const es = {
     decrypting_vault: "Descifrando tu bóveda de claves...",
     getting_user_info: "Obteniendo información del usuario...",
     enter_backup_code: "Ingresar código de respaldo",
-    backup_code_length_error: "El código de respaldo debe tener 8 caracteres",
+    backup_code_length_error: "El código de respaldo debe tener 12 caracteres",
     backup_code_description:
       "Ingresa uno de tus códigos de respaldo para iniciar sesión",
     backup_code_single_use:
       "Cada código de respaldo solo se puede usar una vez",
-    backup_code_placeholder: "XXXX-XXXX",
+    backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Usar aplicación de autenticación en su lugar",
     two_factor_auth_title: "Autenticación de dos factores",
     enter_2fa_code:

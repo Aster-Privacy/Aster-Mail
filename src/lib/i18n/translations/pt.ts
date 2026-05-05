@@ -3257,10 +3257,10 @@ export const pt = {
     decrypting_vault: "Descriptografando seu cofre de chaves...",
     getting_user_info: "Obtendo informações do usuário...",
     enter_backup_code: "Digite o Código de Backup",
-    backup_code_length_error: "O código de backup deve ter 8 caracteres",
+    backup_code_length_error: "O código de backup deve ter 12 caracteres",
     backup_code_description: "Digite um dos seus códigos de backup para entrar",
     backup_code_single_use: "Cada código de backup só pode ser usado uma vez",
-    backup_code_placeholder: "XXXX-XXXX",
+    backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Usar aplicativo autenticador",
     two_factor_auth_title: "Autenticação de Dois Fatores",
     enter_2fa_code:

@@ -3261,12 +3261,12 @@ export const it = {
     decrypting_vault: "Decrittazione del tuo vault di chiavi...",
     getting_user_info: "Recupero informazioni utente...",
     enter_backup_code: "Inserisci codice di backup",
-    backup_code_length_error: "Il codice di backup deve essere di 8 caratteri",
+    backup_code_length_error: "Il codice di backup deve essere di 12 caratteri",
     backup_code_description:
       "Inserisci uno dei tuoi codici di backup per accedere",
     backup_code_single_use:
       "Ogni codice di backup può essere usato una sola volta",
-    backup_code_placeholder: "XXXX-XXXX",
+    backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Usa l'app di autenticazione invece",
     two_factor_auth_title: "Autenticazione a due fattori",
     enter_2fa_code:

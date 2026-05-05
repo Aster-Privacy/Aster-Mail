@@ -3213,11 +3213,11 @@ export const ja = {
     decrypting_vault: "キー保管庫を復号中...",
     getting_user_info: "ユーザー情報を取得中...",
     enter_backup_code: "バックアップコードを入力",
-    backup_code_length_error: "バックアップコードは8文字である必要があります",
+    backup_code_length_error: "バックアップコードは12文字である必要があります",
     backup_code_description:
       "バックアップコードの1つを入力してサインインしてください",
     backup_code_single_use: "各バックアップコードは一度しか使用できません",
-    backup_code_placeholder: "XXXX-XXXX",
+    backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "代わりに認証アプリを使用",
     two_factor_auth_title: "二要素認証",
     enter_2fa_code: "認証アプリの6桁のコードを入力してください",

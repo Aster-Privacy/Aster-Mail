@@ -54,7 +54,7 @@ export function BackupCodeInput({
   const handle_verify = async () => {
     const normalized = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
-    if (normalized.length !== 8) {
+    if (normalized.length !== 12) {
       set_error(t("auth.backup_code_length_error"));
 
       return;
@@ -63,7 +63,7 @@ export function BackupCodeInput({
     set_is_loading(true);
     set_error("");
 
-    const formatted_code = `${normalized.slice(0, 4)}-${normalized.slice(4)}`;
+    const formatted_code = `${normalized.slice(0, 4)}-${normalized.slice(4, 8)}-${normalized.slice(8)}`;
 
     const response = await verify_backup_code_login({
       code: formatted_code,
@@ -125,7 +125,7 @@ export function BackupCodeInput({
             ref={input_ref}
             className="text-center text-lg font-mono tracking-wider uppercase"
             disabled={is_loading}
-            maxLength={9}
+            maxLength={14}
             placeholder={t("auth.backup_code_placeholder")}
             status={error ? "error" : "default"}
             type="text"
@@ -147,7 +147,7 @@ export function BackupCodeInput({
           <Button
             className="flex-1"
             disabled={
-              is_loading || code.replace(/[^A-Z0-9]/gi, "").length !== 8
+              is_loading || code.replace(/[^A-Z0-9]/gi, "").length !== 12
             }
             variant="depth"
             onClick={handle_verify}
