@@ -2685,6 +2685,8 @@ export const en: Translations = {
       "Emails from this sender or domain will never be marked as spam and will always reach your inbox.",
     entire_domain: "Entire domain",
     no_allowed_senders: "No allowed senders",
+    failed_to_load_allowlist: "Failed to load allowlist",
+    failed_to_load_blocklist: "Failed to load blocklist",
     add_senders_allowlist_hint:
       "Add senders or domains to ensure their emails always reach your inbox",
     allow_sender: "Allow sender",
@@ -3325,6 +3327,8 @@ export const en: Translations = {
     trash_subtitle: "Deleted emails will appear here",
     trash_auto_delete_notice:
       "Items in trash will be automatically deleted after {{ days }} days.",
+    spam_auto_delete_notice:
+      "Items in spam will be automatically deleted after {{ days }} days.",
     compose_email: "Compose email",
     one_hour_option: "1 hour",
     twenty_four_hours_option: "24 hours",

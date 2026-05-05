@@ -131,12 +131,12 @@ export function EmailInbox({
   const is_snoozed_view = current_view === "snoozed";
   const is_archive_view = current_view === "archive";
   const [folder_unlock_key, set_folder_unlock_key] = useState(0);
-  const [trash_retention_days, set_trash_retention_days] = useState(30);
+  const [spam_retention_days, set_spam_retention_days] = useState<number | null>(null);
 
   useEffect(() => {
     get_spam_settings().then((result) => {
-      if (result.data && result.data.spam_retention_days > 0) {
-        set_trash_retention_days(result.data.spam_retention_days);
+      if (result.data) {
+        set_spam_retention_days(result.data.spam_retention_days);
       }
     });
   }, []);
@@ -1000,6 +1000,8 @@ export function EmailInbox({
             status: selection.get_folder_status_for_selection(f.folder_token),
           }))}
           is_archive_view={is_archive_view}
+          is_drafts_view={is_drafts_view}
+          is_scheduled_view={is_scheduled_view}
           is_spam_view={current_view === "spam"}
           is_trash_view={current_view === "trash"}
           on_archive={handle_archive_wrapped}
@@ -1085,10 +1087,15 @@ export function EmailInbox({
           storage_used_bytes={mail_stats.storage_used_bytes}
         />
 
-        {current_view === "trash" &&
+        {(current_view === "trash" || current_view === "spam") &&
           !selection.some_selected &&
-          !selection.all_selected && (
-            <TrashBanner retention_days={trash_retention_days} />
+          !selection.all_selected &&
+          spam_retention_days !== null &&
+          spam_retention_days > 0 && (
+            <TrashBanner
+              retention_days={spam_retention_days}
+              view={current_view as "trash" | "spam"}
+            />
           )}
 
         {show_full_email_viewer && split_email_id ? (

@@ -145,9 +145,11 @@ export function BehaviorSection() {
     null,
   );
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
-  const [spam_settings, set_spam_settings] = useState<SpamSettings | null>(
-    null,
-  );
+  const [spam_settings, set_spam_settings] = useState<SpamSettings>({
+    spam_retention_days: 30,
+    spam_sensitivity: "medium",
+    spam_filter_enabled: true,
+  });
   const [show_grouping_dialog, set_show_grouping_dialog] = useState(false);
   const [mailto_registered, set_mailto_registered] = useState(() => {
     try {
@@ -163,7 +165,9 @@ export function BehaviorSection() {
 
     get_dev_mode(vault).then((result) => set_dev_mode_enabled(result.data));
     get_spam_settings().then((result) => {
-      if (result.data) set_spam_settings(result.data);
+      if (result.data) {
+        set_spam_settings(result.data);
+      }
     });
   }, []);
 
@@ -570,9 +574,8 @@ export function BehaviorSection() {
 
         <ToggleSetting
           description={t("settings.spam_filter_enabled_description")}
-          enabled={spam_settings?.spam_filter_enabled ?? true}
+          enabled={spam_settings.spam_filter_enabled}
           on_toggle={() => {
-            if (!spam_settings) return;
             const updated = {
               ...spam_settings,
               spam_filter_enabled: !spam_settings.spam_filter_enabled,
@@ -587,7 +590,6 @@ export function BehaviorSection() {
         <SelectSetting
           description={t("settings.spam_sensitivity_description")}
           on_change={(value) => {
-            if (!spam_settings) return;
             const updated = { ...spam_settings, spam_sensitivity: value };
 
             set_spam_settings(updated);
@@ -599,16 +601,16 @@ export function BehaviorSection() {
             { value: "high", label: t("settings.spam_high") },
           ]}
           title={t("settings.spam_sensitivity")}
-          value={spam_settings?.spam_sensitivity ?? "medium"}
+          value={spam_settings.spam_sensitivity}
         />
 
         <SelectSetting
           description={t("settings.auto_delete_spam_description")}
           on_change={(value) => {
-            if (!spam_settings) return;
+            const days = value === "never" ? 0 : parseInt(value, 10);
             const updated = {
               ...spam_settings,
-              spam_retention_days: parseInt(value, 10),
+              spam_retention_days: days,
             };
 
             set_spam_settings(updated);
@@ -618,10 +620,10 @@ export function BehaviorSection() {
             { value: "7", label: t("settings.retention_7_days") },
             { value: "14", label: t("settings.retention_14_days") },
             { value: "30", label: t("settings.retention_30_days") },
-            { value: "0", label: t("settings.retention_never") },
+            { value: "never", label: t("settings.retention_never") },
           ]}
           title={t("settings.auto_delete_spam_after")}
-          value={String(spam_settings?.spam_retention_days ?? 30)}
+          value={spam_settings.spam_retention_days === 0 ? "never" : String(spam_settings.spam_retention_days)}
         />
       </div>
 

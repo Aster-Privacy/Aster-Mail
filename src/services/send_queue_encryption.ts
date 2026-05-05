@@ -337,10 +337,25 @@ export async function create_sent_envelope(
 
   const body_is_plain_text = !/<[a-z][\s\S]*>/i.test(email.body);
 
+  const plain_body_text = body_is_plain_text
+    ? email.body
+    : email.body
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/div>/gi, "\n")
+        .replace(/<\/p>/gi, "\n")
+        .replace(/<[^>]+>/g, "")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
   const envelope: MailEnvelope = {
     version: 1,
     subject: email.envelope_subject || email.subject,
-    body_text: email.body,
+    body_text: plain_body_text,
     body_html: body_is_plain_text
       ? email.body.replace(/\n/g, "<br>")
       : email.body,

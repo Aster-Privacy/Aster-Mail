@@ -220,7 +220,7 @@ export async function list_blocked_senders(): Promise<
       return { data: [] };
     }
 
-    const decrypted = await Promise.all(
+    const results = await Promise.allSettled(
       response.data.blocked_senders.map(async (item) => {
         const data = await decrypt_block_data(
           item.encrypted_sender_data,
@@ -239,6 +239,14 @@ export async function list_blocked_senders(): Promise<
         };
       }),
     );
+
+    const decrypted: DecryptedBlockedSender[] = [];
+
+    for (const result of results) {
+      if (result.status === "fulfilled") {
+        decrypted.push(result.value);
+      }
+    }
 
     return { data: decrypted };
   } catch (err) {

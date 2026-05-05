@@ -25,6 +25,8 @@ import {
   TrashIcon,
   MagnifyingGlassIcon,
   GlobeAltIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Checkbox, Radio } from "@aster/ui";
@@ -51,6 +53,7 @@ export function AllowlistSection() {
   >([]);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [is_loading, set_is_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [is_removing, set_is_removing] = useState(false);
   const [search_query, set_search_query] = useState("");
   const [show_add_form, set_show_add_form] = useState(false);
@@ -78,12 +81,17 @@ export function AllowlistSection() {
   };
 
   const fetch_allowed_senders = useCallback(async () => {
+    set_load_error(false);
     try {
       const result = await list_allowed_senders();
 
       if (result.data) {
         set_allowed_senders(result.data);
+      } else {
+        set_load_error(true);
       }
+    } catch {
+      set_load_error(true);
     } finally {
       set_is_loading(false);
     }
@@ -361,7 +369,26 @@ export function AllowlistSection() {
         </div>
       )}
 
-      {allowed_senders.length === 0 ? (
+      {load_error && allowed_senders.length === 0 ? (
+        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+          <ExclamationTriangleIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
+          <p className="text-sm text-txt-muted">
+            {t("settings.failed_to_load_allowlist")}
+          </p>
+          <Button
+            className="mt-3 gap-2"
+            size="md"
+            variant="ghost"
+            onClick={() => {
+              set_is_loading(true);
+              fetch_allowed_senders();
+            }}
+          >
+            <ArrowPathIcon className="w-4 h-4" />
+            {t("common.retry")}
+          </Button>
+        </div>
+      ) : allowed_senders.length === 0 ? (
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
           <CheckCircleIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
           <p className="text-sm text-txt-muted">

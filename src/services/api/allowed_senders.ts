@@ -231,7 +231,7 @@ export async function list_allowed_senders(
       return { data: [] };
     }
 
-    const decrypted = await Promise.all(
+    const results = await Promise.allSettled(
       response.data.allowed_senders.map(async (item) => {
         const data = await decrypt_allow_data(
           item.encrypted_sender_data,
@@ -250,6 +250,21 @@ export async function list_allowed_senders(
         };
       }),
     );
+
+    const decrypted: DecryptedAllowedSender[] = [];
+    let failed = 0;
+
+    for (const result of results) {
+      if (result.status === "fulfilled") {
+        decrypted.push(result.value);
+      } else {
+        failed++;
+      }
+    }
+
+    if (failed > 0 && decrypted.length === 0) {
+      return { error: "Failed to decrypt allowed senders" };
+    }
 
     return { data: decrypted };
   } catch (err) {

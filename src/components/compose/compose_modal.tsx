@@ -247,7 +247,7 @@ export function ComposeModal({
 
               {!is_minimized && (
                 <div className="flex-1 flex flex-col min-h-0">
-                  <div className="px-4 pt-3 pb-1 flex-shrink-0 overflow-visible relative z-20">
+                  <div className="px-4 pt-3 pb-1 min-h-0 overflow-y-auto relative z-20">
                     <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
                       <span className="text-sm flex-shrink-0 text-txt-tertiary">
                         {t("mail.from")}

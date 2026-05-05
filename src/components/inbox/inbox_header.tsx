@@ -125,6 +125,8 @@ interface InboxHeaderProps {
   on_folder_toggle?: (folder_token: string) => void;
   tags?: TagOption[];
   on_tag_toggle?: (tag_token: string) => void;
+  is_drafts_view?: boolean;
+  is_scheduled_view?: boolean;
   hide_view_switcher?: boolean;
   hide_refresh?: boolean;
   hide_quick_actions?: boolean;
@@ -183,6 +185,8 @@ export function InboxHeader({
   on_folder_toggle,
   tags = [],
   on_tag_toggle,
+  is_drafts_view = false,
+  is_scheduled_view = false,
   hide_view_switcher = false,
   hide_refresh = false,
   hide_quick_actions = false,
@@ -199,6 +203,7 @@ export function InboxHeader({
   const is_native = Capacitor.isNativePlatform();
   const has_selection = all_selected || some_selected;
   const display_selected = select_all_mode ? total_messages : selected_count;
+  const hide_mail_actions = is_drafts_view || is_scheduled_view;
   const show_select_all_banner =
     has_selection &&
     all_selected &&
@@ -416,6 +421,7 @@ export function InboxHeader({
 
               {!is_trash_view &&
                 !is_spam_view &&
+                !hide_mail_actions &&
                 (is_archive_view ? (
                   <Tooltip tip={t("mail.move_to_inbox")}>
                     <button
@@ -451,16 +457,18 @@ export function InboxHeader({
                 </button>
               </Tooltip>
 
-              <Tooltip tip={t("mail.mark_as_read")}>
-                <button
-                  className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
-                  onClick={on_mark_read}
-                >
-                  <EnvelopeOpenIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-                </button>
-              </Tooltip>
+              {!hide_mail_actions && (
+                <Tooltip tip={t("mail.mark_as_read")}>
+                  <button
+                    className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
+                    onClick={on_mark_read}
+                  >
+                    <EnvelopeOpenIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                  </button>
+                </Tooltip>
+              )}
 
-              {advanced_toolbar && on_toggle_star && (
+              {advanced_toolbar && !hide_mail_actions && on_toggle_star && (
                 <Tooltip tip={t("common.star_selected")}>
                   <button
                     className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
@@ -471,7 +479,7 @@ export function InboxHeader({
                 </Tooltip>
               )}
 
-              {advanced_toolbar && on_snooze && (
+              {advanced_toolbar && !hide_mail_actions && on_snooze && (
                 <DropdownMenu>
                   <Tooltip tip={t("common.snooze_until")}>
                     <DropdownMenuTrigger asChild>
@@ -529,6 +537,7 @@ export function InboxHeader({
               {advanced_toolbar &&
                 !is_trash_view &&
                 !is_spam_view &&
+                !hide_mail_actions &&
                 on_spam && (
                   <Tooltip tip={t("mail.report_spam")}>
                     <button
@@ -542,6 +551,7 @@ export function InboxHeader({
 
               {advanced_toolbar &&
                 !is_native &&
+                !hide_mail_actions &&
                 folders.length > 0 &&
                 on_folder_toggle && (
                   <DropdownMenu>
@@ -584,6 +594,7 @@ export function InboxHeader({
 
               {advanced_toolbar &&
                 !is_native &&
+                !hide_mail_actions &&
                 tags.length > 0 &&
                 on_tag_toggle && (
                   <DropdownMenu>
@@ -635,13 +646,13 @@ export function InboxHeader({
                   </DropdownMenuTrigger>
                 </Tooltip>
                 <DropdownMenuContent align="start" sideOffset={8}>
-                  {on_mark_unread && (
+                  {on_mark_unread && !hide_mail_actions && (
                     <DropdownMenuItem onClick={on_mark_unread}>
                       <EnvelopeIcon className="w-4 h-4 mr-2" />
                       {t("mail.mark_as_unread")}
                     </DropdownMenuItem>
                   )}
-                  {!advanced_toolbar && on_toggle_star && (
+                  {!advanced_toolbar && !hide_mail_actions && on_toggle_star && (
                     <DropdownMenuItem onClick={on_toggle_star}>
                       <StarIcon className="w-4 h-4 mr-2" />
                       {t("common.star_selected")}
@@ -650,13 +661,14 @@ export function InboxHeader({
                   {!advanced_toolbar &&
                     !is_trash_view &&
                     !is_spam_view &&
+                    !hide_mail_actions &&
                     on_spam && (
                       <DropdownMenuItem onClick={on_spam}>
                         <ShieldExclamationIcon className="w-4 h-4 mr-2" />
                         {t("mail.report_spam")}
                       </DropdownMenuItem>
                     )}
-                  {!advanced_toolbar && on_snooze && (
+                  {!advanced_toolbar && !hide_mail_actions && on_snooze && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuLabel>
@@ -701,6 +713,7 @@ export function InboxHeader({
                   )}
                   {!advanced_toolbar &&
                     !is_native &&
+                    !hide_mail_actions &&
                     tags.length > 0 &&
                     on_tag_toggle && (
                       <>

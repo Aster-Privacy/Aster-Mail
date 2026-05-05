@@ -146,14 +146,20 @@ export function SandboxedEmailRenderer({
   const literal_plain_text =
     (is_literal_plain_text ?? is_plain_text) && !has_block_html;
   const has_table_layout = /<table\b/i.test(sanitized_html);
+  const has_newsletter_layout = has_table_layout && (
+    /style\s*=\s*["'][^"']*width\s*:\s*[456789]\d{2}px/i.test(sanitized_html) ||
+    /<table[^>]*(?:width|bgcolor|background)\s*=/i.test(sanitized_html) ||
+    (sanitized_html.match(/<table\b/gi)?.length ?? 0) > 2
+  );
   const plain_bg = "transparent";
   const plain_text_color = force_dark_mode
     ? "#e5e5e5"
     : is_dark_theme
       ? "#e5e5e5"
       : "#111827";
-  const html_text_color = force_dark_mode ? "#e5e5e5" : "#111827";
-  const html_bg = force_dark_mode
+  const simple_dark_html = is_dark_theme && !force_dark_mode && is_html_email && !has_newsletter_layout;
+  const html_text_color = force_dark_mode || simple_dark_html ? "#e5e5e5" : "#111827";
+  const html_bg = force_dark_mode || simple_dark_html
     ? "transparent"
     : body_background || "transparent";
   const base_font =
@@ -164,7 +170,7 @@ export function SandboxedEmailRenderer({
 .aster-quoted-content { border-left-color: #60a5fa !important; }`;
 
   const plain_dark_css =
-    is_dark_theme && !force_dark_mode && !is_html_email
+    is_dark_theme && !force_dark_mode && (!is_html_email || simple_dark_html)
       ? `html { color-scheme: dark !important; }
 html, body { background-color: transparent !important; color: ${plain_text_color} !important; }
 body * { color: inherit !important; }
@@ -172,7 +178,7 @@ a, a * { color: #60a5fa !important; }`
       : "";
   const dark_mode_css = force_dark_mode ? FORCED_DARK_MODE_CSS : plain_dark_css;
 
-  const force_light_scheme = is_html_email && !force_dark_mode;
+  const force_light_scheme = is_html_email && !force_dark_mode && !simple_dark_html;
 
   const simple_html = is_html_email && !has_table_layout;
   const html_body_style = simple_html
@@ -183,7 +189,7 @@ a, a * { color: #60a5fa !important; }`
   const iframe_css = EMAIL_BODY_CSS;
 
   const html_el_style =
-    is_html_email && !force_dark_mode
+    is_html_email && !force_dark_mode && !simple_dark_html
       ? ` style="background-color:${html_bg}"`
       : "";
 

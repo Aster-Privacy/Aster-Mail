@@ -2288,6 +2288,8 @@ export interface SettingsTranslations {
   allowlist_popup_description: string;
   entire_domain: string;
   no_allowed_senders: string;
+  failed_to_load_allowlist: string;
+  failed_to_load_blocklist: string;
   add_senders_allowlist_hint: string;
   allow_sender: string;
   sender_added_to_allowlist: string;
@@ -3006,6 +3008,7 @@ export interface MailTranslations {
   archive_subtitle: string;
   trash_subtitle: string;
   trash_auto_delete_notice: string;
+  spam_auto_delete_notice: string;
   compose_email: string;
   one_hour_option: string;
   twenty_four_hours_option: string;

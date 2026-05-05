@@ -385,7 +385,7 @@ export function ThreadMessageBlock({
     );
   }
 
-  if (!is_expanded) {
+  if (!is_expanded && !is_last_in_thread && !is_single_message) {
     return (
       <div
         className={`group flex cursor-pointer select-none gap-3 px-4 py-3 hover:bg-surf-hover/20 ${hide_bottom_border ? "" : "border-b border-[var(--border-thread-divider)]"}`}

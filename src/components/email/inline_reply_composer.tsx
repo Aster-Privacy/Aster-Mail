@@ -332,7 +332,7 @@ export const InlineReplyComposer = forwardRef<
   );
 
   const reply_sender_field = is_reply_mode ? (
-    <div className="px-4 pt-1 pb-1 flex-shrink-0 overflow-visible relative z-20">
+    <div className="px-4 pt-1 pb-1 flex-shrink-0 relative z-20">
       <div className="flex items-center gap-2 py-1.5">
         <span className="text-sm flex-shrink-0 text-txt-tertiary">
           {t("common.from_label")}
@@ -348,7 +348,7 @@ export const InlineReplyComposer = forwardRef<
 
   const forward_fields =
     inline_mode === "forward" ? (
-      <div className="px-4 pt-1 pb-1 flex-shrink-0 overflow-visible relative z-20">
+      <div className="px-4 pt-1 pb-1 min-h-0 overflow-y-auto relative z-20">
         <div className="flex items-center gap-2 py-1.5">
           <span className="text-sm flex-shrink-0 text-txt-tertiary">
             {t("common.from_label")}

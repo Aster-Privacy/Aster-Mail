@@ -24,6 +24,8 @@ import {
   PlusIcon,
   TrashIcon,
   MagnifyingGlassIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
@@ -50,6 +52,7 @@ export function BlockedSection() {
   >([]);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [is_loading, set_is_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [is_unblocking, set_is_unblocking] = useState(false);
   const [search_query, set_search_query] = useState("");
   const [show_add_form, set_show_add_form] = useState(false);
@@ -75,12 +78,17 @@ export function BlockedSection() {
   };
 
   const fetch_blocked_senders = useCallback(async () => {
+    set_load_error(false);
     try {
       const result = await list_blocked_senders();
 
       if (result.data) {
         set_blocked_senders(result.data);
+      } else {
+        set_load_error(true);
       }
+    } catch {
+      set_load_error(true);
     } finally {
       set_is_loading(false);
     }
@@ -300,7 +308,26 @@ export function BlockedSection() {
         </div>
       )}
 
-      {blocked_senders.length === 0 ? (
+      {load_error && blocked_senders.length === 0 ? (
+        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+          <ExclamationTriangleIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
+          <p className="text-sm text-txt-muted">
+            {t("settings.failed_to_load_blocklist")}
+          </p>
+          <Button
+            className="mt-3 gap-2"
+            size="md"
+            variant="ghost"
+            onClick={() => {
+              set_is_loading(true);
+              fetch_blocked_senders();
+            }}
+          >
+            <ArrowPathIcon className="w-4 h-4" />
+            {t("common.retry")}
+          </Button>
+        </div>
+      ) : blocked_senders.length === 0 ? (
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
           <NoSymbolIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
           <p className="text-sm text-txt-muted">

@@ -24,10 +24,15 @@ import { use_i18n } from "@/lib/i18n/context";
 
 interface TrashBannerProps {
   retention_days?: number;
+  view?: "trash" | "spam";
 }
 
-export function TrashBanner({ retention_days = 30 }: TrashBannerProps) {
+export function TrashBanner({ retention_days = 30, view = "trash" }: TrashBannerProps) {
   const { t } = use_i18n();
+
+  const message_key = view === "spam"
+    ? "mail.spam_auto_delete_notice"
+    : "mail.trash_auto_delete_notice";
 
   return (
     <div
@@ -39,7 +44,7 @@ export function TrashBanner({ retention_days = 30 }: TrashBannerProps) {
     >
       <InformationCircleIcon className="w-5 h-5 flex-shrink-0" />
       <p className="text-xs">
-        {t("mail.trash_auto_delete_notice", { days: retention_days })}
+        {t(message_key, { days: retention_days })}
       </p>
     </div>
   );

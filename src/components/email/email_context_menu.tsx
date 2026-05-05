@@ -170,7 +170,7 @@ export function EmailContextMenu({
         {children}
       </ContextMenuTrigger>
       <ContextMenuContent className="w-56">
-        {on_reply && !is_sent && (
+        {on_reply && !is_sent && !is_drafts && !is_scheduled && (
           <ContextMenuItem
             disabled={loading_action === "reply"}
             onClick={() => handle_action("reply", on_reply)}
@@ -180,7 +180,7 @@ export function EmailContextMenu({
           </ContextMenuItem>
         )}
 
-        {on_forward && (
+        {on_forward && !is_drafts && !is_scheduled && (
           <ContextMenuItem
             disabled={loading_action === "forward"}
             onClick={() => handle_action("forward", on_forward)}
@@ -190,9 +190,9 @@ export function EmailContextMenu({
           </ContextMenuItem>
         )}
 
-        {(on_reply || on_forward) && !is_sent && <ContextMenuSeparator />}
+        {(on_reply || on_forward) && !is_sent && !is_drafts && !is_scheduled && <ContextMenuSeparator />}
 
-        {on_toggle_read && (
+        {on_toggle_read && !is_drafts && !is_scheduled && (
           <ContextMenuItem
             disabled={loading_action === "read"}
             onClick={() => handle_action("read", on_toggle_read)}
@@ -318,11 +318,11 @@ export function EmailContextMenu({
             </ContextMenuSub>
           )}
 
-        {((folders.length > 0 && on_folder_toggle) ||
-          (tags.length > 0 && on_tag_toggle) ||
+        {((folders.length > 0 && on_folder_toggle && !is_drafts && !is_scheduled) ||
+          (tags.length > 0 && on_tag_toggle && !is_drafts && !is_scheduled) ||
           (is_archive && on_move_to_inbox)) && <ContextMenuSeparator />}
 
-        {folders.length > 0 && on_folder_toggle && (
+        {folders.length > 0 && on_folder_toggle && !is_drafts && !is_scheduled && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
               <FolderPlusIcon className="mr-2 h-4 w-4" />
@@ -351,7 +351,7 @@ export function EmailContextMenu({
           </ContextMenuSub>
         )}
 
-        {tags.length > 0 && on_tag_toggle && (
+        {tags.length > 0 && on_tag_toggle && !is_drafts && !is_scheduled && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
               <TagIcon className="mr-2 h-4 w-4" />
@@ -392,7 +392,7 @@ export function EmailContextMenu({
 
         {(is_trash ||
           is_spam ||
-          (!is_trash && !is_spam && (on_archive || on_spam)) ||
+          (!is_trash && !is_spam && !is_drafts && !is_scheduled && (on_archive || on_spam)) ||
           on_delete) && <ContextMenuSeparator />}
 
         {is_trash && on_restore && (
@@ -415,7 +415,7 @@ export function EmailContextMenu({
           </ContextMenuItem>
         )}
 
-        {!is_trash && !is_spam && on_archive && !is_archive && (
+        {!is_trash && !is_spam && !is_drafts && !is_scheduled && on_archive && !is_archive && (
           <ContextMenuItem
             disabled={loading_action === "archive"}
             onClick={() => handle_action("archive", on_archive)}
@@ -425,7 +425,7 @@ export function EmailContextMenu({
           </ContextMenuItem>
         )}
 
-        {!is_trash && !is_spam && on_spam && (
+        {!is_trash && !is_spam && !is_drafts && !is_scheduled && on_spam && (
           <ContextMenuItem
             disabled={loading_action === "spam"}
             onClick={() => handle_action("spam", on_spam)}

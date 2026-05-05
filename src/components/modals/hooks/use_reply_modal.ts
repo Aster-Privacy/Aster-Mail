@@ -80,6 +80,27 @@ import { sanitize_html } from "@/lib/html_sanitizer";
 import { fetch_my_badges } from "@/services/api/user";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 
+function normalize_html_newlines(html: string): string {
+  let result = "";
+  let in_tag = false;
+
+  for (const ch of html) {
+    if (ch === "<") {
+      in_tag = true;
+      result += ch;
+    } else if (ch === ">") {
+      in_tag = false;
+      result += ch;
+    } else if (ch === "\n" && !in_tag) {
+      result += "<br>";
+    } else if (ch !== "\r") {
+      result += ch;
+    }
+  }
+
+  return result;
+}
+
 interface UseReplyModalProps {
   is_open: boolean;
   on_close: () => void;
@@ -712,9 +733,10 @@ export function use_reply_modal({
     };
 
     const quoted_content = build_quoted_content();
+    const trimmed_reply = reply_message.trim();
     const reply_body = is_plain_text_mode
-      ? reply_message.trim().replace(/\n/g, "<br>")
-      : reply_message.trim();
+      ? trimmed_reply.replace(/\n/g, "<br>")
+      : normalize_html_newlines(trimmed_reply);
     const message_with_signature = reply_body + quoted_content;
 
     if (selected_sender?.type === "external" && selected_sender.address_hash) {
@@ -931,9 +953,10 @@ export function use_reply_modal({
     set_error_message(null);
 
     const quoted_content = build_quoted_content();
+    const sched_trimmed = reply_message.trim();
     const sched_reply_body = is_plain_text_mode
-      ? reply_message.trim().replace(/\n/g, "<br>")
-      : reply_message.trim();
+      ? sched_trimmed.replace(/\n/g, "<br>")
+      : normalize_html_newlines(sched_trimmed);
     const message_with_signature = sched_reply_body + quoted_content;
 
     const content: ScheduledEmailContent = {
