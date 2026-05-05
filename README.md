@@ -1,6 +1,4 @@
-<img src="https://files.horizon.pics/53ad0c26-d6dd-4624-bc28-d797766a0169?a=2034&mime1=image&mime2=jpeg&region=eu-central" alt="Aster" width="200"/>
-
-<!-- Replace with header image: ![aster-mail-header](link-to-image) -->
+<img width="200" alt="aster_horizontalv2" src="https://github.com/user-attachments/assets/a337e975-996d-4672-a92b-b809591f389a" />
 
 # Aster Mail
 
