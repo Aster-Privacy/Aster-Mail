@@ -31,6 +31,12 @@ import { use_i18n } from "@/lib/i18n/context";
 import { type DraftWithContent } from "@/services/api/multi_drafts";
 import { is_system_email } from "@/lib/utils";
 import {
+  EmailTag,
+  hex_to_variant,
+  type TagIconName,
+} from "@/components/ui/email_tag";
+import { use_tags } from "@/hooks/use_tags";
+import {
   use_email_viewer,
   type ReplyData,
   type ForwardData,
@@ -93,6 +99,7 @@ export function FullEmailViewer({
 }: FullEmailViewerProps): React.ReactElement {
   const { t } = use_i18n();
   const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
+  const { get_tag_by_token } = use_tags();
   const viewer = use_email_viewer({
     email_id,
     local_email,
@@ -389,7 +396,7 @@ export function FullEmailViewer({
         )}
         {email && (
           <div className="py-4 sm:py-5">
-            <h1 className="px-4 sm:px-6 text-xl sm:text-2xl font-semibold text-txt-primary break-words mb-4">
+            <h1 className={`px-4 sm:px-6 text-xl sm:text-2xl font-semibold text-txt-primary break-words ${viewer.mail_item?.folders?.length || viewer.mail_item?.tag_tokens?.length ? "mb-2" : "mb-4"}`}>
               <span className="inline-flex items-center gap-1 mr-2" style={{ verticalAlign: "-0.15em" }}>
                 <EncryptionInfoDropdown
                   has_pq_protection={viewer.has_pq_protection}
@@ -406,6 +413,36 @@ export function FullEmailViewer({
               </span>
               {email.subject}
             </h1>
+
+            {(viewer.mail_item?.folders?.length || viewer.mail_item?.tag_tokens?.length) ? (
+              <div className="px-4 sm:px-6 flex flex-wrap gap-1.5 mb-4">
+                {viewer.mail_item?.folders?.filter((f) => f.name).map((folder) => (
+                  <EmailTag
+                    key={folder.token}
+                    className="flex-shrink-0"
+                    custom_color={folder.color}
+                    icon={(folder.icon as TagIconName) || "folder"}
+                    label={folder.name}
+                    variant={folder.color ? hex_to_variant(folder.color) : "neutral"}
+                  />
+                ))}
+                {viewer.mail_item?.tag_tokens?.map((token) => {
+                  const tag = get_tag_by_token(token);
+                  if (!tag?.name) return null;
+                  return (
+                    <EmailTag
+                      key={token}
+                      className="flex-shrink-0"
+                      custom_color={tag.color}
+                      icon={tag.icon as TagIconName}
+                      label={tag.name}
+                      show_icon={!!tag.icon}
+                      variant={tag.color ? hex_to_variant(tag.color) : "neutral"}
+                    />
+                  );
+                })}
+              </div>
+            ) : null}
 
             <ViewerThreadContent
               current_user_email={viewer.current_user_email}
