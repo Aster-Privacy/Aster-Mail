@@ -151,13 +151,14 @@ export function SandboxedEmailRenderer({
     /<table[^>]*(?:width|bgcolor|background)\s*=/i.test(sanitized_html) ||
     (sanitized_html.match(/<table\b/gi)?.length ?? 0) > 2
   );
+  const declares_light_scheme = /color-scheme\s*:\s*light\s+only/i.test(sanitized_html);
   const plain_bg = "transparent";
   const plain_text_color = force_dark_mode
     ? "#e5e5e5"
     : is_dark_theme
       ? "#e5e5e5"
       : "#111827";
-  const simple_dark_html = is_dark_theme && !force_dark_mode && is_html_email && !has_newsletter_layout;
+  const simple_dark_html = is_dark_theme && !force_dark_mode && is_html_email && !has_newsletter_layout && !declares_light_scheme;
   const html_text_color = force_dark_mode || simple_dark_html ? "#e5e5e5" : "#111827";
   const html_bg = force_dark_mode || simple_dark_html
     ? "transparent"

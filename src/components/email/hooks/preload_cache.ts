@@ -24,7 +24,11 @@ import type {
   ExternalContentReport,
   SanitizeResult,
 } from "@/lib/html_sanitizer";
-import type { ThreadReplySentEventDetail } from "@/hooks/mail_events";
+import type {
+  ThreadReplySentEventDetail,
+  ThreadReplyOptimisticEventDetail,
+  ThreadReplyCancelledEventDetail,
+} from "@/hooks/mail_events";
 
 import { get_email_username, is_system_email } from "@/lib/utils";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
@@ -199,6 +203,59 @@ window.addEventListener(MAIL_EVENTS.THREAD_REPLY_SENT, ((
       event.detail.thread_token,
       event.detail.original_email_id,
     );
+  }
+}) as EventListener);
+
+window.addEventListener(MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC, ((
+  event: CustomEvent<ThreadReplyOptimisticEventDetail>,
+) => {
+  const detail = event.detail;
+  if (!detail) return;
+
+  const optimistic_msg: DecryptedThreadMessage = {
+    id: detail.optimistic_id,
+    item_type: "sent",
+    sender_name: detail.sender_name,
+    sender_email: detail.sender_email,
+    subject: detail.subject,
+    body: detail.body,
+    timestamp: new Date().toISOString(),
+    is_read: true,
+    is_starred: false,
+    is_deleted: false,
+    is_external: false,
+    to_recipients: detail.to_recipients,
+  };
+
+  for (const [key, cached] of preload_cache.entries()) {
+    if (
+      cached.mail_item.thread_token === detail.thread_token ||
+      (detail.original_email_id && key === detail.original_email_id)
+    ) {
+      const already_has = cached.thread_messages.some((m) => m.id === detail.optimistic_id);
+      if (!already_has) {
+        preload_cache.set(key, {
+          ...cached,
+          thread_messages: [...cached.thread_messages, optimistic_msg],
+        });
+      }
+    }
+  }
+}) as EventListener);
+
+window.addEventListener(MAIL_EVENTS.THREAD_REPLY_CANCELLED, ((
+  event: CustomEvent<ThreadReplyCancelledEventDetail>,
+) => {
+  const detail = event.detail;
+  if (!detail) return;
+
+  for (const [key, cached] of preload_cache.entries()) {
+    if (cached.mail_item.thread_token === detail.thread_token) {
+      preload_cache.set(key, {
+        ...cached,
+        thread_messages: cached.thread_messages.filter((m) => m.id !== detail.optimistic_id),
+      });
+    }
   }
 }) as EventListener);
 

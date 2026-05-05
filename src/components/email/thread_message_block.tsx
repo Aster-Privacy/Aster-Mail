@@ -990,8 +990,8 @@ export function ThreadMessageBlock({
 
       </div>
 
-      {!show_inline_reply && (is_single_message || is_last_in_thread) && (
-        <div className="sticky bottom-0 bg-[var(--bg-primary)] z-10" onClick={(e) => e.stopPropagation()}>
+      {!show_inline_reply && (
+        <div className={`${is_single_message || is_last_in_thread ? "sticky bottom-0 z-10" : ""} bg-[var(--bg-primary)]`} onClick={(e) => e.stopPropagation()}>
           <ThreadMessageActions
             message={message}
             on_forward={on_forward}

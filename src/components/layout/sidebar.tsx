@@ -592,7 +592,7 @@ export const Sidebar = ({
               }
             >
               <div
-                className={`${is_collapsed ? "w-8 h-8" : "w-9 h-9"} flex-shrink-0 relative`}
+                className={`${is_collapsed ? "w-10 h-10" : "w-11 h-11"} flex-shrink-0 relative`}
               >
                 {!mail_logo_loaded && (
                   <Skeleton className="absolute inset-0 rounded-lg" />

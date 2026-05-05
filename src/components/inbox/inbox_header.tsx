@@ -293,7 +293,7 @@ export function InboxHeader({
                   />
                 </div>
               </Tooltip>
-              {on_select_by_filter && (
+              {on_select_by_filter && !hide_mail_actions && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
@@ -634,7 +634,7 @@ export function InboxHeader({
                   </DropdownMenu>
                 )}
 
-              <DropdownMenu>
+              {!hide_mail_actions && <DropdownMenu>
                 <Tooltip tip={t("common.more")}>
                   <DropdownMenuTrigger asChild>
                     <button
@@ -754,7 +754,7 @@ export function InboxHeader({
                       : t("common.advanced_toolbar")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu>
+              </DropdownMenu>}
             </div>
           </div>
         )}
