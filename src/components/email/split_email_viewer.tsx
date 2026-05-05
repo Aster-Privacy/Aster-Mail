@@ -403,53 +403,50 @@ export function SplitEmailViewer({
         )}
         {email && (
           <div className="py-2 @md:py-3">
-            <h1 className={`px-3 @md:px-4 text-base @md:text-lg @2xl:text-xl font-semibold text-txt-primary break-words ${viewer.mail_item?.folders?.length || viewer.mail_item?.tag_tokens?.length ? "mb-1" : "mb-3"}`}>
-              <span className="inline-flex items-center gap-1 mr-1.5" style={{ verticalAlign: "-0.15em" }}>
-                <EncryptionInfoDropdown
-                  has_pq_protection={viewer.has_pq_protection}
-                  has_recipient_key={viewer.has_recipient_key}
-                  is_external={viewer.is_external}
-                  size={18}
-                />
-                {external_content_state.report && (
-                  <TrackingProtectionShield
-                    report={external_content_state.report}
+            <div className="px-3 @md:px-4 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-3">
+              <h1 className="text-base @md:text-lg @2xl:text-xl font-semibold text-txt-primary break-words">
+                <span className="inline-flex items-center gap-1 mr-1.5" style={{ verticalAlign: "-0.15em" }}>
+                  <EncryptionInfoDropdown
+                    has_pq_protection={viewer.has_pq_protection}
+                    has_recipient_key={viewer.has_recipient_key}
+                    is_external={viewer.is_external}
                     size={18}
                   />
-                )}
-              </span>
-              {email.subject}
-            </h1>
-
-            {(viewer.mail_item?.folders?.length || viewer.mail_item?.tag_tokens?.length) ? (
-              <div className="px-3 @md:px-4 flex flex-wrap gap-1.5 mb-3">
-                {viewer.mail_item?.folders?.filter((f) => f.name).map((folder) => (
-                  <EmailTag
-                    key={folder.token}
-                    className="flex-shrink-0"
-                    custom_color={folder.color}
-                    icon={(folder.icon as TagIconName) || "folder"}
-                    label={folder.name}
-                    variant={folder.color ? hex_to_variant(folder.color) : "neutral"}
-                  />
-                ))}
-                {viewer.mail_item?.tag_tokens?.map((token) => {
-                  const tag = get_tag_by_token(token);
-                  if (!tag?.name) return null;
-                  return (
-                    <EmailTag
-                      key={token}
-                      className="flex-shrink-0"
-                      custom_color={tag.color}
-                      icon={tag.icon as TagIconName}
-                      label={tag.name}
-                      show_icon={!!tag.icon}
-                      variant={tag.color ? hex_to_variant(tag.color) : "neutral"}
+                  {external_content_state.report && (
+                    <TrackingProtectionShield
+                      report={external_content_state.report}
+                      size={18}
                     />
-                  );
-                })}
-              </div>
-            ) : null}
+                  )}
+                </span>
+                {email.subject}
+              </h1>
+              {viewer.mail_item?.folders?.filter((f) => f.name).map((folder) => (
+                <EmailTag
+                  key={folder.token}
+                  className="flex-shrink-0"
+                  custom_color={folder.color}
+                  icon={(folder.icon as TagIconName) || "folder"}
+                  label={folder.name}
+                  variant={folder.color ? hex_to_variant(folder.color) : "neutral"}
+                />
+              ))}
+              {viewer.mail_item?.tag_tokens?.map((token) => {
+                const tag = get_tag_by_token(token);
+                if (!tag?.name) return null;
+                return (
+                  <EmailTag
+                    key={token}
+                    className="flex-shrink-0"
+                    custom_color={tag.color}
+                    icon={tag.icon as TagIconName}
+                    label={tag.name}
+                    show_icon={!!tag.icon}
+                    variant={tag.color ? hex_to_variant(tag.color) : "neutral"}
+                  />
+                );
+              })}
+            </div>
 
             <ViewerThreadContent
               current_user_email={viewer.current_user_email}

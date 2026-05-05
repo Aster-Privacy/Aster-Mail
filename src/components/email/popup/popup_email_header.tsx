@@ -38,6 +38,12 @@ import { EncryptionInfoDropdown } from "@/components/common/encryption_info_drop
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
+import {
+  EmailTag,
+  hex_to_variant,
+  type TagIconName,
+} from "@/components/ui/email_tag";
+import { use_tags } from "@/hooks/use_tags";
 
 interface PopupEmailHeaderProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -67,6 +73,7 @@ export function PopupEmailHeader({
   tracking_report,
 }: PopupEmailHeaderProps) {
   const [show_headers, set_show_headers] = useState(false);
+  const { get_tag_by_token } = use_tags();
 
   return (
     <>
@@ -82,9 +89,36 @@ export function PopupEmailHeader({
             <TrackingProtectionShield report={tracking_report} size={20} />
           )}
         </div>
-        <h1 className="text-lg font-semibold leading-snug flex-1 break-words min-w-0 text-txt-primary">
-          {email.subject}
-        </h1>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 flex-1 min-w-0">
+          <h1 className="text-lg font-semibold leading-snug break-words text-txt-primary">
+            {email.subject}
+          </h1>
+          {mail_item?.folders?.filter((f) => f.name).map((folder) => (
+            <EmailTag
+              key={folder.token}
+              className="flex-shrink-0"
+              custom_color={folder.color}
+              icon={(folder.icon as TagIconName) || "folder"}
+              label={folder.name}
+              variant={folder.color ? hex_to_variant(folder.color) : "neutral"}
+            />
+          ))}
+          {mail_item?.tag_tokens?.map((token) => {
+            const tag = get_tag_by_token(token);
+            if (!tag?.name) return null;
+            return (
+              <EmailTag
+                key={token}
+                className="flex-shrink-0"
+                custom_color={tag.color}
+                icon={tag.icon as TagIconName}
+                label={tag.name}
+                show_icon={!!tag.icon}
+                variant={tag.color ? hex_to_variant(tag.color) : "neutral"}
+              />
+            );
+          })}
+        </div>
         {email.expires_at && (
           <ExpirationCountdown expires_at={email.expires_at} size="sm" />
         )}
