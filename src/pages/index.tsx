@@ -313,6 +313,11 @@ export default function IndexPage() {
                 ? state.email_grouped_ids_map[state.popup_email_id]
                 : undefined
             }
+            label_hints={
+              state.popup_email_id
+                ? state.email_label_hints_map[state.popup_email_id]
+                : undefined
+            }
             local_email={state.preview_local_email ?? undefined}
             on_close={state.handle_popup_close}
             on_forward={state.handle_popup_forward}

@@ -27,6 +27,7 @@ import { useNavigate } from "react-router-dom";
 import { useMemo, useCallback, useEffect } from "react";
 
 import { set_recipient_hint } from "@/stores/recipient_hint_store";
+import { set_label_hints } from "@/stores/label_hints_store";
 
 interface ScheduledEmail {
   id: string;
@@ -55,6 +56,7 @@ interface UseInboxNavigationOptions {
     snooze_info?: Record<string, string | undefined>,
     grouped_ids_map?: Record<string, string[] | undefined>,
     subject_map?: Record<string, string>,
+    label_hints_map?: Record<string, { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] | undefined>,
   ) => void;
 }
 
@@ -85,6 +87,7 @@ export function use_inbox_navigation({
       const snooze_info: Record<string, string | undefined> = {};
       const grouped_ids_map: Record<string, string[] | undefined> = {};
       const subject_map: Record<string, string> = {};
+      const label_hints_map: Record<string, { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] | undefined> = {};
 
       all_visible.forEach((e) => {
         if (e.snoozed_until) {
@@ -96,12 +99,24 @@ export function use_inbox_navigation({
         if (e.subject) {
           subject_map[e.id] = e.subject;
         }
+        const hints: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] = [];
+        for (const f of e.folders ?? []) {
+          if (f.name) hints.push({ token: f.folder_token, name: f.name, color: f.color, icon: f.icon, show_icon: true });
+        }
+        for (const tag of e.tags ?? []) {
+          if (tag.name) hints.push({ token: tag.id, name: tag.name, color: tag.color, icon: tag.icon, show_icon: true });
+        }
+        if (hints.length > 0) {
+          label_hints_map[e.id] = hints;
+          set_label_hints(e.id, hints);
+        }
       });
       on_email_list_change(
         all_visible.map((e) => e.id),
         snooze_info,
         grouped_ids_map,
         subject_map,
+        label_hints_map,
       );
     }
   }, [pinned_emails, primary_emails, on_email_list_change]);

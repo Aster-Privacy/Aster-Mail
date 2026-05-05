@@ -96,6 +96,7 @@ export interface EmailInboxProps {
     snooze_info?: Record<string, string | undefined>,
     grouped_ids_map?: Record<string, string[] | undefined>,
     subject_map?: Record<string, string>,
+    label_hints_map?: Record<string, { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] | undefined>,
   ) => void;
   on_search_click?: () => void;
   on_search_result_click?: (id: string) => void;

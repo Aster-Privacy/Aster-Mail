@@ -28,6 +28,7 @@ import { TrackingProtectionShield } from "@/components/email/tracking_protection
 import { get_cached_iframe_height } from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { use_i18n } from "@/lib/i18n/context";
+import { useMemo } from "react";
 import { type DraftWithContent } from "@/services/api/multi_drafts";
 import { is_system_email } from "@/lib/utils";
 import {
@@ -49,6 +50,7 @@ import {
   set_external_content_mode,
 } from "@/components/email/viewer_shared";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import { get_label_hints } from "@/stores/label_hints_store";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
   persist_unsubscribe,
@@ -77,6 +79,7 @@ interface FullEmailViewerProps {
   grouped_email_ids?: string[];
   folders?: { id: string; name: string; color: string }[];
   on_folder_toggle?: (folder_id: string) => void;
+  label_hints?: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[];
 }
 
 export function FullEmailViewer({
@@ -96,6 +99,7 @@ export function FullEmailViewer({
   grouped_email_ids,
   folders,
   on_folder_toggle,
+  label_hints,
 }: FullEmailViewerProps): React.ReactElement {
   const { t } = use_i18n();
   const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
@@ -110,6 +114,30 @@ export function FullEmailViewer({
     use_refresh_listener: !local_email,
     grouped_email_ids,
   });
+
+  const label_chips = useMemo(() => {
+    const seen = new Set<string>();
+    const from_item: { token: string; name: string; color?: string; icon?: string; show_icon: boolean }[] = [];
+    for (const f of [...(viewer.mail_item?.labels ?? []), ...(viewer.mail_item?.folders ?? [])]) {
+      if (f.name && !seen.has(f.token)) {
+        seen.add(f.token);
+        from_item.push({ token: f.token, name: f.name, color: f.color as string | undefined, icon: f.icon, show_icon: true });
+      }
+    }
+    for (const token of viewer.mail_item?.tag_tokens ?? []) {
+      const tag = get_tag_by_token(token);
+      if (tag?.name && !seen.has(token)) {
+        seen.add(token);
+        from_item.push({ token, name: tag.name, color: tag.color, icon: tag.icon, show_icon: true });
+      }
+    }
+    const store_hints = get_label_hints(email_id);
+    const resolved = from_item.length > 0 ? from_item : (label_hints?.length ? label_hints : store_hints);
+    if (viewer.email && is_system_email(viewer.email.sender_email)) {
+      return [{ token: "__system__", name: t("common.system"), color: "#3b82f6", icon: "info", show_icon: true }, ...resolved];
+    }
+    return resolved;
+  }, [viewer.mail_item?.labels, viewer.mail_item?.folders, viewer.mail_item?.tag_tokens, label_hints, get_tag_by_token, viewer.email, email_id, t]);
 
   const [content_ready, set_content_ready] = useState(
     () => !!get_cached_iframe_height(email_id),
@@ -414,31 +442,17 @@ export function FullEmailViewer({
                 </span>
                 {email.subject}
               </h1>
-              {viewer.mail_item?.labels?.filter((f) => f.name).map((folder) => (
+              {label_chips.map((chip) => (
                 <EmailTag
-                  key={folder.token}
+                  key={chip.token}
                   className="flex-shrink-0"
-                  custom_color={folder.color}
-                  icon={(folder.icon as TagIconName) || "folder"}
-                  label={folder.name}
-                  variant={folder.color ? hex_to_variant(folder.color) : "neutral"}
+                  custom_color={chip.color}
+                  icon={(chip.icon as TagIconName) || "folder"}
+                  label={chip.name}
+                  show_icon={chip.show_icon}
+                  variant={chip.color ? hex_to_variant(chip.color) : "neutral"}
                 />
               ))}
-              {viewer.mail_item?.tag_tokens?.map((token) => {
-                const tag = get_tag_by_token(token);
-                if (!tag?.name) return null;
-                return (
-                  <EmailTag
-                    key={token}
-                    className="flex-shrink-0"
-                    custom_color={tag.color}
-                    icon={tag.icon as TagIconName}
-                    label={tag.name}
-                    show_icon={!!tag.icon}
-                    variant={tag.color ? hex_to_variant(tag.color) : "neutral"}
-                  />
-                );
-              })}
             </div>
 
             <ViewerThreadContent

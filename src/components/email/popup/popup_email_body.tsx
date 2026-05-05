@@ -101,6 +101,7 @@ interface PopupEmailBodyProps {
     content: DraftContent;
   } | null;
   thread_token?: string;
+  label_hints?: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[];
 }
 
 export function PopupEmailBody({
@@ -136,6 +137,7 @@ export function PopupEmailBody({
   on_draft_saved,
   existing_draft,
   thread_token,
+  label_hints,
 }: PopupEmailBodyProps) {
   const { preferences } = use_preferences();
   const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
@@ -264,6 +266,7 @@ export function PopupEmailBody({
             email={email}
             format_email_popup={format_email_popup}
             is_fullscreen={is_fullscreen}
+            label_hints={label_hints}
             mail_item={mail_item}
             on_close={on_close}
             on_compose={on_compose}

@@ -831,6 +831,20 @@ export function EmailInbox({
     return email_state.emails.find((e) => e.id === split_email_id)
       ?.grouped_email_ids;
   }, [split_email_id, email_state.emails]);
+  const split_email_label_hints = useMemo(() => {
+    if (!split_email_id) return undefined;
+    const found = filtered_emails.find((e) => e.id === split_email_id)
+      ?? email_state.emails.find((e) => e.id === split_email_id);
+    if (!found) return undefined;
+    const hints: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] = [];
+    for (const f of found.folders ?? []) {
+      if (f.name) hints.push({ token: f.folder_token, name: f.name, color: f.color, icon: f.icon, show_icon: true });
+    }
+    for (const tag of found.tags ?? []) {
+      if (tag.name) hints.push({ token: tag.id, name: tag.name, color: tag.color, icon: tag.icon, show_icon: true });
+    }
+    return hints.length > 0 ? hints : undefined;
+  }, [split_email_id, filtered_emails, email_state.emails]);
   const viewer_folders = useMemo(
     () =>
       folders_state.folders.map((f) => ({
@@ -1104,6 +1118,7 @@ export function EmailInbox({
               email_id={split_email_id}
               folders={viewer_folders}
               grouped_email_ids={split_email_grouped_ids}
+              label_hints={split_email_label_hints}
               local_email={split_local_email ?? undefined}
               on_back={on_split_close || (() => {})}
               on_edit_draft={handle_edit_thread_draft}
@@ -1167,6 +1182,7 @@ export function EmailInbox({
                   email_id={split_email_id}
                   folders={viewer_folders}
                   grouped_email_ids={split_email_grouped_ids}
+                  label_hints={split_email_label_hints}
                   local_email={split_local_email ?? undefined}
                   on_close={on_split_close || (() => {})}
                   on_folder_toggle={handle_viewer_folder_toggle}

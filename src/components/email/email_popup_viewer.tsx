@@ -39,6 +39,7 @@ export function EmailPopupViewer({
   on_compose,
   snoozed_until,
   grouped_email_ids,
+  label_hints,
 }: EmailPopupViewerProps) {
   const reduce_motion = use_should_reduce_motion();
 
@@ -176,6 +177,7 @@ export function EmailPopupViewer({
         thread_messages={viewer.thread_messages}
         thread_token={viewer.mail_item?.thread_token}
         timestamp_date={viewer.timestamp_date}
+        label_hints={label_hints}
       />
     </motion.div>
   );

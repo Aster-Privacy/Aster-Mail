@@ -93,6 +93,7 @@ export interface EmailPopupViewerProps {
   total_count?: number;
   snoozed_until?: string;
   grouped_email_ids?: string[];
+  label_hints?: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[];
 }
 
 export type PopupSize = "default" | "expanded" | "fullscreen";

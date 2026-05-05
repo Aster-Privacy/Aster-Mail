@@ -231,6 +231,9 @@ export function use_index_page_state() {
   const [email_grouped_ids_map, set_email_grouped_ids_map] = useState<
     Record<string, string[] | undefined>
   >({});
+  const [email_label_hints_map, set_email_label_hints_map] = useState<
+    Record<string, { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] | undefined>
+  >({});
 
   const [is_search_open, set_is_search_open] = useState(false);
   const [active_search_query, set_active_search_query] = useState<
@@ -256,6 +259,7 @@ export function use_index_page_state() {
       snooze_info?: Record<string, string | undefined>,
       grouped_ids_map?: Record<string, string[] | undefined>,
       subject_map?: Record<string, string>,
+      label_hints_map?: Record<string, { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] | undefined>,
     ) => {
       set_visible_email_ids(ids);
       if (snooze_info) {
@@ -266,6 +270,9 @@ export function use_index_page_state() {
       }
       if (subject_map) {
         set_email_subject_map(subject_map);
+      }
+      if (label_hints_map) {
+        set_email_label_hints_map(label_hints_map);
       }
     },
     [],
@@ -1083,6 +1090,7 @@ export function use_index_page_state() {
     visible_email_ids,
     email_snooze_map,
     email_grouped_ids_map,
+    email_label_hints_map,
     is_search_open,
     set_is_search_open,
     active_search_query,

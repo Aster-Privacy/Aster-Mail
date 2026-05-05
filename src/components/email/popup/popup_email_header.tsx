@@ -24,7 +24,7 @@ import type { MailItem } from "@/services/api/mail";
 import type { DecryptedEmail } from "@/components/email/hooks/use_popup_viewer";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -44,6 +44,8 @@ import {
   type TagIconName,
 } from "@/components/ui/email_tag";
 import { use_tags } from "@/hooks/use_tags";
+import { is_system_email } from "@/lib/utils";
+import { get_label_hints } from "@/stores/label_hints_store";
 
 interface PopupEmailHeaderProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -57,6 +59,7 @@ interface PopupEmailHeaderProps {
   on_close: () => void;
   on_compose?: (email: string) => void;
   tracking_report?: ExternalContentReport | null;
+  label_hints?: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[];
 }
 
 export function PopupEmailHeader({
@@ -71,9 +74,33 @@ export function PopupEmailHeader({
   on_close,
   on_compose,
   tracking_report,
+  label_hints,
 }: PopupEmailHeaderProps) {
   const [show_headers, set_show_headers] = useState(false);
   const { get_tag_by_token } = use_tags();
+  const label_chips = useMemo(() => {
+    const seen = new Set<string>();
+    const from_item: { token: string; name: string; color?: string; icon?: string; show_icon: boolean }[] = [];
+    for (const f of [...(mail_item?.labels ?? []), ...(mail_item?.folders ?? [])]) {
+      if (f.name && !seen.has(f.token)) {
+        seen.add(f.token);
+        from_item.push({ token: f.token, name: f.name, color: f.color as string | undefined, icon: f.icon, show_icon: true });
+      }
+    }
+    for (const token of mail_item?.tag_tokens ?? []) {
+      const tag = get_tag_by_token(token);
+      if (tag?.name && !seen.has(token)) {
+        seen.add(token);
+        from_item.push({ token, name: tag.name, color: tag.color, icon: tag.icon, show_icon: true });
+      }
+    }
+    const store_hints = get_label_hints(mail_item?.id ?? email.id);
+    const resolved = from_item.length > 0 ? from_item : (label_hints?.length ? label_hints : store_hints);
+    if (is_system_email(email.sender_email)) {
+      return [{ token: "__system__", name: t("common.system"), color: "#3b82f6", icon: "info", show_icon: true }, ...resolved];
+    }
+    return resolved;
+  }, [mail_item?.labels, mail_item?.folders, mail_item?.tag_tokens, mail_item?.id, label_hints, get_tag_by_token, email.id, email.sender_email, t]);
 
   return (
     <>
@@ -93,31 +120,17 @@ export function PopupEmailHeader({
           <h1 className="text-lg font-semibold leading-snug break-words text-txt-primary">
             {email.subject}
           </h1>
-          {mail_item?.labels?.filter((f) => f.name).map((folder) => (
+          {label_chips.map((chip) => (
             <EmailTag
-              key={folder.token}
+              key={chip.token}
               className="flex-shrink-0"
-              custom_color={folder.color}
-              icon={(folder.icon as TagIconName) || "folder"}
-              label={folder.name}
-              variant={folder.color ? hex_to_variant(folder.color) : "neutral"}
+              custom_color={chip.color}
+              icon={(chip.icon as TagIconName) || "folder"}
+              label={chip.name}
+              show_icon={chip.show_icon}
+              variant={chip.color ? hex_to_variant(chip.color) : "neutral"}
             />
           ))}
-          {mail_item?.tag_tokens?.map((token) => {
-            const tag = get_tag_by_token(token);
-            if (!tag?.name) return null;
-            return (
-              <EmailTag
-                key={token}
-                className="flex-shrink-0"
-                custom_color={tag.color}
-                icon={tag.icon as TagIconName}
-                label={tag.name}
-                show_icon={!!tag.icon}
-                variant={tag.color ? hex_to_variant(tag.color) : "neutral"}
-              />
-            );
-          })}
         </div>
         {email.expires_at && (
           <ExpirationCountdown expires_at={email.expires_at} size="sm" />
