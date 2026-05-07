@@ -179,7 +179,6 @@ export function use_context_menu_actions({
 
         if (succeeded) {
           adjust_trash_count(-all_ids.length);
-          invalidate_mail_stats();
           emit_mail_items_removed({ ids: all_ids });
           show_action_toast({
             message:
@@ -193,6 +192,7 @@ export function use_context_menu_actions({
           });
         } else {
           update_email(email.id, email);
+          invalidate_mail_stats();
         }
 
         return;

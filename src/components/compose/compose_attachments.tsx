@@ -604,12 +604,14 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
           ref={compose.message_textarea_ref}
           contentEditable
           suppressContentEditableWarning
-          className="w-full h-full text-sm leading-relaxed border-none outline-none bg-transparent text-txt-primary"
+          className="w-full h-full text-sm leading-relaxed border-none outline-none"
           data-placeholder={resolved_placeholder}
           style={{
             minHeight: "150px",
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
+            backgroundColor: "#ffffff",
+            color: "#000000",
           }}
           onBlur={compose.handle_editor_input}
           onDragOver={compose.editor.handle_drag_over}
@@ -625,7 +627,7 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
       <style>{`
         [contenteditable=true]:empty:before {
           content: attr(data-placeholder);
-          color: var(--text-muted);
+          color: #9ca3af;
           pointer-events: none;
         }
         [contenteditable=true] img {

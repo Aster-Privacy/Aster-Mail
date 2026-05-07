@@ -39,9 +39,15 @@ class ConnectionStore {
   private state: ConnectionState = { ...DEFAULT_CONNECTION_STATE };
   private listeners: Set<ConnectionListener> = new Set();
   private sync_in_progress_count: number = 0;
+  private has_explicit_local_method: boolean = false;
 
   async initialize(): Promise<void> {
-    const method = await this.load_persisted_method();
+    const raw_method = await this.load_persisted_value(STORAGE_KEY);
+    const is_valid = (v: string | null): v is ConnectionMethod =>
+      v === "direct" || v === "tor" || v === "tor_snowflake" || v === "cdn_relay";
+    this.has_explicit_local_method = is_valid(raw_method);
+    const method: ConnectionMethod = this.has_explicit_local_method ? (raw_method as ConnectionMethod) : "direct";
+
     const cdn_relay_url = await this.load_persisted_value(CDN_RELAY_URL_KEY);
     const api_onion_url = await this.load_persisted_value(ONION_API_KEY);
     const mail_onion_url = await this.load_persisted_value(ONION_MAIL_KEY);
@@ -65,11 +71,16 @@ class ConnectionStore {
       const server_method = await this.load_method_from_server();
 
       if (server_method && server_method !== this.state.method) {
-        this.state.method = server_method;
-        this.state.status =
-          server_method === "direct" ? "disconnected" : "connecting";
-        await this.persist_value(STORAGE_KEY, server_method);
-        this.notify_listeners();
+        if (this.has_explicit_local_method) {
+          await this.sync_method_to_server(this.state.method).catch(() => {});
+        } else {
+          this.state.method = server_method;
+          this.state.status =
+            server_method === "direct" ? "disconnected" : "connecting";
+          await this.persist_value(STORAGE_KEY, server_method);
+          this.has_explicit_local_method = true;
+          this.notify_listeners();
+        }
 
         return;
       }
@@ -128,6 +139,7 @@ class ConnectionStore {
     this.state.method = method;
     this.state.status = method === "direct" ? "disconnected" : "connecting";
     this.state.error_message = null;
+    this.has_explicit_local_method = true;
     await this.persist_value(STORAGE_KEY, method);
     this.notify_listeners();
     this.sync_method_to_server(method).catch(() => {});
@@ -201,21 +213,6 @@ class ConnectionStore {
     } finally {
       this.sync_in_progress_count--;
     }
-  }
-
-  private async load_persisted_method(): Promise<ConnectionMethod> {
-    const value = await this.load_persisted_value(STORAGE_KEY);
-
-    if (
-      value === "direct" ||
-      value === "tor" ||
-      value === "tor_snowflake" ||
-      value === "cdn_relay"
-    ) {
-      return value;
-    }
-
-    return "direct";
   }
 
   private async load_persisted_value(key: string): Promise<string | null> {

@@ -829,7 +829,7 @@ export const InboxEmailListItem = memo(
                 )}
 
                 {on_delete && (
-                  <Tooltip tip={t("mail.move_to_trash")}>
+                  <Tooltip tip={is_trash_view ? t("mail.delete_permanently") : t("mail.move_to_trash")}>
                     <button
                       className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_delete(email)}

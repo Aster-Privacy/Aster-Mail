@@ -428,6 +428,7 @@ export function use_compose({
     }
 
     is_sending_ref.current = false;
+    draft_hook.user_modified_ref.current = false;
     reset_form();
     draft_hook.set_draft_status("idle");
     set_inputs(INITIAL_INPUTS);

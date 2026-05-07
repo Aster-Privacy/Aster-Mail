@@ -61,6 +61,7 @@ export interface UseComposeDraftsReturn {
   auto_save_drafts: boolean;
   draft_data_ref: React.MutableRefObject<DraftRefData>;
   just_loaded_draft_ref: React.MutableRefObject<boolean>;
+  user_modified_ref: React.MutableRefObject<boolean>;
   handle_delete_draft: () => Promise<void>;
   handle_close: () => void;
 }
@@ -88,6 +89,7 @@ export function use_compose_drafts({
   const [last_saved_time, set_last_saved_time] = useState<Date | null>(null);
   const draft_data_ref = useRef<DraftRefData>({ recipients, subject, message });
   const just_loaded_draft_ref = useRef(false);
+  const user_modified_ref = useRef(false);
 
   useEffect(() => {
     const load_preferences = async () => {
@@ -127,6 +129,7 @@ export function use_compose_drafts({
       return;
     }
 
+    user_modified_ref.current = true;
     set_draft_status("saving");
 
     if (save_timer_ref.current) {
@@ -218,7 +221,9 @@ export function use_compose_drafts({
         const has_content =
           data.recipients.to.length > 0 || data.subject || data.message;
 
-        if (has_content) {
+        const should_save = has_content && (edit_draft || user_modified_ref.current);
+
+        if (should_save) {
           const close_att_data =
             current_attachments.length > 0
               ? attachments_to_draft_data(current_attachments)
@@ -272,6 +277,7 @@ export function use_compose_drafts({
     auto_save_drafts,
     draft_data_ref,
     just_loaded_draft_ref,
+    user_modified_ref,
     handle_delete_draft,
     handle_close,
   };

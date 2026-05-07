@@ -138,7 +138,6 @@ export function use_delete_actions({
 
         if (result.success) {
           adjust_trash_count(-expanded_ids.length);
-          invalidate_mail_stats();
           show_action_toast({
             message: t("common.emails_permanently_deleted", {
               count: expanded_ids.length,
@@ -150,6 +149,7 @@ export function use_delete_actions({
           for (const email of selected_emails) {
             update_email(email.id, email);
           }
+          invalidate_mail_stats();
         }
       } else if (is_drafts_view) {
         schedule_delete_drafts(ids);
@@ -236,7 +236,6 @@ export function use_delete_actions({
 
       if (result.success) {
         adjust_trash_count(-expanded_ids.length);
-        invalidate_mail_stats();
         show_action_toast({
           message: t("common.emails_permanently_deleted", {
             count: expanded_ids.length,
@@ -248,6 +247,7 @@ export function use_delete_actions({
         for (const email of selected_emails) {
           update_email(email.id, email);
         }
+        invalidate_mail_stats();
       }
     } else if (is_drafts_view) {
       schedule_delete_drafts(ids);
@@ -323,7 +323,6 @@ export function use_delete_actions({
 
       if (result.data) {
         adjust_trash_count(-1);
-        invalidate_mail_stats();
         emit_mail_items_removed({ ids: [email.id] });
         show_action_toast({
           message: t("common.email_permanently_deleted"),
@@ -332,6 +331,7 @@ export function use_delete_actions({
         });
       } else {
         update_email(email.id, email);
+        invalidate_mail_stats();
       }
     } else if (is_drafts_view) {
       schedule_delete_drafts([email.id]);
