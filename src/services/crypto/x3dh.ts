@@ -18,22 +18,33 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
+
 import {
   import_ke_public_key,
   import_ke_private_key,
   compute_agreement_bits,
 } from "./key_manager";
+import { load_pq_secret, delete_pq_secret } from "./pq_prekey_store";
 
 const _KE = ["EC", "DH"].join("");
 const _KC = ["P", "256"].join("-");
 
 const HASH_ALG = ["SHA", "256"].join("-");
-const X3DH_INFO = new TextEncoder().encode("Aster Mail_X3DH_v1");
+const X3DH_INFO_CLASSICAL = new TextEncoder().encode("Aster Mail_X3DH_v1");
+const X3DH_INFO_PQ = new TextEncoder().encode("Aster Mail_PQXDH_v1");
 const X3DH_SALT = new Uint8Array(32);
+
+interface PqPrekey {
+  key_id: number;
+  public_key: string;
+}
 
 interface X3dhSenderResult {
   shared_secret: Uint8Array;
   ephemeral_public_key: Uint8Array;
+  pq_ciphertext?: Uint8Array;
+  pq_key_id?: number;
 }
 
 interface PrekeyBundle {
@@ -41,6 +52,12 @@ interface PrekeyBundle {
   signed_prekey: string;
   signed_prekey_signature: string;
   one_time_prekey?: string | null;
+  pq_prekey?: PqPrekey | null;
+}
+
+interface PqReceiverInput {
+  pq_ciphertext: Uint8Array;
+  pq_key_id: number;
 }
 
 function base64_to_array(base64: string): Uint8Array {
@@ -77,7 +94,10 @@ async function generate_ephemeral_keypair(): Promise<{
   };
 }
 
-async function kdf_x3dh(dh_outputs: Uint8Array[]): Promise<Uint8Array> {
+async function kdf_x3dh(
+  dh_outputs: Uint8Array[],
+  info: Uint8Array,
+): Promise<Uint8Array> {
   let total_length = 0;
 
   for (const dh of dh_outputs) {
@@ -105,7 +125,7 @@ async function kdf_x3dh(dh_outputs: Uint8Array[]): Promise<Uint8Array> {
       name: "HKDF",
       hash: HASH_ALG,
       salt: X3DH_SALT,
-      info: X3DH_INFO,
+      info,
     },
     hkdf_key,
     256,
@@ -154,16 +174,42 @@ export async function perform_x3dh_sender(
     recipient_signed_prekey_public,
   );
 
-  const shared_secret = await kdf_x3dh([dh1, dh2, dh3]);
+  let shared_secret: Uint8Array;
+  let pq_ciphertext: Uint8Array | undefined;
+  let pq_key_id: number | undefined;
+
+  if (recipient_bundle.pq_prekey) {
+    const pq_pub = base64_to_array(recipient_bundle.pq_prekey.public_key);
+    const encap = ml_kem768.encapsulate(pq_pub);
+    const pq_ss = encap.sharedSecret;
+
+    try {
+      shared_secret = await kdf_x3dh([dh1, dh2, dh3, pq_ss], X3DH_INFO_PQ);
+    } finally {
+      pq_ss.fill(0);
+    }
+
+    pq_ciphertext = encap.cipherText;
+    pq_key_id = recipient_bundle.pq_prekey.key_id;
+  } else {
+    shared_secret = await kdf_x3dh([dh1, dh2, dh3], X3DH_INFO_CLASSICAL);
+  }
 
   dh1.fill(0);
   dh2.fill(0);
   dh3.fill(0);
 
-  return {
+  const result: X3dhSenderResult = {
     shared_secret,
     ephemeral_public_key: ephemeral.public_key_raw,
   };
+
+  if (pq_ciphertext !== undefined && pq_key_id !== undefined) {
+    result.pq_ciphertext = pq_ciphertext;
+    result.pq_key_id = pq_key_id;
+  }
+
+  return result;
 }
 
 export async function perform_x3dh_receiver(
@@ -171,6 +217,7 @@ export async function perform_x3dh_receiver(
   receiver_signed_prekey_jwk: JsonWebKey,
   sender_identity_raw: Uint8Array,
   sender_ephemeral_raw: Uint8Array,
+  pq_input?: PqReceiverInput | null,
 ): Promise<Uint8Array> {
   const receiver_identity_private = await import_ke_private_key(
     receiver_identity_jwk,
@@ -199,7 +246,36 @@ export async function perform_x3dh_receiver(
     sender_ephemeral_public,
   );
 
-  const shared_secret = await kdf_x3dh([dh1, dh2, dh3]);
+  let shared_secret: Uint8Array;
+
+  if (pq_input) {
+    const pq_sk = await load_pq_secret(pq_input.pq_key_id);
+
+    if (!pq_sk) {
+      dh1.fill(0);
+      dh2.fill(0);
+      dh3.fill(0);
+      throw new Error("Missing PQ prekey secret for the supplied key id");
+    }
+
+    let pq_ss: Uint8Array;
+
+    try {
+      pq_ss = ml_kem768.decapsulate(pq_input.pq_ciphertext, pq_sk);
+    } finally {
+      pq_sk.fill(0);
+    }
+
+    try {
+      shared_secret = await kdf_x3dh([dh1, dh2, dh3, pq_ss], X3DH_INFO_PQ);
+    } finally {
+      pq_ss.fill(0);
+    }
+
+    await delete_pq_secret(pq_input.pq_key_id);
+  } else {
+    shared_secret = await kdf_x3dh([dh1, dh2, dh3], X3DH_INFO_CLASSICAL);
+  }
 
   dh1.fill(0);
   dh2.fill(0);
@@ -208,4 +284,4 @@ export async function perform_x3dh_receiver(
   return shared_secret;
 }
 
-export type { PrekeyBundle, X3dhSenderResult };
+export type { PrekeyBundle, X3dhSenderResult, PqPrekey, PqReceiverInput };

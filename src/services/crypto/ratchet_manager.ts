@@ -54,10 +54,12 @@ interface RatchetRecipientData {
   };
   ciphertext: string;
   nonce: string;
+  pq_ciphertext?: string;
+  pq_key_id?: number;
 }
 
 interface RatchetEnvelope {
-  type: "double_ratchet_v1";
+  type: "double_ratchet_v1" | "double_ratchet_v2";
   sender_identity_key: string;
   recipients: Record<string, RatchetRecipientData>;
 }
@@ -184,6 +186,8 @@ export async function encrypt_for_ratchet_recipient(
     let ratchet = await load_ratchet_state(conversation_id);
 
     let ephemeral_key_base64 = "";
+    let pq_ciphertext_base64: string | undefined;
+    let pq_key_id_value: number | undefined;
 
     if (!ratchet) {
       const bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
@@ -215,6 +219,11 @@ export async function encrypt_for_ratchet_recipient(
         ephemeral_key_base64 = array_to_base64(
           x3dh_result.ephemeral_public_key,
         );
+
+        if (x3dh_result.pq_ciphertext && x3dh_result.pq_key_id !== undefined) {
+          pq_ciphertext_base64 = array_to_base64(x3dh_result.pq_ciphertext);
+          pq_key_id_value = x3dh_result.pq_key_id;
+        }
       } finally {
         x3dh_result.shared_secret.fill(0);
       }
@@ -234,12 +243,19 @@ export async function encrypt_for_ratchet_recipient(
       }
     }
 
-    return {
+    const recipient_data: RatchetRecipientData = {
       ephemeral_key: ephemeral_key_base64,
       header: encrypted.header,
       ciphertext: encrypted.ciphertext,
       nonce: encrypted.nonce,
     };
+
+    if (pq_ciphertext_base64 && pq_key_id_value !== undefined) {
+      recipient_data.pq_ciphertext = pq_ciphertext_base64;
+      recipient_data.pq_key_id = pq_key_id_value;
+    }
+
+    return recipient_data;
   } catch {
     return null;
   }
@@ -250,7 +266,7 @@ export function build_ratchet_envelope(
   recipients: Record<string, RatchetRecipientData>,
 ): string {
   const envelope: RatchetEnvelope = {
-    type: "double_ratchet_v1",
+    type: "double_ratchet_v2",
     sender_identity_key: sender_identity_public,
     recipients,
   };
@@ -264,7 +280,12 @@ export function parse_ratchet_envelope(body: string): RatchetEnvelope | null {
   try {
     const parsed = JSON.parse(body);
 
-    if (parsed.type !== "double_ratchet_v1") return null;
+    if (
+      parsed.type !== "double_ratchet_v1" &&
+      parsed.type !== "double_ratchet_v2"
+    ) {
+      return null;
+    }
     if (!parsed.sender_identity_key || !parsed.recipients) return null;
 
     return parsed as RatchetEnvelope;
@@ -340,11 +361,20 @@ async function decrypt_ratchet_for_recipient(
     const sender_identity_raw = base64_to_array(sender_identity_key);
     const sender_ephemeral_raw = base64_to_array(data.ephemeral_key);
 
+    const pq_input =
+      data.pq_ciphertext && data.pq_key_id !== undefined
+        ? {
+            pq_ciphertext: base64_to_array(data.pq_ciphertext),
+            pq_key_id: data.pq_key_id,
+          }
+        : null;
+
     const shared_secret = await perform_x3dh_receiver(
       receiver_identity_jwk,
       receiver_signed_prekey_jwk,
       sender_identity_raw,
       sender_ephemeral_raw,
+      pq_input,
     );
 
     const own_keypair = await jwk_to_ratchet_keypair(

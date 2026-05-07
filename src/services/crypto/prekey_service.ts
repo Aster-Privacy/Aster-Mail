@@ -21,6 +21,7 @@
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 import { api_client } from "../api/client";
+import { save_pq_secret, delete_pq_secret } from "./pq_prekey_store";
 
 const ONE_TIME_PREKEY_BATCH_SIZE = 50;
 const PQ_PREKEY_BATCH_SIZE = 20;
@@ -140,16 +141,54 @@ export async function generate_and_upload_prekeys(): Promise<boolean> {
     const otp = generate_one_time_prekeys(ONE_TIME_PREKEY_BATCH_SIZE);
     const pq = generate_pq_prekeys(PQ_PREKEY_BATCH_SIZE);
 
+    const persisted_otp_ids: number[] = [];
+    const persisted_pq_ids: number[] = [];
+
+    let persistence_ok = true;
+
+    for (let i = 0; i < otp.prekeys.length; i++) {
+      try {
+        await save_pq_secret(otp.prekeys[i].key_id, otp.secret_keys[i]);
+        persisted_otp_ids.push(otp.prekeys[i].key_id);
+      } catch {
+        persistence_ok = false;
+        break;
+      }
+    }
+
+    if (persistence_ok) {
+      for (let i = 0; i < pq.prekeys.length; i++) {
+        try {
+          await save_pq_secret(pq.prekeys[i].key_id, pq.secret_keys[i]);
+          persisted_pq_ids.push(pq.prekeys[i].key_id);
+        } catch {
+          persistence_ok = false;
+          break;
+        }
+      }
+    }
+
+    if (!persistence_ok) {
+      for (const id of persisted_otp_ids) {
+        await delete_pq_secret(id);
+      }
+      for (const id of persisted_pq_ids) {
+        await delete_pq_secret(id);
+      }
+
+      return false;
+    }
+
     const success = await upload_prekeys(otp.prekeys, pq.prekeys);
 
-    otp.secret_keys.forEach((sk) => {
-      crypto.getRandomValues(sk);
-      sk.fill(0);
-    });
-    pq.secret_keys.forEach((sk) => {
-      crypto.getRandomValues(sk);
-      sk.fill(0);
-    });
+    if (!success) {
+      for (const id of persisted_otp_ids) {
+        await delete_pq_secret(id);
+      }
+      for (const id of persisted_pq_ids) {
+        await delete_pq_secret(id);
+      }
+    }
 
     return success;
   } finally {

@@ -18,7 +18,24 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
+
+const pq_secret_table = new Map<number, Uint8Array>();
+
+vi.mock("./pq_prekey_store", () => ({
+  save_pq_secret: vi.fn(async (key_id: number, sk: Uint8Array) => {
+    pq_secret_table.set(key_id, new Uint8Array(sk));
+  }),
+  load_pq_secret: vi.fn(async (key_id: number) => {
+    const v = pq_secret_table.get(key_id);
+
+    return v ? new Uint8Array(v) : null;
+  }),
+  delete_pq_secret: vi.fn(async (key_id: number) => {
+    pq_secret_table.delete(key_id);
+  }),
+}));
 
 import {
   perform_x3dh_sender,
@@ -420,6 +437,158 @@ describe("X3DH Key Exchange Protocol", () => {
       );
 
       expect(result.shared_secret.length).toBe(32);
+    });
+  });
+
+  describe("hybrid PQXDH", () => {
+    beforeEach(() => {
+      pq_secret_table.clear();
+    });
+
+    it("sender and receiver derive identical SKs on the hybrid path", async () => {
+      const alice_identity = await generate_exportable_ke_keypair();
+      const bob_identity = await generate_exportable_ke_keypair();
+      const bob_signed_prekey = await generate_exportable_ke_keypair();
+
+      const pq_keypair = ml_kem768.keygen();
+      const pq_key_id = 4242;
+
+      pq_secret_table.set(pq_key_id, pq_keypair.secretKey);
+
+      const bob_bundle: PrekeyBundle = {
+        kem_identity_key: array_to_base64(bob_identity.public_key_raw),
+        signed_prekey: array_to_base64(bob_signed_prekey.public_key_raw),
+        signed_prekey_signature: "",
+        pq_prekey: {
+          key_id: pq_key_id,
+          public_key: array_to_base64(pq_keypair.publicKey),
+        },
+      };
+
+      const alice_result = await perform_x3dh_sender(
+        alice_identity.secret_key_jwk,
+        bob_bundle,
+      );
+
+      expect(alice_result.pq_ciphertext).toBeInstanceOf(Uint8Array);
+      expect(alice_result.pq_key_id).toBe(pq_key_id);
+
+      const bob_secret = await perform_x3dh_receiver(
+        bob_identity.secret_key_jwk,
+        bob_signed_prekey.secret_key_jwk,
+        alice_identity.public_key_raw,
+        alice_result.ephemeral_public_key,
+        {
+          pq_ciphertext: alice_result.pq_ciphertext!,
+          pq_key_id: alice_result.pq_key_id!,
+        },
+      );
+
+      expect(alice_result.shared_secret).toEqual(bob_secret);
+    });
+
+    it("classical fallback still works when pq_prekey is absent", async () => {
+      const alice_identity = await generate_exportable_ke_keypair();
+      const bob_identity = await generate_exportable_ke_keypair();
+      const bob_signed_prekey = await generate_exportable_ke_keypair();
+
+      const bob_bundle: PrekeyBundle = {
+        kem_identity_key: array_to_base64(bob_identity.public_key_raw),
+        signed_prekey: array_to_base64(bob_signed_prekey.public_key_raw),
+        signed_prekey_signature: "",
+      };
+
+      const alice_result = await perform_x3dh_sender(
+        alice_identity.secret_key_jwk,
+        bob_bundle,
+      );
+
+      expect(alice_result.pq_ciphertext).toBeUndefined();
+      expect(alice_result.pq_key_id).toBeUndefined();
+
+      const bob_secret = await perform_x3dh_receiver(
+        bob_identity.secret_key_jwk,
+        bob_signed_prekey.secret_key_jwk,
+        alice_identity.public_key_raw,
+        alice_result.ephemeral_public_key,
+      );
+
+      expect(alice_result.shared_secret).toEqual(bob_secret);
+    });
+
+    it("hybrid and classical paths produce different SKs for same DH inputs", async () => {
+      const alice_identity = await generate_exportable_ke_keypair();
+      const bob_identity = await generate_exportable_ke_keypair();
+      const bob_signed_prekey = await generate_exportable_ke_keypair();
+
+      const pq_keypair = ml_kem768.keygen();
+      const pq_key_id = 7777;
+
+      pq_secret_table.set(pq_key_id, pq_keypair.secretKey);
+
+      const classical_bundle: PrekeyBundle = {
+        kem_identity_key: array_to_base64(bob_identity.public_key_raw),
+        signed_prekey: array_to_base64(bob_signed_prekey.public_key_raw),
+        signed_prekey_signature: "",
+      };
+
+      const hybrid_bundle: PrekeyBundle = {
+        ...classical_bundle,
+        pq_prekey: {
+          key_id: pq_key_id,
+          public_key: array_to_base64(pq_keypair.publicKey),
+        },
+      };
+
+      const classical = await perform_x3dh_sender(
+        alice_identity.secret_key_jwk,
+        classical_bundle,
+      );
+      const hybrid = await perform_x3dh_sender(
+        alice_identity.secret_key_jwk,
+        hybrid_bundle,
+      );
+
+      expect(classical.shared_secret).not.toEqual(hybrid.shared_secret);
+    });
+
+    it("receiver deletes the PQ secret after successful decapsulation", async () => {
+      const alice_identity = await generate_exportable_ke_keypair();
+      const bob_identity = await generate_exportable_ke_keypair();
+      const bob_signed_prekey = await generate_exportable_ke_keypair();
+
+      const pq_keypair = ml_kem768.keygen();
+      const pq_key_id = 9001;
+
+      pq_secret_table.set(pq_key_id, pq_keypair.secretKey);
+
+      const bundle: PrekeyBundle = {
+        kem_identity_key: array_to_base64(bob_identity.public_key_raw),
+        signed_prekey: array_to_base64(bob_signed_prekey.public_key_raw),
+        signed_prekey_signature: "",
+        pq_prekey: {
+          key_id: pq_key_id,
+          public_key: array_to_base64(pq_keypair.publicKey),
+        },
+      };
+
+      const sender = await perform_x3dh_sender(
+        alice_identity.secret_key_jwk,
+        bundle,
+      );
+
+      await perform_x3dh_receiver(
+        bob_identity.secret_key_jwk,
+        bob_signed_prekey.secret_key_jwk,
+        alice_identity.public_key_raw,
+        sender.ephemeral_public_key,
+        {
+          pq_ciphertext: sender.pq_ciphertext!,
+          pq_key_id: sender.pq_key_id!,
+        },
+      );
+
+      expect(pq_secret_table.has(pq_key_id)).toBe(false);
     });
   });
 
