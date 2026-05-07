@@ -38,7 +38,7 @@ export async function list_trusted_devices(): Promise<
   ApiResponse<ListTrustedDevicesResponse>
 > {
   return api_client.get<ListTrustedDevicesResponse>(
-    "/core/v1/auth/trusted-devices/",
+    "/core/v1/auth/trusted-devices",
   );
 }
 
@@ -53,5 +53,5 @@ export async function revoke_trusted_device(
 export async function revoke_all_trusted_devices(): Promise<
   ApiResponse<unknown>
 > {
-  return api_client.delete<unknown>("/core/v1/auth/trusted-devices/");
+  return api_client.delete<unknown>("/core/v1/auth/trusted-devices");
 }

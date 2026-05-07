@@ -51,6 +51,7 @@ const PROACTIVE_REFRESH_THRESHOLD_MINUTES = 25;
 
 const DEV_TOKEN_KEY = "__aster_dev_token__";
 const NATIVE_TOKEN_KEY = "aster_access_token";
+const NATIVE_REFRESH_TOKEN_KEY = "aster_refresh_token";
 const NATIVE_CSRF_KEY = "aster_csrf_token";
 const TAURI_TOKEN_KEY = "aster_tauri_token";
 const TAURI_CSRF_KEY = "aster_tauri_csrf";
@@ -210,6 +211,33 @@ class ApiClient {
     } catch {}
   }
 
+  private async persist_native_refresh_token(token: string): Promise<void> {
+    try {
+      const { Preferences } = await import("@capacitor/preferences");
+
+      await Preferences.set({ key: NATIVE_REFRESH_TOKEN_KEY, value: token });
+    } catch {}
+  }
+
+  private async load_native_refresh_token(): Promise<string | null> {
+    try {
+      const { Preferences } = await import("@capacitor/preferences");
+      const result = await Preferences.get({ key: NATIVE_REFRESH_TOKEN_KEY });
+
+      return result.value;
+    } catch {
+      return null;
+    }
+  }
+
+  private async clear_native_refresh_token(): Promise<void> {
+    try {
+      const { Preferences } = await import("@capacitor/preferences");
+
+      await Preferences.remove({ key: NATIVE_REFRESH_TOKEN_KEY });
+    } catch {}
+  }
+
   private async load_native_token(): Promise<string | null> {
     try {
       const { Preferences } = await import("@capacitor/preferences");
@@ -284,36 +312,39 @@ class ApiClient {
       return true;
     }
 
-    const is_valid = await this.check_auth_status();
-
     this.initial_auth_verified = true;
+
+    const is_valid = await this.check_auth_status();
 
     if (is_valid) {
       this.schedule_token_refresh();
-    } else if (
-      (Capacitor.isNativePlatform() || is_tauri_env()) &&
-      has_stored_token
-    ) {
-      this.clear_native_token();
-      this.dev_access_token = null;
-      if (is_tauri_env()) {
-        try {
-          localStorage.removeItem(TAURI_TOKEN_KEY);
-          localStorage.removeItem(TAURI_CSRF_KEY);
-        } catch {}
+    } else {
+      this.is_authenticated_flag = false;
+      if ((Capacitor.isNativePlatform() || is_tauri_env()) && has_stored_token) {
+        this.clear_native_token();
+        this.dev_access_token = null;
+        if (is_tauri_env()) {
+          try {
+            localStorage.removeItem(TAURI_TOKEN_KEY);
+            localStorage.removeItem(TAURI_CSRF_KEY);
+          } catch {}
+        }
       }
     }
 
     return is_valid;
   }
 
-  set_dev_token(token: string): void {
+  set_dev_token(token: string, refresh_token?: string): void {
     this.dev_access_token = token;
     if (import.meta.env.DEV) {
       sessionStorage.setItem(DEV_TOKEN_KEY, token);
     }
     if (Capacitor.isNativePlatform()) {
       this.persist_native_token(token);
+      if (refresh_token) {
+        this.persist_native_refresh_token(refresh_token);
+      }
     }
     if (is_tauri_env()) {
       try {
@@ -342,6 +373,7 @@ class ApiClient {
     if (Capacitor.isNativePlatform()) {
       this.clear_native_token();
       this.clear_native_csrf();
+      this.clear_native_refresh_token();
     }
     if (is_tauri_env()) {
       try {
@@ -401,12 +433,21 @@ class ApiClient {
     const max_retries = 3;
     const retry_delay_base = 2000;
 
+    let native_refresh_token: string | null = null;
+    if (Capacitor.isNativePlatform()) {
+      native_refresh_token = await this.load_native_refresh_token();
+    }
+
     for (let attempt = 0; attempt < max_retries; attempt++) {
       try {
+        const body = native_refresh_token
+          ? { refresh_token: native_refresh_token }
+          : {};
         const response = await this.post<{
           csrf_token: string;
           access_token?: string;
-        }>("/core/v1/auth/refresh", {});
+          refresh_token?: string;
+        }>("/core/v1/auth/refresh", body);
 
         if (response.data?.csrf_token) {
           this.is_authenticated_flag = true;
@@ -414,7 +455,9 @@ class ApiClient {
           clear_csrf_cache();
           this.set_csrf(response.data.csrf_token);
           if (response.data.access_token) {
-            this.set_dev_token(response.data.access_token);
+            this.set_dev_token(response.data.access_token, response.data.refresh_token);
+          } else if (response.data.refresh_token && Capacitor.isNativePlatform()) {
+            this.persist_native_refresh_token(response.data.refresh_token);
           }
           this.schedule_token_refresh();
 

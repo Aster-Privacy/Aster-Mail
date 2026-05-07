@@ -210,6 +210,13 @@ export function use_registration() {
   };
 
   const validate_password_step = async (): Promise<boolean> => {
+    if (!/^[\x20-\x7E]*$/.test(password)) {
+      await timing_safe_delay();
+      set_error(t("auth.password_invalid_chars"));
+
+      return false;
+    }
+
     const password_validation = validate_password_strength(password);
 
     if (!password_validation.valid) {
@@ -365,14 +372,11 @@ export function use_registration() {
 
       if (response.error) {
         await timing_safe_delay();
-        if (response.code === "ABUSE_ACCOUNT_LIMIT") {
+        if (
+          response.code === "ABUSE_ACCOUNT_LIMIT" ||
+          response.code === "REGISTRATION_SUSPENDED"
+        ) {
           set_is_abuse_blocked(true);
-        }
-        if (response.code === "REGISTRATION_SUSPENDED") {
-          show_toast(t("auth.registration_suspended"), "error");
-          set_step("email");
-          registration_promise_ref.current = null;
-          return;
         }
         if (response.code === "USERNAME_IN_USE") {
           set_error(t("auth.username_in_use"));
