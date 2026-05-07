@@ -72,6 +72,7 @@ import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_preload_cache } from "@/components/email/hooks/use_email_detail";
 import { ensure_email_recovery_backup } from "@/services/api/recovery_email";
+import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { connection_store } from "@/services/routing/connection_store";
 import { load_preferred_sender_from_server } from "@/lib/preferred_sender";
@@ -254,6 +255,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await storage_add_account(user);
 
       api_client.set_authenticated(true);
+      check_and_run_recovery_reencryption(vault, passphrase).catch(() => {});
       connection_store.sync_from_server().catch(() => {});
       load_preferred_sender_from_server().catch(() => {});
       sync_client.connect().catch((e) => {
