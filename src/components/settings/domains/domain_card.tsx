@@ -132,8 +132,6 @@ export function DomainCard({
   const [expanded, set_expanded] = useState(false);
   const [dns_records, set_dns_records] = useState<DnsRecord[]>([]);
   const [loading_records, set_loading_records] = useState(false);
-  const [is_toggling, set_is_toggling] = useState(false);
-
   const load_dns_records = async () => {
     if (dns_records.length > 0) return;
 
@@ -161,9 +159,7 @@ export function DomainCard({
   };
 
   const handle_catch_all_toggle = async (checked: boolean) => {
-    set_is_toggling(true);
     await on_toggle_catch_all(domain.id, checked);
-    set_is_toggling(false);
   };
 
   const verification_count = [

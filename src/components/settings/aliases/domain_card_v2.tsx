@@ -69,7 +69,6 @@ export function DomainCardV2({
   const { t } = use_i18n();
   const [expanded, set_expanded] = useState(false);
   const [show_advanced, set_show_advanced] = useState(false);
-  const [catch_all_loading, set_catch_all_loading] = useState(false);
   const [dkim_rotating, set_dkim_rotating] = useState(false);
   const [rotated_dkim_record, set_rotated_dkim_record] = useState<DnsRecord | null>(null);
   const [dns_records, set_dns_records] = useState<DnsRecord[] | null>(null);
@@ -85,7 +84,6 @@ export function DomainCardV2({
   ].filter(Boolean).length;
 
   const handle_toggle_catch_all = async () => {
-    set_catch_all_loading(true);
     try {
       const response = await update_domain(domain.id, {
         catch_all_enabled: !domain.catch_all_enabled,
@@ -102,8 +100,6 @@ export function DomainCardV2({
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
-    } finally {
-      set_catch_all_loading(false);
     }
   };
 
