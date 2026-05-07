@@ -41,7 +41,7 @@
     ],
     "macOS": {
       "minimumSystemVersion": "10.15",
-      "signingIdentity": null
+      "signingIdentity": "Developer ID Application: Aster Communications Inc (UD4F4Q58WU)"
     },
     "windows": {
       "certificateThumbprint": null,
