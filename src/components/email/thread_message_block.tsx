@@ -79,6 +79,7 @@ import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
 import { ThreadMessageBody } from "@/components/email/thread_message_body";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
+import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
 import {
   extract_cid_references,
   extract_cid_inline_filenames,
@@ -540,18 +541,43 @@ export function ThreadMessageBlock({
         onClick={can_collapse ? on_toggle : undefined}
         onKeyDown={can_collapse ? (e) => e["key"] === "Enter" && on_toggle() : undefined}
       >
-        <ProfileAvatar
-          use_domain_logo
-          className="flex-shrink-0 mt-0.5"
-          email={message.sender_email}
-          name={message.sender_name}
-          size="md"
-        />
+        {is_own_message ? (
+          <ProfileAvatar
+            use_domain_logo
+            className="flex-shrink-0 mt-0.5"
+            email={message.sender_email}
+            name={message.sender_name}
+            size="md"
+          />
+        ) : (
+          <SenderProfileTrigger
+            className="flex-shrink-0 mt-0.5 rounded-full hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            email={message.sender_email}
+            name={message.sender_name}
+          >
+            <ProfileAvatar
+              use_domain_logo
+              email={message.sender_email}
+              name={message.sender_name}
+              size="md"
+            />
+          </SenderProfileTrigger>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 min-w-0">
-            <span className="text-sm font-semibold truncate text-txt-primary max-w-full">
-              {name}
-            </span>
+            {is_own_message ? (
+              <span className="text-sm font-semibold truncate text-txt-primary max-w-full">
+                {name}
+              </span>
+            ) : (
+              <SenderProfileTrigger
+                className="text-sm font-semibold truncate text-txt-primary max-w-full hover:underline underline-offset-2 focus:outline-none"
+                email={message.sender_email}
+                name={message.sender_name}
+              >
+                {name}
+              </SenderProfileTrigger>
+            )}
             <span className="text-xs text-txt-muted truncate hidden sm:inline max-w-full">
               &lt;{message.sender_email}&gt;
             </span>
