@@ -47,6 +47,12 @@ import {
 import { list_aliases } from "@/services/api/aliases";
 import { list_contacts } from "@/services/api/contacts";
 import { rekey_user_data } from "@/services/api/auth";
+import {
+  list_encrypted_mail_items,
+  update_mail_item,
+} from "@/services/api/mail";
+import { derive_metadata_key } from "@/services/crypto/envelope";
+import { list_tags, update_tag } from "@/services/api/tags";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 const PENDING_KEY = "aster_pending_reencryption";
@@ -734,6 +740,225 @@ export async function reencrypt_settings_password_change(
   }
 }
 
+async function re_encrypt_mail_metadata(
+  old_master_key: Uint8Array,
+  new_master_key: Uint8Array,
+): Promise<void> {
+  const METADATA_CONTEXT = "mail-item-metadata";
+
+  const [old_key, new_key] = await Promise.all([
+    derive_metadata_key(old_master_key, METADATA_CONTEXT),
+    derive_metadata_key(new_master_key, METADATA_CONTEXT),
+  ]);
+
+  for (const item_type of ["sent", "draft"] as const) {
+    let cursor: string | undefined;
+
+    while (true) {
+      const resp = await list_encrypted_mail_items({
+        item_type,
+        limit: 100,
+        cursor,
+      });
+
+      if (resp.error || !resp.data) break;
+
+      for (const item of resp.data.items) {
+        if (!item.encrypted_metadata || !item.metadata_nonce) continue;
+
+        try {
+          const ct = b64_to_array(item.encrypted_metadata);
+          const iv = b64_to_array(item.metadata_nonce);
+          const pt = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv },
+            old_key,
+            ct,
+          );
+          const new_iv = crypto.getRandomValues(new Uint8Array(12));
+          const new_ct = await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv: new_iv },
+            new_key,
+            pt,
+          );
+
+          await update_mail_item(item.id, {
+            encrypted_metadata: array_to_b64(new Uint8Array(new_ct)),
+            metadata_nonce: array_to_b64(new_iv),
+          });
+        } catch {
+          continue;
+        }
+      }
+
+      cursor = resp.data.next_cursor ?? undefined;
+
+      if (!resp.data.has_more || !cursor) break;
+    }
+  }
+}
+
+async function derive_tag_aes_key(
+  identity_key: string,
+  usages: KeyUsage[],
+): Promise<CryptoKey> {
+  const material = new TextEncoder().encode(identity_key + "astermail-tags-v1");
+  const hash = await crypto.subtle.digest(HASH_ALG, material);
+
+  return crypto.subtle.importKey(
+    "raw",
+    hash,
+    { name: "AES-GCM", length: 256 },
+    false,
+    usages,
+  );
+}
+
+async function re_encrypt_tags(
+  old_identity_key: string,
+  new_identity_key: string,
+): Promise<void> {
+  if (old_identity_key === new_identity_key) return;
+
+  const [old_key, new_key] = await Promise.all([
+    derive_tag_aes_key(old_identity_key, ["decrypt"]),
+    derive_tag_aes_key(new_identity_key, ["encrypt"]),
+  ]);
+
+  let offset = 0;
+
+  while (true) {
+    const resp = await list_tags({ limit: 100, offset });
+
+    if (resp.error || !resp.data) break;
+
+    for (const tag of resp.data.tags) {
+      try {
+        const updates: Record<string, string> = {};
+        const name = await re_encrypt_field(
+          tag.encrypted_name,
+          tag.name_nonce,
+          old_key,
+          new_key,
+        );
+
+        updates.encrypted_name = name.encrypted;
+        updates.name_nonce = name.nonce;
+
+        if (tag.encrypted_color && tag.color_nonce) {
+          const color = await re_encrypt_field(
+            tag.encrypted_color,
+            tag.color_nonce,
+            old_key,
+            new_key,
+          );
+
+          updates.encrypted_color = color.encrypted;
+          updates.color_nonce = color.nonce;
+        }
+
+        if (tag.encrypted_icon && tag.icon_nonce) {
+          const icon = await re_encrypt_field(
+            tag.encrypted_icon,
+            tag.icon_nonce,
+            old_key,
+            new_key,
+          );
+
+          updates.encrypted_icon = icon.encrypted;
+          updates.icon_nonce = icon.nonce;
+        }
+
+        await update_tag(tag.id, updates);
+      } catch {
+        continue;
+      }
+    }
+
+    if (!resp.data.has_more) break;
+
+    offset += resp.data.tags.length;
+  }
+}
+
+async function derive_profile_notes_hmac_key(
+  raw: Uint8Array,
+): Promise<CryptoKey> {
+  const info = new TextEncoder().encode("profile-notes-hmac-v1");
+  const combined = new Uint8Array(raw.byteLength + info.length);
+
+  combined.set(raw, 0);
+  combined.set(info, raw.byteLength);
+
+  const hash = await crypto.subtle.digest(HASH_ALG, combined);
+
+  return crypto.subtle.importKey(
+    "raw",
+    hash,
+    { name: "HMAC", hash: HASH_ALG },
+    false,
+    ["sign"],
+  );
+}
+
+async function re_encrypt_profile_notes(
+  old_raw: Uint8Array,
+  new_raw: Uint8Array,
+): Promise<void> {
+  const resp = await api_client.get<{
+    notes: Array<{
+      id: string;
+      email_token: string;
+      encrypted_note: string;
+      note_nonce: string;
+      integrity_hash: string;
+    }>;
+    total: number;
+  }>("/settings/v1/profile_notes/all");
+
+  if (resp.error || !resp.data || resp.data.notes.length === 0) return;
+
+  const old_aes = await import_aes_key(old_raw, ["decrypt"]);
+  const new_aes = await import_aes_key(new_raw, ["encrypt"]);
+  const new_hmac = await derive_profile_notes_hmac_key(new_raw);
+
+  for (const note of resp.data.notes) {
+    try {
+      const ct = b64_to_array(note.encrypted_note);
+      const iv = b64_to_array(note.note_nonce);
+      const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, old_aes, ct);
+
+      const new_iv = crypto.getRandomValues(new Uint8Array(12));
+      const new_ct = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: new_iv },
+        new_aes,
+        pt,
+      );
+
+      const new_encrypted_note = array_to_b64(new Uint8Array(new_ct));
+      const new_note_nonce = array_to_b64(new_iv);
+
+      const integrity_input = new TextEncoder().encode(
+        `${new_encrypted_note}:${new_note_nonce}:profile-notes-v1`,
+      );
+      const new_integrity_sig = await crypto.subtle.sign(
+        "HMAC",
+        new_hmac,
+        integrity_input,
+      );
+      const new_integrity_hash = array_to_b64(new Uint8Array(new_integrity_sig));
+
+      await api_client.put("/settings/v1/profile_notes", {
+        email_token: note.email_token,
+        encrypted_note: new_encrypted_note,
+        note_nonce: new_note_nonce,
+        integrity_hash: new_integrity_hash,
+      });
+    } catch {
+      continue;
+    }
+  }
+}
+
 export async function check_and_run_recovery_reencryption(
   vault: EncryptedVault,
   passphrase: string,
@@ -744,15 +969,27 @@ export async function check_and_run_recovery_reencryption(
 
   clear_pending_reencryption();
 
-  const old_folder_material = new TextEncoder().encode(
-    pending.old_identity_key + "astermail-labels-v1",
-  );
-  const old_folder_hash = new Uint8Array(
-    await crypto.subtle.digest(HASH_ALG, old_folder_material),
-  );
+  const [old_folder_hash_buf, old_tag_hash_buf] = await Promise.all([
+    crypto.subtle.digest(
+      HASH_ALG,
+      new TextEncoder().encode(pending.old_identity_key + "astermail-labels-v1"),
+    ),
+    crypto.subtle.digest(
+      HASH_ALG,
+      new TextEncoder().encode(pending.old_identity_key + "astermail-tags-v1"),
+    ),
+  ]);
 
-  await append_legacy_key_raw_bytes(old_folder_hash);
+  const old_folder_hash = new Uint8Array(old_folder_hash_buf);
+  const old_tag_hash = new Uint8Array(old_tag_hash_buf);
+
+  await Promise.all([
+    append_legacy_key_raw_bytes(old_folder_hash),
+    append_legacy_key_raw_bytes(old_tag_hash),
+  ]);
+
   zero_uint8_array(old_folder_hash);
+  zero_uint8_array(old_tag_hash);
 
   let old_raw: Uint8Array | null = null;
   let new_raw: Uint8Array | null = null;
@@ -773,6 +1010,9 @@ export async function check_and_run_recovery_reencryption(
     await re_encrypt_blocked_senders(old_aes);
     await re_encrypt_allowed_senders(old_aes);
     await re_encrypt_recent_recipients(old_aes);
+    await re_encrypt_mail_metadata(old_raw, new_raw);
+    await re_encrypt_tags(pending.old_identity_key, vault.identity_key);
+    await re_encrypt_profile_notes(old_raw, new_raw);
     await re_encrypt_folders(pending.old_identity_key, vault.identity_key);
     await re_encrypt_preferences(
       pending.old_identity_key,

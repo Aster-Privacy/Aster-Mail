@@ -21,7 +21,7 @@
 import type { RecoveryStep } from "./forgot_password/types";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { EmailStep } from "./forgot_password/email_step";
@@ -105,10 +105,14 @@ export default function MobileForgotPasswordPage() {
   const [email_vault_key, set_email_vault_key] = useState<string | null>(null);
   const [recovery_user_email, set_recovery_user_email] = useState("");
 
+  const email_recovery_validated = useRef(false);
+
   useEffect(() => {
     const token = search_params.get("email_recovery_token");
 
     if (!token) return;
+    if (email_recovery_validated.current) return;
+    email_recovery_validated.current = true;
 
     set_step("processing");
     set_processing_status(t("auth.validating_recovery_link"));
