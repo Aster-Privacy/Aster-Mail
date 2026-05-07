@@ -41,9 +41,19 @@ interface SendingMessageBlockProps {
 }
 
 function strip_quotes(body: string): string {
+  const wrote_re = /On .+wrote:\s*/i;
+  const match = body.match(wrote_re);
+  let processed = body;
+  if (match && match.index !== undefined) {
+    const before = body.substring(0, match.index).trim();
+    if (before.length > 0) {
+      processed = before;
+    } else {
+      processed = body.substring(match.index + match[0].length);
+    }
+  }
   return (
-    body
-      .replace(/On .+wrote:[\s\S]*/gi, "")
+    processed
       .replace(/^>.*$/gm, "")
       .replace(/<blockquote[^>]*>[\s\S]*?<\/blockquote>/gi, "")
       .trim() || body
@@ -56,7 +66,12 @@ export function SendingMessageBlock({
 }: SendingMessageBlockProps): React.ReactElement {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
-  const clean_body = useMemo(() => strip_quotes(message.body), [message.body]);
+  const clean_body = useMemo(() => {
+    if (message.html_content && is_html_content(message.html_content)) {
+      return message.html_content;
+    }
+    return strip_quotes(message.body);
+  }, [message.body, message.html_content]);
   const display_name =
     current_user_name || message.sender_name || t("common.me");
 
@@ -97,7 +112,7 @@ export function SendingMessageBlock({
       <div style={{ backgroundColor: "var(--thread-content-bg)" }}>
         <div className="opacity-70">
           <SandboxedEmailRenderer
-            is_plain_text={!has_rich_html(clean_body)}
+            is_plain_text={!has_rich_html(message.html_content || message.body)}
             sanitized_html={
               is_html_content(clean_body)
                 ? sanitize_html(clean_body, {

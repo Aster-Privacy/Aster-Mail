@@ -98,6 +98,7 @@ export interface ThreadReplyOptimisticEventDetail {
   sender_email: string;
   subject: string;
   body: string;
+  display_body?: string;
   to_recipients: { name: string; email: string }[];
 }
 

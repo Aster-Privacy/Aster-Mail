@@ -879,6 +879,7 @@ export function use_reply_modal({
           sender_email: sender_email_addr,
           subject: `${t("mail.reply_subject_prefix")} ${original_subject.replace(/^Re:\s*/i, "")}`,
           body: message_with_signature,
+          display_body: reply_body,
           to_recipients: [{ name: recipient_name, email: recipient_email }],
         });
       }

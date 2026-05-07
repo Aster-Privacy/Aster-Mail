@@ -527,6 +527,7 @@ export function ContactList({
                     />
                   </div>
                   <ProfileAvatar
+                    use_domain_logo
                     className="flex-shrink-0"
                     email={primary_email}
                     image_url={contact.avatar_url}

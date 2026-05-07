@@ -116,6 +116,7 @@ export function ContactDetailPanel({
               <div key="details">
                 <div className="flex items-center gap-4 mb-6">
                   <ProfileAvatar
+                    use_domain_logo
                     email={selected_contact.emails[0]}
                     image_url={selected_contact.avatar_url}
                     name={full_name}
