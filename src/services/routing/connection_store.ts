@@ -38,6 +38,7 @@ type ConnectionListener = (state: ConnectionState) => void;
 class ConnectionStore {
   private state: ConnectionState = { ...DEFAULT_CONNECTION_STATE };
   private listeners: Set<ConnectionListener> = new Set();
+  private sync_in_progress_count: number = 0;
 
   async initialize(): Promise<void> {
     const method = await this.load_persisted_method();
@@ -80,22 +81,27 @@ class ConnectionStore {
   }
 
   async fetch_connection_info(): Promise<void> {
-    const response = await api_client.get<ConnectionInfoResponse>(
-      "/core/v1/connection-info",
-    );
+    this.sync_in_progress_count++;
+    try {
+      const response = await api_client.get<ConnectionInfoResponse>(
+        "/core/v1/connection-info",
+      );
 
-    if (!response.data) return;
+      if (!response.data) return;
 
-    const cdn_relay_url =
-      response.data.cdn_relay_urls.length > 0
-        ? response.data.cdn_relay_urls[0]
-        : null;
+      const cdn_relay_url =
+        response.data.cdn_relay_urls.length > 0
+          ? response.data.cdn_relay_urls[0]
+          : null;
 
-    await this.set_connection_info(
-      response.data.api_onion || null,
-      response.data.mail_onion || null,
-      cdn_relay_url,
-    );
+      await this.set_connection_info(
+        response.data.api_onion || null,
+        response.data.mail_onion || null,
+        cdn_relay_url,
+      );
+    } finally {
+      this.sync_in_progress_count--;
+    }
   }
 
   get_state(): ConnectionState {
@@ -104,6 +110,10 @@ class ConnectionStore {
 
   get_method(): ConnectionMethod {
     return this.state.method;
+  }
+
+  is_direct_forced(): boolean {
+    return this.sync_in_progress_count > 0;
   }
 
   get_cdn_relay_url(): string | null {
@@ -160,26 +170,37 @@ class ConnectionStore {
   }
 
   private async sync_method_to_server(method: ConnectionMethod): Promise<void> {
-    await api_client.put("/settings/v1/preferences/connection", { method });
+    this.sync_in_progress_count++;
+    try {
+      await api_client.put("/settings/v1/preferences/connection", { method });
+    } finally {
+      this.sync_in_progress_count--;
+    }
   }
 
   private async load_method_from_server(): Promise<ConnectionMethod | null> {
-    const response = await api_client.get<{ method: string | null }>(
-      "/settings/v1/preferences/connection",
-    );
+    this.sync_in_progress_count++;
+    try {
+      const response = await api_client.get<{ method: string | null }>(
+        "/settings/v1/preferences/connection",
+        { skip_cache: true },
+      );
 
-    const server_method = response.data?.method;
+      const server_method = response.data?.method;
 
-    if (
-      server_method === "direct" ||
-      server_method === "tor" ||
-      server_method === "tor_snowflake" ||
-      server_method === "cdn_relay"
-    ) {
-      return server_method;
+      if (
+        server_method === "direct" ||
+        server_method === "tor" ||
+        server_method === "tor_snowflake" ||
+        server_method === "cdn_relay"
+      ) {
+        return server_method;
+      }
+
+      return null;
+    } finally {
+      this.sync_in_progress_count--;
     }
-
-    return null;
   }
 
   private async load_persisted_method(): Promise<ConnectionMethod> {

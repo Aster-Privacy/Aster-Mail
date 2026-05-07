@@ -2123,6 +2123,8 @@ export const tr = {
     cancel_import: "İçe Aktarmayı İptal Et",
     emails_imported_count: "{{count}} e-posta içe aktarıldı",
     duplicates_skipped: "{{count}} kopya atlandı",
+    import_folder_hint:
+      "Bazı e-postaları bulamıyor musunuz? Spam ve Gönderilmiş klasörlerini kontrol edin - içe aktarılan e-postalar orada sıralanmış olabilir.",
     n_failed_count: "{{count}} başarısız",
     storage_quota_reached:
       "Depolama kotasına ulaşıldı. Daha fazla e-posta içe aktarmak için planınızı yükseltin.",
@@ -2940,6 +2942,8 @@ export const tr = {
     plain_text_warning:
       "Düz metne geçiş tüm biçimlendirmeyi kaldıracaktır. Bu işlem geri alınamaz.",
     remove_formatting: "Biçimlendirmeyi kaldır",
+    encrypt_with_pgp: "PGP ile şifrele",
+    pgp_encryption_active: "PGP şifrelemesi aktif - alıcının açık anahtarı kullanılacak",
     font_color: "Yazı rengi",
     highlight_color: "Vurgu rengi",
     write_message_placeholder: "Mesaj yazın",
@@ -3275,6 +3279,7 @@ export const tr = {
     password_req_lowercase: "Bir küçük harf",
     password_req_number: "Bir rakam",
     password_max_length_register: "Parola 128 karakterden az olmalıdır",
+    password_invalid_chars: "Şifre yalnızca standart klavye karakterleri içerebilir",
     passwords_do_not_match_register: "Parolalar eşleşmiyor",
     registration_failed: "Kayıt başarısız",
     recovery_codes_copied: "Kurtarma kodları kopyalandı",
@@ -3324,7 +3329,7 @@ export const tr = {
     creating_new_recovery_backup: "Yeni kurtarma yedeği oluşturuluyor...",
     saving_new_credentials: "Yeni kimlik bilgileri kaydediliyor...",
     recover_your_account: "Hesabınızı kurtarın",
-    enter_email_associated: "Hesabınızla ilişkili e-posta adresini girin",
+    enter_email_associated: "Hesabınızı kurtarmak için kullanıcı adınızı girin",
     back_to_sign_in: "Giriş sayfasına dön",
     enter_recovery_code: "Kurtarma kodunu girin",
     enter_recovery_code_desc:

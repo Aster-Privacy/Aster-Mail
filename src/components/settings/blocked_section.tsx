@@ -26,9 +26,10 @@ import {
   MagnifyingGlassIcon,
   ArrowPathIcon,
   ExclamationTriangleIcon,
+  GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
-import { Checkbox } from "@aster/ui";
+import { Checkbox, Radio } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
@@ -57,6 +58,7 @@ export function BlockedSection() {
   const [search_query, set_search_query] = useState("");
   const [show_add_form, set_show_add_form] = useState(false);
   const [new_email, set_new_email] = useState("");
+  const [is_domain, set_is_domain] = useState(false);
   const [is_adding, set_is_adding] = useState(false);
   const [form_visible, set_form_visible] = useState(false);
 
@@ -74,6 +76,7 @@ export function BlockedSection() {
     setTimeout(() => {
       set_show_add_form(false);
       set_new_email("");
+      set_is_domain(false);
     }, 200);
   };
 
@@ -162,19 +165,32 @@ export function BlockedSection() {
   };
 
   const handle_add_blocked = async () => {
-    if (!new_email.trim()) return;
+    const value = new_email.trim();
 
-    const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!value) return;
 
-    if (!email_regex.test(new_email.trim())) {
-      show_toast(t("common.please_enter_valid_email"), "error");
+    if (is_domain) {
+      const domain_regex =
+        /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/i;
 
-      return;
+      if (!domain_regex.test(value) || value.length > 253) {
+        show_toast(t("common.please_enter_valid_domain"), "error");
+
+        return;
+      }
+    } else {
+      const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!email_regex.test(value)) {
+        show_toast(t("common.please_enter_valid_email"), "error");
+
+        return;
+      }
     }
 
     set_is_adding(true);
     try {
-      const result = await block_sender(new_email.trim());
+      const result = await block_sender(value, undefined, "spam", is_domain);
 
       if (result.data) {
         set_blocked_senders((prev) => [result.data!, ...prev]);
@@ -281,10 +297,34 @@ export function BlockedSection() {
             <p className="text-[13px] mb-4 text-txt-muted">
               {t("settings.block_sender_popup_description")}
             </p>
+            <div className="flex items-center gap-4 mb-4">
+              <Radio
+                checked={!is_domain}
+                label={t("settings.email_address")}
+                name="blocklist_type"
+                onChange={() => {
+                  set_is_domain(false);
+                  set_new_email("");
+                }}
+              />
+              <Radio
+                checked={is_domain}
+                label={t("settings.entire_domain")}
+                name="blocklist_type"
+                onChange={() => {
+                  set_is_domain(true);
+                  set_new_email("");
+                }}
+              />
+            </div>
             <Input
               className="w-full mb-4"
-              placeholder={t("common.enter_email_to_block")}
-              type="email"
+              placeholder={
+                is_domain
+                  ? t("settings.enter_domain_placeholder")
+                  : t("common.enter_email_to_block")
+              }
+              type={is_domain ? "text" : "email"}
               value={new_email}
               onChange={(e) => set_new_email(e.target.value)}
               onKeyDown={(e) => {
@@ -370,21 +410,38 @@ export function BlockedSection() {
                 onCheckedChange={() => handle_select(index)}
               />
 
-              <ProfileAvatar
-                use_domain_logo
-                className="flex-shrink-0"
-                email={sender.email}
-                name={sender.name || sender.email}
-                size="md"
-              />
+              {sender.is_domain ? (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                  <GlobeAltIcon className="w-5 h-5 text-txt-muted" />
+                </div>
+              ) : (
+                <ProfileAvatar
+                  use_domain_logo
+                  className="flex-shrink-0"
+                  email={sender.email}
+                  name={sender.name || sender.email}
+                  size="md"
+                />
+              )}
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-[13px] font-medium truncate text-txt-primary">
-                    {sender.email}
+                    {sender.is_domain ? `*.${sender.email}` : sender.email}
                   </span>
+                  {sender.is_domain && (
+                    <span
+                      className="text-[10px] px-1.5 py-0.5 rounded"
+                      style={{
+                        backgroundColor: "var(--accent-red-muted)",
+                        color: "var(--accent-red)",
+                      }}
+                    >
+                      {t("settings.entire_domain")}
+                    </span>
+                  )}
                 </div>
-                {sender.name && (
+                {sender.name && !sender.is_domain && (
                   <p className="text-[12px] truncate text-txt-muted">
                     {sender.name}
                   </p>

@@ -2566,6 +2566,8 @@ export const it = {
     cancel_import: "Annulla importazione",
     emails_imported_count: "{{count}} email importate",
     duplicates_skipped: "{{count}} duplicati saltati",
+    import_folder_hint:
+      "Non riesci a trovare alcune email? Controlla le cartelle Spam e Inviati - le email importate potrebbero essere ordinate lì.",
     n_failed_count: "{{count}} non riusciti",
     storage_quota_reached:
       "Quota di archiviazione raggiunta. Aggiorna il tuo piano per importare altre email.",
@@ -2980,6 +2982,8 @@ export const it = {
     plain_text_warning:
       "Il passaggio al testo semplice rimuoverà tutta la formattazione. Questa operazione non può essere annullata.",
     remove_formatting: "Rimuovi formattazione",
+    encrypt_with_pgp: "Cifra con PGP",
+    pgp_encryption_active: "Crittografia PGP attiva - verrà usata la chiave pubblica del destinatario",
     font_color: "Colore del testo",
     highlight_color: "Colore evidenziazione",
     write_message_placeholder: "Scrivi messaggio",
@@ -3310,6 +3314,8 @@ export const it = {
     password_req_number: "Un numero",
     password_max_length_register:
       "La password deve essere inferiore a 128 caratteri",
+    password_invalid_chars:
+      "La password può contenere solo caratteri standard della tastiera",
     passwords_do_not_match_register: "Le password non corrispondono",
     registration_failed: "Registrazione non riuscita",
     recovery_codes_copied: "Codici di recupero copiati",
@@ -3359,8 +3365,7 @@ export const it = {
     creating_new_recovery_backup: "Creazione nuovo backup di recupero...",
     saving_new_credentials: "Salvataggio nuove credenziali...",
     recover_your_account: "Recupera il tuo account",
-    enter_email_associated:
-      "Inserisci l'indirizzo email associato al tuo account",
+    enter_email_associated: "Inserisci il tuo nome utente per recuperare il tuo account",
     back_to_sign_in: "Torna all'accesso",
     enter_recovery_code: "Inserisci codice di recupero",
     enter_recovery_code_desc:

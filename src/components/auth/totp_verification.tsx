@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Button } from "@aster/ui";
+import { Button, Checkbox } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
@@ -160,11 +160,9 @@ export function TotpVerification({
         </div>
 
         <label className="flex items-center justify-center gap-2 text-sm text-txt-muted cursor-pointer select-none">
-          <input
+          <Checkbox
             checked={trust_device}
-            className="h-4 w-4 accent-brand cursor-pointer"
             disabled={is_loading}
-            type="checkbox"
             onChange={(e) => set_trust_device(e.target.checked)}
           />
           {t("auth.trust_this_device_30_days")}

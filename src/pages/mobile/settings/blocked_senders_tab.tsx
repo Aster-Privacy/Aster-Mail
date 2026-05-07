@@ -39,6 +39,7 @@ export function BlockedSendersTab() {
   const [is_loading, set_is_loading] = useState(true);
   const [show_add_form, set_show_add_form] = useState(false);
   const [new_email, set_new_email] = useState("");
+  const [is_domain, set_is_domain] = useState(false);
   const [is_adding, set_is_adding] = useState(false);
 
   useEffect(() => {
@@ -65,6 +66,7 @@ export function BlockedSendersTab() {
   const close_add_form = useCallback(() => {
     set_show_add_form(false);
     set_new_email("");
+    set_is_domain(false);
   }, []);
 
   const handle_unblock = useCallback(async (token: string) => {
@@ -77,16 +79,27 @@ export function BlockedSendersTab() {
 
     if (!value) return;
 
-    const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (is_domain) {
+      const domain_regex =
+        /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/;
 
-    if (!email_regex.test(value)) {
-      show_toast(t("common.please_enter_valid_email"), "error");
+      if (!domain_regex.test(value)) {
+        show_toast(t("common.please_enter_valid_domain"), "error");
 
-      return;
+        return;
+      }
+    } else {
+      const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!email_regex.test(value)) {
+        show_toast(t("common.please_enter_valid_email"), "error");
+
+        return;
+      }
     }
     set_is_adding(true);
     try {
-      const result = await block_sender(value);
+      const result = await block_sender(value, undefined, "spam", is_domain);
 
       if (result.data) {
         set_blocked((prev) => [result.data!, ...prev]);
@@ -101,18 +114,40 @@ export function BlockedSendersTab() {
     } finally {
       set_is_adding(false);
     }
-  }, [new_email, close_add_form, t]);
+  }, [new_email, is_domain, close_add_form, t]);
 
   return (
     <>
       <div className="px-4 pt-3">
         {show_add_form ? (
           <div className="rounded-xl bg-[var(--mobile-bg-card)] p-4 space-y-3">
+            <div className="flex gap-2">
+              <button
+                className={`flex-1 rounded-lg py-2 text-[13px] font-medium transition-colors ${!is_domain ? "bg-[var(--mobile-accent)] text-white" : "bg-[var(--bg-tertiary)] text-[var(--mobile-text-secondary)]"}`}
+                type="button"
+                onClick={() => {
+                  set_is_domain(false);
+                  set_new_email("");
+                }}
+              >
+                {t("settings.email_address")}
+              </button>
+              <button
+                className={`flex-1 rounded-lg py-2 text-[13px] font-medium transition-colors ${is_domain ? "bg-[var(--mobile-accent)] text-white" : "bg-[var(--bg-tertiary)] text-[var(--mobile-text-secondary)]"}`}
+                type="button"
+                onClick={() => {
+                  set_is_domain(true);
+                  set_new_email("");
+                }}
+              >
+                {t("settings.entire_domain")}
+              </button>
+            </div>
             <Input
               autoFocus
               className="w-full"
-              placeholder={t("common.email_placeholder")}
-              type="email"
+              placeholder={is_domain ? "example.com" : t("common.email_placeholder")}
+              type={is_domain ? "text" : "email"}
               value={new_email}
               onChange={(e) => set_new_email(e.target.value)}
               onKeyDown={(e) => {
@@ -168,9 +203,11 @@ export function BlockedSendersTab() {
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[15px] text-[var(--mobile-text-primary)]">
-                  {sender.name || sender.email}
+                  {sender.is_domain
+                    ? `*.${sender.email}`
+                    : sender.name || sender.email}
                 </p>
-                {sender.name && (
+                {!sender.is_domain && sender.name && (
                   <p className="truncate text-[13px] text-[var(--mobile-text-muted)]">
                     {sender.email}
                   </p>

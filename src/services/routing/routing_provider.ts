@@ -63,13 +63,16 @@ async function tauri_proxy_fetch(
 }
 
 export function get_effective_base_url(default_base_url: string): string {
+  if (connection_store.is_direct_forced()) return default_base_url;
+
   const method = connection_store.get_method();
 
-  if (method === "tor" || method === "tor_snowflake") {
+  if ((method === "tor" || method === "tor_snowflake") && is_tor_available()) {
     const onion_url = connection_store.get_api_onion_url();
 
     if (onion_url) {
-      return `http://${onion_url}/api`;
+      const hostname = onion_url.replace(/^https?:\/\//, "");
+      return `https://${hostname}/api`;
     }
   }
 
@@ -118,6 +121,11 @@ export async function routed_fetch(
   url: string,
   options: RequestInit,
 ): Promise<Response> {
+  if (connection_store.is_direct_forced()) {
+    if (is_tauri_env()) return tauri_proxy_fetch(url, options);
+    return fetch(url, options);
+  }
+
   const method = connection_store.get_method();
 
   switch (method) {

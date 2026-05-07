@@ -1112,6 +1112,12 @@ export const en: Translations = {
     account_suspended_default_reason:
       "Your account has been suspended for violating our Terms of Service.",
     submit_an_appeal: "Submit an appeal",
+    pending_deletion_title: "Account scheduled for deletion",
+    pending_deletion_days: "Your account will be permanently deleted in {{days}} days.",
+    pending_deletion_cancel_prompt: "Would you like to cancel the deletion and keep your account?",
+    pending_deletion_keep: "Keep My Account",
+    pending_deletion_dismiss: "No, Continue with Deletion",
+    pending_deletion_cancelling: "Cancelling...",
     settings_disabled_suspended:
       "Settings are disabled while your account is suspended.",
     new_email_body: "You have a new email",
@@ -2707,6 +2713,8 @@ export const en: Translations = {
     cancel_import: "Cancel Import",
     emails_imported_count: "{{count}} emails imported",
     duplicates_skipped: "{{count}} duplicates skipped",
+    import_folder_hint:
+      "Can't find some emails? Check your Spam and Sent folders - imported emails may be sorted there based on their content.",
     n_failed_count: "{{count}} failed",
     storage_quota_reached:
       "Storage quota reached. Upgrade your plan to import more emails.",
@@ -3029,7 +3037,7 @@ export const en: Translations = {
     error_tip_dkim:
       "DKIM records can be long - make sure the full value was pasted without being truncated.",
     error_tip_dmarc:
-      "The DMARC record should be added at _dmarc.yourdomain.com, not the root domain.",
+      "Many DNS providers auto-append your domain - enter only _dmarc as the host name, not _dmarc.yourdomain.com.",
     verify_all_records: "Verify All Records",
     need_help_link: "Need help?",
     catch_all_enabled_toast: "Catch-all enabled",
@@ -3420,6 +3428,8 @@ export const en: Translations = {
     plain_text_warning:
       "Switching to plain text will remove all formatting. This cannot be undone.",
     remove_formatting: "Remove formatting",
+    encrypt_with_pgp: "Encrypt with PGP",
+    pgp_encryption_active: "PGP encryption active - recipient's public key will be used",
     font_color: "Font color",
     highlight_color: "Highlight color",
     write_message_placeholder: "Write message",
@@ -3922,6 +3932,7 @@ export const en: Translations = {
     password_req_lowercase: "One lowercase letter",
     password_req_number: "One number",
     password_max_length_register: "Password must be less than 128 characters",
+    password_invalid_chars: "Password can only contain standard keyboard characters",
     passwords_do_not_match_register: "Passwords do not match",
     registration_failed: "Registration failed",
     abuse_account_limit:
@@ -3976,8 +3987,7 @@ export const en: Translations = {
     creating_new_recovery_backup: "Creating new recovery backup...",
     saving_new_credentials: "Saving new credentials...",
     recover_your_account: "Recover your account",
-    enter_email_associated:
-      "Enter the email address associated with your account",
+    enter_email_associated: "Enter your username to recover your account",
     back_to_sign_in: "Back to sign in",
     enter_recovery_code: "Enter recovery code",
     enter_recovery_code_desc:

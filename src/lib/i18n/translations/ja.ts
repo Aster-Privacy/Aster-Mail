@@ -2130,6 +2130,8 @@ export const ja = {
     cancel_import: "インポートをキャンセル",
     emails_imported_count: "{{count}}件のメールをインポートしました",
     duplicates_skipped: "{{count}}件の重複をスキップしました",
+    import_folder_hint:
+      "メールが見つかりませんか？スパムと送信済みフォルダを確認してください。インポートされたメールがそこに分類されている場合があります。",
     n_failed_count: "{{count}}件失敗",
     storage_quota_reached:
       "ストレージの上限に達しました。プランをアップグレードしてさらにメールをインポートしてください。",
@@ -2932,6 +2934,8 @@ export const ja = {
     plain_text_warning:
       "プレーンテキストに切り替えると、すべての書式が削除されます。この操作は元に戻せません。",
     remove_formatting: "書式を削除",
+    encrypt_with_pgp: "PGPで暗号化",
+    pgp_encryption_active: "PGP暗号化が有効 - 受信者の公開鍵が使用されます",
     font_color: "文字色",
     highlight_color: "ハイライト色",
     write_message_placeholder: "メッセージを入力",
@@ -3259,6 +3263,7 @@ export const ja = {
     password_req_lowercase: "小文字1文字",
     password_req_number: "数字1文字",
     password_max_length_register: "パスワードは128文字未満である必要があります",
+    password_invalid_chars: "パスワードには標準的なキーボード文字のみ使用できます",
     passwords_do_not_match_register: "パスワードが一致しません",
     registration_failed: "登録に失敗しました",
     recovery_codes_copied: "リカバリーコードをコピーしました",
@@ -3307,8 +3312,7 @@ export const ja = {
     creating_new_recovery_backup: "新しい復旧バックアップを作成中...",
     saving_new_credentials: "新しい認証情報を保存中...",
     recover_your_account: "アカウントの復旧",
-    enter_email_associated:
-      "アカウントに関連付けられたメールアドレスを入力してください",
+    enter_email_associated: "アカウントを復元するにはユーザー名を入力してください",
     back_to_sign_in: "サインインに戻る",
     enter_recovery_code: "リカバリーコードを入力",
     enter_recovery_code_desc:

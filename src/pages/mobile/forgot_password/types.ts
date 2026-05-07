@@ -37,8 +37,10 @@ export interface StepProps {
 }
 
 export interface EmailStepProps extends StepProps {
-  email: string;
-  set_email: (email: string) => void;
+  username: string;
+  set_username: (username: string) => void;
+  email_domain: "astermail.org" | "aster.cx";
+  set_email_domain: (domain: "astermail.org" | "aster.cx") => void;
   on_next: () => void;
   on_navigate_sign_in: () => void;
 }

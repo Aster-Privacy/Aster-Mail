@@ -2133,6 +2133,8 @@ export const pl = {
     cancel_import: "Anuluj import",
     emails_imported_count: "Zaimportowano {{count}} e-maili",
     duplicates_skipped: "Pominięto {{count}} duplikatów",
+    import_folder_hint:
+      "Nie możesz znaleźć niektórych e-maili? Sprawdź foldery Spam i Wysłane - zaimportowane e-maile mogą być tam posortowane.",
     n_failed_count: "{{count}} nieudanych",
     storage_quota_reached:
       "Storage quota reached. Upgrade your plan to import more emails.",
@@ -2951,6 +2953,8 @@ export const pl = {
     plain_text_warning:
       "Przełączenie na zwykły tekst usunie całe formatowanie. Tej operacji nie można cofnąć.",
     remove_formatting: "Usuń formatowanie",
+    encrypt_with_pgp: "Szyfruj przez PGP",
+    pgp_encryption_active: "Szyfrowanie PGP aktywne - zostanie użyty klucz publiczny odbiorcy",
     font_color: "Kolor czcionki",
     highlight_color: "Kolor podświetlenia",
     write_message_placeholder: "Napisz wiadomość",
@@ -3278,6 +3282,7 @@ export const pl = {
     password_req_lowercase: "Jedna mała litera",
     password_req_number: "Jedna cyfra",
     password_max_length_register: "Hasło musi mieć mniej niż 128 znaków",
+    password_invalid_chars: "Hasło może zawierać tylko standardowe znaki klawiatury",
     passwords_do_not_match_register: "Hasła nie są zgodne",
     registration_failed: "Rejestracja nie powiodła się",
     recovery_codes_copied: "Kody odzyskiwania skopiowane",
@@ -3327,7 +3332,7 @@ export const pl = {
       "Tworzenie nowej kopii zapasowej odzyskiwania...",
     saving_new_credentials: "Zapisywanie nowych poświadczeń...",
     recover_your_account: "Odzyskaj swoje konto",
-    enter_email_associated: "Wprowadź adres e-mail powiązany z Twoim kontem",
+    enter_email_associated: "Wprowadź nazwę użytkownika, aby odzyskać swoje konto",
     back_to_sign_in: "Powrót do logowania",
     enter_recovery_code: "Wprowadź kod odzyskiwania",
     enter_recovery_code_desc:

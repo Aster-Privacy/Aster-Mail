@@ -25,6 +25,7 @@ import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Input } from "@/components/ui/input";
+import { sanitize_username } from "@/services/sanitize";
 import {
   stagger_container,
   fade_up_item,
@@ -39,8 +40,10 @@ import {
 } from "@/components/auth/mobile_auth_motion";
 
 export function EmailStep({
-  email,
-  set_email,
+  username,
+  set_username,
+  email_domain,
+  set_email_domain,
   error,
   is_dark,
   reduce_motion,
@@ -110,15 +113,64 @@ export function EmailStep({
         >
           <div className={DEPTH_INPUT_WRAPPER_CLASS}>
             <Input
-              autoComplete="email"
+              autoComplete="username"
               className={INNER_INPUT_CLASS}
-              placeholder={t("auth.email_address_placeholder")}
+              maxLength={55}
+              placeholder={t("common.yourname_placeholder")}
               status={error ? "error" : "default"}
-              type="email"
-              value={email}
-              onChange={(e) => set_email(e.target.value)}
+              type="text"
+              value={username}
+              onChange={(e) => {
+                const raw = e.target.value;
+                const at_index = raw.indexOf("@");
+
+                if (at_index !== -1) {
+                  const local = sanitize_username(raw.substring(0, at_index));
+                  const domain_part = raw
+                    .substring(at_index + 1)
+                    .toLowerCase();
+
+                  set_username(local);
+                  if (
+                    domain_part === "astermail.org" ||
+                    domain_part.startsWith("astermail.org")
+                  )
+                    set_email_domain("astermail.org");
+                  else if (
+                    domain_part === "aster.cx" ||
+                    domain_part.startsWith("aster.cx")
+                  )
+                    set_email_domain("aster.cx");
+                } else {
+                  set_username(sanitize_username(raw));
+                }
+              }}
               onKeyDown={(e) => e["key"] === "Enter" && on_next()}
             />
+          </div>
+          <div className="relative flex mt-2" style={{ background: "var(--bg-secondary)", borderRadius: 12, padding: 4 }}>
+            <div
+              className="absolute top-1 bottom-1 rounded-[8px] transition-all duration-200 ease-out"
+              style={{
+                background: "var(--bg-tertiary)",
+                width: "calc(50% - 4px)",
+                left: email_domain === "astermail.org" ? "4px" : "calc(50%)",
+              }}
+            />
+            <button
+              className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "astermail.org" ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
+              type="button"
+              onClick={() => set_email_domain("astermail.org")}
+            >
+              @astermail.org
+            </button>
+            <button
+              className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "aster.cx" ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
+              type="button"
+              onClick={() => set_email_domain("aster.cx")}
+            >
+              @aster.cx
+            </button>
           </div>
         </motion.div>
       </motion.div>

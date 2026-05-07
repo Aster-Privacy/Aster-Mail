@@ -80,11 +80,15 @@ async function get_blocked_senders_encryption_key(): Promise<CryptoKey> {
   return key;
 }
 
-export async function generate_sender_token(email: string): Promise<string> {
+export async function generate_sender_token(
+  email: string,
+  is_domain: boolean = false,
+): Promise<string> {
   const hmac_key = await get_hmac_key();
-  const normalized = normalize_email(email);
+  const normalized = is_domain ? email.toLowerCase().trim() : normalize_email(email);
+  const prefix = is_domain ? "domain:" : "";
   const encoder = new TextEncoder();
-  const data = encoder.encode(normalized);
+  const data = encoder.encode(prefix + normalized);
   const hash = await crypto.subtle.sign("HMAC", hmac_key, data);
 
   return array_to_base64(new Uint8Array(hash));
@@ -121,6 +125,7 @@ export interface BlockedSenderData {
   email: string;
   name?: string;
   blocked_at: string;
+  is_domain?: boolean;
 }
 
 export async function encrypt_block_data(data: BlockedSenderData): Promise<{
@@ -180,6 +185,7 @@ export async function decrypt_block_data(
     email: parsed.email,
     name: parsed.name,
     blocked_at: parsed.blocked_at,
+    is_domain: parsed.is_domain ?? false,
   };
 }
 
@@ -189,6 +195,7 @@ export interface BlockedSenderResponse {
   encrypted_sender_data: string;
   sender_data_nonce: string;
   integrity_hash: string;
+  is_domain: boolean;
   action: string;
   created_at: string;
 }
@@ -199,6 +206,7 @@ export interface DecryptedBlockedSender {
   email: string;
   name?: string;
   blocked_at: string;
+  is_domain: boolean;
   action: string;
   created_at: string;
 }
@@ -234,6 +242,7 @@ export async function list_blocked_senders(): Promise<
           email: data.email,
           name: data.name,
           blocked_at: data.blocked_at,
+          is_domain: item.is_domain,
           action: item.action,
           created_at: item.created_at,
         };
@@ -261,10 +270,11 @@ export async function block_sender(
   email: string,
   name?: string,
   action: "spam" | "delete" = "spam",
+  is_domain: boolean = false,
 ): Promise<ApiResponse<DecryptedBlockedSender>> {
   try {
-    const sender_token = await generate_sender_token(email);
-    const normalized = normalize_email(email);
+    const sender_token = await generate_sender_token(email, is_domain);
+    const normalized = is_domain ? email.toLowerCase().trim() : normalize_email(email);
     const hash_buffer = await crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(normalized),
@@ -276,6 +286,7 @@ export async function block_sender(
       email: normalized,
       name,
       blocked_at: new Date().toISOString(),
+      is_domain,
     };
     const { encrypted_sender_data, sender_data_nonce, integrity_hash } =
       await encrypt_block_data(block_data);
@@ -288,6 +299,7 @@ export async function block_sender(
         encrypted_sender_data,
         sender_data_nonce,
         integrity_hash,
+        is_domain,
         action,
       },
     );
@@ -303,6 +315,7 @@ export async function block_sender(
         email: block_data.email,
         name: block_data.name,
         blocked_at: block_data.blocked_at,
+        is_domain: response.data.is_domain,
         action: response.data.action,
         created_at: response.data.created_at,
       },

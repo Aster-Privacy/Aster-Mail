@@ -1079,6 +1079,12 @@ export interface CommonTranslations {
   account_suspended_default_reason: string;
   submit_an_appeal: string;
   settings_disabled_suspended: string;
+  pending_deletion_title: string;
+  pending_deletion_days: string;
+  pending_deletion_cancel_prompt: string;
+  pending_deletion_keep: string;
+  pending_deletion_dismiss: string;
+  pending_deletion_cancelling: string;
   new_email_body: string;
   create_ghost_alias: string;
   hide_real_address_expiry: string;
@@ -2309,6 +2315,7 @@ export interface SettingsTranslations {
   cancel_import: string;
   emails_imported_count: string;
   duplicates_skipped: string;
+  import_folder_hint: string;
   n_failed_count: string;
   storage_quota_reached: string;
   no_emails_in_file: string;
@@ -3090,6 +3097,8 @@ export interface MailTranslations {
   delete_draft_confirmation: string;
   plain_text_warning: string;
   remove_formatting: string;
+  encrypt_with_pgp: string;
+  pgp_encryption_active: string;
   font_color: string;
   highlight_color: string;
   write_message_placeholder: string;
@@ -3569,6 +3578,7 @@ export interface AuthTranslations {
   password_req_lowercase: string;
   password_req_number: string;
   password_max_length_register: string;
+  password_invalid_chars: string;
   passwords_do_not_match_register: string;
   registration_failed: string;
   abuse_account_limit: string;

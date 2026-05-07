@@ -2085,6 +2085,8 @@ export const nl = {
     cancel_import: "Import annuleren",
     emails_imported_count: "{{count}} e-mails geïmporteerd",
     duplicates_skipped: "{{count}} duplicaten overgeslagen",
+    import_folder_hint:
+      "Sommige e-mails niet gevonden? Controleer de mappen Spam en Verzonden - geïmporteerde e-mails kunnen daar worden gesorteerd.",
     n_failed_count: "{{count}} mislukt",
     storage_quota_reached:
       "Opslaglimiet bereikt. Upgrade je abonnement om meer e-mails te importeren.",
@@ -2955,6 +2957,8 @@ export const nl = {
     plain_text_warning:
       "Overschakelen naar platte tekst verwijdert alle opmaak. Dit kan niet ongedaan worden gemaakt.",
     remove_formatting: "Opmaak verwijderen",
+    encrypt_with_pgp: "Versleutelen met PGP",
+    pgp_encryption_active: "PGP-versleuteling actief - de publieke sleutel van de ontvanger wordt gebruikt",
     font_color: "Tekstkleur",
     highlight_color: "Markeerkleur",
     write_message_placeholder: "Schrijf bericht",
@@ -3270,6 +3274,7 @@ export const nl = {
     password_req_lowercase: "Eén kleine letter",
     password_req_number: "Eén cijfer",
     password_max_length_register: "Wachtwoord mag maximaal 128 tekens bevatten",
+    password_invalid_chars: "Wachtwoord mag alleen standaard toetsenbordtekens bevatten",
     passwords_do_not_match_register: "Wachtwoorden komen niet overeen",
     registration_failed: "Registratie mislukt",
     recovery_codes_copied: "Herstelcodes gekopieerd",
@@ -3316,8 +3321,7 @@ export const nl = {
     creating_new_recovery_backup: "Nieuwe herstelback-up aanmaken...",
     saving_new_credentials: "Nieuwe inloggegevens opslaan...",
     recover_your_account: "Herstel je account",
-    enter_email_associated:
-      "Voer het e-mailadres in dat aan je account is gekoppeld",
+    enter_email_associated: "Voer je gebruikersnaam in om je account te herstellen",
     back_to_sign_in: "Terug naar inloggen",
     enter_recovery_code: "Voer herstelcode in",
     enter_recovery_code_desc:

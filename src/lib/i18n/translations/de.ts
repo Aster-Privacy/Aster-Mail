@@ -2096,6 +2096,8 @@ export const de = {
     cancel_import: "Import abbrechen",
     emails_imported_count: "{{count}} E-Mails importiert",
     duplicates_skipped: "{{count}} Duplikate übersprungen",
+    import_folder_hint:
+      "E-Mails nicht gefunden? Prüfe Spam- und Gesendet-Ordner - importierte E-Mails können dort einsortiert sein.",
     n_failed_count: "{{count}} fehlgeschlagen",
     storage_quota_reached:
       "Storage quota reached. Upgrade your plan to import more emails.",
@@ -3011,6 +3013,8 @@ export const de = {
     plain_text_warning:
       "Der Wechsel zu Nur-Text entfernt alle Formatierungen. Dies kann nicht rückgängig gemacht werden.",
     remove_formatting: "Formatierung entfernen",
+    encrypt_with_pgp: "Mit PGP verschlüsseln",
+    pgp_encryption_active: "PGP-Verschlüsselung aktiv - der öffentliche Schlüssel des Empfängers wird verwendet",
     font_color: "Schriftfarbe",
     highlight_color: "Hervorhebungsfarbe",
     write_message_placeholder: "Nachricht schreiben",
@@ -3369,8 +3373,7 @@ export const de = {
     recovering_account_data: "Kontodaten werden wiederhergestellt...",
     saving_new_credentials: "Neue Zugangsdaten werden gespeichert...",
     recover_your_account: "Stellen Sie Ihr Konto wieder her",
-    enter_email_associated:
-      "Geben Sie die E-Mail-Adresse ein, die mit Ihrem Konto verknüpft ist",
+    enter_email_associated: "Gib deinen Benutzernamen ein, um dein Konto wiederherzustellen",
     back_to_sign_in: "Zurück zur Anmeldung",
     enter_recovery_code: "Wiederherstellungscode eingeben",
     enter_recovery_code_desc:
@@ -3452,6 +3455,8 @@ export const de = {
       "Der Benutzername darf nur Buchstaben und Zahlen enthalten",
     password_max_length_register:
       "Das Passwort muss kürzer als 128 Zeichen sein",
+    password_invalid_chars:
+      "Das Passwort darf nur Standard-Tastaturzeichen enthalten",
     abuse_account_limit:
       "Ihre Registrierung wurde von unserem Sicherheitssystem markiert. Wenn Sie glauben, dass dies ein Fehler war, kontaktieren Sie bitte den Support.",
     abuse_flagged_message:

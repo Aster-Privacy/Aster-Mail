@@ -2067,6 +2067,8 @@ export const ar = {
     cancel_import: "إلغاء الاستيراد",
     emails_imported_count: "تم استيراد {{count}} رسالة",
     duplicates_skipped: "تم تخطي {{count}} مكرر",
+    import_folder_hint:
+      "لا تجد بعض الرسائل؟ تحقق من مجلدي البريد العشوائي والمرسل - قد تكون الرسائل المستوردة مرتبة هناك.",
     n_failed_count: "{{count}} فشل",
     storage_quota_reached:
       "تم الوصول إلى حد التخزين. قم بترقية خطتك لاستيراد المزيد من الرسائل.",
@@ -2846,6 +2848,8 @@ export const ar = {
     plain_text_warning:
       "سيؤدي التبديل إلى نص عادي إلى إزالة جميع التنسيقات. لا يمكن التراجع عن هذا.",
     remove_formatting: "إزالة التنسيق",
+    encrypt_with_pgp: "تشفير بـ PGP",
+    pgp_encryption_active: "تشفير PGP نشط - سيتم استخدام المفتاح العام للمستلم",
     font_color: "لون الخط",
     highlight_color: "لون التمييز",
     write_message_placeholder: "اكتب رسالة",
@@ -3168,6 +3172,7 @@ export const ar = {
     password_req_lowercase: "حرف صغير واحد",
     password_req_number: "رقم واحد",
     password_max_length_register: "يجب أن تكون كلمة المرور أقل من 128 حرفًا",
+    password_invalid_chars: "يمكن أن تحتوي كلمة المرور على أحرف لوحة المفاتيح القياسية فقط",
     passwords_do_not_match_register: "كلمات المرور غير متطابقة",
     registration_failed: "فشل التسجيل",
     recovery_codes_copied: "تم نسخ رموز الاسترداد",
@@ -3214,7 +3219,7 @@ export const ar = {
     creating_new_recovery_backup: "جارٍ إنشاء نسخة استرداد احتياطية جديدة...",
     saving_new_credentials: "جارٍ حفظ بيانات الاعتماد الجديدة...",
     recover_your_account: "استرداد حسابك",
-    enter_email_associated: "أدخل عنوان البريد الإلكتروني المرتبط بحسابك",
+    enter_email_associated: "أدخل اسم المستخدم الخاص بك لاسترداد حسابك",
     back_to_sign_in: "العودة إلى تسجيل الدخول",
     enter_recovery_code: "أدخل رمز الاسترداد",
     enter_recovery_code_desc:

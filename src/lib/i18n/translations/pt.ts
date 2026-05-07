@@ -2149,6 +2149,8 @@ export const pt = {
     cancel_import: "Cancelar Importação",
     emails_imported_count: "{{count}} e-mails importados",
     duplicates_skipped: "{{count}} duplicatas ignoradas",
+    import_folder_hint:
+      "Não encontra alguns e-mails? Verifique as pastas Spam e Enviados - os e-mails importados podem estar ordenados lá.",
     n_failed_count: "{{count}} falharam",
     storage_quota_reached:
       "Cota de armazenamento atingida. Atualize seu plano para importar mais e-mails.",
@@ -2968,6 +2970,8 @@ export const pt = {
     plain_text_warning:
       "Mudar para texto simples removerá toda a formatação. Isso não pode ser desfeito.",
     remove_formatting: "Remover formatação",
+    encrypt_with_pgp: "Encriptar com PGP",
+    pgp_encryption_active: "Encriptação PGP ativa - a chave pública do destinatário será usada",
     font_color: "Cor da fonte",
     highlight_color: "Cor de destaque",
     write_message_placeholder: "Escrever mensagem",
@@ -3303,6 +3307,7 @@ export const pt = {
     password_req_lowercase: "Uma letra minúscula",
     password_req_number: "Um número",
     password_max_length_register: "A senha deve ter menos de 128 caracteres",
+    password_invalid_chars: "A senha pode conter apenas caracteres padrão do teclado",
     passwords_do_not_match_register: "As senhas não coincidem",
     registration_failed: "Falha no cadastro",
     recovery_codes_copied: "Códigos de recuperação copiados",
@@ -3354,7 +3359,7 @@ export const pt = {
     creating_new_recovery_backup: "Criando novo backup de recuperação...",
     saving_new_credentials: "Salvando novas credenciais...",
     recover_your_account: "Recupere sua conta",
-    enter_email_associated: "Digite o endereço de e-mail associado à sua conta",
+    enter_email_associated: "Insira seu nome de usuário para recuperar sua conta",
     back_to_sign_in: "Voltar para login",
     enter_recovery_code: "Digite o código de recuperação",
     enter_recovery_code_desc:

@@ -332,7 +332,7 @@ export function TemplatesSection() {
                   {t("settings.template_content")}
                 </label>
                 <textarea
-                  className="aster_input resize-none py-2 font-mono"
+                  className="aster_input resize-none !py-3 font-mono"
                   id="template-content"
                   placeholder={t("settings.template_content_placeholder")}
                   rows={8}

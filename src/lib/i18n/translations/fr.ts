@@ -2192,6 +2192,8 @@ export const fr = {
     cancel_import: "Annuler l'importation",
     emails_imported_count: "{{count}} e-mails importés",
     duplicates_skipped: "{{count}} doublons ignorés",
+    import_folder_hint:
+      "Vous ne trouvez pas certains e-mails ? Vérifiez vos dossiers Spam et Envoyés - les e-mails importés peuvent y être classés.",
     n_failed_count: "{{count}} échoués",
     storage_quota_reached:
       "Storage quota reached. Upgrade your plan to import more emails.",
@@ -3013,6 +3015,8 @@ export const fr = {
     plain_text_warning:
       "Le passage en texte brut supprimera toute la mise en forme. Cette action est irréversible.",
     remove_formatting: "Supprimer la mise en forme",
+    encrypt_with_pgp: "Chiffrer avec PGP",
+    pgp_encryption_active: "Chiffrement PGP actif - la clé publique du destinataire sera utilisée",
     font_color: "Couleur du texte",
     highlight_color: "Couleur de surlignage",
     write_message_placeholder: "Écrire un message",
@@ -3359,6 +3363,8 @@ export const fr = {
     password_req_number: "Un chiffre",
     password_max_length_register:
       "Le mot de passe doit contenir moins de 128 caractères",
+    password_invalid_chars:
+      "Le mot de passe ne peut contenir que des caractères de clavier standard",
     passwords_do_not_match_register: "Les mots de passe ne correspondent pas",
     registration_failed: "Échec de l'inscription",
     recovery_codes_copied: "Codes de récupération copiés",
@@ -3415,8 +3421,7 @@ export const fr = {
       "Création d'une nouvelle sauvegarde de récupération...",
     saving_new_credentials: "Enregistrement des nouveaux identifiants...",
     recover_your_account: "Récupérer votre compte",
-    enter_email_associated:
-      "Saisissez l'adresse e-mail associée à votre compte",
+    enter_email_associated: "Entrez votre nom d'utilisateur pour récupérer votre compte",
     back_to_sign_in: "Retour à la connexion",
     enter_recovery_code: "Saisir le code de récupération",
     enter_recovery_code_desc:

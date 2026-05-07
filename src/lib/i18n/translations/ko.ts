@@ -2068,6 +2068,8 @@ export const ko = {
     cancel_import: "가져오기 취소",
     emails_imported_count: "{{count}}개 이메일 가져옴",
     duplicates_skipped: "{{count}}개 중복 건너뜀",
+    import_folder_hint:
+      "일부 이메일을 찾을 수 없나요? 스팸 및 보낸 편지함 폴더를 확인하세요 - 가져온 이메일이 그곳에 정렬되어 있을 수 있습니다.",
     n_failed_count: "{{count}}개 실패",
     storage_quota_reached:
       "저장 용량이 가득 찼습니다. 더 많은 이메일을 가져오려면 플랜을 업그레이드하세요.",
@@ -2858,6 +2860,8 @@ export const ko = {
     plain_text_warning:
       "일반 텍스트로 전환하면 모든 서식이 제거됩니다. 이 작업은 취소할 수 없습니다.",
     remove_formatting: "서식 제거",
+    encrypt_with_pgp: "PGP로 암호화",
+    pgp_encryption_active: "PGP 암호화 활성화됨 - 수신자의 공개 키가 사용됩니다",
     font_color: "글자 색상",
     highlight_color: "강조 색상",
     write_message_placeholder: "메시지 작성",
@@ -3185,6 +3189,7 @@ export const ko = {
     password_req_lowercase: "소문자 하나",
     password_req_number: "숫자 하나",
     password_max_length_register: "비밀번호는 128자 미만이어야 합니다",
+    password_invalid_chars: "비밀번호는 표준 키보드 문자만 포함할 수 있습니다",
     passwords_do_not_match_register: "비밀번호가 일치하지 않습니다",
     registration_failed: "가입 실패",
     recovery_codes_copied: "복구 코드가 복사되었습니다",
@@ -3233,7 +3238,7 @@ export const ko = {
     creating_new_recovery_backup: "새 복구 백업 생성 중...",
     saving_new_credentials: "새 자격 증명 저장 중...",
     recover_your_account: "계정 복구",
-    enter_email_associated: "계정에 연결된 이메일 주소를 입력하세요",
+    enter_email_associated: "계정을 복구하려면 사용자 이름을 입력하세요",
     back_to_sign_in: "로그인으로 돌아가기",
     enter_recovery_code: "복구 코드 입력",
     enter_recovery_code_desc:

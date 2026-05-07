@@ -29,7 +29,7 @@ import {
   ArrowPathIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Switch } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
@@ -285,28 +285,11 @@ export function DomainCardV2({
                           {t("settings.catch_all_description")}
                         </p>
                       </div>
-                      <button
-                        className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out"
+                      <Switch
+                        checked={domain.catch_all_enabled}
                         disabled={catch_all_loading}
-                        role="switch"
-                        style={{
-                          backgroundColor: domain.catch_all_enabled
-                            ? "var(--accent-color, #3b82f6)"
-                            : "var(--bg-tertiary)",
-                          opacity: catch_all_loading ? 0.6 : 1,
-                        }}
-                        type="button"
-                        onClick={handle_toggle_catch_all}
-                      >
-                        <span
-                          className="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out"
-                          style={{
-                            transform: domain.catch_all_enabled
-                              ? "translate(20px, 2px)"
-                              : "translate(2px, 2px)",
-                          }}
-                        />
-                      </button>
+                        onCheckedChange={handle_toggle_catch_all}
+                      />
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -324,11 +307,9 @@ export function DomainCardV2({
                         variant="outline"
                         onClick={handle_rotate_dkim}
                       >
-                        {dkim_rotating ? (
-                          <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <ArrowPathIcon className="w-3.5 h-3.5" />
-                        )}
+                        <ArrowPathIcon
+                          className={`w-3.5 h-3.5 ${dkim_rotating ? "animate-spin" : ""}`}
+                        />
                         {t("settings.rotate_label")}
                       </Button>
                     </div>

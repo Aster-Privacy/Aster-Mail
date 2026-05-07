@@ -2145,6 +2145,8 @@ export const ru = {
     cancel_import: "Отменить импорт",
     emails_imported_count: "{{count}} писем импортировано",
     duplicates_skipped: "{{count}} дубликатов пропущено",
+    import_folder_hint:
+      "Не можете найти некоторые письма? Проверьте папки Спам и Отправленные - импортированные письма могут быть отсортированы туда.",
     n_failed_count: "{{count}} с ошибкой",
     storage_quota_reached:
       "Достигнут лимит хранилища. Обновите тариф для импорта дополнительных писем.",
@@ -2959,6 +2961,8 @@ export const ru = {
     plain_text_warning:
       "Переключение на обычный текст удалит всё форматирование. Это действие нельзя отменить.",
     remove_formatting: "Убрать форматирование",
+    encrypt_with_pgp: "Зашифровать PGP",
+    pgp_encryption_active: "PGP-шифрование активно - будет использован публичный ключ получателя",
     font_color: "Цвет шрифта",
     highlight_color: "Цвет выделения",
     write_message_placeholder: "Написать сообщение",
@@ -3297,6 +3301,7 @@ export const ru = {
     password_req_lowercase: "Одна строчная буква",
     password_req_number: "Одна цифра",
     password_max_length_register: "Пароль должен содержать менее 128 символов",
+    password_invalid_chars: "Пароль может содержать только стандартные символы клавиатуры",
     passwords_do_not_match_register: "Пароли не совпадают",
     registration_failed: "Регистрация не удалась",
     recovery_codes_copied: "Коды восстановления скопированы",
@@ -3348,8 +3353,7 @@ export const ru = {
       "Создание новой резервной копии для восстановления...",
     saving_new_credentials: "Сохранение новых учётных данных...",
     recover_your_account: "Восстановить ваш аккаунт",
-    enter_email_associated:
-      "Введите адрес электронной почты, связанный с вашим аккаунтом",
+    enter_email_associated: "Введите имя пользователя для восстановления аккаунта",
     back_to_sign_in: "Вернуться ко входу",
     enter_recovery_code: "Введите код восстановления",
     enter_recovery_code_desc:
