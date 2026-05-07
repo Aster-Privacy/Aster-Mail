@@ -44,7 +44,6 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
 import { update_alias } from "@/services/api/aliases";
 import { update_domain_address } from "@/services/api/domains";
-import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 
 const AVATAR_MAX_SIZE = 256;
@@ -205,6 +204,7 @@ interface AliasItemProps {
   on_display_name_saved?: (alias_id: string, name: string) => void;
   toggling: boolean;
   deleting: boolean;
+  is_avatar_locked: boolean;
 }
 
 export function AliasItem({
@@ -215,9 +215,9 @@ export function AliasItem({
   on_display_name_saved,
   toggling,
   deleting,
+  is_avatar_locked,
 }: AliasItemProps) {
   const { t } = use_i18n();
-  const { is_feature_locked } = use_plan_limits();
   const [uploading, set_uploading] = useState(false);
   const [local_picture, set_local_picture] = useState<string | undefined>(
     undefined,
@@ -338,7 +338,7 @@ export function AliasItem({
             <AtSymbolIcon className="w-5 h-5 text-white" />
           )
         }
-        is_locked={is_feature_locked("has_alias_avatars")}
+        is_locked={is_avatar_locked}
         on_file_select={handle_file_select}
         on_remove={handle_remove}
         profile_picture={displayed_picture}
@@ -412,6 +412,7 @@ interface DomainAddressItemProps {
   on_delete: (id: string, domain_id: string) => void;
   on_avatar_changed?: () => void;
   deleting: boolean;
+  is_avatar_locked: boolean;
 }
 
 export function DomainAddressItem({
@@ -419,9 +420,9 @@ export function DomainAddressItem({
   on_delete,
   on_avatar_changed,
   deleting,
+  is_avatar_locked,
 }: DomainAddressItemProps) {
   const { t } = use_i18n();
-  const { is_feature_locked } = use_plan_limits();
   const [uploading, set_uploading] = useState(false);
   const [local_picture, set_local_picture] = useState<string | undefined>(
     undefined,
@@ -531,7 +532,7 @@ export function DomainAddressItem({
       <AliasAvatar
         gradient={gradient}
         icon={<GlobeAltIcon className="w-5 h-5 text-white" />}
-        is_locked={is_feature_locked("has_alias_avatars")}
+        is_locked={is_avatar_locked}
         on_file_select={handle_file_select}
         on_remove={handle_remove}
         profile_picture={displayed_picture}

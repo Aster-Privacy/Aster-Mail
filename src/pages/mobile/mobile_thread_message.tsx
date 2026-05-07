@@ -96,7 +96,7 @@ export function MobileThreadMessage({
   const { preferences } = use_preferences();
 
   const clean_body = useMemo(() => {
-    if (message.html_content && is_html_content(message.html_content)) {
+    if (message.html_content) {
       return message.html_content;
     }
 

@@ -24,6 +24,7 @@ import type { DecryptedDomainAddress } from "@/services/api/domains";
 import { AtSymbolIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   AliasItem,
   DomainAddressItem,
@@ -57,6 +58,8 @@ export function AliasList({
   on_display_name_saved,
 }: AliasListProps) {
   const { t } = use_i18n();
+  const { is_feature_locked } = use_plan_limits();
+  const is_avatar_locked = is_feature_locked("has_alias_avatars");
 
   if (aliases_loading) {
     return (
@@ -93,6 +96,7 @@ export function AliasList({
           key={alias.id}
           alias={alias}
           deleting={alias_deleting_id === alias.id}
+          is_avatar_locked={is_avatar_locked}
           on_avatar_changed={on_avatar_changed}
           on_delete={on_alias_delete}
           on_display_name_saved={on_display_name_saved}
@@ -105,6 +109,7 @@ export function AliasList({
           key={`da-${addr.id}`}
           address={addr}
           deleting={domain_addr_deleting_id === addr.id}
+          is_avatar_locked={is_avatar_locked}
           on_avatar_changed={on_avatar_changed}
           on_delete={on_domain_addr_delete}
         />

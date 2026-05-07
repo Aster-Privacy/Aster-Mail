@@ -208,7 +208,7 @@ export function ThreadMessageBlock({
   const [show_details_modal, set_show_details_modal] = useState(false);
   const [unsub_state, set_unsub_state] = useState<"idle" | "loading" | "manual" | "done">("idle");
   const clean_body = useMemo(() => {
-    if (message.html_content && is_html_content(message.html_content)) {
+    if (message.html_content) {
       return message.html_content;
     }
 
