@@ -1141,6 +1141,10 @@ export const es = {
     n_files_plural: "{{count}} files",
     files_protected_in_transit:
       "Estos archivos fueron protegidos y cifrados en tránsito.",
+    aster_user: "Aster User",
+    allow_sender: "Add to allowlist",
+    remove_from_allowlist_action: "Remove from allowlist",
+    failed_to_allow_sender: "Failed to add to allowlist",
   },
   settings: {
     title: "Configuración",

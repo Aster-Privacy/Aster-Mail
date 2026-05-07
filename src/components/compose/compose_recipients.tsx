@@ -378,7 +378,7 @@ export function RecipientField({
     for (const contact of contacts) {
       if (!contact.avatar_url) continue;
       for (const email of contact.emails) {
-        map.set(email.toLowerCase(), contact.avatar_url);
+        if (email) map.set(email.toLowerCase(), contact.avatar_url);
       }
     }
 

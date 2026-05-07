@@ -1128,6 +1128,10 @@ export const ja = {
       "Try signing out and signing back in to refresh your encryption keys.",
     n_files: "{{count}} file",
     n_files_plural: "{{count}} files",
+    aster_user: "Aster User",
+    allow_sender: "Add to allowlist",
+    remove_from_allowlist_action: "Remove from allowlist",
+    failed_to_allow_sender: "Failed to add to allowlist",
   },
   settings: {
     title: "設定",

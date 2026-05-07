@@ -1,4 +1,3 @@
-//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -18,7 +17,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { ProfileDropdown } from "@/components/profile/profile_dropdown";
+import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
 
 interface EmailProfileTriggerProps {
   email: string;
@@ -36,17 +35,13 @@ export function EmailProfileTrigger({
   className = "",
 }: EmailProfileTriggerProps) {
   return (
-    <ProfileDropdown email={email} name={name} on_compose={on_compose}>
-      <button
-        className={`cursor-pointer transition-colors ${className}`}
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-      >
-        {children}
-      </button>
-    </ProfileDropdown>
+    <SenderProfileTrigger
+      className={className}
+      email={email}
+      name={name}
+      on_compose={on_compose}
+    >
+      {children}
+    </SenderProfileTrigger>
   );
 }

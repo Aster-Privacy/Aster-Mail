@@ -30,9 +30,9 @@ import { get_gradient_background } from "@/constants/profile";
 import { get_root_domain } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
 
-const ProfileDropdown = lazy(() =>
-  import("@/components/profile/profile_dropdown").then((mod) => ({
-    default: mod.ProfileDropdown,
+const SenderProfileTrigger = lazy(() =>
+  import("@/components/profile/sender_profile_trigger").then((mod) => ({
+    default: mod.SenderProfileTrigger,
   })),
 );
 
@@ -281,14 +281,14 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     if (clickable && email) {
       return (
         <Suspense fallback={gradient_element}>
-          <ProfileDropdown email={email} name={name} on_compose={on_compose}>
-            <button
-              className="rounded-full flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-              type="button"
-            >
-              {gradient_element}
-            </button>
-          </ProfileDropdown>
+          <SenderProfileTrigger
+            className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
+            email={email}
+            name={name}
+            on_compose={on_compose}
+          >
+            {gradient_element}
+          </SenderProfileTrigger>
         </Suspense>
       );
     }
@@ -333,14 +333,14 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     if (clickable && email) {
       return (
         <Suspense fallback={letter_element}>
-          <ProfileDropdown email={email} name={name} on_compose={on_compose}>
-            <button
-              className="rounded-full flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-              type="button"
-            >
-              {letter_element}
-            </button>
-          </ProfileDropdown>
+          <SenderProfileTrigger
+            className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
+            email={email}
+            name={name}
+            on_compose={on_compose}
+          >
+            {letter_element}
+          </SenderProfileTrigger>
         </Suspense>
       );
     }
@@ -394,14 +394,14 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   if (clickable && email) {
     return (
       <Suspense fallback={img_element}>
-        <ProfileDropdown email={email} name={name} on_compose={on_compose}>
-          <button
-            className="rounded-full flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-            type="button"
-          >
-            {img_element}
-          </button>
-        </ProfileDropdown>
+        <SenderProfileTrigger
+          className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
+          email={email}
+          name={name}
+          on_compose={on_compose}
+        >
+          {img_element}
+        </SenderProfileTrigger>
       </Suspense>
     );
   }

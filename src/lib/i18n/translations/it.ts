@@ -1139,6 +1139,10 @@ export const it = {
     subject_too_long:
       "L'oggetto è troppo lungo. Massimo 998 caratteri consentiti.",
     empty_body_error: "Impossibile inviare un'email senza contenuto.",
+    aster_user: "Aster User",
+    allow_sender: "Add to allowlist",
+    remove_from_allowlist_action: "Remove from allowlist",
+    failed_to_allow_sender: "Failed to add to allowlist",
   },
   settings: {
     title: "Impostazioni",

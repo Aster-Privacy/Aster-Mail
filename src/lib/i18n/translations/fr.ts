@@ -1151,6 +1151,10 @@ export const fr = {
     disabled: "Disabled",
     files_protected_in_transit:
       "Ces fichiers ont été protégés et chiffrés en transit.",
+    aster_user: "Aster User",
+    allow_sender: "Add to allowlist",
+    remove_from_allowlist_action: "Remove from allowlist",
+    failed_to_allow_sender: "Failed to add to allowlist",
   },
   settings: {
     title: "Paramètres",

@@ -86,6 +86,7 @@ export function EmailAutocomplete({
       const name_matches = full_name.toLowerCase().includes(query);
 
       for (const email of contact.emails) {
+        if (!email) continue;
         if (seen_emails.has(email.toLowerCase())) continue;
 
         const email_matches = email.toLowerCase().includes(query);

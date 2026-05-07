@@ -266,18 +266,17 @@ export function DomainCard({
                 </UpgradeGate>
               </div>
             ) : (
-              <div className="flex items-center justify-between py-3 mb-4 border-b border-edge-secondary">
-                <div>
+              <div className="flex items-center justify-between py-4">
+                <div className="flex-1 pr-4">
                   <p className="text-sm font-medium text-txt-primary">
                     {t("settings.catch_all_label")}
                   </p>
-                  <p className="text-xs text-txt-muted">
+                  <p className="text-sm mt-0.5 text-txt-muted">
                     {t("settings.catch_all_description")}
                   </p>
                 </div>
                 <Switch
                   checked={domain.catch_all_enabled}
-                  disabled={is_toggling}
                   onCheckedChange={handle_catch_all_toggle}
                 />
               </div>

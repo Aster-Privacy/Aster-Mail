@@ -807,6 +807,12 @@ export function use_index_page_state() {
   }, [open_compose_instance]);
 
   useEffect(() => {
+    const nav_state = location.state as { search_query?: string } | null;
+    if (nav_state?.search_query) {
+      set_initial_search_query(nav_state.search_query);
+      set_is_search_open(true);
+    }
+
     const handle_open_search_with_query = (e: Event) => {
       const custom_event = e as CustomEvent<{ query?: string }>;
 

@@ -1155,6 +1155,10 @@ export const de = {
       "Reply from a disposable alias. Your real address stays hidden.",
     ghost_mode_title: "Ghost Mode",
     disabled: "Disabled",
+    aster_user: "Aster User",
+    allow_sender: "Add to allowlist",
+    remove_from_allowlist_action: "Remove from allowlist",
+    failed_to_allow_sender: "Failed to add to allowlist",
   },
   settings: {
     title: "Einstellungen",

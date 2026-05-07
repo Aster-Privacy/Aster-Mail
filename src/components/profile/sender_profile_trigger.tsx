@@ -255,14 +255,7 @@ export function SenderProfileTrigger({
 
   const handle_messages_from = useCallback(() => {
     set_is_open(false);
-    navigate("/all");
-    setTimeout(() => {
-      window.dispatchEvent(
-        new CustomEvent("astermail:open-search-with-query", {
-          detail: { query: `from:${email}` },
-        }),
-      );
-    }, 100);
+    navigate("/all", { state: { search_query: `from:${email}` } });
   }, [navigate, email]);
 
   const handle_compose = useCallback(() => {
@@ -274,7 +267,7 @@ export function SenderProfileTrigger({
     <DropdownMenu open={is_open} onOpenChange={set_is_open}>
       <DropdownMenuTrigger asChild>
         <button
-          className={className}
+          className={`outline-none${className ? ` ${className}` : ""}`}
           type="button"
           onClick={(e) => e.stopPropagation()}
         >
@@ -423,35 +416,32 @@ interface AsterHeaderProps {
 
 function AsterHeader({ display_name, email, t }: AsterHeaderProps) {
   return (
-    <div
-      className="px-3 pt-3 pb-3"
-      style={{ background: "linear-gradient(135deg, #4f46e5 0%, #1e1b4b 100%)" }}
-    >
+    <div className="px-3 pt-3 pb-2 border-b border-edge-secondary">
       <div className="flex items-center gap-3">
         <ProfileAvatar
           use_domain_logo
-          className="ring-2 ring-white/20 flex-shrink-0"
+          className="ring-1 ring-black/5 dark:ring-white/10 flex-shrink-0"
           email={email}
           name={display_name}
           size="md"
         />
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-semibold text-white truncate">
+          <p className="text-[13px] font-medium truncate text-txt-primary">
             {display_name}
           </p>
-          <p className="text-[11px] text-indigo-200 truncate">{email}</p>
+          <p className="text-[11px] truncate text-txt-muted">{email}</p>
         </div>
       </div>
       <div className="mt-2 flex flex-wrap gap-1">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/15 border border-white/20">
-          <ShieldCheckIcon className="w-3 h-3 text-indigo-200" />
-          <span className="text-[10px] font-medium text-indigo-100">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surf-secondary border border-edge-secondary">
+          <ShieldCheckIcon className="w-3 h-3 text-txt-muted" />
+          <span className="text-[10px] font-medium text-txt-secondary">
             {t("common.aster_user")}
           </span>
         </span>
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/15 border border-white/20">
-          <LockClosedIcon className="w-3 h-3 text-indigo-200" />
-          <span className="text-[10px] font-medium text-indigo-100">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surf-secondary border border-edge-secondary">
+          <LockClosedIcon className="w-3 h-3 text-txt-muted" />
+          <span className="text-[10px] font-medium text-txt-secondary">
             {t("common.end_to_end_encrypted_label")}
           </span>
         </span>

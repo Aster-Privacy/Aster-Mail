@@ -258,12 +258,12 @@ export function use_reply_modal({
       }
     }
 
-    const to_addresses = original_to ?? [];
+    const to_addresses = (original_to ?? []).filter(Boolean);
 
     for (const addr of to_addresses) {
       const normalized = addr.toLowerCase().trim();
       const match = sender_options.find(
-        (s) => s.is_enabled && s.email.toLowerCase() === normalized,
+        (s) => s.is_enabled && s.email?.toLowerCase() === normalized,
       );
 
       if (match) {

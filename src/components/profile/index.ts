@@ -22,3 +22,5 @@ export { ProfileDropdown } from "./profile_dropdown";
 export { ProfilePopup } from "./profile_popup";
 export { ProfileNotesBox } from "./profile_notes_box";
 export { ProfileNotesInline } from "./profile_notes_inline";
+export { SenderProfileModal } from "./sender_profile_modal";
+export { SenderProfileTrigger } from "./sender_profile_trigger";

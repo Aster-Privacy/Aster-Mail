@@ -221,7 +221,7 @@ export const SidebarFolders = memo(function SidebarFolders({
             return (
               <FolderContextMenu
                 key={folder.id}
-                can_have_children={node.depth < 2}
+                can_have_children={node.depth < 4}
                 folder_color={folder_color}
                 on_create_subfolder={
                   set_create_folder_parent_token

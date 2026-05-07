@@ -215,7 +215,7 @@ export function PaymentForm({
     });
 
     pr.canMakePayment().then((result) => {
-      if (result) {
+      if (result && (result.applePay || result.googlePay)) {
         payment_request_ref.current = pr;
         set_payment_request(pr);
         set_can_make_wallet_payment(true);
@@ -251,15 +251,37 @@ export function PaymentForm({
           return;
         }
 
-        const { error, paymentIntent } = await stripe.confirmCardPayment(
-          secret,
-          { payment_method: ev.paymentMethod.id },
-          { handleActions: false },
-        );
+        const is_card_wallet =
+          ev.paymentMethod.type !== "link" &&
+          ev.paymentMethod.type !== "cashapp";
 
-        if (error) {
+        let conf_error: { message?: string } | undefined;
+        let conf_intent: { status: string } | undefined;
+
+        if (is_card_wallet) {
+          const result = await stripe.confirmCardPayment(
+            secret,
+            { payment_method: ev.paymentMethod.id },
+            { handleActions: false },
+          );
+          conf_error = result.error;
+          conf_intent = result.paymentIntent || undefined;
+        } else {
+          const result = await stripe.confirmPayment({
+            clientSecret: secret,
+            confirmParams: {
+              payment_method: ev.paymentMethod.id,
+              return_url: `${window.location.origin}${window.location.pathname}`,
+            },
+            redirect: "if_required",
+          });
+          conf_error = result.error;
+          conf_intent = result.paymentIntent || undefined;
+        }
+
+        if (conf_error) {
           ev.complete("fail");
-          set_error_message(error.message || t("settings.payment_failed"));
+          set_error_message(conf_error.message || t("settings.payment_failed"));
           set_phase("ready");
 
           return;
@@ -267,7 +289,7 @@ export function PaymentForm({
 
         ev.complete("success");
 
-        if (paymentIntent?.status === "requires_action") {
+        if (conf_intent?.status === "requires_action" && is_card_wallet) {
           await stripe.confirmCardPayment(secret);
         }
 

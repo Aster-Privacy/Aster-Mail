@@ -1272,6 +1272,10 @@ export const en: Translations = {
     n_new: "{{ count }} new",
     n_contacts_imported: "{{ count }} contacts imported",
     yourname_placeholder: "yourname",
+    aster_user: "Aster User",
+    allow_sender: "Add to allowlist",
+    remove_from_allowlist_action: "Remove from allowlist",
+    failed_to_allow_sender: "Failed to add to allowlist",
   },
   settings: {
     title: "Settings",

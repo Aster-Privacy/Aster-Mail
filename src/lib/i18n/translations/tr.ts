@@ -1125,6 +1125,10 @@ export const tr = {
     n_files_plural: "{{count}} files",
     files_protected_in_transit:
       "Bu dosyalar aktarım sırasında korunmuş ve şifrelenmiştir.",
+    aster_user: "Aster User",
+    allow_sender: "Add to allowlist",
+    remove_from_allowlist_action: "Remove from allowlist",
+    failed_to_allow_sender: "Failed to add to allowlist",
   },
   settings: {
     title: "Ayarlar",

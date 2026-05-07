@@ -201,14 +201,7 @@ export function ProfileDropdown({
 
   const handle_messages_from_sender = useCallback(() => {
     set_is_open(false);
-    navigate("/all");
-    setTimeout(() => {
-      window.dispatchEvent(
-        new CustomEvent("astermail:open-search-with-query", {
-          detail: { query: `from:${email}` },
-        }),
-      );
-    }, 100);
+    navigate("/all", { state: { search_query: `from:${email}` } });
   }, [navigate, email]);
 
   const handle_block_sender = useCallback(async () => {

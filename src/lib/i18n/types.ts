@@ -1222,6 +1222,10 @@ export interface CommonTranslations {
   n_new: string;
   n_contacts_imported: string;
   yourname_placeholder: string;
+  aster_user: string;
+  allow_sender: string;
+  remove_from_allowlist_action: string;
+  failed_to_allow_sender: string;
 }
 
 export interface SettingsTranslations {

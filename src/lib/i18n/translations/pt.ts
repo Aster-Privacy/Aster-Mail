@@ -1133,6 +1133,10 @@ export const pt = {
       "Didn't get the email? Check your spam folder. The link expires in 24 hours.",
     add_contacts_quick_email_hint:
       "Add contacts to quickly email people you message often",
+    aster_user: "Aster User",
+    allow_sender: "Add to allowlist",
+    remove_from_allowlist_action: "Remove from allowlist",
+    failed_to_allow_sender: "Failed to add to allowlist",
   },
   settings: {
     title: "Configurações",

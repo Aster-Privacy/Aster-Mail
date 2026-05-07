@@ -316,7 +316,7 @@ export const InboxEmailListItem = memo(
               ? "bg-surf-hover"
               : email.is_selected === true
                 ? "bg-surf-tertiary"
-                : "",
+                : "dark:hover:bg-surf-hover",
             is_dragging && "opacity-50",
             className,
           )}
@@ -686,7 +686,7 @@ export const InboxEmailListItem = memo(
                   ? "bg-gradient-to-r from-transparent via-surf-hover to-surf-hover"
                   : email.is_selected === true
                     ? "bg-gradient-to-r from-transparent via-surf-tertiary to-surf-tertiary"
-                    : "bg-gradient-to-r from-transparent via-surf-primary to-surf-primary",
+                    : "bg-gradient-to-r from-transparent via-surf-primary to-surf-primary dark:group-hover:via-surf-hover dark:group-hover:to-surf-hover",
               )}
               style={{
                 ["--tw-gradient-via-position" as string]: "35%",
@@ -726,6 +726,15 @@ export const InboxEmailListItem = memo(
                 )}
             </span>
 
+            {email.is_starred && (
+              <StarIconSolid
+                className={cn(
+                  "w-3.5 h-3.5 text-amber-400 flex-shrink-0",
+                  show_hover_actions && "group-hover:opacity-0",
+                )}
+              />
+            )}
+
             {show_hover_actions && (
               <div
                 className={cn(
@@ -734,7 +743,7 @@ export const InboxEmailListItem = memo(
                     ? "bg-gradient-to-r from-transparent to-surf-hover"
                     : email.is_selected === true
                       ? "bg-gradient-to-r from-transparent to-surf-tertiary"
-                      : "bg-gradient-to-r from-transparent to-surf-primary",
+                      : "bg-gradient-to-r from-transparent to-surf-primary dark:group-hover:to-surf-hover",
                 )}
                 role="button"
                 tabIndex={0}

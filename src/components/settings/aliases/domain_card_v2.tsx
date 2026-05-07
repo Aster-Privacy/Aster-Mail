@@ -276,18 +276,17 @@ export function DomainCardV2({
 
                 {show_advanced && (
                   <div className="space-y-4 pl-6">
-                    <div className="flex items-center justify-between">
-                      <div>
+                    <div className="flex items-center justify-between py-4">
+                      <div className="flex-1 pr-4">
                         <p className="text-sm font-medium text-txt-primary">
                           {t("settings.catch_all_label")}
                         </p>
-                        <p className="text-xs text-txt-muted">
+                        <p className="text-sm mt-0.5 text-txt-muted">
                           {t("settings.catch_all_description")}
                         </p>
                       </div>
                       <Switch
                         checked={domain.catch_all_enabled}
-                        disabled={catch_all_loading}
                         onCheckedChange={handle_toggle_catch_all}
                       />
                     </div>
