@@ -28,7 +28,7 @@ import { use_delete_actions } from "./use_delete_actions";
 import { use_folder_tag_actions } from "./use_folder_tag_actions";
 import { use_archive_snooze_actions } from "./use_archive_snooze_actions";
 
-import { show_action_toast } from "@/components/toast/action_toast";
+import { show_action_toast, update_progress_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { MAIL_EVENTS, emit_mail_item_updated } from "@/hooks/mail_events";
 import {
@@ -345,9 +345,21 @@ export function use_inbox_toolbar_actions({
     if (unread_count_delta !== 0) {
       adjust_unread_count(unread_count_delta);
     }
+    const total = selected.length;
+
+    if (total > 5) {
+      show_action_toast({
+        message: t("common.processing_count", { completed: 0, total }),
+        action_type: "progress",
+        email_ids: selected.map((e) => e.id),
+        progress: { completed: 0, total },
+      });
+    }
+
+    let completed = 0;
     const results = await Promise.all(
-      selected.map((email) =>
-        update_item_metadata(
+      selected.map(async (email) => {
+        const result = await update_item_metadata(
           email.id,
           {
             encrypted_metadata: email.encrypted_metadata,
@@ -355,8 +367,12 @@ export function use_inbox_toolbar_actions({
             metadata_version: email.metadata_version,
           },
           { is_read: new_state },
-        ),
-      ),
+        );
+
+        if (total > 5) update_progress_toast(++completed, total, t);
+
+        return result;
+      }),
     );
 
     selected.forEach((email, index) => {
@@ -402,9 +418,21 @@ export function use_inbox_toolbar_actions({
     if (unread_count_delta !== 0) {
       adjust_unread_count(unread_count_delta);
     }
+    const total = selected.length;
+
+    if (total > 5) {
+      show_action_toast({
+        message: t("common.processing_count", { completed: 0, total }),
+        action_type: "progress",
+        email_ids: selected.map((e) => e.id),
+        progress: { completed: 0, total },
+      });
+    }
+
+    let completed = 0;
     const results = await Promise.all(
-      selected.map((email) =>
-        update_item_metadata(
+      selected.map(async (email) => {
+        const result = await update_item_metadata(
           email.id,
           {
             encrypted_metadata: email.encrypted_metadata,
@@ -412,8 +440,12 @@ export function use_inbox_toolbar_actions({
             metadata_version: email.metadata_version,
           },
           { is_read: false },
-        ),
-      ),
+        );
+
+        if (total > 5) update_progress_toast(++completed, total, t);
+
+        return result;
+      }),
     );
 
     selected.forEach((email, index) => {
@@ -452,9 +484,21 @@ export function use_inbox_toolbar_actions({
     }
     adjust_starred_count(new_state ? changed.length : -changed.length);
 
+    const total = changed.length;
+
+    if (total > 5) {
+      show_action_toast({
+        message: t("common.processing_count", { completed: 0, total }),
+        action_type: "progress",
+        email_ids: changed.map((e) => e.id),
+        progress: { completed: 0, total },
+      });
+    }
+
+    let completed = 0;
     const results = await Promise.all(
-      changed.map((email) =>
-        update_item_metadata(
+      changed.map(async (email) => {
+        const result = await update_item_metadata(
           email.id,
           {
             encrypted_metadata: email.encrypted_metadata,
@@ -462,8 +506,12 @@ export function use_inbox_toolbar_actions({
             metadata_version: email.metadata_version,
           },
           { is_starred: new_state },
-        ),
-      ),
+        );
+
+        if (total > 5) update_progress_toast(++completed, total, t);
+
+        return result;
+      }),
     );
 
     changed.forEach((email, index) => {
@@ -562,13 +610,25 @@ export function use_inbox_toolbar_actions({
     if (selected.length === 0) return;
     const ids = selected.map((e) => e.id);
     const is_spam_restore = current_view === "spam";
+    const total = selected.length;
+
+    if (total > 5) {
+      show_action_toast({
+        message: t("common.processing_count", { completed: 0, total }),
+        action_type: "progress",
+        email_ids: selected.map((e) => e.id),
+        progress: { completed: 0, total },
+      });
+    }
+
+    let completed = 0;
     const results = await Promise.all(
-      selected.map((email) => {
+      selected.map(async (email) => {
         const metadata_update = is_spam_restore
           ? { is_spam: false }
           : { is_trashed: false };
 
-        return update_item_metadata(
+        const result = await update_item_metadata(
           email.id,
           {
             encrypted_metadata: email.encrypted_metadata,
@@ -577,6 +637,10 @@ export function use_inbox_toolbar_actions({
           },
           metadata_update,
         );
+
+        if (total > 5) update_progress_toast(++completed, total, t);
+
+        return result;
       }),
     );
 

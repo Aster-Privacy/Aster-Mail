@@ -75,7 +75,8 @@ export function use_inbox_selection({
   ]);
 
   const shift_ref = use_shift_key_ref();
-  const last_selected_id_ref = useRef<string | null>(null);
+  const shift_anchor_ref = useRef<string | null>(null);
+  const last_shift_target_ref = useRef<string | null>(null);
 
   const [select_all_mode, set_select_all_mode] = useState(false);
   const activate_select_all_mode = useCallback(() => {
@@ -88,22 +89,46 @@ export function use_inbox_selection({
   const handle_toggle_select = useCallback(
     (id: string): void => {
       const shift = shift_ref.current;
-      const last_id = last_selected_id_ref.current;
       const update_fn = get_update_fn();
 
       set_select_all_mode(false);
 
-      if (shift && last_id !== null && last_id !== id) {
-        const last_index = page_emails.findIndex((e) => e.id === last_id);
+      if (shift && shift_anchor_ref.current !== null) {
+        const anchor_index = page_emails.findIndex(
+          (e) => e.id === shift_anchor_ref.current,
+        );
         const current_index = page_emails.findIndex((e) => e.id === id);
 
-        if (last_index !== -1 && current_index !== -1) {
-          const start = Math.min(last_index, current_index);
-          const end = Math.max(last_index, current_index);
-          const anchor = page_emails[last_index];
-          const should_select = anchor?.is_selected ?? false;
+        if (anchor_index !== -1 && current_index !== -1) {
+          const anchor = page_emails[anchor_index];
+          const should_select = anchor?.is_selected ?? true;
+          const new_start = Math.min(anchor_index, current_index);
+          const new_end = Math.max(anchor_index, current_index);
 
-          for (let i = start; i <= end; i++) {
+          const prev_target_id = last_shift_target_ref.current;
+
+          if (prev_target_id !== null) {
+            const prev_index = page_emails.findIndex(
+              (e) => e.id === prev_target_id,
+            );
+
+            if (prev_index !== -1) {
+              const old_start = Math.min(anchor_index, prev_index);
+              const old_end = Math.max(anchor_index, prev_index);
+
+              for (let i = old_start; i <= old_end; i++) {
+                if (i < new_start || i > new_end) {
+                  const target = page_emails[i];
+
+                  if (target && target.is_selected === should_select) {
+                    update_fn(target.id, { is_selected: !should_select });
+                  }
+                }
+              }
+            }
+          }
+
+          for (let i = new_start; i <= new_end; i++) {
             const target = page_emails[i];
 
             if (target && target.is_selected !== should_select) {
@@ -111,14 +136,15 @@ export function use_inbox_selection({
             }
           }
 
-          last_selected_id_ref.current = id;
+          last_shift_target_ref.current = id;
 
           return;
         }
       }
 
       toggle_select(id, emails, update_fn);
-      last_selected_id_ref.current = id;
+      shift_anchor_ref.current = id;
+      last_shift_target_ref.current = null;
     },
     [toggle_select, emails, get_update_fn, page_emails, shift_ref],
   );

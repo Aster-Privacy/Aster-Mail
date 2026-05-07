@@ -21,6 +21,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@aster/ui";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -116,6 +117,13 @@ export function SendToast({
                 >
                   {t("common.send_now")}
                 </Button>
+                <button
+                  aria-label={t("common.dismiss")}
+                  className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
+                  onClick={() => set_is_visible(false)}
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                </button>
               </div>
             </div>
             <motion.div

@@ -35,8 +35,8 @@ import {
   StarIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { Checkbox, Tooltip } from "@aster/ui";
+import { CheckIcon, StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -316,7 +316,7 @@ export const InboxEmailListItem = memo(
               ? "bg-surf-hover"
               : email.is_selected === true
                 ? "bg-surf-tertiary"
-                : "hover:bg-surf-hover",
+                : "",
             is_dragging && "opacity-50",
             className,
           )}
@@ -333,64 +333,64 @@ export const InboxEmailListItem = memo(
           }}
           {...props}
         >
-          <div
-            className="flex items-center gap-2 sm:gap-3 flex-shrink-0"
-            role="button"
-            tabIndex={0}
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => {
-              if (e["key"] === "Enter" || e["key"] === " ") {
+          <Tooltip delay={600} tip={t("mail.select")}>
+            <div
+              className="group/avatar relative flex-shrink-0 w-8 h-8 flex items-center justify-center cursor-pointer"
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
                 e.stopPropagation();
-              }
-            }}
-          >
-            <Tooltip delay={600} tip={t("mail.select")}>
-              <div
-                className="relative flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full sm:hover:bg-black/8 sm:dark:hover:bg-white/10"
-                role="button"
-                tabIndex={0}
-                onClick={(e) => {
+                on_toggle_select(email.id);
+              }}
+              onKeyDown={(e) => {
+                if (e["key"] === "Enter" || e["key"] === " ") {
+                  e.preventDefault();
                   e.stopPropagation();
                   on_toggle_select(email.id);
-                }}
-                onKeyDown={(e) => {
-                  if (e["key"] === "Enter" || e["key"] === " ") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    on_toggle_select(email.id);
-                  }
-                }}
+                }
+              }}
+            >
+              <div
+                className={cn(
+                  "w-8 h-8 transition-opacity duration-150",
+                  email.is_selected
+                    ? "opacity-0"
+                    : "group-hover/avatar:opacity-0",
+                )}
               >
-                <Checkbox
-                  checked={email.is_selected === true}
-                  className="pointer-events-none"
-                />
+                {is_system_email(email.sender_email) ? (
+                  <img
+                    alt={t("common.aster_mail")}
+                    className="w-8 h-8 rounded-full object-cover"
+                    draggable={false}
+                    src="/mail_logo.webp"
+                  />
+                ) : (
+                  <ProfileAvatar
+                    use_domain_logo={show_profile_pictures}
+                    email={email.sender_email}
+                    image_url={email.avatar_url}
+                    name={email.sender_name}
+                    size="sm"
+                  />
+                )}
               </div>
-            </Tooltip>
-          </div>
+              <div
+                className={cn(
+                  "absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
+                  email.is_selected
+                    ? "opacity-100 bg-[var(--accent-color,#3b82f6)]"
+                    : "opacity-0 group-hover/avatar:opacity-100 bg-black/20 dark:bg-white/20",
+                )}
+              >
+                <CheckIcon className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          </Tooltip>
 
           {email.is_pinned && (
             <MapPinIcon className="w-4 h-4 text-blue-500 flex-shrink-0 -rotate-45 hidden sm:block" />
           )}
-
-          {show_profile_pictures &&
-            (is_system_email(email.sender_email) ? (
-              <img
-                alt={t("common.aster_mail")}
-                className="hidden sm:flex w-8 h-8 rounded-full flex-shrink-0 object-cover"
-                draggable={false}
-                src="/mail_logo.webp"
-              />
-            ) : (
-              <ProfileAvatar
-                use_domain_logo
-                className="hidden sm:flex"
-                email={email.sender_email}
-                image_url={email.avatar_url}
-                name={email.sender_name}
-                size="sm"
-              />
-            ))}
 
           {!email.is_read && (
             <span className="w-2 h-2 rounded-full bg-[var(--accent-blue)] flex-shrink-0 hidden sm:block" />

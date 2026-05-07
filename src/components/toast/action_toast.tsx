@@ -27,6 +27,7 @@ import {
   ExclamationTriangleIcon,
   InformationCircleIcon,
   ArrowPathIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 import { use_should_reduce_motion } from "@/provider";
@@ -252,11 +253,11 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
               minWidth: toast.progress ? "280px" : undefined,
             }}
           >
-            <div className="flex items-center justify-center gap-2 whitespace-nowrap">
+            <div className="flex items-center gap-2 whitespace-nowrap">
               <span className="flex-shrink-0 text-txt-primary">
                 {get_icon_for_action(toast.action_type)}
               </span>
-              <span className="text-[13px] font-medium text-center text-txt-primary">
+              <span className="text-[13px] font-medium text-txt-primary">
                 {toast.message}
               </span>
               {toast.on_undo && !toast.progress && (
@@ -284,6 +285,13 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
                   {t("common.cancel")}
                 </button>
               )}
+              <button
+                aria-label={t("common.dismiss")}
+                className="ml-1 flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
+                onClick={handle_cancel}
+              >
+                <XMarkIcon className="w-3.5 h-3.5" />
+              </button>
             </div>
             {toast.progress && (
               <div className="flex items-center gap-2">

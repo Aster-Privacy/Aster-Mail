@@ -43,6 +43,17 @@ let toast_listeners: ((toasts: ToastState[]) => void)[] = [];
 let toast_stack: ToastState[] = [];
 let toast_timeouts: Map<string, NodeJS.Timeout> = new Map();
 
+export function dismiss_toast(id: string) {
+  const existing_timeout = toast_timeouts.get(id);
+
+  if (existing_timeout) {
+    clearTimeout(existing_timeout);
+    toast_timeouts.delete(id);
+  }
+  toast_stack = toast_stack.filter((t) => t.id !== id);
+  toast_listeners.forEach((listener) => listener([...toast_stack]));
+}
+
 export function show_toast(message: string, icon_type?: ToastIconType) {
   const new_toast: ToastState = {
     message,
@@ -139,15 +150,22 @@ export function SimpleToast({ position = "bottom" }: SimpleToastProps) {
             layout={!reduce_motion}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
-            <div className="px-4 py-2.5 rounded-xl shadow-lg flex items-center justify-center gap-2 bg-modal-bg border border-edge-secondary">
+            <div className="px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 bg-modal-bg border border-edge-secondary">
               {get_toast_icon(toast.icon_type) && (
                 <span className="flex-shrink-0 text-txt-primary">
                   {get_toast_icon(toast.icon_type)}
                 </span>
               )}
-              <span className="text-[13px] font-medium text-center text-txt-primary whitespace-nowrap">
+              <span className="text-[13px] font-medium text-txt-primary whitespace-nowrap">
                 {toast.message}
               </span>
+              <button
+                aria-label="Dismiss"
+                className="ml-1 flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
+                onClick={() => dismiss_toast(toast.id)}
+              >
+                <XMarkIcon className="w-3.5 h-3.5" />
+              </button>
             </div>
           </motion.div>
         ))}

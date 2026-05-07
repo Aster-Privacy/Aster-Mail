@@ -21,6 +21,7 @@
 import { useState, useEffect, useCallback, forwardRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@aster/ui";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { BUTTON_COLORS } from "@/constants/modal";
 import { use_should_reduce_motion } from "@/provider";
@@ -208,6 +209,13 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
                 >
                   {is_sending ? "\u2026" : t("mail.send")}
                 </Button>
+                <button
+                  aria-label={t("common.dismiss")}
+                  className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors p-0.5"
+                  onClick={on_dismiss}
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
