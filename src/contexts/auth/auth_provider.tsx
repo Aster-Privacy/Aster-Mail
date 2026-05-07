@@ -35,6 +35,8 @@ import {
 import { decrypt_vault_with_lock } from "./vault_decryption";
 import { purge_all_local_data } from "./purge_local_data";
 
+import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
+
 import { api_client } from "@/services/api/client";
 import { verify_auth_status } from "@/services/api/auth";
 import {
@@ -249,6 +251,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       api_client.set_authenticated(true);
       check_and_run_recovery_reencryption(vault, passphrase).catch(() => {});
+      ensure_ratchet_keys().catch(() => {});
       connection_store.sync_from_server().catch(() => {});
       load_preferred_sender_from_server().catch(() => {});
       sync_client.connect().catch((e) => {
@@ -311,6 +314,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           );
         }
         api_client.set_authenticated(true);
+        ensure_ratchet_keys().catch(() => {});
         start_session_timeout(user.id);
         window.location.replace("/");
       }

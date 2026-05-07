@@ -44,6 +44,7 @@ import {
   encrypt_for_ratchet_recipient,
   build_ratchet_envelope,
 } from "./crypto/ratchet_manager";
+import { ensure_ratchet_keys } from "./crypto/ensure_ratchet_keys";
 import { get_current_account } from "./account_manager";
 import {
   encrypt_envelope_with_bytes,
@@ -210,7 +211,23 @@ export async function encrypt_for_recipients(
     return { encrypted_body: body, is_encrypted: false };
   }
 
-  const vault = get_vault_from_memory();
+  let vault = get_vault_from_memory();
+
+  if (
+    sender_email &&
+    vault &&
+    !(vault.ratchet_identity_key && vault.ratchet_identity_public)
+  ) {
+    await ensure_ratchet_keys();
+    vault = get_vault_from_memory();
+  }
+
+  console.info("[send] encrypt_for_recipients ratchet gate", {
+    has_sender: Boolean(sender_email),
+    has_identity_key: Boolean(vault?.ratchet_identity_key),
+    has_identity_public: Boolean(vault?.ratchet_identity_public),
+    internal_count: internal_recipients.length,
+  });
 
   if (
     sender_email &&

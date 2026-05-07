@@ -28,6 +28,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { auto_rekey_if_needed, reset_rekey_flag } from "@/services/crypto/auto_rekey";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
+import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import { emit_aliases_changed, emit_contacts_changed } from "@/hooks/mail_events";
 
 let vault_decryption_lock: Promise<void> | null = null;
@@ -74,6 +75,8 @@ export async function decrypt_vault_with_lock(
       .catch(() => {});
 
     check_and_run_recovery_reencryption(vault, passphrase).catch(() => {});
+
+    ensure_ratchet_keys().catch(() => {});
 
     return vault;
   } finally {

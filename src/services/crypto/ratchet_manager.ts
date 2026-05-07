@@ -193,6 +193,11 @@ export async function encrypt_for_ratchet_recipient(
       const bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
 
       if (!bundle) {
+        console.error("[ratchet] no prekey bundle for recipient", {
+          recipient_username,
+          recipient_email,
+        });
+
         return null;
       }
 
@@ -256,7 +261,14 @@ export async function encrypt_for_ratchet_recipient(
     }
 
     return recipient_data;
-  } catch {
+  } catch (err) {
+    console.error("[ratchet] encrypt_for_ratchet_recipient failed", {
+      recipient_email,
+      recipient_username,
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    });
+
     return null;
   }
 }
