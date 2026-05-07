@@ -171,6 +171,16 @@ export function has_legacy_keks(): boolean {
   return legacy_crypto_keys.length > 0;
 }
 
+export async function append_legacy_key_raw_bytes(
+  raw: Uint8Array,
+): Promise<void> {
+  try {
+    const key = await import_raw_as_aes_key(raw);
+
+    legacy_crypto_keys.push(key);
+  } catch {}
+}
+
 export async function decrypt_aes_gcm_with_fallback(
   primary_key: CryptoKey,
   ciphertext: BufferSource,

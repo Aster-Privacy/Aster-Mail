@@ -120,6 +120,8 @@ export interface UpdateMailItemRequest {
   folder_token?: string;
   encrypted_metadata?: string;
   metadata_nonce?: string;
+  encrypted_envelope?: string;
+  envelope_nonce?: string;
 }
 
 export interface BulkUpdateRequest {

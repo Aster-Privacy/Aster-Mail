@@ -30,6 +30,9 @@ import {
   derive_password_hash,
   generate_recovery_codes,
   encrypt_vault,
+  generate_identity_keypair,
+  generate_signed_prekey,
+  prepare_pgp_key_data,
 } from "@/services/crypto/key_manager";
 import {
   hash_recovery_code,
@@ -47,11 +50,13 @@ import {
   initiate_email_recovery,
   validate_email_recovery,
 } from "@/services/api/recovery";
+import { store_pending_reencryption } from "@/services/crypto/recovery_reencrypt";
 import {
   generate_recovery_pdf,
   download_recovery_text,
 } from "@/services/crypto/recovery_pdf";
 import {
+  sanitize_username,
   validate_password_strength,
   timing_safe_delay,
 } from "@/services/sanitize";
@@ -226,6 +231,8 @@ export default function ForgotPasswordPage() {
 
   const [step, set_step] = useState<RecoveryStep>("email");
   const [email, set_email] = useState("");
+  const [username, set_username] = useState("");
+  const [email_domain, set_email_domain] = useState<"astermail.org" | "aster.cx">("astermail.org");
   const [recovery_code, set_recovery_code] = useState("");
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
@@ -244,6 +251,7 @@ export default function ForgotPasswordPage() {
     useState<{ encrypted_key: string; nonce: string } | null>(null);
   const [is_email_recovery, set_is_email_recovery] = useState(false);
   const [email_vault_key, set_email_vault_key] = useState<string | null>(null);
+  const [recovery_user_email, set_recovery_user_email] = useState("");
 
   useEffect(() => {
     const token = search_params.get("email_recovery_token");
@@ -269,6 +277,7 @@ export default function ForgotPasswordPage() {
       });
       set_email_vault_key(response.data.email_vault_key);
       set_recovery_token(response.data.recovery_token);
+      set_recovery_user_email(response.data.user_email);
       set_is_email_recovery(true);
       set_step("password");
     });
@@ -276,17 +285,22 @@ export default function ForgotPasswordPage() {
 
   const handle_email_next = async () => {
     set_error("");
-    if (!email.trim()) {
-      set_error(t("auth.please_enter_email_address"));
+    const clean_username = sanitize_username(username.trim());
+
+    if (!clean_username) {
+      set_error(t("errors.invalid_username"));
 
       return;
     }
 
+    const full_email = `${clean_username}@${email_domain}`;
+
+    set_email(full_email);
     set_step("processing");
     set_processing_status(t("auth.sending_recovery_email"));
 
     try {
-      const response = await initiate_email_recovery(email.trim());
+      const response = await initiate_email_recovery(full_email);
 
       if (response.error) {
         set_error(response.error);
@@ -366,6 +380,12 @@ export default function ForgotPasswordPage() {
   const handle_password_submit = async () => {
     set_error("");
 
+    if (!/^[\x20-\x7E]*$/.test(password)) {
+      set_error(t("auth.password_invalid_chars"));
+
+      return;
+    }
+
     const password_validation = validate_password_strength(password);
 
     if (!password_validation.valid) {
@@ -418,17 +438,32 @@ export default function ForgotPasswordPage() {
       set_processing_status(t("auth.recovering_account_data"));
       const vault = await decrypt_vault_backup(vault_backup, recovery_key);
 
+      const old_data_kek = vault.data_kek ?? null;
+      const old_identity_key = vault.identity_key;
+
       set_processing_status(t("auth.generating_new_encryption_keys"));
       const salt = crypto.getRandomValues(new Uint8Array(32));
       const { hash: password_hash, salt: password_salt } =
         await derive_password_hash(password, salt);
 
-      set_processing_status(t("auth.creating_new_recovery_codes"));
-      const new_codes = generate_recovery_codes(6);
+      const effective_email = is_email_recovery ? recovery_user_email : email;
+      const display_name = effective_email.split("@")[0] || "User";
 
-      set_new_recovery_codes(new_codes);
+      const new_identity_keypair = await generate_identity_keypair(
+        display_name,
+        effective_email,
+        password,
+      );
 
-      vault.recovery_codes = new_codes;
+      const { keypair: new_prekey_keypair, signature: prekey_signature } =
+        await generate_signed_prekey(
+          display_name,
+          effective_email,
+          password,
+          new_identity_keypair.secret_key,
+        );
+
+      const pgp_key_data = await prepare_pgp_key_data(new_identity_keypair, password);
 
       if (!vault.previous_keys) {
         vault.previous_keys = [];
@@ -443,6 +478,17 @@ export default function ForgotPasswordPage() {
       if (vault.previous_keys.length > 10) {
         vault.previous_keys = vault.previous_keys.slice(0, 10);
       }
+
+      vault.identity_key = new_identity_keypair.secret_key;
+      vault.signed_prekey = new_prekey_keypair.public_key;
+      vault.signed_prekey_private = new_prekey_keypair.secret_key;
+
+      set_processing_status(t("auth.creating_new_recovery_codes"));
+      const new_codes = generate_recovery_codes(6);
+
+      set_new_recovery_codes(new_codes);
+
+      vault.recovery_codes = new_codes;
 
       set_processing_status(t("auth.encrypting_vault_new_password"));
       const { encrypted_vault, vault_nonce } = await encrypt_vault(
@@ -498,10 +544,21 @@ export default function ForgotPasswordPage() {
         new_backup.nonce,
         new_backup.salt,
         new_email_backup_data,
+        btoa(new_identity_keypair.public_key),
+        btoa(new_prekey_keypair.public_key),
+        btoa(prekey_signature),
+        pgp_key_data,
       );
 
       if (complete_response.error || !complete_response.data?.success) {
         throw new Error(complete_response.error || t("auth.recovery_failed"));
+      }
+
+      if (old_data_kek) {
+        store_pending_reencryption({
+          old_data_kek,
+          old_identity_key,
+        });
       }
 
       set_step("new_codes");
@@ -563,14 +620,63 @@ export default function ForgotPasswordPage() {
               <Input
                 // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
-                autoComplete="email"
-                placeholder={t("auth.email_address_placeholder")}
+                autoComplete="username"
+                maxLength={55}
+                placeholder={t("common.yourname_placeholder")}
                 status={error ? "error" : "default"}
-                type="email"
-                value={email}
-                onChange={(e) => set_email(e.target.value)}
+                type="text"
+                value={username}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const at_index = raw.indexOf("@");
+
+                  if (at_index !== -1) {
+                    const local = sanitize_username(raw.substring(0, at_index));
+                    const domain_part = raw
+                      .substring(at_index + 1)
+                      .toLowerCase();
+
+                    set_username(local);
+                    if (
+                      domain_part === "astermail.org" ||
+                      domain_part.startsWith("astermail.org")
+                    )
+                      set_email_domain("astermail.org");
+                    else if (
+                      domain_part === "aster.cx" ||
+                      domain_part.startsWith("aster.cx")
+                    )
+                      set_email_domain("aster.cx");
+                  } else {
+                    set_username(sanitize_username(raw));
+                  }
+                }}
                 onKeyDown={(e) => e["key"] === "Enter" && handle_email_next()}
               />
+              <div className="relative flex mt-2 aster_input !p-1 !h-auto">
+                <div
+                  className="absolute top-1 bottom-1 rounded-[8px] transition-all duration-200 ease-out bg-surf-tertiary"
+                  style={{
+                    width: "calc(50% - 4px)",
+                    left:
+                      email_domain === "astermail.org" ? "4px" : "calc(50%)",
+                  }}
+                />
+                <button
+                  className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "astermail.org" ? "text-txt-primary" : "text-txt-muted"}`}
+                  type="button"
+                  onClick={() => set_email_domain("astermail.org")}
+                >
+                  @astermail.org
+                </button>
+                <button
+                  className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "aster.cx" ? "text-txt-primary" : "text-txt-muted"}`}
+                  type="button"
+                  onClick={() => set_email_domain("aster.cx")}
+                >
+                  @aster.cx
+                </button>
+              </div>
             </div>
 
             <Button

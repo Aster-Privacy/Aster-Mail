@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "./key_manager";
+import { array_to_base64 } from "./key_manager_core";
 import { en } from "@/lib/i18n/translations/en";
 
 import {
@@ -101,7 +102,7 @@ async function derive_salt_from_passphrase(
   return new Uint8Array(hash);
 }
 
-async function derive_encryption_key_from_passphrase(
+export async function derive_encryption_key_from_passphrase(
   passphrase_bytes: Uint8Array,
 ): Promise<Uint8Array> {
   const key_material = await crypto.subtle.importKey(
@@ -146,6 +147,7 @@ export async function store_vault_in_memory(
     ratchet_signed_prekey: vault.ratchet_signed_prekey,
     ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public,
     legacy_keks: vault.legacy_keks ? [...vault.legacy_keks] : undefined,
+    data_kek: vault.data_kek,
   };
 
   await load_legacy_keks_into_memory(vault.legacy_keks);
@@ -161,6 +163,9 @@ export async function store_vault_in_memory(
     derived_encryption_key =
       await derive_encryption_key_from_passphrase(passphrase_bytes);
     zero_uint8_array(passphrase_bytes);
+    if (vault_in_memory && derived_encryption_key) {
+      vault_in_memory.data_kek = array_to_base64(derived_encryption_key);
+    }
   }
 
   secure_passphrase.on_zero(() => {

@@ -56,6 +56,7 @@ export interface EncryptedVault {
   ratchet_signed_prekey?: string;
   ratchet_signed_prekey_public?: string;
   legacy_keks?: LegacyDerivedKek[];
+  data_kek?: string;
 }
 
 export interface VaultEncryptionResult {

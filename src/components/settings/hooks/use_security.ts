@@ -57,8 +57,9 @@ import {
   get_dev_mode,
   save_dev_mode,
 } from "@/services/api/preferences";
-import { reencrypt_all_aliases } from "@/services/api/aliases";
-import { reencrypt_all_contacts } from "@/services/api/contacts";
+import { reencrypt_all_sent_mail } from "@/services/send_queue_encryption";
+import { re_encrypt_user_data } from "@/services/crypto/password_change_reencrypt";
+import { reencrypt_settings_password_change } from "@/services/crypto/recovery_reencrypt";
 import {
   get_vault_from_memory,
   store_vault_in_memory,
@@ -424,10 +425,25 @@ export function use_security() {
         serialize_kek_for_vault(old_dev_mode_key_raw),
       );
 
+      const old_folder_material = new TextEncoder().encode(
+        old_identity_key + "astermail-labels-v1",
+      );
+      const old_folder_hash = new Uint8Array(
+        await crypto.subtle.digest("SHA-256", old_folder_material),
+      );
+
+      vault.legacy_keks = prepend_kek_to_list(
+        vault.legacy_keks,
+        serialize_kek_for_vault(old_folder_hash),
+      );
+
       const {
         encrypted_vault: new_encrypted_vault,
         vault_nonce: new_vault_nonce,
       } = await encrypt_vault(vault, new_password);
+
+      const { re_encrypted_aliases, re_encrypted_contacts } =
+        await re_encrypt_user_data(current_password, new_password);
 
       const response = await change_password({
         current_password_hash,
@@ -435,6 +451,8 @@ export function use_security() {
         new_password_salt,
         new_encrypted_vault,
         new_vault_nonce,
+        re_encrypted_aliases,
+        re_encrypted_contacts,
       });
 
       if (response.error) {
@@ -480,8 +498,13 @@ export function use_security() {
         }
       } catch {}
 
-      reencrypt_all_aliases().catch(() => {});
-      reencrypt_all_contacts().catch(() => {});
+      reencrypt_all_sent_mail(current_password, new_password).catch(() => {});
+      reencrypt_settings_password_change(
+        current_password,
+        new_password,
+        old_identity_key,
+        vault.identity_key,
+      ).catch(() => {});
 
       set_password_success(true);
       set_show_password_section(false);

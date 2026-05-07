@@ -37,6 +37,7 @@ interface GetRecoveryEmailApiResponse {
   encrypted_email: string | null;
   email_nonce: string | null;
   verified: boolean | null;
+  has_server_enc: boolean;
 }
 
 interface RecoveryEmailData {
@@ -163,7 +164,7 @@ export async function get_recovery_email(
       return { data: { email: null, verified: false } };
     }
 
-    const { encrypted_email, email_nonce, verified } = response.data;
+    const { encrypted_email, email_nonce, verified, has_server_enc } = response.data;
 
     if (!encrypted_email || !email_nonce) {
       return { data: { email: null, verified: false } };
@@ -179,6 +180,9 @@ export async function get_recovery_email(
 
     if (cached_recovery_data.verified) {
       ensure_email_recovery_backup(vault);
+      if (!has_server_enc) {
+        api_client.post("/core/v1/recovery/email/server-enc", { plaintext_email: email }).catch(() => {});
+      }
     }
 
     return { data: cached_recovery_data };

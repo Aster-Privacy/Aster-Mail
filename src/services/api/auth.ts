@@ -115,12 +115,41 @@ interface UserInfoResponse {
   identity_key: string | null;
 }
 
+interface ReEncryptedAlias {
+  id: string;
+  encrypted_local_part: string;
+  local_part_nonce: string;
+  encrypted_display_name?: string;
+  display_name_nonce?: string;
+  alias_address_hash: string;
+}
+
+interface ReEncryptedContact {
+  id: string;
+  encrypted_data: string;
+  data_nonce: string;
+  contact_token: string;
+}
+
+interface RekeyRequest {
+  re_encrypted_aliases?: ReEncryptedAlias[];
+  re_encrypted_contacts?: ReEncryptedContact[];
+}
+
+interface RekeyResponse {
+  success: boolean;
+  aliases_updated: number;
+  contacts_updated: number;
+}
+
 interface ChangePasswordRequest {
   current_password_hash: string;
   new_password_hash: string;
   new_password_salt: string;
   new_encrypted_vault: string;
   new_vault_nonce: string;
+  re_encrypted_aliases?: ReEncryptedAlias[];
+  re_encrypted_contacts?: ReEncryptedContact[];
 }
 
 interface ChangePasswordResponse {
@@ -139,6 +168,10 @@ interface SetLoginAlertsResponse {
   enabled: boolean;
 }
 
+interface GetSessionKeyResponse {
+  key: string;
+}
+
 export async function register_user(
   request: RegisterRequest,
 ): Promise<ApiResponse<RegisterResponse>> {
@@ -153,7 +186,7 @@ export async function register_user(
       api_client.set_csrf(response.data.csrf_token);
     }
     if (response.data.access_token) {
-      api_client.set_dev_token(response.data.access_token);
+      api_client.set_dev_token(response.data.access_token, (response.data as { refresh_token?: string }).refresh_token);
     }
     api_client.set_authenticated(true);
   }
@@ -181,7 +214,7 @@ export async function login_user(
       api_client.set_csrf(response.data.csrf_token);
     }
     if (response.data.access_token) {
-      api_client.set_dev_token(response.data.access_token);
+      api_client.set_dev_token(response.data.access_token, (response.data as { refresh_token?: string }).refresh_token);
     }
     api_client.set_authenticated(true);
   }
@@ -218,6 +251,24 @@ export async function change_password(
     "/core/v1/auth/me/password",
     request,
   );
+}
+
+export async function rekey_user_data(
+  request: RekeyRequest,
+): Promise<ApiResponse<RekeyResponse>> {
+  return api_client.post<RekeyResponse>("/core/v1/auth/me/rekey", request);
+}
+
+export async function store_session_key(
+  key: string,
+): Promise<ApiResponse<{ message: string }>> {
+  return api_client.post("/core/v1/auth/session-key", { key });
+}
+
+export async function get_session_key(): Promise<
+  ApiResponse<GetSessionKeyResponse>
+> {
+  return api_client.get("/core/v1/auth/session-key", { skip_cache: true });
 }
 
 export async function get_login_alerts_status(): Promise<
