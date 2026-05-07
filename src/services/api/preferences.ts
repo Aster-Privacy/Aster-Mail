@@ -373,7 +373,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   conversation_order: "asc",
   show_message_size: false,
   show_badges_in_signature: true,
-  show_aster_branding: true,
+  show_aster_branding: false,
   viewer_toolbar_mode: "simple",
   migration_haptic_v1_done: false,
   migration_tracker_blocking_v2_done: false,

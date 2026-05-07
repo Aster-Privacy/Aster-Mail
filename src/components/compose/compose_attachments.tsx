@@ -610,8 +610,6 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
             minHeight: "150px",
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
-            backgroundColor: "#ffffff",
-            color: "#000000",
           }}
           onBlur={compose.handle_editor_input}
           onDragOver={compose.editor.handle_drag_over}
