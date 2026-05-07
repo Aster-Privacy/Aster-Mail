@@ -163,6 +163,8 @@ export interface UseComposeReturn {
   handle_show_delete_confirm: () => void;
   handle_hide_delete_confirm: () => void;
   handle_close: () => void;
+  pgp_enabled: boolean;
+  toggle_pgp: () => void;
 
   schedule_picker_element: React.ReactNode;
   expiration_picker_element: React.ReactNode;
@@ -531,7 +533,7 @@ export function use_compose({
 
       const signature_block =
         preferences.signature_mode === "auto" && default_signature
-          ? "<br><br>" + get_formatted_signature(default_signature) + badge_html
+          ? get_formatted_signature(default_signature) + badge_html
           : badge_html;
 
       if (is_fresh_reply_forward && edit_draft) {
@@ -757,6 +759,8 @@ export function use_compose({
     handle_scheduled_send: send_hook.handle_scheduled_send,
     handle_delete_draft: draft_hook.handle_delete_draft,
     handle_show_delete_confirm,
+    pgp_enabled: send_hook.pgp_enabled,
+    toggle_pgp: send_hook.toggle_pgp,
     handle_hide_delete_confirm,
     handle_close: draft_hook.handle_close,
 

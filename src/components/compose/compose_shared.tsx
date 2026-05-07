@@ -44,6 +44,9 @@ export interface ComposeToolbarState {
   editor?: import("@/hooks/use_editor").UseEditorReturn;
   is_plain_text_mode?: boolean;
   toggle_plain_text_mode?: () => void;
+  has_external_recipients?: boolean;
+  pgp_enabled?: boolean;
+  toggle_pgp?: () => void;
 }
 
 export interface Attachment {

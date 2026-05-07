@@ -23,6 +23,7 @@ import { Route, Routes } from "react-router-dom";
 
 import { ProtectedRoute } from "@/components/common/protected_route";
 import { SuspensionBanner } from "@/components/common/suspension_overlay";
+import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
 
 function is_chunk_load_error(error: unknown): boolean {
@@ -97,6 +98,7 @@ function App() {
   return (
     <AppLock>
       <SuspensionBanner />
+      <PendingDeletionDialog />
       <ErrorBoundary>
         <DesktopPairGate>
           <Suspense fallback={<FullPageLoader />}>

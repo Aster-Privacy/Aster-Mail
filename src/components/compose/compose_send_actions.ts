@@ -182,14 +182,15 @@ export async function execute_external_email_send(
     expiry_password?: string;
     attachments?: Attachment[];
   },
+  pgp_enabled = false,
 ) {
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
   const external_email_data = {
     ...email_data,
     encryption_options: {
-      auto_discover_keys: false,
-      encrypt_emails: false,
+      auto_discover_keys: pgp_enabled,
+      encrypt_emails: pgp_enabled,
       require_encryption: false,
     },
   };

@@ -352,6 +352,7 @@ export function FullEmailViewer({
           onClick={on_back}
         >
           <ArrowLeftIcon className="w-4 h-4" />
+          <span>{t("common.back")}</span>
         </button>
 
         {email ? (

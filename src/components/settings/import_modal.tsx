@@ -712,6 +712,11 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                     {t("settings.storage_quota_reached")}
                   </p>
                 )}
+                {import_result.imported > 0 && (
+                  <p className="text-xs text-txt-muted mt-2">
+                    {t("settings.import_folder_hint")}
+                  </p>
+                )}
                 {parse_warnings.length > 0 && (
                   <div className="mt-3 text-left max-h-24 overflow-y-auto rounded-md bg-bg-tertiary p-2">
                     {parse_warnings.map((w, i) => (

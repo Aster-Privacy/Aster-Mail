@@ -86,6 +86,8 @@ export interface UseComposeSendReturn {
   set_queued_email_id: (val: string | null) => void;
   handle_send: () => Promise<void>;
   handle_scheduled_send: () => Promise<void>;
+  pgp_enabled: boolean;
+  toggle_pgp: () => void;
 }
 
 export function use_compose_send({
@@ -118,6 +120,8 @@ export function use_compose_send({
   const [queued_email_id, set_queued_email_id] = useState<string | null>(null);
   const [send_error] = useState<string | null>(null);
   const [restore_error] = useState<string | null>(null);
+  const [pgp_enabled, set_pgp_enabled] = useState(false);
+  const toggle_pgp = useCallback(() => set_pgp_enabled((v) => !v), []);
   const last_send_time_ref = useRef<number>(0);
 
   const build_send_context = useCallback(
@@ -327,7 +331,7 @@ export function use_compose_send({
       }
 
       if (has_external) {
-        execute_external_email_send(ctx, email_data);
+        execute_external_email_send(ctx, email_data, pgp_enabled);
 
         return;
       }
@@ -361,6 +365,7 @@ export function use_compose_send({
     selected_sender,
     attachments,
     preferences.auto_save_recent_recipients,
+    pgp_enabled,
     t,
   ]);
 
@@ -448,5 +453,7 @@ export function use_compose_send({
     set_queued_email_id,
     handle_send,
     handle_scheduled_send,
+    pgp_enabled,
+    toggle_pgp,
   };
 }
