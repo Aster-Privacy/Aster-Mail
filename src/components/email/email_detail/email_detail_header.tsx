@@ -93,16 +93,13 @@ export function EmailDetailHeader({
       <div className="md:hidden mr-1">
         <MobileMenuButton on_click={toggle_mobile_sidebar} />
       </div>
-      <Tooltip tip={t("common.back")}>
-        <Button
-          className="h-9 w-9 sm:h-8 sm:w-8"
-          size="icon"
-          variant="ghost"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeftIcon className="w-5 h-5 sm:w-4 sm:h-4 text-txt-secondary" />
-        </Button>
-      </Tooltip>
+      <button
+        className="flex items-center gap-1.5 h-9 px-3 rounded-xl text-txt-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer border-none bg-transparent"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeftIcon className="w-5 h-5 flex-shrink-0" />
+        <span className="text-sm font-medium">{t("common.back")}</span>
+      </button>
 
       <div className="hidden sm:block w-px h-5 mx-1 bg-edge-secondary" />
 

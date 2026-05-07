@@ -551,6 +551,39 @@ export const ThreadMessagesList = forwardRef<
     });
   }, [first_unread_id]);
 
+  const send_anchor_ref = useRef<HTMLDivElement>(null);
+  const last_sending_id = useMemo(() => {
+    const last = messages[messages.length - 1];
+    return last?.is_sending ? last.id : null;
+  }, [messages]);
+
+  useEffect(() => {
+    if (!last_sending_id) return;
+
+    requestAnimationFrame(() => {
+      const el = send_anchor_ref.current;
+      if (!el) return;
+
+      let container: HTMLElement | null = el.parentElement;
+
+      while (container) {
+        const style = getComputedStyle(container);
+
+        if (
+          (style.overflowY === "auto" || style.overflowY === "scroll") &&
+          container.scrollHeight > container.clientHeight
+        ) {
+          break;
+        }
+        container = container.parentElement;
+      }
+
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    });
+  }, [last_sending_id]);
+
   const handle_mark_all_read = useCallback(() => {
     const unread_messages = messages.filter(
       (m) => !m.is_read && !read_ids.has(m.id),
@@ -746,6 +779,7 @@ export const ThreadMessagesList = forwardRef<
           hide_bottom_border: idx === 0 && !!hidden_ids,
         });
       })}
+      <div ref={send_anchor_ref} />
     </div>
   );
 });

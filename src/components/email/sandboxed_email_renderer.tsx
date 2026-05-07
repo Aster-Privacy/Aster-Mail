@@ -94,6 +94,7 @@ interface SandboxedEmailRendererProps {
   force_dark_mode?: boolean;
   body_background?: string;
   email_id?: string;
+  preserve_formatting?: boolean;
 }
 
 export function SandboxedEmailRenderer({
@@ -106,6 +107,7 @@ export function SandboxedEmailRenderer({
   force_dark_mode = false,
   body_background,
   email_id,
+  preserve_formatting = false,
 }: SandboxedEmailRendererProps) {
   const { t } = use_i18n();
   const [zoomed_image, set_zoomed_image] = useState<string | null>(null);
@@ -504,14 +506,40 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
     }
     if (!marker_block || marker_block === body) return;
 
+    const has_content_before = (() => {
+      let prev: Node | null = marker_block!.previousSibling;
+      while (prev) {
+        if ((prev.textContent || "").trim().length > 0) return true;
+        prev = prev.previousSibling;
+      }
+      return false;
+    })();
+
     const to_collapse: Node[] = [];
-    let sib: Node | null = marker_block;
 
-    while (sib) {
-      const next: ChildNode | null = sib.nextSibling;
-
-      to_collapse.push(sib);
-      sib = next;
+    if (has_content_before) {
+      let sib: Node | null = marker_block;
+      while (sib) {
+        const next: ChildNode | null = sib.nextSibling;
+        to_collapse.push(sib);
+        sib = next;
+      }
+    } else {
+      to_collapse.push(marker_block!);
+      let sib: Node | null = marker_block!.nextSibling;
+      while (sib) {
+        const tag = sib.nodeType === Node.ELEMENT_NODE
+          ? (sib as Element).tagName.toUpperCase()
+          : null;
+        const text = (sib.textContent || "").trim();
+        const is_quoted_block = tag === "BLOCKQUOTE" || !text;
+        if (is_quoted_block) {
+          to_collapse.push(sib);
+          sib = sib.nextSibling;
+        } else {
+          break;
+        }
+      }
     }
 
     if (to_collapse.length === 0) return;
@@ -672,7 +700,9 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
     collapse_forwarded_content(iframe.contentDocument);
     collapse_quoted_replies(iframe.contentDocument);
-    collapse_empty_block_runs(iframe.contentDocument);
+    if (!preserve_formatting) {
+      collapse_empty_block_runs(iframe.contentDocument);
+    }
 
     const MAX_IFRAME_HEIGHT = 12000;
 
@@ -893,6 +923,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
     collapse_quoted_replies,
     collapse_empty_block_runs,
     unblock_remote_content,
+    preserve_formatting,
   ]);
 
   useEffect(() => {

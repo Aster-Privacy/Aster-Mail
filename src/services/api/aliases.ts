@@ -55,6 +55,7 @@ export interface DecryptedEmailAlias {
   full_address: string;
   is_enabled: boolean;
   is_random: boolean;
+  decryption_failed?: boolean;
   profile_picture?: string;
   downgrade_grace_expires_at?: string;
   created_at: string;
@@ -226,42 +227,73 @@ export async function decrypt_alias_field(
 export async function decrypt_alias(
   alias: EmailAlias,
 ): Promise<DecryptedEmailAlias> {
-  let local_part: string;
-
   if (alias.is_random) {
-    const decoder = new TextDecoder();
+    const local_part = new TextDecoder().decode(
+      base64_to_array(alias.encrypted_local_part),
+    );
 
-    local_part = decoder.decode(base64_to_array(alias.encrypted_local_part));
-  } else {
-    local_part = await decrypt_alias_field(
+    return {
+      id: alias.id,
+      local_part,
+      alias_address_hash: alias.alias_address_hash,
+      domain: alias.domain,
+      full_address: `${local_part}@${alias.domain}`,
+      is_enabled: alias.is_enabled,
+      is_random: alias.is_random,
+      profile_picture: alias.profile_picture,
+      downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
+      created_at: alias.created_at,
+      updated_at: alias.updated_at,
+    };
+  }
+
+  try {
+    const local_part = await decrypt_alias_field(
       alias.encrypted_local_part,
       alias.local_part_nonce,
     );
+
+    let display_name: string | undefined;
+
+    if (alias.encrypted_display_name && alias.display_name_nonce) {
+      try {
+        display_name = await decrypt_alias_field(
+          alias.encrypted_display_name,
+          alias.display_name_nonce,
+        );
+      } catch {}
+    }
+
+    return {
+      id: alias.id,
+      local_part,
+      display_name,
+      alias_address_hash: alias.alias_address_hash,
+      domain: alias.domain,
+      full_address: `${local_part}@${alias.domain}`,
+      is_enabled: alias.is_enabled,
+      is_random: alias.is_random,
+      profile_picture: alias.profile_picture,
+      downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
+      created_at: alias.created_at,
+      updated_at: alias.updated_at,
+    };
+  } catch {
+    return {
+      id: alias.id,
+      local_part: "",
+      alias_address_hash: alias.alias_address_hash,
+      domain: alias.domain,
+      full_address: `@${alias.domain}`,
+      is_enabled: alias.is_enabled,
+      is_random: alias.is_random,
+      decryption_failed: true,
+      profile_picture: alias.profile_picture,
+      downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
+      created_at: alias.created_at,
+      updated_at: alias.updated_at,
+    };
   }
-
-  let display_name: string | undefined;
-
-  if (alias.encrypted_display_name && alias.display_name_nonce) {
-    display_name = await decrypt_alias_field(
-      alias.encrypted_display_name,
-      alias.display_name_nonce,
-    );
-  }
-
-  return {
-    id: alias.id,
-    local_part,
-    display_name,
-    alias_address_hash: alias.alias_address_hash,
-    domain: alias.domain,
-    full_address: `${local_part}@${alias.domain}`,
-    is_enabled: alias.is_enabled,
-    is_random: alias.is_random,
-    profile_picture: alias.profile_picture,
-    downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
-    created_at: alias.created_at,
-    updated_at: alias.updated_at,
-  };
 }
 
 export async function decrypt_aliases(

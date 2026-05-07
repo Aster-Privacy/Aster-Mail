@@ -58,6 +58,15 @@ async function attempt_alias_repair(
     { local_part: "social", domain: "aster.cx" },
     { local_part: "games", domain: "aster.cx" },
     { local_part: "trades", domain: "aster.cx" },
+    { local_part: "support", domain: "astermail.org" },
+    { local_part: "security", domain: "astermail.org" },
+    { local_part: "legal", domain: "astermail.org" },
+    { local_part: "abuse", domain: "astermail.org" },
+    { local_part: "postmaster", domain: "astermail.org" },
+    { local_part: "dmarc", domain: "astermail.org" },
+    { local_part: "support", domain: "aster.cx" },
+    { local_part: "abuse", domain: "aster.cx" },
+    { local_part: "postmaster", domain: "aster.cx" },
   ];
 
   for (const alias of failed) {
@@ -165,13 +174,16 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
         const raw_aliases = list_response.data.aliases;
         const decrypted = await decrypt_aliases(raw_aliases);
 
-        merged.push(...decrypted);
+        const failed_placeholders = decrypted.filter((a) => a.decryption_failed);
 
-        if (decrypted.length < raw_aliases.length) {
-          const decrypted_ids = new Set(decrypted.map((a) => a.id));
-          const failed = raw_aliases.filter((a) => !decrypted_ids.has(a.id));
+        merged.push(...decrypted.filter((a) => !a.decryption_failed));
 
-          await attempt_alias_repair(failed, merged);
+        if (failed_placeholders.length > 0) {
+          const failed_raw = raw_aliases.filter((a) =>
+            failed_placeholders.some((p) => p.id === a.id),
+          );
+
+          await attempt_alias_repair(failed_raw, merged);
         }
       }
 

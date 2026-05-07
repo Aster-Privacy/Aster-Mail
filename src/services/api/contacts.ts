@@ -300,7 +300,16 @@ export async function decrypt_contact(
 export async function decrypt_contacts(
   contacts: Contact[],
 ): Promise<DecryptedContact[]> {
-  return Promise.all(contacts.map((contact) => decrypt_contact(contact)));
+  const results = await Promise.allSettled(
+    contacts.map((contact) => decrypt_contact(contact)),
+  );
+
+  return results
+    .filter(
+      (r): r is PromiseFulfilledResult<DecryptedContact> =>
+        r.status === "fulfilled",
+    )
+    .map((r) => r.value);
 }
 
 export async function decrypt_contact_group(

@@ -179,7 +179,11 @@ export async function decrypt_template(
 export async function decrypt_templates(
   templates: Template[],
 ): Promise<DecryptedTemplate[]> {
-  return Promise.all(templates.map(decrypt_template));
+  const results = await Promise.allSettled(templates.map(decrypt_template));
+
+  return results
+    .filter((r): r is PromiseFulfilledResult<DecryptedTemplate> => r.status === "fulfilled")
+    .map((r) => r.value);
 }
 
 export async function list_templates(): Promise<

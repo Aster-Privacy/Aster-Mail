@@ -139,9 +139,19 @@ interface ThreadMessageBlockProps {
 }
 
 function strip_quotes(body: string): string {
+  const wrote_re = /On .+wrote:\s*/i;
+  const match = body.match(wrote_re);
+  let processed = body;
+  if (match && match.index !== undefined) {
+    const before = body.substring(0, match.index).trim();
+    if (before.length > 0) {
+      processed = before;
+    } else {
+      processed = body.substring(match.index + match[0].length);
+    }
+  }
   return (
-    body
-      .replace(/On .+wrote:[\s\S]*/gi, "")
+    processed
       .replace(/^>.*$/gm, "")
       .replace(/<blockquote[^>]*>[\s\S]*?<\/blockquote>/gi, "")
       .trim() || body
@@ -327,7 +337,7 @@ export function ThreadMessageBlock({
 
     const has_cid = extract_cid_references(sanitized_content.html).length > 0;
 
-    if (!has_cid || !is_expanded) {
+    if (!has_cid || !is_expanded || message.is_sending === true) {
       set_cid_resolved_html(null);
 
       return;
@@ -935,6 +945,7 @@ export function ThreadMessageBlock({
           force_dark_mode={force_dark_mode}
           is_plain_text={is_plain_text}
           load_remote_content={load_remote_content}
+          preserve_formatting={message.is_sending === true}
           sanitized_html={effective_html}
           set_wrap_source={set_wrap_source}
           viewing_source={viewing_source}
@@ -947,6 +958,7 @@ export function ThreadMessageBlock({
             inline_cids={inline_cids}
             inline_filenames={inline_filenames}
             is_external={message.is_external}
+            is_local={message.is_sending === true}
             mail_item_id={message.id}
           />
         </div>

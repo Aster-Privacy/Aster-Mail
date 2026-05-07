@@ -40,6 +40,7 @@ interface ThreadMessageBodyProps {
   force_dark_mode?: boolean;
   body_background?: string;
   email_id?: string;
+  preserve_formatting?: boolean;
 }
 
 export function ThreadMessageBody({
@@ -53,6 +54,7 @@ export function ThreadMessageBody({
   force_dark_mode,
   body_background,
   email_id,
+  preserve_formatting,
 }: ThreadMessageBodyProps): React.ReactElement {
   const { t } = use_i18n();
 
@@ -151,6 +153,7 @@ export function ThreadMessageBody({
           force_dark_mode={force_dark_mode}
           is_plain_text={is_plain_text}
           load_remote_content={load_remote_content}
+          preserve_formatting={preserve_formatting}
           sanitized_html={sanitized_html}
         />
       )}

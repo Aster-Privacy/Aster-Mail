@@ -134,29 +134,33 @@ async function decrypt_message_envelope(
 
     const enc_bytes = base64_to_array(encrypted_envelope);
 
-    for (const version of ENVELOPE_KEY_VERSIONS) {
-      try {
-        const key_hash = await crypto.subtle.digest(
-          HASH_ALG,
-          new TextEncoder().encode(vault.identity_key + version),
-        );
-        const crypto_key = await crypto.subtle.importKey(
-          "raw",
-          key_hash,
-          { name: "AES-GCM", length: 256 },
-          false,
-          ["decrypt"],
-        );
-        const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
+    const keys_to_try = [vault.identity_key, ...(vault.previous_keys ?? [])];
 
-        const parsed = JSON.parse(new TextDecoder().decode(decrypted));
-        const from = normalize_envelope_from(parsed.from);
+    for (const key_string of keys_to_try) {
+      for (const version of ENVELOPE_KEY_VERSIONS) {
+        try {
+          const key_hash = await crypto.subtle.digest(
+            HASH_ALG,
+            new TextEncoder().encode(key_string + version),
+          );
+          const crypto_key = await crypto.subtle.importKey(
+            "raw",
+            key_hash,
+            { name: "AES-GCM", length: 256 },
+            false,
+            ["decrypt"],
+          );
+          const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
 
-        if (from) parsed.from = from;
+          const parsed = JSON.parse(new TextDecoder().decode(decrypted));
+          const from = normalize_envelope_from(parsed.from);
 
-        return parsed;
-      } catch {
-        continue;
+          if (from) parsed.from = from;
+
+          return parsed;
+        } catch {
+          continue;
+        }
       }
     }
 

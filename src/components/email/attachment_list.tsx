@@ -59,6 +59,7 @@ interface AttachmentListProps {
   has_recipient_key?: boolean;
   inline_cids?: Set<string>;
   inline_filenames?: Set<string>;
+  is_local?: boolean;
 }
 
 function DownloadIcon({ className }: { className?: string }) {
@@ -280,6 +281,7 @@ export function AttachmentList({
   has_recipient_key = false,
   inline_cids,
   inline_filenames,
+  is_local = false,
 }: AttachmentListProps): React.ReactElement | null {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -299,6 +301,11 @@ export function AttachmentList({
     let cancelled = false;
 
     async function fetch_attachments() {
+      if (is_local) {
+        set_loading(false);
+        return;
+      }
+
       set_loading(true);
 
       let response;

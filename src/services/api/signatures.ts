@@ -177,7 +177,11 @@ export async function decrypt_signature(
 export async function decrypt_signatures(
   signatures: Signature[],
 ): Promise<DecryptedSignature[]> {
-  return Promise.all(signatures.map(decrypt_signature));
+  const results = await Promise.allSettled(signatures.map(decrypt_signature));
+
+  return results
+    .filter((r): r is PromiseFulfilledResult<DecryptedSignature> => r.status === "fulfilled")
+    .map((r) => r.value);
 }
 
 export async function list_signatures(): Promise<
