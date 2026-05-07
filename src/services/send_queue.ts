@@ -418,17 +418,18 @@ async function prepare_email_for_server_queue(
     inline_images.length > 0 ? recipient_body : email.body;
   const all_attachments = [...(email.attachments || []), ...inline_attachments];
 
-  const { encrypted_body, is_encrypted } = await encrypt_for_recipients(
-    body_for_encryption,
-    all_recipients,
-  );
-
   const current_account = await get_current_account();
 
   if (!current_account?.user?.email) {
     throw new SendError(en.errors.no_authenticated_account);
   }
   const sender_email = email.sender_email || current_account.user.email;
+
+  const { encrypted_body, is_encrypted } = await encrypt_for_recipients(
+    body_for_encryption,
+    all_recipients,
+    sender_email,
+  );
 
   const internal_email: QueuedEmailInternal = {
     id: crypto.randomUUID(),
