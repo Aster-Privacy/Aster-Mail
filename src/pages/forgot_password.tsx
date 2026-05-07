@@ -18,8 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@aster/ui";
 
@@ -47,8 +47,6 @@ import {
 import {
   initiate_recovery,
   complete_recovery,
-  initiate_email_recovery,
-  validate_email_recovery,
 } from "@/services/api/recovery";
 import { store_pending_reencryption } from "@/services/crypto/recovery_reencrypt";
 import {
@@ -73,7 +71,6 @@ import { use_i18n } from "@/lib/i18n/context";
 type RecoveryStep =
   | "email"
   | "code"
-  | "email_sent"
   | "password"
   | "processing"
   | "new_codes"
@@ -225,7 +222,6 @@ export default function ForgotPasswordPage() {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const navigate = useNavigate();
-  const [search_params] = useSearchParams();
   const { theme } = useTheme();
   const is_dark = theme === "dark";
 
@@ -249,45 +245,8 @@ export default function ForgotPasswordPage() {
   const [code_salt, set_code_salt] = useState("");
   const [encrypted_recovery_key_data, set_encrypted_recovery_key_data] =
     useState<{ encrypted_key: string; nonce: string } | null>(null);
-  const [is_email_recovery, set_is_email_recovery] = useState(false);
-  const [email_vault_key, set_email_vault_key] = useState<string | null>(null);
-  const [recovery_user_email, set_recovery_user_email] = useState("");
 
-  const email_recovery_validated = useRef(false);
-
-  useEffect(() => {
-    const token = search_params.get("email_recovery_token");
-
-    if (!token) return;
-    if (email_recovery_validated.current) return;
-    email_recovery_validated.current = true;
-
-    set_step("processing");
-    set_processing_status(t("auth.validating_recovery_link"));
-
-    validate_email_recovery(token).then(async (response) => {
-      if (response.error || !response.data) {
-        await timing_safe_delay();
-        set_error(t("auth.invalid_recovery_link"));
-        set_step("email");
-
-        return;
-      }
-
-      set_vault_backup({
-        encrypted_data: response.data.encrypted_vault_backup,
-        nonce: response.data.vault_backup_nonce,
-        salt: response.data.vault_backup_salt,
-      });
-      set_email_vault_key(response.data.email_vault_key);
-      set_recovery_token(response.data.recovery_token);
-      set_recovery_user_email(response.data.user_email);
-      set_is_email_recovery(true);
-      set_step("password");
-    });
-  }, []);
-
-  const handle_email_next = async () => {
+  const handle_email_next = () => {
     set_error("");
     const clean_username = sanitize_username(username.trim());
 
@@ -300,24 +259,7 @@ export default function ForgotPasswordPage() {
     const full_email = `${clean_username}@${email_domain}`;
 
     set_email(full_email);
-    set_step("processing");
-    set_processing_status(t("auth.sending_recovery_email"));
-
-    try {
-      const response = await initiate_email_recovery(full_email);
-
-      if (response.error) {
-        set_error(response.error);
-        set_step("email");
-
-        return;
-      }
-
-      set_step("email_sent");
-    } catch {
-      set_error(t("auth.recovery_failed"));
-      set_step("email");
-    }
+    set_step("code");
   };
 
   const handle_code_submit = async () => {
@@ -404,14 +346,7 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    if (!vault_backup) {
-      set_error(t("auth.recovery_session_expired"));
-      set_step("email");
-
-      return;
-    }
-
-    if (!is_email_recovery && (!encrypted_recovery_key_data || !code_salt)) {
+    if (!vault_backup || !encrypted_recovery_key_data || !code_salt) {
       set_error(t("auth.recovery_session_expired"));
       set_step("email");
 
@@ -422,22 +357,14 @@ export default function ForgotPasswordPage() {
     set_processing_status(t("auth.decrypting_vault"));
 
     try {
-      let recovery_key: Uint8Array;
-
-      if (is_email_recovery && email_vault_key) {
-        recovery_key = Uint8Array.from(atob(email_vault_key), (c) =>
-          c.charCodeAt(0),
-        );
-      } else {
-        recovery_key = await decrypt_recovery_key_with_code(
-          {
-            encrypted_key: encrypted_recovery_key_data!.encrypted_key,
-            nonce: encrypted_recovery_key_data!.nonce,
-            salt: code_salt,
-          },
-          recovery_code.toUpperCase().trim(),
-        );
-      }
+      const recovery_key = await decrypt_recovery_key_with_code(
+        {
+          encrypted_key: encrypted_recovery_key_data.encrypted_key,
+          nonce: encrypted_recovery_key_data.nonce,
+          salt: code_salt,
+        },
+        recovery_code.toUpperCase().trim(),
+      );
 
       set_processing_status(t("auth.recovering_account_data"));
       const vault = await decrypt_vault_backup(vault_backup, recovery_key);
@@ -450,19 +377,18 @@ export default function ForgotPasswordPage() {
       const { hash: password_hash, salt: password_salt } =
         await derive_password_hash(password, salt);
 
-      const effective_email = is_email_recovery ? recovery_user_email : email;
-      const display_name = effective_email.split("@")[0] || "User";
+      const display_name = email.split("@")[0] || "User";
 
       const new_identity_keypair = await generate_identity_keypair(
         display_name,
-        effective_email,
+        email,
         password,
       );
 
       const { keypair: new_prekey_keypair, signature: prekey_signature } =
         await generate_signed_prekey(
           display_name,
-          effective_email,
+          email,
           password,
           new_identity_keypair.secret_key,
         );
@@ -508,31 +434,6 @@ export default function ForgotPasswordPage() {
         new_recovery_key,
       );
 
-      let new_email_backup_data:
-        | {
-            encrypted_vault_backup: string;
-            vault_backup_nonce: string;
-            vault_backup_salt: string;
-            email_vault_key: string;
-          }
-        | undefined;
-
-      if (is_email_recovery) {
-        const new_email_vault_key = generate_recovery_key();
-        const email_backup = await encrypt_vault_backup(
-          vault,
-          new_email_vault_key,
-        );
-
-        new_email_backup_data = {
-          encrypted_vault_backup: email_backup.encrypted_data,
-          vault_backup_nonce: email_backup.nonce,
-          vault_backup_salt: email_backup.salt,
-          email_vault_key: btoa(String.fromCharCode(...new_email_vault_key)),
-        };
-        clear_recovery_key(new_email_vault_key);
-      }
-
       clear_recovery_key(recovery_key);
       clear_recovery_key(new_recovery_key);
 
@@ -547,7 +448,6 @@ export default function ForgotPasswordPage() {
         new_backup.encrypted_data,
         new_backup.nonce,
         new_backup.salt,
-        new_email_backup_data,
         btoa(new_identity_keypair.public_key),
         btoa(new_prekey_keypair.public_key),
         btoa(prekey_signature),
@@ -699,43 +599,6 @@ export default function ForgotPasswordPage() {
               onClick={() => navigate("/sign-in")}
             >
               {t("auth.back_to_sign_in")}
-            </Button>
-          </motion.div>
-        );
-
-      case "email_sent":
-        return (
-          <motion.div
-            key="email_sent"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
-          >
-            <Logo />
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.recovery_email_sent")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.recovery_email_sent_desc")}
-            </p>
-
-            <Button
-              className="w-full mt-8"
-              size="xl"
-              variant="secondary"
-              onClick={() => {
-                set_error("");
-                set_step("code");
-              }}
-            >
-              {t("auth.use_recovery_code")}
             </Button>
           </motion.div>
         );
@@ -893,19 +756,17 @@ export default function ForgotPasswordPage() {
               {t("auth.reset_password")}
             </Button>
 
-            {!is_email_recovery && (
-              <Button
-                className="w-full mt-3"
-                size="xl"
-                variant="secondary"
-                onClick={() => {
-                  set_error("");
-                  set_step("code");
-                }}
-              >
-                {t("common.back")}
-              </Button>
-            )}
+            <Button
+              className="w-full mt-3"
+              size="xl"
+              variant="secondary"
+              onClick={() => {
+                set_error("");
+                set_step("code");
+              }}
+            >
+              {t("common.back")}
+            </Button>
           </motion.div>
         );
 

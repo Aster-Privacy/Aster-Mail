@@ -22,14 +22,8 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { api_client } from "./client";
-import { save_email_recovery_backup } from "./recovery";
 
 import { hash_recovery_email } from "@/services/crypto/key_manager";
-import {
-  generate_recovery_key,
-  encrypt_vault_backup,
-  clear_recovery_key,
-} from "@/services/crypto/recovery_key";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -54,7 +48,6 @@ interface ResendVerificationApiResponse {
 }
 
 let cached_recovery_data: RecoveryEmailData | null = null;
-let backup_ensured = false;
 
 async function derive_recovery_email_key(
   vault: EncryptedVault,
@@ -109,37 +102,6 @@ async function decrypt_recovery_email(
   return new TextDecoder().decode(decrypted);
 }
 
-export async function ensure_email_recovery_backup(
-  vault: EncryptedVault,
-): Promise<void> {
-  if (backup_ensured) return;
-  backup_ensured = true;
-
-  try {
-    const check = await api_client.get<GetRecoveryEmailApiResponse>(
-      "/core/v1/recovery/email",
-    );
-
-    if (check.error || !check.data?.verified) return;
-
-    const email_vault_key = generate_recovery_key();
-    const backup = await encrypt_vault_backup(vault, email_vault_key);
-
-    const key_b64 = btoa(String.fromCharCode(...email_vault_key));
-
-    await save_email_recovery_backup(
-      backup.encrypted_data,
-      backup.nonce,
-      backup.salt,
-      key_b64,
-    );
-
-    clear_recovery_key(email_vault_key);
-  } catch {
-    backup_ensured = false;
-  }
-}
-
 export async function get_recovery_email(
   vault: EncryptedVault | null,
 ): Promise<{ data: RecoveryEmailData }> {
@@ -148,10 +110,6 @@ export async function get_recovery_email(
   }
 
   if (cached_recovery_data) {
-    if (cached_recovery_data.verified) {
-      ensure_email_recovery_backup(vault);
-    }
-
     return { data: cached_recovery_data };
   }
 
@@ -178,11 +136,8 @@ export async function get_recovery_email(
 
     cached_recovery_data = { email, verified: verified ?? false };
 
-    if (cached_recovery_data.verified) {
-      ensure_email_recovery_backup(vault);
-      if (!has_server_enc) {
-        api_client.post("/core/v1/recovery/email/server-enc", { plaintext_email: email }).catch(() => {});
-      }
+    if (cached_recovery_data.verified && !has_server_enc) {
+      api_client.post("/core/v1/recovery/email/server-enc", { plaintext_email: email }).catch(() => {});
     }
 
     return { data: cached_recovery_data };
@@ -213,22 +168,6 @@ export async function save_recovery_email(
 
     if (success) {
       cached_recovery_data = { email, verified: false };
-
-      try {
-        const email_vault_key = generate_recovery_key();
-        const backup = await encrypt_vault_backup(vault, email_vault_key);
-
-        const key_b64 = btoa(String.fromCharCode(...email_vault_key));
-
-        await save_email_recovery_backup(
-          backup.encrypted_data,
-          backup.nonce,
-          backup.salt,
-          key_b64,
-        );
-
-        clear_recovery_key(email_vault_key);
-      } catch {}
     }
 
     return { data: { success }, code: response.code };
@@ -274,7 +213,6 @@ export async function remove_recovery_email(): Promise<{
 
     if (success) {
       cached_recovery_data = null;
-      backup_ensured = false;
     }
 
     return { data: { success } };
@@ -307,5 +245,4 @@ export async function check_recovery_email_verified(): Promise<boolean> {
 
 export function clear_recovery_email_cache(): void {
   cached_recovery_data = null;
-  backup_ensured = false;
 }

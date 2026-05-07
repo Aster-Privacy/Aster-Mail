@@ -3241,18 +3241,7 @@ export const ar = {
     password_reset_successful: "تمت إعادة تعيين كلمة المرور بنجاح",
     account_recovered_sign_in:
       "تم استرداد حسابك. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
-    choose_recovery_method: "اختر طريقة الاسترداد",
-    choose_recovery_method_desc: "كيف تريد استرداد حسابك؟",
-    use_recovery_code: "استخدام رمز الاسترداد",
-    use_recovery_email: "استخدام بريد الاسترداد",
-    recovery_email_sent: "تم إرسال بريد الاسترداد",
-    recovery_email_sent_desc:
-      "أرسلنا رابط إعادة تعيين كلمة المرور إلى بريد الاسترداد الخاص بك. تحقق من صندوق الوارد وانقر على الرابط للمتابعة.",
     check_your_inbox: "تحقق من صندوق الوارد",
-    sending_recovery_email: "جارٍ إرسال بريد الاسترداد...",
-    validating_recovery_link: "جارٍ التحقق من رابط الاسترداد...",
-    invalid_recovery_link:
-      "رابط الاسترداد هذا غير صالح أو منتهي الصلاحية. يرجى المحاولة مجددًا.",
     generating_encryption_keys: "جارٍ إنشاء مفاتيح التشفير...",
     creating_identity_keypair: "جارٍ إنشاء زوج مفاتيح الهوية...",
     creating_signed_prekey: "جارٍ إنشاء مفتاح مسبق موقع...",

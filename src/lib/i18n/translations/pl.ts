@@ -3354,18 +3354,7 @@ export const pl = {
     password_reset_successful: "Hasło zresetowane pomyślnie",
     account_recovered_sign_in:
       "Twoje konto zostało odzyskane. Możesz teraz zalogować się nowym hasłem.",
-    choose_recovery_method: "Wybierz metodę odzyskiwania",
-    choose_recovery_method_desc: "Jak chcesz odzyskać swoje konto?",
-    use_recovery_code: "Użyj kodu odzyskiwania",
-    use_recovery_email: "Użyj e-maila do odzyskiwania",
-    recovery_email_sent: "E-mail do odzyskiwania wysłany",
-    recovery_email_sent_desc:
-      "Wysłaliśmy link do resetowania hasła na Twój adres e-mail do odzyskiwania. Sprawdź skrzynkę i kliknij link, aby kontynuować.",
     check_your_inbox: "Sprawdź skrzynkę odbiorczą",
-    sending_recovery_email: "Wysyłanie e-maila do odzyskiwania...",
-    validating_recovery_link: "Walidacja linku odzyskiwania...",
-    invalid_recovery_link:
-      "Ten link odzyskiwania jest nieprawidłowy lub wygasł. Spróbuj ponownie.",
     generating_encryption_keys: "Generowanie kluczy szyfrowania...",
     creating_identity_keypair: "Tworzenie pary kluczy tożsamości...",
     creating_signed_prekey: "Tworzenie podpisanego klucza wstępnego...",

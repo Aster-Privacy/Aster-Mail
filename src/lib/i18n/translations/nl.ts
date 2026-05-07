@@ -3344,18 +3344,7 @@ export const nl = {
     password_reset_successful: "Wachtwoord succesvol gereset",
     account_recovered_sign_in:
       "Je account is hersteld. Je kunt nu inloggen met je nieuwe wachtwoord.",
-    choose_recovery_method: "Kies herstelmethode",
-    choose_recovery_method_desc: "Hoe wil je je account herstellen?",
-    use_recovery_code: "Gebruik herstelcode",
-    use_recovery_email: "Gebruik herstel-e-mail",
-    recovery_email_sent: "Herstel-e-mail verzonden",
-    recovery_email_sent_desc:
-      "We hebben een link voor wachtwoordherstel naar je herstel-e-mail gestuurd. Controleer je inbox en klik op de link om door te gaan.",
     check_your_inbox: "Controleer je inbox",
-    sending_recovery_email: "Herstel-e-mail verzenden...",
-    validating_recovery_link: "Herstellink valideren...",
-    invalid_recovery_link:
-      "Deze herstellink is ongeldig of verlopen. Probeer het opnieuw.",
     generating_encryption_keys: "Versleutelingssleutels genereren...",
     creating_identity_keypair: "Identiteitssleutelpaar aanmaken...",
     creating_signed_prekey: "Ondertekende prekey aanmaken...",

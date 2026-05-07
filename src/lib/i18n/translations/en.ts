@@ -4010,10 +4010,6 @@ export const en: Translations = {
     password_reset_successful: "Password reset successful",
     account_recovered_sign_in:
       "Your account has been recovered. You can now sign in with your new password.",
-    choose_recovery_method: "Choose recovery method",
-    choose_recovery_method_desc: "How would you like to recover your account?",
-    use_recovery_code: "Use recovery code",
-    use_recovery_email: "Use recovery email",
     recovery_email_verified: "Recovery email verified",
     recovery_email_verified_desc:
       "Your recovery email has been successfully verified and linked to your account.",
@@ -4021,14 +4017,7 @@ export const en: Translations = {
     verification_failed_desc:
       "This link is invalid or has expired. Please request a new verification email from your account settings.",
     go_to_inbox: "Go to inbox",
-    recovery_email_sent: "Recovery email sent",
-    recovery_email_sent_desc:
-      "We've sent a password reset link to your recovery email. Check your inbox and click the link to continue.",
     check_your_inbox: "Check your inbox",
-    sending_recovery_email: "Sending recovery email...",
-    validating_recovery_link: "Validating recovery link...",
-    invalid_recovery_link:
-      "This recovery link is invalid or has expired. Please try again.",
     generating_encryption_keys: "Generating encryption keys...",
     creating_identity_keypair: "Creating identity keypair...",
     creating_signed_prekey: "Creating signed prekey...",

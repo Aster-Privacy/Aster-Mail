@@ -3396,18 +3396,7 @@ export const de = {
     password_reset_successful: "Passwort erfolgreich zurückgesetzt",
     account_recovered_sign_in:
       "Ihr Konto wurde wiederhergestellt. Sie können sich jetzt mit Ihrem neuen Passwort anmelden.",
-    choose_recovery_method: "Wiederherstellungsmethode wählen",
-    choose_recovery_method_desc: "Wie möchten Sie Ihr Konto wiederherstellen?",
-    use_recovery_code: "Wiederherstellungscode verwenden",
-    use_recovery_email: "Wiederherstellungs-E-Mail verwenden",
-    recovery_email_sent: "Wiederherstellungs-E-Mail gesendet",
-    recovery_email_sent_desc:
-      "Wir haben einen Link zum Zurücksetzen des Passworts an Ihre Wiederherstellungs-E-Mail gesendet. Überprüfen Sie Ihren Posteingang und klicken Sie auf den Link, um fortzufahren.",
     check_your_inbox: "Überprüfen Sie Ihren Posteingang",
-    sending_recovery_email: "Wiederherstellungs-E-Mail wird gesendet...",
-    validating_recovery_link: "Wiederherstellungslink wird überprüft...",
-    invalid_recovery_link:
-      "Dieser Wiederherstellungslink ist ungültig oder abgelaufen. Bitte versuchen Sie es erneut.",
     generating_encryption_keys: "Verschlüsselungsschlüssel werden generiert...",
     creating_identity_keypair: "Identitätsschlüsselpaar wird erstellt...",
     creating_signed_prekey: "Signierter Vorschlüssel wird erstellt...",

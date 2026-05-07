@@ -71,7 +71,6 @@ import {
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_preload_cache } from "@/components/email/hooks/use_email_detail";
-import { ensure_email_recovery_backup } from "@/services/api/recovery_email";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { connection_store } from "@/services/routing/connection_store";
@@ -167,12 +166,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
           start_session_timeout(current.id);
 
-          const current_vault = get_vault_from_memory();
-
-          if (current_vault) {
-            ensure_email_recovery_backup(current_vault);
-          }
-
           let synced_user = current.user;
           const cached_info = api_client.get_cached_user_info();
 
@@ -261,8 +254,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       sync_client.connect().catch((e) => {
         safe_log_error(e);
       });
-
-      ensure_email_recovery_backup(vault);
 
       start_session_timeout(user.id);
 

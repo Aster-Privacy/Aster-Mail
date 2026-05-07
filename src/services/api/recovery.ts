@@ -40,30 +40,6 @@ interface SaveRecoveryBackupResponse {
   success: boolean;
 }
 
-interface SaveEmailRecoveryBackupResponse {
-  success: boolean;
-}
-
-interface InitiateEmailRecoveryResponse {
-  success: boolean;
-}
-
-interface ValidateEmailRecoveryResponse {
-  encrypted_vault_backup: string;
-  vault_backup_nonce: string;
-  vault_backup_salt: string;
-  email_vault_key: string;
-  recovery_token: string;
-  user_email: string;
-}
-
-interface NewEmailRecoveryBackup {
-  encrypted_vault_backup: string;
-  vault_backup_nonce: string;
-  vault_backup_salt: string;
-  email_vault_key: string;
-}
-
 interface NewPgpKeyData {
   fingerprint: string;
   key_id: string;
@@ -95,7 +71,6 @@ export async function complete_recovery(
   new_encrypted_vault_backup: string,
   new_vault_backup_nonce: string,
   new_recovery_key_salt: string,
-  new_email_recovery_backup?: NewEmailRecoveryBackup,
   new_identity_key?: string,
   new_signed_prekey?: string,
   new_signed_prekey_signature?: string,
@@ -113,7 +88,6 @@ export async function complete_recovery(
       new_encrypted_vault_backup,
       new_vault_backup_nonce,
       new_recovery_key_salt,
-      new_email_recovery_backup,
       new_identity_key,
       new_signed_prekey,
       new_signed_prekey_signature,
@@ -136,40 +110,5 @@ export async function save_recovery_backup(
       recovery_key_salt,
       recovery_shares,
     },
-  );
-}
-
-export async function save_email_recovery_backup(
-  encrypted_vault_backup: string,
-  vault_backup_nonce: string,
-  vault_backup_salt: string,
-  email_vault_key: string,
-): Promise<ApiResponse<SaveEmailRecoveryBackupResponse>> {
-  return api_client.post<SaveEmailRecoveryBackupResponse>(
-    "/core/v1/recovery/email-backup",
-    {
-      encrypted_vault_backup,
-      vault_backup_nonce,
-      vault_backup_salt,
-      email_vault_key,
-    },
-  );
-}
-
-export async function initiate_email_recovery(
-  email: string,
-): Promise<ApiResponse<InitiateEmailRecoveryResponse>> {
-  return api_client.post<InitiateEmailRecoveryResponse>(
-    "/core/v1/recovery/email-initiate",
-    { email },
-  );
-}
-
-export async function validate_email_recovery(
-  token: string,
-): Promise<ApiResponse<ValidateEmailRecoveryResponse>> {
-  return api_client.post<ValidateEmailRecoveryResponse>(
-    "/core/v1/recovery/email-validate",
-    { token },
   );
 }

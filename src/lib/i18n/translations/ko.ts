@@ -3260,18 +3260,7 @@ export const ko = {
     password_reset_successful: "비밀번호 재설정 성공",
     account_recovered_sign_in:
       "계정이 복구되었습니다. 이제 새 비밀번호로 로그인할 수 있습니다.",
-    choose_recovery_method: "복구 방법 선택",
-    choose_recovery_method_desc: "어떻게 계정을 복구하시겠습니까?",
-    use_recovery_code: "복구 코드 사용",
-    use_recovery_email: "복구 이메일 사용",
-    recovery_email_sent: "복구 이메일 전송됨",
-    recovery_email_sent_desc:
-      "복구 이메일로 비밀번호 재설정 링크를 보냈습니다. 받은 편지함을 확인하고 링크를 클릭하여 계속하세요.",
     check_your_inbox: "받은 편지함을 확인하세요",
-    sending_recovery_email: "복구 이메일 전송 중...",
-    validating_recovery_link: "복구 링크 확인 중...",
-    invalid_recovery_link:
-      "이 복구 링크는 잘못되었거나 만료되었습니다. 다시 시도해 주세요.",
     generating_encryption_keys: "암호화 키 생성 중...",
     creating_identity_keypair: "신원 키 쌍 생성 중...",
     creating_signed_prekey: "서명된 사전 키 생성 중...",

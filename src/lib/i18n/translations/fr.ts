@@ -3444,19 +3444,7 @@ export const fr = {
     password_reset_successful: "Réinitialisation du mot de passe réussie",
     account_recovered_sign_in:
       "Votre compte a été récupéré. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
-    choose_recovery_method: "Choisir la méthode de récupération",
-    choose_recovery_method_desc:
-      "Comment souhaitez-vous récupérer votre compte ?",
-    use_recovery_code: "Utiliser un code de récupération",
-    use_recovery_email: "Utiliser l'e-mail de récupération",
-    recovery_email_sent: "E-mail de récupération envoyé",
-    recovery_email_sent_desc:
-      "Nous avons envoyé un lien de réinitialisation du mot de passe à votre e-mail de récupération. Vérifiez votre boîte de réception et cliquez sur le lien pour continuer.",
     check_your_inbox: "Vérifiez votre boîte de réception",
-    sending_recovery_email: "Envoi de l'e-mail de récupération...",
-    validating_recovery_link: "Validation du lien de récupération...",
-    invalid_recovery_link:
-      "Ce lien de récupération est invalide ou a expiré. Veuillez réessayer.",
     generating_encryption_keys: "Génération des clés de chiffrement...",
     creating_identity_keypair: "Création de la paire de clés d'identité...",
     creating_signed_prekey: "Création de la clé pré-signée...",

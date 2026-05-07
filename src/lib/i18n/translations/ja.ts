@@ -3335,18 +3335,7 @@ export const ja = {
     password_reset_successful: "パスワードのリセットに成功しました",
     account_recovered_sign_in:
       "アカウントが復旧しました。新しいパスワードでサインインできます。",
-    choose_recovery_method: "復旧方法を選択",
-    choose_recovery_method_desc: "どのようにアカウントを復旧しますか？",
-    use_recovery_code: "リカバリーコードを使用",
-    use_recovery_email: "復旧用メールを使用",
-    recovery_email_sent: "復旧用メールを送信しました",
-    recovery_email_sent_desc:
-      "復旧用メールにパスワードリセットリンクを送信しました。受信トレイを確認し、リンクをクリックして続行してください。",
     check_your_inbox: "受信トレイを確認してください",
-    sending_recovery_email: "復旧用メールを送信中...",
-    validating_recovery_link: "復旧リンクを検証中...",
-    invalid_recovery_link:
-      "この復旧リンクは無効または期限切れです。もう一度お試しください。",
     generating_encryption_keys: "暗号化キーを生成中...",
     creating_identity_keypair: "IDキーペアを作成中...",
     creating_signed_prekey: "署名済み事前キーを作成中...",

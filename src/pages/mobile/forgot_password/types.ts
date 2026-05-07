@@ -22,7 +22,6 @@
 export type RecoveryStep =
   | "email"
   | "code"
-  | "email_sent"
   | "password"
   | "processing"
   | "new_codes"
@@ -45,10 +44,6 @@ export interface EmailStepProps extends StepProps {
   on_navigate_sign_in: () => void;
 }
 
-export interface EmailSentStepProps extends StepProps {
-  reduce_motion: boolean;
-}
-
 export interface CodeStepProps extends StepProps {
   recovery_code: string;
   set_recovery_code: (code: string) => void;
@@ -64,7 +59,6 @@ export interface PasswordStepProps extends StepProps {
   set_is_password_visible: (visible: boolean) => void;
   is_confirm_visible: boolean;
   set_is_confirm_visible: (visible: boolean) => void;
-  is_email_recovery: boolean;
   on_submit: () => void;
 }
 

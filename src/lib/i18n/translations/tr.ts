@@ -3351,18 +3351,7 @@ export const tr = {
     password_reset_successful: "Parola sıfırlama başarılı",
     account_recovered_sign_in:
       "Hesabınız kurtarıldı. Artık yeni parolanızla giriş yapabilirsiniz.",
-    choose_recovery_method: "Kurtarma yöntemini seçin",
-    choose_recovery_method_desc: "Hesabınızı nasıl kurtarmak istersiniz?",
-    use_recovery_code: "Kurtarma kodu kullan",
-    use_recovery_email: "Kurtarma e-postası kullan",
-    recovery_email_sent: "Kurtarma e-postası gönderildi",
-    recovery_email_sent_desc:
-      "Kurtarma e-postanıza bir parola sıfırlama bağlantısı gönderdik. Gelen kutunuzu kontrol edin ve devam etmek için bağlantıya tıklayın.",
     check_your_inbox: "Gelen kutunuzu kontrol edin",
-    sending_recovery_email: "Kurtarma e-postası gönderiliyor...",
-    validating_recovery_link: "Kurtarma bağlantısı doğrulanıyor...",
-    invalid_recovery_link:
-      "Bu kurtarma bağlantısı geçersiz veya süresi dolmuş. Lütfen tekrar deneyin.",
     generating_encryption_keys: "Şifreleme anahtarları oluşturuluyor...",
     creating_identity_keypair: "Kimlik anahtar çifti oluşturuluyor...",
     creating_signed_prekey: "İmzalı ön anahtar oluşturuluyor...",

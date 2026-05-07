@@ -3382,18 +3382,7 @@ export const pt = {
     password_reset_successful: "Senha redefinida com sucesso",
     account_recovered_sign_in:
       "Sua conta foi recuperada. Agora você pode entrar com sua nova senha.",
-    choose_recovery_method: "Escolha o método de recuperação",
-    choose_recovery_method_desc: "Como você gostaria de recuperar sua conta?",
-    use_recovery_code: "Usar código de recuperação",
-    use_recovery_email: "Usar e-mail de recuperação",
-    recovery_email_sent: "E-mail de recuperação enviado",
-    recovery_email_sent_desc:
-      "Enviamos um link de redefinição de senha para seu e-mail de recuperação. Verifique sua caixa de entrada e clique no link para continuar.",
     check_your_inbox: "Verifique sua caixa de entrada",
-    sending_recovery_email: "Enviando e-mail de recuperação...",
-    validating_recovery_link: "Validando link de recuperação...",
-    invalid_recovery_link:
-      "Este link de recuperação é inválido ou expirou. Por favor, tente novamente.",
     generating_encryption_keys: "Gerando chaves de criptografia...",
     creating_identity_keypair: "Criando par de chaves de identidade...",
     creating_signed_prekey: "Criando chave pré-assinada...",

@@ -58,9 +58,6 @@ export const API_ENDPOINTS = {
       email: "/core/v1/recovery/email",
       phone: "/core/v1/recovery/phone",
       options: "/core/v1/recovery/options",
-      email_backup: "/core/v1/recovery/email-backup",
-      email_initiate: "/core/v1/recovery/email-initiate",
-      email_validate: "/core/v1/recovery/email-validate",
     },
     onboarding: {
       base: "/core/v1/onboarding",

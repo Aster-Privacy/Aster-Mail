@@ -3388,18 +3388,7 @@ export const it = {
     password_reset_successful: "Reimpostazione password riuscita",
     account_recovered_sign_in:
       "Il tuo account è stato recuperato. Ora puoi accedere con la tua nuova password.",
-    choose_recovery_method: "Scegli metodo di recupero",
-    choose_recovery_method_desc: "Come vorresti recuperare il tuo account?",
-    use_recovery_code: "Usa codice di recupero",
-    use_recovery_email: "Usa email di recupero",
-    recovery_email_sent: "Email di recupero inviata",
-    recovery_email_sent_desc:
-      "Abbiamo inviato un link per reimpostare la password alla tua email di recupero. Controlla la tua casella di posta e clicca sul link per continuare.",
     check_your_inbox: "Controlla la tua posta in arrivo",
-    sending_recovery_email: "Invio email di recupero...",
-    validating_recovery_link: "Validazione link di recupero...",
-    invalid_recovery_link:
-      "Questo link di recupero non è valido o è scaduto. Riprova.",
     generating_encryption_keys: "Generazione chiavi di crittografia...",
     creating_identity_keypair: "Creazione coppia di chiavi di identità...",
     creating_signed_prekey: "Creazione prekey firmata...",

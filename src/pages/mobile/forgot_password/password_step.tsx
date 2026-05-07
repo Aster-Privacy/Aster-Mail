@@ -50,7 +50,6 @@ export function PasswordStep({
   set_is_password_visible,
   is_confirm_visible,
   set_is_confirm_visible,
-  is_email_recovery,
   error,
   is_dark,
   reduce_motion,
@@ -62,25 +61,23 @@ export function PasswordStep({
 
   return (
     <div className="flex flex-1 flex-col">
-      {!is_email_recovery && (
-        <div className="flex items-center px-6 pt-4">
-          <motion.button
-            className={BACK_BUTTON_CLASS}
-            style={BACK_BUTTON_STYLE}
-            whileTap={button_tap}
-            onClick={() => {
-              set_error("");
-              set_step("code");
-            }}
-          >
-            <ChevronLeftIcon className="h-5 w-5" />
-          </motion.button>
-        </div>
-      )}
+      <div className="flex items-center px-6 pt-4">
+        <motion.button
+          className={BACK_BUTTON_CLASS}
+          style={BACK_BUTTON_STYLE}
+          whileTap={button_tap}
+          onClick={() => {
+            set_error("");
+            set_step("code");
+          }}
+        >
+          <ChevronLeftIcon className="h-5 w-5" />
+        </motion.button>
+      </div>
 
       <motion.div
         animate="animate"
-        className={`flex-1 overflow-y-auto px-6 ${is_email_recovery ? "pt-10" : "pt-4"}`}
+        className="flex-1 overflow-y-auto px-6 pt-4"
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
@@ -182,18 +179,16 @@ export function PasswordStep({
         >
           {t("auth.reset_password")}
         </motion.button>
-        {!is_email_recovery && (
-          <motion.button
-            className={DEPTH_SECONDARY_CLASS}
-            whileTap={button_tap}
-            onClick={() => {
-              set_error("");
-              set_step("code");
-            }}
-          >
-            {t("common.back")}
-          </motion.button>
-        )}
+        <motion.button
+          className={DEPTH_SECONDARY_CLASS}
+          whileTap={button_tap}
+          onClick={() => {
+            set_error("");
+            set_step("code");
+          }}
+        >
+          {t("common.back")}
+        </motion.button>
       </motion.div>
     </div>
   );

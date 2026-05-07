@@ -20,12 +20,11 @@
 //
 import type { RecoveryStep } from "./forgot_password/types";
 
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { EmailStep } from "./forgot_password/email_step";
-import { EmailSentStep } from "./forgot_password/email_sent_step";
 import { CodeStep } from "./forgot_password/code_step";
 import { PasswordStep } from "./forgot_password/password_step";
 import { ProcessingStep } from "./forgot_password/processing_step";
@@ -57,8 +56,6 @@ import {
 import {
   initiate_recovery,
   complete_recovery,
-  initiate_email_recovery,
-  validate_email_recovery,
 } from "@/services/api/recovery";
 import { store_pending_reencryption } from "@/services/crypto/recovery_reencrypt";
 import {
@@ -75,7 +72,6 @@ import { use_i18n } from "@/lib/i18n/context";
 export default function MobileForgotPasswordPage() {
   const { t } = use_i18n();
   const navigate = useNavigate();
-  const [search_params] = useSearchParams();
   const { theme } = useTheme();
   const { safe_area_insets } = use_platform();
   const reduce_motion = use_should_reduce_motion();
@@ -101,45 +97,8 @@ export default function MobileForgotPasswordPage() {
   const [code_salt, set_code_salt] = useState("");
   const [encrypted_recovery_key_data, set_encrypted_recovery_key_data] =
     useState<{ encrypted_key: string; nonce: string } | null>(null);
-  const [is_email_recovery, set_is_email_recovery] = useState(false);
-  const [email_vault_key, set_email_vault_key] = useState<string | null>(null);
-  const [recovery_user_email, set_recovery_user_email] = useState("");
 
-  const email_recovery_validated = useRef(false);
-
-  useEffect(() => {
-    const token = search_params.get("email_recovery_token");
-
-    if (!token) return;
-    if (email_recovery_validated.current) return;
-    email_recovery_validated.current = true;
-
-    set_step("processing");
-    set_processing_status(t("auth.validating_recovery_link"));
-
-    validate_email_recovery(token).then(async (response) => {
-      if (response.error || !response.data) {
-        await timing_safe_delay();
-        set_error(t("auth.invalid_recovery_link"));
-        set_step("email");
-
-        return;
-      }
-
-      set_vault_backup({
-        encrypted_data: response.data.encrypted_vault_backup,
-        nonce: response.data.vault_backup_nonce,
-        salt: response.data.vault_backup_salt,
-      });
-      set_email_vault_key(response.data.email_vault_key);
-      set_recovery_token(response.data.recovery_token);
-      set_recovery_user_email(response.data.user_email);
-      set_is_email_recovery(true);
-      set_step("password");
-    });
-  }, []);
-
-  const handle_email_next = async () => {
+  const handle_email_next = () => {
     set_error("");
     const clean_username = sanitize_username(username.trim());
 
@@ -152,24 +111,7 @@ export default function MobileForgotPasswordPage() {
     const full_email = `${clean_username}@${email_domain}`;
 
     set_email(full_email);
-    set_step("processing");
-    set_processing_status(t("auth.sending_recovery_email"));
-
-    try {
-      const response = await initiate_email_recovery(full_email);
-
-      if (response.error) {
-        set_error(response.error);
-        set_step("email");
-
-        return;
-      }
-
-      set_step("email_sent");
-    } catch {
-      set_error(t("auth.recovery_failed"));
-      set_step("email");
-    }
+    set_step("code");
   };
 
   const handle_code_submit = async () => {
@@ -256,14 +198,7 @@ export default function MobileForgotPasswordPage() {
       return;
     }
 
-    if (!vault_backup) {
-      set_error(t("auth.recovery_session_expired"));
-      set_step("email");
-
-      return;
-    }
-
-    if (!is_email_recovery && (!encrypted_recovery_key_data || !code_salt)) {
+    if (!vault_backup || !encrypted_recovery_key_data || !code_salt) {
       set_error(t("auth.recovery_session_expired"));
       set_step("email");
 
@@ -274,22 +209,14 @@ export default function MobileForgotPasswordPage() {
     set_processing_status(t("auth.decrypting_vault"));
 
     try {
-      let recovery_key: Uint8Array;
-
-      if (is_email_recovery && email_vault_key) {
-        recovery_key = Uint8Array.from(atob(email_vault_key), (c) =>
-          c.charCodeAt(0),
-        );
-      } else {
-        recovery_key = await decrypt_recovery_key_with_code(
-          {
-            encrypted_key: encrypted_recovery_key_data!.encrypted_key,
-            nonce: encrypted_recovery_key_data!.nonce,
-            salt: code_salt,
-          },
-          recovery_code.toUpperCase().trim(),
-        );
-      }
+      const recovery_key = await decrypt_recovery_key_with_code(
+        {
+          encrypted_key: encrypted_recovery_key_data.encrypted_key,
+          nonce: encrypted_recovery_key_data.nonce,
+          salt: code_salt,
+        },
+        recovery_code.toUpperCase().trim(),
+      );
 
       set_processing_status(t("auth.recovering_account_data"));
       const vault = await decrypt_vault_backup(vault_backup, recovery_key);
@@ -302,19 +229,18 @@ export default function MobileForgotPasswordPage() {
       const { hash: password_hash, salt: password_salt } =
         await derive_password_hash(password, salt);
 
-      const effective_email = is_email_recovery ? recovery_user_email : email;
-      const display_name = effective_email.split("@")[0] || "User";
+      const display_name = email.split("@")[0] || "User";
 
       const new_identity_keypair = await generate_identity_keypair(
         display_name,
-        effective_email,
+        email,
         password,
       );
 
       const { keypair: new_prekey_keypair, signature: prekey_signature } =
         await generate_signed_prekey(
           display_name,
-          effective_email,
+          email,
           password,
           new_identity_keypair.secret_key,
         );
@@ -360,31 +286,6 @@ export default function MobileForgotPasswordPage() {
         new_recovery_key,
       );
 
-      let new_email_backup_data:
-        | {
-            encrypted_vault_backup: string;
-            vault_backup_nonce: string;
-            vault_backup_salt: string;
-            email_vault_key: string;
-          }
-        | undefined;
-
-      if (is_email_recovery) {
-        const new_email_vault_key = generate_recovery_key();
-        const email_backup = await encrypt_vault_backup(
-          vault,
-          new_email_vault_key,
-        );
-
-        new_email_backup_data = {
-          encrypted_vault_backup: email_backup.encrypted_data,
-          vault_backup_nonce: email_backup.nonce,
-          vault_backup_salt: email_backup.salt,
-          email_vault_key: btoa(String.fromCharCode(...new_email_vault_key)),
-        };
-        clear_recovery_key(new_email_vault_key);
-      }
-
       clear_recovery_key(recovery_key);
       clear_recovery_key(new_recovery_key);
 
@@ -399,7 +300,6 @@ export default function MobileForgotPasswordPage() {
         new_backup.encrypted_data,
         new_backup.nonce,
         new_backup.salt,
-        new_email_backup_data,
         btoa(new_identity_keypair.public_key),
         btoa(new_prekey_keypair.public_key),
         btoa(prekey_signature),
@@ -464,17 +364,6 @@ export default function MobileForgotPasswordPage() {
           />
         );
 
-      case "email_sent":
-        return (
-          <EmailSentStep
-            error={error}
-            is_dark={is_dark}
-            reduce_motion={reduce_motion}
-            set_error={set_error}
-            set_step={set_step}
-          />
-        );
-
       case "code":
         return (
           <CodeStep
@@ -496,7 +385,6 @@ export default function MobileForgotPasswordPage() {
             error={error}
             is_confirm_visible={is_confirm_visible}
             is_dark={is_dark}
-            is_email_recovery={is_email_recovery}
             is_password_visible={is_password_visible}
             on_submit={handle_password_submit}
             password={password}

@@ -3411,18 +3411,7 @@ export const es = {
     password_reset_successful: "Contraseña restablecida exitosamente",
     account_recovered_sign_in:
       "Tu cuenta ha sido recuperada. Ahora puedes iniciar sesión con tu nueva contraseña.",
-    choose_recovery_method: "Elige el método de recuperación",
-    choose_recovery_method_desc: "¿Cómo te gustaría recuperar tu cuenta?",
-    use_recovery_code: "Usar código de recuperación",
-    use_recovery_email: "Usar correo de recuperación",
-    recovery_email_sent: "Correo de recuperación enviado",
-    recovery_email_sent_desc:
-      "Hemos enviado un enlace de restablecimiento de contraseña a tu correo de recuperación. Revisa tu bandeja de entrada y haz clic en el enlace para continuar.",
     check_your_inbox: "Revisa tu bandeja de entrada",
-    sending_recovery_email: "Enviando correo de recuperación...",
-    validating_recovery_link: "Validando enlace de recuperación...",
-    invalid_recovery_link:
-      "Este enlace de recuperación es inválido o ha expirado. Por favor, inténtalo de nuevo.",
     generating_encryption_keys: "Generando claves de cifrado...",
     creating_identity_keypair: "Creando par de claves de identidad...",
     creating_signed_prekey: "Creando clave prefirmada...",
