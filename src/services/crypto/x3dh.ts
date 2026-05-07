@@ -78,7 +78,7 @@ async function generate_ephemeral_keypair(): Promise<{
 }> {
   const keypair = await crypto.subtle.generateKey(
     { name: _KE, namedCurve: _KC },
-    false,
+    true,
     ["deriveBits"],
   );
 
