@@ -321,7 +321,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
         api_client.set_authenticated(true);
         start_session_timeout(user.id);
-        window.location.href = "/";
+        window.location.replace("/");
       }
 
       return result;
@@ -401,7 +401,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_mail_cache();
         clear_mail_stats();
         clear_preload_cache();
-        window.location.href = "/";
+        window.location.replace("/");
 
         return true;
       } catch {

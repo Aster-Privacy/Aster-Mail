@@ -2465,6 +2465,7 @@ export const es = {
     plan_f_custom_key_rotation:
       "Intervalos de rotación de claves personalizados",
     plan_f_multi_accounts: "{{value}} multicuentas",
+    feature_linked_accounts: "Cuentas vinculadas",
     plan_f_receipt_tracking: "Seguimiento de recibos y envíos",
     plan_f_early_access: "Acceso anticipado a nuevas funciones",
     plan_f_unlimited_contacts: "Contactos ilimitados",

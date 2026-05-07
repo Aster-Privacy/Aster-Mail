@@ -2468,6 +2468,7 @@ export const pl = {
     plan_f_password_folders: "Foldery chronione hasłem",
     plan_f_custom_key_rotation: "Własne interwały rotacji kluczy",
     plan_f_multi_accounts: "{{value}} wielokont",
+    feature_linked_accounts: "Powiązane konta",
     plan_f_receipt_tracking: "Śledzenie paragonów i przesyłek",
     plan_f_early_access: "Wczesny dostęp do nowych funkcji",
     plan_f_unlimited_contacts: "Nieograniczone kontakty",

@@ -2295,6 +2295,7 @@ export const zh_CN = {
     plan_f_password_folders: "密码保护文件夹",
     plan_f_custom_key_rotation: "自定义密钥轮换间隔",
     plan_f_multi_accounts: "{{value}}个多账户",
+    feature_linked_accounts: "关联账户",
     plan_f_receipt_tracking: "收据和物流跟踪",
     plan_f_early_access: "新功能抢先体验",
     plan_f_unlimited_contacts: "无限联系人",

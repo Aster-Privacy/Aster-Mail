@@ -190,6 +190,13 @@ function get_features(
       supernova: "",
     },
     {
+      name: t("settings.feature_linked_accounts"),
+      free: "0",
+      star: "2",
+      nova: "5",
+      supernova: "5",
+    },
+    {
       name: t("settings.folders_limit"),
       free: "10",
       star: unlimited,

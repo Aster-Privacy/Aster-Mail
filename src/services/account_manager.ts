@@ -28,7 +28,7 @@ const ACCOUNTS_KEY = "astermail_accounts_v6";
 const LEGACY_ACCOUNTS_KEY = "astermail_accounts_v5";
 const SWITCH_TOKEN_KEY_PREFIX = "astermail_switch_token_";
 const SWITCH_TOKEN_EXPIRY_KEY_PREFIX = "astermail_switch_token_exp_";
-const DEFAULT_MAX_ACCOUNTS = 3;
+const DEFAULT_MAX_ACCOUNTS = 6;
 
 export interface User {
   id: string;

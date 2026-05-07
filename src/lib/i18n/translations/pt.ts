@@ -2451,6 +2451,7 @@ export const pt = {
     plan_f_custom_key_rotation:
       "Intervalos personalizados de rotação de chaves",
     plan_f_multi_accounts: "{{value}} multi-contas",
+    feature_linked_accounts: "Contas vinculadas",
     plan_f_receipt_tracking: "Rastreamento de recibos e entregas",
     plan_f_early_access: "Acesso antecipado a novos recursos",
     plan_f_unlimited_contacts: "Contatos ilimitados",

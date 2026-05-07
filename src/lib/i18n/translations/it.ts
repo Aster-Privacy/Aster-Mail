@@ -1594,6 +1594,7 @@ export const it = {
     plan_f_password_folders: "Cartelle protette da password",
     plan_f_custom_key_rotation: "Intervalli personalizzati di rotazione chiavi",
     plan_f_multi_accounts: "{{value}} multi-account",
+    feature_linked_accounts: "Account collegati",
     plan_f_receipt_tracking: "Tracciamento ricevute e spedizioni",
     plan_f_early_access: "Accesso anticipato alle nuove funzionalità",
     plan_f_unlimited_contacts: "Contatti illimitati",

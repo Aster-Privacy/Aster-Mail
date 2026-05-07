@@ -174,20 +174,24 @@ export function WorkspaceSwitcher({
   const handle_switch_account = useCallback(
     async (account_id: string) => {
       set_is_switching(true);
+      on_open_change(false);
       try {
         const success = await switch_account(account_id);
 
         if (!success) {
           show_toast(t("settings.switch_failed"), "error");
+          set_is_adding_account(true);
+          navigate("/sign-in");
         }
       } catch {
         show_toast(t("settings.switch_failed"), "error");
+        set_is_adding_account(true);
+        navigate("/sign-in");
       } finally {
         set_is_switching(false);
-        on_open_change(false);
       }
     },
-    [switch_account, on_open_change, t],
+    [switch_account, on_open_change, t, set_is_adding_account, navigate],
   );
 
   const handle_add_account = useCallback(async () => {

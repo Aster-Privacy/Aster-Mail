@@ -1729,6 +1729,7 @@ export interface SettingsTranslations {
   plan_f_password_folders: string;
   plan_f_custom_key_rotation: string;
   plan_f_multi_accounts: string;
+  feature_linked_accounts: string;
   plan_f_receipt_tracking: string;
   plan_f_early_access: string;
   storage_approaching_title: string;

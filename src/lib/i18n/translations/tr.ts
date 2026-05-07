@@ -2423,6 +2423,7 @@ export const tr = {
     plan_f_password_folders: "Parola korumalı klasörler",
     plan_f_custom_key_rotation: "Özel anahtar döndürme aralıkları",
     plan_f_multi_accounts: "{{value}} çoklu hesap",
+    feature_linked_accounts: "Bağlı hesaplar",
     plan_f_receipt_tracking: "Makbuz ve kargo takibi",
     plan_f_early_access: "Yeni özelliklere erken erişim",
     plan_f_unlimited_contacts: "Sınırsız kişi",

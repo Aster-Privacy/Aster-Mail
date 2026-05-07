@@ -2443,6 +2443,7 @@ export const ru = {
     plan_f_password_folders: "Папки, защищённые паролем",
     plan_f_custom_key_rotation: "Настраиваемые интервалы ротации ключей",
     plan_f_multi_accounts: "{{value}} мульти-аккаунтов",
+    feature_linked_accounts: "Связанные аккаунты",
     plan_f_receipt_tracking: "Отслеживание чеков и доставки",
     plan_f_early_access: "Ранний доступ к новым функциям",
     plan_f_unlimited_contacts: "Неограниченные контакты",

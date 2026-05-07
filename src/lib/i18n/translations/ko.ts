@@ -2393,6 +2393,7 @@ export const ko = {
     plan_f_password_folders: "비밀번호 보호 폴더",
     plan_f_custom_key_rotation: "사용자 정의 키 교체 주기",
     plan_f_multi_accounts: "{{value}}개 멀티 계정",
+    feature_linked_accounts: "연결된 계정",
     plan_f_receipt_tracking: "영수증 및 배송 추적",
     plan_f_early_access: "새 기능 조기 접근",
     plan_f_unlimited_contacts: "무제한 연락처",

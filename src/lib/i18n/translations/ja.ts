@@ -2461,6 +2461,7 @@ export const ja = {
     plan_f_password_folders: "パスワード保護フォルダ",
     plan_f_custom_key_rotation: "カスタム鍵ローテーション間隔",
     plan_f_multi_accounts: "{{value}}のマルチアカウント",
+    feature_linked_accounts: "リンクされたアカウント",
     plan_f_receipt_tracking: "領収書・配送追跡",
     plan_f_early_access: "新機能への早期アクセス",
     plan_f_unlimited_contacts: "無制限の連絡先",

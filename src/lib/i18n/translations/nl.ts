@@ -2433,6 +2433,7 @@ export const nl = {
     plan_f_password_folders: "Met wachtwoord beveiligde mappen",
     plan_f_custom_key_rotation: "Aangepaste sleutelrotatie-intervallen",
     plan_f_multi_accounts: "{{value}} meerdere accounts",
+    feature_linked_accounts: "Gekoppelde accounts",
     plan_f_receipt_tracking: "Bon- en verzendtracking",
     plan_f_early_access: "Vroege toegang tot nieuwe functies",
     plan_f_unlimited_contacts: "Onbeperkte contacten",

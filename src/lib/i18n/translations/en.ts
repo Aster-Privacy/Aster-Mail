@@ -1849,6 +1849,7 @@ export const en: Translations = {
     plan_f_password_folders: "Password-protected folders",
     plan_f_custom_key_rotation: "Custom key rotation intervals",
     plan_f_multi_accounts: "{{value}} multi-accounts",
+    feature_linked_accounts: "Linked accounts",
     plan_f_receipt_tracking: "Receipt & shipping tracking",
     plan_f_early_access: "Early access to new features",
     plan_f_unlimited_contacts: "Unlimited contacts",

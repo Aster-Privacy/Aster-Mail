@@ -2460,6 +2460,7 @@ export const de = {
     plan_f_custom_key_rotation:
       "Benutzerdefinierte Schlüsselrotationsintervalle",
     plan_f_multi_accounts: "{{value}} Multi-Konten",
+    feature_linked_accounts: "Verknüpfte Konten",
     plan_f_receipt_tracking: "Quittungs- & Sendungsverfolgung",
     plan_f_early_access: "Frühzeitiger Zugang zu neuen Funktionen",
     plan_f_unlimited_contacts: "Unbegrenzte Kontakte",

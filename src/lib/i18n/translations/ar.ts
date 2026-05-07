@@ -2385,6 +2385,7 @@ export const ar = {
     plan_f_password_folders: "مجلدات محمية بكلمة مرور",
     plan_f_custom_key_rotation: "فترات تدوير مفاتيح مخصصة",
     plan_f_multi_accounts: "{{value}} حسابات متعددة",
+    feature_linked_accounts: "الحسابات المرتبطة",
     plan_f_receipt_tracking: "تتبع الإيصالات والشحن",
     plan_f_early_access: "وصول مبكر للميزات الجديدة",
     plan_f_unlimited_contacts: "جهات اتصال غير محدودة",
