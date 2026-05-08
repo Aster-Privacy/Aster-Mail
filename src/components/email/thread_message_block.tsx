@@ -79,6 +79,7 @@ import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
 import { ThreadMessageBody } from "@/components/email/thread_message_body";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
+import { SenderVerificationBadge } from "@/components/email/sender_verification_badge";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
 import {
   extract_cid_references,
@@ -417,6 +418,7 @@ export function ThreadMessageBlock({
             <span className="text-sm font-semibold text-txt-primary truncate">
               {name}
             </span>
+            <SenderVerificationBadge status={message.sender_verification} />
             {is_ghost_sender && (
               <EmailTag
                 className="flex-shrink-0"
@@ -581,6 +583,7 @@ export function ThreadMessageBlock({
             <span className="text-xs text-txt-muted truncate hidden sm:inline max-w-full">
               &lt;{message.sender_email}&gt;
             </span>
+            <SenderVerificationBadge status={message.sender_verification} />
             {is_ghost_sender && (
               <EmailTag
                 className="flex-shrink-0"

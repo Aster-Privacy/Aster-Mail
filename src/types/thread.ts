@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { MailItem } from "@/services/api/mail";
+import type { SenderVerificationStatus } from "@/types/email";
 
 export interface ThreadMessage {
   id: string;
@@ -36,6 +37,7 @@ export interface DecryptedThreadMessage {
   item_type: "received" | "sent" | "draft";
   sender_name: string;
   sender_email: string;
+  sender_verification?: SenderVerificationStatus;
   subject: string;
   body: string;
   html_content?: string;

@@ -3405,6 +3405,9 @@ export interface MailTranslations {
   unstar: string;
   mark_unread: string;
   mark_read: string;
+  verification_verified: string;
+  verification_invalid: string;
+  verification_no_keys: string;
   copy_message_id: string;
   message_details: string;
   message_headers: string;

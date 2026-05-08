@@ -143,5 +143,6 @@ export function build_single_thread_message(
     metadata_nonce: item.metadata_nonce,
     to_recipients: envelope.to || [],
     raw_headers: envelope.raw_headers,
+    sender_verification: envelope.sender_verification,
   };
 }

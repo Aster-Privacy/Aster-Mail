@@ -26,12 +26,13 @@ import {
   get_passphrase_from_memory,
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
-import { decrypt_message } from "@/services/crypto/key_manager";
+import { decrypt_message_verified } from "@/services/crypto/key_manager";
 import {
   decrypt_envelope_with_bytes,
   base64_to_array,
   normalize_parsed_envelope,
 } from "@/services/crypto/envelope";
+import { resolve_sender_verification_keys } from "@/services/crypto/sender_verification";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const HASH_ALG = ["SHA", "256"].join("-");
@@ -57,9 +58,39 @@ export async function decrypt_mail_envelope<
       const pass = get_passphrase_from_memory();
 
       if (vault?.identity_key && pass) {
-        const decrypted = await decrypt_message(text, vault.identity_key, pass);
+        const first_pass = await decrypt_message_verified(
+          text,
+          vault.identity_key,
+          pass,
+        );
+        const parsed = normalize_parsed_envelope(
+          JSON.parse(first_pass.plaintext),
+        ) as T & { from?: { email?: string }; sender_verification?: string };
 
-        return normalize_parsed_envelope(JSON.parse(decrypted)) as T;
+        if (first_pass.has_signature && parsed?.from?.email) {
+          const sender_keys = await resolve_sender_verification_keys(
+            parsed.from.email,
+          );
+
+          if (sender_keys.length > 0) {
+            const verified_pass = await decrypt_message_verified(
+              text,
+              vault.identity_key,
+              pass,
+              sender_keys,
+            );
+
+            parsed.sender_verification = verified_pass.verification;
+          } else {
+            parsed.sender_verification = "no_keys";
+          }
+        } else {
+          parsed.sender_verification = first_pass.has_signature
+            ? "no_keys"
+            : "unsigned";
+        }
+
+        return parsed as T;
       }
 
       return null;

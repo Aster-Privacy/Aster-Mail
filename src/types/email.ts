@@ -195,6 +195,13 @@ export interface MailItemMetadata {
   item_type: string;
 }
 
+export type SenderVerificationStatus =
+  | "verified"
+  | "invalid"
+  | "unsigned"
+  | "no_keys"
+  | "unknown";
+
 export interface DecryptedEnvelope {
   subject: string;
   body_text: string;
@@ -209,6 +216,7 @@ export interface DecryptedEnvelope {
   list_unsubscribe?: string;
   list_unsubscribe_post?: string;
   raw_headers?: { name: string; value: string }[];
+  sender_verification?: SenderVerificationStatus;
 }
 
 export type InboxFilterType = "all" | "read" | "unread" | "attachments";

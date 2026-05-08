@@ -182,8 +182,7 @@ export async function generate_identity_keypair(
   }
 
   const { privateKey, publicKey } = await openpgp.generateKey({
-    type: "rsa",
-    rsaBits: 4096,
+    type: "curve25519",
     userIDs: [{ name, email }],
     passphrase,
     format: "armored",
@@ -222,8 +221,7 @@ export async function generate_signed_prekey(
   }
 
   const { privateKey, publicKey } = await openpgp.generateKey({
-    type: "rsa",
-    rsaBits: 4096,
+    type: "curve25519",
     userIDs: [{ name: `${name} (prekey)`, email }],
     passphrase,
     format: "armored",
@@ -425,8 +423,8 @@ export async function prepare_pgp_key_data(
     public_key_armored: keypair.public_key,
     ["encrypted_private_key"]: array_to_base64(combined),
     ["private_key_nonce"]: array_to_base64(nonce),
-    algorithm: "rsa4096",
-    key_size: 4096,
+    algorithm: "ecc_curve25519",
+    key_size: 256,
   };
 }
 
@@ -645,18 +643,106 @@ export async function decrypt_vault(
   return JSON.parse(vault_json);
 }
 
+export type sender_verification_status =
+  | "verified"
+  | "invalid"
+  | "unsigned"
+  | "no_keys"
+  | "unknown";
+
+export interface decrypted_message_result {
+  plaintext: string;
+  verification: sender_verification_status;
+  has_signature: boolean;
+}
+
+export interface sender_signing_key {
+  armored_secret_key: string;
+  passphrase: string;
+}
+
+async function parse_signing_keys(
+  signing_key: sender_signing_key | undefined,
+): Promise<openpgp.PrivateKey[] | undefined> {
+  if (!signing_key) return undefined;
+
+  try {
+    const decrypted = await openpgp.decryptKey({
+      ["privateKey" as const]: await openpgp.readPrivateKey({
+        armoredKey: signing_key.armored_secret_key,
+      }),
+      passphrase: signing_key.passphrase,
+    });
+
+    return [decrypted];
+  } catch {
+    return undefined;
+  }
+}
+
+async function parse_verification_keys(
+  verification_keys: string[] | undefined,
+): Promise<openpgp.Key[]> {
+  if (!verification_keys || verification_keys.length === 0) return [];
+
+  const parsed: openpgp.Key[] = [];
+
+  for (const armored of verification_keys) {
+    try {
+      parsed.push(await openpgp.readKey({ armoredKey: armored }));
+    } catch {
+      continue;
+    }
+  }
+
+  return parsed;
+}
+
+async function evaluate_signatures(
+  signatures: { verified: Promise<boolean> }[] | undefined,
+  keys_provided: boolean,
+): Promise<{ status: sender_verification_status; has_signature: boolean }> {
+  const list = signatures || [];
+  const has_signature = list.length > 0;
+
+  if (!has_signature) return { status: "unsigned", has_signature: false };
+  if (!keys_provided) return { status: "no_keys", has_signature: true };
+
+  let any_valid = false;
+  let any_invalid = false;
+
+  for (const sig of list) {
+    try {
+      const ok = await sig.verified;
+
+      if (ok) any_valid = true;
+      else any_invalid = true;
+    } catch {
+      any_invalid = true;
+    }
+  }
+
+  if (any_valid) return { status: "verified", has_signature: true };
+  if (any_invalid) return { status: "invalid", has_signature: true };
+
+  return { status: "unknown", has_signature: true };
+}
+
 export async function encrypt_message(
   plaintext: string,
   recipient_public_key: string,
+  signing_key?: sender_signing_key,
 ): Promise<string> {
   const public_key = await openpgp.readKey({
     armoredKey: recipient_public_key,
   });
 
   const message = await openpgp.createMessage({ text: plaintext });
+  const signing_keys = await parse_signing_keys(signing_key);
   const encrypted = await openpgp.encrypt({
     message,
     encryptionKeys: public_key,
+    signingKeys: signing_keys,
     format: "armored",
   });
 
@@ -666,6 +752,7 @@ export async function encrypt_message(
 export async function encrypt_message_multi(
   plaintext: string,
   recipient_public_keys: string[],
+  signing_key?: sender_signing_key,
 ): Promise<string> {
   if (recipient_public_keys.length === 0) {
     throw new Error("At least one recipient public key is required");
@@ -688,20 +775,23 @@ export async function encrypt_message_multi(
   }
 
   const message = await openpgp.createMessage({ text: plaintext });
+  const signing_keys = await parse_signing_keys(signing_key);
   const encrypted = await openpgp.encrypt({
     message,
     encryptionKeys: valid_keys,
+    signingKeys: signing_keys,
     format: "armored",
   });
 
   return typeof encrypted === "string" ? encrypted : encrypted.toString();
 }
 
-export async function decrypt_message(
+export async function decrypt_message_verified(
   ciphertext: string,
   secret_key: string,
   passphrase: string,
-): Promise<string> {
+  verification_keys?: string[],
+): Promise<decrypted_message_result> {
   const secret_key_obj = await openpgp.decryptKey({
     ["privateKey" as const]: await openpgp.readPrivateKey({
       armoredKey: secret_key,
@@ -710,12 +800,53 @@ export async function decrypt_message(
   });
 
   const message = await openpgp.readMessage({ armoredMessage: ciphertext });
-  const { data: decrypted } = await openpgp.decrypt({
+  const parsed_verification_keys = await parse_verification_keys(verification_keys);
+  const result = await openpgp.decrypt({
     message,
     decryptionKeys: secret_key_obj,
+    verificationKeys:
+      parsed_verification_keys.length > 0 ? parsed_verification_keys : undefined,
   });
 
-  return decrypted.toString();
+  const evaluated = await evaluate_signatures(
+    result.signatures as { verified: Promise<boolean> }[] | undefined,
+    parsed_verification_keys.length > 0,
+  );
+
+  return {
+    plaintext: result.data.toString(),
+    verification: evaluated.status,
+    has_signature: evaluated.has_signature,
+  };
+}
+
+export async function decrypt_message(
+  ciphertext: string,
+  secret_key: string,
+  passphrase: string,
+): Promise<string> {
+  const result = await decrypt_message_verified(ciphertext, secret_key, passphrase);
+
+  return result.plaintext;
+}
+
+export async function decrypt_message_with_handle_verified(
+  ciphertext: string,
+  key_handle: EncryptedKeyHandle,
+  passphrase: Uint8Array,
+  verification_keys?: string[],
+): Promise<decrypted_message_result> {
+  return with_decrypted_key(key_handle, passphrase, async (private_key) => {
+    const decoder = new TextDecoder();
+    const passphrase_string = decoder.decode(passphrase);
+
+    return decrypt_message_verified(
+      ciphertext,
+      private_key,
+      passphrase_string,
+      verification_keys,
+    );
+  });
 }
 
 export async function decrypt_message_with_handle(
@@ -723,25 +854,13 @@ export async function decrypt_message_with_handle(
   key_handle: EncryptedKeyHandle,
   passphrase: Uint8Array,
 ): Promise<string> {
-  return with_decrypted_key(key_handle, passphrase, async (private_key) => {
-    const decoder = new TextDecoder();
-    const passphrase_string = decoder.decode(passphrase);
+  const result = await decrypt_message_with_handle_verified(
+    ciphertext,
+    key_handle,
+    passphrase,
+  );
 
-    const private_key_obj = await openpgp.decryptKey({
-      ["privateKey" as const]: await openpgp.readPrivateKey({
-        armoredKey: private_key,
-      }),
-      passphrase: passphrase_string,
-    });
-
-    const message = await openpgp.readMessage({ armoredMessage: ciphertext });
-    const { data: decrypted } = await openpgp.decrypt({
-      message,
-      decryptionKeys: private_key_obj,
-    });
-
-    return decrypted.toString();
-  });
+  return result.plaintext;
 }
 
 export function string_to_passphrase(password: string): Uint8Array {

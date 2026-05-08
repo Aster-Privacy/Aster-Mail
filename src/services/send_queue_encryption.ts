@@ -38,6 +38,7 @@ import { encrypt_message_multi } from "./crypto/key_manager";
 import {
   get_vault_from_memory,
   get_passphrase_bytes,
+  get_passphrase_from_memory,
   has_passphrase_in_memory,
 } from "./crypto/memory_key_store";
 import {
@@ -293,7 +294,15 @@ export async function encrypt_for_recipients(
   }
 
   try {
-    const encrypted = await encrypt_message_multi(body, public_keys);
+    const passphrase = get_passphrase_from_memory();
+    const signing_key =
+      vault?.identity_key && passphrase
+        ? {
+            armored_secret_key: vault.identity_key,
+            passphrase,
+          }
+        : undefined;
+    const encrypted = await encrypt_message_multi(body, public_keys, signing_key);
 
     return { encrypted_body: encrypted, is_encrypted: true };
   } catch (err) {
