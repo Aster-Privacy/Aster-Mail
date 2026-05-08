@@ -94,6 +94,8 @@ interface UseForwardModalProps {
   email_timestamp: string;
   is_external: boolean;
   original_mail_id?: string;
+  thread_token?: string;
+  thread_ghost_email?: string;
 }
 
 export function use_forward_modal({
@@ -106,6 +108,8 @@ export function use_forward_modal({
   email_timestamp,
   is_external,
   original_mail_id,
+  thread_token,
+  thread_ghost_email,
 }: UseForwardModalProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -129,7 +133,7 @@ export function use_forward_modal({
   const [selected_sender, set_selected_sender] = useState<SenderOption | null>(
     null,
   );
-  const ghost_mode = use_ghost_mode();
+  const ghost_mode = use_ghost_mode(thread_token, thread_ghost_email);
   const [recipients, dispatch_recipients] = useReducer(recipients_reducer, {
     to: [],
     cc: [],

@@ -262,30 +262,33 @@ export function use_email_detail() {
       return;
     }
 
-    const primary = current_user_email.toLowerCase();
     const ghost_pattern = /^[a-z]+\.[a-z]+\d{2}@/;
+    let latest_sent: DecryptedThreadMessage | null = null;
 
     for (const m of thread_messages) {
       if (m.item_type !== "sent") continue;
-
-      const sender = m.sender_email.toLowerCase();
-
-      if (sender === primary) continue;
-
-      if (is_ghost_email(sender)) {
-        set_thread_ghost_email(sender);
-
-        return;
-      }
-
-      if (ghost_pattern.test(sender)) {
-        set_thread_ghost_email(sender);
-
-        return;
+      if (
+        !latest_sent ||
+        new Date(m.timestamp).getTime() >
+          new Date(latest_sent.timestamp).getTime()
+      ) {
+        latest_sent = m;
       }
     }
 
-    set_thread_ghost_email(undefined);
+    if (!latest_sent) {
+      set_thread_ghost_email(undefined);
+
+      return;
+    }
+
+    const sender = latest_sent.sender_email.toLowerCase();
+
+    if (is_ghost_email(sender) || ghost_pattern.test(sender)) {
+      set_thread_ghost_email(sender);
+    } else {
+      set_thread_ghost_email(undefined);
+    }
   }, [thread_messages, current_user_email]);
 
   const toggle_mobile_sidebar = useCallback(() => {
@@ -944,5 +947,6 @@ export function use_email_detail() {
     handle_toggle_message_read: actions.handle_toggle_message_read,
     tracking_report,
     handle_external_content_detected,
+    thread_ghost_email,
   };
 }

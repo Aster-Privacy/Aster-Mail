@@ -35,6 +35,8 @@ interface ForwardModalProps {
   email_timestamp?: string;
   is_external?: boolean;
   original_mail_id?: string;
+  thread_token?: string;
+  thread_ghost_email?: string;
 }
 
 export function ForwardModal({
@@ -47,6 +49,8 @@ export function ForwardModal({
   email_timestamp = new Date().toISOString(),
   is_external = false,
   original_mail_id,
+  thread_token,
+  thread_ghost_email,
 }: ForwardModalProps) {
   const modal = use_forward_modal({
     is_open,
@@ -58,6 +62,8 @@ export function ForwardModal({
     email_timestamp,
     is_external,
     original_mail_id,
+    thread_token,
+    thread_ghost_email,
   });
 
   return (
