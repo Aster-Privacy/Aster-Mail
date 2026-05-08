@@ -35,7 +35,15 @@ import {
   rotate_identity_key,
   type RotateIdentityKeyRequest,
 } from "@/services/api/key_rotation";
-import { type UserPreferences } from "@/services/api/preferences";
+import {
+  type UserPreferences,
+  derive_preferences_key_raw,
+  derive_dev_mode_key_raw,
+} from "@/services/api/preferences";
+import {
+  prepend_kek_to_list,
+  serialize_kek_for_vault,
+} from "@/services/crypto/legacy_keks";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -172,26 +180,50 @@ export async function perform_key_rotation(
         new_keypair.secret_key,
       );
 
+    const old_identity_key = current_vault.identity_key;
+    const old_prefs_key_raw =
+      await derive_preferences_key_raw(old_identity_key);
+    const old_dev_mode_key_raw =
+      await derive_dev_mode_key_raw(old_identity_key);
+    const old_folder_material = new TextEncoder().encode(
+      old_identity_key + "astermail-labels-v1",
+    );
+    const old_folder_hash = new Uint8Array(
+      await crypto.subtle.digest(HASH_ALG, old_folder_material),
+    );
+
     let previous_keys = current_vault.previous_keys
       ? [...current_vault.previous_keys]
       : [];
 
-    previous_keys.unshift(current_vault.identity_key);
+    previous_keys.unshift(old_identity_key);
 
     if (key_history_limit > 0 && previous_keys.length > key_history_limit) {
       previous_keys = previous_keys.slice(0, key_history_limit);
     }
 
+    let legacy_keks = current_vault.legacy_keks;
+
+    legacy_keks = prepend_kek_to_list(
+      legacy_keks,
+      serialize_kek_for_vault(old_prefs_key_raw),
+    );
+    legacy_keks = prepend_kek_to_list(
+      legacy_keks,
+      serialize_kek_for_vault(old_dev_mode_key_raw),
+    );
+    legacy_keks = prepend_kek_to_list(
+      legacy_keks,
+      serialize_kek_for_vault(old_folder_hash),
+    );
+
     const new_vault: EncryptedVault = {
+      ...current_vault,
       identity_key: new_keypair.secret_key,
       previous_keys,
       signed_prekey: new_prekey.public_key,
       signed_prekey_private: new_prekey.secret_key,
-      recovery_codes: current_vault.recovery_codes,
-      ratchet_identity_key: current_vault.ratchet_identity_key,
-      ratchet_identity_public: current_vault.ratchet_identity_public,
-      ratchet_signed_prekey: current_vault.ratchet_signed_prekey,
-      ratchet_signed_prekey_public: current_vault.ratchet_signed_prekey_public,
+      legacy_keks,
     };
 
     const { encrypted_vault, vault_nonce } = await encrypt_vault(
