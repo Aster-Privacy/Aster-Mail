@@ -92,6 +92,18 @@ export function strip_tracking_params(url: string): StripTrackingResult {
   }
 }
 
+const SAFE_URL_SCHEMES = new Set([
+  "http",
+  "https",
+  "mailto",
+  "tel",
+  "callto",
+  "sms",
+  "cid",
+  "xmpp",
+  "aster",
+]);
+
 export function is_safe_url(url: string): boolean {
   const trimmed = url.trim().toLowerCase();
 
@@ -111,7 +123,36 @@ export function is_safe_url(url: string): boolean {
     return false;
   }
 
+  const scheme_match = /^([a-z][a-z0-9+.\-]*):/i.exec(trimmed);
+  if (scheme_match) {
+    return SAFE_URL_SCHEMES.has(scheme_match[1].toLowerCase());
+  }
+
   return true;
+}
+
+export function sanitize_srcset(value: string): string {
+  const parts = value.split(",");
+  const safe: string[] = [];
+
+  for (const raw of parts) {
+    const candidate = raw.trim();
+    if (!candidate) continue;
+
+    const space_idx = candidate.search(/\s/);
+    const url_part =
+      space_idx === -1 ? candidate : candidate.slice(0, space_idx);
+    const descriptor =
+      space_idx === -1 ? "" : candidate.slice(space_idx).trim();
+
+    if (!url_part) continue;
+    if (url_part.toLowerCase().startsWith("data:")) continue;
+    if (!is_safe_url(url_part)) continue;
+
+    safe.push(descriptor ? `${url_part} ${descriptor}` : url_part);
+  }
+
+  return safe.join(", ");
 }
 
 export function strip_mso_conditionals(html: string): string {
@@ -152,10 +193,20 @@ export function sanitize_attribute(
     return null;
   }
 
-  if (lower_attr === "href" || lower_attr === "src") {
+  if (
+    lower_attr === "href" ||
+    lower_attr === "src" ||
+    lower_attr === "cite" ||
+    lower_attr === "background"
+  ) {
     if (!is_safe_url(attr_value)) {
       return null;
     }
+  }
+
+  if (lower_attr === "srcset") {
+    const cleaned = sanitize_srcset(attr_value);
+    return cleaned ? cleaned : null;
   }
 
   if (lower_attr === "style") {
