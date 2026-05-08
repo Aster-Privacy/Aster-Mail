@@ -26,7 +26,7 @@ assert_eq!(plaintext, b"Hello from Aster!");
 | `encrypt` | Encrypt to one or many recipients in armored or binary form. `encrypt_and_sign` bundles signing in. |
 | `decrypt` | Decrypt with any of several candidate secret keys. `decrypt_and_verify` checks the sender too. |
 | `sign` | Inline OpenPGP signatures, verified against a set of trusted signer keys. |
-| `password` | Argon2id hashing, constant-time verification, password-based key derivation. |
+| `password` | Argon2id hashing and constant-time verification (used server-side); password-based key derivation helpers. |
 
 ## Using aster-crypto in your project (be careful)
 
