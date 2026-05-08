@@ -31,7 +31,6 @@ import {
   ClipboardDocumentIcon,
   NoSymbolIcon,
   ShieldCheckIcon,
-  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon as ShieldCheckSolid } from "@heroicons/react/24/solid";
 
@@ -452,20 +451,6 @@ function InternalHeader({ display_name, email, on_close, t }: InternalHeaderProp
           {display_name}
         </h2>
         <p className="text-[12px] mt-0.5 text-indigo-200 break-all">{email}</p>
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/15 border border-white/20">
-            <ShieldCheckIcon className="w-3 h-3 text-indigo-200" />
-            <span className="text-[11px] font-medium text-indigo-100">
-              {t("common.aster_user")}
-            </span>
-          </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/15 border border-white/20">
-            <LockClosedIcon className="w-3 h-3 text-indigo-200" />
-            <span className="text-[11px] font-medium text-indigo-100">
-              {t("common.end_to_end_encrypted_label")}
-            </span>
-          </span>
-        </div>
       </div>
     </div>
   );

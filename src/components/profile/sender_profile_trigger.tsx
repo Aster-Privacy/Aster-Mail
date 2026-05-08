@@ -30,7 +30,6 @@ import {
   NoSymbolIcon,
   ClipboardDocumentIcon,
   ShieldCheckIcon,
-  LockClosedIcon,
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon as ShieldCheckSolid } from "@heroicons/react/24/solid";
@@ -414,7 +413,7 @@ interface AsterHeaderProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }
 
-function AsterHeader({ display_name, email, t }: AsterHeaderProps) {
+function AsterHeader({ display_name, email, t: _t }: AsterHeaderProps) {
   return (
     <div className="px-3 pt-3 pb-2 border-b border-edge-secondary">
       <div className="flex items-center gap-3">
@@ -431,20 +430,6 @@ function AsterHeader({ display_name, email, t }: AsterHeaderProps) {
           </p>
           <p className="text-[11px] truncate text-txt-muted">{email}</p>
         </div>
-      </div>
-      <div className="mt-2 flex flex-wrap gap-1">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surf-secondary border border-edge-secondary">
-          <ShieldCheckIcon className="w-3 h-3 text-txt-muted" />
-          <span className="text-[10px] font-medium text-txt-secondary">
-            {t("common.aster_user")}
-          </span>
-        </span>
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surf-secondary border border-edge-secondary">
-          <LockClosedIcon className="w-3 h-3 text-txt-muted" />
-          <span className="text-[10px] font-medium text-txt-secondary">
-            {t("common.end_to_end_encrypted_label")}
-          </span>
-        </span>
       </div>
     </div>
   );
