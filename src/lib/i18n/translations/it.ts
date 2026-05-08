@@ -1981,6 +1981,10 @@ export const it = {
       "Tor non è attivo. Richiesta bloccata per proteggere il tuo anonimato.",
     "connection.tor_blocked_connecting":
       "Tor si sta ancora connettendo. Richiesta bloccata per proteggere il tuo anonimato.",
+    "connection.requires_native_app":
+      "Disponibile nelle app desktop e mobile",
+    "connection.requires_desktop_app": "Disponibile nell'app desktop",
+    "connection.coming_soon": "Prossimamente",
     domain_ownership_verification: "Verifica proprietà dominio",
     txt_record: "Record TXT",
     mail_routing: "Instradamento posta",

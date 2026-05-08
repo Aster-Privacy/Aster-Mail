@@ -1562,6 +1562,10 @@ export const ru = {
       "Tor не активен. Запрос заблокирован для защиты вашей анонимности.",
     "connection.tor_blocked_connecting":
       "Tor ещё подключается. Запрос заблокирован для защиты вашей анонимности.",
+    "connection.requires_native_app":
+      "Доступно в настольных и мобильных приложениях",
+    "connection.requires_desktop_app": "Доступно в настольном приложении",
+    "connection.coming_soon": "Скоро",
     domain_ownership_verification: "Подтверждение владения доменом",
     txt_record: "Запись TXT",
     mail_routing: "Маршрутизация почты",

@@ -2113,6 +2113,10 @@ export const en: Translations = {
       "Tor is not active. Request blocked to protect your anonymity.",
     "connection.tor_blocked_connecting":
       "Tor is still connecting. Request blocked to protect your anonymity.",
+    "connection.requires_native_app":
+      "Available in the desktop and mobile apps",
+    "connection.requires_desktop_app": "Available in the desktop app",
+    "connection.coming_soon": "Coming soon",
     domain_ownership_verification: "Domain Ownership Verification",
     txt_record: "TXT Record",
     mail_routing: "Mail Routing",

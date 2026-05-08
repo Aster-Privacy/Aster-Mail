@@ -156,24 +156,39 @@ export function ConnectionSection() {
       </p>
 
       <div className="grid grid-cols-2 gap-3">
-        {CONNECTION_OPTIONS.filter((option) => {
-          if (option.value === "tor") return is_tor_supported();
-          if (option.value === "tor_snowflake") return is_snowflake_supported();
-          if (option.value === "cdn_relay") return is_cdn_relay_supported();
-
-          return true;
-        }).map((option) => {
+        {CONNECTION_OPTIONS.map((option) => {
           const is_selected = state.method === option.value;
+          let is_supported = true;
+          let unavailable_label: string | null = null;
+
+          if (option.value === "tor") {
+            is_supported = is_tor_supported();
+            if (!is_supported) {
+              unavailable_label = t("settings.connection.requires_native_app");
+            }
+          } else if (option.value === "tor_snowflake") {
+            is_supported = is_snowflake_supported();
+            if (!is_supported) {
+              unavailable_label = t("settings.connection.coming_soon");
+            }
+          } else if (option.value === "cdn_relay") {
+            is_supported = is_cdn_relay_supported();
+            if (!is_supported) {
+              unavailable_label = t("settings.connection.coming_soon");
+            }
+          }
+
+          const is_disabled = is_switching || !is_supported;
 
           return (
             <button
               key={option.value}
               className={cn(
                 "rounded-xl border-2 overflow-hidden transition-colors text-left",
-                is_switching && "opacity-60 pointer-events-none",
+                is_disabled && "opacity-50 pointer-events-none",
                 is_selected ? "border-brand" : "border-edge-secondary",
               )}
-              disabled={is_switching}
+              disabled={is_disabled}
               type="button"
               onClick={() => handle_method_change(option.value)}
             >
@@ -188,9 +203,16 @@ export function ConnectionSection() {
               </div>
 
               <div className="flex items-center justify-between px-3 py-2.5">
-                <span className="text-sm font-medium text-txt-primary">
-                  {t(option.label_key as Parameters<typeof t>[0])}
-                </span>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm font-medium text-txt-primary">
+                    {t(option.label_key as Parameters<typeof t>[0])}
+                  </span>
+                  {unavailable_label && (
+                    <span className="text-xs text-txt-muted mt-0.5">
+                      {unavailable_label}
+                    </span>
+                  )}
+                </div>
                 <span className="pointer-events-none flex-shrink-0">
                   <Radio readOnly checked={is_selected} />
                 </span>

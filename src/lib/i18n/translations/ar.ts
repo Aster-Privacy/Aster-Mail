@@ -1515,6 +1515,10 @@ export const ar = {
       "تور غير نشط. تم حظر الطلب لحماية هويتك المجهولة.",
     "connection.tor_blocked_connecting":
       "تور لا يزال يتصل. تم حظر الطلب لحماية هويتك المجهولة.",
+    "connection.requires_native_app":
+      "متاح في تطبيقات سطح المكتب والهاتف المحمول",
+    "connection.requires_desktop_app": "متاح في تطبيق سطح المكتب",
+    "connection.coming_soon": "قريباً",
     domain_ownership_verification: "التحقق من ملكية النطاق",
     txt_record: "سجل TXT",
     mail_routing: "توجيه البريد",

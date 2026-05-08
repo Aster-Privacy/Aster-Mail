@@ -1553,6 +1553,10 @@ export const ja = {
       "Torが有効ではありません。匿名性を保護するためにリクエストをブロックしました。",
     "connection.tor_blocked_connecting":
       "Torはまだ接続中です。匿名性を保護するためにリクエストをブロックしました。",
+    "connection.requires_native_app":
+      "デスクトップおよびモバイルアプリで利用可能",
+    "connection.requires_desktop_app": "デスクトップアプリで利用可能",
+    "connection.coming_soon": "近日公開",
     domain_ownership_verification: "ドメイン所有権の確認",
     txt_record: "TXTレコード",
     mail_routing: "メールルーティング",

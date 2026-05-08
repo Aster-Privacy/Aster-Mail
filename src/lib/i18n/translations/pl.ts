@@ -1557,6 +1557,10 @@ export const pl = {
       "Tor nie jest aktywny. Żądanie zablokowane, aby chronić Twoją anonimowość.",
     "connection.tor_blocked_connecting":
       "Tor wciąż się łączy. Żądanie zablokowane, aby chronić Twoją anonimowość.",
+    "connection.requires_native_app":
+      "Dostępne w aplikacjach desktopowej i mobilnej",
+    "connection.requires_desktop_app": "Dostępne w aplikacji desktopowej",
+    "connection.coming_soon": "Wkrótce",
     domain_ownership_verification: "Weryfikacja własności domeny",
     txt_record: "Rekord TXT",
     mail_routing: "Routing poczty",

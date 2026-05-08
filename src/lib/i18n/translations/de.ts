@@ -1553,6 +1553,10 @@ export const de = {
       "Tor ist nicht aktiv. Anfrage blockiert, um Ihre Anonymität zu schützen.",
     "connection.tor_blocked_connecting":
       "Tor verbindet sich noch. Anfrage blockiert, um Ihre Anonymität zu schützen.",
+    "connection.requires_native_app":
+      "Verfügbar in den Desktop- und mobilen Apps",
+    "connection.requires_desktop_app": "Verfügbar in der Desktop-App",
+    "connection.coming_soon": "Demnächst verfügbar",
     domain_ownership_verification: "Domainbesitz-Überprüfung",
     txt_record: "TXT-Eintrag",
     mail_routing: "E-Mail-Routing",

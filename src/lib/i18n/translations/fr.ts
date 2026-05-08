@@ -1595,6 +1595,10 @@ export const fr = {
       "Tor n'est pas actif. Requête bloquée pour protéger votre anonymat.",
     "connection.tor_blocked_connecting":
       "Tor est encore en cours de connexion. Requête bloquée pour protéger votre anonymat.",
+    "connection.requires_native_app":
+      "Disponible dans les applications de bureau et mobiles",
+    "connection.requires_desktop_app": "Disponible dans l'application de bureau",
+    "connection.coming_soon": "Bientôt disponible",
     domain_ownership_verification: "Vérification de la propriété du domaine",
     txt_record: "Enregistrement TXT",
     mail_routing: "Routage du courrier",

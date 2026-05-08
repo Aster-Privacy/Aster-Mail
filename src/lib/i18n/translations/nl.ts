@@ -1531,6 +1531,10 @@ export const nl = {
       "Tor is niet actief. Verzoek geblokkeerd om uw anonimiteit te beschermen.",
     "connection.tor_blocked_connecting":
       "Tor maakt nog verbinding. Verzoek geblokkeerd om uw anonimiteit te beschermen.",
+    "connection.requires_native_app":
+      "Beschikbaar in de desktop- en mobiele apps",
+    "connection.requires_desktop_app": "Beschikbaar in de desktop-app",
+    "connection.coming_soon": "Binnenkort beschikbaar",
     domain_ownership_verification: "Domeineigendomsverificatie",
     txt_record: "TXT-record",
     mail_routing: "E-mailroutering",

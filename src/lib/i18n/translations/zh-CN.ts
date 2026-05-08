@@ -1483,6 +1483,10 @@ export const zh_CN = {
     "connection.tor_blocked": "Tor 未激活。为保护您的匿名性，请求已被阻止。",
     "connection.tor_blocked_connecting":
       "Tor 仍在连接中。为保护您的匿名性，请求已被阻止。",
+    "connection.requires_native_app":
+      "可在桌面端和移动端应用中使用",
+    "connection.requires_desktop_app": "可在桌面端应用中使用",
+    "connection.coming_soon": "即将推出",
     domain_ownership_verification: "域名所有权验证",
     txt_record: "TXT 记录",
     mail_routing: "邮件路由",

@@ -1514,6 +1514,10 @@ export const ko = {
       "Tor가 활성화되지 않았습니다. 익명성 보호를 위해 요청이 차단되었습니다.",
     "connection.tor_blocked_connecting":
       "Tor가 아직 연결 중입니다. 익명성 보호를 위해 요청이 차단되었습니다.",
+    "connection.requires_native_app":
+      "데스크톱 및 모바일 앱에서 사용 가능",
+    "connection.requires_desktop_app": "데스크톱 앱에서 사용 가능",
+    "connection.coming_soon": "출시 예정",
     domain_ownership_verification: "도메인 소유권 확인",
     txt_record: "TXT 레코드",
     mail_routing: "메일 라우팅",

@@ -1545,6 +1545,10 @@ export const tr = {
       "Tor aktif değil. Anonimliğinizi korumak için istek engellendi.",
     "connection.tor_blocked_connecting":
       "Tor hâlâ bağlanıyor. Anonimliğinizi korumak için istek engellendi.",
+    "connection.requires_native_app":
+      "Masaüstü ve mobil uygulamalarda kullanılabilir",
+    "connection.requires_desktop_app": "Masaüstü uygulamasında kullanılabilir",
+    "connection.coming_soon": "Yakında",
     domain_ownership_verification: "Alan Adı Sahiplik Doğrulaması",
     txt_record: "TXT Kaydı",
     mail_routing: "E-posta Yönlendirme",
