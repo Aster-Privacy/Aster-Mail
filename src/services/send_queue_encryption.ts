@@ -222,13 +222,6 @@ export async function encrypt_for_recipients(
     vault = get_vault_from_memory();
   }
 
-  console.info("[send] encrypt_for_recipients ratchet gate", {
-    has_sender: Boolean(sender_email),
-    has_identity_key: Boolean(vault?.ratchet_identity_key),
-    has_identity_public: Boolean(vault?.ratchet_identity_public),
-    internal_count: internal_recipients.length,
-  });
-
   if (
     sender_email &&
     vault?.ratchet_identity_key &&

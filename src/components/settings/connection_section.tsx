@@ -164,7 +164,7 @@ export function ConnectionSection() {
           if (option.value === "tor") {
             is_supported = is_tor_supported();
             if (!is_supported) {
-              unavailable_label = t("settings.connection.requires_native_app");
+              unavailable_label = t("settings.connection.coming_soon");
             }
           } else if (option.value === "tor_snowflake") {
             is_supported = is_snowflake_supported();

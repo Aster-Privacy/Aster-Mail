@@ -120,23 +120,8 @@ export async function try_decrypt_ratchet_body(
       vault,
     );
 
-    if (decrypted === null) {
-      console.error("[ratchet] decrypt_ratchet_message returned null", {
-        our_email,
-        sender_email,
-        recipient_keys: Object.keys(envelope.recipients),
-      });
-    }
-
     return decrypted ?? body_text;
-  } catch (err) {
-    console.error("[ratchet] decrypt_ratchet_message threw", {
-      our_email,
-      sender_email,
-      message: err instanceof Error ? err.message : String(err),
-      stack: err instanceof Error ? err.stack : undefined,
-    });
-
+  } catch {
     return body_text;
   }
 }
