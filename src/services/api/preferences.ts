@@ -226,6 +226,34 @@ async function decrypt_preferences(
 }
 
 const PREFS_CACHE_KEY = "aster_preferences_cache";
+const MIGRATION_FLAGS_KEY = "aster_pref_migrations_done";
+
+type MigrationFlag =
+  | "migration_haptic_v1_done"
+  | "migration_tracker_blocking_v2_done";
+
+function read_local_migration_flag(flag: MigrationFlag): boolean {
+  try {
+    const raw = localStorage.getItem(MIGRATION_FLAGS_KEY);
+
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+
+    return parsed?.[flag] === true;
+  } catch {
+    return false;
+  }
+}
+
+function write_local_migration_flag(flag: MigrationFlag): void {
+  try {
+    const raw = localStorage.getItem(MIGRATION_FLAGS_KEY);
+    const state = raw ? JSON.parse(raw) : {};
+
+    state[flag] = true;
+    localStorage.setItem(MIGRATION_FLAGS_KEY, JSON.stringify(state));
+  } catch {}
+}
 
 export function cache_preferences_locally(prefs: UserPreferences): void {
   try {
@@ -453,6 +481,9 @@ export async function get_preferences(
       );
 
       if (saved) {
+        write_local_migration_flag("migration_haptic_v1_done");
+        write_local_migration_flag("migration_tracker_blocking_v2_done");
+
         return { data: initial, loaded_from_server: true };
       }
 
@@ -500,13 +531,23 @@ export async function get_preferences(
 
     let needs_migration_save = false;
 
-    if (!merged.migration_haptic_v1_done) {
+    if (
+      !merged.migration_haptic_v1_done &&
+      !read_local_migration_flag("migration_haptic_v1_done")
+    ) {
       merged.haptic_enabled = true;
+      merged.migration_haptic_v1_done = true;
+      write_local_migration_flag("migration_haptic_v1_done");
+      needs_migration_save = true;
+    } else if (!merged.migration_haptic_v1_done) {
       merged.migration_haptic_v1_done = true;
       needs_migration_save = true;
     }
 
-    if (!merged.migration_tracker_blocking_v2_done) {
+    if (
+      !merged.migration_tracker_blocking_v2_done &&
+      !read_local_migration_flag("migration_tracker_blocking_v2_done")
+    ) {
       merged.block_external_content = true;
       merged.external_content_blocking_mode = "both";
       merged.block_remote_images = true;
@@ -515,11 +556,21 @@ export async function get_preferences(
       merged.block_remote_css = true;
       merged.load_remote_images = "never";
       merged.migration_tracker_blocking_v2_done = true;
+      write_local_migration_flag("migration_tracker_blocking_v2_done");
+      needs_migration_save = true;
+    } else if (!merged.migration_tracker_blocking_v2_done) {
+      merged.migration_tracker_blocking_v2_done = true;
       needs_migration_save = true;
     }
 
     if (needs_migration_save) {
-      save_preferences_via_http(merged, vault).catch(() => {});
+      const ok = await save_preferences_via_http(merged, vault).catch(
+        () => false,
+      );
+
+      if (!ok) {
+        save_preferences_via_http(merged, vault).catch(() => {});
+      }
     }
 
     return { data: merged, loaded_from_server: true };

@@ -109,7 +109,7 @@ export function build_folder_tree(
     items.map((folder) => ({
       folder,
       children:
-        depth < 2
+        depth < 4
           ? build(by_parent.get(folder.folder_token) || [], depth + 1)
           : [],
       depth,

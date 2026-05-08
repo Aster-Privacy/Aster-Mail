@@ -303,7 +303,12 @@ export function use_ghost_mode(
 
   const toggle_ghost_mode = useCallback(() => {
     if (is_thread_locked) {
-      if (!is_ghost_enabled) {
+      if (is_ghost_enabled) {
+        set_is_ghost_enabled(false);
+        set_error(null);
+      } else if (ghost_sender) {
+        set_is_ghost_enabled(true);
+      } else {
         activate_ghost_mode();
       }
 
@@ -317,7 +322,7 @@ export function use_ghost_mode(
     } else {
       activate_ghost_mode();
     }
-  }, [is_ghost_enabled, is_thread_locked, activate_ghost_mode]);
+  }, [is_ghost_enabled, is_thread_locked, ghost_sender, activate_ghost_mode]);
 
   return {
     is_ghost_enabled,
