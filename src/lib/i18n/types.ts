@@ -1805,6 +1805,8 @@ export interface SettingsTranslations {
   "connection.status_connecting": string;
   "connection.status_error": string;
   "connection.status_disconnected": string;
+  "connection.tor_blocked": string;
+  "connection.tor_blocked_connecting": string;
   domain_ownership_verification: string;
   txt_record: string;
   mail_routing: string;

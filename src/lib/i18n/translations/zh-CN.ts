@@ -1480,6 +1480,9 @@ export const zh_CN = {
     "connection.status_connecting": "连接中...",
     "connection.status_error": "连接错误",
     "connection.status_disconnected": "已断开",
+    "connection.tor_blocked": "Tor 未激活。为保护您的匿名性，请求已被阻止。",
+    "connection.tor_blocked_connecting":
+      "Tor 仍在连接中。为保护您的匿名性，请求已被阻止。",
     domain_ownership_verification: "域名所有权验证",
     txt_record: "TXT 记录",
     mail_routing: "邮件路由",

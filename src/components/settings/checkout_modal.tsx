@@ -38,6 +38,7 @@ import {
   create_addon_subscription,
   type PromoValidateResponse,
 } from "@/services/api/billing";
+import { connection_store } from "@/services/routing/connection_store";
 import { use_i18n } from "@/lib/i18n/context";
 import { useTheme } from "@/contexts/theme_context";
 import {
@@ -173,6 +174,15 @@ export function CheckoutModal({
   const initialize = useCallback(async () => {
     set_phase("loading");
     set_error_message("");
+
+    const method = connection_store.get_method();
+
+    if (method === "tor" || method === "tor_snowflake") {
+      set_error_message(t("settings.connection.tor_blocked"));
+      set_phase("error");
+
+      return;
+    }
 
     try {
       const config_response = await get_stripe_config();

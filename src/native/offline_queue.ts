@@ -22,6 +22,7 @@ import { Preferences } from "@capacitor/preferences";
 
 import { is_native_platform, get_network_status } from "./capacitor_bridge";
 import { haptic_notification } from "./haptic_feedback";
+import { api_client } from "@/services/api/client";
 
 export type OfflineActionType =
   | "send_email"
@@ -211,15 +212,10 @@ interface MovePayload {
 }
 
 async function process_send_email(payload: SendEmailPayload): Promise<void> {
-  const response = await fetch("/api/mail/v1/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify(payload),
-  });
+  const result = await api_client.post("/mail/v1/send", payload);
 
-  if (!response.ok) {
-    throw new Error(`Failed to send email: ${response.status}`);
+  if (result.error) {
+    throw new Error(`Failed to send email: ${result.error}`);
   }
 }
 

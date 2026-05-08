@@ -1549,6 +1549,10 @@ export const ja = {
     "connection.status_connecting": "接続中...",
     "connection.status_error": "接続エラー",
     "connection.status_disconnected": "切断済み",
+    "connection.tor_blocked":
+      "Torが有効ではありません。匿名性を保護するためにリクエストをブロックしました。",
+    "connection.tor_blocked_connecting":
+      "Torはまだ接続中です。匿名性を保護するためにリクエストをブロックしました。",
     domain_ownership_verification: "ドメイン所有権の確認",
     txt_record: "TXTレコード",
     mail_routing: "メールルーティング",

@@ -49,6 +49,12 @@ interface SkippedMessageKey {
   timestamp: number;
 }
 
+interface BootstrapData {
+  ephemeral_key: string;
+  pq_ciphertext?: string;
+  pq_key_id?: number;
+}
+
 interface RatchetState {
   dh_keypair: {
     public_key: string;
@@ -65,6 +71,7 @@ interface RatchetState {
   version: number;
   created_at: number;
   updated_at: number;
+  bootstrap?: BootstrapData;
 }
 
 interface SerializedState {
@@ -132,23 +139,38 @@ async function import_public_key(public_key: Uint8Array): Promise<CryptoKey> {
   );
 }
 
-async function import_secret_key(secret_key: Uint8Array): Promise<CryptoKey> {
-  const x_y = await generate_public_from_private(secret_key);
+function to_base64url(bytes: Uint8Array): string {
+  return array_to_base64(bytes)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+function split_raw_public_key(public_key: Uint8Array): {
+  x: Uint8Array;
+  y: Uint8Array;
+} {
+  if (public_key.length !== 65 || public_key[0] !== 0x04) {
+    throw new Error("Invalid uncompressed P-256 public key");
+  }
+
+  return {
+    x: public_key.slice(1, 33),
+    y: public_key.slice(33, 65),
+  };
+}
+
+async function import_secret_key(
+  secret_key: Uint8Array,
+  public_key: Uint8Array,
+): Promise<CryptoKey> {
+  const { x, y } = split_raw_public_key(public_key);
   const jwk: JsonWebKey = {
     kty: "EC",
     crv: _KC,
-    d: array_to_base64(secret_key)
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=/g, ""),
-    x: array_to_base64(x_y.x)
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=/g, ""),
-    y: array_to_base64(x_y.y)
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=/g, ""),
+    d: to_base64url(secret_key),
+    x: to_base64url(x),
+    y: to_base64url(y),
   };
 
   return crypto.subtle.importKey(
@@ -158,38 +180,6 @@ async function import_secret_key(secret_key: Uint8Array): Promise<CryptoKey> {
     true,
     ["deriveBits"],
   );
-}
-
-async function generate_public_from_private(
-  secret_key: Uint8Array,
-): Promise<{ x: Uint8Array; y: Uint8Array }> {
-  const temp_keypair = await crypto.subtle.generateKey(
-    { name: _KE, namedCurve: _KC },
-    true,
-    ["deriveBits"],
-  );
-
-  const jwk = await crypto.subtle.exportKey("jwk", temp_keypair.privateKey);
-
-  jwk.d = array_to_base64(secret_key)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-
-  const imported = await crypto.subtle.importKey(
-    "jwk",
-    jwk,
-    { name: _KE, namedCurve: _KC },
-    true,
-    ["deriveBits"],
-  );
-
-  const public_jwk = await crypto.subtle.exportKey("jwk", imported);
-
-  return {
-    x: base64_to_array(public_jwk.x!.replace(/-/g, "+").replace(/_/g, "/")),
-    y: base64_to_array(public_jwk.y!.replace(/-/g, "+").replace(/_/g, "/")),
-  };
 }
 
 async function dh(
@@ -309,7 +299,10 @@ export class DoubleRatchet {
     conversation_id: string,
   ): Promise<DoubleRatchet> {
     const dh_keypair = await generate_dh_keypair();
-    const secret_key = await import_secret_key(dh_keypair.secret_key);
+    const secret_key = await import_secret_key(
+      dh_keypair.secret_key,
+      dh_keypair.public_key,
+    );
     const public_key = await import_public_key(remote_public_key);
     const dh_output = await dh(secret_key, public_key);
 
@@ -521,6 +514,7 @@ export class DoubleRatchet {
     const root_key = base64_to_array(this.state.root_key);
     const secret_key = await import_secret_key(
       base64_to_array(this.state.dh_keypair.secret_key),
+      base64_to_array(this.state.dh_keypair.public_key),
     );
     const public_key = await import_public_key(remote_public_key);
 
@@ -537,7 +531,10 @@ export class DoubleRatchet {
       secret_key: array_to_base64(new_dh_keypair.secret_key),
     };
 
-    const new_secret_key = await import_secret_key(new_dh_keypair.secret_key);
+    const new_secret_key = await import_secret_key(
+      new_dh_keypair.secret_key,
+      new_dh_keypair.public_key,
+    );
     const new_dh_output = await dh(new_secret_key, public_key);
     const { new_root_key: newer_root_key, chain_key: send_chain_key } =
       await kdf_root_key(new_root_key, new_dh_output);
@@ -579,6 +576,14 @@ export class DoubleRatchet {
     return this.state.version;
   }
 
+  get_bootstrap(): BootstrapData | null {
+    return this.state.bootstrap ?? null;
+  }
+
+  set_bootstrap(bootstrap: BootstrapData): void {
+    this.state.bootstrap = bootstrap;
+  }
+
   async serialize(): Promise<SerializedState> {
     return {
       state: { ...this.state },
@@ -614,7 +619,7 @@ async function get_storage_encryption_key(): Promise<CryptoKey> {
     "raw",
     encryption_key,
     { name: "AES-GCM", length: 256 },
-    false,
+    true,
     ["encrypt", "decrypt"],
   );
 

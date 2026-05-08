@@ -411,31 +411,6 @@ export function SecuritySection({
           />
         </SettingsGroup>
 
-        <SettingsGroup title={t("common.app_lock")}>
-          <SettingsRow
-            label={t("common.app_lock")}
-            trailing={
-              <Switch
-                checked={preferences.biometric_app_lock_enabled}
-                onCheckedChange={(v) =>
-                  update_preference("biometric_app_lock_enabled", v, true)
-                }
-              />
-            }
-          />
-          <SettingsRow
-            label={t("common.secure_send")}
-            trailing={
-              <Switch
-                checked={preferences.biometric_send_enabled}
-                onCheckedChange={(v) =>
-                  update_preference("biometric_send_enabled", v, true)
-                }
-              />
-            }
-          />
-        </SettingsGroup>
-
         <SettingsGroup title={t("settings.forward_secrecy")}>
           <SettingsRow
             label={t("settings.forward_secrecy")}

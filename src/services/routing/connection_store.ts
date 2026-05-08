@@ -25,6 +25,13 @@ import {
   type ConnectionStatus,
   DEFAULT_CONNECTION_STATE,
 } from "./types";
+import {
+  tor_start,
+  is_tor_connected,
+  is_tor_supported,
+  is_snowflake_supported,
+  is_cdn_relay_supported,
+} from "./tor_transport";
 
 import { api_client } from "@/services/api/client";
 
@@ -46,7 +53,19 @@ class ConnectionStore {
     const is_valid = (v: string | null): v is ConnectionMethod =>
       v === "direct" || v === "tor" || v === "tor_snowflake" || v === "cdn_relay";
     this.has_explicit_local_method = is_valid(raw_method);
-    const method: ConnectionMethod = this.has_explicit_local_method ? (raw_method as ConnectionMethod) : "direct";
+    let method: ConnectionMethod = this.has_explicit_local_method ? (raw_method as ConnectionMethod) : "direct";
+
+    const supported =
+      method === "direct" ||
+      (method === "tor" && is_tor_supported()) ||
+      (method === "tor_snowflake" && is_snowflake_supported()) ||
+      (method === "cdn_relay" && is_cdn_relay_supported());
+
+    if (!supported) {
+      method = "direct";
+      this.has_explicit_local_method = false;
+      await this.persist_value(STORAGE_KEY, "direct");
+    }
 
     const cdn_relay_url = await this.load_persisted_value(CDN_RELAY_URL_KEY);
     const api_onion_url = await this.load_persisted_value(ONION_API_KEY);
@@ -62,8 +81,38 @@ class ConnectionStore {
 
     this.notify_listeners();
 
-    this.sync_from_server().catch(() => {});
-    this.fetch_connection_info().catch(() => {});
+    if (method === "tor" || method === "tor_snowflake") {
+      this.bootstrap_tor_then_sync(method).catch(() => {});
+    } else {
+      this.sync_from_server().catch(() => {});
+      this.fetch_connection_info().catch(() => {});
+    }
+  }
+
+  private async bootstrap_tor_then_sync(
+    method: ConnectionMethod,
+  ): Promise<void> {
+    if (is_tor_connected()) {
+      this.sync_from_server().catch(() => {});
+      this.fetch_connection_info().catch(() => {});
+      return;
+    }
+
+    this.state.status = "connecting";
+    this.notify_listeners();
+
+    try {
+      await tor_start(method === "tor_snowflake");
+      this.state.status = "connected";
+      this.notify_listeners();
+      this.sync_from_server().catch(() => {});
+      this.fetch_connection_info().catch(() => {});
+    } catch (err) {
+      this.state.status = "error";
+      this.state.error_message =
+        err instanceof Error ? err.message : "Tor failed to start";
+      this.notify_listeners();
+    }
   }
 
   async sync_from_server(): Promise<void> {
@@ -247,5 +296,10 @@ export const connection_store = new ConnectionStore();
 if (typeof window !== "undefined") {
   window.addEventListener("astermail:authenticated", () => {
     connection_store.sync_from_server().catch(() => {});
+  });
+
+  window.addEventListener("astermail:tor-connected", () => {
+    connection_store.sync_from_server().catch(() => {});
+    connection_store.fetch_connection_info().catch(() => {});
   });
 }

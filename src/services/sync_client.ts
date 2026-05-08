@@ -24,6 +24,8 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { api_client } from "./api/client";
 import { check_and_replenish_prekeys } from "./crypto/prekey_service";
 import { refresh_session_activity } from "./session_timeout_service";
+import { connection_store } from "./routing/connection_store";
+import { TorUnavailableError } from "./routing/tor_unavailable_error";
 
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 
@@ -71,6 +73,16 @@ class SyncClient {
   private reconnect_attempt = 0;
 
   async connect(): Promise<void> {
+    const method = connection_store.get_method();
+
+    if (method === "tor" || method === "tor_snowflake") {
+      this.should_reconnect = false;
+      throw new TorUnavailableError(
+        "tor_not_running",
+        "WebSocket sync is disabled in Tor mode to prevent IP leaks",
+      );
+    }
+
     this.should_reconnect = true;
 
     if (

@@ -26,6 +26,7 @@ import {
 } from "@capacitor/push-notifications";
 
 import { is_native_platform } from "./capacitor_bridge";
+import { api_client } from "@/services/api/client";
 
 type PushNotificationCallback = (notification: PushNotificationSchema) => void;
 type PushActionCallback = (action: ActionPerformed) => void;
@@ -105,15 +106,8 @@ export async function unregister_push_notifications(): Promise<void> {
 
     if (!token_value) return;
 
-    await fetch("/api/sync/v1/push-token", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        push_token: token_value,
-      }),
+    await api_client.delete("/sync/v1/push-token", {
+      data: { push_token: token_value },
     });
 
     localStorage.removeItem("aster_push_token");

@@ -19,9 +19,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { connection_store } from "./connection_store";
-import { is_tor_available, tor_fetch } from "./tor_transport";
+import {
+  is_tor_connected,
+  is_tor_platform,
+  tor_fetch,
+} from "./tor_transport";
 import { cdn_relay_fetch } from "./cdn_relay_transport";
-import { TOR_TIMEOUT, TOR_RETRY_COUNT, TOR_RETRY_DELAY } from "./types";
+import { TorUnavailableError } from "./tor_unavailable_error";
+import {
+  CANONICAL_API_ONION,
+  is_canonical_api_onion,
+} from "./onion_constants";
+import {
+  type ConnectionMethod,
+  TOR_TIMEOUT,
+  TOR_RETRY_COUNT,
+  TOR_RETRY_DELAY,
+} from "./types";
 
 function is_tauri_env(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -62,18 +76,56 @@ async function tauri_proxy_fetch(
   });
 }
 
-export function get_effective_base_url(default_base_url: string): string {
-  if (connection_store.is_direct_forced()) return default_base_url;
+function is_tor_method(method: ConnectionMethod): boolean {
+  return method === "tor" || method === "tor_snowflake";
+}
 
+function assert_tor_routable(): { onion_host: string } {
+  if (!is_tor_platform()) {
+    throw new TorUnavailableError(
+      "tor_platform_unsupported",
+      "Tor mode requires the desktop or mobile app",
+    );
+  }
+
+  if (!is_tor_connected()) {
+    const status = connection_store.get_state().status;
+
+    if (status === "connecting") {
+      throw new TorUnavailableError(
+        "tor_connecting",
+        "Tor is still connecting; refusing to send request over clearnet",
+      );
+    }
+
+    throw new TorUnavailableError(
+      "tor_not_running",
+      "Tor is not running; refusing to send request over clearnet",
+    );
+  }
+
+  const onion_url = connection_store.get_api_onion_url() || CANONICAL_API_ONION;
+  const onion_host = onion_url
+    .replace(/^https?:\/\//, "")
+    .replace(/\/+$/, "");
+
+  if (!is_canonical_api_onion(onion_host)) {
+    throw new TorUnavailableError(
+      "tor_no_onion_url",
+      "Aster onion address mismatch; refusing to send request",
+    );
+  }
+
+  return { onion_host: CANONICAL_API_ONION };
+}
+
+export function get_effective_base_url(default_base_url: string): string {
   const method = connection_store.get_method();
 
-  if ((method === "tor" || method === "tor_snowflake") && is_tor_available()) {
-    const onion_url = connection_store.get_api_onion_url();
+  if (is_tor_method(method)) {
+    const { onion_host } = assert_tor_routable();
 
-    if (onion_url) {
-      const hostname = onion_url.replace(/^https?:\/\//, "");
-      return `https://${hostname}/api`;
-    }
+    return `http://${onion_host}/api`;
   }
 
   if (method === "cdn_relay") {
@@ -90,7 +142,7 @@ export function get_effective_base_url(default_base_url: string): string {
 export function get_effective_timeout(default_timeout: number): number {
   const method = connection_store.get_method();
 
-  if (method === "tor" || method === "tor_snowflake") {
+  if (is_tor_method(method)) {
     return TOR_TIMEOUT;
   }
 
@@ -100,7 +152,7 @@ export function get_effective_timeout(default_timeout: number): number {
 export function get_effective_retry_count(default_retry: number): number {
   const method = connection_store.get_method();
 
-  if (method === "tor" || method === "tor_snowflake") {
+  if (is_tor_method(method)) {
     return Math.max(default_retry, TOR_RETRY_COUNT);
   }
 
@@ -110,7 +162,7 @@ export function get_effective_retry_count(default_retry: number): number {
 export function get_effective_retry_delay(default_delay: number): number {
   const method = connection_store.get_method();
 
-  if (method === "tor" || method === "tor_snowflake") {
+  if (is_tor_method(method)) {
     return TOR_RETRY_DELAY;
   }
 
@@ -121,22 +173,15 @@ export async function routed_fetch(
   url: string,
   options: RequestInit,
 ): Promise<Response> {
-  if (connection_store.is_direct_forced()) {
-    if (is_tauri_env()) return tauri_proxy_fetch(url, options);
-    return fetch(url, options);
-  }
-
   const method = connection_store.get_method();
 
+  if (is_tor_method(method)) {
+    assert_tor_routable();
+
+    return tor_fetch(url, options);
+  }
+
   switch (method) {
-    case "tor":
-    case "tor_snowflake":
-      if (is_tor_available()) {
-        return tor_fetch(url, options);
-      }
-
-      return fetch(url, options);
-
     case "cdn_relay":
       return cdn_relay_fetch(url, options);
 

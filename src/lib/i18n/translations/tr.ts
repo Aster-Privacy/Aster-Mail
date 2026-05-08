@@ -1541,6 +1541,10 @@ export const tr = {
     "connection.status_connecting": "Bağlanıyor...",
     "connection.status_error": "Bağlantı hatası",
     "connection.status_disconnected": "Bağlantı kesildi",
+    "connection.tor_blocked":
+      "Tor aktif değil. Anonimliğinizi korumak için istek engellendi.",
+    "connection.tor_blocked_connecting":
+      "Tor hâlâ bağlanıyor. Anonimliğinizi korumak için istek engellendi.",
     domain_ownership_verification: "Alan Adı Sahiplik Doğrulaması",
     txt_record: "TXT Kaydı",
     mail_routing: "E-posta Yönlendirme",

@@ -1527,6 +1527,10 @@ export const nl = {
     "connection.status_connecting": "Verbinden...",
     "connection.status_error": "Verbindingsfout",
     "connection.status_disconnected": "Niet verbonden",
+    "connection.tor_blocked":
+      "Tor is niet actief. Verzoek geblokkeerd om uw anonimiteit te beschermen.",
+    "connection.tor_blocked_connecting":
+      "Tor maakt nog verbinding. Verzoek geblokkeerd om uw anonimiteit te beschermen.",
     domain_ownership_verification: "Domeineigendomsverificatie",
     txt_record: "TXT-record",
     mail_routing: "E-mailroutering",

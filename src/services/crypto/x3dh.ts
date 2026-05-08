@@ -25,7 +25,7 @@ import {
   import_ke_private_key,
   compute_agreement_bits,
 } from "./key_manager";
-import { load_pq_secret, delete_pq_secret } from "./pq_prekey_store";
+import { load_pq_secret } from "./pq_prekey_store";
 
 const _KE = ["EC", "DH"].join("");
 const _KC = ["P", "256"].join("-");
@@ -271,8 +271,6 @@ export async function perform_x3dh_receiver(
     } finally {
       pq_ss.fill(0);
     }
-
-    await delete_pq_secret(pq_input.pq_key_id);
   } else {
     shared_secret = await kdf_x3dh([dh1, dh2, dh3], X3DH_INFO_CLASSICAL);
   }

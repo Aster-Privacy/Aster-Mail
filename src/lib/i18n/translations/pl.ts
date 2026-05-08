@@ -1553,6 +1553,10 @@ export const pl = {
     "connection.status_connecting": "Łączenie...",
     "connection.status_error": "Błąd połączenia",
     "connection.status_disconnected": "Rozłączono",
+    "connection.tor_blocked":
+      "Tor nie jest aktywny. Żądanie zablokowane, aby chronić Twoją anonimowość.",
+    "connection.tor_blocked_connecting":
+      "Tor wciąż się łączy. Żądanie zablokowane, aby chronić Twoją anonimowość.",
     domain_ownership_verification: "Weryfikacja własności domeny",
     txt_record: "Rekord TXT",
     mail_routing: "Routing poczty",

@@ -20,6 +20,11 @@
 //
 import type { TorFetchResponse } from "./types";
 
+const TOR_STATUS_POLL_INTERVAL_MS = 5000;
+
+let tor_connected_cache = false;
+let tor_status_poll_started = false;
+
 function is_tauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
@@ -32,23 +37,51 @@ function is_capacitor(): boolean {
   );
 }
 
-export function is_tor_available(): boolean {
-  if (is_tauri()) return true;
+export function is_tor_platform(): boolean {
+  return is_tauri() || is_capacitor();
+}
 
-  if (is_capacitor()) {
-    try {
-      const capacitor = (window as unknown as Record<string, unknown>)
-        .Capacitor as {
-        Plugins?: Record<string, unknown>;
-      };
+export function is_tor_supported(): boolean {
+  return is_tauri();
+}
 
-      return !!capacitor?.Plugins?.TorPlugin;
-    } catch {
-      return false;
-    }
-  }
-
+export function is_snowflake_supported(): boolean {
   return false;
+}
+
+export function is_cdn_relay_supported(): boolean {
+  return false;
+}
+
+function start_tor_status_polling(): void {
+  if (tor_status_poll_started) return;
+  if (!is_tor_platform()) return;
+  tor_status_poll_started = true;
+
+  const poll = async () => {
+    try {
+      const s = await tor_status();
+      tor_connected_cache = !!s.is_connected;
+    } catch {
+      tor_connected_cache = false;
+    }
+  };
+
+  poll();
+
+  if (typeof window !== "undefined") {
+    window.setInterval(poll, TOR_STATUS_POLL_INTERVAL_MS);
+  }
+}
+
+export function is_tor_connected(): boolean {
+  if (!is_tor_platform()) return false;
+  start_tor_status_polling();
+  return tor_connected_cache;
+}
+
+export function is_tor_available(): boolean {
+  return is_tor_connected();
 }
 
 export async function tor_fetch(
@@ -143,6 +176,12 @@ export async function tor_start(use_snowflake: boolean): Promise<void> {
     const { invoke } = await import("@tauri-apps/api/core");
 
     await invoke("tor_start", { config: { use_snowflake } });
+    tor_connected_cache = true;
+    start_tor_status_polling();
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("astermail:tor-connected"));
+    }
 
     return;
   }
@@ -158,16 +197,24 @@ export async function tor_start(use_snowflake: boolean): Promise<void> {
       | undefined;
 
     if (!tor_plugin?.start) {
-      return;
+      throw new Error("Tor plugin not available on this device");
     }
 
     await tor_plugin.start({ snowflake: use_snowflake });
+    tor_connected_cache = true;
+    start_tor_status_polling();
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("astermail:tor-connected"));
+    }
 
     return;
   }
 }
 
 export async function tor_stop(): Promise<void> {
+  tor_connected_cache = false;
+
   if (is_tauri()) {
     const { invoke } = await import("@tauri-apps/api/core");
 

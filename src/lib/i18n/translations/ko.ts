@@ -1510,6 +1510,10 @@ export const ko = {
     "connection.status_connecting": "연결 중...",
     "connection.status_error": "연결 오류",
     "connection.status_disconnected": "연결 끊김",
+    "connection.tor_blocked":
+      "Tor가 활성화되지 않았습니다. 익명성 보호를 위해 요청이 차단되었습니다.",
+    "connection.tor_blocked_connecting":
+      "Tor가 아직 연결 중입니다. 익명성 보호를 위해 요청이 차단되었습니다.",
     domain_ownership_verification: "도메인 소유권 확인",
     txt_record: "TXT 레코드",
     mail_routing: "메일 라우팅",

@@ -2109,6 +2109,10 @@ export const en: Translations = {
     "connection.status_connecting": "Connecting...",
     "connection.status_error": "Connection error",
     "connection.status_disconnected": "Disconnected",
+    "connection.tor_blocked":
+      "Tor is not active. Request blocked to protect your anonymity.",
+    "connection.tor_blocked_connecting":
+      "Tor is still connecting. Request blocked to protect your anonymity.",
     domain_ownership_verification: "Domain Ownership Verification",
     txt_record: "TXT Record",
     mail_routing: "Mail Routing",

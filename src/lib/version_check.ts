@@ -41,6 +41,15 @@ let last_checked_at = 0;
 
 async function fetch_manifest(): Promise<VersionManifest | null> {
   try {
+    const { connection_store } = await import(
+      "@/services/routing/connection_store"
+    );
+    const method = connection_store.get_method();
+
+    if (method === "tor" || method === "tor_snowflake") {
+      return null;
+    }
+
     const res = await fetch(`${MANIFEST_URL}?t=${Date.now()}`, {
       cache: "no-store",
       credentials: "omit",

@@ -1511,6 +1511,10 @@ export const ar = {
     "connection.status_connecting": "جارٍ الاتصال...",
     "connection.status_error": "خطأ في الاتصال",
     "connection.status_disconnected": "غير متصل",
+    "connection.tor_blocked":
+      "تور غير نشط. تم حظر الطلب لحماية هويتك المجهولة.",
+    "connection.tor_blocked_connecting":
+      "تور لا يزال يتصل. تم حظر الطلب لحماية هويتك المجهولة.",
     domain_ownership_verification: "التحقق من ملكية النطاق",
     txt_record: "سجل TXT",
     mail_routing: "توجيه البريد",

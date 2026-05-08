@@ -1591,6 +1591,10 @@ export const fr = {
     "connection.status_connecting": "Connexion...",
     "connection.status_error": "Erreur de connexion",
     "connection.status_disconnected": "Déconnecté",
+    "connection.tor_blocked":
+      "Tor n'est pas actif. Requête bloquée pour protéger votre anonymat.",
+    "connection.tor_blocked_connecting":
+      "Tor est encore en cours de connexion. Requête bloquée pour protéger votre anonymat.",
     domain_ownership_verification: "Vérification de la propriété du domaine",
     txt_record: "Enregistrement TXT",
     mail_routing: "Routage du courrier",

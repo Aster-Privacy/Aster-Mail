@@ -20,10 +20,26 @@
 //
 import { Capacitor } from "@capacitor/core";
 
+import { connection_store } from "@/services/routing/connection_store";
+
 const NATIVE_IMAGE_PROXY_URL = "https://app.astermail.org/api/images/v1/proxy";
 const WEB_IMAGE_PROXY_URL = "/api/images/v1/proxy";
 
 export function get_image_proxy_url(): string {
+  const method = connection_store.get_method();
+
+  if (method === "tor" || method === "tor_snowflake") {
+    const onion = connection_store.get_api_onion_url();
+
+    if (onion) {
+      const host = onion.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+
+      return `http://${host}/api/images/v1/proxy`;
+    }
+
+    return WEB_IMAGE_PROXY_URL;
+  }
+
   const is_native =
     Capacitor.isNativePlatform() ||
     (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window);

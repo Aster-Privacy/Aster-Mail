@@ -26,6 +26,7 @@ import {
   change_folder_password,
   remove_folder_password,
 } from "@/services/api/folders";
+import { api_client } from "@/services/api/client";
 import {
   prepare_set_password,
   prepare_change_password,
@@ -142,25 +143,17 @@ export function use_protected_folder(
       set_error(null);
 
       try {
-        const base =
-          typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
-            ? "https://app.astermail.org/api"
-            : "/api";
-        const fetch_response = await fetch(
-          `${base}/mail/v1/labels/${folder_id}`,
-          {
-            credentials: "include",
-          },
-        );
+        const folder_response = await api_client.get<{
+          password_salt?: string;
+        }>(`/mail/v1/labels/${folder_id}`);
 
-        if (!fetch_response.ok) {
+        if (folder_response.error || !folder_response.data) {
           set_error(t("common.failed_to_unlock_folder"));
 
           return false;
         }
 
-        const folder_data = await fetch_response.json();
-        const password_salt = folder_data.password_salt;
+        const password_salt = folder_response.data.password_salt;
 
         if (!password_salt) {
           set_error(t("common.failed_to_unlock_folder"));

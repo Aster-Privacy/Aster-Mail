@@ -189,6 +189,10 @@ export async function encrypt_for_ratchet_recipient(
     let pq_ciphertext_base64: string | undefined;
     let pq_key_id_value: number | undefined;
 
+    if (ratchet && !ratchet.get_bootstrap()) {
+      ratchet = null;
+    }
+
     if (!ratchet) {
       const bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
 
@@ -229,8 +233,22 @@ export async function encrypt_for_ratchet_recipient(
           pq_ciphertext_base64 = array_to_base64(x3dh_result.pq_ciphertext);
           pq_key_id_value = x3dh_result.pq_key_id;
         }
+
+        ratchet.set_bootstrap({
+          ephemeral_key: ephemeral_key_base64,
+          pq_ciphertext: pq_ciphertext_base64,
+          pq_key_id: pq_key_id_value,
+        });
       } finally {
         x3dh_result.shared_secret.fill(0);
+      }
+    } else {
+      const bootstrap = ratchet.get_bootstrap();
+
+      if (bootstrap) {
+        ephemeral_key_base64 = bootstrap.ephemeral_key;
+        pq_ciphertext_base64 = bootstrap.pq_ciphertext;
+        pq_key_id_value = bootstrap.pq_key_id;
       }
     }
 
@@ -339,6 +357,64 @@ export async function decrypt_ratchet_message(
   );
 }
 
+async function init_receiver_from_bootstrap(
+  data: RatchetRecipientData,
+  sender_identity_key: string,
+  vault: EncryptedVault,
+  conversation_id: string,
+): Promise<DoubleRatchet | null> {
+  if (
+    !vault.ratchet_identity_key ||
+    !vault.ratchet_signed_prekey ||
+    !vault.ratchet_signed_prekey_public ||
+    !data.ephemeral_key
+  ) {
+    return null;
+  }
+
+  const receiver_identity_jwk: JsonWebKey = JSON.parse(
+    vault.ratchet_identity_key,
+  );
+  const receiver_signed_prekey_jwk: JsonWebKey = JSON.parse(
+    vault.ratchet_signed_prekey,
+  );
+
+  const sender_identity_raw = base64_to_array(sender_identity_key);
+  const sender_ephemeral_raw = base64_to_array(data.ephemeral_key);
+
+  const pq_input =
+    data.pq_ciphertext && data.pq_key_id !== undefined
+      ? {
+          pq_ciphertext: base64_to_array(data.pq_ciphertext),
+          pq_key_id: data.pq_key_id,
+        }
+      : null;
+
+  const shared_secret = await perform_x3dh_receiver(
+    receiver_identity_jwk,
+    receiver_signed_prekey_jwk,
+    sender_identity_raw,
+    sender_ephemeral_raw,
+    pq_input,
+  );
+
+  const own_keypair = await jwk_to_ratchet_keypair(
+    vault.ratchet_signed_prekey,
+    vault.ratchet_signed_prekey_public,
+  );
+
+  const ratchet = await DoubleRatchet.init_receiver(
+    shared_secret,
+    own_keypair,
+    conversation_id,
+  );
+
+  shared_secret.fill(0);
+  own_keypair.secret_key.fill(0);
+
+  return ratchet;
+}
+
 async function decrypt_ratchet_for_recipient(
   our_email: string,
   sender_email: string,
@@ -356,52 +432,28 @@ async function decrypt_ratchet_for_recipient(
 
   const conversation_id = await derive_conversation_id(our_email, sender_email);
 
+  const is_fresh_bootstrap =
+    !!data.ephemeral_key &&
+    data.header.message_number === 0 &&
+    data.header.previous_chain_length === 0;
+
   let ratchet = await load_ratchet_state(conversation_id);
 
+  if (ratchet && is_fresh_bootstrap) {
+    ratchet = null;
+  }
+
   if (!ratchet) {
-    if (!data.ephemeral_key) {
-      return null;
-    }
-
-    const receiver_identity_jwk: JsonWebKey = JSON.parse(
-      vault.ratchet_identity_key,
-    );
-    const receiver_signed_prekey_jwk: JsonWebKey = JSON.parse(
-      vault.ratchet_signed_prekey,
-    );
-
-    const sender_identity_raw = base64_to_array(sender_identity_key);
-    const sender_ephemeral_raw = base64_to_array(data.ephemeral_key);
-
-    const pq_input =
-      data.pq_ciphertext && data.pq_key_id !== undefined
-        ? {
-            pq_ciphertext: base64_to_array(data.pq_ciphertext),
-            pq_key_id: data.pq_key_id,
-          }
-        : null;
-
-    const shared_secret = await perform_x3dh_receiver(
-      receiver_identity_jwk,
-      receiver_signed_prekey_jwk,
-      sender_identity_raw,
-      sender_ephemeral_raw,
-      pq_input,
-    );
-
-    const own_keypair = await jwk_to_ratchet_keypair(
-      vault.ratchet_signed_prekey,
-      vault.ratchet_signed_prekey_public,
-    );
-
-    ratchet = await DoubleRatchet.init_receiver(
-      shared_secret,
-      own_keypair,
+    ratchet = await init_receiver_from_bootstrap(
+      data,
+      sender_identity_key,
+      vault,
       conversation_id,
     );
 
-    shared_secret.fill(0);
-    own_keypair.secret_key.fill(0);
+    if (!ratchet) {
+      return null;
+    }
   }
 
   const message: EncryptedMessage = {
@@ -410,7 +462,29 @@ async function decrypt_ratchet_for_recipient(
     nonce: data.nonce,
   };
 
-  const plaintext = await ratchet.decrypt(message);
+  let plaintext: string;
+
+  try {
+    plaintext = await ratchet.decrypt(message);
+  } catch (err) {
+    if (!is_fresh_bootstrap) {
+      throw err;
+    }
+
+    const fresh = await init_receiver_from_bootstrap(
+      data,
+      sender_identity_key,
+      vault,
+      conversation_id,
+    );
+
+    if (!fresh) {
+      throw err;
+    }
+
+    plaintext = await fresh.decrypt(message);
+    ratchet = fresh;
+  }
 
   await save_ratchet_state(ratchet);
 

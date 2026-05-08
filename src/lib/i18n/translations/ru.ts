@@ -1558,6 +1558,10 @@ export const ru = {
     "connection.status_connecting": "Подключение...",
     "connection.status_error": "Ошибка подключения",
     "connection.status_disconnected": "Отключено",
+    "connection.tor_blocked":
+      "Tor не активен. Запрос заблокирован для защиты вашей анонимности.",
+    "connection.tor_blocked_connecting":
+      "Tor ещё подключается. Запрос заблокирован для защиты вашей анонимности.",
     domain_ownership_verification: "Подтверждение владения доменом",
     txt_record: "Запись TXT",
     mail_routing: "Маршрутизация почты",

@@ -26,6 +26,8 @@ import { useTheme } from "@/contexts/theme_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { api_client } from "@/services/api/client";
+import { routed_fetch } from "@/services/routing/routing_provider";
+import { connection_store } from "@/services/routing/connection_store";
 
 const IMAGE_PROXY_URL = get_image_proxy_url();
 
@@ -54,11 +56,17 @@ async function resolve_native_images(doc: Document): Promise<void> {
 
       if (!src) return;
 
+      const method = connection_store.get_method();
+
+      if (method === "tor" || method === "tor_snowflake") {
+        return;
+      }
+
       const url = src.startsWith("http")
         ? src
         : `https://app.astermail.org${src}`;
 
-      const response = await fetch(url, {
+      const response = await routed_fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -199,13 +207,36 @@ a, a * { color: #60a5fa !important; }`
       ? ` style="background-color:${html_bg}"`
       : "";
 
+  const is_tor_mode = (() => {
+    const m = connection_store.get_method();
+
+    return m === "tor" || m === "tor_snowflake";
+  })();
+  const tor_csp = is_tor_mode
+    ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
+    : "";
+
   const srcdoc_html = `<!DOCTYPE html>
 <html${html_el_style}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+${tor_csp}
 ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
-<base href="${typeof window !== "undefined" && "__TAURI_INTERNALS__" in window ? "https://app.astermail.org" : window.location.origin}/">
+<base href="${(() => {
+    if (is_tor_mode) {
+      const onion = connection_store.get_api_onion_url();
+
+      if (!onion) return "about:blank";
+      const host = onion.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+
+      return `http://${host}`;
+    }
+
+    return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
+      ? "https://app.astermail.org"
+      : window.location.origin;
+  })()}/">
 <style>${iframe_css}</style>
 ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important; }</style>` : ""}
 <style>${quote_toggle_css}</style>

@@ -115,6 +115,15 @@ export async function detect_dns_provider(
   domain: string,
 ): Promise<DnsProvider | null> {
   try {
+    const { connection_store } = await import(
+      "@/services/routing/connection_store"
+    );
+    const method = connection_store.get_method();
+
+    if (method === "tor" || method === "tor_snowflake") {
+      return null;
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 2000);
 

@@ -37,8 +37,6 @@ export interface DeviceCodeStatus {
   sealed_envelope?: string;
 }
 
-const API_BASE = "https://app.astermail.org/api";
-
 export function is_tauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
@@ -50,40 +48,6 @@ async function invoke<T>(
   const core = await import("@tauri-apps/api/core");
 
   return core.invoke<T>(cmd, args);
-}
-
-interface ProxyResponse {
-  status: number;
-  body: string;
-  headers: Record<string, string>;
-}
-
-async function tauri_fetch(url: string, init?: RequestInit): Promise<Response> {
-  if (!is_tauri()) {
-    return fetch(url, init);
-  }
-
-  const headers_map: Record<string, string> = {};
-
-  if (init?.headers) {
-    const h = init.headers as Record<string, string>;
-
-    for (const [k, v] of Object.entries(h)) {
-      headers_map[k] = v;
-    }
-  }
-
-  const result = await invoke<ProxyResponse>("device_http_request", {
-    url,
-    method: init?.method || "GET",
-    body: init?.body ? String(init.body) : null,
-    headers: Object.keys(headers_map).length > 0 ? headers_map : null,
-  });
-
-  return new Response(result.body, {
-    status: result.status,
-    headers: result.headers,
-  });
 }
 
 function base64url_decode_to_bytes(input: string): Uint8Array {
@@ -100,51 +64,37 @@ function base64url_decode_to_bytes(input: string): Uint8Array {
 async function device_challenge(
   device_id: string,
 ): Promise<{ challenge_id: string; nonce: string }> {
-  console.error("[device_challenge] calling with device_id:", device_id);
-  const response = await tauri_fetch(
-    `${API_BASE}/core/v1/auth/device/challenge`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ device_id }),
-    },
-  );
+  const { api_client } = await import("@/services/api/client");
+  const result = await api_client.post<{
+    challenge_id: string;
+    nonce: string;
+  }>("/core/v1/auth/device/challenge", { device_id });
 
-  console.error("[device_challenge] status:", response.status);
-  if (!response.ok) {
-    const text = await response.text();
-
-    console.error("[device_challenge] BODY:", text);
+  if (result.error || !result.data) {
     throw new Error("device challenge failed");
   }
 
-  return response.json();
+  return result.data;
 }
 
 async function device_login(
   challenge_id: string,
   signature: string,
 ): Promise<unknown> {
-  console.error("[device_login] calling");
-  const response = await tauri_fetch(`${API_BASE}/core/v1/auth/device/login`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ challenge_id, signature }),
-  });
+  const { api_client } = await import("@/services/api/client");
+  const result = await api_client.post<unknown>(
+    "/core/v1/auth/device/login",
+    { challenge_id, signature },
+  );
 
-  console.error("[device_login] status:", response.status);
-  if (!response.ok) {
-    const text = await response.text();
-
-    console.error("[device_login] BODY:", text);
+  if (result.error || !result.data) {
     throw new Error("device login failed");
   }
 
-  return response.json();
+  return result.data;
 }
 
 async function silent_device_login(device_id: string): Promise<void> {
-  console.error("[silent_device_login] starting for device:", device_id);
   const challenge = await device_challenge(device_id);
   const signature = await invoke<string>("device_sign_challenge", {
     nonceB64: challenge.nonce,
@@ -155,14 +105,7 @@ async function silent_device_login(device_id: string): Promise<void> {
     csrf_token?: string;
   };
 
-  console.error(
-    "[silent_device_login] login response keys:",
-    Object.keys(resp),
-  );
   if (resp.access_token) {
-    console.error(
-      "[silent_device_login] got access_token, setting on api_client",
-    );
     const { api_client } = await import("@/services/api/client");
 
     api_client.set_dev_token(resp.access_token);
@@ -189,35 +132,38 @@ async function silent_device_login(device_id: string): Promise<void> {
 export async function request_device_code(
   pubkeys: DevicePubkeys,
 ): Promise<DeviceCodeResult> {
-  const response = await tauri_fetch(`${API_BASE}/core/v1/auth/device/code`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
+  const { api_client } = await import("@/services/api/client");
+  const result = await api_client.post<DeviceCodeResult>(
+    "/core/v1/auth/device/code",
+    {
       ed25519_pk: pubkeys.ed25519_pk,
       mlkem_pk: pubkeys.mlkem_pk,
       x25519_pk: pubkeys.x25519_pk,
       machine_name: pubkeys.machine_name,
-    }),
-  });
+    },
+  );
 
-  if (!response.ok) throw new Error("failed to generate device code");
+  if (result.error || !result.data) {
+    throw new Error("failed to generate device code");
+  }
 
-  return response.json();
+  return result.data;
 }
 
 export async function poll_device_code_status(
   code: string,
 ): Promise<DeviceCodeStatus> {
   const normalized = code.replace(/-/g, "");
-  const response = await tauri_fetch(
-    `${API_BASE}/core/v1/auth/device/code/status?code=${encodeURIComponent(normalized)}`,
+  const { api_client } = await import("@/services/api/client");
+  const result = await api_client.get<DeviceCodeStatus>(
+    `/core/v1/auth/device/code/status?code=${encodeURIComponent(normalized)}`,
   );
 
-  if (!response.ok) {
+  if (result.error || !result.data) {
     return { status: "expired" };
   }
 
-  return response.json();
+  return result.data;
 }
 
 export interface DevicePairingResult {
@@ -293,8 +239,8 @@ export async function init_desktop_device_auth(): Promise<void> {
     }
 
     await silent_device_login(pubkeys.device_id);
-  } catch (e) {
-    if (import.meta.env.DEV) console.error(e);
+  } catch {
+    // Pairing failed; UI will surface needs-pairing event when applicable
   }
 }
 

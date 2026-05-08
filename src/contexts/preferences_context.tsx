@@ -47,6 +47,7 @@ import {
 } from "@/services/api/preferences";
 import { get_csrf_token_from_cookie } from "@/services/api/csrf";
 import { get_effective_base_url } from "@/services/routing/routing_provider";
+import { connection_store } from "@/services/routing/connection_store";
 import { sync_haptic_state } from "@/native/haptic_feedback";
 import {
   load_notification_preferences,
@@ -717,8 +718,24 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     const flush_via_beacon = () => {
       if (!latest_prefs_ref.current || !beacon_payload_ref.current) return;
 
-      const api_base = import.meta.env.VITE_API_URL || "/api";
-      const url = `${get_effective_base_url(api_base)}/settings/v1/preferences`;
+      const method = connection_store.get_method();
+
+      if (method === "tor" || method === "tor_snowflake") {
+        beacon_payload_ref.current = null;
+        latest_prefs_ref.current = null;
+        return;
+      }
+
+      let url: string;
+      try {
+        const api_base = import.meta.env.VITE_API_URL || "/api";
+        url = `${get_effective_base_url(api_base)}/settings/v1/preferences`;
+      } catch {
+        beacon_payload_ref.current = null;
+        latest_prefs_ref.current = null;
+        return;
+      }
+
       const csrf = get_csrf_token_from_cookie();
       const headers: Record<string, string> = {
         "Content-Type": "application/json",

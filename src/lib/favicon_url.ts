@@ -20,6 +20,8 @@
 //
 import { Capacitor } from "@capacitor/core";
 
+import { connection_store } from "@/services/routing/connection_store";
+
 const NATIVE_BASE = "https://app.astermail.org/api/images/v1/favicon";
 const WEB_BASE = "/api/images/v1/favicon";
 const EMPTY_FAVICON =
@@ -39,6 +41,12 @@ export function get_favicon_url(domain: string): string {
   const trimmed = (domain ?? "").trim().toLowerCase();
 
   if (!is_valid_favicon_domain(trimmed)) {
+    return EMPTY_FAVICON;
+  }
+
+  const method = connection_store.get_method();
+
+  if (method === "tor" || method === "tor_snowflake") {
     return EMPTY_FAVICON;
   }
 

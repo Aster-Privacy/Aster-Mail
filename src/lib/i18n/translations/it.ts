@@ -1977,6 +1977,10 @@ export const it = {
     "connection.status_connecting": "Connessione...",
     "connection.status_error": "Errore di connessione",
     "connection.status_disconnected": "Disconnesso",
+    "connection.tor_blocked":
+      "Tor non è attivo. Richiesta bloccata per proteggere il tuo anonimato.",
+    "connection.tor_blocked_connecting":
+      "Tor si sta ancora connettendo. Richiesta bloccata per proteggere il tuo anonimato.",
     domain_ownership_verification: "Verifica proprietà dominio",
     txt_record: "Record TXT",
     mail_routing: "Instradamento posta",

@@ -1560,6 +1560,10 @@ export const pt = {
     "connection.status_connecting": "Conectando...",
     "connection.status_error": "Erro de conexão",
     "connection.status_disconnected": "Desconectado",
+    "connection.tor_blocked":
+      "Tor não está ativo. Solicitação bloqueada para proteger seu anonimato.",
+    "connection.tor_blocked_connecting":
+      "Tor ainda está conectando. Solicitação bloqueada para proteger seu anonimato.",
     domain_ownership_verification: "Verificação de Propriedade do Domínio",
     txt_record: "Registro TXT",
     mail_routing: "Roteamento de E-mail",

@@ -123,14 +123,22 @@ export async function upload_prekeys(
   return !response.error;
 }
 
-export async function generate_and_upload_prekeys(): Promise<boolean> {
-  const now = Date.now();
+export async function generate_and_upload_prekeys(
+  force: boolean = false,
+): Promise<boolean> {
+  if (force) {
+    const deadline = Date.now() + 30000;
 
-  if (replenishment_in_progress) {
+    while (replenishment_in_progress && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
+  } else if (replenishment_in_progress) {
     return false;
   }
 
-  if (now - last_replenishment_time < REPLENISHMENT_DEBOUNCE_MS) {
+  const now = Date.now();
+
+  if (!force && now - last_replenishment_time < REPLENISHMENT_DEBOUNCE_MS) {
     return false;
   }
 
@@ -201,5 +209,15 @@ export async function check_and_replenish_prekeys(): Promise<void> {
     await generate_and_upload_prekeys();
   } catch {
     /* best-effort */
+  }
+}
+
+export async function wipe_published_pq_prekeys(): Promise<boolean> {
+  try {
+    const response = await api_client.delete("/crypto/v1/keys/pq-prekeys/all");
+
+    return !response.error;
+  } catch {
+    return false;
   }
 }

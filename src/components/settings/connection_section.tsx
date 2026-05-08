@@ -31,7 +31,17 @@ import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { connection_store } from "@/services/routing/connection_store";
-import { tor_start, tor_stop } from "@/services/routing/tor_transport";
+import {
+  tor_start,
+  tor_stop,
+  is_tor_supported,
+  is_snowflake_supported,
+  is_cdn_relay_supported,
+} from "@/services/routing/tor_transport";
+import {
+  is_tor_unavailable_error,
+  type TorUnavailableCode,
+} from "@/services/routing/tor_unavailable_error";
 
 interface ConnectionOptionDef {
   value: ConnectionMethod;
@@ -81,30 +91,47 @@ export function ConnectionSection() {
 
       set_is_switching(true);
 
+      const was_tor =
+        state.method === "tor" || state.method === "tor_snowflake";
+      const going_tor = method === "tor" || method === "tor_snowflake";
+
       try {
-        if (state.method === "tor" || state.method === "tor_snowflake") {
-          await tor_stop();
-        }
-
-        await connection_store.set_method(method);
-
-        if (method === "tor" || method === "tor_snowflake") {
+        if (going_tor) {
           connection_store.set_status("connecting");
           await tor_start(method === "tor_snowflake");
-          connection_store.set_status("connected");
-          show_toast(t("settings.connection.status_connected"), "success");
-        } else if (method === "cdn_relay") {
+          await connection_store.set_method(method);
           connection_store.set_status("connected");
           show_toast(t("settings.connection.status_connected"), "success");
         } else {
-          connection_store.set_status("disconnected");
-          show_toast(t("settings.connection.status_disconnected"), "info");
+          await connection_store.set_method(method);
+
+          if (was_tor) {
+            await tor_stop();
+          }
+
+          if (method === "cdn_relay") {
+            connection_store.set_status("connected");
+            show_toast(t("settings.connection.status_connected"), "success");
+          } else {
+            connection_store.set_status("disconnected");
+            show_toast(t("settings.connection.status_disconnected"), "info");
+          }
         }
       } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : t("settings.connection.status_error");
+        let message: string;
+
+        if (is_tor_unavailable_error(error)) {
+          const code: TorUnavailableCode = error.code;
+          message = t(
+            `settings.connection.${code === "tor_connecting" ? "tor_blocked_connecting" : "tor_blocked"}` as Parameters<
+              typeof t
+            >[0],
+          );
+        } else if (error instanceof Error) {
+          message = error.message;
+        } else {
+          message = t("settings.connection.status_error");
+        }
 
         connection_store.set_status("error", message);
         show_toast(message, "error");
@@ -129,7 +156,13 @@ export function ConnectionSection() {
       </p>
 
       <div className="grid grid-cols-2 gap-3">
-        {CONNECTION_OPTIONS.map((option) => {
+        {CONNECTION_OPTIONS.filter((option) => {
+          if (option.value === "tor") return is_tor_supported();
+          if (option.value === "tor_snowflake") return is_snowflake_supported();
+          if (option.value === "cdn_relay") return is_cdn_relay_supported();
+
+          return true;
+        }).map((option) => {
           const is_selected = state.method === option.value;
 
           return (

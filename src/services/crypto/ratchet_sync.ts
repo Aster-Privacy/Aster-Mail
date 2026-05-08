@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { api_client } from "@/services/api/client";
 import {
   DoubleRatchet,
   save_ratchet_state,
@@ -26,7 +27,7 @@ import {
 } from "./double_ratchet";
 
 const HASH_ALG = ["SHA", "256"].join("-");
-const API_BASE = "/api/crypto/v1/ratchet";
+const API_BASE = "/crypto/v1/ratchet";
 
 interface RatchetStateResponse {
   id: string;
@@ -92,16 +93,156 @@ async function decrypt_state_from_server(
   return decoder.decode(plaintext);
 }
 
-async function get_auth_headers(): Promise<Headers> {
-  const token = sessionStorage.getItem("auth_token");
-  const headers = new Headers();
+const sync_locks = new Map<string, Promise<number>>();
+const known_server_versions = new Map<string, number>();
 
-  headers.set("Content-Type", "application/json");
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
+const MAX_SYNC_ATTEMPTS = 4;
+
+async function put_state(
+  conversation_id_b64: string,
+  encrypted_state: string,
+  state_nonce: string,
+  expected_version: number,
+) {
+  return api_client.put<RatchetStateResponse>(`${API_BASE}/state`, {
+    conversation_id: conversation_id_b64,
+    encrypted_state,
+    state_nonce,
+    expected_version,
+  });
+}
+
+async function post_state(
+  conversation_id_b64: string,
+  encrypted_state: string,
+  state_nonce: string,
+) {
+  return api_client.post<RatchetStateResponse>(`${API_BASE}/state`, {
+    conversation_id: conversation_id_b64,
+    encrypted_state,
+    state_nonce,
+  });
+}
+
+type LookupResult =
+  | { kind: "found"; version: number }
+  | { kind: "not_found" }
+  | { kind: "error"; message: string };
+
+async function lookup_server_state(
+  conversation_id_b64: string,
+): Promise<LookupResult> {
+  const response = await api_client.get<RatchetStateResponse>(
+    `${API_BASE}/state/${encodeURIComponent(conversation_id_b64)}`,
+  );
+
+  if (response.code === "NOT_FOUND") return { kind: "not_found" };
+
+  if (response.error || !response.data) {
+    return { kind: "error", message: response.error || "lookup failed" };
   }
 
-  return headers;
+  return { kind: "found", version: response.data.state_version };
+}
+
+async function do_sync(
+  ratchet: DoubleRatchet,
+  encryption_key: CryptoKey,
+  initial_version_hint?: number,
+): Promise<number> {
+  const serialized = await ratchet.serialize();
+  const state_json = JSON.stringify(serialized);
+  const conversation_id = ratchet.get_conversation_id();
+  const conversation_id_b64 = array_to_base64(
+    new TextEncoder().encode(conversation_id),
+  );
+
+  let known_version =
+    initial_version_hint ?? known_server_versions.get(conversation_id);
+
+  let last_error = "Failed to sync ratchet state";
+
+  for (let attempt = 0; attempt < MAX_SYNC_ATTEMPTS; attempt++) {
+    const { encrypted_state, state_nonce } = await encrypt_state_for_server(
+      state_json,
+      encryption_key,
+    );
+
+    if (known_version === undefined) {
+      const lookup = await lookup_server_state(conversation_id_b64);
+
+      if (lookup.kind === "error") {
+        last_error = lookup.message;
+        continue;
+      }
+
+      if (lookup.kind === "not_found") {
+        const response = await post_state(
+          conversation_id_b64,
+          encrypted_state,
+          state_nonce,
+        );
+
+        if (!response.error && response.data) {
+          known_server_versions.set(
+            conversation_id,
+            response.data.state_version,
+          );
+
+          return response.data.state_version;
+        }
+
+        last_error = response.error || "store failed";
+
+        const recheck = await lookup_server_state(conversation_id_b64);
+
+        if (recheck.kind === "found") {
+          known_version = recheck.version;
+        } else {
+          continue;
+        }
+      } else {
+        known_version = lookup.version;
+      }
+    }
+
+    const put_response = await put_state(
+      conversation_id_b64,
+      encrypted_state,
+      state_nonce,
+      known_version,
+    );
+
+    if (!put_response.error && put_response.data) {
+      known_server_versions.set(
+        conversation_id,
+        put_response.data.state_version,
+      );
+
+      return put_response.data.state_version;
+    }
+
+    last_error = put_response.error || "update failed";
+
+    const recheck = await lookup_server_state(conversation_id_b64);
+
+    if (recheck.kind === "not_found") {
+      known_version = undefined;
+      continue;
+    }
+
+    if (recheck.kind === "error") {
+      continue;
+    }
+
+    if (recheck.version === known_version) {
+      await new Promise((r) => setTimeout(r, 50 * (attempt + 1)));
+    }
+
+    known_version = recheck.version;
+  }
+
+  throw new Error(last_error);
 }
 
 export async function sync_ratchet_to_server(
@@ -109,60 +250,29 @@ export async function sync_ratchet_to_server(
   encryption_key: CryptoKey,
   server_version?: number,
 ): Promise<number> {
-  const serialized = await ratchet.serialize();
-  const state_json = JSON.stringify(serialized);
-  const conversation_id_b64 = array_to_base64(
-    new TextEncoder().encode(ratchet.get_conversation_id()),
-  );
+  const conversation_id = ratchet.get_conversation_id();
+  const pending = sync_locks.get(conversation_id);
 
-  const { encrypted_state, state_nonce } = await encrypt_state_for_server(
-    state_json,
-    encryption_key,
-  );
-
-  const headers = await get_auth_headers();
-
-  if (server_version !== undefined) {
-    const response = await fetch(`${API_BASE}/state`, {
-      method: "PUT",
-      headers,
-      body: JSON.stringify({
-        conversation_id: conversation_id_b64,
-        encrypted_state,
-        state_nonce,
-        expected_version: server_version,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-
-      throw new Error(error.error || "Failed to update ratchet state");
+  const run = (async () => {
+    if (pending) {
+      try {
+        await pending;
+      } catch {
+        /* ignore prior failure, we'll try fresh */
+      }
     }
 
-    const result: RatchetStateResponse = await response.json();
+    return do_sync(ratchet, encryption_key, server_version);
+  })();
 
-    return result.state_version;
-  } else {
-    const response = await fetch(`${API_BASE}/state`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        conversation_id: conversation_id_b64,
-        encrypted_state,
-        state_nonce,
-      }),
-    });
+  sync_locks.set(conversation_id, run);
 
-    if (!response.ok) {
-      const error = await response.json();
-
-      throw new Error(error.error || "Failed to store ratchet state");
+  try {
+    return await run;
+  } finally {
+    if (sync_locks.get(conversation_id) === run) {
+      sync_locks.delete(conversation_id);
     }
-
-    const result: RatchetStateResponse = await response.json();
-
-    return result.state_version;
   }
 }
 
@@ -173,34 +283,29 @@ export async function load_ratchet_from_server(
   const conversation_id_b64 = array_to_base64(
     new TextEncoder().encode(conversation_id),
   );
-  const headers = await get_auth_headers();
 
-  const response = await fetch(
+  const response = await api_client.get<RatchetStateResponse>(
     `${API_BASE}/state/${encodeURIComponent(conversation_id_b64)}`,
-    { method: "GET", headers },
   );
 
-  if (response.status === 404) {
+  if (response.code === "NOT_FOUND") {
     return null;
   }
 
-  if (!response.ok) {
-    const error = await response.json();
-
-    throw new Error(error.error || "Failed to load ratchet state");
+  if (response.error || !response.data) {
+    throw new Error(response.error || "Failed to load ratchet state");
   }
 
-  const result: RatchetStateResponse = await response.json();
   const state_json = await decrypt_state_from_server(
-    result.encrypted_state,
-    result.state_nonce,
+    response.data.encrypted_state,
+    response.data.state_nonce,
     encryption_key,
   );
 
   const serialized = JSON.parse(state_json);
   const ratchet = DoubleRatchet.deserialize(serialized);
 
-  return { ratchet, version: result.state_version };
+  return { ratchet, version: response.data.state_version };
 }
 
 export async function delete_ratchet_from_server(
@@ -209,17 +314,13 @@ export async function delete_ratchet_from_server(
   const conversation_id_b64 = array_to_base64(
     new TextEncoder().encode(conversation_id),
   );
-  const headers = await get_auth_headers();
 
-  const response = await fetch(
+  const response = await api_client.delete(
     `${API_BASE}/state/${encodeURIComponent(conversation_id_b64)}`,
-    { method: "DELETE", headers },
   );
 
-  if (!response.ok && response.status !== 404) {
-    const error = await response.json();
-
-    throw new Error(error.error || "Failed to delete ratchet state");
+  if (response.error && response.code !== "NOT_FOUND") {
+    throw new Error(response.error || "Failed to delete ratchet state");
   }
 }
 
@@ -228,22 +329,15 @@ export async function list_server_ratchet_states(
 ): Promise<
   Array<{ conversation_id: string; version: number; updated_at: string }>
 > {
-  const headers = await get_auth_headers();
+  const response = await api_client.get<RatchetStateResponse[]>(
+    `${API_BASE}/states`,
+  );
 
-  const response = await fetch(`${API_BASE}/states`, {
-    method: "GET",
-    headers,
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-
-    throw new Error(error.error || "Failed to list ratchet states");
+  if (response.error || !response.data) {
+    throw new Error(response.error || "Failed to list ratchet states");
   }
 
-  const results: RatchetStateResponse[] = await response.json();
-
-  return results.map((r) => ({
+  return response.data.map((r) => ({
     conversation_id: new TextDecoder().decode(
       base64_to_array(r.conversation_id),
     ),

@@ -56,6 +56,7 @@ import {
   type PaymentMethodItem,
 } from "@/services/api/billing";
 import { show_toast } from "@/components/toast/simple_toast";
+import { connection_store } from "@/services/routing/connection_store";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   use_stripe_theme_tokens,
@@ -363,6 +364,14 @@ export function PaymentMethodsModal({
   );
 
   const handle_show_add_form = useCallback(async () => {
+    const method = connection_store.get_method();
+
+    if (method === "tor" || method === "tor_snowflake") {
+      show_toast(t("settings.connection.tor_blocked"), "error");
+
+      return;
+    }
+
     try {
       const config_response = await get_stripe_config();
 

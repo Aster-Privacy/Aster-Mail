@@ -118,6 +118,16 @@ async function check_icon_exists(domain: string): Promise<boolean> {
 
   if (cached !== undefined) return cached;
 
+  const { connection_store } = await import(
+    "@/services/routing/connection_store"
+  );
+  const method = connection_store.get_method();
+
+  if (method === "tor" || method === "tor_snowflake") {
+    icon_check_cache.set(domain, false);
+    return false;
+  }
+
   const existing = in_flight_checks.get(domain);
 
   if (existing) return existing;

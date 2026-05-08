@@ -40,8 +40,29 @@ pub async fn execute_tor_request(
     headers: &HashMap<String, String>,
     body: Option<&str>,
 ) -> Result<TorFetchResponse, String> {
-    if !url.starts_with("https://") && !url.contains(".onion") {
-        return Err("only https and .onion URLs are allowed over Tor".to_string());
+    const CANONICAL_API_ONION: &str = "kvwjvhbeoaxmv5hece4mhcigurxv33bmnhzvdqsddtaovkxm6pqpubqd.onion";
+
+    let parsed_uri: hyper::Uri = url
+        .parse()
+        .map_err(|e| format!("invalid url: {e}"))?;
+    let scheme = parsed_uri.scheme_str().unwrap_or("").to_ascii_lowercase();
+    let raw_host = parsed_uri.host().unwrap_or("").to_ascii_lowercase();
+    let host = raw_host.trim_end_matches('.');
+
+    if host.is_empty() {
+        return Err("url has no host".to_string());
+    }
+
+    let is_onion_host = host.ends_with(".onion");
+    let is_https = scheme == "https";
+    let is_http_onion = scheme == "http" && is_onion_host;
+
+    if !is_https && !is_http_onion {
+        return Err("only https and http://*.onion URLs are allowed over Tor".to_string());
+    }
+
+    if is_onion_host && host != CANONICAL_API_ONION {
+        return Err("onion host does not match the canonical Aster API onion".to_string());
     }
 
     let tls_connector = tls_api_native_tls::TlsConnector::builder()
