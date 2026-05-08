@@ -358,7 +358,7 @@ export function DeveloperSection() {
           encryption: "AES-256-GCM",
           key_exchange: "KEM-768",
           signatures: "PGP RSA-4096",
-          password_hash: "Argon2id",
+          password_hash: "PBKDF2-SHA-256 (client) + Argon2id (server)",
         },
       },
       network: {
@@ -583,7 +583,7 @@ export function DeveloperSection() {
                 {dev_row(t("settings.dev_encryption_label"), "AES-256-GCM")}
                 {dev_row(t("settings.dev_key_exchange_label"), "KEM-768")}
                 {dev_row(t("settings.dev_signatures_label"), "PGP RSA-4096")}
-                {dev_row(t("settings.dev_password_kdf_label"), "Argon2id")}
+                {dev_row(t("settings.dev_password_kdf_label"), "PBKDF2-SHA-256 (client) + Argon2id (server)")}
               </div>
             </>,
           )
