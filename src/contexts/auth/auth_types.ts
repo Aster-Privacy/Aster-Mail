@@ -49,10 +49,7 @@ export interface AuthContextType extends AuthState {
     passphrase: string,
     encrypted_vault?: string,
     vault_nonce?: string,
-    switch_token?: string,
-    switch_token_expires_at?: string,
   ) => Promise<{ success: boolean; error?: string }>;
-  switch_account: (account_id: string) => Promise<boolean>;
   remove_account: (account_id: string) => Promise<void>;
   can_add_account: () => Promise<boolean>;
   account_count: number;

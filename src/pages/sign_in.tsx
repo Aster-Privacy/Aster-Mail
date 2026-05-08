@@ -37,7 +37,6 @@ import {
 } from "@/services/crypto/key_manager";
 import { login_user, get_user_salt, get_user_info } from "@/services/api/auth";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
-import { store_switch_token } from "@/services/account_manager";
 import { sanitize_username, timing_safe_delay } from "@/services/sanitize";
 import { EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
 import {
@@ -439,17 +438,6 @@ export default function SignInPage() {
           response.data.vault_nonce,
         );
 
-        if (
-          response.data.switch_token &&
-          response.data.switch_token_expires_at
-        ) {
-          await store_switch_token(
-            response.data.user_id,
-            response.data.switch_token,
-            response.data.switch_token_expires_at,
-          );
-        }
-
         if (response.data.needs_prekey_replenishment) {
           check_and_replenish_prekeys();
         }
@@ -559,8 +547,6 @@ export default function SignInPage() {
               password,
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
-              totp_response.switch_token,
-              totp_response.switch_token_expires_at,
             ),
           );
         } else {
@@ -573,17 +559,6 @@ export default function SignInPage() {
               totp_response.vault_nonce,
             ),
           );
-
-          if (
-            totp_response.switch_token &&
-            totp_response.switch_token_expires_at
-          ) {
-            await store_switch_token(
-              totp_response.user_id,
-              totp_response.switch_token,
-              totp_response.switch_token_expires_at,
-            );
-          }
         }
 
         if (totp_response.needs_prekey_replenishment) {
@@ -858,8 +833,6 @@ export default function SignInPage() {
             password,
             response.data.encrypted_vault,
             response.data.vault_nonce,
-            response.data.switch_token,
-            response.data.switch_token_expires_at,
           ),
         );
       } else {
@@ -871,18 +844,6 @@ export default function SignInPage() {
             response.data.encrypted_vault,
             response.data.vault_nonce,
           ),
-        );
-      }
-
-      if (
-        !is_adding_account &&
-        response.data.switch_token &&
-        response.data.switch_token_expires_at
-      ) {
-        await store_switch_token(
-          response.data.user_id,
-          response.data.switch_token,
-          response.data.switch_token_expires_at,
         );
       }
 

@@ -41,7 +41,6 @@ const AUTH_LOADING_FALLBACK: AuthContextType = {
   logout_all: async () => no_provider("logout_all"),
   set_vault: async () => no_provider("set_vault"),
   add_account: async () => no_provider("add_account"),
-  switch_account: async () => no_provider("switch_account"),
   remove_account: async () => no_provider("remove_account"),
   can_add_account: async () => false,
   account_count: 0,

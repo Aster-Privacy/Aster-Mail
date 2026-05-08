@@ -51,19 +51,10 @@ import {
   get_all_accounts,
   get_current_account,
   add_account as storage_add_account,
-  switch_account as storage_switch_account,
   remove_account as storage_remove_account,
   update_account_user,
-  store_switch_token,
-  get_switch_token,
-  clear_switch_token,
 } from "@/services/account_manager";
-import {
-  request_switch_token,
-  switch_account_with_token,
-  revoke_switch_token,
-  get_account_limit,
-} from "@/services/api/switch";
+import { get_account_limit } from "@/services/api/switch";
 import { sync_client } from "@/services/sync_client";
 import {
   start_session_timeout,
@@ -72,7 +63,6 @@ import {
 } from "@/services/session_timeout_service";
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_mail_cache } from "@/hooks/use_email_list";
-import { clear_preload_cache } from "@/components/email/hooks/use_email_detail";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { connection_store } from "@/services/routing/connection_store";
@@ -282,8 +272,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       passphrase: string,
       encrypted_vault?: string,
       vault_nonce?: string,
-      switch_token?: string,
-      switch_token_expires_at?: string,
     ) => {
       await store_vault_in_memory(vault, passphrase);
 
@@ -306,13 +294,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const result = await storage_add_account(user);
 
       if (result.success) {
-        if (switch_token && switch_token_expires_at) {
-          await store_switch_token(
-            user.id,
-            switch_token,
-            switch_token_expires_at,
-          );
-        }
         api_client.set_authenticated(true);
         ensure_ratchet_keys().catch(() => {});
         start_session_timeout(user.id);
@@ -324,105 +305,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [],
   );
 
-  const switch_account_handler = useCallback(
-    async (account_id: string) => {
-      const old_account_id = state.current_account_id;
-
-      stop_session_timeout();
-      sync_client.disconnect();
-
-      if (old_account_id && !(await get_switch_token(old_account_id))) {
-        try {
-          const token_response = await request_switch_token();
-
-          if (token_response.data) {
-            await store_switch_token(
-              old_account_id,
-              token_response.data.switch_token,
-              token_response.data.expires_at,
-            );
-          }
-        } catch (e) {
-          safe_log_error(e);
-        }
-      }
-
-      const target_token = await get_switch_token(account_id);
-
-      if (!target_token) {
-        sync_client.connect().catch((e) => {
-          safe_log_error(e);
-        });
-        if (old_account_id) start_session_timeout(old_account_id);
-
-        return false;
-      }
-
-      try {
-        const response = await switch_account_with_token(target_token);
-
-        if (!response.data) {
-          await clear_switch_token(account_id);
-          sync_client.connect().catch((e) => {
-            safe_log_error(e);
-          });
-          if (old_account_id) start_session_timeout(old_account_id);
-
-          return false;
-        }
-
-        await store_switch_token(
-          account_id,
-          response.data.switch_token,
-          response.data.switch_token_expires_at,
-        );
-
-        store_encrypted_vault(
-          account_id,
-          response.data.encrypted_vault,
-          response.data.vault_nonce,
-        );
-
-        await update_account_user(account_id, {
-          id: response.data.user_id,
-          username: response.data.username,
-          email: response.data.email,
-          display_name: response.data.display_name || undefined,
-          profile_color: response.data.profile_color || undefined,
-        });
-
-        await storage_switch_account(account_id);
-
-        clear_mail_cache();
-        clear_mail_stats();
-        clear_preload_cache();
-        window.location.replace("/");
-
-        return true;
-      } catch {
-        clear_switch_token(account_id);
-        sync_client.connect().catch((e) => {
-          safe_log_error(e);
-        });
-        if (old_account_id) start_session_timeout(old_account_id);
-
-        return false;
-      }
-    },
-    [state.current_account_id],
-  );
-
   const remove_account_handler = useCallback(
     async (account_id: string) => {
       const is_current = account_id === state.current_account_id;
 
       if (is_current) {
         sync_client.disconnect();
-        try {
-          await revoke_switch_token();
-        } catch (e) {
-          safe_log_error(e);
-        }
         try {
           await api_client.post("/core/v1/auth/logout", {});
         } catch {
@@ -445,69 +333,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_stored_encrypted_vault(account_id);
         await clear_session_passphrase(account_id);
         clear_session_timeout_data(account_id);
-        await clear_switch_token(account_id);
 
-        const switched_account = result.switched_to;
-
-        if (switched_account) {
-          const target_token = await get_switch_token(switched_account.id);
-
-          if (target_token) {
-            try {
-              const response = await switch_account_with_token(target_token);
-
-              if (response.data) {
-                await store_switch_token(
-                  switched_account.id,
-                  response.data.switch_token,
-                  response.data.switch_token_expires_at,
-                );
-
-                store_encrypted_vault(
-                  switched_account.id,
-                  response.data.encrypted_vault,
-                  response.data.vault_nonce,
-                );
-
-                await update_account_user(switched_account.id, {
-                  id: response.data.user_id,
-                  username: response.data.username,
-                  email: response.data.email,
-                  display_name: response.data.display_name || undefined,
-                  profile_color: response.data.profile_color || undefined,
-                });
-
-                await storage_switch_account(switched_account.id);
-
-                window.location.reload();
-
-                return;
-              }
-            } catch {
-              clear_switch_token(switched_account.id);
-            }
-          }
-
-          api_client.set_authenticated(false);
-          set_state({
-            user: null,
-            is_loading: false,
-            is_authenticated: false,
-            has_keys: false,
-            accounts: await get_all_accounts(),
-            current_account_id: null,
-          });
-        } else {
-          api_client.set_authenticated(false);
-          set_state({
-            user: null,
-            is_loading: false,
-            is_authenticated: false,
-            has_keys: false,
-            accounts: [],
-            current_account_id: null,
-          });
-        }
+        api_client.set_authenticated(false);
+        set_state({
+          user: null,
+          is_loading: false,
+          is_authenticated: false,
+          has_keys: false,
+          accounts: await get_all_accounts(),
+          current_account_id: null,
+        });
       }
     },
     [state.current_account_id],
@@ -698,7 +533,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       logout_all: logout_all_handler,
       set_vault,
       add_account,
-      switch_account: switch_account_handler,
       remove_account: remove_account_handler,
       can_add_account: can_add,
       account_count: state.accounts.length,
@@ -716,7 +550,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       logout_all_handler,
       set_vault,
       add_account,
-      switch_account_handler,
       remove_account_handler,
       can_add,
       is_adding_account,

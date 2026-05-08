@@ -312,40 +312,6 @@ export function clear_cache(): void {
   storage_initialized = false;
 }
 
-export async function store_switch_token(
-  account_id: string,
-  token: string,
-  expires_at: string,
-): Promise<void> {
-  await device_store(SWITCH_TOKEN_KEY_PREFIX + account_id, {
-    token,
-    expires_at,
-  });
-}
-
-export async function get_switch_token(
-  account_id: string,
-): Promise<string | null> {
-  const data = await device_retrieve<{ token: string; expires_at: string }>(
-    SWITCH_TOKEN_KEY_PREFIX + account_id,
-  );
-
-  if (!data?.token || !data?.expires_at) return null;
-
-  if (new Date(data.expires_at).getTime() <= Date.now()) {
-    await clear_switch_token(account_id);
-
-    return null;
-  }
-
-  return data.token;
-}
-
-export async function clear_switch_token(account_id: string): Promise<void> {
-  localStorage.removeItem(SWITCH_TOKEN_KEY_PREFIX + account_id);
-  localStorage.removeItem(SWITCH_TOKEN_EXPIRY_KEY_PREFIX + account_id);
-}
-
 export function clear_all_switch_tokens(): void {
   const keys_to_remove: string[] = [];
 

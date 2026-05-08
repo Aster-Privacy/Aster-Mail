@@ -53,8 +53,6 @@ export interface TotpVerifyResponse {
   vault_nonce: string;
   access_token?: string;
   needs_prekey_replenishment?: boolean;
-  switch_token?: string;
-  switch_token_expires_at?: string;
   is_suspended?: boolean;
 }
 

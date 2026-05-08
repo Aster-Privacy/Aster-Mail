@@ -43,8 +43,6 @@ import {
   clear_recovery_key,
 } from "@/services/crypto/recovery_key";
 import { register_user } from "@/services/api/auth";
-import { request_switch_token } from "@/services/api/switch";
-import { store_switch_token } from "@/services/account_manager";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
 import {
   save_recovery_email,
@@ -410,22 +408,6 @@ export function use_registration() {
           encrypted_vault,
           vault_nonce,
         );
-
-        if (is_adding_account) {
-          try {
-            const token_response = await request_switch_token();
-
-            if (token_response.data) {
-              await store_switch_token(
-                response.data.user_id,
-                token_response.data.switch_token,
-                token_response.data.expires_at,
-              );
-            }
-          } catch (e) {
-            if (import.meta.env.DEV) console.error(e);
-          }
-        }
 
         check_and_replenish_prekeys();
       }

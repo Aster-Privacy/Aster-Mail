@@ -207,8 +207,6 @@ export default function MobileSignInPage() {
               password,
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
-              totp_response.switch_token,
-              totp_response.switch_token_expires_at,
             ),
           );
         } else {
@@ -465,8 +463,6 @@ export default function MobileSignInPage() {
             password,
             response.data.encrypted_vault,
             response.data.vault_nonce,
-            response.data.switch_token,
-            response.data.switch_token_expires_at,
           ),
         );
       } else {

@@ -35,11 +35,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   PencilSquareIcon,
-  ChevronDownIcon,
   Bars3Icon,
   XMarkIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Kbd } from "@aster/ui";
+
+import { WorkspaceSwitcher } from "@/components/layout/workspace_switcher";
 
 import { ShareModal } from "@/components/modals/share_modal";
 import { CreateFolderModal } from "@/components/folders/create_folder_modal";
@@ -48,7 +50,6 @@ import { FolderPasswordModal } from "@/components/folders/folder_password_modal"
 import { CreateTagModal } from "@/components/tags/create_tag_modal";
 import { TagManagementModal } from "@/components/tags/tag_management_modal";
 import { ContactsModal } from "@/components/modals/contacts_modal";
-import { WorkspaceSwitcher } from "@/components/layout/workspace_switcher";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -120,6 +121,7 @@ export const Sidebar = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = use_auth();
+  const [is_workspace_open, set_is_workspace_open] = useState(false);
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { stats, has_initialized } = use_mail_stats();
@@ -225,8 +227,6 @@ export const Sidebar = ({
     folder_token: string;
     mode: "setup" | "unlock" | "settings";
   } | null>(null);
-  const [show_workspace_switcher, set_show_workspace_switcher] =
-    useState(false);
   const [mail_logo_loaded, set_mail_logo_loaded] = useState(mail_logo_cached);
   const [text_logo_loaded, set_text_logo_loaded] = useState(text_logo_cached);
   const mail_logo_ref = useRef<HTMLImageElement>(null);
@@ -260,22 +260,6 @@ export const Sidebar = ({
   const folder_refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const tag_refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const alias_refs = useRef<Record<string, HTMLButtonElement | null>>({});
-
-  useEffect(() => {
-    if (!show_workspace_switcher) return;
-
-    const handle_escape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        set_show_workspace_switcher(false);
-      }
-    };
-
-    document.addEventListener("keydown", handle_escape);
-
-    return () => {
-      document.removeEventListener("keydown", handle_escape);
-    };
-  }, [show_workspace_switcher]);
 
   useEffect(() => {
     if (mail_logo_cached) {
@@ -582,14 +566,12 @@ export const Sidebar = ({
           </button>
         )}
         <WorkspaceSwitcher
-          is_open={show_workspace_switcher}
-          on_open_change={set_show_workspace_switcher}
+          is_open={is_workspace_open}
+          on_open_change={set_is_workspace_open}
           trigger={
             <button
-              className={`w-full flex items-center ${is_collapsed ? "justify-center" : "gap-3"} group`}
-              onClick={() =>
-                set_show_workspace_switcher(!show_workspace_switcher)
-              }
+              className={`w-full flex items-center ${is_collapsed ? "justify-center" : "gap-3"} rounded-lg px-1 py-1 -mx-1 transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-info)]`}
+              type="button"
             >
               <div
                 className={`${is_collapsed ? "w-10 h-10" : "w-11 h-11"} flex-shrink-0 relative`}
@@ -611,19 +593,17 @@ export const Sidebar = ({
                 />
               </div>
               {!is_collapsed && (
-                <div className="flex flex-col items-start min-w-0 flex-1">
-                  <span className="text-[15px] font-semibold text-txt-primary">
-                    {t("common.aster_mail")}
-                  </span>
-                  <span className="text-[11px] truncate w-full text-left text-txt-muted">
-                    {t("common.deck", { name: display_name })}
-                  </span>
-                </div>
-              )}
-              {!is_collapsed && (
-                <ChevronDownIcon
-                  className={`h-4 w-4 flex-shrink-0 transition-transform duration-150 text-txt-muted ${show_workspace_switcher ? "rotate-180" : ""}`}
-                />
+                <>
+                  <div className="flex flex-col items-start min-w-0 flex-1">
+                    <span className="text-[15px] font-semibold text-txt-primary truncate w-full text-left">
+                      {t("common.aster_mail")}
+                    </span>
+                    <span className="text-[11px] truncate w-full text-left text-txt-muted">
+                      {t("common.deck", { name: display_name })}
+                    </span>
+                  </div>
+                  <ChevronDownIcon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
+                </>
               )}
             </button>
           }
