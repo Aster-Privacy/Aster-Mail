@@ -338,6 +338,25 @@ pub struct ProxyResponse {
 
 const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (macOS; Tauri)";
 
+fn is_device_header_allowed(name: &str) -> bool {
+    let n = name.to_ascii_lowercase();
+    matches!(
+        n.as_str(),
+        "content-type"
+            | "content-length"
+            | "accept"
+            | "accept-language"
+            | "accept-encoding"
+            | "authorization"
+            | "x-csrf-token"
+            | "x-requested-with"
+            | "x-device-id"
+            | "if-none-match"
+            | "if-modified-since"
+            | "user-agent"
+    ) || n.starts_with("x-aster-")
+}
+
 #[tauri::command]
 pub async fn device_http_request(
     url: String,
@@ -345,17 +364,56 @@ pub async fn device_http_request(
     body: Option<String>,
     headers: Option<HashMap<String, String>>,
 ) -> Result<ProxyResponse, String> {
+    const ALLOWED_HTTPS_SUFFIXES: &[&str] = &[".astermail.org", ".astermail.com"];
+    const ALLOWED_HTTPS_EXACT: &[&str] = &["astermail.org", "astermail.com"];
+    const MAX_REQUEST_BODY_SIZE: usize = 10 * 1024 * 1024;
+
+    let parsed_url = reqwest::Url::parse(&url).map_err(|e| format!("invalid url: {e}"))?;
+    let scheme = parsed_url.scheme().to_ascii_lowercase();
+
+    if scheme != "https" {
+        return Err("device_http_request requires https".to_string());
+    }
+
+    let raw_host = parsed_url.host_str().unwrap_or("").to_ascii_lowercase();
+    let host = raw_host.trim_end_matches('.');
+
+    if host.is_empty() {
+        return Err("url has no host".to_string());
+    }
+
+    if host.ends_with(".onion") {
+        return Err("onion hosts must be routed through tor_fetch".to_string());
+    }
+
+    let host_allowed = ALLOWED_HTTPS_EXACT.iter().any(|h| *h == host)
+        || ALLOWED_HTTPS_SUFFIXES.iter().any(|s| host.ends_with(s));
+
+    if !host_allowed {
+        return Err("host not in device_http_request allowlist".to_string());
+    }
+
+    if let Some(b) = &body {
+        if b.len() > MAX_REQUEST_BODY_SIZE {
+            return Err(format!(
+                "request body too large: {} bytes exceeds 10MB limit",
+                b.len()
+            ));
+        }
+    }
+
     let client = reqwest::Client::builder()
         .no_proxy()
         .timeout(std::time::Duration::from_secs(30))
         .build()
         .map_err(|e| e.to_string())?;
     let mut req = match method.to_uppercase().as_str() {
-        "GET" => client.get(&url),
-        "POST" => client.post(&url),
-        "PUT" => client.put(&url),
-        "PATCH" => client.patch(&url),
-        "DELETE" => client.delete(&url),
+        "GET" => client.get(parsed_url.clone()),
+        "POST" => client.post(parsed_url.clone()),
+        "PUT" => client.put(parsed_url.clone()),
+        "PATCH" => client.patch(parsed_url.clone()),
+        "DELETE" => client.delete(parsed_url.clone()),
+        "HEAD" => client.head(parsed_url.clone()),
         _ => return Err(format!("unsupported method: {}", method)),
     };
 
@@ -363,6 +421,9 @@ pub async fn device_http_request(
 
     if let Some(h) = headers {
         for (k, v) in h {
+            if !is_device_header_allowed(&k) {
+                continue;
+            }
             req = req.header(&k, &v);
         }
     }

@@ -26,6 +26,25 @@ use serde::Serialize;
 use tls_api::TlsConnector as _;
 use tls_api::TlsConnectorBuilder as _;
 
+fn is_header_allowed(name: &str) -> bool {
+    let n = name.to_ascii_lowercase();
+    matches!(
+        n.as_str(),
+        "content-type"
+            | "content-length"
+            | "accept"
+            | "accept-language"
+            | "accept-encoding"
+            | "authorization"
+            | "x-csrf-token"
+            | "x-requested-with"
+            | "x-device-id"
+            | "if-none-match"
+            | "if-modified-since"
+            | "user-agent"
+    ) || n.starts_with("x-aster-")
+}
+
 #[derive(Debug, Serialize)]
 pub struct TorFetchResponse {
     pub status: u16,
@@ -41,6 +60,12 @@ pub async fn execute_tor_request(
     body: Option<&str>,
 ) -> Result<TorFetchResponse, String> {
     const CANONICAL_API_ONION: &str = "kvwjvhbeoaxmv5hece4mhcigurxv33bmnhzvdqsddtaovkxm6pqpubqd.onion";
+    const ALLOWED_HTTPS_SUFFIXES: &[&str] = &[".astermail.org", ".astermail.com"];
+    const ALLOWED_HTTPS_EXACT: &[&str] = &["astermail.org", "astermail.com"];
+    const ALLOWED_METHODS: &[&str] = &[
+        "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
+    ];
+    const MAX_REQUEST_BODY_SIZE: usize = 10 * 1024 * 1024;
 
     let parsed_uri: hyper::Uri = url
         .parse()
@@ -65,6 +90,33 @@ pub async fn execute_tor_request(
         return Err("onion host does not match the canonical Aster API onion".to_string());
     }
 
+    let host_allowed = if is_onion_host {
+        host == CANONICAL_API_ONION
+    } else {
+        ALLOWED_HTTPS_EXACT.iter().any(|h| *h == host)
+            || ALLOWED_HTTPS_SUFFIXES.iter().any(|s| host.ends_with(s))
+    };
+
+    if !host_allowed {
+        return Err("host not in tor_fetch allowlist".to_string());
+    }
+
+    if !ALLOWED_METHODS
+        .iter()
+        .any(|m| m.eq_ignore_ascii_case(method))
+    {
+        return Err(format!("method not allowed: {method}"));
+    }
+
+    if let Some(b) = body {
+        if b.len() > MAX_REQUEST_BODY_SIZE {
+            return Err(format!(
+                "request body too large: {} bytes exceeds 10MB limit",
+                b.len()
+            ));
+        }
+    }
+
     let tls_connector = tls_api_native_tls::TlsConnector::builder()
         .map_err(|e| format!("TLS connector build error: {e}"))?
         .build()
@@ -78,6 +130,9 @@ pub async fn execute_tor_request(
         .uri(url);
 
     for (key, value) in headers {
+        if !is_header_allowed(key) {
+            continue;
+        }
         request_builder = request_builder.header(key.as_str(), value.as_str());
     }
 
