@@ -799,6 +799,7 @@ export function MobileMessageDetailsSheet({
                 has_pq_protection={false}
                 has_recipient_key={message.has_recipient_key}
                 is_external={message.is_external}
+                sender_verification={message.sender_verification}
                 label={
                   message.is_external && !message.has_recipient_key
                     ? t("common.protected_in_transit")

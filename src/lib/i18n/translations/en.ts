@@ -754,6 +754,18 @@ export const en: Translations = {
     files_end_to_end_encrypted: "These files are end-to-end encrypted.",
     files_protected_in_transit:
       "These files were protected and encrypted in transit.",
+    sender_verified: "Sender verified",
+    sender_verified_desc:
+      "The signature on this message matches the sender's published key.",
+    sender_invalid: "Signature invalid",
+    sender_invalid_desc:
+      "This message is signed but the signature does not match the sender's published key. Treat with caution.",
+    sender_no_keys: "Sender keys unavailable",
+    sender_no_keys_desc:
+      "We could not retrieve a public key for this sender, so we cannot confirm the signature.",
+    sender_unsigned: "Sender not verified",
+    sender_unsigned_desc:
+      "This message has no cryptographic signature, so we cannot confirm the sender's identity.",
     tor_label: "Tor",
     tor_snowflake_label: "Tor (Snowflake)",
     cdn_relay_label: "CDN Relay",

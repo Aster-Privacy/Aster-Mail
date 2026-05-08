@@ -88,6 +88,7 @@ interface LocalDecryptedEnvelope {
   list_unsubscribe?: string;
   list_unsubscribe_post?: string;
   raw_headers?: { name: string; value: string }[];
+  sender_verification?: import("@/types/email").SenderVerificationStatus;
 }
 
 export function use_email_viewer({
@@ -521,6 +522,7 @@ export function use_email_viewer({
         reply_to: parsed_reply_to
           ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
           : undefined,
+        sender_verification: envelope.sender_verification,
       });
       set_is_external(item.is_external);
       set_has_recipient_key(!!item.has_recipient_key);

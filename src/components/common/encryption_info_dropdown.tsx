@@ -18,8 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SenderVerificationStatus } from "@/types/email";
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  CheckBadgeIcon,
+  ShieldExclamationIcon,
+  QuestionMarkCircleIcon,
+} from "@heroicons/react/24/solid";
 
 import { LockIcon } from "@/components/common/icons";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -33,6 +40,7 @@ interface EncryptionInfoDropdownProps {
   size?: number;
   label?: string;
   context?: "message" | "attachments";
+  sender_verification?: SenderVerificationStatus;
 }
 
 export function EncryptionInfoDropdown({
@@ -42,6 +50,7 @@ export function EncryptionInfoDropdown({
   size = 18,
   label,
   context = "message",
+  sender_verification,
 }: EncryptionInfoDropdownProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -135,6 +144,45 @@ export function EncryptionInfoDropdown({
                   <p className="pl-6 text-txt-muted">
                     AES-256-GCM · {has_pq_protection ? "ML-KEM-768" : "KEM-768"}
                   </p>
+                  {sender_verification &&
+                    sender_verification !== "unknown" && (
+                      <div className="pt-2 mt-2 border-t border-edge-secondary">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-shrink-0">
+                            {sender_verification === "verified" && (
+                              <CheckBadgeIcon className="w-4 h-4 text-emerald-500" />
+                            )}
+                            {sender_verification === "invalid" && (
+                              <ShieldExclamationIcon className="w-4 h-4 text-red-500" />
+                            )}
+                            {(sender_verification === "no_keys" ||
+                              sender_verification === "unsigned") && (
+                              <QuestionMarkCircleIcon className="w-4 h-4 text-amber-500" />
+                            )}
+                          </div>
+                          <p className="font-medium text-txt-primary">
+                            {sender_verification === "verified" &&
+                              t("common.sender_verified")}
+                            {sender_verification === "invalid" &&
+                              t("common.sender_invalid")}
+                            {sender_verification === "no_keys" &&
+                              t("common.sender_no_keys")}
+                            {sender_verification === "unsigned" &&
+                              t("common.sender_unsigned")}
+                          </p>
+                        </div>
+                        <p className="pl-6 mt-1">
+                          {sender_verification === "verified" &&
+                            t("common.sender_verified_desc")}
+                          {sender_verification === "invalid" &&
+                            t("common.sender_invalid_desc")}
+                          {sender_verification === "no_keys" &&
+                            t("common.sender_no_keys_desc")}
+                          {sender_verification === "unsigned" &&
+                            t("common.sender_unsigned_desc")}
+                        </p>
+                      </div>
+                    )}
                 </div>
               </div>
             </motion.div>

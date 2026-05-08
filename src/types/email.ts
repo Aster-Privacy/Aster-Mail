@@ -67,6 +67,7 @@ export interface Email {
   unsubscribe_info?: UnsubscribeInfo;
   expires_at?: string;
   expiry_type?: "sender" | "recipient";
+  sender_verification?: SenderVerificationStatus;
 }
 
 export interface EmailThread {

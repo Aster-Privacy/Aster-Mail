@@ -393,6 +393,8 @@ export default function EmailDetailPage() {
         sender_name={
           detail.forward_target?.sender_name ?? detail.email?.sender ?? ""
         }
+        thread_ghost_email={detail.thread_ghost_email}
+        thread_token={detail.mail_item?.thread_token}
       />
       <SettingsPanel
         initial_section={

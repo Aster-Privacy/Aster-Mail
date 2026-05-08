@@ -432,6 +432,7 @@ export function FullEmailViewer({
                     has_pq_protection={viewer.has_pq_protection}
                     has_recipient_key={viewer.has_recipient_key}
                     is_external={viewer.is_external}
+                    sender_verification={email.sender_verification}
                     size={22}
                   />
                   {external_content_state.report && (

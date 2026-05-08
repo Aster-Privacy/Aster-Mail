@@ -221,6 +221,7 @@ a, a * { color: #60a5fa !important; }`
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
 ${tor_csp}
 ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
 <base href="${(() => {
@@ -1178,6 +1179,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         ref={(el) => {
           iframe_ref.current = el;
         }}
+        referrerPolicy="no-referrer"
         sandbox="allow-same-origin allow-popups"
         srcDoc={srcdoc_html}
         style={{

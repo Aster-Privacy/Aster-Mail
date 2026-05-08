@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { UnsubscribeInfo } from "@/types/email";
+import type { UnsubscribeInfo, SenderVerificationStatus } from "@/types/email";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 
 export interface EmailRecipient {
@@ -47,6 +47,7 @@ export interface DecryptedEmail {
   expires_at?: string;
   raw_headers?: { name: string; value: string }[];
   reply_to?: EmailRecipient;
+  sender_verification?: SenderVerificationStatus;
 }
 
 export interface ReplyData {

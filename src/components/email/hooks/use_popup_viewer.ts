@@ -414,6 +414,7 @@ export function use_popup_viewer({
               ? { name: parsed.name ?? "", email: parsed.email }
               : undefined;
           })(),
+          sender_verification: envelope.sender_verification,
         };
 
         set_email(decrypted);
