@@ -121,6 +121,13 @@ async function check_launch_share(): Promise<void> {
   } catch {}
 }
 
+const SHARE_SUBJECT_MAX = 998;
+const SHARE_BODY_MAX = 65536;
+
+function clamp_share_text(input: string, max: number): string {
+  return input.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, "").slice(0, max);
+}
+
 function notify_share_listeners(content: SharedContent): void {
   share_listeners.forEach((callback) => callback(content));
 
@@ -129,7 +136,10 @@ function notify_share_listeners(content: SharedContent): void {
   compose_url.searchParams.set("compose", "true");
 
   if (content.title) {
-    compose_url.searchParams.set("subject", content.title);
+    compose_url.searchParams.set(
+      "subject",
+      clamp_share_text(content.title, SHARE_SUBJECT_MAX),
+    );
   }
 
   let body = "";
@@ -141,7 +151,10 @@ function notify_share_listeners(content: SharedContent): void {
     body += (body ? "\n\n" : "") + content.url;
   }
   if (body) {
-    compose_url.searchParams.set("body", body);
+    compose_url.searchParams.set(
+      "body",
+      clamp_share_text(body, SHARE_BODY_MAX),
+    );
   }
 
   window.location.href = compose_url.toString();
