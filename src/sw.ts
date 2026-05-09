@@ -46,12 +46,34 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
   );
 });
 
+self.addEventListener("fetch", (event: FetchEvent) => {
+  const url = new URL(event.request.url);
+
+  if (url.origin === self.location.origin && url.pathname.startsWith("/api/")) {
+    return;
+  }
+});
+
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
   if (event.origin && event.origin !== self.location.origin) {
     return;
   }
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
+  }
+  if (event.data && event.data.type === "LOGOUT_PURGE") {
+    event.waitUntil(
+      (async () => {
+        try {
+          if (typeof caches !== "undefined") {
+            const keys = await caches.keys();
+            await Promise.all(
+              keys.map((k) => caches.delete(k).catch(() => false)),
+            );
+          }
+        } catch {}
+      })(),
+    );
   }
 });
 
