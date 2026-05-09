@@ -54,13 +54,25 @@ function escape_html(text: string): string {
   return div.innerHTML;
 }
 
+function strip_style_blocks(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  doc.querySelectorAll("style, link[rel='stylesheet']").forEach((el) =>
+    el.remove(),
+  );
+
+  return doc.body.innerHTML;
+}
+
 function format_body(body: string): string {
   if (is_html_content(body)) {
-    return sanitize_html(body, {
+    const sanitized = sanitize_html(body, {
       external_content_mode: "always",
       image_proxy_url: get_image_proxy_url(),
       sandbox_mode: true,
     }).html;
+
+    return strip_style_blocks(sanitized);
   }
 
   return plain_text_to_html(body);
