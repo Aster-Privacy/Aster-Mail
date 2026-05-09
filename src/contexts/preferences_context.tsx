@@ -167,7 +167,9 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
       return true;
     } catch (err) {
-      console.error("[prefs] do_save: exception during save_preferences:", err);
+      if (import.meta.env.DEV) {
+        console.error("[prefs] do_save: exception during save_preferences:", err);
+      }
 
       return false;
     }
