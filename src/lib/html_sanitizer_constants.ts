@@ -219,6 +219,8 @@ export const DANGEROUS_CSS_PATTERNS = [
   /vbscript\s*:/i,
   /behavior\s*:/i,
   /-moz-binding/i,
+  /paint\s*\(/i,
+  /-moz-document/i,
 ];
 
 export const ALLOWED_DATA_URL_TYPES = new Set([

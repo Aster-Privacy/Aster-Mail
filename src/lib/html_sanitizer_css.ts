@@ -153,6 +153,12 @@ export function sanitize_css_block(css: string, sandbox_mode = false): string {
   decoded = decoded.replace(/vbscript\s*:[^;]*/gi, "");
   decoded = decoded.replace(/-moz-binding\s*:[^;]*/gi, "");
   decoded = decoded.replace(/behavior\s*:[^;]*/gi, "");
+  decoded = decoded.replace(/@namespace[^;]*;?/gi, "");
+  decoded = decoded.replace(/@document[^;]*;?/gi, "");
+  decoded = decoded.replace(/-moz-document[^;{]*\{[^}]*\}/gi, "");
+  decoded = decoded.replace(/image-set\s*\([^)]*\)/gi, "none");
+  decoded = decoded.replace(/-webkit-image-set\s*\([^)]*\)/gi, "none");
+  decoded = decoded.replace(/cross-fade\s*\([^)]*\)/gi, "none");
   decoded = strip_dark_mode_media(decoded);
 
   return decoded;

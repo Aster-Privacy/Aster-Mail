@@ -152,6 +152,28 @@ export function sanitize_compose_paste(html: string): string {
       }
     }
 
+    if (el.tagName === "A") {
+      const href = el.getAttribute("href") || "";
+      const lower = href.trim().toLowerCase();
+
+      if (
+        lower.startsWith("javascript:") ||
+        lower.startsWith("vbscript:") ||
+        lower.startsWith("data:") ||
+        lower.startsWith("file:")
+      ) {
+        el.removeAttribute("href");
+      }
+
+      if (el.hasAttribute("href")) {
+        el.setAttribute("target", "_blank");
+        el.setAttribute("rel", "noopener noreferrer nofollow");
+      } else {
+        el.removeAttribute("target");
+        el.removeAttribute("rel");
+      }
+    }
+
     if (el.tagName === "IMG") {
       const src = el.getAttribute("src") || "";
 
