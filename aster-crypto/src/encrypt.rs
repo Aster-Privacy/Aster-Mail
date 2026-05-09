@@ -113,7 +113,7 @@ pub fn encrypt_and_sign(
             &mut OsRng,
             signer.secret_key(),
             || "".to_string(),
-            HashAlgorithm::SHA2_256,
+            HashAlgorithm::SHA2_512,
         )
         .map_err(|e: pgp::errors::Error| CryptoError::Signing(e.to_string()))?;
 

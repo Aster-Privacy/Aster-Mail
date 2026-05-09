@@ -94,6 +94,11 @@ pub fn decrypt_and_verify(
     if secret_keys.is_empty() {
         return Err(CryptoError::KeyNotFound("No secret keys provided".into()));
     }
+    if sender_keys.is_empty() {
+        return Err(CryptoError::SignatureVerification(
+            "decrypt_and_verify requires at least one sender key".into(),
+        ));
+    }
 
     let (msg, _) = Message::from_armor_single(ciphertext)
         .map_err(|_| CryptoError::Decryption("Decryption failed".into()))?;
@@ -102,7 +107,7 @@ pub fn decrypt_and_verify(
         let decrypted = msg.decrypt(|| "".to_string(), &[keypair.secret_key()]);
 
         if let Ok((decrypted_msg, _key_ids)) = decrypted {
-            if !sender_keys.is_empty() && !verify_with_sender_keys(&decrypted_msg, sender_keys) {
+            if !verify_with_sender_keys(&decrypted_msg, sender_keys) {
                 return Err(CryptoError::SignatureVerification(
                     "Message signature could not be verified with provided sender keys".into(),
                 ));
