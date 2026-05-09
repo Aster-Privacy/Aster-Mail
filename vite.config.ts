@@ -121,6 +121,7 @@ export default defineConfig({
   build: {
     cssMinify: "lightningcss",
     chunkSizeWarningLimit: 2600,
+    sourcemap: "hidden",
     rollupOptions: {
       onwarn(warning, defaultHandler) {
         if (
