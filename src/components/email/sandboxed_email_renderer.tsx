@@ -212,9 +212,15 @@ a, a * { color: #60a5fa !important; }`
 
     return m === "tor" || m === "tor_snowflake";
   })();
+  const csp_img_origin =
+    typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
+      ? "https://app.astermail.org"
+      : typeof window !== "undefined"
+        ? window.location.origin
+        : "https://app.astermail.org";
   const tor_csp = is_tor_mode
     ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
-    : "";
+    : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: ${csp_img_origin}; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; form-action 'none';">`;
 
   const srcdoc_html = `<!DOCTYPE html>
 <html${html_el_style}>
@@ -630,6 +636,9 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
   }, []);
 
   const unblock_remote_content = useCallback((doc: Document) => {
+    const m = connection_store.get_method();
+
+    if (m === "tor" || m === "tor_snowflake") return;
     doc.querySelectorAll("img[data-blocked='true']").forEach((el) => {
       const src =
         el.getAttribute("data-proxy-src") ||
@@ -932,11 +941,14 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
       e.stopPropagation();
 
       if (href.startsWith("aster:")) {
-        const path = href.replace("aster:", "");
+        const path = href.slice("aster:".length);
+        const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
 
-        window.dispatchEvent(
-          new CustomEvent("aster-internal-link", { detail: { path } }),
-        );
+        if (ASTER_PATH_ALLOWLIST.test(path)) {
+          window.dispatchEvent(
+            new CustomEvent("aster-internal-link", { detail: { path } }),
+          );
+        }
       } else {
         let resolved_url = href;
 
