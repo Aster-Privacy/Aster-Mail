@@ -20,16 +20,15 @@
 //
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine as _;
-use chacha20poly1305::aead::Aead;
+use chacha20poly1305::aead::{Aead, Payload};
 use chacha20poly1305::{KeyInit, XChaCha20Poly1305, XNonce};
 use ed25519_dalek::{Signer, SigningKey};
 use hkdf::Hkdf;
-#[cfg(target_os = "windows")]
 use keyring::Entry;
 use ml_kem::array::Array;
 use ml_kem::kem::Decapsulate;
 use ml_kem::{Ciphertext, EncodedSizeUser, KemCore, MlKem768};
-use rand_core::OsRng;
+use rand_core::{OsRng, RngCore};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use std::collections::HashMap;
@@ -37,8 +36,10 @@ use uuid::Uuid;
 use x25519_dalek::{PublicKey as XPublicKey, StaticSecret};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-#[cfg(target_os = "windows")]
 const KEYRING_SERVICE: &str = "com.astermail.mail";
+const KEYRING_WRAP_USER: &str = "device-identity-wrap-v1";
+const MAGIC_ID: &[u8; 8] = b"ASTERID\x01";
+const MAGIC_PP: &[u8; 8] = b"ASTERPP\x01";
 
 type MlKemDecapKey = <MlKem768 as KemCore>::DecapsulationKey;
 type MlKemEncapKey = <MlKem768 as KemCore>::EncapsulationKey;
@@ -89,37 +90,124 @@ fn passphrase_file_path() -> Result<std::path::PathBuf, String> {
     Ok(app_dir.join("device_passphrase.bin"))
 }
 
+fn aead_seal(wrap_key: &[u8; 32], magic: &[u8; 8], plaintext: &[u8]) -> Result<Vec<u8>, String> {
+    let mut nonce_bytes = [0u8; 24];
+    OsRng.fill_bytes(&mut nonce_bytes);
+    let cipher = XChaCha20Poly1305::new(wrap_key.into());
+    let nonce = XNonce::from_slice(&nonce_bytes);
+    let ct = cipher
+        .encrypt(nonce, Payload { msg: plaintext, aad: magic })
+        .map_err(|e| format!("aead seal: {:?}", e))?;
+    let mut out = Vec::with_capacity(8 + 24 + ct.len());
+    out.extend_from_slice(magic);
+    out.extend_from_slice(&nonce_bytes);
+    out.extend_from_slice(&ct);
+    Ok(out)
+}
+
+fn aead_open(wrap_key: &[u8; 32], magic: &[u8; 8], data: &[u8]) -> Result<Vec<u8>, String> {
+    if data.len() < 8 + 24 + 16 || &data[..8] != magic {
+        return Err("aead open: bad header".to_string());
+    }
+    let nonce = XNonce::from_slice(&data[8..32]);
+    let ct = &data[32..];
+    let cipher = XChaCha20Poly1305::new(wrap_key.into());
+    cipher
+        .decrypt(nonce, Payload { msg: ct, aad: magic })
+        .map_err(|e| format!("aead open: {:?}", e))
+}
+
+fn wrap_key_load() -> Result<Option<[u8; 32]>, String> {
+    let entry = Entry::new(KEYRING_SERVICE, KEYRING_WRAP_USER)
+        .map_err(|e| format!("keyring init: {}", e))?;
+    match entry.get_password() {
+        Ok(encoded) => {
+            let bytes = URL_SAFE_NO_PAD
+                .decode(encoded.as_bytes())
+                .map_err(|e| e.to_string())?;
+            let key: [u8; 32] = bytes
+                .as_slice()
+                .try_into()
+                .map_err(|_| "wrap key wrong size".to_string())?;
+            Ok(Some(key))
+        }
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(e) => Err(format!("keyring get: {}", e)),
+    }
+}
+
+fn wrap_key_load_or_create() -> Result<[u8; 32], String> {
+    if let Some(key) = wrap_key_load()? {
+        return Ok(key);
+    }
+    let mut key = [0u8; 32];
+    OsRng.fill_bytes(&mut key);
+    let entry = Entry::new(KEYRING_SERVICE, KEYRING_WRAP_USER)
+        .map_err(|e| format!("keyring init: {}", e))?;
+    entry
+        .set_password(&URL_SAFE_NO_PAD.encode(&key))
+        .map_err(|e| format!("keyring set wrap: {}", e))?;
+    Ok(key)
+}
+
+fn wrap_key_delete() -> Result<(), String> {
+    let entry = Entry::new(KEYRING_SERVICE, KEYRING_WRAP_USER)
+        .map_err(|e| format!("keyring init: {}", e))?;
+    match entry.delete_credential() {
+        Ok(()) => Ok(()),
+        Err(keyring::Error::NoEntry) => Ok(()),
+        Err(e) => Err(format!("keyring delete wrap: {}", e)),
+    }
+}
+
+fn atomic_write(path: &std::path::Path, data: &[u8]) -> Result<(), String> {
+    use std::io::Write as _;
+    let tmp = path.with_extension("tmp");
+    {
+        let mut f = std::fs::File::create(&tmp).map_err(|e| e.to_string())?;
+        f.write_all(data).map_err(|e| e.to_string())?;
+        f.sync_all().map_err(|e| e.to_string())?;
+    }
+    std::fs::rename(&tmp, path).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 fn load_stored() -> Result<Option<StoredIdentity>, String> {
     let path = identity_file_path()?;
 
     if !path.exists() {
-        #[cfg(target_os = "windows")]
-        {
-            let entry = Entry::new(KEYRING_SERVICE, "device_identity").ok();
-
-            if let Some(entry) = entry {
-                if let Ok(s) = entry.get_password() {
-                    if let Ok(bytes) = URL_SAFE_NO_PAD.decode(s.as_bytes()) {
-                        if let Ok(stored) = serde_json::from_slice::<StoredIdentity>(&bytes) {
-                            let _ = save_stored(&stored);
-                            let _ = entry.delete_credential();
-
-                            return Ok(Some(stored));
-                        }
+        let entry = Entry::new(KEYRING_SERVICE, "device_identity").ok();
+        if let Some(entry) = entry {
+            if let Ok(s) = entry.get_password() {
+                if let Ok(bytes) = URL_SAFE_NO_PAD.decode(s.as_bytes()) {
+                    if let Ok(stored) = serde_json::from_slice::<StoredIdentity>(&bytes) {
+                        let _ = save_stored(&stored);
+                        let _ = entry.delete_credential();
+                        return Ok(Some(stored));
                     }
                 }
             }
         }
-
         return Ok(None);
     }
 
     let data = std::fs::read(&path).map_err(|e| e.to_string())?;
-    let bytes = URL_SAFE_NO_PAD
-        .decode(&data)
-        .map_err(|e| e.to_string())?;
+
+    if data.len() >= 8 && &data[..8] == MAGIC_ID {
+        let wrap_key = wrap_key_load()?
+            .ok_or_else(|| "identity locked: wrap key missing from keystore".to_string())?;
+        let plaintext = aead_open(&wrap_key, MAGIC_ID, &data)?;
+        let stored: StoredIdentity =
+            serde_json::from_slice(&plaintext).map_err(|e| e.to_string())?;
+        return Ok(Some(stored));
+    }
+
+    let bytes = URL_SAFE_NO_PAD.decode(&data).map_err(|e| e.to_string())?;
     let stored: StoredIdentity =
         serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+    if let Err(e) = save_stored(&stored) {
+        tracing::warn!("identity legacy-to-v2 migration deferred: {}", e);
+    }
     Ok(Some(stored))
 }
 
@@ -137,9 +225,9 @@ fn set_file_permissions_restrictive(path: &std::path::Path) -> Result<(), String
 fn save_stored(stored: &StoredIdentity) -> Result<(), String> {
     let path = identity_file_path()?;
     let json = serde_json::to_vec(stored).map_err(|e| e.to_string())?;
-    let encoded = URL_SAFE_NO_PAD.encode(&json);
-
-    std::fs::write(&path, encoded.as_bytes()).map_err(|e| e.to_string())?;
+    let wrap_key = wrap_key_load_or_create()?;
+    let blob = aead_seal(&wrap_key, MAGIC_ID, &json)?;
+    atomic_write(&path, &blob)?;
     set_file_permissions_restrictive(&path)?;
     Ok(())
 }
@@ -288,7 +376,9 @@ pub fn device_unseal_vault_envelope(envelope_b64: String) -> Result<String, Stri
 
     let encoded = b64url(&plaintext);
     let path = passphrase_file_path()?;
-    std::fs::write(&path, encoded.as_bytes()).map_err(|e| e.to_string())?;
+    let wrap_key = wrap_key_load_or_create()?;
+    let blob = aead_seal(&wrap_key, MAGIC_PP, &plaintext)?;
+    atomic_write(&path, &blob)?;
     set_file_permissions_restrictive(&path)?;
 
     Ok(encoded)
@@ -302,8 +392,22 @@ pub fn device_get_stored_passphrase() -> Result<Option<String>, String> {
         return Ok(None);
     }
 
-    let data = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
-    Ok(Some(data))
+    let data = std::fs::read(&path).map_err(|e| e.to_string())?;
+
+    if data.len() >= 8 && &data[..8] == MAGIC_PP {
+        let wrap_key = wrap_key_load()?
+            .ok_or_else(|| "passphrase locked: wrap key missing from keystore".to_string())?;
+        let plaintext = aead_open(&wrap_key, MAGIC_PP, &data)?;
+        return Ok(Some(b64url(&plaintext)));
+    }
+
+    let s = std::str::from_utf8(&data).map_err(|e| e.to_string())?.to_string();
+    let raw = b64url_decode(&s)?;
+    let wrap_key = wrap_key_load_or_create()?;
+    let blob = aead_seal(&wrap_key, MAGIC_PP, &raw)?;
+    atomic_write(&path, &blob)?;
+    set_file_permissions_restrictive(&path)?;
+    Ok(Some(s))
 }
 
 #[tauri::command]
@@ -326,6 +430,7 @@ pub fn device_clear_identity() -> Result<(), String> {
     if let Ok(path) = passphrase_file_path() {
         let _ = std::fs::remove_file(path);
     }
+    let _ = wrap_key_delete();
     Ok(())
 }
 
