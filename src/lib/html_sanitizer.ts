@@ -709,44 +709,32 @@ export function plain_text_to_html(text: string): string {
 export function strip_html_tags(html: string): string {
   if (!html || typeof html !== "string") return "";
 
-  let result = html
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&amp;/gi, "&");
+  if (typeof DOMParser === "undefined") return "";
 
-  let prev = "";
+  let doc: Document;
 
-  while (prev !== result) {
-    prev = result;
-    result = result
-      .replace(/<head\b[^>]*>[\s\S]*?<\/head\s*>/gi, "")
-      .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, "")
-      .replace(/<style\b[^>]*\/>/gi, "")
-      .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "");
+  try {
+    doc = new DOMParser().parseFromString(html, "text/html");
+  } catch {
+    return "";
   }
 
-  result = result
-    .replace(/<head\b[^>]*>[\s\S]*$/gi, "")
-    .replace(/<style\b[^>]*>[\s\S]*$/gi, "")
-    .replace(/<script\b[^>]*>[\s\S]*$/gi, "")
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<\/p>/gi, " ")
-    .replace(/<\/div>/gi, " ")
-    .replace(/<\/li>/gi, " ")
-    .replace(/<\/td>/gi, " ")
-    .replace(/<\/tr>/gi, " ")
-    .replace(/<[^>]*>/g, "");
+  doc
+    .querySelectorAll("script, style, head, noscript, template, iframe, object, embed")
+    .forEach((el) => el.remove());
 
-  return result
+  doc.querySelectorAll("br").forEach((el) => {
+    el.replaceWith(doc.createTextNode(" "));
+  });
+
+  doc.querySelectorAll("p, div, li, td, tr, h1, h2, h3, h4, h5, h6").forEach((el) => {
+    el.append(doc.createTextNode(" "));
+  });
+
+  const text = doc.body?.textContent || "";
+
+  return text
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&#(\d+);/g, (_m, dec) => String.fromCharCode(parseInt(dec, 10)))
-    .replace(/&#x([0-9a-f]+);/gi, (_m, hex) =>
-      String.fromCharCode(parseInt(hex, 16)),
-    )
-    .replace(/&[a-z]+;/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
 }

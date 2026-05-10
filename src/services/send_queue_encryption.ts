@@ -360,32 +360,31 @@ export async function create_sent_envelope(
   const plain_body_text = body_is_plain_text
     ? email.body
     : (() => {
-        let stripped = email.body;
-        let prev = "";
+        if (typeof DOMParser === "undefined") return "";
 
-        while (prev !== stripped) {
-          prev = stripped;
-          stripped = stripped
-            .replace(/<head\b[^>]*>[\s\S]*?<\/head\s*>/gi, "")
-            .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, "")
-            .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "");
+        let doc: Document;
+
+        try {
+          doc = new DOMParser().parseFromString(email.body, "text/html");
+        } catch {
+          return "";
         }
 
-        return stripped
-          .replace(/<head\b[^>]*>[\s\S]*$/gi, "")
-          .replace(/<style\b[^>]*>[\s\S]*$/gi, "")
-          .replace(/<script\b[^>]*>[\s\S]*$/gi, "")
-          .replace(/<br\s*\/?>/gi, "\n")
-          .replace(/<\/div>/gi, "\n")
-          .replace(/<\/p>/gi, "\n")
-          .replace(/<[^>]+>/g, "")
-          .replace(/&nbsp;/g, " ")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&quot;/g, '"')
-          .replace(/&amp;/g, "&")
-          .replace(/\n{3,}/g, "\n\n")
-          .trim();
+        doc
+          .querySelectorAll("script, style, head, noscript, template, iframe, object, embed")
+          .forEach((el) => el.remove());
+
+        doc.querySelectorAll("br").forEach((el) => {
+          el.replaceWith(doc.createTextNode("\n"));
+        });
+
+        doc.querySelectorAll("p, div, li, tr, h1, h2, h3, h4, h5, h6").forEach((el) => {
+          el.append(doc.createTextNode("\n"));
+        });
+
+        const text = doc.body?.textContent || "";
+
+        return text.replace(/\n{3,}/g, "\n\n").trim();
       })();
 
   const envelope: MailEnvelope = {
