@@ -162,7 +162,7 @@ export function sanitize_html(
 
   if (!body_background) {
     const first_el_match = html.match(
-      /<body[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*<(table|div|center)\b[^>]*/i,
+      /<body[^>]*>\s*(?:<!--[\s\S]*?-->\s*){0,32}<(table|div|center)\b[^>]*/i,
     );
 
     if (first_el_match) {
@@ -716,11 +716,21 @@ export function strip_html_tags(html: string): string {
     .replace(/&#39;/gi, "'")
     .replace(/&amp;/gi, "&");
 
+  let prev = "";
+
+  while (prev !== result) {
+    prev = result;
+    result = result
+      .replace(/<head\b[^>]*>[\s\S]*?<\/head\s*>/gi, "")
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, "")
+      .replace(/<style\b[^>]*\/>/gi, "")
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "");
+  }
+
   result = result
-    .replace(/<head[^>]*>[\s\S]*?<\/head>/gi, "")
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-    .replace(/<style[^>]*\/>/gi, "")
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<head\b[^>]*>[\s\S]*$/gi, "")
+    .replace(/<style\b[^>]*>[\s\S]*$/gi, "")
+    .replace(/<script\b[^>]*>[\s\S]*$/gi, "")
     .replace(/<br\s*\/?>/gi, " ")
     .replace(/<\/p>/gi, " ")
     .replace(/<\/div>/gi, " ")
