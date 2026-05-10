@@ -232,7 +232,7 @@ export function ContactList({
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
           <Input
             ref={search_input_ref}
-            className="pl-9 h-9 text-[13px] bg-surf-secondary"
+            className="!pl-9 h-9 text-[13px] bg-surf-secondary"
             placeholder={t("common.search_contacts")}
             value={search_query}
             onChange={(e) => set_search_query(e.target.value)}
