@@ -359,18 +359,34 @@ export async function create_sent_envelope(
 
   const plain_body_text = body_is_plain_text
     ? email.body
-    : email.body
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/<\/div>/gi, "\n")
-        .replace(/<\/p>/gi, "\n")
-        .replace(/<[^>]+>/g, "")
-        .replace(/&nbsp;/g, " ")
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/\n{3,}/g, "\n\n")
-        .trim();
+    : (() => {
+        let stripped = email.body;
+        let prev = "";
+
+        while (prev !== stripped) {
+          prev = stripped;
+          stripped = stripped
+            .replace(/<head\b[^>]*>[\s\S]*?<\/head\s*>/gi, "")
+            .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, "")
+            .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "");
+        }
+
+        return stripped
+          .replace(/<head\b[^>]*>[\s\S]*$/gi, "")
+          .replace(/<style\b[^>]*>[\s\S]*$/gi, "")
+          .replace(/<script\b[^>]*>[\s\S]*$/gi, "")
+          .replace(/<br\s*\/?>/gi, "\n")
+          .replace(/<\/div>/gi, "\n")
+          .replace(/<\/p>/gi, "\n")
+          .replace(/<[^>]+>/g, "")
+          .replace(/&nbsp;/g, " ")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"')
+          .replace(/&amp;/g, "&")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
+      })();
 
   const envelope: MailEnvelope = {
     version: 1,
