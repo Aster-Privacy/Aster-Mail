@@ -569,6 +569,8 @@ export const ar = {
     failed_to_delete_label: "فشل في حذف التصنيف",
     failed_to_create_label: "فشل في إنشاء التصنيف. يرجى المحاولة مجددًا.",
     failed_to_create_folder_error: "فشل في إنشاء المجلد. يرجى المحاولة مجددًا.",
+    folder_plan_limit_reached:
+      "لقد وصلت إلى حد المجلدات في خطتك الحالية. قم بالترقية لإنشاء المزيد.",
     authenticate_to_send: "قم بالمصادقة لإرسال البريد",
     failed_to_send_reply: "فشل في إرسال الرد",
     failed_to_delete_draft: "فشل في حذف المسودة",

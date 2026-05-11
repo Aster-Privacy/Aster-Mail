@@ -629,6 +629,8 @@ export const en: Translations = {
     failed_to_delete_label: "Failed to delete label",
     failed_to_create_label: "Failed to create label. Please try again.",
     failed_to_create_folder_error: "Failed to create folder. Please try again.",
+    folder_plan_limit_reached:
+      "You've reached the folder limit for your current plan. Upgrade to create more folders.",
     authenticate_to_send: "Authenticate to send email",
     failed_to_send_reply: "Failed to send reply",
     failed_to_delete_draft: "Failed to delete draft",

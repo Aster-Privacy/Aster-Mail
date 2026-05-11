@@ -590,6 +590,8 @@ export const es = {
       "Error al crear etiqueta. Por favor, inténtalo de nuevo.",
     failed_to_create_folder_error:
       "Error al crear carpeta. Por favor, inténtalo de nuevo.",
+    folder_plan_limit_reached:
+      "Has alcanzado el límite de carpetas de tu plan actual. Mejora tu plan para crear más.",
     authenticate_to_send: "Autentícate para enviar correo",
     failed_to_send_reply: "Error al enviar respuesta",
     failed_to_delete_draft: "Error al eliminar borrador",

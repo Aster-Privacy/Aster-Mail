@@ -569,6 +569,8 @@ export const ko = {
     failed_to_delete_label: "라벨 삭제 실패",
     failed_to_create_label: "라벨 생성 실패. 다시 시도해 주세요.",
     failed_to_create_folder_error: "폴더 생성 실패. 다시 시도해 주세요.",
+    folder_plan_limit_reached:
+      "현재 요금제의 폴더 한도에 도달했습니다. 더 만들려면 업그레이드하세요.",
     authenticate_to_send: "이메일을 보내려면 인증하세요",
     failed_to_send_reply: "답장 전송 실패",
     failed_to_delete_draft: "임시 저장 삭제 실패",

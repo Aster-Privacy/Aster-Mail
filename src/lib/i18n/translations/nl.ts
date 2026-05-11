@@ -569,6 +569,8 @@ export const nl = {
     failed_to_delete_label: "Label verwijderen mislukt",
     failed_to_create_label: "Label aanmaken mislukt. Probeer het opnieuw.",
     failed_to_create_folder_error: "Map aanmaken mislukt. Probeer het opnieuw.",
+    folder_plan_limit_reached:
+      "Je hebt de maplimiet van je huidige abonnement bereikt. Upgrade om meer mappen aan te maken.",
     authenticate_to_send: "Authenticeer om e-mail te verzenden",
     failed_to_send_reply: "Antwoord verzenden mislukt",
     failed_to_delete_draft: "Concept verwijderen mislukt",

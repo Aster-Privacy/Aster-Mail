@@ -582,6 +582,8 @@ export const pl = {
       "Nie udało się utworzyć etykiety. Spróbuj ponownie.",
     failed_to_create_folder_error:
       "Nie udało się utworzyć folderu. Spróbuj ponownie.",
+    folder_plan_limit_reached:
+      "Osiągnięto limit folderów w bieżącym planie. Ulepsz plan, aby utworzyć więcej.",
     authenticate_to_send: "Uwierzytelnij się, aby wysłać e-mail",
     failed_to_send_reply: "Nie udało się wysłać odpowiedzi",
     failed_to_delete_draft: "Nie udało się usunąć szkicu",

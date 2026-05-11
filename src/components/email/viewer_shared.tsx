@@ -84,6 +84,7 @@ import {
 import { ViewSourceModal } from "@/components/modals/view_source_modal";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { SendingMessageBlock } from "@/components/email/sending_message_block";
+import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
 
 let loaded_content_email_id: string | null = null;
 
@@ -1064,7 +1065,7 @@ export function ViewerThreadContent({
   on_not_spam,
   on_toggle_message_read,
   on_edit_thread_draft: _on_edit_thread_draft,
-  on_thread_draft_deleted: _on_thread_draft_deleted,
+  on_thread_draft_deleted,
   on_draft_saved,
   external_content_mode,
   on_external_content_detected,
@@ -1181,6 +1182,25 @@ export function ViewerThreadContent({
         subject={email.subject}
       />
 
+
+      {thread_draft && !inline_reply_msg && (
+        <ThreadDraftBadge
+          current_user_email={current_user_email}
+          current_user_name={current_user_name}
+          draft={thread_draft}
+          on_deleted={() => on_thread_draft_deleted?.()}
+          on_edit={(draft) => {
+            const target =
+              thread_messages.find((m) => m.id === draft.reply_to_id) ??
+              thread_messages[thread_messages.length - 1];
+            if (!target) return;
+            set_inline_reply_msg(target);
+            set_inline_mode(
+              draft.draft_type === "forward" ? "forward" : "reply",
+            );
+          }}
+        />
+      )}
 
       {sending_message && (
         <div className="mt-4">

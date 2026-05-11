@@ -626,6 +626,7 @@ export interface CommonTranslations {
   failed_to_delete_label: string;
   failed_to_create_label: string;
   failed_to_create_folder_error: string;
+  folder_plan_limit_reached: string;
   authenticate_to_send: string;
   failed_to_send_reply: string;
   failed_to_delete_draft: string;

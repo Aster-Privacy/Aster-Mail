@@ -579,6 +579,8 @@ export const ja = {
       "ラベルの作成に失敗しました。もう一度お試しください。",
     failed_to_create_folder_error:
       "フォルダの作成に失敗しました。もう一度お試しください。",
+    folder_plan_limit_reached:
+      "現在のプランのフォルダ上限に達しました。さらに作成するにはアップグレードしてください。",
     authenticate_to_send: "メール送信のために認証してください",
     failed_to_send_reply: "返信の送信に失敗しました",
     failed_to_delete_draft: "下書きの削除に失敗しました",

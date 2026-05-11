@@ -481,6 +481,7 @@ export const zh_CN = {
     failed_to_delete_label: "删除标签失败",
     failed_to_create_label: "创建标签失败，请重试。",
     failed_to_create_folder_error: "创建文件夹失败，请重试。",
+    folder_plan_limit_reached: "您已达到当前套餐的文件夹数量上限。请升级以创建更多文件夹。",
     authenticate_to_send: "请验证身份以发送邮件",
     failed_to_send_reply: "发送回复失败",
     failed_to_delete_draft: "删除草稿失败",

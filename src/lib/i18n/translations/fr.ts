@@ -594,6 +594,8 @@ export const fr = {
       "Échec de la création du libellé. Veuillez réessayer.",
     failed_to_create_folder_error:
       "Échec de la création du dossier. Veuillez réessayer.",
+    folder_plan_limit_reached:
+      "Vous avez atteint la limite de dossiers de votre forfait actuel. Mettez-le à niveau pour en créer davantage.",
     authenticate_to_send: "Authentifiez-vous pour envoyer un e-mail",
     failed_to_send_reply: "Échec de l'envoi de la réponse",
     failed_to_delete_draft: "Échec de la suppression du brouillon",

@@ -504,6 +504,8 @@ export const pt = {
       "Falha ao criar etiqueta. Por favor, tente novamente.",
     failed_to_create_folder_error:
       "Falha ao criar pasta. Por favor, tente novamente.",
+    folder_plan_limit_reached:
+      "Você atingiu o limite de pastas do seu plano atual. Atualize para criar mais.",
     authenticate_to_send: "Autentique-se para enviar e-mail",
     failed_to_send_reply: "Falha ao enviar resposta",
     failed_to_delete_draft: "Falha ao excluir rascunho",

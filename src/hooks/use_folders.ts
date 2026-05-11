@@ -190,7 +190,7 @@ interface UseFoldersReturn {
     name: string,
     color?: string,
     parent_token?: string,
-  ) => Promise<DecryptedFolder | null>;
+  ) => Promise<{ folder: DecryptedFolder | null; error?: string; code?: string }>;
   update_existing_folder: (
     folder_id: string,
     name?: string,
@@ -494,17 +494,21 @@ export function use_folders(): UseFoldersReturn {
       name: string,
       color?: string,
       parent_token?: string,
-    ): Promise<DecryptedFolder | null> => {
+    ): Promise<{
+      folder: DecryptedFolder | null;
+      error?: string;
+      code?: string;
+    }> => {
       const trimmed_name = name.trim();
 
       if (!trimmed_name || trimmed_name.length > 100) {
-        return null;
+        return { folder: null, code: "INVALID_NAME" };
       }
 
       const vault = get_vault_from_memory();
 
       if (!vault?.identity_key) {
-        return null;
+        return { folder: null, code: "NO_VAULT" };
       }
 
       const duplicate_exists = cached_folders.data.some(
@@ -512,7 +516,7 @@ export function use_folders(): UseFoldersReturn {
       );
 
       if (duplicate_exists) {
-        return null;
+        return { folder: null, code: "DUPLICATE" };
       }
 
       try {
@@ -542,7 +546,11 @@ export function use_folders(): UseFoldersReturn {
         const response = await create_folder(request);
 
         if (response.error || !response.data) {
-          return null;
+          return {
+            folder: null,
+            error: response.error,
+            code: response.code,
+          };
         }
 
         const new_folder: DecryptedFolder = {
@@ -577,9 +585,9 @@ export function use_folders(): UseFoldersReturn {
 
         emit_folders_changed();
 
-        return new_folder;
+        return { folder: new_folder };
       } catch {
-        return null;
+        return { folder: null, code: "ENCRYPTION_ERROR" };
       }
     },
     [],

@@ -840,6 +840,8 @@ export const de = {
       "Label konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
     failed_to_create_folder_error:
       "Ordner konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
+    folder_plan_limit_reached:
+      "Sie haben das Ordnerlimit Ihres aktuellen Tarifs erreicht. Aktualisieren Sie ihn, um mehr zu erstellen.",
     failed_to_send_verification:
       "Bestätigungs-E-Mail konnte nicht gesendet werden",
     session_expired_login:

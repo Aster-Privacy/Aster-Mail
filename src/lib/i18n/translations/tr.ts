@@ -580,6 +580,8 @@ export const tr = {
     failed_to_create_label: "Etiket oluşturulamadı. Lütfen tekrar deneyin.",
     failed_to_create_folder_error:
       "Klasör oluşturulamadı. Lütfen tekrar deneyin.",
+    folder_plan_limit_reached:
+      "Mevcut planınızın klasör sınırına ulaştınız. Daha fazla oluşturmak için yükseltin.",
     authenticate_to_send: "E-posta göndermek için kimlik doğrulayın",
     failed_to_send_reply: "Yanıt gönderilemedi",
     failed_to_delete_draft: "Taslak silinemedi",

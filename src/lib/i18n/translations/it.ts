@@ -590,6 +590,8 @@ export const it = {
     failed_to_delete_label: "Eliminazione etichetta non riuscita",
     failed_to_create_label: "Creazione etichetta non riuscita. Riprova.",
     failed_to_create_folder_error: "Creazione cartella non riuscita. Riprova.",
+    folder_plan_limit_reached:
+      "Hai raggiunto il limite di cartelle del tuo piano. Esegui l'upgrade per crearne altre.",
     authenticate_to_send: "Autenticati per inviare email",
     failed_to_send_reply: "Invio risposta non riuscito",
     failed_to_delete_draft: "Eliminazione bozza non riuscita",

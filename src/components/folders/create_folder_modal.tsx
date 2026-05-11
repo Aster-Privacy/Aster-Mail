@@ -96,11 +96,15 @@ export function CreateFolderModal({
 
     set_is_creating(false);
 
-    if (result) {
+    if (result.folder) {
       on_close();
       set_folder_name("");
       set_selected_color(TAG_COLOR_PRESETS[10].hex);
       set_selected_parent_token(undefined);
+    } else if (result.code === "PLAN_LIMIT_EXCEEDED") {
+      set_error(t("common.folder_plan_limit_reached"));
+    } else if (result.error) {
+      set_error(result.error);
     } else {
       set_error(t("common.failed_to_create_folder_error"));
     }

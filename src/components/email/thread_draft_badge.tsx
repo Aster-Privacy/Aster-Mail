@@ -21,8 +21,6 @@
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 
 import { useState, useCallback } from "react";
-import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { delete_draft } from "@/services/api/multi_drafts";
@@ -47,7 +45,6 @@ export function ThreadDraftBadge({
 }: ThreadDraftBadgeProps) {
   const { t } = use_i18n();
   const [is_deleting, set_is_deleting] = useState(false);
-  const [is_hovered, set_is_hovered] = useState(false);
 
   const handle_delete = useCallback(
     async (e: React.MouseEvent) => {
@@ -73,106 +70,37 @@ export function ThreadDraftBadge({
     on_edit(draft);
   }, [draft, on_edit]);
 
-  const preview_text =
-    strip_html_tags(draft.content.message || "") || t("common.no_content");
-  const truncated_preview =
-    preview_text.length > 120
-      ? preview_text.substring(0, 120) + "..."
-      : preview_text;
+  const preview_text = strip_html_tags(draft.content.message || "").trim();
+  const summary =
+    draft.content.subject?.trim() || preview_text || t("common.no_content");
+  const truncated_summary =
+    summary.length > 60 ? summary.substring(0, 60) + "..." : summary;
+
+  const text_button_class =
+    "flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors";
 
   return (
-    <div
-      className="relative mt-4 rounded-xl border-2 border-dashed transition-all cursor-pointer"
-      style={{
-        borderColor: is_hovered
-          ? "var(--accent-color)"
-          : "rgba(99, 102, 241, 0.4)",
-        backgroundColor: is_hovered
-          ? "rgba(99, 102, 241, 0.08)"
-          : "rgba(99, 102, 241, 0.04)",
-      }}
-      onClick={handle_edit}
-      onMouseEnter={() => set_is_hovered(true)}
-      onMouseLeave={() => set_is_hovered(false)}
-    >
-      <div className="p-4">
-        <div className="flex items-start gap-3">
-          <ProfileAvatar
-            email={current_user_email}
-            name={current_user_name || t("common.me")}
-            size="md"
-          />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span
-                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
-                style={{
-                  backgroundColor: "rgba(99, 102, 241, 0.15)",
-                  color: "rgb(99, 102, 241)",
-                }}
-              >
-                <PencilSquareIcon className="w-3 h-3" />
-                {t("mail.draft")}
-              </span>
-              <span className="text-xs font-medium text-txt-secondary">
-                {current_user_name || t("common.me")}
-              </span>
-            </div>
-
-            {draft.content.subject && (
-              <p className="text-sm font-medium mb-1 truncate text-txt-primary">
-                {draft.content.subject}
-              </p>
-            )}
-
-            <p className="text-sm line-clamp-2 text-txt-muted">
-              {truncated_preview}
-            </p>
-
-            {draft.content.to_recipients.length > 0 && (
-              <div className="text-xs mt-2 flex items-center gap-1 flex-wrap text-txt-muted">
-                <span>{t("mail.to_label")}:</span>
-                {draft.content.to_recipients.map((email, i) => (
-                  <span key={email} className="inline-flex items-center gap-1">
-                    <ProfileAvatar
-                      use_domain_logo
-                      email={email}
-                      name=""
-                      size="xs"
-                    />
-                    <span>{email}</span>
-                    {i < draft.content.to_recipients.length - 1 && (
-                      <span>,</span>
-                    )}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1">
-            <Button
-              className="h-8 w-8 text-txt-muted hover:text-red-500 hover:bg-red-500/10"
-              disabled={is_deleting}
-              size="icon"
-              variant="ghost"
-              onClick={handle_delete}
-            >
-              <TrashIcon className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div
-        className="absolute bottom-2 right-3 flex items-center gap-1 text-xs transition-opacity"
-        style={{
-          color: "var(--accent-color)",
-          opacity: is_hovered ? 1 : 0.7,
-        }}
-      >
-        <span>{t("common.click_to_edit")}</span>
-        <PencilSquareIcon className="w-3 h-3" />
+    <div className="mt-2 px-4 flex items-center gap-3">
+      <ProfileAvatar
+        email={current_user_email}
+        name={current_user_name || t("common.me")}
+        size="md"
+      />
+      <div className="flex-1 flex items-center gap-2 min-w-0 text-xs text-txt-muted">
+        <span className="font-medium text-txt-secondary">
+          {t("mail.draft")}
+        </span>
+        <span className="truncate">{truncated_summary}</span>
+        <button className={text_button_class} onClick={handle_edit}>
+          {t("common.click_to_edit")}
+        </button>
+        <button
+          className={text_button_class}
+          disabled={is_deleting}
+          onClick={handle_delete}
+        >
+          {t("common.delete")}
+        </button>
       </div>
     </div>
   );
