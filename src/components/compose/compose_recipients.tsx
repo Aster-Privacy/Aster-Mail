@@ -509,7 +509,7 @@ export function RecipientField({
           </div>
         )}
         <div
-          className="flex flex-wrap items-center gap-1.5"
+          className={`flex flex-wrap items-center gap-1.5${is_expanded && overflow_count > 0 ? " max-h-[160px] overflow-y-auto pr-1" : ""}`}
           role="presentation"
           onKeyDown={handle_key_down}
         >
