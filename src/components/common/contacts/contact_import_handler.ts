@@ -29,10 +29,14 @@ export function parse_csv_contacts(text: string): {
   contacts: ContactFormData[];
   error?: string;
 } {
+  const MAX_CSV_ROWS = 10000;
   const lines = text.split(/\r?\n/).filter((line) => line.trim());
 
   if (lines.length < 2) {
     return { contacts: [], error: "csv_empty" };
+  }
+  if (lines.length - 1 > MAX_CSV_ROWS) {
+    return { contacts: [], error: "csv_too_large" };
   }
 
   const headers = parse_csv_line(lines[0]).map((h) => h.toLowerCase().trim());

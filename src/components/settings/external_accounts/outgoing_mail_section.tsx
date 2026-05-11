@@ -118,9 +118,9 @@ export function OutgoingMailSection({
                 className="w-full"
                 id="ext-account-smtp-port"
                 max={65535}
-                min={1}
+                min={0}
                 type="number"
-                value={form_smtp_port}
+                value={form_smtp_port === 0 ? "" : form_smtp_port}
                 onChange={(e) => handle_smtp_port_change(e.target.value)}
               />
             </div>

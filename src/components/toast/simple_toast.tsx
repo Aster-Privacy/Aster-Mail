@@ -54,7 +54,10 @@ export function dismiss_toast(id: string) {
   toast_listeners.forEach((listener) => listener([...toast_stack]));
 }
 
-export function show_toast(message: string, icon_type?: ToastIconType) {
+export function show_toast(
+  message: string,
+  icon_type?: ToastIconType,
+): string {
   const new_toast: ToastState = {
     message,
     icon_type,
@@ -86,6 +89,8 @@ export function show_toast(message: string, icon_type?: ToastIconType) {
   }, 2000);
 
   toast_timeouts.set(new_toast.id, timeout);
+
+  return new_toast.id;
 }
 
 function get_toast_icon(icon_type?: ToastIconType) {

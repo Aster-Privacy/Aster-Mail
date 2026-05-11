@@ -138,8 +138,6 @@ function MobileInbox({
 
   const {
     state: mail_state,
-    new_email_count,
-    load_new_emails,
     load_more,
     update_email,
     remove_email,
@@ -494,18 +492,8 @@ function MobileInbox({
 
       return;
     }
-    if (new_email_count > 0) {
-      load_new_emails();
-    } else {
-      refresh();
-    }
-  }, [
-    is_drafts_view,
-    new_email_count,
-    load_new_emails,
-    refresh,
-    refresh_drafts,
-  ]);
+    refresh();
+  }, [is_drafts_view, refresh, refresh_drafts]);
 
   const confirm_empty_trash = useCallback(async () => {
     set_is_emptying_trash(true);
@@ -584,15 +572,6 @@ function MobileInbox({
           on_search={() => navigate("/search")}
           right_actions={
             <>
-              {new_email_count > 0 && (
-                <button
-                  className="rounded-full px-2.5 py-1 text-[13px] font-medium text-[var(--accent-color,#3b82f6)]"
-                  type="button"
-                  onClick={load_new_emails}
-                >
-                  {t("common.n_new", { count: new_email_count })}
-                </button>
-              )}
               {is_trash_view && active_emails.length > 0 && (
                 <button
                   className="flex h-11 w-11 items-center justify-center rounded-full text-red-500 active:bg-[var(--bg-tertiary)]"

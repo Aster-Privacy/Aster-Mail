@@ -445,11 +445,31 @@ export async function update_domain_address(
   address_id: string,
   updates: {
     profile_picture?: string | null;
+    display_name?: string;
   },
 ): Promise<ApiResponse<{ success: boolean }>> {
+  const body: {
+    profile_picture?: string | null;
+    encrypted_display_name?: string;
+    display_name_nonce?: string;
+  } = {};
+
+  if (updates.profile_picture !== undefined) {
+    body.profile_picture = updates.profile_picture;
+  }
+
+  if (updates.display_name !== undefined) {
+    const { encrypted, nonce } = await encrypt_address_field(
+      updates.display_name,
+    );
+
+    body.encrypted_display_name = encrypted;
+    body.display_name_nonce = nonce;
+  }
+
   return api_client.patch<{ success: boolean }>(
     `/addresses/v1/domains/${domain_id}/addresses/${address_id}`,
-    updates,
+    body,
   );
 }
 

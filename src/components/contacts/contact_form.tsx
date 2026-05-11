@@ -103,20 +103,31 @@ export function ContactForm({
 
   useEffect(() => {
     if (contact) {
+      const {
+        id: _id,
+        created_at: _created_at,
+        updated_at: _updated_at,
+        last_contacted: _last_contacted,
+        email_count: _email_count,
+        ...rest
+      } = contact;
+
+      void _id;
+      void _created_at;
+      void _updated_at;
+      void _last_contacted;
+      void _email_count;
+
       set_form_data({
-        first_name: contact.first_name,
-        last_name: contact.last_name,
+        ...rest,
         emails: contact.emails.length > 0 ? contact.emails : [""],
         phone: contact.phone || "",
         company: contact.company || "",
         job_title: contact.job_title || "",
         notes: contact.notes || "",
-        relationship: contact.relationship,
         birthday: contact.birthday || "",
         social_links: contact.social_links || {},
         address: contact.address || {},
-        is_favorite: contact.is_favorite,
-        avatar_url: contact.avatar_url,
       });
     } else {
       set_form_data(initial_form_data);

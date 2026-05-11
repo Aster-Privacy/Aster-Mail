@@ -349,8 +349,19 @@ export function use_single_actions(
         t,
       );
 
+      const archive_update = {
+        is_archived: true,
+        is_trashed: false,
+        is_spam: false,
+      };
+      const original_state = {
+        is_archived: email.is_archived,
+        is_trashed: email.is_trashed,
+        is_spam: email.is_spam,
+      };
+
       if (offline_result.queued) {
-        config.on_optimistic_update?.(email.id, { is_archived: true });
+        config.on_optimistic_update?.(email.id, archive_update);
         config.on_remove_from_list?.(email.id);
         apply_stat_deltas(deltas);
 
@@ -362,8 +373,8 @@ export function use_single_actions(
       const success = await execute_single_action(
         email,
         "archive",
-        { is_archived: true },
-        () => update_with_metadata(email, { is_archived: true }),
+        archive_update,
+        () => update_with_metadata(email, archive_update),
         true,
       );
 
@@ -374,7 +385,7 @@ export function use_single_actions(
           email_ids: [email.id],
           on_undo: async () => {
             revert_stat_deltas(deltas);
-            await update_with_metadata(email, { is_archived: false });
+            await update_with_metadata(email, original_state);
             emit_mail_soft_refresh();
           },
         });
@@ -492,11 +503,17 @@ export function use_single_actions(
         adjust_stats_spam(1);
       }
 
+      const spam_update = { is_spam: true, is_trashed: false };
+      const original_state = {
+        is_spam: email.is_spam,
+        is_trashed: email.is_trashed,
+      };
+
       const success = await execute_single_action(
         email,
         "spam",
-        { is_spam: true },
-        () => update_with_metadata(email, { is_spam: true }),
+        spam_update,
+        () => update_with_metadata(email, spam_update),
         true,
       );
 
@@ -510,7 +527,7 @@ export function use_single_actions(
             if (is_unread_received) {
               adjust_stats_spam(-1);
             }
-            await update_with_metadata(email, { is_spam: false });
+            await update_with_metadata(email, original_state);
             remove_spam_sender(email.sender_email).catch(() => {});
             emit_mail_soft_refresh();
           },

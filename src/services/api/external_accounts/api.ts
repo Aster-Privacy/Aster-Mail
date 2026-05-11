@@ -159,6 +159,7 @@ export async function update_external_account(
   credentials?: ExternalAccountCredentials,
   is_enabled?: boolean,
   tag_token?: string,
+  protocol?: "imap" | "pop3",
 ): Promise<ApiResponse<ExternalAccountResponse>> {
   const token_error = validate_account_token(account_token);
 
@@ -188,6 +189,7 @@ export async function update_external_account(
         credentials,
         is_enabled,
         tag_token,
+        protocol,
       },
     );
 

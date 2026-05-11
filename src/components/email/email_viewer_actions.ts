@@ -368,6 +368,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
   const handle_spam = useCallback(async () => {
     if (!deps.email_id || deps.is_spam_loading || !deps.mail_item) return;
     deps.set_is_spam_loading(true);
+    const prev_is_trashed = deps.mail_item.is_trashed ?? false;
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -375,7 +376,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         metadata_nonce: deps.mail_item.metadata_nonce,
         metadata_version: deps.mail_item.metadata_version,
       },
-      { is_spam: true },
+      { is_spam: true, is_trashed: false },
     );
 
     deps.set_is_spam_loading(false);
@@ -398,7 +399,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
               metadata_nonce: result.encrypted?.metadata_nonce,
             },
-            { is_spam: false },
+            { is_spam: false, is_trashed: prev_is_trashed },
           );
           if (sender) {
             remove_spam_sender(sender).catch(() => {});
@@ -729,7 +730,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           encrypted_metadata: msg.encrypted_metadata,
           metadata_nonce: msg.metadata_nonce,
         },
-        { is_spam: true },
+        { is_spam: true, is_trashed: false },
       );
 
       if (result.success) {

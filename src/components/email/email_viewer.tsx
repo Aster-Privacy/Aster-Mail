@@ -127,7 +127,11 @@ export function EmailViewer({
   const handle_spam = useCallback(async () => {
     if (is_spam_loading) return;
     set_is_spam_loading(true);
-    const result = await update_item_metadata(email.id, {}, { is_spam: true });
+    const result = await update_item_metadata(
+      email.id,
+      {},
+      { is_spam: true, is_trashed: false },
+    );
 
     set_is_spam_loading(false);
     if (result.success) {

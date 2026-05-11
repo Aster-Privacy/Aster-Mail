@@ -71,7 +71,6 @@ import { BottomPagination } from "@/components/email/inbox/inbox_bottom_paginati
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
 import { get_spam_settings } from "@/services/api/preferences";
-import { NewEmailPill } from "@/components/email/inbox/inbox_new_email_pill";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_toolbar_actions";
 import { use_inbox_keyboard } from "@/components/email/inbox/use_inbox_keyboard";
@@ -193,8 +192,6 @@ export function EmailInbox({
 
   const {
     state: mail_state,
-    new_email_count,
-    load_new_emails,
     fetch_page,
     update_email,
     remove_email,
@@ -1145,10 +1142,6 @@ export function EmailInbox({
                   : { width: split_pane.pane_width, flexShrink: 0, flexGrow: 0 }
               }
             >
-              <NewEmailPill
-                new_email_count={new_email_count}
-                on_load_new={load_new_emails}
-              />
               {email_list_content}
             </div>
             <div
@@ -1198,10 +1191,6 @@ export function EmailInbox({
             ref={split_pane.list_scroll_ref}
             className="flex-1 overflow-y-auto relative"
           >
-            <NewEmailPill
-              new_email_count={new_email_count}
-              on_load_new={load_new_emails}
-            />
             {email_list_content}
           </div>
         )}

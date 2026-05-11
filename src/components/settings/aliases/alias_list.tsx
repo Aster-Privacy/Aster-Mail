@@ -42,6 +42,10 @@ interface AliasListProps {
   on_domain_addr_delete: (id: string, domain_id: string) => void;
   on_avatar_changed?: () => void;
   on_display_name_saved?: (alias_id: string, name: string) => void;
+  on_domain_address_display_name_saved?: (
+    address_id: string,
+    name: string,
+  ) => void;
 }
 
 export function AliasList({
@@ -56,6 +60,7 @@ export function AliasList({
   on_domain_addr_delete,
   on_avatar_changed,
   on_display_name_saved,
+  on_domain_address_display_name_saved,
 }: AliasListProps) {
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
@@ -112,6 +117,7 @@ export function AliasList({
           is_avatar_locked={is_avatar_locked}
           on_avatar_changed={on_avatar_changed}
           on_delete={on_domain_addr_delete}
+          on_display_name_saved={on_domain_address_display_name_saved}
         />
       ))}
     </>

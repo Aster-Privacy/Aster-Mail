@@ -362,7 +362,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           encrypted_metadata: msg.encrypted_metadata,
           metadata_nonce: msg.metadata_nonce,
         },
-        { is_spam: true },
+        { is_spam: true, is_trashed: false },
       );
 
       if (result.success) {

@@ -38,6 +38,10 @@ import { SiGmail } from "react-icons/si";
 import { Button } from "@aster/ui";
 
 import { ImportModal } from "./import_modal";
+import {
+  ConnectProviderModal,
+  type ConnectProvider,
+} from "./connect_provider_modal";
 
 import {
   AlertDialog,
@@ -59,7 +63,6 @@ import {
   type ImportStatus,
 } from "@/services/api/email_import";
 import {
-  start_oauth_authorize,
   list_external_accounts,
   trigger_sync,
   delete_external_account,
@@ -454,7 +457,9 @@ export function ImportSection() {
   const [recent_jobs, set_recent_jobs] = useState<ImportJob[]>([]);
   const [is_loading_jobs, set_is_loading_jobs] = useState(true);
   const [has_error, set_has_error] = useState(false);
-  const [oauth_loading, set_oauth_loading] = useState<string | null>(null);
+  const [oauth_loading] = useState<string | null>(null);
+  const [connect_provider, set_connect_provider] =
+    useState<ConnectProvider | null>(null);
   const [connected_accounts, set_connected_accounts] = useState<
     DecryptedExternalAccount[]
   >([]);
@@ -752,54 +757,6 @@ export function ImportSection() {
     }
   };
 
-  const handle_oauth_import = useCallback(
-    async (provider_id: string) => {
-      const oauth_provider = PROVIDER_TO_OAUTH[provider_id];
-
-      if (!oauth_provider) return;
-
-      oauth_cancelled_ref.current = false;
-      set_oauth_loading(provider_id);
-
-      try {
-        const result = await start_oauth_authorize(oauth_provider);
-
-        if (oauth_cancelled_ref.current) {
-          set_oauth_loading(null);
-
-          return;
-        }
-
-        if (result.error) {
-          show_toast(
-            t("settings.oauth_import_error", { reason: result.error }),
-            "error",
-          );
-          set_oauth_loading(null);
-
-          return;
-        }
-
-        if (result.data?.authorize_url) {
-          window.location.href = result.data.authorize_url;
-        }
-      } catch {
-        if (oauth_cancelled_ref.current) {
-          set_oauth_loading(null);
-
-          return;
-        }
-
-        show_toast(
-          t("settings.oauth_import_error", { reason: "unexpected_error" }),
-          "error",
-        );
-        set_oauth_loading(null);
-      }
-    },
-    [t],
-  );
-
   useEffect(() => {
     load_jobs();
     load_connected_accounts();
@@ -912,7 +869,10 @@ export function ImportSection() {
                   disabled={oauth_loading !== null}
                   size="md"
                   variant="depth"
-                  onClick={() => handle_oauth_import(provider.id)}
+                  onClick={() => {
+                    const mapped = PROVIDER_TO_OAUTH[provider.id];
+                    if (mapped) set_connect_provider(mapped);
+                  }}
                 >
                   {oauth_loading === provider.id ? (
                     <Spinner className="text-current" size="sm" />
@@ -1047,6 +1007,11 @@ export function ImportSection() {
           provider={selected_provider}
         />
       )}
+
+      <ConnectProviderModal
+        provider={connect_provider}
+        on_close={() => set_connect_provider(null)}
+      />
 
       <AlertDialog
         open={disconnect_token !== null}

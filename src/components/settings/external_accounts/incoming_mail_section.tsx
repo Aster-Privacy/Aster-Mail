@@ -132,9 +132,9 @@ export function IncomingMailSection({
             className="w-full"
             id="ext-account-port"
             max={65535}
-            min={1}
+            min={0}
             type="number"
-            value={form_port}
+            value={form_port === 0 ? "" : form_port}
             onChange={(e) => handle_port_change(e.target.value)}
           />
         </div>

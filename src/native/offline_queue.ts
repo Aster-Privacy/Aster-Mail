@@ -240,7 +240,7 @@ async function process_archive(payload: EmailActionPayload): Promise<void> {
         metadata_nonce: item.metadata_nonce,
         metadata_version: item.metadata_version,
       },
-      { is_archived: true },
+      { is_archived: true, is_trashed: false, is_spam: false },
     );
 
     if (!result.success) {

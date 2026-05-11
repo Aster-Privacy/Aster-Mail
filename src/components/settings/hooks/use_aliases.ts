@@ -495,6 +495,21 @@ export function use_aliases() {
     });
   };
 
+  const handle_domain_address_display_name_saved = (
+    address_id: string,
+    name: string,
+  ) => {
+    set_domain_addresses((prev) => {
+      const updated = prev.map((a) =>
+        a.id === address_id ? { ...a, display_name: name || undefined } : a,
+      );
+
+      aliases_cache.domain_addresses = updated;
+
+      return updated;
+    });
+  };
+
   const handle_domain_delete = (id: string) => {
     set_domain_delete_confirm({ is_open: true, id });
   };
@@ -576,6 +591,7 @@ export function use_aliases() {
     handle_open_setup,
     handle_wizard_close,
     handle_display_name_saved,
+    handle_domain_address_display_name_saved,
     handle_domain_delete,
     confirm_domain_delete,
   };

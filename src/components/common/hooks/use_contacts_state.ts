@@ -31,6 +31,7 @@ import {
   decrypt_contacts,
 } from "@/services/api/contacts";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_auth } from "@/contexts/auth_context";
 import { get_days_until_birthday } from "@/utils/contact_utils";
@@ -50,6 +51,25 @@ export type FilterOption =
 export type ViewMode = "list" | "compact";
 
 const BATCH_SIZE = 10;
+
+function contact_to_form_data(contact: DecryptedContact): ContactFormData {
+  const {
+    id: _id,
+    created_at: _created_at,
+    updated_at: _updated_at,
+    last_contacted: _last_contacted,
+    email_count: _email_count,
+    ...rest
+  } = contact;
+
+  void _id;
+  void _created_at;
+  void _updated_at;
+  void _last_contacted;
+  void _email_count;
+
+  return rest;
+}
 
 export function use_contacts_state() {
   const { t } = use_i18n();
@@ -118,16 +138,35 @@ export function use_contacts_state() {
       const query = search_query.toLowerCase();
 
       result = result.filter((contact) => {
-        const full_name =
-          `${contact.first_name} ${contact.last_name}`.toLowerCase();
-        const emails = contact.emails.join(" ").toLowerCase();
-        const company = (contact.company || "").toLowerCase();
+        const parts: string[] = [
+          contact.first_name,
+          contact.last_name,
+          contact.middle_name || "",
+          contact.nickname || "",
+          contact.phonetic_first_name || "",
+          contact.phonetic_middle_name || "",
+          contact.phonetic_last_name || "",
+          contact.title || "",
+          contact.name_suffix || "",
+          contact.company || "",
+          contact.job_title || "",
+          contact.role || "",
+          contact.department || "",
+          contact.notes || "",
+          contact.comment || "",
+          contact.pronouns || "",
+          (contact.emails || []).join(" "),
+          (contact.email_entries || []).map((e) => e.value).join(" "),
+          contact.phone || "",
+          (contact.phone_entries || []).map((p) => p.value).join(" "),
+          (contact.related_people || []).map((r) => r.value).join(" "),
+          (contact.social_networks || []).map((s) => s.value).join(" "),
+          (contact.websites || []).map((w) => w.value).join(" "),
+          (contact.instant_messengers || []).map((m) => m.value).join(" "),
+        ];
+        const haystack = parts.join("  ").toLowerCase();
 
-        return (
-          full_name.includes(query) ||
-          emails.includes(query) ||
-          company.includes(query)
-        );
+        return haystack.includes(query);
       });
     }
 
@@ -524,6 +563,13 @@ export function use_contacts_state() {
         return;
       }
 
+      if (parse_error === "csv_too_large") {
+        set_error(t("common.csv_too_large"));
+        set_is_importing(false);
+
+        return;
+      }
+
       if (parse_error === "no_valid_contacts") {
         set_error(t("common.no_valid_contacts_csv"));
         set_is_importing(false);
@@ -556,10 +602,56 @@ export function use_contacts_state() {
     }
   };
 
+  const [is_creating_new, set_is_creating_new] = useState(false);
+
   const handle_add_click = useCallback(() => {
-    set_editing_contact(null);
-    set_is_form_open(true);
+    set_selected_contact(null);
+    set_is_creating_new(true);
   }, []);
+
+  const handle_cancel_create = useCallback(() => {
+    set_is_creating_new(false);
+  }, []);
+
+  const handle_inline_create = useCallback(
+    async (data: ContactFormData): Promise<void> => {
+      set_is_submitting(true);
+      set_error(null);
+
+      try {
+        const response = await create_contact_encrypted(data);
+
+        if (response.error || !response.data) {
+          set_error(response.error || t("common.failed_to_create_contact"));
+          show_toast(t("common.failed_to_create_contact"), "error");
+
+          return;
+        }
+        const new_contact: DecryptedContact = {
+          ...data,
+          id: response.data.id,
+          is_favorite: data.is_favorite ?? false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        set_contacts((prev) => [...prev, new_contact]);
+        set_is_creating_new(false);
+        set_selected_contact(new_contact);
+        show_toast(t("common.contact_created"), "success");
+      } catch (err) {
+        set_error(
+          err instanceof Error
+            ? err.message
+            : t("common.failed_to_create_contact"),
+        );
+        show_toast(t("common.failed_to_create_contact"), "error");
+      } finally {
+        set_is_submitting(false);
+      }
+    },
+    [t],
+  );
 
   const handle_edit = useCallback((contact: DecryptedContact) => {
     set_editing_contact(contact);
@@ -578,6 +670,7 @@ export function use_contacts_state() {
 
       if (response.error) {
         set_error(response.error);
+        show_toast(t("common.failed_to_delete_contact"), "error");
 
         return;
       }
@@ -592,16 +685,18 @@ export function use_contacts_state() {
       if (selected_contact?.id === contact_to_delete.id) {
         set_selected_contact(null);
       }
+      show_toast(t("common.contact_deleted"), "success");
     } catch (err) {
       set_error(
         err instanceof Error
           ? err.message
           : t("common.failed_to_delete_contact"),
       );
+      show_toast(t("common.failed_to_delete_contact"), "error");
     } finally {
       set_contact_to_delete(null);
     }
-  }, [contact_to_delete, selected_contact]);
+  }, [contact_to_delete, selected_contact, t]);
 
   const handle_form_submit = useCallback(
     async (data: ContactFormData) => {
@@ -646,21 +741,9 @@ export function use_contacts_state() {
             return;
           }
           const new_contact: DecryptedContact = {
+            ...data,
             id: response.data.id,
-            first_name: data.first_name,
-            last_name: data.last_name,
-            emails: data.emails,
-            phone: data.phone,
-            company: data.company,
-            job_title: data.job_title,
-            address: data.address,
-            birthday: data.birthday,
-            social_links: data.social_links,
-            relationship: data.relationship,
-            notes: data.notes,
-            avatar_url: data.avatar_url,
             is_favorite: data.is_favorite ?? false,
-            groups: data.groups,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
@@ -681,6 +764,95 @@ export function use_contacts_state() {
       }
     },
     [editing_contact, selected_contact],
+  );
+
+  const handle_inline_save = useCallback(
+    async (contact: DecryptedContact, data: ContactFormData) => {
+      set_is_submitting(true);
+      set_error(null);
+
+      try {
+        const response = await update_contact_encrypted(contact.id, data);
+
+        if (response.error) {
+          set_error(response.error);
+          show_toast(t("common.failed_to_save_contact"), "error");
+
+          return;
+        }
+        const updated_contact: DecryptedContact = {
+          ...contact,
+          ...data,
+          is_favorite: data.is_favorite ?? contact.is_favorite,
+          updated_at: new Date().toISOString(),
+        };
+
+        set_contacts((prev) =>
+          prev.map((c) => (c.id === contact.id ? updated_contact : c)),
+        );
+        if (selected_contact?.id === contact.id) {
+          set_selected_contact(updated_contact);
+        }
+        show_toast(t("common.contact_saved"), "success");
+      } catch (err) {
+        set_error(
+          err instanceof Error
+            ? err.message
+            : t("common.failed_to_save_contact"),
+        );
+        show_toast(t("common.failed_to_save_contact"), "error");
+      } finally {
+        set_is_submitting(false);
+      }
+    },
+    [selected_contact, t],
+  );
+
+  const handle_toggle_favorite_single = useCallback(
+    async (contact: DecryptedContact) => {
+      const new_state = !contact.is_favorite;
+
+      set_contacts((prev) =>
+        prev.map((c) =>
+          c.id === contact.id ? { ...c, is_favorite: new_state } : c,
+        ),
+      );
+      set_selected_contact((prev) =>
+        prev && prev.id === contact.id
+          ? { ...prev, is_favorite: new_state }
+          : prev,
+      );
+      show_toast(
+        new_state
+          ? t("common.added_to_favorites")
+          : t("common.removed_from_favorites"),
+        "success",
+      );
+
+      try {
+        const response = await update_contact_encrypted(contact.id, {
+          ...contact_to_form_data(contact),
+          is_favorite: new_state,
+        });
+
+        if (response.error) {
+          throw new Error(response.error);
+        }
+      } catch {
+        set_contacts((prev) =>
+          prev.map((c) =>
+            c.id === contact.id ? { ...c, is_favorite: !new_state } : c,
+          ),
+        );
+        set_selected_contact((prev) =>
+          prev && prev.id === contact.id
+            ? { ...prev, is_favorite: !new_state }
+            : prev,
+        );
+        show_toast(t("common.failed_to_save_contact"), "error");
+      }
+    },
+    [t],
   );
 
   const handle_form_close = useCallback(() => {
@@ -801,20 +973,8 @@ export function use_contacts_state() {
         await Promise.allSettled(
           batch.map((contact) =>
             update_contact_encrypted(contact.id, {
-              first_name: contact.first_name,
-              last_name: contact.last_name,
-              emails: contact.emails,
-              phone: contact.phone,
-              company: contact.company,
-              job_title: contact.job_title,
-              address: contact.address,
-              birthday: contact.birthday,
-              social_links: contact.social_links,
-              relationship: contact.relationship,
-              notes: contact.notes,
-              avatar_url: contact.avatar_url,
+              ...contact_to_form_data(contact),
               is_favorite: new_favorite_state,
-              groups: contact.groups,
             }),
           ),
         );
@@ -860,6 +1020,13 @@ export function use_contacts_state() {
         t("common.favorite"),
       ];
 
+      const escape_csv_cell = (value: string): string => {
+        const safe =
+          value.length > 0 && /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+
+        return `"${safe.replace(/"/g, '""')}"`;
+      };
+
       const csv_rows = contacts_to_export.map((contact) => [
         contact.first_name,
         contact.last_name,
@@ -873,14 +1040,14 @@ export function use_contacts_state() {
         contact.address?.postal_code || "",
         contact.address?.country || "",
         contact.birthday || "",
-        (contact.notes || "").replace(/"/g, '""'),
+        contact.notes || "",
         contact.is_favorite ? t("common.yes") : t("common.no"),
       ]);
 
       const csv_content = [
-        csv_headers.join(","),
-        ...csv_rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
-      ].join("\n");
+        csv_headers.map(escape_csv_cell).join(","),
+        ...csv_rows.map((row) => row.map(escape_csv_cell).join(",")),
+      ].join("\r\n");
 
       const blob = new Blob([csv_content], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
@@ -984,6 +1151,10 @@ export function use_contacts_state() {
     handle_delete_request,
     handle_confirm_delete,
     handle_form_submit,
+    handle_inline_save,
+    handle_inline_create,
+    handle_cancel_create,
+    is_creating_new,
     handle_form_close,
     handle_compose_email,
     handle_toggle_select,
@@ -992,6 +1163,7 @@ export function use_contacts_state() {
     handle_confirm_bulk_delete,
     handle_compose_to_selected,
     handle_toggle_favorite_selected,
+    handle_toggle_favorite_single,
     handle_export_contacts,
     handle_copy_emails,
     handle_copy,

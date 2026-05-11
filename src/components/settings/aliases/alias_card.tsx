@@ -365,8 +365,9 @@ export function AliasItem({
         </div>
         <AliasDisplayNameEditor
           alias_address={alias.full_address}
-          alias_id={alias.id}
           display_name={alias.display_name}
+          is_locked={is_avatar_locked}
+          on_save={(name) => update_alias(alias.id, { display_name: name })}
           on_saved={(name) => on_display_name_saved?.(alias.id, name)}
         />
         {in_grace_period && (
@@ -411,6 +412,7 @@ interface DomainAddressItemProps {
   address: DecryptedDomainAddress & { domain_name: string };
   on_delete: (id: string, domain_id: string) => void;
   on_avatar_changed?: () => void;
+  on_display_name_saved?: (address_id: string, name: string) => void;
   deleting: boolean;
   is_avatar_locked: boolean;
 }
@@ -419,6 +421,7 @@ export function DomainAddressItem({
   address,
   on_delete,
   on_avatar_changed,
+  on_display_name_saved,
   deleting,
   is_avatar_locked,
 }: DomainAddressItemProps) {
@@ -547,11 +550,17 @@ export function DomainAddressItem({
             {t("common.custom")}
           </span>
         </div>
-        {address.display_name && (
-          <p className="text-xs mt-0.5 text-txt-muted">
-            {address.display_name}
-          </p>
-        )}
+        <AliasDisplayNameEditor
+          alias_address={full_address}
+          display_name={address.display_name}
+          is_locked={is_avatar_locked}
+          on_save={(name) =>
+            update_domain_address(address.domain_id, address.id, {
+              display_name: name,
+            })
+          }
+          on_saved={(name) => on_display_name_saved?.(address.id, name)}
+        />
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">

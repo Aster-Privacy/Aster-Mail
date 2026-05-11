@@ -164,6 +164,8 @@ export function use_external_accounts() {
           form.form_label_color,
           credentials,
           form.editing_account.is_enabled,
+          undefined,
+          form.form_protocol,
         );
 
         if (!form.is_mounted_ref.current) return;

@@ -360,7 +360,12 @@ export function MassUnsubscribeModal({
 
       const metadata_updates = await Promise.all(
         all_items.map(async (item) => {
-          const updated_metadata = { ...item.metadata!, is_archived: true };
+          const updated_metadata = {
+            ...item.metadata!,
+            is_archived: true,
+            is_trashed: false,
+            is_spam: false,
+          };
           const encrypted = await encrypt_mail_metadata(updated_metadata);
 
           return encrypted ? { id: item.id, ...encrypted } : null;

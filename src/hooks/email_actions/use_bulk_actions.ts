@@ -124,6 +124,14 @@ export function use_bulk_actions(
             is_archived: boolean;
             is_spam: boolean;
           }>;
+          compute_undo_metadata?: (email: InboxEmail) => Partial<{
+            is_read: boolean;
+            is_starred: boolean;
+            is_pinned: boolean;
+            is_trashed: boolean;
+            is_archived: boolean;
+            is_spam: boolean;
+          }>;
         };
         on_before_api?: () => void;
         on_partial_failure?: (failed_ids: string[]) => void;
@@ -227,14 +235,40 @@ export function use_bulk_actions(
               email_ids: successful_ids,
             };
 
-            if (action_config.success_toast.undo_metadata) {
-              const undo_metadata = action_config.success_toast.undo_metadata;
+            const compute_undo = action_config.success_toast.compute_undo_metadata;
+            const fixed_undo = action_config.success_toast.undo_metadata;
 
+            if (compute_undo) {
               toast_config.on_undo = async () => {
-                await bulk_update_with_metadata(
-                  successful_emails,
-                  undo_metadata,
-                );
+                const groups = new Map<string, { meta: Partial<{
+                  is_read: boolean;
+                  is_starred: boolean;
+                  is_pinned: boolean;
+                  is_trashed: boolean;
+                  is_archived: boolean;
+                  is_spam: boolean;
+                }>; emails: InboxEmail[] }>();
+
+                for (const email of successful_emails) {
+                  const meta = compute_undo(email);
+                  const key = JSON.stringify(meta);
+                  const entry = groups.get(key);
+
+                  if (entry) {
+                    entry.emails.push(email);
+                  } else {
+                    groups.set(key, { meta, emails: [email] });
+                  }
+                }
+
+                for (const { meta, emails: group } of groups.values()) {
+                  await bulk_update_with_metadata(group, meta);
+                }
+                emit_mail_soft_refresh();
+              };
+            } else if (fixed_undo) {
+              toast_config.on_undo = async () => {
+                await bulk_update_with_metadata(successful_emails, fixed_undo);
                 emit_mail_soft_refresh();
               };
             }
@@ -314,18 +348,32 @@ export function use_bulk_actions(
     async (emails: InboxEmail[]): Promise<boolean> => {
       return execute_bulk_action(emails, {
         action_type: "archive",
-        optimistic_update: { is_archived: true },
+        optimistic_update: {
+          is_archived: true,
+          is_trashed: false,
+          is_spam: false,
+        },
         original_state_extractor: (email) => ({
           is_archived: email.is_archived,
+          is_trashed: email.is_trashed,
+          is_spam: email.is_spam,
         }),
-        metadata_update: { is_archived: true },
+        metadata_update: {
+          is_archived: true,
+          is_trashed: false,
+          is_spam: false,
+        },
         remove_from_list: true,
         emit_view_change: true,
         error_message: t("common.failed_to_archive_emails"),
         success_toast: {
           message_key: "common.n_conversations_archived",
           toast_action_type: "archive",
-          undo_metadata: { is_archived: false },
+          compute_undo_metadata: (email) => ({
+            is_archived: email.is_archived,
+            is_trashed: email.is_trashed,
+            is_spam: email.is_spam,
+          }),
         },
       });
     },
@@ -377,18 +425,22 @@ export function use_bulk_actions(
     async (emails: InboxEmail[]): Promise<boolean> => {
       const result = await execute_bulk_action(emails, {
         action_type: "spam",
-        optimistic_update: { is_spam: true },
+        optimistic_update: { is_spam: true, is_trashed: false },
         original_state_extractor: (email) => ({
           is_spam: email.is_spam,
+          is_trashed: email.is_trashed,
         }),
-        metadata_update: { is_spam: true },
+        metadata_update: { is_spam: true, is_trashed: false },
         remove_from_list: true,
         emit_view_change: true,
         error_message: t("common.failed_to_mark_as_spam"),
         success_toast: {
           message_key: "common.n_conversations_marked_as_spam",
           toast_action_type: "spam",
-          undo_metadata: { is_spam: false },
+          compute_undo_metadata: (email) => ({
+            is_spam: email.is_spam,
+            is_trashed: email.is_trashed,
+          }),
         },
       });
 

@@ -381,6 +381,7 @@ export function use_email_list_actions({
 
       const result = await bulk_update_metadata_by_ids(all_ids, {
         is_spam: true,
+        is_trashed: false,
       });
 
       if (result.success) {

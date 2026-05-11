@@ -166,6 +166,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
     deps.set_is_spam_loading(true);
 
+    const prev_is_trashed = deps.mail_item.is_trashed ?? false;
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -173,7 +174,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         metadata_nonce: deps.mail_item.metadata_nonce,
         metadata_version: deps.mail_item.metadata_version,
       },
-      { is_spam: true },
+      { is_spam: true, is_trashed: false },
     );
 
     deps.set_is_spam_loading(false);
@@ -196,7 +197,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
               metadata_nonce: result.encrypted?.metadata_nonce,
             },
-            { is_spam: false },
+            { is_spam: false, is_trashed: prev_is_trashed },
           );
           if (sender) {
             remove_spam_sender(sender).catch(() => {});
@@ -636,7 +637,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           encrypted_metadata: msg.encrypted_metadata,
           metadata_nonce: msg.metadata_nonce,
         },
-        { is_spam: true },
+        { is_spam: true, is_trashed: false },
       );
 
       if (result.success) {

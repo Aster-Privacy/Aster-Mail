@@ -24,7 +24,6 @@ import { useEffect, useRef, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
-import { update_alias } from "@/services/api/aliases";
 
 const MAX_DISPLAY_NAME_LENGTH = 128;
 
@@ -33,17 +32,19 @@ function sanitize_display_name(value: string): string {
 }
 
 interface AliasDisplayNameEditorProps {
-  alias_id: string;
   alias_address: string;
   display_name?: string;
+  is_locked?: boolean;
+  on_save: (next_display_name: string) => Promise<{ error?: unknown }>;
   on_saved: (next_display_name: string) => void;
   variant?: "desktop" | "mobile";
 }
 
 export function AliasDisplayNameEditor({
-  alias_id,
   alias_address,
   display_name,
+  is_locked = false,
+  on_save,
   on_saved,
   variant = "desktop",
 }: AliasDisplayNameEditorProps) {
@@ -68,7 +69,7 @@ export function AliasDisplayNameEditor({
   }, [is_editing]);
 
   const enter_edit = () => {
-    if (saving) return;
+    if (saving || is_locked) return;
     commit_lock.current = false;
     set_value(display_name ?? "");
     set_is_editing(true);
@@ -100,7 +101,7 @@ export function AliasDisplayNameEditor({
 
     set_saving(true);
     try {
-      const response = await update_alias(alias_id, { display_name: cleaned });
+      const response = await on_save(cleaned);
 
       if (response.error) {
         show_toast(t("common.failed_update_alias_display_name"), "error");
@@ -172,20 +173,23 @@ export function AliasDisplayNameEditor({
   }
 
   const has_name = !!display_name;
+  const display_label = has_name ? display_name : placeholder_label;
+  const cursor_class = is_locked ? "cursor-not-allowed" : "cursor-text";
 
   if (variant === "mobile") {
     return (
       <button
         aria-label={aria_label}
-        className={`mt-1 block max-w-full cursor-text truncate text-left text-[13px] ${
+        className={`mt-1 block max-w-full ${cursor_class} truncate text-left text-[13px] ${
           has_name
             ? "text-[var(--mobile-text-muted)]"
             : "text-[var(--mobile-text-muted)] opacity-70"
         } focus:outline-none focus:ring-0`}
+        disabled={is_locked}
         type="button"
         onClick={enter_edit}
       >
-        {has_name ? display_name : placeholder_label}
+        {display_label}
       </button>
     );
   }
@@ -193,13 +197,14 @@ export function AliasDisplayNameEditor({
   return (
     <button
       aria-label={aria_label}
-      className={`mt-0.5 block max-w-full cursor-text truncate text-left text-xs ${
+      className={`mt-0.5 block max-w-full ${cursor_class} truncate text-left text-xs ${
         has_name ? "text-txt-muted" : "text-txt-muted opacity-70"
       } focus:outline-none focus:ring-0`}
+      disabled={is_locked}
       type="button"
       onClick={enter_edit}
     >
-      {has_name ? display_name : placeholder_label}
+      {display_label}
     </button>
   );
 }

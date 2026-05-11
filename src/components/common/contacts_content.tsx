@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { UserCircleIcon } from "@heroicons/react/24/outline";
+
 import { ContactForm } from "@/components/contacts";
 import { ContactImportModal } from "@/components/contacts/contact_import_modal";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -44,7 +46,7 @@ export function ContactsContent({
         type="file"
         onChange={state.handle_import_csv}
       />
-      <div className="flex h-full">
+      <div className="flex h-full min-h-0 w-full">
         <ContactList
           alphabetical_index={state.alphabetical_index}
           contact_refs={state.contact_refs}
@@ -91,17 +93,39 @@ export function ContactsContent({
           view_mode={state.view_mode}
         />
 
+        {state.selected_contact || state.is_creating_new ? (
         <ContactDetailPanel
           copied_field={state.copied_field}
+          is_creating_new={state.is_creating_new}
+          is_submitting={state.is_submitting}
+          on_cancel_create={state.handle_cancel_create}
           on_compose_email={state.handle_compose_email}
           on_copy={state.handle_copy}
           on_delete_request={state.handle_delete_request}
           on_edit={state.handle_edit}
+          on_dismiss={() => {
+            state.set_selected_contact(null);
+            state.handle_cancel_create();
+          }}
+          on_inline_create={state.handle_inline_create}
+          on_inline_save={state.handle_inline_save}
+          on_toggle_favorite={state.handle_toggle_favorite_single}
           selected_contact={state.selected_contact}
           set_show_history={state.set_show_history}
           show_history={state.show_history}
           t={state.t}
         />
+        ) : (
+          <div className="hidden md:flex flex-1 min-h-0 min-w-0 flex-col items-center justify-center px-6 text-center">
+            <UserCircleIcon className="w-10 h-10 mb-3 text-txt-muted" />
+            <p className="text-[15px] font-medium text-txt-primary mb-1">
+              {state.t("common.no_contact_selected")}
+            </p>
+            <p className="text-[13px] text-txt-muted">
+              {state.t("common.select_contact_hint")}
+            </p>
+          </div>
+        )}
       </div>
 
       <ContactForm

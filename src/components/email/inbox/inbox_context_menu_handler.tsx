@@ -323,6 +323,7 @@ export function use_context_menu_actions({
 
       const result = await bulk_update_metadata_by_ids(combined_ids, {
         is_spam: true,
+        is_trashed: false,
       });
 
       if (result.success) {

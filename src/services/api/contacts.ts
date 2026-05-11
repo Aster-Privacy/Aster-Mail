@@ -258,7 +258,13 @@ export async function decrypt_contact_data(
   const nonce = base64_to_array(data_nonce);
   const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
   const decoder = new TextDecoder();
-  const parsed = JSON.parse(decoder.decode(decrypted));
+  const parsed = JSON.parse(decoder.decode(decrypted), (key, value) => {
+    if (key === "__proto__" || key === "constructor" || key === "prototype") {
+      return undefined;
+    }
+
+    return value;
+  });
 
   delete parsed._version;
   delete parsed._encrypted_at;
@@ -278,9 +284,9 @@ export async function decrypt_contact(
 
   return {
     id: contact.id,
-    first_name: data.first_name,
-    last_name: data.last_name,
-    emails: data.emails,
+    first_name: data.first_name ?? "",
+    last_name: data.last_name ?? "",
+    emails: Array.isArray(data.emails) ? data.emails : [],
     phone: data.phone,
     company: data.company,
     job_title: data.job_title,
@@ -290,8 +296,28 @@ export async function decrypt_contact(
     relationship: data.relationship,
     notes: data.notes,
     avatar_url: data.avatar_url,
+    profile_color: data.profile_color,
     is_favorite: data.is_favorite ?? false,
     groups: data.groups,
+    middle_name: data.middle_name,
+    title: data.title,
+    name_suffix: data.name_suffix,
+    phonetic_first_name: data.phonetic_first_name,
+    phonetic_middle_name: data.phonetic_middle_name,
+    phonetic_last_name: data.phonetic_last_name,
+    nickname: data.nickname,
+    role: data.role,
+    department: data.department,
+    comment: data.comment,
+    pronouns: data.pronouns,
+    email_entries: data.email_entries,
+    phone_entries: data.phone_entries,
+    address_entries: data.address_entries,
+    date_entries: data.date_entries,
+    related_people: data.related_people,
+    social_networks: data.social_networks,
+    websites: data.websites,
+    instant_messengers: data.instant_messengers,
     created_at: contact.created_at,
     updated_at: contact.updated_at,
   };

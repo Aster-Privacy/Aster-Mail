@@ -88,48 +88,96 @@ export async function resolve_cid_references(
     return { html, blob_urls: [] };
   }
 
-  const cid_set = new Set(cid_refs.map((c) => c.toLowerCase()));
+  const normalize = (s: string): string =>
+    s.replace(/^<+|>+$/g, "").trim().toLowerCase();
+  const strip_ext = (s: string): string => s.replace(/\.[^.]+$/, "");
+  const unresolved_cids = new Map<string, string>();
+
+  for (const ref of cid_refs) {
+    unresolved_cids.set(normalize(ref), ref);
+  }
+
   const blob_urls: string[] = [];
   let resolved_html = html;
 
-  for (const att of response.data.attachments) {
-    let meta: AttachmentMeta;
+  const decrypted_attachments: { att: typeof response.data.attachments[number]; meta: AttachmentMeta }[] = [];
 
+  for (const att of response.data.attachments) {
     try {
-      meta = await decrypt_attachment_meta(att.encrypted_meta, att.meta_nonce);
+      const meta = await decrypt_attachment_meta(att.encrypted_meta, att.meta_nonce);
+
+      if (ALLOWED_IMAGE_TYPES.has(meta.content_type.toLowerCase())) {
+        decrypted_attachments.push({ att, meta });
+      }
     } catch {
       continue;
     }
+  }
 
-    if (!meta.content_id) continue;
+  const match_strategies: ((meta: AttachmentMeta) => string | undefined)[] = [
+    (meta) => meta.content_id ? normalize(meta.content_id) : undefined,
+    (meta) => meta.filename ? normalize(meta.filename) : undefined,
+    (meta) => meta.filename ? normalize(strip_ext(meta.filename)) : undefined,
+  ];
 
-    const normalized_cid = meta.content_id.toLowerCase();
-
-    if (!cid_set.has(normalized_cid)) continue;
-
-    if (!ALLOWED_IMAGE_TYPES.has(meta.content_type.toLowerCase())) continue;
-
+  const substitute = async (att: typeof response.data.attachments[number], meta: AttachmentMeta, original_cid: string): Promise<boolean> => {
     try {
       const data = await decrypt_attachment_data(
         att.encrypted_data,
         att.data_nonce,
         meta.session_key,
       );
-
       const blob = new Blob([data], { type: meta.content_type });
       const blob_url = URL.createObjectURL(blob);
 
       blob_urls.push(blob_url);
 
-      const escaped_cid = meta.content_id.replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&",
-      );
+      const escaped_cid = original_cid.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const replace_regex = new RegExp(`src=["']cid:${escaped_cid}["']`, "gi");
 
       resolved_html = resolved_html.replace(replace_regex, `src="${blob_url}"`);
+
+      return true;
     } catch {
-      continue;
+      return false;
+    }
+  };
+
+  const consumed = new Set<typeof decrypted_attachments[number]>();
+
+  for (const strategy of match_strategies) {
+    if (unresolved_cids.size === 0) break;
+
+    for (const entry of decrypted_attachments) {
+      if (consumed.has(entry)) continue;
+
+      const key = strategy(entry.meta);
+
+      if (!key) continue;
+
+      const original_cid = unresolved_cids.get(key);
+
+      if (!original_cid) continue;
+
+      if (await substitute(entry.att, entry.meta, original_cid)) {
+        unresolved_cids.delete(key);
+        consumed.add(entry);
+      }
+    }
+  }
+
+  if (unresolved_cids.size > 0) {
+    const remaining_attachments = decrypted_attachments.filter((e) => !consumed.has(e));
+    const remaining_refs = Array.from(unresolved_cids.values());
+
+    if (remaining_attachments.length === remaining_refs.length) {
+      for (let i = 0; i < remaining_refs.length; i++) {
+        await substitute(
+          remaining_attachments[i].att,
+          remaining_attachments[i].meta,
+          remaining_refs[i],
+        );
+      }
     }
   }
 

@@ -40,6 +40,7 @@ interface EncryptionInfoDropdownProps {
   size?: number;
   label?: string;
   context?: "message" | "attachments";
+  description_key?: import("@/lib/i18n").TranslationKey;
   sender_verification?: SenderVerificationStatus;
 }
 
@@ -50,6 +51,7 @@ export function EncryptionInfoDropdown({
   size = 18,
   label,
   context = "message",
+  description_key,
   sender_verification,
 }: EncryptionInfoDropdownProps) {
   const { t } = use_i18n();
@@ -131,15 +133,17 @@ export function EncryptionInfoDropdown({
                     </p>
                   </div>
                   <p className="pl-6">
-                    {context === "attachments"
-                      ? is_encrypted
-                        ? t("common.files_end_to_end_encrypted")
-                        : t("common.files_protected_in_transit")
-                      : is_encrypted
-                        ? is_external
-                          ? t("common.wkd_encrypted_description")
-                          : t("common.only_you_and_sender")
-                        : t("common.encrypted_in_transit_stored")}
+                    {description_key
+                      ? t(description_key)
+                      : context === "attachments"
+                        ? is_encrypted
+                          ? t("common.files_end_to_end_encrypted")
+                          : t("common.files_protected_in_transit")
+                        : is_encrypted
+                          ? is_external
+                            ? t("common.wkd_encrypted_description")
+                            : t("common.only_you_and_sender")
+                          : t("common.encrypted_in_transit_stored")}
                   </p>
                   <p className="pl-6 text-txt-muted">
                     AES-256-GCM · {has_pq_protection ? "ML-KEM-768" : "KEM-768"}

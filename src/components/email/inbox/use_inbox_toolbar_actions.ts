@@ -237,6 +237,7 @@ export function use_inbox_toolbar_actions({
 
     const result = await bulk_update_metadata_by_ids(combined_ids, {
       is_spam: true,
+      is_trashed: false,
     });
 
     if (result.success) {
@@ -553,6 +554,7 @@ export function use_inbox_toolbar_actions({
 
     const result = await bulk_update_metadata_by_ids(expanded_ids, {
       is_spam: true,
+      is_trashed: false,
     });
 
     if (!result.success) return;

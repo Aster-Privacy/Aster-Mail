@@ -111,7 +111,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     }
   }
 
-  const [new_email_count, set_new_email_count] = useState(0);
   const abort_ref = useRef<AbortController | null>(null);
   const mounted_ref = useRef(false);
   const prev_auth_ref = useRef<{
@@ -219,7 +218,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
             has_initial_load: true,
           };
         });
-        set_new_email_count(0);
 
         if (Capacitor.isNativePlatform() && result.emails.length > 0) {
           cache_email_list(current_view, result.emails).catch(() => {});
@@ -290,7 +288,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           has_initial_load: true,
         };
       });
-      set_new_email_count(0);
     } catch {}
   }, [current_view, is_mail_view, format_options, user?.email]);
 
@@ -373,12 +370,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       refresh();
     }
   }, [preferences.conversation_grouping, refresh]);
-
-  const load_new_emails = useCallback(() => {
-    last_fetch_ref.current = null;
-    request_cache.invalidate("GET:/mail/v1/messages");
-    fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
-  }, []);
 
   useEffect(() => {
     mounted_ref.current = true;
@@ -628,7 +619,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     auth_loading,
     is_completing_registration,
     set_state,
-    set_new_email_count,
     fetch_page_ref,
     silent_fetch_ref,
     last_fetch_ref,
@@ -658,8 +648,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
   return {
     state,
-    new_email_count,
-    load_new_emails,
     fetch_page,
     load_more,
     update_email,

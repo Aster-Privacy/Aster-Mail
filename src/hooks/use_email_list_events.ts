@@ -45,7 +45,6 @@ interface UseEmailListEventsParams {
   auth_loading: boolean;
   is_completing_registration: boolean;
   set_state: React.Dispatch<React.SetStateAction<EmailListState>>;
-  set_new_email_count: React.Dispatch<React.SetStateAction<number>>;
   fetch_page_ref: MutableRefObject<
     ((page: number, limit: number, force?: boolean) => Promise<void>) | null
   >;
@@ -64,7 +63,6 @@ export function use_email_list_events({
   auth_loading,
   is_completing_registration,
   set_state,
-  set_new_email_count,
   fetch_page_ref,
   silent_fetch_ref,
   last_fetch_ref,
@@ -131,11 +129,6 @@ export function use_email_list_events({
       }
     };
 
-    const handle_email_received = () => {
-      set_new_email_count((prev) => prev + 1);
-      silent_handler();
-    };
-
     const handle_auth_ready = () => {
       fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
     };
@@ -195,7 +188,7 @@ export function use_email_list_events({
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, silent_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_soft_refresh);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, silent_handler);
-    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_email_received);
+    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, silent_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, full_fetch_handler);
     window.addEventListener(
@@ -219,10 +212,7 @@ export function use_email_list_events({
         handle_soft_refresh,
       );
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, silent_handler);
-      window.removeEventListener(
-        MAIL_EVENTS.EMAIL_RECEIVED,
-        handle_email_received,
-      );
+      window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, silent_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
       window.removeEventListener(
         MAIL_EVENTS.FOLDERS_CHANGED,
@@ -245,7 +235,6 @@ export function use_email_list_events({
   }, [
     has_keys,
     is_mail_view,
-    set_new_email_count,
     fetch_page_ref,
     silent_fetch_ref,
     last_fetch_ref,

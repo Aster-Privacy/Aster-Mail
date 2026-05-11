@@ -44,7 +44,110 @@ export interface Address {
   country?: string;
 }
 
-export interface DecryptedContact {
+export type EmailEntryType = "home" | "work" | "other";
+export type PhoneEntryType =
+  | "mobile"
+  | "home"
+  | "work"
+  | "fax"
+  | "pager"
+  | "other";
+export type AddressEntryType = "home" | "work" | "other";
+export type DateEntryType =
+  | "anniversary"
+  | "graduation"
+  | "wedding"
+  | "other";
+export type RelatedPersonType =
+  | "assistant"
+  | "manager"
+  | "spouse"
+  | "partner"
+  | "child"
+  | "parent"
+  | "sibling"
+  | "friend"
+  | "other";
+export type SocialNetworkType =
+  | "twitter"
+  | "linkedin"
+  | "github"
+  | "instagram"
+  | "facebook"
+  | "mastodon"
+  | "bluesky"
+  | "other";
+export type WebsiteType = "private" | "work" | "blog" | "other";
+export type InstantMessengerType =
+  | "signal"
+  | "matrix"
+  | "telegram"
+  | "whatsapp"
+  | "xmpp"
+  | "other";
+
+export interface EmailEntry {
+  value: string;
+  type: EmailEntryType;
+}
+
+export interface PhoneEntry {
+  value: string;
+  type: PhoneEntryType;
+}
+
+export interface AddressEntry extends Address {
+  type: AddressEntryType;
+}
+
+export interface DateEntry {
+  value: string;
+  type: DateEntryType;
+}
+
+export interface RelatedPersonEntry {
+  value: string;
+  type: RelatedPersonType;
+}
+
+export interface SocialNetworkEntry {
+  value: string;
+  type: SocialNetworkType;
+}
+
+export interface WebsiteEntry {
+  value: string;
+  type: WebsiteType;
+}
+
+export interface InstantMessengerEntry {
+  value: string;
+  type: InstantMessengerType;
+}
+
+export interface ExtendedContactFields {
+  middle_name?: string;
+  title?: string;
+  name_suffix?: string;
+  phonetic_first_name?: string;
+  phonetic_middle_name?: string;
+  phonetic_last_name?: string;
+  nickname?: string;
+  role?: string;
+  department?: string;
+  comment?: string;
+  pronouns?: string;
+  email_entries?: EmailEntry[];
+  phone_entries?: PhoneEntry[];
+  address_entries?: AddressEntry[];
+  date_entries?: DateEntry[];
+  related_people?: RelatedPersonEntry[];
+  social_networks?: SocialNetworkEntry[];
+  websites?: WebsiteEntry[];
+  instant_messengers?: InstantMessengerEntry[];
+}
+
+export interface DecryptedContact extends ExtendedContactFields {
   id: string;
   first_name: string;
   last_name: string;
@@ -58,6 +161,7 @@ export interface DecryptedContact {
   relationship?: "work" | "personal" | "family" | "other";
   notes?: string;
   avatar_url?: string;
+  profile_color?: string;
   is_favorite: boolean;
   groups?: string[];
   last_contacted?: string;
@@ -66,7 +170,7 @@ export interface DecryptedContact {
   updated_at: string;
 }
 
-export interface ContactFormData {
+export interface ContactFormData extends ExtendedContactFields {
   first_name: string;
   last_name: string;
   emails: string[];
@@ -79,6 +183,7 @@ export interface ContactFormData {
   relationship?: "work" | "personal" | "family" | "other";
   notes?: string;
   avatar_url?: string;
+  profile_color?: string;
   is_favorite?: boolean;
   groups?: string[];
 }
