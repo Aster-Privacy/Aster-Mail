@@ -27,7 +27,7 @@ use std::sync::Mutex;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager, State,
+    Manager, State, WindowEvent,
 };
 
 struct TrayState(Mutex<Option<tauri::tray::TrayIcon>>);
@@ -234,6 +234,12 @@ fn main() {
             }
 
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let _ = window.hide();
+            }
         })
         .run(tauri::generate_context!())
         .expect("failed to start aster mail desktop");
