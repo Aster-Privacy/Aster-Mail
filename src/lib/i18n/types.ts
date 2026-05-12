@@ -1091,6 +1091,8 @@ export interface CommonTranslations {
   signal_spf_fail: string;
   signal_dmarc_fail: string;
   signal_all_auth_fail: string;
+  auth_fail_banner_title: string;
+  auth_fail_banner_body: string;
   signal_all_auth_pass: string;
   signal_reply_to_mismatch: string;
   signal_missing_from: string;

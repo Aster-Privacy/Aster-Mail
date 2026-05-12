@@ -1048,6 +1048,8 @@ export const ar = {
     signal_spf_fail: "SPF sender verification failed",
     signal_dmarc_fail: "DMARC domain authentication failed",
     signal_all_auth_fail: "All email authentication checks failed",
+    auth_fail_banner_title: "فشل المصادقة",
+    auth_fail_banner_body: "فشل هذا البريد الالكتروني في التحقق من المرسل. قد يكون مزيفا.",
     signal_all_auth_pass: "All email authentication checks passed",
     signal_reply_to_mismatch: "Reply-To address doesn't match sender domain",
     signal_missing_from: "Email is missing a From header",

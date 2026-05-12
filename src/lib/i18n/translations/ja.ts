@@ -1066,6 +1066,8 @@ export const ja = {
     signal_spf_fail: "SPF sender verification failed",
     signal_dmarc_fail: "DMARC domain authentication failed",
     signal_all_auth_fail: "All email authentication checks failed",
+    auth_fail_banner_title: "認証に失敗しました",
+    auth_fail_banner_body: "このメールは送信者の確認に失敗しました。偽装されている可能性があります。",
     signal_all_auth_pass: "All email authentication checks passed",
     signal_reply_to_mismatch: "Reply-To address doesn't match sender domain",
     signal_missing_from: "Email is missing a From header",

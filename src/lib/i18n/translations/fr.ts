@@ -1145,6 +1145,8 @@ export const fr = {
     signal_reply_to_mismatch: "Reply-To address doesn't match sender domain",
     signal_all_auth_pass: "All email authentication checks passed",
     signal_all_auth_fail: "All email authentication checks failed",
+    auth_fail_banner_title: "Echec d'authentification",
+    auth_fail_banner_body: "Cet email a echoue la verification de l'expediteur. Il peut etre usurpe ou falsifie.",
     signal_dmarc_fail: "DMARC domain authentication failed",
     signal_spf_fail: "SPF sender verification failed",
     signal_dkim_fail: "DKIM email authentication failed",

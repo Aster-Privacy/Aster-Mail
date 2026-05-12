@@ -670,6 +670,9 @@ export interface ThreadMessageItem {
   message_ts: string;
   created_at: string;
   metadata?: MailItemMetadata;
+  spf_result?: string;
+  dkim_result?: string;
+  dmarc_result?: string;
 }
 
 export interface ThreadWithMessages {

@@ -1071,6 +1071,8 @@ export const it = {
     signal_spf_fail: "SPF sender verification failed",
     signal_dmarc_fail: "DMARC domain authentication failed",
     signal_all_auth_fail: "All email authentication checks failed",
+    auth_fail_banner_title: "Autenticazione non riuscita",
+    auth_fail_banner_body: "Questa email non ha superato la verifica del mittente. Potrebbe essere falsificata.",
     signal_all_auth_pass: "All email authentication checks passed",
     signal_reply_to_mismatch: "Reply-To address doesn't match sender domain",
     signal_missing_from: "Email is missing a From header",

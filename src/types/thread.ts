@@ -55,6 +55,9 @@ export interface DecryptedThreadMessage {
   to_recipients?: { name: string; email: string }[];
   cc_recipients?: { name: string; email: string }[];
   raw_headers?: { name: string; value: string }[];
+  spf_result?: string;
+  dkim_result?: string;
+  dmarc_result?: string;
 }
 
 export interface ThreadAttachment {

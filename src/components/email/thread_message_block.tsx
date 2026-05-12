@@ -963,6 +963,22 @@ export function ThreadMessageBlock({
         size_bytes={size_bytes}
       />
 
+      {message.item_type === "received" && (
+        message.spf_result === "fail" ||
+        message.dkim_result === "fail" ||
+        message.dmarc_result === "fail"
+      ) && (
+        <div className="mx-4 mb-3 mt-1 rounded-lg bg-red-600 px-4 py-3">
+          <p className="text-sm font-semibold text-white">{t("common.auth_fail_banner_title")}</p>
+          <p className="text-xs mt-0.5 text-red-100">{t("common.auth_fail_banner_body")}</p>
+          <p className="text-xs mt-1.5 text-red-200 space-x-2">
+            {message.spf_result === "fail" && <span>SPF</span>}
+            {message.dkim_result === "fail" && <span>DKIM</span>}
+            {message.dmarc_result === "fail" && <span>DMARC</span>}
+          </p>
+        </div>
+      )}
+
       <div className={`${is_plain_text ? "pl-[52px] pb-4" : "pb-0"} pt-1`}>
         <ThreadMessageBody
           body_background={sanitized_content.body_background}

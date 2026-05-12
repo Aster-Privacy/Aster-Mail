@@ -241,6 +241,9 @@ export async function fetch_and_decrypt_thread_messages(
         send_status: msg.send_status ?? decrypted_metadata?.send_status,
         encrypted_metadata: msg.encrypted_metadata,
         metadata_nonce: msg.metadata_nonce,
+        spf_result: msg.spf_result,
+        dkim_result: msg.dkim_result,
+        dmarc_result: msg.dmarc_result,
       };
     }
 
@@ -336,6 +339,9 @@ export async function fetch_and_decrypt_thread_messages(
       to_recipients: envelope.to || [],
       cc_recipients: envelope.cc || [],
       raw_headers: envelope.raw_headers,
+      spf_result: msg.spf_result,
+      dkim_result: msg.dkim_result,
+      dmarc_result: msg.dmarc_result,
     };
   });
 
@@ -488,6 +494,7 @@ export async function fetch_and_decrypt_virtual_group(
       raw_headers: envelope.raw_headers,
     };
   });
+
 
   const results = await Promise.all(decrypt_promises);
 
