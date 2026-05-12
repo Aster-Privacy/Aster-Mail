@@ -26,7 +26,6 @@ import type {
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 
 import {
-  clamp_port,
   clamp_timeout,
   sanitize_hostname,
 } from "@/components/settings/hooks/external_accounts_utils";
