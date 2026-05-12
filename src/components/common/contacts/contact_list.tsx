@@ -197,7 +197,7 @@ export function ContactList({
       </div>
 
       {has_selection ? (
-        <div className="flex items-center justify-center gap-1 px-4 py-2 border-b border-edge-primary">
+        <div className="flex items-center gap-1 px-4 py-2 border-b border-edge-primary">
           <span className="text-[12px] tabular-nums font-medium text-txt-primary pr-2">
             {t("common.selected_count", {
               count: selection_state.selected_count,
