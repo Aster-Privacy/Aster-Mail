@@ -74,7 +74,6 @@ export function ContactsContent({
           on_scroll_to_letter={state.scroll_to_letter}
           on_toggle_favorite_selected={state.handle_toggle_favorite_selected}
           on_toggle_select={state.handle_toggle_select}
-          on_toggle_select_all={state.handle_toggle_select_all}
           search_input_ref={state.search_input_ref}
           search_query={state.search_query}
           selected_all_favorited={state.selected_all_favorited}

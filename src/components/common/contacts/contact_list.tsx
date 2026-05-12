@@ -38,7 +38,6 @@ import {
   ClipboardDocumentIcon,
   ArrowDownTrayIcon,
   TrashIcon,
-  MinusIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
@@ -90,7 +89,6 @@ interface ContactListProps {
   on_add_click: () => void;
   on_import_modal_open: () => void;
   on_toggle_select: (id: string) => void;
-  on_toggle_select_all: () => void;
   on_compose_to_selected: () => void;
   on_toggle_favorite_selected: () => void;
   on_copy_emails: () => void;
@@ -124,7 +122,6 @@ export function ContactList({
   on_add_click,
   on_import_modal_open,
   on_toggle_select,
-  on_toggle_select_all,
   on_toggle_favorite_selected,
   on_copy_emails,
   on_export_contacts,
@@ -200,46 +197,12 @@ export function ContactList({
       </div>
 
       {has_selection ? (
-        <div className="flex items-center gap-1 px-4 py-2 border-b border-edge-primary">
-          <button
-            aria-checked={
-              selection_state.all_selected
-                ? true
-                : selection_state.some_selected
-                  ? "mixed"
-                  : false
-            }
-            aria-label={
-              selection_state.all_selected
-                ? t("common.deselect_all")
-                : t("common.select_all")
-            }
-            className="h-9 w-9 inline-flex items-center justify-center rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0"
-            role="checkbox"
-            type="button"
-            onClick={on_toggle_select_all}
-          >
-            <span
-              className={cn(
-                "w-7 h-7 rounded-xl border flex items-center justify-center transition-colors",
-                selection_state.all_selected || selection_state.some_selected
-                  ? "bg-[var(--accent-blue,#3b82f6)] border-[var(--accent-blue,#3b82f6)] text-white"
-                  : "border-edge-secondary text-transparent",
-              )}
-            >
-              {selection_state.all_selected ? (
-                <CheckIcon className="w-4 h-4" strokeWidth={3} />
-              ) : selection_state.some_selected ? (
-                <MinusIcon className="w-4 h-4" strokeWidth={3} />
-              ) : null}
-            </span>
-          </button>
-          <span className="text-[12px] tabular-nums font-medium text-txt-primary px-1">
+        <div className="flex items-center justify-center gap-1 px-4 py-2 border-b border-edge-primary">
+          <span className="text-[12px] tabular-nums font-medium text-txt-primary pr-2">
             {t("common.selected_count", {
               count: selection_state.selected_count,
             })}
           </span>
-          <div className="flex-1" />
           <button
             aria-label={
               selected_all_favorited
@@ -282,18 +245,8 @@ export function ContactList({
           </button>
         </div>
       ) : (
-        <div className="flex items-center gap-1 px-4 py-2 border-b border-edge-primary">
-          <button
-            aria-checked={false}
-            aria-label={t("common.select_all")}
-            className="h-9 w-9 inline-flex items-center justify-center rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0"
-            role="checkbox"
-            type="button"
-            onClick={on_toggle_select_all}
-          >
-            <span className="w-7 h-7 rounded-xl border border-edge-secondary" />
-          </button>
-          <p className="text-[12px] text-txt-muted px-2 flex-1">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-edge-primary">
+          <p className="text-[12px] text-txt-muted pr-3 flex-1">
             {t("settings.auto_save_recipients_to_contacts")}
           </p>
           <Switch
