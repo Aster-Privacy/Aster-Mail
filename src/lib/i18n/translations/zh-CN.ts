@@ -1618,6 +1618,84 @@ export const zh_CN = {
     publish_keys_wkd_description: "通过 Web Key Directory 使您的密钥可被发现",
     publish_to_keyservers_title: "发布到密钥服务器",
     publish_to_keyservers_description: "在公共密钥服务器上使您的密钥可被查找",
+    info_forward_secrecy_title: "什么是前向保密？",
+    info_forward_secrecy_description:
+      "您的会话密钥会自动轮换。即使有人今天获得了您的私钥，也无法读取过去的消息，因为每个会话使用了不同的密钥。",
+    info_key_rotation_interval_title: "密钥轮换间隔",
+    info_key_rotation_interval_description:
+      "您的加密密钥多久更换一次。更频繁意味着更安全，但开销略大。一周对大多数人来说是个好的默认值。",
+    info_key_history_limit_title: "密钥历史限制",
+    info_key_history_limit_description:
+      "Aster保留多少旧密钥以解密较旧的邮件。设置太低可能导致旧消息无法读取。",
+    info_wkd_title: "什么是WKD？",
+    info_wkd_description:
+      "一种标准，让Thunderbird或Proton等邮件应用自动找到您的公钥。联系人无需手动交换密钥即可向您发送加密邮件。",
+    info_keyservers_title: "什么是密钥服务器？",
+    info_keyservers_description:
+      "可按邮箱搜索PGP密钥的公共目录。注意：大多数密钥服务器发布后无法完全删除密钥。",
+    info_require_encryption_title: "要求加密",
+    info_require_encryption_description:
+      "只发送可以端到端加密的邮件。如果收件人没有PGP密钥，消息将不会发送。",
+    info_storage_format_title: "存储格式",
+    info_storage_format_description:
+      "Aster服务器将您的加密邮件存储在Aster的服务器上。IPFS将您的数据分散到点对点网络中。无论哪种方式，只有您的密钥才能解密内容。",
+    info_block_fonts_title: "为什么要屏蔽远程字体？",
+    info_block_fonts_description:
+      "邮件可以从外部服务器加载字体。加载时，发件人的服务器会看到您的IP地址和打开邮件的时间，就像追踪像素一样。",
+    info_block_css_title: "为什么要屏蔽远程样式表？",
+    info_block_css_description:
+      "邮件中的CSS文件充当隐形追踪器。加载它们会向发件人服务器透露您的IP、打开时间和使用的设备。",
+    info_spy_pixels_title: "什么是间谍像素？",
+    info_spy_pixels_description:
+      "邮件中隐藏的1x1不可见图像。加载时，发件人会看到您的IP、打开时间和设备类型。Aster在加载前将其删除。",
+    info_folder_lock_mode_title: "文件夹锁定模式",
+    info_folder_lock_mode_description:
+      "会话模式在关闭应用时锁定文件夹。离开模式在您导航离开时立即锁定，每次返回都需要输入密码。",
+    info_block_remote_images_title: "为什么屏蔽远程图片？",
+    info_block_remote_images_description:
+      "当邮件从外部服务器加载图片时，发件人可以看到您的IP地址和打开时间。屏蔽它们可保护这些信息。",
+    info_remote_image_loading_title: "图片加载选项",
+    info_remote_image_loading_description:
+      "从不：始终屏蔽。询问：每次显示提示。始终：不询问直接加载。控制图片屏蔽设置的例外情况。",
+    info_tracking_protection_title: "追踪保护",
+    info_tracking_protection_description:
+      "阻止邮件在打开时向外发送数据。发件人使用追踪像素、字体和CSS记录谁在何时打开了他们的邮件。",
+    info_block_tracking_links_title: "什么是追踪链接？",
+    info_block_tracking_links_description:
+      "邮件中的链接通常先经过发件人服务器以记录点击。此功能去除这些重定向，使链接直接指向目标。",
+    info_two_factor_auth_title: "双重身份验证",
+    info_two_factor_auth_description:
+      "为登录添加第二层安全保护。输入密码后，您还需输入Authy或Google Authenticator等应用生成的6位验证码。",
+    info_session_timeout_title: "会话超时",
+    info_session_timeout_description:
+      "在一段不活跃时间后自动退出登录。在共享电脑上或离开时需要保护时非常有用。",
+    info_login_alerts_title: "登录提醒",
+    info_login_alerts_description:
+      "每当您的账户从新设备或位置登录时发送邮件提醒。有助于及早发现未授权访问。",
+    info_external_link_warnings_title: "外部链接警告",
+    info_external_link_warnings_description:
+      "在打开Aster以外的链接前显示警告。帮助您在点击前识别钓鱼攻击。",
+    info_auto_discover_keys_title: "自动发现密钥",
+    info_auto_discover_keys_description:
+      "自动获取联系人的加密密钥，无需手动设置即可向他们发送加密邮件。",
+    info_encrypt_by_default_title: "默认加密",
+    info_encrypt_by_default_description:
+      "当收件人的公钥可用时，自动加密外发邮件。无需逐条消息切换加密。",
+    info_show_encryption_indicators_title: "加密指示器",
+    info_show_encryption_indicators_description:
+      "在邮件上显示锁图标，告知您消息是否已加密、已签名或两者都不是。",
+    info_force_dark_mode_title: "邮件强制深色模式",
+    info_force_dark_mode_description:
+      "将邮件样式改为深色背景和浅色文字。如果亮白色邮件让您的眼睛不舒服，此功能很有用。",
+    info_undo_send_title: "撤回发送",
+    info_undo_send_description:
+      "在点击发送后给您一小段时间取消邮件。计时器结束前不会真正发出。",
+    info_spam_sensitivity_title: "垃圾邮件敏感度",
+    info_spam_sensitivity_description:
+      "高敏感度捕获更多垃圾邮件，但偶尔会误标正常邮件。低敏感度放行更多。中等对大多数人来说是合适的平衡。",
+    info_conversation_grouping_title: "对话分组",
+    info_conversation_grouping_description:
+      "将相同主题的邮件归为一个线程。便于跟踪对话，无需滚动查看单条消息。",
     one_click_unsubscribe_supported: "支持一键取消订阅",
     open_unsubscribe_page: "打开取消订阅页面",
     font_size: "字体大小",

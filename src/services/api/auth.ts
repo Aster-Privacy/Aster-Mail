@@ -64,6 +64,7 @@ interface RegisterRequest {
   pgp_key?: ClientPgpKeyData;
   captcha_token?: string;
   referral_code?: string;
+  client_platform?: string;
 }
 
 interface RegisterResponse {
@@ -88,6 +89,7 @@ interface LoginRequest {
   password_hash: string;
   remember_me?: boolean;
   captcha_token?: string;
+  client_platform?: string;
 }
 
 interface LoginResponse {

@@ -20,6 +20,7 @@
 //
 import { useState } from "react";
 import { Button, Switch } from "@aster/ui";
+import { InfoPopover } from "@/components/ui/info_popover";
 import {
   ShieldCheckIcon,
   PhotoIcon,
@@ -93,8 +94,9 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         {preferences.block_remote_images && (
           <div className="flex items-center justify-between py-4">
             <div className="flex-1 pr-4">
-              <p className="text-sm font-medium text-txt-primary">
+              <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                 {t("settings.remote_image_loading")}
+                <InfoPopover description={t("settings.info_remote_image_loading_description")} title={t("settings.info_remote_image_loading_title")} />
               </p>
               <p className="text-sm mt-0.5 text-txt-muted">
                 {t("settings.remote_image_loading_description")}
@@ -130,8 +132,9 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
 
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
-            <p className="text-sm font-medium text-txt-primary">
+            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("settings.block_remote_fonts_label")}
+              <InfoPopover description={t("settings.info_block_fonts_description")} title={t("settings.info_block_fonts_title")} />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.block_remote_fonts_description")}
@@ -151,8 +154,9 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
 
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
-            <p className="text-sm font-medium text-txt-primary">
+            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("settings.block_remote_css_label")}
+              <InfoPopover description={t("settings.info_block_css_description")} title={t("settings.info_block_css_title")} />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.block_remote_css_description")}
@@ -213,8 +217,9 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
           <>
             <div className="flex items-center justify-between py-4">
               <div className="flex-1 pr-4">
-                <p className="text-sm font-medium text-txt-primary">
+                <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                   {t("settings.block_spy_pixels")}
+                  <InfoPopover description={t("settings.info_spy_pixels_description")} title={t("settings.info_spy_pixels_title")} />
                 </p>
                 <p className="text-sm mt-0.5 text-txt-muted">
                   {t("settings.block_spy_pixels_description")}

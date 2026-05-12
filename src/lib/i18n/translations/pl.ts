@@ -1705,6 +1705,84 @@ export const pl = {
     publish_to_keyservers_title: "Publikuj na serwerach kluczy",
     publish_to_keyservers_description:
       "Udostępnij swoje klucze na publicznych serwerach kluczy",
+    info_forward_secrecy_title: "Czym jest utajnianie z wyprzedzeniem?",
+    info_forward_secrecy_description:
+      "Twoje klucze sesji są automatycznie rotowane. Nawet gdyby ktoś zdobył dziś Twój klucz prywatny, nie mógłby odczytać starych wiadomości, bo każda sesja używała innego klucza.",
+    info_key_rotation_interval_title: "Interwał rotacji kluczy",
+    info_key_rotation_interval_description:
+      "Jak często Twój klucz szyfrowania jest wymieniany. Częściej oznacza bezpieczniej, ale z nieco większym obciążeniem. Tydzień to dobra wartość domyślna dla większości.",
+    info_key_history_limit_title: "Limit historii kluczy",
+    info_key_history_limit_description:
+      "Ile starych kluczy Aster przechowuje, aby odszyfrować starsze e-maile. Zbyt nisko ustawiony limit może sprawić, że starsze wiadomości staną się nieczytelne.",
+    info_wkd_title: "Czym jest WKD?",
+    info_wkd_description:
+      "Standard pozwalający aplikacjom e-mail jak Thunderbird czy Proton automatycznie znaleźć Twój klucz publiczny. Kontakty mogą wysyłać Ci zaszyfrowane maile bez ręcznej wymiany kluczy.",
+    info_keyservers_title: "Czym są serwery kluczy?",
+    info_keyservers_description:
+      "Publiczne katalogi, w których klucze PGP można wyszukiwać po adresie e-mail. Uwaga: na większości serwerów kluczy nie można ich całkowicie usunąć po publikacji.",
+    info_require_encryption_title: "Wymagaj szyfrowania",
+    info_require_encryption_description:
+      "Wysyła tylko e-maile, które można zaszyfrować end-to-end. Jeśli odbiorca nie ma klucza PGP, wiadomość nie zostanie wysłana.",
+    info_storage_format_title: "Format przechowywania",
+    info_storage_format_description:
+      "Aster Server przechowuje Twoje zaszyfrowane e-maile na serwerach Aster. IPFS rozprowadza dane w sieci peer-to-peer. W obu przypadkach tylko Twoje klucze mogą odszyfrować treść.",
+    info_block_fonts_title: "Dlaczego blokować zdalne czcionki?",
+    info_block_fonts_description:
+      "E-maile mogą ładować czcionki z zewnętrznych serwerów. Serwer nadawcy widzi wtedy Twoje IP i kiedy otworzyłeś wiadomość, podobnie jak piksel śledzący.",
+    info_block_css_title: "Dlaczego blokować zdalne arkusze stylów?",
+    info_block_css_description:
+      "Pliki CSS w e-mailach działają jak ukryte trackery. Ich ładowanie ujawnia serwerowi nadawcy Twoje IP, czas otwarcia i typ urządzenia.",
+    info_spy_pixels_title: "Czym są piksele szpiegowskie?",
+    info_spy_pixels_description:
+      "Niewidoczne obrazy 1x1 w e-mailach. Po załadowaniu nadawca widzi Twoje IP, kiedy otworzyłeś wiadomość i typ urządzenia. Aster usuwa je zanim zdążą się załadować.",
+    info_folder_lock_mode_title: "Tryb blokowania folderu",
+    info_folder_lock_mode_description:
+      "Sesja blokuje folder przy zamknięciu aplikacji. Przy wyjściu blokuje go natychmiast po nawigacji, wymagając hasła przy każdym powrocie.",
+    info_block_remote_images_title: "Dlaczego blokować zdalne obrazy?",
+    info_block_remote_images_description:
+      "Gdy e-mail ładuje obrazy z zewnętrznych serwerów, nadawca może zobaczyć Twój adres IP i kiedy go otworzyłeś. Blokowanie chroni te informacje.",
+    info_remote_image_loading_title: "Opcje ładowania obrazów",
+    info_remote_image_loading_description:
+      "Nigdy: zawsze blokuj. Pytaj: pokazuj monit za każdym razem. Zawsze: ładuj bez pytania. Zarządza wyjątkami od blokowania obrazów.",
+    info_tracking_protection_title: "Ochrona przed śledzeniem",
+    info_tracking_protection_description:
+      "Zapobiega wysyłaniu danych z e-maili przy ich otwieraniu. Nadawcy używają pikseli, czcionek i CSS, by rejestrować kto i kiedy otworzył ich e-maile.",
+    info_block_tracking_links_title: "Czym są linki śledzące?",
+    info_block_tracking_links_description:
+      "Linki w e-mailach często najpierw przechodzą przez serwer nadawcy, by rejestrować kliknięcia. To usuwa te przekierowania, by linki prowadziły prosto do celu.",
+    info_two_factor_auth_title: "Uwierzytelnianie dwuskładnikowe",
+    info_two_factor_auth_description:
+      "Dodaje drugą warstwę zabezpieczeń przy logowaniu. Po haśle wprowadzasz 6-cyfrowy kod z aplikacji jak Authy lub Google Authenticator.",
+    info_session_timeout_title: "Limit czasu sesji",
+    info_session_timeout_description:
+      "Automatycznie wylogowuje po okresie bezczynności. Przydatne na współdzielonych komputerach lub gdy chcesz ochrony gdy odchodzisz.",
+    info_login_alerts_title: "Powiadomienia o logowaniu",
+    info_login_alerts_description:
+      "Wysyła e-mail za każdym razem, gdy ktoś loguje się na Twoje konto z nowego urządzenia lub miejsca. Pomaga wcześnie wykryć nieautoryzowany dostęp.",
+    info_external_link_warnings_title: "Ostrzeżenia o zewnętrznych linkach",
+    info_external_link_warnings_description:
+      "Wyświetla ostrzeżenie przed otwarciem linku prowadzącego poza Aster. Pomaga wykryć próby phishingu zanim klikniesz.",
+    info_auto_discover_keys_title: "Automatyczne odkrywanie kluczy",
+    info_auto_discover_keys_description:
+      "Automatycznie pobiera klucze szyfrowania Twoich kontaktów, by wysyłać im zaszyfrowane maile bez ręcznej konfiguracji.",
+    info_encrypt_by_default_title: "Szyfruj domyślnie",
+    info_encrypt_by_default_description:
+      "Automatycznie szyfruje wychodzące e-maile, gdy dostępny jest klucz publiczny odbiorcy. Nie musisz włączać szyfrowania per wiadomość.",
+    info_show_encryption_indicators_title: "Wskaźniki szyfrowania",
+    info_show_encryption_indicators_description:
+      "Wyświetla ikonę kłódki na e-mailach, wskazując czy wiadomość jest zaszyfrowana, podpisana lub żadne z tych.",
+    info_force_dark_mode_title: "Tryb ciemny dla e-maili",
+    info_force_dark_mode_description:
+      "Przepisuje style e-maili na ciemne tło i jasny tekst. Przydatne gdy jasne białe e-maile męczą Twoje oczy.",
+    info_undo_send_title: "Cofnij wysyłanie",
+    info_undo_send_description:
+      "Daje krótkie okno na anulowanie e-maila po kliknięciu wyślij. Nic nie wychodzi dopóki timer nie dobiegnie końca.",
+    info_spam_sensitivity_title: "Czułość na spam",
+    info_spam_sensitivity_description:
+      "Wysoka wychwytuje więcej spamu, ale może oznaczać prawdziwe e-maile. Niska przepuszcza więcej. Średnia to właściwa równowaga dla większości.",
+    info_conversation_grouping_title: "Grupowanie konwersacji",
+    info_conversation_grouping_description:
+      "Grupuje e-maile z tym samym tematem w jeden wątek. Ułatwia śledzenie rozmowy.",
     one_click_unsubscribe_supported: "Obsługiwane wypisanie jednym kliknięciem",
     open_unsubscribe_page: "Otwórz stronę wypisania",
     font_size: "Rozmiar czcionki",

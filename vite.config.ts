@@ -175,8 +175,11 @@ export default defineConfig({
       },
       "/api": {
         target: api_target,
-        changeOrigin: false,
-        secure: false,
+        changeOrigin: true,
+        secure: true,
+        headers: {
+          origin: api_target,
+        },
       },
     },
   },

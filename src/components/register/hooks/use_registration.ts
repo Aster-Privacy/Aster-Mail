@@ -364,6 +364,7 @@ export function use_registration() {
         recovery_shares,
         pgp_key: pgp_key_data,
         captcha_token: captcha_token || undefined,
+        client_platform: import.meta.env.DEV ? "desktop" : undefined,
         referral_code:
           new URLSearchParams(window.location.search).get("ref") || undefined,
       });

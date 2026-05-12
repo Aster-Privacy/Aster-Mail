@@ -722,6 +722,7 @@ export default function SignInPage() {
         password_hash,
         remember_me,
         captcha_token: captcha_token || undefined,
+        client_platform: import.meta.env.DEV ? "desktop" : undefined,
       });
 
       if (response.error) {

@@ -1660,6 +1660,84 @@ export const ko = {
     publish_to_keyservers_title: "키서버에 게시",
     publish_to_keyservers_description:
       "공개 키서버에서 키를 찾을 수 있게 합니다",
+    info_forward_secrecy_title: "전방 비밀성이란?",
+    info_forward_secrecy_description:
+      "세션 키가 자동으로 교체됩니다. 오늘 누군가 개인 키를 얻더라도 각 세션이 다른 키를 사용했기 때문에 과거 메시지를 읽을 수 없습니다.",
+    info_key_rotation_interval_title: "키 교체 간격",
+    info_key_rotation_interval_description:
+      "암호화 키가 얼마나 자주 교체되는지입니다. 더 자주 교체할수록 안전하지만 오버헤드가 약간 증가합니다. 대부분에게 1주일이 좋은 기본값입니다.",
+    info_key_history_limit_title: "키 기록 제한",
+    info_key_history_limit_description:
+      "이전 이메일을 복호화하기 위해 Aster가 보관하는 이전 키의 수. 너무 낮게 설정하면 오래된 메시지가 읽을 수 없게 될 수 있습니다.",
+    info_wkd_title: "WKD란?",
+    info_wkd_description:
+      "Thunderbird나 Proton 같은 이메일 앱이 공개 키를 자동으로 찾을 수 있게 하는 표준입니다. 수동 키 교환 없이 암호화 메일을 받을 수 있습니다.",
+    info_keyservers_title: "키 서버란?",
+    info_keyservers_description:
+      "이메일 주소로 PGP 키를 검색할 수 있는 공개 디렉터리입니다. 주의: 대부분의 키 서버에서는 게시 후 키를 완전히 삭제할 수 없습니다.",
+    info_require_encryption_title: "암호화 필수",
+    info_require_encryption_description:
+      "엔드투엔드로 암호화할 수 있는 이메일만 보냅니다. 수신자에게 PGP 키가 없으면 메시지가 전송되지 않습니다.",
+    info_storage_format_title: "저장 형식",
+    info_storage_format_description:
+      "Aster 서버는 암호화된 이메일을 Aster 서버에 저장합니다. IPFS는 데이터를 P2P 네트워크에 분산합니다. 어느 경우든 키만이 콘텐츠를 복호화할 수 있습니다.",
+    info_block_fonts_title: "원격 폰트를 차단하는 이유",
+    info_block_fonts_description:
+      "이메일은 외부 서버에서 폰트를 로드할 수 있습니다. 로드 시 발신자 서버가 IP 주소와 이메일 열람 시간을 확인합니다.",
+    info_block_css_title: "원격 스타일시트를 차단하는 이유",
+    info_block_css_description:
+      "이메일의 CSS 파일은 숨겨진 추적기처럼 작동합니다. 로드 시 발신자 서버에 IP, 열람 시간, 기기 정보가 전달됩니다.",
+    info_spy_pixels_title: "스파이 픽셀이란?",
+    info_spy_pixels_description:
+      "이메일에 숨겨진 1x1 크기의 보이지 않는 이미지입니다. 로드 시 발신자가 IP, 열람 시간, 기기 유형을 확인합니다. Aster는 로드 전에 제거합니다.",
+    info_folder_lock_mode_title: "폴더 잠금 모드",
+    info_folder_lock_mode_description:
+      "세션 모드는 앱을 닫을 때 폴더를 잠급니다. 이탈 모드는 다른 곳으로 이동하는 즉시 잠그며 돌아올 때마다 비밀번호가 필요합니다.",
+    info_block_remote_images_title: "원격 이미지를 차단하는 이유",
+    info_block_remote_images_description:
+      "이메일이 외부 서버에서 이미지를 로드하면 발신자가 IP 주소와 열람 시간을 볼 수 있습니다. 차단하면 해당 정보를 보호할 수 있습니다.",
+    info_remote_image_loading_title: "이미지 로드 옵션",
+    info_remote_image_loading_description:
+      "안 함: 항상 차단. 묻기: 매번 프롬프트 표시. 항상: 묻지 않고 로드. 이미지 차단 설정의 예외를 관리합니다.",
+    info_tracking_protection_title: "추적 차단",
+    info_tracking_protection_description:
+      "이메일을 열 때 외부 연결을 차단합니다. 발신자는 픽셀, 폰트, CSS를 사용하여 누가 언제 이메일을 열었는지 기록합니다.",
+    info_block_tracking_links_title: "추적 링크란?",
+    info_block_tracking_links_description:
+      "이메일의 링크는 클릭을 기록하기 위해 먼저 발신자 서버를 거칩니다. 이 리디렉션을 제거하여 링크가 목적지로 바로 연결됩니다.",
+    info_two_factor_auth_title: "이중 인증",
+    info_two_factor_auth_description:
+      "로그인에 두 번째 보안 레이어를 추가합니다. 비밀번호 입력 후 Authy나 Google Authenticator 같은 앱에서 6자리 코드를 입력합니다.",
+    info_session_timeout_title: "세션 시간 초과",
+    info_session_timeout_description:
+      "비활성 상태가 일정 시간 지속되면 자동으로 로그아웃됩니다. 공유 컴퓨터 사용 시 또는 자리를 비울 때 유용합니다.",
+    info_login_alerts_title: "로그인 알림",
+    info_login_alerts_description:
+      "새 기기나 위치에서 계정에 로그인될 때마다 이메일로 알림을 보냅니다. 무단 접근을 조기에 발견하는 데 도움이 됩니다.",
+    info_external_link_warnings_title: "외부 링크 경고",
+    info_external_link_warnings_description:
+      "Aster 외부로 이동하는 링크를 열기 전에 경고를 표시합니다. 클릭 전에 피싱 시도를 파악하는 데 도움이 됩니다.",
+    info_auto_discover_keys_title: "키 자동 검색",
+    info_auto_discover_keys_description:
+      "연락처의 암호화 키를 자동으로 가져와 수동 설정 없이 암호화 메일을 보낼 수 있게 합니다.",
+    info_encrypt_by_default_title: "기본 암호화",
+    info_encrypt_by_default_description:
+      "수신자의 공개 키가 있을 때 발신 이메일을 자동으로 암호화합니다. 메시지마다 암호화를 켤 필요가 없습니다.",
+    info_show_encryption_indicators_title: "암호화 표시",
+    info_show_encryption_indicators_description:
+      "이메일에 자물쇠 아이콘을 표시하여 메시지가 암호화, 서명 또는 둘 다 아닌지 알려줍니다.",
+    info_force_dark_mode_title: "이메일 강제 다크 모드",
+    info_force_dark_mode_description:
+      "이메일 스타일을 어두운 배경과 밝은 텍스트로 재작성합니다. 밝은 흰색 이메일이 눈에 부담될 때 유용합니다.",
+    info_undo_send_title: "보내기 취소",
+    info_undo_send_description:
+      "보내기 클릭 후 이메일을 취소할 수 있는 짧은 시간을 줍니다. 타이머가 끝날 때까지 실제로 전송되지 않습니다.",
+    info_spam_sensitivity_title: "스팸 민감도",
+    info_spam_sensitivity_description:
+      "높음은 스팸을 더 많이 잡지만 가끔 정상 이메일을 표시할 수 있습니다. 낮음은 더 많이 통과시킵니다. 중간이 대부분에게 적합한 균형입니다.",
+    info_conversation_grouping_title: "대화 그룹화",
+    info_conversation_grouping_description:
+      "같은 제목의 이메일을 하나의 스레드로 묶습니다. 개별 메시지를 스크롤하지 않고도 대화를 쉽게 따라갈 수 있습니다.",
     one_click_unsubscribe_supported: "원클릭 구독 취소 지원",
     open_unsubscribe_page: "구독 취소 페이지 열기",
     font_size: "글꼴 크기",

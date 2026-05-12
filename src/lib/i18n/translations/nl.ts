@@ -1676,6 +1676,84 @@ export const nl = {
     publish_to_keyservers_title: "Publiceren naar sleutelservers",
     publish_to_keyservers_description:
       "Maak je sleutels vindbaar op openbare sleutelservers",
+    info_forward_secrecy_title: "Wat is Forward Secrecy?",
+    info_forward_secrecy_description:
+      "Uw sessiesleutels worden automatisch gewisseld. Zelfs als iemand vandaag uw privésleutel zou krijgen, kunnen ze oude berichten niet lezen omdat elke sessie een andere sleutel gebruikte.",
+    info_key_rotation_interval_title: "Sleutelrotatie-interval",
+    info_key_rotation_interval_description:
+      "Hoe vaak uw versleutelingssleutel wordt gewisseld. Vaker is veiliger maar vraagt iets meer overhead. Een week is een goede standaard voor de meeste mensen.",
+    info_key_history_limit_title: "Sleutelgeschiedenislimiet",
+    info_key_history_limit_description:
+      "Hoeveel oude sleutels Aster bewaart zodat u oudere e-mails nog kunt ontsleutelen. Te laag instellen kan oudere berichten onleesbaar maken.",
+    info_wkd_title: "Wat is WKD?",
+    info_wkd_description:
+      "Een standaard waarmee e-mailapps zoals Thunderbird of Proton automatisch uw openbare sleutel vinden. Contacten kunnen versleutelde mail sturen zonder handmatige sleuteluitwisseling.",
+    info_keyservers_title: "Wat zijn sleutelservers?",
+    info_keyservers_description:
+      "Openbare directories waar PGP-sleutels doorzoekbaar zijn op e-mailadres. Let op: bij de meeste sleutelservers kunnen sleutels na publicatie niet volledig worden verwijderd.",
+    info_require_encryption_title: "Versleuteling vereisen",
+    info_require_encryption_description:
+      "Verstuurt alleen e-mails die end-to-end versleuteld kunnen worden. Als een ontvanger geen PGP-sleutel heeft, wordt het bericht niet verzonden.",
+    info_storage_format_title: "Over opslagformaat",
+    info_storage_format_description:
+      "Aster Server bewaart uw versleutelde e-mails op Asters servers. IPFS verspreidt uw gegevens over een peer-to-peer netwerk. In beide gevallen kunnen alleen uw sleutels de inhoud ontsleutelen.",
+    info_block_fonts_title: "Waarom externe lettertypen blokkeren?",
+    info_block_fonts_description:
+      "E-mails kunnen lettertypen van externe servers laden. Daarbij ziet de server van de afzender uw IP-adres en wanneer u de e-mail opende, net als een trackingpixel.",
+    info_block_css_title: "Waarom externe stylesheets blokkeren?",
+    info_block_css_description:
+      "Externe CSS-bestanden in e-mails werken als verborgen trackers. Ze vertellen de server van de afzender uw IP, wanneer u opende en welk apparaat u gebruikt.",
+    info_spy_pixels_title: "Wat zijn spionagepixels?",
+    info_spy_pixels_description:
+      "Onzichtbare 1x1-afbeeldingen in e-mails. Bij het laden ziet de afzender uw IP, wanneer u het bericht opende en uw apparaattype. Aster verwijdert ze voordat ze kunnen laden.",
+    info_folder_lock_mode_title: "Mapvergrendelingsmodus",
+    info_folder_lock_mode_description:
+      "Sessie vergrendelt de map bij het sluiten van de app. Bij verlaten vergrendelt het direct bij wegnavigeren, zodat u elke keer uw wachtwoord nodig heeft.",
+    info_block_remote_images_title: "Waarom externe afbeeldingen blokkeren?",
+    info_block_remote_images_description:
+      "Wanneer een e-mail afbeeldingen laadt van externe servers, kan de afzender uw IP-adres en het tijdstip van openen zien. Blokkeren beschermt deze informatie.",
+    info_remote_image_loading_title: "Afbeeldingsladingopties",
+    info_remote_image_loading_description:
+      "Nooit: altijd blokkeren. Vragen: elke keer een melding tonen. Altijd: laden zonder vragen. Dit beheert uitzonderingen op uw afbeeldingsblokkering.",
+    info_tracking_protection_title: "Trackingbeveiliging",
+    info_tracking_protection_description:
+      "Voorkomt dat e-mails bij het openen naar huis bellen. Afzenders gebruiken trackingpixels, lettertypen en CSS om bij te houden wie hun e-mails wanneer opende.",
+    info_block_tracking_links_title: "Wat zijn trackinglinks?",
+    info_block_tracking_links_description:
+      "Links in e-mails gaan vaak eerst via de server van de afzender zodat klikken worden bijgehouden. Dit verwijdert die omleidingen zodat links rechtstreeks naar het doel gaan.",
+    info_two_factor_auth_title: "Tweefactorauthenticatie",
+    info_two_factor_auth_description:
+      "Voegt een tweede beveiligingslaag toe bij het inloggen. Na uw wachtwoord voert u een 6-cijferige code in vanuit een app zoals Authy of Google Authenticator.",
+    info_session_timeout_title: "Sessie-time-out",
+    info_session_timeout_description:
+      "Logt u automatisch uit na een periode van inactiviteit. Handig op gedeelde computers of als u bescherming wilt wanneer u wegloopt.",
+    info_login_alerts_title: "Inlogwaarschuwingen",
+    info_login_alerts_description:
+      "Stuurt u een e-mail wanneer uw account wordt ingelogd vanaf een nieuw apparaat of locatie. Goed voor het vroeg detecteren van onbevoegde toegang.",
+    info_external_link_warnings_title: "Externe linkwaarschuwingen",
+    info_external_link_warnings_description:
+      "Toont een waarschuwing voordat een link buiten Aster wordt geopend. Helpt phishingpogingen te herkennen voordat u doorklinkt.",
+    info_auto_discover_keys_title: "Sleutels automatisch ontdekken",
+    info_auto_discover_keys_description:
+      "Haalt automatisch versleutelingssleutels op voor uw contacten zodat u hen versleutelde mail kunt sturen zonder handmatige installatie.",
+    info_encrypt_by_default_title: "Standaard versleutelen",
+    info_encrypt_by_default_description:
+      "Versleutelt uitgaande e-mails automatisch wanneer de openbare sleutel van een ontvanger beschikbaar is. Geen handmatig schakelen per bericht nodig.",
+    info_show_encryption_indicators_title: "Versleutelingsindicatoren",
+    info_show_encryption_indicators_description:
+      "Toont een slotpictogram op e-mails om aan te geven of een bericht versleuteld, ondertekend of geen van beide is.",
+    info_force_dark_mode_title: "Donkere modus e-mails",
+    info_force_dark_mode_description:
+      "Herschrijft e-mailstijlen voor een donkere achtergrond en lichte tekst. Handig als helderwitte e-mails zwaar zijn voor uw ogen.",
+    info_undo_send_title: "Verzenden ongedaan maken",
+    info_undo_send_description:
+      "Geeft u een kort venster om een e-mail te annuleren nadat u op verzenden hebt gedrukt. Er wordt niets verzonden totdat de timer verloopt.",
+    info_spam_sensitivity_title: "Spamgevoeligheid",
+    info_spam_sensitivity_description:
+      "Hoog vangt meer spam maar kan echte e-mails af en toe markeren. Laag laat meer door. Medium is voor de meeste mensen de juiste balans.",
+    info_conversation_grouping_title: "Gesprekgroepering",
+    info_conversation_grouping_description:
+      "Groepeert e-mails met hetzelfde onderwerp in één thread. Maakt het gemakkelijker een gesprek te volgen.",
     one_click_unsubscribe_supported: "Uitschrijven met één klik ondersteund",
     open_unsubscribe_page: "Uitschrijfpagina openen",
     font_size: "Lettergrootte",

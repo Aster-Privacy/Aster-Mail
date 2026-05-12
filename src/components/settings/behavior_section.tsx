@@ -62,6 +62,7 @@ import {
 } from "@/components/ui/alert_dialog";
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
+import { InfoPopover } from "@/components/ui/info_popover";
 
 interface ToggleSettingProps {
   title: string;
@@ -93,6 +94,7 @@ interface SelectSettingProps {
   value: string;
   options: { value: string; label: string }[];
   on_change: (value: string) => void;
+  info?: { title: string; description: string };
 }
 
 function SelectSetting({
@@ -101,11 +103,15 @@ function SelectSetting({
   value,
   options,
   on_change,
+  info,
 }: SelectSettingProps) {
   return (
     <div className="flex items-center justify-between py-4">
       <div className="flex-1 pr-4">
-        <p className="text-sm font-medium text-txt-primary">{title}</p>
+        <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+          {title}
+          {info && <InfoPopover description={info.description} title={info.title} />}
+        </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
       <Select value={value} onValueChange={on_change}>
@@ -375,6 +381,7 @@ export function BehaviorSection() {
 
         <SelectSetting
           description={t("settings.folder_lock_mode_description")}
+          info={{ title: t("settings.info_folder_lock_mode_title"), description: t("settings.info_folder_lock_mode_description") }}
           on_change={(v) =>
             update_preference(
               "protected_folder_lock_mode",
@@ -600,6 +607,7 @@ export function BehaviorSection() {
             { value: "medium", label: t("settings.spam_medium") },
             { value: "high", label: t("settings.spam_high") },
           ]}
+          info={{ title: t("settings.info_spam_sensitivity_title"), description: t("settings.info_spam_sensitivity_description") }}
           title={t("settings.spam_sensitivity")}
           value={spam_settings.spam_sensitivity}
         />

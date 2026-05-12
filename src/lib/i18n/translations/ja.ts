@@ -1700,6 +1700,84 @@ export const ja = {
     publish_to_keyservers_title: "キーサーバーに公開",
     publish_to_keyservers_description:
       "公開キーサーバーでキーを検索可能にします",
+    info_forward_secrecy_title: "前方秘匿性とは？",
+    info_forward_secrecy_description:
+      "セッション鍵は自動的にローテーションされます。今日誰かが秘密鍵を入手しても、各セッションが異なる鍵を使用していたため過去のメッセージは読めません。",
+    info_key_rotation_interval_title: "鍵ローテーション間隔",
+    info_key_rotation_interval_description:
+      "暗号化鍵が交換される頻度です。頻繁なほど安全ですが、オーバーヘッドが少し増えます。1週間はほとんどの人に適したデフォルトです。",
+    info_key_history_limit_title: "鍵履歴の上限",
+    info_key_history_limit_description:
+      "古いメールを復号できるようにAsterが保持する古い鍵の数。低すぎると古いメッセージが読めなくなる場合があります。",
+    info_wkd_title: "WKDとは？",
+    info_wkd_description:
+      "ThunderbirdやProtonなどのメールアプリが自動的に公開鍵を見つけられるようにする標準です。手動での鍵交換なしに暗号化メールを受信できます。",
+    info_keyservers_title: "鍵サーバーとは？",
+    info_keyservers_description:
+      "PGP鍵をメールアドレスで検索できる公開ディレクトリです。注意：ほとんどの鍵サーバーでは公開後に鍵を完全に削除できません。",
+    info_require_encryption_title: "暗号化を必須にする",
+    info_require_encryption_description:
+      "エンドツーエンドで暗号化できるメールのみ送信します。受信者にPGP鍵がない場合、メッセージは送信されません。",
+    info_storage_format_title: "ストレージ形式",
+    info_storage_format_description:
+      "Aster Serverは暗号化されたメールをAsterのサーバーに保存します。IPFSはデータをP2Pネットワークに分散します。どちらの場合も、鍵のみが内容を復号できます。",
+    info_block_fonts_title: "リモートフォントをブロックする理由",
+    info_block_fonts_description:
+      "メールは外部サーバーからフォントを読み込む場合があります。その際、送信者のサーバーはあなたのIPアドレスと開封時刻を取得します。",
+    info_block_css_title: "リモートスタイルシートをブロックする理由",
+    info_block_css_description:
+      "メール内のCSSファイルは隠しトラッカーとして機能します。読み込むと送信者のサーバーにIP、開封時刻、デバイスが伝わります。",
+    info_spy_pixels_title: "スパイピクセルとは？",
+    info_spy_pixels_description:
+      "メールに隠された1x1の不可視画像です。読み込まれると送信者はIPアドレス、開封時刻、デバイスタイプを確認できます。Asterは読み込まれる前に削除します。",
+    info_folder_lock_mode_title: "フォルダーロックモード",
+    info_folder_lock_mode_description:
+      "セッションはアプリを閉じるとフォルダーをロックします。離脱時は別の場所に移動するとすぐにロックされ、戻るたびにパスワードが必要です。",
+    info_block_remote_images_title: "リモート画像をブロックする理由",
+    info_block_remote_images_description:
+      "メールが外部サーバーから画像を読み込むと、送信者はIPアドレスと開封時刻を確認できます。ブロックするとその情報を守れます。",
+    info_remote_image_loading_title: "画像読み込みオプション",
+    info_remote_image_loading_description:
+      "しない：常にブロック。確認：毎回プロンプトを表示。常に：確認なしで読み込む。画像ブロック設定の例外を管理します。",
+    info_tracking_protection_title: "トラッキング保護",
+    info_tracking_protection_description:
+      "メールを開いたときに外部への接続を防ぎます。送信者はピクセル、フォント、CSSを使って誰がいつ開封したかを記録します。",
+    info_block_tracking_links_title: "トラッキングリンクとは？",
+    info_block_tracking_links_description:
+      "メール内のリンクはクリックを記録するため送信者のサーバーを経由することがあります。これを削除してリンクが直接目的地に移動するようにします。",
+    info_two_factor_auth_title: "二要素認証",
+    info_two_factor_auth_description:
+      "ログイン時に2番目のセキュリティ層を追加します。パスワードの後、AuthyやGoogle Authenticatorなどのアプリから6桁のコードを入力します。",
+    info_session_timeout_title: "セッションタイムアウト",
+    info_session_timeout_description:
+      "一定時間操作がないと自動的にログアウトします。共有PCや離席時の保護に役立ちます。",
+    info_login_alerts_title: "ログインアラート",
+    info_login_alerts_description:
+      "新しいデバイスや場所からアカウントにログインされた際にメールで通知します。不正アクセスの早期発見に役立ちます。",
+    info_external_link_warnings_title: "外部リンクの警告",
+    info_external_link_warnings_description:
+      "Aster外部のリンクを開く前に警告を表示します。クリック前にフィッシングの試みを特定するのに役立ちます。",
+    info_auto_discover_keys_title: "鍵の自動検出",
+    info_auto_discover_keys_description:
+      "連絡先の暗号化鍵を自動取得し、手動設定なしで暗号化メールを送れるようにします。",
+    info_encrypt_by_default_title: "デフォルトで暗号化",
+    info_encrypt_by_default_description:
+      "受信者の公開鍵が利用可能な場合、送信メールを自動暗号化します。メッセージごとに暗号化を切り替える必要がありません。",
+    info_show_encryption_indicators_title: "暗号化インジケーター",
+    info_show_encryption_indicators_description:
+      "メールに鍵アイコンを表示し、メッセージが暗号化済み・署名済み・またはどちらでもないかを示します。",
+    info_force_dark_mode_title: "メールのダークモード強制",
+    info_force_dark_mode_description:
+      "メールのスタイルを暗い背景と明るいテキストに書き換えます。明るい白いメールが目に辛い場合に便利です。",
+    info_undo_send_title: "送信取り消し",
+    info_undo_send_description:
+      "送信後に短い間キャンセルできる時間を提供します。タイマーが終わるまで実際には送信されません。",
+    info_spam_sensitivity_title: "スパム感度",
+    info_spam_sensitivity_description:
+      "高は多くのスパムをキャッチしますが、正常なメールを誤検知する場合があります。低はより多く通します。中は多くの方に適したバランスです。",
+    info_conversation_grouping_title: "会話のグループ化",
+    info_conversation_grouping_description:
+      "同じ件名のメールを1つのスレッドにまとめます。個別のメッセージをスクロールせずに会話を追いやすくなります。",
     one_click_unsubscribe_supported: "ワンクリック購読解除に対応",
     open_unsubscribe_page: "購読解除ページを開く",
     font_size: "フォントサイズ",

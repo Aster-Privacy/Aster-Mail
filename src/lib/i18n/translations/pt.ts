@@ -1713,6 +1713,84 @@ export const pt = {
     publish_to_keyservers_title: "Publicar em servidores de chaves",
     publish_to_keyservers_description:
       "Tornar suas chaves encontráveis em servidores de chaves públicos",
+    info_forward_secrecy_title: "O que é Forward Secrecy?",
+    info_forward_secrecy_description:
+      "As suas chaves de sessão rodam automaticamente. Mesmo que alguém obtivesse a sua chave privada hoje, não poderia ler mensagens passadas pois cada sessão usou uma chave diferente.",
+    info_key_rotation_interval_title: "Intervalo de rotação de chaves",
+    info_key_rotation_interval_description:
+      "Com que frequência a sua chave de cifração é substituída. Mais frequente é mais seguro, mas com um pouco mais de carga. Uma semana é um bom padrão para a maioria.",
+    info_key_history_limit_title: "Limite do histórico de chaves",
+    info_key_history_limit_description:
+      "Quantas chaves antigas o Aster guarda para decifrar e-mails mais antigos. Muito baixo e mensagens anteriores podem tornar-se ilegíveis.",
+    info_wkd_title: "O que é WKD?",
+    info_wkd_description:
+      "Um padrão que permite a apps de e-mail como Thunderbird ou Proton encontrar automaticamente a sua chave pública. Contatos podem enviar-lhe e-mails cifrados sem troca manual.",
+    info_keyservers_title: "O que são servidores de chaves?",
+    info_keyservers_description:
+      "Diretórios públicos onde as chaves PGP são pesquisáveis por e-mail. Atenção: na maioria dos servidores as chaves não podem ser completamente removidas após a publicação.",
+    info_require_encryption_title: "Exigir cifração",
+    info_require_encryption_description:
+      "Envia apenas e-mails que podem ser cifrados de ponta a ponta. Se um destinatário não tiver chave PGP, a mensagem não será enviada.",
+    info_storage_format_title: "Formato de armazenamento",
+    info_storage_format_description:
+      "Aster Server guarda os seus e-mails cifrados nos servidores da Aster. IPFS distribui os seus dados numa rede peer-to-peer. Em ambos os casos, só as suas chaves podem decifrar o conteúdo.",
+    info_block_fonts_title: "Por que bloquear fontes remotas?",
+    info_block_fonts_description:
+      "E-mails podem carregar fontes de servidores externos. O servidor do remetente vê o seu IP e quando abriu a mensagem, como um pixel de rastreamento.",
+    info_block_css_title: "Por que bloquear folhas de estilo remotas?",
+    info_block_css_description:
+      "Ficheiros CSS em e-mails funcionam como rastreadores ocultos. Carregá-los diz ao servidor do remetente o seu IP, quando abriu e que dispositivo usa.",
+    info_spy_pixels_title: "O que são pixels espiões?",
+    info_spy_pixels_description:
+      "Imagens 1x1 invisíveis em e-mails. Ao carregar, o remetente vê o seu IP, quando abriu a mensagem e o tipo de dispositivo. O Aster remove-os antes de poderem carregar.",
+    info_folder_lock_mode_title: "Modo de bloqueio de pasta",
+    info_folder_lock_mode_description:
+      "Sessão bloqueia a pasta ao fechar a app. Ao sair bloqueia assim que navega, exigindo a sua palavra-passe cada vez que volta.",
+    info_block_remote_images_title: "Por que bloquear imagens remotas?",
+    info_block_remote_images_description:
+      "Quando um e-mail carrega imagens de servidores externos, o remetente pode ver o seu endereço IP e quando o abriu. Bloqueá-las protege essa informação.",
+    info_remote_image_loading_title: "Opções de carregamento de imagens",
+    info_remote_image_loading_description:
+      "Nunca: sempre bloquear. Perguntar: mostrar aviso de cada vez. Sempre: carregar sem perguntar. Controla as exceções ao seu bloqueio de imagens.",
+    info_tracking_protection_title: "Proteção contra rastreamento",
+    info_tracking_protection_description:
+      "Impede que os e-mails se liguem ao exterior quando os abre. Os remetentes usam pixels, fontes e CSS para registar quem abre os seus e-mails.",
+    info_block_tracking_links_title: "O que são links de rastreamento?",
+    info_block_tracking_links_description:
+      "Links em e-mails frequentemente passam pelo servidor do remetente para registar cliques. Isto remove esses redirecionamentos para que os links vão diretamente ao destino.",
+    info_two_factor_auth_title: "Autenticação de dois fatores",
+    info_two_factor_auth_description:
+      "Adiciona uma segunda camada de segurança ao iniciar sessão. Após a sua palavra-passe insere um código de 6 dígitos de uma app como Authy ou Google Authenticator.",
+    info_session_timeout_title: "Tempo limite de sessão",
+    info_session_timeout_description:
+      "Fecha a sua sessão automaticamente após um período de inatividade. Útil em computadores partilhados ou se quer proteção quando se afasta.",
+    info_login_alerts_title: "Alertas de início de sessão",
+    info_login_alerts_description:
+      "Envia-lhe um e-mail sempre que a sua conta é acedida de um novo dispositivo ou local. Bom para detetar acessos não autorizados.",
+    info_external_link_warnings_title: "Avisos de links externos",
+    info_external_link_warnings_description:
+      "Mostra um aviso antes de abrir qualquer link que sai do Aster. Ajuda a identificar tentativas de phishing antes de clicar.",
+    info_auto_discover_keys_title: "Descoberta automática de chaves",
+    info_auto_discover_keys_description:
+      "Obtém automaticamente as chaves de cifração dos seus contactos para enviar e-mails cifrados sem configuração manual.",
+    info_encrypt_by_default_title: "Cifrar por padrão",
+    info_encrypt_by_default_description:
+      "Cifra automaticamente os e-mails enviados quando a chave pública de um destinatário está disponível. Não precisa de ativar a cifração por mensagem.",
+    info_show_encryption_indicators_title: "Indicadores de cifração",
+    info_show_encryption_indicators_description:
+      "Mostra um ícone de cadeado nos e-mails para indicar se uma mensagem está cifrada, assinada ou nenhum dos dois.",
+    info_force_dark_mode_title: "E-mails em modo escuro",
+    info_force_dark_mode_description:
+      "Reescreve os estilos dos e-mails para usar fundo escuro e texto claro. Útil se os e-mails brancos são cansativos para os seus olhos.",
+    info_undo_send_title: "Desfazer envio",
+    info_undo_send_description:
+      "Dá-lhe uma janela curta para cancelar um e-mail depois de clicar em enviar. Nada sai até o temporizador terminar.",
+    info_spam_sensitivity_title: "Sensibilidade ao spam",
+    info_spam_sensitivity_description:
+      "Alta apanha mais spam mas pode sinalizar e-mails reais. Baixa deixa passar mais. Média é o equilíbrio certo para a maioria.",
+    info_conversation_grouping_title: "Agrupamento de conversas",
+    info_conversation_grouping_description:
+      "Agrupa e-mails com o mesmo assunto numa única thread. Facilita acompanhar uma conversa.",
     one_click_unsubscribe_supported:
       "Cancelamento de inscrição com um clique suportado",
     open_unsubscribe_page: "Abrir página de cancelamento de inscrição",

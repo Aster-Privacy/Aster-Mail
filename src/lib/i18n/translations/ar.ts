@@ -1661,6 +1661,84 @@ export const ar = {
     publish_to_keyservers_title: "النشر إلى خوادم المفاتيح",
     publish_to_keyservers_description:
       "جعل مفاتيحك قابلة للعثور عليها في خوادم المفاتيح العامة",
+    info_forward_secrecy_title: "ما هي السرية التامة؟",
+    info_forward_secrecy_description:
+      "تتناوب مفاتيح جلستك تلقائياً. حتى لو حصل أحدهم على مفتاحك الخاص اليوم، لا يمكنه قراءة الرسائل القديمة لأن كل جلسة استخدمت مفتاحاً مختلفاً.",
+    info_key_rotation_interval_title: "فترة تدوير المفاتيح",
+    info_key_rotation_interval_description:
+      "مدى تكرار استبدال مفتاح التشفير. كلما كان أكثر تكراراً كان أكثر أماناً مع حمل إضافي بسيط. أسبوع هو افتراضي جيد لمعظم الأشخاص.",
+    info_key_history_limit_title: "حد سجل المفاتيح",
+    info_key_history_limit_description:
+      "عدد المفاتيح القديمة التي يحتفظ بها Aster لفك تشفير الرسائل الأقدم. منخفض جداً قد يجعل الرسائل القديمة غير قابلة للقراءة.",
+    info_wkd_title: "ما هو WKD؟",
+    info_wkd_description:
+      "معيار يتيح لتطبيقات مثل Thunderbird أو Proton العثور تلقائياً على مفتاحك العام. يمكن للجهات الاتصال إرسال بريد مشفر دون تبادل يدوي للمفاتيح.",
+    info_keyservers_title: "ما هي خوادم المفاتيح؟",
+    info_keyservers_description:
+      "أدلة عامة حيث يمكن البحث عن مفاتيح PGP بالبريد الإلكتروني. تحذير: في معظم الخوادم لا يمكن حذف المفاتيح بالكامل بعد النشر.",
+    info_require_encryption_title: "طلب التشفير",
+    info_require_encryption_description:
+      "يرسل فقط رسائل يمكن تشفيرها من طرف لطرف. إذا لم يكن للمستلم مفتاح PGP، لن يتم إرسال الرسالة.",
+    info_storage_format_title: "تنسيق التخزين",
+    info_storage_format_description:
+      "يخزن Aster Server رسائلك المشفرة على خوادم Aster. يوزع IPFS بياناتك على شبكة نظير إلى نظير. في كلتا الحالتين، مفاتيحك فقط يمكنها فك التشفير.",
+    info_block_fonts_title: "لماذا حجب الخطوط البعيدة؟",
+    info_block_fonts_description:
+      "يمكن للرسائل تحميل خطوط من خوادم خارجية. عند التحميل يرى خادم المرسل عنوان IP الخاص بك ووقت الفتح، مثل بكسل التتبع.",
+    info_block_css_title: "لماذا حجب أوراق الأنماط البعيدة؟",
+    info_block_css_description:
+      "ملفات CSS في الرسائل تعمل كأدوات تتبع مخفية. تحميلها يكشف لخادم المرسل IP الخاص بك ووقت الفتح والجهاز المستخدم.",
+    info_spy_pixels_title: "ما هي بكسلات التجسس؟",
+    info_spy_pixels_description:
+      "صور 1×1 غير مرئية في الرسائل. عند التحميل يرى المرسل IP الخاص بك ووقت الفتح ونوع الجهاز. يزيلها Aster قبل أن تُحمَّل.",
+    info_folder_lock_mode_title: "وضع قفل المجلد",
+    info_folder_lock_mode_description:
+      "الجلسة تقفل المجلد عند إغلاق التطبيق. عند المغادرة يقفل فور التنقل بعيداً مما يتطلب كلمة المرور في كل مرة.",
+    info_block_remote_images_title: "لماذا حجب الصور البعيدة؟",
+    info_block_remote_images_description:
+      "عندما تحمّل رسالة صوراً من خوادم خارجية، يمكن للمرسل رؤية عنوان IP الخاص بك ووقت الفتح. الحجب يحمي هذه المعلومات.",
+    info_remote_image_loading_title: "خيارات تحميل الصور",
+    info_remote_image_loading_description:
+      "أبداً: احجب دائماً. اسأل: اعرض تنبيهاً في كل مرة. دائماً: حمّل دون سؤال. يتحكم في استثناءات إعداد حجب الصور.",
+    info_tracking_protection_title: "حماية التتبع",
+    info_tracking_protection_description:
+      "يمنع الرسائل من الاتصال بالخارج عند فتحها. يستخدم المرسلون البكسلات والخطوط وCSS لتسجيل من فتح رسائلهم ومتى.",
+    info_block_tracking_links_title: "ما هي روابط التتبع؟",
+    info_block_tracking_links_description:
+      "روابط الرسائل كثيراً ما تمر عبر خادم المرسل أولاً لتسجيل النقرات. هذا يزيل تلك إعادة التوجيه ليذهب الرابط مباشرة للهدف.",
+    info_two_factor_auth_title: "المصادقة الثنائية",
+    info_two_factor_auth_description:
+      "يضيف طبقة أمان ثانية عند تسجيل الدخول. بعد كلمة المرور تُدخل رمزاً من 6 أرقام من تطبيق مثل Authy أو Google Authenticator.",
+    info_session_timeout_title: "انتهاء مهلة الجلسة",
+    info_session_timeout_description:
+      "يسجّل خروجك تلقائياً بعد فترة من عدم النشاط. مفيد على الأجهزة المشتركة أو عند الابتعاد.",
+    info_login_alerts_title: "تنبيهات تسجيل الدخول",
+    info_login_alerts_description:
+      "يرسل لك بريداً في كل مرة يُسجَّل فيها الدخول لحسابك من جهاز أو موقع جديد. جيد لاكتشاف الوصول غير المصرح به مبكراً.",
+    info_external_link_warnings_title: "تحذيرات الروابط الخارجية",
+    info_external_link_warnings_description:
+      "يعرض تحذيراً قبل فتح أي رابط خارج Aster. يساعدك على رصد محاولات التصيد قبل النقر.",
+    info_auto_discover_keys_title: "اكتشاف المفاتيح تلقائياً",
+    info_auto_discover_keys_description:
+      "يجلب تلقائياً مفاتيح التشفير لجهات اتصالك لإرسال بريد مشفر دون إعداد يدوي.",
+    info_encrypt_by_default_title: "التشفير افتراضياً",
+    info_encrypt_by_default_description:
+      "يشفر تلقائياً الرسائل الصادرة عندما يتوفر المفتاح العام للمستلم. لا حاجة لتفعيل التشفير يدوياً لكل رسالة.",
+    info_show_encryption_indicators_title: "مؤشرات التشفير",
+    info_show_encryption_indicators_description:
+      "يعرض أيقونة قفل على الرسائل يوضح إن كانت مشفرة أو موقعة أو لا شيء.",
+    info_force_dark_mode_title: "وضع الرسائل الداكن",
+    info_force_dark_mode_description:
+      "يعيد كتابة أنماط الرسائل لاستخدام خلفية داكنة ونص فاتح. مفيد إذا كانت الرسائل البيضاء المضيئة تجهد عينيك.",
+    info_undo_send_title: "تراجع عن الإرسال",
+    info_undo_send_description:
+      "يمنحك نافذة قصيرة لإلغاء رسالة بعد الضغط على إرسال. لا يخرج شيء حتى ينتهي المؤقت.",
+    info_spam_sensitivity_title: "حساسية البريد المزعج",
+    info_spam_sensitivity_description:
+      "عالية تلتقط بريداً مزعجاً أكثر لكنها قد تضع علامة على رسائل حقيقية أحياناً. منخفضة تمرر أكثر. متوسطة هي التوازن المناسب لمعظم الأشخاص.",
+    info_conversation_grouping_title: "تجميع المحادثات",
+    info_conversation_grouping_description:
+      "يجمع الرسائل ذات الموضوع نفسه في خيط واحد. يسهّل متابعة المحادثة دون التمرير عبر رسائل فردية.",
     one_click_unsubscribe_supported: "إلغاء الاشتراك بنقرة واحدة مدعوم",
     open_unsubscribe_page: "فتح صفحة إلغاء الاشتراك",
     font_size: "حجم الخط",

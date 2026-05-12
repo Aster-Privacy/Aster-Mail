@@ -33,18 +33,23 @@ import {
   KEY_ROTATION_OPTIONS,
   KEY_HISTORY_OPTIONS,
 } from "@/components/settings/hooks/use_security";
+import { InfoPopover } from "@/components/ui/info_popover";
 
 interface SecuritySettingProps {
   title: string;
   description: string;
   action: React.ReactNode;
+  info?: { title: string; description: string };
 }
 
-function SecuritySetting({ title, description, action }: SecuritySettingProps) {
+function SecuritySetting({ title, description, action, info }: SecuritySettingProps) {
   return (
     <div className="flex items-center justify-between py-4">
       <div className="flex-1 pr-4">
-        <p className="text-sm font-medium text-txt-primary">{title}</p>
+        <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+          {title}
+          {info && <InfoPopover description={info.description} title={info.title} />}
+        </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
       <div className="flex-shrink-0">{action}</div>
@@ -203,6 +208,7 @@ export function TwoFactorSection({
             ? t("settings.external_link_warning_disabled")
             : t("settings.external_link_warning_enabled")
         }
+        info={{ title: t("settings.info_external_link_warnings_title"), description: t("settings.info_external_link_warnings_description") }}
         title={t("settings.external_link_warnings")}
       />
       <SecuritySetting
@@ -212,6 +218,7 @@ export function TwoFactorSection({
             onCheckedChange={on_forward_secrecy_toggle}
           />
         }
+        info={{ title: t("settings.info_forward_secrecy_title"), description: t("settings.info_forward_secrecy_description") }}
         description={
           forward_secrecy_enabled
             ? t("settings.forward_secrecy_enabled_description").replace(
@@ -263,8 +270,9 @@ export function TwoFactorSection({
           <div>
             <div className="flex items-center gap-3 mb-3">
               <ArrowPathIcon className="w-4 h-4 text-txt-muted" />
-              <span className="text-sm font-medium text-txt-primary">
+              <span className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                 {t("settings.key_rotation_interval")}
+                <InfoPopover description={t("settings.info_key_rotation_interval_description")} title={t("settings.info_key_rotation_interval_title")} />
               </span>
             </div>
             <div className="grid grid-cols-4 gap-2">
@@ -281,8 +289,9 @@ export function TwoFactorSection({
           <div>
             <div className="flex items-center gap-3 mb-3">
               <KeyIcon className="w-4 h-4 text-txt-muted" />
-              <span className="text-sm font-medium text-txt-primary">
+              <span className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                 {t("settings.key_history_limit")}
+                <InfoPopover description={t("settings.info_key_history_limit_description")} title={t("settings.info_key_history_limit_title")} />
               </span>
             </div>
             <div className="grid grid-cols-4 gap-2">

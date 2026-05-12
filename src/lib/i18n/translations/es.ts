@@ -1728,6 +1728,84 @@ export const es = {
     publish_to_keyservers_title: "Publicar en servidores de claves",
     publish_to_keyservers_description:
       "Hacer tus claves encontrables en servidores de claves públicos",
+    info_forward_secrecy_title: "¿Qué es la confidencialidad persistente?",
+    info_forward_secrecy_description:
+      "Tus claves de sesión rotan automáticamente. Aunque alguien obtuviera tu clave privada hoy, no podría leer mensajes pasados porque cada sesión usó una clave diferente.",
+    info_key_rotation_interval_title: "Intervalo de rotación de claves",
+    info_key_rotation_interval_description:
+      "Con qué frecuencia se reemplaza tu clave de cifrado. Más frecuente es más seguro, pero con algo más de carga. Una semana es un buen valor predeterminado.",
+    info_key_history_limit_title: "Límite del historial de claves",
+    info_key_history_limit_description:
+      "Cuántas claves antiguas conserva Aster para descifrar correos más antiguos. Demasiado bajo y los mensajes anteriores pueden volverse ilegibles.",
+    info_wkd_title: "¿Qué es WKD?",
+    info_wkd_description:
+      "Un estándar que permite a apps de correo como Thunderbird o Proton encontrar automáticamente tu clave pública. Los contactos pueden enviarte correos cifrados sin intercambio manual.",
+    info_keyservers_title: "¿Qué son los servidores de claves?",
+    info_keyservers_description:
+      "Directorios públicos donde las claves PGP se pueden buscar por correo. Atención: en la mayoría de servidores las claves no se pueden eliminar completamente tras publicarlas.",
+    info_require_encryption_title: "Requerir cifrado",
+    info_require_encryption_description:
+      "Solo envía correos que puedan cifrarse de extremo a extremo. Si un destinatario no tiene clave PGP, el mensaje no se enviará.",
+    info_storage_format_title: "Formato de almacenamiento",
+    info_storage_format_description:
+      "Aster Server guarda tus correos cifrados en los servidores de Aster. IPFS distribuye tus datos en una red entre pares. En ambos casos, solo tus claves pueden descifrar el contenido.",
+    info_block_fonts_title: "¿Por qué bloquear fuentes remotas?",
+    info_block_fonts_description:
+      "Los correos pueden cargar fuentes desde servidores externos. El servidor del remitente ve tu IP y cuándo abriste el mensaje, igual que un píxel de seguimiento.",
+    info_block_css_title: "¿Por qué bloquear hojas de estilo remotas?",
+    info_block_css_description:
+      "Los archivos CSS en los correos actúan como rastreadores ocultos. Cargarlos le dice al servidor del remitente tu IP, cuándo abriste y qué dispositivo usas.",
+    info_spy_pixels_title: "¿Qué son los píxeles espía?",
+    info_spy_pixels_description:
+      "Imágenes 1x1 invisibles en los correos. Al cargarse, el remitente ve tu IP, cuándo abriste el mensaje y tu tipo de dispositivo. Aster los elimina antes de que puedan cargarse.",
+    info_folder_lock_mode_title: "Modo de bloqueo de carpeta",
+    info_folder_lock_mode_description:
+      "Sesión bloquea la carpeta al cerrar la app. Al salir la bloquea en cuanto navegas a otro lugar, requiriendo tu contraseña cada vez que vuelves.",
+    info_block_remote_images_title: "¿Por qué bloquear imágenes remotas?",
+    info_block_remote_images_description:
+      "Cuando un correo carga imágenes de servidores externos, el remitente puede ver tu dirección IP y cuándo lo abriste. Bloquearlas protege esa información.",
+    info_remote_image_loading_title: "Opciones de carga de imágenes",
+    info_remote_image_loading_description:
+      "Nunca: siempre bloquear. Preguntar: mostrar aviso cada vez. Siempre: cargar sin preguntar. Controla las excepciones a tu bloqueo de imágenes.",
+    info_tracking_protection_title: "Protección contra rastreo",
+    info_tracking_protection_description:
+      "Evita que los correos se conecten al exterior cuando los abres. Los remitentes usan píxeles, fuentes y CSS para registrar quién abre sus correos.",
+    info_block_tracking_links_title: "¿Qué son los enlaces de rastreo?",
+    info_block_tracking_links_description:
+      "Los enlaces en correos suelen pasar primero por el servidor del remitente para registrar clics. Esto elimina esas redirecciones para que los enlaces vayan directamente al destino.",
+    info_two_factor_auth_title: "Autenticación de dos factores",
+    info_two_factor_auth_description:
+      "Añade una segunda capa de seguridad al iniciar sesión. Tras tu contraseña introduces un código de 6 dígitos desde una app como Authy o Google Authenticator.",
+    info_session_timeout_title: "Tiempo de espera de sesión",
+    info_session_timeout_description:
+      "Te cierra la sesión automáticamente tras un período de inactividad. Útil en ordenadores compartidos o si quieres protección cuando te alejas.",
+    info_login_alerts_title: "Alertas de inicio de sesión",
+    info_login_alerts_description:
+      "Te envía un correo cada vez que alguien inicia sesión en tu cuenta desde un nuevo dispositivo o lugar. Bueno para detectar accesos no autorizados.",
+    info_external_link_warnings_title: "Advertencias de enlaces externos",
+    info_external_link_warnings_description:
+      "Muestra una advertencia antes de abrir cualquier enlace que va fuera de Aster. Ayuda a detectar intentos de phishing antes de hacer clic.",
+    info_auto_discover_keys_title: "Descubrimiento automático de claves",
+    info_auto_discover_keys_description:
+      "Obtiene automáticamente las claves de cifrado de tus contactos para enviarles correos cifrados sin configuración manual.",
+    info_encrypt_by_default_title: "Cifrar por defecto",
+    info_encrypt_by_default_description:
+      "Cifra automáticamente los correos salientes cuando la clave pública de un destinatario está disponible. No necesitas activar el cifrado por mensaje.",
+    info_show_encryption_indicators_title: "Indicadores de cifrado",
+    info_show_encryption_indicators_description:
+      "Muestra un icono de candado en los correos para indicar si un mensaje está cifrado, firmado o ninguno de los dos.",
+    info_force_dark_mode_title: "Correos en modo oscuro",
+    info_force_dark_mode_description:
+      "Reescribe los estilos de los correos para usar fondo oscuro y texto claro. Útil si los correos blancos brillantes son molestos para tus ojos.",
+    info_undo_send_title: "Deshacer envío",
+    info_undo_send_description:
+      "Te da una breve ventana para cancelar un correo después de hacer clic en enviar. Nada sale hasta que el temporizador se agota.",
+    info_spam_sensitivity_title: "Sensibilidad al spam",
+    info_spam_sensitivity_description:
+      "Alta captura más spam pero puede marcar correos reales. Baja deja pasar más. Media es el equilibrio adecuado para la mayoría.",
+    info_conversation_grouping_title: "Agrupación de conversaciones",
+    info_conversation_grouping_description:
+      "Agrupa correos con el mismo asunto en un único hilo. Facilita seguir una conversación.",
     one_click_unsubscribe_supported:
       "Cancelación de suscripción con un clic compatible",
     open_unsubscribe_page: "Abrir página de cancelación de suscripción",

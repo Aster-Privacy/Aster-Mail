@@ -2285,6 +2285,84 @@ export const en: Translations = {
     publish_to_keyservers_title: "Publish to keyservers",
     publish_to_keyservers_description:
       "Make your keys findable on public keyservers",
+    info_forward_secrecy_title: "What is Forward Secrecy?",
+    info_forward_secrecy_description:
+      "Your session keys rotate automatically on a schedule. Even if someone got your private key today, they couldn't read past messages because each session used a different key that no longer exists.",
+    info_key_rotation_interval_title: "Key Rotation Interval",
+    info_key_rotation_interval_description:
+      "How often your encryption key gets swapped out. More frequent means more secure, but slightly more overhead. A week is a good default for most people.",
+    info_key_history_limit_title: "Key History Limit",
+    info_key_history_limit_description:
+      "How many old keys Aster keeps so you can still decrypt older emails. Set it too low and messages from before the last rotation might become unreadable.",
+    info_wkd_title: "What is WKD?",
+    info_wkd_description:
+      "A standard that lets email apps like Thunderbird or Proton automatically find your public key. People can send you encrypted mail without you needing to share your key manually.",
+    info_keyservers_title: "What are Keyservers?",
+    info_keyservers_description:
+      "Public directories where PGP keys are searchable by email. Publishing here lets anyone find your key. Heads up: most keyservers don't let you fully remove a key once it's published.",
+    info_require_encryption_title: "Require Encryption",
+    info_require_encryption_description:
+      "Only send emails that can be encrypted end-to-end. If a recipient doesn't have a PGP key, the message won't send. Only turn this on if you never email people outside of PGP.",
+    info_storage_format_title: "About Storage Format",
+    info_storage_format_description:
+      "Aster Server keeps your encrypted emails on Aster's servers, fast and reliable. IPFS spreads your data across a peer-to-peer network so it's not tied to one place. Either way, only your keys can decrypt it.",
+    info_block_fonts_title: "Why Block Remote Fonts?",
+    info_block_fonts_description:
+      "Emails can load fonts from outside servers. When they load, the sender's server sees your IP and knows you opened the message. Same trick as a tracking pixel, just via fonts.",
+    info_block_css_title: "Why Block Remote Stylesheets?",
+    info_block_css_description:
+      "Stylesheets in emails work like hidden trackers. Loading one tells the sender's server your IP, when you opened it, and what device you're on.",
+    info_spy_pixels_title: "What are Spy Pixels?",
+    info_spy_pixels_description:
+      "Invisible 1x1 images hidden in emails. When they load, the sender sees your IP, when you opened the message, and your device type. Aster removes them before they can load.",
+    info_folder_lock_mode_title: "Folder Lock Mode",
+    info_folder_lock_mode_description:
+      "Session locks the folder when you close the app or your session ends. On Leave locks it the moment you navigate away, so you'll need your password each time you come back.",
+    info_block_remote_images_title: "Why Block Remote Images?",
+    info_block_remote_images_description:
+      "When an email loads images from outside servers, the sender can see your IP address and when you opened it. Blocking them keeps that info private.",
+    info_remote_image_loading_title: "Image Loading Options",
+    info_remote_image_loading_description:
+      "Never: always block images. Ask: show a prompt each time. Always: load without asking. This controls when exceptions are made to your image blocking setting.",
+    info_tracking_protection_title: "Tracking Protection",
+    info_tracking_protection_description:
+      "Blocks emails from phoning home when you open them. Senders use tracking pixels, fonts, and CSS to record who opened their emails and when.",
+    info_block_tracking_links_title: "What are Tracking Links?",
+    info_block_tracking_links_description:
+      "Links in emails often redirect through a sender's server first so they can record whether you clicked. This strips those redirects so links go straight to the destination.",
+    info_two_factor_auth_title: "Two-Factor Authentication",
+    info_two_factor_auth_description:
+      "Adds a second layer of sign-in security. After your password, you'll enter a 6-digit code from an app like Authy or Google Authenticator.",
+    info_session_timeout_title: "Session Timeout",
+    info_session_timeout_description:
+      "Automatically signs you out after a period of inactivity. Useful on shared computers or if you want protection when you walk away.",
+    info_login_alerts_title: "Login Alerts",
+    info_login_alerts_description:
+      "Sends you an email whenever your account is signed in from a new device or location. Good for catching unauthorized access early.",
+    info_external_link_warnings_title: "External Link Warnings",
+    info_external_link_warnings_description:
+      "Shows a warning before opening any link that goes outside Aster. Helps you spot phishing attempts before you click through.",
+    info_auto_discover_keys_title: "Auto-discover Keys",
+    info_auto_discover_keys_description:
+      "Automatically fetches encryption keys for your contacts so you can send them encrypted mail without any manual setup.",
+    info_encrypt_by_default_title: "Encrypt by Default",
+    info_encrypt_by_default_description:
+      "Automatically encrypts outgoing emails when a recipient's public key is available. No need to toggle encryption per message.",
+    info_show_encryption_indicators_title: "Encryption Indicators",
+    info_show_encryption_indicators_description:
+      "Shows a lock icon on emails to tell you whether a message is encrypted, signed, or neither. Handy for knowing what's protected at a glance.",
+    info_force_dark_mode_title: "Force Dark Mode Emails",
+    info_force_dark_mode_description:
+      "Rewrites email styles to use a dark background and light text. Useful if bright white emails are harsh on your eyes.",
+    info_undo_send_title: "Undo Send",
+    info_undo_send_description:
+      "Gives you a short window to cancel an email after hitting send. Nothing goes out until the timer runs out.",
+    info_spam_sensitivity_title: "Spam Sensitivity",
+    info_spam_sensitivity_description:
+      "High catches more spam but may flag real emails occasionally. Low lets more through with fewer false positives. Medium is the right balance for most.",
+    info_conversation_grouping_title: "Conversation Grouping",
+    info_conversation_grouping_description:
+      "Groups emails with the same subject into a single thread. Makes it easier to follow a conversation without scrolling through individual messages.",
     one_click_unsubscribe_supported: "One-click unsubscribe supported",
     open_unsubscribe_page: "Open unsubscribe page",
     font_size: "Font Size",

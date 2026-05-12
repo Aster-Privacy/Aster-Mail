@@ -24,12 +24,14 @@ import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { InfoPopover } from "@/components/ui/info_popover";
 
 interface ToggleSettingProps {
   title: string;
   description: string;
   enabled: boolean;
   on_toggle: () => void;
+  info?: { title: string; description: string };
 }
 
 function ToggleSetting({
@@ -37,11 +39,15 @@ function ToggleSetting({
   description,
   enabled,
   on_toggle,
+  info,
 }: ToggleSettingProps) {
   return (
     <div className="flex items-center justify-between py-4">
       <div className="flex-1 pr-4">
-        <p className="text-sm font-medium text-txt-primary">{title}</p>
+        <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+          {title}
+          {info && <InfoPopover description={info.description} title={info.title} />}
+        </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
       <Switch checked={enabled} onCheckedChange={on_toggle} />
@@ -98,6 +104,7 @@ export function EncryptionSettingsForm({
             true,
           )
         }
+        info={{ title: t("settings.info_auto_discover_keys_title"), description: t("settings.info_auto_discover_keys_description") }}
         title={t("settings.auto_discover_keys_title")}
       />
       <ToggleSetting
@@ -106,11 +113,13 @@ export function EncryptionSettingsForm({
         on_toggle={() =>
           update_preference("encrypt_emails", !preferences.encrypt_emails, true)
         }
+        info={{ title: t("settings.info_encrypt_by_default_title"), description: t("settings.info_encrypt_by_default_description") }}
         title={t("settings.encrypt_by_default_title")}
       />
       <ToggleSetting
         description={t("settings.require_encryption_description")}
         enabled={preferences.require_encryption}
+        info={{ title: t("settings.info_require_encryption_title"), description: t("settings.info_require_encryption_description") }}
         on_toggle={() =>
           update_preference(
             "require_encryption",
@@ -135,12 +144,14 @@ export function EncryptionSettingsForm({
       <ToggleSetting
         description={t("settings.publish_keys_wkd_description")}
         enabled={preferences.publish_to_wkd}
+        info={{ title: t("settings.info_wkd_title"), description: t("settings.info_wkd_description") }}
         on_toggle={handle_wkd_toggle}
         title={t("settings.publish_keys_wkd_title")}
       />
       <ToggleSetting
         description={t("settings.publish_to_keyservers_description")}
         enabled={preferences.publish_to_keyservers}
+        info={{ title: t("settings.info_keyservers_title"), description: t("settings.info_keyservers_description") }}
         on_toggle={handle_keyserver_toggle}
         title={t("settings.publish_to_keyservers_title")}
       />

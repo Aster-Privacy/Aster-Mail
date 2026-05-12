@@ -1694,6 +1694,84 @@ export const tr = {
     publish_to_keyservers_title: "Anahtar sunucularına yayınla",
     publish_to_keyservers_description:
       "Anahtarlarınızı genel anahtar sunucularında bulunabilir yapın",
+    info_forward_secrecy_title: "İletim Gizliliği Nedir?",
+    info_forward_secrecy_description:
+      "Oturum anahtarlarınız otomatik olarak döndürülür. Biri bugün özel anahtarınızı ele geçirse bile, her oturum farklı bir anahtar kullandığı için geçmiş mesajları okuyamaz.",
+    info_key_rotation_interval_title: "Anahtar Döndürme Aralığı",
+    info_key_rotation_interval_description:
+      "Şifreleme anahtarınızın ne sıklıkla değiştirildiği. Daha sık daha güvenli demektir ama biraz ek yük getirir. Çoğu için bir hafta iyi bir varsayılandır.",
+    info_key_history_limit_title: "Anahtar Geçmişi Sınırı",
+    info_key_history_limit_description:
+      "Aster'ın eski e-postaları çözebilmek için sakladığı eski anahtar sayısı. Çok düşük ayarlanırsa eski mesajlar okunamaz hale gelebilir.",
+    info_wkd_title: "WKD Nedir?",
+    info_wkd_description:
+      "Thunderbird veya Proton gibi e-posta uygulamalarının genel anahtarınızı otomatik bulmasını sağlayan bir standart. Kişiler manuel anahtar değişimi yapmadan şifreli mail gönderebilir.",
+    info_keyservers_title: "Anahtar Sunucuları Nedir?",
+    info_keyservers_description:
+      "PGP anahtarlarının e-posta ile aranabildiği genel dizinler. Dikkat: çoğu anahtar sunucusunda yayınlanan anahtarlar tamamen silinemez.",
+    info_require_encryption_title: "Şifreleme Zorunlu",
+    info_require_encryption_description:
+      "Yalnızca uçtan uca şifrelenebilen e-postaları gönderir. Alıcının PGP anahtarı yoksa mesaj gönderilmez.",
+    info_storage_format_title: "Depolama Formatı",
+    info_storage_format_description:
+      "Aster Server, şifreli e-postalarınızı Aster sunucularında tutar. IPFS, verilerinizi eşten eşe bir ağa dağıtır. Her iki durumda da yalnızca anahtarlarınız içeriği çözebilir.",
+    info_block_fonts_title: "Uzak Yazı Tipleri Neden Engellenmeli?",
+    info_block_fonts_description:
+      "E-postalar dış sunuculardan yazı tipi yükleyebilir. Gönderenin sunucusu IP adresinizi ve mesajı ne zaman açtığınızı görür; izleme pikseli gibi çalışır.",
+    info_block_css_title: "Uzak Stil Sayfaları Neden Engellenmeli?",
+    info_block_css_description:
+      "E-postalardaki CSS dosyaları gizli izleyici gibi çalışır. Yüklendiğinde gönderenin sunucusuna IP'nizi, açma zamanınızı ve cihazınızı iletir.",
+    info_spy_pixels_title: "Casus Pikseller Nedir?",
+    info_spy_pixels_description:
+      "E-postalardaki görünmez 1x1 görüntüler. Yüklendiğinde gönderen IP'nizi, açma zamanınızı ve cihaz türünüzü görür. Aster bunları yüklenmeden önce kaldırır.",
+    info_folder_lock_mode_title: "Klasör Kilitleme Modu",
+    info_folder_lock_mode_description:
+      "Oturum, klasörü uygulama kapatıldığında kilitler. Ayrılışta başka bir yere gittiğinizde hemen kilitler ve her dönüşünüzde şifre ister.",
+    info_block_remote_images_title: "Uzak Resimler Neden Engellenmeli?",
+    info_block_remote_images_description:
+      "Bir e-posta dış sunuculardan resim yüklediğinde, gönderen IP adresinizi ve ne zaman açtığınızı görebilir. Engellemek bu bilgiyi korur.",
+    info_remote_image_loading_title: "Resim Yükleme Seçenekleri",
+    info_remote_image_loading_description:
+      "Asla: her zaman engelle. Sor: her seferinde bildirim göster. Her zaman: sormadan yükle. Resim engelleme ayarınızdaki istisnaları yönetir.",
+    info_tracking_protection_title: "İzleme Koruması",
+    info_tracking_protection_description:
+      "E-postaların açıldığında dışarıya bağlanmasını engeller. Göndericiler, kimler ve ne zaman açtıklarını kayıt altına almak için piksel, yazı tipi ve CSS kullanır.",
+    info_block_tracking_links_title: "İzleme Bağlantıları Nedir?",
+    info_block_tracking_links_description:
+      "E-postalardaki bağlantılar genellikle önce gönderenin sunucusundan geçer ve tıklamaları kaydeder. Bu yönlendirmeleri kaldırarak bağlantılar doğrudan hedefe gider.",
+    info_two_factor_auth_title: "İki Faktörlü Kimlik Doğrulama",
+    info_two_factor_auth_description:
+      "Girişe ikinci bir güvenlik katmanı ekler. Şifrenizden sonra Authy veya Google Authenticator gibi bir uygulamadan 6 haneli kod girersiniz.",
+    info_session_timeout_title: "Oturum Zaman Aşımı",
+    info_session_timeout_description:
+      "Belirli bir süre hareketsiz kalındığında sizi otomatik çıkış yapar. Paylaşılan bilgisayarlarda veya uzaklaştığınızda koruma için kullanışlıdır.",
+    info_login_alerts_title: "Giriş Uyarıları",
+    info_login_alerts_description:
+      "Hesabınıza yeni bir cihaz veya konumdan giriş yapıldığında e-posta gönderir. Yetkisiz erişimi erken fark etmek için iyidir.",
+    info_external_link_warnings_title: "Harici Bağlantı Uyarıları",
+    info_external_link_warnings_description:
+      "Aster dışına çıkan bir bağlantıya tıklamadan önce uyarı gösterir. Tıklamadan önce kimlik avı girişimlerini fark etmenize yardımcı olur.",
+    info_auto_discover_keys_title: "Anahtarları Otomatik Keşfet",
+    info_auto_discover_keys_description:
+      "Kişilerinizin şifreleme anahtarlarını otomatik alır ve manuel kurulum gerektirmeden şifreli mail göndermenizi sağlar.",
+    info_encrypt_by_default_title: "Varsayılan Olarak Şifrele",
+    info_encrypt_by_default_description:
+      "Alıcının genel anahtarı mevcut olduğunda giden e-postaları otomatik şifreler. Her mesaj için şifrelemeyi ayrıca açmanıza gerek kalmaz.",
+    info_show_encryption_indicators_title: "Şifreleme Göstergeleri",
+    info_show_encryption_indicators_description:
+      "E-postalarda bir kilit simgesi göstererek mesajın şifreli, imzalı veya hiçbiri olduğunu belirtir.",
+    info_force_dark_mode_title: "E-postalarda Koyu Mod",
+    info_force_dark_mode_description:
+      "E-posta stillerini koyu arka plan ve açık metinle kullanmak üzere yeniden yazar. Parlak beyaz e-postalar gözlerinizi yoruyorsa kullanışlıdır.",
+    info_undo_send_title: "Gönderimi Geri Al",
+    info_undo_send_description:
+      "Gönder'e bastıktan sonra e-postayı iptal etmek için kısa bir süre tanır. Sayaç bitene kadar hiçbir şey gönderilmez.",
+    info_spam_sensitivity_title: "Spam Hassasiyeti",
+    info_spam_sensitivity_description:
+      "Yüksek daha fazla spam yakalar ama gerçek e-postaları işaretleyebilir. Düşük daha fazla geçirir. Orta çoğu için doğru dengedir.",
+    info_conversation_grouping_title: "Konuşma Gruplandırma",
+    info_conversation_grouping_description:
+      "Aynı konuya sahip e-postaları tek bir konuşmaya gruplar. Tek tek mesajlar arasında kaydırmadan konuşmayı takip etmeyi kolaylaştırır.",
     one_click_unsubscribe_supported: "Tek tıkla abonelik iptali destekleniyor",
     open_unsubscribe_page: "Abonelik iptal sayfasını aç",
     font_size: "Yazı Tipi Boyutu",

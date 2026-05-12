@@ -28,7 +28,7 @@ import {
 
 import { useTheme } from "@/contexts/theme_context";
 
-export const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
+export const TURNSTILE_SITE_KEY = import.meta.env.DEV ? "" : (import.meta.env.VITE_TURNSTILE_SITE_KEY || "");
 const SCRIPT_URL =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 

@@ -25,6 +25,7 @@ import { CircleStackIcon } from "@heroicons/react/24/outline";
 import { Button, Radio } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { InfoPopover } from "@/components/ui/info_popover";
 import {
   Modal,
   ModalHeader,
@@ -72,6 +73,7 @@ export function StorageFormatPicker({
         <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
           <CircleStackIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.storage_format_title")}
+          <InfoPopover description={t("settings.info_storage_format_description")} title={t("settings.info_storage_format_title")} />
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
