@@ -345,7 +345,7 @@ export function ContactList({
                   else contact_refs.current?.delete(contact.id);
                 }}
                 className={cn(
-                  "group/contact w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors",
+                  "group/contact w-full flex items-center gap-3 px-3 py-1 my-0.5 rounded-xl text-left transition-colors",
                   is_selected
                     ? "bg-[var(--accent-blue,#3b82f6)]/10"
                     : is_active
