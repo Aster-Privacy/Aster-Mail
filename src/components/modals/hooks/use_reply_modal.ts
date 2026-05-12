@@ -821,6 +821,7 @@ export function use_reply_modal({
             emit_thread_reply_sent({
               thread_token: pending_thread_token_ref.current,
               original_email_id,
+              optimistic_id: optimistic_id_ref.current ?? undefined,
             });
             pending_thread_token_ref.current = null;
           }

@@ -718,12 +718,21 @@ export function use_email_detail() {
       fetch_email();
     };
 
+    const handle_reply_sent = () => {
+      set_thread_draft(null);
+    };
+
     window.addEventListener(MAIL_EVENTS.REFRESH_REQUESTED, handle_refresh);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_refresh);
+    window.addEventListener(MAIL_EVENTS.THREAD_REPLY_SENT, handle_reply_sent);
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.REFRESH_REQUESTED, handle_refresh);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_refresh);
+      window.removeEventListener(
+        MAIL_EVENTS.THREAD_REPLY_SENT,
+        handle_reply_sent,
+      );
     };
   }, [fetch_email]);
 

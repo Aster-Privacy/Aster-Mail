@@ -700,7 +700,12 @@ export function use_popup_viewer({
       if (thread_result.messages.length > 0) {
         set_thread_messages((prev) => {
           const server_ids = new Set(thread_result.messages.map((m) => m.id));
-          const still_sending = prev.filter((m) => m.is_sending && !server_ids.has(m.id));
+          const still_sending = prev.filter(
+            (m) =>
+              m.is_sending &&
+              !server_ids.has(m.id) &&
+              m.id !== detail.optimistic_id,
+          );
           return [...thread_result.messages, ...still_sending];
         });
 
@@ -708,6 +713,8 @@ export function use_popup_viewer({
           set_current_thread_token(detail.thread_token);
         }
       }
+
+      set_thread_draft(null);
     };
 
     window.addEventListener(MAIL_EVENTS.THREAD_REPLY_SENT, handle_thread_reply);
