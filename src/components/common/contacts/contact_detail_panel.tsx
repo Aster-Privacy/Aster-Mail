@@ -43,7 +43,6 @@ import type { TranslationKey } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import {
   TrashIcon,
-  UserPlusIcon,
   CameraIcon,
   EnvelopeIcon,
   PhoneIcon,
@@ -64,6 +63,7 @@ import {
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 
+import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -217,18 +217,11 @@ function empty_edit_state(): EditState {
   };
 }
 
-function get_initials(first: string, last: string): string {
-  const f = first.trim().charAt(0);
-  const l = last.trim().charAt(0);
-
-  return (f + l).toUpperCase();
-}
-
 const FIELD_CLASS =
-  "w-full h-11 rounded-xl bg-black/20 dark:bg-white/[0.04] border border-transparent px-3.5 text-[14px] text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-blue-500/60 transition-colors read-only:cursor-default";
+  "w-full h-11 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent px-3.5 text-[14px] text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-blue-500/60 focus:bg-surf-primary dark:focus:bg-white/[0.06] transition-colors read-only:cursor-default";
 
 const SELECT_CLASS =
-  "h-11 rounded-xl bg-black/20 dark:bg-white/[0.04] border border-transparent px-2.5 text-[13px] text-txt-primary focus:outline-none focus:border-blue-500/60 transition-colors disabled:cursor-default appearance-none";
+  "h-11 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent px-2.5 text-[13px] text-txt-primary focus:outline-none focus:border-blue-500/60 transition-colors disabled:cursor-default appearance-none";
 
 const EMAIL_TYPE_OPTIONS: EmailEntryType[] = ["home", "work", "other"];
 const PHONE_TYPE_OPTIONS: PhoneEntryType[] = [
@@ -319,7 +312,6 @@ export function ContactDetailPanel({
   }
 
   const banner = draft.profile_color || DEFAULT_BANNER;
-  const initials = get_initials(draft.first_name, draft.last_name);
 
   const handle_save = async () => {
     const email_entries = draft.email_entries.filter((e) => e.value.trim());
@@ -478,27 +470,15 @@ export function ContactDetailPanel({
           />
           <div className="absolute -bottom-10 left-4">
             <div className="relative group">
-              <div
-                className="w-[92px] h-[92px] rounded-2xl overflow-hidden flex items-center justify-center ring-4 ring-surf-primary"
-                style={{
-                  backgroundColor: draft.avatar_url ? "#ffffff" : banner,
-                }}
-              >
-                {draft.avatar_url ? (
-                  <img
-                    alt=""
-                    className="w-full h-full object-cover"
-                    draggable={false}
-                    src={draft.avatar_url}
-                  />
-                ) : initials ? (
-                  <span className="text-white text-[34px] font-semibold tracking-wide select-none">
-                    {initials}
-                  </span>
-                ) : (
-                  <UserPlusIcon className="w-9 h-9 text-white/80" />
-                )}
-              </div>
+              <ContactAvatar
+                avatar_url={draft.avatar_url}
+                className="ring-4 ring-surf-primary"
+                email={draft.email_entries?.[0]?.value}
+                name={`${draft.first_name || ""} ${draft.last_name || ""}`.trim()}
+                profile_color={banner}
+                rounded="rounded-2xl"
+                size_px={92}
+              />
               <button
                 aria-label={t("common.upload")}
                 className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center transition-opacity"

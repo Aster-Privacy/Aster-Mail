@@ -48,6 +48,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MobileMenuButton } from "@/components/layout/sidebar";
 import { use_preferences } from "@/contexts/preferences_context";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { cn } from "@/lib/utils";
 
 interface ContactListProps {
@@ -414,33 +415,19 @@ export function ContactList({
                     }
                   }}
                 >
-                  <div
+                  <ContactAvatar
+                    avatar_url={contact.avatar_url}
                     className={cn(
-                      "w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center transition-opacity duration-150",
+                      "transition-opacity duration-150",
                       is_selected
                         ? "opacity-0"
                         : "group-hover/avatar:opacity-0",
                     )}
-                    style={{
-                      backgroundColor: contact.avatar_url
-                        ? "#ffffff"
-                        : contact.profile_color || "#3358d4",
-                    }}
-                  >
-                    {contact.avatar_url ? (
-                      <img
-                        alt=""
-                        className="w-full h-full object-cover"
-                        draggable={false}
-                        src={contact.avatar_url}
-                      />
-                    ) : (
-                      <span className="text-white text-[14px] font-semibold tracking-wide select-none">
-                        {`${(contact.first_name || "").charAt(0)}${(contact.last_name || "").charAt(0)}`.toUpperCase() ||
-                          (primary_email || "?").charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
+                    email={primary_email}
+                    name={`${contact.first_name || ""} ${contact.last_name || ""}`.trim()}
+                    profile_color={contact.profile_color}
+                    size_px={40}
+                  />
                   <div
                     className={cn(
                       "absolute inset-0 rounded-xl flex items-center justify-center transition-opacity duration-150",
