@@ -709,6 +709,15 @@ export const InboxEmailListItem = memo(
               />
             )}
 
+            {email.is_starred && (
+              <StarIconSolid
+                className={cn(
+                  "w-3.5 h-3.5 text-amber-400 flex-shrink-0",
+                  show_hover_actions && "group-hover:opacity-0",
+                )}
+              />
+            )}
+
             <span
               className={cn(
                 "text-xs text-txt-muted tabular-nums whitespace-nowrap",
@@ -725,15 +734,6 @@ export const InboxEmailListItem = memo(
                   </span>
                 )}
             </span>
-
-            {email.is_starred && (
-              <StarIconSolid
-                className={cn(
-                  "w-3.5 h-3.5 text-amber-400 flex-shrink-0",
-                  show_hover_actions && "group-hover:opacity-0",
-                )}
-              />
-            )}
 
             {show_hover_actions && (
               <div
