@@ -214,23 +214,23 @@ export function ContactList({
                 ? t("common.deselect_all")
                 : t("common.select_all")
             }
-            className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0"
             role="checkbox"
             type="button"
             onClick={on_toggle_select_all}
           >
             <span
               className={cn(
-                "w-5 h-5 rounded-md border flex items-center justify-center transition-colors",
+                "w-7 h-7 rounded-xl border flex items-center justify-center transition-colors",
                 selection_state.all_selected || selection_state.some_selected
                   ? "bg-[var(--accent-blue,#3b82f6)] border-[var(--accent-blue,#3b82f6)] text-white"
                   : "border-edge-secondary text-transparent",
               )}
             >
               {selection_state.all_selected ? (
-                <CheckIcon className="w-3.5 h-3.5" strokeWidth={3} />
+                <CheckIcon className="w-4 h-4" strokeWidth={3} />
               ) : selection_state.some_selected ? (
-                <MinusIcon className="w-3.5 h-3.5" strokeWidth={3} />
+                <MinusIcon className="w-4 h-4" strokeWidth={3} />
               ) : null}
             </span>
           </button>
@@ -286,12 +286,12 @@ export function ContactList({
           <button
             aria-checked={false}
             aria-label={t("common.select_all")}
-            className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0"
             role="checkbox"
             type="button"
             onClick={on_toggle_select_all}
           >
-            <span className="w-5 h-5 rounded-md border border-edge-secondary" />
+            <span className="w-7 h-7 rounded-xl border border-edge-secondary" />
           </button>
           <p className="text-[12px] text-txt-muted px-2 flex-1">
             {t("settings.auto_save_recipients_to_contacts")}
