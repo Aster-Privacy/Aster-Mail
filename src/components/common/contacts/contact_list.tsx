@@ -33,7 +33,14 @@ import {
   XMarkIcon,
   ArrowUpTrayIcon,
   UserPlusIcon,
+  CheckIcon,
+  StarIcon,
+  ClipboardDocumentIcon,
+  ArrowDownTrayIcon,
+  TrashIcon,
+  MinusIcon,
 } from "@heroicons/react/24/outline";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
 
@@ -41,6 +48,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MobileMenuButton } from "@/components/layout/sidebar";
 import { use_preferences } from "@/contexts/preferences_context";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { cn } from "@/lib/utils";
 
 interface ContactListProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -100,6 +108,10 @@ export function ContactList({
   set_search_query,
   selected_contact,
   set_selected_contact,
+  selected_ids,
+  selection_state,
+  has_selection,
+  selected_all_favorited,
   is_loading,
   is_importing,
   import_progress,
@@ -110,6 +122,12 @@ export function ContactList({
   on_mobile_menu_toggle,
   on_add_click,
   on_import_modal_open,
+  on_toggle_select,
+  on_toggle_select_all,
+  on_toggle_favorite_selected,
+  on_copy_emails,
+  on_export_contacts,
+  on_delete_selected,
 }: ContactListProps) {
   const { preferences, update_preference } = use_preferences();
   const auto_save = !!preferences.auto_save_recent_recipients;
@@ -180,21 +198,109 @@ export function ContactList({
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-4 py-2 border-b border-edge-primary">
-        <p className="text-[12px] text-txt-muted pr-3">
-          {t("settings.auto_save_recipients_to_contacts")}
-        </p>
-        <Switch
-          checked={auto_save}
-          onCheckedChange={() =>
-            update_preference(
-              "auto_save_recent_recipients",
-              !auto_save,
-              true,
-            )
-          }
-        />
-      </div>
+      {has_selection ? (
+        <div className="flex items-center gap-1 px-4 py-2 border-b border-edge-primary">
+          <button
+            aria-checked={
+              selection_state.all_selected
+                ? true
+                : selection_state.some_selected
+                  ? "mixed"
+                  : false
+            }
+            aria-label={
+              selection_state.all_selected
+                ? t("common.deselect_all")
+                : t("common.select_all")
+            }
+            className={cn(
+              "w-5 h-5 rounded-md border flex items-center justify-center transition-colors flex-shrink-0",
+              selection_state.all_selected || selection_state.some_selected
+                ? "bg-[var(--accent-blue,#3b82f6)] border-[var(--accent-blue,#3b82f6)] text-white"
+                : "border-edge-secondary text-transparent hover:border-edge-primary",
+            )}
+            role="checkbox"
+            type="button"
+            onClick={on_toggle_select_all}
+          >
+            {selection_state.all_selected ? (
+              <CheckIcon className="w-3.5 h-3.5" />
+            ) : selection_state.some_selected ? (
+              <MinusIcon className="w-3.5 h-3.5" />
+            ) : null}
+          </button>
+          <span className="text-[12px] tabular-nums font-medium text-txt-primary px-2">
+            {t("common.selected_count", {
+              count: selection_state.selected_count,
+            })}
+          </span>
+          <div className="flex-1" />
+          <button
+            aria-label={
+              selected_all_favorited
+                ? t("common.removed_from_favorites")
+                : t("common.added_to_favorites")
+            }
+            className="h-8 w-8 inline-flex items-center justify-center rounded-md text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            type="button"
+            onClick={on_toggle_favorite_selected}
+          >
+            {selected_all_favorited ? (
+              <StarIconSolid className="w-4 h-4 text-yellow-500" />
+            ) : (
+              <StarIcon className="w-4 h-4" />
+            )}
+          </button>
+          <button
+            aria-label={t("common.copy")}
+            className="h-8 w-8 inline-flex items-center justify-center rounded-md text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            type="button"
+            onClick={on_copy_emails}
+          >
+            <ClipboardDocumentIcon className="w-4 h-4" />
+          </button>
+          <button
+            aria-label={t("common.export_all")}
+            className="h-8 w-8 inline-flex items-center justify-center rounded-md text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            type="button"
+            onClick={() => on_export_contacts(true)}
+          >
+            <ArrowDownTrayIcon className="w-4 h-4" />
+          </button>
+          <button
+            aria-label={t("common.delete")}
+            className="h-8 w-8 inline-flex items-center justify-center rounded-md text-red-500 hover:bg-red-500/10 transition-colors"
+            type="button"
+            onClick={on_delete_selected}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between px-4 py-2 border-b border-edge-primary">
+          <button
+            aria-checked={false}
+            aria-label={t("common.select_all")}
+            className="w-5 h-5 rounded-md border border-edge-secondary hover:border-edge-primary transition-colors flex-shrink-0"
+            role="checkbox"
+            type="button"
+            onClick={on_toggle_select_all}
+          />
+          <p className="text-[12px] text-txt-muted px-3 flex-1">
+            {t("settings.auto_save_recipients_to_contacts")}
+          </p>
+          <Switch
+            checked={auto_save}
+            onCheckedChange={() =>
+              update_preference(
+                "auto_save_recent_recipients",
+                !auto_save,
+                true,
+              )
+            }
+          />
+        </div>
+      )}
 
       {import_progress && (
         <div className="px-4 py-2 border-b border-edge-primary">
@@ -265,6 +371,7 @@ export function ContactList({
             const name = `${contact.first_name} ${contact.last_name}`.trim();
             const primary_email = contact.emails[0];
             const is_active = selected_contact?.id === contact.id;
+            const is_selected = selected_ids.has(contact.id);
 
             return (
               <button
@@ -277,32 +384,73 @@ export function ContactList({
                     );
                   else contact_refs.current?.delete(contact.id);
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${is_active ? "bg-black/10 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/5"}`}
+                className={cn(
+                  "group/contact w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors",
+                  is_selected
+                    ? "bg-[var(--accent-blue,#3b82f6)]/10"
+                    : is_active
+                      ? "bg-black/10 dark:bg-white/10"
+                      : "hover:bg-black/5 dark:hover:bg-white/5",
+                )}
                 onClick={() =>
                   set_selected_contact(is_active ? null : contact)
                 }
               >
                 <div
-                  className="flex-shrink-0 w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center"
-                  style={{
-                    backgroundColor: contact.avatar_url
-                      ? "#ffffff"
-                      : contact.profile_color || "#3358d4",
+                  aria-label={t("mail.select")}
+                  aria-pressed={is_selected}
+                  className="group/avatar relative flex-shrink-0 w-10 h-10 cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_toggle_select(contact.id);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e["key"] === "Enter" || e["key"] === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      on_toggle_select(contact.id);
+                    }
                   }}
                 >
-                  {contact.avatar_url ? (
-                    <img
-                      alt=""
-                      className="w-full h-full object-cover"
-                      draggable={false}
-                      src={contact.avatar_url}
-                    />
-                  ) : (
-                    <span className="text-white text-[14px] font-semibold tracking-wide select-none">
-                      {`${(contact.first_name || "").charAt(0)}${(contact.last_name || "").charAt(0)}`.toUpperCase() ||
-                        (primary_email || "?").charAt(0).toUpperCase()}
-                    </span>
-                  )}
+                  <div
+                    className={cn(
+                      "w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center transition-opacity duration-150",
+                      is_selected
+                        ? "opacity-0"
+                        : "group-hover/avatar:opacity-0",
+                    )}
+                    style={{
+                      backgroundColor: contact.avatar_url
+                        ? "#ffffff"
+                        : contact.profile_color || "#3358d4",
+                    }}
+                  >
+                    {contact.avatar_url ? (
+                      <img
+                        alt=""
+                        className="w-full h-full object-cover"
+                        draggable={false}
+                        src={contact.avatar_url}
+                      />
+                    ) : (
+                      <span className="text-white text-[14px] font-semibold tracking-wide select-none">
+                        {`${(contact.first_name || "").charAt(0)}${(contact.last_name || "").charAt(0)}`.toUpperCase() ||
+                          (primary_email || "?").charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    className={cn(
+                      "absolute inset-0 rounded-xl flex items-center justify-center transition-opacity duration-150",
+                      is_selected
+                        ? "opacity-100 bg-[var(--accent-blue,#3b82f6)]"
+                        : "opacity-0 group-hover/avatar:opacity-100 bg-black/30 dark:bg-white/20",
+                    )}
+                  >
+                    <CheckIcon className="w-5 h-5 text-white" />
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   {name ? (
