@@ -2745,6 +2745,8 @@ export const ru = {
     icloud_import_description: "Экспорт в формате MBOX или EML",
     manual_import: "Ручной импорт",
     manual_import_description: "Загрузите файлы MBOX, EML или PST",
+    mbox_import: "MBOX",
+    eml_import: "EML",
     delete_signature_title: "Удалить подпись",
     delete_template_title: "Удалить шаблон",
     password_label: "Пароль",

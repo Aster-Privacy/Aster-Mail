@@ -2782,6 +2782,8 @@ export const ja = {
     icloud_import_description: "MBOXまたはEMLエクスポート",
     manual_import: "手動インポート",
     manual_import_description: "MBOX、EML、またはPSTファイルをアップロード",
+    mbox_import: "MBOX",
+    eml_import: "EML",
     delete_signature_title: "署名を削除",
     delete_signature_message:
       "この署名を削除してもよろしいですか？この操作は元に戻せません。",

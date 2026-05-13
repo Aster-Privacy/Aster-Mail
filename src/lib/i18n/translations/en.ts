@@ -2217,6 +2217,8 @@ export const en: Translations = {
     any_email_import_description: "MBOX, EML, CSV, PST files",
     manual_import: "Manual Import",
     manual_import_description: "Upload MBOX, EML, or PST files",
+    mbox_import: "MBOX",
+    eml_import: "EML",
     search_history: "Search history",
     folders_limit: "Folders",
     onboarding_compose_title: "Compose New Emails",

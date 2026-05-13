@@ -2785,6 +2785,8 @@ export const pl = {
     icloud_import_description: "Eksport MBOX lub EML",
     manual_import: "Import ręczny",
     manual_import_description: "Prześlij pliki MBOX, EML lub PST",
+    mbox_import: "MBOX",
+    eml_import: "EML",
     delete_signature_title: "Usuń podpis",
     delete_signature_message:
       "Czy na pewno chcesz usunąć ten podpis? Tej operacji nie można cofnąć.",

@@ -21,10 +21,14 @@
 import type { ImportJob, ImportSource } from "@/services/api/email_import";
 
 import { useState, useCallback, useEffect, type ReactNode } from "react";
-import { InformationCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  DocumentArrowUpIcon,
+  InformationCircleIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { FaMicrosoft, FaYahoo } from "react-icons/fa6";
-import { SiGmail, SiIcloud, SiProtonmail } from "react-icons/si";
+import { SiGmail } from "react-icons/si";
 
 import { SettingsGroup, SettingsHeader } from "./shared";
 
@@ -49,6 +53,8 @@ export function ImportSection({
   const [selected_provider, set_selected_provider] =
     useState<ImportSource | null>(null);
 
+  const OAUTH_PROVIDERS = new Set<ImportSource>(["gmail", "outlook", "yahoo"]);
+
   const mobile_providers: {
     id: ImportSource;
     icon: ReactNode;
@@ -70,14 +76,18 @@ export function ImportSection({
       label: t("settings.yahoo_import"),
     },
     {
-      id: "icloud",
-      icon: <SiIcloud className="w-5 h-5 text-[var(--mobile-text-muted)]" />,
-      label: t("settings.icloud_import"),
+      id: "mbox",
+      icon: (
+        <DocumentArrowUpIcon className="w-5 h-5 text-[var(--mobile-text-muted)]" />
+      ),
+      label: t("settings.mbox_import"),
     },
     {
-      id: "protonmail",
-      icon: <SiProtonmail className="w-5 h-5" color="#6D4AFF" />,
-      label: t("settings.protonmail_import"),
+      id: "eml",
+      icon: (
+        <DocumentArrowUpIcon className="w-5 h-5 text-[var(--mobile-text-muted)]" />
+      ),
+      label: t("settings.eml_import"),
     },
   ];
 
@@ -144,16 +154,20 @@ export function ImportSection({
                     variant="outline"
                     onClick={() => set_selected_provider(provider.id)}
                   >
-                    {t("settings.import_manual_button")}
+                    {OAUTH_PROVIDERS.has(provider.id)
+                      ? t("settings.import_manual_button")
+                      : t("settings.browse_files")}
                   </Button>
-                  <Button
-                    disabled
-                    size="md"
-                    title={t("settings.import_oauth_coming_soon")}
-                    variant="depth"
-                  >
-                    {t("settings.import_oauth_button")}
-                  </Button>
+                  {OAUTH_PROVIDERS.has(provider.id) && (
+                    <Button
+                      disabled
+                      size="md"
+                      title={t("settings.import_oauth_coming_soon")}
+                      variant="depth"
+                    >
+                      {t("settings.import_oauth_button")}
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
