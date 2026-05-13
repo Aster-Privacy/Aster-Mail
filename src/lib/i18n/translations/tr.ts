@@ -2725,6 +2725,8 @@ export const tr = {
     icloud_import_description: "MBOX veya EML dışa aktarımı",
     manual_import: "Manuel İçe Aktarma",
     manual_import_description: "MBOX, EML veya PST dosyaları yükleyin",
+    mbox_import: "MBOX",
+    eml_import: "EML",
     delete_signature_title: "İmzayı Sil",
     delete_template_title: "Şablonu Sil",
     password_label: "Parola",

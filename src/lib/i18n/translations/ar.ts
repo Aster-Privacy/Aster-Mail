@@ -2699,6 +2699,8 @@ export const ar = {
     icloud_import_description: "تصدير MBOX أو EML",
     manual_import: "استيراد يدوي",
     manual_import_description: "رفع ملفات MBOX أو EML أو PST",
+    mbox_import: "MBOX",
+    eml_import: "EML",
     delete_signature_title: "حذف التوقيع",
     delete_signature_message:
       "هل أنت متأكد أنك تريد حذف هذا التوقيع؟ لا يمكن التراجع عن هذا الإجراء.",

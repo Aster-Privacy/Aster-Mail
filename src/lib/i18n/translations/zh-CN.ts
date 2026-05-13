@@ -2603,6 +2603,8 @@ export const zh_CN = {
     icloud_import_description: "MBOX 或 EML 导出",
     manual_import: "手动导入",
     manual_import_description: "上传 MBOX、EML 或 PST 文件",
+    mbox_import: "MBOX",
+    eml_import: "EML",
     delete_signature_title: "删除签名",
     delete_signature_message: "确定要删除此签名吗？此操作无法撤销。",
     delete_template_title: "删除模板",

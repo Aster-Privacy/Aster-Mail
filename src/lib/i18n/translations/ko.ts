@@ -2709,6 +2709,8 @@ export const ko = {
     icloud_import_description: "MBOX 또는 EML 내보내기",
     manual_import: "수동 가져오기",
     manual_import_description: "MBOX, EML 또는 PST 파일 업로드",
+    mbox_import: "MBOX",
+    eml_import: "EML",
     delete_signature_title: "서명 삭제",
     delete_signature_message:
       "이 서명을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",

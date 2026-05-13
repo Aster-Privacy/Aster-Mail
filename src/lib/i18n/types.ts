@@ -1904,6 +1904,8 @@ export interface SettingsTranslations {
   any_email_import_description: string;
   manual_import: string;
   manual_import_description: string;
+  mbox_import: string;
+  eml_import: string;
   search_history: string;
   folders_limit: string;
   onboarding_compose_title: string;

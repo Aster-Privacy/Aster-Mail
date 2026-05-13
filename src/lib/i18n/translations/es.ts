@@ -2770,6 +2770,8 @@ export const es = {
     icloud_import_description: "Exportación MBOX o EML",
     manual_import: "Importación manual",
     manual_import_description: "Sube archivos MBOX, EML o PST",
+    mbox_import: "MBOX",
+    eml_import: "EML",
     delete_signature_title: "Eliminar firma",
     delete_template_title: "Eliminar plantilla",
     password_label: "Contraseña",

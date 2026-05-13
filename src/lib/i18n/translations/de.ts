@@ -2793,6 +2793,8 @@ export const de = {
     icloud_import_description: "MBOX- oder EML-Export",
     manual_import: "Manueller Import",
     manual_import_description: "MBOX-, EML- oder PST-Dateien hochladen",
+    mbox_import: "MBOX",
+    eml_import: "EML",
     onboarding_compose_description:
       "Klicken Sie hier, um eine neue E-Mail zu verfassen",
     onboarding_search_description:

@@ -2757,6 +2757,8 @@ export const nl = {
     icloud_import_description: "MBOX- of EML-export",
     manual_import: "Handmatige import",
     manual_import_description: "Upload MBOX-, EML- of PST-bestanden",
+    mbox_import: "MBOX",
+    eml_import: "EML",
     onboarding_compose_description:
       "Klik hier om een nieuwe e-mail op te stellen",
     onboarding_search_description:
