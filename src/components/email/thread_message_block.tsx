@@ -968,14 +968,50 @@ export function ThreadMessageBlock({
         message.dkim_result === "fail" ||
         message.dmarc_result === "fail"
       ) && (
-        <div className="mx-4 mb-3 mt-1 rounded-lg bg-red-600 px-4 py-3">
-          <p className="text-sm font-semibold text-white">{t("common.auth_fail_banner_title")}</p>
-          <p className="text-xs mt-0.5 text-red-100">{t("common.auth_fail_banner_body")}</p>
-          <p className="text-xs mt-1.5 text-red-200 space-x-2">
-            {message.spf_result === "fail" && <span>SPF</span>}
-            {message.dkim_result === "fail" && <span>DKIM</span>}
-            {message.dmarc_result === "fail" && <span>DMARC</span>}
-          </p>
+        <div className="mx-4 mt-2 mb-3 rounded-md bg-[#dc2626]">
+          <div className="flex items-center gap-2 px-3 py-2">
+            <ShieldExclamationIcon className="w-4 h-4 text-white flex-shrink-0" />
+            <p className="text-[13px] text-white leading-snug flex-1 min-w-0">
+              {t("common.auth_fail_banner_body")}
+            </p>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={t("common.auth_fail_banner_title")}
+                  className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <InformationCircleIcon className="w-4 h-4" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                className="max-w-xs space-y-2 text-[12px] leading-snug"
+                side="bottom"
+              >
+                <p>{t("common.auth_fail_tooltip_intro")}</p>
+                {message.spf_result === "fail" && (
+                  <p>
+                    <span className="font-semibold">SPF: </span>
+                    {t("common.auth_fail_tooltip_spf")}
+                  </p>
+                )}
+                {message.dkim_result === "fail" && (
+                  <p>
+                    <span className="font-semibold">DKIM: </span>
+                    {t("common.auth_fail_tooltip_dkim")}
+                  </p>
+                )}
+                {message.dmarc_result === "fail" && (
+                  <p>
+                    <span className="font-semibold">DMARC: </span>
+                    {t("common.auth_fail_tooltip_dmarc")}
+                  </p>
+                )}
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       )}
 

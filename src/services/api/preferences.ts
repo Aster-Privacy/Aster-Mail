@@ -123,6 +123,7 @@ export interface UserPreferences {
   sidebar_folders_collapsed: boolean;
   sidebar_labels_collapsed: boolean;
   sidebar_aliases_collapsed: boolean;
+  sidebar_width: number;
   notification_banner_snooze_until: string;
   storage_format: "aster" | "ipfs";
   force_dark_mode_emails: boolean;
@@ -394,6 +395,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   sidebar_folders_collapsed: false,
   sidebar_labels_collapsed: false,
   sidebar_aliases_collapsed: false,
+  sidebar_width: 256,
   notification_banner_snooze_until: "",
   storage_format: "aster",
   force_dark_mode_emails: false,

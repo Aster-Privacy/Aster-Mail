@@ -81,6 +81,7 @@ import {
 } from "@/hooks/use_folders";
 import { create_folder } from "@/services/api/folders";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import { ensure_default_labels } from "@/services/labels/ensure_defaults";
 
 type OAuthProvider = "google" | "microsoft" | "yahoo";
 
@@ -533,6 +534,8 @@ export function ImportSection() {
       set_syncing_accounts((prev) => new Set(prev).add(account_token));
 
       try {
+        await ensure_default_labels(vault, t);
+
         const folders_result = await list_oauth_folders(account_token);
 
         if (!folders_result.data?.folders?.length) {

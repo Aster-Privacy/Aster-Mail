@@ -65,6 +65,7 @@ import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { emit_auth_ready } from "@/hooks/mail_events";
+import { ensure_default_labels } from "@/services/labels/ensure_defaults";
 import { connection_store } from "@/services/routing/connection_store";
 import { load_preferred_sender_from_server } from "@/lib/preferred_sender";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -183,6 +184,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           });
 
           emit_auth_ready();
+
+          ensure_default_labels(get_vault_from_memory(), t).catch(console.error);
         } else {
           api_client.clear_auth_data();
           api_client.set_authenticated(false);
@@ -242,6 +245,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api_client.set_authenticated(true);
       check_and_run_recovery_reencryption(vault, passphrase).catch(() => {});
       ensure_ratchet_keys().catch(() => {});
+      ensure_default_labels(vault, t).catch(console.error);
       connection_store.sync_from_server().catch(() => {});
       load_preferred_sender_from_server().catch(() => {});
       sync_client.connect().catch((e) => {
@@ -262,7 +266,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
       set_is_adding_account(false);
     },
-    [],
+    [t],
   );
 
   const add_account = useCallback(
@@ -296,13 +300,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (result.success) {
         api_client.set_authenticated(true);
         ensure_ratchet_keys().catch(() => {});
+        ensure_default_labels(vault, t).catch(console.error);
         start_session_timeout(user.id);
         window.location.replace("/");
       }
 
       return result;
     },
-    [],
+    [t],
   );
 
   const remove_account_handler = useCallback(
@@ -483,9 +488,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         start_session_timeout(state.current_account_id);
       }
 
+      ensure_default_labels(vault, t).catch(console.error);
+
       set_state((prev) => ({ ...prev, has_keys: true }));
     },
-    [state.current_account_id],
+    [state.current_account_id, t],
   );
 
   const can_add = useCallback(async () => {

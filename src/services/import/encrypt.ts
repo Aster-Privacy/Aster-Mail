@@ -97,6 +97,7 @@ export interface EncryptedImportEmail {
   received_at: string;
   thread_token?: string;
   item_type?: string;
+  folder_token?: string;
 }
 
 export async function encrypt_imported_email(

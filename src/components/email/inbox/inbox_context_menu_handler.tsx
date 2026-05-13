@@ -682,9 +682,54 @@ export function use_context_menu_actions({
 
     const handle_restore = async (email: InboxEmail) => {
       const deltas = compute_untrash_deltas(email);
+      const is_thread =
+        !!email.thread_token &&
+        (email.thread_message_count ?? 0) > 1;
+      const grouped_ids =
+        email.grouped_email_ids && email.grouped_email_ids.length > 1
+          ? email.grouped_email_ids
+          : [email.id];
 
-      remove_email(email.id);
+      if (grouped_ids.length > 1) {
+        remove_emails(grouped_ids);
+      } else {
+        remove_email(email.id);
+      }
       apply_stat_deltas(deltas);
+
+      if (is_thread) {
+        const result = await trash_thread(email.thread_token!, false);
+
+        if (result.data) {
+          invalidate_mail_cache();
+          emit_mail_changed();
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent(MAIL_EVENTS.REFRESH_REQUESTED));
+          }, 450);
+
+          show_action_toast({
+            message: t("common.restored_from_trash"),
+            action_type: "restore",
+            email_ids: grouped_ids,
+            on_undo: async () => {
+              revert_stat_deltas(deltas);
+              await trash_thread(email.thread_token!, true);
+              invalidate_mail_cache();
+              emit_mail_changed();
+              window.dispatchEvent(
+                new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
+              );
+            },
+          });
+          window.dispatchEvent(
+            new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
+          );
+        } else {
+          revert_stat_deltas(deltas);
+        }
+        return;
+      }
+
       const result = await update_item_metadata(
         email.id,
         {

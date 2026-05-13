@@ -918,29 +918,35 @@ export function use_contacts_state() {
   const handle_confirm_bulk_delete = useCallback(async () => {
     if (selected_ids.size === 0) return;
 
-    try {
-      const ids_to_delete = Array.from(selected_ids);
+    const ids_to_delete = Array.from(selected_ids);
+    const delete_count = ids_to_delete.length;
 
+    set_contacts((prev) => prev.filter((c) => !selected_ids.has(c.id)));
+    set_selected_ids(new Set());
+    if (selected_contact && selected_ids.has(selected_contact.id)) {
+      set_selected_contact(null);
+    }
+    set_is_bulk_deleting(false);
+
+    try {
       for (let i = 0; i < ids_to_delete.length; i += BATCH_SIZE) {
         const batch = ids_to_delete.slice(i, i + BATCH_SIZE);
 
         await Promise.allSettled(batch.map((id) => api_delete_contact(id)));
       }
-      set_contacts((prev) => prev.filter((c) => !selected_ids.has(c.id)));
-      set_selected_ids(new Set());
-      if (selected_contact && selected_ids.has(selected_contact.id)) {
-        set_selected_contact(null);
-      }
+      show_toast(
+        t("common.contacts_deleted", { count: delete_count }),
+        "success",
+      );
     } catch (err) {
-      set_error(
+      show_toast(
         err instanceof Error
           ? err.message
           : t("common.failed_to_delete_contacts"),
+        "error",
       );
-    } finally {
-      set_is_bulk_deleting(false);
     }
-  }, [selected_ids, selected_contact]);
+  }, [selected_ids, selected_contact, t]);
 
   const handle_compose_to_selected = useCallback(() => {
     const selected_contacts = contacts.filter((c) => selected_ids.has(c.id));
@@ -961,12 +967,20 @@ export function use_contacts_state() {
     const selected_contacts = contacts.filter((c) => selected_ids.has(c.id));
     const all_favorited = selected_contacts.every((c) => c.is_favorite);
     const new_favorite_state = !all_favorited;
+    const contacts_to_update = selected_contacts.filter(
+      (contact) => contact.is_favorite !== new_favorite_state,
+    );
+    const update_count = contacts_to_update.length;
+
+    set_contacts((prev) =>
+      prev.map((c) =>
+        selected_ids.has(c.id)
+          ? { ...c, is_favorite: new_favorite_state }
+          : c,
+      ),
+    );
 
     try {
-      const contacts_to_update = selected_contacts.filter(
-        (contact) => contact.is_favorite !== new_favorite_state,
-      );
-
       for (let i = 0; i < contacts_to_update.length; i += BATCH_SIZE) {
         const batch = contacts_to_update.slice(i, i + BATCH_SIZE);
 
@@ -979,21 +993,33 @@ export function use_contacts_state() {
           ),
         );
       }
+      if (update_count > 0) {
+        show_toast(
+          t(
+            new_favorite_state
+              ? "common.contacts_starred"
+              : "common.contacts_unstarred",
+            { count: update_count },
+          ),
+          "success",
+        );
+      }
+    } catch (err) {
       set_contacts((prev) =>
         prev.map((c) =>
-          selected_ids.has(c.id)
-            ? { ...c, is_favorite: new_favorite_state }
+          contacts_to_update.find((u) => u.id === c.id)
+            ? { ...c, is_favorite: !new_favorite_state }
             : c,
         ),
       );
-    } catch (err) {
-      set_error(
+      show_toast(
         err instanceof Error
           ? err.message
           : t("common.failed_to_update_favorites"),
+        "error",
       );
     }
-  }, [contacts, selected_ids]);
+  }, [contacts, selected_ids, t]);
 
   const handle_export_contacts = useCallback(
     (export_selected: boolean) => {

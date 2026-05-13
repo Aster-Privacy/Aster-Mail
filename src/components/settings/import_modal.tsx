@@ -29,6 +29,7 @@ import { Button } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
 import { use_auth } from "@/contexts/auth_context";
+import { use_folders } from "@/hooks/use_folders";
 import { use_should_reduce_motion } from "@/provider";
 import {
   parse_import_file,
@@ -64,6 +65,77 @@ interface ImportModalProps {
 }
 
 type ImportStep = "upload" | "progress" | "complete";
+
+const CANONICAL_FOLDER_TOKENS = new Set([
+  "inbox",
+  "sent",
+  "sent mail",
+  "sent items",
+  "sent messages",
+  "outbox",
+  "drafts",
+  "draft",
+  "trash",
+  "deleted",
+  "deleted items",
+  "deleted messages",
+  "bin",
+  "spam",
+  "junk",
+  "junk email",
+  "junk e-mail",
+  "bulk mail",
+  "archive",
+  "archives",
+  "all mail",
+  "all",
+  "starred",
+  "flagged",
+  "important",
+]);
+
+function is_canonical_folder(name: string): boolean {
+  const trimmed = name.trim().toLowerCase();
+  const leaf = trimmed.split("/").pop() ?? trimmed;
+
+  return CANONICAL_FOLDER_TOKENS.has(leaf);
+}
+
+function extract_source_folders(emails: ParsedEmail[]): string[] {
+  const out = new Set<string>();
+
+  for (const email of emails) {
+    const raw = email.raw_headers["x-gmail-labels"];
+
+    if (!raw) continue;
+    for (const piece of raw.split(",")) {
+      const name = piece.trim();
+
+      if (!name) continue;
+      if (is_canonical_folder(name)) continue;
+      out.add(name);
+    }
+  }
+
+  return Array.from(out);
+}
+
+function folder_for_email(
+  email: ParsedEmail,
+  label_map: Map<string, string>,
+): string | undefined {
+  const raw = email.raw_headers["x-gmail-labels"];
+
+  if (!raw) return undefined;
+  for (const piece of raw.split(",")) {
+    const name = piece.trim();
+    const token = label_map.get(name);
+
+    if (token) return token;
+  }
+
+  return undefined;
+}
 
 function normalize_subject(subject: string): string {
   return subject
@@ -216,6 +288,7 @@ function detect_item_type(
 export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const { t } = use_i18n();
   const { vault, user } = use_auth();
+  const { create_new_folder, state: folders_state } = use_folders();
   const reduce_motion = use_should_reduce_motion();
   const [step, set_step] = useState<ImportStep>("upload");
   const [is_processing, set_is_processing] = useState(false);
@@ -228,6 +301,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     warnings?: string[];
   } | null>(null);
   const [parse_warnings, set_parse_warnings] = useState<string[]>([]);
+  const [folder_prep_status, set_folder_prep_status] = useState<
+    { folder_count: number; new_labels: number } | null
+  >(null);
   const [error, set_error] = useState<string | null>(null);
   const [is_dragging, set_is_dragging] = useState(false);
   const file_input_ref = useRef<HTMLInputElement>(null);
@@ -241,6 +317,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     set_error(null);
     set_is_dragging(false);
     set_parse_warnings([]);
+    set_folder_prep_status(null);
     cancel_ref.current = false;
   }, []);
 
@@ -296,6 +373,35 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         }
       } catch {
         // proceed with primary address only
+      }
+
+      const source_folders = extract_source_folders(emails);
+      const folder_token_map = new Map<string, string>();
+      let new_label_count = 0;
+
+      for (const folder_name of source_folders) {
+        const existing = folders_state.folders.find(
+          (f) => f.name.toLowerCase() === folder_name.toLowerCase(),
+        );
+
+        if (existing) {
+          folder_token_map.set(folder_name, existing.folder_token);
+          continue;
+        }
+
+        const result = await create_new_folder(folder_name);
+
+        if (result.folder) {
+          folder_token_map.set(folder_name, result.folder.folder_token);
+          new_label_count += 1;
+        }
+      }
+
+      if (folder_token_map.size > 0) {
+        set_folder_prep_status({
+          folder_count: folder_token_map.size,
+          new_labels: new_label_count,
+        });
       }
 
       let job_id: string | null = null;
@@ -415,6 +521,12 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
               if (type === "sent") {
                 encrypted.item_type = "sent";
+              }
+
+              const target_folder = folder_for_email(email, folder_token_map);
+
+              if (target_folder) {
+                encrypted.folder_token = target_folder;
               }
 
               encrypted_batch.push(encrypted);
@@ -599,7 +711,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               <input
                 ref={file_input_ref}
                 multiple
-                accept=".mbox,.mbx,.eml,.csv,.pst,.ost"
+                accept=".mbox,.mbx,.eml,.csv,.pst,.ost,.txt"
                 className="hidden"
                 type="file"
                 onChange={handle_file_input_change}
@@ -646,6 +758,14 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             <p className="text-sm mb-2 text-txt-primary">
               {t("settings.importing_emails_progress")}
             </p>
+            {folder_prep_status && (
+              <p className="text-xs mb-2 text-txt-muted">
+                {t("settings.import_folder_prep_status", {
+                  folder_count: String(folder_prep_status.folder_count),
+                  new_labels: String(folder_prep_status.new_labels),
+                })}
+              </p>
+            )}
             {progress && (
               <>
                 <p className="text-xs mb-3 text-txt-muted">

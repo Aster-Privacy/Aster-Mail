@@ -562,7 +562,9 @@ export function ContactDetailPanel({
         )}
 
         {show_history && selected_contact ? (
-          <ContactHistoryPanel contact_id={selected_contact.id} />
+          <ContactHistoryPanel
+            contact_email={selected_contact.emails[0] || ""}
+          />
         ) : (
           <div className="space-y-10">
             <Section title={t("common.identity")}>
@@ -1044,7 +1046,7 @@ export function ContactDetailPanel({
 
             <Section title={t("common.notes")}>
               <textarea
-                className="w-full min-h-[120px] rounded-xl bg-black/20 dark:bg-white/[0.04] border border-transparent px-3.5 py-3 text-[14px] text-txt-primary placeholder:text-txt-muted resize-none focus:outline-none focus:border-blue-500/60 transition-colors"
+                className="w-full min-h-[120px] rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent px-3.5 py-3 text-[14px] text-txt-primary placeholder:text-txt-muted resize-none focus:outline-none focus:border-blue-500/60 focus:bg-surf-primary dark:focus:bg-white/[0.06] transition-colors"
                 placeholder={t("common.notes_placeholder")}
                 readOnly={!is_editing}
                 value={draft.notes}
@@ -1167,7 +1169,7 @@ function TypedList<T extends string>({
             value={entry.type}
             onValueChange={(v) => on_type_change(idx, v)}
           >
-            <SelectTrigger className="w-[120px] h-11 rounded-xl bg-black/20 dark:bg-white/[0.04] border-transparent text-[13px]">
+            <SelectTrigger className="w-[120px] h-11 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent text-[13px] text-txt-primary">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -1192,7 +1194,7 @@ function TypedList<T extends string>({
       ))}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-edge-primary bg-black/10 dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/20 dark:hover:bg-white/[0.08] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-edge-secondary/60 dark:border-edge-primary bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
           type="button"
           onClick={on_add}
         >
@@ -1302,7 +1304,7 @@ function AddressList({
       ))}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-edge-primary bg-black/10 dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/20 dark:hover:bg-white/[0.08] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-edge-secondary/60 dark:border-edge-primary bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
           type="button"
           onClick={on_add}
         >

@@ -67,6 +67,7 @@ export interface CreateFolderRequest {
   is_system?: boolean;
   sort_order?: number;
   parent_token?: string;
+  folder_type?: string;
 }
 
 export interface CreateFolderResponse {
@@ -238,6 +239,9 @@ export async function create_folder(
   }
   if (data.parent_token !== undefined) {
     api_data.parent_token = data.parent_token;
+  }
+  if (data.folder_type !== undefined) {
+    api_data.folder_type = data.folder_type;
   }
 
   const response = await api_client.post<{

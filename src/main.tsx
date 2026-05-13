@@ -27,6 +27,7 @@ import App from "@/App";
 import { Provider } from "@/provider";
 import { initialize_capacitor, hide_splash } from "@/native/capacitor_bridge";
 import { start_version_check } from "@/lib/version_check";
+import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { connection_store } from "@/services/routing/connection_store";
 import "@/styles/fonts.css";
 import "@/styles/globals.css";
@@ -54,6 +55,7 @@ initialize_capacitor().catch((e) => {
 });
 
 start_version_check();
+show_self_xss_warning();
 
 connection_store.initialize().catch(() => {});
 
