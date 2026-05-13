@@ -86,7 +86,7 @@ export function ImportSection({
     try {
       const res = await list_import_jobs();
 
-      if (res.data) set_jobs(res.data.jobs);
+      if (res.data?.jobs) set_jobs(res.data.jobs);
     } catch {
     } finally {
       set_is_loading(false);
