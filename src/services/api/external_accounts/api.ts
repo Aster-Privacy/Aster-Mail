@@ -65,28 +65,50 @@ export async function list_external_accounts(): Promise<
 
     const decrypted = await Promise.all(
       response.data.accounts.map(async (item) => {
-        const data = await decrypt_account_data(
-          item.encrypted_account_data,
-          item.account_data_nonce,
-          item.integrity_hash,
-        );
+        try {
+          const data = await decrypt_account_data(
+            item.encrypted_account_data,
+            item.account_data_nonce,
+            item.integrity_hash,
+          );
 
-        return {
-          id: item.id,
-          account_token: item.account_token,
-          email: data.email,
-          display_name: data.display_name,
-          label_name: data.label_name,
-          label_color: data.label_color,
-          protocol: item.protocol,
-          is_enabled: item.is_enabled,
-          is_verified: item.is_verified,
-          last_sync_at: item.last_sync_at,
-          last_sync_status: item.last_sync_status,
-          email_count: item.email_count,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-        };
+          return {
+            id: item.id,
+            account_token: item.account_token,
+            email: data.email,
+            display_name: data.display_name,
+            label_name: data.label_name,
+            label_color: data.label_color,
+            protocol: item.protocol,
+            is_enabled: item.is_enabled,
+            is_verified: item.is_verified,
+            last_sync_at: item.last_sync_at,
+            last_sync_status: item.last_sync_status,
+            email_count: item.email_count,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+          } as DecryptedExternalAccount;
+        } catch {
+          const fallback_email =
+            (item as { oauth_email?: string }).oauth_email || "Connected account";
+
+          return {
+            id: item.id,
+            account_token: item.account_token,
+            email: fallback_email,
+            display_name: fallback_email,
+            label_name: "",
+            label_color: "",
+            protocol: item.protocol,
+            is_enabled: item.is_enabled,
+            is_verified: item.is_verified,
+            last_sync_at: item.last_sync_at,
+            last_sync_status: item.last_sync_status,
+            email_count: item.email_count,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+          } as DecryptedExternalAccount;
+        }
       }),
     );
 
