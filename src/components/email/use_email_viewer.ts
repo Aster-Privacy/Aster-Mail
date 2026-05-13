@@ -546,6 +546,7 @@ export function use_email_viewer({
         const thread_result = await fetch_and_decrypt_thread_messages(
           item.thread_token!,
           user_email,
+          { is_trashed: !!item.is_trashed, is_spam: !!item.is_spam },
         );
 
         if (!cancelled && thread_result.messages.length > 0) {
@@ -740,6 +741,7 @@ export function use_email_viewer({
       const thread_result = await fetch_and_decrypt_thread_messages(
         detail.thread_token,
         current_user_email || undefined,
+        { is_trashed: !!mail_item?.is_trashed, is_spam: !!mail_item?.is_spam },
       );
 
       if (thread_result.messages.length > 0) {

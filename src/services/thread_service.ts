@@ -199,11 +199,12 @@ export function get_thread_context_from_email(
 export async function fetch_and_decrypt_thread_messages(
   thread_token: string,
   our_email?: string,
+  options?: { is_trashed?: boolean; is_spam?: boolean },
 ): Promise<{
   messages: DecryptedThreadMessage[];
   thread_data: ThreadWithMessages | null;
 }> {
-  const response = await get_thread_messages(thread_token);
+  const response = await get_thread_messages(thread_token, options);
 
   if (response.error || !response.data) {
     return { messages: [], thread_data: null };

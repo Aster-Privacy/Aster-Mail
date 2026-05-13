@@ -1352,6 +1352,19 @@ export const en: Translations = {
     allow_sender: "Add to allowlist",
     remove_from_allowlist_action: "Remove from allowlist",
     failed_to_allow_sender: "Failed to add to allowlist",
+    contacts_deleted: "{{ count }} contact(s) deleted",
+    contacts_starred: "{{ count }} contact(s) starred",
+    contacts_unstarred: "{{ count }} contact(s) unstarred",
+    auth_fail_tooltip_intro: "This message failed authentication checks:",
+    auth_fail_tooltip_spf: "SPF: sender server is not authorized for this domain.",
+    auth_fail_tooltip_dkim: "DKIM: cryptographic signature is missing or invalid.",
+    auth_fail_tooltip_dmarc: "DMARC: domain policy rejects this message.",
+    label_system_inbox: "Inbox",
+    label_system_sent: "Sent",
+    label_system_drafts: "Drafts",
+    label_system_trash: "Trash",
+    label_system_spam: "Spam",
+    label_system_archive: "Archive",
   },
   settings: {
     title: "Settings",
@@ -3356,6 +3369,10 @@ export const en: Translations = {
     import_source_pst: "PST",
     import_source_csv: "CSV",
     import_source_eml: "EML",
+    navigation_panel: "Navigation Panel",
+    sidebar_width: "Sidebar Width",
+    sidebar_width_description: "Adjust the width of the navigation sidebar.",
+    import_folder_prep_status: "Preparing folders... ({{ done }}/{{ total }})",
   },
   mail: {
     all_on_page_selected:
@@ -4448,5 +4465,7 @@ export const en: Translations = {
     unknown_error: "Unknown error",
     health_check_failed: "Health check failed",
     unexpected_health_check_error: "Unexpected health check error",
+    all_emails_rejected:
+      "All {{ count }} email(s) were rejected: each was missing a sender or body.",
   },
 };

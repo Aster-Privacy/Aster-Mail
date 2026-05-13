@@ -546,11 +546,29 @@ export const Sidebar = ({
     update_preference("sidebar_aliases_collapsed", next, true);
   }, [preferences.sidebar_aliases_collapsed, update_preference]);
 
+  const SIDEBAR_MIN_WIDTH = 200;
+  const SIDEBAR_MAX_WIDTH = 360;
+  const SIDEBAR_DEFAULT_WIDTH = 256;
+  const desired_width = preferences.sidebar_width ?? SIDEBAR_DEFAULT_WIDTH;
+  const expanded_width = Math.min(
+    SIDEBAR_MAX_WIDTH,
+    Math.max(SIDEBAR_MIN_WIDTH, desired_width),
+  );
+
   const sidebar_content = (
     <aside
       className={`flex h-full flex-col flex-shrink-0 transition-all duration-150 bg-sidebar-bg-custom ${
-        is_collapsed ? "w-16 min-w-16 max-w-16" : "w-64 min-w-64 max-w-64"
+        is_collapsed ? "w-16 min-w-16 max-w-16" : ""
       }`}
+      style={
+        is_collapsed
+          ? undefined
+          : {
+              width: expanded_width,
+              minWidth: expanded_width,
+              maxWidth: expanded_width,
+            }
+      }
     >
       <div
         ref={workspace_switcher_ref}

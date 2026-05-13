@@ -309,8 +309,9 @@ export function parse_multipart(
 
     if (trimmed === "" || trimmed === "--") continue;
 
+    const normalized_part = part.replace(/^[\r\n]+/, "");
     const { headers: part_headers_raw, body: part_body } =
-      split_header_body(part);
+      split_header_body(normalized_part);
     const part_headers = parse_headers(part_headers_raw);
     const content_type = part_headers["content-type"] || "text/plain";
     const encoding = part_headers["content-transfer-encoding"];

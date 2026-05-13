@@ -47,7 +47,6 @@ interface ProviderTheme {
     | "settings.connect_sign_in_google"
     | "settings.connect_sign_in_microsoft"
     | "settings.connect_sign_in_yahoo";
-  ring: string;
 }
 
 const PROVIDER_THEME: Record<ConnectProvider, ProviderTheme> = {
@@ -55,19 +54,16 @@ const PROVIDER_THEME: Record<ConnectProvider, ProviderTheme> = {
     icon: <SiGmail className="w-9 h-9" color="#EA4335" />,
     name_key: "settings.connect_provider_name_google",
     button_key: "settings.connect_sign_in_google",
-    ring: "ring-[#EA4335]/20",
   },
   microsoft: {
     icon: <FaMicrosoft className="w-9 h-9" color="#0078D4" />,
     name_key: "settings.connect_provider_name_microsoft",
     button_key: "settings.connect_sign_in_microsoft",
-    ring: "ring-[#0078D4]/20",
   },
   yahoo: {
     icon: <FaYahoo className="w-9 h-9" color="#6001D2" />,
     name_key: "settings.connect_provider_name_yahoo",
     button_key: "settings.connect_sign_in_yahoo",
-    ring: "ring-[#6001D2]/20",
   },
 };
 
@@ -113,13 +109,11 @@ export function ConnectProviderModal({
       <ModalBody className="p-0">
         <div className="flex flex-col items-center px-8 pt-10 pb-8">
           <div className="flex items-center justify-center gap-5 mb-8">
-            <div
-              className={`flex items-center justify-center w-16 h-16 rounded-2xl bg-surf-secondary ring-1 ${theme.ring}`}
-            >
+            <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-surf-secondary">
               {theme.icon}
             </div>
             <ArrowRightIcon className="w-5 h-5 text-txt-muted" />
-            <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-surf-secondary ring-1 ring-brand/20 overflow-hidden">
+            <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-surf-secondary overflow-hidden">
               <img
                 alt="Aster"
                 className="w-10 h-10 object-contain"
@@ -153,6 +147,16 @@ export function ConnectProviderModal({
             )}
           </Button>
 
+          <Button
+            className="mt-3 w-full"
+            disabled={is_loading}
+            size="xl"
+            variant="outline"
+            onClick={on_close}
+          >
+            {t("common.cancel")}
+          </Button>
+
           <div className="mt-6 flex items-start gap-2 text-xs text-txt-muted leading-relaxed">
             <LockClosedIcon className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <p>
@@ -161,15 +165,6 @@ export function ConnectProviderModal({
               })}
             </p>
           </div>
-
-          <button
-            className="mt-6 text-xs text-txt-muted hover:text-txt-secondary"
-            disabled={is_loading}
-            type="button"
-            onClick={on_close}
-          >
-            {t("common.cancel")}
-          </button>
         </div>
       </ModalBody>
     </Modal>

@@ -29,6 +29,7 @@ import {
   QuestionMarkCircleIcon,
   Cog6ToothIcon,
   ShieldCheckIcon,
+  ViewColumnsIcon,
 } from "@heroicons/react/24/outline";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
@@ -134,6 +135,17 @@ const UNDO_PRESET_SECONDS = [3, 5, 10, 15, 30] as const;
 const UNDO_MIN_SECONDS = 1;
 const UNDO_MAX_SECONDS = 30;
 const UNDO_DEFAULT_SECONDS = 10;
+
+const SIDEBAR_MIN_WIDTH = 200;
+const SIDEBAR_MAX_WIDTH = 360;
+const SIDEBAR_DEFAULT_WIDTH = 256;
+const SIDEBAR_PRESET_WIDTHS = [200, 256, 320] as const;
+
+function clamp_sidebar_width(value: number): number {
+  if (!Number.isFinite(value)) return SIDEBAR_DEFAULT_WIDTH;
+
+  return Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, Math.round(value)));
+}
 
 function clamp_undo_seconds(value: number): number {
   if (!Number.isFinite(value) || value < UNDO_MIN_SECONDS) {
@@ -326,6 +338,103 @@ export function BehaviorSection() {
           }
           title={t("settings.force_dark_mode_emails")}
         />
+      </div>
+
+      <div>
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <ViewColumnsIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.navigation_panel")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+
+        <div className="py-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex-1 pr-4">
+              <p className="text-sm font-medium text-txt-primary">
+                {t("settings.sidebar_width")}
+              </p>
+              <p className="text-sm mt-0.5 text-txt-muted">
+                {t("settings.sidebar_width_description")
+                  .replace("{{min}}", String(SIDEBAR_MIN_WIDTH))
+                  .replace("{{max}}", String(SIDEBAR_MAX_WIDTH))}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                className="w-20 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                max={SIDEBAR_MAX_WIDTH}
+                min={SIDEBAR_MIN_WIDTH}
+                size="md"
+                type="number"
+                value={clamp_sidebar_width(
+                  preferences.sidebar_width ?? SIDEBAR_DEFAULT_WIDTH,
+                )}
+                onChange={(e) => {
+                  const parsed = parseInt(e.target.value, 10);
+
+                  update_preference(
+                    "sidebar_width",
+                    clamp_sidebar_width(
+                      Number.isFinite(parsed) ? parsed : SIDEBAR_DEFAULT_WIDTH,
+                    ),
+                    true,
+                  );
+                }}
+              />
+              <span className="text-sm text-txt-secondary">px</span>
+            </div>
+          </div>
+
+          <input
+            className="w-full accent-[var(--accent-blue)]"
+            max={SIDEBAR_MAX_WIDTH}
+            min={SIDEBAR_MIN_WIDTH}
+            step={4}
+            type="range"
+            value={clamp_sidebar_width(
+              preferences.sidebar_width ?? SIDEBAR_DEFAULT_WIDTH,
+            )}
+            onChange={(e) => {
+              update_preference(
+                "sidebar_width",
+                clamp_sidebar_width(parseInt(e.target.value, 10)),
+                true,
+              );
+            }}
+          />
+
+          <div className="flex items-center gap-2 mt-3">
+            {SIDEBAR_PRESET_WIDTHS.map((width) => {
+              const current = clamp_sidebar_width(
+                preferences.sidebar_width ?? SIDEBAR_DEFAULT_WIDTH,
+              );
+
+              return (
+                <button
+                  key={width}
+                  className={cn(
+                    "px-3 py-1.5 text-xs rounded-md transition-colors",
+                    current === width
+                      ? "bg-[var(--accent-blue)] text-white"
+                      : "bg-surf-secondary hover:bg-surf-hover",
+                  )}
+                  style={{
+                    color:
+                      current === width ? undefined : "var(--text-secondary)",
+                  }}
+                  type="button"
+                  onClick={() =>
+                    update_preference("sidebar_width", width, true)
+                  }
+                >
+                  {width}px
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <div>

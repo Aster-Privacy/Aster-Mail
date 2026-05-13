@@ -47,6 +47,10 @@ export interface SendActionContext {
   on_draft_cleared?: () => void;
   reset_form: () => void;
   set_queued_email_id: (val: string | null) => void;
+  log_activities?: (
+    recipients: string[],
+    subject: string,
+  ) => void | Promise<void>;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }
 
@@ -89,6 +93,21 @@ function dispatch_email_sent() {
   }, 100);
 }
 
+function log_activities_for_sent(
+  ctx: SendActionContext,
+  email_data: { to: string[]; cc?: string[]; bcc?: string[]; subject: string },
+) {
+  if (!ctx.log_activities) return;
+  const recipients = [
+    ...email_data.to,
+    ...(email_data.cc || []),
+    ...(email_data.bcc || []),
+  ];
+
+  if (recipients.length === 0) return;
+  void ctx.log_activities(recipients, email_data.subject);
+}
+
 export async function execute_internal_send(
   ctx: SendActionContext,
   email_data: {
@@ -114,6 +133,7 @@ export async function execute_internal_send(
           ctx.set_queued_email_id(null);
           invalidate_mail_counts();
           dispatch_email_sent();
+          log_activities_for_sent(ctx, email_data);
         },
         on_cancelled: () => {
           ctx.set_queued_email_id(null);
@@ -151,6 +171,7 @@ export async function execute_internal_send(
           ctx.set_queued_email_id(null);
           show_toast(ctx.t("common.email_sent"), "success");
           dispatch_email_sent();
+          log_activities_for_sent(ctx, email_data);
         },
         on_cancel: () => {
           ctx.set_queued_email_id(null);
@@ -204,6 +225,7 @@ export async function execute_external_email_send(
           ctx.set_queued_email_id(null);
           invalidate_mail_counts();
           dispatch_email_sent();
+          log_activities_for_sent(ctx, email_data);
         },
         on_cancelled: () => {
           ctx.set_queued_email_id(null);
@@ -242,6 +264,7 @@ export async function execute_external_email_send(
       await execute_external_send(external_email_data, true);
       show_toast(ctx.t("common.email_sent"), "success");
       dispatch_email_sent();
+      log_activities_for_sent(ctx, email_data);
       ctx.reset_form();
       ctx.on_close();
       if (ctx.edit_draft && ctx.on_draft_cleared) {
@@ -304,6 +327,7 @@ export async function execute_external_account_email_send(
 
         if (result.data?.success) {
           dispatch_email_sent();
+          log_activities_for_sent(ctx, email_data);
         } else {
           show_toast(
             result.error || ctx.t("common.failed_to_send_email"),
@@ -385,6 +409,7 @@ export async function execute_external_account_email_send(
     if (result.data?.success) {
       show_toast(ctx.t("common.email_sent"), "success");
       dispatch_email_sent();
+      log_activities_for_sent(ctx, email_data);
     } else {
       show_toast(
         result.error || ctx.t("common.failed_to_send_email"),

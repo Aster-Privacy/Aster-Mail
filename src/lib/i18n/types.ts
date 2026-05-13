@@ -554,6 +554,9 @@ export interface CommonTranslations {
   failed_to_create_contact: string;
   failed_to_save_contact: string;
   failed_to_delete_contacts: string;
+  contacts_deleted: string;
+  contacts_starred: string;
+  contacts_unstarred: string;
   failed_to_update_favorites: string;
   failed_to_import_contacts: string;
   failed_to_read_file: string;
@@ -1093,6 +1096,10 @@ export interface CommonTranslations {
   signal_all_auth_fail: string;
   auth_fail_banner_title: string;
   auth_fail_banner_body: string;
+  auth_fail_tooltip_intro: string;
+  auth_fail_tooltip_spf: string;
+  auth_fail_tooltip_dkim: string;
+  auth_fail_tooltip_dmarc: string;
   signal_all_auth_pass: string;
   signal_reply_to_mismatch: string;
   signal_missing_from: string;
@@ -1296,6 +1303,12 @@ export interface CommonTranslations {
   allow_sender: string;
   remove_from_allowlist_action: string;
   failed_to_allow_sender: string;
+  label_system_inbox: string;
+  label_system_sent: string;
+  label_system_drafts: string;
+  label_system_trash: string;
+  label_system_spam: string;
+  label_system_archive: string;
 }
 
 export interface SettingsTranslations {
@@ -1578,6 +1591,9 @@ export interface SettingsTranslations {
   undo_send_delay_description: string;
   cancellation_period: string;
   cancellation_period_description: string;
+  navigation_panel: string;
+  sidebar_width: string;
+  sidebar_width_description: string;
   protected_folders: string;
   protected_folders_description: string;
   folder_lock_mode: string;
@@ -2445,6 +2461,7 @@ export interface SettingsTranslations {
   supported_import_formats: string;
   browse_files: string;
   importing_emails_progress: string;
+  import_folder_prep_status: string;
   emails_of_total: string;
   cancel_import: string;
   emails_imported_count: string;
@@ -4009,6 +4026,7 @@ export interface ErrorTranslations {
   unknown_error: string;
   health_check_failed: string;
   unexpected_health_check_error: string;
+  all_emails_rejected: string;
 }
 
 export type TranslationKey =

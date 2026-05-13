@@ -27,6 +27,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { create_contact_encrypted } from "@/services/api/contacts";
+import { log_contact_activity } from "@/services/api/contact_history";
 import { get_or_create_thread_token } from "@/services/thread_service";
 import { is_internal_email } from "@/services/api/keys";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
@@ -124,6 +125,35 @@ export function use_compose_send({
   const toggle_pgp = useCallback(() => set_pgp_enabled((v) => !v), []);
   const last_send_time_ref = useRef<number>(0);
 
+  const log_activities = useCallback(
+    (recipients: string[], subject: string) => {
+      if (recipients.length === 0) return;
+      const lookup = new Map<string, string>();
+
+      for (const c of contacts) {
+        for (const e of c.emails || []) {
+          if (e) lookup.set(e.toLowerCase(), c.id);
+        }
+      }
+
+      const seen = new Set<string>();
+
+      for (const r of recipients) {
+        const id = lookup.get(r.toLowerCase());
+
+        if (id && !seen.has(id)) {
+          seen.add(id);
+          log_contact_activity(id, "email_sent", undefined, subject).catch(
+            (e) => {
+              if (import.meta.env.DEV) console.error(e);
+            },
+          );
+        }
+      }
+    },
+    [contacts],
+  );
+
   const build_send_context = useCallback(
     (): SendActionContext => ({
       undo_send_enabled: preferences.undo_send_enabled,
@@ -136,6 +166,7 @@ export function use_compose_send({
       on_draft_cleared,
       reset_form,
       set_queued_email_id,
+      log_activities,
       t,
     }),
     [
@@ -148,6 +179,7 @@ export function use_compose_send({
       on_close,
       on_draft_cleared,
       reset_form,
+      log_activities,
       t,
     ],
   );

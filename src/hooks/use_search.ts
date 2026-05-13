@@ -488,6 +488,14 @@ async function do_build_search_index(user_email: string): Promise<CachedIndex> {
   return index;
 }
 
+export async function prewarm_search_index(user_email: string): Promise<void> {
+  try {
+    await build_search_index(user_email);
+  } catch {
+    // ignore - the next real search will surface the error
+  }
+}
+
 async function build_search_index(user_email: string): Promise<CachedIndex> {
   if (cached_index && Date.now() - cached_index.built_at < INDEX_TTL_MS) {
     return cached_index;

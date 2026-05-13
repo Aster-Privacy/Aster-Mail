@@ -159,11 +159,14 @@ export function SandboxedEmailRenderer({
   const literal_plain_text =
     (is_literal_plain_text ?? is_plain_text) && !has_block_html;
   const has_table_layout = /<table\b/i.test(sanitized_html);
-  const has_newsletter_layout = has_table_layout && (
+  const has_designed_bg = /background(?:-color)?\s*:\s*(?:#[0-9a-f]|rgba?\(|hsla?\(|white\b|black\b|[a-z]+gr[ae]y\b)/i.test(sanitized_html);
+  const has_style_block = /<style\b[^>]*>[\s\S]*?background/i.test(sanitized_html);
+  const has_centered_card = /max-width\s*:\s*[3456789]\d{2}px[^;}"']*;[^"']*margin\s*:[^;}"']*auto/i.test(sanitized_html);
+  const has_newsletter_layout = (has_table_layout && (
     /style\s*=\s*["'][^"']*width\s*:\s*[456789]\d{2}px/i.test(sanitized_html) ||
     /<table[^>]*(?:width|bgcolor|background)\s*=/i.test(sanitized_html) ||
     (sanitized_html.match(/<table\b/gi)?.length ?? 0) > 2
-  );
+  )) || has_designed_bg || has_style_block || has_centered_card;
   const declares_light_scheme = /color-scheme\s*:\s*light\s+only/i.test(sanitized_html);
   const plain_bg = "transparent";
   const plain_text_color = force_dark_mode

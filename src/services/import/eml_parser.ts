@@ -43,7 +43,7 @@ export function parse_eml(raw: string): ParsedEmail {
   const to = parse_address_list(headers["to"] || "");
   const cc = parse_address_list(headers["cc"] || "");
   const bcc = parse_address_list(headers["bcc"] || "");
-  const subject = headers["subject"] || "(No Subject)";
+  const subject = headers["subject"] || "";
 
   let date: Date;
   const date_header = headers["date"];

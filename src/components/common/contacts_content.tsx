@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { useEffect } from "react";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 
 import { ContactForm } from "@/components/contacts";
@@ -27,6 +28,8 @@ import { ComposeModal } from "@/components/compose/compose_modal";
 import { use_contacts_state } from "@/components/common/hooks/use_contacts_state";
 import { ContactList } from "@/components/common/contacts/contact_list";
 import { ContactDetailPanel } from "@/components/common/contacts/contact_detail_panel";
+import { prewarm_search_index } from "@/hooks/use_search";
+import { use_auth } from "@/contexts/auth_context";
 
 interface ContactsContentProps {
   on_mobile_menu_toggle: () => void;
@@ -36,6 +39,13 @@ export function ContactsContent({
   on_mobile_menu_toggle,
 }: ContactsContentProps) {
   const state = use_contacts_state();
+  const { user } = use_auth();
+
+  useEffect(() => {
+    if (user?.email) {
+      prewarm_search_index(user.email);
+    }
+  }, [user?.email]);
 
   return (
     <>

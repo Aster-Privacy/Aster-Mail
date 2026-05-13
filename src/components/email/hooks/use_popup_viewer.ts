@@ -436,6 +436,10 @@ export function use_popup_viewer({
           const thread_result = await fetch_and_decrypt_thread_messages(
             response.data.thread_token,
             user?.email,
+            {
+              is_trashed: !!response.data.is_trashed,
+              is_spam: !!response.data.is_spam,
+            },
           );
 
           if (thread_result.messages.length > 0) {

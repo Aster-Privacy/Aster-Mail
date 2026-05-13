@@ -50,6 +50,7 @@ import {
   batched_bulk_permanent_delete,
   report_spam_sender,
   remove_spam_sender,
+  trash_thread,
 } from "@/services/api/mail";
 
 interface UseInboxToolbarActionsOptions {
@@ -623,30 +624,42 @@ export function use_inbox_toolbar_actions({
       });
     }
 
-    let completed = 0;
-    const results = await Promise.all(
-      selected.map(async (email) => {
-        const metadata_update = is_spam_restore
-          ? { is_spam: false }
-          : { is_trashed: false };
+    const thread_tokens = !is_spam_restore
+      ? Array.from(
+          new Set(
+            selected
+              .filter(
+                (e) =>
+                  !!e.thread_token && (e.thread_message_count ?? 0) > 1,
+              )
+              .map((e) => e.thread_token as string),
+          ),
+        )
+      : [];
+    const singleton_ids = selected
+      .filter(
+        (e) =>
+          is_spam_restore ||
+          !e.thread_token ||
+          (e.thread_message_count ?? 0) <= 1,
+      )
+      .map((e) => e.id);
 
-        const result = await update_item_metadata(
-          email.id,
-          {
-            encrypted_metadata: email.encrypted_metadata,
-            metadata_nonce: email.metadata_nonce,
-            metadata_version: email.metadata_version,
-          },
-          metadata_update,
-        );
-
-        if (total > 5) update_progress_toast(++completed, total, t);
-
-        return result;
-      }),
+    const thread_results = await Promise.all(
+      thread_tokens.map((tok) => trash_thread(tok, false)),
     );
+    const thread_ok = thread_results.every((r) => !!r.data);
+    const bulk_result =
+      singleton_ids.length > 0
+        ? await bulk_update_metadata_by_ids(
+            singleton_ids,
+            is_spam_restore ? { is_spam: false } : { is_trashed: false },
+          )
+        : { success: true, updated_count: 0, failed_ids: [] };
 
-    if (results.some((r) => !r.success)) return;
+    if (total > 5) update_progress_toast(total, total, t);
+
+    if (!thread_ok || !bulk_result.success) return;
     if (is_spam_restore) {
       const unique_senders = new Set(
         selected.map((e) => e.sender_email).filter(Boolean),
@@ -685,23 +698,16 @@ export function use_inbox_toolbar_actions({
             report_spam_sender(sender).catch(() => {});
           }
         }
-        await Promise.all(
-          selected.map((email, index) => {
-            const metadata_update = is_spam_restore
-              ? { is_spam: true }
-              : { is_trashed: true };
+        const undo_update = is_spam_restore
+          ? { is_spam: true }
+          : { is_trashed: true };
 
-            return update_item_metadata(
-              email.id,
-              {
-                encrypted_metadata:
-                  results[index].encrypted?.encrypted_metadata,
-                metadata_nonce: results[index].encrypted?.metadata_nonce,
-              },
-              metadata_update,
-            );
-          }),
-        );
+        await Promise.all([
+          ...thread_tokens.map((tok) => trash_thread(tok, true)),
+          singleton_ids.length > 0
+            ? bulk_update_metadata_by_ids(singleton_ids, undo_update)
+            : Promise.resolve(),
+        ]);
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       },
     });

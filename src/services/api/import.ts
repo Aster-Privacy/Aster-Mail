@@ -87,6 +87,31 @@ export interface CreateJobRequest {
   kind: ImportJobKind;
   account_id?: string;
   upload_token?: string;
+  folder_label_map?: Record<string, string>;
+}
+
+export interface DiscoveredFolder {
+  name: string;
+  delimiter: string;
+  flags: string[];
+  canonical:
+    | "inbox"
+    | "sent"
+    | "drafts"
+    | "trash"
+    | "spam"
+    | "archive"
+    | null;
+}
+
+export interface DiscoverFoldersResponse {
+  folders: DiscoveredFolder[];
+}
+
+export function discover_account_folders(
+  account_id: string,
+): Promise<ApiResponse<DiscoverFoldersResponse>> {
+  return api_client.get(`/mail/v1/external_accounts/${account_id}/folders`);
 }
 
 export interface CreateJobResponse {

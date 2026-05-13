@@ -723,9 +723,15 @@ export async function get_thread(
 
 export async function get_thread_messages(
   thread_token: string,
+  options?: { is_trashed?: boolean; is_spam?: boolean },
 ): Promise<ApiResponse<ThreadWithMessages>> {
+  const params = new URLSearchParams();
+  if (options?.is_trashed) params.set("is_trashed", "true");
+  if (options?.is_spam) params.set("is_spam", "true");
+  const qs = params.toString();
+  const suffix = qs ? `?${qs}` : "";
   return api_client.get<ThreadWithMessages>(
-    `/mail/v1/messages/threads/${encodeURIComponent(thread_token)}/messages`,
+    `/mail/v1/messages/threads/${encodeURIComponent(thread_token)}/messages${suffix}`,
   );
 }
 

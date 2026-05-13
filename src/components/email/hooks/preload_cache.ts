@@ -493,6 +493,7 @@ export async function preload_email_detail(
         const thread_result = await fetch_and_decrypt_thread_messages(
           item.thread_token,
           user_email,
+          { is_trashed: !!item.is_trashed, is_spam: !!item.is_spam },
         );
 
         if (thread_result.messages.length > 0) {

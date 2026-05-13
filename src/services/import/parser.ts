@@ -96,12 +96,39 @@ async function detect_file_format(
   if (filename.endsWith(".csv") || filename.endsWith(".tsv")) return "csv";
   if (filename.endsWith(".pst") || filename.endsWith(".ost")) return "pst";
 
-  const content_start = await read_file_start(file, 500);
+  let content_start = await read_file_start(file, 500);
+
+  const looks_mbox = (text: string): boolean => {
+    const lines = text.split(/\r?\n/);
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      if (trimmed.length === 0) continue;
+      if (trimmed.startsWith("#")) continue;
+      if (line.startsWith("From ")) return true;
+
+      return false;
+    }
+
+    return false;
+  };
+
+  if (looks_mbox(content_start) || /^From [^\r\n]+\r?\n/m.test(content_start)) {
+    return "mbox";
+  }
 
   if (
-    content_start.startsWith("From ") ||
-    /^From [^\r\n]+\r?\n/m.test(content_start)
+    content_start.includes("Message-ID:") ||
+    content_start.includes("From:") ||
+    content_start.includes("MIME-Version:")
   ) {
+    return "eml";
+  }
+
+  content_start = await read_file_start(file, 4096);
+
+  if (looks_mbox(content_start) || /^From [^\r\n]+\r?\n/m.test(content_start)) {
     return "mbox";
   }
 
@@ -134,14 +161,12 @@ async function detect_file_format(
 
 function is_valid_email(email: ParsedEmail): boolean {
   const has_from = email.from.trim().length > 0;
-  const has_subject =
-    email.subject.trim().length > 0 && email.subject !== "(No Subject)";
   const has_text = (email.text_body ?? "").trim().length > 0;
   const has_html = (email.html_body ?? "").trim().length > 0;
   const has_body = has_text || has_html;
 
   if (!has_from) return false;
-  if (!has_subject && !has_body) return false;
+  if (!has_body) return false;
 
   return true;
 }
@@ -160,7 +185,11 @@ function filter_valid_emails(result: ParseResult): ParseResult {
 
   const warnings = [...result.warnings];
 
-  if (skipped > 0) {
+  if (skipped > 0 && valid.length === 0 && result.emails.length > 0) {
+    warnings.push(
+      en.errors.all_emails_rejected.replace("{{ count }}", String(skipped)),
+    );
+  } else if (skipped > 0) {
     warnings.push(en.errors.emails_skipped_invalid.replace("{{ count }}", String(skipped)));
   }
 
