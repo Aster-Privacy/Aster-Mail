@@ -81,7 +81,9 @@ export function ConnectProviderModal({
   const handle_connect = async () => {
     set_is_loading(true);
     try {
-      const result = await start_oauth_authorize(provider);
+      const tag_token = new Uint8Array(32);
+      window.crypto.getRandomValues(tag_token);
+      const result = await start_oauth_authorize(provider, tag_token);
       if (result.error) {
         show_toast(
           t("settings.oauth_import_error", { reason: result.error }),
@@ -91,7 +93,20 @@ export function ConnectProviderModal({
         return;
       }
       if (result.data?.authorize_url) {
-        window.location.href = result.data.authorize_url;
+        try {
+          const parsed = new URL(result.data.authorize_url);
+
+          if (parsed.protocol !== "https:") {
+            throw new Error("invalid_protocol");
+          }
+          window.location.href = parsed.toString();
+        } catch {
+          show_toast(
+            t("settings.oauth_import_error", { reason: "invalid_url" }),
+            "error",
+          );
+          set_is_loading(false);
+        }
         return;
       }
       set_is_loading(false);

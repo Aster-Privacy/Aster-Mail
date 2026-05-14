@@ -34,6 +34,7 @@ import {
   encrypt_contact_data,
   generate_contact_token,
 } from "./contacts";
+import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -170,20 +171,33 @@ export async function trigger_sync(
   );
 }
 
+function secure_zero_memory(buffer: Uint8Array): void {
+  crypto.getRandomValues(buffer);
+  buffer.fill(0);
+  crypto.getRandomValues(buffer);
+  buffer.fill(0);
+}
+
 async function generate_search_token(value: string): Promise<string> {
-  const key = await get_contacts_encryption_key();
+  await get_contacts_encryption_key();
+  const raw_key = get_derived_encryption_key();
+
+  if (!raw_key) {
+    throw new Error("No encryption key available");
+  }
+
   const encoder = new TextEncoder();
   const info = encoder.encode("contacts-search-v2");
+  const combined = new Uint8Array(raw_key.byteLength + info.length);
 
-  const raw_key = await crypto.subtle.exportKey("raw", key);
-  const combined = new Uint8Array(
-    new Uint8Array(raw_key).byteLength + info.length,
-  );
-
-  combined.set(new Uint8Array(raw_key), 0);
-  combined.set(info, new Uint8Array(raw_key).byteLength);
+  combined.set(raw_key, 0);
+  combined.set(info, raw_key.byteLength);
 
   const hash = await crypto.subtle.digest(HASH_ALG, combined);
+
+  secure_zero_memory(combined);
+  secure_zero_memory(raw_key);
+
   const search_key = await crypto.subtle.importKey(
     "raw",
     hash,

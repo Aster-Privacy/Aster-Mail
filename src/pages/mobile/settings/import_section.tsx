@@ -39,6 +39,16 @@ import {
   delete_import_job,
 } from "@/services/api/email_import";
 import { ImportModal } from "@/components/settings/import_modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert_dialog";
 
 export function ImportSection({
   on_back,
@@ -52,6 +62,9 @@ export function ImportSection({
   const [is_loading, set_is_loading] = useState(true);
   const [selected_provider, set_selected_provider] =
     useState<ImportSource | null>(null);
+  const [confirm_delete_id, set_confirm_delete_id] = useState<string | null>(
+    null,
+  );
 
   const OAUTH_PROVIDERS = new Set<ImportSource>(["gmail", "outlook", "yahoo"]);
 
@@ -113,8 +126,13 @@ export function ImportSection({
   }, [load_jobs]);
 
   const handle_delete_job = useCallback(async (id: string) => {
-    await delete_import_job(id);
     set_jobs((prev) => prev.filter((j) => j.id !== id));
+    try {
+      await delete_import_job(id);
+      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
+      window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
+    } catch {}
   }, []);
 
   const status_color = (status: string) => {
@@ -245,10 +263,11 @@ export function ImportSection({
                   >
                     {t(`settings.import_status_${job.status}` as any)}
                   </span>
-                  {(job.status === "completed" || job.status === "failed") && (
+                  {job.status !== "processing" && job.status !== "pending" && (
                     <button
                       type="button"
-                      onClick={() => handle_delete_job(job.id)}
+                      aria-label={t("common.delete")}
+                      onClick={() => set_confirm_delete_id(job.id)}
                     >
                       <TrashIcon className="h-4 w-4 text-[var(--mobile-text-muted)]" />
                     </button>
@@ -266,6 +285,36 @@ export function ImportSection({
           provider={selected_provider}
         />
       )}
+      <AlertDialog
+        open={confirm_delete_id !== null}
+        onOpenChange={(open) => {
+          if (!open) set_confirm_delete_id(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("settings.import_delete_confirm_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("settings.import_delete_confirm_description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const id = confirm_delete_id;
+
+                set_confirm_delete_id(null);
+                if (id) handle_delete_job(id);
+              }}
+            >
+              {t("common.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
