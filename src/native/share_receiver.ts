@@ -157,6 +157,9 @@ function notify_share_listeners(content: SharedContent): void {
     );
   }
 
+  if (compose_url.origin !== window.location.origin) {
+    return;
+  }
   window.location.href = compose_url.toString();
 }
 

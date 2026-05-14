@@ -64,6 +64,29 @@ function strip_style_blocks(html: string): string {
   return doc.body.innerHTML;
 }
 
+function expand_collapsed_sections(root: HTMLElement): void {
+  root
+    .querySelectorAll<HTMLDetailsElement>("details")
+    .forEach((details) => {
+      details.open = true;
+      details.removeAttribute("aria-hidden");
+    });
+
+  root
+    .querySelectorAll<HTMLElement>(
+      ".aster-forwarded-collapse, .aster-quoted-content",
+    )
+    .forEach((el) => {
+      el.style.display = "";
+      el.removeAttribute("aria-hidden");
+      el.removeAttribute("hidden");
+    });
+
+  root.querySelectorAll<HTMLElement>("summary").forEach((el) => {
+    el.remove();
+  });
+}
+
 function format_body(body: string): string {
   if (is_html_content(body)) {
     const sanitized = sanitize_html(body, {
@@ -333,6 +356,7 @@ export function print_thread(data: PrintThreadData): void {
 
   container.id = "aster-print-root";
   container.innerHTML = build_print_thread_body(data);
+  expand_collapsed_sections(container);
   document.body.appendChild(container);
 
   const cleanup = () => {
@@ -426,6 +450,7 @@ export function print_email(email: PrintEmailData): void {
 
   container.id = "aster-print-root";
   container.innerHTML = build_print_body(email);
+  expand_collapsed_sections(container);
   document.body.appendChild(container);
 
   const cleanup = () => {
