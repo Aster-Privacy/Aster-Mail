@@ -568,19 +568,20 @@ export const InboxEmailListItem = memo(
 
               {named_folders.length > 0 && (
                 <>
-                  {named_folders.slice(0, 3).map((folder) => (
-                    <EmailTag
-                      key={folder.folder_token}
-                      className="flex-shrink-0 hidden sm:inline-flex"
-                      custom_color={folder.color}
-                      icon={(folder.icon as TagIconName) || "folder"}
-                      label={folder.name}
-                      muted={email.is_read}
-                      variant={
-                        folder.color ? hex_to_variant(folder.color) : "neutral"
-                      }
-                    />
-                  ))}
+                  {named_folders.slice(0, 3).map((folder) => {
+                    const folder_color = folder.color || "#3b82f6";
+                    return (
+                      <EmailTag
+                        key={folder.folder_token}
+                        className="flex-shrink-0 hidden sm:inline-flex"
+                        custom_color={folder_color}
+                        icon={(folder.icon as TagIconName) || "folder"}
+                        label={folder.name}
+                        muted={email.is_read}
+                        variant={hex_to_variant(folder_color)}
+                      />
+                    );
+                  })}
                   {named_folders.length > 3 && (
                     <span className="text-[11px] text-txt-muted hidden sm:inline">
                       +{named_folders.length - 3}
