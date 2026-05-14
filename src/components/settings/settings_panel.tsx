@@ -50,6 +50,7 @@ import {
   DocumentTextIcon,
   ArrowUturnLeftIcon,
   FunnelIcon,
+  BoltIcon,
   ChatBubbleBottomCenterTextIcon,
   ComputerDesktopIcon,
   UserGroupIcon,
@@ -87,6 +88,7 @@ import { EncryptionSection } from "@/components/settings/encryption_section";
 import { DeveloperSection } from "@/components/settings/developer_section";
 import { TemplatesSection } from "@/components/settings/templates_section";
 import { MailManagementSection } from "@/components/settings/mail_management_section";
+import { MailRulesSection } from "@/components/settings/mail_rules_section";
 import { FeedbackSection } from "@/components/settings/feedback_section";
 import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section";
 import { ReferralTab } from "@/components/settings/referral_tab";
@@ -113,6 +115,7 @@ export type SettingsSection =
   | "templates"
   | "behavior"
   | "sender_filters"
+  | "mail_rules"
   | "feedback"
   | "developer";
 
@@ -209,6 +212,11 @@ function get_nav_items(t: (key: TranslationKey) => string): {
         icon: FunnelIcon,
       },
       {
+        id: "mail_rules",
+        label: t("mail_rules.title"),
+        icon: BoltIcon,
+      },
+      {
         id: "feedback",
         label: t("settings.feedback"),
         icon: ChatBubbleBottomCenterTextIcon,
@@ -272,6 +280,7 @@ function SettingsPanelInner({
     templates: null,
     behavior: null,
     sender_filters: null,
+    mail_rules: null,
     feedback: null,
     developer: null,
   });
@@ -514,6 +523,8 @@ function SettingsPanelInner({
         return <BehaviorSection />;
       case "sender_filters":
         return <MailManagementSection />;
+      case "mail_rules":
+        return <MailRulesSection />;
       case "feedback":
         return <FeedbackSection />;
       case "developer":
