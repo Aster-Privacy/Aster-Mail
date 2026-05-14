@@ -1,4 +1,5 @@
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 //
 // Aster Communications Inc.
 //
@@ -82,14 +83,17 @@ async function open_database(): Promise<IDBDatabase> {
 }
 
 async function derive_storage_key_from_crypto_key(
-  master_key: CryptoKey,
+  _master_key: CryptoKey,
   purpose: string,
 ): Promise<CryptoKey> {
   const encoder = new TextEncoder();
   const salt = encoder.encode(`astermail_encrypted_storage_${purpose}`);
 
-  const exported = await crypto.subtle.exportKey("raw", master_key);
-  const key_bytes = new Uint8Array(exported);
+  const key_bytes = get_derived_encryption_key();
+
+  if (!key_bytes) {
+    throw new Error("No encryption key available");
+  }
 
   const key_material = await crypto.subtle.importKey(
     "raw",

@@ -29,7 +29,10 @@ import {
 import {
   parse_ratchet_envelope,
   decrypt_ratchet_message,
+  generate_ratchet_keys,
+  upload_prekey_bundle,
 } from "@/services/crypto/ratchet_manager";
+import { clear_all_ratchet_states } from "@/services/crypto/double_ratchet";
 import {
   get_identity_key_status,
   rotate_identity_key,
@@ -217,6 +220,15 @@ export async function perform_key_rotation(
       serialize_kek_for_vault(old_folder_hash),
     );
 
+    const new_ratchet_keys = await generate_ratchet_keys();
+
+    if (!new_ratchet_keys) {
+      return {
+        success: false,
+        error: "Failed to generate ratchet keys",
+      };
+    }
+
     const new_vault: EncryptedVault = {
       ...current_vault,
       identity_key: new_keypair.secret_key,
@@ -224,6 +236,10 @@ export async function perform_key_rotation(
       signed_prekey: new_prekey.public_key,
       signed_prekey_private: new_prekey.secret_key,
       legacy_keks,
+      ratchet_identity_key: new_ratchet_keys.identity_jwk,
+      ratchet_identity_public: new_ratchet_keys.identity_public,
+      ratchet_signed_prekey: new_ratchet_keys.signed_prekey_jwk,
+      ratchet_signed_prekey_public: new_ratchet_keys.signed_prekey_public,
     };
 
     const { encrypted_vault, vault_nonce } = await encrypt_vault(
@@ -257,6 +273,17 @@ export async function perform_key_rotation(
     if (response.error || !response.data?.success) {
       return { success: false, error: response.error ?? "Rotation failed" };
     }
+
+    const bundle_uploaded = await upload_prekey_bundle(new_vault);
+
+    if (!bundle_uploaded) {
+      return {
+        success: false,
+        error: "Failed to publish new ratchet bundle",
+      };
+    }
+
+    await clear_all_ratchet_states();
 
     return {
       success: true,
