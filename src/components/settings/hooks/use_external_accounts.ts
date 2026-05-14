@@ -30,6 +30,7 @@ import {
   update_external_account,
   toggle_external_account,
   purge_external_account_mail,
+  delete_external_account,
   trigger_sync,
   type DecryptedExternalAccount,
 } from "@/services/api/external_accounts";
@@ -79,6 +80,8 @@ export function use_external_accounts() {
   const [purge_target, set_purge_target] =
     useState<DecryptedExternalAccount | null>(null);
   const [is_purging, set_is_purging] = useState(false);
+  const [purge_also_delete_messages, set_purge_also_delete_messages] =
+    useState(false);
   const [show_quota_dialog, set_show_quota_dialog] = useState(false);
   const [quota_sync_message, set_quota_sync_message] = useState("");
   const [failed_icons, set_failed_icons] = useState<Set<string>>(new Set());
@@ -316,34 +319,46 @@ export function use_external_accounts() {
     if (!purge_target || is_purging) return;
 
     set_is_purging(true);
+    const target = purge_target;
+    const also_delete = purge_also_delete_messages;
 
     try {
-      const result = await purge_external_account_mail(
-        purge_target.account_token,
-      );
+      if (also_delete) {
+        const purge_result = await purge_external_account_mail(
+          target.account_token,
+        );
+
+        if (!form.is_mounted_ref.current) return;
+
+        if (purge_result.error) {
+          show_toast(
+            sanitize_display_text(
+              purge_result.error || t("settings.failed_delete_emails_external"),
+            ),
+            "error",
+          );
+        } else {
+          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+          window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
+          window.dispatchEvent(
+            new CustomEvent("astermail:refresh-requested"),
+          );
+        }
+      }
+
+      const delete_result = await delete_external_account(target.account_token);
 
       if (!form.is_mounted_ref.current) return;
 
-      if (result.data?.success) {
-        set_accounts((prev) =>
-          prev.map((a) =>
-            a.id === purge_target.id ? { ...a, email_count: 0 } : a,
-          ),
-        );
+      if (delete_result.error) {
         show_toast(
-          t("settings.deleted_emails_count", {
-            count: String(result.data.deleted_count),
-          }),
-          "success",
-        );
-        invalidate_mail_stats();
-      } else {
-        show_toast(
-          sanitize_display_text(
-            result.error || t("settings.failed_delete_emails_external"),
-          ),
+          sanitize_display_text(delete_result.error),
           "error",
         );
+      } else {
+        set_accounts((prev) => prev.filter((a) => a.id !== target.id));
+        show_toast(t("settings.disconnect_success"), "success");
+        invalidate_mail_stats();
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -354,9 +369,10 @@ export function use_external_accounts() {
       if (form.is_mounted_ref.current) {
         set_is_purging(false);
         set_purge_target(null);
+        set_purge_also_delete_messages(false);
       }
     }
-  }, [purge_target, is_purging]);
+  }, [purge_target, is_purging, purge_also_delete_messages, t]);
 
   const toggle_error_expand = useCallback((account_id: string) => {
     set_expanded_error_ids((prev) => {
@@ -412,6 +428,8 @@ export function use_external_accounts() {
     purge_target,
     set_purge_target,
     is_purging,
+    purge_also_delete_messages,
+    set_purge_also_delete_messages,
     show_quota_dialog,
     set_show_quota_dialog,
     quota_sync_message,

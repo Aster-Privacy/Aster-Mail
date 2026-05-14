@@ -19,10 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { PlusIcon, ServerStackIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Checkbox } from "@aster/ui";
 
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
-import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -30,6 +29,8 @@ import {
   AlertDialogFooter,
   AlertDialogTitle,
   AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
 } from "@/components/ui/alert_dialog";
 import { use_external_accounts } from "@/components/settings/hooks/use_external_accounts";
 import { AccountList } from "@/components/settings/external_accounts/account_list";
@@ -149,7 +150,7 @@ export function ExternalAccountsSection() {
       )}
 
       <AccountList
-        accounts={state.accounts.filter((a) => !a.email.endsWith("@import"))}
+        accounts={state.accounts}
         expanded_error_ids={state.expanded_error_ids}
         failed_icons={state.failed_icons}
         format_sync_time={state.format_sync_time}
@@ -162,23 +163,67 @@ export function ExternalAccountsSection() {
         toggle_error_expand={state.toggle_error_expand}
       />
 
-      <ConfirmationModal
-        cancel_text={state.t("common.cancel")}
-        confirm_text={
-          state.is_purging
-            ? state.t("common.deleting")
-            : state.t("common.delete_mail")
-        }
-        is_open={!!state.purge_target}
-        message={state.t("settings.purge_confirm_message", {
-          count: String(state.purge_target?.email_count ?? 0),
-          email: state.purge_target?.email ?? state.t("settings.this_account"),
-        })}
-        on_cancel={() => state.set_purge_target(null)}
-        on_confirm={state.handle_purge_confirm}
-        title={state.t("common.delete_imported_emails")}
-        variant="danger"
-      />
+      <AlertDialog
+        open={!!state.purge_target}
+        onOpenChange={(open) => {
+          if (!open) {
+            state.set_purge_target(null);
+            state.set_purge_also_delete_messages(false);
+          }
+        }}
+      >
+        <AlertDialogContent
+          className="gap-0 p-0 overflow-hidden max-w-[380px]"
+          on_overlay_click={() => {
+            state.set_purge_target(null);
+            state.set_purge_also_delete_messages(false);
+          }}
+        >
+          <div className="px-6 pt-6 pb-5">
+            <AlertDialogHeader className="space-y-2">
+              <AlertDialogTitle className="text-16 font-semibold">
+                {state.t("settings.disconnect_title")}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-14 leading-normal">
+                {state.t("settings.disconnect_confirm")}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <label className="mt-4 flex items-center gap-2.5 cursor-pointer select-none">
+              <Checkbox
+                checked={state.purge_also_delete_messages}
+                onCheckedChange={(v) =>
+                  state.set_purge_also_delete_messages(v === true)
+                }
+              />
+              <span className="text-13 leading-none text-txt-secondary">
+                {state.t("settings.disconnect_delete_messages_label")}
+              </span>
+            </label>
+          </div>
+          <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
+            <AlertDialogCancel asChild>
+              <Button
+                className="mt-0 max-sm:flex-1"
+                size="xl"
+                variant="outline"
+              >
+                {state.t("common.cancel")}
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                className="max-sm:flex-1"
+                disabled={state.is_purging}
+                size="xl"
+                variant="destructive"
+                onClick={state.handle_purge_confirm}
+              >
+                {state.t("settings.disconnect_button")}
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog
         open={state.show_quota_dialog}
         onOpenChange={state.set_show_quota_dialog}

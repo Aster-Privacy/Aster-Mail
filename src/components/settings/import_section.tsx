@@ -35,7 +35,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { FaMicrosoft, FaYahoo } from "react-icons/fa6";
 import { SiGmail } from "react-icons/si";
-import { Button } from "@aster/ui";
+import { Button, Checkbox } from "@aster/ui";
 
 import { ImportModal } from "./import_modal";
 import {
@@ -58,6 +58,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   list_import_jobs,
+  delete_import_job,
   type ImportJob,
   type ImportSource,
   type ImportStatus,
@@ -67,6 +68,8 @@ import {
   trigger_sync,
   delete_external_account,
   get_sync_progress,
+  purge_external_account_mail,
+  toggle_external_account,
   type DecryptedExternalAccount,
   type SyncProgressEvent,
 } from "@/services/api/external_accounts";
@@ -184,11 +187,18 @@ function format_relative_time(
   return date.toLocaleDateString();
 }
 
-function ImportJobCard({ job }: { job: ImportJob }) {
+function ImportJobCard({
+  job,
+  on_delete,
+}: {
+  job: ImportJob;
+  on_delete: (id: string) => void;
+}) {
   const { t } = use_i18n();
   const source_label = job.source.charAt(0).toUpperCase() + job.source.slice(1);
   const skipped_text =
     job.skipped_emails > 0 ? `, ${t("settings.n_skipped", { count: job.skipped_emails })}` : "";
+  const can_delete = job.status !== "processing" && job.status !== "pending";
 
   return (
     <div className="flex items-center justify-between p-3 rounded-lg bg-surf-secondary">
@@ -214,6 +224,16 @@ function ImportJobCard({ job }: { job: ImportJob }) {
         <span className="text-xs text-txt-muted">
           {format_relative_time(job.created_at, t)}
         </span>
+        {can_delete && (
+          <button
+            type="button"
+            aria-label={t("common.delete")}
+            className="ml-1 p-1 rounded hover:bg-surf-tertiary text-txt-muted"
+            onClick={() => on_delete(job.id)}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -250,6 +270,8 @@ function ConnectedAccountCard({
   on_refresh,
   is_syncing,
   on_sync_finished,
+  is_setting_up_folders,
+  on_cancel_setup,
 }: {
   account: DecryptedExternalAccount;
   on_sync: (token: string) => void;
@@ -257,11 +279,12 @@ function ConnectedAccountCard({
   on_refresh: () => void;
   is_syncing: boolean;
   on_sync_finished?: (token: string) => void;
+  is_setting_up_folders: boolean;
+  on_cancel_setup: () => void;
 }) {
   const { t } = use_i18n();
   const has_error = account.last_sync_status === "error";
   const [progress, set_progress] = useState<SyncProgressEvent | null>(null);
-  const [finished_empty, set_finished_empty] = useState(false);
   const should_poll =
     is_syncing ||
     account.last_sync_status === "syncing" ||
@@ -270,7 +293,6 @@ function ConnectedAccountCard({
   useEffect(() => {
     if (!should_poll) {
       set_progress(null);
-      set_finished_empty(false);
 
       return;
     }
@@ -279,6 +301,7 @@ function ConnectedAccountCard({
     let empty_ticks = 0;
     let finalized = false;
     let preparing_ticks = 0;
+    const MAX_EMPTY_TICKS = 30;
     const MAX_PREPARING_TICKS = 40;
 
     const finalize = () => {
@@ -286,6 +309,9 @@ function ConnectedAccountCard({
       set_progress(null);
       on_sync_finished?.(account.account_token);
       on_refresh();
+      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
+      window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
     };
 
     const poll = async () => {
@@ -296,8 +322,7 @@ function ConnectedAccountCard({
 
       if (!result.data) {
         empty_ticks += 1;
-        if (empty_ticks >= 2) {
-          set_finished_empty(true);
+        if (empty_ticks >= MAX_EMPTY_TICKS) {
           finalize();
         }
 
@@ -308,13 +333,6 @@ function ConnectedAccountCard({
       set_progress(result.data);
 
       if (result.data.status === "complete") {
-        if (
-          result.data.total_messages === 0 &&
-          result.data.processed_messages === 0
-        ) {
-          set_finished_empty(true);
-          show_toast(t("settings.connected_accounts_no_new_emails"), "info");
-        }
         finalize();
       } else if (result.data.status === "error") {
         finalize();
@@ -324,8 +342,6 @@ function ConnectedAccountCard({
       ) {
         preparing_ticks += 1;
         if (preparing_ticks >= MAX_PREPARING_TICKS) {
-          set_finished_empty(true);
-          show_toast(t("settings.connected_accounts_no_new_emails"), "info");
           finalize();
         }
       }
@@ -344,7 +360,6 @@ function ConnectedAccountCard({
   const processed = progress?.processed_messages ?? 0;
   const show_progress =
     should_poll &&
-    !finished_empty &&
     progress !== null &&
     progress.status !== "complete" &&
     progress.status !== "error" &&
@@ -392,18 +407,25 @@ function ConnectedAccountCard({
         </div>
         <div className="flex items-center gap-2">
           <Button
-            disabled={is_syncing}
+            disabled={is_setting_up_folders}
             size="sm"
             variant="outline"
             onClick={() => on_sync(account.account_token)}
           >
-            {is_syncing ? (
-              <Spinner className="text-current" size="sm" />
+            {is_syncing || is_setting_up_folders ? (
+              <span className="flex items-center gap-1.5">
+                <Spinner className="text-current" size="sm" />
+                {t("common.stop")}
+              </span>
             ) : (
-              <ArrowPathIcon className="w-4 h-4" />
+              <span className="flex items-center gap-1.5">
+                <ArrowPathIcon className="w-4 h-4" />
+                {t("settings.connected_accounts_sync_now")}
+              </span>
             )}
           </Button>
           <Button
+            disabled={is_setting_up_folders}
             size="sm"
             variant="outline"
             onClick={() => on_disconnect(account.account_token)}
@@ -412,16 +434,54 @@ function ConnectedAccountCard({
           </Button>
         </div>
       </div>
-      {show_progress && (
+      {is_setting_up_folders && (
         <div className="w-full">
-          <div className="flex items-center justify-between mb-1.5 text-xs">
-            <span className="text-txt-secondary truncate">
-              {t("settings.sync_progress_count", { processed, total })}
-              {progress?.current_folder ? ` · ${progress.current_folder}` : ""}
+          <div className="flex items-center justify-between mb-1.5 text-xs gap-2">
+            <span className="flex items-center gap-2 text-txt-secondary truncate">
+              <Spinner className="text-brand" size="sm" />
+              {t("settings.import_stage_setting_up_folders")}
             </span>
-            <span className="text-txt-muted tabular-nums ml-2 flex-shrink-0">
-              {percent}%
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={on_cancel_setup}
+            >
+              {t("settings.import_stage_cancel")}
+            </Button>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-surf-tertiary overflow-hidden">
+            <div
+              className="h-full rounded-full animate-pulse"
+              style={{
+                width: "30%",
+                background: "var(--color-brand)",
+              }}
+            />
+          </div>
+        </div>
+      )}
+      {!is_setting_up_folders && show_progress && (
+        <div className="w-full">
+          <div className="flex items-center justify-between mb-1.5 text-xs gap-2">
+            <span className="flex items-center gap-2 text-txt-secondary truncate min-w-0">
+              <span className="font-medium text-txt-primary flex-shrink-0">
+                {t("settings.import_stage_importing_emails")}
+              </span>
+              <span className="truncate">
+                · {t("settings.sync_progress_count", { processed, total })}
+                {progress?.current_folder ? ` · ${progress.current_folder}` : ""}
+              </span>
             </span>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-txt-muted tabular-nums">{percent}%</span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => on_sync(account.account_token)}
+              >
+                {t("common.stop")}
+              </Button>
+            </div>
           </div>
           <div className="h-1.5 w-full rounded-full bg-surf-tertiary overflow-hidden">
             <div
@@ -435,16 +495,19 @@ function ConnectedAccountCard({
           </div>
         </div>
       )}
-      {should_poll && !show_progress && !finished_empty && (
-        <div className="flex items-center gap-2 text-xs text-txt-muted">
-          <Spinner className="text-brand" size="sm" />
-          <span>{t("settings.connected_accounts_syncing")}</span>
-        </div>
-      )}
-      {finished_empty && (
-        <div className="flex items-center gap-2 text-xs text-txt-muted">
-          <CheckCircleIcon className="w-4 h-4 text-txt-muted" />
-          <span>{t("settings.connected_accounts_no_new_emails")}</span>
+      {!is_setting_up_folders && should_poll && !show_progress && (
+        <div className="flex items-center justify-between gap-2 text-xs text-txt-muted">
+          <span className="flex items-center gap-2">
+            <Spinner className="text-brand" size="sm" />
+            <span>{t("settings.connected_accounts_syncing")}</span>
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => on_sync(account.account_token)}
+          >
+            {t("common.stop")}
+          </Button>
         </div>
       )}
     </div>
@@ -473,6 +536,9 @@ export function ImportSection() {
   const [disconnect_token, set_disconnect_token] = useState<string | null>(
     null,
   );
+  const [delete_messages_on_disconnect, set_delete_messages_on_disconnect] =
+    useState(false);
+  const [stop_sync_token, set_stop_sync_token] = useState<string | null>(null);
   const setup_account_tokens_ref = useRef<Set<string>>(new Set());
   const oauth_cancelled_ref = useRef(false);
   const [oauth_setup_token, set_oauth_setup_token] = useState<string | null>(
@@ -498,6 +564,13 @@ export function ImportSection() {
 
     set_is_loading_jobs(false);
   };
+
+  const handle_delete_recent_job = useCallback(async (id: string) => {
+    set_recent_jobs((prev) => prev.filter((j) => j.id !== id));
+    try {
+      await delete_import_job(id);
+    } catch {}
+  }, []);
 
   const load_connected_accounts = useCallback(async () => {
     try {
@@ -651,6 +724,12 @@ export function ImportSection() {
         (a) => a.account_token === account_token,
       );
 
+      if (syncing_accounts.has(account_token)) {
+        set_stop_sync_token(account_token);
+
+        return;
+      }
+
       if (
         account?.protocol === "oauth_imap" &&
         !setup_account_tokens_ref.current.has(account_token)
@@ -688,10 +767,35 @@ export function ImportSection() {
 
       load_connected_accounts();
     },
-    [t, load_connected_accounts, connected_accounts, setup_oauth_folders],
+    [
+      t,
+      load_connected_accounts,
+      connected_accounts,
+      setup_oauth_folders,
+      syncing_accounts,
+    ],
   );
 
+  const handle_stop_sync_confirm = useCallback(async () => {
+    const token = stop_sync_token;
+    set_stop_sync_token(null);
+    if (!token) return;
+    set_syncing_accounts((prev) => {
+      const next = new Set(prev);
+      next.delete(token);
+      return next;
+    });
+    try {
+      await toggle_external_account(token, false);
+      window.setTimeout(() => {
+        toggle_external_account(token, true).catch(() => {});
+        load_connected_accounts();
+      }, 1500);
+    } catch {}
+  }, [stop_sync_token, load_connected_accounts]);
+
   const handle_disconnect_click = useCallback((account_token: string) => {
+    set_delete_messages_on_disconnect(false);
     set_disconnect_token(account_token);
   }, []);
 
@@ -699,8 +803,10 @@ export function ImportSection() {
     if (!disconnect_token) return;
 
     const token = disconnect_token;
+    const should_delete_messages = delete_messages_on_disconnect;
 
     set_disconnect_token(null);
+    set_delete_messages_on_disconnect(false);
 
     const account = connected_accounts.find((a) => a.account_token === token);
     if (account) {
@@ -714,6 +820,20 @@ export function ImportSection() {
     });
 
     try {
+      if (should_delete_messages) {
+        const purge_result = await purge_external_account_mail(token);
+
+        if (purge_result.error) {
+          show_toast(purge_result.error, "error");
+        } else {
+          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+          window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
+          window.dispatchEvent(
+            new CustomEvent("astermail:refresh-requested"),
+          );
+        }
+      }
+
       const result = await delete_external_account(token);
 
       if (result.error) {
@@ -722,11 +842,20 @@ export function ImportSection() {
         set_connected_accounts((prev) =>
           prev.filter((a) => a.account_token !== token),
         );
+        show_toast(t("settings.disconnect_success"), "success");
       }
     } catch {
       show_toast(t("settings.connected_accounts_error"), "error");
     }
-  }, [disconnect_token, t, connected_accounts]);
+
+    load_connected_accounts();
+  }, [
+    disconnect_token,
+    delete_messages_on_disconnect,
+    t,
+    connected_accounts,
+    load_connected_accounts,
+  ]);
 
   const handle_cancel_oauth_setup = useCallback(async () => {
     oauth_cancelled_ref.current = true;
@@ -764,6 +893,32 @@ export function ImportSection() {
     load_jobs();
     load_connected_accounts();
   }, [load_connected_accounts]);
+
+  useEffect(() => {
+    if (connected_accounts.length === 0) return;
+    const interval = window.setInterval(
+      () => {
+        for (const account of connected_accounts) {
+          if (syncing_accounts.has(account.account_token)) continue;
+          if (account.last_sync_status === "syncing") continue;
+          if (account.last_sync_status === "pending") continue;
+          if (
+            setup_account_tokens_ref.current.has(account.account_token) ===
+              false &&
+            account.protocol === "oauth_imap"
+          ) {
+            continue;
+          }
+          set_syncing_accounts((prev) =>
+            new Set(prev).add(account.account_token),
+          );
+          trigger_sync(account.account_token).catch(() => {});
+        }
+      },
+      90 * 1000,
+    );
+    return () => window.clearInterval(interval);
+  }, [connected_accounts, syncing_accounts]);
 
   const oauth_handled_ref = useRef(false);
 
@@ -889,22 +1044,6 @@ export function ImportSection() {
         ))}
       </div>
 
-      {folder_setup_status === "setting_up" && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary">
-          <Spinner className="text-brand" size="sm" />
-          <span className="flex-1 text-sm text-txt-secondary">
-            {t("settings.oauth_setting_up_folders")}
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handle_cancel_oauth_setup}
-          >
-            {t("common.cancel")}
-          </Button>
-        </div>
-      )}
-
       {connected_accounts.length > 0 && (
         <div>
           <div className="mb-4">
@@ -919,7 +1058,12 @@ export function ImportSection() {
               <ConnectedAccountCard
                 key={account.id}
                 account={account}
+                is_setting_up_folders={
+                  folder_setup_status === "setting_up" &&
+                  oauth_setup_token === account.account_token
+                }
                 is_syncing={syncing_accounts.has(account.account_token)}
+                on_cancel_setup={handle_cancel_oauth_setup}
                 on_disconnect={handle_disconnect_click}
                 on_refresh={load_connected_accounts}
                 on_sync={handle_sync}
@@ -997,7 +1141,11 @@ export function ImportSection() {
           </div>
           <div className="space-y-2">
             {recent_jobs.map((job) => (
-              <ImportJobCard key={job.id} job={job} />
+              <ImportJobCard
+                key={job.id}
+                job={job}
+                on_delete={handle_delete_recent_job}
+              />
             ))}
           </div>
         </div>
@@ -1018,11 +1166,19 @@ export function ImportSection() {
 
       <AlertDialog
         open={disconnect_token !== null}
-        onOpenChange={(open) => !open && set_disconnect_token(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            set_disconnect_token(null);
+            set_delete_messages_on_disconnect(false);
+          }
+        }}
       >
         <AlertDialogContent
           className="gap-0 p-0 overflow-hidden max-w-[380px]"
-          on_overlay_click={() => set_disconnect_token(null)}
+          on_overlay_click={() => {
+            set_disconnect_token(null);
+            set_delete_messages_on_disconnect(false);
+          }}
         >
           <div className="px-6 pt-6 pb-5">
             <AlertDialogHeader className="space-y-2">
@@ -1033,6 +1189,17 @@ export function ImportSection() {
                 {t("settings.disconnect_confirm")}
               </AlertDialogDescription>
             </AlertDialogHeader>
+            <label className="mt-4 flex items-center gap-2.5 cursor-pointer select-none">
+              <Checkbox
+                checked={delete_messages_on_disconnect}
+                onCheckedChange={(v) =>
+                  set_delete_messages_on_disconnect(v === true)
+                }
+              />
+              <span className="text-13 leading-none text-txt-secondary">
+                {t("settings.disconnect_delete_messages_label")}
+              </span>
+            </label>
           </div>
           <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
             <AlertDialogCancel asChild>
@@ -1053,6 +1220,30 @@ export function ImportSection() {
               >
                 {t("settings.disconnect_button")}
               </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={stop_sync_token !== null}
+        onOpenChange={(open) => {
+          if (!open) set_stop_sync_token(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("settings.stop_sync_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("settings.stop_sync_description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.no")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handle_stop_sync_confirm}>
+              {t("common.yes")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -72,10 +72,20 @@ export async function list_external_accounts(): Promise<
             item.integrity_hash,
           );
 
+          const oauth_email_field = (item as { oauth_email?: string })
+            .oauth_email;
+          const looks_like_placeholder = /^oauth-[^@]+@import$/.test(data.email);
+          const effective_email =
+            looks_like_placeholder && oauth_email_field
+              ? oauth_email_field
+              : looks_like_placeholder
+                ? data.display_name || "Connected account"
+                : data.email;
+
           return {
             id: item.id,
             account_token: item.account_token,
-            email: data.email,
+            email: effective_email,
             display_name: data.display_name,
             label_name: data.label_name,
             label_color: data.label_color,
