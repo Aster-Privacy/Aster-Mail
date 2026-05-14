@@ -103,6 +103,13 @@ export function get_plan_comparison_rows(
       supernova: t("settings.unlimited"),
     },
     {
+      label: cap(t("settings.plan_f_mail_rules", { value: "" })),
+      free: "2",
+      star: t("settings.unlimited"),
+      nova: t("settings.unlimited"),
+      supernova: t("settings.unlimited"),
+    },
+    {
       label: cap(t("settings.plan_f_ghost_aliases", { value: "" })),
       free: "5",
       star: "25",
