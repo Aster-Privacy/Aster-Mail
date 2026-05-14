@@ -81,10 +81,16 @@ export function PopupEmailHeader({
   const label_chips = useMemo(() => {
     const seen = new Set<string>();
     const from_item: { token: string; name: string; color?: string; icon?: string; show_icon: boolean }[] = [];
-    for (const f of [...(mail_item?.labels ?? []), ...(mail_item?.folders ?? [])]) {
+    for (const f of mail_item?.labels ?? []) {
       if (f.name && !seen.has(f.token)) {
         seen.add(f.token);
         from_item.push({ token: f.token, name: f.name, color: f.color as string | undefined, icon: f.icon, show_icon: true });
+      }
+    }
+    for (const f of mail_item?.folders ?? []) {
+      if (f.name && !seen.has(f.token)) {
+        seen.add(f.token);
+        from_item.push({ token: f.token, name: f.name, color: (f.color as string | undefined) || "#3b82f6", icon: f.icon || "folder", show_icon: true });
       }
     }
     for (const token of mail_item?.tag_tokens ?? []) {
