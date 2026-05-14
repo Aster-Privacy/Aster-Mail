@@ -367,7 +367,19 @@ export async function perform_unsubscribe(
       return "api";
     }
 
-    window.location.href = `mailto:${encodeURIComponent(unsub_info.unsubscribe_mailto)}?subject=Unsubscribe`;
+    const mailto_address = unsub_info.unsubscribe_mailto;
+    const is_valid_address =
+      typeof mailto_address === "string" &&
+      mailto_address.length > 0 &&
+      mailto_address.length < 320 &&
+      !/[\r\n\t<>"']/.test(mailto_address) &&
+      /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mailto_address);
+
+    if (!is_valid_address) {
+      throw new Error("Invalid unsubscribe mailto address");
+    }
+
+    window.location.href = `mailto:${encodeURIComponent(mailto_address)}?subject=Unsubscribe`;
 
     return "mailto";
   }

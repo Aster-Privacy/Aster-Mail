@@ -191,6 +191,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       strategies: "injectManifest",
+      injectRegister: false,
       srcDir: "src",
       filename: "sw.ts",
       includeAssets: [

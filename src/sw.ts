@@ -54,6 +54,8 @@ self.addEventListener("fetch", (event: FetchEvent) => {
   }
 });
 
+let logout_purge_in_progress = false;
+
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
   if (event.origin && event.origin !== self.location.origin) {
     return;
@@ -62,6 +64,8 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
     self.skipWaiting();
   }
   if (event.data && event.data.type === "LOGOUT_PURGE") {
+    if (logout_purge_in_progress) return;
+    logout_purge_in_progress = true;
     event.waitUntil(
       (async () => {
         try {
@@ -72,15 +76,40 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
             );
           }
         } catch {}
+        logout_purge_in_progress = false;
       })(),
     );
   }
 });
 
+const ALLOWED_NOTIFICATION_PATH_PREFIXES = [
+  "/mail/",
+  "/settings/",
+  "/billing/",
+  "/contacts/",
+  "/search/",
+];
+
+function sanitize_notification_path(input: unknown): string {
+  if (typeof input !== "string") return "/mail/inbox";
+  if (!input.startsWith("/")) return "/mail/inbox";
+  if (input.startsWith("//")) return "/mail/inbox";
+  if (input.startsWith("/\\")) return "/mail/inbox";
+  if (/[\r\n\t]/.test(input)) return "/mail/inbox";
+  if (input.length > 256) return "/mail/inbox";
+  for (const prefix of ALLOWED_NOTIFICATION_PATH_PREFIXES) {
+    if (input === prefix.replace(/\/$/, "") || input.startsWith(prefix)) {
+      return input;
+    }
+  }
+
+  return "/mail/inbox";
+}
+
 self.addEventListener("push", (event: PushEvent) => {
   if (!event.data) return;
 
-  let data: { type?: string; title?: string; body?: string } = {};
+  let data: { type?: string; title?: string; body?: string; url?: unknown } = {};
 
   try {
     data = event.data.json();
@@ -88,13 +117,14 @@ self.addEventListener("push", (event: PushEvent) => {
     data = { title: "AsterMail", body: event.data.text() };
   }
 
+  const safe_url = sanitize_notification_path(data.url);
   const title = data.title || "AsterMail";
   const options: NotificationOptions = {
     body: data.body || "You have a new notification",
     icon: "/pwa-192x192.png",
     badge: "/favicon-32x32.png",
     tag: data.type || "default",
-    data: { url: "/mail/inbox" },
+    data: { url: safe_url },
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -103,7 +133,7 @@ self.addEventListener("push", (event: PushEvent) => {
 self.addEventListener("notificationclick", (event: NotificationEvent) => {
   event.notification.close();
 
-  const url_to_open = event.notification.data?.url || "/mail/inbox";
+  const url_to_open = sanitize_notification_path(event.notification.data?.url);
 
   event.waitUntil(
     self.clients
