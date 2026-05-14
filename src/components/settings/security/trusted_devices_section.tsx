@@ -28,6 +28,7 @@ import {
   revoke_all_trusted_devices,
   TrustedDeviceItem,
 } from "@/services/api/trusted_devices";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
 function format_date(iso: string): string {
@@ -67,18 +68,24 @@ export function TrustedDevicesSection() {
     set_busy_id(id);
     const res = await revoke_trusted_device(id);
     set_busy_id(null);
-    if (!res.error) {
-      set_devices((prev) => prev.filter((d) => d.id !== id));
+    if (res.error) {
+      show_toast(res.error, "error");
+      return;
     }
+    set_devices((prev) => prev.filter((d) => d.id !== id));
+    show_toast(t("settings.trusted_2fa_revoked_toast"), "success");
   };
 
   const handle_revoke_all = async () => {
     set_revoke_all_busy(true);
     const res = await revoke_all_trusted_devices();
     set_revoke_all_busy(false);
-    if (!res.error) {
-      set_devices([]);
+    if (res.error) {
+      show_toast(res.error, "error");
+      return;
     }
+    set_devices([]);
+    show_toast(t("settings.trusted_2fa_revoked_all_toast"), "success");
   };
 
   return (
