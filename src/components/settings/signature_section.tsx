@@ -36,6 +36,13 @@ import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Modal,
   ModalHeader,
   ModalTitle,
@@ -56,9 +63,11 @@ import {
   set_default_signature,
   type DecryptedSignature,
   type SignatureFormData,
+  type SignaturePlacement,
 } from "@/services/api/signatures";
 import { fetch_my_badges } from "@/services/api/user";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 
 function escape_html(str: string): string {
   return str
@@ -98,6 +107,8 @@ interface EditorState {
   name: string;
   content: string;
   is_saving: boolean;
+  alias_id: string | null;
+  placement: SignaturePlacement | null;
 }
 
 const initial_editor_state: EditorState = {
@@ -106,6 +117,8 @@ const initial_editor_state: EditorState = {
   name: "",
   content: "",
   is_saving: false,
+  alias_id: null,
+  placement: null,
 };
 
 export function SignatureSection() {
@@ -113,6 +126,10 @@ export function SignatureSection() {
   const reduce_motion = use_should_reduce_motion();
   const { preferences, update_preference } = use_preferences();
   const { reload_signatures: reload_context_signatures } = use_signatures();
+  const { sender_options } = use_sender_aliases();
+  const sender_aliases = sender_options.filter(
+    (o) => o.type === "alias" && o.is_enabled,
+  );
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
   const [signatures, set_signatures] = useState<DecryptedSignature[]>([]);
@@ -220,6 +237,8 @@ export function SignatureSection() {
       name: "",
       content: "",
       is_saving: false,
+      alias_id: null,
+      placement: null,
     });
   };
 
@@ -230,6 +249,8 @@ export function SignatureSection() {
       name: signature.name,
       content: signature.content,
       is_saving: false,
+      alias_id: signature.alias_id,
+      placement: signature.placement,
     });
     requestAnimationFrame(() => {
       if (editor_div_ref.current) {
@@ -275,6 +296,8 @@ export function SignatureSection() {
       name: editor.name.trim(),
       content: has_rich_content ? html_content.trim() : plain_text,
       is_html: has_rich_content,
+      alias_id: editor.alias_id,
+      placement: editor.placement,
     };
 
     if (editor.editing_id) {
@@ -295,6 +318,8 @@ export function SignatureSection() {
                 name: form_data.name,
                 content: form_data.content,
                 is_html: has_rich_content,
+                alias_id: form_data.alias_id ?? null,
+                placement: form_data.placement ?? null,
               }
             : sig,
         ),
@@ -316,8 +341,10 @@ export function SignatureSection() {
           id: response.data.id,
           name: form_data.name,
           content: form_data.content,
-          is_default: is_first,
+          is_default: is_first && !form_data.alias_id,
           is_html: has_rich_content,
+          alias_id: form_data.alias_id ?? null,
+          placement: form_data.placement ?? null,
           created_at: response.data.created_at,
           updated_at: response.data.created_at,
         };
@@ -539,6 +566,82 @@ export function SignatureSection() {
               </div>
 
               <div>
+                <span className="text-sm font-medium block mb-2 text-txt-primary">
+                  {t("settings.signature_alias")}
+                </span>
+                <Select
+                  value={editor.alias_id ?? "__default__"}
+                  onValueChange={(value) =>
+                    set_editor((prev) => ({
+                      ...prev,
+                      alias_id: value === "__default__" ? null : value,
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__default__">
+                      {t("settings.signature_alias_default")}
+                    </SelectItem>
+                    {sender_aliases.map((alias) => {
+                      const in_use = signatures.some(
+                        (s) =>
+                          s.alias_id === alias.id &&
+                          s.id !== editor.editing_id,
+                      );
+                      return (
+                        <SelectItem
+                          key={alias.id}
+                          disabled={in_use}
+                          value={alias.id}
+                        >
+                          {alias.email}
+                          {in_use
+                            ? ` (${t("settings.signature_alias_in_use")})`
+                            : ""}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <span className="text-sm font-medium block mb-2 text-txt-primary">
+                  {t("settings.signature_placement")}
+                </span>
+                <Select
+                  value={editor.placement ?? "__inherit__"}
+                  onValueChange={(value) =>
+                    set_editor((prev) => ({
+                      ...prev,
+                      placement:
+                        value === "__inherit__"
+                          ? null
+                          : (value as SignaturePlacement),
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__inherit__">
+                      {t("settings.signature_placement_inherit")}
+                    </SelectItem>
+                    <SelectItem value="below">
+                      {t("settings.below_quoted_text")}
+                    </SelectItem>
+                    <SelectItem value="above">
+                      {t("settings.above_quoted_text")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
                 <label
                   className="text-sm font-medium block mb-2 text-txt-primary"
                   htmlFor="signature-content"
@@ -663,7 +766,8 @@ export function SignatureSection() {
                     initial={reduce_motion ? false : { opacity: 0 }}
                   >
                     <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
                         <h5 className="text-sm font-semibold text-txt-primary">
                           {signature.name}
                         </h5>
@@ -681,9 +785,23 @@ export function SignatureSection() {
                             {t("settings.default_badge")}
                           </span>
                         )}
+                        </div>
+                        {(() => {
+                          const bound = signature.alias_id
+                            ? sender_aliases.find(
+                                (a) => a.id === signature.alias_id,
+                              )
+                            : null;
+                          const label = bound
+                            ? bound.email
+                            : t("settings.signature_alias_default");
+                          return (
+                            <p className="text-xs text-txt-muted">{label}</p>
+                          );
+                        })()}
                       </div>
                       <div className="flex items-center gap-1.5">
-                        {!signature.is_default && (
+                        {!signature.is_default && !signature.alias_id && (
                           <Button
                             size="md"
                             variant="outline"

@@ -23,10 +23,14 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { get_or_create_derived_encryption_crypto_key } from "@/services/crypto/memory_key_store";
 
+export type SignaturePlacement = "above" | "below";
+
 export interface SignatureFormData {
   name: string;
   content: string;
   is_html?: boolean;
+  alias_id?: string | null;
+  placement?: SignaturePlacement | null;
 }
 
 export interface Signature {
@@ -37,6 +41,8 @@ export interface Signature {
   content_nonce: string;
   is_default: boolean;
   is_html: boolean;
+  alias_id: string | null;
+  placement: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -47,8 +53,35 @@ export interface DecryptedSignature {
   content: string;
   is_default: boolean;
   is_html: boolean;
+  alias_id: string | null;
+  placement: SignaturePlacement | null;
   created_at: string;
   updated_at: string;
+}
+
+function placement_to_int(p: SignaturePlacement | null | undefined): number | null {
+  if (p === "above") return 1;
+  if (p === "below") return 0;
+  return null;
+}
+
+function placement_from_int(p: number | null | undefined): SignaturePlacement | null {
+  if (p === 1) return "above";
+  if (p === 0) return "below";
+  return null;
+}
+
+export function get_signature_for_alias(
+  alias_id: string | null,
+  signatures: DecryptedSignature[],
+): DecryptedSignature | null {
+  if (alias_id) {
+    const bound = signatures.find((s) => s.alias_id === alias_id);
+    if (bound) return bound;
+  }
+  return (
+    signatures.find((s) => s.alias_id === null && s.is_default) || null
+  );
 }
 
 export interface ListSignaturesResponse {
@@ -63,6 +96,8 @@ export interface CreateSignatureRequest {
   content_nonce: string;
   is_default: boolean;
   is_html: boolean;
+  alias_id?: string | null;
+  placement?: number | null;
 }
 
 export interface CreateSignatureResponse {
@@ -77,6 +112,8 @@ export interface UpdateSignatureRequest {
   encrypted_content?: string;
   content_nonce?: string;
   is_html?: boolean;
+  alias_id?: string | null;
+  placement?: number | null;
 }
 
 export interface UpdateSignatureResponse {
@@ -169,6 +206,8 @@ export async function decrypt_signature(
     content,
     is_default: signature.is_default,
     is_html: signature.is_html,
+    alias_id: signature.alias_id ?? null,
+    placement: placement_from_int(signature.placement),
     created_at: signature.created_at,
     updated_at: signature.updated_at,
   };
@@ -272,6 +311,8 @@ export async function create_signature(
       content_nonce: encrypted_content.nonce,
       is_default,
       is_html: data.is_html ?? false,
+      alias_id: data.alias_id ?? null,
+      placement: placement_to_int(data.placement),
     };
 
     return api_client.post<CreateSignatureResponse>(
@@ -308,6 +349,14 @@ export async function update_signature(
 
     if (data.is_html !== undefined) {
       request.is_html = data.is_html;
+    }
+
+    if (data.alias_id !== undefined) {
+      request.alias_id = data.alias_id;
+    }
+
+    if (data.placement !== undefined) {
+      request.placement = placement_to_int(data.placement);
     }
 
     return api_client.put<UpdateSignatureResponse>(

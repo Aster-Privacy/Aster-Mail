@@ -21,10 +21,11 @@
 import type {
   DecryptedSignature,
   SignatureFormData,
+  SignaturePlacement,
 } from "@/services/api/signatures";
 
 import { useState, useCallback, useEffect } from "react";
-import { PlusIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, DocumentTextIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { SettingsHeader } from "./shared";
@@ -41,6 +42,7 @@ import {
   set_default_signature,
 } from "@/services/api/signatures";
 import { use_signatures } from "@/contexts/signatures_context";
+import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 
 export function SignaturesSection({
   on_back,
@@ -51,12 +53,19 @@ export function SignaturesSection({
 }) {
   const { t } = use_i18n();
   const { reload_signatures: reload_context_signatures } = use_signatures();
+  const { sender_options } = use_sender_aliases();
+  const sender_aliases = sender_options.filter(
+    (o) => o.type === "alias" && o.is_enabled,
+  );
   const [signatures, set_signatures] = useState<DecryptedSignature[]>([]);
   const [is_loading, set_is_loading] = useState(true);
   const [editor_open, set_editor_open] = useState(false);
   const [editing_id, set_editing_id] = useState<string | null>(null);
   const [editor_name, set_editor_name] = useState("");
   const [editor_content, set_editor_content] = useState("");
+  const [editor_alias_id, set_editor_alias_id] = useState<string | null>(null);
+  const [editor_placement, set_editor_placement] =
+    useState<SignaturePlacement | null>(null);
   const [is_saving, set_is_saving] = useState(false);
   const [deleting_id, set_deleting_id] = useState<string | null>(null);
   const [delete_confirm, set_delete_confirm] = useState<{
@@ -90,6 +99,8 @@ export function SignaturesSection({
     set_editing_id(null);
     set_editor_name("");
     set_editor_content("");
+    set_editor_alias_id(null);
+    set_editor_placement(null);
     set_editor_open(true);
   }, []);
 
@@ -97,6 +108,8 @@ export function SignaturesSection({
     set_editing_id(sig.id);
     set_editor_name(sig.name);
     set_editor_content(sig.content);
+    set_editor_alias_id(sig.alias_id);
+    set_editor_placement(sig.placement);
     set_editor_open(true);
   }, []);
 
@@ -105,6 +118,8 @@ export function SignaturesSection({
     set_editing_id(null);
     set_editor_name("");
     set_editor_content("");
+    set_editor_alias_id(null);
+    set_editor_placement(null);
   }, []);
 
   const handle_save = useCallback(async () => {
@@ -115,6 +130,8 @@ export function SignaturesSection({
       name: editor_name.trim(),
       content: editor_content.trim(),
       is_html: false,
+      alias_id: editor_alias_id,
+      placement: editor_placement,
     };
 
     if (editing_id) {
@@ -124,7 +141,13 @@ export function SignaturesSection({
         set_signatures((prev) =>
           prev.map((sig) =>
             sig.id === editing_id
-              ? { ...sig, name: form_data.name, content: form_data.content }
+              ? {
+                  ...sig,
+                  name: form_data.name,
+                  content: form_data.content,
+                  alias_id: editor_alias_id,
+                  placement: editor_placement,
+                }
               : sig,
           ),
         );
@@ -140,8 +163,10 @@ export function SignaturesSection({
           id: res.data.id,
           name: form_data.name,
           content: form_data.content,
-          is_default: is_first,
+          is_default: is_first && !editor_alias_id,
           is_html: false,
+          alias_id: editor_alias_id,
+          placement: editor_placement,
           created_at: res.data.created_at,
           updated_at: res.data.created_at,
         };
@@ -156,6 +181,8 @@ export function SignaturesSection({
   }, [
     editor_name,
     editor_content,
+    editor_alias_id,
+    editor_placement,
     editing_id,
     signatures.length,
     reload_context_signatures,
@@ -240,6 +267,79 @@ export function SignaturesSection({
             <p className="text-[11px] mt-1.5 text-[var(--text-muted)]">
               {t("settings.plain_text_hint")}
             </p>
+          </div>
+          <div>
+            <label className="block text-[13px] font-medium text-[var(--text-primary)] mb-1.5">
+              {t("settings.signature_alias")}
+            </label>
+            <div className="rounded-xl border border-[var(--border-secondary)] bg-[var(--mobile-bg-card)] overflow-hidden">
+              <div className="divide-y divide-[var(--border-primary)]">
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)]"
+                  type="button"
+                  onClick={() => set_editor_alias_id(null)}
+                >
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("settings.signature_alias_default")}
+                  </span>
+                  {editor_alias_id === null && (
+                    <CheckIcon className="h-5 w-5 shrink-0 text-[var(--accent-color,#3b82f6)]" />
+                  )}
+                </button>
+                {sender_aliases.map((alias) => {
+                  const in_use = signatures.some(
+                    (s) => s.alias_id === alias.id && s.id !== editing_id,
+                  );
+                  return (
+                    <button
+                      key={alias.id}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)] disabled:opacity-50"
+                      disabled={in_use}
+                      type="button"
+                      onClick={() => set_editor_alias_id(alias.id)}
+                    >
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {alias.email}
+                        {in_use
+                          ? ` (${t("settings.signature_alias_in_use")})`
+                          : ""}
+                      </span>
+                      {editor_alias_id === alias.id && (
+                        <CheckIcon className="h-5 w-5 shrink-0 text-[var(--accent-color,#3b82f6)]" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+          <div>
+            <label className="block text-[13px] font-medium text-[var(--text-primary)] mb-1.5">
+              {t("settings.signature_placement")}
+            </label>
+            <div className="rounded-xl border border-[var(--border-secondary)] bg-[var(--mobile-bg-card)] overflow-hidden">
+              <div className="divide-y divide-[var(--border-primary)]">
+                {[
+                  { value: null, label: t("settings.signature_placement_inherit") },
+                  { value: "below" as SignaturePlacement, label: t("settings.below_quoted_text") },
+                  { value: "above" as SignaturePlacement, label: t("settings.above_quoted_text") },
+                ].map((opt) => (
+                  <button
+                    key={opt.value ?? "__inherit__"}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)]"
+                    type="button"
+                    onClick={() => set_editor_placement(opt.value)}
+                  >
+                    <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                      {opt.label}
+                    </span>
+                    {editor_placement === opt.value && (
+                      <CheckIcon className="h-5 w-5 shrink-0 text-[var(--accent-color,#3b82f6)]" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
         <div className="flex gap-3 px-4 py-4 border-t border-[var(--border-secondary)]">
@@ -335,7 +435,7 @@ export function SignaturesSection({
                   >
                     {t("common.edit")}
                   </button>
-                  {!sig.is_default && (
+                  {!sig.is_default && !sig.alias_id && (
                     <button
                       className="text-[13px] text-[var(--accent-color,#3b82f6)]"
                       type="button"
