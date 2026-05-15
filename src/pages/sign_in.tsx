@@ -463,7 +463,7 @@ export default function SignInPage() {
         set_is_checkout_login(false);
         set_username(checkout_username);
         if (err instanceof Error && err.message.includes("decrypt")) {
-          set_error(translate("errors.decrypt_failed"));
+          set_error(translate("errors.wrong_vault_password"));
         } else {
           set_error(
             err instanceof Error
@@ -586,7 +586,7 @@ export default function SignInPage() {
         set_available_2fa_methods([]);
         set_active_2fa_method("totp");
         if (err instanceof Error && err.message.includes("decrypt")) {
-          set_error(t("errors.decrypt_failed"));
+          set_error(t("errors.wrong_vault_password"));
         } else {
           set_error(
             err instanceof Error ? err.message : t("errors.login_failed"),
@@ -872,7 +872,7 @@ export default function SignInPage() {
         await new Promise((resolve) => setTimeout(resolve, min_time - elapsed));
       }
       if (err instanceof Error && err.message.includes("decrypt")) {
-        set_error(t("errors.decrypt_failed"));
+        set_error(t("errors.wrong_vault_password"));
       } else {
         set_error(
           err instanceof Error ? err.message : t("errors.login_failed"),

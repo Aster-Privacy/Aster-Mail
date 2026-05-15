@@ -40,6 +40,14 @@ interface SaveRecoveryBackupResponse {
   success: boolean;
 }
 
+interface ForgotPasswordResponse {
+  success: boolean;
+}
+
+interface ResetPasswordResponse {
+  success: boolean;
+}
+
 interface NewPgpKeyData {
   fingerprint: string;
   key_id: string;
@@ -80,6 +88,54 @@ export async function complete_recovery(
     "/core/v1/recovery/complete",
     {
       recovery_token,
+      new_password_hash,
+      new_password_salt,
+      new_encrypted_vault,
+      new_vault_nonce,
+      new_recovery_shares,
+      new_encrypted_vault_backup,
+      new_vault_backup_nonce,
+      new_recovery_key_salt,
+      new_identity_key,
+      new_signed_prekey,
+      new_signed_prekey_signature,
+      new_pgp_key,
+    },
+  );
+}
+
+export async function forgot_password_email(
+  username: string,
+  email_domain: string,
+): Promise<ApiResponse<ForgotPasswordResponse>> {
+  return api_client.post<ForgotPasswordResponse>(
+    "/core/v1/recovery/forgot-password",
+    {
+      username,
+      email_domain,
+    },
+  );
+}
+
+export async function reset_password_with_token(
+  token: string,
+  new_password_hash: string,
+  new_password_salt: string,
+  new_encrypted_vault: string,
+  new_vault_nonce: string,
+  new_recovery_shares: RecoveryShareData[],
+  new_encrypted_vault_backup: string,
+  new_vault_backup_nonce: string,
+  new_recovery_key_salt: string,
+  new_identity_key?: string,
+  new_signed_prekey?: string,
+  new_signed_prekey_signature?: string,
+  new_pgp_key?: NewPgpKeyData,
+): Promise<ApiResponse<ResetPasswordResponse>> {
+  return api_client.post<ResetPasswordResponse>(
+    "/core/v1/recovery/reset-password",
+    {
+      token,
       new_password_hash,
       new_password_salt,
       new_encrypted_vault,
