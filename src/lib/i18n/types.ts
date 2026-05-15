@@ -50,6 +50,7 @@ export interface TranslationNamespace {
   auth: AuthTranslations;
   errors: ErrorTranslations;
   mail_rules: MailRulesTranslations;
+  badges: BadgesTranslations;
 }
 
 export interface MailRulesTranslations {
@@ -136,6 +137,7 @@ export interface MailRulesTranslations {
   unread: string;
   none: string;
   no_labels: string;
+  no_labels_create_hint: string;
   delete_rule_title: string;
   delete_rule_body: string;
   menu_enable: string;
@@ -325,6 +327,7 @@ export interface CommonTranslations {
   offline_features_limited: string;
   back_online: string;
   dont_ask_again: string;
+  not_now: string;
   enable: string;
   test: string;
   preview: string;
@@ -2003,6 +2006,20 @@ export interface SettingsTranslations {
   usage_unlimited: string;
   usage_at_limit: string;
   usage_loading: string;
+  usage_contacts: string;
+  usage_filters: string;
+  upgrade_modal_title: string;
+  upgrade_modal_description_specific: string;
+  upgrade_modal_description_generic: string;
+  upgrade_generic_resource: string;
+  upgrade_perk_storage: string;
+  upgrade_perk_aliases: string;
+  upgrade_perk_domains: string;
+  upgrade_perk_features: string;
+  upgrade_view_plans: string;
+  upgrade_buy_storage: string;
+  upgrade_inline_card_title: string;
+  upgrade_inline_card_description: string;
   all_star_features: string;
   all_nova_features: string;
   payment: string;
@@ -2452,6 +2469,7 @@ export interface SettingsTranslations {
   macos: string;
   windows_linux: string;
   font_size_description: string;
+  font_size_reset: string;
   vision_description: string;
   color_vision_description: string;
   reading_description: string;
@@ -2709,6 +2727,11 @@ export interface SettingsTranslations {
   below_quoted_description: string;
   above_quoted_text: string;
   above_quoted_description: string;
+  signature_alias: string;
+  signature_alias_default: string;
+  signature_alias_in_use: string;
+  signature_placement_inherit: string;
+  signature_alias_conflict_error: string;
   email_templates_title: string;
   email_templates_description: string;
   your_templates: string;
@@ -2808,6 +2831,7 @@ export interface SettingsTranslations {
   oauth_setting_up_folders: string;
   oauth_folders_ready: string;
   oauth_folders_error: string;
+  oauth_folders_partial: string;
   import_stage_setting_up_folders: string;
   import_stage_importing_emails: string;
   import_stage_cancel: string;
@@ -3964,6 +3988,19 @@ export interface AuthTranslations {
   recover_your_account: string;
   enter_email_associated: string;
   back_to_sign_in: string;
+  email_me_reset_link: string;
+  have_recovery_code: string;
+  use_recovery_code: string;
+  reset_link_sent_title: string;
+  reset_link_sent_desc: string;
+  sending_reset_link: string;
+  no_recovery_email_on_account: string;
+  reset_your_password: string;
+  reset_choose_new_password: string;
+  reset_invalid_or_expired: string;
+  request_new_reset_link: string;
+  set_new_password: string;
+  resetting_password: string;
   enter_recovery_code: string;
   enter_recovery_code_desc: string;
   verify_code: string;
@@ -4197,6 +4234,65 @@ export interface ErrorTranslations {
   health_check_failed: string;
   unexpected_health_check_error: string;
   all_emails_rejected: string;
+  wrong_vault_password: string;
+  vault_tampered: string;
+  vault_version_drift: string;
+  vault_missing_key: string;
+  wrong_folder_password: string;
+  wrong_external_account_password: string;
+  decrypt_wrong_key: string;
+  decrypt_corrupt_ciphertext: string;
+  decrypt_sender_error: string;
+  no_unsubscribe_method: string;
+  invalid_unsubscribe_address: string;
+  tor_unsupported_platform: string;
+  tor_native_only: string;
+  tor_plugin_missing: string;
+  cdn_relay_misconfigured: string;
+  device_repair_required: string;
+  device_challenge_mismatch: string;
+  metadata_migration_stalled: string;
+}
+
+export interface BadgesTranslations {
+  title: string;
+  description: string;
+  earned_label: string;
+  not_earned: string;
+  active_badge: string;
+  none: string;
+  show_on_profile: string;
+  show_on_profile_description: string;
+  show_in_signature: string;
+  show_in_signature_description: string;
+  show_avatar_ring: string;
+  show_avatar_ring_description: string;
+  granted_at: string;
+  find_order_label: string;
+  empty_state: string;
+  claim_success: string;
+  claim_already: string;
+  claim_failed: string;
+  badge_big_bang: string;
+  badge_big_bang_description: string;
+  badge_event_horizon: string;
+  badge_event_horizon_description: string;
+  badge_black_hole: string;
+  badge_black_hole_description: string;
+  badge_singularity: string;
+  badge_singularity_description: string;
+  badge_supernova: string;
+  badge_supernova_description: string;
+  badge_andromeda: string;
+  badge_andromeda_description: string;
+  badge_nebula: string;
+  badge_nebula_description: string;
+  badge_comet: string;
+  badge_comet_description: string;
+  badge_pulsar: string;
+  badge_pulsar_description: string;
+  badge_stargazer: string;
+  badge_stargazer_description: string;
 }
 
 export type TranslationKey =
@@ -4205,6 +4301,7 @@ export type TranslationKey =
   | `mail.${keyof MailTranslations}`
   | `auth.${keyof AuthTranslations}`
   | `errors.${keyof ErrorTranslations}`
-  | `mail_rules.${keyof MailRulesTranslations}`;
+  | `mail_rules.${keyof MailRulesTranslations}`
+  | `badges.${keyof BadgesTranslations}`;
 
 export type Translations = TranslationNamespace;

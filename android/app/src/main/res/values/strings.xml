@@ -15,4 +15,5 @@
     <string name="widget_unread_count_name">Unread Count</string>
     <string name="widget_mail_stats_name">Mail Stats</string>
     <string name="widget_quick_compose_name">Quick Compose</string>
+    <string name="error_app_start_failed">Aster could not finish starting on this device, so close the app and try again. Your account and mail are safe.</string>
 </resources>
