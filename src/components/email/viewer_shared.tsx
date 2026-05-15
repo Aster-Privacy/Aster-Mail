@@ -52,6 +52,9 @@ import { use_external_link } from "@/contexts/external_link_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { AvatarRing } from "@/components/ui/avatar_ring";
+import { BadgeChip } from "@/components/ui/badge_chip";
+import { use_peer_profile } from "@/hooks/use_peer_profile";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -623,6 +626,15 @@ export function ViewerEmailHeader({
   tracking_report,
 }: ViewerEmailHeaderProps): React.ReactElement {
   const { t } = use_i18n();
+  const peer_profile = use_peer_profile(
+    is_system_email(email.sender_email) ? null : email.sender_email,
+  );
+  const peer_badge = peer_profile?.active_badge ?? null;
+  const show_sender_ring =
+    (peer_profile?.show_badge_ring ?? false) && !!peer_badge;
+  const show_sender_badge =
+    (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
+  const display_sender = peer_profile?.display_name || email.sender;
 
   return (
     <>
@@ -667,14 +679,21 @@ export function ViewerEmailHeader({
       )}
 
       <div className={`flex items-start ${gap_class} mb-6`}>
-        <ProfileAvatar
-          clickable
-          use_domain_logo
-          className={avatar_class}
-          email={email.sender_email}
-          name={email.sender}
-          size={avatar_size}
-        />
+        <AvatarRing
+          badge_slug={peer_badge?.slug}
+          enabled={show_sender_ring}
+          thickness={2}
+        >
+          <ProfileAvatar
+            clickable
+            use_domain_logo
+            className={avatar_class}
+            email={email.sender_email}
+            image_url={peer_profile?.profile_picture ?? undefined}
+            name={display_sender}
+            size={avatar_size}
+          />
+        </AvatarRing>
         <div className="flex-1 min-w-0">
           <div
             className={`flex items-start sm:items-center justify-between gap-2 ${flex_wrap_class}`}
@@ -683,10 +702,18 @@ export function ViewerEmailHeader({
               <EmailProfileTrigger
                 className="font-medium text-sm truncate"
                 email={email.sender_email}
-                name={email.sender}
+                name={display_sender}
               >
-                <span className="text-txt-primary">{email.sender}</span>
+                <span className="text-txt-primary">{display_sender}</span>
               </EmailProfileTrigger>
+              {show_sender_badge && peer_badge && (
+                <BadgeChip
+                  badge={peer_badge}
+                  className="flex-shrink-0"
+                  show_find_order={false}
+                  size="sm"
+                />
+              )}
               <button
                 className={`text-xs whitespace-nowrap ${email_button_hide_class} hover:underline transition-all text-txt-muted`}
                 onClick={() =>

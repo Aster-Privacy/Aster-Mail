@@ -460,49 +460,6 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         }
       }
     });
-
-    const is_empty_block = (n: Node): boolean => {
-      if (n.nodeType !== Node.ELEMENT_NODE) {
-        return (n.textContent || "").trim().length === 0;
-      }
-      const el = n as Element;
-      const tag = el.tagName.toUpperCase();
-
-      if (!["DIV", "P"].includes(tag)) return false;
-      if ((el.textContent || "").trim().length !== 0) return false;
-      if (el.querySelector("img,hr,table,iframe,video,audio,svg")) return false;
-
-      return true;
-    };
-
-    const walk = (parent: Element) => {
-      const children = Array.from(parent.children);
-      let run_start = -1;
-
-      for (let i = 0; i <= children.length; i++) {
-        const child = children[i];
-        const empty = child ? is_empty_block(child) : false;
-
-        if (empty) {
-          if (run_start === -1) run_start = i;
-        } else {
-          if (run_start !== -1 && i - run_start > 1) {
-            for (let j = run_start + 1; j < i; j++) {
-              children[j].remove();
-            }
-          }
-          run_start = -1;
-        }
-      }
-
-      for (const child of Array.from(parent.children)) {
-        if (["DIV", "BLOCKQUOTE", "SECTION"].includes(child.tagName)) {
-          walk(child as Element);
-        }
-      }
-    };
-
-    walk(body);
   }, []);
 
   const collapse_quoted_replies = useCallback((doc: Document) => {

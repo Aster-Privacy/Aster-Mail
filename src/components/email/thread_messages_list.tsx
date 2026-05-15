@@ -506,10 +506,14 @@ export const ThreadMessagesList = forwardRef<
 
   const first_unread_ref = useRef<HTMLDivElement>(null);
 
-  const first_unread_id = useMemo(() => {
+  const scroll_target_id = useMemo(() => {
     const unread = messages.find((m) => !m.is_read && !read_ids.has(m.id));
 
-    return unread?.id ?? null;
+    if (unread) return unread.id;
+
+    const last = messages[messages.length - 1];
+
+    return last?.id ?? null;
   }, [messages, read_ids]);
 
   const has_scrolled = useRef(false);
@@ -549,7 +553,7 @@ export const ThreadMessagesList = forwardRef<
         });
       }
     });
-  }, [first_unread_id]);
+  }, [scroll_target_id]);
 
   const send_anchor_ref = useRef<HTMLDivElement>(null);
   const last_sending_id = useMemo(() => {
@@ -688,7 +692,7 @@ export const ThreadMessagesList = forwardRef<
     return (
     <div
       key={msg.id}
-      ref={msg.id === first_unread_id ? first_unread_ref : undefined}
+      ref={msg.id === scroll_target_id ? first_unread_ref : undefined}
     >
       <ThreadMessageBlock
         external_content_mode={external_content_mode}

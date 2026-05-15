@@ -442,7 +442,13 @@ export function EmailDetailBody({
               {t("common.unable_to_decrypt" as TranslationKey)}
             </h3>
             <p className="text-xs sm:text-sm text-txt-muted">
-              {t("common.decrypt_session_expired_message" as TranslationKey)}
+              {error && /corrupt|malformed|ciphertext/i.test(error)
+                ? t("errors.decrypt_corrupt_ciphertext")
+                : error && /sender|envelope/i.test(error)
+                  ? t("errors.decrypt_sender_error")
+                  : error && /key|wrong/i.test(error)
+                    ? t("errors.decrypt_wrong_key")
+                    : t("common.decrypt_session_expired_message" as TranslationKey)}
             </p>
           </div>
           <div className="p-3 rounded-lg max-w-sm w-full bg-amber-500/[0.08] border border-amber-500/20">

@@ -694,23 +694,41 @@ export function use_popup_viewer({
 
       if (preferences.conversation_grouping === false) return;
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const prev_server_count = thread_messages.filter(
+        (m) => !m.is_sending,
+      ).length;
 
-      const thread_result = await fetch_and_decrypt_thread_messages(
-        detail.thread_token,
-        user?.email,
-      );
+      const delays_ms = [500, 800, 1200, 2000, 3000];
+      let thread_result: Awaited<
+        ReturnType<typeof fetch_and_decrypt_thread_messages>
+      > = { messages: [], thread_data: null };
+
+      for (const delay of delays_ms) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        thread_result = await fetch_and_decrypt_thread_messages(
+          detail.thread_token,
+          user?.email,
+        );
+
+        if (thread_result.messages.length > prev_server_count) break;
+      }
 
       if (thread_result.messages.length > 0) {
         set_thread_messages((prev) => {
           const server_ids = new Set(thread_result.messages.map((m) => m.id));
+          const grew = thread_result.messages.length > prev_server_count;
           const still_sending = prev.filter(
             (m) =>
               m.is_sending &&
               !server_ids.has(m.id) &&
-              m.id !== detail.optimistic_id,
+              (grew ? m.id !== detail.optimistic_id : true),
           );
-          return [...thread_result.messages, ...still_sending];
+          const merged = grew
+            ? still_sending
+            : still_sending.map((m) =>
+                m.id === detail.optimistic_id ? { ...m, is_sending: false } : m,
+              );
+          return [...thread_result.messages, ...merged];
         });
 
         if (!current_thread_token) {
@@ -729,7 +747,13 @@ export function use_popup_viewer({
         handle_thread_reply,
       );
     };
-  }, [current_thread_token, email_id]);
+  }, [
+    current_thread_token,
+    email_id,
+    thread_messages,
+    user?.email,
+    preferences.conversation_grouping,
+  ]);
 
   useEffect(() => {
     const handle_optimistic = (event: Event) => {
@@ -766,6 +790,8 @@ export function use_popup_viewer({
       if (!current_thread_token) {
         set_current_thread_token(detail.thread_token);
       }
+
+      set_thread_draft(null);
     };
 
     const handle_cancelled = (event: Event) => {

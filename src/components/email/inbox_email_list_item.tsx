@@ -40,6 +40,9 @@ import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { AvatarRing } from "@/components/ui/avatar_ring";
+import { BadgeChip } from "@/components/ui/badge_chip";
+import { use_peer_profile } from "@/hooks/use_peer_profile";
 import {
   EmailTag,
   hex_to_variant,
@@ -190,6 +193,14 @@ export const InboxEmailListItem = memo(
       ref,
     ) {
       const { t } = use_i18n();
+      const peer_profile = use_peer_profile(
+        is_system_email(email.sender_email) ? null : email.sender_email,
+      );
+      const peer_badge = peer_profile?.active_badge ?? null;
+      const show_sender_ring =
+        (peer_profile?.show_badge_ring ?? false) && !!peer_badge;
+      const show_sender_badge =
+        (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
       const is_trash_view = current_view === "trash";
       const is_spam_view = current_view === "spam";
       const is_archive_view = current_view === "archive";
@@ -221,7 +232,31 @@ export const InboxEmailListItem = memo(
         return subscribe_aliases(() => set_alias_version((v) => v + 1));
       }, []);
 
+      useEffect(() => {
+        const sweep = () => {
+          document
+            .querySelectorAll('[data-astermail-drag-image="1"]')
+            .forEach((n) => n.remove());
+        };
+
+        window.addEventListener("dragend", sweep);
+        window.addEventListener("drop", sweep);
+
+        return () => {
+          window.removeEventListener("dragend", sweep);
+          window.removeEventListener("drop", sweep);
+          if (drag_image_ref.current) {
+            drag_image_ref.current.remove();
+            drag_image_ref.current = null;
+          }
+        };
+      }, []);
+
       const handle_drag_start = (e: React.DragEvent<HTMLDivElement>) => {
+        document
+          .querySelectorAll('[data-astermail-drag-image="1"]')
+          .forEach((n) => n.remove());
+
         const is_multi =
           email.is_selected && selected_ids && selected_ids.length > 1;
         const ids = is_multi ? selected_ids : [email.id];
@@ -229,6 +264,7 @@ export const InboxEmailListItem = memo(
 
         const drag_el = document.createElement("div");
 
+        drag_el.setAttribute("data-astermail-drag-image", "1");
         drag_el.style.cssText =
           "position:fixed;top:-1000px;left:-1000px;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;font-family:system-ui,sans-serif;white-space:nowrap;pointer-events:none;z-index:99999;background:var(--accent-color,#3b82f6);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.3);";
 
@@ -300,9 +336,12 @@ export const InboxEmailListItem = memo(
       const handle_drag_end = () => {
         set_is_dragging(false);
         if (drag_image_ref.current) {
-          document.body.removeChild(drag_image_ref.current);
+          drag_image_ref.current.remove();
           drag_image_ref.current = null;
         }
+        document
+          .querySelectorAll('[data-astermail-drag-image="1"]')
+          .forEach((n) => n.remove());
       };
 
       return (
@@ -366,13 +405,19 @@ export const InboxEmailListItem = memo(
                     src="/mail_logo.webp"
                   />
                 ) : (
-                  <ProfileAvatar
-                    use_domain_logo={show_profile_pictures}
-                    email={email.sender_email}
-                    image_url={email.avatar_url}
-                    name={email.sender_name}
-                    size="sm"
-                  />
+                  <AvatarRing
+                    badge_slug={peer_badge?.slug}
+                    enabled={show_sender_ring}
+                    thickness={2}
+                  >
+                    <ProfileAvatar
+                      use_domain_logo={show_profile_pictures}
+                      email={email.sender_email}
+                      image_url={peer_profile?.profile_picture ?? email.avatar_url}
+                      name={peer_profile?.display_name ?? email.sender_name}
+                      size="sm"
+                    />
+                  </AvatarRing>
                 )}
               </div>
               <div
@@ -396,7 +441,7 @@ export const InboxEmailListItem = memo(
             <span className="w-2 h-2 rounded-full bg-[var(--accent-blue)] flex-shrink-0 hidden sm:block" />
           )}
 
-          <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-6 overflow-hidden">
+          <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-10 overflow-hidden">
             <div className="flex items-center gap-1.5 min-w-0 sm:max-w-[45%] overflow-hidden pr-px">
               {show_thread_count &&
                 email.thread_message_count != null &&
@@ -424,9 +469,21 @@ export const InboxEmailListItem = memo(
                 {email.thread_participant_names &&
                 email.thread_participant_names.length > 0
                   ? email.thread_participant_names.join(", ")
-                  : email.sender_name}
+                  : (peer_profile?.display_name ?? email.sender_name)}
               </span>
 
+              {show_sender_badge && peer_badge && (
+                <BadgeChip
+                  badge={peer_badge}
+                  className="flex-shrink-0 hidden sm:inline-flex"
+                  show_find_order={false}
+                  size="sm"
+                />
+              )}
+
+            </div>
+
+            <div className="flex-1 min-w-0 overflow-hidden flex items-center gap-1.5">
               {is_system_email(email.sender_email) && (
                 <EmailTag
                   className="flex-shrink-0 hidden sm:inline-flex"
@@ -567,13 +624,13 @@ export const InboxEmailListItem = memo(
               )}
 
               {named_folders.length > 0 && (
-                <>
+                <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
                   {named_folders.slice(0, 3).map((folder) => {
                     const folder_color = folder.color || "#3b82f6";
                     return (
                       <EmailTag
                         key={folder.folder_token}
-                        className="flex-shrink-0 hidden sm:inline-flex"
+                        className="flex-shrink-0"
                         custom_color={folder_color}
                         icon={(folder.icon as TagIconName) || "folder"}
                         label={folder.name}
@@ -583,19 +640,19 @@ export const InboxEmailListItem = memo(
                     );
                   })}
                   {named_folders.length > 3 && (
-                    <span className="text-[11px] text-txt-muted hidden sm:inline">
+                    <span className="text-[11px] text-txt-muted">
                       +{named_folders.length - 3}
                     </span>
                   )}
-                </>
+                </div>
               )}
 
               {named_tags.length > 0 && (
-                <>
+                <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
                   {named_tags.slice(0, 3).map((tag) => (
                     <EmailTag
                       key={tag.id}
-                      className="flex-shrink-0 hidden sm:inline-flex"
+                      className="flex-shrink-0"
                       custom_color={tag.color}
                       icon={tag.icon as TagIconName}
                       label={tag.name}
@@ -607,16 +664,14 @@ export const InboxEmailListItem = memo(
                     />
                   ))}
                   {named_tags.length > 3 && (
-                    <span className="text-[11px] text-txt-muted hidden sm:inline">
+                    <span className="text-[11px] text-txt-muted">
                       +{named_tags.length - 3}
                     </span>
                   )}
-                </>
+                </div>
               )}
-            </div>
 
-            <div className="flex-1 min-w-0 overflow-hidden">
-              <div className="whitespace-nowrap text-sm">
+              <div className="whitespace-nowrap text-sm min-w-0 truncate flex-1">
                 <span
                   className={cn(
                     email.is_read

@@ -50,6 +50,7 @@ import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { fetch_my_badges, type Badge } from "@/services/api/user";
+import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -140,6 +141,15 @@ export const InlineReplySection = forwardRef<
   );
   const prev_visible_ref = useRef(false);
   const [badges, set_badges] = useState<Badge[]>([]);
+  const my_badge_prefs = use_my_badge_prefs();
+  const include_badge_signature =
+    preferences.show_badges_in_signature &&
+    !!my_badge_prefs?.show_badge_signature &&
+    !!my_badge_prefs?.active_badge_slug;
+  const active_badge =
+    include_badge_signature && my_badge_prefs?.active_badge_slug
+      ? badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ?? null
+      : null;
 
   useEffect(() => {
     fetch_my_badges().then((r) => {
@@ -359,9 +369,7 @@ export const InlineReplySection = forwardRef<
       timestamp: timestamp,
     };
 
-    const badge_html = preferences.show_badges_in_signature
-      ? build_badge_html(badges)
-      : "";
+    const badge_html = active_badge ? build_badge_html([active_badge]) : "";
     const message_with_signature =
       reply_text.trim() +
       get_signature() +
