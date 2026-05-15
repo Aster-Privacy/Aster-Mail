@@ -29,6 +29,10 @@ import { get_favicon_url } from "@/lib/favicon_url";
 import { get_gradient_background } from "@/constants/profile";
 import { get_root_domain } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
+import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
+import { use_peer_profile } from "@/hooks/use_peer_profile";
+
+import { AvatarRing } from "./avatar_ring";
 
 const SenderProfileTrigger = lazy(() =>
   import("@/components/profile/sender_profile_trigger").then((mod) => ({
@@ -63,6 +67,8 @@ const ASTER_SYSTEM_EMAILS = new Set([
   "no-reply@aster.cx",
   "system@astermail.org",
   "system@aster.cx",
+  "updates@astermail.org",
+  "updates@aster.cx",
 ]);
 
 const SYSTEM_LOCAL_PARTS = new Set(["mailer-daemon", "postmaster"]);
@@ -138,8 +144,40 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     !!email &&
     !!user?.email &&
     email.trim().toLowerCase() === user.email.trim().toLowerCase();
+  const peer_profile = use_peer_profile(is_current_user ? null : email);
   const resolved_image_url =
-    image_url || (is_current_user ? user?.profile_picture : undefined);
+    image_url ||
+    (is_current_user ? user?.profile_picture : peer_profile?.profile_picture ?? undefined);
+  const my_badge_prefs = use_my_badge_prefs();
+  const show_self_ring =
+    is_current_user &&
+    !!my_badge_prefs?.show_badge_ring &&
+    !!my_badge_prefs?.active_badge_slug;
+  const peer_ring_slug =
+    !is_current_user &&
+    peer_profile?.show_badge_ring &&
+    peer_profile?.active_badge
+      ? peer_profile.active_badge.slug
+      : null;
+  const ring_slug = is_current_user
+    ? show_self_ring
+      ? my_badge_prefs?.active_badge_slug ?? null
+      : null
+    : peer_ring_slug;
+  const ring_thickness = 2;
+  const wrap_ring = (node: React.ReactElement): React.ReactElement =>
+    ring_slug ? (
+      <AvatarRing
+        badge_slug={ring_slug}
+        enabled
+        size={pixel_size + ring_thickness * 2}
+        thickness={ring_thickness}
+      >
+        {node}
+      </AvatarRing>
+    ) : (
+      node
+    );
 
   const [image_error, set_image_error] = useState(false);
   const [ddg_logo_error, set_ddg_logo_error] = useState(false);
@@ -279,7 +317,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     );
 
     if (clickable && email) {
-      return (
+      return wrap_ring(
         <Suspense fallback={gradient_element}>
           <SenderProfileTrigger
             className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
@@ -289,11 +327,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           >
             {gradient_element}
           </SenderProfileTrigger>
-        </Suspense>
+        </Suspense>,
       );
     }
 
-    return gradient_element;
+    return wrap_ring(gradient_element);
   }
 
   if (!actual_src) {
@@ -331,7 +369,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     );
 
     if (clickable && email) {
-      return (
+      return wrap_ring(
         <Suspense fallback={letter_element}>
           <SenderProfileTrigger
             className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
@@ -341,11 +379,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           >
             {letter_element}
           </SenderProfileTrigger>
-        </Suspense>
+        </Suspense>,
       );
     }
 
-    return letter_element;
+    return wrap_ring(letter_element);
   }
 
   const img_element = (
@@ -392,7 +430,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   );
 
   if (clickable && email) {
-    return (
+    return wrap_ring(
       <Suspense fallback={img_element}>
         <SenderProfileTrigger
           className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
@@ -402,9 +440,9 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         >
           {img_element}
         </SenderProfileTrigger>
-      </Suspense>
+      </Suspense>,
     );
   }
 
-  return img_element;
+  return wrap_ring(img_element);
 });

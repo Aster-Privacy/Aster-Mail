@@ -53,7 +53,11 @@ import {
   decrypt_contact,
   delete_contact,
 } from "@/services/api/contacts";
-import { block_sender } from "@/services/api/blocked_senders";
+import {
+  block_sender,
+  unblock_sender,
+  check_blocked_senders,
+} from "@/services/api/blocked_senders";
 import {
   allow_sender,
   remove_allowed_sender,
@@ -96,6 +100,7 @@ export function SenderProfileTrigger({
   const [is_blocking, set_is_blocking] = useState(false);
   const [is_allowlist_loading, set_is_allowlist_loading] = useState(false);
   const [is_allowlisted, set_is_allowlisted] = useState(false);
+  const [is_blocked, set_is_blocked] = useState(false);
 
   const checked_ref = useRef<string | null>(null);
   const domain = get_email_domain(email);
@@ -113,14 +118,18 @@ export function SenderProfileTrigger({
 
     const check_status = async () => {
       try {
-        const [contacts_result, allowlist_set] = await Promise.all([
+        const [contacts_result, allowlist_set, blocked_set] = await Promise.all([
           list_contacts({ limit: 200 }),
           is_aster_user
             ? Promise.resolve(new Set<string>())
             : check_allowed_senders([email]),
+          is_aster_user
+            ? Promise.resolve(new Set<string>())
+            : check_blocked_senders([email]),
         ]);
         if (!is_aster_user) {
           set_is_allowlisted(allowlist_set.has(email.trim().toLowerCase()));
+          set_is_blocked(blocked_set.has(email.trim().toLowerCase()));
         }
         if (contacts_result.data?.items) {
           for (const contact of contacts_result.data.items) {
@@ -148,6 +157,7 @@ export function SenderProfileTrigger({
     checked_ref.current = null;
     set_existing_contact_id(null);
     set_is_allowlisted(false);
+    set_is_blocked(false);
   }, [email]);
 
   const handle_copy_email = useCallback(async () => {
@@ -237,20 +247,31 @@ export function SenderProfileTrigger({
     if (is_blocking) return;
     set_is_blocking(true);
     try {
-      const result = await block_sender(email, name);
-      if (result.data) {
-        show_toast(t("common.blocked_email", { email }), "success");
-        set_is_open(false);
-        emit_mail_changed();
-      } else if (result.error) {
-        show_toast(result.error, "error");
+      if (is_blocked) {
+        const result = await unblock_sender(email);
+        if (result.data) {
+          show_toast(t("common.unblocked_email", { email }), "success");
+          set_is_blocked(false);
+          emit_mail_changed();
+        } else if (result.error) {
+          show_toast(result.error, "error");
+        }
+      } else {
+        const result = await block_sender(email, name);
+        if (result.data) {
+          show_toast(t("common.blocked_email", { email }), "success");
+          set_is_blocked(true);
+          emit_mail_changed();
+        } else if (result.error) {
+          show_toast(result.error, "error");
+        }
       }
     } catch {
       show_toast(t("common.failed_to_block_sender"), "error");
     } finally {
       set_is_blocking(false);
     }
-  }, [email, name, is_blocking, t]);
+  }, [email, name, is_blocking, is_blocked, t]);
 
   const handle_messages_from = useCallback(() => {
     set_is_open(false);
@@ -386,7 +407,11 @@ export function SenderProfileTrigger({
               </DropdownMenuItem>
 
               <DropdownMenuItem
-                className="gap-2 cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                className={`gap-2 cursor-pointer ${
+                  is_blocked
+                    ? ""
+                    : "text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                }`}
                 disabled={is_blocking}
                 onSelect={(e) => {
                   e.preventDefault();
@@ -394,9 +419,17 @@ export function SenderProfileTrigger({
                 }}
               >
                 <NoSymbolIcon className="w-4 h-4 flex-shrink-0" />
-                <span className="flex-1">{t("mail.block_sender")}</span>
+                <span className="flex-1">
+                  {is_blocked
+                    ? t("mail.unblock_sender")
+                    : t("mail.block_sender")}
+                </span>
                 {is_blocking && (
-                  <div className="w-3 h-3 border-2 border-red-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                  <div
+                    className={`w-3 h-3 border-2 ${
+                      is_blocked ? "border-blue-500" : "border-red-500"
+                    } border-t-transparent rounded-full animate-spin flex-shrink-0`}
+                  />
                 )}
               </DropdownMenuItem>
             </>

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { Badge } from "@/services/api/user";
+import type { Badge, BadgePreferences } from "@/services/api/user";
 
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -27,12 +27,6 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
-import {
-  StarIcon,
-  ShieldCheckIcon,
-  CheckBadgeIcon,
-  SparklesIcon,
-} from "@heroicons/react/20/solid";
 import { Button } from "@aster/ui";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -58,7 +52,12 @@ import {
   update_profile_picture,
   update_profile_color,
   fetch_my_badges,
+  fetch_badge_preferences,
+  update_badge_preferences,
 } from "@/services/api/user";
+import { get_badge_visual } from "@/components/ui/badge_registry";
+import { set_my_badge_prefs } from "@/stores/my_badge_prefs_store";
+import { cn } from "@/lib/utils";
 import {
   get_recovery_email,
   save_recovery_email,
@@ -222,21 +221,29 @@ export function AccountSection() {
   const [removing_recovery, set_removing_recovery] = useState(false);
   const [photo_error, set_photo_error] = useState<string | null>(null);
   const [badges, set_badges] = useState<Badge[]>([]);
+  const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(null);
+  const [is_badge_saving, set_is_badge_saving] = useState(false);
   const [is_initial_load, set_is_initial_load] = useState(true);
 
   useEffect(() => {
     const run = async () => {
       try {
-        const [badges_response, recovery_response] = await Promise.all([
-          fetch_my_badges(),
-          vault
-            ? get_recovery_email(vault).catch(() => ({
-                data: { email: null, verified: false },
-              }))
-            : Promise.resolve({ data: { email: null, verified: false } }),
-        ]);
+        const [badges_response, prefs_response, recovery_response] =
+          await Promise.all([
+            fetch_my_badges(),
+            fetch_badge_preferences(),
+            vault
+              ? get_recovery_email(vault).catch(() => ({
+                  data: { email: null, verified: false },
+                }))
+              : Promise.resolve({ data: { email: null, verified: false } }),
+          ]);
 
         if (badges_response.data) set_badges(badges_response.data);
+        if (prefs_response.data) {
+          set_badge_prefs(prefs_response.data);
+          set_my_badge_prefs(prefs_response.data);
+        }
         if (recovery_response.data) set_recovery(recovery_response.data);
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
@@ -247,6 +254,37 @@ export function AccountSection() {
 
     run();
   }, [vault]);
+
+  const persist_badge_prefs = async (patch: {
+    active_badge_slug?: string | null;
+    show_badge_profile?: boolean;
+    show_badge_signature?: boolean;
+    show_badge_ring?: boolean;
+  }) => {
+    if (!badge_prefs) return;
+    const previous = badge_prefs;
+    const optimistic: BadgePreferences = { ...badge_prefs, ...patch };
+    set_badge_prefs(optimistic);
+    set_my_badge_prefs(optimistic);
+    set_is_badge_saving(true);
+    try {
+      const response = await update_badge_preferences(patch);
+      if (response.data) {
+        set_badge_prefs(response.data);
+        set_my_badge_prefs(response.data);
+      } else {
+        set_badge_prefs(previous);
+        set_my_badge_prefs(previous);
+        show_toast(response.error || t("badges.claim_failed"), "error");
+      }
+    } catch {
+      set_badge_prefs(previous);
+      set_my_badge_prefs(previous);
+      show_toast(t("badges.claim_failed"), "error");
+    } finally {
+      set_is_badge_saving(false);
+    }
+  };
 
   useEffect(() => {
     set_name(user?.display_name || user?.username || "");
@@ -406,42 +444,63 @@ export function AccountSection() {
         />
         <div className="px-5 pb-5 -mt-8 flex items-end justify-between">
           <div className="relative">
-            <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg relative bg-surf-primary">
-              {has_custom_picture ? (
-                <img
-                  alt=""
-                  className="w-full h-full object-cover rounded-xl border-[3px] border-surf-primary"
-                  src={picture}
-                />
-              ) : (
+            {(() => {
+              const ring_visual =
+                badge_prefs?.show_badge_ring && badge_prefs?.active_badge_slug
+                  ? get_badge_visual(badge_prefs.active_badge_slug)
+                  : null;
+              const ring_style: React.CSSProperties | undefined = ring_visual
+                ? {
+                    background: `conic-gradient(from 0deg, ${ring_visual.gradient_from}, ${ring_visual.gradient_to}, ${ring_visual.gradient_from})`,
+                    padding: 2,
+                    borderRadius: 14,
+                  }
+                : undefined;
+
+              return (
                 <div
-                  className="w-full h-full rounded-xl flex items-center justify-center"
-                  style={{
-                    background: get_gradient_background(color),
-                    boxShadow:
-                      "inset 0 -3px 8px rgba(0,0,0,0.25), inset 0 1px 3px rgba(255,255,255,0.2)",
-                  }}
+                  className="inline-flex"
+                  style={ring_style}
                 >
-                  <img
-                    alt=""
-                    draggable={false}
-                    src="/aster.webp"
-                    style={{
-                      width: 35,
-                      height: 35,
-                      filter: "brightness(0) invert(1)",
-                      objectFit: "contain" as const,
-                      pointerEvents: "none" as const,
-                    }}
-                  />
+                  <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg relative bg-surf-primary">
+                    {has_custom_picture ? (
+                      <img
+                        alt=""
+                        className="w-full h-full object-cover rounded-xl border-[3px] border-surf-primary"
+                        src={picture}
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full rounded-xl flex items-center justify-center"
+                        style={{
+                          background: get_gradient_background(color),
+                          boxShadow:
+                            "inset 0 -3px 8px rgba(0,0,0,0.25), inset 0 1px 3px rgba(255,255,255,0.2)",
+                        }}
+                      >
+                        <img
+                          alt=""
+                          draggable={false}
+                          src="/aster.webp"
+                          style={{
+                            width: 35,
+                            height: 35,
+                            filter: "brightness(0) invert(1)",
+                            objectFit: "contain" as const,
+                            pointerEvents: "none" as const,
+                          }}
+                        />
+                      </div>
+                    )}
+                    {uploading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
+                        <Spinner className="text-white" size="md" />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-              {uploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
-                  <Spinner className="text-white" size="md" />
-                </div>
-              )}
-            </div>
+              );
+            })()}
             <button
               className="absolute -bottom-1 -right-1 p-1.5 rounded-full transition-colors disabled:opacity-50 bg-surf-card text-txt-muted border-2 border-edge-secondary"
               disabled={uploading}
@@ -547,44 +606,75 @@ export function AccountSection() {
         </div>
       </div>
 
-      {badges.length > 0 && (
-        <div className="flex items-center justify-between py-4">
-          <div>
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.badges_title")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.badges_description")}
-            </p>
+      {badges.length > 0 && badge_prefs && (
+        <div className="py-4 space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-txt-primary">
+                {t("badges.active_badge")}
+              </p>
+              <p className="text-sm mt-0.5 text-txt-muted">
+                {t("settings.badges_description")}
+              </p>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2 justify-end">
+          <div className="flex flex-wrap gap-2">
             {badges.map((badge) => {
-              const BadgeIcon =
-                badge.icon === "shield"
-                  ? ShieldCheckIcon
-                  : badge.icon === "check"
-                    ? CheckBadgeIcon
-                    : badge.icon === "sparkles"
-                      ? SparklesIcon
-                      : StarIcon;
+              const visual = get_badge_visual(badge.slug);
+              const Icon = visual.icon;
+              const is_active = badge_prefs.active_badge_slug === badge.slug;
 
               return (
-                <span
+                <button
                   key={badge.slug}
-                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium border transition-colors"
-                  style={{
-                    color: badge.color,
-                    borderColor: `${badge.color}40`,
-                    backgroundColor: `${badge.color}15`,
-                  }}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer select-none",
+                    is_active
+                      ? "bg-[var(--accent-blue)] text-white shadow-sm"
+                      : "bg-surf-secondary text-txt-secondary hover:bg-surf-hover",
+                  )}
+                  disabled={is_badge_saving}
                   title={badge.description || undefined}
+                  type="button"
+                  onClick={() =>
+                    persist_badge_prefs({
+                      active_badge_slug: is_active ? null : badge.slug,
+                    })
+                  }
                 >
-                  <BadgeIcon className="w-3 h-3 flex-shrink-0" />
-                  {badge.display_name}
-                </span>
+                  <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="truncate">{badge.display_name}</span>
+                  {badge.find_order != null && (
+                    <span className="tabular-nums opacity-80">
+                      #{badge.find_order.toLocaleString()}
+                    </span>
+                  )}
+                </button>
               );
             })}
           </div>
+
+          <BadgeToggleRow
+            checked={badge_prefs.show_badge_profile}
+            description={t("badges.show_on_profile_description")}
+            disabled={is_badge_saving || !badge_prefs.active_badge_slug}
+            label={t("badges.show_on_profile")}
+            on_change={(v) => persist_badge_prefs({ show_badge_profile: v })}
+          />
+          <BadgeToggleRow
+            checked={badge_prefs.show_badge_ring}
+            description={t("badges.show_avatar_ring_description")}
+            disabled={is_badge_saving || !badge_prefs.active_badge_slug}
+            label={t("badges.show_avatar_ring")}
+            on_change={(v) => persist_badge_prefs({ show_badge_ring: v })}
+          />
+          <BadgeToggleRow
+            checked={badge_prefs.show_badge_signature}
+            description={t("badges.show_in_signature_description")}
+            disabled={is_badge_saving || !badge_prefs.active_badge_slug}
+            label={t("badges.show_in_signature")}
+            on_change={(v) => persist_badge_prefs({ show_badge_signature: v })}
+          />
         </div>
       )}
 
@@ -701,6 +791,55 @@ export function AccountSection() {
         on_close={() => set_show_modal(false)}
         on_save={save_recovery}
       />
+    </div>
+  );
+}
+
+interface BadgeToggleRowProps {
+  label: string;
+  description: string;
+  checked: boolean;
+  disabled?: boolean;
+  on_change: (value: boolean) => void;
+}
+
+function BadgeToggleRow({
+  label,
+  description,
+  checked,
+  disabled,
+  on_change,
+}: BadgeToggleRowProps) {
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-between gap-4 transition-opacity",
+        disabled && "opacity-50",
+      )}
+    >
+      <div className="min-w-0">
+        <div className="text-sm font-medium text-txt-primary">{label}</div>
+        <div className="text-xs mt-0.5 text-txt-muted">{description}</div>
+      </div>
+      <button
+        aria-checked={checked}
+        className={cn(
+          "relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors cursor-pointer",
+          checked ? "bg-[var(--accent-blue)]" : "bg-edge-secondary",
+          disabled && "opacity-50 cursor-not-allowed",
+        )}
+        disabled={disabled}
+        role="switch"
+        type="button"
+        onClick={() => on_change(!checked)}
+      >
+        <span
+          className={cn(
+            "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+            checked ? "translate-x-[18px]" : "translate-x-0.5",
+          )}
+        />
+      </button>
     </div>
   );
 }
