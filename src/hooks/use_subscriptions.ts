@@ -30,7 +30,7 @@ import {
   save_subscription_cache,
   SUBSCRIPTION_CACHE_VERSION,
 } from "@/services/subscription_cache";
-import { perform_unsubscribe } from "@/utils/unsubscribe_detector";
+import { perform_unsubscribe, UnsubscribeError } from "@/utils/unsubscribe_detector";
 import { UNSUBSCRIBE_EVENT } from "@/hooks/use_unsubscribed_senders";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -181,8 +181,12 @@ export function use_subscriptions() {
         );
 
         return result === "link" || result === "mailto" ? "manual" : "success";
-      } catch {
-        show_toast(t("mail.unsubscribe_failed"), "error");
+      } catch (err) {
+        if (err instanceof UnsubscribeError && err.code !== "cancelled") {
+          show_toast(t(err.i18n_key), "error");
+        } else if (!(err instanceof UnsubscribeError)) {
+          show_toast(t("mail.unsubscribe_failed"), "error");
+        }
 
         const reverted = (cache_ref.current?.subscriptions || []).map((s) =>
           s.sender_email === sender_email
