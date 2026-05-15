@@ -93,6 +93,36 @@ interface PreferencesContextType {
 
 const PreferencesContext = createContext<PreferencesContextType | null>(null);
 
+export const FONT_SIZE_MIN = 12;
+export const FONT_SIZE_MAX = 22;
+export const FONT_SIZE_DEFAULT = 15;
+
+const LEGACY_FONT_SIZE_MAP: Record<string, number> = {
+  small: 14,
+  default: 15,
+  large: 17,
+  extra_large: 19,
+};
+
+function normalize_font_size_scale(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, Math.round(value)));
+  }
+  if (typeof value === "string" && value in LEGACY_FONT_SIZE_MAP) {
+    return LEGACY_FONT_SIZE_MAP[value];
+  }
+
+  return FONT_SIZE_DEFAULT;
+}
+
+function normalize_preferences(prefs: UserPreferences): UserPreferences {
+  const scale = normalize_font_size_scale(prefs.font_size_scale);
+
+  if (scale === prefs.font_size_scale) return prefs;
+
+  return { ...prefs, font_size_scale: scale };
+}
+
 interface PreferencesProviderProps {
   children: ReactNode;
 }
@@ -104,7 +134,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
   const [preferences, set_preferences] = useState<UserPreferences>(() => {
     const cached = get_cached_preferences();
-    const base = cached ?? DEFAULT_PREFERENCES;
+    const base = normalize_preferences(cached ?? DEFAULT_PREFERENCES);
 
     return {
       ...base,
@@ -463,17 +493,12 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     root.classList.toggle("reduce-motion", prefs.reduce_motion ?? false);
     root.classList.toggle("compact-mode", prefs.compact_mode ?? false);
 
-    root.classList.remove(
-      "font-size-small",
-      "font-size-large",
-      "font-size-extra-large",
+    root.style.setProperty(
+      "--font-scale",
+      String(
+        normalize_font_size_scale(prefs.font_size_scale) / FONT_SIZE_DEFAULT,
+      ),
     );
-    if (prefs.font_size_scale === "small")
-      root.classList.add("font-size-small");
-    else if (prefs.font_size_scale === "large")
-      root.classList.add("font-size-large");
-    else if (prefs.font_size_scale === "extra_large")
-      root.classList.add("font-size-extra-large");
 
     root.classList.toggle("high-contrast", prefs.high_contrast ?? false);
     root.classList.toggle(
@@ -502,7 +527,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     }
 
     if (response.loaded_from_server && response.data) {
-      const merged = { ...DEFAULT_PREFERENCES, ...response.data };
+      const merged = normalize_preferences({ ...DEFAULT_PREFERENCES, ...response.data });
 
       set_preferences(merged);
       apply_visual_preferences(response.data);
@@ -662,19 +687,13 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   }, [preferences.compact_mode]);
 
   useEffect(() => {
-    const root = document.documentElement;
-
-    root.classList.remove(
-      "font-size-small",
-      "font-size-large",
-      "font-size-extra-large",
+    document.documentElement.style.setProperty(
+      "--font-scale",
+      String(
+        normalize_font_size_scale(preferences.font_size_scale) /
+          FONT_SIZE_DEFAULT,
+      ),
     );
-    if (preferences.font_size_scale === "small")
-      root.classList.add("font-size-small");
-    else if (preferences.font_size_scale === "large")
-      root.classList.add("font-size-large");
-    else if (preferences.font_size_scale === "extra_large")
-      root.classList.add("font-size-extra-large");
   }, [preferences.font_size_scale]);
 
   useEffect(() => {

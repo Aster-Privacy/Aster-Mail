@@ -96,7 +96,7 @@ export interface UserPreferences {
   accent_color_hover: string;
   reduce_motion: boolean;
   compact_mode: boolean;
-  font_size_scale: "small" | "default" | "large" | "extra_large";
+  font_size_scale: number;
   high_contrast: boolean;
   reduce_transparency: boolean;
   link_underlines: boolean;
@@ -373,7 +373,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   accent_color_hover: "#2563eb",
   reduce_motion: false,
   compact_mode: false,
-  font_size_scale: "default",
+  font_size_scale: 15,
   high_contrast: false,
   reduce_transparency: false,
   link_underlines: false,

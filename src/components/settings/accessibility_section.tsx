@@ -20,7 +20,7 @@
 //
 import type { UserPreferences } from "@/services/api/preferences";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Switch } from "@aster/ui";
 import {
   AdjustmentsHorizontalIcon,
@@ -32,10 +32,14 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { KeyboardShortcutsModal } from "@/components/modals/keyboard_shortcuts_modal";
-import { use_preferences } from "@/contexts/preferences_context";
+import {
+  use_preferences,
+  FONT_SIZE_MIN,
+  FONT_SIZE_MAX,
+  FONT_SIZE_DEFAULT,
+} from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 
-type FontSizeScale = UserPreferences["font_size_scale"];
 type ColorVisionMode = UserPreferences["color_vision_mode"];
 
 interface SettingRowProps {
@@ -60,15 +64,23 @@ export function AccessibilitySection() {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
 
-  const font_size_options = useMemo(
-    (): { id: FontSizeScale; label: string }[] => [
-      { id: "small", label: t("settings.font_size_small") },
-      { id: "default", label: t("settings.font_size_default") },
-      { id: "large", label: t("settings.font_size_large") },
-      { id: "extra_large", label: t("settings.font_size_extra_large") },
-    ],
-    [t],
+  const font_size = preferences.font_size_scale;
+  const [font_size_input, set_font_size_input] = useState<string>(
+    String(font_size),
   );
+
+  useEffect(() => {
+    set_font_size_input(String(font_size));
+  }, [font_size]);
+
+  const clamp_font_size = (n: number) =>
+    Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, Math.round(n)));
+
+  const commit_font_size = (n: number) => {
+    const v = clamp_font_size(n);
+
+    update_preference("font_size_scale", v, true);
+  };
 
   const color_vision_options = useMemo(
     (): { id: ColorVisionMode; label: string; swatches: string[] }[] => [
@@ -116,38 +128,66 @@ export function AccessibilitySection() {
         <p className="text-sm mb-3 text-txt-muted">
           {t("settings.font_size_description")}
         </p>
-        <div className="grid grid-cols-4 gap-2">
-          {font_size_options.map((option) => {
-            const is_selected = preferences.font_size_scale === option.id;
+        <div className="flex items-center gap-4">
+          <input
+            aria-label={t("settings.font_size")}
+            className="flex-1 accent-[var(--accent-color)]"
+            max={FONT_SIZE_MAX}
+            min={FONT_SIZE_MIN}
+            step={1}
+            type="range"
+            value={font_size}
+            onChange={(e) => commit_font_size(Number(e.target.value))}
+          />
+          <div className="flex items-center gap-2">
+            <input
+              aria-label={t("settings.font_size")}
+              className="w-16 h-9 px-2 rounded-md border bg-surf-secondary border-edge-secondary text-sm text-txt-primary text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+              inputMode="numeric"
+              maxLength={3}
+              type="text"
+              value={font_size_input}
+              onBlur={() => {
+                const trimmed = font_size_input.trim();
 
-            return (
-              <button
-                key={option.id}
-                className="flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border-2 transition-colors"
-                style={{
-                  borderColor: is_selected
-                    ? "var(--accent-color)"
-                    : "var(--border-secondary)",
-                  backgroundColor: is_selected
-                    ? "var(--bg-selected)"
-                    : "transparent",
-                }}
-                type="button"
-                onClick={() => update_preference("font_size_scale", option.id, true)}
-              >
-                <span
-                  className="text-xs font-medium"
-                  style={{
-                    color: is_selected
-                      ? "var(--text-primary)"
-                      : "var(--text-muted)",
-                  }}
-                >
-                  {option.label}
-                </span>
-              </button>
-            );
-          })}
+                if (trimmed === "") {
+                  set_font_size_input(String(font_size));
+
+                  return;
+                }
+                const parsed = Number(trimmed);
+
+                if (!Number.isFinite(parsed)) {
+                  set_font_size_input(String(font_size));
+
+                  return;
+                }
+                commit_font_size(parsed);
+              }}
+              onChange={(e) => set_font_size_input(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
+            />
+            <span className="text-xs text-txt-muted">px</span>
+          </div>
+        </div>
+        <div className="flex justify-between items-center mt-2">
+          <div className="flex justify-between flex-1 text-[10px] text-txt-muted">
+            <span>{FONT_SIZE_MIN}px</span>
+            <span>{FONT_SIZE_MAX}px</span>
+          </div>
+        </div>
+        <div className="mt-3 flex">
+          <button
+            className="px-3 py-1.5 rounded-md text-sm font-medium text-white bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] transition-colors"
+            type="button"
+            onClick={() => commit_font_size(FONT_SIZE_DEFAULT)}
+          >
+            {t("settings.font_size_reset")}
+          </button>
         </div>
       </div>
 
