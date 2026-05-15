@@ -29,9 +29,66 @@ import {
   PopoverAnchor,
 } from "@/components/ui/popover";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { BadgeChip } from "@/components/ui/badge_chip";
 import { cn, get_email_username } from "@/lib/utils";
+import { use_peer_profile } from "@/hooks/use_peer_profile";
 
 const EMAIL_REGEX = /^[^\s@]+@[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z]{2,}$/;
+
+function SuggestionRow({
+  suggestion,
+  is_selected,
+  on_select,
+  on_hover,
+}: {
+  suggestion: EmailSuggestion;
+  is_selected: boolean;
+  on_select: () => void;
+  on_hover: () => void;
+}) {
+  const peer_profile = use_peer_profile(suggestion.email);
+  const peer_badge = peer_profile?.active_badge ?? null;
+  const show_badge = (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
+  const display_name = peer_profile?.display_name || suggestion.name;
+  const image_url = peer_profile?.profile_picture ?? suggestion.avatar_url;
+
+  return (
+    <button
+      className={cn(
+        "w-full flex items-center gap-3 px-2 py-2 rounded-md text-left transition-colors",
+        is_selected ? "bg-surf-hover" : "hover:bg-surf-hover",
+      )}
+      type="button"
+      onClick={on_select}
+      onMouseEnter={on_hover}
+    >
+      <ProfileAvatar
+        use_domain_logo
+        email={suggestion.email}
+        image_url={image_url}
+        name={display_name}
+        size="sm"
+      />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-sm font-medium truncate text-txt-primary">
+            {display_name}
+          </span>
+          {show_badge && peer_badge && (
+            <BadgeChip
+              badge={peer_badge}
+              className="flex-shrink-0"
+              show_find_order={false}
+              show_label
+              size="xs"
+            />
+          )}
+        </div>
+        <div className="text-xs truncate text-txt-muted">{suggestion.email}</div>
+      </div>
+    </button>
+  );
+}
 
 function extract_email_from_text(text: string): string {
   const angle_match = text.match(/<([^>]+)>/);
@@ -292,34 +349,13 @@ export function EmailAutocomplete({
       >
         <div className="max-h-[200px] overflow-y-auto">
           {suggestions.map((suggestion, index) => (
-            <button
+            <SuggestionRow
               key={`${suggestion.contact_id || suggestion.email}-${index}`}
-              className={cn(
-                "w-full flex items-center gap-3 px-2 py-2 rounded-md text-left transition-colors",
-                index === selected_index
-                  ? "bg-surf-hover"
-                  : "hover:bg-surf-hover",
-              )}
-              type="button"
-              onClick={() => handle_select(suggestion)}
-              onMouseEnter={() => set_selected_index(index)}
-            >
-              <ProfileAvatar
-                use_domain_logo
-                email={suggestion.email}
-                image_url={suggestion.avatar_url}
-                name={suggestion.name}
-                size="sm"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate text-txt-primary">
-                  {suggestion.name}
-                </div>
-                <div className="text-xs truncate text-txt-muted">
-                  {suggestion.email}
-                </div>
-              </div>
-            </button>
+              is_selected={index === selected_index}
+              suggestion={suggestion}
+              on_hover={() => set_selected_index(index)}
+              on_select={() => handle_select(suggestion)}
+            />
           ))}
         </div>
       </PopoverContent>

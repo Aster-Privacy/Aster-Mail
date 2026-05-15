@@ -808,11 +808,21 @@ export function use_index_page_state() {
 
   useEffect(() => {
     const nav_state = location.state as { search_query?: string } | null;
-    if (nav_state?.search_query) {
-      set_initial_search_query(nav_state.search_query);
-      set_is_search_open(true);
-    }
 
+    if (nav_state?.search_query) {
+      const query = nav_state.search_query;
+
+      set_popup_email_id(null);
+      set_split_email_id(null);
+      set_popup_scheduled(null);
+      set_split_scheduled_data(null);
+      set_sender_subscription(null);
+      set_active_search_query(query);
+      set_search_params({ q: query });
+    }
+  }, [location.state, location.pathname, set_search_params]);
+
+  useEffect(() => {
     const handle_open_search_with_query = (e: Event) => {
       const custom_event = e as CustomEvent<{ query?: string }>;
 
@@ -1118,9 +1128,13 @@ export function use_index_page_state() {
   useEffect(() => {
     if (previous_view.current === current_view) return;
     set_focused_email_index(-1);
-    set_active_search_query(null);
+    const nav_state = location.state as { search_query?: string } | null;
+
+    if (!nav_state?.search_query) {
+      set_active_search_query(null);
+    }
     set_split_email_id(null);
-  }, [current_view]);
+  }, [current_view, location.state]);
 
   useEffect(() => {
     const was_folder = previous_view.current.startsWith("folder-");

@@ -25,6 +25,26 @@ import { proxy_unsubscribe } from "@/services/api/subscriptions";
 import { open_external } from "@/utils/open_link";
 import { confirm_unsubscribe } from "@/components/modals/unsubscribe_confirmation_modal";
 
+export type UnsubscribeErrorCode =
+  | "no_method"
+  | "invalid_address"
+  | "cancelled";
+
+export class UnsubscribeError extends Error {
+  code: UnsubscribeErrorCode;
+  i18n_key: TranslationKey;
+  constructor(code: UnsubscribeErrorCode) {
+    super(code);
+    this.code = code;
+    this.i18n_key =
+      code === "no_method"
+        ? "errors.no_unsubscribe_method"
+        : code === "invalid_address"
+          ? "errors.invalid_unsubscribe_address"
+          : "mail.unsubscribe_failed";
+  }
+}
+
 const UNSUBSCRIBE_LINK_PATTERNS = [
   /href=["']([^"']*unsubscribe[^"']*)["']/gi,
   /href=["']([^"']*opt-?out[^"']*)["']/gi,
@@ -254,7 +274,7 @@ export async function execute_unsubscribe(
     unsub_info.unsubscribe_link || unsub_info.unsubscribe_mailto || "";
 
   if (!confirm_destination) {
-    throw new Error("No unsubscribe method available");
+    throw new UnsubscribeError("no_method");
   }
 
   if (unsub_info.method === "one-click" && unsub_info.unsubscribe_link) {
@@ -297,7 +317,7 @@ export async function execute_unsubscribe(
     return "mailto";
   }
 
-  throw new Error("No unsubscribe method available");
+  throw new UnsubscribeError("no_method");
 }
 
 export async function perform_unsubscribe(
@@ -315,7 +335,7 @@ export async function perform_unsubscribe(
     unsub_info.unsubscribe_link || unsub_info.unsubscribe_mailto || "";
 
   if (!confirm_destination) {
-    throw new Error("No unsubscribe method available");
+    throw new UnsubscribeError("no_method");
   }
 
   const confirmed = await confirm_unsubscribe(
@@ -325,7 +345,7 @@ export async function perform_unsubscribe(
   );
 
   if (!confirmed) {
-    throw new Error("cancelled");
+    throw new UnsubscribeError("cancelled");
   }
 
   if (unsub_info.method === "one-click" && unsub_info.unsubscribe_link) {
@@ -376,7 +396,7 @@ export async function perform_unsubscribe(
       /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mailto_address);
 
     if (!is_valid_address) {
-      throw new Error("Invalid unsubscribe mailto address");
+      throw new UnsubscribeError("invalid_address");
     }
 
     window.location.href = `mailto:${encodeURIComponent(mailto_address)}?subject=Unsubscribe`;
@@ -384,5 +404,5 @@ export async function perform_unsubscribe(
     return "mailto";
   }
 
-  throw new Error("No unsubscribe method available");
+  throw new UnsubscribeError("no_method");
 }

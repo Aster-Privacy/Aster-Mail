@@ -85,6 +85,8 @@ export function is_system_email(email?: string | null): boolean {
   return (
     normalized === "noreply@astermail.org" ||
     normalized === "no-reply@astermail.org" ||
+    normalized === "updates@astermail.org" ||
+    normalized === "updates@aster.cx" ||
     local_part === "mailer-daemon" ||
     local_part === "postmaster"
   );

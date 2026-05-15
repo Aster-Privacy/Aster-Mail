@@ -37,7 +37,6 @@ import { get_vacation_reply } from "@/services/api/vacation_reply";
 import { list_ghost_aliases } from "@/services/api/ghost_aliases";
 import { list_aliases } from "@/services/api/aliases";
 import { list_sessions } from "@/services/api/sessions";
-import { fetch_my_badges } from "@/services/api/user";
 import { list_devices } from "@/services/api/devices";
 
 type Fetcher = () => Promise<unknown>;
@@ -57,7 +56,6 @@ const PANEL_FETCHERS: Record<SettingsPanelName, Fetcher> = {
   sessions: () => list_sessions(),
   recovery_email: () => Promise.resolve(null),
   preferences: () => Promise.resolve(null),
-  badges: () => fetch_my_badges(),
   trusted_devices: () => list_devices(),
 };
 
@@ -74,7 +72,6 @@ const PREFETCH_PANELS: SettingsPanelName[] = [
   "ghost_aliases",
   "aliases",
   "sessions",
-  "badges",
   "trusted_devices",
 ];
 

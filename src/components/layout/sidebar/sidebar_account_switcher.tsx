@@ -21,7 +21,7 @@
 import type { RefObject } from "react";
 import type { SettingsSection } from "@/components/settings/settings_panel";
 
-import { memo } from "react";
+import { memo, useCallback, useRef } from "react";
 import {
   UserGroupIcon,
   Cog6ToothIcon,
@@ -31,6 +31,11 @@ import { Button } from "@aster/ui";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format_bytes } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
+import { claim_logo_tap_badge } from "@/services/api/user";
+import { show_toast } from "@/components/toast/simple_toast";
+
+const LOGO_TAPS_REQUIRED = 15;
+const LOGO_TAP_WINDOW_MS = 2000;
 
 interface SidebarAccountSwitcherProps {
   is_collapsed: boolean;
@@ -56,6 +61,48 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
   text_logo_ref,
 }: SidebarAccountSwitcherProps) {
   const { t } = use_i18n();
+  const tap_count_ref = useRef(0);
+  const last_tap_at_ref = useRef(0);
+  const claim_in_flight_ref = useRef(false);
+
+  const handle_logo_tap = useCallback(async () => {
+    const now = Date.now();
+    if (now - last_tap_at_ref.current > LOGO_TAP_WINDOW_MS) {
+      tap_count_ref.current = 0;
+    }
+    last_tap_at_ref.current = now;
+    tap_count_ref.current += 1;
+
+    if (
+      tap_count_ref.current < LOGO_TAPS_REQUIRED ||
+      claim_in_flight_ref.current
+    ) {
+      return;
+    }
+
+    tap_count_ref.current = 0;
+    claim_in_flight_ref.current = true;
+    try {
+      const response = await claim_logo_tap_badge();
+      if (!response.data) {
+        show_toast(t("badges.claim_failed"), "error");
+        return;
+      }
+      const { awarded, already_claimed, badge } = response.data;
+      if (awarded && badge) {
+        show_toast(
+          t("badges.claim_success").replace("{name}", badge.display_name),
+          "success",
+        );
+      } else if (already_claimed) {
+        show_toast(t("badges.claim_already"), "info");
+      }
+    } catch {
+      show_toast(t("badges.claim_failed"), "error");
+    } finally {
+      claim_in_flight_ref.current = false;
+    }
+  }, [t]);
 
   return (
     <div className="mt-auto flex-shrink-0">
@@ -80,6 +127,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
                   decoding="async"
                   draggable={false}
                   src="/text_logo.png"
+                  onClick={handle_logo_tap}
                   onLoad={() => {
                     set_text_logo_loaded(true);
                   }}
