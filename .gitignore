@@ -75,3 +75,6 @@ dist_old/
 tsconfig.node.tsbuildinfo
 
 _tmp/
+.deploy_tag
+*.wip
+src/lib/device_context.ts
