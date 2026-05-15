@@ -78,6 +78,7 @@ import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { fetch_my_badges } from "@/services/api/user";
+import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 
 function normalize_html_newlines(html: string): string {
@@ -162,6 +163,15 @@ export function use_reply_modal({
   } = use_signatures();
   const [badges, set_badges] = useState<Badge[]>([]);
   const [badges_loaded, set_badges_loaded] = useState(false);
+  const my_badge_prefs = use_my_badge_prefs();
+  const include_badge_signature =
+    preferences.show_badges_in_signature &&
+    !!my_badge_prefs?.show_badge_signature &&
+    !!my_badge_prefs?.active_badge_slug;
+  const active_badge =
+    include_badge_signature && my_badge_prefs?.active_badge_slug
+      ? badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ?? null
+      : null;
 
   useEffect(() => {
     fetch_my_badges().then((r) => {
@@ -471,7 +481,7 @@ export function use_reply_modal({
     }
 
     if (preferences.signature_mode === "auto" && signatures_loading) return;
-    if (preferences.show_badges_in_signature && !badges_loaded) return;
+    if (include_badge_signature && !badges_loaded) return;
 
     content_initialized_ref.current = true;
 
@@ -480,9 +490,7 @@ export function use_reply_modal({
 
       let content = "";
 
-      const badge_html = preferences.show_badges_in_signature
-        ? build_badge_html(badges)
-        : "";
+      const badge_html = active_badge ? build_badge_html([active_badge]) : "";
 
       if (preferences.signature_mode === "auto" && default_signature) {
         content =
@@ -510,9 +518,9 @@ export function use_reply_modal({
     default_signature,
     preferences.show_aster_branding,
     preferences.signature_mode,
-    preferences.show_badges_in_signature,
+    include_badge_signature,
+    active_badge,
     badges_loaded,
-    badges,
     get_formatted_signature,
     t,
   ]);

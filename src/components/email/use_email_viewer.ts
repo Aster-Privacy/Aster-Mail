@@ -736,24 +736,42 @@ export function use_email_viewer({
 
       if (preferences.conversation_grouping === false) return;
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const prev_server_count = thread_messages.filter(
+        (m) => !m.is_sending,
+      ).length;
 
-      const thread_result = await fetch_and_decrypt_thread_messages(
-        detail.thread_token,
-        current_user_email || undefined,
-        { is_trashed: !!mail_item?.is_trashed, is_spam: !!mail_item?.is_spam },
-      );
+      const delays_ms = [500, 800, 1200, 2000, 3000];
+      let thread_result: Awaited<
+        ReturnType<typeof fetch_and_decrypt_thread_messages>
+      > = { messages: [], thread_data: null };
+
+      for (const delay of delays_ms) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        thread_result = await fetch_and_decrypt_thread_messages(
+          detail.thread_token,
+          current_user_email || undefined,
+          { is_trashed: !!mail_item?.is_trashed, is_spam: !!mail_item?.is_spam },
+        );
+
+        if (thread_result.messages.length > prev_server_count) break;
+      }
 
       if (thread_result.messages.length > 0) {
         set_thread_messages((prev) => {
           const server_ids = new Set(thread_result.messages.map((m) => m.id));
+          const grew = thread_result.messages.length > prev_server_count;
           const still_sending = prev.filter(
             (m) =>
               m.is_sending &&
               !server_ids.has(m.id) &&
-              m.id !== detail.optimistic_id,
+              (grew ? m.id !== detail.optimistic_id : true),
           );
-          return [...thread_result.messages, ...still_sending];
+          const merged = grew
+            ? still_sending
+            : still_sending.map((m) =>
+                m.id === detail.optimistic_id ? { ...m, is_sending: false } : m,
+              );
+          return [...thread_result.messages, ...merged];
         });
 
         if (!email?.thread_token && email) {
@@ -772,7 +790,16 @@ export function use_email_viewer({
         handle_thread_reply,
       );
     };
-  }, [email?.thread_token, email_id, email]);
+  }, [
+    email?.thread_token,
+    email_id,
+    email,
+    thread_messages,
+    current_user_email,
+    mail_item?.is_trashed,
+    mail_item?.is_spam,
+    preferences.conversation_grouping,
+  ]);
 
   useEffect(() => {
     const handle_optimistic = (event: Event) => {
@@ -809,6 +836,8 @@ export function use_email_viewer({
       if (!email?.thread_token && email) {
         set_email({ ...email, thread_token: detail.thread_token });
       }
+
+      set_thread_draft(null);
     };
 
     const handle_cancelled = (event: Event) => {

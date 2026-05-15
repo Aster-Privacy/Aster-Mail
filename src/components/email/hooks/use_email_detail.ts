@@ -726,9 +726,26 @@ export function use_email_detail() {
       set_thread_draft(null);
     };
 
+    const handle_reply_optimistic = (event: Event) => {
+      const detail = (event as CustomEvent<{ thread_token: string; original_email_id?: string }>)
+        .detail;
+      const current_token = mail_item?.thread_token;
+      const matches_thread = current_token && detail.thread_token === current_token;
+      const matches_email =
+        detail.original_email_id && detail.original_email_id === email_id;
+
+      if (matches_thread || matches_email) {
+        set_thread_draft(null);
+      }
+    };
+
     window.addEventListener(MAIL_EVENTS.REFRESH_REQUESTED, handle_refresh);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_refresh);
     window.addEventListener(MAIL_EVENTS.THREAD_REPLY_SENT, handle_reply_sent);
+    window.addEventListener(
+      MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC,
+      handle_reply_optimistic,
+    );
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.REFRESH_REQUESTED, handle_refresh);
@@ -737,8 +754,12 @@ export function use_email_detail() {
         MAIL_EVENTS.THREAD_REPLY_SENT,
         handle_reply_sent,
       );
+      window.removeEventListener(
+        MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC,
+        handle_reply_optimistic,
+      );
     };
-  }, [fetch_email]);
+  }, [fetch_email, mail_item?.thread_token, email_id]);
 
   useEffect(() => {
     const load_preferences = async () => {

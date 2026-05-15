@@ -53,6 +53,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { fetch_my_badges } from "@/services/api/user";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
+import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { is_internal_email } from "@/services/api/keys";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { sanitize_html } from "@/lib/html_sanitizer";
@@ -184,7 +185,8 @@ export function use_compose({
 }: UseComposeOptions): UseComposeReturn {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
-  const { default_signature, get_formatted_signature } = use_signatures();
+  const { default_signature, get_formatted_signature, resolve_signature } =
+    use_signatures();
 
   const [recipients, dispatch_recipients] = useReducer(
     recipients_reducer,
@@ -200,6 +202,15 @@ export function use_compose({
   const [show_delete_confirm, set_show_delete_confirm] = useState(false);
   const [badges, set_badges] = useState<Badge[]>([]);
   const [badges_loaded, set_badges_loaded] = useState(false);
+  const my_badge_prefs = use_my_badge_prefs();
+  const include_badge_signature =
+    preferences.show_badges_in_signature &&
+    !!my_badge_prefs?.show_badge_signature &&
+    !!my_badge_prefs?.active_badge_slug;
+  const active_badge =
+    include_badge_signature && my_badge_prefs?.active_badge_slug
+      ? badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ?? null
+      : null;
 
   useEffect(() => {
     fetch_my_badges().then((r) => {
@@ -517,7 +528,7 @@ export function use_compose({
 
     if (edit_draft && !is_fresh_reply_forward) return;
 
-    if (preferences.show_badges_in_signature && !badges_loaded) return;
+    if (include_badge_signature && !badges_loaded) return;
 
     content_initialized_ref.current = true;
 
@@ -528,13 +539,17 @@ export function use_compose({
 
       let content = "";
 
-      const badge_html = preferences.show_badges_in_signature
-        ? build_badge_html(badges)
-        : "";
+      const badge_html = active_badge ? build_badge_html([active_badge]) : "";
 
+      const initial_sender_alias_id =
+        selected_sender && selected_sender.type === "alias"
+          ? selected_sender.id
+          : null;
+      const initial_signature =
+        resolve_signature(initial_sender_alias_id) ?? default_signature;
       const signature_block =
-        preferences.signature_mode === "auto" && default_signature
-          ? get_formatted_signature(default_signature) + badge_html
+        preferences.signature_mode === "auto" && initial_signature
+          ? get_formatted_signature(initial_signature) + badge_html
           : badge_html;
 
       if (is_fresh_reply_forward && edit_draft) {
@@ -557,12 +572,56 @@ export function use_compose({
     badges_loaded,
     badges,
     edit_draft,
-    preferences.show_badges_in_signature,
+    include_badge_signature,
+    active_badge,
     preferences.show_aster_branding,
     preferences.signature_mode,
     default_signature,
     get_formatted_signature,
+    resolve_signature,
+    selected_sender,
     t,
+  ]);
+
+  const last_signature_id_ref = useRef<string | null>(null);
+  useEffect(() => {
+    if (!content_initialized_ref.current) return;
+    if (preferences.signature_mode === "disabled") return;
+    const editor = message_textarea_ref.current;
+    if (!editor) return;
+
+    const alias_id =
+      selected_sender && selected_sender.type === "alias"
+        ? selected_sender.id
+        : null;
+    const target = resolve_signature(alias_id) ?? default_signature;
+    if (!target) return;
+    if (last_signature_id_ref.current === target.id) return;
+
+    const existing = editor.querySelector<HTMLElement>(
+      "[data-aster-signature='1']",
+    );
+    const new_html = get_formatted_signature(target);
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = new_html;
+    const new_node = wrapper.firstElementChild;
+    if (!new_node) {
+      last_signature_id_ref.current = target.id;
+      return;
+    }
+    if (existing) {
+      existing.replaceWith(new_node);
+    } else {
+      editor.insertBefore(new_node, editor.firstChild);
+    }
+    set_message(editor.innerHTML);
+    last_signature_id_ref.current = target.id;
+  }, [
+    selected_sender,
+    preferences.signature_mode,
+    resolve_signature,
+    default_signature,
+    get_formatted_signature,
   ]);
 
   files_drop_ref.current = attachment_hook.handle_files_drop;

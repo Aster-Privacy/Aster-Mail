@@ -348,7 +348,7 @@ export function use_compose_send({
       const ctx = build_send_context();
 
       if (selected_sender?.type === "external") {
-        execute_external_account_email_send(ctx, email_data);
+        await execute_external_account_email_send(ctx, email_data);
 
         return;
       }
@@ -363,12 +363,12 @@ export function use_compose_send({
       }
 
       if (has_external) {
-        execute_external_email_send(ctx, email_data, pgp_enabled);
+        await execute_external_email_send(ctx, email_data, pgp_enabled);
 
         return;
       }
 
-      execute_internal_send(ctx, email_data);
+      await execute_internal_send(ctx, email_data);
     } catch (error) {
       show_toast(
         error instanceof Error
