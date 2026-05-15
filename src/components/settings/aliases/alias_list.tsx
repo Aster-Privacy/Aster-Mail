@@ -25,6 +25,7 @@ import { AtSymbolIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { UpgradeInlineCard } from "@/components/upgrade/upgrade_inline_card";
 import {
   AliasItem,
   DomainAddressItem,
@@ -96,6 +97,11 @@ export function AliasList({
 
   return (
     <>
+      <UpgradeInlineCard
+        className="mb-2"
+        limit_key="max_email_aliases"
+        resource_label="aliases"
+      />
       {aliases.map((alias) => (
         <AliasItem
           key={alias.id}

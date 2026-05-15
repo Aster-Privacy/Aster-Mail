@@ -31,6 +31,7 @@ import { use_auth } from "@/contexts/auth_context";
 import {
   list_signatures,
   get_default_signature,
+  get_signature_for_alias as resolve_signature_for_alias,
   type DecryptedSignature,
 } from "@/services/api/signatures";
 
@@ -41,6 +42,7 @@ interface SignaturesContextType {
   reload_signatures: () => Promise<void>;
   get_signature_by_id: (id: string) => DecryptedSignature | undefined;
   get_formatted_signature: (signature: DecryptedSignature | null) => string;
+  resolve_signature: (alias_id: string | null) => DecryptedSignature | null;
 }
 
 const SignaturesContext = createContext<SignaturesContextType | null>(null);
@@ -114,9 +116,16 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
             .replace(/"/g, "&quot;")
             .replace(/\n/g, "<br>");
 
-      return `<br><br>--<br>${content}`;
+      return `<div data-aster-signature="1" data-aster-signature-id="${signature.id}"><br><br>--<br>${content}</div>`;
     },
     [],
+  );
+
+  const resolve_signature = useCallback(
+    (alias_id: string | null): DecryptedSignature | null => {
+      return resolve_signature_for_alias(alias_id, signatures);
+    },
+    [signatures],
   );
 
   return (
@@ -128,6 +137,7 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
         reload_signatures: load_signatures,
         get_signature_by_id,
         get_formatted_signature,
+        resolve_signature,
       }}
     >
       {children}
