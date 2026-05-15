@@ -34,6 +34,17 @@ export interface ChipSegmentProps {
   trigger_ref?: React.Ref<HTMLButtonElement>;
 }
 
+function assign_ref<T>(
+  ref: React.Ref<T> | undefined,
+  value: T | null,
+): void {
+  if (typeof ref === "function") {
+    ref(value);
+  } else if (ref) {
+    (ref as React.MutableRefObject<T | null>).current = value;
+  }
+}
+
 export const ChipSegment = React.forwardRef<HTMLButtonElement, ChipSegmentProps>(
   (
     {
@@ -50,7 +61,10 @@ export const ChipSegment = React.forwardRef<HTMLButtonElement, ChipSegmentProps>
   ) => {
     return (
       <button
-        ref={trigger_ref ?? ref}
+        ref={(node) => {
+          assign_ref(ref, node);
+          assign_ref(trigger_ref, node);
+        }}
         type="button"
         onClick={on_click}
         className={cn(

@@ -69,6 +69,9 @@ const RegisterPage = lazy_with_retry(() => import("@/pages/register"));
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/forgot_password"),
 );
+const ResetPasswordPage = lazy_with_retry(
+  () => import("@/pages/reset_password"),
+);
 const EmailDetailPage = lazy_with_retry(
   () => import("@/pages/email_detail_page"),
 );
@@ -86,6 +89,7 @@ const ExternalRedirect = ({ url }: { url: string }) => {
 import { ActionToast } from "@/components/toast/action_toast";
 import { SimpleToast } from "@/components/toast/simple_toast";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
+import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
@@ -211,6 +215,7 @@ function App() {
               <Route element={<RegisterPage />} path="/register" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
+              <Route element={<ResetPasswordPage />} path="/reset-password" />
               <Route
                 element={<VerifyRecoveryEmailPage />}
                 path="/verify-recovery-email"
@@ -266,6 +271,7 @@ function App() {
       <ActionToast />
       <SimpleToast />
       <UnsubscribeConfirmationModal />
+      <UpgradeModal />
       <UndoSendContainer max_visible={3} position="bottom-center" />
       <UndoSendPreviewModal />
       <EmailNotificationManager />

@@ -130,13 +130,38 @@ function add_days_iso(days: number): string {
 export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
   const { trigger, open, on_open_change, align_offset } = props;
   const { t } = use_i18n();
-  const { state: folders_state } = use_folders();
-  const { state: tags_state } = use_tags();
+  const { state: folders_state, fetch_folders } = use_folders();
+  const { state: tags_state, fetch_tags } = use_tags();
 
   const folder_options = folders_state.folders.filter((f) => !f.is_system);
   const label_options = tags_state.tags;
 
   void cn;
+
+  React.useEffect(() => {
+    if (
+      props.action_type === "apply_labels" &&
+      tags_state.tags.length === 0 &&
+      !tags_state.is_loading
+    ) {
+      fetch_tags();
+    }
+    if (
+      props.action_type === "move_to" &&
+      folders_state.folders.length === 0 &&
+      !folders_state.is_loading
+    ) {
+      fetch_folders();
+    }
+  }, [
+    props.action_type,
+    tags_state.tags.length,
+    tags_state.is_loading,
+    folders_state.folders.length,
+    folders_state.is_loading,
+    fetch_tags,
+    fetch_folders,
+  ]);
 
   if (props.action_type === "move_to") {
     return (
@@ -197,10 +222,21 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
           alignOffset={align_offset}
           className="z-[200] w-60 max-h-72"
         >
-          {label_options.length === 0 && (
-            <div className="px-2.5 py-2 text-[12px] text-neutral-500">
-              {t("mail_rules.no_labels")}
-            </div>
+          {label_options.length === 0 && tags_state.is_loading && (
+            <DropdownMenuItem
+              disabled
+              className="justify-center text-[12.5px] text-neutral-500"
+            >
+              {t("common.loading")}
+            </DropdownMenuItem>
+          )}
+          {label_options.length === 0 && !tags_state.is_loading && (
+            <DropdownMenuItem
+              disabled
+              className="justify-center text-[12.5px] text-neutral-500"
+            >
+              {t("mail_rules.no_labels_create_hint")}
+            </DropdownMenuItem>
           )}
           {label_options.map((label) => {
             const is_selected = labels_props.value.includes(label.tag_token);

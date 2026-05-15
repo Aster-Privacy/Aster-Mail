@@ -636,22 +636,59 @@ export function ImportSection() {
 
         const mapping: Record<string, string> = {};
         const parent_tokens: Record<string, string> = {};
+        let folder_failures = 0;
 
         for (const folder of included_folders) {
+          if (oauth_cancelled_ref.current) break;
+
           const parts = folder.delimiter
             ? folder.name.split(folder.delimiter)
             : [folder.name];
 
           let parent_token: string | undefined;
+          let aborted_branch = false;
 
           for (let i = 0; i < parts.length; i++) {
+            if (aborted_branch) break;
+
             const full_path = parts
               .slice(0, i + 1)
               .join(folder.delimiter || "/");
             const display_name = normalize_name(parts[i]);
+            const is_leaf = i === parts.length - 1;
 
-            if (i < parts.length - 1) {
+            if (!is_leaf) {
               if (!parent_tokens[full_path]) {
+                try {
+                  const token = generate_folder_token();
+                  const { encrypted, nonce } = await encrypt_folder_field(
+                    display_name,
+                    vault.identity_key,
+                  );
+
+                  await create_folder({
+                    folder_token: token,
+                    encrypted_name: encrypted,
+                    name_nonce: nonce,
+                    parent_token: parent_token,
+                  });
+
+                  parent_tokens[full_path] = token;
+                } catch {
+                  folder_failures++;
+                  aborted_branch = true;
+                  continue;
+                }
+              }
+
+              parent_token = parent_tokens[full_path];
+            } else {
+              if (parent_tokens[folder.name]) {
+                mapping[folder.name] = parent_tokens[folder.name];
+                continue;
+              }
+
+              try {
                 const token = generate_folder_token();
                 const { encrypted, nonce } = await encrypt_folder_field(
                   display_name,
@@ -665,33 +702,21 @@ export function ImportSection() {
                   parent_token: parent_token,
                 });
 
-                parent_tokens[full_path] = token;
-              }
-
-              parent_token = parent_tokens[full_path];
-            } else {
-              if (parent_tokens[folder.name]) {
-                mapping[folder.name] = parent_tokens[folder.name];
+                mapping[folder.name] = token;
+                parent_tokens[folder.name] = token;
+              } catch {
+                folder_failures++;
                 continue;
               }
-
-              const token = generate_folder_token();
-              const { encrypted, nonce } = await encrypt_folder_field(
-                display_name,
-                vault.identity_key,
-              );
-
-              await create_folder({
-                folder_token: token,
-                encrypted_name: encrypted,
-                name_nonce: nonce,
-                parent_token: parent_token,
-              });
-
-              mapping[folder.name] = token;
-              parent_tokens[folder.name] = token;
             }
           }
+        }
+
+        if (folder_failures > 0) {
+          show_toast(
+            t("settings.oauth_folders_partial", { count: folder_failures }),
+            "warning",
+          );
         }
 
         if (oauth_cancelled_ref.current) return;

@@ -143,7 +143,9 @@ interface NavItem {
   icon: React.ElementType;
 }
 
-function get_nav_items(t: (key: TranslationKey) => string): {
+function get_nav_items(
+  t: (key: TranslationKey) => string,
+): {
   general: NavItem[];
   mail: NavItem[];
 } {
@@ -242,7 +244,6 @@ function SettingsPanelInner({
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
   const navigate = useNavigate();
-  const NAV_ITEMS = useMemo(() => get_nav_items(t), [t]);
   const [section, set_section] = useState<Section>(
     initial_section || get_persisted_section() || "appearance",
   );
@@ -254,6 +255,7 @@ function SettingsPanelInner({
   );
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
   const [has_devices, set_has_devices] = useState(false);
+  const NAV_ITEMS = useMemo(() => get_nav_items(t), [t]);
   const [indicator_style, set_indicator_style] = useState<{
     top: number;
     height: number;

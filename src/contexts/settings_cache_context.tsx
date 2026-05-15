@@ -42,7 +42,6 @@ export type SettingsPanelName =
   | "sessions"
   | "recovery_email"
   | "preferences"
-  | "badges"
   | "trusted_devices";
 
 export interface SettingsPanelEntry<T = unknown> {
