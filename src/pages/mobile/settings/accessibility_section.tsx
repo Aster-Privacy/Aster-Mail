@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { useEffect, useState } from "react";
 import { Switch } from "@aster/ui";
 
 import {
@@ -27,7 +28,12 @@ import {
   OptionList,
 } from "./shared";
 
-import { use_preferences } from "@/contexts/preferences_context";
+import {
+  use_preferences,
+  FONT_SIZE_MIN,
+  FONT_SIZE_MAX,
+  FONT_SIZE_DEFAULT,
+} from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 
 export function AccessibilitySection({
@@ -40,15 +46,21 @@ export function AccessibilitySection({
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
 
-  const font_size_options: {
-    value: "small" | "default" | "large" | "extra_large";
-    label: string;
-  }[] = [
-    { value: "small", label: t("settings.font_size_small") },
-    { value: "default", label: t("settings.font_size_default") },
-    { value: "large", label: t("settings.font_size_large") },
-    { value: "extra_large", label: t("settings.font_size_extra_large") },
-  ];
+  const font_size = preferences.font_size_scale;
+  const [font_size_input, set_font_size_input] = useState<string>(
+    String(font_size),
+  );
+
+  useEffect(() => {
+    set_font_size_input(String(font_size));
+  }, [font_size]);
+
+  const clamp_font_size = (n: number) =>
+    Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, Math.round(n)));
+
+  const commit_font_size = (n: number) => {
+    update_preference("font_size_scale", clamp_font_size(n), true);
+  };
 
   const color_vision_options: {
     value:
@@ -75,11 +87,60 @@ export function AccessibilitySection({
       />
       <div className="flex-1 overflow-y-auto pb-8">
         <SettingsGroup title={t("settings.font_size")}>
-          <OptionList
-            on_change={(v) => update_preference("font_size_scale", v, true)}
-            options={font_size_options}
-            value={preferences.font_size_scale}
-          />
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-3">
+              <input
+                aria-label={t("settings.font_size")}
+                className="flex-1 accent-[var(--accent-color)]"
+                max={FONT_SIZE_MAX}
+                min={FONT_SIZE_MIN}
+                step={1}
+                type="range"
+                value={font_size}
+                onChange={(e) => commit_font_size(Number(e.target.value))}
+              />
+              <input
+                aria-label={t("settings.font_size")}
+                className="w-16 h-9 px-2 rounded-md border bg-surf-secondary border-edge-secondary text-sm text-txt-primary text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+                inputMode="numeric"
+                maxLength={3}
+                type="text"
+                value={font_size_input}
+                onBlur={() => {
+                  const trimmed = font_size_input.trim();
+
+                  if (trimmed === "") {
+                    set_font_size_input(String(font_size));
+
+                    return;
+                  }
+                  const parsed = Number(trimmed);
+
+                  if (!Number.isFinite(parsed)) {
+                    set_font_size_input(String(font_size));
+
+                    return;
+                  }
+                  commit_font_size(parsed);
+                }}
+                onChange={(e) => set_font_size_input(e.target.value)}
+              />
+              <span className="text-xs text-txt-muted">px</span>
+            </div>
+            <div className="flex justify-between mt-1 text-[10px] text-txt-muted">
+              <span>{FONT_SIZE_MIN}px</span>
+              <span>{FONT_SIZE_MAX}px</span>
+            </div>
+            <div className="mt-3 flex">
+              <button
+                className="px-3 py-1.5 rounded-md text-sm font-medium text-white bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] transition-colors"
+                type="button"
+                onClick={() => commit_font_size(FONT_SIZE_DEFAULT)}
+              >
+                {t("settings.font_size_reset")}
+              </button>
+            </div>
+          </div>
         </SettingsGroup>
 
         <SettingsGroup title={t("settings.vision")}>
