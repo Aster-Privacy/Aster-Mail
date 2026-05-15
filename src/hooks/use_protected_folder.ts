@@ -173,7 +173,7 @@ export function use_protected_folder(
 
         if (!verify_response.data?.verified) {
           secure_zero_memory(encryption_key);
-          set_error(t("common.incorrect_password"));
+          set_error(t("errors.wrong_folder_password"));
 
           return false;
         }

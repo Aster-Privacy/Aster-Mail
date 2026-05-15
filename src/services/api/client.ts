@@ -86,6 +86,7 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
   code?: ApiErrorCode;
+  server_code?: string;
   resets_at?: string;
 }
 
@@ -810,6 +811,46 @@ class ApiClient {
           }
 
           if (
+            response.status === 403 &&
+            error_data.code === "PLAN_LIMIT_EXCEEDED"
+          ) {
+            window.dispatchEvent(
+              new CustomEvent("aster:plan-limit-hit", {
+                detail: {
+                  message: error_data.error || "Plan limit reached",
+                  resource:
+                    (error_data.details?.resource as string | undefined) ?? null,
+                },
+              }),
+            );
+
+            return {
+              error: error_data.error || "Plan limit reached",
+              code: "FORBIDDEN",
+              server_code: "PLAN_LIMIT_EXCEEDED",
+            };
+          }
+
+          if (
+            response.status === 413 &&
+            error_data.code === "STORAGE_QUOTA_EXCEEDED"
+          ) {
+            window.dispatchEvent(
+              new CustomEvent("aster:storage-full", {
+                detail: {
+                  message: error_data.error || "Storage full",
+                },
+              }),
+            );
+
+            return {
+              error: error_data.error || "Storage quota exceeded",
+              code: "UNKNOWN_ERROR",
+              server_code: "STORAGE_QUOTA_EXCEEDED",
+            };
+          }
+
+          if (
             response.status === 409 &&
             error_data.code === "USERNAME_IN_USE"
           ) {
@@ -896,20 +937,32 @@ class ApiClient {
 
         let data: T;
 
-        try {
-          data = await response.json();
-        } catch {
-          last_error = {
-            error: this.get_generic_error_message("SERVER_ERROR"),
-            code: "SERVER_ERROR",
-          };
+        if (
+          response.status === 204 ||
+          response.headers.get("content-length") === "0"
+        ) {
+          data = undefined as T;
+        } else {
+          const raw = await response.text().catch(() => "");
+          if (raw.trim() === "") {
+            data = undefined as T;
+          } else {
+            try {
+              data = JSON.parse(raw) as T;
+            } catch {
+              last_error = {
+                error: this.get_generic_error_message("SERVER_ERROR"),
+                code: "SERVER_ERROR",
+              };
 
-          if (attempt < retry) {
-            await this.delay(retry_delay * (attempt + 1));
-            continue;
+              if (attempt < retry) {
+                await this.delay(retry_delay * (attempt + 1));
+                continue;
+              }
+
+              return last_error;
+            }
           }
-
-          return last_error;
         }
 
         refresh_session_activity();

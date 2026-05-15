@@ -19,6 +19,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TorFetchResponse } from "./types";
+import type { TranslationKey } from "@/lib/i18n/types";
+
+export type TorErrorCode =
+  | "unsupported_platform"
+  | "native_only"
+  | "plugin_missing";
+
+export class TorTransportError extends Error {
+  code: TorErrorCode;
+  i18n_key: TranslationKey;
+  constructor(code: TorErrorCode) {
+    super(code);
+    this.code = code;
+    this.i18n_key =
+      code === "unsupported_platform"
+        ? "errors.tor_unsupported_platform"
+        : code === "native_only"
+          ? "errors.tor_native_only"
+          : "errors.tor_plugin_missing";
+  }
+}
 
 const TOR_STATUS_POLL_INTERVAL_MS = 5000;
 
@@ -96,7 +117,7 @@ export async function tor_fetch(
     return capacitor_tor_fetch(url, options);
   }
 
-  throw new Error("Tor transport is not available on this platform");
+  throw new TorTransportError("unsupported_platform");
 }
 
 async function tauri_tor_fetch(
@@ -145,7 +166,7 @@ async function capacitor_tor_fetch(
     | undefined;
 
   if (!tor_plugin?.fetch) {
-    throw new Error("Tor is only available in the native app");
+    throw new TorTransportError("native_only");
   }
 
   const headers_obj: Record<string, string> = {};
@@ -197,7 +218,7 @@ export async function tor_start(use_snowflake: boolean): Promise<void> {
       | undefined;
 
     if (!tor_plugin?.start) {
-      throw new Error("Tor plugin not available on this device");
+      throw new TorTransportError("plugin_missing");
     }
 
     await tor_plugin.start({ snowflake: use_snowflake });

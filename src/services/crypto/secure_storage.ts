@@ -327,16 +327,47 @@ export async function secure_encrypt(data: string): Promise<string> {
   return JSON.stringify(payload);
 }
 
+export type SecureStorageErrorCode =
+  | "version_drift"
+  | "tampered"
+  | "missing_key"
+  | "wrong_password";
+
+export class SecureStorageError extends Error {
+  code: SecureStorageErrorCode;
+  i18n_key: string;
+  constructor(code: SecureStorageErrorCode) {
+    super(code);
+    this.code = code;
+    this.i18n_key =
+      code === "version_drift"
+        ? "errors.vault_version_drift"
+        : code === "tampered"
+          ? "errors.vault_tampered"
+          : code === "missing_key"
+            ? "errors.vault_missing_key"
+            : "errors.wrong_vault_password";
+  }
+}
+
 export async function secure_decrypt(encrypted_data: string): Promise<string> {
   const payload: EncryptedPayload = JSON.parse(encrypted_data);
 
   if (payload.version > CURRENT_VERSION) {
-    throw new Error(
-      "Data encrypted with newer version. Please update the application.",
-    );
+    throw new SecureStorageError("version_drift");
   }
 
-  const { storage_key, hmac_key } = await get_derived_keys();
+  let storage_key: CryptoKey;
+  let hmac_key: CryptoKey;
+
+  try {
+    const derived = await get_derived_keys();
+
+    storage_key = derived.storage_key;
+    hmac_key = derived.hmac_key;
+  } catch {
+    throw new SecureStorageError("missing_key");
+  }
 
   const nonce = base64_to_array(payload.nonce);
   const ciphertext = base64_to_array(payload.ciphertext);
@@ -352,14 +383,21 @@ export async function secure_decrypt(encrypted_data: string): Promise<string> {
   const hmac_valid = constant_time_compare(stored_hmac, computed_hmac);
 
   if (!hmac_valid) {
-    throw new Error(en.errors.storage_compromised);
+    throw new SecureStorageError("tampered");
   }
 
-  const plaintext_buffer = await decrypt_aes_gcm_with_fallback(storage_key, ciphertext, nonce);
+  try {
+    const plaintext_buffer = await decrypt_aes_gcm_with_fallback(
+      storage_key,
+      ciphertext,
+      nonce,
+    );
+    const decoder = new TextDecoder();
 
-  const decoder = new TextDecoder();
-
-  return decoder.decode(plaintext_buffer);
+    return decoder.decode(plaintext_buffer);
+  } catch {
+    throw new SecureStorageError("wrong_password");
+  }
 }
 
 export async function secure_store(key: string, value: unknown): Promise<void> {
