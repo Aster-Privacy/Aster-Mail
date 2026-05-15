@@ -29,6 +29,27 @@ export interface Badge {
   icon: string;
   color: string;
   granted_at: string;
+  find_order?: number | null;
+}
+
+export interface BadgePreferences {
+  active_badge_slug: string | null;
+  show_badge_profile: boolean;
+  show_badge_signature: boolean;
+  show_badge_ring: boolean;
+}
+
+export interface UpdateBadgePreferencesInput {
+  active_badge_slug?: string | null;
+  show_badge_profile?: boolean;
+  show_badge_signature?: boolean;
+  show_badge_ring?: boolean;
+}
+
+export interface ClaimLogoTapResponse {
+  awarded: boolean;
+  already_claimed: boolean;
+  badge: Badge | null;
 }
 
 interface UpdateDisplayNameResponse {
@@ -90,4 +111,45 @@ export async function update_profile_color(
 
 export async function fetch_my_badges(): Promise<ApiResponse<Badge[]>> {
   return api_client.get<Badge[]>("/core/v1/badges");
+}
+
+export async function claim_logo_tap_badge(): Promise<
+  ApiResponse<ClaimLogoTapResponse>
+> {
+  return api_client.post<ClaimLogoTapResponse>(
+    "/core/v1/badges/claim-logo-tap",
+    {},
+  );
+}
+
+export async function fetch_badge_preferences(): Promise<
+  ApiResponse<BadgePreferences>
+> {
+  return api_client.get<BadgePreferences>("/core/v1/badges/preferences");
+}
+
+export async function update_badge_preferences(
+  input: UpdateBadgePreferencesInput,
+): Promise<ApiResponse<BadgePreferences>> {
+  const payload: Record<string, unknown> = {};
+  if ("active_badge_slug" in input) {
+    if (input.active_badge_slug === null) {
+      payload["clear_active_badge"] = true;
+    } else if (input.active_badge_slug !== undefined) {
+      payload["active_badge_slug"] = input.active_badge_slug;
+    }
+  }
+  if (input.show_badge_profile !== undefined) {
+    payload["show_badge_profile"] = input.show_badge_profile;
+  }
+  if (input.show_badge_signature !== undefined) {
+    payload["show_badge_signature"] = input.show_badge_signature;
+  }
+  if (input.show_badge_ring !== undefined) {
+    payload["show_badge_ring"] = input.show_badge_ring;
+  }
+  return api_client.patch<BadgePreferences>(
+    "/core/v1/badges/preferences",
+    payload,
+  );
 }
