@@ -33,10 +33,42 @@ import { encrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 const BATCH_SIZE = 50;
 
 export interface MigrationProgress {
-  status: "idle" | "checking" | "migrating" | "completed" | "failed";
+  status: "idle" | "checking" | "migrating" | "completed" | "failed" | "stalled";
   total_items: number;
   processed_items: number;
   error?: string;
+  banner_i18n_key?: string;
+}
+
+const STALL_THRESHOLD = 3;
+const STALL_COUNT_KEY = "aster-metadata-migration-stall-count";
+
+export function get_migration_stall_count(): number {
+  try {
+    return parseInt(localStorage.getItem(STALL_COUNT_KEY) || "0", 10) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function record_migration_failure(): number {
+  const next = get_migration_stall_count() + 1;
+
+  try {
+    localStorage.setItem(STALL_COUNT_KEY, String(next));
+  } catch {}
+
+  return next;
+}
+
+export function clear_migration_stall(): void {
+  try {
+    localStorage.removeItem(STALL_COUNT_KEY);
+  } catch {}
+}
+
+export function is_migration_stalled(): boolean {
+  return get_migration_stall_count() >= STALL_THRESHOLD;
 }
 
 type ProgressCallback = (progress: MigrationProgress) => void;
@@ -210,6 +242,7 @@ export async function run_metadata_migration(
       throw new Error("failed to complete migration");
     }
 
+    clear_migration_stall();
     report_progress({
       status: "completed",
       total_items,
@@ -221,11 +254,15 @@ export async function run_metadata_migration(
     const error_message =
       error instanceof Error ? error.message : "unknown error";
 
+    const attempts = record_migration_failure();
+    const stalled = attempts >= STALL_THRESHOLD;
+
     report_progress({
-      status: "failed",
+      status: stalled ? "stalled" : "failed",
       total_items,
       processed_items: total_processed,
       error: error_message,
+      banner_i18n_key: stalled ? "errors.metadata_migration_stalled" : undefined,
     });
 
     return { success: false, error: error_message };

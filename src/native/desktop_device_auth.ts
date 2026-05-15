@@ -18,6 +18,28 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
+export type DeviceAuthErrorCode =
+  | "challenge_failed"
+  | "login_failed"
+  | "code_generation_failed";
+
+export class DeviceAuthError extends Error {
+  code: DeviceAuthErrorCode;
+  i18n_key: TranslationKey;
+  constructor(code: DeviceAuthErrorCode) {
+    super(code);
+    this.code = code;
+    this.i18n_key =
+      code === "challenge_failed"
+        ? "errors.device_challenge_mismatch"
+        : code === "login_failed"
+          ? "errors.device_repair_required"
+          : "auth.pair_device_failed";
+  }
+}
+
 export interface DevicePubkeys {
   device_id: string | null;
   ed25519_pk: string;
@@ -71,7 +93,7 @@ async function device_challenge(
   }>("/core/v1/auth/device/challenge", { device_id });
 
   if (result.error || !result.data) {
-    throw new Error("device challenge failed");
+    throw new DeviceAuthError("challenge_failed");
   }
 
   return result.data;
@@ -88,7 +110,7 @@ async function device_login(
   );
 
   if (result.error || !result.data) {
-    throw new Error("device login failed");
+    throw new DeviceAuthError("login_failed");
   }
 
   return result.data;
@@ -144,7 +166,7 @@ export async function request_device_code(
   );
 
   if (result.error || !result.data) {
-    throw new Error("failed to generate device code");
+    throw new DeviceAuthError("code_generation_failed");
   }
 
   return result.data;

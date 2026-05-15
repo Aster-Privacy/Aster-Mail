@@ -19,7 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ExternalAccountData } from "./types";
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+
+export class ExternalAccountPasswordError extends Error {
+  i18n_key: TranslationKey = "errors.wrong_external_account_password";
+  constructor() {
+    super("wrong_external_account_password");
+  }
+}
 
 import { array_to_base64, base64_to_array } from "../sender_utils";
 
@@ -163,7 +172,15 @@ export async function decrypt_account_data(
   const key = await get_external_accounts_encryption_key();
   const ciphertext = base64_to_array(encrypted_account_data);
   const nonce = base64_to_array(account_data_nonce);
-  const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
+  let decrypted: Uint8Array;
+
+  try {
+    const buffer = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
+    decrypted = new Uint8Array(buffer);
+  } catch {
+    throw new ExternalAccountPasswordError();
+  }
+
   const decoder = new TextDecoder();
   const parsed = JSON.parse(decoder.decode(decrypted));
 
