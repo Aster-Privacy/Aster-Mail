@@ -18,8 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@aster/ui";
 
@@ -35,27 +35,18 @@ import {
   prepare_pgp_key_data,
 } from "@/services/crypto/key_manager";
 import {
-  hash_recovery_code,
-  decrypt_recovery_key_with_code,
-  decrypt_vault_backup,
   generate_recovery_key,
   encrypt_vault_backup,
   generate_all_recovery_shares,
   clear_recovery_key,
-  VaultBackup,
 } from "@/services/crypto/recovery_key";
-import {
-  initiate_recovery,
-  complete_recovery,
-  forgot_password_email,
-} from "@/services/api/recovery";
-import { store_pending_reencryption } from "@/services/crypto/recovery_reencrypt";
+import { EncryptedVault } from "@/services/crypto/key_manager_core";
+import { reset_password_with_token } from "@/services/api/recovery";
 import {
   generate_recovery_pdf,
   download_recovery_text,
 } from "@/services/crypto/recovery_pdf";
 import {
-  sanitize_username,
   validate_password_strength,
   timing_safe_delay,
 } from "@/services/sanitize";
@@ -65,18 +56,15 @@ import {
   InputWithEndContent,
   Logo,
 } from "@/components/auth/auth_styles";
-import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 
-type RecoveryStep =
-  | "email"
-  | "code"
+type ResetStep =
   | "password"
   | "processing"
   | "new_codes"
   | "success"
-  | "email_sent";
+  | "invalid";
 
 const page_variants = {
   initial: { opacity: 0, y: 12 },
@@ -84,10 +72,7 @@ const page_variants = {
   exit: { opacity: 0, y: -12 },
 };
 
-const page_transition = {
-  duration: 0.2,
-  ease: "easeOut",
-};
+const page_transition = { duration: 0.2, ease: "easeOut" };
 
 interface AlertProps {
   message: string;
@@ -220,20 +205,20 @@ const PasswordStrengthIndicator = ({ password }: { password: string }) => {
   );
 };
 
-export default function ForgotPasswordPage() {
+export default function ResetPasswordPage() {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const navigate = useNavigate();
   const { theme } = useTheme();
   const is_dark = theme === "dark";
+  const [search_params] = useSearchParams();
 
-  const [step, set_step] = useState<RecoveryStep>("email");
-  const [email, set_email] = useState("");
-  const [username, set_username] = useState("");
-  const [email_domain, set_email_domain] = useState<
-    "astermail.org" | "aster.cx"
-  >("astermail.org");
-  const [recovery_code, set_recovery_code] = useState("");
+  const token = useMemo(
+    () => (search_params.get("token") || "").trim(),
+    [search_params],
+  );
+
+  const [step, set_step] = useState<ResetStep>(token ? "password" : "invalid");
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
   const [is_password_visible, set_is_password_visible] = useState(false);
@@ -244,128 +229,7 @@ export default function ForgotPasswordPage() {
   const [is_key_visible, set_is_key_visible] = useState(false);
   const [copy_success, set_copy_success] = useState(false);
 
-  const [recovery_token, set_recovery_token] = useState("");
-  const [vault_backup, set_vault_backup] = useState<VaultBackup | null>(null);
-  const [code_salt, set_code_salt] = useState("");
-  const [encrypted_recovery_key_data, set_encrypted_recovery_key_data] =
-    useState<{ encrypted_key: string; nonce: string } | null>(null);
-
-  const handle_email_next = () => {
-    set_error("");
-    const clean_username = sanitize_username(username.trim());
-
-    if (!clean_username) {
-      set_error(t("errors.invalid_username"));
-
-      return;
-    }
-
-    const full_email = `${clean_username}@${email_domain}`;
-
-    set_email(full_email);
-    set_step("code");
-  };
-
-  const handle_email_reset_link = async () => {
-    set_error("");
-    const clean_username = sanitize_username(username.trim());
-
-    if (!clean_username) {
-      set_error(t("errors.invalid_username"));
-
-      return;
-    }
-
-    set_step("processing");
-    set_processing_status(t("auth.sending_reset_link"));
-
-    let no_recovery_email = false;
-
-    try {
-      const response = await forgot_password_email(
-        clean_username,
-        email_domain,
-      );
-
-      if (response.error && response.error.includes("no_recovery_email")) {
-        no_recovery_email = true;
-      }
-    } catch {}
-
-    await timing_safe_delay();
-
-    if (no_recovery_email) {
-      set_error(t("auth.no_recovery_email_on_account"));
-      set_step("email");
-
-      return;
-    }
-
-    set_step("email_sent");
-  };
-
-  const handle_code_submit = async () => {
-    set_error("");
-
-    const trimmed_code = recovery_code.toUpperCase().trim();
-    const trimmed_email = email.trim().toLowerCase();
-
-    if (!trimmed_email) {
-      set_error(t("auth.please_enter_email_address"));
-      set_step("email");
-
-      return;
-    }
-
-    if (!trimmed_code) {
-      set_error(t("auth.please_enter_recovery_code"));
-
-      return;
-    }
-
-    if (!trimmed_code.startsWith("ASTER-")) {
-      set_error(t("auth.recovery_codes_start_with_aster"));
-
-      return;
-    }
-
-    set_step("processing");
-    set_processing_status(t("auth.verifying_recovery_code"));
-
-    try {
-      const code_hash = await hash_recovery_code(trimmed_code);
-
-      const response = await initiate_recovery(code_hash, trimmed_email);
-
-      if (response.error || !response.data) {
-        await timing_safe_delay();
-        set_error(response.error || t("auth.invalid_recovery_code"));
-        set_step("code");
-
-        return;
-      }
-
-      set_vault_backup({
-        encrypted_data: response.data.encrypted_vault_backup,
-        nonce: response.data.vault_backup_nonce,
-        salt: response.data.recovery_key_salt,
-      });
-      set_code_salt(response.data.code_salt);
-      set_encrypted_recovery_key_data({
-        encrypted_key: response.data.encrypted_recovery_key,
-        nonce: response.data.recovery_key_nonce,
-      });
-      set_recovery_token(response.data.recovery_token);
-
-      set_step("password");
-    } catch {
-      await timing_safe_delay();
-      set_error(t("auth.recovery_failed"));
-      set_step("code");
-    }
-  };
-
-  const handle_password_submit = async () => {
+  const handle_submit = async () => {
     set_error("");
 
     if (!/^[\x20-\x7E]*$/.test(password)) {
@@ -388,49 +252,33 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    if (!vault_backup || !encrypted_recovery_key_data || !code_salt) {
-      set_error(t("auth.recovery_session_expired"));
-      set_step("email");
+    if (!token) {
+      set_step("invalid");
 
       return;
     }
 
     set_step("processing");
-    set_processing_status(t("auth.decrypting_vault"));
+    set_processing_status(t("auth.generating_new_encryption_keys"));
 
     try {
-      const recovery_key = await decrypt_recovery_key_with_code(
-        {
-          encrypted_key: encrypted_recovery_key_data.encrypted_key,
-          nonce: encrypted_recovery_key_data.nonce,
-          salt: code_salt,
-        },
-        recovery_code.toUpperCase().trim(),
-      );
-
-      set_processing_status(t("auth.recovering_account_data"));
-      const vault = await decrypt_vault_backup(vault_backup, recovery_key);
-
-      const old_data_kek = vault.data_kek ?? null;
-      const old_identity_key = vault.identity_key;
-
-      set_processing_status(t("auth.generating_new_encryption_keys"));
       const salt = crypto.getRandomValues(new Uint8Array(32));
       const { hash: password_hash, salt: password_salt } =
         await derive_password_hash(password, salt);
 
-      const display_name = email.split("@")[0] || "User";
+      const placeholder_email = "user@local";
+      const display_name = "User";
 
       const new_identity_keypair = await generate_identity_keypair(
         display_name,
-        email,
+        placeholder_email,
         password,
       );
 
       const { keypair: new_prekey_keypair, signature: prekey_signature } =
         await generate_signed_prekey(
           display_name,
-          email,
+          placeholder_email,
           password,
           new_identity_keypair.secret_key,
         );
@@ -440,51 +288,41 @@ export default function ForgotPasswordPage() {
         password,
       );
 
-      if (!vault.previous_keys) {
-        vault.previous_keys = [];
-      }
-      if (
-        vault.identity_key &&
-        !vault.previous_keys.includes(vault.identity_key)
-      ) {
-        vault.previous_keys.unshift(vault.identity_key);
-      }
-
-      if (vault.previous_keys.length > 10) {
-        vault.previous_keys = vault.previous_keys.slice(0, 10);
-      }
-
-      vault.identity_key = new_identity_keypair.secret_key;
-      vault.signed_prekey = new_prekey_keypair.public_key;
-      vault.signed_prekey_private = new_prekey_keypair.secret_key;
-
       set_processing_status(t("auth.creating_new_recovery_codes"));
       const new_codes = generate_recovery_codes(6);
 
       set_new_recovery_codes(new_codes);
 
-      vault.recovery_codes = new_codes;
+      const fresh_vault: EncryptedVault = {
+        identity_key: new_identity_keypair.secret_key,
+        previous_keys: [],
+        signed_prekey: new_prekey_keypair.public_key,
+        signed_prekey_private: new_prekey_keypair.secret_key,
+        recovery_codes: new_codes,
+      };
 
       set_processing_status(t("auth.encrypting_vault_new_password"));
       const { encrypted_vault, vault_nonce } = await encrypt_vault(
-        vault,
+        fresh_vault,
         password,
       );
 
       set_processing_status(t("auth.creating_new_recovery_backup"));
       const new_recovery_key = generate_recovery_key();
-      const new_backup = await encrypt_vault_backup(vault, new_recovery_key);
+      const new_backup = await encrypt_vault_backup(
+        fresh_vault,
+        new_recovery_key,
+      );
       const new_shares = await generate_all_recovery_shares(
         new_codes,
         new_recovery_key,
       );
 
-      clear_recovery_key(recovery_key);
       clear_recovery_key(new_recovery_key);
 
-      set_processing_status(t("auth.saving_new_credentials"));
-      const complete_response = await complete_recovery(
-        recovery_token,
+      set_processing_status(t("auth.resetting_password"));
+      const response = await reset_password_with_token(
+        token,
         password_hash,
         password_salt,
         encrypted_vault,
@@ -499,15 +337,17 @@ export default function ForgotPasswordPage() {
         pgp_key_data,
       );
 
-      if (complete_response.error || !complete_response.data?.success) {
-        throw new Error(complete_response.error || t("auth.recovery_failed"));
-      }
+      if (response.error || !response.data?.success) {
+        if (
+          response.code === "UNAUTHORIZED" ||
+          response.code === "FORBIDDEN" ||
+          response.code === "NOT_FOUND"
+        ) {
+          set_step("invalid");
 
-      if (old_data_kek) {
-        store_pending_reencryption({
-          old_data_kek,
-          old_identity_key,
-        });
+          return;
+        }
+        throw new Error(response.error || t("auth.recovery_failed"));
       }
 
       set_step("new_codes");
@@ -529,201 +369,15 @@ export default function ForgotPasswordPage() {
   };
 
   const handle_download_pdf = async () => {
-    await generate_recovery_pdf(email, new_recovery_codes);
+    await generate_recovery_pdf("reset", new_recovery_codes);
   };
 
   const handle_download_txt = async () => {
-    await download_recovery_text(email, new_recovery_codes);
+    await download_recovery_text("reset", new_recovery_codes);
   };
 
   const render_step_content = () => {
     switch (step) {
-      case "email":
-        return (
-          <motion.div
-            key="email"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
-          >
-            <Logo />
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.recover_your_account")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.enter_email_associated")}
-            </p>
-
-            <AnimatePresence>
-              {error && <Alert is_dark={is_dark} message={error} />}
-            </AnimatePresence>
-
-            <div className={`w-full ${error ? "mt-4" : "mt-6"}`}>
-              <Input
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus
-                autoComplete="username"
-                maxLength={55}
-                placeholder={t("common.yourname_placeholder")}
-                status={error ? "error" : "default"}
-                type="text"
-                value={username}
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  const at_index = raw.indexOf("@");
-
-                  if (at_index !== -1) {
-                    const local = sanitize_username(raw.substring(0, at_index));
-                    const domain_part = raw
-                      .substring(at_index + 1)
-                      .toLowerCase();
-
-                    set_username(local);
-                    if (
-                      domain_part === "astermail.org" ||
-                      domain_part === "astermail.org."
-                    )
-                      set_email_domain("astermail.org");
-                    else if (
-                      domain_part === "aster.cx" ||
-                      domain_part === "aster.cx."
-                    )
-                      set_email_domain("aster.cx");
-                  } else {
-                    set_username(sanitize_username(raw));
-                  }
-                }}
-                onKeyDown={(e) =>
-                  e["key"] === "Enter" && handle_email_reset_link()
-                }
-              />
-              <div className="relative flex mt-2 aster_input !p-1 !h-auto">
-                <div
-                  className="absolute top-1 bottom-1 rounded-[8px] transition-all duration-200 ease-out bg-surf-tertiary"
-                  style={{
-                    width: "calc(50% - 4px)",
-                    left:
-                      email_domain === "astermail.org" ? "4px" : "calc(50%)",
-                  }}
-                />
-                <button
-                  className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "astermail.org" ? "text-txt-primary" : "text-txt-muted"}`}
-                  type="button"
-                  onClick={() => set_email_domain("astermail.org")}
-                >
-                  @astermail.org
-                </button>
-                <button
-                  className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "aster.cx" ? "text-txt-primary" : "text-txt-muted"}`}
-                  type="button"
-                  onClick={() => set_email_domain("aster.cx")}
-                >
-                  @aster.cx
-                </button>
-              </div>
-            </div>
-
-            <Button
-              className="w-full mt-6"
-              size="xl"
-              variant="depth"
-              onClick={handle_email_reset_link}
-            >
-              {t("auth.email_me_reset_link")}
-            </Button>
-
-            <Button
-              className="w-full mt-3"
-              size="xl"
-              variant="secondary"
-              onClick={handle_email_next}
-            >
-              {t("auth.use_recovery_code")}
-            </Button>
-
-            <button
-              className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
-              onClick={() => navigate("/sign-in")}
-            >
-              {t("auth.back_to_sign_in")}
-            </button>
-          </motion.div>
-        );
-
-      case "code":
-        return (
-          <motion.div
-            key="code"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
-          >
-            <Logo />
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.enter_recovery_code")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.enter_recovery_code_desc")}
-            </p>
-
-            <AnimatePresence>
-              {error && <Alert is_dark={is_dark} message={error} />}
-            </AnimatePresence>
-
-            <div className={`w-full ${error ? "mt-4" : "mt-6"}`}>
-              <Input
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus
-                autoComplete="off"
-                className="font-mono tracking-wider"
-                placeholder="ASTER-XXXX-XXXX-XXXX"
-                status={error ? "error" : "default"}
-                type="text"
-                value={recovery_code}
-                onChange={(e) =>
-                  set_recovery_code(e.target.value.toUpperCase())
-                }
-                onKeyDown={(e) => e["key"] === "Enter" && handle_code_submit()}
-              />
-            </div>
-
-            <Button
-              className="w-full mt-6"
-              size="xl"
-              variant="depth"
-              onClick={handle_code_submit}
-            >
-              {t("auth.verify_code")}
-            </Button>
-
-            <Button
-              className="w-full mt-3"
-              size="xl"
-              variant="secondary"
-              onClick={() => {
-                set_error("");
-                set_step("email");
-              }}
-            >
-              {t("common.back")}
-            </Button>
-          </motion.div>
-        );
-
       case "password":
         return (
           <motion.div
@@ -741,10 +395,10 @@ export default function ForgotPasswordPage() {
             <Logo />
 
             <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.create_new_password")}
+              {t("auth.reset_your_password")}
             </h1>
             <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.choose_strong_password")}
+              {t("auth.reset_choose_new_password")}
             </p>
 
             <AnimatePresence>
@@ -795,9 +449,7 @@ export default function ForgotPasswordPage() {
                 type={is_confirm_visible ? "text" : "password"}
                 value={confirm_password}
                 onChange={(e) => set_confirm_password(e.target.value)}
-                onKeyDown={(e) =>
-                  e["key"] === "Enter" && handle_password_submit()
-                }
+                onKeyDown={(e) => e["key"] === "Enter" && handle_submit()}
               />
             </div>
 
@@ -805,21 +457,18 @@ export default function ForgotPasswordPage() {
               className="w-full mt-6"
               size="xl"
               variant="depth"
-              onClick={handle_password_submit}
+              onClick={handle_submit}
             >
-              {t("auth.reset_password")}
+              {t("auth.set_new_password")}
             </Button>
 
             <Button
               className="w-full mt-3"
               size="xl"
               variant="secondary"
-              onClick={() => {
-                set_error("");
-                set_step("code");
-              }}
+              onClick={() => navigate("/sign-in")}
             >
-              {t("common.back")}
+              {t("auth.back_to_sign_in")}
             </Button>
           </motion.div>
         );
@@ -841,7 +490,7 @@ export default function ForgotPasswordPage() {
             <Spinner className="h-10 w-10 text-blue-500" size="lg" />
 
             <h2 className="text-xl font-semibold mt-8 text-txt-primary">
-              {t("auth.recovering_your_account")}
+              {t("auth.resetting_password")}
             </h2>
 
             <p className="mt-3 text-sm text-txt-tertiary">
@@ -951,57 +600,6 @@ export default function ForgotPasswordPage() {
           </motion.div>
         );
 
-      case "email_sent":
-        return (
-          <motion.div
-            key="email_sent"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
-          >
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
-            >
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                stroke="var(--color-success)"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M5 13l4 4L19 7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.reset_link_sent_title")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.reset_link_sent_desc")}
-            </p>
-
-            <Button
-              className="w-full mt-8"
-              size="xl"
-              variant="depth"
-              onClick={() => navigate("/sign-in")}
-            >
-              {t("auth.back_to_sign_in")}
-            </Button>
-          </motion.div>
-        );
-
       case "success":
         return (
           <motion.div
@@ -1049,6 +647,49 @@ export default function ForgotPasswordPage() {
               onClick={() => navigate("/sign-in")}
             >
               {t("auth.sign_in")}
+            </Button>
+          </motion.div>
+        );
+
+      case "invalid":
+        return (
+          <motion.div
+            key="invalid"
+            animate="animate"
+            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
+            exit="exit"
+            initial={reduce_motion ? false : "initial"}
+            transition={{
+              ...page_transition,
+              duration: reduce_motion ? 0 : page_transition.duration,
+            }}
+            variants={page_variants}
+          >
+            <Logo />
+
+            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
+              {t("auth.reset_your_password")}
+            </h1>
+            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
+              {t("auth.reset_invalid_or_expired")}
+            </p>
+
+            <Button
+              className="w-full mt-8"
+              size="xl"
+              variant="depth"
+              onClick={() => navigate("/forgot-password")}
+            >
+              {t("auth.request_new_reset_link")}
+            </Button>
+
+            <Button
+              className="w-full mt-3"
+              size="xl"
+              variant="secondary"
+              onClick={() => navigate("/sign-in")}
+            >
+              {t("auth.back_to_sign_in")}
             </Button>
           </motion.div>
         );

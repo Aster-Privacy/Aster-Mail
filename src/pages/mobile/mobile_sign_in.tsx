@@ -239,7 +239,7 @@ export default function MobileSignInPage() {
           return;
         }
         if (err instanceof Error && err.message.includes("decrypt")) {
-          set_error(t("errors.decrypt_failed"));
+          set_error(t("errors.wrong_vault_password"));
         } else {
           set_error(
             err instanceof Error ? err.message : t("errors.login_failed"),
@@ -501,7 +501,7 @@ export default function MobileSignInPage() {
         await new Promise((resolve) => setTimeout(resolve, min_time - elapsed));
       }
       if (err instanceof Error && err.message.includes("decrypt")) {
-        set_error(t("errors.decrypt_failed"));
+        set_error(t("errors.wrong_vault_password"));
       } else {
         set_error(
           err instanceof Error ? err.message : t("errors.login_failed"),
