@@ -29,22 +29,11 @@ export class CdnRelayMisconfiguredError extends Error {
   }
 }
 
-let relay_auth_token = "";
-
 try {
   if (typeof window !== "undefined" && window.localStorage) {
-    const persisted = window.localStorage.getItem("aster_relay_auth_token");
-
-    if (persisted) {
-      relay_auth_token = persisted;
-      window.localStorage.removeItem("aster_relay_auth_token");
-    }
+    window.localStorage.removeItem("aster_relay_auth_token");
   }
 } catch {}
-
-export function set_relay_auth_token(token: string): void {
-  relay_auth_token = token;
-}
 
 export async function cdn_relay_fetch(
   url: string,
@@ -59,25 +48,5 @@ export async function cdn_relay_fetch(
   const original = new URL(url);
   const relayed = `${relay_url}${original.pathname}${original.search}`;
 
-  const existing_headers: Record<string, string> = {};
-
-  if (options.headers) {
-    const h = new Headers(options.headers);
-
-    h.forEach((value, key) => {
-      existing_headers[key] = value;
-    });
-  }
-
-  return fetch(relayed, {
-    ...options,
-    headers: {
-      ...existing_headers,
-      "X-Aster-Relay-Auth": get_relay_auth_token(),
-    },
-  });
-}
-
-function get_relay_auth_token(): string {
-  return relay_auth_token;
+  return fetch(relayed, options);
 }
