@@ -90,7 +90,7 @@ export function SidebarNavButton({
 
   return (
     <button
-      className="sidebar-nav-btn relative flex h-11 w-full items-center gap-3 rounded-lg px-3 text-[15px]"
+      className="sidebar-nav-btn relative flex h-11 w-full items-center gap-3 rounded-[16px] px-3 text-[15px]"
       data-nav-active={active}
       style={{
         zIndex: 1,

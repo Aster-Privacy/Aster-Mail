@@ -1006,7 +1006,7 @@ export function ViewerUnsubscribeBanner({
                 info.unsubscribe_mailto ||
                 info.list_unsubscribe_header) && (
                 <button
-                  className="rounded-md px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
+                  className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
                   type="button"
                   onClick={handle_unsubscribe}
                 >
@@ -1015,7 +1015,7 @@ export function ViewerUnsubscribeBanner({
               )}
             {status === "error" && info.unsubscribe_link && (
               <button
-                className="rounded-md px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
+                className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
                 type="button"
                 onClick={() => handle_external_link(info.unsubscribe_link!)}
               >
@@ -1023,7 +1023,7 @@ export function ViewerUnsubscribeBanner({
               </button>
             )}
             <button
-              className="p-1 rounded-md transition-colors text-txt-muted"
+              className="p-1 rounded-[14px] transition-colors text-txt-muted"
               title={t("common.dismiss")}
               type="button"
               onClick={() => set_dismissed(true)}
@@ -1282,7 +1282,7 @@ export function ViewerErrorState({
         </p>
         {show_back_button && (
           <button
-            className="mt-4 px-4 py-2 text-sm font-medium rounded-lg transition-colors bg-surf-secondary text-txt-primary"
+            className="mt-4 px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-surf-secondary text-txt-primary"
             onClick={on_dismiss}
           >
             {t("common.back_to_inbox")}

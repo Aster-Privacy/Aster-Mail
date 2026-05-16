@@ -191,7 +191,7 @@ export function PhishingWarningBanner({
                 </button>
               )}
               <button
-                className="rounded-md px-3 py-1.5 text-xs font-medium bg-white/20 text-white hover:bg-white/30 transition-colors"
+                className="rounded-[12px] px-3 py-1.5 text-xs font-medium bg-white/20 text-white hover:bg-white/30 transition-colors"
                 type="button"
                 onClick={handle_dismiss}
               >

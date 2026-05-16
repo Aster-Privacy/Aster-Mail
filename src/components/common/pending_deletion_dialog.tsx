@@ -143,7 +143,7 @@ export function PendingDeletionDialog() {
 
         <div className="flex flex-col gap-2">
           <button
-            className="w-full rounded-lg px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="w-full rounded-[14px] px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
             disabled={is_cancelling}
             style={{
               backgroundColor: "var(--accent-color)",
@@ -156,7 +156,7 @@ export function PendingDeletionDialog() {
               : t("common.pending_deletion_keep")}
           </button>
           <button
-            className="w-full rounded-lg px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-80"
+            className="w-full rounded-[14px] px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-80"
             disabled={is_cancelling}
             style={{
               backgroundColor: "transparent",

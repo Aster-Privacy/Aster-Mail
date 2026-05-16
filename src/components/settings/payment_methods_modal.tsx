@@ -483,7 +483,7 @@ export function PaymentMethodsModal({
         <div className="flex items-center gap-1">
           {!method.is_default && (
             <button
-              className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors hover:opacity-80"
+              className="flex items-center gap-1 rounded-[12px] px-2 py-1.5 text-xs font-medium transition-colors hover:opacity-80"
               disabled={is_any_busy}
               style={{ color: "var(--text-secondary)" }}
               onClick={() => handle_set_default(method.id)}
@@ -499,7 +499,7 @@ export function PaymentMethodsModal({
             </button>
           )}
           <button
-            className="flex items-center justify-center rounded-md p-1.5 transition-colors hover:opacity-80"
+            className="flex items-center justify-center rounded-[14px] p-1.5 transition-colors hover:opacity-80"
             disabled={is_any_busy}
             style={{ color: "var(--text-tertiary)" }}
             onClick={() => handle_delete(method.id)}

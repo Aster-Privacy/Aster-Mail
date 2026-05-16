@@ -222,7 +222,7 @@ export function ForwardingRuleBuilder({
 
               {conditions.length > 1 && (
                 <button
-                  className="p-1 rounded-md transition-colors hover:bg-surf-hover"
+                  className="p-1 rounded-[14px] transition-colors hover:bg-surf-hover"
                   onClick={() => remove_condition(index)}
                 >
                   <TrashIcon className="w-3.5 h-3.5 text-txt-muted" />
@@ -276,7 +276,7 @@ export function ForwardingRuleBuilder({
               />
               {forward_to.length > 1 && (
                 <button
-                  className="p-1.5 rounded-md transition-colors hover:bg-surf-hover"
+                  className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover"
                   onClick={() => remove_forward_address(index)}
                 >
                   <XMarkIcon className="w-4 h-4 text-txt-muted" />

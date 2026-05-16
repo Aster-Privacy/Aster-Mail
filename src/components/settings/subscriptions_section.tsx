@@ -266,7 +266,7 @@ export function SubscriptionsSection() {
         <div className="flex items-center justify-between">
           <div className="inline-flex rounded-lg p-1 bg-surf-secondary">
             <button
-              className="px-3 py-1.5 rounded-md text-[13px] font-medium transition-all"
+              className="px-3 py-1.5 rounded-[12px] text-[13px] font-medium transition-all"
               style={{
                 backgroundColor: !show_snoozed
                   ? "var(--bg-card)"
@@ -288,7 +288,7 @@ export function SubscriptionsSection() {
               })}
             </button>
             <button
-              className="px-3 py-1.5 rounded-md text-[13px] font-medium transition-all"
+              className="px-3 py-1.5 rounded-[12px] text-[13px] font-medium transition-all"
               style={{
                 backgroundColor: show_snoozed
                   ? "var(--bg-card)"

@@ -71,7 +71,7 @@ export function ProbationBanner() {
         </span>
       </div>
       <button
-        className="flex-shrink-0 p-1 rounded-lg transition-all duration-150 hover:opacity-70"
+        className="flex-shrink-0 p-1 rounded-[14px] transition-all duration-150 hover:opacity-70"
         style={{ color: "rgba(255, 255, 255, 0.8)" }}
         onClick={() => set_is_dismissed(true)}
       >

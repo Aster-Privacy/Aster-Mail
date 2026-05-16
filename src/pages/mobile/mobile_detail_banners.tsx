@@ -149,14 +149,14 @@ export function MobileUnsubscribeBanner({
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           <button
-            className="rounded-md bg-brand px-2.5 py-1 text-[12px] font-medium text-white active:opacity-70"
+            className="rounded-[12px] bg-brand px-2.5 py-1 text-[12px] font-medium text-white active:opacity-70"
             type="button"
             onClick={handle_unsubscribe}
           >
             {t("mail.unsubscribe")}
           </button>
           <button
-            className="rounded-md p-1 text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
+            className="rounded-[14px] p-1 text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={() => set_dismissed(true)}
           >
@@ -207,14 +207,14 @@ export function MobileExternalContentBanner({
         </p>
         <div className="flex shrink-0 items-center gap-1.5">
           <button
-            className="rounded-md bg-[var(--accent-color,#4f6ef7)] px-2.5 py-1 text-[12px] font-medium text-white active:opacity-70"
+            className="rounded-[12px] bg-[var(--accent-color,#4f6ef7)] px-2.5 py-1 text-[12px] font-medium text-white active:opacity-70"
             type="button"
             onClick={on_load}
           >
             {t("common.load_content")}
           </button>
           <button
-            className="rounded-md p-1 text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
+            className="rounded-[14px] p-1 text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={() => set_dismissed(true)}
           >

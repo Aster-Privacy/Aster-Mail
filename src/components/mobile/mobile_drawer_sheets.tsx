@@ -125,7 +125,7 @@ export function AccountMenuSheet({
 
         <div className="space-y-1">
           <Button
-            className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[14px] font-medium"
+            className="flex w-full items-center justify-center gap-2 rounded-[14px] px-3 py-2.5 text-[14px] font-medium"
             type="button"
             variant="depth"
             onClick={() => {
@@ -136,7 +136,7 @@ export function AccountMenuSheet({
             {t("common.upgrade")}
           </Button>
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={() => {
               on_close();
@@ -149,7 +149,7 @@ export function AccountMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={handle_logout}
           >
@@ -227,7 +227,7 @@ export function CreateFolderSheet({
           ))}
         </div>
         <Button
-          className="mt-1 w-full rounded-xl py-3 text-[15px] font-medium"
+          className="mt-1 w-full rounded-[16px] py-3 text-[15px] font-medium"
           type="button"
           variant="depth"
           onClick={handle_create}
@@ -325,7 +325,7 @@ export function CreateLabelSheet({
         </p>
         <div className="mb-3 flex flex-wrap gap-1.5">
           <button
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-[11px]"
+            className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[11px]"
             style={{
               backgroundColor: !label_icon
                 ? "var(--indicator-bg, var(--bg-tertiary))"
@@ -346,7 +346,7 @@ export function CreateLabelSheet({
             return (
               <button
                 key={icon_name}
-                className="flex h-8 w-8 items-center justify-center rounded-lg"
+                className="flex h-8 w-8 items-center justify-center rounded-[8px]"
                 style={{
                   backgroundColor:
                     label_icon === icon_name
@@ -370,7 +370,7 @@ export function CreateLabelSheet({
           })}
         </div>
         <Button
-          className="mt-1 w-full rounded-xl py-3 text-[15px] font-medium"
+          className="mt-1 w-full rounded-[16px] py-3 text-[15px] font-medium"
           type="button"
           variant="depth"
           onClick={handle_create}
@@ -445,7 +445,7 @@ export function EditFolderSheet({
         </div>
         <div className="flex gap-2">
           <Button
-            className="flex-1 rounded-xl py-3 text-[15px] font-medium"
+            className="flex-1 rounded-[16px] py-3 text-[15px] font-medium"
             type="button"
             variant="depth"
             onClick={handle_save}
@@ -453,7 +453,7 @@ export function EditFolderSheet({
             {t("common.save")}
           </Button>
           <button
-            className="rounded-xl px-5 py-3 text-[15px] font-medium text-white transition-all "
+            className="rounded-[16px] px-5 py-3 text-[15px] font-medium text-white transition-all "
             style={{
               background: "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
             }}
@@ -553,7 +553,7 @@ export function EditTagSheet({
         </p>
         <div className="mb-3 flex flex-wrap gap-1.5">
           <button
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-[11px]"
+            className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[11px]"
             style={{
               backgroundColor: !edit_icon
                 ? "var(--indicator-bg, var(--bg-tertiary))"
@@ -574,7 +574,7 @@ export function EditTagSheet({
             return (
               <button
                 key={icon_name}
-                className="flex h-8 w-8 items-center justify-center rounded-lg"
+                className="flex h-8 w-8 items-center justify-center rounded-[8px]"
                 style={{
                   backgroundColor:
                     edit_icon === icon_name
@@ -597,7 +597,7 @@ export function EditTagSheet({
         </div>
         <div className="flex gap-2">
           <Button
-            className="flex-1 rounded-xl py-3 text-[15px] font-medium"
+            className="flex-1 rounded-[16px] py-3 text-[15px] font-medium"
             type="button"
             variant="depth"
             onClick={handle_save}
@@ -605,7 +605,7 @@ export function EditTagSheet({
             {t("common.save")}
           </Button>
           <button
-            className="rounded-xl px-5 py-3 text-[15px] font-medium text-white transition-all "
+            className="rounded-[16px] px-5 py-3 text-[15px] font-medium text-white transition-all "
             style={{
               background: "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
             }}
@@ -674,7 +674,7 @@ export function CreateAliasSheet({
           <p className="mb-3 text-[13px] text-red-500">{alias_error}</p>
         )}
         <Button
-          className="w-full rounded-xl py-3 text-[15px] font-medium"
+          className="w-full rounded-[16px] py-3 text-[15px] font-medium"
           disabled={!alias_local.trim() || creating}
           type="button"
           variant="depth"

@@ -183,7 +183,7 @@ export function KeyRotationModal({
                 </div>
                 {state !== "rotating" && (
                   <button
-                    className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                    className="p-1.5 rounded-[14px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                     style={{ color: "var(--text-muted)" }}
                     type="button"
                     onClick={handle_close}

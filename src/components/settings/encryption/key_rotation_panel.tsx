@@ -375,7 +375,7 @@ export function KeyRotationPanel({
                   {recovery_codes.map((code, index) => (
                     <button
                       key={`${codes_key}-${index}`}
-                      className="flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors bg-surf-secondary border border-edge-primary hover:bg-surf-hover"
+                      className="flex items-center gap-2 px-3 py-2 rounded-[14px] cursor-pointer transition-colors bg-surf-secondary border border-edge-primary hover:bg-surf-hover"
                       type="button"
                       onClick={async () => {
                         try {

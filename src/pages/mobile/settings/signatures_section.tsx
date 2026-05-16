@@ -382,7 +382,7 @@ export function SignaturesSection({
       <div className="flex-1 overflow-y-auto pb-8">
         <div className="px-4 py-3">
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-[15px] font-semibold text-white active:opacity-80"
+            className="flex w-full items-center justify-center gap-2 rounded-[16px] px-4 py-3 text-[15px] font-semibold text-white active:opacity-80"
             style={{
               background:
                 "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",

@@ -550,7 +550,7 @@ function SettingsPanelInner({
         ref={(el) => {
           nav_item_refs.current[item.id] = el;
         }}
-        className="w-full flex items-center gap-2.5 px-2.5 h-8 rounded-md text-[13px] transition-colors duration-150 relative z-[1]"
+        className="w-full flex items-center gap-2.5 px-2.5 h-8 rounded-[12px] text-[13px] transition-colors duration-150 relative z-[1]"
         style={{
           color: is_selected ? "var(--text-primary)" : "var(--text-secondary)",
         }}

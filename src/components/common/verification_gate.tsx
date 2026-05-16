@@ -263,7 +263,7 @@ export function VerificationGate({ children }: { children: React.ReactNode }) {
 
               <div className="px-6 pb-6 pt-0">
                 <button
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 "
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-[14px] text-sm font-medium transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 "
                   disabled={is_submitting || !email.trim()}
                   style={{
                     backgroundColor: "var(--accent-color)",
@@ -385,7 +385,7 @@ export function VerificationGate({ children }: { children: React.ReactNode }) {
                   </div>
 
                   <button
-                    className="w-full mt-3 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium transition-all duration-150 border cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-80 "
+                    className="w-full mt-3 flex items-center justify-center gap-2 py-2.5 px-4 rounded-[14px] text-sm font-medium transition-all duration-150 border cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-80 "
                     disabled={resend_cooldown > 0}
                     style={{
                       backgroundColor: "var(--bg-hover)",

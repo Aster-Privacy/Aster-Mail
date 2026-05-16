@@ -315,7 +315,7 @@ export function EncryptionSection({
                       {enc.format_fingerprint(enc.pgp_key.fingerprint)}
                     </code>
                     <button
-                      className="p-2 rounded-lg active:bg-[var(--mobile-bg-card-hover)]"
+                      className="p-2 rounded-[14px] active:bg-[var(--mobile-bg-card-hover)]"
                       type="button"
                       onClick={enc.handle_copy_fingerprint}
                     >
@@ -353,7 +353,7 @@ export function EncryptionSection({
                     {t("settings.export_private_key_label")}
                   </motion.button>
                   <button
-                    className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
+                    className="flex w-full items-center justify-center gap-2 rounded-[16px] py-3 text-[14px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
                     type="button"
                     onClick={enc.handle_copy_public_key}
                   >
@@ -439,7 +439,7 @@ export function EncryptionSection({
                     {enc.recovery_codes.map((code, index) => (
                       <button
                         key={`${enc.codes_key}-${index}`}
-                        className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--mobile-bg-page)] active:bg-[var(--mobile-bg-card-hover)]"
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-[14px] bg-[var(--mobile-bg-page)] active:bg-[var(--mobile-bg-card-hover)]"
                         type="button"
                         onClick={async () => {
                           try {
@@ -478,7 +478,7 @@ export function EncryptionSection({
                       {t("settings.download_pdf")}
                     </motion.button>
                     <button
-                      className="p-3 rounded-xl bg-[var(--mobile-bg-card-hover)]"
+                      className="p-3 rounded-[14px] bg-[var(--mobile-bg-card-hover)]"
                       type="button"
                       onClick={enc.handle_copy_all_codes}
                     >
@@ -515,7 +515,7 @@ export function EncryptionSection({
             </p>
             <div className="flex flex-col gap-2">
               <button
-                className="rounded-2xl border-2 overflow-hidden text-left"
+                className="rounded-[14px] border-2 overflow-hidden text-left"
                 style={{
                   borderColor:
                     enc.preferences.storage_format === "aster"
@@ -542,7 +542,7 @@ export function EncryptionSection({
                 </div>
               </button>
               <button
-                className="rounded-2xl border-2 overflow-hidden text-left"
+                className="rounded-[14px] border-2 overflow-hidden text-left"
                 style={{
                   borderColor:
                     enc.preferences.storage_format === "ipfs"
@@ -674,7 +674,7 @@ export function EncryptionSection({
                 ].map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-lg px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
                       enc.preferences.key_rotation_hours === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--mobile-text-secondary)]"
@@ -707,7 +707,7 @@ export function EncryptionSection({
                 ].map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-lg px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
                       enc.preferences.key_history_limit === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--mobile-text-secondary)]"
@@ -790,7 +790,7 @@ export function EncryptionSection({
               )}
               <div className="flex gap-3 mt-2">
                 <button
-                  className="flex-1 rounded-xl py-3.5 text-[15px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
+                  className="flex-1 rounded-[16px] py-3.5 text-[15px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
                   type="button"
                   onClick={enc.close_export_prompt}
                 >
@@ -905,7 +905,7 @@ export function EncryptionSection({
               )}
               <div className="flex gap-3 mt-2">
                 <button
-                  className="flex-1 rounded-xl py-3.5 text-[15px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
+                  className="flex-1 rounded-[16px] py-3.5 text-[15px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
                   type="button"
                   onClick={enc.close_regenerate_confirm}
                 >

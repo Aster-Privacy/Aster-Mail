@@ -113,7 +113,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
       <button
         ref={inbox_ref}
-        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "inbox" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "inbox" ? "sidebar-selected" : ""}`}
+        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "inbox" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "inbox" ? "sidebar-selected" : ""}`}
         style={{
           zIndex: 1,
           color:
@@ -156,7 +156,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
       <button
         ref={sent_ref}
-        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "sent" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "sent" ? "sidebar-selected" : ""}`}
+        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "sent" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "sent" ? "sidebar-selected" : ""}`}
         style={{
           zIndex: 1,
           color:
@@ -192,7 +192,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
       <button
         ref={scheduled_ref}
-        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "scheduled" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "scheduled" ? "sidebar-selected" : ""}`}
+        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "scheduled" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "scheduled" ? "sidebar-selected" : ""}`}
         style={{
           zIndex: 1,
           color:
@@ -235,7 +235,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
       <button
         ref={snoozed_ref}
-        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "snoozed" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "snoozed" ? "sidebar-selected" : ""}`}
+        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "snoozed" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "snoozed" ? "sidebar-selected" : ""}`}
         style={{
           zIndex: 1,
           color:
@@ -278,7 +278,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
       <button
         ref={drafts_ref}
-        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "drafts" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "drafts" ? "sidebar-selected" : ""}`}
+        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "drafts" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "drafts" ? "sidebar-selected" : ""}`}
         style={{
           zIndex: 1,
           color:
@@ -343,7 +343,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
         <>
           <button
             ref={starred_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "starred" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "starred" ? "sidebar-selected" : ""}`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "starred" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "starred" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -379,7 +379,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
           <button
             ref={all_mail_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "all" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "all" ? "sidebar-selected" : ""}`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "all" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "all" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -415,7 +415,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
           <button
             ref={archive_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "archive" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "archive" ? "sidebar-selected" : ""}`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "archive" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "archive" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -451,7 +451,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
           <button
             ref={spam_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "spam" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "spam" ? "sidebar-selected" : ""}`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "spam" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "spam" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -494,7 +494,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
           <button
             ref={trash_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "trash" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "trash" ? "sidebar-selected" : ""}`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "trash" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "trash" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -537,7 +537,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
           <button
             ref={contacts_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "contacts" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "contacts" ? "sidebar-selected" : ""}`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "contacts" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "contacts" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:
@@ -573,7 +573,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
           <button
             ref={subscriptions_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "subscriptions" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "subscriptions" ? "sidebar-selected" : ""}`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "subscriptions" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "subscriptions" ? "sidebar-selected" : ""}`}
             style={{
               zIndex: 1,
               color:

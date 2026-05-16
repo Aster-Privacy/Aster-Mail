@@ -576,7 +576,7 @@ export function FolderPasswordModal({
                   <p className="text-[13px] text-txt-muted">{folder_name}</p>
                 </div>
                 <button
-                  className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-txt-muted"
+                  className="p-1.5 rounded-[14px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-txt-muted"
                   onClick={handle_close}
                 >
                   <XMarkIcon className="w-4 h-4" />

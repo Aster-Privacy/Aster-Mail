@@ -430,7 +430,7 @@ export function ContactDetailView({
           )}
 
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[14px] font-medium text-white active:opacity-70"
+            className="flex w-full items-center justify-center gap-2 rounded-[16px] py-3.5 text-[14px] font-medium text-white active:opacity-70"
             style={{
               background: "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
               boxShadow:

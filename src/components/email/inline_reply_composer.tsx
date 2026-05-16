@@ -312,7 +312,7 @@ export const InlineReplyComposer = forwardRef<
       </div>
       <div className="flex items-center gap-1 flex-shrink-0">
         <button
-          className="p-1.5 rounded-md text-txt-muted hover:bg-surf-hover transition-colors"
+          className="p-1.5 rounded-[14px] text-txt-muted hover:bg-surf-hover transition-colors"
           onClick={toggle_fullscreen}
         >
           {is_fullscreen ? (
@@ -322,7 +322,7 @@ export const InlineReplyComposer = forwardRef<
           )}
         </button>
         <button
-          className="p-1.5 rounded-md text-txt-muted hover:bg-surf-hover transition-colors"
+          className="p-1.5 rounded-[14px] text-txt-muted hover:bg-surf-hover transition-colors"
           onClick={on_close}
         >
           <XMarkIcon className="w-5 h-5" strokeWidth={2.5} />

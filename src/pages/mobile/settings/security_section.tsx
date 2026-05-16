@@ -443,7 +443,7 @@ export function SecuritySection({
                 {timeout_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-lg px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.session_timeout_minutes === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -481,7 +481,7 @@ export function SecuritySection({
                 {rotation_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-lg px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.key_rotation_hours === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -509,7 +509,7 @@ export function SecuritySection({
                 {key_history_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-lg px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.key_history_limit === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -649,7 +649,7 @@ export function SecuritySection({
               )}
               <div className="flex gap-2">
                 <button
-                  className="flex-1 rounded-xl bg-[var(--bg-tertiary)] py-3 text-[15px] font-medium text-[var(--text-primary)]"
+                  className="flex-1 rounded-[16px] bg-[var(--bg-tertiary)] py-3 text-[15px] font-medium text-[var(--text-primary)]"
                   type="button"
                   onClick={() => {
                     set_show_password_change(false);

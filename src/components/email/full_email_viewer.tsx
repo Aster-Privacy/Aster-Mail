@@ -327,7 +327,7 @@ export function FullEmailViewer({
       <div className="flex flex-col h-full bg-surf-primary">
         <div className="flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-3 border-b border-edge-primary flex-shrink-0">
           <button
-            className="flex items-center gap-2 px-3 py-1.5 -ml-3 rounded-lg text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
+            className="flex items-center gap-2 px-3 py-1.5 -ml-3 rounded-[12px] text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
             onClick={on_back}
           >
             <ArrowLeftIcon className="w-4 h-4" />
@@ -354,7 +354,7 @@ export function FullEmailViewer({
     <div className="flex flex-col h-full bg-surf-primary">
       <div className="flex items-center gap-1 px-2 sm:px-3 py-2 border-b border-edge-primary flex-shrink-0">
         <button
-          className="flex items-center gap-1.5 px-2 py-1.5 mr-1 rounded-lg text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
+          className="flex items-center gap-1.5 px-2 py-1.5 mr-1 rounded-[12px] text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
           onClick={on_back}
         >
           <ArrowLeftIcon className="w-4 h-4" />

@@ -253,7 +253,7 @@ export function ProfileDropdown({
             </div>
           </div>
           <button
-            className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[12px] transition-colors border text-txt-secondary border-edge-secondary bg-surf-secondary"
+            className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-[12px] text-[12px] transition-colors border text-txt-secondary border-edge-secondary bg-surf-secondary"
             onClick={handle_copy_email}
           >
             <span className="truncate">{email}</span>

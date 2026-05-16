@@ -144,7 +144,7 @@ export function SearchScopeToggle({
   return (
     <div className="flex items-center gap-1 rounded-lg p-0.5 bg-surf-tertiary">
       <button
-        className="px-2.5 py-1 text-xs rounded-md transition-all duration-150"
+        className="px-2.5 py-1 text-xs rounded-[12px] transition-all duration-150"
         style={{
           backgroundColor:
             scope.type === "all" ? "var(--bg-card)" : "transparent",
@@ -159,7 +159,7 @@ export function SearchScopeToggle({
       </button>
       {current_folder && (
         <button
-          className="px-2.5 py-1 text-xs rounded-md transition-all duration-150"
+          className="px-2.5 py-1 text-xs rounded-[12px] transition-all duration-150"
           style={{
             backgroundColor:
               scope.type === "current_folder"
@@ -539,13 +539,13 @@ export function SaveSearchDialog({
         )}
         <div className="flex justify-end gap-2 pt-3 border-t border-edge-secondary">
           <button
-            className="px-4 py-2 text-sm rounded-lg transition-all hover:opacity-80 text-txt-muted bg-surf-hover"
+            className="px-4 py-2 text-sm rounded-[14px] transition-all hover:opacity-80 text-txt-muted bg-surf-hover"
             onClick={on_close}
           >
             {t("common.cancel")}
           </button>
           <button
-            className="px-4 py-2 text-sm rounded-lg font-medium transition-all hover:opacity-90 bg-brand text-white"
+            className="px-4 py-2 text-sm rounded-[14px] font-medium transition-all hover:opacity-90 bg-brand text-white"
             onClick={handle_save}
           >
             {t("common.save")}

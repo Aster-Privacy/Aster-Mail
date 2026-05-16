@@ -64,7 +64,7 @@ export function SenderFiltersSection({
             {tabs.map((tab) => (
               <button
                 key={tab.key}
-                className={`shrink-0 rounded-xl px-4 py-2.5 text-[13px] font-medium transition-colors ${active_tab === tab.key ? "text-white" : "bg-[var(--mobile-bg-card)] text-[var(--mobile-text-primary)]"}`}
+                className={`shrink-0 rounded-[14px] px-4 py-2.5 text-[13px] font-medium transition-colors ${active_tab === tab.key ? "text-white" : "bg-[var(--mobile-bg-card)] text-[var(--mobile-text-primary)]"}`}
                 style={active_tab === tab.key ? chip_selected_style : undefined}
                 type="button"
                 onClick={() => set_active_tab(tab.key)}

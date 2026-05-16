@@ -380,7 +380,7 @@ function UnitDropdown({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center justify-between gap-1.5 h-8 min-w-[60px] rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-[12.5px] px-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          className="inline-flex items-center justify-between gap-1.5 h-8 min-w-[60px] rounded-[12px] border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-[12.5px] px-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
         >
           <span>{unit_label[unit]}</span>
           <span className="text-neutral-400">▾</span>

@@ -127,7 +127,7 @@ export const SidebarTags = memo(function SidebarTags({
               </span>
             </button>
             <button
-              className="p-1 rounded-md  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-muted"
+              className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-muted"
               onClick={() => set_is_create_tag_open(true)}
             >
               <PlusIcon className="w-4 h-4" />
@@ -174,7 +174,7 @@ export const SidebarTags = memo(function SidebarTags({
                   ref={(el) => {
                     tag_refs.current[tag.tag_token] = el;
                   }}
-                  className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === tag_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === tag_item_id ? "sidebar-selected" : ""} ${drag_over_token === tag.tag_token ? "ring-2 ring-blue-500/60 bg-blue-500/10" : ""}`}
+                  className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === tag_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === tag_item_id ? "sidebar-selected" : ""} ${drag_over_token === tag.tag_token ? "ring-2 ring-blue-500/60 bg-blue-500/10" : ""}`}
                   style={{
                     zIndex: 1,
                     color:
@@ -274,7 +274,7 @@ export const SidebarTags = memo(function SidebarTags({
           })}
         {has_more && !is_collapsed && !section_collapsed && (
           <button
-            className="w-full flex items-center gap-2 px-2.5 h-7 text-[12px]  rounded-md hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-txt-muted"
+            className="w-full flex items-center gap-2 px-2.5 h-7 text-[12px]  rounded-[12px] hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-txt-muted"
             onClick={() => set_labels_expanded(!labels_expanded)}
           >
             {labels_expanded ? (

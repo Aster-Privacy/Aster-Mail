@@ -65,7 +65,7 @@ export function StorageBanner({
           </p>
         </div>
         <button
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-700 bg-white hover:bg-white/90 transition-colors flex-shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-red-700 bg-white hover:bg-white/90 transition-colors flex-shrink-0"
           onClick={on_settings_click}
         >
           <ArrowUpCircleIcon className="w-3.5 h-3.5" />
@@ -94,7 +94,7 @@ export function StorageBanner({
           </p>
         </div>
         <button
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-amber-700 bg-white hover:bg-white/90 transition-colors flex-shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-amber-700 bg-white hover:bg-white/90 transition-colors flex-shrink-0"
           onClick={on_settings_click}
         >
           <ArrowUpCircleIcon className="w-3.5 h-3.5" />

@@ -415,7 +415,7 @@ export function BehaviorSection() {
                 <button
                   key={width}
                   className={cn(
-                    "px-3 py-1.5 text-xs rounded-md transition-colors",
+                    "px-3 py-1.5 text-xs rounded-[12px] transition-colors",
                     current === width
                       ? "bg-[var(--accent-blue)] text-white"
                       : "bg-surf-secondary hover:bg-surf-hover",
@@ -598,7 +598,7 @@ export function BehaviorSection() {
                   <button
                     key={seconds}
                     className={cn(
-                      "px-3 py-1.5 text-xs rounded-md transition-colors",
+                      "px-3 py-1.5 text-xs rounded-[12px] transition-colors",
                       current === seconds
                         ? "bg-[var(--accent-blue)] text-white"
                         : "bg-surf-secondary hover:bg-surf-hover",

@@ -102,14 +102,14 @@ function MobileContactsPage({
               </div>
               <div className="mt-5 flex gap-3">
                 <button
-                  className="flex-1 rounded-xl py-2.5 text-[15px] font-medium text-[var(--text-primary)] bg-[var(--bg-tertiary)] active:opacity-80"
+                  className="flex-1 rounded-[14px] py-2.5 text-[15px] font-medium text-[var(--text-primary)] bg-[var(--bg-tertiary)] active:opacity-80"
                   type="button"
                   onClick={() => s.set_show_delete_confirm(false)}
                 >
                   {s.t("common.cancel")}
                 </button>
                 <button
-                  className="flex-1 rounded-xl py-2.5 text-[15px] font-semibold text-white active:brightness-90"
+                  className="flex-1 rounded-[14px] py-2.5 text-[15px] font-semibold text-white active:brightness-90"
                   style={{
                     background:
                       "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
@@ -202,14 +202,14 @@ function MobileContactsPage({
               </div>
               <div className="mt-5 flex gap-3">
                 <button
-                  className="flex-1 rounded-xl py-2.5 text-[15px] font-medium text-[var(--text-primary)] bg-[var(--bg-tertiary)] active:opacity-80"
+                  className="flex-1 rounded-[14px] py-2.5 text-[15px] font-medium text-[var(--text-primary)] bg-[var(--bg-tertiary)] active:opacity-80"
                   type="button"
                   onClick={() => s.set_show_sync_confirm(false)}
                 >
                   {s.t("common.cancel")}
                 </button>
                 <button
-                  className="flex-1 rounded-xl py-2.5 text-[15px] font-semibold text-white active:brightness-90"
+                  className="flex-1 rounded-[14px] py-2.5 text-[15px] font-semibold text-white active:brightness-90"
                   style={{
                     background:
                       "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",

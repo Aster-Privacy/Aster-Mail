@@ -119,14 +119,14 @@ export function AllowlistTab() {
           <div className="rounded-xl bg-[var(--mobile-bg-card)] p-4 space-y-3">
             <div className="flex gap-2">
               <button
-                className={`flex-1 rounded-lg py-2 text-[13px] font-medium transition-colors ${!is_domain ? "bg-[var(--mobile-accent)] text-white" : "bg-[var(--bg-tertiary)] text-[var(--mobile-text-secondary)]"}`}
+                className={`flex-1 rounded-[14px] py-2 text-[13px] font-medium transition-colors ${!is_domain ? "bg-[var(--mobile-accent)] text-white" : "bg-[var(--bg-tertiary)] text-[var(--mobile-text-secondary)]"}`}
                 type="button"
                 onClick={() => set_is_domain(false)}
               >
                 {t("settings.email_address")}
               </button>
               <button
-                className={`flex-1 rounded-lg py-2 text-[13px] font-medium transition-colors ${is_domain ? "bg-[var(--mobile-accent)] text-white" : "bg-[var(--bg-tertiary)] text-[var(--mobile-text-secondary)]"}`}
+                className={`flex-1 rounded-[14px] py-2 text-[13px] font-medium transition-colors ${is_domain ? "bg-[var(--mobile-accent)] text-white" : "bg-[var(--bg-tertiary)] text-[var(--mobile-text-secondary)]"}`}
                 type="button"
                 onClick={() => set_is_domain(true)}
               >
@@ -146,14 +146,14 @@ export function AllowlistTab() {
             />
             <div className="flex gap-2">
               <button
-                className="flex-1 rounded-lg bg-[var(--bg-tertiary)] py-2.5 text-[14px] font-medium text-[var(--mobile-text-secondary)]"
+                className="flex-1 rounded-[14px] bg-[var(--bg-tertiary)] py-2.5 text-[14px] font-medium text-[var(--mobile-text-secondary)]"
                 type="button"
                 onClick={close_add_form}
               >
                 {t("common.cancel")}
               </button>
               <button
-                className="flex flex-1 items-center justify-center rounded-lg bg-[var(--mobile-accent)] py-2.5 text-[14px] font-medium text-white disabled:opacity-50"
+                className="flex flex-1 items-center justify-center rounded-[14px] bg-[var(--mobile-accent)] py-2.5 text-[14px] font-medium text-white disabled:opacity-50"
                 disabled={is_adding || !new_email.trim()}
                 type="button"
                 onClick={handle_add}
@@ -164,7 +164,7 @@ export function AllowlistTab() {
           </div>
         ) : (
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--mobile-bg-card)] py-3 text-[14px] font-medium text-[var(--mobile-accent)]"
+            className="flex w-full items-center justify-center gap-2 rounded-[16px] bg-[var(--mobile-bg-card)] py-3 text-[14px] font-medium text-[var(--mobile-accent)]"
             type="button"
             onClick={() => set_show_add_form(true)}
           >

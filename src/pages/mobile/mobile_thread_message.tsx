@@ -237,7 +237,7 @@ export function MobileThreadMessage({
               onClick={(e) => e.stopPropagation()}
             >
               <button
-                className="flex h-8 items-center gap-1 rounded-lg px-2.5 text-[var(--text-secondary)] active:opacity-70"
+                className="flex h-8 items-center gap-1 rounded-[12px] px-2.5 text-[var(--text-secondary)] active:opacity-70"
                 style={{
                   background: "var(--bg-tertiary)",
                   boxShadow:
@@ -250,7 +250,7 @@ export function MobileThreadMessage({
                 <ArrowUturnLeftIcon className="h-4 w-4" />
               </button>
               <button
-                className="flex h-8 items-center gap-1 rounded-lg px-2.5 text-[var(--text-secondary)] active:opacity-70"
+                className="flex h-8 items-center gap-1 rounded-[12px] px-2.5 text-[var(--text-secondary)] active:opacity-70"
                 style={{
                   background: "var(--bg-tertiary)",
                   boxShadow:
@@ -263,7 +263,7 @@ export function MobileThreadMessage({
                 <ArrowUturnRightIcon className="h-4 w-4" />
               </button>
               <button
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] active:opacity-70"
+                className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[var(--text-secondary)] active:opacity-70"
                 style={{
                   background: "var(--bg-tertiary)",
                   boxShadow:
@@ -323,7 +323,7 @@ export function MobileThreadMessage({
 
       <div className="flex items-center gap-2 border-t border-[var(--border-primary)] px-4 py-2">
         <button
-          className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg text-[13px] font-medium text-white active:opacity-70"
+          className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[14px] text-[13px] font-medium text-white active:opacity-70"
           style={{
             background:
               "linear-gradient(180deg, var(--accent-color, #3b82f6) 0%, var(--accent-color-hover, #2563eb) 100%)",
@@ -338,7 +338,7 @@ export function MobileThreadMessage({
           {t("mail.reply")}
         </button>
         <button
-          className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
+          className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[14px] text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
           style={{
             background: "var(--bg-tertiary)",
             boxShadow:

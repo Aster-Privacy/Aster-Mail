@@ -109,7 +109,7 @@ export function AliasesSection() {
             {t("settings.domain_promo_subtitle")}
           </p>
           <button
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-blue-900"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[14px] text-sm font-semibold bg-white text-blue-900"
             style={{
               boxShadow:
                 "0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",

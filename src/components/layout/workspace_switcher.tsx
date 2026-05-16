@@ -158,7 +158,7 @@ export function WorkspaceSwitcher({
         >
           <div className="p-1.5 pb-0">
             <button
-              className="w-full px-2.5 py-2 rounded-lg text-left flex items-center gap-2.5"
+              className="w-full px-2.5 py-2 rounded-[14px] text-left flex items-center gap-2.5"
               type="button"
               onClick={() => handle_copy(user_email)}
             >
@@ -207,7 +207,7 @@ export function WorkspaceSwitcher({
                   {extra_addresses.map((addr) => (
                     <button
                       key={addr.id}
-                      className="w-full px-2.5 py-1.5 rounded-lg text-left flex items-center gap-2.5"
+                      className="w-full px-2.5 py-1.5 rounded-[12px] text-left flex items-center gap-2.5"
                       type="button"
                       onClick={() => handle_copy(addr.email)}
                     >

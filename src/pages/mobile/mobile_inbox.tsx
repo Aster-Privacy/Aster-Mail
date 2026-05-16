@@ -806,7 +806,7 @@ function MobileInbox({
             ].map((opt) => (
               <button
                 key={opt.label}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={() => handle_snooze_select(opt.date)}
               >

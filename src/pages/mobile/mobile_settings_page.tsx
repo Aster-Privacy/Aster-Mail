@@ -271,7 +271,7 @@ function MobileSettingsPage() {
             <div className="flex-1 overflow-y-auto pb-12">
               <div className="px-4 pt-3 pb-1">
                 <button
-                  className="flex w-full items-center gap-3.5 rounded-2xl bg-[var(--mobile-bg-card)] px-4 py-3.5 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3.5 rounded-[16px] bg-[var(--mobile-bg-card)] px-4 py-3.5 text-left active:opacity-80"
                   type="button"
                   onClick={() => open_section("account")}
                 >
@@ -313,7 +313,7 @@ function MobileSettingsPage() {
                     />
                   </div>
                   <button
-                    className="mt-2.5 w-full rounded-lg py-2 text-[13px] font-semibold text-white"
+                    className="mt-2.5 w-full rounded-[14px] py-2 text-[13px] font-semibold text-white"
                     style={{
                       background:
                         "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",

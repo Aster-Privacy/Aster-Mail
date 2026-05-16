@@ -152,7 +152,7 @@ export function ExternalAccountsSection({
           <SettingsGroup title={state.t("settings.protocol")}>
             <div className="flex gap-2 px-4 py-3">
               <button
-                className={`flex-1 rounded-lg py-2.5 text-center text-[14px] font-medium transition-colors ${
+                className={`flex-1 rounded-[14px] py-2.5 text-center text-[14px] font-medium transition-colors ${
                   state.form_protocol === "imap"
                     ? "bg-[var(--accent-color,#3b82f6)] text-white"
                     : "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
@@ -163,7 +163,7 @@ export function ExternalAccountsSection({
                 IMAP
               </button>
               <button
-                className={`flex-1 rounded-lg py-2.5 text-center text-[14px] font-medium transition-colors ${
+                className={`flex-1 rounded-[14px] py-2.5 text-center text-[14px] font-medium transition-colors ${
                   state.form_protocol === "pop3"
                     ? "bg-[var(--accent-color,#3b82f6)] text-white"
                     : "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
@@ -444,7 +444,7 @@ export function ExternalAccountsSection({
               {state.sync_frequency_options.map((opt) => (
                 <button
                   key={opt.value}
-                  className={`rounded-lg px-3.5 py-2 text-[13px] font-medium transition-colors ${
+                  className={`rounded-[14px] px-3.5 py-2 text-[13px] font-medium transition-colors ${
                     state.form_sync_frequency === opt.value
                       ? "text-white"
                       : "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
@@ -540,7 +540,7 @@ export function ExternalAccountsSection({
 
           <div className="px-4 py-1.5">
             <button
-              className="flex w-full items-center gap-2 rounded-2xl bg-[var(--mobile-bg-card)] px-4 py-3.5 text-left"
+              className="flex w-full items-center gap-2 rounded-[16px] bg-[var(--mobile-bg-card)] px-4 py-3.5 text-left"
               type="button"
               onClick={() => state.set_show_advanced(!state.show_advanced)}
             >
@@ -567,7 +567,7 @@ export function ExternalAccountsSection({
                       {state.tls_method_options.map((opt) => (
                         <button
                           key={opt.value}
-                          className={`flex-1 rounded-lg py-2 text-center text-[13px] font-medium transition-colors ${
+                          className={`flex-1 rounded-[14px] py-2 text-center text-[13px] font-medium transition-colors ${
                             state.form_tls_method === opt.value
                               ? "bg-[var(--accent-color,#3b82f6)] text-white"
                               : "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"

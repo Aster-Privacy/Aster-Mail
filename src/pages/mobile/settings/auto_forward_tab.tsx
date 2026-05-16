@@ -202,7 +202,7 @@ export function AutoForwardTab() {
     <>
       <div className="px-4 pt-3">
         <button
-          className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-semibold text-white"
+          className="flex w-full items-center justify-center gap-2 rounded-[16px] py-3 text-[14px] font-semibold text-white"
           style={{
             background:
               "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
@@ -306,7 +306,7 @@ export function AutoForwardTab() {
               </div>
               <div className="px-4 py-2.5 border-t border-[var(--mobile-border)] flex gap-2">
                 <button
-                  className="flex-1 rounded-lg py-2 text-[13px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
+                  className="flex-1 rounded-[14px] py-2 text-[13px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
                   type="button"
                   onClick={() => {
                     set_editing_rule(rule);
@@ -316,14 +316,14 @@ export function AutoForwardTab() {
                   {t("common.edit")}
                 </button>
                 <button
-                  className="flex-1 rounded-lg py-2 text-[13px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
+                  className="flex-1 rounded-[14px] py-2 text-[13px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
                   type="button"
                   onClick={() => handle_toggle_rule(rule)}
                 >
                   {rule.is_enabled ? t("common.paused") : t("common.enable")}
                 </button>
                 <button
-                  className="rounded-lg px-3 py-2 text-[13px] font-medium text-[var(--mobile-danger)] bg-[var(--mobile-bg-card-hover)] disabled:opacity-50"
+                  className="rounded-[14px] px-3 py-2 text-[13px] font-medium text-[var(--mobile-danger)] bg-[var(--mobile-bg-card-hover)] disabled:opacity-50"
                   disabled={is_deleting_rule}
                   type="button"
                   onClick={() => handle_delete_rule(rule)}

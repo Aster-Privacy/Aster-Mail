@@ -122,7 +122,7 @@ export function StepRecoveryKey({
               {reg.recovery_codes.map((code, index) => (
                 <button
                   key={index}
-                  className="relative overflow-hidden rounded-xl border px-4 py-3.5 text-center bg-[var(--bg-tertiary)] border-[var(--border-secondary)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]"
+                  className="relative overflow-hidden rounded-[16px] border px-4 py-3.5 text-center bg-[var(--bg-tertiary)] border-[var(--border-secondary)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]"
                   type="button"
                   onClick={() => {
                     if (reg.is_key_visible) {

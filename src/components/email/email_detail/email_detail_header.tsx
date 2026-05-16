@@ -94,7 +94,7 @@ export function EmailDetailHeader({
         <MobileMenuButton on_click={toggle_mobile_sidebar} />
       </div>
       <button
-        className="flex items-center gap-1.5 h-9 px-3 rounded-xl text-txt-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer border-none bg-transparent"
+        className="flex items-center gap-1.5 h-9 px-3 rounded-[14px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer border-none bg-transparent"
         onClick={() => navigate(-1)}
       >
         <ArrowLeftIcon className="w-5 h-5 flex-shrink-0" />

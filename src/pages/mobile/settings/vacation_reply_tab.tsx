@@ -184,7 +184,7 @@ export function VacationReplyTab() {
                 </span>
               </div>
               <button
-                className="rounded-lg px-3 py-1.5 text-[13px] font-medium bg-[var(--mobile-bg-card-hover)] text-[var(--mobile-text-secondary)]"
+                className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium bg-[var(--mobile-bg-card-hover)] text-[var(--mobile-text-secondary)]"
                 type="button"
                 onClick={handle_toggle_vacation}
               >
@@ -312,7 +312,7 @@ export function VacationReplyTab() {
 
           <div className="flex gap-2">
             <button
-              className="flex-1 rounded-xl py-3 text-[14px] font-semibold text-white disabled:opacity-50"
+              className="flex-1 rounded-[16px] py-3 text-[14px] font-semibold text-white disabled:opacity-50"
               disabled={
                 is_saving_vacation ||
                 !vacation_subject.trim() ||
@@ -333,7 +333,7 @@ export function VacationReplyTab() {
             </button>
             {vacation && (
               <button
-                className="rounded-xl px-4 py-3 text-[14px] font-medium text-[var(--mobile-danger)] bg-[var(--mobile-bg-card)]"
+                className="rounded-[16px] px-4 py-3 text-[14px] font-medium text-[var(--mobile-danger)] bg-[var(--mobile-bg-card)]"
                 type="button"
                 onClick={handle_delete_vacation}
               >

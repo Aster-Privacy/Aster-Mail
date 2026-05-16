@@ -356,7 +356,7 @@ export function ModalContactDetail({
                   <div className="flex flex-wrap gap-2">
                     {selected_contact.social_links.website && (
                       <a
-                        className="text-[13px] px-2.5 py-1 rounded-md transition-colors bg-surf-primary text-txt-secondary"
+                        className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
                         href={
                           selected_contact.social_links.website.startsWith(
                             "http",
@@ -372,7 +372,7 @@ export function ModalContactDetail({
                     )}
                     {selected_contact.social_links.linkedin && (
                       <a
-                        className="text-[13px] px-2.5 py-1 rounded-md transition-colors bg-surf-primary text-txt-secondary"
+                        className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
                         href={
                           selected_contact.social_links.linkedin.includes(
                             "linkedin.com",
@@ -388,7 +388,7 @@ export function ModalContactDetail({
                     )}
                     {selected_contact.social_links.twitter && (
                       <a
-                        className="text-[13px] px-2.5 py-1 rounded-md transition-colors bg-surf-primary text-txt-secondary"
+                        className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
                         href={
                           selected_contact.social_links.twitter.includes(
                             "twitter.com",
@@ -407,7 +407,7 @@ export function ModalContactDetail({
                     )}
                     {selected_contact.social_links.github && (
                       <a
-                        className="text-[13px] px-2.5 py-1 rounded-md transition-colors bg-surf-primary text-txt-secondary"
+                        className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
                         href={
                           selected_contact.social_links.github.includes(
                             "github.com",

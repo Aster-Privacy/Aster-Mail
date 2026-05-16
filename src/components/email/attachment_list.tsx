@@ -177,14 +177,14 @@ function ImagePreviewModal({
             {filename}
           </span>
           <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white/90 bg-white/10"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-white/90 bg-white/10"
             onClick={on_download}
           >
             <DownloadIcon className="w-3.5 h-3.5" />
             {t("common.download")}
           </button>
           <button
-            className="px-3 py-1.5 rounded-md text-xs font-medium text-white/90 bg-white/10"
+            className="px-3 py-1.5 rounded-[12px] text-xs font-medium text-white/90 bg-white/10"
             onClick={on_close}
           >
             {t("common.close")}
@@ -264,7 +264,7 @@ function AttachmentCard({
           </div>
         </div>
         <button
-          className="flex-shrink-0 p-1.5 rounded-md text-txt-muted hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+          className="flex-shrink-0 p-1.5 rounded-[14px] text-txt-muted hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           title={t("mail.download_file_named", { filename: att.filename })}
           onClick={on_download}
         >

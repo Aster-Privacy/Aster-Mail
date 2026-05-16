@@ -298,7 +298,7 @@ export function AdvancedSearchModal({
                       !state.is_searching &&
                       !state.is_loading && (
                         <button
-                          className="w-full py-3 text-xs text-center rounded-lg mt-2 text-txt-muted bg-surf-tertiary hover:bg-surf-hover transition-colors"
+                          className="w-full py-3 text-xs text-center rounded-[16px] mt-2 text-txt-muted bg-surf-tertiary hover:bg-surf-hover transition-colors"
                           onClick={load_more}
                         >
                           {t("mail.load_more_results", {
@@ -355,7 +355,7 @@ export function AdvancedSearchModal({
                       ].map((item) => (
                         <button
                           key={item.op}
-                          className="flex items-start gap-2 p-2 rounded-lg text-left transition-colors hover_bg text-txt-secondary"
+                          className="flex items-start gap-2 p-2 rounded-[14px] text-left transition-colors hover_bg text-txt-secondary"
                           onClick={() => {
                             set_raw_query(item.op);
                             search(item.op);

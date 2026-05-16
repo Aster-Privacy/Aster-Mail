@@ -109,7 +109,7 @@ function VacationDatePicker({
       <Popover open={is_open} onOpenChange={set_is_open}>
         <PopoverTrigger asChild>
           <button
-            className="w-full flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors"
+            className="w-full flex items-center gap-2 rounded-[14px] border px-3 py-2 text-sm text-left transition-colors"
             style={{
               backgroundColor: "var(--bg-primary)",
               borderColor: "var(--border-primary)",

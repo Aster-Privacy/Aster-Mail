@@ -82,7 +82,7 @@ export function BottomPagination({
   return (
     <div className="flex items-center justify-center gap-1 py-3 border-t border-edge-primary">
       <button
-        className="flex items-center justify-center w-8 h-8 rounded-md text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] disabled:opacity-30 disabled:cursor-default transition-colors"
+        className="flex items-center justify-center w-8 h-8 rounded-[8px] text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] disabled:opacity-30 disabled:cursor-default transition-colors"
         disabled={current_page === 0}
         onClick={() => on_page_change(current_page - 1)}
       >
@@ -112,7 +112,7 @@ export function BottomPagination({
           ) : (
             <button
               key={`e-${idx}`}
-              className="flex items-center justify-center w-8 h-8 rounded-md text-sm text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+              className="flex items-center justify-center w-8 h-8 rounded-[8px] text-sm text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
               onClick={() => set_editing_idx(idx)}
             >
               ...
@@ -121,7 +121,7 @@ export function BottomPagination({
         ) : (
           <button
             key={item}
-            className={`flex items-center justify-center min-w-[32px] h-8 px-1 rounded-md text-sm font-medium transition-colors ${item === current_page ? "bg-[rgba(128,128,128,0.1)] text-txt-primary" : "text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"}`}
+            className={`flex items-center justify-center min-w-[32px] h-8 px-1 rounded-[12px] text-sm font-medium transition-colors ${item === current_page ? "bg-[rgba(128,128,128,0.1)] text-txt-primary" : "text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"}`}
             onClick={() => {
               if (item !== current_page) on_page_change(item);
             }}
@@ -131,7 +131,7 @@ export function BottomPagination({
         ),
       )}
       <button
-        className="flex items-center justify-center w-8 h-8 rounded-md text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] disabled:opacity-30 disabled:cursor-default transition-colors"
+        className="flex items-center justify-center w-8 h-8 rounded-[8px] text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] disabled:opacity-30 disabled:cursor-default transition-colors"
         disabled={current_page >= total_pages - 1}
         onClick={() => on_page_change(current_page + 1)}
       >

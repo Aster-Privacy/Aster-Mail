@@ -144,7 +144,7 @@ export function ContactResultRow({
         </span>
       </div>
       <button
-        className="p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--bg-tertiary)]"
+        className="p-1.5 rounded-[14px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--bg-tertiary)]"
         title={t("mail.view_contact_profile")}
         onClick={(e) => {
           e.stopPropagation();
@@ -172,7 +172,7 @@ export function FolderResultRow({
 
   return (
     <button
-      className="flex items-center gap-2.5 w-full px-3 py-2 text-left transition-colors rounded-md"
+      className="flex items-center gap-2.5 w-full px-3 py-2 text-left transition-colors rounded-[14px]"
       style={{
         backgroundColor: is_hovered ? "var(--bg-hover)" : "transparent",
       }}
@@ -248,7 +248,7 @@ export const SearchResultRow = forwardRef<
   return (
     <button
       ref={ref}
-      className="flex items-center gap-3 w-full px-3 py-2.5 text-left transition-all rounded-lg group"
+      className="flex items-center gap-3 w-full px-3 py-2.5 text-left transition-all rounded-[14px] group"
       style={{
         backgroundColor: is_hovered ? "var(--bg-hover)" : "transparent",
       }}
@@ -316,7 +316,7 @@ export const SearchResultRow = forwardRef<
             }}
           >
             <button
-              className="p-1.5 rounded-md transition-colors hover:bg-black/10 dark:hover:bg-white/10 text-txt-muted"
+              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/10 dark:hover:bg-white/10 text-txt-muted"
               title={
                 result.is_read
                   ? t("mail.mark_unread_title")
@@ -340,7 +340,7 @@ export const SearchResultRow = forwardRef<
               </svg>
             </button>
             <button
-              className="p-1.5 rounded-md transition-colors hover:bg-black/10 dark:hover:bg-white/10"
+              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/10 dark:hover:bg-white/10"
               style={{
                 color: result.is_starred
                   ? "var(--color-warning)"
@@ -365,7 +365,7 @@ export const SearchResultRow = forwardRef<
               </svg>
             </button>
             <button
-              className="p-1.5 rounded-md transition-colors hover:bg-black/10 dark:hover:bg-white/10 text-txt-muted"
+              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/10 dark:hover:bg-white/10 text-txt-muted"
               title={t("mail.archive")}
               onClick={(e) => {
                 e.stopPropagation();
@@ -381,7 +381,7 @@ export const SearchResultRow = forwardRef<
               </svg>
             </button>
             <button
-              className="p-1.5 rounded-md transition-colors hover:bg-black/10 dark:hover:bg-white/10 text-txt-muted"
+              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/10 dark:hover:bg-white/10 text-txt-muted"
               title={t("common.delete")}
               onClick={(e) => {
                 e.stopPropagation();

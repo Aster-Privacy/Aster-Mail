@@ -291,21 +291,21 @@ export function EmailDetailBody({
                       <Separator />
 
                       <div className="p-1">
-                        <button className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-txt-secondary hover:bg-surf-hover rounded-md">
+                        <button className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-txt-secondary hover:bg-surf-hover rounded-[14px]">
                           <EnvelopeIcon className="w-4 h-4" />
                           {t("common.new_message")}
                         </button>
-                        <button className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-txt-secondary hover:bg-surf-hover rounded-md">
+                        <button className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-txt-secondary hover:bg-surf-hover rounded-[14px]">
                           <UserIcon className="w-4 h-4" />
                           {t("common.add_to_contacts")}
                         </button>
-                        <button className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-txt-secondary hover:bg-surf-hover rounded-md">
+                        <button className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-txt-secondary hover:bg-surf-hover rounded-[14px]">
                           <ChatBubbleLeftIcon className="w-4 h-4" />
                           {t("common.view_all_messages" as TranslationKey)}
                         </button>
                         <Separator className="my-1" />
                         <button
-                          className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-red-500 hover:bg-red-500/10 rounded-md"
+                          className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-red-500 hover:bg-red-500/10 rounded-[14px]"
                           onClick={() => {
                             set_is_sender_dropdown_open(false);
                             set_is_block_sender_modal_open(true);
@@ -413,7 +413,7 @@ export function EmailDetailBody({
                 {email.attachments.map((attachment, idx) => (
                   <button
                     key={idx}
-                    className="flex items-center gap-2 px-2 sm:px-3 py-2 border rounded-lg cursor-pointer hover:bg-surf-hover w-full sm:w-auto bg-surf-card border-edge-secondary"
+                    className="flex items-center gap-2 px-2 sm:px-3 py-2 border rounded-[14px] cursor-pointer hover:bg-surf-hover w-full sm:w-auto bg-surf-card border-edge-secondary"
                   >
                     <div className="w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 rounded flex items-center justify-center flex-shrink-0">
                       <DocumentTextIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />

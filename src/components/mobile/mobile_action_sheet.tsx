@@ -57,7 +57,7 @@ export const MobileActionSheet = memo(function MobileActionSheet({
         {items.map((item) => (
           <button
             key={item.label}
-            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left active:bg-[var(--bg-tertiary)] ${
+            className={`flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left active:bg-[var(--bg-tertiary)] ${
               item.destructive
                 ? "text-[var(--color-danger,#ef4444)]"
                 : "text-[var(--text-primary)]"
@@ -73,7 +73,7 @@ export const MobileActionSheet = memo(function MobileActionSheet({
         <div className="mx-4 my-1 border-t border-[var(--border-primary)]" />
 
         <button
-          className="flex w-full items-center justify-center rounded-xl px-4 py-3 text-[15px] font-medium text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
+          className="flex w-full items-center justify-center rounded-[16px] px-4 py-3 text-[15px] font-medium text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
           type="button"
           onClick={on_close}
         >

@@ -184,7 +184,7 @@ export function ConnectionSection() {
             <button
               key={option.value}
               className={cn(
-                "rounded-xl border-2 overflow-hidden transition-colors text-left",
+                "rounded-[14px] border-2 overflow-hidden transition-colors text-left",
                 is_disabled && "opacity-50 pointer-events-none",
                 is_selected ? "border-brand" : "border-edge-secondary",
               )}

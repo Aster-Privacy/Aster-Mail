@@ -426,7 +426,7 @@ export function SignatureSection() {
               return (
                 <button
                   key={option.value}
-                  className="relative px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 outline-none"
+                  className="relative px-5 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none"
                   style={{
                     backgroundColor: is_selected
                       ? "var(--bg-primary)"
@@ -904,7 +904,7 @@ export function SignatureSection() {
             return (
               <button
                 key={option.value}
-                className="w-full flex items-center justify-between p-3 rounded-lg transition-colors text-left"
+                className="w-full flex items-center justify-between p-3 rounded-[14px] transition-colors text-left"
                 style={{
                   backgroundColor: is_selected
                     ? "var(--bg-selected)"

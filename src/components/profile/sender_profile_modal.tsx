@@ -432,7 +432,7 @@ function InternalHeader({ display_name, email, on_close, t }: InternalHeaderProp
     >
       <button
         aria-label={t("common.close")}
-        className="absolute top-3 right-3 p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+        className="absolute top-3 right-3 p-1.5 rounded-[14px] text-white/50 hover:text-white hover:bg-white/10 transition-colors"
         type="button"
         onClick={on_close}
       >
@@ -477,7 +477,7 @@ function ExternalHeader({
     <div className="relative px-5 pt-5 pb-4 border-b border-edge-secondary">
       <button
         aria-label={t("common.close")}
-        className="absolute top-3 right-3 p-1.5 rounded-lg text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors"
+        className="absolute top-3 right-3 p-1.5 rounded-[14px] text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors"
         type="button"
         onClick={on_close}
       >

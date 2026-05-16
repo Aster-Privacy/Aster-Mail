@@ -335,7 +335,7 @@ export function SplitEmailViewer({
             {t("common.error_label")}
           </span>
           <button
-            className="p-1.5 rounded-md transition-colors text-txt-muted"
+            className="p-1.5 rounded-[14px] transition-colors text-txt-muted"
             onClick={on_close}
           >
             <XMarkIcon className="w-5 h-5" />
@@ -404,7 +404,7 @@ export function SplitEmailViewer({
         <div className="flex-1" />
 
         <button
-          className="p-1.5 rounded-md transition-colors hover:bg-surf-hover flex-shrink-0 text-txt-muted"
+          className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover flex-shrink-0 text-txt-muted"
           onClick={on_close}
         >
           <XMarkIcon className="w-5 h-5" />

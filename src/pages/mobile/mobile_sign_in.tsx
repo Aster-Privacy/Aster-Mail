@@ -774,7 +774,7 @@ export default function MobileSignInPage() {
                   }}
                 />
                 <button
-                  className={`relative h-10 flex-1 rounded-lg text-sm font-medium transition-colors duration-150 ${email_domain === "astermail.org" ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
+                  className={`relative h-10 flex-1 rounded-[14px] text-sm font-medium transition-colors duration-150 ${email_domain === "astermail.org" ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
                   disabled={is_loading}
                   type="button"
                   onClick={() => set_email_domain("astermail.org")}
@@ -782,7 +782,7 @@ export default function MobileSignInPage() {
                   @astermail.org
                 </button>
                 <button
-                  className={`relative h-10 flex-1 rounded-lg text-sm font-medium transition-colors duration-150 ${email_domain === "aster.cx" ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
+                  className={`relative h-10 flex-1 rounded-[14px] text-sm font-medium transition-colors duration-150 ${email_domain === "aster.cx" ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
                   disabled={is_loading}
                   type="button"
                   onClick={() => set_email_domain("aster.cx")}

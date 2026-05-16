@@ -201,7 +201,7 @@ export function HardwareKeysSection() {
                   </div>
                 </div>
                 <button
-                  className="p-1.5 rounded-lg transition-colors hover:bg-surf-tertiary"
+                  className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-tertiary"
                   disabled={removing_key_id === key.id}
                   type="button"
                   onClick={() => {

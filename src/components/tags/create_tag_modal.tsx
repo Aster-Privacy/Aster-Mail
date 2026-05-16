@@ -199,7 +199,7 @@ export function CreateTagModal({ is_open, on_close }: CreateTagModalProps) {
                   </label>
                   <div className="flex flex-wrap gap-1.5">
                     <button
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] transition-colors"
+                      className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[11px] transition-colors"
                       style={{
                         backgroundColor: !selected_icon
                           ? "var(--indicator-bg)"
@@ -219,7 +219,7 @@ export function CreateTagModal({ is_open, on_close }: CreateTagModalProps) {
                       return (
                         <button
                           key={icon_name}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                          className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors"
                           style={{
                             backgroundColor:
                               selected_icon === icon_name

@@ -567,7 +567,7 @@ export function InboxHeader({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="no_scale p-2 rounded-lg flex items-center justify-center w-[40px] h-[40px] min-w-[40px] min-h-[40px] max-w-[40px] max-h-[40px] flex-shrink-0 transition-colors focus:outline-none"
+                className="no_scale p-2 rounded-[14px] flex items-center justify-center w-[40px] h-[40px] min-w-[40px] min-h-[40px] max-w-[40px] max-h-[40px] flex-shrink-0 transition-colors focus:outline-none"
                 style={{
                   width: "40px",
                   height: "40px",
@@ -665,7 +665,7 @@ export function InboxHeader({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="no_scale p-2 rounded-lg flex items-center justify-center w-[40px] h-[40px] min-w-[40px] min-h-[40px] max-w-[40px] max-h-[40px] flex-shrink-0 transition-colors focus:outline-none"
+                className="no_scale p-2 rounded-[14px] flex items-center justify-center w-[40px] h-[40px] min-w-[40px] min-h-[40px] max-w-[40px] max-h-[40px] flex-shrink-0 transition-colors focus:outline-none"
                 style={{
                   width: "40px",
                   height: "40px",
@@ -692,7 +692,7 @@ export function InboxHeader({
           </DropdownMenu>
 
           <button
-            className="p-2 rounded-lg transition-colors hover_bg focus:outline-none"
+            className="p-2 rounded-[14px] transition-colors hover_bg focus:outline-none"
             data-onboarding="settings-button"
             style={{ color: "var(--text-secondary)" }}
             onClick={on_settings_click}

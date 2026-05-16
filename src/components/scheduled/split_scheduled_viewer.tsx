@@ -234,7 +234,7 @@ export function SplitScheduledViewer({
               </button>
             </div>
             <button
-              className="p-1.5 rounded-md transition-colors hover:bg-surf-hover flex-shrink-0 -mt-1 -mr-1 text-txt-muted"
+              className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover flex-shrink-0 -mt-1 -mr-1 text-txt-muted"
               onClick={on_close}
             >
               <XMarkIcon className="w-5 h-5" />
@@ -335,7 +335,7 @@ export function SplitScheduledViewer({
         </Button>
         {on_edit && (
           <button
-            className="flex-1 h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-txt-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"
+            className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[14px] text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-txt-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"
             disabled={is_loading_content}
             onClick={handle_edit}
           >
@@ -344,7 +344,7 @@ export function SplitScheduledViewer({
           </button>
         )}
         <button
-          className="h-10 w-10 flex items-center justify-center rounded-lg transition-colors hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-10 w-10 flex items-center justify-center rounded-[10px] transition-colors hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={is_cancelling}
           onClick={() => set_show_cancel_confirm(true)}
         >
