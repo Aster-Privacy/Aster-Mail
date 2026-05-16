@@ -1600,6 +1600,8 @@ export const de = {
     "connection.title": "Verbindung",
     "connection.description":
       "Wählen Sie, wie Sie sich mit den Aster-Diensten verbinden",
+    "connection.title_info":
+      "Aster unterstützt mehrere Routen zu seinen Servern. Die gewählte Route bestimmt, wer Ihre IP-Adresse sieht und wie Anfragen zu uns gelangen. Ihre Nachrichten bleiben in jedem Fall Ende-zu-Ende-verschlüsselt.",
     "connection.direct": "Direkt",
     "connection.direct_description": "Direkte Verbindung zu den Aster-Servern",
     "connection.tor": "Tor",

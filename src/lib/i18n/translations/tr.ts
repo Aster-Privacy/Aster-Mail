@@ -1591,6 +1591,8 @@ export const tr = {
     error_deleting_account: "Hesabınızı şu anda silemedik. Birkaç saniye sonra tekrar denemek genellikle işe yarar ve sorun sürerse support@aster.com yardımcı olabilir.",
     "connection.title": "Bağlantı",
     "connection.description": "Aster hizmetlerine nasıl bağlanacağınızı seçin",
+    "connection.title_info":
+      "Aster sunucularına birden fazla yol destekler. Seçtiğiniz yol, IP adresinizi kimin görebileceğini ve isteklerin bize nasıl ulaştığını değiştirir. Mesajlarınız her durumda uçtan uca şifreli kalır.",
     "connection.direct": "Doğrudan",
     "connection.direct_description": "Aster sunucularına doğrudan bağlan",
     "connection.tor": "Tor",

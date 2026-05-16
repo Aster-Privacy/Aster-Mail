@@ -1582,6 +1582,8 @@ export const fr = {
     error_deleting_account: "Nous n'avons pas pu supprimer votre compte tout de suite. Un autre essai dans un instant fonctionne en général, et support@aster.com peut aider si cela continue d'échouer.",
     "connection.title": "Connexion",
     "connection.description": "Choisir comment se connecter aux services Aster",
+    "connection.title_info":
+      "Aster prend en charge plusieurs routes vers ses serveurs. La route que vous choisissez change qui peut voir votre adresse IP et comment les requêtes nous parviennent. Vos messages restent chiffrés de bout en bout dans les deux cas.",
     "connection.direct": "Direct",
     "connection.direct_description":
       "Se connecter directement aux serveurs Aster",

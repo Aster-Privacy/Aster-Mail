@@ -2157,6 +2157,8 @@ export const en: Translations = {
     error_deleting_account: "We could not delete your account just now. Another attempt in a moment usually works, and support@aster.com can help if it keeps failing.",
     "connection.title": "Connection",
     "connection.description": "Choose how to connect to Aster services",
+    "connection.title_info":
+      "Aster supports more than one route to its servers. The route you pick changes who can see your IP address and how requests reach us. Your messages stay end-to-end encrypted either way.",
     "connection.direct": "Direct",
     "connection.direct_description":
       "Your device connects straight to Aster servers. Fastest path and lowest latency, but your IP address is visible to Aster.",

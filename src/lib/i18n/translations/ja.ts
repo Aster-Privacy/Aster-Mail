@@ -1553,6 +1553,8 @@ export const ja = {
     error_deleting_account: "現時点ではアカウントを削除できませんでした。しばらくしてからもう一度試すと通ることが多く、繰り返し失敗する場合は support@aster.com がお力になれます。",
     "connection.title": "接続",
     "connection.description": "Asterサービスへの接続方法を選択します",
+    "connection.title_info":
+      "Aster はサーバーへの複数のルートをサポートします。選択したルートによって、あなたの IP アドレスを誰が見られるか、リクエストがどのように届くかが変わります。メッセージはいずれの場合もエンドツーエンドで暗号化されたままです。",
     "connection.direct": "直接",
     "connection.direct_description": "Asterサーバーに直接接続します",
     "connection.tor": "Tor",

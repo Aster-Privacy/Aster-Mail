@@ -2055,6 +2055,7 @@ export interface SettingsTranslations {
   error_deleting_account: string;
   "connection.title": string;
   "connection.description": string;
+  "connection.title_info": string;
   "connection.direct": string;
   "connection.direct_description": string;
   "connection.tor": string;

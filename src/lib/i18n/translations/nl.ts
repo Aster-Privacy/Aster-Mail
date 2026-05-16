@@ -1538,6 +1538,8 @@ export const nl = {
     failed_delete_account: "We konden uw account niet verwijderen. Uw wachtwoord controleren en het opnieuw proberen lost dit meestal op. Uw account is ongewijzigd.",
     "connection.title": "Verbinding",
     "connection.description": "Kies hoe je verbinding maakt met Aster-diensten",
+    "connection.title_info":
+      "Aster ondersteunt meerdere routes naar zijn servers. De route die je kiest bepaalt wie je IP-adres kan zien en hoe verzoeken ons bereiken. Je berichten blijven in beide gevallen end-to-end versleuteld.",
     "connection.direct": "Direct",
     "connection.direct_description": "Verbind direct met Aster-servers",
     "connection.tor": "Tor",
