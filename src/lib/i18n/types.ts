@@ -3825,6 +3825,16 @@ export interface AuthTranslations {
   sign_in: string;
   sign_out: string;
   sign_up: string;
+  your_accounts: string;
+  active_account: string;
+  add_another_account: string;
+  switch_to_account: string;
+  remove_account: string;
+  remove_account_title: string;
+  remove_account_message: string;
+  confirm_remove_account: string;
+  account_limit_for_plan: string;
+  signing_out_current: string;
   email: string;
   password: string;
   confirm_password: string;
