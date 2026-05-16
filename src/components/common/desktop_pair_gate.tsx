@@ -316,6 +316,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
         }
       } catch (init_err) {
         if (import.meta.env.DEV) console.error(init_err);
+        if (!cancelled) set_gate_state("error");
       } finally {
         if (!cancelled) set_checked(true);
       }

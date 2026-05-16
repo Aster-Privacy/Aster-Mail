@@ -132,7 +132,10 @@ fn wrap_key_load() -> Result<Option<[u8; 32]>, String> {
             Ok(Some(key))
         }
         Err(keyring::Error::NoEntry) => Ok(None),
-        Err(e) => Err(format!("keyring get: {}", e)),
+        Err(_) => {
+            let _ = entry.delete_credential();
+            Ok(None)
+        }
     }
 }
 
