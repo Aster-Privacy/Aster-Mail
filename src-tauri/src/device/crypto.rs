@@ -488,7 +488,7 @@ pub async fn device_http_request(
     }
 
     if host.ends_with(".onion") {
-        return Err("onion hosts must be routed through tor_fetch".to_string());
+        return Err("onion hosts not supported".to_string());
     }
 
     let host_allowed = ALLOWED_HTTPS_EXACT.iter().any(|h| *h == host)
