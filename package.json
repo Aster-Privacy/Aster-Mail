@@ -1,7 +1,7 @@
 {
   "name": "astermail",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Aster Mail - zero-knowledge, end-to-end encrypted email client.",
   "license": "AGPL-3.0-only",
   "author": "Aster Communications Inc.",
