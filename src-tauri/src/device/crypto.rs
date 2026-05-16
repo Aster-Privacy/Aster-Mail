@@ -510,11 +510,7 @@ pub async fn device_http_request(
         }
     }
 
-    let client = reqwest::Client::builder()
-        .no_proxy()
-        .timeout(std::time::Duration::from_secs(30))
-        .build()
-        .map_err(|e| e.to_string())?;
+    let client = crate::http_client::build_pinned_client(std::time::Duration::from_secs(30))?;
     let mut req = match method.to_uppercase().as_str() {
         "GET" => client.get(parsed_url.clone()),
         "POST" => client.post(parsed_url.clone()),
