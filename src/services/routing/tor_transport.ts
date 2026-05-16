@@ -71,7 +71,7 @@ export function is_snowflake_supported(): boolean {
 }
 
 export function is_cdn_relay_supported(): boolean {
-  return false;
+  return true;
 }
 
 function start_tor_status_polling(): void {
