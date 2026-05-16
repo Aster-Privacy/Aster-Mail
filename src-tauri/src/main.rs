@@ -21,7 +21,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod device;
-mod tor;
 
 use std::sync::Mutex;
 use tauri::{
@@ -153,15 +152,10 @@ fn main() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_notification::init())
         .manage(TrayState(Mutex::new(None)))
-        .manage(tor::TorState::default())
         .invoke_handler(tauri::generate_handler![
             set_tray_visible,
             set_tray_tooltip,
             open_external_url,
-            tor::commands::tor_start,
-            tor::commands::tor_stop,
-            tor::commands::tor_status,
-            tor::commands::tor_fetch,
             device::crypto::device_get_pubkeys,
             device::crypto::device_set_id,
             device::crypto::device_sign_challenge,
