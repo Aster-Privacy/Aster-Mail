@@ -51,6 +51,7 @@ export interface AuthContextType extends AuthState {
     vault_nonce?: string,
   ) => Promise<{ success: boolean; error?: string }>;
   remove_account: (account_id: string) => Promise<void>;
+  switch_to_account: (account_id: string) => Promise<void>;
   can_add_account: () => Promise<boolean>;
   account_count: number;
   is_adding_account: boolean;

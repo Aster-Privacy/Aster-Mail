@@ -353,6 +353,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [state.current_account_id],
   );
 
+  const switch_to_account = useCallback(
+    async (account_id: string) => {
+      const accounts = await get_all_accounts();
+      const target = accounts.find((a) => a.id === account_id);
+
+      if (!target) return;
+
+      api_client.begin_intentional_logout();
+      sync_client.disconnect();
+      stop_session_timeout();
+      clear_vault_from_memory();
+      clear_mail_stats();
+      clear_mail_cache();
+
+      try {
+        await api_client.post("/core/v1/auth/logout", {});
+      } catch (e) {
+        safe_log_error(e);
+      }
+
+      api_client.clear_auth_data();
+      await api_client.clear_session_cookies();
+
+      const local = target.user.email.split("@")[0] ?? "";
+
+      set_state({
+        user: null,
+        is_loading: false,
+        is_authenticated: false,
+        has_keys: false,
+        accounts,
+        current_account_id: null,
+      });
+
+      set_is_adding_account(true);
+      window.location.replace(`/sign-in?u=${encodeURIComponent(local)}`);
+    },
+    [],
+  );
+
   const clear_local_auth_data = useCallback(async () => {
     await purge_all_local_data();
 
@@ -541,6 +581,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       set_vault,
       add_account,
       remove_account: remove_account_handler,
+      switch_to_account,
       can_add_account: can_add,
       account_count: state.accounts.length,
       is_adding_account,
@@ -558,6 +599,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       set_vault,
       add_account,
       remove_account_handler,
+      switch_to_account,
       can_add,
       is_adding_account,
       set_is_adding_account,

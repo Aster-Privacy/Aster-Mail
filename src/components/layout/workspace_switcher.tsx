@@ -18,12 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRightStartOnRectangleIcon,
-  AtSymbolIcon,
-  ClipboardDocumentIcon,
+  ArrowsRightLeftIcon,
+  PlusIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -38,38 +39,11 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_sender_aliases } from "@/hooks/use_sender_aliases";
-import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
-
-function get_alias_color(address: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < address.length; i++) {
-    hash = (hash * 31 + address.charCodeAt(i)) | 0;
-  }
-
-  return PROFILE_COLORS[Math.abs(hash) % PROFILE_COLORS.length];
-}
-
-function SwitcherAliasIcon({ address }: { address: string }) {
-  const gradient = useMemo(
-    () => get_gradient_background(get_alias_color(address)),
-    [address],
-  );
-
-  return (
-    <div
-      className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-      style={{
-        background: gradient,
-        boxShadow:
-          "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
-      }}
-    >
-      <AtSymbolIcon className="w-3 h-3 text-white" />
-    </div>
-  );
-}
+import type { StoredAccount } from "@/services/account_manager";
+import {
+  get_current_plan_code,
+  max_accounts_for_plan,
+} from "@/services/plan_limits";
 
 interface WorkspaceSwitcherProps {
   trigger: React.ReactNode;
@@ -84,62 +58,109 @@ export function WorkspaceSwitcher({
 }: WorkspaceSwitcherProps) {
   const navigate = useNavigate();
   const { t } = use_i18n();
-  const { user, logout } = use_auth();
-
-  const { preferences, update_preference } = use_preferences();
-  const { sender_options } = use_sender_aliases();
+  const {
+    user,
+    logout,
+    accounts,
+    current_account_id,
+    remove_account,
+    switch_to_account,
+    set_is_adding_account,
+  } = use_auth();
+  const { preferences } = use_preferences();
 
   const [show_logout_confirm, set_show_logout_confirm] = useState(false);
-  const user_email = user?.email ?? "";
-  const display_name =
-    user?.display_name || user?.username || user_email.split("@")[0];
+  const [pending_remove, set_pending_remove] = useState<StoredAccount | null>(
+    null,
+  );
+  const [max_allowed, set_max_allowed] = useState<number>(1);
 
-  const extra_addresses = sender_options.filter(
-    (opt) => opt.type !== "primary" && opt.is_enabled,
+  useEffect(() => {
+    if (!is_open) return;
+    let cancelled = false;
+
+    get_current_plan_code().then((code) => {
+      if (!cancelled) set_max_allowed(max_accounts_for_plan(code));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [is_open]);
+
+  const at_limit = accounts.length >= max_allowed;
+
+  const current_user_email = user?.email ?? "";
+  const current_display_name =
+    user?.display_name || user?.username || current_user_email.split("@")[0];
+
+  const other_accounts = useMemo(
+    () => accounts.filter((a) => a.id !== current_account_id),
+    [accounts, current_account_id],
   );
 
-  const handle_copy = useCallback(
-    async (email: string) => {
-      if (!email) return;
+  const handle_add_account = useCallback(() => {
+    if (at_limit) {
+      show_toast(
+        t("auth.account_limit_for_plan", { max: String(max_allowed) }),
+        "info",
+      );
+
+      return;
+    }
+    on_open_change(false);
+    set_is_adding_account(true);
+    navigate("/sign-in");
+  }, [at_limit, max_allowed, on_open_change, set_is_adding_account, navigate, t]);
+
+  const handle_switch = useCallback(
+    async (account_id: string) => {
+      on_open_change(false);
       try {
-        await navigator.clipboard.writeText(email);
-        show_toast(t("common.email_copied"), "success");
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error);
-        show_toast(t("common.failed_to_copy"), "error");
+        await switch_to_account(account_id);
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+        show_toast(t("settings.switch_failed"), "error");
       }
     },
-    [t],
+    [on_open_change, switch_to_account, t],
   );
+
+  const handle_request_remove = useCallback(
+    (account: StoredAccount, e: React.MouseEvent) => {
+      e.stopPropagation();
+      on_open_change(false);
+      setTimeout(() => set_pending_remove(account), 100);
+    },
+    [on_open_change],
+  );
+
+  const handle_confirm_remove = useCallback(async () => {
+    if (!pending_remove) return;
+    const id = pending_remove.id;
+
+    set_pending_remove(null);
+    try {
+      await remove_account(id);
+    } catch (e) {
+      if (import.meta.env.DEV) console.error(e);
+    }
+  }, [pending_remove, remove_account]);
 
   const do_logout = useCallback(async () => {
     on_open_change(false);
     try {
       await logout();
-      navigate("/sign-in");
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
+    } catch (e) {
+      if (import.meta.env.DEV) console.error(e);
       navigate("/sign-in");
     }
   }, [on_open_change, logout, navigate]);
 
   const handle_logout = useCallback(() => {
     on_open_change(false);
-    if (preferences.skip_logout_confirmation) {
-      do_logout();
-    } else {
-      setTimeout(() => set_show_logout_confirm(true), 100);
-    }
-  }, [preferences.skip_logout_confirmation, do_logout, on_open_change]);
-
-  const handle_logout_confirm = useCallback(() => {
-    set_show_logout_confirm(false);
-    do_logout();
-  }, [do_logout]);
-
-  const handle_logout_dont_ask_again = useCallback(async () => {
-    update_preference("skip_logout_confirmation", true, true);
-  }, [update_preference]);
+    setTimeout(() => set_show_logout_confirm(true), 100);
+  }, [on_open_change]);
 
   return (
     <>
@@ -147,7 +168,7 @@ export function WorkspaceSwitcher({
         <PopoverTrigger asChild>{trigger}</PopoverTrigger>
         <PopoverContent
           align="start"
-          className="w-[270px] p-0 rounded-2xl overflow-hidden"
+          className="w-[290px] p-0 rounded-2xl overflow-hidden"
           sideOffset={8}
           style={{
             backgroundColor: "var(--dropdown-bg)",
@@ -156,16 +177,24 @@ export function WorkspaceSwitcher({
               "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
           }}
         >
-          <div className="p-1.5 pb-0">
-            <button
-              className="w-full px-2.5 py-2 rounded-[14px] text-left flex items-center gap-2.5"
-              type="button"
-              onClick={() => handle_copy(user_email)}
+          <div className="px-3 pt-2.5 pb-1">
+            <span
+              className="text-[10px] uppercase tracking-wide font-medium"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {t("auth.your_accounts")}
+            </span>
+          </div>
+
+          <div className="px-1.5 pb-1.5">
+            <div
+              className="w-full px-2.5 py-2 rounded-[14px] flex items-center gap-2.5"
+              style={{ backgroundColor: "var(--surf-tertiary, transparent)" }}
             >
               <div className="relative">
                 <ProfileAvatar
-                  email={user_email}
-                  name={display_name}
+                  email={current_user_email}
+                  name={current_display_name}
                   profile_color={preferences.profile_color}
                   size="xs"
                 />
@@ -182,59 +211,148 @@ export function WorkspaceSwitcher({
                   className="text-[12px] font-medium truncate"
                   style={{ color: "var(--text-primary)" }}
                 >
-                  {display_name}
+                  {current_display_name}
                 </span>
                 <span
                   className="text-[11px] truncate"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  {user_email}
+                  {current_user_email}
                 </span>
               </div>
-              <ClipboardDocumentIcon
-                className="w-3.5 h-3.5 flex-shrink-0"
-                style={{ color: "var(--text-muted)" }}
-              />
-            </button>
-
-            {extra_addresses.length > 0 && (
-              <>
-                <div
-                  className="h-px my-1"
-                  style={{ backgroundColor: "var(--border-secondary)" }}
-                />
-                <div className="max-h-[120px] overflow-y-auto">
-                  {extra_addresses.map((addr) => (
-                    <button
-                      key={addr.id}
-                      className="w-full px-2.5 py-1.5 rounded-[12px] text-left flex items-center gap-2.5"
-                      type="button"
-                      onClick={() => handle_copy(addr.email)}
-                    >
-                      <SwitcherAliasIcon address={addr.email} />
-                      <span
-                        className="text-[11px] truncate flex-1"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        {addr.email}
-                      </span>
-                      <ClipboardDocumentIcon
-                        className="w-3 h-3 flex-shrink-0"
-                        style={{ color: "var(--text-muted)" }}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
+              <span
+                className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0"
+                style={{
+                  color: "var(--color-success)",
+                  backgroundColor: "var(--color-success-bg, rgba(34,197,94,0.12))",
+                }}
+              >
+                {t("auth.active_account")}
+              </span>
+            </div>
           </div>
 
+          {other_accounts.length > 0 && (
+            <>
+              <div
+                className="h-px mx-2"
+                style={{ backgroundColor: "var(--border-secondary)" }}
+              />
+              <div className="p-1.5 max-h-[200px] overflow-y-auto">
+                {other_accounts.map((acc) => {
+                  const acc_name =
+                    acc.user.display_name ||
+                    acc.user.username ||
+                    acc.user.email.split("@")[0];
+
+                  return (
+                    <div
+                      key={acc.id}
+                      className="group w-full px-2.5 py-1.5 rounded-[12px] flex items-center gap-2.5 cursor-pointer hover:bg-[var(--surf-tertiary,rgba(0,0,0,0.04))]"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handle_switch(acc.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handle_switch(acc.id);
+                        }
+                      }}
+                      title={t("auth.switch_to_account")}
+                    >
+                      <ProfileAvatar
+                        email={acc.user.email}
+                        name={acc_name}
+                        profile_color={acc.user.profile_color}
+                        size="xs"
+                      />
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span
+                          className="text-[12px] font-medium truncate"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          {acc_name}
+                        </span>
+                        <span
+                          className="text-[11px] truncate"
+                          style={{ color: "var(--text-muted)" }}
+                        >
+                          {acc.user.email}
+                        </span>
+                      </div>
+                      <ArrowsRightLeftIcon
+                        className="w-3.5 h-3.5 flex-shrink-0 opacity-60"
+                        style={{ color: "var(--text-muted)" }}
+                      />
+                      <button
+                        aria-label={t("auth.remove_account")}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 rounded hover:bg-[var(--surf-secondary,rgba(0,0,0,0.08))]"
+                        type="button"
+                        onClick={(e) => handle_request_remove(acc, e)}
+                      >
+                        <TrashIcon
+                          className="w-3.5 h-3.5"
+                          style={{ color: "var(--color-danger,#ef4444)" }}
+                        />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
           <div
-            className="h-px my-1.5"
+            className="h-px mx-2"
             style={{ backgroundColor: "var(--border-secondary)" }}
           />
 
-          <div className="p-1.5 pt-0">
+          <div className="p-1.5">
+            <button
+              className="w-full px-2.5 py-2 rounded-[12px] flex items-center gap-2.5 text-left disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surf-tertiary,rgba(0,0,0,0.04))]"
+              disabled={at_limit}
+              type="button"
+              onClick={handle_add_account}
+              title={
+                at_limit
+                  ? t("auth.account_limit_for_plan", { max: String(max_allowed) })
+                  : undefined
+              }
+            >
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{
+                  backgroundColor: "var(--surf-secondary, rgba(0,0,0,0.06))",
+                }}
+              >
+                <PlusIcon
+                  className="w-3.5 h-3.5"
+                  style={{ color: "var(--text-secondary)" }}
+                />
+              </div>
+              <div className="flex flex-col flex-1 min-w-0">
+                <span
+                  className="text-[12px] font-medium"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  {t("auth.add_another_account")}
+                </span>
+                <span
+                  className="text-[10px]"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {accounts.length}/{max_allowed}
+                </span>
+              </div>
+            </button>
+          </div>
+
+          <div
+            className="h-px mx-2"
+            style={{ backgroundColor: "var(--border-secondary)" }}
+          />
+
+          <div className="p-1.5">
             <Button
               className="w-full text-[12px]"
               size="sm"
@@ -249,15 +367,29 @@ export function WorkspaceSwitcher({
       </Popover>
 
       <ConfirmationModal
-        show_dont_ask_again
         cancel_text={t("common.cancel")}
         confirm_text={t("auth.sign_out")}
         is_open={show_logout_confirm}
         message={t("common.sign_out_confirmation")}
         on_cancel={() => set_show_logout_confirm(false)}
-        on_confirm={handle_logout_confirm}
-        on_dont_ask_again={handle_logout_dont_ask_again}
+        on_confirm={() => {
+          set_show_logout_confirm(false);
+          do_logout();
+        }}
         title={t("auth.sign_out")}
+        variant="danger"
+      />
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("auth.confirm_remove_account")}
+        is_open={pending_remove !== null}
+        message={t("auth.remove_account_message", {
+          email: pending_remove?.user.email ?? "",
+        })}
+        on_cancel={() => set_pending_remove(null)}
+        on_confirm={handle_confirm_remove}
+        title={t("auth.remove_account_title")}
         variant="danger"
       />
     </>
