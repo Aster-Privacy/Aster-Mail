@@ -1528,6 +1528,8 @@ export const ko = {
     error_deleting_account: "지금은 계정을 삭제할 수 없었습니다. 잠시 뒤 다시 시도하면 보통 처리되며, 계속 실패하면 support@aster.com에서 도움을 받을 수 있습니다.",
     "connection.title": "연결",
     "connection.description": "Aster 서비스에 연결하는 방법을 선택하세요",
+    "connection.title_info":
+      "Aster 는 서버로 가는 여러 경로를 지원합니다. 선택한 경로에 따라 누가 IP 주소를 볼 수 있는지, 요청이 어떻게 도달하는지가 달라집니다. 어느 쪽이든 메시지는 종단 간 암호화된 상태로 유지됩니다.",
     "connection.direct": "직접 연결",
     "connection.direct_description": "Aster 서버에 직접 연결합니다",
     "connection.tor": "Tor",

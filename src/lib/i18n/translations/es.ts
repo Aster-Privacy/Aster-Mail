@@ -1623,6 +1623,8 @@ export const es = {
     error_deleting_account: "No pudimos eliminar tu cuenta ahora mismo. Otro intento en un momento suele resolverlo, y support@aster.com puede ayudar si sigue fallando.",
     "connection.title": "Conexión",
     "connection.description": "Elige cómo conectarte a los servicios de Aster",
+    "connection.title_info":
+      "Aster admite más de una ruta a sus servidores. La ruta que elijas cambia quién puede ver tu dirección IP y cómo llegan las solicitudes a nosotros. Tus mensajes permanecen cifrados de extremo a extremo en cualquier caso.",
     "connection.direct": "Directa",
     "connection.direct_description":
       "Conectarse directamente a los servidores de Aster",

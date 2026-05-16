@@ -106,7 +106,7 @@ export function ConnectionSection() {
           <SignalIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.connection.title")}
           <InfoPopover
-            description={t("settings.connection.description")}
+            description={t("settings.connection.title_info")}
             title={t("settings.connection.title")}
           />
         </h3>
@@ -160,6 +160,7 @@ export function ConnectionSection() {
                     {label}
                   </span>
                   <span
+                    className="inline-flex items-center leading-none"
                     onClick={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
                   >

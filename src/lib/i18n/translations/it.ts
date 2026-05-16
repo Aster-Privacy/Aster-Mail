@@ -1971,6 +1971,8 @@ export const it = {
     no_subscriptions_found: "No subscriptions found",
     "connection.title": "Connessione",
     "connection.description": "Scegli come connetterti ai servizi Aster",
+    "connection.title_info":
+      "Aster supporta più di una rotta verso i suoi server. La rotta che scegli cambia chi può vedere il tuo indirizzo IP e come le richieste ci raggiungono. I tuoi messaggi restano crittografati end-to-end in entrambi i casi.",
     "connection.direct": "Diretta",
     "connection.direct_description": "Connettiti direttamente ai server Aster",
     "connection.tor": "Tor",

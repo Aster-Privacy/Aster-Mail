@@ -1562,6 +1562,8 @@ export const ar = {
     error_deleting_account: "تعذّر حذف حسابك الآن. محاولة أخرى بعد لحظات غالبًا ما تنجح، و support@aster.com مستعد للمساعدة إن استمر الخطأ.",
     "connection.title": "الاتصال",
     "connection.description": "اختر كيفية الاتصال بخدمات Aster",
+    "connection.title_info":
+      "يدعم Aster أكثر من طريق للوصول إلى خوادمه. الطريق الذي تختاره يحدد من يمكنه رؤية عنوان IP الخاص بك وكيف تصل الطلبات إلينا. تبقى رسائلك مشفرة من طرف إلى طرف في كلتا الحالتين.",
     "connection.direct": "مباشر",
     "connection.direct_description": "الاتصال مباشرة بخوادم Aster",
     "connection.tor": "Tor",

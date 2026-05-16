@@ -1407,6 +1407,8 @@ export const pt = {
     error_deleting_account: "Não foi possível excluir sua conta agora. Outra tentativa em instantes costuma funcionar, e support@aster.com pode ajudar se continuar falhando.",
     "connection.title": "Conexão",
     "connection.description": "Escolha como se conectar aos serviços do Aster",
+    "connection.title_info":
+      "O Aster oferece suporte a mais de uma rota para seus servidores. A rota escolhida muda quem pode ver seu endereço IP e como as solicitações chegam até nós. Suas mensagens permanecem criptografadas de ponta a ponta de qualquer forma.",
     "connection.direct": "Direto",
     "connection.direct_description":
       "Conectar diretamente aos servidores do Aster",

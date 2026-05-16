@@ -1506,6 +1506,8 @@ export const zh_CN = {
     error_deleting_account: "我们暂时无法删除您的账户，稍后再试一次通常可以成功；如果一直失败，可以联系 support@aster.com。",
     "connection.title": "连接",
     "connection.description": "选择连接 Aster 服务的方式",
+    "connection.title_info":
+      "Aster 支持多种到达其服务器的路径。所选路径会决定谁可以看到您的 IP 地址以及请求如何到达我们。无论哪种方式，您的消息始终保持端到端加密。",
     "connection.direct": "直连",
     "connection.direct_description": "直接连接到 Aster 服务器",
     "connection.tor": "Tor",

@@ -1605,6 +1605,8 @@ export const pl = {
       "Nie udało się usunąć konta w tej chwili. Kolejna próba za moment zwykle działa, a support@aster.com może pomóc, jeśli problem się utrzymuje.",
     "connection.title": "Połączenie",
     "connection.description": "Wybierz sposób połączenia z usługami Aster",
+    "connection.title_info":
+      "Aster obsługuje więcej niż jedną trasę do swoich serwerów. Wybrana trasa decyduje o tym, kto widzi Twój adres IP i jak żądania docierają do nas. Twoje wiadomości pozostają szyfrowane end-to-end w obu przypadkach.",
     "connection.direct": "Bezpośrednie",
     "connection.direct_description":
       "Połącz się bezpośrednio z serwerami Aster",
