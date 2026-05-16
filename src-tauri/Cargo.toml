@@ -19,6 +19,11 @@ tokio = { version = "1", features = ["full"] }
 dirs = "5"
 libsqlite3-sys = { version = "0.28", features = ["bundled"] }
 reqwest = { version = "0.12", default-features = false, features = ["socks", "rustls-tls", "charset", "http2", "macos-system-configuration"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+rustls-pki-types = "1"
+webpki-roots = "1"
+x509-parser = "0.16"
+subtle = "2"
 tracing = "0.1"
 ed25519-dalek = { version = "2", features = ["rand_core"] }
 x25519-dalek = { version = "2", features = ["static_secrets"] }
