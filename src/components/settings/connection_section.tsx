@@ -24,7 +24,10 @@ import type {
 } from "@/services/routing/types";
 
 import { useState, useEffect, useCallback } from "react";
-import { SignalIcon } from "@heroicons/react/24/outline";
+import {
+  SignalIcon,
+  InformationCircleIcon,
+} from "@heroicons/react/24/outline";
 import { Radio } from "@aster/ui";
 
 import { cn } from "@/lib/utils";
@@ -35,6 +38,7 @@ import { connection_store } from "@/services/routing/connection_store";
 interface ConnectionOptionDef {
   value: ConnectionMethod;
   label_key: string;
+  info_key: string;
   image: string;
 }
 
@@ -42,11 +46,13 @@ const CONNECTION_OPTIONS: ConnectionOptionDef[] = [
   {
     value: "direct",
     label_key: "settings.connection.direct",
+    info_key: "settings.connection.direct_description",
     image: "/settings/direct.webp",
   },
   {
     value: "cdn_relay",
     label_key: "settings.connection.cdn_relay",
+    info_key: "settings.connection.cdn_relay_description",
     image: "/settings/cdn.webp",
   },
 ];
@@ -101,6 +107,10 @@ export function ConnectionSection() {
         <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
           <SignalIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.connection.title")}
+          <InformationCircleIcon
+            className="w-4 h-4 text-txt-muted flex-shrink-0"
+            title={t("settings.connection.description")}
+          />
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
@@ -136,10 +146,14 @@ export function ConnectionSection() {
               </div>
 
               <div className="flex items-center justify-between px-3 py-2.5">
-                <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-sm font-medium text-txt-primary">
                     {t(option.label_key as Parameters<typeof t>[0])}
                   </span>
+                  <InformationCircleIcon
+                    className="w-4 h-4 text-txt-muted flex-shrink-0"
+                    title={t(option.info_key as Parameters<typeof t>[0])}
+                  />
                 </div>
                 <span className="pointer-events-none flex-shrink-0">
                   <Radio readOnly checked={is_selected} />
