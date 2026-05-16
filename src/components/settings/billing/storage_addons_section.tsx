@@ -112,7 +112,7 @@ export function StorageAddonsSection({
           return (
             <button
               key={addon.id}
-              className="relative p-3 rounded-lg border text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative p-3 rounded-[14px] border text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 backgroundColor:
                   selected_storage === addon.id

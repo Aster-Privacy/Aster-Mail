@@ -282,7 +282,7 @@ export function ExpirationPicker({
               {quick_options.map((option) => (
                 <button
                   key={option.label}
-                  className="w-full flex items-center gap-3 px-2 py-2 rounded-md transition-colors hover:bg-surf-hover"
+                  className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
                   type="button"
                   onClick={() => handle_quick_select(option)}
                 >
@@ -299,7 +299,7 @@ export function ExpirationPicker({
               ))}
               <div className="my-2 h-px bg-edge-secondary" />
               <button
-                className="w-full flex items-center gap-3 px-2 py-2 rounded-md transition-colors hover:bg-surf-hover"
+                className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
                 type="button"
                 onClick={() => set_show_custom(true)}
               >
@@ -319,7 +319,7 @@ export function ExpirationPicker({
                 <>
                   <div className="my-2 h-px bg-edge-secondary" />
                   <button
-                    className="w-full flex items-center gap-3 px-2 py-2 rounded-md transition-colors hover:bg-surf-hover"
+                    className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
                     type="button"
                     onClick={() => {
                       set_is_open(false);

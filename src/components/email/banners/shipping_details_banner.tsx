@@ -189,7 +189,7 @@ export function ShippingDetailsBanner({
         <div className="flex items-center gap-2">
           {details.tracking_url && (
             <button
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors bg-brand text-white"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-[12px] transition-colors bg-brand text-white"
               type="button"
               onClick={handle_track_click}
             >

@@ -123,7 +123,7 @@ export function MobileContactList({
             {t("common.selected_count", { count: selected_ids.size })}
           </span>
           <button
-            className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
+            className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
             type="button"
             onClick={
               selected_ids.size === filtered_contacts.length
@@ -143,7 +143,7 @@ export function MobileContactList({
             <div className="flex items-center gap-2">
               {contacts.length > 0 && (
                 <button
-                  className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
+                  className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
                   type="button"
                   onClick={() => set_is_select_mode(true)}
                 >

@@ -84,7 +84,7 @@ export function LabelSection({
             <PopoverTrigger asChild>
               <button
                 aria-label={t("settings.choose_label_color")}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm outline-none transition-colors cursor-pointer bg-surf-secondary border border-edge-primary"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-[14px] text-sm outline-none transition-colors cursor-pointer bg-surf-secondary border border-edge-primary"
                 id="ext-account-label-color"
                 type="button"
               >

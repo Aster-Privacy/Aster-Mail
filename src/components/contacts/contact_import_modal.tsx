@@ -244,7 +244,7 @@ export function ContactImportModal({
             {t("common.import_contacts")}
           </h2>
           <button
-            className="p-1 rounded-lg transition-colors hover:bg-white/10"
+            className="p-1 rounded-[14px] transition-colors hover:bg-white/10"
             type="button"
             onClick={on_close}
           >

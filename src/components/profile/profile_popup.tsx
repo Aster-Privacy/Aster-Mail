@@ -141,7 +141,7 @@ export function ProfilePopup({
                 {t("common.profile")}
               </span>
               <button
-                className="p-1.5 rounded-lg transition-colors hover:bg-surf-hover"
+                className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover"
                 onClick={on_close}
               >
                 <XMarkIcon className="w-4 h-4 text-txt-muted" />
@@ -189,7 +189,7 @@ export function ProfilePopup({
                   </p>
                 </div>
                 <button
-                  className="p-2 rounded-lg transition-colors hover:bg-surf-hover"
+                  className="p-2 rounded-[14px] transition-colors hover:bg-surf-hover"
                   onClick={handle_copy}
                 >
                   <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted" />

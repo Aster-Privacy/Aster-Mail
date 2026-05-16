@@ -132,7 +132,7 @@ export function Modal({
           >
             {show_close_button && (
               <button
-                className="aster_modal_close absolute right-5 top-4 z-10 p-1.5 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                className="aster_modal_close absolute right-5 top-4 z-10 p-1.5 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                 type="button"
                 onClick={on_close}
               >

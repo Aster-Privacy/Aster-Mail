@@ -209,7 +209,7 @@ export function ContactList({
                 ? t("common.removed_from_favorites")
                 : t("common.added_to_favorites")
             }
-            className="h-8 w-8 inline-flex items-center justify-center rounded-md text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             type="button"
             onClick={on_toggle_favorite_selected}
           >
@@ -221,7 +221,7 @@ export function ContactList({
           </button>
           <button
             aria-label={t("common.copy")}
-            className="h-8 w-8 inline-flex items-center justify-center rounded-md text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             type="button"
             onClick={on_copy_emails}
           >
@@ -229,7 +229,7 @@ export function ContactList({
           </button>
           <button
             aria-label={t("common.export_all")}
-            className="h-8 w-8 inline-flex items-center justify-center rounded-md text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             type="button"
             onClick={() => on_export_contacts(true)}
           >
@@ -237,7 +237,7 @@ export function ContactList({
           </button>
           <button
             aria-label={t("common.delete")}
-            className="h-8 w-8 inline-flex items-center justify-center rounded-md text-red-500 hover:bg-red-500/10 transition-colors"
+            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-red-500 hover:bg-red-500/10 transition-colors"
             type="button"
             onClick={on_delete_selected}
           >
@@ -345,7 +345,7 @@ export function ContactList({
                   else contact_refs.current?.delete(contact.id);
                 }}
                 className={cn(
-                  "group/contact w-full flex items-center gap-3 px-3 py-1 my-0.5 rounded-xl text-left transition-colors",
+                  "group/contact w-full flex items-center gap-3 px-3 py-1 my-0.5 rounded-[12px] text-left transition-colors",
                   is_selected
                     ? "bg-[var(--accent-blue,#3b82f6)]/10"
                     : is_active

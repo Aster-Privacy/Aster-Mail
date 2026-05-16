@@ -481,7 +481,7 @@ export function ContactDetailPanel({
               />
               <button
                 aria-label={t("common.upload")}
-                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center transition-opacity"
+                className="absolute inset-0 rounded-[14px] opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center transition-opacity"
                 onClick={() => file_input_ref.current?.click()}
               >
                 <CameraIcon className="w-7 h-7 text-white" />
@@ -1194,7 +1194,7 @@ function TypedList<T extends string>({
       ))}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-edge-secondary/60 dark:border-edge-primary bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[12px] border border-edge-secondary/60 dark:border-edge-primary bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
           type="button"
           onClick={on_add}
         >
@@ -1304,7 +1304,7 @@ function AddressList({
       ))}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-edge-secondary/60 dark:border-edge-primary bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[12px] border border-edge-secondary/60 dark:border-edge-primary bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
           type="button"
           onClick={on_add}
         >

@@ -56,7 +56,7 @@ export function ViewModeCard({
 
   return (
     <button
-      className={`flex-1 p-3 rounded-xl border-2 transition-all cursor-pointer ${
+      className={`flex-1 p-3 rounded-[14px] border-2 transition-all cursor-pointer ${
         is_selected
           ? "border-brand bg-surf-selected"
           : "border-edge-secondary bg-transparent"

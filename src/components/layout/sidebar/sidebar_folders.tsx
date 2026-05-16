@@ -180,7 +180,7 @@ export const SidebarFolders = memo(function SidebarFolders({
               </span>
             </button>
             <button
-              className="p-1 rounded-md  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-muted"
+              className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-muted"
               onClick={() => set_is_create_folder_open(true)}
             >
               <PlusIcon className="w-4 h-4" />
@@ -243,7 +243,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                   ref={(el) => {
                     folder_refs.current[folder.folder_token] = el;
                   }}
-                  className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-md ${is_collapsed ? "px-0" : ""} h-8 text-[14px]  ${effective_selected === folder_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === folder_item_id ? "sidebar-selected" : ""} ${drag_over_token === folder.folder_token ? "ring-2 ring-blue-500/60 bg-blue-500/10" : ""}`}
+                  className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : ""} h-8 text-[14px]  ${effective_selected === folder_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === folder_item_id ? "sidebar-selected" : ""} ${drag_over_token === folder.folder_token ? "ring-2 ring-blue-500/60 bg-blue-500/10" : ""}`}
                   style={{
                     zIndex: 1,
                     paddingLeft: is_collapsed
@@ -385,7 +385,7 @@ export const SidebarFolders = memo(function SidebarFolders({
           })}
         {has_more && !is_collapsed && !section_collapsed && (
           <button
-            className="w-full flex items-center gap-2 px-2.5 h-7 text-[12px]  rounded-md hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-txt-muted"
+            className="w-full flex items-center gap-2 px-2.5 h-7 text-[12px]  rounded-[12px] hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-txt-muted"
             onClick={() => set_folders_expanded(!folders_expanded)}
           >
             {folders_expanded ? (

@@ -628,7 +628,7 @@ export function AccountSection() {
                 <button
                   key={badge.slug}
                   className={cn(
-                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer select-none",
+                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium transition-colors cursor-pointer select-none",
                     is_active
                       ? "bg-[var(--accent-blue)] text-white shadow-sm"
                       : "bg-surf-secondary text-txt-secondary hover:bg-surf-hover",

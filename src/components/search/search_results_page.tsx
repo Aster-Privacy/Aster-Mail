@@ -733,7 +733,7 @@ export function SearchResultsPage({
             {state.error}
           </p>
           <button
-            className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-[var(--accent-blue)] text-white hover:opacity-90"
+            className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium transition-colors bg-[var(--accent-blue)] text-white hover:opacity-90"
             onClick={() => {
               clear_index();
               perform_search(query);
@@ -839,7 +839,7 @@ export function SearchResultsPage({
           <InboxHeader
               leading_left_slot={
                 <button
-                  className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-[var(--bg-hover)] transition-colors flex-shrink-0"
+                  className="h-9 w-9 rounded-[10px] flex items-center justify-center hover:bg-[var(--bg-hover)] transition-colors flex-shrink-0"
                   style={{ color: "var(--text-secondary)" }}
                   onClick={on_close}
                 >

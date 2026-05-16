@@ -297,14 +297,14 @@ export function PdfPreviewModal({
             )}
             <span className="text-white/30">|</span>
             <button
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white/90 bg-white/10 hover:bg-white/20 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-white/90 bg-white/10 hover:bg-white/20 transition-colors"
               onClick={handle_download}
             >
               <DownloadIcon className="w-3.5 h-3.5" />
               {t("common.download")}
             </button>
             <button
-              className="px-3 py-1.5 rounded-md text-xs font-medium text-white/90 bg-white/10 hover:bg-white/20 transition-colors"
+              className="px-3 py-1.5 rounded-[12px] text-xs font-medium text-white/90 bg-white/10 hover:bg-white/20 transition-colors"
               onClick={on_close}
             >
               {t("common.close")}

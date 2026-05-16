@@ -241,7 +241,7 @@ export function SubscriptionsContent({
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-4 h-14 flex-shrink-0 border-b border-edge-primary">
         <button
-          className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-primary"
+          className="md:hidden flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-primary"
           onClick={on_mobile_menu_toggle}
         >
           <Bars3Icon className="w-5 h-5" />
@@ -356,7 +356,7 @@ export function SubscriptionsContent({
             {selected_ids.size} {t("common.selected")}
           </span>
           <button
-            className="px-4 py-1.5 rounded-lg text-white text-sm font-medium transition-all duration-150 bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
+            className="px-4 py-1.5 rounded-[12px] text-white text-sm font-medium transition-all duration-150 bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
             onClick={handle_bulk_unsubscribe}
           >
             {t("mail.unsubscribe")} ({selected_ids.size})
@@ -457,7 +457,7 @@ function SubscriptionRow({
         unsub_failed &&
         (sub.unsubscribe_link || sub.list_unsubscribe_header) ? (
           <button
-            className="px-3 py-1 rounded-lg text-xs font-medium transition-all duration-150 flex-shrink-0 hover:brightness-110"
+            className="px-3 py-1 rounded-[12px] text-xs font-medium transition-all duration-150 flex-shrink-0 hover:brightness-110"
             style={{
               background:
                 "linear-gradient(to bottom, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
@@ -469,7 +469,7 @@ function SubscriptionRow({
           </button>
         ) : (
           <button
-            className="px-3 py-1 rounded-lg text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
+            className="px-3 py-1 rounded-[12px] text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
             onClick={(e) => on_unsubscribe(e, sub.sender_email)}
           >
             {t("mail.unsubscribe")}

@@ -74,7 +74,7 @@ export function SearchInputBar({
     <div className="p-4 border-b transition-colors duration-200 relative flex-shrink-0 border-edge-secondary">
       <div className="flex items-center gap-3">
         <button
-          className="sm:hidden p-1.5 -ml-1 rounded-lg transition-colors text-txt-muted bg-surf-hover"
+          className="sm:hidden p-1.5 -ml-1 rounded-[14px] transition-colors text-txt-muted bg-surf-hover"
           onClick={on_close}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -121,7 +121,7 @@ export function SearchInputBar({
         )}
         {!on_search_submit && (
           <button
-            className="p-1.5 rounded-lg transition-all duration-150"
+            className="p-1.5 rounded-[14px] transition-all duration-150"
             style={{
               backgroundColor: show_filters
                 ? "var(--accent-color, #3b82f6)"
@@ -138,7 +138,7 @@ export function SearchInputBar({
         )}
         {!on_search_submit && query && has_results && (
           <button
-            className="p-1.5 rounded-lg transition-all duration-150 bg-surf-hover text-txt-muted"
+            className="p-1.5 rounded-[14px] transition-all duration-150 bg-surf-hover text-txt-muted"
             title={t("mail.save_search")}
             onClick={on_show_save_dialog}
           >
@@ -150,7 +150,7 @@ export function SearchInputBar({
         {!on_search_submit && (
           <div className="relative">
             <button
-              className="p-1.5 rounded-lg transition-all duration-150"
+              className="p-1.5 rounded-[14px] transition-all duration-150"
               style={{
                 backgroundColor: show_clear_menu
                   ? "var(--accent-color, #3b82f6)"

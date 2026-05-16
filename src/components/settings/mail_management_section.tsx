@@ -42,7 +42,7 @@ export function MailManagementSection() {
     <div className="space-y-4">
       <div className="inline-flex p-1 rounded-lg bg-surf-secondary">
         <button
-          className="relative px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 outline-none"
+          className="relative px-5 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none"
           style={{
             backgroundColor:
               active_tab === "external_accounts"
@@ -62,7 +62,7 @@ export function MailManagementSection() {
           {t("settings.external_accounts_tab")}
         </button>
         <button
-          className="relative px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 outline-none"
+          className="relative px-5 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none"
           style={{
             backgroundColor:
               active_tab === "blocked" ? "var(--bg-primary)" : "transparent",
@@ -80,7 +80,7 @@ export function MailManagementSection() {
           {t("settings.blocked_tab")}
         </button>
         <button
-          className="relative px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 outline-none"
+          className="relative px-5 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none"
           style={{
             backgroundColor:
               active_tab === "allowlist" ? "var(--bg-primary)" : "transparent",
@@ -98,7 +98,7 @@ export function MailManagementSection() {
           {t("settings.allowlist_tab")}
         </button>
         <button
-          className="relative px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 outline-none"
+          className="relative px-5 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none"
           style={{
             backgroundColor:
               active_tab === "auto_forward"
@@ -118,7 +118,7 @@ export function MailManagementSection() {
           {t("settings.auto_forward_tab_label")}
         </button>
         <button
-          className="relative px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 outline-none"
+          className="relative px-5 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none"
           style={{
             backgroundColor:
               active_tab === "vacation_reply"

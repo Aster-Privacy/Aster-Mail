@@ -108,7 +108,7 @@ function VerifyRecoveryEmailPage() {
         </p>
 
         <button
-          className="mt-6 w-full rounded-xl py-2.5 text-sm font-medium transition-opacity hover:opacity-80"
+          className="mt-6 w-full rounded-[14px] py-2.5 text-sm font-medium transition-opacity hover:opacity-80"
           style={{
             backgroundColor: "var(--bg-hover, #262626)",
             color: "var(--text-primary, #fafafa)",

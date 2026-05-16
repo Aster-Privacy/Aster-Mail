@@ -77,7 +77,7 @@ export function MobileSenderSheet({
           {sender_options.map((sender) => (
             <button
               key={sender.id}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={() => on_select(sender)}
             >
@@ -187,7 +187,7 @@ export function MobileScheduleSheet({
             {quick_options.map((opt) => (
               <button
                 key={opt.label}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={() => {
                   on_schedule(opt.date);
@@ -206,7 +206,7 @@ export function MobileScheduleSheet({
               </button>
             ))}
             <button
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={() => set_show_custom(true)}
             >
@@ -219,7 +219,7 @@ export function MobileScheduleSheet({
             </button>
             {has_scheduled_time && (
               <button
-                className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-3 text-[14px] font-medium text-red-500 active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center justify-center gap-2 rounded-[16px] px-3 py-3 text-[14px] font-medium text-red-500 active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={() => {
                   on_clear();
@@ -365,7 +365,7 @@ export function MobileExpirationSheet({
             {quick_options.map((opt) => (
               <button
                 key={opt.label}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={() => {
                   on_set_expiration(opt.date);
@@ -384,7 +384,7 @@ export function MobileExpirationSheet({
               </button>
             ))}
             <button
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={() => set_show_custom(true)}
             >
@@ -397,7 +397,7 @@ export function MobileExpirationSheet({
             </button>
             {has_external_recipients && (
               <button
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={() => {
                   set_password_input(expiry_password ?? "");
@@ -423,7 +423,7 @@ export function MobileExpirationSheet({
             )}
             {has_expires_at && (
               <button
-                className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-3 text-[14px] font-medium text-red-500 active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center justify-center gap-2 rounded-[16px] px-3 py-3 text-[14px] font-medium text-red-500 active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={() => {
                   on_clear();
@@ -596,7 +596,7 @@ export function MobileGhostSheet({
           {[7, 30, 90].map((days) => (
             <button
               key={days}
-              className="flex w-full items-center justify-between rounded-xl px-4 py-3 active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center justify-between rounded-[16px] px-4 py-3 active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={() => ghost_mode.set_ghost_expiry_days(days)}
             >

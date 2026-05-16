@@ -418,7 +418,7 @@ export function SnoozeSimilarModal({
                   </h2>
                 </div>
                 <button
-                  className="p-1.5 rounded-lg transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05] text-txt-muted"
+                  className="p-1.5 rounded-[14px] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05] text-txt-muted"
                   onClick={on_close}
                 >
                   <XMarkIcon className="w-4 h-4" />
@@ -578,7 +578,7 @@ export function SnoozeSimilarModal({
                         return (
                           <button
                             key={option.label}
-                            className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[13px] transition-colors ${is_selected ? "" : "text-txt-primary"}`}
+                            className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[12px] text-[13px] transition-colors ${is_selected ? "" : "text-txt-primary"}`}
                             style={
                               is_selected
                                 ? { color: "var(--accent-primary)" }
@@ -608,7 +608,7 @@ export function SnoozeSimilarModal({
                         );
                       })}
                       <button
-                        className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[13px] transition-colors ${snooze_label && !snooze_options.some((o) => o.label === snooze_label) ? "" : "text-txt-primary"}`}
+                        className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[12px] text-[13px] transition-colors ${snooze_label && !snooze_options.some((o) => o.label === snooze_label) ? "" : "text-txt-primary"}`}
                         style={
                           snooze_label &&
                           !snooze_options.some((o) => o.label === snooze_label)

@@ -133,7 +133,7 @@ export function AliasesSection({
                 {t("settings.domain_promo_subtitle")}
               </p>
               <button
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-semibold bg-white text-blue-900"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[14px] text-[14px] font-semibold bg-white text-blue-900"
                 style={{
                   boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
                   WebkitTapHighlightColor: "transparent",
@@ -418,7 +418,7 @@ export function AliasesSection({
                           <div className="flex items-center gap-2">
                             {domain.status !== "active" && (
                               <button
-                                className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-white"
+                                className="rounded-[12px] px-3 py-1.5 text-[12px] font-medium text-white"
                                 style={{
                                   background:
                                     "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",

@@ -507,7 +507,7 @@ export function BillingSection({
                     {t("settings.billing_banner_subtitle")}
                   </p>
                   <button
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-semibold bg-white text-blue-900"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[14px] text-[14px] font-semibold bg-white text-blue-900"
                     style={{
                       boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
                       WebkitTapHighlightColor: "transparent",
@@ -598,7 +598,7 @@ export function BillingSection({
                   {is_paid_plan ? (
                     <div className="flex gap-2 pt-2 border-t border-[var(--border-primary)]">
                       <button
-                        className="flex-1 rounded-xl bg-[var(--mobile-bg-card-hover)] py-2.5 text-[14px] font-medium text-[var(--text-primary)] disabled:opacity-50"
+                        className="flex-1 rounded-[14px] bg-[var(--mobile-bg-card-hover)] py-2.5 text-[14px] font-medium text-[var(--text-primary)] disabled:opacity-50"
                         disabled={is_action_loading}
                         type="button"
                         onClick={handle_manage_billing}
@@ -622,7 +622,7 @@ export function BillingSection({
                         </motion.button>
                       ) : (
                         <button
-                          className="flex-1 rounded-xl py-2.5 text-[14px] font-medium text-[var(--color-danger,#ef4444)] disabled:opacity-50"
+                          className="flex-1 rounded-[14px] py-2.5 text-[14px] font-medium text-[var(--color-danger,#ef4444)] disabled:opacity-50"
                           disabled={is_action_loading}
                           type="button"
                           onClick={() => set_show_cancel_dialog(true)}
@@ -660,7 +660,7 @@ export function BillingSection({
                   {STORAGE_ADDONS.map((addon) => (
                     <button
                       key={addon.id}
-                      className="relative rounded-xl p-3 text-left transition-all"
+                      className="relative rounded-[14px] p-3 text-left transition-all"
                       style={{
                         backgroundColor:
                           selected_storage === addon.id
@@ -729,7 +729,7 @@ export function BillingSection({
                 <div className="px-4 py-3">
                   <div className="flex items-center justify-center gap-1 p-1 rounded-xl bg-[var(--mobile-bg-card-hover)] mb-4">
                     <button
-                      className={`flex-1 rounded-lg py-2 text-[13px] font-medium transition-colors ${
+                      className={`flex-1 rounded-[14px] py-2 text-[13px] font-medium transition-colors ${
                         billing_period === "monthly"
                           ? "bg-[var(--mobile-bg-card)] text-[var(--text-primary)] shadow-sm"
                           : "text-[var(--text-muted)]"
@@ -740,7 +740,7 @@ export function BillingSection({
                       {t("settings.billing_monthly")}
                     </button>
                     <button
-                      className={`flex-1 rounded-lg py-2 text-[13px] font-medium transition-colors ${
+                      className={`flex-1 rounded-[14px] py-2 text-[13px] font-medium transition-colors ${
                         billing_period === "yearly"
                           ? "bg-[var(--mobile-bg-card)] text-[var(--text-primary)] shadow-sm"
                           : "text-[var(--text-muted)]"
@@ -977,7 +977,7 @@ export function BillingSection({
                           value={referral_info.referral_link}
                         />
                         <button
-                          className="h-9 px-3 text-sm rounded-lg border border-edge-secondary text-txt-primary flex items-center gap-1.5 active:scale-95 transition-transform"
+                          className="h-9 px-3 text-sm rounded-[14px] border border-edge-secondary text-txt-primary flex items-center gap-1.5 active:scale-95 transition-transform"
                           onClick={() => {
                             navigator.clipboard.writeText(referral_info.referral_link);
                             show_toast(t("settings.link_copied"), "success");
@@ -988,7 +988,7 @@ export function BillingSection({
                         </button>
                       </div>
                       <button
-                        className="w-full mt-2 h-9 px-3 text-sm rounded-lg border border-edge-secondary text-txt-primary flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                        className="w-full mt-2 h-9 px-3 text-sm rounded-[14px] border border-edge-secondary text-txt-primary flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
                         disabled={is_sending_referral}
                         onClick={handle_send_referral}
                       >

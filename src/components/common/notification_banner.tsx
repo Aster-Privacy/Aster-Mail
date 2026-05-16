@@ -126,7 +126,7 @@ export function NotificationBanner() {
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0 ml-4">
               <button
-                className="px-2.5 py-0.5 text-xs font-medium rounded-md transition-colors"
+                className="px-2.5 py-0.5 text-xs font-medium rounded-[12px] transition-colors"
                 style={{
                   backgroundColor: "rgba(255, 255, 255, 0.2)",
                   color: "inherit",
@@ -145,7 +145,7 @@ export function NotificationBanner() {
                 {t("common.notification_banner_allow")}
               </button>
               <button
-                className="px-2.5 py-0.5 text-xs font-medium rounded-md transition-colors"
+                className="px-2.5 py-0.5 text-xs font-medium rounded-[12px] transition-colors"
                 style={{
                   backgroundColor: "rgba(255, 255, 255, 0.1)",
                   color: "inherit",

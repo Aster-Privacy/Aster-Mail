@@ -305,7 +305,7 @@ export function ContactForm({
             </p>
           </div>
           <button
-            className="p-2 -mr-2 -mt-2 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+            className="p-2 -mr-2 -mt-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/5"
             onClick={handle_close}
           >
             <XMarkIcon className="w-5 h-5 text-txt-muted" />
@@ -318,7 +318,7 @@ export function ContactForm({
               <button
                 key={tab.id}
                 className={cn(
-                  "relative z-10 flex-1 px-2 py-1.5 text-[11px] font-medium rounded-md whitespace-nowrap",
+                  "relative z-10 flex-1 px-2 py-1.5 text-[11px] font-medium rounded-[12px] whitespace-nowrap",
                   active_tab === tab.id
                     ? "bg-surf-primary text-txt-primary"
                     : "text-txt-muted",

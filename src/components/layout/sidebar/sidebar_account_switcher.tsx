@@ -212,7 +212,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
         {is_collapsed ? (
           <div className="flex flex-col items-center gap-1">
             <button
-              className="p-2 rounded-md hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
+              className="p-2 rounded-[14px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
               title={t("settings.refer_a_friend")}
               onClick={() => {
                 on_modal_open?.();
@@ -222,7 +222,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
               <UserGroupIcon className="w-4 h-4" />
             </button>
             <button
-              className="p-2 rounded-md hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
+              className="p-2 rounded-[14px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
               title={t("settings.title")}
               onClick={() => on_settings_click()}
             >
@@ -232,7 +232,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
         ) : (
           <div className="flex items-center gap-1">
             <button
-              className="flex-1 flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
+              className="flex-1 flex items-center gap-2 px-2 py-1.5 rounded-[12px] text-[12px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
               onClick={() => {
                 on_modal_open?.();
                 on_settings_click("referral");
@@ -242,7 +242,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
               <span>{t("settings.refer_a_friend")}</span>
             </button>
             <button
-              className="p-1.5 rounded-md hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
+              className="p-1.5 rounded-[14px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
               onClick={() => on_settings_click()}
             >
               <Cog6ToothIcon className="w-4 h-4" />

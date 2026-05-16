@@ -237,7 +237,7 @@ export function TotpSetupModal({
                   {setup_data.secret}
                 </code>
                 <button
-                  className="p-2 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                  className="p-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                   type="button"
                   onClick={copy_secret}
                 >

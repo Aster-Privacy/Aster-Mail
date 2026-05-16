@@ -389,7 +389,7 @@ export function SearchModal({
               !state.is_searching &&
               !state.is_loading_more && (
                 <button
-                  className="w-full py-3 text-xs text-center transition-all duration-150 rounded-lg mt-2 text-txt-muted bg-surf-tertiary hover:bg-surf-hover"
+                  className="w-full py-3 text-xs text-center transition-all duration-150 rounded-[16px] mt-2 text-txt-muted bg-surf-tertiary hover:bg-surf-hover"
                   onClick={load_more}
                 >
                   {t("mail.load_more_results", {

@@ -376,7 +376,7 @@ export function BillingDialogs({
         <ModalBody>
           <div className="space-y-2">
             <button
-              className="w-full flex items-center gap-3 rounded-lg border p-3.5 text-left transition-colors hover:opacity-80"
+              className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-left transition-colors hover:opacity-80"
               style={{
                 backgroundColor: "var(--bg-tertiary)",
                 borderColor: "var(--border-secondary)",
@@ -408,7 +408,7 @@ export function BillingDialogs({
 
             {subscription && !subscription.cancel_at_period_end && (
               <button
-                className="w-full flex items-center gap-3 rounded-lg border p-3.5 text-left transition-colors hover:opacity-80"
+                className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-left transition-colors hover:opacity-80"
                 style={{
                   backgroundColor: "var(--bg-tertiary)",
                   borderColor: "var(--border-secondary)",
@@ -455,7 +455,7 @@ export function BillingDialogs({
             )}
 
             <button
-              className="w-full flex items-center gap-3 rounded-lg p-3.5 text-left transition-colors hover:opacity-80"
+              className="w-full flex items-center gap-3 rounded-[14px] p-3.5 text-left transition-colors hover:opacity-80"
               onClick={() => {
                 set_show_manage_plan(false);
                 setTimeout(() => {

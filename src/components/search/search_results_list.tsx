@@ -174,7 +174,7 @@ export function FirstTimeSearchState({
           {quick_actions.map((action) => (
             <button
               key={action.query}
-              className="search_filter_btn flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors duration-150 hover:bg-[var(--bg-hover)] border-edge-secondary text-txt-secondary"
+              className="search_filter_btn flex items-center gap-2 px-3 py-2 rounded-[14px] border transition-colors duration-150 hover:bg-[var(--bg-hover)] border-edge-secondary text-txt-secondary"
               onClick={() => on_quick_action(action.query)}
             >
               <span className="text-txt-muted">{action.icon}</span>

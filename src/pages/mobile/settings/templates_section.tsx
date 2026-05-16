@@ -180,7 +180,7 @@ export function TemplatesSection({
               />
               <div className="flex gap-3">
                 <button
-                  className="flex-1 rounded-xl bg-[var(--mobile-bg-card)] py-3 text-[15px] font-medium text-[var(--mobile-text-primary)]"
+                  className="flex-1 rounded-[16px] bg-[var(--mobile-bg-card)] py-3 text-[15px] font-medium text-[var(--mobile-text-primary)]"
                   type="button"
                   onClick={() => set_show_form(false)}
                 >

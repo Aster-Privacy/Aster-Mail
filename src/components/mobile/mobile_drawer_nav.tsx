@@ -363,7 +363,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             trailing={
               folder.is_password_protected ? (
                 <button
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
+                  className="flex h-7 w-7 items-center justify-center rounded-[8px] text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();

@@ -902,7 +902,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               </h2>
               {step !== "progress" && (
                 <button
-                  className="p-1 rounded-lg transition-colors hover:bg-white/10"
+                  className="p-1 rounded-[14px] transition-colors hover:bg-white/10"
                   onClick={handle_close}
                 >
                   <XMarkIcon className="w-5 h-5 text-txt-muted" />

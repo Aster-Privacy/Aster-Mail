@@ -169,14 +169,14 @@ export function StepEmail({ reg, reduce_motion, navigate }: step_email_props) {
                 }}
               />
               <button
-                className={`relative h-10 flex-1 rounded-lg text-sm font-medium transition-colors ${reg.email_domain === "astermail.org" ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
+                className={`relative h-10 flex-1 rounded-[14px] text-sm font-medium transition-colors ${reg.email_domain === "astermail.org" ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
                 type="button"
                 onClick={() => reg.set_email_domain("astermail.org")}
               >
                 @astermail.org
               </button>
               <button
-                className={`relative h-10 flex-1 rounded-lg text-sm font-medium transition-colors ${reg.email_domain === "aster.cx" ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
+                className={`relative h-10 flex-1 rounded-[14px] text-sm font-medium transition-colors ${reg.email_domain === "aster.cx" ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
                 type="button"
                 onClick={() => reg.set_email_domain("aster.cx")}
               >

@@ -127,7 +127,7 @@ export function TagPicker({
                 return (
                   <button
                     key={tag.id}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-txt-primary"
+                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[12px] text-[13px] transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-txt-primary"
                     onClick={() => on_toggle_tag(tag.tag_token, !assigned)}
                   >
                     <div
@@ -150,7 +150,7 @@ export function TagPicker({
 
             <div className="border-t px-1 py-1 border-edge-primary">
               <button
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12px] transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-txt-muted"
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[12px] text-[12px] transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-txt-muted"
                 onClick={() => set_is_create_open(true)}
               >
                 <PlusIcon className="w-3.5 h-3.5" />

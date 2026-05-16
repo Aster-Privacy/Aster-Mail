@@ -479,7 +479,7 @@ export function OnboardingTour() {
                   >
                     {is_positioned && <div className={get_arrow_class()} />}
                     <button
-                      className="absolute top-4 right-4 z-10 p-2 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-50 text-txt-muted"
+                      className="absolute top-4 right-4 z-10 p-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-50 text-txt-muted"
                       disabled={is_transitioning}
                       onClick={handle_skip}
                     >

@@ -271,14 +271,14 @@ export function ExternalContentBanner({
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
-              className="rounded-md px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
+              className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
               type="button"
               onClick={on_load}
             >
               {t("common.load_content")}
             </button>
             <button
-              className="p-1 rounded-md transition-colors text-txt-muted"
+              className="p-1 rounded-[14px] transition-colors text-txt-muted"
               title={t("common.dismiss")}
               type="button"
               onClick={on_dismiss}

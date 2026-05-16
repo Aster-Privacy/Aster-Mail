@@ -159,7 +159,7 @@ export function MobileActionMenuSheet({
 
         <div className="space-y-0.5">
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_reply}
           >
@@ -173,7 +173,7 @@ export function MobileActionMenuSheet({
               (menu_message.cc_recipients?.length ?? 0) >=
               2 && (
               <button
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={on_reply_all}
               >
@@ -184,7 +184,7 @@ export function MobileActionMenuSheet({
               </button>
             )}
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_forward}
           >
@@ -197,7 +197,7 @@ export function MobileActionMenuSheet({
           <div className="my-1 h-px bg-[var(--border-primary)]" />
 
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_toggle_star}
           >
@@ -211,7 +211,7 @@ export function MobileActionMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_toggle_pin}
           >
@@ -221,7 +221,7 @@ export function MobileActionMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_toggle_read}
           >
@@ -240,7 +240,7 @@ export function MobileActionMenuSheet({
           <div className="my-1 h-px bg-[var(--border-primary)]" />
 
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_snooze}
           >
@@ -250,7 +250,7 @@ export function MobileActionMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_archive}
           >
@@ -261,7 +261,7 @@ export function MobileActionMenuSheet({
           </button>
           {is_spam ? (
             <button
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={on_not_spam}
             >
@@ -272,7 +272,7 @@ export function MobileActionMenuSheet({
             </button>
           ) : (
             <button
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={on_spam}
             >
@@ -283,7 +283,7 @@ export function MobileActionMenuSheet({
             </button>
           )}
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_trash}
           >
@@ -297,7 +297,7 @@ export function MobileActionMenuSheet({
 
           {menu_source === "message" && (
             <button
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={on_toggle_dark_mode}
             >
@@ -319,7 +319,7 @@ export function MobileActionMenuSheet({
           )}
           {menu_source === "toolbar" && (
             <button
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={on_toggle_all_dark_mode}
             >
@@ -336,7 +336,7 @@ export function MobileActionMenuSheet({
             </button>
           )}
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_print}
           >
@@ -346,7 +346,7 @@ export function MobileActionMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_view_source}
           >
@@ -356,7 +356,7 @@ export function MobileActionMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_copy_id}
           >
@@ -366,7 +366,7 @@ export function MobileActionMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_message_details}
           >
@@ -377,7 +377,7 @@ export function MobileActionMenuSheet({
           </button>
 
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_block}
           >
@@ -390,7 +390,7 @@ export function MobileActionMenuSheet({
           <div className="my-1 h-px bg-[var(--border-primary)]" />
 
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_report_phishing}
           >
@@ -403,7 +403,7 @@ export function MobileActionMenuSheet({
           <div className="my-1 h-px bg-[var(--border-primary)]" />
 
           <button
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_customize_toolbar}
           >
@@ -435,7 +435,7 @@ export function MobileViewSourceSheet({
             {t("mail.view_source")}
           </h3>
           <button
-            className="rounded-lg px-2.5 py-1 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
+            className="rounded-[12px] px-2.5 py-1 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
             type="button"
             onClick={() => {
               if (message) {
@@ -503,7 +503,7 @@ export function MobileSnoozeSheet({
           ].map((opt) => (
             <button
               key={opt.label}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={() => on_snooze(opt.date)}
             >
@@ -576,7 +576,7 @@ export function MobileToolbarCustomizerSheet({
                   return (
                     <button
                       key={id}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 active:bg-[var(--bg-tertiary)]"
+                      className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 active:bg-[var(--bg-tertiary)]"
                       type="button"
                       onClick={() => {
                         if (is_active && current.length <= 1) return;
@@ -818,7 +818,7 @@ export function MobileMessageDetailsSheet({
             </h4>
             <div className="flex items-center gap-1">
               <button
-                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
+                className="inline-flex items-center gap-1 rounded-[12px] px-2 py-1 text-[12px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
                 type="button"
                 onClick={handle_copy_headers}
               >
@@ -826,7 +826,7 @@ export function MobileMessageDetailsSheet({
                 {t("mail.copy_headers")}
               </button>
               <button
-                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
+                className="inline-flex items-center gap-1 rounded-[12px] px-2 py-1 text-[12px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
                 type="button"
                 onClick={handle_download_headers}
               >

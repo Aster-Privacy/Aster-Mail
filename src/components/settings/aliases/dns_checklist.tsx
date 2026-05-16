@@ -115,7 +115,7 @@ export function DnsChecklist({
         return (
           <button
             key={step.id}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-[14px] text-left transition-colors"
             disabled={disabled}
             style={{
               backgroundColor: is_active ? "var(--bg-tertiary)" : "transparent",

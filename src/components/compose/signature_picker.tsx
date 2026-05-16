@@ -88,7 +88,7 @@ export function SignaturePicker({
           {signatures.map((signature) => (
             <button
               key={signature.id}
-              className="w-full flex items-start gap-3 px-2 py-2 rounded-md transition-colors hover:bg-surf-hover"
+              className="w-full flex items-start gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
               type="button"
               onClick={() => {
                 const formatted = get_formatted_signature(signature);
@@ -124,7 +124,7 @@ export function SignaturePicker({
           ))}
           <div className="my-1 h-px bg-edge-secondary" />
           <button
-            className="w-full flex items-center gap-3 px-2 py-2 rounded-md transition-colors hover:bg-surf-hover"
+            className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
             type="button"
             onClick={() => handle_select("", false)}
           >

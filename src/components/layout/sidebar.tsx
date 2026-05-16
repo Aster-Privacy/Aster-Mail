@@ -97,7 +97,7 @@ export const MobileMenuButton = ({ on_click }: { on_click: () => void }) => {
   return (
     <button
       aria-label={t("common.open_menu")}
-      className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-primary"
+      className="md:hidden flex items-center justify-center w-10 h-10 rounded-[10px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-primary"
       onClick={on_click}
     >
       <Bars3Icon className="w-5 h-5" />
@@ -577,7 +577,7 @@ export const Sidebar = ({
         {is_mobile && on_mobile_toggle && (
           <button
             aria-label={t("common.close_menu")}
-            className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-txt-muted"
+            className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-txt-muted"
             onClick={on_mobile_toggle}
           >
             <XMarkIcon className="w-5 h-5" />
@@ -588,7 +588,7 @@ export const Sidebar = ({
           on_open_change={set_is_workspace_open}
           trigger={
             <button
-              className={`w-full flex items-center ${is_collapsed ? "justify-center" : "gap-3"} rounded-lg px-1 py-1 -mx-1 transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-info)]`}
+              className={`w-full flex items-center ${is_collapsed ? "justify-center" : "gap-3"} rounded-[12px] px-1 py-1 -mx-1 transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-info)]`}
               type="button"
             >
               <div

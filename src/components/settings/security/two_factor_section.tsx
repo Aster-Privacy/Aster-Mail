@@ -66,7 +66,7 @@ interface OptionButtonProps {
 function OptionButton({ is_selected, label, on_click }: OptionButtonProps) {
   return (
     <button
-      className={`px-3 py-2 text-xs rounded-lg border transition-colors ${
+      className={`px-3 py-2 text-xs rounded-[14px] border transition-colors ${
         is_selected
           ? "bg-brand border-brand text-white"
           : "bg-surf-secondary border-edge-secondary text-txt-secondary"

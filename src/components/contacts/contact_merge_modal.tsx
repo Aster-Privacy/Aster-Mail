@@ -385,7 +385,7 @@ function FieldSelector({
       <div className="grid grid-cols-2 gap-2">
         <button
           className={cn(
-            "p-2 rounded-lg border text-left text-sm transition-all",
+            "p-2 rounded-[14px] border text-left text-sm transition-all",
             selected === "contact_1"
               ? "border-primary bg-primary/10"
               : "border-divider hover:border-primary/50",
@@ -404,7 +404,7 @@ function FieldSelector({
         </button>
         <button
           className={cn(
-            "p-2 rounded-lg border text-left text-sm transition-all",
+            "p-2 rounded-[14px] border text-left text-sm transition-all",
             selected === "contact_2"
               ? "border-primary bg-primary/10"
               : "border-divider hover:border-primary/50",
@@ -449,7 +449,7 @@ function EmailFieldSelector({
       <div className="grid grid-cols-3 gap-2">
         <button
           className={cn(
-            "p-2 rounded-lg border text-left text-sm transition-all",
+            "p-2 rounded-[14px] border text-left text-sm transition-all",
             selected === "merge"
               ? "border-primary bg-primary/10"
               : "border-divider hover:border-primary/50",
@@ -469,7 +469,7 @@ function EmailFieldSelector({
         </button>
         <button
           className={cn(
-            "p-2 rounded-lg border text-left text-sm transition-all",
+            "p-2 rounded-[14px] border text-left text-sm transition-all",
             selected === "contact_1"
               ? "border-primary bg-primary/10"
               : "border-divider hover:border-primary/50",
@@ -489,7 +489,7 @@ function EmailFieldSelector({
         </button>
         <button
           className={cn(
-            "p-2 rounded-lg border text-left text-sm transition-all",
+            "p-2 rounded-[14px] border text-left text-sm transition-all",
             selected === "contact_2"
               ? "border-primary bg-primary/10"
               : "border-divider hover:border-primary/50",

@@ -146,7 +146,7 @@ function StarToggleButton({
     <Tooltip tip={email.is_starred ? t("mail.unstar") : t("mail.star")}>
       <button
         ref={star_ref}
-        className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10"
+        className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
         onClick={handle_click}
       >
         {email.is_starred ? (
@@ -819,7 +819,7 @@ export const InboxEmailListItem = memo(
                     }
                   >
                     <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10"
+                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_toggle_read(email)}
                     >
                       {email.is_read ? (
@@ -841,7 +841,7 @@ export const InboxEmailListItem = memo(
                 {is_trash_view && on_restore && (
                   <Tooltip tip={t("mail.restore")}>
                     <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10"
+                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_restore(email)}
                     >
                       <ArrowUturnLeftIcon className="w-4 h-4 text-txt-muted" />
@@ -852,7 +852,7 @@ export const InboxEmailListItem = memo(
                 {is_archive_view && on_move_to_inbox && (
                   <Tooltip tip={t("mail.move_to_inbox")}>
                     <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10"
+                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_move_to_inbox(email)}
                     >
                       <InboxIcon className="w-4 h-4 text-txt-muted" />
@@ -863,7 +863,7 @@ export const InboxEmailListItem = memo(
                 {is_spam_view && on_mark_not_spam && (
                   <Tooltip tip={t("mail.not_spam")}>
                     <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10"
+                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_mark_not_spam(email)}
                     >
                       <CheckCircleIcon className="w-4 h-4 text-txt-muted" />
@@ -874,7 +874,7 @@ export const InboxEmailListItem = memo(
                 {!is_trash_view && !is_archive_view && on_archive && (
                   <Tooltip tip={t("mail.archive")}>
                     <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10"
+                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_archive(email)}
                     >
                       <ArchiveBoxArrowDownIcon className="w-4 h-4 text-txt-muted" />
@@ -885,7 +885,7 @@ export const InboxEmailListItem = memo(
                 {!is_trash_view && !is_spam_view && on_spam && (
                   <Tooltip tip={t("mail.report_spam")}>
                     <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10"
+                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_spam(email)}
                     >
                       <ExclamationTriangleIcon className="w-4 h-4 text-txt-muted" />
@@ -896,7 +896,7 @@ export const InboxEmailListItem = memo(
                 {on_delete && (
                   <Tooltip tip={is_trash_view ? t("mail.delete_permanently") : t("mail.move_to_trash")}>
                     <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10"
+                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_delete(email)}
                     >
                       <TrashIcon className="w-4 h-4 text-txt-muted" />

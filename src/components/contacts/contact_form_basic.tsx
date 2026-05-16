@@ -114,7 +114,7 @@ export function ContactFormBasic({
             />
             {form_data.emails.length > 1 && (
               <button
-                className="p-2 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                className="p-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                 type="button"
                 onClick={() => on_remove_email(index)}
               >

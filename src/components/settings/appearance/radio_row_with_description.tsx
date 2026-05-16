@@ -35,7 +35,7 @@ export function RadioRowWithDescription({
 }: RadioRowWithDescriptionProps) {
   return (
     <button
-      className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+      className={`w-full flex items-center justify-between px-4 py-3 rounded-[16px] border transition-colors ${
         is_selected
           ? "border-brand bg-surf-selected"
           : "border-edge-secondary bg-transparent"

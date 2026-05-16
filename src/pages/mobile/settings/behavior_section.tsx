@@ -145,7 +145,7 @@ export function BehaviorSection({
                 {image_loading_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-lg px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.load_remote_images === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -265,7 +265,7 @@ export function BehaviorSection({
                 {undo_presets.map((sec) => (
                   <button
                     key={sec}
-                    className={`rounded-lg px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.undo_send_seconds === sec
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"

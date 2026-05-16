@@ -195,7 +195,7 @@ export function AboutSection({
             </SettingsGroup>
             <div className="px-4 pt-3">
               <button
-                className="w-full rounded-xl bg-[var(--mobile-bg-card)] py-3 text-[14px] font-medium text-[var(--mobile-danger)]"
+                className="w-full rounded-[16px] bg-[var(--mobile-bg-card)] py-3 text-[14px] font-medium text-[var(--mobile-danger)]"
                 type="button"
                 onClick={handle_disable_dev_mode}
               >
@@ -204,7 +204,7 @@ export function AboutSection({
             </div>
             <div className="px-4 pt-2">
               <button
-                className="w-full rounded-xl bg-[var(--mobile-bg-card)] py-3 text-[14px] font-medium text-[var(--mobile-accent)]"
+                className="w-full rounded-[16px] bg-[var(--mobile-bg-card)] py-3 text-[14px] font-medium text-[var(--mobile-accent)]"
                 type="button"
                 onClick={() => window.location.reload()}
               >
@@ -213,7 +213,7 @@ export function AboutSection({
             </div>
             <div className="px-4 pt-2">
               <button
-                className="w-full rounded-xl bg-[var(--mobile-bg-card)] py-3 text-[14px] font-medium text-[var(--mobile-accent)]"
+                className="w-full rounded-[16px] bg-[var(--mobile-bg-card)] py-3 text-[14px] font-medium text-[var(--mobile-accent)]"
                 type="button"
                 onClick={async () => {
                   if ("serviceWorker" in navigator) {
@@ -233,7 +233,7 @@ export function AboutSection({
             </div>
             <div className="px-4 pt-2 pb-4">
               <button
-                className="w-full rounded-xl bg-[var(--mobile-bg-card)] py-3 text-[14px] font-medium text-[var(--mobile-danger)]"
+                className="w-full rounded-[16px] bg-[var(--mobile-bg-card)] py-3 text-[14px] font-medium text-[var(--mobile-danger)]"
                 type="button"
                 onClick={async () => {
                   localStorage.clear();

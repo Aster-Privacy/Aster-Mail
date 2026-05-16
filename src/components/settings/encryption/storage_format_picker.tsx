@@ -83,7 +83,7 @@ export function StorageFormatPicker({
 
       <div className="grid grid-cols-2 gap-3">
         <button
-          className="rounded-xl border-2 overflow-hidden text-left transition-all"
+          className="rounded-[14px] border-2 overflow-hidden text-left transition-all"
           style={{
             borderColor:
               storage_format === "aster"
@@ -114,7 +114,7 @@ export function StorageFormatPicker({
         </button>
 
         <button
-          className="rounded-xl border-2 overflow-hidden text-left transition-all"
+          className="rounded-[14px] border-2 overflow-hidden text-left transition-all"
           style={{
             borderColor:
               storage_format === "ipfs"
@@ -164,7 +164,7 @@ export function StorageFormatPicker({
         </ModalHeader>
         <ModalFooter>
           <button
-            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover_bg text-txt-muted"
+            className="px-4 py-2 text-sm font-medium rounded-[14px] transition-colors hover_bg text-txt-muted"
             onClick={() => set_show_ipfs_confirm(false)}
           >
             {t("common.cancel")}

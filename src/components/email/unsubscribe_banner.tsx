@@ -186,14 +186,14 @@ export function UnsubscribeBanner({
 
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
-              className="rounded-md px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
+              className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
               type="button"
               onClick={handle_unsubscribe}
             >
               {t("mail.unsubscribe")}
             </button>
             <button
-              className="p-1.5 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-txt-muted"
+              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-txt-muted"
               type="button"
               onClick={() => set_is_dismissed(true)}
             >
