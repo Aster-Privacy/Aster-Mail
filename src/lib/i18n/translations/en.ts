@@ -2158,14 +2158,16 @@ export const en: Translations = {
     "connection.title": "Connection",
     "connection.description": "Choose how to connect to Aster services",
     "connection.direct": "Direct",
-    "connection.direct_description": "Connect directly to Aster servers",
+    "connection.direct_description":
+      "Your device connects straight to Aster servers. Fastest path and lowest latency, but your IP address is visible to Aster.",
     "connection.tor": "Tor",
     "connection.tor_description": "Route traffic through the Tor network",
     "connection.tor_snowflake": "Tor with Snowflake",
     "connection.tor_snowflake_description":
       "Use Snowflake bridges for censorship resistance",
     "connection.cdn_relay": "CDN Relay",
-    "connection.cdn_relay_description": "Route through CDN relay servers",
+    "connection.cdn_relay_description":
+      "Requests are routed through a global CDN before reaching Aster. Your IP address stays hidden from Aster, and traffic blends in with regular CDN traffic.",
     "connection.tor_warning":
       "All traffic will be routed through the Tor network. Expect slower performance.",
     "connection.status_connected": "Connected",

@@ -24,16 +24,14 @@ import type {
 } from "@/services/routing/types";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  SignalIcon,
-  InformationCircleIcon,
-} from "@heroicons/react/24/outline";
+import { SignalIcon } from "@heroicons/react/24/outline";
 import { Radio } from "@aster/ui";
 
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { connection_store } from "@/services/routing/connection_store";
+import { InfoPopover } from "@/components/ui/info_popover";
 
 interface ConnectionOptionDef {
   value: ConnectionMethod;
@@ -107,9 +105,9 @@ export function ConnectionSection() {
         <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
           <SignalIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.connection.title")}
-          <InformationCircleIcon
-            className="w-4 h-4 text-txt-muted flex-shrink-0"
-            title={t("settings.connection.description")}
+          <InfoPopover
+            description={t("settings.connection.description")}
+            title={t("settings.connection.title")}
           />
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
@@ -123,17 +121,28 @@ export function ConnectionSection() {
           const is_selected = state.method === option.value;
           const is_disabled = is_switching;
 
+          const label = t(option.label_key as Parameters<typeof t>[0]);
+          const info = t(option.info_key as Parameters<typeof t>[0]);
+
           return (
-            <button
+            <div
               key={option.value}
+              aria-disabled={is_disabled}
+              aria-pressed={is_selected}
               className={cn(
-                "rounded-[14px] border-2 overflow-hidden transition-colors text-left",
+                "rounded-[14px] border-2 overflow-hidden transition-colors text-left cursor-pointer",
                 is_disabled && "opacity-50 pointer-events-none",
                 is_selected ? "border-brand" : "border-edge-secondary",
               )}
-              disabled={is_disabled}
-              type="button"
+              role="button"
+              tabIndex={is_disabled ? -1 : 0}
               onClick={() => handle_method_change(option.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handle_method_change(option.value);
+                }
+              }}
             >
               <div className="h-40 overflow-hidden">
                 <img
@@ -148,18 +157,20 @@ export function ConnectionSection() {
               <div className="flex items-center justify-between px-3 py-2.5">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-sm font-medium text-txt-primary">
-                    {t(option.label_key as Parameters<typeof t>[0])}
+                    {label}
                   </span>
-                  <InformationCircleIcon
-                    className="w-4 h-4 text-txt-muted flex-shrink-0"
-                    title={t(option.info_key as Parameters<typeof t>[0])}
-                  />
+                  <span
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    <InfoPopover description={info} title={label} />
+                  </span>
                 </div>
                 <span className="pointer-events-none flex-shrink-0">
                   <Radio readOnly checked={is_selected} />
                 </span>
               </div>
-            </button>
+            </div>
           );
         })}
       </div>
