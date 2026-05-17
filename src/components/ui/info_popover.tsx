@@ -25,6 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { use_translation } from "@/lib/i18n";
 
 interface InfoPopoverProps {
   title: string;
@@ -32,11 +33,13 @@ interface InfoPopoverProps {
 }
 
 export function InfoPopover({ title, description }: InfoPopoverProps) {
+  const { t } = use_translation();
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
-          aria-label="More information"
+          aria-label={t("common.more_information")}
           className="inline-flex items-center justify-center flex-shrink-0 text-txt-muted hover:text-txt-secondary transition-colors rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           type="button"
         >

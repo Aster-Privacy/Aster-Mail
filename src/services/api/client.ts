@@ -147,6 +147,7 @@ class ApiClient {
   private is_authenticated_flag: boolean = false;
   private auth_check_promise: Promise<boolean> | null = null;
   private dev_access_token: string | null = null;
+  private suspend_account_persist_flag: boolean = false;
   private initial_auth_verified: boolean = false;
   private refresh_promise: Promise<void> | null = null;
   private _cached_user_info: CachedUserInfo | null = null;
@@ -351,6 +352,71 @@ class ApiClient {
       try {
         localStorage.setItem(TAURI_TOKEN_KEY, token);
       } catch {}
+    }
+    this.persist_to_active_account(token, refresh_token);
+  }
+
+  suspend_account_persist(): void {
+    this.suspend_account_persist_flag = true;
+  }
+
+  resume_account_persist(): void {
+    this.suspend_account_persist_flag = false;
+  }
+
+  private persist_to_active_account(
+    access_token: string | null,
+    refresh_token?: string | null,
+  ): void {
+    if (this.suspend_account_persist_flag) return;
+    import("@/services/account_manager")
+      .then(async ({ get_current_account_id, update_account_tokens }) => {
+        const id = await get_current_account_id();
+        if (!id) return;
+        await update_account_tokens(
+          id,
+          access_token,
+          refresh_token === undefined ? null : refresh_token,
+        );
+      })
+      .catch(() => {});
+  }
+
+  async load_tokens_for_account(account_id: string): Promise<boolean> {
+    try {
+      const { get_account_tokens } = await import(
+        "@/services/account_manager"
+      );
+      const tokens = await get_account_tokens(account_id);
+
+      if (tokens.access_token) {
+        this.dev_access_token = tokens.access_token;
+        if (Capacitor.isNativePlatform()) {
+          await this.persist_native_token(tokens.access_token);
+          if (tokens.refresh_token) {
+            await this.persist_native_refresh_token(tokens.refresh_token);
+          }
+        }
+        if (is_tauri_env()) {
+          try {
+            localStorage.setItem(TAURI_TOKEN_KEY, tokens.access_token);
+          } catch {}
+        }
+        if (import.meta.env.DEV) {
+          sessionStorage.setItem(DEV_TOKEN_KEY, tokens.access_token);
+        }
+
+        return true;
+      }
+    } catch {}
+
+    return false;
+  }
+
+  clear_in_memory_token(): void {
+    this.dev_access_token = null;
+    if (import.meta.env.DEV) {
+      sessionStorage.removeItem(DEV_TOKEN_KEY);
     }
   }
 
@@ -652,13 +718,14 @@ class ApiClient {
     this.clear_auth_state();
   }
 
-  async clear_session_cookies(): Promise<void> {
-    expire_csrf_cookie();
-
+  async clear_session_cookies(): Promise<boolean> {
     try {
-      await this.post("/core/v1/auth/clear-session", {});
+      const response = await this.post("/core/v1/auth/clear-session", {});
+      expire_csrf_cookie();
+
+      return !response.error;
     } catch {
-      return;
+      return false;
     }
   }
 
@@ -847,6 +914,26 @@ class ApiClient {
               error: error_data.error || "Storage quota exceeded",
               code: "UNKNOWN_ERROR",
               server_code: "STORAGE_QUOTA_EXCEEDED",
+            };
+          }
+
+          if (
+            response.status === 409 &&
+            error_data.code === "ALREADY_SIGNED_IN_ON_DEVICE"
+          ) {
+            window.dispatchEvent(
+              new CustomEvent("aster:already-signed-in", {
+                detail: {
+                  message: error_data.error || "Already signed in on this device",
+                },
+              }),
+            );
+
+            return {
+              error:
+                error_data.error || "Already signed in on this device",
+              code: "CONFLICT",
+              server_code: "ALREADY_SIGNED_IN_ON_DEVICE",
             };
           }
 

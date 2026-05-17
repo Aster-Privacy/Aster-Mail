@@ -21,7 +21,7 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { AuthState, AuthProviderProps } from "./auth_types";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 
 import { AuthContext } from "./use_auth_hook";
 import {
@@ -52,7 +52,9 @@ import {
   get_current_account,
   add_account as storage_add_account,
   remove_account as storage_remove_account,
+  switch_account as storage_switch_account,
   update_account_user,
+  update_account_tokens,
 } from "@/services/account_manager";
 import { get_account_limit } from "@/services/api/switch";
 import { sync_client } from "@/services/sync_client";
@@ -89,7 +91,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     current_account_id: null,
   });
 
-  const [is_adding_account, set_is_adding_account] = useState(false);
+  const [is_adding_account, _set_is_adding_account] = useState(false);
+
+  const set_is_adding_account = useCallback((value: boolean) => {
+    if (value) {
+      api_client.suspend_account_persist();
+    } else {
+      api_client.resume_account_persist();
+    }
+    _set_is_adding_account(value);
+  }, []);
   const [is_completing_registration, set_is_completing_registration] =
     useState(false);
 
@@ -110,6 +121,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
           return;
         }
+
+        await api_client.load_tokens_for_account(current.id);
 
         const is_auth_valid = await verify_auth_status();
 
@@ -154,6 +167,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
               current_account_id: data.current_account_id,
             });
 
+            const local = current.user.email.split("@")[0] ?? "";
+            const path = window.location.pathname;
+            if (path !== "/sign-in" && path !== "/register") {
+              window.location.replace(`/sign-in?u=${encodeURIComponent(local)}`);
+            }
+
             return;
           }
 
@@ -162,7 +181,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           let synced_user = current.user;
           const cached_info = api_client.get_cached_user_info();
 
-          if (cached_info) {
+          if (cached_info && cached_info.user_id === current.user.id) {
             synced_user = {
               id: cached_info.user_id,
               username: cached_info.username ?? current.user.username,
@@ -242,6 +261,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       await storage_add_account(user);
 
+      const active_token = api_client.get_access_token();
+      if (active_token) {
+        await update_account_tokens(user.id, active_token, null);
+      }
+
       api_client.set_authenticated(true);
       check_and_run_recovery_reencryption(vault, passphrase).catch(() => {});
       ensure_ratchet_keys().catch(() => {});
@@ -298,6 +322,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const result = await storage_add_account(user);
 
       if (result.success) {
+        const active_token = api_client.get_access_token();
+        if (active_token) {
+          await update_account_tokens(user.id, active_token, null);
+        }
         api_client.set_authenticated(true);
         ensure_ratchet_keys().catch(() => {});
         ensure_default_labels(vault, t).catch(console.error);
@@ -359,38 +387,62 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const target = accounts.find((a) => a.id === account_id);
 
       if (!target) return;
+      if (target.id === state.current_account_id) return;
 
-      api_client.begin_intentional_logout();
+      const stored_passphrase = await get_session_passphrase(target.id);
+      const stored_vault = get_stored_encrypted_vault(target.id);
+
+      if (!target.access_token || !stored_passphrase || !stored_vault) {
+        sync_client.disconnect();
+        stop_session_timeout();
+        clear_vault_from_memory();
+        clear_mail_stats();
+        clear_mail_cache();
+        await storage_switch_account(target.id);
+
+        const local = target.user.email.split("@")[0] ?? "";
+
+        set_state({
+          user: null,
+          is_loading: false,
+          is_authenticated: false,
+          has_keys: false,
+          accounts,
+          current_account_id: target.id,
+        });
+
+        set_is_adding_account(true);
+        window.location.replace(`/sign-in?u=${encodeURIComponent(local)}`);
+
+        return;
+      }
+
+      let cookies_cleared = false;
+      try {
+        cookies_cleared = await api_client.clear_session_cookies();
+      } catch (e) {
+        safe_log_error(e);
+      }
+
+      if (!cookies_cleared) {
+        show_toast(t("settings.switch_failed"), "error");
+
+        return;
+      }
+
       sync_client.disconnect();
       stop_session_timeout();
       clear_vault_from_memory();
       clear_mail_stats();
       clear_mail_cache();
+      api_client.clear_in_memory_token();
 
-      try {
-        await api_client.post("/core/v1/auth/logout", {});
-      } catch (e) {
-        safe_log_error(e);
-      }
+      await storage_switch_account(target.id);
+      await api_client.load_tokens_for_account(target.id);
 
-      api_client.clear_auth_data();
-      await api_client.clear_session_cookies();
-
-      const local = target.user.email.split("@")[0] ?? "";
-
-      set_state({
-        user: null,
-        is_loading: false,
-        is_authenticated: false,
-        has_keys: false,
-        accounts,
-        current_account_id: null,
-      });
-
-      set_is_adding_account(true);
-      window.location.replace(`/sign-in?u=${encodeURIComponent(local)}`);
+      window.location.replace("/");
     },
-    [],
+    [state.current_account_id, set_is_adding_account, t],
   );
 
   const clear_local_auth_data = useCallback(async () => {
@@ -406,7 +458,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
   }, []);
 
+  const logout_in_flight = useRef(false);
   const logout = useCallback(async () => {
+    if (logout_in_flight.current) return;
+    logout_in_flight.current = true;
+
+    const current_id = state.current_account_id;
+    const other = state.accounts.find((a) => a.id !== current_id);
+
     api_client.begin_intentional_logout();
     sync_client.disconnect();
 
@@ -416,9 +475,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
       safe_log_error(e);
     }
 
+    if (other && current_id) {
+      stop_session_timeout();
+      clear_vault_from_memory();
+      clear_mail_stats();
+      clear_mail_cache();
+      clear_stored_encrypted_vault(current_id);
+      await clear_session_passphrase(current_id);
+      clear_session_timeout_data(current_id);
+      api_client.clear_in_memory_token();
+
+      try {
+        await api_client.clear_session_cookies();
+      } catch (e) {
+        safe_log_error(e);
+      }
+
+      await storage_remove_account(current_id);
+      await storage_switch_account(other.id);
+      await api_client.load_tokens_for_account(other.id);
+      window.location.replace("/");
+
+      return;
+    }
+
     await clear_local_auth_data();
     window.location.replace("/sign-in");
-  }, [clear_local_auth_data]);
+  }, [clear_local_auth_data, state.accounts, state.current_account_id]);
 
   const logout_all_handler = useCallback(async () => {
     api_client.begin_intentional_logout();

@@ -32,6 +32,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context_menu";
+import { use_translation } from "@/lib/i18n";
 
 interface TagContextMenuProps {
   children: React.ReactNode;
@@ -50,23 +51,25 @@ export function TagContextMenu({
   on_reicon,
   on_delete,
 }: TagContextMenuProps): React.ReactElement {
+  const { t } = use_translation();
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-48">
         <ContextMenuItem onClick={on_rename}>
           <PencilIcon className="mr-2 h-4 w-4" />
-          Rename
+          {t("common.rename")}
         </ContextMenuItem>
 
         <ContextMenuItem onClick={on_recolor}>
           <TagIcon className="mr-2 h-4 w-4" style={{ color: tag_color }} />
-          Change color
+          {t("common.change_color")}
         </ContextMenuItem>
 
         <ContextMenuItem onClick={on_reicon}>
           <SparklesIcon className="mr-2 h-4 w-4" />
-          Change icon
+          {t("common.change_icon")}
         </ContextMenuItem>
 
         <ContextMenuSeparator />
@@ -76,7 +79,7 @@ export function TagContextMenu({
           onClick={on_delete}
         >
           <TrashIcon className="mr-2 h-4 w-4" />
-          Delete
+          {t("common.delete")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

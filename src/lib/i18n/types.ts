@@ -345,6 +345,8 @@ export interface CommonTranslations {
   remove_lock: string;
   lock: string;
   change_color: string;
+  change_icon: string;
+  more_information: string;
   delete_folder: string;
   edit_reschedule: string;
   cancel_scheduled: string;
@@ -1959,6 +1961,7 @@ export interface SettingsTranslations {
   plan_f_smart_folders: string;
   plan_f_imap_smtp: string;
   plan_f_external_accounts: string;
+  plan_f_signed_in_accounts: string;
   plan_f_caldav: string;
   plan_f_encrypted_exports: string;
   plan_f_hardware_keys: string;
@@ -4219,6 +4222,7 @@ export interface ErrorTranslations {
   address_too_long: string;
   address_consecutive_dots: string;
   max_accounts: string;
+  account_already_added: string;
   failed_encrypt_draft: string;
   failed_decrypt_draft: string;
   version_conflict: string;

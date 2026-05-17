@@ -28,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_should_reduce_motion } from "@/provider";
+import { use_translation } from "@/lib/i18n";
 
 type ToastIconType = "success" | "warning" | "error" | "info";
 
@@ -116,6 +117,7 @@ interface SimpleToastProps {
 
 export function SimpleToast({ position = "bottom" }: SimpleToastProps) {
   const reduce_motion = use_should_reduce_motion();
+  const { t } = use_translation();
   const [toasts, set_toasts] = useState<ToastState[]>([]);
 
   useEffect(() => {
@@ -165,7 +167,7 @@ export function SimpleToast({ position = "bottom" }: SimpleToastProps) {
                 {toast.message}
               </span>
               <button
-                aria-label="Dismiss"
+                aria-label={t("common.dismiss")}
                 className="ml-1 flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
                 onClick={() => dismiss_toast(toast.id)}
               >

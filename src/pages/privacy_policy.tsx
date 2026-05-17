@@ -41,8 +41,8 @@ const SECTIONS = [
     body: "The limited information we collect is used exclusively to:\n\n\u2022 Deliver and route email messages\n\u2022 Maintain your account and provide customer support\n\u2022 Process payments for paid plans\n\u2022 Send essential service notifications (security alerts, account changes)\n\u2022 Prevent abuse and enforce our Terms of Service\n\nWe never use your data for advertising, profiling, behavioral analysis, or any purpose other than providing the email service you signed up for. We do not sell, rent, license, or otherwise share your personal information with third parties for their marketing purposes.",
   },
   {
-    heading: "End-to-End Encryption and Zero-Knowledge Architecture",
-    body: "Aster Mail is built on a zero-knowledge architecture. This is a core design principle, not an optional feature:\n\n\u2022 All email content is encrypted on your device before being transmitted to our servers\n\u2022 Your encryption keys are derived from your password and never leave your device in plaintext form\n\u2022 We cannot read, scan, or analyze your emails, contacts, calendar entries, or settings\n\u2022 Messages between Aster users are protected with the Signal protocol, providing forward secrecy\n\u2022 Messages to external recipients use PGP encryption when the recipient supports it\n\u2022 Your private key is encrypted with AES-256-GCM using a key derived via BLAKE3\n\u2022 We cannot comply with requests to produce the plaintext content of your communications because we do not possess the ability to decrypt them\n\nThis means that even in the event of a server breach, a legal order, or a rogue employee, your data remains protected because we simply cannot access it.",
+    heading: "End-to-End Encryption and Zero-Access Architecture",
+    body: "Aster Mail is built on a zero-access architecture. This is a core design principle, not an optional feature:\n\n\u2022 All email content is encrypted on your device before being transmitted to our servers\n\u2022 Your encryption keys are derived from your password and never leave your device in plaintext form\n\u2022 We cannot read, scan, or analyze your emails, contacts, calendar entries, or settings\n\u2022 Messages between Aster users are protected with the Signal protocol, providing forward secrecy\n\u2022 Messages to external recipients use PGP encryption when the recipient supports it\n\u2022 Your private key is encrypted with AES-256-GCM using a key derived via BLAKE3\n\u2022 We cannot comply with requests to produce the plaintext content of your communications because we do not possess the ability to decrypt them\n\nThis means that even in the event of a server breach, a legal order, or a rogue employee, your data remains protected because we simply cannot access it.",
   },
   {
     heading: "Data Storage and Security",
@@ -66,7 +66,7 @@ const SECTIONS = [
   },
   {
     heading: "Law Enforcement and Government Requests",
-    body: "Due to our zero-knowledge architecture, we are technically unable to provide the plaintext content of your communications to any third party, including law enforcement and government agencies.\n\nIf we receive a valid legal request, we can only provide the limited unencrypted metadata we possess, such as your email address, account creation date, and plan type. We cannot provide the contents of your emails, contacts, or files because they are encrypted with keys we do not possess.\n\nWe will notify affected users of any legal requests for their data unless we are legally prohibited from doing so. We publish a transparency report detailing the number and types of requests we receive.",
+    body: "Due to our zero-access architecture, we are technically unable to provide the plaintext content of your communications to any third party, including law enforcement and government agencies.\n\nIf we receive a valid legal request, we can only provide the limited unencrypted metadata we possess, such as your email address, account creation date, and plan type. We cannot provide the contents of your emails, contacts, or files because they are encrypted with keys we do not possess.\n\nWe will notify affected users of any legal requests for their data unless we are legally prohibited from doing so. We publish a transparency report detailing the number and types of requests we receive.",
   },
   {
     heading: "Children's Privacy",
@@ -78,7 +78,7 @@ const SECTIONS = [
   },
   {
     heading: "Changes to This Policy",
-    body: "We may update this Privacy Policy from time to time. We will notify users of material changes via email or through the Service at least 30 days before changes take effect. The date at the top of this page indicates when the policy was last updated.\n\nWe will never change this policy in a way that reduces the privacy protections afforded to your data without providing explicit notice and obtaining your consent. Any change that would weaken our zero-knowledge architecture or introduce data collection beyond what is described here will require active opt-in from affected users.",
+    body: "We may update this Privacy Policy from time to time. We will notify users of material changes via email or through the Service at least 30 days before changes take effect. The date at the top of this page indicates when the policy was last updated.\n\nWe will never change this policy in a way that reduces the privacy protections afforded to your data without providing explicit notice and obtaining your consent. Any change that would weaken our zero-access architecture or introduce data collection beyond what is described here will require active opt-in from affected users.",
   },
   {
     heading: "Contact",
