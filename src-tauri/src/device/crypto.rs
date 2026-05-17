@@ -197,12 +197,18 @@ fn load_stored() -> Result<Option<StoredIdentity>, String> {
     let data = std::fs::read(&path).map_err(|e| e.to_string())?;
 
     if data.len() >= 8 && &data[..8] == MAGIC_ID {
-        let wrap_key = wrap_key_load()?
-            .ok_or_else(|| "identity locked: wrap key missing from keystore".to_string())?;
-        let plaintext = aead_open(&wrap_key, MAGIC_ID, &data)?;
-        let stored: StoredIdentity =
-            serde_json::from_slice(&plaintext).map_err(|e| e.to_string())?;
-        return Ok(Some(stored));
+        match wrap_key_load()? {
+            None => {
+                let _ = std::fs::remove_file(&path);
+                return Ok(None);
+            }
+            Some(wrap_key) => {
+                let plaintext = aead_open(&wrap_key, MAGIC_ID, &data)?;
+                let stored: StoredIdentity =
+                    serde_json::from_slice(&plaintext).map_err(|e| e.to_string())?;
+                return Ok(Some(stored));
+            }
+        }
     }
 
     let bytes = URL_SAFE_NO_PAD.decode(&data).map_err(|e| e.to_string())?;
@@ -398,10 +404,16 @@ pub fn device_get_stored_passphrase() -> Result<Option<String>, String> {
     let data = std::fs::read(&path).map_err(|e| e.to_string())?;
 
     if data.len() >= 8 && &data[..8] == MAGIC_PP {
-        let wrap_key = wrap_key_load()?
-            .ok_or_else(|| "passphrase locked: wrap key missing from keystore".to_string())?;
-        let plaintext = aead_open(&wrap_key, MAGIC_PP, &data)?;
-        return Ok(Some(b64url(&plaintext)));
+        match wrap_key_load()? {
+            None => {
+                let _ = std::fs::remove_file(&path);
+                return Ok(None);
+            }
+            Some(wrap_key) => {
+                let plaintext = aead_open(&wrap_key, MAGIC_PP, &data)?;
+                return Ok(Some(b64url(&plaintext)));
+            }
+        }
     }
 
     let s = std::str::from_utf8(&data).map_err(|e| e.to_string())?.to_string();
