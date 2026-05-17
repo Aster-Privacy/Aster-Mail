@@ -90,6 +90,7 @@ interface LoginRequest {
   remember_me?: boolean;
   captcha_token?: string;
   client_platform?: string;
+  is_adding_account?: boolean;
 }
 
 interface LoginResponse {

@@ -73,16 +73,7 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
               className="text-sm text-center"
               style={{ color: reg.is_dark ? "#f87171" : "#dc2626" }}
             >
-              {reg.t("auth.abuse_flagged_message")}{" "}
-              <a
-                className="underline"
-                href="https://astermail.org/help"
-                rel="noopener noreferrer"
-                style={{ color: reg.is_dark ? "#f87171" : "#dc2626" }}
-                target="_blank"
-              >
-                {reg.t("auth.contact_support")}
-              </a>
+              {reg.t("auth.abuse_flagged_message")}
             </p>
           </motion.div>
         )}

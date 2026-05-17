@@ -38,11 +38,11 @@ const SECTIONS = [
   },
   {
     heading: "Description of Service",
-    body: 'Aster Mail is an end-to-end encrypted email service operated by Aster Communications Inc. ("Aster", "we", "us"). The Service includes the Aster Mail web application, Aster Portal, and any associated desktop and mobile applications. We provide encrypted email, contacts, calendar, and file storage built on a zero-knowledge architecture where your content is encrypted on your device before reaching our servers.',
+    body: 'Aster Mail is an end-to-end encrypted email service operated by Aster Communications Inc. ("Aster", "we", "us"). The Service includes the Aster Mail web application, Aster Portal, and any associated desktop and mobile applications. We provide encrypted email, contacts, calendar, and file storage built on a zero-access architecture where your content is encrypted on your device before reaching our servers.',
   },
   {
     heading: "Account Registration and Security",
-    body: "You must provide a valid email address to create an account. You agree to provide accurate information and to keep your account credentials secure. You are solely responsible for all activity under your account.\n\nAster Mail operates on a zero-knowledge encryption model. Your encryption keys are derived from your password and stored only on your devices in encrypted form. We do not have access to your password or private keys. If you lose your password and have not configured account recovery options, we cannot restore access to your encrypted data. This is a fundamental security property of the Service, not a limitation.",
+    body: "You must provide a valid email address to create an account. You agree to provide accurate information and to keep your account credentials secure. You are solely responsible for all activity under your account.\n\nAster Mail operates on a zero-access encryption model. Your encryption keys are derived from your password and stored only on your devices in encrypted form. We do not have access to your password or private keys. If you lose your password and have not configured account recovery options, we cannot restore access to your encrypted data. This is a fundamental security property of the Service, not a limitation.",
   },
   {
     heading: "Acceptable Use",
@@ -53,8 +53,8 @@ const SECTIONS = [
     body: "You retain all rights to the content you create, send, receive, and store through the Service. Aster does not claim any ownership over your content. Because your content is end-to-end encrypted, we cannot access, use, or monetize it.\n\nYou grant Aster only the limited technical permissions necessary to operate the Service on your behalf, such as storing your encrypted data on our servers and transmitting your encrypted messages to their intended recipients.",
   },
   {
-    heading: "Encryption and Zero-Knowledge Architecture",
-    body: "The Service is designed so that Aster has zero knowledge of the content of your emails, contacts, files, and settings. All user content is encrypted on the client side using keys derived from your credentials. We do not hold, escrow, or have the ability to reconstruct your private encryption keys.\n\nThis architecture means:\n\n\u2022 We cannot read, scan, or analyze the content of your messages\n\u2022 We cannot comply with requests to produce the plaintext content of your communications\n\u2022 We cannot recover your data if you lose access to your encryption keys\n\u2022 Targeted advertising based on email content is technically impossible\n\nWe will never introduce backdoors, key escrow mechanisms, or any feature that would compromise the zero-knowledge property of the Service.",
+    heading: "Encryption and Zero-Access Architecture",
+    body: "The Service is designed so that Aster has zero access of the content of your emails, contacts, files, and settings. All user content is encrypted on the client side using keys derived from your credentials. We do not hold, escrow, or have the ability to reconstruct your private encryption keys.\n\nThis architecture means:\n\n\u2022 We cannot read, scan, or analyze the content of your messages\n\u2022 We cannot comply with requests to produce the plaintext content of your communications\n\u2022 We cannot recover your data if you lose access to your encryption keys\n\u2022 Targeted advertising based on email content is technically impossible\n\nWe will never introduce backdoors, key escrow mechanisms, or any feature that would compromise the zero-access property of the Service.",
   },
   {
     heading: "Free and Paid Plans",

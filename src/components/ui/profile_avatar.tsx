@@ -50,6 +50,7 @@ interface ProfileAvatarProps {
   clickable?: boolean;
   on_compose?: (email: string) => void;
   profile_color?: string;
+  solid_aster_fallback?: boolean;
 }
 
 const SIZE_MAP: Record<string, number> = {
@@ -138,6 +139,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   clickable = false,
   on_compose,
   profile_color,
+  solid_aster_fallback = false,
 }: ProfileAvatarProps) {
   const { user } = use_auth();
   const is_current_user =
@@ -288,6 +290,38 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     },
     [is_favicon_source, domain],
   );
+
+  if (solid_aster_fallback && (!resolved_image_url || image_error)) {
+    const logo_size = Math.round(pixel_size * 0.6);
+    const solid_element = (
+      <div
+        className={`rounded-full flex-shrink-0 flex items-center justify-center ${className}`}
+        style={{
+          width: pixel_size,
+          height: pixel_size,
+          minWidth: pixel_size,
+          minHeight: pixel_size,
+          backgroundColor: "#ffffff",
+          border: "1px solid rgba(0,0,0,0.06)",
+        }}
+      >
+        <img
+          alt=""
+          draggable={false}
+          src="/aster.webp"
+          style={{
+            width: logo_size,
+            height: logo_size,
+            objectFit: "contain" as const,
+            userSelect: "none" as const,
+            pointerEvents: "none" as const,
+          }}
+        />
+      </div>
+    );
+
+    return wrap_ring(solid_element);
+  }
 
   if (show_gradient) {
     const logo_size = Math.round(pixel_size * 0.65);

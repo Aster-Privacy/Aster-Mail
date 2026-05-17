@@ -138,6 +138,7 @@ export default function SignInPage() {
     is_authenticated,
     is_loading: auth_loading,
     current_account_id,
+    accounts,
   } = use_auth();
   const { theme } = useTheme();
   const { t } = use_i18n();
@@ -361,6 +362,7 @@ export default function SignInPage() {
           user_hash,
           password_hash,
           remember_me: true,
+          is_adding_account,
         });
 
         if (response.error || !response.data) {
@@ -681,10 +683,23 @@ export default function SignInPage() {
       return;
     }
 
+    const email = `${clean_username}@${final_domain}`;
+
+    if (is_adding_account) {
+      const normalized = email.toLowerCase();
+      const already = accounts.some(
+        (a) => a.user.email.toLowerCase() === normalized,
+      );
+      if (already) {
+        await timing_safe_delay();
+        set_error(t("errors.account_already_added"));
+        return;
+      }
+    }
+
     set_is_loading(true);
     set_status(t("auth.authenticating"));
 
-    const email = `${clean_username}@${final_domain}`;
     const start_time = Date.now();
 
     try {
@@ -723,6 +738,7 @@ export default function SignInPage() {
         remember_me,
         captcha_token: captcha_token || undefined,
         client_platform: import.meta.env.DEV ? "desktop" : undefined,
+        is_adding_account,
       });
 
       if (response.error) {

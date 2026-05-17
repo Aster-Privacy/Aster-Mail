@@ -69,7 +69,11 @@ export async function purge_all_local_data(): Promise<void> {
   }
 
   api_client.clear_auth_data();
-  api_client.clear_session_cookies();
+  try {
+    await api_client.clear_session_cookies();
+  } catch (e) {
+    errors.push(e instanceof Error ? e : new Error(String(e)));
+  }
 
   try {
     await clear_all_session_passphrases();

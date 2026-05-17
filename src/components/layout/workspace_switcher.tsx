@@ -30,6 +30,7 @@ import { Button } from "@aster/ui";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { EmailTag } from "@/components/ui/email_tag";
 import {
   Popover,
   PopoverContent,
@@ -89,6 +90,7 @@ export function WorkspaceSwitcher({
   }, [is_open]);
 
   const at_limit = accounts.length >= max_allowed;
+  const display_max = Math.max(max_allowed, accounts.length);
 
   const current_user_email = user?.email ?? "";
   const current_display_name =
@@ -105,6 +107,13 @@ export function WorkspaceSwitcher({
         t("auth.account_limit_for_plan", { max: String(max_allowed) }),
         "info",
       );
+      on_open_change(false);
+      navigate("/settings");
+      setTimeout(() => {
+        window.dispatchEvent(
+          new CustomEvent("navigate-settings", { detail: "billing" }),
+        );
+      }, 50);
 
       return;
     }
@@ -194,9 +203,11 @@ export function WorkspaceSwitcher({
               <div className="relative">
                 <ProfileAvatar
                   email={current_user_email}
+                  image_url={user?.profile_picture}
                   name={current_display_name}
                   profile_color={preferences.profile_color}
                   size="xs"
+                  solid_aster_fallback
                 />
                 <div
                   className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
@@ -220,15 +231,12 @@ export function WorkspaceSwitcher({
                   {current_user_email}
                 </span>
               </div>
-              <span
-                className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0"
-                style={{
-                  color: "var(--color-success)",
-                  backgroundColor: "var(--color-success-bg, rgba(34,197,94,0.12))",
-                }}
-              >
-                {t("auth.active_account")}
-              </span>
+              <EmailTag
+                label={t("auth.active_account")}
+                show_icon={false}
+                size="xs"
+                variant="emerald"
+              />
             </div>
           </div>
 
@@ -248,7 +256,7 @@ export function WorkspaceSwitcher({
                   return (
                     <div
                       key={acc.id}
-                      className="group w-full px-2.5 py-1.5 rounded-[12px] flex items-center gap-2.5 cursor-pointer hover:bg-[var(--surf-tertiary,rgba(0,0,0,0.04))]"
+                      className="group w-full px-2.5 py-1.5 rounded-[12px] flex items-center gap-2.5 cursor-pointer transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
                       role="button"
                       tabIndex={0}
                       onClick={() => handle_switch(acc.id)}
@@ -262,9 +270,11 @@ export function WorkspaceSwitcher({
                     >
                       <ProfileAvatar
                         email={acc.user.email}
+                        image_url={acc.user.profile_picture}
                         name={acc_name}
                         profile_color={acc.user.profile_color}
                         size="xs"
+                        solid_aster_fallback
                       />
                       <div className="flex flex-col min-w-0 flex-1">
                         <span
@@ -309,8 +319,7 @@ export function WorkspaceSwitcher({
 
           <div className="p-1.5">
             <button
-              className="w-full px-2.5 py-2 rounded-[12px] flex items-center gap-2.5 text-left disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surf-tertiary,rgba(0,0,0,0.04))]"
-              disabled={at_limit}
+              className={`w-full px-2.5 py-2 rounded-[12px] flex items-center gap-2.5 text-left transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] ${at_limit ? "opacity-60" : ""}`}
               type="button"
               onClick={handle_add_account}
               title={
@@ -341,7 +350,7 @@ export function WorkspaceSwitcher({
                   className="text-[10px]"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  {accounts.length}/{max_allowed}
+                  {accounts.length}/{display_max}
                 </span>
               </div>
             </button>

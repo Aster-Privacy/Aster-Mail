@@ -20,7 +20,6 @@
 //
 import { useEffect, useMemo } from "react";
 import { Button } from "@aster/ui";
-import { SparklesIcon } from "@heroicons/react/24/outline";
 
 import {
   Modal,
@@ -114,12 +113,14 @@ export function UpgradeModal() {
 
   const description = is_storage
     ? t("settings.storage_locked_description")
-    : limit_info && resource_label
-      ? t("settings.upgrade_modal_description_specific", {
-          resource: String(resource_label).toLowerCase(),
-          plan: plan_name ?? "",
-        })
-      : t("settings.upgrade_modal_description_generic");
+    : state.server_message && state.server_message.trim().length > 0
+      ? state.server_message
+      : limit_info && resource_label
+        ? t("settings.upgrade_modal_description_specific", {
+            resource: String(resource_label).toLowerCase(),
+            plan: plan_name ?? "",
+          })
+        : t("settings.upgrade_modal_description_generic");
 
   const handle_upgrade = () => {
     close_upgrade_modal();
@@ -157,21 +158,7 @@ export function UpgradeModal() {
       on_close={close_upgrade_modal}
     >
       <ModalHeader>
-        <div className="flex items-center gap-2.5">
-          <span
-            className="inline-flex items-center justify-center w-9 h-9 rounded-lg"
-            style={{
-              background:
-                "linear-gradient(135deg, var(--accent-blue), var(--accent-blue-hover))",
-              color: "white",
-            }}
-          >
-            <SparklesIcon className="w-5 h-5" />
-          </span>
-          <div className="flex-1">
-            <ModalTitle>{title}</ModalTitle>
-          </div>
-        </div>
+        <ModalTitle>{title}</ModalTitle>
         <ModalDescription>{description}</ModalDescription>
       </ModalHeader>
 
@@ -242,24 +229,27 @@ export function UpgradeModal() {
           </div>
         ) : null}
 
-        <ul className="space-y-2 text-[13px] text-txt-secondary">
-          <li className="flex items-start gap-2">
-            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)] flex-shrink-0" />
-            <span>{t("settings.upgrade_perk_storage")}</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)] flex-shrink-0" />
-            <span>{t("settings.upgrade_perk_aliases")}</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)] flex-shrink-0" />
-            <span>{t("settings.upgrade_perk_domains")}</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)] flex-shrink-0" />
-            <span>{t("settings.upgrade_perk_features")}</span>
-          </li>
-        </ul>
+        <ol className="space-y-2.5 text-[13px] text-txt-secondary">
+          {[
+            t("settings.upgrade_perk_storage"),
+            t("settings.upgrade_perk_aliases"),
+            t("settings.upgrade_perk_domains"),
+            t("settings.upgrade_perk_features"),
+          ].map((perk, idx) => (
+            <li key={idx} className="flex items-center gap-3">
+              <span
+                className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-semibold flex-shrink-0"
+                style={{
+                  backgroundColor: "var(--accent-blue)",
+                  color: "white",
+                }}
+              >
+                {idx + 1}
+              </span>
+              <span>{perk}</span>
+            </li>
+          ))}
+        </ol>
       </ModalBody>
 
       <ModalFooter className="flex-row gap-3">

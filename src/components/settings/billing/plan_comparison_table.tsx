@@ -68,6 +68,13 @@ export function get_plan_comparison_rows(
       supernova: "250 MB",
     },
     {
+      label: t("settings.plan_f_signed_in_accounts"),
+      free: "1",
+      star: "2",
+      nova: "4",
+      supernova: "6",
+    },
+    {
       label: cap(t("settings.plan_f_aliases", { value: "" })),
       free: "5",
       star: "15",

@@ -43,6 +43,8 @@ export interface StoredAccount {
   id: string;
   user: User;
   added_at: number;
+  access_token?: string;
+  refresh_token?: string;
 }
 
 export interface AccountsData {
@@ -270,6 +272,47 @@ export async function remove_account(
   await save_accounts_data(data);
 
   return { removed: true, switched_to };
+}
+
+export async function update_account_tokens(
+  account_id: string,
+  access_token: string | null,
+  refresh_token: string | null,
+): Promise<boolean> {
+  const data = await get_accounts_data_async();
+  const account = data.accounts.find((a) => a.id === account_id);
+
+  if (!account) return false;
+
+  if (access_token === null) {
+    delete account.access_token;
+  } else {
+    account.access_token = access_token;
+  }
+
+  if (refresh_token === null) {
+    delete account.refresh_token;
+  } else if (refresh_token !== undefined) {
+    account.refresh_token = refresh_token;
+  }
+
+  await save_accounts_data(data);
+
+  return true;
+}
+
+export async function get_account_tokens(
+  account_id: string,
+): Promise<{ access_token: string | null; refresh_token: string | null }> {
+  const data = await get_accounts_data_async();
+  const account = data.accounts.find((a) => a.id === account_id);
+
+  if (!account) return { access_token: null, refresh_token: null };
+
+  return {
+    access_token: account.access_token ?? null,
+    refresh_token: account.refresh_token ?? null,
+  };
 }
 
 export async function update_account_user(
