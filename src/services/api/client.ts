@@ -841,6 +841,38 @@ class ApiClient {
 
           if (
             response.status === 403 &&
+            error_data.code === "CSRF_INVALID" &&
+            is_state_changing_method(method) &&
+            !endpoint.includes("/auth/refresh") &&
+            !endpoint.includes("/auth/logout") &&
+            !endpoint.includes("/auth/clear-session")
+          ) {
+            if (!has_attempted_refresh) {
+              has_attempted_refresh = true;
+              clear_csrf_cache();
+              try {
+                await this.refresh_session();
+              } catch (e) {
+                if (import.meta.env.DEV) console.error(e);
+              }
+              if (this.is_authenticated_flag) {
+                if (this.dev_access_token) {
+                  headers["Authorization"] = `Bearer ${this.dev_access_token}`;
+                }
+                const fresh_csrf = get_csrf_token_from_cookie();
+
+                if (fresh_csrf) {
+                  headers["X-CSRF-Token"] = fresh_csrf;
+                  attempt--;
+                  continue;
+                }
+              }
+            }
+            this.dispatch_session_expired();
+          }
+
+          if (
+            response.status === 403 &&
             error_data.code === "VERIFICATION_REQUIRED"
           ) {
             window.dispatchEvent(new Event("aster:verification-required"));
