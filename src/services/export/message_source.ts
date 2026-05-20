@@ -66,7 +66,7 @@ async function build_attachments(mail_id: string): Promise<ExportAttachment[]> {
         filename: meta.filename,
         mime_type: meta.content_type || "application/octet-stream",
         size: bytes.length,
-        is_inline: !!meta.content_id,
+        is_inline: meta.is_inline === true || !!meta.content_id,
         content_id: meta.content_id,
         open: () => bytes,
       });

@@ -27,6 +27,8 @@ import type {
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import { get_mail_item, type MailItem } from "@/services/api/mail";
+import { request_cache } from "@/services/api/request_cache";
+import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import {
   emit_mail_item_updated,
@@ -719,6 +721,105 @@ export function use_email_viewer({
       );
     };
   }, [email_id]);
+
+  const last_thread_fetch_ref = useRef<number>(0);
+  const thread_fetch_in_flight_ref = useRef<boolean>(false);
+
+  useEffect(() => {
+    const thread_token = email?.thread_token;
+
+    if (!thread_token) return;
+    if (preferences.conversation_grouping === false) return;
+
+    const refresh_thread = async (force: boolean) => {
+      if (!has_passphrase_in_memory()) return;
+      if (thread_fetch_in_flight_ref.current) return;
+      const now = Date.now();
+
+      if (!force && now - last_thread_fetch_ref.current < 5_000) return;
+
+      thread_fetch_in_flight_ref.current = true;
+      try {
+        request_cache.invalidate(
+          `messages/threads/${encodeURIComponent(thread_token)}/messages`,
+        );
+        const thread_result = await fetch_and_decrypt_thread_messages(
+          thread_token,
+          current_user_email || undefined,
+          {
+            is_trashed: !!mail_item?.is_trashed,
+            is_spam: !!mail_item?.is_spam,
+          },
+        );
+
+        if (thread_result.messages.length === 0) return;
+
+        last_thread_fetch_ref.current = Date.now();
+        set_thread_messages((prev) => {
+          const server_ids = new Set(thread_result.messages.map((m) => m.id));
+          const still_sending = prev.filter(
+            (m) => m.is_sending && !server_ids.has(m.id),
+          );
+
+          return [...thread_result.messages, ...still_sending];
+        });
+      } finally {
+        thread_fetch_in_flight_ref.current = false;
+      }
+    };
+
+    const maybe_revalidate = () => {
+      if (document.visibilityState !== "visible") return;
+      void refresh_thread(false);
+    };
+
+    const handle_email_received = () => {
+      void refresh_thread(true);
+    };
+
+    const handle_mail_changed = () => {
+      void refresh_thread(true);
+    };
+
+    const handle_visibility = () => {
+      maybe_revalidate();
+    };
+
+    const handle_focus = () => {
+      maybe_revalidate();
+    };
+
+    const poll_interval = window.setInterval(() => {
+      maybe_revalidate();
+    }, 60_000);
+
+    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_email_received);
+    window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_mail_changed);
+    window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_mail_changed);
+    document.addEventListener("visibilitychange", handle_visibility);
+    window.addEventListener("focus", handle_focus);
+
+    return () => {
+      window.clearInterval(poll_interval);
+      window.removeEventListener(
+        MAIL_EVENTS.EMAIL_RECEIVED,
+        handle_email_received,
+      );
+      window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_mail_changed);
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_SOFT_REFRESH,
+        handle_mail_changed,
+      );
+      document.removeEventListener("visibilitychange", handle_visibility);
+      window.removeEventListener("focus", handle_focus);
+    };
+  }, [
+    email?.thread_token,
+    current_user_email,
+    mail_item?.is_trashed,
+    mail_item?.is_spam,
+    preferences.conversation_grouping,
+  ]);
 
   useEffect(() => {
     const handle_thread_reply = async (event: Event) => {

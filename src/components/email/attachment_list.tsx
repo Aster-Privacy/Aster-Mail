@@ -345,7 +345,7 @@ export function AttachmentList({
             inline_filenames.size > 0 &&
             inline_filenames.has(meta.filename.toLowerCase());
 
-          if (is_cid_match || is_filename_match) continue;
+          if (meta.is_inline || is_cid_match || is_filename_match) continue;
 
           const info: DecryptedAttachmentInfo = {
             id: att.id,

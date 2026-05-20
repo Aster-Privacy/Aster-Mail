@@ -57,6 +57,7 @@ export interface Attachment {
   mime_type: string;
   data: ArrayBuffer;
   content_id?: string;
+  is_inline?: boolean;
 }
 
 export interface InlineImage {

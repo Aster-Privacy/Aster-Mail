@@ -50,6 +50,7 @@ export interface ExternalAttachmentForSend {
   content_type: string;
   size_bytes: number;
   content_id?: string;
+  is_inline?: boolean;
 }
 
 export interface AttachmentMeta {
@@ -57,6 +58,7 @@ export interface AttachmentMeta {
   content_type: string;
   session_key: string;
   content_id?: string;
+  is_inline?: boolean;
 }
 
 async function encrypt_data_with_session_key(
@@ -108,6 +110,7 @@ export async function encrypt_attachments_for_send(
         content_type: attachment.mime_type,
         session_key: array_to_base64(raw_key),
         content_id: attachment.content_id,
+        is_inline: attachment.is_inline,
       };
 
       zero_uint8_array(raw_key);
@@ -164,6 +167,7 @@ export function prepare_external_attachments(
     content_type: att.mime_type,
     size_bytes: att.size_bytes,
     content_id: att.content_id,
+    is_inline: att.is_inline,
   }));
 }
 
