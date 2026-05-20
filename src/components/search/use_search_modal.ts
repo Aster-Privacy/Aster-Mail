@@ -45,6 +45,7 @@ import { use_folders, type DecryptedFolder } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_auth } from "@/contexts/auth_context";
+import { use_preferences } from "@/contexts/preferences_context";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { search_result_to_inbox_email } from "@/components/search/search_modal_types";
 
@@ -67,16 +68,20 @@ export function use_search_modal({
 }: UseSearchModalOptions) {
   const navigate = useNavigate();
   const { user } = use_auth();
+  const { preferences, update_preference } = use_preferences();
+  const content_search_enabled = preferences.search_encrypted_content;
   const {
     state,
     autocomplete_state,
     search,
     clear_results,
+    clear_index,
     load_more,
     set_query,
     get_autocomplete,
     select_autocomplete,
     clear_autocomplete,
+    start_index_build,
   } = use_search();
 
   const { state: folders_state } = use_folders();
@@ -188,7 +193,11 @@ export function use_search_modal({
   useEffect(() => {
     if (is_open && initial_query) {
       set_query(initial_query);
-      search(initial_query, { fields: filters.fields, label_name_to_tokens });
+      search(initial_query, {
+        fields: filters.fields,
+        label_name_to_tokens,
+        search_body: content_search_enabled,
+      });
       on_initial_query_consumed?.();
     }
   }, [
@@ -198,14 +207,25 @@ export function use_search_modal({
     search,
     filters.fields,
     on_initial_query_consumed,
+    content_search_enabled,
   ]);
 
   const handle_history_select = useCallback(
     async (query: string) => {
       set_query(query);
-      search(query, { fields: filters.fields, label_name_to_tokens });
+      search(query, {
+        fields: filters.fields,
+        label_name_to_tokens,
+        search_body: content_search_enabled,
+      });
     },
-    [set_query, search, filters.fields, label_name_to_tokens],
+    [
+      set_query,
+      search,
+      filters.fields,
+      label_name_to_tokens,
+      content_search_enabled,
+    ],
   );
 
   const handle_history_remove = useCallback(
@@ -233,9 +253,12 @@ export function use_search_modal({
       if (!user?.id) return;
       await update_saved_search_usage(user.id, saved.id);
       set_query(saved.query);
-      search(saved.query, { fields: filters.fields });
+      search(saved.query, {
+        fields: filters.fields,
+        search_body: content_search_enabled,
+      });
     },
-    [user?.id, set_query, search, filters.fields],
+    [user?.id, set_query, search, filters.fields, content_search_enabled],
   );
 
   const handle_saved_search_delete = useCallback(
@@ -386,9 +409,19 @@ export function use_search_modal({
   const handle_quick_search = useCallback(
     (query: string) => {
       set_query(query);
-      search(query, { fields: filters.fields, label_name_to_tokens });
+      search(query, {
+        fields: filters.fields,
+        label_name_to_tokens,
+        search_body: content_search_enabled,
+      });
     },
-    [set_query, search, filters.fields, label_name_to_tokens],
+    [
+      set_query,
+      search,
+      filters.fields,
+      label_name_to_tokens,
+      content_search_enabled,
+    ],
   );
 
   const handle_close = useCallback(async () => {
@@ -449,9 +482,16 @@ export function use_search_modal({
         filters:
           Object.keys(search_filters).length > 0 ? search_filters : undefined,
         label_name_to_tokens,
+        search_body: content_search_enabled,
       });
     },
-    [search, filters, effective_fields, label_name_to_tokens],
+    [
+      search,
+      filters,
+      effective_fields,
+      label_name_to_tokens,
+      content_search_enabled,
+    ],
   );
 
   const debounce_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -751,6 +791,34 @@ export function use_search_modal({
     filters.date_to,
     filters.fields,
     filters.search_content,
+    content_search_enabled,
+  ]);
+
+  const handle_enable_content_search = useCallback(() => {
+    update_preference("search_encrypted_content", true, true);
+    void start_index_build(true);
+  }, [update_preference, start_index_build]);
+
+  const handle_disable_content_search = useCallback(() => {
+    update_preference("search_encrypted_content", false, true);
+    clear_index();
+    if (state.query) {
+      search(state.query, {
+        fields: effective_fields,
+        label_name_to_tokens,
+        search_body: false,
+      });
+    } else {
+      clear_results();
+    }
+  }, [
+    update_preference,
+    clear_index,
+    state.query,
+    search,
+    effective_fields,
+    label_name_to_tokens,
+    clear_results,
   ]);
 
   return {
@@ -790,5 +858,8 @@ export function use_search_modal({
     load_more,
     on_search_submit,
     build_advanced_query,
+    content_search_enabled,
+    handle_enable_content_search,
+    handle_disable_content_search,
   };
 }

@@ -43,6 +43,7 @@ import {
   FolderResultRow,
 } from "@/components/search/search_result_item";
 import { SearchModalFilterPanel } from "@/components/search/search_modal_filter_panel";
+import { SearchContentBanner } from "@/components/search/search_content_banner";
 import { use_search_modal } from "@/components/search/use_search_modal";
 
 export { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
@@ -176,6 +177,9 @@ export function SearchModal({
     clear_results,
     load_more,
     build_advanced_query,
+    content_search_enabled,
+    handle_enable_content_search,
+    handle_disable_content_search,
   } = use_search_modal({
     is_open,
     on_close,
@@ -267,6 +271,12 @@ export function SearchModal({
         query={state.query}
         show_clear_menu={show_clear_menu}
         show_filters={show_filters}
+      />
+
+      <SearchContentBanner
+        enabled={content_search_enabled}
+        on_disable={handle_disable_content_search}
+        on_enable={handle_enable_content_search}
       />
 
       <SearchModalFilterPanel

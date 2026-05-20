@@ -38,8 +38,10 @@ import {
 
 import { Spinner } from "@/components/ui/spinner";
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
+import { SearchContentBanner } from "@/components/search/search_content_banner";
 import { use_search, extract_query_terms } from "@/hooks/use_search";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 
 const MAX_PREVIEW_RESULTS = 7;
 const DEBOUNCE_MS = 180;
@@ -74,7 +76,10 @@ export function SearchBar({
   const [selected_index, set_selected_index] = useState(-1);
   const [is_advanced_open, set_is_advanced_open] = useState(false);
 
-  const { state, search, clear_results } = use_search();
+  const { state, search, clear_results, clear_index, start_index_build } =
+    use_search();
+  const { preferences, update_preference } = use_preferences();
+  const content_search_enabled = preferences.search_encrypted_content;
 
   const query_terms = useMemo(() => extract_query_terms(query), [query]);
   const results = state.results.slice(0, MAX_PREVIEW_RESULTS);
@@ -86,10 +91,25 @@ export function SearchBar({
 
         return;
       }
-      search(q, { fields: ["all"] });
+      search(q, { fields: ["all"], search_body: content_search_enabled });
     },
-    [search, clear_results],
+    [search, clear_results, content_search_enabled],
   );
+
+  const handle_enable_content_search = useCallback(() => {
+    update_preference("search_encrypted_content", true, true);
+    start_index_build(true);
+  }, [update_preference, start_index_build]);
+
+  const handle_disable_content_search = useCallback(() => {
+    update_preference("search_encrypted_content", false, true);
+    clear_index();
+    if (query && query.trim().length >= 2) {
+      search(query, { fields: ["all"], search_body: false });
+    } else {
+      clear_results();
+    }
+  }, [update_preference, clear_index, query, search, clear_results]);
 
   const handle_change = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -313,6 +333,11 @@ export function SearchBar({
             className="rounded-b-lg border border-t-0 bg-[var(--bg-primary)] border-[var(--border-secondary)] shadow-md overflow-hidden"
             style={dropdown_style}
           >
+            <SearchContentBanner
+              enabled={content_search_enabled}
+              on_disable={handle_disable_content_search}
+              on_enable={handle_enable_content_search}
+            />
             <div className="px-3 py-2 flex flex-wrap items-center gap-2">
               <Chip
                 icon={<PaperClipIcon className="w-3.5 h-3.5" />}
