@@ -2850,6 +2850,8 @@ export const it = {
       "Scegli cosa succede quando scorri a sinistra o a destra sulle email.",
   },
   mail: {
+    encrypted_message_unavailable:
+      "Impossibile decifrare questo messaggio. Il mittente potrebbe aver utilizzato una chiave obsoleta.",
     inbox: "Posta in arrivo",
     sent: "Inviata",
     drafts: "Bozze",

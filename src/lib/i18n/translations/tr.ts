@@ -2909,6 +2909,8 @@ export const tr = {
       "Tatil yanıtları, uzaktayken otomatik yanıt göndermenizi sağlar",
   },
   mail: {
+    encrypted_message_unavailable:
+      "Bu mesajın şifresi çözülemedi. Gönderici güncelliğini yitirmiş bir anahtar kullanmış olabilir.",
     inbox: "Gelen Kutusu",
     sent: "Gönderilmiş",
     drafts: "Taslaklar",

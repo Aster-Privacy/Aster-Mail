@@ -2810,6 +2810,8 @@ export const ar = {
     no_subscriptions_found: "لم يتم العثور على اشتراكات",
   },
   mail: {
+    encrypted_message_unavailable:
+      "This message could not be decrypted. The sender may have used an outdated key.",
     inbox: "صندوق الوارد",
     sent: "المرسل",
     drafts: "المسودات",

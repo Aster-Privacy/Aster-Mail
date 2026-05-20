@@ -2841,6 +2841,8 @@ export const nl = {
     no_subscriptions_found: "Geen abonnementen gevonden",
   },
   mail: {
+    encrypted_message_unavailable:
+      "Dit bericht kon niet worden ontsleuteld. De afzender heeft mogelijk een verouderde sleutel gebruikt.",
     inbox: "Postvak in",
     sent: "Verzonden",
     drafts: "Concepten",

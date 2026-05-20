@@ -2822,6 +2822,8 @@ export const ja = {
     no_subscriptions_found: "購読は見つかりませんでした",
   },
   mail: {
+    encrypted_message_unavailable:
+      "This message could not be decrypted. The sender may have used an outdated key.",
     inbox: "受信トレイ",
     sent: "送信済み",
     drafts: "下書き",

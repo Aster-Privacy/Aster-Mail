@@ -2954,6 +2954,8 @@ export const es = {
       "Extraer automáticamente detalles de compra de correos de recibos",
   },
   mail: {
+    encrypted_message_unavailable:
+      "No se pudo descifrar este mensaje. Es posible que el remitente haya usado una clave desactualizada.",
     inbox: "Bandeja de entrada",
     sent: "Enviados",
     drafts: "Borradores",

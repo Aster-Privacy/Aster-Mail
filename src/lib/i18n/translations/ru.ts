@@ -2855,6 +2855,8 @@ export const ru = {
       "Автоматическое извлечение деталей покупок из чеков",
   },
   mail: {
+    encrypted_message_unavailable:
+      "This message could not be decrypted. The sender may have used an outdated key.",
     inbox: "Входящие",
     sent: "Отправленные",
     drafts: "Черновики",
