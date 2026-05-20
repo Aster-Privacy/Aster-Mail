@@ -30,6 +30,7 @@ import { ContactList } from "@/components/common/contacts/contact_list";
 import { ContactDetailPanel } from "@/components/common/contacts/contact_detail_panel";
 import { prewarm_search_index } from "@/hooks/use_search";
 import { use_auth } from "@/contexts/auth_context";
+import { use_preferences } from "@/contexts/preferences_context";
 
 interface ContactsContentProps {
   on_mobile_menu_toggle: () => void;
@@ -40,12 +41,13 @@ export function ContactsContent({
 }: ContactsContentProps) {
   const state = use_contacts_state();
   const { user } = use_auth();
+  const { preferences } = use_preferences();
 
   useEffect(() => {
     if (user?.email) {
-      prewarm_search_index(user.email);
+      prewarm_search_index(user.email, preferences.search_encrypted_content);
     }
-  }, [user?.email]);
+  }, [user?.email, preferences.search_encrypted_content]);
 
   return (
     <>

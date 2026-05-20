@@ -39,6 +39,7 @@ import {
   update_domain,
   rotate_dkim,
   get_dns_records,
+  trigger_verification,
   type CustomDomain,
   type DnsRecord,
 } from "@/services/api/domains";
@@ -74,6 +75,13 @@ export function DomainCardV2({
   const [dns_records, set_dns_records] = useState<DnsRecord[] | null>(null);
   const [dns_loading, set_dns_loading] = useState(false);
   const [show_dns, set_show_dns] = useState(false);
+  const [verifying, set_verifying] = useState(false);
+
+  const core_pending =
+    !domain.txt_verified ||
+    !domain.mx_verified ||
+    !domain.spf_verified ||
+    !domain.dkim_verified;
 
   const verification_count = [
     domain.txt_verified,
@@ -111,12 +119,43 @@ export function DomainCardV2({
       if (response.data?.success) {
         set_rotated_dkim_record(response.data.dns_record);
         show_toast(t("settings.dkim_rotated"), "success");
+        if (dns_records) {
+          const refreshed = await get_dns_records(domain.id);
+          if (refreshed.data) set_dns_records(refreshed.data.records);
+        }
         on_domains_changed();
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
     } finally {
       set_dkim_rotating(false);
+    }
+  };
+
+  const handle_verify = async () => {
+    set_verifying(true);
+    try {
+      const response = await trigger_verification(domain.id);
+
+      if (response.data) {
+        const { txt_verified, mx_verified, spf_verified, dkim_verified } =
+          response.data;
+        const all_core = txt_verified && mx_verified && spf_verified && dkim_verified;
+        if (!all_core) {
+          show_toast(t("settings.verification_failed_retry"), "error");
+        }
+        if (dns_records) {
+          const refreshed = await get_dns_records(domain.id);
+          if (refreshed.data) set_dns_records(refreshed.data.records);
+        }
+        on_domains_changed();
+      } else if (response.error) {
+        show_toast(t("settings.verification_failed_retry"), "error");
+      }
+    } catch (err) {
+      if (import.meta.env.DEV) console.error(err);
+    } finally {
+      set_verifying(false);
     }
   };
 
@@ -189,6 +228,20 @@ export function DomainCardV2({
             <Button size="md" variant="depth" onClick={() => on_setup(domain)}>
               <ArrowRightIcon className="w-3.5 h-3.5" />
               {t("settings.continue_setup")}
+            </Button>
+          )}
+
+          {domain.status === "active" && core_pending && (
+            <Button
+              disabled={verifying}
+              size="md"
+              variant="depth"
+              onClick={handle_verify}
+            >
+              <ArrowPathIcon
+                className={`w-3.5 h-3.5 ${verifying ? "animate-spin" : ""}`}
+              />
+              {t("settings.verify_all_records")}
             </Button>
           )}
 
@@ -311,9 +364,14 @@ export function DomainCardV2({
 
                     {rotated_dkim_record && (
                       <div className="space-y-2">
-                        <p className="text-xs text-txt-muted">
-                          {t("settings.dkim_rotated_update_dns")}
-                        </p>
+                        <div className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/10">
+                          <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                            {t("settings.dkim_rotated_warning_title")}
+                          </p>
+                          <p className="text-xs mt-1 text-amber-600/90 dark:text-amber-400/90">
+                            {t("settings.dkim_rotated_warning_body")}
+                          </p>
+                        </div>
                         <DnsRecordCard record={rotated_dkim_record} />
                       </div>
                     )}

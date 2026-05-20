@@ -26,13 +26,15 @@ import { AllowlistSection } from "@/components/settings/allowlist_section";
 import { AutoForwardSection } from "@/components/settings/auto_forward_section";
 import { ExternalAccountsSection } from "@/components/settings/external_accounts_section";
 import { VacationReplySection } from "@/components/settings/vacation_reply_section";
+import { ExportSection } from "@/components/settings/export_section";
 
 type FilterTab =
   | "external_accounts"
   | "blocked"
   | "allowlist"
   | "auto_forward"
-  | "vacation_reply";
+  | "vacation_reply"
+  | "export";
 
 export function MailManagementSection() {
   const { t } = use_i18n();
@@ -137,6 +139,24 @@ export function MailManagementSection() {
         >
           {t("settings.vacation_reply_tab_label")}
         </button>
+        <button
+          className="relative px-5 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none"
+          style={{
+            backgroundColor:
+              active_tab === "export" ? "var(--bg-primary)" : "transparent",
+            color:
+              active_tab === "export"
+                ? "var(--text-primary)"
+                : "var(--text-muted)",
+            boxShadow:
+              active_tab === "export"
+                ? "rgba(0, 0, 0, 0.1) 0px 1px 3px, rgba(0, 0, 0, 0.06) 0px 1px 2px"
+                : "none",
+          }}
+          onClick={() => set_active_tab("export")}
+        >
+          {t("settings.export_title")}
+        </button>
       </div>
 
       <div
@@ -165,6 +185,9 @@ export function MailManagementSection() {
         }}
       >
         <VacationReplySection />
+      </div>
+      <div style={{ display: active_tab === "export" ? "block" : "none" }}>
+        <ExportSection />
       </div>
     </div>
   );

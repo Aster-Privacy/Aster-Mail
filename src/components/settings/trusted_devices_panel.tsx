@@ -100,6 +100,7 @@ export function TrustedDevicesPanel() {
         </div>
         {devices.length > 1 && (
           <Button
+            className="whitespace-nowrap flex-shrink-0"
             disabled={is_revoking_all}
             size="sm"
             variant="depth_destructive"

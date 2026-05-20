@@ -70,6 +70,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
   const [code, set_code] = useState<string | null>(null);
   const [copied, set_copied] = useState(false);
   const [time_left, set_time_left] = useState(0);
+  const [error_detail, set_error_detail] = useState<string | null>(null);
   const poll_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdown_ref = useRef<ReturnType<typeof setInterval> | null>(null);
   const poll_count_ref = useRef(0);
@@ -149,6 +150,10 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                     status.sealed_envelope,
                   );
 
+                  if (result.error) {
+                    set_error_detail(`pair:${result.error}`);
+                  }
+
                   if (result.login_response && result.passphrase) {
                     const lr = result.login_response as {
                       user_id: string;
@@ -196,6 +201,9 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                       set_pubkeys(null);
                     } catch (inner_err) {
                       if (import.meta.env.DEV) console.error(inner_err);
+                      set_error_detail(
+                        `vault:${inner_err instanceof Error ? inner_err.message : String(inner_err)}`,
+                      );
                       set_gate_state("error");
                     }
                   } else {
@@ -203,6 +211,9 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                   }
                 } catch (err) {
                   if (import.meta.env.DEV) console.error(err);
+                  set_error_detail(
+                    `complete:${err instanceof Error ? err.message : String(err)}`,
+                  );
                   set_gate_state("error");
                 }
               } else if (status.status === "expired") {
@@ -461,11 +472,19 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
               <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
                 {t("auth.link_device_try_again")}
               </p>
+              {error_detail && (
+                <pre className="w-full mt-4 p-3 rounded-lg text-xs break-all whitespace-pre-wrap bg-surf-tertiary text-txt-tertiary border border-edge-secondary">
+                  {error_detail}
+                </pre>
+              )}
               <Button
                 className="w-full mt-6"
                 size="xl"
                 variant="depth"
-                onClick={handle_new_code}
+                onClick={() => {
+                  set_error_detail(null);
+                  handle_new_code();
+                }}
               >
                 {t("auth.device_code_get_new")}
               </Button>
