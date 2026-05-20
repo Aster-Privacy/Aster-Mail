@@ -45,6 +45,7 @@ import { CommandPalette } from "@/components/search/command_palette";
 import { KeyboardShortcutsModal } from "@/components/modals/keyboard_shortcuts_modal";
 import { KeyRotationModal } from "@/components/modals/key_rotation_modal";
 import { PurchaseSuccessModal } from "@/components/modals/purchase_success_modal";
+import { OnboardingChecklist } from "@/components/onboarding/onboarding_checklist";
 
 export default function IndexPage() {
   const state = use_index_page_state();
@@ -361,6 +362,13 @@ export default function IndexPage() {
         on_close={state.close_compose}
         on_draft_cleared={state.handle_draft_cleared}
         on_toggle_minimize={state.toggle_minimize}
+      />
+      <OnboardingChecklist
+        on_compose={state.open_compose}
+        on_open_settings={(section) => {
+          state.set_settings_section(section);
+          state.set_is_settings_open(true);
+        }}
       />
       <PurchaseSuccessModal
         billing={state.checkout_success?.billing || ""}

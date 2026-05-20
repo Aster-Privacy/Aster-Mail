@@ -393,6 +393,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
             fontWeight: 600,
             color: "#ffffff",
             lineHeight: 1,
+            transform: "translateY(0.06em)",
             userSelect: "none",
             letterSpacing: initials.length > 1 ? "-0.02em" : undefined,
           }}

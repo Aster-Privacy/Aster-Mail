@@ -27,12 +27,8 @@ export function set_csrf_token(token: string): void {
 }
 
 export function get_csrf_token_from_cookie(): string | null {
-  if (cached_csrf_token) {
-    return cached_csrf_token;
-  }
-
   if (typeof document === "undefined") {
-    return null;
+    return cached_csrf_token;
   }
 
   const cookies = document.cookie.split(";");
@@ -53,7 +49,7 @@ export function get_csrf_token_from_cookie(): string | null {
     }
   }
 
-  return null;
+  return cached_csrf_token;
 }
 
 export function clear_csrf_cache(): void {

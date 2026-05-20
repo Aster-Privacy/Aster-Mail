@@ -630,7 +630,7 @@ export const Sidebar = ({
 
       <div className={`${is_collapsed ? "px-2" : "px-2.5"} pb-3`}>
         <Button
-          className={`w-full ${is_collapsed ? "" : "gap-2"}`}
+          className={`w-full !rounded-[14px] ${is_collapsed ? "" : "gap-2"}`}
           data-onboarding="compose-button"
           variant="depth"
           onClick={() => {
