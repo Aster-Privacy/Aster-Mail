@@ -392,6 +392,39 @@ function validate_passphrase(entered: string): string | null {
   return null;
 }
 
+export function verify_passphrase_for_export(entered: string): boolean {
+  return validate_passphrase(entered) === null;
+}
+
+const EXPORT_TOKEN_TTL_MS = 5 * 60 * 1000;
+let active_export_token: { token: string; expires_at: number } | null = null;
+
+export function issue_export_token(): string | null {
+  if (!has_vault_in_memory() || !has_passphrase_in_memory()) return null;
+  const rand = new Uint8Array(32);
+  crypto.getRandomValues(rand);
+  let token = "";
+  for (let i = 0; i < rand.length; i++) {
+    token += rand[i].toString(16).padStart(2, "0");
+  }
+  active_export_token = {
+    token,
+    expires_at: Date.now() + EXPORT_TOKEN_TTL_MS,
+  };
+  return token;
+}
+
+export function consume_export_token(token: string): boolean {
+  if (!active_export_token) return false;
+  if (active_export_token.expires_at < Date.now()) {
+    active_export_token = null;
+    return false;
+  }
+  if (active_export_token.token !== token) return false;
+  active_export_token = null;
+  return true;
+}
+
 export function get_recovery_codes_with_confirmation(
   entered_passphrase: string,
 ): { success: boolean; codes?: string[]; error?: string } {
