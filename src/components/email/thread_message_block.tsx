@@ -86,6 +86,7 @@ import {
   resolve_cid_references,
   revoke_cid_blob_urls,
 } from "@/lib/cid_resolver";
+import { RATCHET_UNDECRYPTABLE_SENTINEL } from "@/utils/email_crypto";
 
 interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;
@@ -218,13 +219,18 @@ export function ThreadMessageBlock({
   const has_reported_external_content = useRef(false);
 
   const collapsed_preview = useMemo(() => {
+    if (clean_body === RATCHET_UNDECRYPTABLE_SENTINEL) {
+      return t("mail.encrypted_message_unavailable");
+    }
     const plain = strip_html_tags(clean_body).replace(/\s+/g, " ").trim();
 
     return plain.length > 120 ? plain.substring(0, 120) + "..." : plain;
-  }, [clean_body]);
+  }, [clean_body, t]);
 
   const is_system = is_system_email(message.sender_email);
   const is_ghost_sender = is_ghost_email(message.sender_email);
+  const is_ratchet_undecryptable =
+    message.body === RATCHET_UNDECRYPTABLE_SENTINEL;
   const rich_html_source = message.html_content || message.body;
   const is_plain_text = !rich_html_source || !has_rich_html(rich_html_source);
 
@@ -1016,19 +1022,25 @@ export function ThreadMessageBlock({
       )}
 
       <div className={`${is_plain_text ? "pl-[52px] pb-4" : "pb-0"} pt-1`}>
-        <ThreadMessageBody
-          body_background={sanitized_content.body_background}
-          clean_body={clean_body}
-          email_id={message.id}
-          force_dark_mode={force_dark_mode}
-          is_plain_text={is_plain_text}
-          load_remote_content={load_remote_content}
-          preserve_formatting={message.is_sending === true}
-          sanitized_html={effective_html}
-          set_wrap_source={set_wrap_source}
-          viewing_source={viewing_source}
-          wrap_source={wrap_source}
-        />
+        {is_ratchet_undecryptable ? (
+          <p className="px-4 py-3 text-sm italic text-txt-muted">
+            {t("mail.encrypted_message_unavailable")}
+          </p>
+        ) : (
+          <ThreadMessageBody
+            body_background={sanitized_content.body_background}
+            clean_body={clean_body}
+            email_id={message.id}
+            force_dark_mode={force_dark_mode}
+            is_plain_text={is_plain_text}
+            load_remote_content={load_remote_content}
+            preserve_formatting={message.is_sending === true}
+            sanitized_html={effective_html}
+            set_wrap_source={set_wrap_source}
+            viewing_source={viewing_source}
+            wrap_source={wrap_source}
+          />
+        )}
 
         <div className={is_plain_text ? "" : "pl-[52px]"} onClick={(e) => e.stopPropagation()}>
           <AttachmentList
@@ -1094,7 +1106,7 @@ export function ThreadMessageBlock({
                 on_close={on_close_inline_reply}
                 on_draft_saved={on_draft_saved}
                 on_set_inline_mode={on_set_inline_mode}
-                original_body={message.body || ""}
+                original_body={is_ratchet_undecryptable ? "" : message.body || ""}
                 original_cc={original_cc_emails}
                 original_email_id={message.id}
                 original_subject={message.subject}

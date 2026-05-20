@@ -121,8 +121,13 @@ export function use_compose_send({
   const [queued_email_id, set_queued_email_id] = useState<string | null>(null);
   const [send_error] = useState<string | null>(null);
   const [restore_error] = useState<string | null>(null);
-  const [pgp_enabled, set_pgp_enabled] = useState(false);
-  const toggle_pgp = useCallback(() => set_pgp_enabled((v) => !v), []);
+  const [pgp_override, set_pgp_override] = useState<boolean | null>(null);
+  const pgp_enabled = pgp_override ?? preferences.encrypt_emails;
+  const toggle_pgp = useCallback(
+    () =>
+      set_pgp_override((prev) => !(prev ?? preferences.encrypt_emails)),
+    [preferences.encrypt_emails],
+  );
   const last_send_time_ref = useRef<number>(0);
 
   const log_activities = useCallback(
