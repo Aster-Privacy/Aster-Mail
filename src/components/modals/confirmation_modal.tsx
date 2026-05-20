@@ -91,6 +91,17 @@ export function ConfirmationModal({
     }
   }, [is_open]);
 
+  useEffect(() => {
+    if (internal_open) return;
+    const t = window.setTimeout(() => {
+      if (document.body.style.pointerEvents === "none") {
+        document.body.style.pointerEvents = "";
+      }
+    }, ANIMATION_DURATION + 50);
+
+    return () => window.clearTimeout(t);
+  }, [internal_open]);
+
   const close_with_animation = (action: () => void) => {
     if (closing_ref.current) return;
     closing_ref.current = true;

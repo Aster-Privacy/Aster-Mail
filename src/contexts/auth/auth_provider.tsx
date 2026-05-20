@@ -459,62 +459,100 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const logout_in_flight = useRef(false);
+
+  const with_timeout = async <T,>(p: Promise<T>, ms: number): Promise<T | null> => {
+    return Promise.race<T | null>([
+      p.catch(() => null),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
+    ]);
+  };
+
   const logout = useCallback(async () => {
     if (logout_in_flight.current) return;
     logout_in_flight.current = true;
 
     const current_id = state.current_account_id;
     const other = state.accounts.find((a) => a.id !== current_id);
-
-    api_client.begin_intentional_logout();
-    sync_client.disconnect();
+    let nav_target = other ? "/" : "/sign-in";
+    const fallback_timer = window.setTimeout(() => {
+      try {
+        window.location.replace(nav_target);
+      } catch {}
+    }, 6000);
 
     try {
-      await api_client.post("/core/v1/auth/logout", {});
-    } catch (e) {
-      safe_log_error(e);
-    }
-
-    if (other && current_id) {
-      stop_session_timeout();
-      clear_vault_from_memory();
-      clear_mail_stats();
-      clear_mail_cache();
-      clear_stored_encrypted_vault(current_id);
-      await clear_session_passphrase(current_id);
-      clear_session_timeout_data(current_id);
-      api_client.clear_in_memory_token();
-
+      api_client.begin_intentional_logout();
       try {
-        await api_client.clear_session_cookies();
+        sync_client.disconnect();
       } catch (e) {
         safe_log_error(e);
       }
 
-      await storage_remove_account(current_id);
-      await storage_switch_account(other.id);
-      await api_client.load_tokens_for_account(other.id);
-      window.location.replace("/");
+      await with_timeout(
+        api_client.post("/core/v1/auth/logout", {}),
+        3000,
+      );
 
-      return;
+      if (other && current_id) {
+        stop_session_timeout();
+        clear_vault_from_memory();
+        clear_mail_stats();
+        clear_mail_cache();
+        clear_stored_encrypted_vault(current_id);
+        await with_timeout(clear_session_passphrase(current_id), 2000);
+        clear_session_timeout_data(current_id);
+        api_client.clear_in_memory_token();
+
+        await with_timeout(api_client.clear_session_cookies(), 2000);
+
+        await with_timeout(storage_remove_account(current_id), 2000);
+        await with_timeout(storage_switch_account(other.id), 2000);
+        await with_timeout(api_client.load_tokens_for_account(other.id), 2000);
+        nav_target = "/";
+      } else {
+        await with_timeout(clear_local_auth_data(), 4000);
+        nav_target = "/sign-in";
+      }
+    } catch (e) {
+      safe_log_error(e);
+    } finally {
+      clearTimeout(fallback_timer);
+      logout_in_flight.current = false;
+      try {
+        window.location.replace(nav_target);
+      } catch {}
     }
-
-    await clear_local_auth_data();
-    window.location.replace("/sign-in");
   }, [clear_local_auth_data, state.accounts, state.current_account_id]);
 
   const logout_all_handler = useCallback(async () => {
-    api_client.begin_intentional_logout();
-    sync_client.disconnect();
+    const fallback_timer = window.setTimeout(() => {
+      try {
+        window.location.replace("/sign-in");
+      } catch {}
+    }, 6000);
 
     try {
-      await api_client.post("/core/v1/auth/logout-all", {});
+      api_client.begin_intentional_logout();
+      try {
+        sync_client.disconnect();
+      } catch (e) {
+        safe_log_error(e);
+      }
+
+      await with_timeout(
+        api_client.post("/core/v1/auth/logout-all", {}),
+        3000,
+      );
+
+      await with_timeout(clear_local_auth_data(), 4000);
     } catch (e) {
       safe_log_error(e);
+    } finally {
+      clearTimeout(fallback_timer);
+      try {
+        window.location.replace("/sign-in");
+      } catch {}
     }
-
-    await clear_local_auth_data();
-    window.location.replace("/sign-in");
   }, [clear_local_auth_data]);
 
   useEffect(() => {

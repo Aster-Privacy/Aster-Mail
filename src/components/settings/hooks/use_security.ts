@@ -641,12 +641,19 @@ export function use_security() {
     set_sessions_error(null);
 
     try {
-      const response = await revoke_session(session_id);
+      const timeout = new Promise<{ error: string }>((resolve) =>
+        setTimeout(
+          () => resolve({ error: t("settings.failed_sign_out") }),
+          10000,
+        ),
+      );
+      const response = await Promise.race([revoke_session(session_id), timeout]);
 
-      if (response.data?.success) {
+      if ("data" in response && response.data?.success) {
         set_sessions((prev) => prev.filter((s) => s.id !== session_id));
       } else {
-        set_sessions_error(response.error || t("settings.failed_sign_out"));
+        const err = "error" in response ? response.error : undefined;
+        set_sessions_error(err || t("settings.failed_sign_out"));
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -658,12 +665,19 @@ export function use_security() {
     set_sessions_error(null);
 
     try {
-      const response = await revoke_all_sessions();
+      const timeout = new Promise<{ error: string }>((resolve) =>
+        setTimeout(
+          () => resolve({ error: t("settings.failed_sign_out") }),
+          10000,
+        ),
+      );
+      const response = await Promise.race([revoke_all_sessions(), timeout]);
 
-      if (response.data?.success) {
+      if ("data" in response && response.data?.success) {
         set_sessions((prev) => prev.filter((s) => s.is_current));
       } else {
-        set_sessions_error(response.error || t("settings.failed_sign_out"));
+        const err = "error" in response ? response.error : undefined;
+        set_sessions_error(err || t("settings.failed_sign_out"));
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
