@@ -22,6 +22,11 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { Capacitor } from "@capacitor/core";
 
 import { EMAIL_BODY_CSS, FORCED_DARK_MODE_CSS } from "@/lib/email_body_styles";
+import {
+  extract_cid_references,
+  resolve_cid_references,
+  revoke_cid_blob_urls,
+} from "@/lib/cid_resolver";
 import { useTheme } from "@/contexts/theme_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_image_proxy_url } from "@/lib/image_proxy";
@@ -151,6 +156,63 @@ export function SandboxedEmailRenderer({
   }
 
   load_remote_ref.current = load_remote_content;
+  const [internal_cid_html, set_internal_cid_html] = useState<string | null>(
+    null,
+  );
+  const internal_cid_blob_urls_ref = useRef<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!email_id) {
+      set_internal_cid_html(null);
+
+      return;
+    }
+    if (extract_cid_references(sanitized_html).length === 0) {
+      set_internal_cid_html(null);
+
+      return;
+    }
+
+    resolve_cid_references(sanitized_html, email_id)
+      .then((result) => {
+        if (cancelled) {
+          revoke_cid_blob_urls(result.blob_urls);
+
+          return;
+        }
+        revoke_cid_blob_urls(internal_cid_blob_urls_ref.current);
+        internal_cid_blob_urls_ref.current = result.blob_urls;
+        set_internal_cid_html(result.html);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sanitized_html, email_id]);
+
+  useEffect(() => {
+    return () => {
+      revoke_cid_blob_urls(internal_cid_blob_urls_ref.current);
+      internal_cid_blob_urls_ref.current = [];
+    };
+  }, []);
+
+  const has_pending_cids =
+    !!email_id &&
+    internal_cid_html === null &&
+    extract_cid_references(sanitized_html).length > 0;
+  const resolved_html =
+    internal_cid_html ??
+    (has_pending_cids
+      ? sanitized_html.replace(
+          /src=["']cid:[^"']+["']/gi,
+          'src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-cid-pending="1"',
+        )
+      : sanitized_html);
+
   const { theme } = useTheme();
   const is_dark_theme = theme === "dark";
   const is_html_email = !is_plain_text;
@@ -222,8 +284,8 @@ a, a * { color: #60a5fa !important; }`
         ? window.location.origin
         : "https://app.astermail.org";
   const tor_csp = is_tor_mode
-    ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
-    : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: ${csp_img_origin}; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; form-action 'none';">`;
+    ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
+    : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: ${csp_img_origin}; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; form-action 'none';">`;
 
   const srcdoc_html = `<!DOCTYPE html>
 <html${html_el_style}>
@@ -253,7 +315,7 @@ ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; }</style>
 </head>
-<body style="${is_html_email ? html_body_style : plain_body_style}">${sanitized_html}</body>
+<body style="${is_html_email ? html_body_style : plain_body_style}">${resolved_html}</body>
 </html>`;
 
   const collapse_forwarded_content = useCallback(
@@ -979,10 +1041,10 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         `<style>${EMAIL_BODY_CSS}` +
         (dark_mode_css ? dark_mode_css : "") +
         `a{pointer-events:none}</style>` +
-        `<div style="${body_style}">${sanitized_html}</div>`;
+        `<div style="${body_style}">${resolved_html}</div>`;
     },
     [
-      sanitized_html,
+      resolved_html,
       height_ready,
       is_html_email,
       html_bg,

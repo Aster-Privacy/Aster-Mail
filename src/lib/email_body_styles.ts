@@ -241,6 +241,11 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
   border-left-color: #c4c7cc;
 }
 
+img {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
 @media print {
   body {
     overflow: visible !important;

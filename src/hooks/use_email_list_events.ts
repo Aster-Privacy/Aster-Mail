@@ -145,17 +145,15 @@ export function use_email_list_events({
     };
 
     const force_fetch_handler = () => {
-      if (has_keys && has_passphrase_in_memory()) {
-        request_cache.invalidate("GET:/mail/v1/messages");
-        mark_view_stale();
-        mark_preload_stale();
-        if (debounce_timer) {
-          clearTimeout(debounce_timer);
-        }
-        debounce_timer = setTimeout(() => {
-          fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE, true);
-        }, 150);
+      request_cache.invalidate("GET:/mail/v1/messages");
+      mark_view_stale();
+      mark_preload_stale();
+      if (debounce_timer) {
+        clearTimeout(debounce_timer);
       }
+      debounce_timer = setTimeout(() => {
+        fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE, true);
+      }, 150);
     };
 
     const maybe_revalidate = () => {

@@ -143,7 +143,14 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   const fetch_page = useCallback(
     async (page: number, limit: number, force?: boolean): Promise<void> => {
       if (!is_mail_view) return;
-      if (!has_passphrase_in_memory()) return;
+      if (!has_passphrase_in_memory()) {
+        set_state((prev) => ({
+          ...prev,
+          is_loading: false,
+          has_initial_load: true,
+        }));
+        return;
+      }
 
       const now = Date.now();
       const last = last_fetch_ref.current;
@@ -178,10 +185,21 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           preferences.conversation_grouping ?? true,
         );
 
-        if (signal.aborted) return;
+        if (signal.aborted) {
+          set_state((prev) => ({
+            ...prev,
+            is_loading: false,
+            has_initial_load: true,
+          }));
+          return;
+        }
 
         if (!result) {
-          set_state((prev) => ({ ...prev, is_loading: false }));
+          set_state((prev) => ({
+            ...prev,
+            is_loading: false,
+            has_initial_load: true,
+          }));
 
           return;
         }
@@ -192,7 +210,14 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           await new Promise((r) => setTimeout(r, MIN_SKELETON_MS - elapsed));
         }
 
-        if (signal.aborted) return;
+        if (signal.aborted) {
+          set_state((prev) => ({
+            ...prev,
+            is_loading: false,
+            has_initial_load: true,
+          }));
+          return;
+        }
 
         last_fetch_ref.current = { view: current_view, page, time: now };
         page_ref.current = page;
@@ -224,7 +249,11 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         }
       } catch {
         if (!signal.aborted) {
-          set_state((prev) => ({ ...prev, is_loading: false }));
+          set_state((prev) => ({
+            ...prev,
+            is_loading: false,
+            has_initial_load: true,
+          }));
         }
       }
     },

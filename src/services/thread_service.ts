@@ -48,7 +48,10 @@ import { zero_uint8_array } from "./crypto/secure_memory";
 import { decrypt_message } from "./crypto/key_manager";
 import { decrypt_mail_metadata } from "./crypto/mail_metadata";
 
-import { try_extract_mime_body } from "@/utils/email_crypto";
+import {
+  try_extract_mime_body,
+  RATCHET_UNDECRYPTABLE_SENTINEL,
+} from "@/utils/email_crypto";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
@@ -276,10 +279,15 @@ export async function fetch_and_decrypt_thread_messages(
             if (decrypted) {
               body_content = decrypted;
               body_decrypted = true;
+            } else {
+              body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
             }
           } catch (error) {
             if (import.meta.env.DEV) console.error(error);
+            body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
           }
+        } else {
+          body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
         }
       }
     }
@@ -429,10 +437,15 @@ export async function fetch_and_decrypt_virtual_group(
             if (decrypted) {
               body_content = decrypted;
               body_decrypted = true;
+            } else {
+              body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
             }
           } catch (error) {
             if (import.meta.env.DEV) console.error(error);
+            body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
           }
+        } else {
+          body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
         }
       }
     }

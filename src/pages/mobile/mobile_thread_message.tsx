@@ -42,6 +42,7 @@ import { get_image_proxy_url } from "@/lib/image_proxy";
 import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_preferences } from "@/contexts/preferences_context";
+import { RATCHET_UNDECRYPTABLE_SENTINEL } from "@/utils/email_crypto";
 
 
 export function format_safe_date(
@@ -103,11 +104,17 @@ export function MobileThreadMessage({
     return strip_quotes(message.body);
   }, [message.body, message.html_content]);
 
+  const is_ratchet_undecryptable =
+    message.body === RATCHET_UNDECRYPTABLE_SENTINEL;
+
   const collapsed_preview = useMemo(() => {
+    if (clean_body === RATCHET_UNDECRYPTABLE_SENTINEL) {
+      return t("mail.encrypted_message_unavailable");
+    }
     const plain = strip_html_tags(clean_body);
 
     return plain.length > 60 ? plain.substring(0, 60) + "..." : plain;
-  }, [clean_body]);
+  }, [clean_body, t]);
 
   const is_system = is_system_email(message.sender_email);
 
@@ -298,14 +305,21 @@ export function MobileThreadMessage({
       </div>
 
       <div className={`overflow-hidden ${is_system ? "pt-2 pb-1" : ""}`}>
-        <SandboxedEmailRenderer
-          body_background={sanitize_result.body_background}
-          force_dark_mode={force_dark_mode}
-          is_plain_text={!has_rich_html(clean_body)}
-          load_remote_content={load_remote_content}
-          sanitized_html={sanitized_html}
-          variant="mobile"
-        />
+        {is_ratchet_undecryptable ? (
+          <p className="px-4 py-3 text-[14px] italic text-[var(--text-muted)]">
+            {t("mail.encrypted_message_unavailable")}
+          </p>
+        ) : (
+          <SandboxedEmailRenderer
+            body_background={sanitize_result.body_background}
+            email_id={message.id}
+            force_dark_mode={force_dark_mode}
+            is_plain_text={!has_rich_html(clean_body)}
+            load_remote_content={load_remote_content}
+            sanitized_html={sanitized_html}
+            variant="mobile"
+          />
+        )}
       </div>
 
       {message.attachments && message.attachments.length > 0 && (
