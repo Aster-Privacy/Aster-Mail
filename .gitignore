@@ -78,3 +78,9 @@ _tmp/
 .deploy_tag
 *.wip
 src/lib/device_context.ts
+
+Aster-Authenticator/
+_emu_*.png
+scripts/zh-CN.before.ts
+scripts/zh-CN.fixed.ts
+scripts/fix_mojibake.py
