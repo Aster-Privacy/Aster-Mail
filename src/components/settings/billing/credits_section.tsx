@@ -176,6 +176,13 @@ export function CreditsSection({
                 renewal_deduction: t("settings.credit_type_renewal_deduction"),
                 reversal: t("settings.credit_type_reversal"),
                 purchase: t("settings.credit_type_purchase"),
+                install_android_reward: t(
+                  "settings.credit_type_install_android",
+                ),
+                install_desktop_reward: t(
+                  "settings.credit_type_install_desktop",
+                ),
+                install_ios_reward: t("settings.credit_type_install_ios"),
               };
               const type_label =
                 credit_type_labels[tx.transaction_type] || tx.transaction_type;
