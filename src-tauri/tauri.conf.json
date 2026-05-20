@@ -47,6 +47,15 @@
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
       "timestampUrl": ""
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEEzODkxMDQ5MEFBN0ExODkKUldTSm9hY0tTUkNKby8wRTBJSVE0aTd0UjJzSWphdzdPVy9zZHUvbndiWkYrWENneGV6Tk5hNkwK",
+      "endpoints": [
+        "https://github.com/Aster-Privacy/Aster-Mail/releases/latest/download/latest.json"
+      ]
     }
   }
 }

@@ -25,6 +25,7 @@ import { ProtectedRoute } from "@/components/common/protected_route";
 import { SuspensionBanner } from "@/components/common/suspension_overlay";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
+import { UpdateBanner } from "@/components/updates/update_banner";
 
 function is_chunk_load_error(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
@@ -103,6 +104,7 @@ function App() {
     <AppLock>
       <SuspensionBanner />
       <PendingDeletionDialog />
+      <UpdateBanner />
       <ErrorBoundary>
         <DesktopPairGate>
           <Suspense fallback={<FullPageLoader />}>

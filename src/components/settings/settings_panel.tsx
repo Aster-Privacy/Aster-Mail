@@ -86,6 +86,8 @@ const BillingSection = lazy(() =>
 
 import { EncryptionSection } from "@/components/settings/encryption_section";
 import { DeveloperSection } from "@/components/settings/developer_section";
+import { UpdatesSection } from "@/components/settings/updates_section";
+import { is_desktop_runtime } from "@/services/updates/updater";
 import { TemplatesSection } from "@/components/settings/templates_section";
 import { MailManagementSection } from "@/components/settings/mail_management_section";
 import { MailRulesSection } from "@/components/settings/mail_rules_section";
@@ -117,6 +119,7 @@ export type SettingsSection =
   | "sender_filters"
   | "mail_rules"
   | "feedback"
+  | "updates"
   | "developer";
 
 type Section = SettingsSection;
@@ -285,6 +288,7 @@ function SettingsPanelInner({
     mail_rules: null,
     feedback: null,
     developer: null,
+    updates: null,
   });
 
   const handle_account_deleted = useCallback(() => {
@@ -422,6 +426,14 @@ function SettingsPanelInner({
       mail: [...NAV_ITEMS.mail],
     };
 
+    if (is_desktop_runtime()) {
+      items.general.push({
+        id: "updates" as Section,
+        label: t("settings.updates"),
+        icon: ArrowDownTrayIcon,
+      });
+    }
+
     if (dev_mode_enabled) {
       items.mail.push({
         id: "developer" as Section,
@@ -531,6 +543,8 @@ function SettingsPanelInner({
         return <FeedbackSection />;
       case "developer":
         return <DeveloperSection />;
+      case "updates":
+        return <UpdatesSection />;
       default:
         return null;
     }

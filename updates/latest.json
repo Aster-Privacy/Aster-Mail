@@ -1,0 +1,23 @@
+{
+  "version": "1.3.6",
+  "notes": "Initial baseline. Real releases will replace this manifest on the GitHub Releases asset.",
+  "pub_date": "2026-05-20T00:00:00Z",
+  "platforms": {
+    "darwin-x86_64": {
+      "signature": "",
+      "url": ""
+    },
+    "darwin-aarch64": {
+      "signature": "",
+      "url": ""
+    },
+    "windows-x86_64": {
+      "signature": "",
+      "url": ""
+    },
+    "linux-x86_64": {
+      "signature": "",
+      "url": ""
+    }
+  }
+}
