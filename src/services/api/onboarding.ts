@@ -142,6 +142,45 @@ export async function get_onboarding_state(
   }
 }
 
+export interface ChecklistTasksState {
+  install_app: boolean;
+  import_mail: boolean;
+  recovery_method: boolean;
+  first_email: boolean;
+}
+
+export interface ChecklistState {
+  dismissed_at: string | null;
+  tasks: ChecklistTasksState;
+}
+
+export const DEFAULT_CHECKLIST_TASKS: ChecklistTasksState = {
+  install_app: false,
+  import_mail: false,
+  recovery_method: false,
+  first_email: false,
+};
+
+export async function fetch_onboarding_checklist(): Promise<ChecklistState | null> {
+  try {
+    const response = await api_client.get<ChecklistState>(
+      "/core/v1/onboarding/checklist",
+    );
+
+    if (response.error || !response.data) return null;
+
+    return response.data;
+  } catch {
+    return null;
+  }
+}
+
+export async function dismiss_onboarding_checklist(): Promise<void> {
+  try {
+    await api_client.post<void>("/core/v1/onboarding/checklist/dismiss", {});
+  } catch {}
+}
+
 export async function update_onboarding_state(
   state: OnboardingState,
   vault: EncryptedVault,
