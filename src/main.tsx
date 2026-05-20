@@ -20,7 +20,7 @@
 //
 import { lazy, Suspense } from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, HashRouter } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 
 import App from "@/App";
@@ -205,8 +205,10 @@ if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
 
 const use_mobile = is_mobile_experience();
 
+const Router = is_tauri_runtime ? HashRouter : BrowserRouter;
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
+  <Router>
     <Provider>
       {use_mobile ? (
         <Suspense
@@ -220,7 +222,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <App />
       )}
     </Provider>
-  </BrowserRouter>,
+  </Router>,
 );
 
 function dismiss_initial_loader() {

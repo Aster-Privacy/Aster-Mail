@@ -638,3 +638,9 @@ input:-webkit-autofill:active {
   transition: background-color 5000s ease-in-out 0s;
   caret-color: var(--text-primary);
 }
+
+.aster_modal_close > svg {
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 18px;
+}

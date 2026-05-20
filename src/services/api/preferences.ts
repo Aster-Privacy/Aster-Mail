@@ -133,6 +133,7 @@ export interface UserPreferences {
   show_badges_in_signature: boolean;
   show_aster_branding: boolean;
   viewer_toolbar_mode: "simple" | "advanced";
+  search_encrypted_content: boolean;
   migration_haptic_v1_done: boolean;
   migration_tracker_blocking_v2_done: boolean;
 }
@@ -405,6 +406,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   show_badges_in_signature: true,
   show_aster_branding: true,
   viewer_toolbar_mode: "simple",
+  search_encrypted_content: false,
   migration_haptic_v1_done: false,
   migration_tracker_blocking_v2_done: false,
 };

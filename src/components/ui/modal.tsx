@@ -132,11 +132,15 @@ export function Modal({
           >
             {show_close_button && (
               <button
-                className="aster_modal_close absolute right-5 top-4 z-10 p-1.5 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                className="aster_modal_close absolute right-5 top-4 z-10 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                style={{ width: 28, height: 28, padding: 0 }}
                 type="button"
                 onClick={on_close}
               >
-                <XMarkIcon className="w-6 h-6" />
+                <XMarkIcon
+                  className="text-txt-secondary"
+                  style={{ width: 18, height: 18, flexShrink: 0 }}
+                />
               </button>
             )}
             {children}
