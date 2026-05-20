@@ -22,7 +22,12 @@
 import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
-import { useState, useCallback, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 
 import { list_encrypted_mail_items, type MailItem } from "@/services/api/mail";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
@@ -264,6 +269,7 @@ interface SearchOptions {
     date_to?: string;
   };
   label_name_to_tokens?: Map<string, string[]>;
+  search_body?: boolean;
 }
 
 interface CachedIndex {
@@ -273,6 +279,8 @@ interface CachedIndex {
     { envelope: DecryptedEnvelope | null; metadata: MailItemMetadata | null }
   >;
   built_at: number;
+  include_body: boolean;
+  user_email: string;
 }
 
 const HASH_ALG = ["SHA", "256"].join("-");
@@ -281,6 +289,7 @@ const INDEX_TTL_MS = 5 * 60 * 1000;
 
 let cached_index: CachedIndex | null = null;
 let index_build_promise: Promise<CachedIndex> | null = null;
+let build_generation = 0;
 
 async function try_decrypt_with_identity_key(
   encrypted: string,
@@ -398,16 +407,65 @@ async function decrypt_envelope_for_search(
   }
 }
 
-async function do_build_search_index(user_email: string): Promise<CachedIndex> {
+export interface IndexingProgress {
+  building: boolean;
+  current: number;
+  total: number;
+}
+
+let indexing_progress: IndexingProgress = {
+  building: false,
+  current: 0,
+  total: 0,
+};
+const indexing_listeners = new Set<() => void>();
+
+function emit_indexing(next: Partial<IndexingProgress>) {
+  indexing_progress = { ...indexing_progress, ...next };
+  indexing_listeners.forEach((cb) => cb());
+}
+
+function subscribe_indexing(cb: () => void): () => void {
+  indexing_listeners.add(cb);
+  return () => {
+    indexing_listeners.delete(cb);
+  };
+}
+
+function get_indexing_snapshot(): IndexingProgress {
+  return indexing_progress;
+}
+
+export function use_indexing_progress(): IndexingProgress {
+  return useSyncExternalStore(
+    subscribe_indexing,
+    get_indexing_snapshot,
+    get_indexing_snapshot,
+  );
+}
+
+async function do_build_search_index(
+  user_email: string,
+  include_body: boolean,
+): Promise<CachedIndex> {
+  const my_gen = build_generation;
   let all_items: MailItem[] = [];
   let cursor: string | undefined;
   let page_count = 0;
 
+  emit_indexing({ building: true, current: 0, total: 0 });
+
   do {
     const response = await list_encrypted_mail_items({ cursor });
 
+    if (my_gen !== build_generation) {
+      emit_indexing({ building: false, current: 0, total: 0 });
+      throw new Error("search_index_cancelled");
+    }
+
     if (response.error) {
-      cached_index = null;
+      if (my_gen === build_generation) cached_index = null;
+      emit_indexing({ building: false, current: 0, total: 0 });
       throw new Error(`search_fetch_failed:${response.error}`);
     }
 
@@ -419,8 +477,11 @@ async function do_build_search_index(user_email: string): Promise<CachedIndex> {
 
   if (all_items.length === 0 && page_count === 0) {
     cached_index = null;
+    emit_indexing({ building: false, current: 0, total: 0 });
     throw new Error("search_fetch_failed:no_response");
   }
+
+  emit_indexing({ total: all_items.length, current: 0 });
 
   const decrypted = new Map<
     string,
@@ -440,13 +501,21 @@ async function do_build_search_index(user_email: string): Promise<CachedIndex> {
         );
 
         if (envelope?.body_text) {
-          const sender_email = envelope.from?.email || "";
+          if (include_body) {
+            const sender_email = envelope.from?.email || "";
 
-          envelope.body_text = await decrypt_body_text(
-            envelope.body_text,
-            user_email,
-            sender_email,
-          );
+            envelope.body_text = await decrypt_body_text(
+              envelope.body_text,
+              user_email,
+              sender_email,
+            );
+          } else {
+            envelope.body_text = "";
+          }
+        }
+        if (envelope && !include_body) {
+          envelope.body_html = "";
+          envelope.html_body = "";
         }
 
         let metadata: MailItemMetadata | null = null;
@@ -472,42 +541,88 @@ async function do_build_search_index(user_email: string): Promise<CachedIndex> {
       }
     }
 
+    if (my_gen !== build_generation) {
+      decrypted.clear();
+      emit_indexing({ building: false, current: 0, total: 0 });
+      throw new Error("search_index_cancelled");
+    }
+
+    emit_indexing({
+      current: Math.min(i + batch.length, all_items.length),
+    });
+
     if (i > 0 && i % 100 === 0) {
       await new Promise<void>((r) => setTimeout(r, 0));
     }
+  }
+
+  if (my_gen !== build_generation) {
+    decrypted.clear();
+    emit_indexing({ building: false, current: 0, total: 0 });
+    throw new Error("search_index_cancelled");
   }
 
   const index: CachedIndex = {
     items: all_items,
     decrypted,
     built_at: Date.now(),
+    include_body,
+    user_email,
   };
 
   cached_index = index;
+  emit_indexing({ building: false, current: 0, total: 0 });
 
   return index;
 }
 
-export async function prewarm_search_index(user_email: string): Promise<void> {
+export function clear_search_index(): void {
+  cached_index = null;
+  build_generation++;
+  index_build_promise = null;
+  emit_indexing({ building: false, current: 0, total: 0 });
+}
+
+export async function prewarm_search_index(
+  user_email: string,
+  include_body: boolean,
+): Promise<void> {
   try {
-    await build_search_index(user_email);
+    await build_search_index(user_email, include_body);
   } catch {
     // ignore - the next real search will surface the error
   }
 }
 
-async function build_search_index(user_email: string): Promise<CachedIndex> {
-  if (cached_index && Date.now() - cached_index.built_at < INDEX_TTL_MS) {
-    return cached_index;
+async function build_search_index(
+  user_email: string,
+  include_body: boolean,
+): Promise<CachedIndex> {
+  if (cached_index && cached_index.user_email !== user_email) {
+    cached_index = null;
+    build_generation++;
+    index_build_promise = null;
+  }
+
+  const cache_valid =
+    cached_index &&
+    cached_index.user_email === user_email &&
+    Date.now() - cached_index.built_at < INDEX_TTL_MS &&
+    (cached_index.include_body || !include_body);
+
+  if (cache_valid) {
+    return cached_index as CachedIndex;
   }
 
   if (index_build_promise) {
     return index_build_promise;
   }
 
-  index_build_promise = do_build_search_index(user_email).finally(() => {
-    index_build_promise = null;
-  });
+  index_build_promise = do_build_search_index(user_email, include_body).finally(
+    () => {
+      index_build_promise = null;
+    },
+  );
 
   return index_build_promise;
 }
@@ -687,7 +802,7 @@ function matches_operator(
   }
 }
 
-function matches_query(
+export function matches_query(
   terms: string[],
   operators: ParsedOperator[],
   envelope: DecryptedEnvelope | null,
@@ -695,6 +810,7 @@ function matches_query(
   item: MailItem,
   label_name_to_tokens?: Map<string, string[]>,
   fields?: string[],
+  search_body: boolean = true,
 ): boolean {
   if (!envelope) return false;
 
@@ -722,7 +838,9 @@ function matches_query(
         `${(r.email || "").toLowerCase()} ${(r.name || "").toLowerCase()}`,
     )
     .join(" ");
-  const body = strip_html_tags(envelope.body_text || "").toLowerCase();
+  const body = search_body
+    ? strip_html_tags(envelope.body_text || "").toLowerCase()
+    : "";
 
   return terms.every((term) => {
     if (search_all) {
@@ -730,7 +848,7 @@ function matches_query(
         subject.includes(term) ||
         sender_name.includes(term) ||
         sender_email.includes(term) ||
-        body.includes(term)
+        (search_body && body.includes(term))
       );
     }
     let match = false;
@@ -741,7 +859,8 @@ function matches_query(
         match || sender_name.includes(term) || sender_email.includes(term);
     if (fields!.includes("recipient"))
       match = match || recipients.includes(term);
-    if (fields!.includes("body")) match = match || body.includes(term);
+    if (search_body && fields!.includes("body"))
+      match = match || body.includes(term);
 
     return match;
   });
@@ -803,6 +922,9 @@ export function use_search() {
 
   const clear_index = useCallback(() => {
     cached_index = null;
+    build_generation++;
+    index_build_promise = null;
+    emit_indexing({ building: false, current: 0, total: 0 });
   }, []);
 
   const search = useCallback(
@@ -834,7 +956,11 @@ export function use_search() {
       try {
         set_state((prev) => ({ ...prev, index_building: true }));
 
-        const index = await build_search_index(user?.email || "");
+        const search_body = options?.search_body !== false;
+        const index = await build_search_index(
+          user?.email || "",
+          search_body,
+        );
 
         set_state((prev) => ({ ...prev, index_building: false }));
 
@@ -877,6 +1003,7 @@ export function use_search() {
               item,
               options?.label_name_to_tokens,
               options?.fields,
+              options?.search_body !== false,
             )
           ) {
             continue;
@@ -925,6 +1052,17 @@ export function use_search() {
         }));
       } catch (err) {
         const message = err instanceof Error ? err.message : "";
+
+        if (message === "search_index_cancelled") {
+          set_state((prev) => ({
+            ...prev,
+            is_searching: false,
+            index_building: false,
+          }));
+
+          return;
+        }
+
         const is_fetch_error = message.startsWith("search_fetch_failed:");
 
         set_state((prev) => ({
@@ -959,12 +1097,22 @@ export function use_search() {
     set_state((prev) => ({ ...prev, query }));
   }, []);
 
+  const start_index_build = useCallback(
+    (include_body: boolean) => {
+      build_search_index(user?.email || "", include_body).catch(() => {
+        // first real search will surface the error
+      });
+    },
+    [user?.email],
+  );
+
   return {
     state,
     autocomplete_state,
     search,
     clear_results,
     clear_index,
+    start_index_build,
     load_more: () => {},
     set_query,
     navigate_to_result: (_id: string) => {},
