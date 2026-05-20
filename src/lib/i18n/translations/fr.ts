@@ -2876,6 +2876,8 @@ export const fr = {
     receipt_tracking_locked: `Extraire automatiquement les détails d'achat des e-mails de reçus`,
   },
   mail: {
+    encrypted_message_unavailable:
+      "Ce message n'a pas pu être déchiffré. L'expéditeur a peut-être utilisé une clé obsolète.",
     inbox: "Boîte de réception",
     sent: "Envoyés",
     drafts: "Brouillons",

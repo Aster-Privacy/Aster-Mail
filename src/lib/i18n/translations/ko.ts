@@ -2776,6 +2776,8 @@ export const ko = {
     no_subscriptions_found: "구독을 찾을 수 없습니다",
   },
   mail: {
+    encrypted_message_unavailable:
+      "This message could not be decrypted. The sender may have used an outdated key.",
     inbox: "받은 편지함",
     sent: "보낸 편지함",
     drafts: "임시 보관함",

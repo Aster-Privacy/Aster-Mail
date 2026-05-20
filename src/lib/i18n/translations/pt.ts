@@ -2697,6 +2697,8 @@ export const pt = {
       "Suas chaves de criptografia precisam ser rotacionadas. Digite sua senha para gerar novas chaves e manter o sigilo direto.",
   },
   mail: {
+    encrypted_message_unavailable:
+      "Não foi possível descriptografar esta mensagem. O remetente pode ter usado uma chave desatualizada.",
     inbox: "Caixa de Entrada",
     sent: "Enviados",
     drafts: "Rascunhos",

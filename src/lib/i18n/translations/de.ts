@@ -2950,6 +2950,8 @@ export const de = {
     rotate_encryption_keys: "Verschlüsselungsschlüssel rotieren",
   },
   mail: {
+    encrypted_message_unavailable:
+      "Diese Nachricht konnte nicht entschlüsselt werden. Der Absender hat möglicherweise einen veralteten Schlüssel verwendet.",
     inbox: "Posteingang",
     sent: "Gesendet",
     drafts: "Entwürfe",

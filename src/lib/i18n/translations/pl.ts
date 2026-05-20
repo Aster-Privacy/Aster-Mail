@@ -2917,6 +2917,8 @@ export const pl = {
     no_subscriptions_found: "Nie znaleziono subskrypcji",
   },
   mail: {
+    encrypted_message_unavailable:
+      "Nie można odszyfrować tej wiadomości. Nadawca mógł użyć nieaktualnego klucza.",
     inbox: "Skrzynka odbiorcza",
     sent: "Wysłane",
     drafts: "Szkice",

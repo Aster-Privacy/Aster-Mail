@@ -2672,6 +2672,8 @@ export const zh_CN = {
       "您的加密密钥到了轮换时间。输入密码以生成新密钥，保持前向保密。",
   },
   mail: {
+    encrypted_message_unavailable:
+      "This message could not be decrypted. The sender may have used an outdated key.",
     inbox: "收件箱",
     sent: "已发送",
     drafts: "草稿",
