@@ -97,6 +97,9 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
   }
 }
 
+export const RATCHET_UNDECRYPTABLE_SENTINEL =
+  "\x00ASTER_RATCHET_UNDECRYPTABLE\x00";
+
 export async function try_decrypt_ratchet_body(
   body_text: string,
   our_email: string,
@@ -110,7 +113,7 @@ export async function try_decrypt_ratchet_body(
 
   const vault = get_vault_from_memory();
 
-  if (!vault) return body_text;
+  if (!vault) return RATCHET_UNDECRYPTABLE_SENTINEL;
 
   try {
     const decrypted = await decrypt_ratchet_message(
@@ -120,9 +123,9 @@ export async function try_decrypt_ratchet_body(
       vault,
     );
 
-    return decrypted ?? body_text;
+    return decrypted ?? RATCHET_UNDECRYPTABLE_SENTINEL;
   } catch {
-    return body_text;
+    return RATCHET_UNDECRYPTABLE_SENTINEL;
   }
 }
 
