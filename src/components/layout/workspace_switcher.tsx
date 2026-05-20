@@ -138,8 +138,8 @@ export function WorkspaceSwitcher({
   const handle_request_remove = useCallback(
     (account: StoredAccount, e: React.MouseEvent) => {
       e.stopPropagation();
+      set_pending_remove(account);
       on_open_change(false);
-      setTimeout(() => set_pending_remove(account), 100);
     },
     [on_open_change],
   );
@@ -167,8 +167,8 @@ export function WorkspaceSwitcher({
   }, [on_open_change, logout, navigate]);
 
   const handle_logout = useCallback(() => {
+    set_show_logout_confirm(true);
     on_open_change(false);
-    setTimeout(() => set_show_logout_confirm(true), 100);
   }, [on_open_change]);
 
   return (
@@ -197,8 +197,31 @@ export function WorkspaceSwitcher({
 
           <div className="px-1.5 pb-1.5">
             <div
-              className="w-full px-2.5 py-2 rounded-[14px] flex items-center gap-2.5"
+              className="w-full px-2.5 py-2 rounded-[14px] flex items-center gap-2.5 cursor-pointer transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
               style={{ backgroundColor: "var(--surf-tertiary, transparent)" }}
+              role="button"
+              tabIndex={0}
+              title={t("auth.copy_email")}
+              onClick={async () => {
+                if (!current_user_email) return;
+                try {
+                  await navigator.clipboard.writeText(current_user_email);
+                  show_toast(t("auth.email_copied"), "success");
+                } catch {
+                  show_toast(t("auth.copy_failed"), "error");
+                }
+              }}
+              onKeyDown={async (e) => {
+                if (e.key !== "Enter" && e.key !== " ") return;
+                e.preventDefault();
+                if (!current_user_email) return;
+                try {
+                  await navigator.clipboard.writeText(current_user_email);
+                  show_toast(t("auth.email_copied"), "success");
+                } catch {
+                  show_toast(t("auth.copy_failed"), "error");
+                }
+              }}
             >
               <div className="relative">
                 <ProfileAvatar

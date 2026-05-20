@@ -34,6 +34,7 @@ import {
   derive_ratchet_encryption_key,
 } from "@/services/crypto/ratchet_sync";
 import { backfill_pq_secrets_to_server } from "@/services/crypto/pq_prekey_store";
+import { reconcile_pq_secrets_with_server } from "@/services/crypto/pq_secret_reconciler";
 import {
   clear_all_ratchet_states,
   list_ratchet_conversations,
@@ -195,6 +196,7 @@ export async function decrypt_vault_with_lock(
         }
 
         await backfill_pq_secrets_to_server();
+        await reconcile_pq_secrets_with_server();
       })
       .catch(() => {});
 
