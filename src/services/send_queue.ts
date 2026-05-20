@@ -412,6 +412,7 @@ async function prepare_email_for_server_queue(
     mime_type: img.mime_type,
     data: img.data,
     content_id: img.cid,
+    is_inline: true,
   }));
 
   const body_for_encryption =

@@ -476,6 +476,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     mime_type: img.mime_type,
     data: img.data,
     content_id: img.cid,
+    is_inline: true,
   }));
 
   const body_for_recipient =
@@ -577,6 +578,7 @@ export async function execute_external_send(
     mime_type: img.mime_type,
     data: img.data,
     content_id: img.cid,
+    is_inline: true,
   }));
 
   const smtp_attachments = [
