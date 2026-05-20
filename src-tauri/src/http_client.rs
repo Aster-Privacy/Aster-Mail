@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 use std::sync::Arc;
+use std::sync::OnceLock;
 use std::time::Duration;
 
 use base64::engine::general_purpose::STANDARD;
@@ -164,7 +165,22 @@ pub fn build_pinned_client(timeout: Duration) -> Result<reqwest::Client, String>
     reqwest::Client::builder()
         .no_proxy()
         .timeout(timeout)
+        .cookie_store(true)
         .use_preconfigured_tls(tls)
         .build()
         .map_err(|e| e.to_string())
+}
+
+static SHARED_PINNED_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+
+pub fn shared_pinned_client() -> Result<reqwest::Client, String> {
+    if let Some(client) = SHARED_PINNED_CLIENT.get() {
+        return Ok(client.clone());
+    }
+    let client = build_pinned_client(Duration::from_secs(30))?;
+    let _ = SHARED_PINNED_CLIENT.set(client.clone());
+    Ok(SHARED_PINNED_CLIENT
+        .get()
+        .cloned()
+        .unwrap_or(client))
 }
