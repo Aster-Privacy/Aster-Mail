@@ -522,7 +522,7 @@ pub async fn device_http_request(
         }
     }
 
-    let client = crate::http_client::build_pinned_client(std::time::Duration::from_secs(30))?;
+    let client = crate::http_client::shared_pinned_client()?;
     let mut req = match method.to_uppercase().as_str() {
         "GET" => client.get(parsed_url.clone()),
         "POST" => client.post(parsed_url.clone()),
@@ -534,6 +534,15 @@ pub async fn device_http_request(
     };
 
     req = req.header("user-agent", DESKTOP_USER_AGENT);
+
+    let path = parsed_url.path();
+    let needs_origin = path.ends_with("/auth/device/challenge")
+        || path.ends_with("/auth/device/login");
+
+    if needs_origin {
+        req = req.header("origin", "https://tauri.localhost");
+        req = req.header("referer", "https://tauri.localhost/");
+    }
 
     if let Some(h) = headers {
         for (k, v) in h {

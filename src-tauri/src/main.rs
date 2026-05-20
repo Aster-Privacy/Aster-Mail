@@ -176,14 +176,17 @@ fn main() {
             clear_stale_webkit_keychain();
 
             #[cfg(target_os = "macos")]
-            let icon_bytes = include_bytes!("../icons/icon_macos.png");
-            #[cfg(not(target_os = "macos"))]
-            let icon_bytes = include_bytes!("../icons/icon_hires.png");
-            let hires_icon = tauri::image::Image::from_bytes(icon_bytes)
-                .expect("failed to load hires icon");
+            let tray_icon_bytes = include_bytes!("../icons/icon_macos.png").as_slice();
+            #[cfg(windows)]
+            let tray_icon_bytes = include_bytes!("../icons/32x32.png").as_slice();
+            #[cfg(all(unix, not(target_os = "macos")))]
+            let tray_icon_bytes = include_bytes!("../icons/icon_hires.png").as_slice();
+            let tray_icon = tauri::image::Image::from_bytes(tray_icon_bytes)
+                .expect("failed to load tray icon");
 
+            #[cfg(target_os = "macos")]
             if let Some(window) = app.get_webview_window("main") {
-                let _ = window.set_icon(hires_icon.clone());
+                let _ = window.set_icon(tray_icon.clone());
             }
 
             let show =
@@ -192,7 +195,7 @@ fn main() {
             let menu = Menu::with_items(app, &[&show, &quit])?;
 
             let tray = TrayIconBuilder::new()
-                .icon(hires_icon)
+                .icon(tray_icon)
                 .menu(&menu)
                 .tooltip("Aster Mail")
                 .on_menu_event(|app, event| match event.id.as_ref() {
