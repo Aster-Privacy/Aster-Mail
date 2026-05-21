@@ -44,9 +44,11 @@ import {
   create_subscription_intent,
   validate_promo_code,
   activate_subscription,
+  create_crypto_checkout_session,
   format_price,
   type PromoValidateResponse,
 } from "@/services/api/billing";
+import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -107,8 +109,9 @@ export function PaymentForm({
   const [cardholder_name, set_cardholder_name] = useState("");
   const [billing_postal, set_billing_postal] = useState("");
   const [selected_method, set_selected_method] = useState<
-    "card" | "wallet" | "cashapp"
+    "card" | "wallet" | "cashapp" | "crypto"
   >("card");
+  const [crypto_term, set_crypto_term] = useState<1 | 3 | 6 | 12 | 24>(12);
   const cardholder_input_ref = useRef<HTMLInputElement | null>(null);
   const [focused_field, set_focused_field] = useState<string | null>(null);
   const [hovered_field, set_hovered_field] = useState<string | null>(null);
@@ -374,6 +377,34 @@ export function PaymentForm({
   ]);
 
   const handle_submit = useCallback(async () => {
+    if (selected_method === "crypto") {
+      set_phase("processing");
+      set_error_message("");
+      try {
+        const origin = window.location.origin;
+        const response = await create_crypto_checkout_session(
+          plan_code,
+          crypto_term,
+          `${origin}/?crypto=success`,
+          `${origin}/?crypto=cancelled`,
+        );
+
+        if (response.data?.url) {
+          window.location.href = response.data.url;
+
+          return;
+        }
+        set_error_message(t("settings.failed_checkout"));
+        set_phase("ready");
+      } catch (err) {
+        if (import.meta.env.DEV) console.error(err);
+        set_error_message(t("settings.failed_checkout"));
+        set_phase("ready");
+      }
+
+      return;
+    }
+
     if (!stripe) return;
 
     set_phase("processing");
@@ -491,6 +522,8 @@ export function PaymentForm({
     create_intent_for_plan,
     cardholder_name,
     billing_postal,
+    crypto_term,
+    plan_code,
     set_phase,
     set_error_message,
     finish_success,
@@ -678,12 +711,13 @@ export function PaymentForm({
       </div>
 
       {!is_free && (
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {(
             [
               "card",
               ...(can_make_wallet_payment ? (["wallet"] as const) : []),
               "cashapp",
+              ...(addon_id ? ([] as const) : (["crypto"] as const)),
             ] as const
           ).map((m) => (
             <button
@@ -705,7 +739,9 @@ export function PaymentForm({
                 ? t("settings.checkout_method_card")
                 : m === "wallet"
                   ? t("settings.checkout_method_wallet")
-                  : t("settings.checkout_method_cashapp")}
+                  : m === "cashapp"
+                    ? t("settings.checkout_method_cashapp")
+                    : t("settings.checkout_method_crypto")}
             </button>
           ))}
         </div>
@@ -742,6 +778,65 @@ export function PaymentForm({
         </div>
       )}
 
+      {!is_free && selected_method === "crypto" && (() => {
+        const tier = PLAN_TIERS.find((p) => p.id === plan_code);
+        const monthly_cents = tier?.monthly_cents ?? price_cents;
+        const yearly_cents = tier?.yearly_cents ?? price_cents * 12;
+        const term_options: Array<1 | 3 | 6 | 12 | 24> = [1, 3, 6, 12, 24];
+        const term_label_map: Record<1 | 3 | 6 | 12 | 24, string> = {
+          1: t("settings.crypto_term_1mo"),
+          3: t("settings.crypto_term_3mo"),
+          6: t("settings.crypto_term_6mo"),
+          12: t("settings.crypto_term_12mo"),
+          24: t("settings.crypto_term_24mo"),
+        };
+        const compute = (term: 1 | 3 | 6 | 12 | 24) => {
+          if (term === 12) return yearly_cents;
+          if (term === 24) return yearly_cents * 2;
+
+          return monthly_cents * term;
+        };
+
+        return (
+          <div className="space-y-2">
+            <p className="text-xs" style={{ color: colors.text_tertiary }}>
+              {t("settings.crypto_select_term")}
+            </p>
+            {term_options.map((term) => {
+              const is_selected = crypto_term === term;
+              const cents = compute(term);
+
+              return (
+                <button
+                  key={term}
+                  className="w-full flex items-center justify-between rounded-[14px] border p-3.5 text-left transition-colors"
+                  disabled={phase === "processing"}
+                  style={{
+                    backgroundColor: is_selected ? colors.accent : colors.bg_input,
+                    borderColor: is_selected ? colors.accent : colors.border_rest,
+                  }}
+                  type="button"
+                  onClick={() => set_crypto_term(term)}
+                >
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: is_selected ? "#ffffff" : colors.text_primary }}
+                  >
+                    {term_label_map[term]}
+                  </span>
+                  <span
+                    className="text-sm font-semibold"
+                    style={{ color: is_selected ? "#ffffff" : colors.text_primary }}
+                  >
+                    {format_price(cents, currency)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        );
+      })()}
+
       {!is_free && selected_method === "card" && (
         <StripeCardFields
           billing_postal={billing_postal}
@@ -776,6 +871,7 @@ export function PaymentForm({
         className="w-full"
         disabled={
           (!is_free &&
+            selected_method !== "crypto" &&
             (!stripe ||
               !elements ||
               (selected_method === "card" && !all_ready))) ||
@@ -790,6 +886,8 @@ export function PaymentForm({
             <Spinner size="sm" />
             {t("settings.processing_payment")}
           </span>
+        ) : selected_method === "crypto" ? (
+          t("settings.crypto_pay_now")
         ) : (
           t("settings.subscribe_now")
         )}

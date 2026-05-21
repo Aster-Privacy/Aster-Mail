@@ -216,6 +216,7 @@ export function AvailablePlansSection({
                       ? t("settings.downgrade")
                       : t("settings.upgrade")}
                 </Button>
+
               </div>
 
               <div
