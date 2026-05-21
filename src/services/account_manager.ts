@@ -342,6 +342,15 @@ export async function logout_all(): Promise<void> {
   localStorage.removeItem("astermail_accounts_v2");
   localStorage.removeItem("astermail_accounts_v3");
   localStorage.removeItem("astermail_accounts_v4");
+  try {
+    sessionStorage.clear();
+  } catch {}
+  try {
+    if (typeof caches !== "undefined") {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch {}
 }
 
 export async function get_other_accounts(): Promise<StoredAccount[]> {
