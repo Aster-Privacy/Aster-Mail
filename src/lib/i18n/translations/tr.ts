@@ -1942,6 +1942,7 @@ export const tr = {
     failed_remove_wkd: "Anahtarınız genel dizinden kaldırılmadı. Bir kez daha denemek genellikle yeterli olur.",
     key_published_keyserver: "Anahtar sunucuya yayınlandı",
     failed_publish_keyserver: "Genel anahtarınız anahtar sunucusuna yayımlanmadı. Bir kez daha denemek genellikle yeterli olur.",
+    failed_save_setting: "Ayar kaydedilemedi. Lütfen tekrar deneyin.",
     keys_cannot_remove_keyservers:
       "Bir anahtar genel anahtar sunucusuna gönderildikten sonra geri çekilemez. Yayımlamadan önce iyice düşünmeye değer.",
     copied_to_clipboard: "Panoya kopyalandı",
@@ -2583,6 +2584,8 @@ export const tr = {
     plan_f_read_receipts: "Okundu bilgileri",
     plan_f_smart_folders: "Akıllı klasörler",
     plan_f_imap_smtp: "IMAP ve SMTP erişimi",
+    plan_f_imap_smtp_bridge: "Mail-app access (IMAP & SMTP) via Aster Bridge",
+    plan_f_bridge_hint: "Runs through the Aster Bridge companion app on your device.",
     plan_f_external_accounts: "Harici hesaplar (IMAP & POP3)",
     plan_f_signed_in_accounts: "Oturum açılan hesaplar",
     plan_f_caldav: "CalDAV senkronizasyonu",

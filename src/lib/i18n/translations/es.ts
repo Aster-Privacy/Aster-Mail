@@ -1980,6 +1980,7 @@ export const es = {
     failed_remove_wkd: "Tu clave no se quitó del directorio público. Otro intento debería resolverlo.",
     key_published_keyserver: "Clave publicada en servidor de claves",
     failed_publish_keyserver: "Tu clave pública no se publicó en el servidor de claves. Otro intento debería resolverlo.",
+    failed_save_setting: "No se pudo guardar la configuración. Inténtalo de nuevo.",
     keys_cannot_remove_keyservers:
       "Una vez que una clave está en un servidor de claves público, no se puede retirar. Conviene pensarlo bien antes de publicarla.",
     copied_to_clipboard: "Copiado al portapapeles",
@@ -2624,6 +2625,8 @@ export const es = {
     plan_f_read_receipts: "Acuses de recibo",
     plan_f_smart_folders: "Carpetas inteligentes",
     plan_f_imap_smtp: "Acceso IMAP y SMTP",
+    plan_f_imap_smtp_bridge: "Mail-app access (IMAP & SMTP) via Aster Bridge",
+    plan_f_bridge_hint: "Runs through the Aster Bridge companion app on your device.",
     plan_f_external_accounts: "Cuentas externas (IMAP & POP3)",
     plan_f_signed_in_accounts: "Cuentas conectadas",
     plan_f_caldav: "Sincronización CalDAV",

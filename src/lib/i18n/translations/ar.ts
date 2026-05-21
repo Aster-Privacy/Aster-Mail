@@ -1898,6 +1898,7 @@ export const ar = {
     failed_remove_wkd: "مفتاحك لم يُزَل من الدليل العام. محاولة أخرى ينبغي أن تنجح.",
     key_published_keyserver: "تم نشر المفتاح إلى خادم المفاتيح",
     failed_publish_keyserver: "مفتاحك العام لم يُنشر إلى خادم المفاتيح. محاولة أخرى ينبغي أن تنجح.",
+    failed_save_setting: "تعذر حفظ الإعداد. يرجى المحاولة مرة أخرى.",
     keys_cannot_remove_keyservers:
       "بمجرد وصول المفتاح إلى خادم مفاتيح عمومي، لا يمكن سحبه. الأمر يستحق التروّي قبل النشر.",
     copied_to_clipboard: "تم النسخ إلى الحافظة",
@@ -2540,6 +2541,8 @@ export const ar = {
     plan_f_read_receipts: "إيصالات القراءة",
     plan_f_smart_folders: "مجلدات ذكية",
     plan_f_imap_smtp: "وصول IMAP وSMTP",
+    plan_f_imap_smtp_bridge: "Mail-app access (IMAP & SMTP) via Aster Bridge",
+    plan_f_bridge_hint: "Runs through the Aster Bridge companion app on your device.",
     plan_f_external_accounts: "حسابات خارجية (IMAP & POP3)",
     plan_f_signed_in_accounts: "الحسابات المسجّل دخولها",
     plan_f_caldav: "مزامنة CalDAV",

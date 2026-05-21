@@ -2597,6 +2597,8 @@ export const de = {
     plan_f_read_receipts: "Lesebestätigungen",
     plan_f_smart_folders: "Intelligente Ordner",
     plan_f_imap_smtp: "IMAP- & SMTP-Zugang",
+    plan_f_imap_smtp_bridge: "Mail-app access (IMAP & SMTP) via Aster Bridge",
+    plan_f_bridge_hint: "Runs through the Aster Bridge companion app on your device.",
     plan_f_external_accounts: "Externe Konten (IMAP & POP3)",
     plan_f_signed_in_accounts: "Angemeldete Konten",
     plan_f_caldav: "CalDAV-Synchronisierung",
@@ -2831,6 +2833,7 @@ export const de = {
       "Ihr Schlüssel ließ sich gerade nicht exportieren. Ein erneuter Versuch genügt meist. Ihr Schlüssel bleibt unverändert.",
     failed_publish_keyserver:
       "Ihr öffentlicher Schlüssel wurde nicht zum Keyserver veröffentlicht. Ein erneuter Versuch genügt meist.",
+    failed_save_setting: "Einstellung konnte nicht gespeichert werden. Bitte erneut versuchen.",
     enter_current_password_required:
       "Bitte geben Sie Ihr aktuelles Passwort ein",
     choose_stronger_new_password:

@@ -1956,6 +1956,7 @@ export const pl = {
     key_published_keyserver: "Klucz opublikowany na serwerze kluczy",
     failed_publish_keyserver:
       "Klucz publiczny nie został opublikowany na serwerze kluczy. Kolejna próba powinna to załatwić.",
+    failed_save_setting: "Nie udało się zapisać ustawienia. Spróbuj ponownie.",
     keys_cannot_remove_keyservers:
       "Klucz raz opublikowany na publicznym serwerze kluczy nie może zostać stamtąd zdjęty. Warto przemyśleć przed publikacją.",
     copied_to_clipboard: "Skopiowano do schowka",
@@ -2636,6 +2637,8 @@ export const pl = {
     plan_f_read_receipts: "Potwierdzenia przeczytania",
     plan_f_smart_folders: "Inteligentne foldery",
     plan_f_imap_smtp: "Dostęp IMAP i SMTP",
+    plan_f_imap_smtp_bridge: "Mail-app access (IMAP & SMTP) via Aster Bridge",
+    plan_f_bridge_hint: "Runs through the Aster Bridge companion app on your device.",
     plan_f_external_accounts: "Konta zewnętrzne (IMAP & POP3)",
     plan_f_caldav: "Synchronizacja CalDAV",
     plan_f_encrypted_exports: "Szyfrowane eksporty",
