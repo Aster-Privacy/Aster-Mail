@@ -26,6 +26,21 @@ import {
 } from "./memory_key_store";
 import { generate_ratchet_keys, upload_prekey_bundle } from "./ratchet_manager";
 import { get_current_account } from "../account_manager";
+import { api_client } from "../api/client";
+
+async function push_vault_to_server(
+  encrypted_vault: string,
+  vault_nonce: string,
+): Promise<void> {
+  try {
+    await api_client.put("/crypto/v1/keys/vault", {
+      encrypted_vault,
+      vault_nonce,
+    });
+  } catch {
+    return;
+  }
+}
 
 let in_flight: Promise<boolean> | null = null;
 
@@ -52,6 +67,35 @@ async function run(): Promise<boolean> {
       vault.ratchet_signed_prekey_public
     ) {
       upload_prekey_bundle(vault).catch(() => {});
+
+      const existing_passphrase = get_passphrase_from_memory();
+      const existing_account = await get_current_account();
+      const existing_user_id = existing_account?.user?.id;
+
+      if (existing_passphrase && existing_user_id) {
+        const sync_flag_key = `astermail_vault_synced_v1_${existing_user_id}`;
+
+        if (!localStorage.getItem(sync_flag_key)) {
+          try {
+            const { encrypted_vault, vault_nonce } = await encrypt_vault(
+              vault,
+              existing_passphrase,
+            );
+
+            localStorage.setItem(
+              `astermail_encrypted_vault_${existing_user_id}`,
+              encrypted_vault,
+            );
+            localStorage.setItem(
+              `astermail_vault_nonce_${existing_user_id}`,
+              vault_nonce,
+            );
+
+            await push_vault_to_server(encrypted_vault, vault_nonce);
+            localStorage.setItem(sync_flag_key, "1");
+          } catch {}
+        }
+      }
 
       return true;
     }
@@ -86,6 +130,9 @@ async function run(): Promise<boolean> {
       encrypted_vault,
     );
     localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
+
+    await push_vault_to_server(encrypted_vault, vault_nonce);
+    localStorage.setItem(`astermail_vault_synced_v1_${user_id}`, "1");
 
     await upload_prekey_bundle(vault);
 

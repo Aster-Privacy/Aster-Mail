@@ -74,6 +74,7 @@ import { format_bytes } from "@/lib/utils";
 import {
   discover_external_recipient_keys,
   encrypt_for_external_recipients,
+  build_subject_bundle,
 } from "@/utils/email_crypto";
 import { is_ghost_email } from "@/stores/ghost_alias_store";
 import { en } from "@/lib/i18n/translations/en";
@@ -483,11 +484,19 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     inline_images.length > 0 ? recipient_body : email.body;
   const all_attachments = [...(email.attachments || []), ...inline_attachments];
 
-  const { encrypted_body, is_encrypted } = await encrypt_for_recipients(
+  const bundled_body_for_recipient = build_subject_bundle(
+    email.subject || "",
     body_for_recipient,
+  );
+
+  const { encrypted_body, is_encrypted } = await encrypt_for_recipients(
+    bundled_body_for_recipient,
     all_recipients,
     sender_email,
   );
+
+  const final_recipient_body = is_encrypted ? encrypted_body : body_for_recipient;
+  const final_subject = is_encrypted ? "" : email.subject;
 
   const envelope_data = await create_sent_envelope(email, sender_email);
 
@@ -515,8 +524,8 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     to: email.to,
     cc: email.cc,
     bcc: email.bcc,
-    subject: email.subject,
-    body: encrypted_body,
+    subject: final_subject,
+    body: final_recipient_body,
     is_e2e_encrypted: is_encrypted,
     encrypted_envelope: envelope_data.encrypted_envelope,
     envelope_nonce: envelope_data.envelope_nonce,

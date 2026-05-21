@@ -113,7 +113,7 @@ export async function try_decrypt_ratchet_body(
 
   const vault = get_vault_from_memory();
 
-  if (!vault) return RATCHET_UNDECRYPTABLE_SENTINEL;
+  if (!vault) return body_text;
 
   try {
     const decrypted = await decrypt_ratchet_message(
@@ -123,9 +123,9 @@ export async function try_decrypt_ratchet_body(
       vault,
     );
 
-    return decrypted ?? RATCHET_UNDECRYPTABLE_SENTINEL;
+    return decrypted ?? body_text;
   } catch {
-    return RATCHET_UNDECRYPTABLE_SENTINEL;
+    return body_text;
   }
 }
 
@@ -300,6 +300,40 @@ export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
   }
 }
 
+export const ASTER_SUBJECT_BUNDLE_PREFIX = "ASTER_BUNDLE_V2";
+
+export interface SubjectBundle {
+  subject: string | null;
+  body: string;
+}
+
+export function build_subject_bundle(subject: string, body: string): string {
+  return (
+    ASTER_SUBJECT_BUNDLE_PREFIX + JSON.stringify({ s: subject, b: body })
+  );
+}
+
+export function extract_subject_bundle(decrypted: string): SubjectBundle {
+  if (!decrypted || !decrypted.startsWith(ASTER_SUBJECT_BUNDLE_PREFIX)) {
+    return { subject: null, body: decrypted };
+  }
+  const payload = decrypted.slice(ASTER_SUBJECT_BUNDLE_PREFIX.length);
+  try {
+    const parsed = JSON.parse(payload);
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      typeof parsed.s === "string" &&
+      typeof parsed.b === "string"
+    ) {
+      return { subject: parsed.s, body: parsed.b };
+    }
+  } catch {
+    // pass through to fallback
+  }
+  return { subject: null, body: decrypted };
+}
+
 export async function decrypt_body_text(
   body_text: string,
   user_email: string,
@@ -324,6 +358,15 @@ export async function decrypt_body_text(
   }
 
   return result;
+}
+
+export async function decrypt_body_text_with_bundle(
+  body_text: string,
+  user_email: string,
+  sender_email: string,
+): Promise<SubjectBundle> {
+  const decrypted = await decrypt_body_text(body_text, user_email, sender_email);
+  return extract_subject_bundle(decrypted);
 }
 
 export interface RecipientKeyResult {
