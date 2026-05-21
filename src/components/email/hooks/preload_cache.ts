@@ -37,6 +37,7 @@ import {
   try_decrypt_ratchet_body,
   try_decrypt_pgp_body,
   try_extract_mime_body,
+  extract_subject_bundle,
 } from "@/utils/email_crypto";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
@@ -404,6 +405,14 @@ export async function preload_email_detail(
 
       body_text = try_extract_mime_body(body_text);
       const mime_extracted = body_text !== pre_mime_text;
+
+      const subject_bundle = extract_subject_bundle(body_text);
+      if (subject_bundle.subject !== null) {
+        body_text = subject_bundle.body;
+        if (!envelope.subject) {
+          envelope.subject = subject_bundle.subject;
+        }
+      }
 
       const pgp_was_decrypted = body_text !== pre_pgp_text;
       const html_has_pgp =
