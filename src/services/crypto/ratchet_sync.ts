@@ -236,7 +236,7 @@ async function do_sync(
     }
 
     if (recheck.version === known_version) {
-      throw new Error(last_error);
+      await new Promise((r) => setTimeout(r, 50 * (attempt + 1)));
     }
 
     known_version = recheck.version;
