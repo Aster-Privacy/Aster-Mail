@@ -52,7 +52,6 @@ export function UpdateBanner() {
           set_info(result);
         }
       } catch {
-        // Silent: networked check failure should not interrupt the user.
       }
     };
     run();
@@ -81,7 +80,14 @@ export function UpdateBanner() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-[60] max-w-sm rounded-xl border border-edge-secondary bg-bg-primary shadow-lg p-3">
+    <div
+      className="fixed bottom-4 right-4 z-[9999] max-w-sm rounded-xl border shadow-2xl p-3"
+      style={{
+        backgroundColor: "var(--bg-primary, #111)",
+        borderColor: "var(--border-primary, #444)",
+        color: "var(--text-primary, #fff)",
+      }}
+    >
       <div className="flex items-start gap-3">
         <ArrowDownTrayIcon className="w-5 h-5 mt-0.5 text-txt-primary flex-shrink-0" />
         <div className="flex-1 min-w-0">
