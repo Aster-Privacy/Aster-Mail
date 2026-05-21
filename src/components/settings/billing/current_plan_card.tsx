@@ -52,6 +52,7 @@ interface CurrentPlanCardProps {
   on_manage_billing: () => void;
   on_reactivate: () => void;
   on_manage_plan: () => void;
+  on_renew_with_crypto?: () => void;
 }
 
 export function CurrentPlanCard({
@@ -68,9 +69,12 @@ export function CurrentPlanCard({
   on_manage_billing,
   on_reactivate,
   on_manage_plan,
+  on_renew_with_crypto,
 }: CurrentPlanCardProps) {
   const { t } = use_i18n();
   const is_paid_plan = subscription && subscription.plan.code !== "free";
+  const is_crypto =
+    subscription?.payment_provider === "stripe_crypto";
 
   return (
     <>
@@ -226,12 +230,37 @@ export function CurrentPlanCard({
                         : t("settings.billing_monthly").toLowerCase(),
                   })}
                 </p>
-                <p className="text-xs mt-0.5 text-txt-muted">
-                  {subscription.cancel_at_period_end
-                    ? t("settings.cancels")
-                    : t("settings.renews")}{" "}
-                  {format_date(subscription.current_period_end)}
-                </p>
+                {is_crypto ? (
+                  <>
+                    <p className="text-xs mt-0.5 text-txt-muted">
+                      {t("settings.crypto_paid_until", {
+                        date: format_date(
+                          subscription.paid_until ||
+                            subscription.current_period_end,
+                        ),
+                      })}
+                    </p>
+                    <p className="text-xs mt-0.5 text-txt-muted">
+                      {t("settings.crypto_no_renew_notice")}
+                    </p>
+                    {on_renew_with_crypto && (
+                      <button
+                        className="text-xs mt-1 font-medium text-blue-500 hover:text-blue-400 underline-offset-4 hover:underline"
+                        type="button"
+                        onClick={on_renew_with_crypto}
+                      >
+                        {t("settings.crypto_renew_link")}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-xs mt-0.5 text-txt-muted">
+                    {subscription.cancel_at_period_end
+                      ? t("settings.cancels")
+                      : t("settings.renews")}{" "}
+                    {format_date(subscription.current_period_end)}
+                  </p>
+                )}
               </div>
             )}
           </div>

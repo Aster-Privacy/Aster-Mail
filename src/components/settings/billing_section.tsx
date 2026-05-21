@@ -56,6 +56,7 @@ import { StorageAddonsSection } from "@/components/settings/billing/storage_addo
 import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { BillingHistorySection } from "@/components/settings/billing/billing_history_section";
 import { BillingDialogs } from "@/components/settings/billing/billing_dialogs";
+import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { use_auth } from "@/contexts/auth_context";
 import { get_user_salt } from "@/services/api/auth";
@@ -110,6 +111,8 @@ export function BillingSection() {
   const [credit_balance, set_credit_balance] =
     useState<CreditBalanceResponse | null>(null);
   const [is_initial_load, set_is_initial_load] = useState(true);
+  const [show_crypto_modal, set_show_crypto_modal] = useState(false);
+  const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
 
   const handle_currency_change = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -137,6 +140,7 @@ export function BillingSection() {
         t("settings.plan_f_quiet_hours"),
         t("settings.plan_f_alias_avatars"),
         t("settings.plan_f_external_accounts"),
+        t("settings.plan_f_imap_smtp_bridge"),
         t("settings.plan_f_support_priority"),
       ],
       nova: [
@@ -154,6 +158,7 @@ export function BillingSection() {
         t("settings.plan_f_password_folders"),
         t("settings.plan_f_custom_key_rotation"),
         t("settings.plan_f_external_accounts"),
+        t("settings.plan_f_imap_smtp_bridge"),
       ],
       supernova: [
         t("settings.plan_f_storage", { value: "5 TB" }),
@@ -170,6 +175,7 @@ export function BillingSection() {
         t("settings.plan_f_tracker_protection"),
         t("settings.plan_f_receipt_tracking"),
         t("settings.plan_f_external_accounts"),
+        t("settings.plan_f_imap_smtp_bridge"),
         t("settings.plan_f_support_dedicated"),
         t("settings.plan_f_early_access"),
       ],
@@ -256,6 +262,24 @@ export function BillingSection() {
       url.searchParams.delete("billing");
       window.history.replaceState({}, "", url.toString());
     }
+    if (params.get("crypto") === "success") {
+      show_toast(t("settings.crypto_success_toast"), "success");
+      request_cache.invalidate("/payments/v1");
+      request_cache.invalidate("/sync/v1");
+      invalidate_mail_stats();
+      load_data();
+      const url = new URL(window.location.href);
+
+      url.searchParams.delete("crypto");
+      window.history.replaceState({}, "", url.toString());
+    }
+    if (params.get("crypto") === "cancelled") {
+      show_toast(t("settings.crypto_cancelled_toast"), "info");
+      const url = new URL(window.location.href);
+
+      url.searchParams.delete("crypto");
+      window.history.replaceState({}, "", url.toString());
+    }
     if (params.get("addon_purchase") === "success") {
       show_toast(t("settings.addon_purchased"), "success");
       request_cache.invalidate("/payments/v1");
@@ -268,6 +292,16 @@ export function BillingSection() {
       window.history.replaceState({}, "", url.toString());
     }
   }, [load_data, t]);
+
+  const handle_crypto_renew = () => {
+    if (!subscription) return;
+    const matching = plans.find((p) => p.code === subscription.plan.code);
+
+    if (matching) {
+      set_crypto_plan(matching);
+      set_show_crypto_modal(true);
+    }
+  };
 
   const handle_upgrade = (plan: AvailablePlan) => {
     set_selected_plan(plan);
@@ -428,6 +462,7 @@ export function BillingSection() {
         on_manage_billing={() => set_show_payment_methods(true)}
         on_manage_plan={() => set_show_manage_plan(true)}
         on_reactivate={handle_reactivate}
+        on_renew_with_crypto={handle_crypto_renew}
         on_scroll_to_plans={scroll_to_plans}
         storage_limit_bytes={storage_limit_bytes}
         storage_percentage={storage_percentage}
@@ -453,7 +488,7 @@ export function BillingSection() {
         <a
           className="text-sm font-medium text-blue-500 hover:text-blue-400 transition-colors underline-offset-4 hover:underline"
           href="https://astermail.org/pricing#features"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           target="_blank"
         >
           {t("settings.view_all_features")}
@@ -482,6 +517,27 @@ export function BillingSection() {
         credit_balance={credit_balance}
         set_credit_balance={set_credit_balance}
       />
+
+      {crypto_plan &&
+        (() => {
+          const tier = PLAN_TIERS.find((p) => p.id === crypto_plan.code);
+          const monthly_cents = tier?.monthly_cents ?? crypto_plan.price_cents;
+          const yearly_cents = tier?.yearly_cents ?? crypto_plan.price_cents * 12;
+
+          return (
+            <CryptoTermModal
+              is_open={show_crypto_modal}
+              monthly_price_cents={monthly_cents}
+              on_close={() => {
+                set_show_crypto_modal(false);
+                set_crypto_plan(null);
+              }}
+              plan_code={crypto_plan.code}
+              plan_name={crypto_plan.name}
+              yearly_price_cents={yearly_cents}
+            />
+          );
+        })()}
 
       <BillingDialogs
         addon_to_cancel={addon_to_cancel}

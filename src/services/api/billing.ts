@@ -50,6 +50,8 @@ export interface SubscriptionResponse {
   currency: string | null;
   payment_failed_at: string | null;
   grace_period_end: string | null;
+  payment_provider?: string | null;
+  paid_until?: string | null;
 }
 
 export interface AvailablePlan {
@@ -164,6 +166,23 @@ export async function create_checkout_session(
       plan_code,
       billing_interval,
       ...(currency ? { currency } : {}),
+    },
+  );
+}
+
+export async function create_crypto_checkout_session(
+  plan_code: string,
+  term_months: number,
+  success_url?: string,
+  cancel_url?: string,
+) {
+  return api_client.post<CheckoutSessionResponse>(
+    "/payments/v1/crypto/checkout-session",
+    {
+      plan_code,
+      term_months,
+      ...(success_url ? { success_url } : {}),
+      ...(cancel_url ? { cancel_url } : {}),
     },
   );
 }
