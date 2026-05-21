@@ -84,3 +84,10 @@ _emu_*.png
 scripts/zh-CN.before.ts
 scripts/zh-CN.fixed.ts
 scripts/fix_mojibake.py
+updates/staging/
+updates/Dockerfile.linux_build
+updates/Dockerfile.linux_build.dockerignore
+updates/build_linux.sh
+updates/build_latest_json.sh
+updates/MAC_HANDOFF.md
+updates/UPLOAD.md
