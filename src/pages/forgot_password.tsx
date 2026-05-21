@@ -279,27 +279,11 @@ export default function ForgotPasswordPage() {
     set_step("processing");
     set_processing_status(t("auth.sending_reset_link"));
 
-    let no_recovery_email = false;
-
     try {
-      const response = await forgot_password_email(
-        clean_username,
-        email_domain,
-      );
-
-      if (response.error && response.error.includes("no_recovery_email")) {
-        no_recovery_email = true;
-      }
+      await forgot_password_email(clean_username, email_domain);
     } catch {}
 
     await timing_safe_delay();
-
-    if (no_recovery_email) {
-      set_error(t("auth.no_recovery_email_on_account"));
-      set_step("email");
-
-      return;
-    }
 
     set_step("email_sent");
   };

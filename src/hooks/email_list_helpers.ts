@@ -52,7 +52,7 @@ import {
   format_email_list_timestamp,
   type FormatOptions,
 } from "@/utils/date_format";
-import { decrypt_body_text } from "@/utils/email_crypto";
+import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
 import {
   resolve_sender_profiles,
@@ -492,11 +492,15 @@ export async function fetch_mail_from_api(
       ]);
 
       if (envelope?.body_text) {
-        envelope.body_text = await decrypt_body_text(
+        const bundle = await decrypt_body_text_with_bundle(
           envelope.body_text,
           user_email,
           envelope.from?.email || "",
         );
+        envelope.body_text = bundle.body;
+        if (bundle.subject !== null && !envelope.subject) {
+          envelope.subject = bundle.subject;
+        }
       }
 
       return { item, envelope, metadata };

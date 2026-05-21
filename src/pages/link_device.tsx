@@ -69,7 +69,9 @@ export default function LinkDevice() {
   useEffect(() => {
     if (auth_loading) return;
     if (!is_authenticated) {
-      const next = encodeURIComponent(window.location.pathname);
+      const next = encodeURIComponent(
+        window.location.pathname + window.location.search,
+      );
 
       navigate(`/sign-in?next=${next}`, { replace: true });
     }

@@ -2,7 +2,11 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./playwright",
-  testMatch: ["local_security_fixes.spec.ts", "local_full_sweep.spec.ts"],
+  testMatch: [
+    "local_security_fixes.spec.ts",
+    "local_full_sweep.spec.ts",
+    "tests/152_encryption_settings_sync.spec.ts",
+  ],
   fullyParallel: false,
   retries: 0,
   workers: 1,

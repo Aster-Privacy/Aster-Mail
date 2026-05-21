@@ -72,6 +72,21 @@ const page_transition = {
   ease: "easeOut",
 };
 
+function get_safe_next_path(): string {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("next");
+    if (!raw) return "/";
+    const decoded = decodeURIComponent(raw);
+    if (!decoded.startsWith("/")) return "/";
+    if (decoded.length > 1 && (decoded[1] === "/" || decoded[1] === "\\")) return "/";
+    if (decoded.startsWith("/sign-in") || decoded.startsWith("/register")) return "/";
+    return decoded;
+  } catch {
+    return "/";
+  }
+}
+
 interface AlertProps {
   message: string;
   is_dark: boolean;
@@ -236,7 +251,7 @@ export default function SignInPage() {
           detail.login_response.vault_nonce,
         );
         setTimeout(() => emit_auth_ready(), 50);
-        window.location.replace("/");
+        window.location.replace(get_safe_next_path());
       } catch (e) {
         if (import.meta.env.DEV) console.error(e);
         set_device_logging_in(false);
@@ -279,7 +294,7 @@ export default function SignInPage() {
 
   useEffect(() => {
     if (has_existing_session) {
-      navigate("/", { replace: true });
+      navigate(get_safe_next_path(), { replace: true });
     } else if (
       !auth_loading &&
       !current_account_id &&
@@ -460,7 +475,7 @@ export default function SignInPage() {
         clean_url.hash = "";
         window.history.replaceState({}, "", clean_url.toString());
 
-        window.location.replace("/");
+        window.location.replace(get_safe_next_path());
       } catch (err) {
         set_is_checkout_login(false);
         set_username(checkout_username);
@@ -495,6 +510,14 @@ export default function SignInPage() {
       set_status(t("auth.decrypting_vault"));
 
       try {
+        if (totp_response.is_suspended) {
+          sessionStorage.setItem("aster_suspended", "true");
+          set_error(t("common.account_suspended"));
+          set_is_loading(false);
+
+          return;
+        }
+
         const vault = await decrypt_vault(
           totp_response.encrypted_vault,
           totp_response.vault_nonce,
@@ -567,18 +590,14 @@ export default function SignInPage() {
           check_and_replenish_prekeys();
         }
 
-        if (totp_response.is_suspended) {
-          sessionStorage.setItem("aster_suspended", "true");
-        }
-
         set_is_loading(false);
 
-        window.location.replace("/");
+        window.location.replace(get_safe_next_path());
 
         return;
       } catch (err) {
         if (err instanceof Error && err.message === "login_timeout") {
-          window.location.replace("/");
+          window.location.replace(get_safe_next_path());
 
           return;
         }
@@ -796,6 +815,17 @@ export default function SignInPage() {
         return;
       }
 
+      if (response.data.is_suspended) {
+        sessionStorage.setItem("aster_suspended", "true");
+        await timing_safe_delay();
+        set_error(t("common.account_suspended"));
+        set_is_loading(false);
+        set_captcha_token("");
+        turnstile_ref.current?.reset();
+
+        return;
+      }
+
       set_status(t("auth.decrypting_vault"));
       const vault = await decrypt_vault(
         response.data.encrypted_vault,
@@ -868,15 +898,11 @@ export default function SignInPage() {
         check_and_replenish_prekeys();
       }
 
-      if (response.data.is_suspended) {
-        sessionStorage.setItem("aster_suspended", "true");
-      }
-
-      navigate("/");
+      navigate(get_safe_next_path());
       setTimeout(() => emit_auth_ready(), 50);
     } catch (err) {
       if (err instanceof Error && err.message === "login_timeout") {
-        navigate("/");
+        navigate(get_safe_next_path());
         setTimeout(() => emit_auth_ready(), 50);
 
         return;
