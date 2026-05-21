@@ -133,10 +133,42 @@ export function use_encryption() {
       if (user_response.data?.email) {
         set_user_email(user_response.data.email);
       }
+
+      await reconcile_server_encryption_flags();
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
     } finally {
       set_is_initial_load(false);
+    }
+  };
+
+  const reconcile_server_encryption_flags = async () => {
+    try {
+      const response = await api_client.get<{
+        auto_discover_keys: boolean;
+        encrypt_by_default: boolean;
+      }>("/settings/v1/encryption");
+
+      if (!response.data) return;
+
+      if (
+        response.data.auto_discover_keys !== preferences.auto_discover_keys
+      ) {
+        update_preference(
+          "auto_discover_keys",
+          response.data.auto_discover_keys,
+          true,
+        );
+      }
+      if (response.data.encrypt_by_default !== preferences.encrypt_emails) {
+        update_preference(
+          "encrypt_emails",
+          response.data.encrypt_by_default,
+          true,
+        );
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
     }
   };
 
@@ -453,6 +485,54 @@ export function use_encryption() {
     }
   };
 
+  const sync_server_encryption_flag = async (
+    field: "auto_discover_keys" | "encrypt_by_default",
+    value: boolean,
+  ): Promise<boolean> => {
+    try {
+      const response = await api_client.put<{ success: boolean }>(
+        "/settings/v1/encryption",
+        { [field]: value },
+      );
+
+      return !response.error && response.data?.success === true;
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+
+      return false;
+    }
+  };
+
+  const handle_auto_discover_keys_toggle = async () => {
+    const new_value = !preferences.auto_discover_keys;
+
+    update_preference("auto_discover_keys", new_value, true);
+    const ok = await sync_server_encryption_flag(
+      "auto_discover_keys",
+      new_value,
+    );
+
+    if (!ok) {
+      update_preference("auto_discover_keys", !new_value, true);
+      show_toast(t("settings.failed_save_setting"), "error");
+    }
+  };
+
+  const handle_encrypt_emails_toggle = async () => {
+    const new_value = !preferences.encrypt_emails;
+
+    update_preference("encrypt_emails", new_value, true);
+    const ok = await sync_server_encryption_flag(
+      "encrypt_by_default",
+      new_value,
+    );
+
+    if (!ok) {
+      update_preference("encrypt_emails", !new_value, true);
+      show_toast(t("settings.failed_save_setting"), "error");
+    }
+  };
+
   const handle_wkd_toggle = async () => {
     const new_value = !preferences.publish_to_wkd;
 
@@ -577,6 +657,8 @@ export function use_encryption() {
     handle_regenerate_codes,
     handle_wkd_toggle,
     handle_keyserver_toggle,
+    handle_auto_discover_keys_toggle,
+    handle_encrypt_emails_toggle,
     close_export_prompt,
     open_export_prompt,
     close_regenerate_confirm,

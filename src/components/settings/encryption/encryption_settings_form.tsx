@@ -71,6 +71,8 @@ interface EncryptionSettingsFormProps {
   ) => void;
   handle_wkd_toggle: () => Promise<void>;
   handle_keyserver_toggle: () => Promise<void>;
+  handle_auto_discover_keys_toggle: () => Promise<void>;
+  handle_encrypt_emails_toggle: () => Promise<void>;
 }
 
 export function EncryptionSettingsForm({
@@ -78,6 +80,8 @@ export function EncryptionSettingsForm({
   update_preference,
   handle_wkd_toggle,
   handle_keyserver_toggle,
+  handle_auto_discover_keys_toggle,
+  handle_encrypt_emails_toggle,
 }: EncryptionSettingsFormProps) {
   const { t } = use_i18n();
 
@@ -97,22 +101,14 @@ export function EncryptionSettingsForm({
       <ToggleSetting
         description={t("settings.auto_discover_keys_description")}
         enabled={preferences.auto_discover_keys}
-        on_toggle={() =>
-          update_preference(
-            "auto_discover_keys",
-            !preferences.auto_discover_keys,
-            true,
-          )
-        }
+        on_toggle={handle_auto_discover_keys_toggle}
         info={{ title: t("settings.info_auto_discover_keys_title"), description: t("settings.info_auto_discover_keys_description") }}
         title={t("settings.auto_discover_keys_title")}
       />
       <ToggleSetting
         description={t("settings.encrypt_by_default_description")}
         enabled={preferences.encrypt_emails}
-        on_toggle={() =>
-          update_preference("encrypt_emails", !preferences.encrypt_emails, true)
-        }
+        on_toggle={handle_encrypt_emails_toggle}
         info={{ title: t("settings.info_encrypt_by_default_title"), description: t("settings.info_encrypt_by_default_description") }}
         title={t("settings.encrypt_by_default_title")}
       />

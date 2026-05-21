@@ -578,9 +578,7 @@ export function EncryptionSection({
             trailing={
               <Switch
                 checked={enc.preferences.auto_discover_keys}
-                onCheckedChange={(v) =>
-                  enc.update_preference("auto_discover_keys", v, true)
-                }
+                onCheckedChange={() => enc.handle_auto_discover_keys_toggle()}
               />
             }
           />
@@ -589,9 +587,7 @@ export function EncryptionSection({
             trailing={
               <Switch
                 checked={enc.preferences.encrypt_emails}
-                onCheckedChange={(v) =>
-                  enc.update_preference("encrypt_emails", v, true)
-                }
+                onCheckedChange={() => enc.handle_encrypt_emails_toggle()}
               />
             }
           />

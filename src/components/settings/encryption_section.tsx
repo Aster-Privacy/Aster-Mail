@@ -84,6 +84,8 @@ export function EncryptionSection() {
       />
 
       <EncryptionSettingsForm
+        handle_auto_discover_keys_toggle={encryption.handle_auto_discover_keys_toggle}
+        handle_encrypt_emails_toggle={encryption.handle_encrypt_emails_toggle}
         handle_keyserver_toggle={encryption.handle_keyserver_toggle}
         handle_wkd_toggle={encryption.handle_wkd_toggle}
         preferences={encryption.preferences}

@@ -34,6 +34,17 @@ import {
 } from "@/services/api/devices";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  clear_plan_cache,
+  get_current_plan_code,
+} from "@/services/plan_limits";
+
+function open_billing_settings() {
+  window.dispatchEvent(
+    new CustomEvent("navigate-settings", { detail: "billing" }),
+  );
+}
 
 function format_date(value: string | null): string {
   if (!value) return "";
@@ -46,6 +57,8 @@ function format_date(value: string | null): string {
 
 export function TrustedDevicesPanel() {
   const { t } = use_i18n();
+  const { limits } = use_plan_limits();
+  const is_free_plan = !!limits && limits.plan_code === "free";
   const {
     data: cached,
     is_loading,
@@ -60,6 +73,19 @@ export function TrustedDevicesPanel() {
   const [pending_revoke, set_pending_revoke] = useState<Device | null>(null);
   const [pending_revoke_all, set_pending_revoke_all] = useState(false);
   const [is_revoking_all, set_is_revoking_all] = useState(false);
+  const [bridge_upgrade_modal_open, set_bridge_upgrade_modal_open] =
+    useState(false);
+
+  const handle_set_up = async (client: string) => {
+    clear_plan_cache();
+    const fresh_code = await get_current_plan_code();
+    if (fresh_code === "free") {
+      set_bridge_upgrade_modal_open(true);
+
+      return;
+    }
+    await open_provision(client);
+  };
 
   const handle_revoke = async (device: Device) => {
     set_revoking_id(device.id);
@@ -87,8 +113,120 @@ export function TrustedDevicesPanel() {
     set_pending_revoke_all(false);
   };
 
+  const open_provision = async (label: string) => {
+    const url = `aster-mail://provision?label=${encodeURIComponent(label)}`;
+    const is_tauri =
+      typeof window !== "undefined" &&
+      ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+    if (is_tauri) {
+      try {
+        const { open } = await import("@tauri-apps/plugin-shell");
+        await open(url);
+        return;
+      } catch {}
+    }
+    window.location.href = url;
+  };
+
   return (
     <div className="w-full">
+      {is_free_plan ? (
+        <div
+          className="mb-6 p-4 rounded-lg"
+          style={{
+            backgroundColor: "var(--bg-tertiary)",
+            border: "1px solid var(--border-secondary)",
+          }}
+        >
+          <h3 className="text-sm font-semibold text-txt-primary">
+            {t("settings.desktop_bridge_upgrade_title")}
+          </h3>
+          <p className="text-xs mt-1 text-txt-tertiary">
+            {t("settings.desktop_bridge_upgrade_description")}
+          </p>
+          <div className="mt-3">
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={open_billing_settings}
+            >
+              {t("settings.desktop_bridge_upgrade_cta")}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div
+          className="mb-6 p-4 rounded-lg"
+          style={{
+            backgroundColor: "var(--bg-tertiary)",
+            border: "1px solid var(--border-secondary)",
+          }}
+        >
+          <h3 className="text-sm font-semibold text-txt-primary">
+            {t("settings.desktop_bridge_title")}
+          </h3>
+          <p className="text-xs mt-1 text-txt-tertiary">
+            {t("settings.desktop_bridge_description")}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {["Thunderbird", "Apple Mail", "Outlook", "Generic IMAP"].map(
+              (client) => (
+                <Button
+                  key={client}
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handle_set_up(client)}
+                >
+                  {t("settings.desktop_bridge_set_up", { client })}
+                </Button>
+              ),
+            )}
+          </div>
+          <p className="text-[11px] mt-3 text-txt-muted">
+            {t("settings.desktop_bridge_install_hint")}
+          </p>
+        </div>
+      )}
+
+      {bridge_upgrade_modal_open && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: "var(--modal-overlay)" }}
+            onClick={() => set_bridge_upgrade_modal_open(false)}
+          />
+          <div
+            className="relative w-full max-w-sm p-6 rounded-xl bg-surf-primary"
+            style={{ border: "1px solid var(--border-secondary)" }}
+          >
+            <h3 className="text-base font-semibold text-txt-primary">
+              {t("settings.desktop_bridge_upgrade_title")}
+            </h3>
+            <p className="text-sm mt-2 text-txt-tertiary">
+              {t("settings.desktop_bridge_upgrade_description")}
+            </p>
+            <div className="flex gap-2 mt-6">
+              <Button
+                className="flex-1"
+                variant="secondary"
+                onClick={() => set_bridge_upgrade_modal_open(false)}
+              >
+                {t("auth.pair_device_cancel")}
+              </Button>
+              <Button
+                className="flex-1"
+                variant="primary"
+                onClick={() => {
+                  set_bridge_upgrade_modal_open(false);
+                  open_billing_settings();
+                }}
+              >
+                {t("settings.desktop_bridge_upgrade_cta")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-txt-primary">
