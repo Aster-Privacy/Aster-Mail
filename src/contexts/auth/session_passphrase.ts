@@ -20,15 +20,12 @@
 //
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
-  store_session_key,
-  get_session_key,
-} from "@/services/api/auth";
-import {
   get_or_create_session_key,
   clear_session_key,
   get_session_key_from_db,
   get_session_encryption_key,
   set_session_encryption_key,
+  RequiresReauthError,
 } from "./session_key_db";
 
 import {
@@ -41,81 +38,8 @@ const VAULT_NONCE_KEY_PREFIX = "astermail_vault_nonce_";
 const SESSION_PASSPHRASE_KEY_PREFIX = "astermail_session_passphrase_";
 const SESSION_PASSPHRASE_IV_KEY_PREFIX = "astermail_session_passphrase_iv_";
 const SESSION_TIMESTAMP_KEY_PREFIX = "astermail_session_timestamp_";
-const SESSION_PASSPHRASE_FB_KEY_PREFIX = "astermail_spf_";
-const SESSION_PASSPHRASE_FB_IV_KEY_PREFIX = "astermail_spf_iv_";
-
-async function store_passphrase_fallback(
-  account_id: string,
-  passphrase: string,
-): Promise<void> {
-  const key = await crypto.subtle.generateKey(
-    { name: "AES-GCM", length: 256 },
-    true,
-    ["encrypt", "decrypt"],
-  );
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    key,
-    new TextEncoder().encode(passphrase),
-  );
-
-  const raw_key = new Uint8Array(await crypto.subtle.exportKey("raw", key));
-  const key_b64 = btoa(String.fromCharCode(...raw_key));
-
-  const store_response = await store_session_key(key_b64);
-  if (!store_response.data) throw new Error("session key store failed");
-
-  localStorage.setItem(
-    SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id,
-    btoa(String.fromCharCode(...new Uint8Array(encrypted))),
-  );
-  localStorage.setItem(
-    SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id,
-    btoa(String.fromCharCode(...iv)),
-  );
-}
-
-async function get_passphrase_fallback(
-  account_id: string,
-): Promise<string | null> {
-  const encrypted_b64 = localStorage.getItem(
-    SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id,
-  );
-  const iv_b64 = localStorage.getItem(
-    SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id,
-  );
-  if (!encrypted_b64 || !iv_b64) return null;
-
-  try {
-    const key_response = await get_session_key();
-    if (!key_response.data?.key) return null;
-
-    const raw_key = Uint8Array.from(atob(key_response.data.key), (c) =>
-      c.charCodeAt(0),
-    );
-    const key = await crypto.subtle.importKey(
-      "raw",
-      raw_key,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["decrypt"],
-    );
-
-    const encrypted = Uint8Array.from(atob(encrypted_b64), (c) =>
-      c.charCodeAt(0),
-    );
-    const iv = Uint8Array.from(atob(iv_b64), (c) => c.charCodeAt(0));
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      encrypted,
-    );
-    return new TextDecoder().decode(decrypted);
-  } catch {
-    return null;
-  }
-}
+const LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX = "astermail_spf_";
+const LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX = "astermail_spf_iv_";
 
 export function store_encrypted_vault(
   account_id: string,
@@ -188,9 +112,10 @@ export async function store_session_passphrase(
     iv_base64,
   );
 
-  try {
-    await store_passphrase_fallback(account_id, passphrase);
-  } catch {}
+  localStorage.removeItem(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
+  localStorage.removeItem(
+    LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id,
+  );
 }
 
 export async function get_session_passphrase(
@@ -210,36 +135,43 @@ export async function get_session_passphrase(
   let current_key = get_session_encryption_key();
 
   if (!current_key) {
-    const stored_key = await get_session_key_from_db();
+    try {
+      const stored_key = await get_session_key_from_db();
 
-    if (stored_key) {
-      set_session_encryption_key(stored_key);
-      current_key = stored_key;
+      if (stored_key) {
+        set_session_encryption_key(stored_key);
+        current_key = stored_key;
+      }
+    } catch (err) {
+      if (err instanceof RequiresReauthError) {
+        localStorage.removeItem(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
+        localStorage.removeItem(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
+        throw err;
+      }
+      return null;
     }
   }
 
-  if (current_key) {
-    try {
-      const encrypted = Uint8Array.from(atob(encrypted_base64), (c) =>
-        c.charCodeAt(0),
-      );
-      const iv = Uint8Array.from(atob(iv_base64), (c) => c.charCodeAt(0));
-
-      const decrypted = await decrypt_aes_gcm_with_fallback(current_key, encrypted, iv);
-
-      return new TextDecoder().decode(decrypted);
-    } catch {}
+  if (!current_key) {
+    return null;
   }
 
-  const fallback = await get_passphrase_fallback(account_id);
-  if (fallback) {
-    try {
-      await store_session_passphrase(account_id, fallback);
-    } catch {}
-    return fallback;
-  }
+  try {
+    const encrypted = Uint8Array.from(atob(encrypted_base64), (c) =>
+      c.charCodeAt(0),
+    );
+    const iv = Uint8Array.from(atob(iv_base64), (c) => c.charCodeAt(0));
 
-  return null;
+    const decrypted = await decrypt_aes_gcm_with_fallback(
+      current_key,
+      encrypted,
+      iv,
+    );
+
+    return new TextDecoder().decode(decrypted);
+  } catch {
+    return null;
+  }
 }
 
 export async function clear_session_passphrase(
@@ -247,8 +179,10 @@ export async function clear_session_passphrase(
 ): Promise<void> {
   localStorage.removeItem(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
   localStorage.removeItem(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
-  localStorage.removeItem(SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
-  localStorage.removeItem(SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id);
+  localStorage.removeItem(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
+  localStorage.removeItem(
+    LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id,
+  );
 }
 
 export async function clear_all_session_passphrases(): Promise<void> {
@@ -264,8 +198,8 @@ export async function clear_all_session_passphrases(): Promise<void> {
         key.startsWith(ENCRYPTED_VAULT_KEY_PREFIX) ||
         key.startsWith(VAULT_NONCE_KEY_PREFIX) ||
         key.startsWith(SESSION_TIMESTAMP_KEY_PREFIX) ||
-        key.startsWith(SESSION_PASSPHRASE_FB_KEY_PREFIX) ||
-        key.startsWith(SESSION_PASSPHRASE_FB_IV_KEY_PREFIX))
+        key.startsWith(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX) ||
+        key.startsWith(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX))
     ) {
       keys_to_remove.push(key);
     }

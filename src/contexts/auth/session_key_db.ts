@@ -27,6 +27,13 @@ const IDB_TX_TIMEOUT_MS = 8000;
 
 let session_encryption_key: CryptoKey | null = null;
 
+export class RequiresReauthError extends Error {
+  constructor(message: string = "session_requires_reauth") {
+    super(message);
+    this.name = "RequiresReauthError";
+  }
+}
+
 function open_session_key_db(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const timeout_id = setTimeout(() => {
@@ -61,8 +68,6 @@ function open_session_key_db(): Promise<IDBDatabase> {
 
 async function store_session_key_in_db(key: CryptoKey): Promise<void> {
   const db = await open_session_key_db();
-  const raw = await crypto.subtle.exportKey("raw", key);
-  const raw_bytes = new Uint8Array(raw);
 
   return new Promise((resolve, reject) => {
     const timeout_id = setTimeout(() => {
@@ -74,7 +79,7 @@ async function store_session_key_in_db(key: CryptoKey): Promise<void> {
 
     const tx = db.transaction(SESSION_KEY_STORE, "readwrite");
     const store = tx.objectStore(SESSION_KEY_STORE);
-    const request = store.put({ id: SESSION_KEY_ID, raw: raw_bytes });
+    const request = store.put({ id: SESSION_KEY_ID, key });
 
     request.onerror = () => {
       clearTimeout(timeout_id);
@@ -88,11 +93,34 @@ async function store_session_key_in_db(key: CryptoKey): Promise<void> {
   });
 }
 
-async function get_session_key_from_db(): Promise<CryptoKey | null> {
+async function delete_session_key_row(): Promise<void> {
   try {
     const db = await open_session_key_db();
 
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve) => {
+      const tx = db.transaction(SESSION_KEY_STORE, "readwrite");
+      const store = tx.objectStore(SESSION_KEY_STORE);
+      const request = store.delete(SESSION_KEY_ID);
+
+      request.onerror = () => resolve();
+      request.onsuccess = () => resolve();
+      tx.oncomplete = () => db.close();
+    });
+  } catch {
+    return;
+  }
+}
+
+async function get_session_key_from_db(): Promise<CryptoKey | null> {
+  let db: IDBDatabase;
+  try {
+    db = await open_session_key_db();
+  } catch {
+    return null;
+  }
+
+  const row = await new Promise<{ key?: unknown; raw?: unknown } | null>(
+    (resolve) => {
       const timeout_id = setTimeout(() => {
         try {
           db.close();
@@ -106,55 +134,34 @@ async function get_session_key_from_db(): Promise<CryptoKey | null> {
 
       request.onerror = () => {
         clearTimeout(timeout_id);
-        reject(request.error);
+        resolve(null);
       };
-      request.onsuccess = async () => {
+      request.onsuccess = () => {
         clearTimeout(timeout_id);
-        const result = request.result;
-
-        if (result?.raw) {
-          try {
-            const key = await crypto.subtle.importKey(
-              "raw",
-              result.raw,
-              { name: "AES-GCM", length: 256 },
-              true,
-              ["encrypt", "decrypt"],
-            );
-
-            resolve(key);
-          } catch {
-            resolve(null);
-          }
-        } else if (result?.key) {
-          resolve(result.key);
-        } else {
-          resolve(null);
-        }
+        resolve(request.result ?? null);
       };
       tx.oncomplete = () => db.close();
-    });
-  } catch {
+    },
+  );
+
+  if (!row) {
     return null;
   }
+
+  if (row.key instanceof CryptoKey) {
+    return row.key;
+  }
+
+  if (row.raw !== undefined) {
+    await delete_session_key_row();
+    throw new RequiresReauthError("legacy_raw_session_key_purged");
+  }
+
+  return null;
 }
 
 async function clear_session_key_from_db(): Promise<void> {
-  try {
-    const db = await open_session_key_db();
-
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(SESSION_KEY_STORE, "readwrite");
-      const store = tx.objectStore(SESSION_KEY_STORE);
-      const request = store.delete(SESSION_KEY_ID);
-
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve();
-      tx.oncomplete = () => db.close();
-    });
-  } catch {
-    return;
-  }
+  await delete_session_key_row();
 }
 
 export async function get_or_create_session_key(): Promise<CryptoKey> {
@@ -172,7 +179,7 @@ export async function get_or_create_session_key(): Promise<CryptoKey> {
 
   session_encryption_key = await crypto.subtle.generateKey(
     { name: "AES-GCM", length: 256 },
-    true,
+    false,
     ["encrypt", "decrypt"],
   );
 

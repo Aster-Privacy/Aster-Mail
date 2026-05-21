@@ -52,6 +52,26 @@ let on_timeout_callback: (() => void) | null = null;
 let activity_listener_attached = false;
 let storage_listener_attached = false;
 let last_activity_update: number = 0;
+let broadcast_channel: BroadcastChannel | null = null;
+
+const BROADCAST_CHANNEL_PREFIX = "aster_activity:";
+
+interface ActivityBroadcastMessage {
+  type: "activity" | "config";
+  timestamp?: number;
+  config?: SessionTimeoutConfig;
+}
+
+function has_broadcast_channel(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof BroadcastChannel !== "undefined"
+  );
+}
+
+function get_broadcast_channel_name(): string {
+  return BROADCAST_CHANNEL_PREFIX + (current_account_id || "default");
+}
 
 function get_timeout_ms(): number {
   return current_config.timeout_minutes * 60 * 1000;
@@ -172,7 +192,99 @@ function update_last_activity(): void {
 
   last_activity_update = now;
   write_last_activity(now);
+  broadcast_activity(now);
   schedule_timer(get_timeout_ms());
+}
+
+function broadcast_activity(timestamp: number): void {
+  if (broadcast_channel) {
+    try {
+      const message: ActivityBroadcastMessage = {
+        type: "activity",
+        timestamp,
+      };
+
+      broadcast_channel.postMessage(message);
+    } catch {}
+  }
+}
+
+function broadcast_config(config: SessionTimeoutConfig): void {
+  if (broadcast_channel) {
+    try {
+      const message: ActivityBroadcastMessage = {
+        type: "config",
+        config,
+      };
+
+      broadcast_channel.postMessage(message);
+    } catch {}
+  }
+}
+
+function handle_broadcast_message(event: MessageEvent): void {
+  if (!current_config.enabled || !current_account_id) {
+    return;
+  }
+
+  const data = event.data as ActivityBroadcastMessage | null;
+
+  if (!data || typeof data !== "object") {
+    return;
+  }
+
+  if (data.type === "activity" && typeof data.timestamp === "number") {
+    const timestamp = data.timestamp;
+
+    if (timestamp > 0) {
+      last_activity_update = timestamp;
+      write_last_activity(timestamp);
+      const elapsed = Date.now() - timestamp;
+      const timeout = get_timeout_ms();
+
+      if (elapsed < timeout) {
+        schedule_timer(timeout - elapsed);
+      }
+    }
+  } else if (data.type === "config" && data.config) {
+    const config = data.config;
+
+    current_config = {
+      enabled: config.enabled,
+      timeout_minutes: Math.max(
+        MIN_TIMEOUT_MINUTES,
+        config.timeout_minutes || DEFAULT_TIMEOUT_MINUTES,
+      ),
+    };
+    if (current_config.enabled && current_account_id) {
+      schedule_from_last_activity();
+    } else if (!current_config.enabled) {
+      clear_timer();
+    }
+  }
+}
+
+function attach_broadcast_channel(): void {
+  if (broadcast_channel || !has_broadcast_channel()) {
+    return;
+  }
+  try {
+    broadcast_channel = new BroadcastChannel(get_broadcast_channel_name());
+    broadcast_channel.addEventListener("message", handle_broadcast_message);
+  } catch {
+    broadcast_channel = null;
+  }
+}
+
+function detach_broadcast_channel(): void {
+  if (!broadcast_channel) {
+    return;
+  }
+  try {
+    broadcast_channel.removeEventListener("message", handle_broadcast_message);
+    broadcast_channel.close();
+  } catch {}
+  broadcast_channel = null;
 }
 
 function handle_activity(): void {
@@ -255,6 +367,9 @@ function attach_storage_listener(): void {
   if (storage_listener_attached) {
     return;
   }
+  if (has_broadcast_channel()) {
+    return;
+  }
   window.addEventListener("storage", handle_storage_event);
   storage_listener_attached = true;
 }
@@ -316,13 +431,17 @@ export function configure_session_timeout(
 
   if (enabled && current_account_id) {
     attach_activity_listeners();
+    attach_broadcast_channel();
     attach_storage_listener();
+    broadcast_config(current_config);
     last_activity_update = 0;
     update_last_activity();
   } else if (!enabled) {
+    broadcast_config(current_config);
     clear_timer();
     detach_activity_listeners();
     detach_storage_listener();
+    detach_broadcast_channel();
   }
 }
 
@@ -351,6 +470,7 @@ export function start_session_timeout(
   last_activity_update = now;
 
   attach_activity_listeners();
+  attach_broadcast_channel();
   attach_storage_listener();
   schedule_timer(get_timeout_ms());
 }
@@ -359,6 +479,7 @@ export function stop_session_timeout(): void {
   clear_timer();
   detach_activity_listeners();
   detach_storage_listener();
+  detach_broadcast_channel();
   current_account_id = null;
   on_timeout_callback = null;
   last_activity_update = 0;
