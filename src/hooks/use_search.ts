@@ -54,7 +54,7 @@ import {
   type ParsedOperator,
 } from "@/utils/search_operators";
 import { use_auth } from "@/contexts/auth_context";
-import { decrypt_body_text } from "@/utils/email_crypto";
+import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import { use_i18n } from "@/lib/i18n/context";
 
 export interface ActiveFilter {
@@ -504,11 +504,15 @@ async function do_build_search_index(
           if (include_body) {
             const sender_email = envelope.from?.email || "";
 
-            envelope.body_text = await decrypt_body_text(
+            const bundle = await decrypt_body_text_with_bundle(
               envelope.body_text,
               user_email,
               sender_email,
             );
+            envelope.body_text = bundle.body;
+            if (bundle.subject !== null && !envelope.subject) {
+              envelope.subject = bundle.subject;
+            }
           } else {
             envelope.body_text = "";
           }

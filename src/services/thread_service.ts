@@ -51,6 +51,7 @@ import { decrypt_mail_metadata } from "./crypto/mail_metadata";
 import {
   try_extract_mime_body,
   RATCHET_UNDECRYPTABLE_SENTINEL,
+  extract_subject_bundle,
 } from "@/utils/email_crypto";
 
 const HASH_ALG = ["SHA", "256"].join("-");
@@ -319,6 +320,14 @@ export async function fetch_and_decrypt_thread_messages(
       body_content = body_content.trim();
     }
 
+    const subject_bundle = extract_subject_bundle(body_content);
+    if (subject_bundle.subject !== null) {
+      body_content = subject_bundle.body;
+      if (!envelope.subject) {
+        envelope.subject = subject_bundle.subject;
+      }
+    }
+
     const content_is_html = /<[a-z][\s\S]*>/i.test(body_content);
     const html_had_pgp =
       resolved_html?.includes("-----BEGIN PGP MESSAGE-----") ?? false;
@@ -475,6 +484,14 @@ export async function fetch_and_decrypt_virtual_group(
 
     if (body_decrypted) {
       body_content = body_content.trim();
+    }
+
+    const subject_bundle = extract_subject_bundle(body_content);
+    if (subject_bundle.subject !== null) {
+      body_content = subject_bundle.body;
+      if (!envelope.subject) {
+        envelope.subject = subject_bundle.subject;
+      }
     }
 
     const content_is_html = /<[a-z][\s\S]*>/i.test(body_content);

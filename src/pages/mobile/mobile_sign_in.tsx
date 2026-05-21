@@ -154,6 +154,14 @@ export default function MobileSignInPage() {
       set_status(t("auth.decrypting_vault"));
 
       try {
+        if (totp_response.is_suspended) {
+          sessionStorage.setItem("aster_suspended", "true");
+          set_error(t("common.account_suspended"));
+          set_is_loading(false);
+
+          return;
+        }
+
         const vault = await decrypt_vault(
           totp_response.encrypted_vault,
           totp_response.vault_nonce,
@@ -224,10 +232,6 @@ export default function MobileSignInPage() {
 
         if (totp_response.needs_prekey_replenishment) {
           check_and_replenish_prekeys();
-        }
-
-        if (totp_response.is_suspended) {
-          sessionStorage.setItem("aster_suspended", "true");
         }
 
         navigate("/");
@@ -424,6 +428,17 @@ export default function MobileSignInPage() {
         return;
       }
 
+      if (response.data.is_suspended) {
+        sessionStorage.setItem("aster_suspended", "true");
+        await timing_safe_delay();
+        set_error(t("common.account_suspended"));
+        set_is_loading(false);
+        set_captcha_token("");
+        turnstile_ref.current?.reset();
+
+        return;
+      }
+
       set_status(t("auth.decrypting_vault"));
       const vault = await decrypt_vault(
         response.data.encrypted_vault,
@@ -494,10 +509,6 @@ export default function MobileSignInPage() {
 
       if (response.data.needs_prekey_replenishment) {
         check_and_replenish_prekeys();
-      }
-
-      if (response.data.is_suspended) {
-        sessionStorage.setItem("aster_suspended", "true");
       }
 
       navigate("/");

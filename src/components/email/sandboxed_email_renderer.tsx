@@ -972,14 +972,9 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
           );
         }
       } else {
-        let resolved_url = href;
-
-        if (!href.startsWith("http://") && !href.startsWith("https://")) {
-          resolved_url = "https://" + href;
-        }
         window.dispatchEvent(
           new CustomEvent("aster-external-link", {
-            detail: { url: resolved_url },
+            detail: { url: href },
           }),
         );
       }

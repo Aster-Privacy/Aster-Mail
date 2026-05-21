@@ -11,6 +11,7 @@ dist
 dist-ssr
 dist-electron/
 *.local
+mail-v*.tar
 
 .env
 .env.*

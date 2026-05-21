@@ -492,7 +492,10 @@ export function use_compose({
       setTimeout(() => {
         if (message_textarea_ref.current && edit_draft.message) {
           draft_hook.just_loaded_draft_ref.current = true;
-          message_textarea_ref.current.innerHTML = edit_draft.message;
+          const sanitized_result = sanitize_html(edit_draft.message, {
+            external_content_mode: "always",
+          });
+          message_textarea_ref.current.innerHTML = sanitized_result.html;
           set_message(message_textarea_ref.current.innerHTML);
         }
       }, INITIAL_CONTENT_DELAY_MS);

@@ -192,6 +192,15 @@ export function use_index_page_state() {
     set_search_params({}, { replace: true });
   }, [search_params, set_search_params, t]);
 
+  useEffect(() => {
+    const crypto_status = search_params.get("crypto");
+
+    if (crypto_status === "success" || crypto_status === "cancelled") {
+      set_settings_section("billing" as SettingsSection);
+      set_is_settings_open(true);
+    }
+  }, [search_params]);
+
   const toggle_mobile_sidebar = useCallback(() => {
     set_is_mobile_sidebar_open((prev) => !prev);
   }, []);
