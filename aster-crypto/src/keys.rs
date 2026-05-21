@@ -31,17 +31,20 @@ use zeroize::Zeroizing;
 
 use crate::error::{CryptoError, Result};
 
-pub struct KeyPair {
-    secret_key: SignedSecretKey,
+pub const MAX_KEY_IMPORT_BYTES: usize = 16 * 1024 * 1024;
+
+fn check_import_size(len: usize) -> Result<()> {
+    if len > MAX_KEY_IMPORT_BYTES {
+        return Err(CryptoError::KeyTooLarge {
+            size: len,
+            max: MAX_KEY_IMPORT_BYTES,
+        });
+    }
+    Ok(())
 }
 
-impl Drop for KeyPair {
-    fn drop(&mut self) {
-        let bytes = Serialize::to_bytes(&self.secret_key).unwrap_or_default();
-        let mut zeroizing_bytes = Zeroizing::new(bytes);
-        zeroizing_bytes.iter_mut().for_each(|b| *b = 0);
-        std::sync::atomic::compiler_fence(std::sync::atomic::Ordering::SeqCst);
-    }
+pub struct KeyPair {
+    secret_key: SignedSecretKey,
 }
 
 pub enum PublicKeyInner {
@@ -257,6 +260,8 @@ pub fn generate_keypair_with_password(
 }
 
 pub fn import_public_key(armored: &str) -> Result<PublicKey> {
+    check_import_size(armored.len())?;
+
     let (public_key, _) = SignedPublicKey::from_string(armored)
         .map_err(|e| CryptoError::InvalidKeyFormat(e.to_string()))?;
 
@@ -266,6 +271,8 @@ pub fn import_public_key(armored: &str) -> Result<PublicKey> {
 }
 
 pub fn import_public_key_bytes(bytes: &[u8]) -> Result<PublicKey> {
+    check_import_size(bytes.len())?;
+
     let public_key = SignedPublicKey::from_bytes(std::io::Cursor::new(bytes))
         .map_err(|e| CryptoError::InvalidKeyFormat(e.to_string()))?;
 
@@ -275,6 +282,8 @@ pub fn import_public_key_bytes(bytes: &[u8]) -> Result<PublicKey> {
 }
 
 pub fn import_secret_key(armored: &str) -> Result<KeyPair> {
+    check_import_size(armored.len())?;
+
     let (secret_key, _) = SignedSecretKey::from_string(armored)
         .map_err(|e| CryptoError::InvalidKeyFormat(e.to_string()))?;
 
@@ -282,6 +291,8 @@ pub fn import_secret_key(armored: &str) -> Result<KeyPair> {
 }
 
 pub fn import_secret_key_bytes(bytes: &[u8]) -> Result<KeyPair> {
+    check_import_size(bytes.len())?;
+
     let secret_key = SignedSecretKey::from_bytes(std::io::Cursor::new(bytes))
         .map_err(|e| CryptoError::InvalidKeyFormat(e.to_string()))?;
 
@@ -333,6 +344,39 @@ mod tests {
         let uid = public.user_id().unwrap();
         assert!(uid.contains("Test User"));
         assert!(uid.contains("test@astermail.com"));
+    }
+
+    #[test]
+    fn import_key_oversize_rejected() {
+        let oversize = vec![0u8; 17 * 1024 * 1024];
+
+        let r = import_public_key_bytes(&oversize);
+        assert!(r.is_err());
+        if let Err(err) = r {
+            assert!(matches!(
+                err,
+                CryptoError::KeyTooLarge { size, max }
+                    if size == oversize.len() && max == MAX_KEY_IMPORT_BYTES
+            ));
+        }
+
+        let r = import_secret_key_bytes(&oversize);
+        assert!(r.is_err());
+        if let Err(err) = r {
+            assert!(matches!(err, CryptoError::KeyTooLarge { .. }));
+        }
+
+        let oversize_str = "a".repeat(17 * 1024 * 1024);
+        let r = import_public_key(&oversize_str);
+        assert!(r.is_err());
+        if let Err(err) = r {
+            assert!(matches!(err, CryptoError::KeyTooLarge { .. }));
+        }
+        let r = import_secret_key(&oversize_str);
+        assert!(r.is_err());
+        if let Err(err) = r {
+            assert!(matches!(err, CryptoError::KeyTooLarge { .. }));
+        }
     }
 
     #[test]
