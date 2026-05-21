@@ -21,6 +21,7 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum CryptoError {
     #[error("key generation failed: {0}")]
     KeyGeneration(String),
@@ -31,6 +32,9 @@ pub enum CryptoError {
     #[error("decryption failed: {0}")]
     Decryption(String),
 
+    #[error("decryption failed")]
+    DecryptionFailed,
+
     #[error("signing failed: {0}")]
     Signing(String),
 
@@ -39,6 +43,9 @@ pub enum CryptoError {
 
     #[error("invalid key format: {0}")]
     InvalidKeyFormat(String),
+
+    #[error("key import exceeds maximum allowed size of {max} bytes (got {size})")]
+    KeyTooLarge { size: usize, max: usize },
 
     #[error("key not found: {0}")]
     KeyNotFound(String),
