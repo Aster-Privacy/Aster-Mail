@@ -137,7 +137,14 @@ export async function get_recovery_email(
     cached_recovery_data = { email, verified: verified ?? false };
 
     if (cached_recovery_data.verified && !has_server_enc) {
-      api_client.post("/core/v1/recovery/email/server-enc", { plaintext_email: email }).catch(() => {});
+      hash_recovery_email(email)
+        .then((email_hash) =>
+          api_client.post("/core/v1/recovery/email/server-enc", {
+            plaintext_email: email,
+            email_hash,
+          }),
+        )
+        .catch(() => {});
     }
 
     return { data: cached_recovery_data };

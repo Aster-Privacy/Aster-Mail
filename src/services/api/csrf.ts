@@ -56,30 +56,6 @@ export function clear_csrf_cache(): void {
   cached_csrf_token = null;
 }
 
-export function expire_csrf_cookie(): void {
-  if (typeof document === "undefined") return;
-
-  const cookie_domains = ["", window.location.hostname];
-  const cookie_paths = ["/", ""];
-
-  for (const domain of cookie_domains) {
-    for (const path of cookie_paths) {
-      let expiry = `${CSRF_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path || "/"}`;
-
-      if (domain) {
-        expiry += `; domain=${domain}`;
-      }
-
-      document.cookie = expiry;
-      document.cookie = expiry + "; secure";
-      document.cookie = expiry + "; samesite=lax";
-      document.cookie = expiry + "; secure; samesite=none";
-    }
-  }
-
-  cached_csrf_token = null;
-}
-
 export function has_csrf_token(): boolean {
   return get_csrf_token_from_cookie() !== null;
 }

@@ -25,7 +25,6 @@ import {
   get_csrf_token_from_cookie,
   set_csrf_token,
   clear_csrf_cache,
-  expire_csrf_cookie,
   is_state_changing_method,
 } from "./csrf";
 import { request_cache } from "./request_cache";
@@ -57,7 +56,71 @@ const TAURI_TOKEN_KEY = "aster_tauri_token";
 const TAURI_CSRF_KEY = "aster_tauri_csrf";
 
 function is_tauri_env(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return (
+    typeof window !== "undefined" &&
+    ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
+  );
+}
+
+const LAST_AUTH_MS_KEY = "aster_last_auth_ms";
+const OFFLINE_TOMBSTONE_MS = 86_400_000;
+
+function detect_client_platform(): string {
+  if (typeof window === "undefined") return "web";
+  if (is_tauri_env()) return "tauri-desktop";
+  try {
+    const cap = (window as unknown as {
+      Capacitor?: { getPlatform?: () => string };
+    }).Capacitor;
+    const platform = cap?.getPlatform?.();
+    if (platform === "ios") return "capacitor-ios";
+    if (platform === "android") return "capacitor-android";
+  } catch {}
+  return "web";
+}
+
+const CLIENT_PLATFORM_HEADER = detect_client_platform();
+
+function is_local_hostname(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location?.hostname || "";
+  return (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "[::1]" ||
+    host === "::1" ||
+    host.endsWith(".local")
+  );
+}
+
+function read_last_auth_ms(): number {
+  try {
+    const raw = localStorage.getItem(LAST_AUTH_MS_KEY);
+    if (!raw) return 0;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function write_last_auth_ms(ms: number): void {
+  try {
+    localStorage.setItem(LAST_AUTH_MS_KEY, String(ms));
+  } catch {}
+}
+
+function clear_last_auth_ms(): void {
+  try {
+    localStorage.removeItem(LAST_AUTH_MS_KEY);
+  } catch {}
+}
+
+export function is_offline_tombstoned(): boolean {
+  if (typeof navigator !== "undefined" && navigator.onLine) return false;
+  const last = read_last_auth_ms();
+  if (!last) return false;
+  return Date.now() - last > OFFLINE_TOMBSTONE_MS;
 }
 
 export type ApiErrorCode =
@@ -190,6 +253,7 @@ class ApiClient {
       return;
     }
     if (!import.meta.env.DEV) return;
+    if (!is_local_hostname()) return;
     const stored_token = sessionStorage.getItem(DEV_TOKEN_KEY);
 
     if (stored_token) {
@@ -308,6 +372,15 @@ class ApiClient {
     this.is_authenticated_flag = true;
 
     if (!navigator.onLine) {
+      if (is_offline_tombstoned()) {
+        this.is_authenticated_flag = false;
+        this.initial_auth_verified = true;
+        this._cached_user_info = null;
+        request_cache.clear();
+        this.dispatch_session_expired(true);
+
+        return false;
+      }
       this.initial_auth_verified = true;
       this.schedule_token_refresh();
 
@@ -609,10 +682,10 @@ class ApiClient {
     }
   }
 
-  private dispatch_session_expired(): void {
+  private dispatch_session_expired(force: boolean = false): void {
     if (this.intentional_logout) return;
     if (this.session_expired_dispatched) return;
-    if (!this.has_ever_authenticated) return;
+    if (!force && !this.has_ever_authenticated) return;
     this.session_expired_dispatched = true;
     window.dispatchEvent(new Event("astermail:session-expired"));
   }
@@ -630,9 +703,9 @@ class ApiClient {
     this.is_authenticated_flag = false;
     this.initial_auth_verified = false;
     this.clear_dev_token();
-    expire_csrf_cookie();
     clear_csrf_cache();
     request_cache.clear();
+    clear_last_auth_ms();
     if (this.refresh_timeout) {
       clearTimeout(this.refresh_timeout);
       this.refresh_timeout = null;
@@ -649,6 +722,7 @@ class ApiClient {
       if (!this.last_refresh_timestamp) {
         this.last_refresh_timestamp = Date.now();
       }
+      write_last_auth_ms(Date.now());
       this.schedule_token_refresh();
       try {
         window.dispatchEvent(new Event("astermail:authenticated"));
@@ -721,7 +795,7 @@ class ApiClient {
   async clear_session_cookies(): Promise<boolean> {
     try {
       const response = await this.post("/core/v1/auth/clear-session", {});
-      expire_csrf_cookie();
+      clear_csrf_cache();
 
       return !response.error;
     } catch {
@@ -791,10 +865,16 @@ class ApiClient {
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      "X-Aster-Client": CLIENT_PLATFORM_HEADER,
       ...((options.headers as Record<string, string>) || {}),
     };
 
-    if (this.dev_access_token) {
+    if (this.dev_access_token && is_local_hostname()) {
+      headers["Authorization"] = `Bearer ${this.dev_access_token}`;
+    } else if (
+      this.dev_access_token &&
+      (Capacitor.isNativePlatform() || is_tauri_env())
+    ) {
       headers["Authorization"] = `Bearer ${this.dev_access_token}`;
     }
 
@@ -1086,6 +1166,7 @@ class ApiClient {
 
         refresh_session_activity();
         extend_passphrase_timeout();
+        write_last_auth_ms(Date.now());
 
         return { data };
       } catch (error) {

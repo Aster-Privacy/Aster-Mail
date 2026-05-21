@@ -169,10 +169,6 @@ interface SetLoginAlertsResponse {
   enabled: boolean;
 }
 
-interface GetSessionKeyResponse {
-  key: string;
-}
-
 export async function register_user(
   request: RegisterRequest,
 ): Promise<ApiResponse<RegisterResponse>> {
@@ -258,18 +254,6 @@ export async function rekey_user_data(
   request: RekeyRequest,
 ): Promise<ApiResponse<RekeyResponse>> {
   return api_client.post<RekeyResponse>("/core/v1/auth/me/rekey", request);
-}
-
-export async function store_session_key(
-  key: string,
-): Promise<ApiResponse<{ message: string }>> {
-  return api_client.post("/core/v1/auth/session-key", { key });
-}
-
-export async function get_session_key(): Promise<
-  ApiResponse<GetSessionKeyResponse>
-> {
-  return api_client.get("/core/v1/auth/session-key", { skip_cache: true });
 }
 
 export async function get_login_alerts_status(): Promise<
