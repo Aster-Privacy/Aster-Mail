@@ -26,6 +26,7 @@ import {
   try_decrypt_ratchet_body,
   try_decrypt_pgp_body,
   try_extract_mime_body,
+  extract_subject_bundle,
 } from "@/utils/email_crypto";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 
@@ -61,6 +62,14 @@ export async function process_envelope_body(
 
   body_text = try_extract_mime_body(body_text);
   const mime_extracted = body_text !== pre_mime_text;
+
+  const bundle = extract_subject_bundle(body_text);
+  if (bundle.subject !== null) {
+    body_text = bundle.body;
+    if (!envelope.subject) {
+      envelope.subject = bundle.subject;
+    }
+  }
 
   const pgp_was_decrypted = body_text !== pre_pgp_text;
   const html_has_pgp =
