@@ -1329,6 +1329,10 @@ export const it = {
     session_expired_sign_in: "Sessione scaduta. Effettua nuovamente l'accesso.",
     current_password_incorrect: "La password attuale non è corretta",
     failed_change_password: "Cambio password non riuscito",
+    alias_reencrypt_failed:
+      "Non è stato possibile ricifrare in modo sicuro uno dei tuoi alias. La password non è stata modificata. Contatta l'assistenza oppure rimuovi l'alias interessato e riprova.",
+    contact_reencrypt_failed:
+      "Non è stato possibile ricifrare in modo sicuro uno dei tuoi contatti. La password non è stata modificata. Contatta l'assistenza oppure rimuovi il contatto interessato e riprova.",
     update_password: "Aggiorna password",
     updating: "Aggiornamento...",
     password_changed_signing_out:

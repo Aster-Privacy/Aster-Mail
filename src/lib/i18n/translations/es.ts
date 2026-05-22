@@ -1361,6 +1361,10 @@ export const es = {
       "Sesión expirada. Por favor, inicia sesión de nuevo.",
     current_password_incorrect: "La contraseña actual es incorrecta",
     failed_change_password: "Error al cambiar la contraseña",
+    alias_reencrypt_failed:
+      "No se pudo volver a cifrar de forma segura uno de tus alias. Tu contraseña no se ha cambiado. Por favor, contacta con soporte o elimina el alias afectado e inténtalo de nuevo.",
+    contact_reencrypt_failed:
+      "No se pudo volver a cifrar de forma segura uno de tus contactos. Tu contraseña no se ha cambiado. Por favor, contacta con soporte o elimina el contacto afectado e inténtalo de nuevo.",
     update_password: "Actualizar contraseña",
     updating: "Actualizando...",
     password_changed_signing_out:

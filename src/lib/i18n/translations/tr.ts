@@ -1337,6 +1337,10 @@ export const tr = {
     session_expired_sign_in: "Oturum süresi doldu. Lütfen tekrar giriş yapın.",
     current_password_incorrect: "Mevcut parola yanlış",
     failed_change_password: "Parola değiştirilemedi",
+    alias_reencrypt_failed:
+      "Takma adlarınızdan biri güvenli bir şekilde yeniden şifrelenemedi. Parolanız değiştirilmedi. Lütfen destek ekibiyle iletişime geçin veya etkilenen takma adı kaldırıp tekrar deneyin.",
+    contact_reencrypt_failed:
+      "Kişilerinizden biri güvenli bir şekilde yeniden şifrelenemedi. Parolanız değiştirilmedi. Lütfen destek ekibiyle iletişime geçin veya etkilenen kişiyi kaldırıp tekrar deneyin.",
     update_password: "Parolayı Güncelle",
     updating: "Güncelleniyor...",
     password_changed_signing_out:

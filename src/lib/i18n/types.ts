@@ -1656,6 +1656,8 @@ export interface SettingsTranslations {
   session_expired_sign_in: string;
   current_password_incorrect: string;
   failed_change_password: string;
+  alias_reencrypt_failed: string;
+  contact_reencrypt_failed: string;
   update_password: string;
   updating: string;
   password_changed_signing_out: string;

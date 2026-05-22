@@ -1288,6 +1288,10 @@ export const ko = {
     session_expired_sign_in: "세션이 만료되었습니다. 다시 로그인해 주세요.",
     current_password_incorrect: "현재 비밀번호가 올바르지 않습니다",
     failed_change_password: "비밀번호 변경 실패",
+    alias_reencrypt_failed:
+      "별칭 중 하나를 안전하게 재암호화할 수 없습니다. 비밀번호가 변경되지 않았습니다. 지원팀에 문의하시거나 해당 별칭을 제거한 후 다시 시도해 주세요.",
+    contact_reencrypt_failed:
+      "연락처 중 하나를 안전하게 재암호화할 수 없습니다. 비밀번호가 변경되지 않았습니다. 지원팀에 문의하시거나 해당 연락처를 제거한 후 다시 시도해 주세요.",
     update_password: "비밀번호 업데이트",
     updating: "업데이트 중...",
     password_changed_signing_out:

@@ -512,11 +512,14 @@ export function use_security() {
       set_new_password("");
       set_confirm_password("");
     } catch (err) {
-      set_password_error(
-        err instanceof Error
-          ? err.message
-          : t("settings.failed_change_password"),
-      );
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.startsWith("alias_reencrypt_failed:")) {
+        set_password_error(t("settings.alias_reencrypt_failed"));
+      } else if (msg.startsWith("contact_reencrypt_failed:")) {
+        set_password_error(t("settings.contact_reencrypt_failed"));
+      } else {
+        set_password_error(msg || t("settings.failed_change_password"));
+      }
     } finally {
       set_password_loading(false);
     }

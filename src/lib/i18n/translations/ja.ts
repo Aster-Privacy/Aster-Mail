@@ -1302,6 +1302,10 @@ export const ja = {
       "セッションが期限切れです。再度サインインしてください。",
     current_password_incorrect: "現在のパスワードが正しくありません",
     failed_change_password: "パスワードの変更に失敗しました",
+    alias_reencrypt_failed:
+      "エイリアスの一つを安全に再暗号化できませんでした。パスワードは変更されていません。サポートまでお問い合わせいただくか、該当のエイリアスを削除してから再度お試しください。",
+    contact_reencrypt_failed:
+      "連絡先の一つを安全に再暗号化できませんでした。パスワードは変更されていません。サポートまでお問い合わせいただくか、該当の連絡先を削除してから再度お試しください。",
     update_password: "パスワードを更新",
     updating: "更新中...",
     password_changed_signing_out:

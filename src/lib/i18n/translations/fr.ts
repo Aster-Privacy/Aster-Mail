@@ -1322,6 +1322,10 @@ export const fr = {
     session_expired_sign_in: "Session expirée. Veuillez vous reconnecter.",
     current_password_incorrect: "Le mot de passe actuel est incorrect",
     failed_change_password: "Échec du REDACTEDnt de mot de passe",
+    alias_reencrypt_failed:
+      "Impossible de rechiffrer en toute sécurité l'un de vos alias. Votre mot de passe n'a pas été modifié. Veuillez contacter le support ou supprimer l'alias concerné, puis réessayer.",
+    contact_reencrypt_failed:
+      "Impossible de rechiffrer en toute sécurité l'un de vos contacts. Votre mot de passe n'a pas été modifié. Veuillez contacter le support ou supprimer le contact concerné, puis réessayer.",
     update_password: "Mettre à jour le mot de passe",
     updating: "Mise à jour...",
     password_changed_signing_out:
