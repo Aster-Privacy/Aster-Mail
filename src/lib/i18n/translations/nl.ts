@@ -1298,6 +1298,10 @@ export const nl = {
     session_expired_sign_in: "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
     current_password_incorrect: "Huidig wachtwoord is onjuist",
     failed_change_password: "Wachtwoord wijzigen mislukt",
+    alias_reencrypt_failed:
+      "Een van uw aliassen kon niet veilig opnieuw worden versleuteld. Uw wachtwoord is niet gewijzigd. Neem contact op met support of verwijder de betreffende alias en probeer het opnieuw.",
+    contact_reencrypt_failed:
+      "Een van uw contacten kon niet veilig opnieuw worden versleuteld. Uw wachtwoord is niet gewijzigd. Neem contact op met support of verwijder het betreffende contact en probeer het opnieuw.",
     update_password: "Wachtwoord bijwerken",
     updating: "Bijwerken...",
     password_changed_signing_out:

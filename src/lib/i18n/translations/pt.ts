@@ -1150,6 +1150,10 @@ export const pt = {
       "Sessão expirada. Por favor, faça login novamente.",
     current_password_incorrect: "A senha atual está incorreta",
     failed_change_password: "Falha ao alterar a senha",
+    alias_reencrypt_failed:
+      "Não foi possível recriptografar com segurança um dos seus aliases. Sua senha não foi alterada. Por favor, entre em contato com o suporte ou remova o alias afetado e tente novamente.",
+    contact_reencrypt_failed:
+      "Não foi possível recriptografar com segurança um dos seus contatos. Sua senha não foi alterada. Por favor, entre em contato com o suporte ou remova o contato afetado e tente novamente.",
     update_password: "Atualizar Senha",
     updating: "Atualizando...",
     password_changed_signing_out:

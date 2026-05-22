@@ -1536,6 +1536,10 @@ export const en: Translations = {
     session_expired_sign_in: "Session expired. Please sign in again.",
     current_password_incorrect: "Current password is incorrect",
     failed_change_password: "Failed to change password",
+    alias_reencrypt_failed:
+      "Could not safely re-encrypt one of your aliases. Your password was not changed. Please contact support or remove the affected alias and try again.",
+    contact_reencrypt_failed:
+      "Could not safely re-encrypt one of your contacts. Your password was not changed. Please contact support or remove the affected contact and try again.",
     update_password: "Update Password",
     updating: "Updating...",
     password_changed_signing_out:

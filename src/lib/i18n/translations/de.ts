@@ -1348,6 +1348,10 @@ export const de = {
     user_not_found: "Benutzer nicht gefunden",
     current_password_incorrect: "Aktuelles Passwort ist falsch",
     failed_change_password: "Passwort konnte nicht geändert werden",
+    alias_reencrypt_failed:
+      "Einer Ihrer Aliase konnte nicht sicher neu verschlüsselt werden. Ihr Passwort wurde nicht geändert. Bitte wenden Sie sich an den Support oder entfernen Sie den betroffenen Alias und versuchen Sie es erneut.",
+    contact_reencrypt_failed:
+      "Einer Ihrer Kontakte konnte nicht sicher neu verschlüsselt werden. Ihr Passwort wurde nicht geändert. Bitte wenden Sie sich an den Support oder entfernen Sie den betroffenen Kontakt und versuchen Sie es erneut.",
     update_password: "Passwort aktualisieren",
     updating: "Aktualisieren...",
     password_changed_signing_out:

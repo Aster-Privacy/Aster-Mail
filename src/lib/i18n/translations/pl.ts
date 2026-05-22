@@ -1348,6 +1348,10 @@ export const pl = {
     session_expired_sign_in: "Sesja została zakończona. Trzeba zalogować się ponownie, aby kontynuować. Dane i wersje robocze są zapisane na serwerze.",
     current_password_incorrect: "Aktualne hasło jest nieprawidłowe",
     failed_change_password: "Nie udało się zmienić hasła",
+    alias_reencrypt_failed:
+      "Nie udało się bezpiecznie ponownie zaszyfrować jednego z aliasów. Hasło nie zostało zmienione. Skontaktuj się z pomocą techniczną lub usuń problematyczny alias i spróbuj ponownie.",
+    contact_reencrypt_failed:
+      "Nie udało się bezpiecznie ponownie zaszyfrować jednego z kontaktów. Hasło nie zostało zmienione. Skontaktuj się z pomocą techniczną lub usuń problematyczny kontakt i spróbuj ponownie.",
     update_password: "Zaktualizuj hasło",
     updating: "Aktualizowanie...",
     password_changed_signing_out: "Hasło zmienione pomyślnie. Wylogowywanie...",

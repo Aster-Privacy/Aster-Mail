@@ -209,8 +209,10 @@ export async function re_encrypt_user_data(
         }
 
         re_encrypted_aliases.push(result);
-      } catch {
-        continue;
+      } catch (err) {
+        throw new Error(
+          `alias_reencrypt_failed:${alias.id}:${err instanceof Error ? err.message : String(err)}`,
+        );
       }
     }
 
@@ -265,8 +267,10 @@ export async function re_encrypt_user_data(
           data_nonce: array_to_base64(new_ct_nonce),
           contact_token: array_to_base64(new Uint8Array(contact_token_sig)),
         });
-      } catch {
-        continue;
+      } catch (err) {
+        throw new Error(
+          `contact_reencrypt_failed:${contact.id}:${err instanceof Error ? err.message : String(err)}`,
+        );
       }
     }
 

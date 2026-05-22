@@ -1271,6 +1271,10 @@ export const zh_CN = {
     session_expired_sign_in: "您的会话已结束，重新登录后可以接着之前的进度。您的数据和草稿都已保存在服务器上。",
     current_password_incorrect: "当前密码不正确",
     failed_change_password: "更改密码失败",
+    alias_reencrypt_failed:
+      "无法安全地重新加密您的一个别名。您的密码未更改。请联系支持团队，或移除受影响的别名后重试。",
+    contact_reencrypt_failed:
+      "无法安全地重新加密您的一个联系人。您的密码未更改。请联系支持团队，或移除受影响的联系人后重试。",
     update_password: "更新密码",
     updating: "更新中...",
     password_changed_signing_out: "密码更改成功，正在退出登录...",
