@@ -30,6 +30,9 @@ interface VersionManifest {
 
 const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 const MANIFEST_URL = "/version.json";
+const AUTO_RELOAD_MIN_AGE_MS = 60_000;
+const AUTO_RELOAD_COOLDOWN_MS = 5 * 60 * 1000;
+const AUTO_RELOAD_MARKER = "aster:auto_reload_at";
 
 const loaded_build =
   typeof __BUILD_HASH__ !== "undefined" ? __BUILD_HASH__ : "";
@@ -38,6 +41,37 @@ const loaded_version =
 
 let is_flushing = false;
 let last_checked_at = 0;
+const session_start_ts = Date.now();
+
+function is_user_busy(): boolean {
+  if (typeof document === "undefined") return false;
+  const active = document.activeElement as HTMLElement | null;
+
+  if (!active) return false;
+  const tag = active.tagName;
+
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (active.isContentEditable) return true;
+
+  return false;
+}
+
+function can_auto_reload(): boolean {
+  if (Date.now() - session_start_ts < AUTO_RELOAD_MIN_AGE_MS) return false;
+  try {
+    const last = Number(sessionStorage.getItem(AUTO_RELOAD_MARKER) || "0");
+
+    if (Date.now() - last < AUTO_RELOAD_COOLDOWN_MS) return false;
+  } catch {}
+
+  return !is_user_busy();
+}
+
+function mark_auto_reload(): void {
+  try {
+    sessionStorage.setItem(AUTO_RELOAD_MARKER, String(Date.now()));
+  } catch {}
+}
 
 async function fetch_manifest(): Promise<VersionManifest | null> {
   try {
@@ -110,9 +144,16 @@ async function check_once(): Promise<void> {
     aster_version_ref.__aster_version.manifest_ts = manifest.ts;
   }
 
+  const update_available =
+    !!loaded_build && manifest.build !== loaded_build;
+
   if (aster_version_ref.__aster_version) {
-    aster_version_ref.__aster_version.update_available =
-      !!loaded_build && manifest.build !== loaded_build;
+    aster_version_ref.__aster_version.update_available = update_available;
+  }
+
+  if (update_available && can_auto_reload()) {
+    mark_auto_reload();
+    void hard_flush_and_reload();
   }
 }
 

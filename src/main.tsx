@@ -26,7 +26,10 @@ import { Capacitor } from "@capacitor/core";
 import App from "@/App";
 import { Provider } from "@/provider";
 import { initialize_capacitor, hide_splash } from "@/native/capacitor_bridge";
-import { start_version_check } from "@/lib/version_check";
+import {
+  start_version_check,
+  hard_flush_and_reload,
+} from "@/lib/version_check";
 import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { connection_store } from "@/services/routing/connection_store";
 import "@/styles/fonts.css";
@@ -90,6 +93,30 @@ if (is_tauri_runtime && "serviceWorker" in navigator) {
   })();
 }
 
+
+const CHUNK_RELOAD_MARKER = "aster:chunk_reload_at";
+const CHUNK_RELOAD_COOLDOWN_MS = 30_000;
+
+function is_chunk_load_error(message: string): boolean {
+  return (
+    message.includes("Importing a module script failed") ||
+    message.includes("Failed to fetch dynamically imported module") ||
+    message.includes("error loading dynamically imported module") ||
+    message.includes("Failed to load module script") ||
+    /ChunkLoadError/i.test(message)
+  );
+}
+
+function trigger_chunk_recovery(): void {
+  try {
+    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_MARKER) || "0");
+
+    if (Date.now() - last < CHUNK_RELOAD_COOLDOWN_MS) return;
+    sessionStorage.setItem(CHUNK_RELOAD_MARKER, String(Date.now()));
+  } catch {}
+  void hard_flush_and_reload();
+}
+
 window.addEventListener("unhandledrejection", (event) => {
   const reason = event.reason;
   const message =
@@ -99,18 +126,49 @@ window.addEventListener("unhandledrejection", (event) => {
         ? String((reason as { message: unknown }).message)
         : "";
 
-  if (
-    message.includes("Importing a module script failed") ||
-    message.includes("Failed to fetch dynamically imported module") ||
-    message.includes("error loading dynamically imported module")
-  ) {
+  if (is_chunk_load_error(message)) {
     event.preventDefault();
+    trigger_chunk_recovery();
 
     return;
   }
 
   event.preventDefault();
 });
+
+window.addEventListener(
+  "error",
+  (event) => {
+    const target = event.target as
+      | (HTMLElement & { src?: string; href?: string })
+      | null;
+
+    if (
+      target &&
+      (target.tagName === "SCRIPT" ||
+        target.tagName === "LINK" ||
+        target.tagName === "IMG")
+    ) {
+      const url = target.src || target.href || "";
+
+      if (
+        (target.tagName === "SCRIPT" || target.tagName === "LINK") &&
+        url.includes("/assets/")
+      ) {
+        trigger_chunk_recovery();
+      }
+
+      return;
+    }
+
+    const message = event.message || "";
+
+    if (is_chunk_load_error(message)) {
+      trigger_chunk_recovery();
+    }
+  },
+  true,
+);
 
 if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
   const legacy_sw_reset = (async (): Promise<boolean> => {
