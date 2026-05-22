@@ -470,7 +470,7 @@ export function use_email_viewer({
         body_text,
         safe_html,
         unsubscribe_info: unsubscribe,
-      } = await process_envelope_body(envelope, user_email);
+      } = await process_envelope_body(envelope, user_email, item.id);
 
       let decrypted_metadata = item.metadata;
 

@@ -104,6 +104,7 @@ export async function try_decrypt_ratchet_body(
   body_text: string,
   our_email: string,
   sender_email: string,
+  message_id?: string,
 ): Promise<string> {
   if (!body_text.startsWith("{")) return body_text;
 
@@ -113,7 +114,7 @@ export async function try_decrypt_ratchet_body(
 
   const vault = get_vault_from_memory();
 
-  if (!vault) return body_text;
+  if (!vault) return RATCHET_UNDECRYPTABLE_SENTINEL;
 
   try {
     const decrypted = await decrypt_ratchet_message(
@@ -121,11 +122,12 @@ export async function try_decrypt_ratchet_body(
       sender_email,
       envelope,
       vault,
+      message_id,
     );
 
-    return decrypted ?? body_text;
+    return decrypted ?? RATCHET_UNDECRYPTABLE_SENTINEL;
   } catch {
-    return body_text;
+    return RATCHET_UNDECRYPTABLE_SENTINEL;
   }
 }
 

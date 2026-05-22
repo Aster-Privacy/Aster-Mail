@@ -338,7 +338,7 @@ export async function decrypt_with_key_fallback(
   vault: EncryptedVault,
   encrypted_message: string,
   passphrase: string,
-  ratchet_context?: { our_email: string; sender_email: string },
+  ratchet_context?: { our_email: string; sender_email: string; message_id?: string },
 ): Promise<{ decrypted: string; used_key_index: number } | null> {
   if (ratchet_context) {
     const envelope = parse_ratchet_envelope(encrypted_message);
@@ -349,6 +349,7 @@ export async function decrypt_with_key_fallback(
         ratchet_context.sender_email,
         envelope,
         vault,
+        ratchet_context.message_id,
       );
 
       if (decrypted) {

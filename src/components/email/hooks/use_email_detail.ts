@@ -592,7 +592,7 @@ export function use_email_detail() {
 
       if (envelope) {
         const { body_text, safe_html, unsubscribe_info } =
-          await process_envelope_body(envelope, user?.email);
+          await process_envelope_body(envelope, user?.email, response.data.id);
 
         const decrypted: import("@/components/email/hooks/email_detail_types").DecryptedEmail =
           {

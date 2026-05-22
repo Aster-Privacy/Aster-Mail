@@ -39,6 +39,7 @@ export interface ProcessedEnvelope {
 export async function process_envelope_body(
   envelope: DecryptedEnvelope,
   user_email?: string,
+  message_id?: string,
 ): Promise<ProcessedEnvelope> {
   let resolved_html = envelope.body_html ?? envelope.html_body ?? undefined;
 
@@ -52,6 +53,7 @@ export async function process_envelope_body(
         resolved_text,
         user_email,
         envelope.from.email,
+        message_id,
       )
     : resolved_text;
 

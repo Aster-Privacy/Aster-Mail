@@ -386,7 +386,7 @@ export function use_popup_viewer({
           body_text,
           safe_html,
           unsubscribe_info: unsubscribe,
-        } = await process_envelope_body(envelope, user?.email);
+        } = await process_envelope_body(envelope, user?.email, response.data.id);
 
         const decrypted: DecryptedEmail = {
           id: response.data.id,

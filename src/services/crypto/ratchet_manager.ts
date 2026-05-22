@@ -42,6 +42,10 @@ import {
   derive_ratchet_encryption_key,
 } from "./ratchet_sync";
 import { get_derived_encryption_key } from "./memory_key_store";
+import {
+  get_cached_ratchet_plaintext,
+  set_cached_ratchet_plaintext,
+} from "./ratchet_plaintext_cache";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -317,32 +321,46 @@ export async function decrypt_ratchet_message(
   sender_email: string,
   envelope: RatchetEnvelope,
   vault: EncryptedVault,
+  message_id?: string,
 ): Promise<string | null> {
+  if (message_id) {
+    const cached = await get_cached_ratchet_plaintext(message_id);
+
+    if (cached !== null) return cached;
+  }
+
   const our_data = envelope.recipients[our_email.toLowerCase()];
+
+  let plaintext: string | null = null;
 
   if (!our_data) {
     for (const key of Object.keys(envelope.recipients)) {
       if (key.toLowerCase() === our_email.toLowerCase()) {
-        return decrypt_ratchet_for_recipient(
+        plaintext = await decrypt_ratchet_for_recipient(
           our_email,
           sender_email,
           envelope.recipients[key],
           envelope.sender_identity_key,
           vault,
         );
+        break;
       }
     }
-
-    return null;
+  } else {
+    plaintext = await decrypt_ratchet_for_recipient(
+      our_email,
+      sender_email,
+      our_data,
+      envelope.sender_identity_key,
+      vault,
+    );
   }
 
-  return decrypt_ratchet_for_recipient(
-    our_email,
-    sender_email,
-    our_data,
-    envelope.sender_identity_key,
-    vault,
-  );
+  if (plaintext !== null && message_id) {
+    await set_cached_ratchet_plaintext(message_id, plaintext);
+  }
+
+  return plaintext;
 }
 
 async function init_receiver_from_bootstrap(

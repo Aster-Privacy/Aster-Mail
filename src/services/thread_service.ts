@@ -275,6 +275,7 @@ export async function fetch_and_decrypt_thread_messages(
               envelope.from.email,
               ratchet_env,
               vault,
+              msg.id,
             );
 
             if (decrypted) {
@@ -441,6 +442,7 @@ export async function fetch_and_decrypt_virtual_group(
               envelope.from.email,
               ratchet_env,
               vault,
+              item.id,
             );
 
             if (decrypted) {

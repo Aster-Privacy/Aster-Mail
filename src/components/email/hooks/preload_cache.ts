@@ -395,6 +395,7 @@ export async function preload_email_detail(
             resolved_text,
             user_email,
             envelope.from.email,
+            item.id,
           )
         : resolved_text;
 
