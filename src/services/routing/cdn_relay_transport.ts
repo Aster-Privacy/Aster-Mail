@@ -18,22 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { TranslationKey } from "@/lib/i18n/types";
-
 import { connection_store } from "./connection_store";
-
-export class CdnRelayMisconfiguredError extends Error {
-  i18n_key: TranslationKey = "errors.cdn_relay_misconfigured";
-  constructor() {
-    super("cdn_relay_misconfigured");
-  }
-}
-
-try {
-  if (typeof window !== "undefined" && window.localStorage) {
-    window.localStorage.removeItem("aster_relay_auth_token");
-  }
-} catch {}
 
 export async function cdn_relay_fetch(
   url: string,
@@ -42,7 +27,7 @@ export async function cdn_relay_fetch(
   const relay_url = connection_store.get_cdn_relay_url();
 
   if (!relay_url) {
-    throw new CdnRelayMisconfiguredError();
+    return fetch(url, options);
   }
 
   const original = new URL(url);

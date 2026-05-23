@@ -509,6 +509,9 @@ const PRESERVED_LOCAL_KEYS: ReadonlySet<string> = new Set([
   "aster_preferred_sender_id",
   "aster_preferred_currency",
   "aster_connection_method",
+  "aster_cdn_relay_url",
+  "aster_onion_api_url",
+  "aster_onion_mail_url",
   "aster_icon_cache_v9",
   "aster_sw_reset_v1",
 ]);
