@@ -1803,6 +1803,7 @@ export const ar = {
       "متاح في تطبيقات سطح المكتب والهاتف المحمول",
     "connection.requires_desktop_app": "متاح في تطبيق سطح المكتب",
     "connection.coming_soon": "قريباً",
+    "connection.tor_warning": "سيتم توجيه كل حركة المرور عبر شبكة Tor. توقع أداء أبطأ.",
     domain_ownership_verification: "التحقق من ملكية النطاق",
     txt_record: "سجل TXT",
     mail_routing: "توجيه البريد",

@@ -1827,6 +1827,7 @@ export const pl = {
       "Dostępne w aplikacjach desktopowej i mobilnej",
     "connection.requires_desktop_app": "Dostępne w aplikacji desktopowej",
     "connection.coming_soon": "Wkrótce",
+    "connection.tor_warning": "Cały ruch będzie kierowany przez sieć Tor. Spodziewaj się wolniejszego działania.",
     domain_ownership_verification: "Weryfikacja własności domeny",
     txt_record: "Rekord TXT",
     mail_routing: "Routing poczty",

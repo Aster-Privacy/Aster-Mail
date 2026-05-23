@@ -1812,6 +1812,7 @@ export const tr = {
       "Masaüstü ve mobil uygulamalarda kullanılabilir",
     "connection.requires_desktop_app": "Masaüstü uygulamasında kullanılabilir",
     "connection.coming_soon": "Yakında",
+    "connection.tor_warning": "Tüm trafik Tor ağı üzerinden yönlendirilecek. Daha yavaş performans bekleniyor.",
     domain_ownership_verification: "Alan Adı Sahiplik Doğrulaması",
     txt_record: "TXT Kaydı",
     mail_routing: "E-posta Yönlendirme",

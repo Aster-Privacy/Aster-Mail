@@ -1775,6 +1775,7 @@ export const ja = {
       "デスクトップおよびモバイルアプリで利用可能",
     "connection.requires_desktop_app": "デスクトップアプリで利用可能",
     "connection.coming_soon": "近日公開",
+    "connection.tor_warning": "すべてのトラフィックはTorネットワークを経由します。パフォーマンスが低下することがあります。",
     domain_ownership_verification: "ドメイン所有権の確認",
     txt_record: "TXTレコード",
     mail_routing: "メールルーティング",
