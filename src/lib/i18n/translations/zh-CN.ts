@@ -498,7 +498,7 @@ export const zh_CN = {
     no_contacts: "暂无联系人",
     add_contacts_hint: "添加联系人以开始使用",
     add_contact: "添加联系人",
-    file_too_large: "这个文件有 {{size}} MB，超过了 {{limit}} MB 的限制，换一个较小的就可以。",
+    file_too_large: "这个文件有 {{size}} MB，超过了大小限制，换一个较小的就可以。",
     failed_to_upload_attachment: "这个附件未能上传，再试一次应该可以。您的草稿已保存。",
     upload_failed: "上传未能完成，再试一次应该可以。",
     delete_failed: "这个条目未能移除，再试一次应该可以。",

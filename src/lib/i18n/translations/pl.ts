@@ -597,7 +597,7 @@ export const pl = {
     no_contacts: "Brak kontaktów",
     add_contacts_hint: "Dodaj kontakty, aby rozpocząć",
     add_contact: "Dodaj kontakt",
-    file_too_large: "Ten plik ma {{size}} MB, co przekracza limit {{limit}} MB. Warto wybrać mniejszy.",
+    file_too_large: "Ten plik ma {{size}} MB, co przekracza limit. Warto wybrać mniejszy.",
     failed_to_upload_attachment: "Ten załącznik nie został przesłany. Kolejna próba powinna to załatwić. Wersja robocza jest zapisana.",
     upload_failed: "Przesyłanie nie zostało zakończone. Kolejna próba powinna to załatwić.",
     delete_failed: "Ten element nie został usunięty. Kolejna próba powinna to załatwić.",

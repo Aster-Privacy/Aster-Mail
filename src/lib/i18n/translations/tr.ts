@@ -598,7 +598,7 @@ export const tr = {
     no_contacts: "Kişi yok",
     add_contacts_hint: "Başlamak için kişi ekleyin",
     add_contact: "Kişi ekle",
-    file_too_large: "Bu dosya {{size}} MB ve {{limit}} MB sınırının üzerinde. Daha küçük bir dosya seçin.",
+    file_too_large: "Bu dosya {{size}} MB ve boyut sınırının üzerinde. Daha küçük bir dosya seçin.",
     failed_to_upload_attachment: "Bu ek yüklenmedi. Bir kez daha denemek genellikle yeterli olur. Taslağınız saklı.",
     upload_failed: "Yükleme tamamlanmadı. Bir kez daha denemek genellikle yeterli olur.",
     delete_failed: "Bu öğe kaldırılmadı. Bir kez daha denemek genellikle yeterli olur.",
