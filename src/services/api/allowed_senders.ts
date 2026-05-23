@@ -282,8 +282,16 @@ export async function allow_sender(
 ): Promise<ApiResponse<DecryptedAllowedSender>> {
   try {
     const sender_token = await generate_sender_token(email, is_domain);
+    const normalized = is_domain ? email.toLowerCase().trim() : normalize_email(email);
+    const hash_buffer = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(normalized),
+    );
+    const sender_hash = Array.from(new Uint8Array(hash_buffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
     const allow_data: AllowedSenderData = {
-      email: is_domain ? email.toLowerCase().trim() : normalize_email(email),
+      email: normalized,
       name,
       allowed_at: new Date().toISOString(),
       is_domain,
@@ -295,6 +303,7 @@ export async function allow_sender(
       "/contacts/v1/allowed_senders",
       {
         sender_token,
+        sender_hash,
         encrypted_sender_data,
         sender_data_nonce,
         integrity_hash,
