@@ -1666,6 +1666,13 @@ export const en: Translations = {
     force_dark_mode_emails: "Force Dark Mode for Emails",
     force_dark_mode_emails_description:
       "Always render email content in dark mode, overriding the email's original styling",
+    block_external_content: "Block External Content",
+    block_external_content_description: "Block external content until you choose to load it",
+    blocking_mode: "Blocking Mode",
+    blocking_mode_description: "Choose what type of external content to block",
+    trackers_only: "Trackers only",
+    images_only: "Images only",
+    images_and_trackers: "Images and trackers",
     images_section_title: "Images",
     block_remote_images_label: "Block Remote Images",
     block_remote_images_description:
