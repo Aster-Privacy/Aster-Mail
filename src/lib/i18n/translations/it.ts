@@ -2671,7 +2671,7 @@ export const it = {
       "Controlla come la crittografia viene applicata alle tue email",
     encryption_title: "Crittografia",
     alias_limit_all_used:
-      "Hai usato tutti i {{count}} alias del tuo piano attuale.",
+      "Hai usato {{used}} dei {{count}} alias del tuo piano attuale.",
     alias_forwards_description:
       "Crea un nuovo indirizzo che inoltra alla tua casella di posta.",
     address_label: "Indirizzo",

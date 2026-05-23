@@ -2258,7 +2258,7 @@ export const de = {
       "Steuern Sie, wie Verschlüsselung auf Ihre E-Mails angewendet wird",
     encryption_title: "Verschlüsselung",
     alias_limit_all_used:
-      "Sie haben alle {{count}} Aliasse Ihres aktuellen Plans verwendet.",
+      "Sie haben {{used}} von {{count}} Aliasnamen in Ihrem aktuellen Plan verwendet.",
     alias_forwards_description:
       "Erstellen Sie eine neue Adresse, die an Ihren Posteingang weiterleitet.",
     address_label: "Adresse",

@@ -1202,7 +1202,7 @@ export const tr = {
     more_aliases: "{{count}} daha fazla takma ad",
     profile: "Profil",
     probation_message: "Hesabınız şu anda inceleme altında. Bazı özellikler kısıtlı olabilir.",
-    sending_in_seconds: "{{count}} saniye içinde gönderiliyor",
+    sending_in_seconds: "{{seconds}} saniye içinde gönderiliyor...",
     message_will_be_sent_shortly: "Mesajınız kısa süre içinde gönderilecek",
     remove_recovery_email: "Kurtarma e-postasını kaldır",
     remove_recovery_email_confirm: "Kurtarma e-postanızı kaldırmak istediğinizden emin misiniz? Bu e-postayı kullanarak artık hesabınızı kurtaramazsınız.",
@@ -2297,7 +2297,7 @@ export const tr = {
       "Şifrelemenin e-postalarınıza nasıl uygulanacağını kontrol edin",
     encryption_title: "Şifreleme",
     alias_limit_all_used:
-      "Mevcut planınızdaki tüm {{count}} takma adı kullandınız.",
+      "Mevcut planınızda {{count}} takma addan {{used}} tanesini kullandınız.",
     alias_forwards_description:
       "Gelen kutunuza yönlendiren yeni bir adres oluşturun.",
     address_label: "Adres",
@@ -3990,9 +3990,9 @@ export const tr = {
     unsubscribe_confirm_message:
       "Bu posta listesinden aboneliğinizi iptal etmek istediğinizden emin misiniz?",
   
-    all_on_page_selected: "Bu sayfadaki tüm e-postalar seçildi",
-    select_all_in_folder: "Bu klasördeki tümünü seç",
-    all_in_folder_selected: "Bu klasördeki tüm e-postalar seçildi",
+    all_on_page_selected: "Bu sayfadaki {{count}} konuşmanın tamamı seçildi.",
+    select_all_in_folder: "{{folder}} klasöründeki {{count}} konuşmanın tamamını seç",
+    all_in_folder_selected: "{{count}} konuşmanın tamamı seçildi.",
     reply_subject_prefix: "Yt:",
     forward_subject_prefix: "İlt:",
     reply_quote_header: "{{ date }} tarihinde {{ name }} yazdı:",
@@ -4437,7 +4437,7 @@ export const tr = {
     email_copied: "E-posta kopyalandı",
     copy_failed: "E-posta kopyalanamadı",
     pair_device_title: "Cihaz eşleştir",
-    pair_device_confirm: "Eşleştirmeyi onaylayın",
+    pair_device_confirm: "{{name}} adlı cihazı Aster Mail hesabınızla eşleştirmek istiyor musunuz?",
     pair_device_warning: "Eşleştirilmiş bir cihaz şifreniz olmadan postanıza erişebilir; bu nedenle eşleştirmeyi yalnızca yanınızda taşıdığınız cihazlarla yapmanız önerilir. Bir cihaz her zaman Ayarlar, Güvenilen Cihazlar bölümünden kaldırılabilir.",
     pair_device_confirm_button: "Cihazı eşleştir",
     pair_device_cancel: "İptal",

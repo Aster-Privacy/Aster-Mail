@@ -589,7 +589,7 @@ export const ar = {
     no_contacts: "لا توجد جهات اتصال",
     add_contacts_hint: "أضف جهات اتصال للبدء",
     add_contact: "إضافة جهة اتصال",
-    file_too_large: "هذا الملف {{size}} ميغابايت، وهو يتجاوز حد {{limit}} ميغابايت. ملف أصغر سيعمل.",
+    file_too_large: "يجب أن يكون الملف أصغر من {{size}}.",
     failed_to_upload_attachment: "هذا المرفق لم يُرفع. محاولة أخرى ينبغي أن تنجح. مسوّدتك محفوظة.",
     upload_failed: "الرفع لم يكتمل. محاولة أخرى ينبغي أن تنجح.",
     delete_failed: "هذا العنصر لم يُزَل. محاولة أخرى ينبغي أن تنجح.",
@@ -2265,7 +2265,7 @@ export const ar = {
     control_encryption_description: "التحكم في كيفية تطبيق التشفير على رسائلك",
     encryption_title: "التشفير",
     alias_limit_all_used:
-      "لقد استخدمت جميع الأسماء المستعارة البالغ عددها {{count}} في خطتك الحالية.",
+      "لقد استخدمت {{used}} من {{count}} أسماء مستعارة في خطتك الحالية.",
     alias_forwards_description:
       "أنشئ عنوانًا جديدًا يحوّل إلى صندوق الوارد الخاص بك.",
     address_label: "العنوان",
@@ -3433,6 +3433,8 @@ export const ar = {
     export_error_no_vault: "خزنة التشفير مقفلة. سجّل الدخول مجددًا للتصدير.",
     export_error_no_messages_match: "لا توجد رسائل تطابق تحديدك.",
     export_rate_limited_paused: "توقف مؤقت لمراعاة حدود الخادم.",
+    export: "تصدير",
+    upgrade: "ترقية",
   },
   mail: {
     encrypted_message_unavailable:
@@ -4051,6 +4053,11 @@ export const ar = {
     filter_smaller: "أصغر: {{ value }}",
     filter_size: "الحجم: {{ value }}",
     n_forwarded: "{{ count }} محوّل",
+    font: "خط",
+    fonts: "الخطوط",
+    image: "صورة",
+    stylesheet: "ورقة أنماط",
+    open_unsubscribe_page: "فتح صفحة إلغاء الاشتراك",
   },
   auth: {
     sign_in: "تسجيل الدخول",
@@ -4390,6 +4397,8 @@ export const ar = {
     view_terms_of_service: "عرض شروط الخدمة",
     view_privacy_policy: "عرض سياسة الخصوصية",
     backup_email_placeholder: "backup@email.com",
+    email_copied: "تم نسخ البريد",
+    plan_recommended: "موصى به",
   },
   errors: {
     generic: "ذلك لم ينجح. محاولة أخرى ينبغي أن تنجح.",
@@ -4514,6 +4523,17 @@ export const ar = {
     unrecognized_format: "تعذّر التعرف على صيغة {{name}}. يدعم Aster MBOX وEML وCSV وPST، وحفظ الملف بإحدى هذه الصيغ سيُتيح تشغيل الاستيراد.",
     unexpected_health_check_error: "الفحص التشخيصي واجه عقبة. محاولة أخرى ينبغي أن تنجح.",
     all_emails_rejected: "تم تخطي جميع رسائل {{count}} في هذا الملف لأن كل منها كان يفتقر إلى مرسل أو نص، ولم يُستورد شيء. نظرة أخرى على التصدير المصدر عادةً ما تحل الأمر.",
+    alias_not_available: "هذا الاسم المستعار مأخوذ. اسم آخر ينبغي أن يعمل.",
+    connection_failed: "تعذّر الاتصال. نظرة أخرى على إعداداتك ثم محاولة أخرى غالبًا ما يحل الأمر.",
+    failed_to_snooze_emails: "هذه الرسائل لم تُؤجَّل. محاولة أخرى ينبغي أن تنجح. وهي لا تزال في صندوق الوارد.",
+    file_too_large: "هذا الملف {{size}} ميغابايت، وهو يتجاوز حد {{limit}} ميغابايت. ملف أصغر سيعمل.",
+    health_check_failed: "لم ينتهِ الفحص التشخيصي. محاولة أخرى ينبغي أن تنجح.",
+    incorrect_password: "كلمة المرور هذه غير مطابقة. محاولة أخرى ينبغي أن تنجح. حسابك ليس مقفلًا.",
+    no_recipients: "مستلم واحد على الأقل لازم قبل الإرسال.",
+    registration_failed: "التسجيل لم يكتمل. البدء من جديد والمحاولة غالبًا ما يحل الأمر. لم يُنشأ أي حساب.",
+    session_expired_login: "انتهت جلستك. تسجيل الدخول مجددًا يعيدك من حيث توقفت. بياناتك ومسوّداتك محفوظة على الخادم.",
+    unexpected_error: "شيء لم يجرِ كما كان متوقعًا. محاولة أخرى ينبغي أن تنجح.",
+    unknown_error: "شيء ما لم يعمل كما هو متوقع. محاولة أخرى ينبغي أن تنجح. لم نتمكن من تحديد السبب.",
   },
   mail_rules: {
     title: "قواعد البريد",

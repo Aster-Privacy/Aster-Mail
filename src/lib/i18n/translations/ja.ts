@@ -2247,7 +2247,7 @@ export const ja = {
     control_encryption_description: "メールに暗号化を適用する方法を制御します",
     encryption_title: "暗号化",
     alias_limit_all_used:
-      "現在のプランの{{count}}個のエイリアスをすべて使用しました。",
+      "現在のプランで {{count}} 個中 {{used}} 個のエイリアスを使用しています。",
     alias_forwards_description:
       "受信トレイに転送される新しいアドレスを作成します。",
     address_label: "アドレス",
@@ -3186,7 +3186,7 @@ export const ja = {
     images_section_title: "画像",
     import_delete_confirm_description: "このインポートジョブで取り込まれたすべてのメールを完全に削除します。この操作は元に戻せません。",
     import_delete_confirm_title: "インポートしたメールを削除",
-    import_folder_prep_status: "フォルダを準備中...",
+    import_folder_prep_status: "フォルダーを準備しています... ({{done}}/{{total}})",
     import_source_csv: "CSV",
     import_source_eml: "EML",
     import_source_gmail: "Gmail",

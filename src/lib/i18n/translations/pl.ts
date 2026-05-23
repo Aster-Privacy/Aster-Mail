@@ -1208,7 +1208,7 @@ export const pl = {
     more_aliases: "{{count}} więcej aliasów",
     profile: "Profil",
     probation_message: "Twoje konto jest aktualnie weryfikowane. Niektóre funkcje mogą być ograniczone.",
-    sending_in_seconds: "Wysyłanie za {{count}} sekund",
+    sending_in_seconds: "Wysyłanie za {{seconds}} sekund(y)...",
     message_will_be_sent_shortly: "Twoja wiadomość zostanie wkrótce wysłana",
     remove_recovery_email: "Usuń e-mail odzyskiwania",
     remove_recovery_email_confirm: "Czy na pewno chcesz usunąć adres e-mail odzyskiwania? Nie będziesz już móc odzyskać konta przy użyciu tego adresu.",
@@ -2316,7 +2316,7 @@ export const pl = {
       "Kontroluj sposób stosowania szyfrowania do e-maili",
     encryption_title: "Szyfrowanie",
     alias_limit_all_used:
-      "Wykorzystano wszystkie {{count}} aliasów w aktualnym planie.",
+      "Użyto {{used}} z {{count}} aliasów w bieżącym planie.",
     alias_forwards_description:
       "Utwórz nowy adres, który przekierowuje do Twojej skrzynki.",
     address_label: "Adres",
@@ -2800,7 +2800,7 @@ export const pl = {
     billing_monthly: "Miesięcznie",
     billing_yearly: "Rocznie",
     subscribe: "Subskrybuj",
-    free_plan_includes: `3 aliasy \u00b7 1 domena własna`,
+    free_plan_includes: "3 aliasy · 1 własna domena",
     upgrade_for_more:
       "Ulepsz, aby odblokować więcej miejsca, aliasów i funkcji",
     upgrade_for_more_short: "Odblokuj więcej",
@@ -4004,9 +4004,9 @@ export const pl = {
     empty_snoozed_title: "Nic odłożonego",
     empty_snoozed_subtitle: "Odłożone e-maile pojawią się tutaj",
   
-    all_on_page_selected: "Wszystkie wiadomości na tej stronie zostały zaznaczone",
-    select_all_in_folder: "Zaznacz wszystkie w folderze",
-    all_in_folder_selected: "Wszystkie wiadomości w folderze zostały zaznaczone",
+    all_on_page_selected: "Wybrano wszystkie {{count}} rozmów na tej stronie.",
+    select_all_in_folder: "Wybierz wszystkie {{count}} rozmów w {{folder}}",
+    all_in_folder_selected: "Wybrano wszystkie {{count}} rozmów.",
     reply_subject_prefix: "Odp:",
     forward_subject_prefix: "PD:",
     reply_quote_header: "Dnia {{ date }} {{ name }} napisał(-a):",
@@ -4452,7 +4452,7 @@ export const pl = {
     email_copied: "E-mail skopiowany",
     copy_failed: "Nie udało się skopiować e-maila",
     pair_device_title: "Sparuj urządzenie",
-    pair_device_confirm: "Potwierdź parowanie",
+    pair_device_confirm: "Czy chcesz sparować {{name}} z kontem Aster Mail?",
     pair_device_warning: "Sparowane urządzenie może uzyskać dostęp do Twojej poczty bez hasła, dlatego parowanie najlepiej ograniczyć do urządzeń, które masz przy sobie. Urządzenie można usunąć w dowolnym momencie z Ustawień, Zaufane urządzenia.",
     pair_device_confirm_button: "Sparuj urządzenie",
     pair_device_cancel: "Anuluj",
