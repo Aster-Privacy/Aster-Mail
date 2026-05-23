@@ -1765,6 +1765,13 @@ export interface SettingsTranslations {
   show_message_size_description: string;
   force_dark_mode_emails: string;
   force_dark_mode_emails_description: string;
+  block_external_content: string;
+  block_external_content_description: string;
+  blocking_mode: string;
+  blocking_mode_description: string;
+  trackers_only: string;
+  images_only: string;
+  images_and_trackers: string;
   images_section_title: string;
   block_remote_images_label: string;
   block_remote_images_description: string;
