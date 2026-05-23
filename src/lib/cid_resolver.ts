@@ -181,6 +181,11 @@ export async function resolve_cid_references(
     }
   }
 
+  resolved_html = resolved_html.replace(
+    /src=["']cid:[^"']+["']/gi,
+    'src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="',
+  );
+
   return { html: resolved_html, blob_urls };
 }
 

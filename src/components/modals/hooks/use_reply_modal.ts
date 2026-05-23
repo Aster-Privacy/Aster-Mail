@@ -360,6 +360,8 @@ export function use_reply_modal({
           .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
           .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
           .replace(/<head[^>]*>[\s\S]*?<\/head>/gi, "")
+          .replace(/<img[^>]*alt=["']([^"']*)["'][^>]*\/?>/gi, (_m, alt) => alt.trim() ? `[${alt.trim()}]` : "[image]")
+          .replace(/<img[^>]*\/?>/gi, "[image]")
           .replace(/<br\s*\/?>/gi, "\n")
           .replace(/<\/p>/gi, "\n")
           .replace(/<\/div>/gi, "\n")
