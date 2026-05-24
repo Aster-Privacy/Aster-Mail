@@ -46,14 +46,12 @@ class ConnectionStore {
   private state: ConnectionState = { ...DEFAULT_CONNECTION_STATE };
   private listeners: Set<ConnectionListener> = new Set();
   private sync_in_progress_count: number = 0;
-  private has_explicit_local_method: boolean = false;
 
   async initialize(): Promise<void> {
     const raw_method = await this.load_persisted_value(STORAGE_KEY);
     const is_valid = (v: string | null): v is ConnectionMethod =>
       v === "direct" || v === "tor" || v === "tor_snowflake" || v === "cdn_relay";
-    this.has_explicit_local_method = is_valid(raw_method);
-    let method: ConnectionMethod = this.has_explicit_local_method ? (raw_method as ConnectionMethod) : "direct";
+    let method: ConnectionMethod = is_valid(raw_method) ? (raw_method as ConnectionMethod) : "direct";
 
     const supported =
       method === "direct" ||
@@ -63,7 +61,6 @@ class ConnectionStore {
 
     if (!supported) {
       method = "direct";
-      this.has_explicit_local_method = false;
       await this.persist_value(STORAGE_KEY, "direct");
     }
 
@@ -84,7 +81,6 @@ class ConnectionStore {
     if (method === "tor" || method === "tor_snowflake") {
       this.bootstrap_tor_then_sync(method).catch(() => {});
     } else {
-      this.sync_from_server().catch(() => {});
       this.fetch_connection_info().catch(() => {});
     }
   }
@@ -117,26 +113,7 @@ class ConnectionStore {
 
   async sync_from_server(): Promise<void> {
     try {
-      const server_method = await this.load_method_from_server();
-
-      if (server_method && server_method !== this.state.method) {
-        if (this.has_explicit_local_method) {
-          await this.sync_method_to_server(this.state.method).catch(() => {});
-        } else {
-          this.state.method = server_method;
-          this.state.status =
-            server_method === "direct" ? "disconnected" : "connecting";
-          await this.persist_value(STORAGE_KEY, server_method);
-          this.has_explicit_local_method = true;
-          this.notify_listeners();
-        }
-
-        return;
-      }
-
-      if (!server_method) {
-        await this.sync_method_to_server(this.state.method).catch(() => {});
-      }
+      await this.fetch_connection_info();
     } catch {}
   }
 
@@ -188,10 +165,8 @@ class ConnectionStore {
     this.state.method = method;
     this.state.status = method === "direct" ? "disconnected" : "connecting";
     this.state.error_message = null;
-    this.has_explicit_local_method = true;
     await this.persist_value(STORAGE_KEY, method);
     this.notify_listeners();
-    this.sync_method_to_server(method).catch(() => {});
   }
 
   set_status(status: ConnectionStatus, error_message?: string): void {
@@ -230,40 +205,6 @@ class ConnectionStore {
     this.listeners.forEach((listener) => listener(snapshot));
   }
 
-  private async sync_method_to_server(method: ConnectionMethod): Promise<void> {
-    this.sync_in_progress_count++;
-    try {
-      await api_client.put("/settings/v1/preferences/connection", { method });
-    } finally {
-      this.sync_in_progress_count--;
-    }
-  }
-
-  private async load_method_from_server(): Promise<ConnectionMethod | null> {
-    this.sync_in_progress_count++;
-    try {
-      const response = await api_client.get<{ method: string | null }>(
-        "/settings/v1/preferences/connection",
-        { skip_cache: true },
-      );
-
-      const server_method = response.data?.method;
-
-      if (
-        server_method === "direct" ||
-        server_method === "tor" ||
-        server_method === "tor_snowflake" ||
-        server_method === "cdn_relay"
-      ) {
-        return server_method;
-      }
-
-      return null;
-    } finally {
-      this.sync_in_progress_count--;
-    }
-  }
-
   private async load_persisted_value(key: string): Promise<string | null> {
     try {
       if (typeof window !== "undefined" && window.localStorage) {
@@ -294,12 +235,7 @@ class ConnectionStore {
 export const connection_store = new ConnectionStore();
 
 if (typeof window !== "undefined") {
-  window.addEventListener("astermail:authenticated", () => {
-    connection_store.sync_from_server().catch(() => {});
-  });
-
   window.addEventListener("astermail:tor-connected", () => {
-    connection_store.sync_from_server().catch(() => {});
     connection_store.fetch_connection_info().catch(() => {});
   });
 }
