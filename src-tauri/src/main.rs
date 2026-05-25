@@ -179,7 +179,7 @@ fn main() {
             clear_stale_webkit_keychain();
 
             #[cfg(target_os = "macos")]
-            let tray_icon_bytes = include_bytes!("../icons/icon_macos.png").as_slice();
+            let tray_icon_bytes = include_bytes!("../icons/icon_macos_template.png").as_slice();
             #[cfg(windows)]
             let tray_icon_bytes = include_bytes!("../icons/32x32.png").as_slice();
             #[cfg(all(unix, not(target_os = "macos")))]
@@ -199,6 +199,7 @@ fn main() {
 
             let tray = TrayIconBuilder::new()
                 .icon(tray_icon)
+                .icon_as_template(true)
                 .menu(&menu)
                 .tooltip("Aster Mail")
                 .on_menu_event(|app, event| match event.id.as_ref() {
