@@ -3716,6 +3716,9 @@ export const es = {
     delete_messages_title: "Eliminar mensajes",
     delete_messages_confirmation:
       "Los mensajes seleccionados se eliminarán para siempre y no podrás deshacerlo.",
+    confirm_bulk_action_title: "Confirmar acción masiva",
+    confirm_bulk_action_description:
+      "Esta acción afectará a todas las conversaciones de esta vista.",
     archive_messages_title: "Archivar mensajes",
     archive_messages_confirmation:
       "¿Estás seguro de que quieres archivar los mensajes seleccionados?",

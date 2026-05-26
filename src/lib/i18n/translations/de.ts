@@ -3714,6 +3714,9 @@ export const de = {
     delete_messages_title: "Nachrichten löschen",
     delete_messages_confirmation:
       "Die ausgewählten Nachrichten werden endgültig entfernt, und dies lässt sich nicht rückgängig machen.",
+    confirm_bulk_action_title: "Massenaktion bestätigen",
+    confirm_bulk_action_description:
+      "Diese Aktion betrifft jede Konversation in dieser Ansicht.",
     archive_messages_title: "Nachrichten archivieren",
     archive_messages_confirmation:
       "Sind Sie sicher, dass Sie die ausgewählten Nachrichten archivieren möchten?",

@@ -3675,6 +3675,8 @@ export const en: Translations = {
     write_reply: "Write your reply...",
     delete_messages_title: "Delete Messages",
     delete_messages_confirmation: "The selected messages will be removed for good and you cannot undo it.",
+    confirm_bulk_action_title: "Confirm bulk action",
+    confirm_bulk_action_description: "This action will affect every conversation in this view.",
     archive_messages_title: "Archive Messages",
     archive_messages_confirmation:
       "Are you sure you want to archive the selected messages?",

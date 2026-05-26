@@ -3668,6 +3668,9 @@ export const tr = {
     delete_messages_title: "Mesajları Sil",
     delete_messages_confirmation:
       "Seçilen mesajlar kalıcı olarak kaldırılır ve geri alamazsınız.",
+    confirm_bulk_action_title: "Toplu işlemi onayla",
+    confirm_bulk_action_description:
+      "Bu işlem bu görünümdeki her sohbeti etkileyecektir.",
     archive_messages_title: "Mesajları Arşivle",
     archive_messages_confirmation:
       "Seçili mesajları arşivlemek istediğinizden emin misiniz?",

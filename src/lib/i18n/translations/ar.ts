@@ -3578,6 +3578,9 @@ export const ar = {
     delete_messages_title: "حذف الرسائل",
     delete_messages_confirmation:
       "الرسائل المحددة ستُزال نهائيًا ولا يمكن التراجع.",
+    confirm_bulk_action_title: "تأكيد الإجراء الجماعي",
+    confirm_bulk_action_description:
+      "سيؤثر هذا الإجراء على كل محادثة في هذا العرض.",
     archive_messages_title: "أرشفة الرسائل",
     archive_messages_confirmation:
       "هل أنت متأكد أنك تريد أرشفة الرسائل المحددة؟",

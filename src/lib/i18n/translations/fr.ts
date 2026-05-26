@@ -3642,6 +3642,8 @@ export const fr = {
     write_reply: "Rédigez votre réponse...",
     delete_messages_title: "Supprimer les messages",
     delete_messages_confirmation: "Les messages sélectionnés seront retirés pour de bon et vous ne pouvez pas annuler cette action.",
+    confirm_bulk_action_title: "Confirmer l'action groupée",
+    confirm_bulk_action_description: "Cette action affectera toutes les conversations de cette vue.",
     archive_messages_title: "Archiver les messages",
     archive_messages_confirmation:
       "Êtes-vous sûr de vouloir archiver les messages sélectionnés ?",

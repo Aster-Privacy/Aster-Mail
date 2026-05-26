@@ -3586,6 +3586,8 @@ export const ja = {
     write_reply: "返信を入力...",
     delete_messages_title: "メッセージを削除",
     delete_messages_confirmation: "選択したメッセージは完全に削除され、元に戻せません。",
+    confirm_bulk_action_title: "一括操作の確認",
+    confirm_bulk_action_description: "この操作はこのビューのすべての会話に影響します。",
     archive_messages_title: "メッセージをアーカイブ",
     archive_messages_confirmation:
       "選択したメッセージをアーカイブしてもよろしいですか？",

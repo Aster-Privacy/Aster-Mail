@@ -3614,6 +3614,8 @@ export const ru = {
     write_reply: "Напишите ваш ответ...",
     delete_messages_title: "Удалить сообщения",
     delete_messages_confirmation: "Выбранные сообщения будут удалены окончательно, и отменить это нельзя.",
+    confirm_bulk_action_title: "Подтвердите массовое действие",
+    confirm_bulk_action_description: "Это действие затронет все беседы в этом представлении.",
     archive_messages_title: "Архивировать сообщения",
     archive_messages_confirmation:
       "Вы уверены, что хотите архивировать выбранные сообщения?",

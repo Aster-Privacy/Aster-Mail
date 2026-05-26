@@ -3438,6 +3438,8 @@ export const zh_CN = {
     write_reply: "写下您的回复...",
     delete_messages_title: "删除消息",
     delete_messages_confirmation: "所选邮件将被彻底移除，且此操作无法撤销。",
+    confirm_bulk_action_title: "确认批量操作",
+    confirm_bulk_action_description: "此操作将影响此视图中的所有会话。",
     archive_messages_title: "归档消息",
     archive_messages_confirmation: "确定要归档选中的消息吗？",
     mark_spam_title: "标记为垃圾邮件？",

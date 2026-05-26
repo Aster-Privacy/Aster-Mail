@@ -3521,6 +3521,8 @@ export const ko = {
     write_reply: "답장을 작성하세요...",
     delete_messages_title: "메시지 삭제",
     delete_messages_confirmation: "선택한 메시지는 영구히 제거되며 되돌릴 수 없습니다.",
+    confirm_bulk_action_title: "일괄 작업 확인",
+    confirm_bulk_action_description: "이 작업은 이 보기의 모든 대화에 영향을 줍니다.",
     archive_messages_title: "메시지 보관",
     archive_messages_confirmation: "선택한 메시지를 보관하시겠습니까?",
     mark_spam_title: "스팸으로 표시하시겠습니까?",

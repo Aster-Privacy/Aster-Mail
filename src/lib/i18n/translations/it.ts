@@ -3686,6 +3686,8 @@ export const it = {
     write_reply: "Scrivi la tua risposta...",
     delete_messages_title: "Elimina messaggi",
     delete_messages_confirmation: "I messaggi selezionati verranno rimossi definitivamente e non è possibile annullare l'operazione.",
+    confirm_bulk_action_title: "Conferma azione in blocco",
+    confirm_bulk_action_description: "Questa azione interesserà ogni conversazione in questa visualizzazione.",
     archive_messages_title: "Archivia messaggi",
     archive_messages_confirmation:
       "Sei sicuro di voler archiviare i messaggi selezionati?",

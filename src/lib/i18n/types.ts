@@ -3537,6 +3537,8 @@ export interface MailTranslations {
   write_reply: string;
   delete_messages_title: string;
   delete_messages_confirmation: string;
+  confirm_bulk_action_title: string;
+  confirm_bulk_action_description: string;
   archive_messages_title: string;
   archive_messages_confirmation: string;
   mark_spam_title: string;

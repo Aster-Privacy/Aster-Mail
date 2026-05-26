@@ -3608,6 +3608,8 @@ export const nl = {
     write_reply: "Schrijf je antwoord...",
     delete_messages_title: "Berichten verwijderen",
     delete_messages_confirmation: "De geselecteerde berichten worden definitief verwijderd en u kunt dit niet ongedaan maken.",
+    confirm_bulk_action_title: "Bulkactie bevestigen",
+    confirm_bulk_action_description: "Deze actie heeft invloed op elk gesprek in deze weergave.",
     archive_messages_title: "Berichten archiveren",
     archive_messages_confirmation:
       "Weet je zeker dat je de geselecteerde berichten wilt archiveren?",

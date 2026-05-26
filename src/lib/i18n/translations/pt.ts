@@ -3616,6 +3616,8 @@ export const pt = {
     write_reply: "Escreva sua resposta...",
     delete_messages_title: "Excluir Mensagens",
     delete_messages_confirmation: "As mensagens selecionadas serão removidas definitivamente e você não pode desfazer.",
+    confirm_bulk_action_title: "Confirmar ação em massa",
+    confirm_bulk_action_description: "Esta ação afetará todas as conversas nesta visualização.",
     archive_messages_title: "Arquivar Mensagens",
     archive_messages_confirmation:
       "Tem certeza de que deseja arquivar as mensagens selecionadas?",
