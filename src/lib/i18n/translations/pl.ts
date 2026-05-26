@@ -3686,6 +3686,9 @@ export const pl = {
     delete_messages_title: "Usuń wiadomości",
     delete_messages_confirmation:
       "Wybrane wiadomości zostaną trwale usunięte i tej operacji nie można cofnąć.",
+    confirm_bulk_action_title: "Potwierdź akcję zbiorczą",
+    confirm_bulk_action_description:
+      "Ta akcja wpłynie na każdą konwersację w tym widoku.",
     archive_messages_title: "Archiwizuj wiadomości",
     archive_messages_confirmation:
       "Czy na pewno chcesz zarchiwizować zaznaczone wiadomości?",

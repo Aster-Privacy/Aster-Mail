@@ -43,6 +43,7 @@ interface ConfirmModalProps {
   on_dont_ask_change: (value: boolean) => void;
   on_confirm: () => void;
   on_cancel: () => void;
+  hide_dont_ask?: boolean;
 }
 
 export function ConfirmModal({
@@ -55,6 +56,7 @@ export function ConfirmModal({
   on_dont_ask_change,
   on_confirm,
   on_cancel,
+  hide_dont_ask = false,
 }: ConfirmModalProps): React.ReactElement {
   const { t } = use_i18n();
   const is_destructive = confirm_variant === "destructive";
@@ -75,21 +77,23 @@ export function ConfirmModal({
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <label
-            className="inline-flex items-center gap-2 cursor-pointer select-none mt-5"
-            htmlFor="dont-ask-checkbox"
-          >
-            <Checkbox
-              checked={dont_ask}
-              id="dont-ask-checkbox"
-              onCheckedChange={(checked) =>
-                on_dont_ask_change(checked === true)
-              }
-            />
-            <span className="text-13 text-txt-muted">
-              {t("common.dont_ask_again")}
-            </span>
-          </label>
+          {!hide_dont_ask && (
+            <label
+              className="inline-flex items-center gap-2 cursor-pointer select-none mt-5"
+              htmlFor="dont-ask-checkbox"
+            >
+              <Checkbox
+                checked={dont_ask}
+                id="dont-ask-checkbox"
+                onCheckedChange={(checked) =>
+                  on_dont_ask_change(checked === true)
+                }
+              />
+              <span className="text-13 text-txt-muted">
+                {t("common.dont_ask_again")}
+              </span>
+            </label>
+          )}
         </div>
 
         <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">

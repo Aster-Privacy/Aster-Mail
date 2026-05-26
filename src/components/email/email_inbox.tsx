@@ -59,6 +59,7 @@ import {
 } from "@/components/email/inbox/inbox_view_helpers";
 import { use_context_menu_actions } from "@/components/email/inbox/inbox_context_menu_handler";
 import { InboxDialogs } from "@/components/email/inbox/inbox_dialogs";
+import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import {
   EmailList,
   LoadingState,
@@ -699,6 +700,14 @@ export function EmailInbox({
     }
   }, [current_view]);
 
+  const [pending_select_all_action, set_pending_select_all_action] = useState<
+    (() => void) | null
+  >(null);
+
+  const queue_select_all_action = useCallback((action: () => void) => {
+    set_pending_select_all_action(() => action);
+  }, []);
+
   const run_scope_action = useCallback(
     async (action: BulkScopeAction) => {
       try {
@@ -723,77 +732,93 @@ export function EmailInbox({
 
   const handle_delete_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      if (current_view === "trash") {
-        toolbar.handle_empty_trash();
-        selection.exit_select_all_mode();
-        selection.handle_clear_selection();
-        return;
-      }
-      void run_scope_action("trash");
+      queue_select_all_action(() => {
+        if (current_view === "trash") {
+          toolbar.handle_empty_trash();
+          selection.exit_select_all_mode();
+          selection.handle_clear_selection();
+          return;
+        }
+        void run_scope_action("trash");
+      });
       return;
     }
     toolbar.handle_toolbar_delete();
-  }, [selection, toolbar, current_view, run_scope_action]);
+  }, [selection, toolbar, current_view, run_scope_action, queue_select_all_action]);
 
   const handle_archive_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      void run_scope_action("archive");
+      queue_select_all_action(() => {
+        void run_scope_action("archive");
+      });
       return;
     }
     toolbar.handle_toolbar_archive();
-  }, [selection, toolbar, run_scope_action]);
+  }, [selection, toolbar, run_scope_action, queue_select_all_action]);
 
   const handle_unarchive_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      void run_scope_action("unarchive");
+      queue_select_all_action(() => {
+        void run_scope_action("unarchive");
+      });
       return;
     }
     toolbar.handle_toolbar_unarchive();
-  }, [selection, toolbar, run_scope_action]);
+  }, [selection, toolbar, run_scope_action, queue_select_all_action]);
 
   const handle_spam_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      if (current_view === "spam") {
-        void run_scope_action("unmark_spam");
-      } else {
-        void run_scope_action("mark_spam");
-      }
+      queue_select_all_action(() => {
+        if (current_view === "spam") {
+          void run_scope_action("unmark_spam");
+        } else {
+          void run_scope_action("mark_spam");
+        }
+      });
       return;
     }
     toolbar.handle_toolbar_spam();
-  }, [selection, toolbar, current_view, run_scope_action]);
+  }, [selection, toolbar, current_view, run_scope_action, queue_select_all_action]);
 
   const handle_mark_read_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      void run_scope_action("mark_read");
+      queue_select_all_action(() => {
+        void run_scope_action("mark_read");
+      });
       return;
     }
     toolbar.handle_toolbar_mark_read();
-  }, [selection, toolbar, run_scope_action]);
+  }, [selection, toolbar, run_scope_action, queue_select_all_action]);
 
   const handle_mark_unread_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      void run_scope_action("mark_unread");
+      queue_select_all_action(() => {
+        void run_scope_action("mark_unread");
+      });
       return;
     }
     toolbar.handle_toolbar_mark_unread();
-  }, [selection, toolbar, run_scope_action]);
+  }, [selection, toolbar, run_scope_action, queue_select_all_action]);
 
   const handle_toggle_star_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      void run_scope_action(current_view === "starred" ? "unstar" : "star");
+      queue_select_all_action(() => {
+        void run_scope_action(current_view === "starred" ? "unstar" : "star");
+      });
       return;
     }
     toolbar.handle_toolbar_toggle_star();
-  }, [selection, toolbar, current_view, run_scope_action]);
+  }, [selection, toolbar, current_view, run_scope_action, queue_select_all_action]);
 
   const handle_restore_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      void run_scope_action("restore_trash");
+      queue_select_all_action(() => {
+        void run_scope_action("restore_trash");
+      });
       return;
     }
     toolbar.handle_toolbar_restore();
-  }, [selection, toolbar, run_scope_action]);
+  }, [selection, toolbar, run_scope_action, queue_select_all_action]);
 
   const nav = use_inbox_navigation({
     current_view,
@@ -1249,6 +1274,22 @@ export function EmailInbox({
           show_single_spam_confirm={toolbar.show_single_spam_confirm}
           spam_count={email_state.emails.filter((e) => e.is_spam).length}
           trash_count={mail_stats.trash}
+        />
+        <ConfirmModal
+          confirm_text={t("common.ok")}
+          confirm_variant="default"
+          description={t("mail.confirm_bulk_action_description")}
+          dont_ask={false}
+          hide_dont_ask
+          on_cancel={() => set_pending_select_all_action(null)}
+          on_confirm={() => {
+            const action = pending_select_all_action;
+            set_pending_select_all_action(null);
+            action?.();
+          }}
+          on_dont_ask_change={() => {}}
+          show={pending_select_all_action !== null}
+          title={t("mail.confirm_bulk_action_title")}
         />
       </div>
     </ErrorBoundary>
