@@ -3210,6 +3210,7 @@ export const nl = {
     export_progress_eta: "Nog ongeveer {{duration}}",
     export_progress_messages: "{{processed}} van {{total}} berichten",
     export_rate_limited_paused: "Exporteren gepauzeerd vanwege snelheidslimiet - wordt automatisch hervat",
+    onion_billing_unavailable: "Beheer je abonnement vanaf de clearnet-site.",
     export_reauth_failed: "Herverificatie mislukt",
     export_reauth_prompt: "Voer uw wachtwoord in om door te gaan",
     export_reauth_submit: "Verifiëren",

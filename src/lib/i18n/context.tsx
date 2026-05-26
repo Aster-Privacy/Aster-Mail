@@ -45,6 +45,11 @@ import {
   is_rtl_language,
   is_valid_language_code,
 } from "./languages";
+import {
+  CROSS_APP_LANGUAGE_COOKIE,
+  read_cross_app_cookie,
+  write_cross_app_cookie,
+} from "@/lib/cross_app_prefs";
 
 const STORAGE_KEY = "astermail_language";
 
@@ -81,9 +86,21 @@ function interpolate(
 function get_initial_language(): LanguageCode {
   if (typeof window === "undefined") return "en";
 
+  const cookie_value = read_cross_app_cookie(CROSS_APP_LANGUAGE_COOKIE);
+
+  if (cookie_value && is_valid_language_code(cookie_value)) {
+    try {
+      localStorage.setItem(STORAGE_KEY, cookie_value);
+    } catch {}
+
+    return cookie_value as LanguageCode;
+  }
+
   const stored = localStorage.getItem(STORAGE_KEY);
 
   if (stored && is_valid_language_code(stored)) {
+    write_cross_app_cookie(CROSS_APP_LANGUAGE_COOKIE, stored);
+
     return stored as LanguageCode;
   }
 
@@ -113,6 +130,7 @@ export function I18nProvider({
       set_is_loading(true);
       set_language_state(code);
       localStorage.setItem(STORAGE_KEY, code);
+      write_cross_app_cookie(CROSS_APP_LANGUAGE_COOKIE, code);
 
       document.documentElement.lang = code;
       document.documentElement.dir = is_rtl_language(code) ? "rtl" : "ltr";

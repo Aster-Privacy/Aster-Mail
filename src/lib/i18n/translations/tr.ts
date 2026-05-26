@@ -3526,7 +3526,8 @@ export const tr = {
     export_error_write_fatal: "Seçilen hedefe yazılamadı. Dışa aktarma durduruldu.",
     export_error_no_vault: "Şifreleme kasanız kilitli. Dışa aktarmak için yeniden oturum açın.",
     export_error_no_messages_match: "Seçiminizle eşleşen mesaj yok.",
-    export_rate_limited_paused: "Sunucu sınırlarına uymak için kısa süre duraklandı.",},
+    export_rate_limited_paused: "Sunucu sınırlarına uymak için kısa süre duraklandı.",
+    onion_billing_unavailable: "Aboneliğini clearnet sitesinden yönet.",},
   mail: {
     encrypted_message_unavailable:
       "Bu mesajın şifresi çözülemedi. Gönderici güncelliğini yitirmiş bir anahtar kullanmış olabilir.",

@@ -33,6 +33,7 @@ import { get_image_proxy_url } from "@/lib/image_proxy";
 import { api_client } from "@/services/api/client";
 import { routed_fetch } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
+import { app_url } from "@/lib/canonical_urls";
 
 const IMAGE_PROXY_URL = get_image_proxy_url();
 
@@ -67,9 +68,7 @@ async function resolve_native_images(doc: Document): Promise<void> {
         return;
       }
 
-      const url = src.startsWith("http")
-        ? src
-        : `https://app.astermail.org${src}`;
+      const url = src.startsWith("http") ? src : `${app_url()}${src}`;
 
       const response = await routed_fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -282,7 +281,7 @@ a, a * { color: #60a5fa !important; }`
       ? "https://app.astermail.org"
       : typeof window !== "undefined"
         ? window.location.origin
-        : "https://app.astermail.org";
+        : app_url();
   const tor_csp = is_tor_mode
     ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
     : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: ${csp_img_origin}; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; form-action 'none';">`;

@@ -26,6 +26,7 @@ import { SuspensionBanner } from "@/components/common/suspension_overlay";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
 import { UpdateBanner } from "@/components/updates/update_banner";
+import { terms_url, privacy_url } from "@/lib/canonical_urls";
 
 function is_chunk_load_error(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
@@ -223,13 +224,11 @@ function App() {
                 path="/verify-recovery-email"
               />
               <Route
-                element={<ExternalRedirect url="https://astermail.org/terms" />}
+                element={<ExternalRedirect url={terms_url()} />}
                 path="/terms"
               />
               <Route
-                element={
-                  <ExternalRedirect url="https://astermail.org/privacy" />
-                }
+                element={<ExternalRedirect url={privacy_url()} />}
                 path="/privacy"
               />
               <Route

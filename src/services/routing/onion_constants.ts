@@ -19,17 +19,46 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 export const CANONICAL_API_ONION =
-  "kvwjvhbeoaxmv5hece4mhcigurxv33bmnhzvdqsddtaovkxm6pqpubqd.onion";
+  "asterwkopxf427ndjpgco5swerhivljvwcsggsxmfgmve4awbahpcrqd.onion";
 
 export const CANONICAL_MAIL_ONION =
-  "ruljp6cylip5dzfhpz434vohwkchbswzqcithrke6tjoikj26r6n42id.onion";
+  "asterabf3d5xhqtphx5u462oegteygodgae5y542vmcai22ipkd3ojqd.onion";
 
-export function is_canonical_api_onion(host: string): boolean {
-  const normalized = host
+export const CANONICAL_WEB_ONION =
+  "asterlq6kalut366uozjjm7kgle5lrr4q72noqncnrhyupatl4dc5jyd.onion";
+
+export const LEGACY_API_ONIONS: readonly string[] = [
+  "kvwjvhbeoaxmv5hece4mhcigurxv33bmnhzvdqsddtaovkxm6pqpubqd.onion",
+];
+
+export const LEGACY_MAIL_ONIONS: readonly string[] = [
+  "ruljp6cylip5dzfhpz434vohwkchbswzqcithrke6tjoikj26r6n42id.onion",
+];
+
+function normalize_host(host: string): string {
+  return host
     .replace(/^https?:\/\//, "")
     .replace(/\/+$/, "")
     .replace(/\.+$/, "")
     .toLowerCase();
+}
 
-  return normalized === CANONICAL_API_ONION;
+export function is_canonical_api_onion(host: string): boolean {
+  const normalized = normalize_host(host);
+
+  if (normalized === CANONICAL_API_ONION) return true;
+
+  return LEGACY_API_ONIONS.includes(normalized);
+}
+
+export function is_known_onion_host(host: string): boolean {
+  const normalized = normalize_host(host);
+
+  if (normalized === CANONICAL_API_ONION) return true;
+  if (normalized === CANONICAL_MAIL_ONION) return true;
+  if (normalized === CANONICAL_WEB_ONION) return true;
+  if (LEGACY_API_ONIONS.includes(normalized)) return true;
+  if (LEGACY_MAIL_ONIONS.includes(normalized)) return true;
+
+  return false;
 }

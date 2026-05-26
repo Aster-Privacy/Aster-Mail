@@ -3321,6 +3321,7 @@ export const es = {
     export_progress_eta: "Aproximadamente {{duration}} restante",
     export_progress_messages: "{{processed}} de {{total}} mensajes",
     export_rate_limited_paused: "Exportación pausada - límite alcanzado",
+    onion_billing_unavailable: "Gestiona tu suscripción desde el sitio clearnet.",
     export_reauth_failed: "Verificación fallida",
     export_reauth_prompt: "Ingresa tu contraseña para continuar",
     export_reauth_submit: "Verificar",

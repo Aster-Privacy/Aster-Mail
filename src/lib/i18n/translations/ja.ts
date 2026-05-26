@@ -3442,6 +3442,7 @@ export const ja = {
     export_error_no_vault: "暗号化保管庫がロックされています。エクスポートするには再度サインインしてください。",
     export_error_no_messages_match: "選択に一致するメッセージがありません。",
     export_rate_limited_paused: "サーバー制限を遵守するために一時停止しています。",
+    onion_billing_unavailable: "サブスクリプションはクリアネットのサイトから管理してください。",
   },
   mail: {
     encrypted_message_unavailable:

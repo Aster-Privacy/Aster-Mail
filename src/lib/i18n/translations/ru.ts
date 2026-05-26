@@ -3220,6 +3220,7 @@ export const ru = {
     export_progress_eta: "Осталось около {{ duration }}",
     export_progress_messages: "{{ processed }} из {{ total }} сообщений",
     export_rate_limited_paused: "Кратковременная пауза из-за серверных ограничений.",
+    onion_billing_unavailable: "Управляйте подпиской на сайте в обычной сети.",
     export_reauth_failed: "Пароль не совпал.",
     export_reauth_prompt: "Введите пароль аккаунта для авторизации экспорта.",
     export_reauth_submit: "Авторизовать",

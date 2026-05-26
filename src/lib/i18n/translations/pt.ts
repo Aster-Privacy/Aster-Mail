@@ -3475,6 +3475,7 @@ export const pt = {
     export_error_no_vault: "Seu vault de criptografia está bloqueado. Entre novamente para exportar.",
     export_error_no_messages_match: "Nenhuma mensagem corresponde à sua seleção.",
     export_rate_limited_paused: "Pausado brevemente para respeitar os limites do servidor.",
+    onion_billing_unavailable: "Gerencie sua assinatura pelo site clearnet.",
   },
   mail: {
     encrypted_message_unavailable:

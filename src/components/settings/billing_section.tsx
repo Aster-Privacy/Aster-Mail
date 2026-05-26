@@ -45,6 +45,7 @@ import { request_cache } from "@/services/api/request_cache";
 import { use_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_onion_origin, homepage_url } from "@/lib/canonical_urls";
 import {
   PLAN_TIERS,
   CURRENCY_STORAGE_KEY,
@@ -446,6 +447,24 @@ export function BillingSection() {
         ),
       )
     : 0;
+
+  if (is_onion_origin()) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          {t("settings.onion_billing_unavailable")}
+        </p>
+        <a
+          className="text-sm font-medium text-blue-500 hover:text-blue-400 transition-colors underline-offset-4 hover:underline"
+          href={homepage_url()}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {homepage_url()}
+        </a>
+      </div>
+    );
+  }
 
   if (is_initial_load) {
     return <SettingsSkeleton variant="billing" />;

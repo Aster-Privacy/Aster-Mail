@@ -3493,6 +3493,7 @@ export const en: Translations = {
     export_error_no_vault: "Your encryption vault is locked. Sign back in to export.",
     export_error_no_messages_match: "No messages match your selection.",
     export_rate_limited_paused: "Paused briefly to respect server limits.",
+    onion_billing_unavailable: "Manage your subscription from the clearnet site.",
   },
   mail: {
     encrypted_message_unavailable:

@@ -3000,6 +3000,7 @@ export const zh_CN = {
     export_progress_bytes_written: "已写入 {{bytes}}",
     export_progress_eta: "预计剩余 {{duration}}",
     export_rate_limited_paused: "导出已暂停以遵守速率限制，稍后将自动恢复...",
+    onion_billing_unavailable: "请在明网站点管理您的订阅。",
     export_cancel: "取消导出",
     export_complete_summary: "已导出 {{count}}/{{total}} 封邮件。",
     export_complete_bytes: "文件大小：{{bytes}}",

@@ -91,6 +91,11 @@ function load_turnstile_script(): Promise<void> {
   });
 }
 
+const is_onion_host =
+  typeof window !== "undefined" &&
+  typeof window.location !== "undefined" &&
+  window.location.hostname.toLowerCase().endsWith(".onion");
+
 export const TurnstileWidget = forwardRef<
   TurnstileWidgetRef,
   TurnstileWidgetProps
@@ -103,6 +108,12 @@ export const TurnstileWidget = forwardRef<
 
   on_verify_ref.current = on_verify;
   on_expire_ref.current = on_expire;
+
+  useEffect(() => {
+    if (is_onion_host) {
+      on_verify_ref.current("onion-bypass");
+    }
+  }, []);
 
   const reset = useCallback(() => {
     if (widget_id_ref.current && window.turnstile) {
@@ -144,6 +155,7 @@ export const TurnstileWidget = forwardRef<
     };
   }, [theme]);
 
+  if (is_onion_host) return null;
   if (!TURNSTILE_SITE_KEY) return null;
 
   return (

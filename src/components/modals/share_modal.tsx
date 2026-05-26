@@ -27,6 +27,7 @@ import {
 import { Button } from "@aster/ui";
 
 import { open_external } from "@/utils/open_link";
+import { invite_url } from "@/lib/canonical_urls";
 import {
   Modal,
   ModalHeader,
@@ -69,7 +70,7 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
       clearTimeout(copy_timeout_ref.current);
     }
     navigator.clipboard
-      .writeText("https://astermail.org/invite")
+      .writeText(invite_url())
       .catch(() => {});
     set_copy_success(true);
     copy_timeout_ref.current = setTimeout(() => {
@@ -80,7 +81,7 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
 
   const handle_twitter_share = () => {
     const text = encodeURIComponent(t("common.check_out_aster_mail"));
-    const url = encodeURIComponent("https://astermail.org/invite");
+    const url = encodeURIComponent(invite_url());
 
     open_external(
       `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
@@ -90,7 +91,7 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
 
   const handle_whatsapp_share = () => {
     const text = encodeURIComponent(
-      `${t("common.check_out_aster_mail")} https://astermail.org/invite`,
+      `${t("common.check_out_aster_mail")} ${invite_url()}`,
     );
 
     open_external(`https://wa.me/?text=${text}`);

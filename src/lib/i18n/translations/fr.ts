@@ -3242,6 +3242,7 @@ export const fr = {
     export_progress_eta: "Environ {{duration}} restant",
     export_progress_messages: "{{processed}} sur {{total}} messages",
     export_rate_limited_paused: "Exportation suspendue - limite atteinte",
+    onion_billing_unavailable: "Gérez votre abonnement depuis le site clearnet.",
     export_reauth_failed: "Vérification échouée",
     export_reauth_prompt: "Entrez votre mot de passe pour continuer",
     export_reauth_submit: "Vérifier",

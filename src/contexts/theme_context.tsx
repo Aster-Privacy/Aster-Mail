@@ -28,6 +28,11 @@ import {
 } from "react";
 
 import { update_status_bar_theme } from "@/native/capacitor_bridge";
+import {
+  CROSS_APP_THEME_COOKIE,
+  read_cross_app_cookie,
+  write_cross_app_cookie,
+} from "@/lib/cross_app_prefs";
 
 type Theme = "light" | "dark";
 
@@ -43,18 +48,54 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = "astermail_theme";
 
+function get_system_theme(): Theme {
+  if (typeof window === "undefined") return "dark";
+  try {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  } catch {
+    return "dark";
+  }
+}
+
 function get_initial_theme(): Theme {
+  const cookie_value = read_cross_app_cookie(CROSS_APP_THEME_COOKIE);
+
+  if (cookie_value === "dark" || cookie_value === "light") {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, cookie_value);
+    } catch {}
+
+    return cookie_value;
+  }
+
+  if (cookie_value === "system") {
+    const resolved = get_system_theme();
+
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, resolved);
+    } catch {}
+
+    return resolved;
+  }
+
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+
+    if (stored === "dark" || stored === "light") {
+      write_cross_app_cookie(CROSS_APP_THEME_COOKIE, stored);
+
+      return stored;
+    }
+  } catch {}
+
   if (
     typeof document !== "undefined" &&
     document.documentElement.classList.contains("dark")
   ) {
     return "dark";
   }
-  try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
-
-    if (stored === "dark" || stored === "light") return stored;
-  } catch {}
 
   return "dark";
 }
@@ -74,6 +115,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {}
+
+    write_cross_app_cookie(CROSS_APP_THEME_COOKIE, theme);
 
     update_status_bar_theme(theme === "dark");
   }, [theme]);

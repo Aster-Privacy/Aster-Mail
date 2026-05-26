@@ -3380,6 +3380,7 @@ export const ko = {
     export_error_no_vault: "내보내려면 개인 키가 필요합니다. 로그아웃 후 다시 로그인하면 됩니다.",
     export_error_no_messages_match: "선택한 조건에 맞는 메시지가 없습니다.",
     export_rate_limited_paused: "내보내기가 일시 중지되었습니다. 잠시 후 자동으로 재개됩니다.",
+    onion_billing_unavailable: "구독은 클리어넷 사이트에서 관리하세요.",
   },
   mail: {
     encrypted_message_unavailable: "이 메시지를 복호화할 수 없었습니다. 발신자가 오래된 키를 사용했을 수 있습니다.",

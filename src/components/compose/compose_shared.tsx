@@ -23,6 +23,7 @@ import type {
   DraftAttachmentData,
 } from "@/services/api/multi_drafts";
 import type { TranslationKey } from "@/lib/i18n/types";
+import { homepage_url } from "@/lib/canonical_urls";
 
 export interface ComposeToolbarState {
   scheduled_time: Date | null;
@@ -131,7 +132,7 @@ export const get_aster_footer = (
   if (show_branding === false) return "";
   const secured = t ? t("common.secured_by_aster_mail") : "Secured by";
 
-  return `<br><br>${secured} <a href="https://astermail.org" target="_blank" rel="noopener noreferrer">Aster Mail</a>`;
+  return `<br><br>${secured} <a href="${homepage_url()}" target="_blank" rel="noopener noreferrer">Aster Mail</a>`;
 };
 export const ALLOWED_MIME_TYPES = new Set([
   "application/pdf",

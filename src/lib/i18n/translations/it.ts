@@ -3538,6 +3538,7 @@ export const it = {
     export_error_no_vault: "Il tuo vault di cifratura è bloccato. Accedi di nuovo per esportare.",
     export_error_no_messages_match: "Nessun messaggio corrisponde alla tua selezione.",
     export_rate_limited_paused: "Messo in pausa brevemente per rispettare i limiti del server.",
+    onion_billing_unavailable: "Gestisci il tuo abbonamento dal sito clearnet.",
   },
   mail: {
     encrypted_message_unavailable:

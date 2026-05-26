@@ -119,6 +119,14 @@ function assert_tor_routable(): { onion_host: string } {
   return { onion_host: CANONICAL_API_ONION };
 }
 
+function is_onion_origin(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.location !== "undefined" &&
+    window.location.hostname.toLowerCase().endsWith(".onion")
+  );
+}
+
 export function get_effective_base_url(default_base_url: string): string {
   const method = connection_store.get_method();
 
@@ -134,6 +142,10 @@ export function get_effective_base_url(default_base_url: string): string {
     if (relay_url) {
       return `${relay_url}/api`;
     }
+  }
+
+  if (is_onion_origin()) {
+    return `http://${CANONICAL_API_ONION}/api`;
   }
 
   return default_base_url;
@@ -189,6 +201,21 @@ export async function routed_fetch(
     default:
       if (is_tauri_env()) {
         return tauri_proxy_fetch(url, options);
+      }
+
+      if (is_onion_origin()) {
+        try {
+          const parsed = new URL(url, window.location.origin);
+
+          if (!parsed.hostname.toLowerCase().endsWith(".onion")) {
+            parsed.protocol = "http:";
+            parsed.host = CANONICAL_API_ONION;
+
+            return fetch(parsed.toString(), options);
+          }
+        } catch {
+          return fetch(url, options);
+        }
       }
 
       return fetch(url, options);

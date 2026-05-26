@@ -25,6 +25,7 @@ import { Button } from "@aster/ui";
 import { show_toast } from "@/components/toast/simple_toast";
 import { open_external } from "@/utils/open_link";
 import { use_i18n } from "@/lib/i18n/context";
+import { status_url } from "@/lib/canonical_urls";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -108,7 +109,7 @@ function ErrorBoundaryFallback({
         <Button
           size="md"
           variant="secondary"
-          onClick={() => open_external("https://status.astermail.org/")}
+          onClick={() => open_external(status_url())}
         >
           {t("common.view_status")}
         </Button>

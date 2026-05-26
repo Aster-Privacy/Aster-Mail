@@ -3537,7 +3537,8 @@ export const pl = {
     export_error_no_vault: "Twój sejf szyfrowania jest zablokowany. Zaloguj się ponownie, aby wyeksportować.",
     export_error_no_messages_match: "Brak wiadomości pasujących do Twojego wyboru.",
     export_rate_limited_paused: "Krótka przerwa, aby przestrzegać limitów serwera.",
-    plan_f_signed_in_accounts: "Zalogowane konta",},
+    plan_f_signed_in_accounts: "Zalogowane konta",
+    onion_billing_unavailable: "Zarządzaj subskrypcją z witryny w clearnecie.",},
   mail: {
     encrypted_message_unavailable:
       "Nie można odszyfrować tej wiadomości. Nadawca mógł użyć nieaktualnego klucza.",

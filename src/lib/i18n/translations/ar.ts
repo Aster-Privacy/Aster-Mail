@@ -3434,6 +3434,7 @@ export const ar = {
     export_error_no_vault: "خزنة التشفير مقفلة. سجّل الدخول مجددًا للتصدير.",
     export_error_no_messages_match: "لا توجد رسائل تطابق تحديدك.",
     export_rate_limited_paused: "توقف مؤقت لمراعاة حدود الخادم.",
+    onion_billing_unavailable: "أدر اشتراكك من موقع الإنترنت العادي.",
     export: "تصدير",
     upgrade: "ترقية",
   },

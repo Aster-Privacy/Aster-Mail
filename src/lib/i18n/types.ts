@@ -3362,6 +3362,7 @@ export interface SettingsTranslations {
   export_error_no_vault: string;
   export_error_no_messages_match: string;
   export_rate_limited_paused: string;
+  onion_billing_unavailable: string;
 }
 
 export interface MailTranslations {

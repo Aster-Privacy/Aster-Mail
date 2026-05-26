@@ -26,6 +26,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 import { use_is_mobile } from "@/hooks/use_platform";
 import { use_onboarding_checklist } from "@/hooks/use_onboarding_checklist";
+import { download_url } from "@/lib/canonical_urls";
 
 import type { ChecklistTasksState } from "@/services/api/onboarding";
 import type { SettingsSection } from "@/components/settings/settings_panel";
@@ -45,7 +46,6 @@ interface ChecklistRow {
   on_click: () => void;
 }
 
-const DOWNLOAD_URL = "https://astermail.org/download";
 
 export function OnboardingChecklist({
   on_compose,
@@ -63,7 +63,7 @@ export function OnboardingChecklist({
         key: "install_app",
         label_key: "common.onboarding_checklist_install_app",
         on_click: () => {
-          window.open(DOWNLOAD_URL, "_blank", "noopener,noreferrer");
+          window.open(download_url(), "_blank", "noopener,noreferrer");
           mark_install_app_done();
         },
       },

@@ -3315,6 +3315,7 @@ export const de = {
     export_progress_eta: "Noch ca. {{ duration }}",
     export_progress_messages: "{{ processed }} von {{ total }} Nachrichten",
     export_rate_limited_paused: "Kurz pausiert, um Serverlimits einzuhalten.",
+    onion_billing_unavailable: "Verwalte dein Abonnement auf der Clearnet-Seite.",
     export_reauth_failed: "Passphrase stimmte nicht überein.",
     export_reauth_prompt: "Geben Sie Ihre Konto-Passphrase erneut ein, um diesen Export zu autorisieren.",
     export_reauth_submit: "Autorisieren",

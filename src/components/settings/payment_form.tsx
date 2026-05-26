@@ -55,6 +55,7 @@ import {
   use_stripe_theme_tokens,
   build_stripe_element_style,
 } from "@/lib/stripe_appearance";
+import { is_onion_origin, homepage_url } from "@/lib/canonical_urls";
 
 interface payment_form_props {
   plan_name: string;
@@ -106,6 +107,7 @@ export function PaymentForm({
   const { t } = use_i18n();
   const stripe = useStripe();
   const elements = useElements();
+  const on_onion = is_onion_origin();
   const [cardholder_name, set_cardholder_name] = useState("");
   const [billing_postal, set_billing_postal] = useState("");
   const [selected_method, set_selected_method] = useState<
@@ -638,6 +640,25 @@ export function PaymentForm({
     outline: "none",
     transition: "border-color 0.15s ease",
   });
+
+  if (on_onion) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm" style={{ color: colors.text_secondary }}>
+          {t("settings.onion_billing_unavailable")}
+        </p>
+        <a
+          className="text-sm font-medium underline-offset-4 hover:underline"
+          href={homepage_url()}
+          rel="noopener noreferrer"
+          style={{ color: colors.accent }}
+          target="_blank"
+        >
+          {homepage_url()}
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

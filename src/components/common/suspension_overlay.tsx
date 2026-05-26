@@ -21,6 +21,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { appeal_url } from "@/lib/canonical_urls";
 
 export function SuspensionBanner() {
   const { t } = use_i18n();
@@ -93,7 +94,7 @@ export function SuspensionBanner() {
         {reason}{" "}
         <a
           className="hover:underline whitespace-nowrap"
-          href="https://astermail.org/appeal"
+          href={appeal_url()}
           rel="noopener noreferrer"
           style={{ color: "var(--accent-color)" }}
           target="_blank"
