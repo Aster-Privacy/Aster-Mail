@@ -28,6 +28,7 @@ import { Button } from "@aster/ui";
 
 import { Logo } from "@/components/auth/auth_styles";
 import { Spinner } from "@/components/ui/spinner";
+import { pricing_comparison_url } from "@/lib/canonical_urls";
 import { CheckoutModal } from "@/components/settings/checkout_modal";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
@@ -337,12 +338,20 @@ export const RegisterStepPlanSelection = ({
   const handle_continue_free = useCallback(async () => {
     if (is_finalizing) return;
     set_is_finalizing(true);
-    await reg.finalize_registration();
+    try {
+      await reg.finalize_registration();
+    } catch {
+      set_is_finalizing(false);
+    }
   }, [is_finalizing, reg]);
 
   const handle_checkout_success = useCallback(async () => {
     set_is_finalizing(true);
-    await reg.finalize_registration();
+    try {
+      await reg.finalize_registration();
+    } catch {
+      set_is_finalizing(false);
+    }
   }, [reg]);
 
   const price_display_for_checkout = useMemo(() => {
@@ -515,7 +524,7 @@ export const RegisterStepPlanSelection = ({
         </div>
       ) : (
         <div className="w-full grid gap-5 mt-10 md:grid-cols-3 max-w-5xl items-stretch">
-          {PLAN_TIERS.map((tier) => {
+          {PLAN_TIERS.filter((p) => !p.is_family).map((tier) => {
             const cents =
               billing_period === "yearly"
                 ? tier.yearly_cents
@@ -649,7 +658,7 @@ export const RegisterStepPlanSelection = ({
           </button>
           <Button as_child variant="outline">
             <a
-              href="https://astermail.org/pricing#comparison"
+              href={pricing_comparison_url()}
               rel="noopener noreferrer"
               target="_blank"
             >
