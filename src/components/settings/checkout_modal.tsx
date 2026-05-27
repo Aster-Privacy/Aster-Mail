@@ -376,7 +376,7 @@ export function CheckoutModal({
 
   return (
     <Modal
-      close_on_overlay={phase !== "processing"}
+      close_on_overlay={false}
       is_open={open}
       on_close={handle_close}
       show_close_button={phase !== "processing"}
