@@ -119,6 +119,14 @@ export async function hard_flush_and_reload(): Promise<void> {
   is_flushing = true;
 
   try {
+    const route =
+      window.location.pathname + window.location.search + window.location.hash;
+
+    sessionStorage.setItem("aster:intended_route_at", String(Date.now()));
+    sessionStorage.setItem("aster:intended_route", route);
+  } catch {}
+
+  try {
     if ("serviceWorker" in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
 
@@ -136,16 +144,13 @@ export async function hard_flush_and_reload(): Promise<void> {
     }
   } catch {}
 
-  const url = new URL(window.location.href);
-
-  url.searchParams.set("_v", Date.now().toString(36));
-  window.location.replace(url.toString());
+  window.location.reload();
 }
 
-async function check_once(): Promise<void> {
+async function check_once(is_boot = false): Promise<void> {
   const now = Date.now();
 
-  if (now - last_checked_at < 10_000) return;
+  if (!is_boot && now - last_checked_at < 10_000) return;
   last_checked_at = now;
 
   const manifest = await fetch_manifest();
@@ -167,14 +172,69 @@ async function check_once(): Promise<void> {
     aster_version_ref.__aster_version.update_available = update_available;
   }
 
-  void can_auto_reload;
-  void mark_auto_reload;
-  void hard_flush_and_reload;
+  if (!update_available) return;
+
+  if (is_boot) {
+    try {
+      const last = Number(sessionStorage.getItem(AUTO_RELOAD_MARKER) || "0");
+
+      if (Date.now() - last < AUTO_RELOAD_COOLDOWN_MS) return;
+    } catch {}
+    mark_auto_reload();
+    void hard_flush_and_reload();
+
+    return;
+  }
+
+  if (can_auto_reload()) {
+    mark_auto_reload();
+    void hard_flush_and_reload();
+  }
+}
+
+export async function version_check_blocking(timeout_ms: number): Promise<void> {
+  if (typeof window === "undefined") return;
+  if (!import.meta.env.PROD) return;
+  if (!loaded_build) return;
+
+  try {
+    const last = Number(sessionStorage.getItem(AUTO_RELOAD_MARKER) || "0");
+
+    if (Date.now() - last < AUTO_RELOAD_COOLDOWN_MS) return;
+  } catch {}
+
+  const manifest_promise = fetch_manifest();
+  const timeout_promise = new Promise<null>((resolve) => {
+    setTimeout(() => resolve(null), timeout_ms);
+  });
+
+  const manifest = await Promise.race([manifest_promise, timeout_promise]);
+
+  if (!manifest || !manifest.build) return;
+  if (manifest.build === loaded_build) return;
+
+  mark_auto_reload();
+  await hard_flush_and_reload();
+
+  await new Promise<void>(() => {});
 }
 
 export function start_version_check(): void {
   if (typeof window === "undefined") return;
   if (!import.meta.env.PROD) return;
+
+  try {
+    const current = new URL(window.location.href);
+
+    if (current.searchParams.has("_v")) {
+      current.searchParams.delete("_v");
+      window.history.replaceState(
+        window.history.state,
+        "",
+        current.pathname + current.search + current.hash,
+      );
+    }
+  } catch {}
 
   (window as unknown as { __aster_version?: unknown }).__aster_version = {
     version: loaded_version,
@@ -182,7 +242,7 @@ export function start_version_check(): void {
     ts: Date.now(),
   };
 
-  void check_once();
+  void check_once(true);
 
   check_interval = setInterval(() => {
     void check_once();
