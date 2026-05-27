@@ -413,6 +413,20 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     };
   }, []);
 
+  useEffect(() => {
+    if (!state.is_loading || state.has_initial_load) return;
+
+    const timer = setTimeout(() => {
+      set_state((prev) =>
+        prev.is_loading && !prev.has_initial_load
+          ? { ...prev, is_loading: false, has_initial_load: true }
+          : prev,
+      );
+    }, 15000);
+
+    return () => clearTimeout(timer);
+  }, [state.is_loading, state.has_initial_load]);
+
   const state_view_ref = useRef<string>(current_view);
 
   useEffect(() => {

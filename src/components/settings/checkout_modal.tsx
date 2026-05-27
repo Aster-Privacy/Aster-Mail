@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import { type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -197,6 +197,8 @@ export function CheckoutModal({
         return;
       }
 
+      const { loadStripe } = await import("@stripe/stripe-js");
+
       set_stripe_promise(loadStripe(config_response.data.publishable_key));
 
       if (addon_id) {
@@ -343,7 +345,28 @@ export function CheckoutModal({
       );
     }
 
-    if (!stripe_promise) return null;
+    if (!stripe_promise) {
+      return (
+        <div className="flex flex-col items-center justify-center py-10 gap-4">
+          <div
+            className="rounded-xl p-4 text-center"
+            style={{ backgroundColor: colors.danger, color: "#fff" }}
+          >
+            <p className="text-sm font-medium text-white">
+              {error_message || t("settings.failed_checkout")}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handle_close}>
+              {t("common.cancel")}
+            </Button>
+            <Button variant="primary" onClick={initialize}>
+              {t("settings.try_again")}
+            </Button>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <Elements options={elements_options} stripe={stripe_promise}>

@@ -134,8 +134,11 @@ export function use_registration() {
     useState(false);
   const [resend_cooldown, set_resend_cooldown] = useState(0);
   const [is_email_verified, set_is_email_verified] = useState(false);
-  const [recovery_email_required, set_recovery_email_required] =
-    useState(false);
+  const [recovery_email_required, set_recovery_email_required] = useState(
+    typeof window !== "undefined" &&
+      typeof window.location !== "undefined" &&
+      window.location.hostname.toLowerCase().endsWith(".onion"),
+  );
   const verification_poll_ref = useRef<ReturnType<typeof setInterval> | null>(
     null,
   );
@@ -480,14 +483,17 @@ export function use_registration() {
 
     if (vault) {
       try {
-        await save_preferences(
-          {
-            ...DEFAULT_PREFERENCES,
-            profile_color,
-            theme: theme as "light" | "dark",
-          },
-          vault,
-        );
+        await Promise.race([
+          save_preferences(
+            {
+              ...DEFAULT_PREFERENCES,
+              profile_color,
+              theme: theme as "light" | "dark",
+            },
+            vault,
+          ),
+          new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+        ]);
       } catch (e) {
         if (import.meta.env.DEV) console.error(e);
       }
