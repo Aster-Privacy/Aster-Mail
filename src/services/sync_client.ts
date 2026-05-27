@@ -26,6 +26,7 @@ import { check_and_replenish_prekeys } from "./crypto/prekey_service";
 import { refresh_session_activity } from "./session_timeout_service";
 import { connection_store } from "./routing/connection_store";
 import { TorUnavailableError } from "./routing/tor_unavailable_error";
+import { is_onion_host } from "@/lib/onion_host";
 
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 
@@ -80,6 +81,14 @@ class SyncClient {
       throw new TorUnavailableError(
         "tor_not_running",
         "WebSocket sync is disabled in Tor mode to prevent IP leaks",
+      );
+    }
+
+    if (is_onion_host()) {
+      this.should_reconnect = false;
+      throw new TorUnavailableError(
+        "tor_not_running",
+        "WebSocket sync is disabled on onion sites",
       );
     }
 

@@ -27,8 +27,12 @@ import {
 } from "react";
 
 import { useTheme } from "@/contexts/theme_context";
+import { is_onion_host } from "@/lib/onion_host";
 
-export const TURNSTILE_SITE_KEY = import.meta.env.DEV ? "" : (import.meta.env.VITE_TURNSTILE_SITE_KEY || "");
+export const TURNSTILE_SITE_KEY =
+  import.meta.env.DEV || (typeof window !== "undefined" && is_onion_host())
+    ? ""
+    : (import.meta.env.VITE_TURNSTILE_SITE_KEY || "");
 const SCRIPT_URL =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 

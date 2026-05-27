@@ -99,6 +99,7 @@ import { SettingsSaveIndicator } from "@/components/settings/settings_save_indic
 import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_prefetch";
 import { SettingsCacheProvider } from "@/contexts/settings_cache_context";
 import { list_devices } from "@/services/api/devices";
+import { is_onion_host } from "@/lib/onion_host";
 
 export type SettingsSection =
   | "account"
@@ -152,7 +153,8 @@ function get_nav_items(
   general: NavItem[];
   mail: NavItem[];
 } {
-  return {
+  const on_onion = is_onion_host();
+  const result: { general: NavItem[]; mail: NavItem[] } = {
     general: [
       { id: "appearance", label: t("settings.appearance"), icon: SwatchIcon },
       {
@@ -228,6 +230,13 @@ function get_nav_items(
       },
     ],
   };
+
+  if (on_onion) {
+    result.general = result.general.filter((item) => item.id !== "billing");
+    result.mail = result.mail.filter((item) => item.id !== "import");
+  }
+
+  return result;
 }
 
 export function SettingsPanel(props: SettingsPanelProps) {
@@ -518,6 +527,9 @@ function SettingsPanelInner({
       case "ghost_aliases":
         return <GhostAliasesSection />;
       case "billing":
+        if (is_onion_host()) {
+          return null;
+        }
         return (
           <Suspense fallback={null}>
             <BillingSection />
@@ -526,6 +538,9 @@ function SettingsPanelInner({
       case "referral":
         return <ReferralTab />;
       case "import":
+        if (is_onion_host()) {
+          return null;
+        }
         return <ImportSection />;
       case "notifications":
         return <NotificationsSection />;
