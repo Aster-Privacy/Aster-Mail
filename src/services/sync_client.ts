@@ -74,12 +74,8 @@ class SyncClient {
 
   async connect(): Promise<void> {
     const method = connection_store.get_method();
-    const on_onion =
-      typeof window !== "undefined" &&
-      typeof window.location !== "undefined" &&
-      window.location.hostname.toLowerCase().endsWith(".onion");
 
-    if (method === "tor" || method === "tor_snowflake" || on_onion) {
+    if (method === "tor" || method === "tor_snowflake") {
       this.should_reconnect = false;
       throw new TorUnavailableError(
         "tor_not_running",

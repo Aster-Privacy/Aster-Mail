@@ -19,10 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 export const CANONICAL_API_ONION =
-  "kvwjvhbeoaxmv5hece4mhcigurxv33bmnhzvdqsddtaovkxm6pqpubqd.onion";
+  "asterwkopxf427ndjpgco5swerhivljvwcsggsxmfgmve4awbahpcrqd.onion";
 
 export const CANONICAL_MAIL_ONION =
-  "ruljp6cylip5dzfhpz434vohwkchbswzqcithrke6tjoikj26r6n42id.onion";
+  "asterabf3d5xhqtphx5u462oegteygodgae5y542vmcai22ipkd3ojqd.onion";
 
 export function is_canonical_api_onion(host: string): boolean {
   const normalized = host
