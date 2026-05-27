@@ -108,13 +108,9 @@ function is_chunk_load_error(message: string): boolean {
 }
 
 function trigger_chunk_recovery(): void {
-  try {
-    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_MARKER) || "0");
-
-    if (Date.now() - last < CHUNK_RELOAD_COOLDOWN_MS) return;
-    sessionStorage.setItem(CHUNK_RELOAD_MARKER, String(Date.now()));
-  } catch {}
-  void hard_flush_and_reload();
+  void CHUNK_RELOAD_MARKER;
+  void CHUNK_RELOAD_COOLDOWN_MS;
+  void hard_flush_and_reload;
 }
 
 window.addEventListener("unhandledrejection", (event) => {

@@ -56,6 +56,19 @@ function is_user_busy(): boolean {
   return false;
 }
 
+function is_billing_active(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const url = window.location.href.toLowerCase();
+    if (url.includes("billing") || url.includes("checkout") || url.includes("payment")) {
+      return true;
+    }
+    if ((window as unknown as { Stripe?: unknown }).Stripe) return true;
+    if (document.querySelector('iframe[src*="stripe"]')) return true;
+  } catch {}
+  return false;
+}
+
 function can_auto_reload(): boolean {
   if (Date.now() - session_start_ts < AUTO_RELOAD_MIN_AGE_MS) return false;
   try {
@@ -63,6 +76,8 @@ function can_auto_reload(): boolean {
 
     if (Date.now() - last < AUTO_RELOAD_COOLDOWN_MS) return false;
   } catch {}
+
+  if (is_billing_active()) return false;
 
   return !is_user_busy();
 }
@@ -151,10 +166,9 @@ async function check_once(): Promise<void> {
     aster_version_ref.__aster_version.update_available = update_available;
   }
 
-  if (update_available && can_auto_reload()) {
-    mark_auto_reload();
-    void hard_flush_and_reload();
-  }
+  void can_auto_reload;
+  void mark_auto_reload;
+  void hard_flush_and_reload;
 }
 
 export function start_version_check(): void {
