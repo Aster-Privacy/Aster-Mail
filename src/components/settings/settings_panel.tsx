@@ -327,6 +327,11 @@ function SettingsPanelInner({
   }, [on_close, navigate]);
 
   useEffect(() => {
+    if (!is_open) return;
+    void import("@/components/settings/billing_section").catch(() => {});
+  }, [is_open]);
+
+  useEffect(() => {
     if (is_open && !was_open_ref.current) {
       set_section(initial_section || get_persisted_section() || "appearance");
       set_show_mobile_nav(true);

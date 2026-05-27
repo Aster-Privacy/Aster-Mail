@@ -31,6 +31,7 @@ import { initialize_capacitor, hide_splash } from "@/native/capacitor_bridge";
 import {
   start_version_check,
   hard_flush_and_reload,
+  version_check_blocking,
 } from "@/lib/version_check";
 import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { connection_store } from "@/services/routing/connection_store";
@@ -286,25 +287,49 @@ const browser_supported = typeof window.crypto?.subtle === "object";
 
 const Router = is_tauri_runtime ? HashRouter : BrowserRouter;
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <Router>
-    <Provider>
-      {!browser_supported ? (
-        <UnsupportedBrowserPage />
-      ) : use_mobile ? (
-        <Suspense
-          fallback={
-            <div className="h-screen w-screen bg-[var(--bg-primary)]" />
-          }
-        >
-          <MobileApp />
-        </Suspense>
-      ) : (
-        <App />
-      )}
-    </Provider>
-  </Router>,
-);
+const BOOT_VERSION_CHECK_MARKER = "aster:boot_version_checked_at";
+const BOOT_VERSION_CHECK_TTL_MS = 60_000;
+
+async function maybe_block_on_version_check(): Promise<void> {
+  if (!import.meta.env.PROD) return;
+  if (is_tauri_runtime) return;
+  try {
+    const last = Number(sessionStorage.getItem(BOOT_VERSION_CHECK_MARKER) || "0");
+
+    if (last && Date.now() - last < BOOT_VERSION_CHECK_TTL_MS) return;
+  } catch {}
+  try {
+    sessionStorage.setItem(BOOT_VERSION_CHECK_MARKER, String(Date.now()));
+  } catch {}
+
+  try {
+    await version_check_blocking(1500);
+  } catch {}
+}
+
+function mount_app(): void {
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <Router>
+      <Provider>
+        {!browser_supported ? (
+          <UnsupportedBrowserPage />
+        ) : use_mobile ? (
+          <Suspense
+            fallback={
+              <div className="h-screen w-screen bg-[var(--bg-primary)]" />
+            }
+          >
+            <MobileApp />
+          </Suspense>
+        ) : (
+          <App />
+        )}
+      </Provider>
+    </Router>,
+  );
+}
+
+void maybe_block_on_version_check().then(mount_app);
 
 setTimeout(() => {
   evict_stale_favicons().catch(() => {});
