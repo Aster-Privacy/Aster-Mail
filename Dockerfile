@@ -8,6 +8,10 @@ RUN addgroup -g 1001 -S appgroup && \
 
 RUN sed -i 's|application/javascript\s*js;|application/javascript js mjs;|' /etc/nginx/mime.types
 
+RUN mkdir -p /etc/nginx/secret && \
+    printf 'map $is_onion $onion_auth_header { default ""; }\n' > /etc/nginx/secret/onion_secret_map.conf && \
+    chown -R appuser:appgroup /etc/nginx/secret
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY dist /usr/share/nginx/html
 
