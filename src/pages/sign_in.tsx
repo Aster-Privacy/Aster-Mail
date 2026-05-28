@@ -60,6 +60,7 @@ import {
   consume_pending_device_login,
 } from "@/native/desktop_device_auth";
 import { show_toast } from "@/components/toast/simple_toast";
+import { hard_redirect, get_app_query_param } from "@/lib/hard_redirect";
 
 const page_variants = {
   initial: { opacity: 0, y: 8 },
@@ -170,11 +171,9 @@ export default function SignInPage() {
   const checkout_started = useRef(false);
 
   const [is_password_visible, set_is_password_visible] = useState(false);
-  const [username, set_username] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-
-    return params.get("u") || "";
-  });
+  const [username, set_username] = useState(
+    () => get_app_query_param("u") || "",
+  );
   const [password, set_password] = useState("");
   const [email_domain, set_email_domain] = useState<
     "astermail.org" | "aster.cx"
@@ -251,7 +250,7 @@ export default function SignInPage() {
           detail.login_response.vault_nonce,
         );
         setTimeout(() => emit_auth_ready(), 50);
-        window.location.replace(get_safe_next_path());
+        hard_redirect(get_safe_next_path());
       } catch (e) {
         if (import.meta.env.DEV) console.error(e);
         set_device_logging_in(false);
@@ -475,7 +474,7 @@ export default function SignInPage() {
         clean_url.hash = "";
         window.history.replaceState({}, "", clean_url.toString());
 
-        window.location.replace(get_safe_next_path());
+        hard_redirect(get_safe_next_path());
       } catch (err) {
         set_is_checkout_login(false);
         set_username(checkout_username);
@@ -592,12 +591,12 @@ export default function SignInPage() {
 
         set_is_loading(false);
 
-        window.location.replace(get_safe_next_path());
+        hard_redirect(get_safe_next_path());
 
         return;
       } catch (err) {
         if (err instanceof Error && err.message === "login_timeout") {
-          window.location.replace(get_safe_next_path());
+          hard_redirect(get_safe_next_path());
 
           return;
         }

@@ -71,6 +71,7 @@ import { ensure_default_labels } from "@/services/labels/ensure_defaults";
 import { connection_store } from "@/services/routing/connection_store";
 import { load_preferred_sender_from_server } from "@/lib/preferred_sender";
 import { show_toast } from "@/components/toast/simple_toast";
+import { hard_redirect } from "@/lib/hard_redirect";
 import { use_i18n } from "@/lib/i18n/context";
 
 function safe_log_error(err: unknown): void {
@@ -170,7 +171,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const local = current.user.email.split("@")[0] ?? "";
             const path = window.location.pathname;
             if (path !== "/sign-in" && path !== "/register") {
-              window.location.replace(`/sign-in?u=${encodeURIComponent(local)}`);
+              hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
             }
 
             return;
@@ -330,7 +331,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         ensure_ratchet_keys().catch(() => {});
         ensure_default_labels(vault, t).catch(console.error);
         start_session_timeout(user.id);
-        window.location.replace("/");
+        hard_redirect("/");
       }
 
       return result;
@@ -412,7 +413,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
 
         set_is_adding_account(true);
-        window.location.replace(`/sign-in?u=${encodeURIComponent(local)}`);
+        hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
 
         return;
       }
@@ -440,7 +441,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await storage_switch_account(target.id);
       await api_client.load_tokens_for_account(target.id);
 
-      window.location.replace("/");
+      hard_redirect("/");
     },
     [state.current_account_id, set_is_adding_account, t],
   );
@@ -476,7 +477,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     let nav_target = other ? "/" : "/sign-in";
     const fallback_timer = window.setTimeout(() => {
       try {
-        window.location.replace(nav_target);
+        hard_redirect(nav_target);
       } catch {}
     }, 6000);
 
@@ -519,7 +520,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearTimeout(fallback_timer);
       logout_in_flight.current = false;
       try {
-        window.location.replace(nav_target);
+        hard_redirect(nav_target);
       } catch {}
     }
   }, [clear_local_auth_data, state.accounts, state.current_account_id]);
@@ -527,7 +528,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout_all_handler = useCallback(async () => {
     const fallback_timer = window.setTimeout(() => {
       try {
-        window.location.replace("/sign-in");
+        hard_redirect("/sign-in");
       } catch {}
     }, 6000);
 
@@ -550,7 +551,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       clearTimeout(fallback_timer);
       try {
-        window.location.replace("/sign-in");
+        hard_redirect("/sign-in");
       } catch {}
     }
   }, [clear_local_auth_data]);
@@ -562,7 +563,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api_client.set_authenticated(false);
       await clear_local_auth_data();
       show_toast(t("common.session_expired_sign_in"), "info");
-      window.location.replace("/sign-in");
+      hard_redirect("/sign-in");
     };
 
     const handle_session_timeout = async () => {
@@ -576,13 +577,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       await clear_local_auth_data();
       show_toast(t("common.signed_out_inactivity"), "info");
-      window.location.replace("/sign-in");
+      hard_redirect("/sign-in");
     };
 
     const handle_session_revoked = async () => {
       await clear_local_auth_data();
       show_toast(t("common.device_revoked"), "info");
-      window.location.replace("/sign-in");
+      hard_redirect("/sign-in");
     };
 
     window.addEventListener(
