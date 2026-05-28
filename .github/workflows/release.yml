@@ -80,8 +80,15 @@ jobs:
           mkdir -p ~/private_keys
           echo "$APPLE_API_KEY_CONTENT" | base64 --decode > ~/private_keys/AuthKey_${APPLE_API_KEY}.p8
 
+      - name: Build @aster/ui
+        run: |
+          git clone --depth=1 https://github.com/Aster-Privacy/aster-ui.git ../aster-ui
+          cd ../aster-ui
+          npm install --no-audit --no-fund
+          npm run build
+
       - name: Install frontend dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund --force
 
       - name: Build and publish release
         uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
