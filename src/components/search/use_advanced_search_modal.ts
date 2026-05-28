@@ -282,7 +282,7 @@ export function use_advanced_search_modal({
             if (on_search_submit) {
               on_search_submit(q);
             } else {
-              navigate(`/?q=${encodeURIComponent(q)}`);
+              navigate("/", { state: { search_query: q } });
             }
           }
           break;
