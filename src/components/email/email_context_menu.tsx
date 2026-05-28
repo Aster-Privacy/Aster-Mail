@@ -66,8 +66,7 @@ interface TagOption {
   is_assigned: boolean;
 }
 
-interface EmailContextMenuProps {
-  children: React.ReactNode;
+interface EmailContextMenuContentProps {
   email: InboxEmail;
   folders?: FolderOption[];
   tags?: TagOption[];
@@ -91,6 +90,10 @@ interface EmailContextMenuProps {
   disabled?: boolean;
 }
 
+interface EmailContextMenuProps extends EmailContextMenuContentProps {
+  children: React.ReactNode;
+}
+
 function get_folder_style(color: string): React.CSSProperties {
   if (color.startsWith("#")) {
     return { backgroundColor: color };
@@ -99,8 +102,7 @@ function get_folder_style(color: string): React.CSSProperties {
   return {};
 }
 
-export function EmailContextMenu({
-  children,
+export function EmailContextMenuContent({
   email,
   folders = [],
   tags = [],
@@ -122,16 +124,9 @@ export function EmailContextMenu({
   on_restore,
   on_mark_not_spam,
   disabled = false,
-}: EmailContextMenuProps): React.ReactElement {
+}: EmailContextMenuContentProps): React.ReactElement {
   const { t } = use_i18n();
   const [loading_action, set_loading_action] = useState<string | null>(null);
-  const close_time_ref = useRef(0);
-
-  const handle_open_change = useCallback((open: boolean) => {
-    if (!open) {
-      close_time_ref.current = Date.now();
-    }
-  }, []);
 
   const handle_action = useCallback(
     async (action_name: string, handler?: () => void | Promise<void>) => {
@@ -157,19 +152,8 @@ export function EmailContextMenu({
   const current_folder_id =
     email_folders.length > 0 ? email_folders[0].folder_token : "";
 
-  const handle_trigger_context_menu = useCallback((e: React.MouseEvent) => {
-    if (Date.now() - close_time_ref.current < 300) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, []);
-
   return (
-    <ContextMenu modal={false} onOpenChange={handle_open_change}>
-      <ContextMenuTrigger asChild onContextMenu={handle_trigger_context_menu}>
-        {children}
-      </ContextMenuTrigger>
-      <ContextMenuContent className="w-56">
+    <ContextMenuContent className="w-56">
         {on_reply && !is_sent && !is_drafts && !is_scheduled && (
           <ContextMenuItem
             disabled={loading_action === "reply"}
@@ -460,7 +444,35 @@ export function EmailContextMenu({
             </ContextMenuItem>
           </>
         )}
-      </ContextMenuContent>
+    </ContextMenuContent>
+  );
+}
+
+export function EmailContextMenu({
+  children,
+  ...content_props
+}: EmailContextMenuProps): React.ReactElement {
+  const close_time_ref = useRef(0);
+
+  const handle_open_change = useCallback((open: boolean) => {
+    if (!open) {
+      close_time_ref.current = Date.now();
+    }
+  }, []);
+
+  const handle_trigger_context_menu = useCallback((e: React.MouseEvent) => {
+    if (Date.now() - close_time_ref.current < 300) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, []);
+
+  return (
+    <ContextMenu modal={false} onOpenChange={handle_open_change}>
+      <ContextMenuTrigger asChild onContextMenu={handle_trigger_context_menu}>
+        {children}
+      </ContextMenuTrigger>
+      <EmailContextMenuContent {...content_props} />
     </ContextMenu>
   );
 }

@@ -39,7 +39,11 @@ import { Button } from "@aster/ui";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { InboxEmailListItem } from "@/components/email/inbox_email_list_item";
-import { EmailContextMenu } from "@/components/email/email_context_menu";
+import { EmailContextMenuContent } from "@/components/email/email_context_menu";
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+} from "@/components/ui/context_menu";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { preload_email_detail } from "@/components/email/hooks/use_email_detail";
@@ -116,6 +120,21 @@ export function EmailList({
   const { preferences } = use_preferences();
   const hover_timer_ref = useRef<number | null>(null);
   const last_preloaded_ref = useRef<string | null>(null);
+  const [menu_email, set_menu_email] = useState<InboxEmail | null>(null);
+  const close_time_ref = useRef(0);
+
+  const handle_menu_open_change = useCallback((open: boolean) => {
+    if (!open) {
+      close_time_ref.current = Date.now();
+    }
+  }, []);
+
+  const handle_trigger_context_menu = useCallback((e: React.MouseEvent) => {
+    if (Date.now() - close_time_ref.current < 300) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, []);
 
   const all_emails = useMemo(
     () => [...pinned_emails, ...primary_emails],
@@ -188,108 +207,119 @@ export function EmailList({
   }, [all_emails]);
 
   const render_email_item = (email: InboxEmail) => (
-    <EmailContextMenu
+    <InboxEmailListItem
+      attachment_previews={attachment_previews.get(email.id)}
       current_view={current_view}
+      density={density}
       email={email}
-      folders={folders}
-      on_archive={() => on_archive(email)}
-      on_custom_snooze={() => on_custom_snooze(email)}
-      on_delete={() => on_delete(email)}
-      on_folder_toggle={(folder_id) => on_folder_toggle(email, folder_id)}
-      on_forward={() => on_forward(email)}
-      on_mark_not_spam={() => on_mark_not_spam(email)}
-      on_move_to_inbox={() => on_move_to_inbox(email)}
-      on_reply={() => on_reply(email)}
-      on_restore={() => on_restore(email)}
-      on_snooze={(snooze_until) => on_snooze(email, snooze_until)}
-      on_spam={() => on_spam(email)}
-      on_tag_toggle={(tag_token) => on_tag_toggle(email, tag_token)}
-      on_toggle_pin={() => on_toggle_pin(email)}
-      on_toggle_read={() => on_toggle_read(email)}
-      on_unsnooze={() => on_unsnooze(email)}
-      tags={tags.map((t) => ({
-        ...t,
-        is_assigned: email.tags?.some((et) => et.id === t.tag_token) || false,
-      }))}
-    >
-      <InboxEmailListItem
-        attachment_previews={attachment_previews.get(email.id)}
-        current_view={current_view}
-        density={density}
-        email={email}
-        is_active={email.id === selected_email_id}
-        is_focused={email.id === focused_email_id}
-        on_archive={show_hover_actions ? () => on_archive(email) : undefined}
-        on_delete={show_hover_actions ? () => on_delete(email) : undefined}
-        on_email_click={on_email_click}
-        on_mark_not_spam={
-          show_hover_actions ? () => on_mark_not_spam(email) : undefined
-        }
-        on_move_to_inbox={
-          show_hover_actions ? () => on_move_to_inbox(email) : undefined
-        }
-        on_restore={show_hover_actions ? () => on_restore(email) : undefined}
-        on_spam={show_hover_actions ? () => on_spam(email) : undefined}
-        on_toggle_read={
-          show_hover_actions ? () => on_toggle_read(email) : undefined
-        }
-        on_toggle_select={on_toggle_select}
-        on_toggle_star={
-          show_hover_actions ? () => on_toggle_star(email) : undefined
-        }
-        selected_folder_tokens={selected_folder_tokens}
-        selected_ids={selected_ids}
-        selected_tag_tokens={selected_tag_tokens}
-        show_email_preview={show_email_preview}
-        show_message_size={show_message_size}
-        show_profile_pictures={show_profile_pictures}
-        show_thread_count={show_thread_count}
-      />
-    </EmailContextMenu>
+      is_active={email.id === selected_email_id}
+      is_focused={email.id === focused_email_id}
+      on_archive={show_hover_actions ? () => on_archive(email) : undefined}
+      on_delete={show_hover_actions ? () => on_delete(email) : undefined}
+      on_email_click={on_email_click}
+      on_mark_not_spam={
+        show_hover_actions ? () => on_mark_not_spam(email) : undefined
+      }
+      on_move_to_inbox={
+        show_hover_actions ? () => on_move_to_inbox(email) : undefined
+      }
+      on_restore={show_hover_actions ? () => on_restore(email) : undefined}
+      on_spam={show_hover_actions ? () => on_spam(email) : undefined}
+      on_toggle_read={
+        show_hover_actions ? () => on_toggle_read(email) : undefined
+      }
+      on_toggle_select={on_toggle_select}
+      on_toggle_star={
+        show_hover_actions ? () => on_toggle_star(email) : undefined
+      }
+      selected_folder_tokens={selected_folder_tokens}
+      selected_ids={selected_ids}
+      selected_tag_tokens={selected_tag_tokens}
+      show_email_preview={show_email_preview}
+      show_message_size={show_message_size}
+      show_profile_pictures={show_profile_pictures}
+      show_thread_count={show_thread_count}
+    />
   );
 
   return (
-    <>
-      {pinned_emails.length > 0 && (
-        <>
-          {pinned_emails.map((email) => (
-            <div
-              key={email.id}
-              className="border-b border-edge-secondary"
-              style={{
-                contentVisibility: "auto",
-                containIntrinsicSize: email.has_attachment
-                  ? "auto 88px"
-                  : "auto 52px",
-              }}
-              onMouseEnter={() => handle_hover_preload(email.id)}
-            >
-              {render_email_item(email)}
-            </div>
-          ))}
-        </>
-      )}
+    <ContextMenu modal={false} onOpenChange={handle_menu_open_change}>
+      <ContextMenuTrigger asChild onContextMenu={handle_trigger_context_menu}>
+        <div style={{ display: "contents" }}>
+          {pinned_emails.length > 0 && (
+            <>
+              {pinned_emails.map((email) => (
+                <div
+                  key={email.id}
+                  className="border-b border-edge-secondary"
+                  style={{
+                    contentVisibility: "auto",
+                    containIntrinsicSize: email.has_attachment
+                      ? "auto 88px"
+                      : "auto 52px",
+                  }}
+                  onMouseEnter={() => handle_hover_preload(email.id)}
+                  onContextMenu={() => set_menu_email(email)}
+                >
+                  {render_email_item(email)}
+                </div>
+              ))}
+            </>
+          )}
 
-      {primary_emails.length > 0 && (
-        <>
-          {primary_emails.map((email) => (
-            <div
-              key={email.id}
-              className="border-b border-edge-secondary"
-              style={{
-                contentVisibility: "auto",
-                containIntrinsicSize: email.has_attachment
-                  ? "auto 88px"
-                  : "auto 52px",
-              }}
-              onMouseEnter={() => handle_hover_preload(email.id)}
-            >
-              {render_email_item(email)}
-            </div>
-          ))}
-        </>
+          {primary_emails.length > 0 && (
+            <>
+              {primary_emails.map((email) => (
+                <div
+                  key={email.id}
+                  className="border-b border-edge-secondary"
+                  style={{
+                    contentVisibility: "auto",
+                    containIntrinsicSize: email.has_attachment
+                      ? "auto 88px"
+                      : "auto 52px",
+                  }}
+                  onMouseEnter={() => handle_hover_preload(email.id)}
+                  onContextMenu={() => set_menu_email(email)}
+                >
+                  {render_email_item(email)}
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      </ContextMenuTrigger>
+
+      {menu_email && (
+        <EmailContextMenuContent
+          current_view={current_view}
+          email={menu_email}
+          folders={folders}
+          on_archive={() => on_archive(menu_email)}
+          on_custom_snooze={() => on_custom_snooze(menu_email)}
+          on_delete={() => on_delete(menu_email)}
+          on_folder_toggle={(folder_id) =>
+            on_folder_toggle(menu_email, folder_id)
+          }
+          on_forward={() => on_forward(menu_email)}
+          on_mark_not_spam={() => on_mark_not_spam(menu_email)}
+          on_move_to_inbox={() => on_move_to_inbox(menu_email)}
+          on_reply={() => on_reply(menu_email)}
+          on_restore={() => on_restore(menu_email)}
+          on_snooze={(snooze_until) => on_snooze(menu_email, snooze_until)}
+          on_spam={() => on_spam(menu_email)}
+          on_tag_toggle={(tag_token) => on_tag_toggle(menu_email, tag_token)}
+          on_toggle_pin={() => on_toggle_pin(menu_email)}
+          on_toggle_read={() => on_toggle_read(menu_email)}
+          on_unsnooze={() => on_unsnooze(menu_email)}
+          tags={tags.map((t) => ({
+            ...t,
+            is_assigned:
+              menu_email.tags?.some((et) => et.id === t.tag_token) || false,
+          }))}
+        />
       )}
-    </>
+    </ContextMenu>
   );
 }
 
