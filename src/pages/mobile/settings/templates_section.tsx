@@ -31,11 +31,13 @@ import {
 import { SettingsHeader } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_templates } from "@/contexts/templates_context";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   list_templates,
   create_template,
+  update_template,
   delete_template,
 } from "@/services/api/templates";
 
@@ -47,14 +49,32 @@ export function TemplatesSection({
   on_close: () => void;
 }) {
   const { t } = use_i18n();
+  const { reload_templates: reload_context_templates } = use_templates();
   const [templates, set_templates] = useState<DecryptedTemplate[]>([]);
   const [is_loading, set_is_loading] = useState(true);
   const [show_form, set_show_form] = useState(false);
+  const [editing_id, set_editing_id] = useState<string | null>(null);
   const [form_name, set_form_name] = useState("");
-  const [form_category] = useState(t("settings.general"));
+  const [form_category, set_form_category] = useState("");
   const [form_content, set_form_content] = useState("");
   const [is_saving, set_is_saving] = useState(false);
   const [error, set_error] = useState<string | null>(null);
+
+  const open_create_form = useCallback(() => {
+    set_editing_id(null);
+    set_form_name("");
+    set_form_category("");
+    set_form_content("");
+    set_show_form(true);
+  }, []);
+
+  const open_edit_form = useCallback((tmpl: DecryptedTemplate) => {
+    set_editing_id(tmpl.id);
+    set_form_name(tmpl.name);
+    set_form_category(tmpl.category);
+    set_form_content(tmpl.content);
+    set_show_form(true);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,15 +95,42 @@ export function TemplatesSection({
     };
   }, []);
 
-  const handle_create = useCallback(async () => {
+  const handle_save = useCallback(async () => {
     if (!form_name.trim() || !form_content.trim() || is_saving) return;
     set_is_saving(true);
     set_error(null);
-    const res = await create_template({
+    const form_data = {
       name: form_name.trim(),
-      category: form_category,
+      category: form_category.trim() || t("common.general"),
       content: form_content.trim(),
-    });
+    };
+
+    if (editing_id) {
+      const res = await update_template(editing_id, form_data);
+
+      if (res.error) {
+        set_error(res.error);
+        set_is_saving(false);
+
+        return;
+      }
+      set_templates((prev) =>
+        prev.map((tmpl) =>
+          tmpl.id === editing_id ? { ...tmpl, ...form_data } : tmpl,
+        ),
+      );
+      reload_context_templates();
+      set_show_form(false);
+      set_editing_id(null);
+      set_form_name("");
+      set_form_category("");
+      set_form_content("");
+      set_is_saving(false);
+
+      return;
+    }
+
+    const res = await create_template(form_data);
 
     if (res.error) {
       set_error(res.error);
@@ -96,25 +143,39 @@ export function TemplatesSection({
         ...prev,
         {
           id: res.data!.id,
-          name: form_name.trim(),
-          category: form_category,
-          content: form_content.trim(),
+          name: form_data.name,
+          category: form_data.category,
+          content: form_data.content,
           sort_order: 0,
           created_at: res.data!.created_at,
           updated_at: res.data!.created_at,
         },
       ]);
+      reload_context_templates();
       set_show_form(false);
       set_form_name("");
+      set_form_category("");
       set_form_content("");
     }
     set_is_saving(false);
-  }, [form_name, form_category, form_content, is_saving]);
+  }, [
+    editing_id,
+    form_name,
+    form_category,
+    form_content,
+    is_saving,
+    reload_context_templates,
+    t,
+  ]);
 
-  const handle_delete = useCallback(async (id: string) => {
-    await delete_template(id);
-    set_templates((prev) => prev.filter((t) => t.id !== id));
-  }, []);
+  const handle_delete = useCallback(
+    async (id: string) => {
+      await delete_template(id);
+      set_templates((prev) => prev.filter((tmpl) => tmpl.id !== id));
+      reload_context_templates();
+    },
+    [reload_context_templates],
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -171,6 +232,12 @@ export function TemplatesSection({
                 value={form_name}
                 onChange={(e) => set_form_name(e.target.value)}
               />
+              <Input
+                className="w-full"
+                placeholder={t("settings.category_placeholder")}
+                value={form_category}
+                onChange={(e) => set_form_category(e.target.value)}
+              />
               <textarea
                 className="w-full resize-none rounded-xl bg-[var(--mobile-bg-card)] p-4 text-[15px] text-[var(--mobile-text-primary)] placeholder:text-[var(--mobile-text-muted)] outline-none"
                 placeholder={t("settings.template_content_placeholder")}
@@ -182,7 +249,10 @@ export function TemplatesSection({
                 <button
                   className="flex-1 rounded-[16px] bg-[var(--mobile-bg-card)] py-3 text-[15px] font-medium text-[var(--mobile-text-primary)]"
                   type="button"
-                  onClick={() => set_show_form(false)}
+                  onClick={() => {
+                    set_show_form(false);
+                    set_editing_id(null);
+                  }}
                 >
                   {t("common.cancel")}
                 </button>
@@ -198,10 +268,12 @@ export function TemplatesSection({
                       "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                   }}
                   type="button"
-                  onClick={handle_create}
+                  onClick={handle_save}
                 >
                   {is_saving ? (
                     <Spinner size="md" />
+                  ) : editing_id ? (
+                    t("settings.update_template")
                   ) : (
                     t("settings.create_template")
                   )}
@@ -226,7 +298,7 @@ export function TemplatesSection({
                       "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                   }}
                   type="button"
-                  onClick={() => set_show_form(true)}
+                  onClick={open_create_form}
                 >
                   <PlusIcon className="h-5 w-5" />
                   {t("settings.add_template")}
@@ -257,13 +329,22 @@ export function TemplatesSection({
                       <p className="mt-2 text-[13px] text-[var(--mobile-text-muted)] line-clamp-3 whitespace-pre-wrap">
                         {tmpl.content}
                       </p>
-                      <button
-                        className="mt-3 text-[13px] text-[var(--mobile-danger)]"
-                        type="button"
-                        onClick={() => handle_delete(tmpl.id)}
-                      >
-                        {t("common.delete")}
-                      </button>
+                      <div className="mt-3 flex items-center gap-4">
+                        <button
+                          className="text-[13px] text-[var(--mobile-accent)]"
+                          type="button"
+                          onClick={() => open_edit_form(tmpl)}
+                        >
+                          {t("common.edit")}
+                        </button>
+                        <button
+                          className="text-[13px] text-[var(--mobile-danger)]"
+                          type="button"
+                          onClick={() => handle_delete(tmpl.id)}
+                        >
+                          {t("common.delete")}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

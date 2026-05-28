@@ -27,12 +27,14 @@ import { AutoForwardTab } from "./auto_forward_tab";
 import { VacationReplyTab } from "./vacation_reply_tab";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { ExportSection } from "@/components/settings/export_section";
 
 type MailManagementTab =
   | "blocked"
   | "allowlist"
   | "auto_forward"
-  | "vacation_reply";
+  | "vacation_reply"
+  | "export";
 
 export function SenderFiltersSection({
   on_back,
@@ -49,6 +51,7 @@ export function SenderFiltersSection({
     { key: "allowlist", label: t("settings.allowlist_title") },
     { key: "auto_forward", label: t("settings.auto_forward_title") },
     { key: "vacation_reply", label: t("settings.vacation_reply_title") },
+    { key: "export", label: t("settings.export_title") },
   ];
 
   return (
@@ -79,6 +82,11 @@ export function SenderFiltersSection({
         {active_tab === "allowlist" && <AllowlistTab />}
         {active_tab === "auto_forward" && <AutoForwardTab />}
         {active_tab === "vacation_reply" && <VacationReplyTab />}
+        {active_tab === "export" && (
+          <div className="px-4 pt-4">
+            <ExportSection />
+          </div>
+        )}
       </div>
     </div>
   );

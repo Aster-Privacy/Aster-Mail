@@ -18,10 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useCallback, useRef } from "react";
-import { CheckIcon, PencilIcon } from "@heroicons/react/24/outline";
+import type { Badge, BadgePreferences } from "@/services/api/user";
 
-import { SettingsGroup, SettingsHeader } from "./shared";
+import { useEffect, useState, useCallback, useRef } from "react";
+import {
+  CheckIcon,
+  PencilIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+} from "@heroicons/react/24/outline";
+
+import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
 
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -30,6 +37,119 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Spinner } from "@/components/ui/spinner";
 import { PROFILE_COLORS } from "@/constants/profile";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
+import { Button, Switch } from "@aster/ui";
+import {
+  fetch_my_badges,
+  fetch_badge_preferences,
+  update_badge_preferences,
+} from "@/services/api/user";
+import { get_badge_visual } from "@/components/ui/badge_registry";
+import { set_my_badge_prefs } from "@/stores/my_badge_prefs_store";
+import {
+  get_recovery_email,
+  save_recovery_email,
+  resend_recovery_verification,
+  remove_recovery_email,
+} from "@/services/api/recovery_email";
+
+function mask_email(email: string): string {
+  const [local, domain] = email.split("@");
+
+  if (!domain) return email;
+  const masked_local = local.length > 0 ? local[0] + "***" : "***";
+
+  return `${masked_local}@${domain}`;
+}
+
+function RecoveryModal({
+  is_open,
+  on_close,
+  on_save,
+  current,
+}: {
+  is_open: boolean;
+  on_close: () => void;
+  on_save: (email: string) => Promise<void>;
+  current: string | null;
+}) {
+  const { t } = use_i18n();
+  const [email, set_email] = useState(current || "");
+  const [saving, set_saving] = useState(false);
+  const [error, set_error] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (is_open) {
+      set_email(current || "");
+      set_error(null);
+    }
+  }, [is_open, current]);
+
+  const handle_save = async () => {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      set_error(t("common.enter_valid_email"));
+
+      return;
+    }
+    set_saving(true);
+    try {
+      await on_save(email);
+      on_close();
+    } catch (err) {
+      set_error(err instanceof Error ? err.message : t("common.failed_to_save"));
+    } finally {
+      set_saving(false);
+    }
+  };
+
+  return (
+    <Modal is_open={is_open} on_close={on_close} size="md">
+      <ModalHeader>
+        <ModalTitle>{t("common.recovery_email")}</ModalTitle>
+        <ModalDescription>
+          {t("common.recovery_email_modal_description")}
+        </ModalDescription>
+      </ModalHeader>
+      <ModalBody>
+        <Input
+          autoFocus
+          placeholder={t("common.enter_recovery_email")}
+          status={error ? "error" : "default"}
+          type="email"
+          value={email}
+          onChange={(e) => set_email(e.target.value)}
+          onKeyDown={(e) => e["key"] === "Enter" && handle_save()}
+        />
+        {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="ghost" onClick={on_close}>
+          {t("common.cancel")}
+        </Button>
+        <Button disabled={saving} onClick={handle_save}>
+          {saving ? (
+            <>
+              <Spinner className="mr-2" size="md" />
+              {t("common.saving")}
+            </>
+          ) : (
+            t("common.save")
+          )}
+        </Button>
+      </ModalFooter>
+    </Modal>
+  );
+}
 
 export function AccountSection({
   on_back,
@@ -39,8 +159,9 @@ export function AccountSection({
   on_close: () => void;
 }) {
   const { t } = use_i18n();
-  const { user, update_user } = use_auth();
-  const { preferences, update_preference } = use_preferences();
+  const { user, update_user, vault } = use_auth();
+  const { preferences, update_preference, reset_to_defaults } =
+    use_preferences();
   const file_ref = useRef<HTMLInputElement>(null);
   const [uploading, set_uploading] = useState(false);
   const [photo_error, set_photo_error] = useState<string | null>(null);
@@ -49,6 +170,132 @@ export function AccountSection({
     user?.display_name || user?.username || "",
   );
   const [saving_name, set_saving_name] = useState(false);
+  const [badges, set_badges] = useState<Badge[]>([]);
+  const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(null);
+  const [is_badge_saving, set_is_badge_saving] = useState(false);
+  const [recovery, set_recovery] = useState<{
+    email: string | null;
+    verified: boolean;
+  }>({ email: null, verified: false });
+  const [show_recovery_modal, set_show_recovery_modal] = useState(false);
+  const [resending, set_resending] = useState(false);
+  const [removing_recovery, set_removing_recovery] = useState(false);
+  const [show_remove_recovery_confirm, set_show_remove_recovery_confirm] =
+    useState(false);
+  const [show_reset_confirm, set_show_reset_confirm] = useState(false);
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const [badges_response, prefs_response, recovery_response] =
+          await Promise.all([
+            fetch_my_badges(),
+            fetch_badge_preferences(),
+            vault
+              ? get_recovery_email(vault).catch(() => ({
+                  data: { email: null, verified: false },
+                }))
+              : Promise.resolve({ data: { email: null, verified: false } }),
+          ]);
+
+        if (badges_response.data) set_badges(badges_response.data);
+        if (prefs_response.data) {
+          set_badge_prefs(prefs_response.data);
+          set_my_badge_prefs(prefs_response.data);
+        }
+        if (recovery_response.data) set_recovery(recovery_response.data);
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+      }
+    };
+
+    run();
+  }, [vault]);
+
+  const persist_badge_prefs = async (patch: {
+    active_badge_slug?: string | null;
+    show_badge_profile?: boolean;
+    show_badge_signature?: boolean;
+    show_badge_ring?: boolean;
+  }) => {
+    if (!badge_prefs) return;
+    const previous = badge_prefs;
+    const optimistic: BadgePreferences = { ...badge_prefs, ...patch };
+
+    set_badge_prefs(optimistic);
+    set_my_badge_prefs(optimistic);
+    set_is_badge_saving(true);
+    try {
+      const response = await update_badge_preferences(patch);
+
+      if (response.data) {
+        set_badge_prefs(response.data);
+        set_my_badge_prefs(response.data);
+      } else {
+        set_badge_prefs(previous);
+        set_my_badge_prefs(previous);
+        show_toast(response.error || t("badges.claim_failed"), "error");
+      }
+    } catch {
+      set_badge_prefs(previous);
+      set_my_badge_prefs(previous);
+      show_toast(t("badges.claim_failed"), "error");
+    } finally {
+      set_is_badge_saving(false);
+    }
+  };
+
+  const save_recovery = async (email: string) => {
+    if (!vault) return;
+    const r = await save_recovery_email(email, vault);
+
+    if (r.code === "CONFLICT") {
+      throw new Error(t("common.recovery_conflict"));
+    }
+    if (r.data.success) {
+      set_recovery({ email, verified: false });
+    } else throw new Error("Failed");
+  };
+
+  const handle_resend = async () => {
+    if (resending) return;
+    set_resending(true);
+    try {
+      const r = await resend_recovery_verification();
+
+      if (r.data.success) {
+        show_toast(t("common.verification_email_sent"), "success");
+      } else {
+        show_toast(t("common.failed_verification_email"), "error");
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+      show_toast(t("common.failed_to_send_verification"), "error");
+    } finally {
+      set_resending(false);
+    }
+  };
+
+  const handle_remove_recovery = async () => {
+    if (removing_recovery) return;
+    set_removing_recovery(true);
+    try {
+      const r = await remove_recovery_email();
+
+      if (r.data.success) {
+        set_recovery({ email: null, verified: false });
+        show_toast(t("common.recovery_email_removed"), "success");
+      } else {
+        show_toast(t("common.failed_remove_recovery_email"), "error");
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+      show_toast(t("common.failed_remove_recovery_email"), "error");
+    } finally {
+      set_removing_recovery(false);
+      set_show_remove_recovery_confirm(false);
+    }
+  };
 
   const handle_photo = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -255,7 +502,163 @@ export function AccountSection({
             ))}
           </div>
         </SettingsGroup>
+
+        {badges.length > 0 && badge_prefs && (
+          <SettingsGroup title={t("badges.active_badge")}>
+            <div className="flex flex-wrap gap-2 px-4 py-4">
+              {badges.map((badge) => {
+                const visual = get_badge_visual(badge.slug);
+                const Icon = visual.icon;
+                const is_active = badge_prefs.active_badge_slug === badge.slug;
+
+                return (
+                  <button
+                    key={badge.slug}
+                    className={cn(
+                      "inline-flex select-none items-center gap-1.5 rounded-[12px] px-3 py-1.5 text-xs font-medium",
+                      is_active
+                        ? "bg-[var(--accent-blue)] text-white"
+                        : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]",
+                    )}
+                    disabled={is_badge_saving}
+                    type="button"
+                    onClick={() =>
+                      persist_badge_prefs({
+                        active_badge_slug: is_active ? null : badge.slug,
+                      })
+                    }
+                  >
+                    <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="truncate">{badge.display_name}</span>
+                    {badge.find_order != null && (
+                      <span className="tabular-nums opacity-80">
+                        #{badge.find_order.toLocaleString()}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <SettingsRow
+              label={t("badges.show_on_profile")}
+              trailing={
+                <Switch
+                  checked={badge_prefs.show_badge_profile}
+                  disabled={is_badge_saving || !badge_prefs.active_badge_slug}
+                  onCheckedChange={(v) =>
+                    persist_badge_prefs({ show_badge_profile: v })
+                  }
+                />
+              }
+            />
+            <SettingsRow
+              label={t("badges.show_avatar_ring")}
+              trailing={
+                <Switch
+                  checked={badge_prefs.show_badge_ring}
+                  disabled={is_badge_saving || !badge_prefs.active_badge_slug}
+                  onCheckedChange={(v) =>
+                    persist_badge_prefs({ show_badge_ring: v })
+                  }
+                />
+              }
+            />
+            <SettingsRow
+              label={t("badges.show_in_signature")}
+              trailing={
+                <Switch
+                  checked={badge_prefs.show_badge_signature}
+                  disabled={is_badge_saving || !badge_prefs.active_badge_slug}
+                  onCheckedChange={(v) =>
+                    persist_badge_prefs({ show_badge_signature: v })
+                  }
+                />
+              }
+            />
+          </SettingsGroup>
+        )}
+
+        <SettingsGroup title={t("common.recovery_email")}>
+          {recovery.email && (
+            <div className="flex items-center justify-between px-4 py-3">
+              <span className="text-[14px] text-[var(--text-secondary)]">
+                {mask_email(recovery.email)}
+              </span>
+              {recovery.verified ? (
+                <span className="flex items-center gap-1 text-xs text-green-500">
+                  <CheckCircleIcon className="h-4 w-4" />
+                  {t("common.verified")}
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-xs text-amber-500">
+                  <ExclamationCircleIcon className="h-4 w-4" />
+                  {t("common.not_verified")}
+                </span>
+              )}
+            </div>
+          )}
+          <SettingsRow
+            label={recovery.email ? t("common.update") : t("common.add")}
+            on_press={() => set_show_recovery_modal(true)}
+          />
+          {recovery.email && !recovery.verified && (
+            <SettingsRow
+              label={t("common.resend")}
+              on_press={handle_resend}
+              trailing={resending ? <Spinner size="xs" /> : undefined}
+            />
+          )}
+          {recovery.email && (
+            <SettingsRow
+              destructive
+              label={t("common.remove")}
+              on_press={() => set_show_remove_recovery_confirm(true)}
+              trailing={removing_recovery ? <Spinner size="xs" /> : undefined}
+            />
+          )}
+        </SettingsGroup>
+
+        <SettingsGroup title={t("common.reset_all_settings")}>
+          <SettingsRow
+            destructive
+            label={t("settings.reset")}
+            on_press={() => set_show_reset_confirm(true)}
+          />
+        </SettingsGroup>
       </div>
+
+      <RecoveryModal
+        current={recovery.email}
+        is_open={show_recovery_modal}
+        on_close={() => set_show_recovery_modal(false)}
+        on_save={save_recovery}
+      />
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("common.remove")}
+        is_open={show_remove_recovery_confirm}
+        message={t("common.remove_recovery_email_confirm")}
+        on_cancel={() => set_show_remove_recovery_confirm(false)}
+        on_confirm={handle_remove_recovery}
+        title={t("common.remove_recovery_email")}
+        variant="danger"
+      />
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("settings.reset")}
+        is_open={show_reset_confirm}
+        message={t("common.reset_confirm_message")}
+        on_cancel={() => set_show_reset_confirm(false)}
+        on_confirm={() => {
+          reset_to_defaults();
+          set_show_reset_confirm(false);
+          show_toast(t("common.all_settings_reset"), "success");
+        }}
+        title={t("common.reset_all_settings")}
+        variant="warning"
+      />
     </div>
   );
 }

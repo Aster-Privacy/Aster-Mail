@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import type { SpamSettings } from "@/services/api/preferences";
+
+import { useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
 
@@ -35,6 +38,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { Input } from "@/components/ui/input";
 import {
+  get_spam_settings,
+  save_spam_settings,
+} from "@/services/api/preferences";
+import {
   SWIPE_ACTION_OPTIONS,
   get_swipe_action,
 } from "@/components/mobile/swipe_action_registry";
@@ -50,6 +57,70 @@ export function BehaviorSection({
   const { preferences, update_preference } = use_preferences();
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
+
+  const [spam_settings, set_spam_settings] = useState<SpamSettings>({
+    spam_retention_days: 30,
+    spam_sensitivity: "medium",
+    spam_filter_enabled: true,
+  });
+  const is_web = !Capacitor.isNativePlatform();
+  const [mailto_registered, set_mailto_registered] = useState(() => {
+    try {
+      return localStorage.getItem("aster:mailto_handler") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const handle_mailto_toggle = () => {
+    if (!mailto_registered) {
+      try {
+        navigator.registerProtocolHandler(
+          "mailto",
+          `${window.location.origin}/compose?to=%s`,
+        );
+        set_mailto_registered(true);
+        localStorage.setItem("aster:mailto_handler", "true");
+      } catch {
+        set_mailto_registered(false);
+      }
+    } else {
+      set_mailto_registered(false);
+      localStorage.setItem("aster:mailto_handler", "false");
+    }
+  };
+
+  useEffect(() => {
+    get_spam_settings().then((result) => {
+      if (result.data) set_spam_settings(result.data);
+    });
+  }, []);
+
+  const update_spam_settings = (patch: Partial<SpamSettings>) => {
+    const updated = { ...spam_settings, ...patch };
+
+    set_spam_settings(updated);
+    save_spam_settings(updated);
+  };
+
+  const conversation_order_options: { value: "asc" | "desc"; label: string }[] =
+    [
+      { value: "asc", label: t("settings.oldest_first") },
+      { value: "desc", label: t("settings.newest_first") },
+    ];
+
+  const spam_sensitivity_options: { value: string; label: string }[] = [
+    { value: "low", label: t("settings.spam_low") },
+    { value: "medium", label: t("settings.spam_medium") },
+    { value: "high", label: t("settings.spam_high") },
+  ];
+
+  const spam_retention_options: { value: string; label: string }[] = [
+    { value: "7", label: t("settings.retention_7_days") },
+    { value: "14", label: t("settings.retention_14_days") },
+    { value: "30", label: t("settings.retention_30_days") },
+    { value: "never", label: t("settings.retention_never") },
+  ];
 
   const mark_read_options: {
     value: "immediate" | "1_second" | "3_seconds" | "never";
@@ -119,6 +190,58 @@ export function BehaviorSection({
             on_change={(v) => update_preference("default_reply_behavior", v, true)}
             options={reply_options}
             value={preferences.default_reply_behavior}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title={t("settings.reading_and_conversations")}>
+          <SettingsRow
+            label={t("settings.conversation_grouping")}
+            trailing={
+              <Switch
+                checked={preferences.conversation_grouping !== false}
+                onCheckedChange={() =>
+                  update_preference(
+                    "conversation_grouping",
+                    preferences.conversation_grouping === false,
+                    true,
+                  )
+                }
+              />
+            }
+          />
+          <SettingsRow
+            label={t("settings.show_message_size")}
+            trailing={
+              <Switch
+                checked={preferences.show_message_size === true}
+                onCheckedChange={() =>
+                  update_preference(
+                    "show_message_size",
+                    !preferences.show_message_size,
+                    true,
+                  )
+                }
+              />
+            }
+          />
+          <SettingsRow
+            label={t("settings.force_dark_mode_emails")}
+            trailing={
+              <Switch
+                checked={preferences.force_dark_mode_emails}
+                onCheckedChange={(v) =>
+                  update_preference("force_dark_mode_emails", v, true)
+                }
+              />
+            }
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title={t("settings.conversation_order")}>
+          <OptionList
+            on_change={(v) => update_preference("conversation_order", v, true)}
+            options={conversation_order_options}
+            value={preferences.conversation_order ?? "asc"}
           />
         </SettingsGroup>
 
@@ -392,6 +515,92 @@ export function BehaviorSection({
           />
         </SettingsGroup>
 
+        <SettingsGroup title={t("settings.spam_filtering_title")}>
+          <SettingsRow
+            label={t("settings.spam_filter_enabled")}
+            trailing={
+              <Switch
+                checked={spam_settings.spam_filter_enabled}
+                onCheckedChange={() =>
+                  update_spam_settings({
+                    spam_filter_enabled: !spam_settings.spam_filter_enabled,
+                  })
+                }
+              />
+            }
+          />
+          {spam_settings.spam_filter_enabled && (
+            <>
+              <div className="px-4 py-2">
+                <p className="mb-2 text-[13px] text-[var(--text-muted)]">
+                  {t("settings.spam_sensitivity")}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {spam_sensitivity_options.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                        spam_settings.spam_sensitivity === opt.value
+                          ? "text-white"
+                          : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
+                      }`}
+                      style={
+                        spam_settings.spam_sensitivity === opt.value
+                          ? chip_selected_style
+                          : undefined
+                      }
+                      type="button"
+                      onClick={() =>
+                        update_spam_settings({ spam_sensitivity: opt.value })
+                      }
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="px-4 py-2">
+                <p className="mb-2 text-[13px] text-[var(--text-muted)]">
+                  {t("settings.auto_delete_spam_after")}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {spam_retention_options.map((opt) => {
+                    const current =
+                      spam_settings.spam_retention_days === 0
+                        ? "never"
+                        : String(spam_settings.spam_retention_days);
+
+                    return (
+                      <button
+                        key={opt.value}
+                        className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                          current === opt.value
+                            ? "text-white"
+                            : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
+                        }`}
+                        style={
+                          current === opt.value ? chip_selected_style : undefined
+                        }
+                        type="button"
+                        onClick={() =>
+                          update_spam_settings({
+                            spam_retention_days:
+                              opt.value === "never"
+                                ? 0
+                                : parseInt(opt.value, 10),
+                          })
+                        }
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+        </SettingsGroup>
+
         <SettingsGroup title={t("settings.haptic_feedback_title")}>
           <SettingsRow
             label={t("settings.haptic_feedback_label")}
@@ -537,6 +746,20 @@ export function BehaviorSection({
             </p>
           </div>
         </SettingsGroup>
+
+        {is_web && (
+          <SettingsGroup title={t("settings.advanced")}>
+            <SettingsRow
+              label={t("settings.default_email_app")}
+              trailing={
+                <Switch
+                  checked={mailto_registered}
+                  onCheckedChange={handle_mailto_toggle}
+                />
+              }
+            />
+          </SettingsGroup>
+        )}
       </div>
     </div>
   );

@@ -35,6 +35,7 @@ import {
   FONT_SIZE_DEFAULT,
 } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { KeyboardShortcutsModal } from "@/components/modals/keyboard_shortcuts_modal";
 
 export function AccessibilitySection({
   on_back,
@@ -61,6 +62,8 @@ export function AccessibilitySection({
   const commit_font_size = (n: number) => {
     update_preference("font_size_scale", clamp_font_size(n), true);
   };
+
+  const [shortcuts_modal_open, set_shortcuts_modal_open] = useState(false);
 
   const color_vision_options: {
     value:
@@ -224,7 +227,30 @@ export function AccessibilitySection({
             }
           />
         </SettingsGroup>
+
+        <SettingsGroup title={t("common.keyboard_shortcuts")}>
+          <SettingsRow
+            label={t("common.enable_shortcuts")}
+            trailing={
+              <Switch
+                checked={preferences.keyboard_shortcuts_enabled}
+                onCheckedChange={(v) =>
+                  update_preference("keyboard_shortcuts_enabled", v, true)
+                }
+              />
+            }
+          />
+          <SettingsRow
+            label={t("mail.view_keyboard_shortcuts")}
+            on_press={() => set_shortcuts_modal_open(true)}
+          />
+        </SettingsGroup>
       </div>
+
+      <KeyboardShortcutsModal
+        is_open={shortcuts_modal_open}
+        on_close={() => set_shortcuts_modal_open(false)}
+      />
     </div>
   );
 }
