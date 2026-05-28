@@ -65,6 +65,8 @@ import {
 } from "@/services/session_timeout_service";
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_mail_cache } from "@/hooks/use_email_list";
+import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
+import { clear_all_ratchet_states } from "@/services/crypto/double_ratchet";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
@@ -436,6 +438,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clear_vault_from_memory();
       clear_mail_stats();
       clear_mail_cache();
+      clear_preload_cache();
+      await clear_all_ratchet_states();
       api_client.clear_in_memory_token();
 
       await storage_switch_account(target.id);
@@ -499,6 +503,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_vault_from_memory();
         clear_mail_stats();
         clear_mail_cache();
+        clear_preload_cache();
+        await clear_all_ratchet_states();
         clear_stored_encrypted_vault(current_id);
         await with_timeout(clear_session_passphrase(current_id), 2000);
         clear_session_timeout_data(current_id);
