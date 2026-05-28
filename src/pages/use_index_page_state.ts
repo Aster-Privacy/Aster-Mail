@@ -259,7 +259,7 @@ export function use_index_page_state() {
   const [is_search_open, set_is_search_open] = useState(false);
   const [active_search_query, set_active_search_query] = useState<
     string | null
-  >(search_params.get("q"));
+  >(null);
   const [sender_subscription, set_sender_subscription] =
     useState<CachedSubscription | null>(null);
   const [is_command_palette_open, set_is_command_palette_open] =
@@ -827,9 +827,8 @@ export function use_index_page_state() {
       set_split_scheduled_data(null);
       set_sender_subscription(null);
       set_active_search_query(query);
-      set_search_params({ q: query });
     }
-  }, [location.state, location.pathname, set_search_params]);
+  }, [location.state, location.pathname]);
 
   useEffect(() => {
     const handle_open_search_with_query = (e: Event) => {
@@ -890,13 +889,12 @@ export function use_index_page_state() {
       set_is_search_open(false);
       set_active_search_query(query);
       set_sender_subscription(null);
-      set_search_params({ q: query });
       set_popup_email_id(null);
       set_split_email_id(null);
       set_popup_scheduled(null);
       set_split_scheduled_data(null);
     },
-    [set_search_params],
+    [],
   );
 
   const handle_sender_search = useCallback(
@@ -907,7 +905,7 @@ export function use_index_page_state() {
       set_split_scheduled_data(null);
       set_active_search_query(query);
       set_sender_subscription(subscription);
-      navigate(`/?q=${encodeURIComponent(query)}`);
+      navigate("/", { state: { search_query: query } });
     },
     [navigate],
   );

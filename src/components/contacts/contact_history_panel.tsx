@@ -155,8 +155,10 @@ export function ContactHistoryPanel({
               type="button"
               className="w-full flex items-center gap-3 px-2 py-2.5 text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.04] rounded-[14px] transition-colors cursor-pointer"
               onClick={() => {
-                const query = encodeURIComponent(`from:${contact_email}`);
-                navigate(`/?q=${query}#${activity.id}`);
+                navigate(
+                  { pathname: "/", hash: activity.id },
+                  { state: { search_query: `from:${contact_email}` } },
+                );
               }}
             >
               {activity.is_sent ? (
