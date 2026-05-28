@@ -3774,6 +3774,9 @@ export interface MailTranslations {
   indexing: string;
   indexing_messages: string;
   searching_message_content: string;
+  search_taking_too_long: string;
+  search_refine_terms: string;
+  content_search_slower: string;
   search_message_content_help: string;
   search_message_content_help_body: string;
   active_filters: string;

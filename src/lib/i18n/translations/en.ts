@@ -3917,6 +3917,10 @@ export const en: Translations = {
     indexing: "Indexing",
     indexing_messages: "Indexing messages...",
     searching_message_content: "Searching message content",
+    search_taking_too_long: "Search is taking too long",
+    search_refine_terms: "Try refining your search with more specific terms.",
+    content_search_slower:
+      "Searching message content can be slow on large mailboxes.",
     search_message_content_help: "About message content search",
     search_message_content_help_body:
       "Your messages are end-to-end encrypted, so they have to be downloaded and indexed on this device before their text can be searched. This may use significant storage. The index never leaves this device and is removed when you sign out.",

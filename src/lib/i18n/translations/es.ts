@@ -4190,6 +4190,11 @@ export const es = {
     search_within_6_months: "6 meses",
     search_within_any: "Cualquier momento",
     searching_message_content: "Buscando en el contenido...",
+    search_taking_too_long: "La búsqueda está tardando demasiado",
+    search_refine_terms:
+      "Intenta acotar tu búsqueda con términos más específicos.",
+    content_search_slower:
+      "Buscar en el contenido de los mensajes puede ser lento en buzones grandes.",
     select_all_in_folder: "Seleccionar las {{ count }} conversaciones en {{ folder }}",
     show_headers: "Mostrar encabezados",
     show_trimmed_content: "Mostrar contenido recortado",

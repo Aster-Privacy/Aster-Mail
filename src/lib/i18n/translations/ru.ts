@@ -4074,6 +4074,11 @@ export const ru = {
     search_within_6_months: "6 месяцев",
     search_within_any: "за всё время",
     searching_message_content: "Поиск в содержимом",
+    search_taking_too_long: "Поиск занимает слишком много времени",
+    search_refine_terms:
+      "Попробуйте уточнить поиск, используя более конкретные слова.",
+    content_search_slower:
+      "Поиск по содержимому сообщений может быть медленным для больших почтовых ящиков.",
     select_all_in_folder: "Выбрать все {{ count }} бесед в {{ folder }}",
     show_headers: "Показать полные заголовки",
     show_trimmed_content: "Показать скрытое содержимое",

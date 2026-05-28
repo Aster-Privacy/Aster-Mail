@@ -620,7 +620,7 @@ async function do_build_search_index(
         );
 
         if (envelope?.body_text) {
-          if (include_body) {
+          if (include_body || !envelope.subject) {
             const sender_email = envelope.from?.email || "";
 
             const bundle = await decrypt_body_text_with_bundle(
@@ -628,10 +628,11 @@ async function do_build_search_index(
               user_email,
               sender_email,
             );
-            envelope.body_text = bundle.body;
+
             if (bundle.subject !== null && !envelope.subject) {
               envelope.subject = bundle.subject;
             }
+            envelope.body_text = include_body ? bundle.body : "";
           } else {
             envelope.body_text = "";
           }

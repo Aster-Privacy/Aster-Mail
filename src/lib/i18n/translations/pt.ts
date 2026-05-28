@@ -3960,6 +3960,11 @@ export const pt = {
     folder_item_count_singular: "{{count}} item",
     indexing_messages: "Indexando mensagens...",
     searching_message_content: "Pesquisando conteúdo das mensagens",
+    search_taking_too_long: "A pesquisa está demorando muito",
+    search_refine_terms:
+      "Tente refinar sua pesquisa com termos mais específicos.",
+    content_search_slower:
+      "Pesquisar no conteúdo das mensagens pode ser lento em caixas de correio grandes.",
     search_message_content_help: "Sobre pesquisa de conteúdo de mensagens",
     search_message_content_help_body: "Suas mensagens são criptografadas de ponta a ponta, portanto precisam ser baixadas e indexadas neste dispositivo antes que seu texto possa ser pesquisado. Isso pode usar armazenamento significativo. O índice nunca sai deste dispositivo e é removido quando você sai.",
     op_search_by_sender: "Pesquisar por remetente",

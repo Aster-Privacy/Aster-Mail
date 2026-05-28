@@ -4046,6 +4046,11 @@ export const nl = {
     folder_item_count_singular: "{{count}} item",
     indexing_messages: "Berichten indexeren...",
     searching_message_content: "Berichtinhoud doorzoeken",
+    search_taking_too_long: "Zoeken duurt te lang",
+    search_refine_terms:
+      "Probeer uw zoekopdracht te verfijnen met specifiekere termen.",
+    content_search_slower:
+      "Zoeken in berichtinhoud kan traag zijn bij grote postvakken.",
     search_message_content_help: "Over het doorzoeken van berichtinhoud",
     search_message_content_help_body:
       "Je berichten zijn end-to-end versleuteld, dus ze moeten worden gedownload en geïndexeerd op dit apparaat voordat de tekst kan worden doorzocht. Dit kan aanzienlijke opslag gebruiken. De index verlaat dit apparaat nooit en wordt verwijderd wanneer je uitlogt.",

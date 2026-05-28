@@ -4049,6 +4049,11 @@ export const tr = {
     folder_item_count_singular: "{{count}} öğe",
     indexing_messages: "Mesajlar dizinleniyor...",
     searching_message_content: "Mesaj içeriği aranıyor",
+    search_taking_too_long: "Arama çok uzun sürüyor",
+    search_refine_terms:
+      "Aramanızı daha belirgin terimlerle daraltmayı deneyin.",
+    content_search_slower:
+      "Mesaj içeriğinde arama, büyük posta kutularında yavaş olabilir.",
     search_message_content_help: "Mesaj içeriği araması hakkında",
     search_message_content_help_body: "Mesajlarınız uçtan uca şifrelidir, bu nedenle metinleri aranabilmesi için bu cihaza indirilip dizinlenmesi gerekir. Bu önemli miktarda depolama kullanabilir. Dizin bu cihazdan asla çıkmaz ve oturumu kapattığınızda silinir.",
     op_search_by_sender: "Gönderene göre ara",

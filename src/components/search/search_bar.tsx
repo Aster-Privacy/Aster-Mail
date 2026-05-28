@@ -45,6 +45,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 
 const MAX_PREVIEW_RESULTS = 7;
 const DEBOUNCE_MS = 180;
+const SLOW_SEARCH_MS = 6000;
 
 interface SearchBarProps {
   on_result_click?: (id: string) => void;
@@ -75,6 +76,7 @@ export function SearchBar({
   const [rect, set_rect] = useState<AnchorRect | null>(null);
   const [selected_index, set_selected_index] = useState(-1);
   const [is_advanced_open, set_is_advanced_open] = useState(false);
+  const [is_slow, set_is_slow] = useState(false);
 
   const { state, search, clear_results, clear_index, start_index_build } =
     use_search();
@@ -264,9 +266,49 @@ export function SearchBar({
   }, []);
 
   const show_loading = state.is_searching || state.index_building;
+
+  useEffect(() => {
+    if (!show_loading) {
+      set_is_slow(false);
+
+      return;
+    }
+    const id = setTimeout(() => set_is_slow(true), SLOW_SEARCH_MS);
+
+    return () => clearTimeout(id);
+  }, [show_loading]);
+
   const show_results = is_open && query.trim().length >= 2;
+  const finished_slow = state.search_time_ms >= SLOW_SEARCH_MS;
   const show_empty =
     show_results && !show_loading && results.length === 0 && !state.error;
+  const show_slow_loading = show_loading && is_slow;
+  const show_slow_empty = show_empty && finished_slow;
+
+  const slow_notice = (
+    <div className="px-6 py-8 flex flex-col items-center justify-center text-center gap-1.5">
+      <p className="text-sm font-medium text-[var(--text-primary)]">
+        {t("mail.search_taking_too_long")}
+      </p>
+      <p className="text-xs text-[var(--text-muted)]">
+        {t("mail.search_refine_terms")}
+      </p>
+      {content_search_enabled && (
+        <div className="flex items-center justify-center gap-2 mt-0.5">
+          <span className="text-xs text-[var(--text-muted)]">
+            {t("mail.content_search_slower")}
+          </span>
+          <button
+            className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+            type="button"
+            onClick={handle_disable_content_search}
+          >
+            {t("common.disable")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   const dropdown_style: React.CSSProperties | undefined = rect
     ? {
@@ -374,14 +416,17 @@ export function SearchBar({
             </div>
 
             <div className="max-h-[26rem] overflow-y-auto">
-              {show_loading && (
-                <div className="flex items-center justify-center gap-2 py-6">
-                  <Spinner size="sm" />
-                  <span className="text-xs text-[var(--text-muted)]">
-                    {t("mail.searching")}
-                  </span>
-                </div>
-              )}
+              {show_loading &&
+                (show_slow_loading ? (
+                  slow_notice
+                ) : (
+                  <div className="flex items-center justify-center gap-2 py-6">
+                    <Spinner size="sm" />
+                    <span className="text-xs text-[var(--text-muted)]">
+                      {t("mail.searching")}
+                    </span>
+                  </div>
+                ))}
 
               {!show_loading && !show_results && (
                 <div className="px-6 py-10 flex flex-col items-center justify-center text-center">
@@ -392,13 +437,16 @@ export function SearchBar({
                 </div>
               )}
 
-              {show_empty && (
-                <div className="px-6 py-8 text-center">
-                  <p className="text-sm text-[var(--text-muted)]">
-                    {t("mail.no_results_for", { query })}
-                  </p>
-                </div>
-              )}
+              {show_empty &&
+                (show_slow_empty ? (
+                  slow_notice
+                ) : (
+                  <div className="px-6 py-8 text-center">
+                    <p className="text-sm text-[var(--text-muted)]">
+                      {t("mail.no_results_for", { query })}
+                    </p>
+                  </div>
+                ))}
 
               {show_results && !show_loading && results.length > 0 && (
                 <ul className="py-1">

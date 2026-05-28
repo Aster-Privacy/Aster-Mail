@@ -3946,6 +3946,10 @@ export const ar = {
     folder_item_count_singular: "{{count}} عنصر",
     indexing_messages: "جارٍ فهرسة الرسائل...",
     searching_message_content: "جارٍ البحث في محتوى الرسائل",
+    search_taking_too_long: "يستغرق البحث وقتًا طويلاً",
+    search_refine_terms: "حاول تضييق نطاق البحث باستخدام كلمات أكثر تحديدًا.",
+    content_search_slower:
+      "قد يكون البحث في محتوى الرسائل بطيئًا في علب البريد الكبيرة.",
     search_message_content_help: "حول البحث في محتوى الرسائل",
     search_message_content_help_body: "رسائلك مشفرة من طرف إلى طرف، لذا يجب تنزيلها وفهرستها على هذا الجهاز قبل البحث في نصوصها. قد يستهلك هذا مساحة تخزين كبيرة. الفهرس لا يغادر هذا الجهاز ويُحذف عند تسجيل الخروج.",
     op_search_by_sender: "البحث حسب المرسل",
