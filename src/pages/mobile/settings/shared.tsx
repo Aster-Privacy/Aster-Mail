@@ -36,8 +36,11 @@ export type SettingsSection =
   | "accessibility"
   | "security"
   | "encryption"
+  | "trusted_devices"
   | "aliases"
+  | "ghost_aliases"
   | "billing"
+  | "referral"
   | "notifications"
   | "behavior"
   | "signatures"
@@ -45,8 +48,10 @@ export type SettingsSection =
   | "import"
   | "external_accounts"
   | "sender_filters"
+  | "mail_rules"
   | "feedback"
-  | "about";
+  | "about"
+  | "developer";
 
 export const chip_selected_style: React.CSSProperties = {
   background: "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",

@@ -39,6 +39,11 @@ import {
   FunnelIcon,
   ChatBubbleBottomCenterTextIcon,
   ServerStackIcon,
+  ComputerDesktopIcon,
+  EyeSlashIcon,
+  UserGroupIcon,
+  BoltIcon,
+  CodeBracketIcon,
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -78,6 +83,11 @@ import { ExternalAccountsSection } from "./settings/external_accounts_section";
 import { SenderFiltersSection } from "./settings/sender_filters_section";
 import { FeedbackSection } from "./settings/feedback_section";
 import { AboutSection } from "./settings/about_section";
+import { TrustedDevicesSection } from "./settings/trusted_devices_section";
+import { GhostAliasesSection } from "./settings/ghost_aliases_section";
+import { ReferralSection } from "./settings/referral_section";
+import { MailRulesSection } from "./settings/mail_rules_section";
+import { DeveloperSection } from "./settings/developer_section";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { format_bytes } from "@/lib/utils";
@@ -87,6 +97,9 @@ import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
+import { list_devices } from "@/services/api/devices";
+import { get_dev_mode } from "@/services/api/preferences";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 
 function MobileSettingsPage() {
   const navigate = useNavigate();
@@ -98,7 +111,35 @@ function MobileSettingsPage() {
   const [section, set_section] = useState<SettingsSection | null>(null);
   const [is_closing, set_is_closing] = useState(false);
   const [show_logout_confirm, set_show_logout_confirm] = useState(false);
+  const [has_devices, set_has_devices] = useState(false);
+  const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
   const section_ref = useRef<SettingsSection | null>(null);
+
+  useEffect(() => {
+    list_devices().then((res) => {
+      set_has_devices((res.data?.devices?.length ?? 0) > 0);
+    });
+
+    const load_dev_mode = async () => {
+      const vault = get_vault_from_memory();
+      const result = await get_dev_mode(vault);
+
+      set_dev_mode_enabled(result.data);
+    };
+
+    load_dev_mode();
+  }, []);
+
+  useEffect(() => {
+    const handle_dev_mode_change = (e: Event) => {
+      set_dev_mode_enabled((e as CustomEvent<boolean>).detail);
+    };
+
+    window.addEventListener("dev-mode-changed", handle_dev_mode_change);
+
+    return () =>
+      window.removeEventListener("dev-mode-changed", handle_dev_mode_change);
+  }, []);
 
   const [search_params, set_search_params] = useSearchParams();
 
@@ -208,7 +249,22 @@ function MobileSettingsPage() {
     encryption: (
       <EncryptionSection on_back={close_section} on_close={handle_back} />
     ),
+    trusted_devices: (
+      <TrustedDevicesSection on_back={close_section} on_close={handle_back} />
+    ),
     aliases: <AliasesSection on_back={close_section} on_close={handle_back} />,
+    ghost_aliases: (
+      <GhostAliasesSection on_back={close_section} on_close={handle_back} />
+    ),
+    referral: (
+      <ReferralSection on_back={close_section} on_close={handle_back} />
+    ),
+    mail_rules: (
+      <MailRulesSection on_back={close_section} on_close={handle_back} />
+    ),
+    developer: (
+      <DeveloperSection on_back={close_section} on_close={handle_back} />
+    ),
     billing: (
       <Suspense fallback={null}>
         <BillingSection on_back={close_section} on_close={handle_back} />
@@ -373,6 +429,19 @@ function MobileSettingsPage() {
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
                 </button>
+                {has_devices && (
+                  <button
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                    type="button"
+                    onClick={() => open_section("trusted_devices")}
+                  >
+                    <ComputerDesktopIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                    <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                      {t("settings.trusted_devices")}
+                    </span>
+                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  </button>
+                )}
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
                   type="button"
@@ -387,11 +456,33 @@ function MobileSettingsPage() {
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
                   type="button"
+                  onClick={() => open_section("ghost_aliases")}
+                >
+                  <EyeSlashIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("settings.ghost_aliases")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                </button>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  type="button"
                   onClick={() => open_section("billing")}
                 >
                   <CreditCardIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.billing")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                </button>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  type="button"
+                  onClick={() => open_section("referral")}
+                >
+                  <UserGroupIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("settings.refer_a_friend")}
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
                 </button>
@@ -475,6 +566,17 @@ function MobileSettingsPage() {
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
                 </button>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  type="button"
+                  onClick={() => open_section("mail_rules")}
+                >
+                  <BoltIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("mail_rules.title")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                </button>
               </SettingsGroup>
 
               <SettingsGroup title={t("settings.about")}>
@@ -500,6 +602,19 @@ function MobileSettingsPage() {
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
                 </button>
+                {dev_mode_enabled && (
+                  <button
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                    type="button"
+                    onClick={() => open_section("developer")}
+                  >
+                    <CodeBracketIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                    <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                      {t("settings.developer")}
+                    </span>
+                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  </button>
+                )}
               </SettingsGroup>
 
               <div className="px-4 pt-4 pb-2">
