@@ -30,6 +30,7 @@ import {
 import { get_or_create_thread_token } from "./thread_service";
 
 import { get_aster_footer } from "@/components/compose/compose_shared";
+import { sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { en } from "@/lib/i18n/translations/en";
 
 export type MailActionType = "reply" | "reply_all" | "forward";
@@ -265,7 +266,7 @@ export async function send_forward(
     `${en.common.from_label} ${safe_name} &lt;${safe_email}&gt;<br>` +
     `${en.common.date_label} ${params.original.timestamp}<br>` +
     `${en.common.subject_label} ${safe_subject}<br><br>` +
-    params.original.body;
+    sanitize_outgoing_html(params.original.body);
 
   const badge_block = params.badge_html ?? "";
   const full_body = params.message
