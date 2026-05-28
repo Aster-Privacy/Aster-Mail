@@ -132,6 +132,8 @@ export function use_keyboard_shortcuts(
   handlers_ref.current = handlers;
 
   const last_navigation_time_ref = useRef(0);
+  const pending_go_ref = useRef(false);
+  const pending_go_time_ref = useRef(0);
 
   const state_ref = useRef({
     is_any_modal_open,
@@ -230,6 +232,31 @@ export function use_keyboard_shortcuts(
 
     if (is_any_modal_open) return;
 
+    if (
+      pending_go_ref.current &&
+      Date.now() - pending_go_time_ref.current < 1200
+    ) {
+      pending_go_ref.current = false;
+
+      if (!has_cmd && !has_shift) {
+        if (key === "i") return void handle(h.on_go_inbox);
+        if (key === "s") return void handle(h.on_go_starred);
+        if (key === "t") return void handle(h.on_go_sent);
+        if (key === "d") return void handle(h.on_go_drafts);
+        if (key === "a") return void handle(h.on_go_all);
+      }
+    } else {
+      pending_go_ref.current = false;
+    }
+
+    if (key === "g" && !has_cmd && !has_shift) {
+      pending_go_ref.current = true;
+      pending_go_time_ref.current = Date.now();
+      e.preventDefault();
+
+      return;
+    }
+
     if (key === "j" && !has_cmd && !has_shift) {
       handle_throttled(h.on_next_email);
 
@@ -307,6 +334,18 @@ export function use_keyboard_shortcuts(
 
     if (key === "s" && !has_cmd && !has_shift) {
       handle(h.on_toggle_star);
+
+      return;
+    }
+
+    if (key === "b" && !has_cmd && !has_shift) {
+      handle(h.on_snooze);
+
+      return;
+    }
+
+    if (key === "x" && !has_cmd && !has_shift) {
+      handle(h.on_select_email);
 
       return;
     }

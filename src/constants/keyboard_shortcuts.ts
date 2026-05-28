@@ -42,6 +42,13 @@ export type ShortcutActionId =
   | "reply"
   | "reply_all"
   | "forward"
+  | "snooze"
+  | "select_email"
+  | "go_inbox"
+  | "go_starred"
+  | "go_sent"
+  | "go_drafts"
+  | "go_all"
   | "search"
   | "command_palette"
   | "show_shortcuts";
@@ -129,6 +136,49 @@ export const KEYBOARD_SHORTCUTS: ShortcutDefinition[] = [
     description: "Mark as unread",
     category: "actions",
     action_id: "mark_unread",
+  },
+  {
+    key: "b",
+    description: "Snooze",
+    category: "actions",
+    action_id: "snooze",
+  },
+  {
+    key: "x",
+    description: "Select",
+    category: "actions",
+    action_id: "select_email",
+  },
+
+  {
+    key: "g i",
+    description: "Go to inbox",
+    category: "navigation",
+    action_id: "go_inbox",
+  },
+  {
+    key: "g s",
+    description: "Go to starred",
+    category: "navigation",
+    action_id: "go_starred",
+  },
+  {
+    key: "g t",
+    description: "Go to sent",
+    category: "navigation",
+    action_id: "go_sent",
+  },
+  {
+    key: "g d",
+    description: "Go to drafts",
+    category: "navigation",
+    action_id: "go_drafts",
+  },
+  {
+    key: "g a",
+    description: "Go to all mail",
+    category: "navigation",
+    action_id: "go_all",
   },
 
   {
@@ -351,6 +401,13 @@ export const ALL_ACTION_IDS: ShortcutActionId[] = [
   "toggle_star",
   "mark_read",
   "mark_unread",
+  "snooze",
+  "select_email",
+  "go_inbox",
+  "go_starred",
+  "go_sent",
+  "go_drafts",
+  "go_all",
   "compose",
   "reply",
   "reply_all",

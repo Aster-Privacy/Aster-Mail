@@ -1104,6 +1104,31 @@ export function use_index_page_state() {
     );
   }, [get_target_email_id]);
 
+  const handle_keyboard_snooze = useCallback(() => {
+    const id = get_target_email_id();
+
+    if (!id) return;
+    window.dispatchEvent(
+      new CustomEvent("astermail:keyboard-snooze", { detail: { id } }),
+    );
+  }, [get_target_email_id]);
+
+  const handle_keyboard_select = useCallback(() => {
+    if (!focused_email_id) return;
+    window.dispatchEvent(
+      new CustomEvent("astermail:keyboard-select", {
+        detail: { id: focused_email_id },
+      }),
+    );
+  }, [focused_email_id]);
+
+  const handle_keyboard_go = useCallback(
+    (route: string) => {
+      handle_header_view_change(route);
+    },
+    [handle_header_view_change],
+  );
+
   use_keyboard_shortcuts({
     is_any_modal_open: is_input_modal_open,
     has_focused_email:
@@ -1123,6 +1148,13 @@ export function use_index_page_state() {
       on_toggle_star: handle_keyboard_star,
       on_mark_read: handle_keyboard_mark_read,
       on_mark_unread: handle_keyboard_mark_unread,
+      on_snooze: handle_keyboard_snooze,
+      on_select_email: handle_keyboard_select,
+      on_go_inbox: () => handle_keyboard_go("/"),
+      on_go_starred: () => handle_keyboard_go("/starred"),
+      on_go_sent: () => handle_keyboard_go("/sent"),
+      on_go_drafts: () => handle_keyboard_go("/drafts"),
+      on_go_all: () => handle_keyboard_go("/all"),
       on_search: () => {
         set_is_search_open(true);
         window.dispatchEvent(new CustomEvent("aster:focus-search"));
