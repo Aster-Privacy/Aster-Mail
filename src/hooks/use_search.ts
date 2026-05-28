@@ -164,61 +164,187 @@ export function extract_query_terms(query: string): string[] {
     .filter((t) => t.length >= 2);
 }
 
+const SEARCH_HISTORY_LIMIT = 20;
+const SAVED_SEARCH_LIMIT = 50;
+
+function history_storage_key(user_id: string): string {
+  return `aster_search_history_${user_id}`;
+}
+
+function saved_search_storage_key(user_id: string): string {
+  return `aster_saved_searches_${user_id}`;
+}
+
+function read_stored_array<T>(key: string): T[] {
+  try {
+    const raw = localStorage.getItem(key);
+
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function write_stored_array<T>(key: string, value: T[]): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    return;
+  }
+}
+
+function remove_stored_key(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    return;
+  }
+}
+
+function sort_saved_searches(searches: SavedSearch[]): SavedSearch[] {
+  return [...searches].sort(
+    (a, b) =>
+      (b.last_used_at ?? b.created_at) - (a.last_used_at ?? a.created_at),
+  );
+}
+
 export async function get_search_history(
-  _user_id: string,
+  user_id: string,
 ): Promise<SearchHistoryEntry[]> {
-  return [];
+  if (!user_id) return [];
+
+  return read_stored_array<SearchHistoryEntry>(
+    history_storage_key(user_id),
+  ).sort((a, b) => b.timestamp - a.timestamp);
 }
 
 export async function add_to_history(
-  _user_id: string,
-  _query: string,
-  _result_count: number,
+  user_id: string,
+  query: string,
+  result_count: number,
 ): Promise<SearchHistoryEntry[]> {
-  return [];
+  const trimmed = query.trim();
+
+  if (!user_id || !trimmed) return get_search_history(user_id);
+
+  const key = history_storage_key(user_id);
+  const existing = read_stored_array<SearchHistoryEntry>(key).filter(
+    (e) => e.query.toLowerCase() !== trimmed.toLowerCase(),
+  );
+  const entry: SearchHistoryEntry = {
+    id: crypto.randomUUID(),
+    query: trimmed,
+    timestamp: Date.now(),
+    result_count,
+  };
+  const updated = [entry, ...existing].slice(0, SEARCH_HISTORY_LIMIT);
+
+  write_stored_array(key, updated);
+
+  return updated;
 }
 
 export async function remove_from_history(
-  _user_id: string,
-  _entry_id: string,
+  user_id: string,
+  entry_id: string,
 ): Promise<SearchHistoryEntry[]> {
-  return [];
+  if (!user_id) return [];
+
+  const key = history_storage_key(user_id);
+  const updated = read_stored_array<SearchHistoryEntry>(key)
+    .filter((e) => e.id !== entry_id)
+    .sort((a, b) => b.timestamp - a.timestamp);
+
+  write_stored_array(key, updated);
+
+  return updated;
 }
 
 export async function get_saved_searches(
-  _user_id: string,
+  user_id: string,
 ): Promise<SavedSearch[]> {
-  return [];
+  if (!user_id) return [];
+
+  return sort_saved_searches(
+    read_stored_array<SavedSearch>(saved_search_storage_key(user_id)),
+  );
 }
 
 export async function save_search_to_storage(
-  _user_id: string,
-  _name: string,
-  _query: string,
+  user_id: string,
+  name: string,
+  query: string,
 ): Promise<{ success: boolean; search?: SavedSearch }> {
-  return { success: false };
+  const trimmed_name = name.trim();
+  const trimmed_query = query.trim();
+
+  if (!user_id || !trimmed_name || !trimmed_query) return { success: false };
+
+  const key = saved_search_storage_key(user_id);
+  const existing = read_stored_array<SavedSearch>(key);
+  const search: SavedSearch = {
+    id: crypto.randomUUID(),
+    name: trimmed_name,
+    query: trimmed_query,
+    created_at: Date.now(),
+  };
+
+  write_stored_array(key, [search, ...existing].slice(0, SAVED_SEARCH_LIMIT));
+
+  return { success: true, search };
 }
 
 export async function delete_saved_search_from_storage(
-  _user_id: string,
-  _search_id: string,
+  user_id: string,
+  search_id: string,
 ): Promise<SavedSearch[]> {
-  return [];
+  if (!user_id) return [];
+
+  const key = saved_search_storage_key(user_id);
+  const updated = read_stored_array<SavedSearch>(key).filter(
+    (s) => s.id !== search_id,
+  );
+
+  write_stored_array(key, updated);
+
+  return sort_saved_searches(updated);
 }
 
 export async function update_saved_search_usage(
-  _user_id: string,
-  _search_id: string,
-): Promise<void> {}
+  user_id: string,
+  search_id: string,
+): Promise<void> {
+  if (!user_id) return;
+
+  const key = saved_search_storage_key(user_id);
+  const updated = read_stored_array<SavedSearch>(key).map((s) =>
+    s.id === search_id ? { ...s, last_used_at: Date.now() } : s,
+  );
+
+  write_stored_array(key, updated);
+}
 
 export async function clear_search_data(
-  _user_id: string,
-  _options: {
+  user_id: string,
+  options: {
     clear_history: boolean;
     clear_saved_searches: boolean;
     clear_cache: boolean;
   },
-): Promise<void> {}
+): Promise<void> {
+  if (!user_id) return;
+
+  if (options.clear_history) {
+    remove_stored_key(history_storage_key(user_id));
+  }
+  if (options.clear_saved_searches) {
+    remove_stored_key(saved_search_storage_key(user_id));
+  }
+}
 
 interface SearchState {
   query: string;
