@@ -20,7 +20,7 @@
 //
 import { describe, it, expect, vi } from "vitest";
 
-import { generate_keypair } from "./double_ratchet";
+import { generate_keypair, DoubleRatchet } from "./double_ratchet";
 
 vi.mock("./encrypted_storage", () => ({
   encrypted_get: vi.fn(),
@@ -98,5 +98,78 @@ describe("generate_keypair", () => {
     );
 
     expect(public_keys.size).toBe(20);
+  });
+});
+
+describe("DoubleRatchet end-to-end send/receive (resend readability)", () => {
+  async function setup() {
+    const shared_secret = crypto.getRandomValues(new Uint8Array(32));
+    const receiver_keypair = await generate_keypair();
+    const conversation_id = "conv_test";
+
+    return { shared_secret, receiver_keypair, conversation_id };
+  }
+
+  it("a fresh receiver decrypts the first message (clean bootstrap = a resend)", async () => {
+    const { shared_secret, receiver_keypair, conversation_id } = await setup();
+
+    const sender = await DoubleRatchet.init_sender(
+      shared_secret,
+      receiver_keypair.public_key,
+      conversation_id,
+    );
+    const receiver = await DoubleRatchet.init_receiver(
+      shared_secret,
+      receiver_keypair,
+      conversation_id,
+    );
+
+    const msg = await sender.encrypt("you should be able to read this");
+
+    expect(await receiver.decrypt(msg)).toBe(
+      "you should be able to read this",
+    );
+  });
+
+  it("a fresh receiver decrypts message_number 1 without having seen message 0 (bruno's case)", async () => {
+    const { shared_secret, receiver_keypair, conversation_id } = await setup();
+
+    const sender = await DoubleRatchet.init_sender(
+      shared_secret,
+      receiver_keypair.public_key,
+      conversation_id,
+    );
+
+    await sender.encrypt("first");
+    const second = await sender.encrypt("second");
+    expect(second.header.message_number).toBe(1);
+
+    const fresh_receiver = await DoubleRatchet.init_receiver(
+      shared_secret,
+      receiver_keypair,
+      conversation_id,
+    );
+
+    expect(await fresh_receiver.decrypt(second)).toBe("second");
+  });
+
+  it("a receiver with the WRONG signed prekey cannot decrypt (the obsolete-key failure)", async () => {
+    const { shared_secret, receiver_keypair, conversation_id } = await setup();
+
+    const sender = await DoubleRatchet.init_sender(
+      shared_secret,
+      receiver_keypair.public_key,
+      conversation_id,
+    );
+    const wrong_keypair = await generate_keypair();
+    const wrong_receiver = await DoubleRatchet.init_receiver(
+      shared_secret,
+      wrong_keypair,
+      conversation_id,
+    );
+
+    const msg = await sender.encrypt("hello");
+
+    await expect(wrong_receiver.decrypt(msg)).rejects.toThrow();
   });
 });
