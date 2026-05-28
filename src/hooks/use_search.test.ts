@@ -18,9 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { matches_query } from "@/hooks/use_search";
+import {
+  matches_query,
+  get_search_history,
+  add_to_history,
+  remove_from_history,
+  get_saved_searches,
+  save_search_to_storage,
+  delete_saved_search_from_storage,
+  update_saved_search_usage,
+  clear_search_data,
+} from "@/hooks/use_search";
 import { parse_search_query } from "@/utils/search_operators";
 import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
@@ -139,5 +149,134 @@ describe("matches_query - encrypted content search toggle", () => {
 
     expect(run("quarterly", env, false)).toBe(true);
     expect(run("revenue", env, false)).toBe(false);
+  });
+});
+
+describe("search history persistence", () => {
+  const user = "user-1";
+
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("returns empty history for a fresh user", async () => {
+    expect(await get_search_history(user)).toEqual([]);
+  });
+
+  it("adds entries newest-first and returns them", async () => {
+    await add_to_history(user, "first", 3);
+    const updated = await add_to_history(user, "second", 5);
+
+    expect(updated.map((e) => e.query)).toEqual(["second", "first"]);
+    expect(updated[0].result_count).toBe(5);
+  });
+
+  it("dedupes the same query case-insensitively and moves it to the top", async () => {
+    await add_to_history(user, "alpha", 1);
+    await add_to_history(user, "beta", 1);
+    const updated = await add_to_history(user, "ALPHA", 9);
+
+    expect(updated.map((e) => e.query)).toEqual(["ALPHA", "beta"]);
+    expect(updated).toHaveLength(2);
+  });
+
+  it("ignores blank queries", async () => {
+    const updated = await add_to_history(user, "   ", 0);
+
+    expect(updated).toEqual([]);
+  });
+
+  it("caps history at 20 entries", async () => {
+    for (let i = 0; i < 25; i++) {
+      await add_to_history(user, `q-${i}`, 0);
+    }
+
+    expect(await get_search_history(user)).toHaveLength(20);
+  });
+
+  it("removes a single entry by id", async () => {
+    await add_to_history(user, "keep", 0);
+    const after_add = await add_to_history(user, "drop", 0);
+    const drop_id = after_add.find((e) => e.query === "drop")!.id;
+    const updated = await remove_from_history(user, drop_id);
+
+    expect(updated.map((e) => e.query)).toEqual(["keep"]);
+  });
+
+  it("keeps history isolated per user", async () => {
+    await add_to_history(user, "mine", 0);
+
+    expect(await get_search_history("other-user")).toEqual([]);
+  });
+});
+
+describe("saved searches persistence", () => {
+  const user = "user-1";
+
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("saves and retrieves a search", async () => {
+    const result = await save_search_to_storage(user, "Unread", "is:unread");
+
+    expect(result.success).toBe(true);
+    expect(result.search?.name).toBe("Unread");
+
+    const all = await get_saved_searches(user);
+
+    expect(all).toHaveLength(1);
+    expect(all[0].query).toBe("is:unread");
+  });
+
+  it("rejects blank name or query", async () => {
+    expect((await save_search_to_storage(user, "", "is:unread")).success).toBe(
+      false,
+    );
+    expect((await save_search_to_storage(user, "Name", "  ")).success).toBe(
+      false,
+    );
+  });
+
+  it("deletes a saved search by id", async () => {
+    const a = await save_search_to_storage(user, "A", "from:a");
+    await save_search_to_storage(user, "B", "from:b");
+    const updated = await delete_saved_search_from_storage(
+      user,
+      a.search!.id,
+    );
+
+    expect(updated.map((s) => s.name)).toEqual(["B"]);
+  });
+
+  it("orders by last used after updating usage", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    const first = await save_search_to_storage(user, "First", "from:a");
+
+    vi.setSystemTime(new Date("2026-01-01T00:01:00Z"));
+    await save_search_to_storage(user, "Second", "from:b");
+
+    vi.setSystemTime(new Date("2026-01-01T00:02:00Z"));
+    await update_saved_search_usage(user, first.search!.id);
+
+    const all = await get_saved_searches(user);
+
+    expect(all[0].name).toBe("First");
+    vi.useRealTimers();
+  });
+
+  it("clears history and saved searches independently", async () => {
+    await add_to_history(user, "q", 0);
+    await save_search_to_storage(user, "S", "from:a");
+
+    await clear_search_data(user, {
+      clear_history: true,
+      clear_saved_searches: false,
+      clear_cache: false,
+    });
+
+    expect(await get_search_history(user)).toEqual([]);
+    expect(await get_saved_searches(user)).toHaveLength(1);
   });
 });
