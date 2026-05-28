@@ -45,6 +45,39 @@ export interface LegacyDerivedKek {
   added_at: string;
 }
 
+export interface RatchetKeySet {
+  ratchet_identity_key: string;
+  ratchet_identity_public: string;
+  ratchet_signed_prekey: string;
+  ratchet_signed_prekey_public: string;
+}
+
+export const RATCHET_PREVIOUS_KEYS_LIMIT = 3;
+
+export function retain_previous_ratchet_keys(
+  vault: EncryptedVault,
+): RatchetKeySet[] {
+  const previous = vault.ratchet_previous_keys
+    ? [...vault.ratchet_previous_keys]
+    : [];
+
+  if (
+    vault.ratchet_identity_key &&
+    vault.ratchet_identity_public &&
+    vault.ratchet_signed_prekey &&
+    vault.ratchet_signed_prekey_public
+  ) {
+    previous.unshift({
+      ratchet_identity_key: vault.ratchet_identity_key,
+      ratchet_identity_public: vault.ratchet_identity_public,
+      ratchet_signed_prekey: vault.ratchet_signed_prekey,
+      ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public,
+    });
+  }
+
+  return previous.slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+}
+
 export interface EncryptedVault {
   identity_key: string;
   previous_keys?: string[];
@@ -55,6 +88,7 @@ export interface EncryptedVault {
   ratchet_identity_public?: string;
   ratchet_signed_prekey?: string;
   ratchet_signed_prekey_public?: string;
+  ratchet_previous_keys?: RatchetKeySet[];
   legacy_keks?: LegacyDerivedKek[];
   data_kek?: string;
 }

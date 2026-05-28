@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "./key_manager";
+import type { RatchetKeySet } from "./key_manager_core";
 
 const _KE = ["EC", "DH"].join("");
 const _KC = ["P", "256"].join("-");
@@ -363,26 +364,57 @@ export async function decrypt_ratchet_message(
   return plaintext;
 }
 
+function receiver_key_sets(vault: EncryptedVault): RatchetKeySet[] {
+  const sets: RatchetKeySet[] = [];
+
+  if (
+    vault.ratchet_identity_key &&
+    vault.ratchet_identity_public &&
+    vault.ratchet_signed_prekey &&
+    vault.ratchet_signed_prekey_public
+  ) {
+    sets.push({
+      ratchet_identity_key: vault.ratchet_identity_key,
+      ratchet_identity_public: vault.ratchet_identity_public,
+      ratchet_signed_prekey: vault.ratchet_signed_prekey,
+      ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public,
+    });
+  }
+
+  for (const previous of vault.ratchet_previous_keys ?? []) {
+    if (
+      previous.ratchet_identity_key &&
+      previous.ratchet_identity_public &&
+      previous.ratchet_signed_prekey &&
+      previous.ratchet_signed_prekey_public
+    ) {
+      sets.push(previous);
+    }
+  }
+
+  return sets;
+}
+
 async function init_receiver_from_bootstrap(
   data: RatchetRecipientData,
   sender_identity_key: string,
-  vault: EncryptedVault,
+  keys: RatchetKeySet,
   conversation_id: string,
 ): Promise<DoubleRatchet | null> {
   if (
-    !vault.ratchet_identity_key ||
-    !vault.ratchet_signed_prekey ||
-    !vault.ratchet_signed_prekey_public ||
+    !keys.ratchet_identity_key ||
+    !keys.ratchet_signed_prekey ||
+    !keys.ratchet_signed_prekey_public ||
     !data.ephemeral_key
   ) {
     return null;
   }
 
   const receiver_identity_jwk: JsonWebKey = JSON.parse(
-    vault.ratchet_identity_key,
+    keys.ratchet_identity_key,
   );
   const receiver_signed_prekey_jwk: JsonWebKey = JSON.parse(
-    vault.ratchet_signed_prekey,
+    keys.ratchet_signed_prekey,
   );
 
   const sender_identity_raw = base64_to_array(sender_identity_key);
@@ -405,8 +437,8 @@ async function init_receiver_from_bootstrap(
   );
 
   const own_keypair = await jwk_to_ratchet_keypair(
-    vault.ratchet_signed_prekey,
-    vault.ratchet_signed_prekey_public,
+    keys.ratchet_signed_prekey,
+    keys.ratchet_signed_prekey_public,
   );
 
   const ratchet = await DoubleRatchet.init_receiver(
@@ -428,11 +460,9 @@ async function decrypt_ratchet_for_recipient(
   sender_identity_key: string,
   vault: EncryptedVault,
 ): Promise<string | null> {
-  if (
-    !vault.ratchet_identity_key ||
-    !vault.ratchet_signed_prekey ||
-    !vault.ratchet_signed_prekey_public
-  ) {
+  const key_sets = receiver_key_sets(vault);
+
+  if (key_sets.length === 0) {
     return null;
   }
 
@@ -443,53 +473,63 @@ async function decrypt_ratchet_for_recipient(
     data.header.message_number === 0 &&
     data.header.previous_chain_length === 0;
 
-  let ratchet = await load_ratchet_state(conversation_id);
-
-  if (ratchet && is_fresh_bootstrap) {
-    ratchet = null;
-  }
-
-  if (!ratchet) {
-    ratchet = await init_receiver_from_bootstrap(
-      data,
-      sender_identity_key,
-      vault,
-      conversation_id,
-    );
-
-    if (!ratchet) {
-      return null;
-    }
-  }
-
   const message: EncryptedMessage = {
     header: data.header,
     ciphertext: data.ciphertext,
     nonce: data.nonce,
   };
 
-  let plaintext: string;
+  let ratchet = await load_ratchet_state(conversation_id);
 
-  try {
-    plaintext = await ratchet.decrypt(message);
-  } catch (err) {
-    if (!is_fresh_bootstrap) {
-      throw err;
+  if (ratchet && is_fresh_bootstrap) {
+    ratchet = null;
+  }
+
+  let plaintext: string | null = null;
+
+  if (ratchet) {
+    try {
+      plaintext = await ratchet.decrypt(message);
+    } catch {
+      plaintext = null;
+    }
+  }
+
+  if (plaintext === null) {
+    let last_error: unknown = null;
+
+    for (const keys of key_sets) {
+      const candidate = await init_receiver_from_bootstrap(
+        data,
+        sender_identity_key,
+        keys,
+        conversation_id,
+      );
+
+      if (!candidate) {
+        continue;
+      }
+
+      try {
+        plaintext = await candidate.decrypt(message);
+        ratchet = candidate;
+        break;
+      } catch (err) {
+        last_error = err;
+      }
     }
 
-    const fresh = await init_receiver_from_bootstrap(
-      data,
-      sender_identity_key,
-      vault,
-      conversation_id,
-    );
+    if (plaintext === null || !ratchet) {
+      if (last_error) {
+        throw last_error;
+      }
 
-    if (!fresh) {
-      throw err;
+      return null;
     }
+  }
 
-    plaintext = await fresh.decrypt(message);
-    ratchet = fresh;
+  if (plaintext === null || !ratchet) {
+    return null;
   }
 
   await save_ratchet_state(ratchet);
