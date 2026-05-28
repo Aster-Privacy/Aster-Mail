@@ -20,8 +20,6 @@
 //
 import { useState } from "react";
 import { ArrowRightIcon, LockClosedIcon } from "@heroicons/react/24/outline";
-import { FaMicrosoft, FaYahoo } from "react-icons/fa6";
-import { SiGmail } from "react-icons/si";
 import { Button } from "@aster/ui";
 
 import { Modal, ModalBody } from "@/components/ui/modal";
@@ -51,17 +49,23 @@ interface ProviderTheme {
 
 const PROVIDER_THEME: Record<ConnectProvider, ProviderTheme> = {
   google: {
-    icon: <SiGmail className="w-9 h-9" color="#EA4335" />,
+    icon: (
+      <img alt="" aria-hidden="true" className="w-9 h-9 object-contain" src="/providers/gmail_logo.svg" />
+    ),
     name_key: "settings.connect_provider_name_google",
     button_key: "settings.connect_sign_in_google",
   },
   microsoft: {
-    icon: <FaMicrosoft className="w-9 h-9" color="#0078D4" />,
+    icon: (
+      <img alt="" aria-hidden="true" className="w-9 h-9 object-contain" src="/providers/outlook_logo.svg" />
+    ),
     name_key: "settings.connect_provider_name_microsoft",
     button_key: "settings.connect_sign_in_microsoft",
   },
   yahoo: {
-    icon: <FaYahoo className="w-9 h-9" color="#6001D2" />,
+    icon: (
+      <img alt="" aria-hidden="true" className="w-9 h-9 object-contain" src="/providers/yahoo_mail_logo.svg" />
+    ),
     name_key: "settings.connect_provider_name_yahoo",
     button_key: "settings.connect_sign_in_yahoo",
   },

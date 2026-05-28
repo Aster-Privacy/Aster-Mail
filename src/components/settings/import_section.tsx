@@ -33,8 +33,6 @@ import {
   TrashIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { FaMicrosoft, FaYahoo } from "react-icons/fa6";
-import { SiGmail } from "react-icons/si";
 import { Button, Checkbox } from "@aster/ui";
 
 import { ImportModal } from "./import_modal";
@@ -105,17 +103,23 @@ interface ProviderRow {
 const PROVIDERS: ProviderRow[] = [
   {
     id: "gmail",
-    icon: <SiGmail className="w-6 h-6" color="#EA4335" />,
+    icon: (
+      <img alt="" aria-hidden="true" className="w-6 h-6 object-contain" src="/providers/gmail_logo.svg" />
+    ),
     label_key: "settings.gmail_import",
   },
   {
     id: "outlook",
-    icon: <FaMicrosoft className="w-6 h-6" color="#0078D4" />,
+    icon: (
+      <img alt="" aria-hidden="true" className="w-6 h-6 object-contain" src="/providers/outlook_logo.svg" />
+    ),
     label_key: "settings.outlook_import",
   },
   {
     id: "yahoo",
-    icon: <FaYahoo className="w-6 h-6" color="#6001D2" />,
+    icon: (
+      <img alt="" aria-hidden="true" className="w-6 h-6 object-contain" src="/providers/yahoo_mail_logo.svg" />
+    ),
     label_key: "settings.yahoo_import",
   },
   {
@@ -244,7 +248,9 @@ function get_provider_icon(protocol: string, email: string) {
 
   if (protocol === "oauth_imap") {
     if (lower.includes("gmail") || lower.includes("google")) {
-      return <SiGmail className="w-5 h-5" color="#EA4335" />;
+      return (
+        <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/gmail_logo.svg" />
+      );
     }
 
     if (
@@ -252,11 +258,15 @@ function get_provider_icon(protocol: string, email: string) {
       lower.includes("hotmail") ||
       lower.includes("live")
     ) {
-      return <FaMicrosoft className="w-5 h-5" color="#0078D4" />;
+      return (
+        <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/outlook_logo.svg" />
+      );
     }
 
     if (lower.includes("yahoo")) {
-      return <FaYahoo className="w-5 h-5" color="#6001D2" />;
+      return (
+        <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/yahoo_mail_logo.svg" />
+      );
     }
   }
 

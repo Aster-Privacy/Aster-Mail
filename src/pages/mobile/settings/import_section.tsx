@@ -27,8 +27,6 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
-import { FaMicrosoft, FaYahoo } from "react-icons/fa6";
-import { SiGmail } from "react-icons/si";
 
 import { SettingsGroup, SettingsHeader } from "./shared";
 
@@ -75,17 +73,23 @@ export function ImportSection({
   }[] = [
     {
       id: "gmail",
-      icon: <SiGmail className="w-5 h-5" color="#EA4335" />,
+      icon: (
+        <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/gmail_logo.svg" />
+      ),
       label: t("settings.gmail_import"),
     },
     {
       id: "outlook",
-      icon: <FaMicrosoft className="w-5 h-5" color="#0078D4" />,
+      icon: (
+        <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/outlook_logo.svg" />
+      ),
       label: t("settings.outlook_import"),
     },
     {
       id: "yahoo",
-      icon: <FaYahoo className="w-5 h-5" color="#6001D2" />,
+      icon: (
+        <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/yahoo_mail_logo.svg" />
+      ),
       label: t("settings.yahoo_import"),
     },
     {
