@@ -56,6 +56,7 @@ import {
 } from "@/components/ui/alert_dialog";
 import { CheckoutModal } from "@/components/settings/checkout_modal";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
+import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   list_contacts,
@@ -72,11 +73,13 @@ import {
   activate_subscription,
   get_referral_info,
   get_referral_history,
+  get_credits,
   format_storage,
   format_price,
   format_date,
   type ReferralInfo,
   type ReferralHistoryItem,
+  type CreditBalanceResponse,
 } from "@/services/api/billing";
 import { use_auth } from "@/contexts/auth_context";
 import { get_user_salt } from "@/services/api/auth";
@@ -184,6 +187,8 @@ export function BillingSection({
   const [referral_info, set_referral_info] = useState<ReferralInfo | null>(null);
   const [referral_history_list, set_referral_history_list] = useState<ReferralHistoryItem[]>([]);
   const [is_sending_referral, set_is_sending_referral] = useState(false);
+  const [credit_balance, set_credit_balance] =
+    useState<CreditBalanceResponse | null>(null);
 
   const handle_send_referral = useCallback(async () => {
     if (!referral_info) return;
@@ -302,19 +307,22 @@ export function BillingSection({
 
   const load_data = useCallback(async () => {
     try {
-      const [sub_res, plans_res, hist_res, ref_res, ref_hist_res] = await Promise.all([
-        get_subscription(),
-        get_available_plans(),
-        get_billing_history(1, 10),
-        get_referral_info(),
-        get_referral_history(),
-      ]);
+      const [sub_res, plans_res, hist_res, ref_res, ref_hist_res, credits_res] =
+        await Promise.all([
+          get_subscription(),
+          get_available_plans(),
+          get_billing_history(1, 10),
+          get_referral_info(),
+          get_referral_history(),
+          get_credits(),
+        ]);
 
       if (sub_res.data) set_subscription(sub_res.data);
       if (plans_res.data) set_plans(plans_res.data.plans);
       if (hist_res.data) set_history(hist_res.data.items);
       if (ref_res.data) set_referral_info(ref_res.data);
       if (ref_hist_res.data) set_referral_history_list(ref_hist_res.data.referrals);
+      if (credits_res.data) set_credit_balance(credits_res.data);
     } catch {
     } finally {
       set_is_loading(false);
@@ -950,6 +958,13 @@ export function BillingSection({
                 ))}
               </SettingsGroup>
             )}
+
+            <div className="px-4 pt-2">
+              <CreditsSection
+                credit_balance={credit_balance}
+                set_credit_balance={set_credit_balance}
+              />
+            </div>
 
             <SettingsGroup
               title={

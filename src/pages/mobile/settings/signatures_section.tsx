@@ -24,11 +24,21 @@ import type {
   SignaturePlacement,
 } from "@/services/api/signatures";
 
-import { useState, useCallback, useEffect } from "react";
-import { PlusIcon, DocumentTextIcon, CheckIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { useState, useCallback, useEffect, useRef } from "react";
+import {
+  PlusIcon,
+  DocumentTextIcon,
+  CheckIcon,
+  PhotoIcon,
+} from "@heroicons/react/24/outline";
+import { Button, Switch } from "@aster/ui";
 
-import { SettingsHeader } from "./shared";
+import {
+  SettingsGroup,
+  SettingsHeader,
+  SettingsRow,
+  OptionList,
+} from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
@@ -43,6 +53,22 @@ import {
 } from "@/services/api/signatures";
 import { use_signatures } from "@/contexts/signatures_context";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";
+import { use_preferences } from "@/contexts/preferences_context";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { use_editor } from "@/hooks/use_editor";
+import { validate_image_magic_bytes } from "@/hooks/editor_utils";
+import { sanitize_compose_paste } from "@/lib/html_sanitizer";
+import { fetch_my_badges } from "@/services/api/user";
+
+function escape_html(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+const MAX_SIGNATURE_IMAGE_SIZE = 2 * 1024 * 1024;
 
 export function SignaturesSection({
   on_back,
@@ -54,9 +80,15 @@ export function SignaturesSection({
   const { t } = use_i18n();
   const { reload_signatures: reload_context_signatures } = use_signatures();
   const { sender_options } = use_sender_aliases();
+  const { preferences, update_preference } = use_preferences();
+  const { limits } = use_plan_limits();
+  const is_paid_plan = !!limits && limits.plan_code !== "free";
   const sender_aliases = sender_options.filter(
     (o) => o.type === "alias" && o.is_enabled,
   );
+  const [has_badges, set_has_badges] = useState(false);
+  const editor_div_ref = useRef<HTMLDivElement>(null);
+  const image_input_ref = useRef<HTMLInputElement>(null);
   const [signatures, set_signatures] = useState<DecryptedSignature[]>([]);
   const [is_loading, set_is_loading] = useState(true);
   const [editor_open, set_editor_open] = useState(false);
@@ -72,6 +104,45 @@ export function SignaturesSection({
     is_open: boolean;
     id: string | null;
   }>({ is_open: false, id: null });
+
+  const rich_editor = use_editor({
+    editor_ref: editor_div_ref,
+    on_change: (html: string) => set_editor_content(html),
+    enable_rich_paste: true,
+    enable_keyboard_shortcuts: true,
+  });
+
+  useEffect(() => {
+    fetch_my_badges().then((r) => {
+      if (r.data && r.data.length > 0) set_has_badges(true);
+    });
+  }, []);
+
+  const handle_image_upload = useCallback(
+    (file: File) => {
+      if (!file.type.startsWith("image/") || file.type === "image/svg+xml")
+        return;
+      if (file.size > MAX_SIGNATURE_IMAGE_SIZE) return;
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const data_url = reader.result as string;
+        const arr_buf = Uint8Array.from(
+          atob(data_url.split(",")[1] || ""),
+          (c) => c.charCodeAt(0),
+        ).buffer;
+
+        if (!validate_image_magic_bytes(arr_buf, file.type)) return;
+
+        rich_editor.insert_html(
+          `<img src="${data_url}" style="max-width: min(100%, 480px); height: auto; border-radius: 6px; display: block; margin: 8px 0;" />`,
+        );
+      };
+      reader.readAsDataURL(file);
+    },
+    [rich_editor],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -102,16 +173,27 @@ export function SignaturesSection({
     set_editor_alias_id(null);
     set_editor_placement(null);
     set_editor_open(true);
-  }, []);
+    requestAnimationFrame(() => rich_editor.set_html(""));
+  }, [rich_editor]);
 
-  const open_edit = useCallback((sig: DecryptedSignature) => {
-    set_editing_id(sig.id);
-    set_editor_name(sig.name);
-    set_editor_content(sig.content);
-    set_editor_alias_id(sig.alias_id);
-    set_editor_placement(sig.placement);
-    set_editor_open(true);
-  }, []);
+  const open_edit = useCallback(
+    (sig: DecryptedSignature) => {
+      set_editing_id(sig.id);
+      set_editor_name(sig.name);
+      set_editor_content(sig.content);
+      set_editor_alias_id(sig.alias_id);
+      set_editor_placement(sig.placement);
+      set_editor_open(true);
+      requestAnimationFrame(() => {
+        const html = sig.is_html
+          ? sig.content
+          : escape_html(sig.content).replace(/\n/g, "<br>");
+
+        rich_editor.set_html(html);
+      });
+    },
+    [rich_editor],
+  );
 
   const close_editor = useCallback(() => {
     set_editor_open(false);
@@ -123,13 +205,31 @@ export function SignaturesSection({
   }, []);
 
   const handle_save = useCallback(async () => {
-    if (!editor_name.trim() || !editor_content.trim()) return;
+    const html_content = rich_editor.get_html();
+
+    if (!editor_name.trim() || !html_content.trim()) return;
     set_is_saving(true);
+
+    const temp = document.createElement("div");
+
+    temp.innerHTML = html_content.trim();
+    const has_rich_content =
+      temp.querySelector("img, a, b, strong, i, em, u, table, hr") !== null ||
+      temp.querySelector("[style]") !== null;
+
+    temp.querySelectorAll("br").forEach((br) => br.replaceWith("\n"));
+    temp.querySelectorAll("div, p").forEach((block) => {
+      block.before("\n");
+      block.replaceWith(...block.childNodes);
+    });
+    const plain_text = (temp.textContent || "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
 
     const form_data: SignatureFormData = {
       name: editor_name.trim(),
-      content: editor_content.trim(),
-      is_html: false,
+      content: has_rich_content ? html_content.trim() : plain_text,
+      is_html: has_rich_content,
       alias_id: editor_alias_id,
       placement: editor_placement,
     };
@@ -145,6 +245,7 @@ export function SignaturesSection({
                   ...sig,
                   name: form_data.name,
                   content: form_data.content,
+                  is_html: has_rich_content,
                   alias_id: editor_alias_id,
                   placement: editor_placement,
                 }
@@ -164,7 +265,7 @@ export function SignaturesSection({
           name: form_data.name,
           content: form_data.content,
           is_default: is_first && !editor_alias_id,
-          is_html: false,
+          is_html: has_rich_content,
           alias_id: editor_alias_id,
           placement: editor_placement,
           created_at: res.data.created_at,
@@ -179,8 +280,8 @@ export function SignaturesSection({
 
     set_is_saving(false);
   }, [
+    rich_editor,
     editor_name,
-    editor_content,
     editor_alias_id,
     editor_placement,
     editing_id,
@@ -257,16 +358,72 @@ export function SignaturesSection({
             <label className="block text-[13px] font-medium text-[var(--text-primary)] mb-1.5">
               {t("settings.signature_content")}
             </label>
-            <textarea
-              className="w-full rounded-xl bg-[var(--mobile-bg-card)] px-4 py-3 text-[15px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none border border-[var(--border-secondary)] resize-none font-mono"
-              placeholder={t("settings.signature_content_placeholder")}
-              rows={8}
-              value={editor_content}
-              onChange={(e) => set_editor_content(e.target.value)}
-            />
-            <p className="text-[11px] mt-1.5 text-[var(--text-muted)]">
-              {t("settings.plain_text_hint")}
-            </p>
+            <div className="overflow-hidden rounded-xl border border-[var(--border-secondary)] bg-[var(--mobile-bg-card)]">
+              <div className="flex items-center gap-0.5 border-b border-[var(--border-secondary)] px-2 py-1.5">
+                <button
+                  className={`rounded p-1.5 text-xs font-bold transition-colors ${rich_editor.format_state.active_formats.has("bold") ? "bg-[var(--mobile-bg-card-hover)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    rich_editor.toggle_bold();
+                  }}
+                >
+                  B
+                </button>
+                <button
+                  className={`rounded p-1.5 text-xs italic transition-colors ${rich_editor.format_state.active_formats.has("italic") ? "bg-[var(--mobile-bg-card-hover)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    rich_editor.toggle_italic();
+                  }}
+                >
+                  I
+                </button>
+                <button
+                  className={`rounded p-1.5 text-xs underline transition-colors ${rich_editor.format_state.active_formats.has("underline") ? "bg-[var(--mobile-bg-card-hover)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    rich_editor.toggle_underline();
+                  }}
+                >
+                  U
+                </button>
+                <div className="mx-1 h-5 w-px bg-[var(--border-secondary)]" />
+                <button
+                  className="rounded p-1.5 text-[var(--text-secondary)] transition-colors"
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    image_input_ref.current?.click();
+                  }}
+                >
+                  <PhotoIcon className="h-4 w-4" />
+                </button>
+                <input
+                  ref={image_input_ref}
+                  accept="image/png,image/jpeg,image/gif,image/webp"
+                  className="hidden"
+                  type="file"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+
+                    if (file) handle_image_upload(file);
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+              <div
+                ref={editor_div_ref}
+                contentEditable
+                className="max-h-[300px] min-h-[150px] overflow-y-auto px-3 py-2 text-[15px] text-[var(--text-primary)] outline-none [&_img]:max-w-full [&_img]:rounded-md"
+                onDragOver={rich_editor.handle_drag_over}
+                onDrop={rich_editor.handle_drop}
+                onInput={rich_editor.handle_input}
+                onPaste={rich_editor.handle_paste}
+              />
+            </div>
           </div>
           <div>
             <label className="block text-[13px] font-medium text-[var(--text-primary)] mb-1.5">
@@ -424,9 +581,14 @@ export function SignaturesSection({
                     </span>
                   )}
                 </div>
-                <p className="mt-2 text-[13px] text-[var(--text-muted)] line-clamp-3 whitespace-pre-wrap font-mono">
-                  {sig.content}
-                </p>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: sig.is_html
+                      ? sanitize_compose_paste(sig.content)
+                      : escape_html(sig.content).replace(/\n/g, "<br>"),
+                  }}
+                  className="mt-2 line-clamp-3 text-[13px] text-[var(--text-muted)] [&_img]:max-h-16 [&_img]:rounded"
+                />
                 <div className="mt-3 flex items-center gap-2">
                   <button
                     className="text-[13px] text-[var(--accent-color,#3b82f6)]"
@@ -461,6 +623,51 @@ export function SignaturesSection({
             ))}
           </div>
         )}
+
+        <SettingsGroup title={t("settings.signature_placement")}>
+          <OptionList
+            on_change={(v) =>
+              update_preference("signature_placement", v, true)
+            }
+            options={[
+              { value: "below", label: t("settings.below_quoted_text") },
+              { value: "above", label: t("settings.above_quoted_text") },
+            ]}
+            value={preferences.signature_placement || "below"}
+          />
+        </SettingsGroup>
+
+        {has_badges && (
+          <SettingsGroup>
+            <SettingsRow
+              label={t("settings.show_badges_in_signature")}
+              trailing={
+                <Switch
+                  checked={preferences.show_badges_in_signature}
+                  onCheckedChange={(v) =>
+                    update_preference("show_badges_in_signature", v, true)
+                  }
+                />
+              }
+            />
+          </SettingsGroup>
+        )}
+
+        <SettingsGroup>
+          <SettingsRow
+            label={t("settings.show_aster_branding")}
+            trailing={
+              <Switch
+                checked={preferences.show_aster_branding}
+                disabled={!is_paid_plan}
+                onCheckedChange={(v) => {
+                  if (!is_paid_plan) return;
+                  update_preference("show_aster_branding", v, true);
+                }}
+              />
+            }
+          />
+        </SettingsGroup>
       </div>
       <ConfirmationModal
         confirm_text={t("common.delete")}
