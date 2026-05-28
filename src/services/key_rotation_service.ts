@@ -26,6 +26,7 @@ import {
   generate_signed_prekey,
   encrypt_vault,
 } from "@/services/crypto/key_manager";
+import { retain_previous_ratchet_keys } from "@/services/crypto/key_manager_core";
 import {
   parse_ratchet_envelope,
   decrypt_ratchet_message,
@@ -240,6 +241,7 @@ export async function perform_key_rotation(
       ratchet_identity_public: new_ratchet_keys.identity_public,
       ratchet_signed_prekey: new_ratchet_keys.signed_prekey_jwk,
       ratchet_signed_prekey_public: new_ratchet_keys.signed_prekey_public,
+      ratchet_previous_keys: retain_previous_ratchet_keys(current_vault),
     };
 
     const { encrypted_vault, vault_nonce } = await encrypt_vault(
