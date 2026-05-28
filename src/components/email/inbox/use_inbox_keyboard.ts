@@ -29,9 +29,15 @@ interface ContextMenuActions {
   handle_toggle_read: (email: InboxEmail) => void;
 }
 
+interface ExtraKeyboardActions {
+  handle_open_snooze?: (email: InboxEmail) => void;
+  handle_select?: (id: string) => void;
+}
+
 export function use_inbox_keyboard(
   emails: InboxEmail[],
   context_menu_actions: ContextMenuActions,
+  extra_actions: ExtraKeyboardActions = {},
 ) {
   useEffect(() => {
     const find_email = (id: string) => emails.find((e) => e.id === id);
@@ -67,6 +73,17 @@ export function use_inbox_keyboard(
       if (email && email.is_read)
         context_menu_actions.handle_toggle_read(email);
     };
+    const handle_snooze = (e: Event) => {
+      const detail = (e as CustomEvent<{ id: string }>).detail;
+      const email = find_email(detail.id);
+
+      if (email) extra_actions.handle_open_snooze?.(email);
+    };
+    const handle_select = (e: Event) => {
+      const detail = (e as CustomEvent<{ id: string }>).detail;
+
+      extra_actions.handle_select?.(detail.id);
+    };
 
     window.addEventListener("astermail:keyboard-archive", handle_archive);
     window.addEventListener("astermail:keyboard-delete", handle_delete);
@@ -76,6 +93,8 @@ export function use_inbox_keyboard(
       "astermail:keyboard-mark-unread",
       handle_mark_unread,
     );
+    window.addEventListener("astermail:keyboard-snooze", handle_snooze);
+    window.addEventListener("astermail:keyboard-select", handle_select);
 
     return () => {
       window.removeEventListener("astermail:keyboard-archive", handle_archive);
@@ -89,6 +108,8 @@ export function use_inbox_keyboard(
         "astermail:keyboard-mark-unread",
         handle_mark_unread,
       );
+      window.removeEventListener("astermail:keyboard-snooze", handle_snooze);
+      window.removeEventListener("astermail:keyboard-select", handle_select);
     };
-  }, [emails, context_menu_actions]);
+  }, [emails, context_menu_actions, extra_actions]);
 }

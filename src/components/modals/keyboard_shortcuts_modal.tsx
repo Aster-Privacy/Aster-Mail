@@ -74,6 +74,13 @@ export function KeyboardShortcutsModal({
     toggle_star: "mail.shortcut_star_unstar",
     mark_read: "mail.mark_as_read",
     mark_unread: "mail.mark_as_unread",
+    snooze: "mail.snooze",
+    select_email: "mail.select",
+    go_inbox: "mail.inbox",
+    go_starred: "mail.starred",
+    go_sent: "mail.sent",
+    go_drafts: "mail.drafts",
+    go_all: "mail.all_mail",
     compose: "mail.shortcut_compose_new",
     reply: "mail.reply",
     reply_all: "mail.reply_all",
@@ -189,6 +196,10 @@ export function KeyboardShortcutsModal({
       keys.push("↵");
     } else if (key === "Escape") {
       keys.push("Esc");
+    } else if (key.includes(" ")) {
+      for (const part of key.split(" ")) {
+        keys.push(part.toUpperCase());
+      }
     } else {
       keys.push(key.toUpperCase());
     }

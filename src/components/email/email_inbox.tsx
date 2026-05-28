@@ -835,7 +835,19 @@ export function EmailInbox({
     on_email_list_change,
   });
 
-  use_inbox_keyboard(email_state.emails, context_menu_actions);
+  const extra_keyboard_actions = useMemo(
+    () => ({
+      handle_open_snooze: (email: InboxEmail) => set_custom_snooze_email(email),
+      handle_select: selection.handle_toggle_select,
+    }),
+    [selection.handle_toggle_select],
+  );
+
+  use_inbox_keyboard(
+    email_state.emails,
+    context_menu_actions,
+    extra_keyboard_actions,
+  );
 
   const is_split_view = !!split_email_id || !!split_scheduled_data;
   const is_full_view_mode = preferences.email_view_mode === "fullpage";
