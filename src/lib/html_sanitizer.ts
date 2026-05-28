@@ -37,7 +37,10 @@ import {
   sanitize_attribute,
 } from "./html_sanitizer_utils";
 
-export { sanitize_compose_paste } from "./html_sanitizer_compose";
+export {
+  sanitize_compose_paste,
+  sanitize_outgoing_html,
+} from "./html_sanitizer_compose";
 
 export interface BlockedItem {
   url: string;

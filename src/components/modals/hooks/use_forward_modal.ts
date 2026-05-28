@@ -83,7 +83,7 @@ import { fetch_my_badges } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { use_signatures } from "@/contexts/signatures_context";
-import { sanitize_html } from "@/lib/html_sanitizer";
+import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
 
 interface UseForwardModalProps {
   is_open: boolean;
@@ -513,7 +513,7 @@ export function use_forward_modal({
       const subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
       const ext_body =
         (forward_message ? forward_message + "<br><br>" : "") +
-        forward_content_ref.current +
+        sanitize_outgoing_html(forward_content_ref.current) +
         get_aster_footer(t, preferences.show_aster_branding);
       const external_attachments =
         attachments_ref.current.length > 0
@@ -667,7 +667,7 @@ export function use_forward_modal({
 
     const scheduled_body =
       (forward_message ? forward_message + "<br><br>" : "") +
-      forward_content_ref.current +
+      sanitize_outgoing_html(forward_content_ref.current) +
       get_aster_footer(t, preferences.show_aster_branding);
     const content: ScheduledEmailContent = {
       to_recipients: recipients.to,

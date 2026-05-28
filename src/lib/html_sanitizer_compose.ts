@@ -22,6 +22,48 @@ import DOMPurify from "dompurify";
 
 import { sanitize_compose_style } from "./html_sanitizer_css";
 
+const OUTGOING_URI_REGEXP =
+  /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|data|blob):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
+
+const OUTGOING_DANGEROUS_HREF = /^\s*(?:javascript|vbscript|data|blob|file):/i;
+
+export function sanitize_outgoing_html(html: string): string {
+  if (!html || typeof html !== "string") return "";
+
+  const purified = DOMPurify.sanitize(html, {
+    ADD_ATTR: ["target"],
+    ALLOW_DATA_ATTR: true,
+    ALLOWED_URI_REGEXP: OUTGOING_URI_REGEXP,
+  });
+
+  const doc = new DOMParser().parseFromString(purified, "text/html");
+
+  const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT);
+  const elements: Element[] = [];
+
+  while (walker.nextNode()) {
+    elements.push(walker.currentNode as Element);
+  }
+
+  for (const el of elements) {
+    for (const attr of Array.from(el.attributes)) {
+      if (/^on/i.test(attr.name)) {
+        el.removeAttribute(attr.name);
+      }
+    }
+
+    if (el.tagName === "A") {
+      const href = el.getAttribute("href") || "";
+
+      if (OUTGOING_DANGEROUS_HREF.test(href)) {
+        el.removeAttribute("href");
+      }
+    }
+  }
+
+  return doc.body.innerHTML;
+}
+
 export function sanitize_compose_paste(html: string): string {
   if (!html || typeof html !== "string") return "";
 
