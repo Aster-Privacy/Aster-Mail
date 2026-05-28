@@ -190,6 +190,7 @@ export interface RequestConfig extends RequestInit {
   retry_delay?: number;
   cache_ttl?: number;
   skip_cache?: boolean;
+  skip_session_refresh?: boolean;
 }
 
 const DEFAULT_TIMEOUT = 30000;
@@ -620,7 +621,7 @@ class ApiClient {
           try {
             me_response = await this.get<{ user_id: string }>(
               "/core/v1/auth/me",
-              { skip_cache: true },
+              { skip_cache: true, skip_session_refresh: true },
             );
           } catch (e) {
             if (import.meta.env.DEV) console.error(e);
@@ -823,8 +824,12 @@ class ApiClient {
     }
   }
 
-  private async ensure_fresh_token(endpoint: string): Promise<void> {
+  private async ensure_fresh_token(
+    endpoint: string,
+    skip_session_refresh = false,
+  ): Promise<void> {
     if (
+      skip_session_refresh ||
       !this.is_authenticated_flag ||
       !this.initial_auth_verified ||
       !this.last_refresh_timestamp ||
@@ -852,7 +857,7 @@ class ApiClient {
     endpoint: string,
     config: RequestConfig = {},
   ): Promise<ApiResponse<T>> {
-    await this.ensure_fresh_token(endpoint);
+    await this.ensure_fresh_token(endpoint, config.skip_session_refresh);
 
     const {
       timeout = get_effective_timeout(DEFAULT_TIMEOUT),
@@ -860,6 +865,7 @@ class ApiClient {
       retry_delay = get_effective_retry_delay(DEFAULT_RETRY_DELAY),
       cache_ttl: _cache_ttl,
       skip_cache: _skip_cache,
+      skip_session_refresh = false,
       ...options
     } = config;
 
@@ -923,6 +929,7 @@ class ApiClient {
             response.status === 403 &&
             error_data.code === "CSRF_INVALID" &&
             is_state_changing_method(method) &&
+            !skip_session_refresh &&
             !endpoint.includes("/auth/refresh") &&
             !endpoint.includes("/auth/logout") &&
             !endpoint.includes("/auth/clear-session")
@@ -1066,6 +1073,7 @@ class ApiClient {
             !endpoint.includes("/auth/clear-session")
           ) {
             if (
+              !skip_session_refresh &&
               !has_attempted_refresh &&
               !endpoint.includes("/auth/refresh") &&
               !endpoint.includes("/auth/logout") &&
@@ -1112,6 +1120,7 @@ class ApiClient {
             response.status === 403 &&
             is_state_changing_method(method) &&
             attempt === 0 &&
+            !skip_session_refresh &&
             !this.dev_access_token
           ) {
             clear_csrf_cache();
