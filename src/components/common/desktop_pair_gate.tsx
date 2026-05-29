@@ -393,9 +393,19 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handle_new_code = () => {
+  const handle_new_code = async () => {
     if (pubkeys) {
       start_code_flow(pubkeys);
+      return;
+    }
+    set_gate_state("loading");
+    try {
+      const core = await import("@tauri-apps/api/core");
+      const pk = await core.invoke<DevicePubkeys>("device_get_pubkeys");
+      set_pubkeys(pk);
+      start_code_flow(pk);
+    } catch {
+      set_gate_state("error");
     }
   };
 
