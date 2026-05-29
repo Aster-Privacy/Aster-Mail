@@ -500,6 +500,8 @@ export function BillingSection({
   };
 
   const handle_pay_with_card = async (plan: AvailablePlan) => {
+    if (is_action_loading) return;
+
     const checkout_interval =
       billing_period === "yearly"
         ? "year"
@@ -519,7 +521,8 @@ export function BillingSection({
 
       if (!result.ok) {
         set_is_action_loading(false);
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(t("settings.payment_failed"), "error");
+        set_show_payment_methods(true);
 
         return;
       }
@@ -1293,6 +1296,7 @@ export function BillingSection({
         <PlanPaymentMethodModal
           open={show_method_modal}
           plan_name={method_modal_plan.name}
+          busy={is_action_loading}
           on_choose_card={() => {
             const plan = method_modal_plan;
 
@@ -1340,6 +1344,7 @@ export function BillingSection({
         <PlanPaymentMethodModal
           open={show_addon_method_modal}
           plan_name={addon_method_target.name}
+          busy={is_action_loading}
           on_choose_card={() => {
             const addon = addon_method_target;
 

@@ -334,7 +334,8 @@ export function BillingSection() {
 
       if (!result.ok) {
         set_is_action_loading(false);
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(t("settings.payment_failed"), "error");
+        set_show_payment_methods(true);
 
         return;
       }
