@@ -38,6 +38,7 @@ import { purge_all_local_data } from "./purge_local_data";
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 
 import { api_client } from "@/services/api/client";
+import { request_cache } from "@/services/api/request_cache";
 import { verify_auth_status } from "@/services/api/auth";
 import {
   store_vault_in_memory,
@@ -64,6 +65,8 @@ import {
   clear_session_timeout_data,
 } from "@/services/session_timeout_service";
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
+import { clear_plan_limits_cache } from "@/hooks/use_plan_limits";
+import { clear_plan_cache } from "@/services/plan_limits";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
 import { clear_all_ratchet_states } from "@/services/crypto/double_ratchet";
@@ -266,7 +269,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const active_token = api_client.get_access_token();
       if (active_token) {
-        await update_account_tokens(user.id, active_token, null);
+        await update_account_tokens(
+          user.id,
+          active_token,
+          api_client.get_active_refresh_token(),
+        );
       }
 
       api_client.set_authenticated(true);
@@ -327,7 +334,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (result.success) {
         const active_token = api_client.get_access_token();
         if (active_token) {
-          await update_account_tokens(user.id, active_token, null);
+          await update_account_tokens(
+            user.id,
+            active_token,
+            api_client.get_active_refresh_token(),
+          );
         }
         api_client.set_authenticated(true);
         ensure_ratchet_keys().catch(() => {});
@@ -401,6 +412,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_vault_from_memory();
         clear_mail_stats();
         clear_mail_cache();
+        clear_plan_limits_cache();
+        clear_plan_cache();
+        request_cache.clear();
         await storage_switch_account(target.id);
 
         const local = target.user.email.split("@")[0] ?? "";
@@ -420,19 +434,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      let cookies_cleared = false;
-      try {
-        cookies_cleared = await api_client.clear_session_cookies();
-      } catch (e) {
-        safe_log_error(e);
-      }
-
-      if (!cookies_cleared) {
-        show_toast(t("settings.switch_failed"), "error");
-
-        return;
-      }
-
       sync_client.disconnect();
       stop_session_timeout();
       clear_vault_from_memory();
@@ -440,10 +441,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clear_mail_cache();
       clear_preload_cache();
       await clear_all_ratchet_states();
+      clear_plan_limits_cache();
+      clear_plan_cache();
+      request_cache.clear();
       api_client.clear_in_memory_token();
 
+      try {
+        await api_client.clear_session_cookies();
+      } catch (e) {
+        safe_log_error(e);
+      }
+
       await storage_switch_account(target.id);
-      await api_client.load_tokens_for_account(target.id);
+
+      let session_ready = false;
+      try {
+        session_ready = await api_client.reestablish_session_for_account(
+          target.id,
+        );
+      } catch (e) {
+        safe_log_error(e);
+      }
+
+      if (!session_ready) {
+        const local = target.user.email.split("@")[0] ?? "";
+
+        set_state({
+          user: null,
+          is_loading: false,
+          is_authenticated: false,
+          has_keys: false,
+          accounts,
+          current_account_id: target.id,
+        });
+
+        set_is_adding_account(true);
+        hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
+
+        return;
+      }
 
       hard_redirect("/");
     },

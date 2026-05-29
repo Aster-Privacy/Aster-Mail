@@ -29,6 +29,11 @@ let cached_limits: PlanLimitsResponse | null = null;
 let cache_timestamp = 0;
 const CACHE_TTL = 60_000;
 
+export function clear_plan_limits_cache(): void {
+  cached_limits = null;
+  cache_timestamp = 0;
+}
+
 export function use_plan_limits() {
   const [limits, set_limits] = useState<PlanLimitsResponse | null>(
     cached_limits,

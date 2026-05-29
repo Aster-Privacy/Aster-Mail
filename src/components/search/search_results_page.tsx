@@ -61,6 +61,7 @@ const MIN_LIST_WIDTH = 280;
 const DEFAULT_LIST_WIDTH = 400;
 const SEARCH_PAGE_SIZE = 30;
 const SNIPPET_WINDOW = 120;
+const SLOW_SEARCH_MS = 6000;
 
 function extract_snippet(preview: string, terms: string[]): string {
   if (!preview || terms.length === 0) return "";
@@ -138,12 +139,14 @@ export function SearchResultsPage({
   on_settings_click,
 }: SearchResultsPageProps) {
   const { t } = use_i18n();
-  const { preferences } = use_preferences();
+  const { preferences, update_preference } = use_preferences();
   const { format_email_list } = use_date_format();
   const { state, search, load_more, set_query, clear_results, clear_index } =
     use_search();
   const email_actions = use_email_actions();
   const [bulk_busy, set_bulk_busy] = useState(false);
+  const [is_slow, set_is_slow] = useState(false);
+  const content_search_enabled = preferences.search_encrypted_content;
 
   const [filters, set_filters] = useState<SearchFiltersState>({
     date_range: "any",
@@ -223,6 +226,25 @@ export function SearchResultsPage({
       perform_search(query);
     }
   }, [filters.date_range, filters.has_attachment]);
+
+  const handle_disable_content_search = useCallback(() => {
+    update_preference("search_encrypted_content", false, true);
+    clear_index();
+    perform_search(query);
+  }, [update_preference, clear_index, perform_search, query]);
+
+  const searching_now = state.is_searching || state.index_building;
+
+  useEffect(() => {
+    if (!searching_now) {
+      set_is_slow(false);
+
+      return;
+    }
+    const id = setTimeout(() => set_is_slow(true), SLOW_SEARCH_MS);
+
+    return () => clearTimeout(id);
+  }, [searching_now]);
 
   const search_terms = useMemo(() => extract_query_terms(query), [query]);
 
@@ -707,10 +729,39 @@ export function SearchResultsPage({
     </Select>
   );
 
+  const slow_notice = (
+    <div className="flex flex-col items-center justify-center text-center gap-1.5 px-4 py-8 border-b border-edge-secondary">
+      <p
+        className="text-sm font-medium"
+        style={{ color: "var(--text-primary)" }}
+      >
+        {t("mail.search_taking_too_long")}
+      </p>
+      <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+        {t("mail.search_refine_terms")}
+      </p>
+      {content_search_enabled && (
+        <div className="flex items-center justify-center gap-2 mt-0.5">
+          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+            {t("mail.content_search_slower")}
+          </span>
+          <button
+            className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+            type="button"
+            onClick={handle_disable_content_search}
+          >
+            {t("common.disable")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   const email_list_content = (
     <>
       {is_loading && filtered_results.length === 0 ? (
         <div>
+          {is_slow && slow_notice}
           {Array.from({ length: 10 }).map((_, i) => (
             <SearchResultSkeleton key={i} />
           ))}
