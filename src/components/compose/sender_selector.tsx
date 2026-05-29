@@ -127,7 +127,7 @@ function SenderOptionIcon({
       <ProfileAvatar
         use_domain_logo
         email={option.email}
-        name={get_email_username(option.email)}
+        name={option.display_name || get_email_username(option.email)}
         size={size as "xs"}
       />
     );
