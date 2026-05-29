@@ -528,7 +528,7 @@ async function decrypt_ratchet_for_recipient(
     }
   }
 
-  if (plaintext === null || !ratchet) {
+  if (!ratchet) {
     return null;
   }
 
