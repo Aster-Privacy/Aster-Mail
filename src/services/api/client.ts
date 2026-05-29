@@ -391,7 +391,12 @@ class ApiClient {
 
     this.initial_auth_verified = true;
 
-    const is_valid = await this.check_auth_status();
+    let is_valid = await this.check_auth_status();
+
+    if (!is_valid) {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      is_valid = await this.check_auth_status();
+    }
 
     if (is_valid) {
       this.schedule_token_refresh();
