@@ -154,8 +154,47 @@ export function BillingDialogs({
   useEffect(() => {
     if (redirect_handled.current) return;
     const params = new URLSearchParams(window.location.search);
+    const billing_result = params.get("billing");
     const redirect_status = params.get("redirect_status");
     const is_stripe_redirect = params.get("stripe_redirect");
+
+    if (billing_result) {
+      redirect_handled.current = true;
+      window.history.replaceState({}, "", window.location.pathname);
+
+      if (billing_result === "success") {
+        (async () => {
+          request_cache.invalidate("/payments/v1");
+          request_cache.invalidate("/sync/v1");
+          invalidate_mail_stats();
+          try {
+            await activate_subscription();
+          } catch {
+            // webhook is the source of truth; this call is best-effort
+          }
+          for (let attempt = 0; attempt < 6; attempt++) {
+            await new Promise((r) =>
+              setTimeout(r, attempt === 0 ? 1000 : 2000),
+            );
+            request_cache.invalidate("/payments/v1");
+            const sub_response = await get_subscription();
+
+            if (sub_response.data) {
+              set_subscription(sub_response.data);
+              if (sub_response.data.plan.code !== "free") {
+                invalidate_mail_stats();
+                await load_data();
+                break;
+              }
+            }
+            if (attempt === 5) await load_data();
+          }
+          show_toast(t("settings.payment_success"), "success");
+        })();
+      }
+
+      return;
+    }
 
     if (!is_stripe_redirect || !redirect_status) return;
     redirect_handled.current = true;

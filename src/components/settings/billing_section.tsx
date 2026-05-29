@@ -30,8 +30,11 @@ import {
   switch_billing_interval,
   get_plan_limits,
   get_storage_addons,
+  purchase_storage_addon,
   get_credits,
   get_stripe_config,
+  start_hosted_checkout,
+  change_plan,
   format_price,
   type SubscriptionResponse,
   type AvailablePlan,
@@ -56,6 +59,8 @@ import { StorageAddonsSection } from "@/components/settings/billing/storage_addo
 import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { BillingHistorySection } from "@/components/settings/billing/billing_history_section";
 import { BillingDialogs } from "@/components/settings/billing/billing_dialogs";
+import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
+import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { use_auth } from "@/contexts/auth_context";
@@ -113,6 +118,16 @@ export function BillingSection() {
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [show_crypto_modal, set_show_crypto_modal] = useState(false);
   const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
+  const [show_method_modal, set_show_method_modal] = useState(false);
+  const [method_modal_plan, set_method_modal_plan] =
+    useState<AvailablePlan | null>(null);
+  const [show_addon_method_modal, set_show_addon_method_modal] = useState(false);
+  const [addon_method_target, set_addon_method_target] =
+    useState<StorageAddonItem | null>(null);
+  const [show_crypto_addon_modal, set_show_crypto_addon_modal] = useState(false);
+  const [crypto_addon, set_crypto_addon] = useState<StorageAddonItem | null>(
+    null,
+  );
 
   const handle_currency_change = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -303,29 +318,90 @@ export function BillingSection() {
     }
   };
 
-  const handle_upgrade = (plan: AvailablePlan) => {
-    set_selected_plan(plan);
-    set_show_checkout_modal(true);
+  const handle_select_plan = (plan: AvailablePlan) => {
+    set_method_modal_plan(plan);
+    set_show_method_modal(true);
   };
 
-  const handle_downgrade = async () => {
+  const handle_pay_with_card = async (plan: AvailablePlan) => {
+    if (is_action_loading) return;
+
+    const checkout_interval =
+      billing_period === "yearly"
+        ? "year"
+        : billing_period === "biennial"
+          ? "biennial"
+          : "month";
+
+    set_is_action_loading(true);
+
+    const has_card_sub =
+      !!subscription &&
+      subscription.plan.code !== "free" &&
+      subscription.payment_provider !== "stripe_crypto";
+
+    if (has_card_sub) {
+      const result = await change_plan(plan.code, checkout_interval);
+
+      if (!result.ok) {
+        set_is_action_loading(false);
+        show_toast(t("settings.failed_checkout"), "error");
+
+        return;
+      }
+
+      request_cache.invalidate("/payments/v1");
+      invalidate_mail_stats();
+      const sub_response = await get_subscription();
+
+      if (sub_response.data) set_subscription(sub_response.data);
+      await load_data();
+      set_is_action_loading(false);
+      show_toast(t("settings.payment_success"), "success");
+
+      return;
+    }
+
+    const result = await start_hosted_checkout(
+      plan.code,
+      checkout_interval,
+      preferred_currency,
+    );
+
+    if (!result.ok) {
+      set_is_action_loading(false);
+      show_toast(t("settings.failed_checkout"), "error");
+    }
+  };
+
+  const handle_pay_with_crypto = (plan: AvailablePlan) => {
+    set_crypto_plan(plan);
+    set_show_crypto_modal(true);
+  };
+
+  const handle_addon_pay_card = async (addon: StorageAddonItem) => {
+    if (is_action_loading) return;
+
     set_is_action_loading(true);
     try {
-      const response = await switch_billing_interval(target_billing_interval);
+      const response = await purchase_storage_addon(addon.id);
+      const url = response.data?.url;
 
-      if (response.data) {
-        show_toast(t("settings.downgrade_scheduled"), "success");
-        request_cache.invalidate("/payments/v1");
-        await load_data();
+      if (url) {
+        window.location.assign(url);
       } else {
-        show_toast(t("settings.failed_switch_billing"), "error");
+        show_toast(t("settings.addon_purchase_failed"), "error");
+        set_is_action_loading(false);
       }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      show_toast(t("settings.failed_switch_billing"), "error");
-    } finally {
+    } catch {
+      show_toast(t("settings.addon_purchase_failed"), "error");
       set_is_action_loading(false);
     }
+  };
+
+  const handle_addon_pay_crypto = (addon: StorageAddonItem) => {
+    set_crypto_addon(addon);
+    set_show_crypto_addon_modal(true);
   };
 
   const handle_cancel = async () => {
@@ -475,8 +551,7 @@ export function BillingSection() {
         current_billing_interval={current_billing_interval}
         handle_currency_change={handle_currency_change}
         is_action_loading={is_action_loading}
-        on_downgrade={handle_downgrade}
-        on_upgrade={handle_upgrade}
+        on_upgrade={handle_select_plan}
         plan_features={plan_features}
         plans={plans}
         preferred_currency={preferred_currency}
@@ -504,8 +579,8 @@ export function BillingSection() {
           set_show_cancel_addon_dialog(true);
         }}
         on_purchase_addon={(addon) => {
-          set_checkout_addon(addon);
-          set_show_addon_checkout(true);
+          set_addon_method_target(addon);
+          set_show_addon_method_modal(true);
         }}
         selected_storage={selected_storage}
         set_selected_storage={set_selected_storage}
@@ -538,6 +613,71 @@ export function BillingSection() {
             />
           );
         })()}
+
+      {method_modal_plan && (
+        <PlanPaymentMethodModal
+          open={show_method_modal}
+          plan_name={method_modal_plan.name}
+          busy={is_action_loading}
+          on_choose_card={() => {
+            const plan = method_modal_plan;
+
+            set_show_method_modal(false);
+            set_method_modal_plan(null);
+            if (plan) handle_pay_with_card(plan);
+          }}
+          on_choose_crypto={() => {
+            const plan = method_modal_plan;
+
+            set_show_method_modal(false);
+            set_method_modal_plan(null);
+            if (plan) handle_pay_with_crypto(plan);
+          }}
+          on_close={() => {
+            set_show_method_modal(false);
+            set_method_modal_plan(null);
+          }}
+        />
+      )}
+
+      {addon_method_target && (
+        <PlanPaymentMethodModal
+          open={show_addon_method_modal}
+          plan_name={addon_method_target.name}
+          busy={is_action_loading}
+          on_choose_card={() => {
+            const addon = addon_method_target;
+
+            set_show_addon_method_modal(false);
+            set_addon_method_target(null);
+            if (addon) handle_addon_pay_card(addon);
+          }}
+          on_choose_crypto={() => {
+            const addon = addon_method_target;
+
+            set_show_addon_method_modal(false);
+            set_addon_method_target(null);
+            if (addon) handle_addon_pay_crypto(addon);
+          }}
+          on_close={() => {
+            set_show_addon_method_modal(false);
+            set_addon_method_target(null);
+          }}
+        />
+      )}
+
+      {crypto_addon && (
+        <CryptoAddonTermModal
+          addon_id={crypto_addon.id}
+          addon_name={crypto_addon.name}
+          is_open={show_crypto_addon_modal}
+          on_close={() => {
+            set_show_crypto_addon_modal(false);
+            set_crypto_addon(null);
+          }}
+          price_cents={crypto_addon.price_cents}
+        />
+      )}
 
       <BillingDialogs
         addon_to_cancel={addon_to_cancel}

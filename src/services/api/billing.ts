@@ -170,6 +170,61 @@ export async function create_checkout_session(
   );
 }
 
+export async function start_hosted_checkout(
+  plan_code: string,
+  billing_interval: string = "month",
+  currency?: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const response = await create_checkout_session(
+    plan_code,
+    billing_interval,
+    currency,
+  );
+
+  const url = response.data?.url;
+
+  if (!url) {
+    return { ok: false, error: response.error || "no_checkout_url" };
+  }
+
+  window.location.assign(url);
+
+  return { ok: true };
+}
+
+export async function open_billing_portal(): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
+  const response = await create_portal_session();
+
+  const url = response.data?.url;
+
+  if (!url) {
+    return { ok: false, error: response.error || "no_portal_url" };
+  }
+
+  window.location.assign(url);
+
+  return { ok: true };
+}
+
+export async function change_plan(
+  plan_code: string,
+  billing_interval: string = "month",
+): Promise<{ ok: boolean; error?: string }> {
+  const response = await api_client.post<{
+    plan_code: string;
+    billing_interval: string;
+  }>("/payments/v1/change-plan", { plan_code, billing_interval });
+
+  if (response.error || !response.data) {
+    return { ok: false, error: response.error || "change_failed" };
+  }
+
+  return { ok: true };
+}
+
 export async function create_crypto_checkout_session(
   plan_code: string,
   term_months: number,
@@ -267,6 +322,23 @@ export async function purchase_storage_addon(addon_id: string) {
   return api_client.post<PurchaseAddonResponse>(
     "/sync/v1/storage/addons/purchase",
     { addon_id },
+  );
+}
+
+export async function purchase_storage_addon_crypto(
+  addon_id: string,
+  term_months: number,
+  success_url?: string,
+  cancel_url?: string,
+) {
+  return api_client.post<PurchaseAddonResponse>(
+    "/sync/v1/storage/addons/crypto-checkout",
+    {
+      addon_id,
+      term_months,
+      ...(success_url ? { success_url } : {}),
+      ...(cancel_url ? { cancel_url } : {}),
+    },
   );
 }
 
