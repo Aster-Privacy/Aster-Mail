@@ -171,7 +171,7 @@ export function StorageAddonsSection({
           }
         }}
       >
-        {t("settings.add_storage")}
+        {t("common.buy_more_storage")}
       </Button>
     </div>
   );
