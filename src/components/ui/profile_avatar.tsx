@@ -26,7 +26,8 @@ import {
   mark_icon_ok,
 } from "@/lib/icon_cache";
 import { get_favicon_url } from "@/lib/favicon_url";
-import { get_gradient_background } from "@/constants/profile";
+import { get_initials, get_active_locale } from "@/lib/initials";
+import { get_avatar_color, get_contrast_text } from "@/lib/avatar_color";
 import { get_root_domain } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
@@ -50,7 +51,6 @@ interface ProfileAvatarProps {
   clickable?: boolean;
   on_compose?: (email: string) => void;
   profile_color?: string;
-  solid_aster_fallback?: boolean;
 }
 
 const SIZE_MAP: Record<string, number> = {
@@ -76,57 +76,12 @@ const SYSTEM_LOCAL_PARTS = new Set(["mailer-daemon", "postmaster"]);
 
 const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
 
-const AVATAR_COLORS = [
-  "#1e88e5",
-  "#e53935",
-  "#43a047",
-  "#fb8c00",
-  "#8e24aa",
-  "#d81b60",
-  "#00acc1",
-  "#5e35b1",
-  "#f4511e",
-  "#00897b",
-  "#3949ab",
-  "#c0ca33",
-  "#6d4c41",
-  "#039be5",
-  "#7cb342",
-  "#ff6f00",
-];
-
-function get_avatar_color(identifier: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < identifier.length; i++) {
-    hash = ((hash << 5) - hash + identifier.charCodeAt(i)) | 0;
-  }
-
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
 function extract_domain(email: string): string {
   const match = email.match(/@([^@]+)$/);
 
   if (!match) return "";
 
   return get_root_domain(match[1]);
-}
-
-function get_initials(name: string, email?: string): string {
-  const source = name || email || "?";
-  const trimmed = source.trim();
-
-  if (!trimmed) return "?";
-  const parts = trimmed.split(/\s+/).filter(Boolean);
-
-  if (parts.length >= 2) {
-    return (
-      parts[0].charAt(0) + parts[parts.length - 1].charAt(0)
-    ).toUpperCase();
-  }
-
-  return trimmed.charAt(0).toUpperCase();
 }
 
 export const ProfileAvatar = memo(function ProfileAvatar({
@@ -139,7 +94,6 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   clickable = false,
   on_compose,
   profile_color,
-  solid_aster_fallback = false,
 }: ProfileAvatarProps) {
   const { user } = use_auth();
   const is_current_user =
@@ -261,17 +215,10 @@ export const ProfileAvatar = memo(function ProfileAvatar({
       actual_src?.includes("/proxy?url=")) ??
     false;
 
-  const resolved_color =
+  const profile_hex =
     profile_color ||
-    (is_current_user && user?.profile_color ? user.profile_color : undefined) ||
-    (is_aster_domain &&
-    !is_aster_mail &&
-    !resolved_image_url &&
-    !is_current_user
-      ? "#6366f1"
-      : undefined);
-  const show_gradient =
-    !!resolved_color && (!resolved_image_url || image_error);
+    (is_current_user ? user?.profile_color : peer_profile?.profile_color) ||
+    undefined;
 
   const handle_load = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -291,93 +238,19 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     [is_favicon_source, domain],
   );
 
-  if (solid_aster_fallback && (!resolved_image_url || image_error)) {
-    const logo_size = Math.round(pixel_size * 0.6);
-    const solid_element = (
-      <div
-        className={`rounded-full flex-shrink-0 flex items-center justify-center ${className}`}
-        style={{
-          width: pixel_size,
-          height: pixel_size,
-          minWidth: pixel_size,
-          minHeight: pixel_size,
-          backgroundColor: "#ffffff",
-          border: "1px solid rgba(0,0,0,0.06)",
-        }}
-      >
-        <img
-          alt=""
-          draggable={false}
-          src="/aster.webp"
-          style={{
-            width: logo_size,
-            height: logo_size,
-            objectFit: "contain" as const,
-            userSelect: "none" as const,
-            pointerEvents: "none" as const,
-          }}
-        />
-      </div>
-    );
-
-    return wrap_ring(solid_element);
-  }
-
-  if (show_gradient) {
-    const logo_size = Math.round(pixel_size * 0.65);
-    const gradient_element = (
-      <div
-        className={`rounded-full flex-shrink-0 flex items-center justify-center ${className}`}
-        style={{
-          width: pixel_size,
-          height: pixel_size,
-          background: get_gradient_background(resolved_color!),
-        }}
-      >
-        <img
-          alt=""
-          draggable={false}
-          src="/aster.webp"
-          style={{
-            width: logo_size,
-            height: logo_size,
-            filter: "brightness(0) invert(1)",
-            objectFit: "contain" as const,
-            userSelect: "none" as const,
-            pointerEvents: "none" as const,
-          }}
-        />
-      </div>
-    );
-
-    if (clickable && email) {
-      return wrap_ring(
-        <Suspense fallback={gradient_element}>
-          <SenderProfileTrigger
-            className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
-            email={email}
-            name={name}
-            on_compose={on_compose}
-          >
-            {gradient_element}
-          </SenderProfileTrigger>
-        </Suspense>,
-      );
-    }
-
-    return wrap_ring(gradient_element);
-  }
-
   if (!actual_src) {
-    const initials = get_initials(name, email);
+    const initials = get_initials(name, email, get_active_locale());
     const font_size = Math.round(
       pixel_size * (initials.length > 1 ? 0.36 : 0.44),
     );
-    const avatar_bg = get_avatar_color(email || name || "?");
+    const avatar_bg = profile_hex || get_avatar_color(email || name || "?");
+    const text_color = get_contrast_text(avatar_bg);
 
     const letter_element = (
       <div
+        aria-label={name || email || undefined}
         className={`rounded-full flex-shrink-0 flex items-center justify-center ${className}`}
+        role="img"
         style={{
           width: pixel_size,
           height: pixel_size,
@@ -388,10 +261,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         }}
       >
         <span
+          aria-hidden="true"
           style={{
             fontSize: font_size,
             fontWeight: 600,
-            color: "#ffffff",
+            color: text_color,
             lineHeight: 1,
             transform: "translateY(0.06em)",
             userSelect: "none",

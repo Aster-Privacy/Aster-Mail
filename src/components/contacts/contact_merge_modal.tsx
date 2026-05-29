@@ -31,6 +31,7 @@ import {
 import { Button } from "@aster/ui";
 
 import { use_should_reduce_motion } from "@/provider";
+import { get_initials as compute_initials, get_active_locale } from "@/lib/initials";
 import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { cn } from "@/lib/utils";
@@ -62,10 +63,9 @@ function get_full_name(contact: DecryptedContact, t: (key: TranslationKey) => st
 }
 
 function get_initials(contact: DecryptedContact): string {
-  const first = contact.first_name?.[0] || "";
-  const last = contact.last_name?.[0] || "";
+  const full = `${contact.first_name || ""} ${contact.last_name || ""}`.trim();
 
-  return (first + last).toUpperCase() || "?";
+  return compute_initials(full, undefined, get_active_locale());
 }
 
 function format_address(address?: Address): string | undefined {
