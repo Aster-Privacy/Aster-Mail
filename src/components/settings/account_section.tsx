@@ -42,7 +42,9 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
+import { PROFILE_COLORS } from "@/constants/profile";
+import { get_initials, get_active_locale } from "@/lib/initials";
+import { get_contrast_text } from "@/lib/avatar_color";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
@@ -471,25 +473,23 @@ export function AccountSection() {
                       />
                     ) : (
                       <div
-                        className="w-full h-full rounded-xl flex items-center justify-center"
+                        className="w-full h-full rounded-xl flex items-center justify-center select-none"
                         style={{
-                          background: get_gradient_background(color),
+                          backgroundColor: color,
                           boxShadow:
                             "inset 0 -3px 8px rgba(0,0,0,0.25), inset 0 1px 3px rgba(255,255,255,0.2)",
                         }}
                       >
-                        <img
-                          alt=""
-                          draggable={false}
-                          src="/aster.webp"
+                        <span
                           style={{
-                            width: 35,
-                            height: 35,
-                            filter: "brightness(0) invert(1)",
-                            objectFit: "contain" as const,
-                            pointerEvents: "none" as const,
+                            fontSize: 26,
+                            fontWeight: 600,
+                            lineHeight: 1,
+                            color: get_contrast_text(color),
                           }}
-                        />
+                        >
+                          {get_initials(name, user?.email, get_active_locale())}
+                        </span>
                       </div>
                     )}
                     {uploading && (

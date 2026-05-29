@@ -26,11 +26,11 @@ import {
   mark_icon_ok,
 } from "@/lib/icon_cache";
 import { get_favicon_url, is_valid_favicon_domain } from "@/lib/favicon_url";
-import { get_gradient_background } from "@/constants/profile";
+import { get_initials, get_active_locale } from "@/lib/initials";
+import { get_avatar_color, get_contrast_text } from "@/lib/avatar_color";
 import { get_root_domain } from "@/lib/utils";
 
 const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
-const ASTER_INDIGO = "#6366f1";
 
 interface ContactAvatarProps {
   name?: string;
@@ -40,18 +40,6 @@ interface ContactAvatarProps {
   size_px: number;
   rounded?: string;
   className?: string;
-}
-
-function extract_initials(name: string, email: string): string {
-  const trimmed = (name || "").trim();
-  const parts = trimmed.split(/\s+/).filter(Boolean);
-
-  if (parts.length >= 2) {
-    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-  }
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-
-  return (email || "?").charAt(0).toUpperCase();
 }
 
 export function ContactAvatar({
@@ -105,34 +93,6 @@ export function ContactAvatar({
     );
   }
 
-  if (is_aster) {
-    const logo_size = Math.round(size_px * 0.55);
-
-    return (
-      <div
-        className={`${rounded} overflow-hidden flex items-center justify-center ${className}`}
-        style={{
-          ...base_style,
-          background: get_gradient_background(ASTER_INDIGO),
-        }}
-      >
-        <img
-          alt=""
-          draggable={false}
-          src="/aster.webp"
-          style={{
-            width: logo_size,
-            height: logo_size,
-            filter: "brightness(0) invert(1)",
-            objectFit: "contain",
-            pointerEvents: "none",
-            userSelect: "none",
-          }}
-        />
-      </div>
-    );
-  }
-
   if (favicon_eligible && !favicon_failed) {
     const pad = Math.max(2, Math.round(size_px * 0.14));
 
@@ -171,22 +131,25 @@ export function ContactAvatar({
     );
   }
 
-  const initials = extract_initials(name || "", email || "");
-  const font_size = Math.round(
-    size_px * (initials.length > 1 ? 0.36 : 0.44),
-  );
+  const initials = get_initials(name, email, get_active_locale());
+  const font_size = Math.round(size_px * (initials.length > 1 ? 0.36 : 0.44));
+  const avatar_bg = profile_color || get_avatar_color(email || name || "?");
+  const text_color = get_contrast_text(avatar_bg);
 
   return (
     <div
+      aria-label={name || email || undefined}
       className={`${rounded} overflow-hidden flex items-center justify-center ${className}`}
+      role="img"
       style={{
         ...base_style,
-        backgroundColor: profile_color || "#3358d4",
+        backgroundColor: avatar_bg,
       }}
     >
       <span
-        className="text-white font-semibold tracking-wide select-none"
-        style={{ fontSize: font_size, lineHeight: 1 }}
+        aria-hidden="true"
+        className="font-semibold tracking-wide select-none"
+        style={{ fontSize: font_size, lineHeight: 1, color: text_color }}
       >
         {initials}
       </span>

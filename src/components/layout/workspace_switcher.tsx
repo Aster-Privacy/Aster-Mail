@@ -41,10 +41,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import type { StoredAccount } from "@/services/account_manager";
-import {
-  get_current_plan_code,
-  max_accounts_for_plan,
-} from "@/services/plan_limits";
+import { get_account_limit } from "@/services/api/switch";
 
 interface WorkspaceSwitcherProps {
   trigger: React.ReactNode;
@@ -74,14 +71,15 @@ export function WorkspaceSwitcher({
   const [pending_remove, set_pending_remove] = useState<StoredAccount | null>(
     null,
   );
-  const [max_allowed, set_max_allowed] = useState<number>(1);
+  const [max_allowed, set_max_allowed] = useState<number | null>(null);
 
   useEffect(() => {
     if (!is_open) return;
     let cancelled = false;
 
-    get_current_plan_code().then((code) => {
-      if (!cancelled) set_max_allowed(max_accounts_for_plan(code));
+    get_account_limit().then((res) => {
+      if (cancelled) return;
+      if (res.data) set_max_allowed(res.data.max_accounts);
     });
 
     return () => {
@@ -89,8 +87,11 @@ export function WorkspaceSwitcher({
     };
   }, [is_open]);
 
-  const at_limit = accounts.length >= max_allowed;
-  const display_max = Math.max(max_allowed, accounts.length);
+  const at_limit = max_allowed !== null && accounts.length >= max_allowed;
+  const display_max =
+    max_allowed === null
+      ? accounts.length
+      : Math.max(max_allowed, accounts.length);
 
   const current_user_email = user?.email ?? "";
   const current_display_name =
@@ -230,7 +231,6 @@ export function WorkspaceSwitcher({
                   name={current_display_name}
                   profile_color={preferences.profile_color}
                   size="xs"
-                  solid_aster_fallback
                 />
                 <div
                   className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
@@ -297,7 +297,6 @@ export function WorkspaceSwitcher({
                         name={acc_name}
                         profile_color={acc.user.profile_color}
                         size="xs"
-                        solid_aster_fallback
                       />
                       <div className="flex flex-col min-w-0 flex-1">
                         <span

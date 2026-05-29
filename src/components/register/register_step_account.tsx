@@ -25,7 +25,9 @@ import { Button } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/auth/auth_styles";
-import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
+import { PROFILE_COLORS } from "@/constants/profile";
+import { get_initials, get_active_locale } from "@/lib/initials";
+import { get_contrast_text } from "@/lib/avatar_color";
 import { sanitize_username } from "@/services/sanitize";
 import {
   page_variants,
@@ -162,25 +164,26 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
         </p>
         <div className="flex items-center gap-4">
           <div
-            className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center"
+            className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center select-none"
             style={{
-              background: get_gradient_background(reg.profile_color),
-              transition: "background 0.3s ease",
+              backgroundColor: reg.profile_color,
+              transition: "background-color 0.3s ease",
             }}
           >
-            <img
-              alt=""
-              draggable={false}
-              src="/aster.webp"
+            <span
               style={{
-                width: 20,
-                height: 20,
-                filter: "brightness(0) invert(1)",
-                objectFit: "contain" as const,
-                userSelect: "none" as const,
-                pointerEvents: "none" as const,
+                fontSize: 16,
+                fontWeight: 600,
+                lineHeight: 1,
+                color: get_contrast_text(reg.profile_color),
               }}
-            />
+            >
+              {get_initials(
+                reg.display_name,
+                reg.username,
+                get_active_locale(),
+              )}
+            </span>
           </div>
           <div className="flex items-center gap-3">
             {PROFILE_COLORS.map((color) => (
