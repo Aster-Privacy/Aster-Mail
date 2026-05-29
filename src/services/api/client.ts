@@ -772,10 +772,18 @@ class ApiClient {
     );
   }
 
+  can_persist_session(): boolean {
+    return this.token_survives_reload();
+  }
+
   async reestablish_session_for_account(account_id: string): Promise<boolean> {
     const loaded = await this.load_tokens_for_account(account_id);
 
     if (!loaded || !this.dev_access_token) {
+      return false;
+    }
+
+    if (!this.token_survives_reload() && !this.active_refresh_token) {
       return false;
     }
 

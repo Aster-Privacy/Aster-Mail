@@ -377,9 +377,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_vault_from_memory();
         clear_mail_stats();
         clear_mail_cache();
+        clear_plan_limits_cache();
+        clear_plan_cache();
         clear_stored_encrypted_vault(account_id);
         await clear_session_passphrase(account_id);
         clear_session_timeout_data(account_id);
+
+        if (is_current && result.switched_to) {
+          const survivor = result.switched_to;
+          const local = survivor.user.email.split("@")[0] ?? "";
+
+          set_is_adding_account(true);
+          hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
+
+          return;
+        }
 
         api_client.set_authenticated(false);
         set_state({
@@ -392,98 +404,52 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
       }
     },
-    [state.current_account_id],
+    [state.current_account_id, set_is_adding_account],
   );
+
+  const switch_in_flight = useRef(false);
 
   const switch_to_account = useCallback(
     async (account_id: string) => {
-      const accounts = await get_all_accounts();
-      const target = accounts.find((a) => a.id === account_id);
+      if (switch_in_flight.current) return;
+      switch_in_flight.current = true;
 
-      if (!target) return;
-      if (target.id === state.current_account_id) return;
+      try {
+        const accounts = await get_all_accounts();
+        const target = accounts.find((a) => a.id === account_id);
 
-      const stored_passphrase = await get_session_passphrase(target.id);
-      const stored_vault = get_stored_encrypted_vault(target.id);
+        if (!target) return;
+        if (target.id === state.current_account_id) return;
 
-      if (!target.access_token || !stored_passphrase || !stored_vault) {
+        const local = target.user.email.split("@")[0] ?? "";
+
         sync_client.disconnect();
         stop_session_timeout();
         clear_vault_from_memory();
         clear_mail_stats();
         clear_mail_cache();
+        clear_preload_cache();
+        await clear_all_ratchet_states();
         clear_plan_limits_cache();
         clear_plan_cache();
         request_cache.clear();
+        api_client.clear_in_memory_token();
+
+        try {
+          await api_client.clear_session_cookies();
+        } catch (e) {
+          safe_log_error(e);
+        }
+
         await storage_switch_account(target.id);
 
-        const local = target.user.email.split("@")[0] ?? "";
-
-        set_state({
-          user: null,
-          is_loading: false,
-          is_authenticated: false,
-          has_keys: false,
-          accounts,
-          current_account_id: target.id,
-        });
-
         set_is_adding_account(true);
         hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
-
-        return;
+      } finally {
+        switch_in_flight.current = false;
       }
-
-      sync_client.disconnect();
-      stop_session_timeout();
-      clear_vault_from_memory();
-      clear_mail_stats();
-      clear_mail_cache();
-      clear_preload_cache();
-      await clear_all_ratchet_states();
-      clear_plan_limits_cache();
-      clear_plan_cache();
-      request_cache.clear();
-      api_client.clear_in_memory_token();
-
-      try {
-        await api_client.clear_session_cookies();
-      } catch (e) {
-        safe_log_error(e);
-      }
-
-      await storage_switch_account(target.id);
-
-      let session_ready = false;
-      try {
-        session_ready = await api_client.reestablish_session_for_account(
-          target.id,
-        );
-      } catch (e) {
-        safe_log_error(e);
-      }
-
-      if (!session_ready) {
-        const local = target.user.email.split("@")[0] ?? "";
-
-        set_state({
-          user: null,
-          is_loading: false,
-          is_authenticated: false,
-          has_keys: false,
-          accounts,
-          current_account_id: target.id,
-        });
-
-        set_is_adding_account(true);
-        hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
-
-        return;
-      }
-
-      hard_redirect("/");
     },
-    [state.current_account_id, set_is_adding_account, t],
+    [state.current_account_id, set_is_adding_account],
   );
 
   const clear_local_auth_data = useCallback(async () => {
@@ -540,6 +506,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_mail_stats();
         clear_mail_cache();
         clear_preload_cache();
+        clear_plan_limits_cache();
+        clear_plan_cache();
         await clear_all_ratchet_states();
         clear_stored_encrypted_vault(current_id);
         await with_timeout(clear_session_passphrase(current_id), 2000);
@@ -550,8 +518,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         await with_timeout(storage_remove_account(current_id), 2000);
         await with_timeout(storage_switch_account(other.id), 2000);
-        await with_timeout(api_client.load_tokens_for_account(other.id), 2000);
-        nav_target = "/";
+        api_client.clear_in_memory_token();
+
+        const survivor_local = other.user.email.split("@")[0] ?? "";
+
+        set_is_adding_account(true);
+        nav_target = `/sign-in?u=${encodeURIComponent(survivor_local)}`;
       } else {
         await with_timeout(clear_local_auth_data(), 4000);
         nav_target = "/sign-in";
@@ -603,6 +575,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
       sync_client.disconnect();
       api_client.clear_auth_data();
       api_client.set_authenticated(false);
+
+      const current_id = state.current_account_id;
+      const all_accounts = await get_all_accounts();
+      const target = all_accounts.find((a) => a.id === current_id);
+
+      if (target && all_accounts.length > 1) {
+        const local = target.user.email.split("@")[0] ?? "";
+
+        set_is_adding_account(true);
+        show_toast(t("common.session_expired_sign_in"), "info");
+        hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
+
+        return;
+      }
+
       await clear_local_auth_data();
       show_toast(t("common.session_expired_sign_in"), "info");
       hard_redirect("/sign-in");
@@ -657,7 +644,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         handle_session_revoked,
       );
     };
-  }, [clear_local_auth_data, t]);
+  }, [
+    clear_local_auth_data,
+    set_is_adding_account,
+    state.current_account_id,
+    t,
+  ]);
 
   useEffect(() => {
     if (import.meta.env.DEV) return;
