@@ -61,6 +61,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
   text_logo_ref,
 }: SidebarAccountSwitcherProps) {
   const { t } = use_i18n();
+  const is_free_plan = storage_total_bytes <= 10 * 1024 ** 3;
   const tap_count_ref = useRef(0);
   const last_tap_at_ref = useRef(0);
   const claim_in_flight_ref = useRef(false);
@@ -178,6 +179,11 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
                   size="sm"
                   variant="depth"
                   onClick={() => {
+                    if (is_free_plan) {
+                      on_settings_click("billing");
+
+                      return;
+                    }
                     const scroll_to_addons = () => {
                       const el = document.getElementById(
                         "additional_storage_section",
@@ -202,7 +208,9 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
                     }
                   }}
                 >
-                  {t("common.buy_more_storage")}
+                  {is_free_plan
+                    ? t("common.upgrade")
+                    : t("common.buy_more_storage")}
                 </Button>
               </div>
             </div>
