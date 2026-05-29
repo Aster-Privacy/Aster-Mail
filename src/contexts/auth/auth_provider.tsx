@@ -572,6 +572,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const handle_session_expired = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      const still_valid = await api_client.check_auth_status();
+      if (still_valid) {
+        api_client.set_authenticated(true);
+        return;
+      }
+
       sync_client.disconnect();
       api_client.clear_auth_data();
       api_client.set_authenticated(false);
