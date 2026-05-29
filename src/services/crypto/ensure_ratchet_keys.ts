@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { encrypt_vault } from "./key_manager";
+import { encrypt_vault, decrypt_vault } from "./key_manager";
 import {
   get_vault_from_memory,
   store_vault_in_memory,
@@ -28,18 +28,82 @@ import { generate_ratchet_keys, upload_prekey_bundle } from "./ratchet_manager";
 import { get_current_account } from "../account_manager";
 import { api_client } from "../api/client";
 
+function get_stored_account_vault(
+  user_id: string,
+): { encrypted_vault: string; vault_nonce: string } | null {
+  try {
+    const encrypted_vault = localStorage.getItem(
+      `astermail_encrypted_vault_${user_id}`,
+    );
+    const vault_nonce = localStorage.getItem(
+      `astermail_vault_nonce_${user_id}`,
+    );
+
+    return encrypted_vault && vault_nonce
+      ? { encrypted_vault, vault_nonce }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+async function passphrase_matches_account(
+  user_id: string,
+  passphrase: string,
+  expected_identity_key: string,
+): Promise<boolean> {
+  const stored = get_stored_account_vault(user_id);
+
+  if (!stored) return false;
+
+  try {
+    const decrypted = await decrypt_vault(
+      stored.encrypted_vault,
+      stored.vault_nonce,
+      passphrase,
+    );
+
+    return decrypted.identity_key === expected_identity_key;
+  } catch {
+    return false;
+  }
+}
+
+async function verify_vault_roundtrip(
+  encrypted_vault: string,
+  vault_nonce: string,
+  passphrase: string,
+  expected_identity_key: string,
+): Promise<boolean> {
+  try {
+    const decrypted = await decrypt_vault(
+      encrypted_vault,
+      vault_nonce,
+      passphrase,
+    );
+
+    return decrypted.identity_key === expected_identity_key;
+  } catch {
+    return false;
+  }
+}
+
 async function push_vault_to_server(
   encrypted_vault: string,
   vault_nonce: string,
-): Promise<void> {
-  try {
-    await api_client.put("/crypto/v1/keys/vault", {
-      encrypted_vault,
-      vault_nonce,
-    });
-  } catch {
-    return;
-  }
+  expected_user_id: string,
+): Promise<boolean> {
+  const current_account = await get_current_account();
+
+  if (current_account?.user?.id !== expected_user_id) return false;
+
+  const response = await api_client.put("/crypto/v1/keys/vault", {
+    encrypted_vault,
+    vault_nonce,
+    expected_user_id,
+  });
+
+  return !response.error;
 }
 
 let in_flight: Promise<boolean> | null = null;
@@ -68,35 +132,6 @@ async function run(): Promise<boolean> {
     ) {
       upload_prekey_bundle(vault).catch(() => {});
 
-      const existing_passphrase = get_passphrase_from_memory();
-      const existing_account = await get_current_account();
-      const existing_user_id = existing_account?.user?.id;
-
-      if (existing_passphrase && existing_user_id) {
-        const sync_flag_key = `astermail_vault_synced_v1_${existing_user_id}`;
-
-        if (!localStorage.getItem(sync_flag_key)) {
-          try {
-            const { encrypted_vault, vault_nonce } = await encrypt_vault(
-              vault,
-              existing_passphrase,
-            );
-
-            localStorage.setItem(
-              `astermail_encrypted_vault_${existing_user_id}`,
-              encrypted_vault,
-            );
-            localStorage.setItem(
-              `astermail_vault_nonce_${existing_user_id}`,
-              vault_nonce,
-            );
-
-            await push_vault_to_server(encrypted_vault, vault_nonce);
-            localStorage.setItem(sync_flag_key, "1");
-          } catch {}
-        }
-      }
-
       return true;
     }
 
@@ -108,6 +143,14 @@ async function run(): Promise<boolean> {
     const user_id = account?.user?.id;
 
     if (!user_id) return false;
+
+    const passphrase_ok = await passphrase_matches_account(
+      user_id,
+      passphrase,
+      vault.identity_key,
+    );
+
+    if (!passphrase_ok) return false;
 
     const ratchet_keys = await generate_ratchet_keys();
 
@@ -125,14 +168,28 @@ async function run(): Promise<boolean> {
       passphrase,
     );
 
+    const roundtrip_ok = await verify_vault_roundtrip(
+      encrypted_vault,
+      vault_nonce,
+      passphrase,
+      vault.identity_key,
+    );
+
+    if (!roundtrip_ok) return false;
+
+    const pushed = await push_vault_to_server(
+      encrypted_vault,
+      vault_nonce,
+      user_id,
+    );
+
+    if (!pushed) return false;
+
     localStorage.setItem(
       `astermail_encrypted_vault_${user_id}`,
       encrypted_vault,
     );
     localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
-
-    await push_vault_to_server(encrypted_vault, vault_nonce);
-    localStorage.setItem(`astermail_vault_synced_v1_${user_id}`, "1");
 
     await upload_prekey_bundle(vault);
 
