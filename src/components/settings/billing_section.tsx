@@ -266,17 +266,6 @@ export function BillingSection() {
 
     const params = new URLSearchParams(window.location.search);
 
-    if (params.get("billing") === "success") {
-      show_toast(t("settings.checkout_welcome"), "success");
-      request_cache.invalidate("/payments/v1");
-      request_cache.invalidate("/sync/v1");
-      invalidate_mail_stats();
-      load_data();
-      const url = new URL(window.location.href);
-
-      url.searchParams.delete("billing");
-      window.history.replaceState({}, "", url.toString());
-    }
     if (params.get("crypto") === "success") {
       show_toast(t("settings.crypto_success_toast"), "success");
       request_cache.invalidate("/payments/v1");

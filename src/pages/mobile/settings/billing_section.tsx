@@ -812,7 +812,7 @@ export function BillingSection({
                     }
                   }}
                 >
-                  {t("settings.add_storage")}
+                  {t("common.buy_more_storage")}
                 </motion.button>
               </div>
             </SettingsGroup>
