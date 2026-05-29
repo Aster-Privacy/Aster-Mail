@@ -27,17 +27,35 @@ function uses_hash_router(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
+// Only same-origin relative paths are permitted. Reject protocol-relative
+// ("//host"), backslash ("/\\host") and any scheme-bearing target so an
+// attacker-influenced value cannot drive an off-site or javascript: redirect.
+function safe_internal_path(path: string): string {
+  if (
+    typeof path === "string" &&
+    path.startsWith("/") &&
+    !path.startsWith("//") &&
+    !path.startsWith("/\\")
+  ) {
+    return path;
+  }
+
+  return "/";
+}
+
 export function hard_redirect(path: string): void {
-  if (uses_hash_router() && path.startsWith("/")) {
+  const target = safe_internal_path(path);
+
+  if (uses_hash_router()) {
     const base = window.location.href.split("#")[0];
 
-    window.location.replace(`${base}#${path}`);
+    window.location.replace(`${base}#${target}`);
     window.location.reload();
 
     return;
   }
 
-  window.location.replace(path);
+  window.location.replace(target);
 }
 
 export function get_app_query_param(name: string): string | null {
