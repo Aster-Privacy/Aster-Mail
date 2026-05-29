@@ -32,8 +32,10 @@ import { CheckoutModal } from "@/components/settings/checkout_modal";
 import {
   get_available_plans,
   format_price,
+  start_hosted_checkout,
   type AvailablePlansResponse,
 } from "@/services/api/billing";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
   type PlanTier,
@@ -245,13 +247,26 @@ export const RegisterStepPlanSelection = ({
     billing_period === "yearly" ? "year" : "month";
 
   const handle_select_tier = useCallback(
-    (tier: PlanTier) => {
+    async (tier: PlanTier) => {
       const api_plan = plans.find((p) => p.code === tier.id);
 
       if (!api_plan) return;
-      set_checkout({ plan: api_plan, tier, billing_interval });
+
+      set_is_finalizing(true);
+      localStorage.setItem("show_onboarding", "true");
+
+      const result = await start_hosted_checkout(
+        api_plan.code,
+        billing_interval,
+        currency,
+      );
+
+      if (!result.ok) {
+        set_is_finalizing(false);
+        show_toast(t("settings.failed_checkout"), "error");
+      }
     },
-    [plans, billing_interval],
+    [plans, billing_interval, currency, t],
   );
 
   const handle_continue_free = useCallback(async () => {

@@ -44,7 +44,6 @@ interface AvailablePlansSectionProps {
   plan_features: Record<string, string[]>;
   is_action_loading: boolean;
   on_upgrade: (plan: AvailablePlan) => void;
-  on_downgrade: () => void;
   current_billing_interval: "month" | "year";
 }
 
@@ -58,7 +57,6 @@ export function AvailablePlansSection({
   plan_features,
   is_action_loading,
   on_upgrade,
-  on_downgrade,
   current_billing_interval,
 }: AvailablePlansSectionProps) {
   const { t } = use_i18n();
@@ -115,14 +113,11 @@ export function AvailablePlansSection({
           const is_same_plan = current_plan_code === tier.id;
           const is_same_interval = current_billing_interval === card_interval;
           const is_current = is_same_plan && is_same_interval;
-          const is_upgrade =
-            current_tier_index === -1 ||
-            tier_index > current_tier_index ||
-            (tier_index === current_tier_index &&
-              card_interval === "year" &&
-              current_billing_interval === "month");
+          const is_interval_switch = is_same_plan && !is_same_interval;
           const is_downgrade =
-            !is_current && !is_upgrade && current_tier_index > -1;
+            !is_same_plan &&
+            current_tier_index > -1 &&
+            tier_index < current_tier_index;
 
           return (
             <div
@@ -196,11 +191,6 @@ export function AvailablePlansSection({
                   variant={is_current ? "outline" : "primary"}
                   onClick={() => {
                     if (is_current) return;
-                    if (is_downgrade) {
-                      on_downgrade();
-
-                      return;
-                    }
                     const api_plan = plans.find((p) => p.code === tier.id);
 
                     if (api_plan) {
@@ -212,9 +202,13 @@ export function AvailablePlansSection({
                 >
                   {is_current
                     ? t("settings.current_plan")
-                    : is_downgrade
-                      ? t("settings.downgrade")
-                      : t("settings.upgrade")}
+                    : is_interval_switch
+                      ? card_interval === "year"
+                        ? t("settings.switch_to_yearly")
+                        : t("settings.switch_to_monthly")
+                      : is_downgrade
+                        ? t("settings.downgrade")
+                        : t("settings.upgrade")}
                 </Button>
 
               </div>

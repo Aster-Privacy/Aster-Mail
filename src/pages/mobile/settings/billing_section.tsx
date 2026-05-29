@@ -54,9 +54,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert_dialog";
-import { CheckoutModal } from "@/components/settings/checkout_modal";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
+import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
+import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
+import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   list_contacts,
@@ -71,6 +73,10 @@ import {
   cancel_subscription,
   reactivate_subscription,
   activate_subscription,
+  start_hosted_checkout,
+  change_plan,
+  get_storage_addons,
+  purchase_storage_addon,
   get_referral_info,
   get_referral_history,
   get_credits,
@@ -80,6 +86,7 @@ import {
   type ReferralInfo,
   type ReferralHistoryItem,
   type CreditBalanceResponse,
+  type StorageAddonItem,
 } from "@/services/api/billing";
 import { use_auth } from "@/contexts/auth_context";
 import { get_user_salt } from "@/services/api/auth";
@@ -88,24 +95,6 @@ import {
   derive_password_hash,
   base64_to_array,
 } from "@/services/crypto/key_manager";
-
-interface StorageAddon {
-  id: string;
-  label: string;
-  price_cents: number;
-  badge?: "popular" | "best_value";
-}
-
-const STORAGE_ADDONS: StorageAddon[] = [
-  { id: "5gb", label: "5 GB", price_cents: 99 },
-  { id: "10gb", label: "10 GB", price_cents: 199 },
-  { id: "50gb", label: "50 GB", price_cents: 499 },
-  { id: "100gb", label: "100 GB", price_cents: 799, badge: "popular" },
-  { id: "500gb", label: "500 GB", price_cents: 1999 },
-  { id: "1tb", label: "1 TB", price_cents: 3499 },
-  { id: "5tb", label: "5 TB", price_cents: 9999 },
-  { id: "10tb", label: "10 TB", price_cents: 14999, badge: "best_value" },
-];
 
 interface PlanTier {
   id: string;
@@ -169,18 +158,25 @@ export function BillingSection({
   const [cancel_password, set_cancel_password] = useState("");
   const [cancel_password_error, set_cancel_password_error] = useState("");
   const [show_cancel_password, set_show_cancel_password] = useState(false);
-  const [selected_plan, set_selected_plan] = useState<AvailablePlan | null>(
-    null,
-  );
   const [selected_storage, set_selected_storage] = useState<string | null>(
     null,
   );
-  const [show_checkout_modal, set_show_checkout_modal] = useState(false);
   const [show_payment_methods, set_show_payment_methods] = useState(false);
-  const [checkout_addon, set_checkout_addon] = useState<StorageAddon | null>(
+  const [available_addons, set_available_addons] = useState<StorageAddonItem[]>(
+    [],
+  );
+  const [show_method_modal, set_show_method_modal] = useState(false);
+  const [method_modal_plan, set_method_modal_plan] =
+    useState<AvailablePlan | null>(null);
+  const [show_crypto_modal, set_show_crypto_modal] = useState(false);
+  const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
+  const [show_addon_method_modal, set_show_addon_method_modal] = useState(false);
+  const [addon_method_target, set_addon_method_target] =
+    useState<StorageAddonItem | null>(null);
+  const [show_crypto_addon_modal, set_show_crypto_addon_modal] = useState(false);
+  const [crypto_addon, set_crypto_addon] = useState<StorageAddonItem | null>(
     null,
   );
-  const [show_addon_checkout, set_show_addon_checkout] = useState(false);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
   >("monthly");
@@ -307,19 +303,29 @@ export function BillingSection({
 
   const load_data = useCallback(async () => {
     try {
-      const [sub_res, plans_res, hist_res, ref_res, ref_hist_res, credits_res] =
-        await Promise.all([
-          get_subscription(),
-          get_available_plans(),
-          get_billing_history(1, 10),
-          get_referral_info(),
-          get_referral_history(),
-          get_credits(),
-        ]);
+      const [
+        sub_res,
+        plans_res,
+        hist_res,
+        addons_res,
+        ref_res,
+        ref_hist_res,
+        credits_res,
+      ] = await Promise.all([
+        get_subscription(),
+        get_available_plans(),
+        get_billing_history(1, 10),
+        get_storage_addons(),
+        get_referral_info(),
+        get_referral_history(),
+        get_credits(),
+      ]);
 
       if (sub_res.data) set_subscription(sub_res.data);
       if (plans_res.data) set_plans(plans_res.data.plans);
       if (hist_res.data) set_history(hist_res.data.items);
+      if (addons_res.data)
+        set_available_addons(addons_res.data.available_addons);
       if (ref_res.data) set_referral_info(ref_res.data);
       if (ref_hist_res.data) set_referral_history_list(ref_hist_res.data.referrals);
       if (credits_res.data) set_credit_balance(credits_res.data);
@@ -354,6 +360,24 @@ export function BillingSection({
       const url = new URL(window.location.href);
 
       url.searchParams.delete("addon_purchase");
+      window.history.replaceState({}, "", url.toString());
+    }
+    if (params.get("crypto") === "success") {
+      show_toast(t("settings.crypto_success_toast"), "success");
+      request_cache.invalidate("/payments/v1");
+      request_cache.invalidate("/sync/v1");
+      invalidate_mail_stats();
+      load_data();
+      const url = new URL(window.location.href);
+
+      url.searchParams.delete("crypto");
+      window.history.replaceState({}, "", url.toString());
+    }
+    if (params.get("crypto") === "cancelled") {
+      show_toast(t("settings.crypto_cancelled_toast"), "info");
+      const url = new URL(window.location.href);
+
+      url.searchParams.delete("crypto");
       window.history.replaceState({}, "", url.toString());
     }
 
@@ -468,6 +492,80 @@ export function BillingSection({
     } finally {
       set_is_action_loading(false);
     }
+  };
+
+  const handle_select_plan = (plan: AvailablePlan) => {
+    set_method_modal_plan(plan);
+    set_show_method_modal(true);
+  };
+
+  const handle_pay_with_card = async (plan: AvailablePlan) => {
+    const checkout_interval =
+      billing_period === "yearly"
+        ? "year"
+        : billing_period === "biennial"
+          ? "biennial"
+          : "month";
+
+    set_is_action_loading(true);
+
+    const has_card_sub =
+      !!subscription &&
+      subscription.plan.code !== "free" &&
+      subscription.payment_provider !== "stripe_crypto";
+
+    if (has_card_sub) {
+      const result = await change_plan(plan.code, checkout_interval);
+
+      if (!result.ok) {
+        set_is_action_loading(false);
+        show_toast(t("settings.failed_checkout"), "error");
+
+        return;
+      }
+      request_cache.invalidate("/payments/v1");
+      invalidate_mail_stats();
+      await load_data();
+      set_is_action_loading(false);
+      show_toast(t("settings.payment_success"), "success");
+
+      return;
+    }
+
+    const result = await start_hosted_checkout(plan.code, checkout_interval);
+
+    if (!result.ok) {
+      set_is_action_loading(false);
+      show_toast(t("settings.failed_checkout"), "error");
+    }
+  };
+
+  const handle_pay_with_crypto = (plan: AvailablePlan) => {
+    set_crypto_plan(plan);
+    set_show_crypto_modal(true);
+  };
+
+  const handle_addon_pay_card = async (addon: StorageAddonItem) => {
+    set_is_action_loading(true);
+    try {
+      const response = await purchase_storage_addon(addon.id);
+      const url = response.data?.url;
+
+      if (url) {
+        window.location.assign(url);
+      } else {
+        show_toast(t("settings.addon_purchase_failed"), "error");
+        set_is_action_loading(false);
+      }
+    } catch {
+      show_toast(t("settings.addon_purchase_failed"), "error");
+      set_is_action_loading(false);
+    }
+  };
+
+  const handle_addon_pay_crypto = (addon: StorageAddonItem) => {
+    set_crypto_addon(addon);
+    set_show_crypto_addon_modal(true);
   };
 
   const plans_ref = useRef<HTMLDivElement>(null);
@@ -665,7 +763,7 @@ export function BillingSection({
                   {t("settings.storage_addons_description")}
                 </p>
                 <div className="grid grid-cols-2 gap-2">
-                  {STORAGE_ADDONS.map((addon) => (
+                  {available_addons.map((addon) => (
                     <button
                       key={addon.id}
                       className="relative rounded-[14px] p-3 text-left transition-all"
@@ -683,21 +781,8 @@ export function BillingSection({
                         )
                       }
                     >
-                      {addon.badge && (
-                        <span
-                          className="absolute -top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full text-white"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 40%, #2563eb 70%, #3b82f6 100%)",
-                          }}
-                        >
-                          {addon.badge === "popular"
-                            ? t("settings.popular")
-                            : t("settings.best_value")}
-                        </span>
-                      )}
                       <p className="text-[15px] font-bold text-[var(--text-primary)]">
-                        {addon.label}
+                        {addon.name}
                       </p>
                       <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
                         {format_price(addon.price_cents)}
@@ -717,13 +802,13 @@ export function BillingSection({
                   }}
                   type="button"
                   onClick={() => {
-                    const addon = STORAGE_ADDONS.find(
+                    const addon = available_addons.find(
                       (a) => a.id === selected_storage,
                     );
 
                     if (addon) {
-                      set_checkout_addon(addon);
-                      set_show_addon_checkout(true);
+                      set_addon_method_target(addon);
+                      set_show_addon_method_modal(true);
                     }
                   }}
                 >
@@ -857,8 +942,7 @@ export function BillingSection({
                                 );
 
                                 if (api_plan) {
-                                  set_selected_plan(api_plan);
-                                  set_show_checkout_modal(true);
+                                  handle_select_plan(api_plan);
                                 } else {
                                   show_toast(
                                     t("settings.plans_coming_soon"),
@@ -1205,73 +1289,88 @@ export function BillingSection({
         </AlertDialogContent>
       </AlertDialog>
 
-      {selected_plan && (
-        <CheckoutModal
-          billing_interval={
-            billing_period === "yearly"
-              ? "year"
-              : billing_period === "biennial"
-                ? "biennial"
-                : "month"
-          }
-          currency="usd"
+      {method_modal_plan && (
+        <PlanPaymentMethodModal
+          open={show_method_modal}
+          plan_name={method_modal_plan.name}
+          on_choose_card={() => {
+            const plan = method_modal_plan;
+
+            set_show_method_modal(false);
+            set_method_modal_plan(null);
+            if (plan) handle_pay_with_card(plan);
+          }}
+          on_choose_crypto={() => {
+            const plan = method_modal_plan;
+
+            set_show_method_modal(false);
+            set_method_modal_plan(null);
+            if (plan) handle_pay_with_crypto(plan);
+          }}
           on_close={() => {
-            set_show_checkout_modal(false);
-            set_selected_plan(null);
+            set_show_method_modal(false);
+            set_method_modal_plan(null);
           }}
-          on_success={async () => {
-            set_show_checkout_modal(false);
-            set_selected_plan(null);
-            load_data();
-          }}
-          open={show_checkout_modal}
-          plan_code={selected_plan.code}
-          plan_name={selected_plan.name}
-          price_cents={
-            billing_period === "yearly"
-              ? PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                  ?.yearly_cents || selected_plan.price_cents
-              : billing_period === "biennial"
-                ? PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                    ?.biennial_cents || selected_plan.price_cents
-                : PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                    ?.monthly_cents || selected_plan.price_cents
-          }
-          price_display={format_price(
-            billing_period === "yearly"
-              ? PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                  ?.yearly_cents || selected_plan.price_cents
-              : billing_period === "biennial"
-                ? PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                    ?.biennial_cents || selected_plan.price_cents
-                : PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                    ?.monthly_cents || selected_plan.price_cents,
-          )}
         />
       )}
 
-      {checkout_addon && (
-        <CheckoutModal
-          addon_id={checkout_addon.id}
-          billing_interval="month"
-          currency="usd"
+      {crypto_plan &&
+        (() => {
+          const tier = PLAN_TIERS.find((p) => p.id === crypto_plan.code);
+          const monthly_cents = tier?.monthly_cents ?? crypto_plan.price_cents;
+          const yearly_cents =
+            tier?.yearly_cents ?? crypto_plan.price_cents * 12;
+
+          return (
+            <CryptoTermModal
+              is_open={show_crypto_modal}
+              monthly_price_cents={monthly_cents}
+              on_close={() => {
+                set_show_crypto_modal(false);
+                set_crypto_plan(null);
+              }}
+              plan_code={crypto_plan.code}
+              plan_name={crypto_plan.name}
+              yearly_price_cents={yearly_cents}
+            />
+          );
+        })()}
+
+      {addon_method_target && (
+        <PlanPaymentMethodModal
+          open={show_addon_method_modal}
+          plan_name={addon_method_target.name}
+          on_choose_card={() => {
+            const addon = addon_method_target;
+
+            set_show_addon_method_modal(false);
+            set_addon_method_target(null);
+            if (addon) handle_addon_pay_card(addon);
+          }}
+          on_choose_crypto={() => {
+            const addon = addon_method_target;
+
+            set_show_addon_method_modal(false);
+            set_addon_method_target(null);
+            if (addon) handle_addon_pay_crypto(addon);
+          }}
           on_close={() => {
-            set_show_addon_checkout(false);
-            set_checkout_addon(null);
+            set_show_addon_method_modal(false);
+            set_addon_method_target(null);
           }}
-          on_success={async () => {
-            set_show_addon_checkout(false);
-            set_checkout_addon(null);
-            request_cache.invalidate("/payments/v1");
-            request_cache.invalidate("/sync/v1");
-            invalidate_mail_stats();
-            await load_data();
+        />
+      )}
+
+      {crypto_addon && (
+        <CryptoAddonTermModal
+          addon_id={crypto_addon.id}
+          addon_name={crypto_addon.name}
+          is_open={show_crypto_addon_modal}
+          on_close={() => {
+            set_show_crypto_addon_modal(false);
+            set_crypto_addon(null);
           }}
-          open={show_addon_checkout}
-          plan_code="addon"
-          plan_name={checkout_addon.label}
-          price_cents={checkout_addon.price_cents}
-          price_display={format_price(checkout_addon.price_cents)}
+          price_cents={crypto_addon.price_cents}
         />
       )}
 
