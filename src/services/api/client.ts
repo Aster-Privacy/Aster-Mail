@@ -397,15 +397,20 @@ class ApiClient {
       this.schedule_token_refresh();
     } else {
       this.is_authenticated_flag = false;
+      this.dev_access_token = null;
+      clear_csrf_cache();
       if ((Capacitor.isNativePlatform() || is_tauri_env()) && has_stored_token) {
         this.clear_native_token();
-        this.dev_access_token = null;
         if (is_tauri_env()) {
           try {
             localStorage.removeItem(TAURI_TOKEN_KEY);
             localStorage.removeItem(TAURI_CSRF_KEY);
           } catch {}
         }
+      } else {
+        try {
+          await this.clear_session_cookies();
+        } catch {}
       }
     }
 
