@@ -211,6 +211,7 @@ class ApiClient {
   private is_authenticated_flag: boolean = false;
   private auth_check_promise: Promise<boolean> | null = null;
   private dev_access_token: string | null = null;
+  private active_refresh_token: string | null = null;
   private suspend_account_persist_flag: boolean = false;
   private initial_auth_verified: boolean = false;
   private refresh_promise: Promise<void> | null = null;
@@ -413,6 +414,9 @@ class ApiClient {
 
   set_dev_token(token: string, refresh_token?: string): void {
     this.dev_access_token = token;
+    if (refresh_token) {
+      this.active_refresh_token = refresh_token;
+    }
     if (import.meta.env.DEV) {
       sessionStorage.setItem(DEV_TOKEN_KEY, token);
     }
@@ -463,6 +467,8 @@ class ApiClient {
       );
       const tokens = await get_account_tokens(account_id);
 
+      this.active_refresh_token = tokens.refresh_token;
+
       if (tokens.access_token) {
         this.dev_access_token = tokens.access_token;
         if (Capacitor.isNativePlatform()) {
@@ -489,6 +495,7 @@ class ApiClient {
 
   clear_in_memory_token(): void {
     this.dev_access_token = null;
+    this.active_refresh_token = null;
     if (import.meta.env.DEV) {
       sessionStorage.removeItem(DEV_TOKEN_KEY);
     }
@@ -508,6 +515,7 @@ class ApiClient {
 
   clear_dev_token(): void {
     this.dev_access_token = null;
+    this.active_refresh_token = null;
     if (import.meta.env.DEV) {
       sessionStorage.removeItem(DEV_TOKEN_KEY);
     }
@@ -574,15 +582,16 @@ class ApiClient {
     const max_retries = 3;
     const retry_delay_base = 2000;
 
-    let native_refresh_token: string | null = null;
+    let stored_refresh_token: string | null = this.active_refresh_token;
     if (Capacitor.isNativePlatform()) {
-      native_refresh_token = await this.load_native_refresh_token();
+      stored_refresh_token =
+        (await this.load_native_refresh_token()) ?? stored_refresh_token;
     }
 
     for (let attempt = 0; attempt < max_retries; attempt++) {
       try {
-        const body = native_refresh_token
-          ? { refresh_token: native_refresh_token }
+        const body = stored_refresh_token
+          ? { refresh_token: stored_refresh_token }
           : {};
         const response = await this.post<{
           csrf_token: string;
@@ -751,6 +760,82 @@ class ApiClient {
     return this.dev_access_token;
   }
 
+  get_active_refresh_token(): string | null {
+    return this.active_refresh_token;
+  }
+
+  private token_survives_reload(): boolean {
+    return (
+      is_tauri_env() ||
+      Capacitor.isNativePlatform() ||
+      (import.meta.env.DEV && is_local_hostname())
+    );
+  }
+
+  async reestablish_session_for_account(account_id: string): Promise<boolean> {
+    const loaded = await this.load_tokens_for_account(account_id);
+
+    if (!loaded || !this.dev_access_token) {
+      return false;
+    }
+
+    this.is_authenticated_flag = true;
+    this.initial_auth_verified = true;
+
+    const me_response = await this.get<{ user_id: string }>(
+      "/core/v1/auth/me",
+      { skip_cache: true, skip_session_refresh: true },
+    );
+
+    if (!me_response.data?.user_id) {
+      this.is_authenticated_flag = false;
+
+      return false;
+    }
+
+    this.has_ever_authenticated = true;
+    this.last_refresh_timestamp = Date.now();
+
+    let cookies_reissued = false;
+    try {
+      const refreshed = await this.post<{
+        csrf_token: string;
+        access_token?: string;
+        refresh_token?: string;
+      }>(
+        "/core/v1/auth/refresh",
+        this.active_refresh_token
+          ? { refresh_token: this.active_refresh_token }
+          : {},
+        { skip_session_refresh: true },
+      );
+
+      if (refreshed.data?.csrf_token) {
+        cookies_reissued = true;
+        clear_csrf_cache();
+        this.set_csrf(refreshed.data.csrf_token);
+        if (refreshed.data.access_token) {
+          this.set_dev_token(
+            refreshed.data.access_token,
+            refreshed.data.refresh_token,
+          );
+        }
+      }
+    } catch (e) {
+      if (import.meta.env.DEV) console.error(e);
+    }
+
+    if (!cookies_reissued && !this.token_survives_reload()) {
+      this.is_authenticated_flag = false;
+
+      return false;
+    }
+
+    this.schedule_token_refresh();
+
+    return true;
+  }
+
   get_cached_user_info(): CachedUserInfo | null {
     return this._cached_user_info;
   }
@@ -875,12 +960,7 @@ class ApiClient {
       ...((options.headers as Record<string, string>) || {}),
     };
 
-    if (this.dev_access_token && is_local_hostname()) {
-      headers["Authorization"] = `Bearer ${this.dev_access_token}`;
-    } else if (
-      this.dev_access_token &&
-      (Capacitor.isNativePlatform() || is_tauri_env())
-    ) {
+    if (this.dev_access_token) {
       headers["Authorization"] = `Bearer ${this.dev_access_token}`;
     }
 
