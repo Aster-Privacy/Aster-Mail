@@ -34,9 +34,7 @@ import {
   XMarkIcon,
   LockClosedIcon,
   ClockIcon,
-  StarIcon,
 } from "@heroicons/react/24/outline";
-import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
 
@@ -54,6 +52,29 @@ import {
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 
 const AVATAR_MAX_SIZE = 256;
+
+function PinIcon({
+  filled,
+  className,
+}: {
+  filled: boolean;
+  className?: string;
+}) {
+  return (
+    <svg
+      className={className}
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={filled ? "0" : "1.8"}
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M14 4V2h-4v2H8l-2 7h4v7l2 2 2-2v-7h4l-2-7z" />
+    </svg>
+  );
+}
 
 function compress_avatar(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -613,11 +634,10 @@ export function DomainAddressItem({
           variant="ghost"
           onClick={toggle_primary}
         >
-          {is_primary ? (
-            <StarIconSolid className="w-4 h-4" />
-          ) : (
-            <StarIcon className="w-4 h-4 text-txt-muted" />
-          )}
+          <PinIcon
+            className={is_primary ? "w-4 h-4" : "w-4 h-4 text-txt-muted"}
+            filled={is_primary}
+          />
         </Button>
 
         <Button
