@@ -26,6 +26,7 @@ import {
   CameraIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -209,6 +210,8 @@ export function AccountSection() {
   const [name, set_name] = useState(user?.display_name || user?.username || "");
   const [saving_name, set_saving_name] = useState(false);
   const [uploading, set_uploading] = useState(false);
+  const [removing_photo, set_removing_photo] = useState(false);
+  const [avatar_hovered, set_avatar_hovered] = useState(false);
   const [preview, set_preview] = useState<string | null>(null);
   const [recovery, set_recovery] = useState<{
     email: string | null;
@@ -371,6 +374,34 @@ export function AccountSection() {
     }
   };
 
+  const handle_remove_photo = async () => {
+    if (removing_photo || uploading || !user?.profile_picture) return;
+
+    set_removing_photo(true);
+    set_photo_error(null);
+
+    try {
+      const response = await update_profile_picture(null);
+
+      if (response.error) {
+        set_photo_error(response.error);
+      } else if (response.data?.success && user) {
+        await update_user({
+          ...user,
+          profile_picture: undefined,
+        });
+        set_preview(null);
+        show_toast(t("common.profile_picture_removed"), "success");
+      } else {
+        set_photo_error(t("common.failed_remove_profile_picture"));
+      }
+    } catch {
+      set_photo_error(t("common.failed_remove_profile_picture"));
+    } finally {
+      set_removing_photo(false);
+    }
+  };
+
   const save_recovery = async (email: string) => {
     if (!vault) return;
     const r = await save_recovery_email(email, vault);
@@ -445,7 +476,11 @@ export function AccountSection() {
           }}
         />
         <div className="px-5 pb-5 -mt-8 flex items-end justify-between">
-          <div className="relative">
+          <div
+            className="relative"
+            onMouseEnter={() => set_avatar_hovered(true)}
+            onMouseLeave={() => set_avatar_hovered(false)}
+          >
             {(() => {
               const ring_visual =
                 badge_prefs?.show_badge_ring && badge_prefs?.active_badge_slug
@@ -527,6 +562,26 @@ export function AccountSection() {
               type="file"
               onChange={handle_photo}
             />
+            {user?.profile_picture && (
+              <button
+                aria-label={t("common.remove_photo")}
+                className={cn(
+                  "absolute -top-1 -right-1 p-1.5 rounded-full transition disabled:opacity-50 bg-surf-card text-txt-muted border-2 border-edge-secondary hover:text-[var(--color-danger)] focus-visible:opacity-100",
+                  avatar_hovered || removing_photo ? "opacity-100" : "opacity-0",
+                )}
+                disabled={uploading || removing_photo}
+                onFocus={() => set_avatar_hovered(true)}
+                onBlur={() => set_avatar_hovered(false)}
+                title={t("common.remove_photo")}
+                onClick={handle_remove_photo}
+              >
+                {removing_photo ? (
+                  <Spinner size="xs" />
+                ) : (
+                  <XMarkIcon className="w-3.5 h-3.5" />
+                )}
+              </button>
+            )}
           </div>
           {photo_error && (
             <motion.p

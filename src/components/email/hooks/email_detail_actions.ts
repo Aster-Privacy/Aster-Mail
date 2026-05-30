@@ -25,6 +25,7 @@ import type {
   DecryptedEmail,
 } from "@/components/email/hooks/email_detail_types";
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { NavigateFunction } from "react-router-dom";
 
 import { useCallback } from "react";
 
@@ -74,7 +75,7 @@ export interface EmailDetailActionsDeps {
   set_forward_target: (v: DecryptedThreadMessage | null) => void;
   set_view_source_message: (v: DecryptedThreadMessage | null) => void;
   get_next_email_destination: () => string;
-  navigate: (path: string) => void;
+  navigate: NavigateFunction;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   preferences_default_reply_behavior: string;
 }
@@ -459,8 +460,12 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           });
         }
       });
+
+      if (!new_read) {
+        deps.navigate(-1);
+      }
     },
-    [deps.thread_messages],
+    [deps.thread_messages, deps.navigate],
   );
 
   const handle_copy_text = (text: string, label: string) => {

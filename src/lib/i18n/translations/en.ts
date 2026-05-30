@@ -122,7 +122,10 @@ export const en: Translations = {
     recovery_email_removed: "Recovery email removed",
     failed_remove_recovery_email: "We could not remove your recovery email. Another attempt should do it. Your recovery setup is unchanged.",
     profile_picture_updated: "Profile picture updated",
+    profile_picture_removed: "Profile picture removed",
     failed_save_profile_picture: "Your new profile picture did not save. Another attempt should do it. The old picture is still showing.",
+    failed_remove_profile_picture: "Your profile picture could not be removed. Another attempt should do it.",
+    remove_photo: "Remove photo",
     failed_save_profile_color: "Your color choice did not save. Another attempt should do it.",
     failed_upload_image: "The upload did not finish. Another attempt should do it.",
     image_load_failed: "This image did not load. A refresh usually does it.",
@@ -2477,6 +2480,9 @@ export const en: Translations = {
     reduce_motion_description: "Minimize animations and transitions",
     compact_mode: "Compact Mode",
     compact_mode_description: "Show more content with less spacing",
+    minimize_sidebar: "Minimize Sidebar",
+    minimize_sidebar_description:
+      "Collapse the sidebar to icons to save space",
     enable_shortcuts_description:
       "Enable keyboard shortcuts throughout the app",
     font_size_small: "Small",

@@ -98,6 +98,10 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       adjust_unread_count(new_state ? -1 : 1);
     }
 
+    if (!new_state) {
+      deps.on_close();
+    }
+
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -135,7 +139,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         metadata_nonce: result.encrypted?.metadata_nonce,
       });
     }
-  }, [deps.email_id, deps.is_read, deps.mail_item]);
+  }, [deps.email_id, deps.is_read, deps.mail_item, deps.on_close]);
 
   const handle_archive = useCallback(async () => {
     if (!deps.email_id || deps.is_archive_loading) return;
@@ -707,6 +711,10 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         adjust_unread_count(new_read ? -1 : 1);
       }
 
+      if (!new_read) {
+        deps.on_close();
+      }
+
       update_item_metadata(
         message_id,
         {
@@ -745,7 +753,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         }
       });
     },
-    [deps.thread_messages],
+    [deps.thread_messages, deps.on_close],
   );
 
   return {
