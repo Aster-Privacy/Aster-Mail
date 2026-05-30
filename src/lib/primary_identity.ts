@@ -42,6 +42,12 @@ const PRIMARY_IDENTITY_TYPES: ReadonlySet<SenderOption["type"]> = new Set([
   "domain",
 ]);
 
+const PRIMARY_IDENTITY_TYPES: ReadonlySet<SenderOption["type"]> = new Set([
+  "primary",
+  "alias",
+  "domain",
+]);
+
 export function resolve_primary_identity(
   sender_options: SenderOption[],
   preferred_sender_id: string | null,
