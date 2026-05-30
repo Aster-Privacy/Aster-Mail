@@ -2396,6 +2396,12 @@ export const it = {
     generate_random: "Genera casuale",
     alias_copied: "Alias copiato negli appunti",
     address_copied: "Indirizzo copiato negli appunti",
+    set_as_primary: "Imposta come indirizzo principale",
+    primary_badge: "Principale",
+    primary_address_label: "Indirizzo principale",
+    primary_address_set: "Indirizzo principale aggiornato",
+    primary_address_reset: "Ripristina l'indirizzo predefinito",
+    also_receives_at: "Riceve anche su {{email}}",
     alias_grace_days: "{{days}}g rimanenti",
     alias_reserved: "Riservato",
     alias_grace_upgrade_hint:

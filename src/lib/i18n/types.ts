@@ -2311,6 +2311,12 @@ export interface SettingsTranslations {
   generate_random: string;
   alias_copied: string;
   address_copied: string;
+  set_as_primary: string;
+  primary_badge: string;
+  primary_address_label: string;
+  primary_address_set: string;
+  primary_address_reset: string;
+  also_receives_at: string;
   alias_grace_days: string;
   alias_reserved: string;
   alias_grace_upgrade_hint: string;

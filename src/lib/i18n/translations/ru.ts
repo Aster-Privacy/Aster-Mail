@@ -1990,6 +1990,12 @@ export const ru = {
     generate_random: "Сгенерировать случайный",
     alias_copied: "Псевдоним скопирован в буфер обмена",
     address_copied: "Адрес скопирован в буфер обмена",
+    set_as_primary: "Сделать основным адресом",
+    primary_badge: "Основной",
+    primary_address_label: "Основной адрес",
+    primary_address_set: "Основной адрес обновлён",
+    primary_address_reset: "Сбросить на адрес по умолчанию",
+    also_receives_at: "Также получает на {{email}}",
     alias_grace_days: "{{days}}д осталось",
     alias_reserved: "Зарезервировано",
     alias_grace_upgrade_hint:

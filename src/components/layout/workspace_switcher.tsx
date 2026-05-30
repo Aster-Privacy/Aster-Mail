@@ -39,6 +39,7 @@ import {
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
 import type { StoredAccount } from "@/services/account_manager";
 import { get_account_limit } from "@/services/api/switch";
@@ -93,7 +94,9 @@ export function WorkspaceSwitcher({
       ? accounts.length
       : Math.max(max_allowed, accounts.length);
 
-  const current_user_email = user?.email ?? "";
+  const account_email = user?.email ?? "";
+  const primary_identity = use_primary_identity(account_email);
+  const current_user_email = primary_identity.email || account_email;
   const current_display_name =
     user?.display_name || user?.username || current_user_email.split("@")[0];
 

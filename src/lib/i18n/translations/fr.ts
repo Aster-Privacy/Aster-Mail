@@ -2008,6 +2008,12 @@ export const fr = {
     generate_random: "Générer aléatoirement",
     alias_copied: "Alias copié dans le presse-papiers",
     address_copied: "Adresse copiée dans le presse-papiers",
+    set_as_primary: "Définir comme adresse principale",
+    primary_badge: "Principale",
+    primary_address_label: "Adresse principale",
+    primary_address_set: "Adresse principale mise à jour",
+    primary_address_reset: "Rétablir votre adresse par défaut",
+    also_receives_at: "Reçoit aussi à {{email}}",
     alias_grace_days: "{{days}}j restants",
     alias_reserved: "Réservé",
     alias_grace_upgrade_hint:

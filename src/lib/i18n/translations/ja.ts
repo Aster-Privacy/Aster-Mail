@@ -1976,6 +1976,12 @@ export const ja = {
     generate_random: "ランダム生成",
     alias_copied: "エイリアスをクリップボードにコピーしました",
     address_copied: "アドレスをクリップボードにコピーしました",
+    set_as_primary: "プライマリアドレスに設定",
+    primary_badge: "プライマリ",
+    primary_address_label: "プライマリアドレス",
+    primary_address_set: "プライマリアドレスを更新しました",
+    primary_address_reset: "既定のアドレスに戻す",
+    also_receives_at: "{{email}} でも受信します",
     alias_grace_days: "残り{{days}}日",
     alias_reserved: "予約済み",
     alias_grace_upgrade_hint:
