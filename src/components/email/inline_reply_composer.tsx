@@ -49,6 +49,8 @@ interface InlineReplyComposerProps {
   recipient_email: string;
   sender_name: string;
   sender_email: string;
+  quote_sender_name?: string;
+  quote_sender_email?: string;
   original_subject: string;
   original_body: string;
   original_timestamp: string;
@@ -85,6 +87,8 @@ export const InlineReplyComposer = forwardRef<
     recipient_email,
     sender_name,
     sender_email,
+    quote_sender_name,
+    quote_sender_email,
     original_subject,
     original_body,
     original_timestamp,
@@ -173,6 +177,8 @@ export const InlineReplyComposer = forwardRef<
     on_close,
     recipient_name,
     recipient_email,
+    quote_sender_name,
+    quote_sender_email,
     original_subject,
     original_body,
     original_timestamp,

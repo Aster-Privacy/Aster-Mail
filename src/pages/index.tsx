@@ -282,6 +282,8 @@ export default function IndexPage() {
           recipient_avatar={state.reply_data.recipient_avatar}
           recipient_email={state.reply_data.recipient_email}
           recipient_name={state.reply_data.recipient_name}
+          quote_sender_email={state.reply_data.quote_sender_email}
+          quote_sender_name={state.reply_data.quote_sender_name}
           reply_all={state.reply_data.reply_all}
           reply_from_address={state.reply_data.reply_from_address}
           thread_ghost_email={state.reply_data.thread_ghost_email}

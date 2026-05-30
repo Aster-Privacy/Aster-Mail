@@ -38,6 +38,7 @@ import {
   try_decrypt_pgp_body,
   try_extract_mime_body,
   extract_subject_bundle,
+  is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
@@ -45,6 +46,7 @@ import {
   type DraftWithContent,
 } from "@/services/api/multi_drafts";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
+import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
@@ -388,6 +390,10 @@ export async function preload_email_detail(
       if (resolved_html && /^content-type\s*:/im.test(resolved_html)) {
         resolved_html = try_extract_mime_body(resolved_html) || undefined;
       }
+
+      if (is_ratchet_envelope(resolved_html)) {
+        resolved_html = undefined;
+      }
       const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
 
       let body_text = user_email
@@ -442,10 +448,17 @@ export async function preload_email_detail(
         },
       );
 
+      const forwarding = resolve_forwarding_display(
+        envelope.from,
+        envelope.raw_headers,
+      );
+
       const decrypted: DecryptedEmail = {
         id: item.id,
         sender: envelope.from.name || get_email_username(envelope.from.email),
         sender_email: envelope.from.email,
+        ...(forwarding ?? {}),
+        raw_headers: envelope.raw_headers,
         subject: envelope.subject || "",
         preview: (
           body_text ||
@@ -482,6 +495,7 @@ export async function preload_email_detail(
           get_email_username(envelope.from.email) ||
           "Unknown",
         sender_email: envelope.from.email || "",
+        ...(forwarding ?? {}),
         subject: envelope.subject || "",
         body: body_text || "",
         html_content: safe_html,

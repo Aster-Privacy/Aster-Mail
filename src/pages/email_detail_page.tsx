@@ -358,6 +358,8 @@ export default function EmailDetailPage() {
         recipient_avatar=""
         recipient_email={detail.reply_modal_data?.recipient_email ?? ""}
         recipient_name={detail.reply_modal_data?.recipient_name ?? ""}
+        quote_sender_email={detail.reply_modal_data?.quote_sender_email}
+        quote_sender_name={detail.reply_modal_data?.quote_sender_name}
         reply_all={detail.reply_modal_data?.reply_all}
         reply_from_address={detail.reply_modal_data?.reply_from_address}
         thread_ghost_email={detail.reply_modal_data?.thread_ghost_email}

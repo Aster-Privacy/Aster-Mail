@@ -26,6 +26,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 import { get_email_username, is_system_email } from "@/lib/utils";
+import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { is_ghost_email } from "@/stores/ghost_alias_store";
 import { get_recipient_hint } from "@/stores/recipient_hint_store";
 import { get_mail_item } from "@/services/api/mail";
@@ -600,6 +601,11 @@ export function use_email_detail() {
             sender:
               envelope.from.name || get_email_username(envelope.from.email),
             sender_email: envelope.from.email,
+            ...(resolve_forwarding_display(
+              envelope.from,
+              envelope.raw_headers,
+            ) ?? {}),
+            raw_headers: envelope.raw_headers,
             subject: envelope.subject || t("mail.no_subject"),
             preview: build_preview_text(body_text, safe_html),
             timestamp: format_email_popup(
@@ -833,8 +839,8 @@ export function use_email_detail() {
     return {
       subject: email.subject,
       messages: thread_messages.map((msg) => ({
-        sender: msg.sender_name,
-        sender_email: msg.sender_email,
+        sender: msg.display_sender_name || msg.sender_name,
+        sender_email: msg.display_sender_email || msg.sender_email,
         timestamp: new Date(msg.timestamp).toLocaleString(),
         body: msg.html_content || msg.body,
         to_recipients: msg.to_recipients,

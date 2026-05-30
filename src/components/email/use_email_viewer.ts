@@ -41,6 +41,7 @@ import {
 import type { UndoSendEvent } from "@/hooks/use_undo_send";
 import { get_email_username } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
+import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import {
   process_envelope_body,
   build_preview_text,
@@ -292,6 +293,9 @@ export function use_email_viewer({
           id: pe.id,
           sender: pe.sender,
           sender_email: pe.sender_email,
+          display_sender_name: pe.display_sender_name,
+          display_sender_email: pe.display_sender_email,
+          forwarding_service: pe.forwarding_service,
           subject: pe.subject,
           preview: pe.preview,
           timestamp: preloaded.mail_item.created_at,
@@ -505,6 +509,10 @@ export function use_email_viewer({
           get_email_username(envelope.from.email) ||
           t("common.unknown"),
         sender_email: envelope.from.email || "",
+        ...(resolve_forwarding_display(
+          envelope.from,
+          envelope.raw_headers,
+        ) ?? {}),
         subject: envelope.subject || t("mail.no_subject"),
         preview: build_preview_text(body_text, safe_html),
         timestamp: item.created_at,

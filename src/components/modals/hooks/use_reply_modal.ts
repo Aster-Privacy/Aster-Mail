@@ -107,6 +107,8 @@ interface UseReplyModalProps {
   on_close: () => void;
   recipient_name: string;
   recipient_email: string;
+  quote_sender_name?: string;
+  quote_sender_email?: string;
   original_subject: string;
   original_body: string;
   original_timestamp: string;
@@ -137,6 +139,8 @@ export function use_reply_modal({
   on_close,
   recipient_name,
   recipient_email,
+  quote_sender_name,
+  quote_sender_email,
   original_subject,
   original_body,
   original_timestamp,
@@ -345,11 +349,13 @@ export function use_reply_modal({
   const build_quoted_content = useCallback(
     (for_display: boolean = false): string => {
       const formatted_date = format_date(original_timestamp);
-      const safe_name = recipient_name
+      const attribution_name = quote_sender_name || recipient_name;
+      const attribution_email = quote_sender_email || recipient_email;
+      const safe_name = attribution_name
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
-      const safe_email = recipient_email
+      const safe_email = attribution_email
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
@@ -400,6 +406,8 @@ export function use_reply_modal({
       original_timestamp,
       recipient_email,
       recipient_name,
+      quote_sender_email,
+      quote_sender_name,
       format_date,
     ],
   );

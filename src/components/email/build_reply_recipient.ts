@@ -25,6 +25,7 @@ export interface ReplyRecipientSource {
   sender_email: string;
   first_to?: { name: string; email: string };
   reply_to?: { name: string; email: string };
+  reply_alias?: { name?: string; email: string };
 }
 
 export interface ReplyRecipient {
@@ -49,6 +50,15 @@ export function build_reply_recipient(
     return {
       recipient_name: source.sender_name,
       recipient_email: source.sender_email,
+    };
+  }
+
+  if (source.reply_alias && source.reply_alias.email) {
+    const a = source.reply_alias;
+
+    return {
+      recipient_name: a.name || get_email_username(a.email) || a.email,
+      recipient_email: a.email,
     };
   }
 

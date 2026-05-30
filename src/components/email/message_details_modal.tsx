@@ -103,7 +103,8 @@ export function MessageDetailsModal({
             {t("common.from_label")}
           </span>
           <span className="min-w-0 text-txt-secondary break-words">
-            {message.sender_name} &lt;{message.sender_email}&gt;
+            {message.display_sender_name ?? message.sender_name} &lt;
+            {message.display_sender_email ?? message.sender_email}&gt;
           </span>
         </div>
 

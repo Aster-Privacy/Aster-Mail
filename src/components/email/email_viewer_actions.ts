@@ -132,12 +132,17 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       (!!deps.current_user_email &&
         deps.email.sender_email.toLowerCase() ===
           deps.current_user_email.toLowerCase());
+    const is_forwarded =
+      !is_own_message && !!deps.email.display_sender_email;
     const { recipient_name, recipient_email } = build_reply_recipient(
       {
         sender_name: deps.email.sender,
         sender_email: deps.email.sender_email,
         first_to: deps.email.to?.[0],
         reply_to: deps.email.reply_to,
+        reply_alias: is_forwarded
+          ? { name: deps.email.sender, email: deps.email.sender_email }
+          : undefined,
       },
       is_own_message,
     );
@@ -157,6 +162,13 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       recipient_name,
       recipient_email,
       recipient_avatar: "",
+      ...(is_forwarded
+        ? {
+            quote_sender_name:
+              deps.email.display_sender_name || deps.email.sender,
+            quote_sender_email: deps.email.display_sender_email,
+          }
+        : {}),
       original_subject: deps.email.subject,
       original_body: deps.email.body,
       original_timestamp: deps.email.timestamp,
@@ -503,8 +515,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     if (!deps.email) return;
     print_email({
       subject: deps.email.subject,
-      sender: deps.email.sender,
-      sender_email: deps.email.sender_email,
+      sender: deps.email.display_sender_name || deps.email.sender,
+      sender_email: deps.email.display_sender_email || deps.email.sender_email,
       to: deps.email.to,
       cc: deps.email.cc,
       bcc: deps.email.bcc,
@@ -558,6 +570,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
   const build_reply_data = useCallback(
     (msg: DecryptedThreadMessage, is_reply_all: boolean): ReplyData => {
       const is_own_message = msg.item_type === "sent";
+      const is_forwarded = !is_own_message && !!msg.display_sender_email;
       const parsed_reply_to = extract_reply_to(msg.raw_headers);
       const { recipient_name, recipient_email } = build_reply_recipient(
         {
@@ -566,6 +579,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           first_to: msg.to_recipients?.[0],
           reply_to: parsed_reply_to
             ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
+            : undefined,
+          reply_alias: is_forwarded
+            ? { name: msg.sender_name, email: msg.sender_email }
             : undefined,
         },
         is_own_message,
@@ -586,6 +602,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         recipient_name,
         recipient_email,
         recipient_avatar: "",
+        ...(is_forwarded
+          ? {
+              quote_sender_name: msg.display_sender_name || msg.sender_name,
+              quote_sender_email: msg.display_sender_email,
+            }
+          : {}),
         original_subject: msg.subject,
         original_body: msg.body,
         original_timestamp: new Date(msg.timestamp).toLocaleString(),
@@ -708,8 +730,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     (msg: DecryptedThreadMessage) => {
       print_email({
         subject: msg.subject,
-        sender: msg.sender_name,
-        sender_email: msg.sender_email,
+        sender: msg.display_sender_name || msg.sender_name,
+        sender_email: msg.display_sender_email || msg.sender_email,
         to: [],
         timestamp: new Date(msg.timestamp).toLocaleString(),
         body: msg.html_content || msg.body,

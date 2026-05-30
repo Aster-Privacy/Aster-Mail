@@ -167,6 +167,9 @@ function MobileMailDetail() {
           | "draft",
         sender_name: detail.email.sender,
         sender_email: detail.email.sender_email,
+        display_sender_name: detail.email.display_sender_name,
+        display_sender_email: detail.email.display_sender_email,
+        forwarding_service: detail.email.forwarding_service,
         subject: detail.email.subject,
         body: detail.email.body || "",
         html_content: detail.email.html_content,
@@ -414,7 +417,7 @@ function MobileMailDetail() {
     (msg: DecryptedThreadMessage, mode: "reply" | "reply_all" | "forward") => {
       const subject = msg.subject || "";
       const body = msg.body || "";
-      const quoted = `\n\n${t("mail.reply_quote_header", { date: new Date(msg.timestamp).toLocaleString(), name: msg.sender_name })}\n${body
+      const quoted = `\n\n${t("mail.reply_quote_header", { date: new Date(msg.timestamp).toLocaleString(), name: msg.display_sender_name || msg.sender_name })}\n${body
         .split("\n")
         .map((l) => "> " + l)
         .join("\n")}`;
@@ -713,6 +716,9 @@ function MobileMailDetail() {
         item_type: "received" as const,
         sender_name: detail.email.sender,
         sender_email: detail.email.sender_email,
+        display_sender_name: detail.email.display_sender_name,
+        display_sender_email: detail.email.display_sender_email,
+        forwarding_service: detail.email.forwarding_service,
         subject: detail.email.subject,
         body: detail.email.body,
         timestamp: detail.email.timestamp,
