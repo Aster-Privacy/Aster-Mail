@@ -23,7 +23,7 @@ import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { DecryptedDomainAddress } from "@/services/api/domains";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   TrashIcon,
   ClipboardDocumentIcon,
@@ -34,7 +34,9 @@ import {
   XMarkIcon,
   LockClosedIcon,
   ClockIcon,
+  StarIcon,
 } from "@heroicons/react/24/outline";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
 
@@ -44,6 +46,11 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
 import { update_alias } from "@/services/api/aliases";
 import { update_domain_address } from "@/services/api/domains";
+import {
+  get_preferred_sender_id,
+  set_preferred_sender_id,
+  subscribe_preferred_sender,
+} from "@/lib/preferred_sender";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 
 const AVATAR_MAX_SIZE = 256;
@@ -430,6 +437,28 @@ export function DomainAddressItem({
   const [local_picture, set_local_picture] = useState<string | undefined>(
     undefined,
   );
+  const sender_option_id = `domain-${address.id}`;
+  const [preferred_id, set_preferred_id] = useState<string | null>(() =>
+    get_preferred_sender_id(),
+  );
+  const is_primary = preferred_id === sender_option_id;
+
+  useEffect(() => {
+    return subscribe_preferred_sender((id) => set_preferred_id(id));
+  }, []);
+
+  const toggle_primary = () => {
+    const next = is_primary ? null : sender_option_id;
+
+    set_preferred_id(next);
+    set_preferred_sender_id(next);
+    show_toast(
+      is_primary
+        ? t("settings.primary_address_reset")
+        : t("settings.primary_address_set"),
+      "success",
+    );
+  };
   const full_address = `${address.local_part}@${address.domain_name}`;
   const gradient = useMemo(
     () => get_gradient_background(get_alias_color(full_address)),
@@ -549,6 +578,11 @@ export function DomainAddressItem({
           <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surf-tertiary text-txt-muted">
             {t("common.custom")}
           </span>
+          {is_primary && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+              {t("settings.primary_badge")}
+            </span>
+          )}
         </div>
         <AliasDisplayNameEditor
           alias_address={full_address}
@@ -564,6 +598,28 @@ export function DomainAddressItem({
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
+        <Button
+          className={
+            is_primary
+              ? "h-8 w-8 text-emerald-500 hover:text-emerald-500 hover:bg-emerald-500/10"
+              : "h-8 w-8"
+          }
+          size="icon"
+          title={
+            is_primary
+              ? t("settings.primary_address_reset")
+              : t("settings.set_as_primary")
+          }
+          variant="ghost"
+          onClick={toggle_primary}
+        >
+          {is_primary ? (
+            <StarIconSolid className="w-4 h-4" />
+          ) : (
+            <StarIcon className="w-4 h-4 text-txt-muted" />
+          )}
+        </Button>
+
         <Button
           className="h-8 w-8"
           size="icon"
