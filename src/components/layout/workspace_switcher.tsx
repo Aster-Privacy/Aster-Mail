@@ -230,7 +230,7 @@ export function WorkspaceSwitcher({
             >
               <div className="relative">
                 <ProfileAvatar
-                  email={current_user_email}
+                  email={account_email}
                   image_url={user?.profile_picture}
                   name={current_display_name}
                   profile_color={preferences.profile_color}
