@@ -27,6 +27,7 @@ import {
   try_decrypt_pgp_body,
   try_extract_mime_body,
   extract_subject_bundle,
+  is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 
@@ -45,6 +46,10 @@ export async function process_envelope_body(
 
   if (resolved_html && /^content-type\s*:/im.test(resolved_html)) {
     resolved_html = try_extract_mime_body(resolved_html) || undefined;
+  }
+
+  if (is_ratchet_envelope(resolved_html)) {
+    resolved_html = undefined;
   }
   const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
 
