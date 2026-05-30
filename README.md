@@ -19,7 +19,7 @@ Head over to [astermail.org](https://astermail.org) to create a free account. If
 
 ## Community
 
-Join our [Discord](https://discord.gg/t5fKbGmvKD) to give honest feedback, ask any questions, and contribute to the privacy community. You can also find us on [Twitter/X](https://twitter.com/asterprivacy) and [Reddit](https://www.reddit.com/r/AsterPrivacy).
+Join our [Discord](https://discord.gg/R4XqRUfgWZ) to give honest feedback, ask any questions, and contribute to the privacy community. You can also find us on [Twitter/X](https://twitter.com/asterprivacy) and [Reddit](https://www.reddit.com/r/AsterPrivacy).
 
 If you have any questions or security disclosures, email us at [hello@astermail.org](mailto:hello@astermail.org) or [security@astermail.org](mailto:security@astermail.org). **Do not open a public issue for security vulnerabilities.** Read [SECURITY.md](SECURITY.md) for the full security vulnerability disclosure process.
 
