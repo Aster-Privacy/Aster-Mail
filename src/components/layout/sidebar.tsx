@@ -147,7 +147,8 @@ export const Sidebar = ({
     return () => window.removeEventListener("resize", check_breakpoints);
   }, []);
 
-  const is_collapsed = is_tablet;
+  const is_collapsed =
+    is_tablet || ((preferences.sidebar_minimized ?? false) && !is_mobile);
 
   const user_email = user?.email || "";
   const raw_display_name = user?.display_name || user?.username || user_email;

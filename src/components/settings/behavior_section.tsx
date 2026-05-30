@@ -435,6 +435,19 @@ export function BehaviorSection() {
             })}
           </div>
         </div>
+
+        <ToggleSetting
+          description={t("settings.minimize_sidebar_description")}
+          enabled={preferences.sidebar_minimized}
+          on_toggle={() =>
+            update_preference(
+              "sidebar_minimized",
+              !preferences.sidebar_minimized,
+              true,
+            )
+          }
+          title={t("settings.minimize_sidebar")}
+        />
       </div>
 
       <div>

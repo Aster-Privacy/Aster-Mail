@@ -240,6 +240,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       adjust_unread_count(new_state ? -1 : 1);
     }
 
+    if (!new_state) {
+      deps.on_dismiss();
+    }
+
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -284,7 +288,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         metadata_nonce: result.encrypted?.metadata_nonce,
       });
     }
-  }, [deps.email_id, deps.is_read, deps.mail_item]);
+  }, [deps.email_id, deps.is_read, deps.mail_item, deps.on_dismiss]);
 
   const handle_pin_toggle = useCallback(async () => {
     if (!deps.email_id || deps.is_pin_loading || !deps.mail_item) return;
@@ -802,6 +806,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         adjust_unread_count(new_read ? -1 : 1);
       }
 
+      if (!new_read) {
+        deps.on_dismiss();
+      }
+
       update_item_metadata(
         message_id,
         {
@@ -840,7 +848,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         }
       });
     },
-    [deps.thread_messages],
+    [deps.thread_messages, deps.on_dismiss],
   );
 
   return {

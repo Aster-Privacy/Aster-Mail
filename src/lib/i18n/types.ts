@@ -302,7 +302,10 @@ export interface CommonTranslations {
   recovery_email_removed: string;
   failed_remove_recovery_email: string;
   profile_picture_updated: string;
+  profile_picture_removed: string;
   failed_save_profile_picture: string;
+  failed_remove_profile_picture: string;
+  remove_photo: string;
   failed_save_profile_color: string;
   failed_upload_image: string;
   image_load_failed: string;
@@ -2285,6 +2288,8 @@ export interface SettingsTranslations {
   reduce_motion_description: string;
   compact_mode: string;
   compact_mode_description: string;
+  minimize_sidebar: string;
+  minimize_sidebar_description: string;
   enable_shortcuts_description: string;
   font_size_small: string;
   font_size_default: string;

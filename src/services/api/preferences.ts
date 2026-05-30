@@ -123,6 +123,7 @@ export interface UserPreferences {
   sidebar_folders_collapsed: boolean;
   sidebar_labels_collapsed: boolean;
   sidebar_aliases_collapsed: boolean;
+  sidebar_minimized: boolean;
   sidebar_width: number;
   notification_banner_snooze_until: string;
   storage_format: "aster" | "ipfs";
@@ -396,6 +397,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   sidebar_folders_collapsed: false,
   sidebar_labels_collapsed: false,
   sidebar_aliases_collapsed: false,
+  sidebar_minimized: false,
   sidebar_width: 256,
   notification_banner_snooze_until: "",
   storage_format: "aster",
