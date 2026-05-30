@@ -208,6 +208,8 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
   const left_action = build_swipe_action(swipe_left_action);
   const right_action = build_swipe_action(swipe_right_action);
+  const show_sender_name = email.display_sender_name ?? email.sender_name;
+  const show_sender_email = email.display_sender_email ?? email.sender_email;
 
   const row_content = (
     <div
@@ -225,8 +227,8 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       <div className="relative mt-0.5 shrink-0">
         <ProfileAvatar
           use_domain_logo
-          email={email.sender_email}
-          name={email.sender_name}
+          email={show_sender_email}
+          name={show_sender_name}
           size="md"
         />
         {selection_mode && is_selected && (
@@ -250,7 +252,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
                 : "text-[var(--text-secondary)]"
             }`}
           >
-            {email.sender_name}
+            {show_sender_name}
           </span>
 
           {thread_count > 1 && (

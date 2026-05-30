@@ -32,6 +32,8 @@ interface ReplyModalProps {
   recipient_name: string;
   recipient_email: string;
   recipient_avatar: string;
+  quote_sender_name?: string;
+  quote_sender_email?: string;
   original_subject?: string;
   original_body?: string;
   original_timestamp?: string;
@@ -62,6 +64,8 @@ export function ReplyModal({
   on_close,
   recipient_name,
   recipient_email,
+  quote_sender_name,
+  quote_sender_email,
   original_subject = "",
   original_body = "",
   original_timestamp = new Date().toISOString(),
@@ -82,6 +86,8 @@ export function ReplyModal({
     on_close,
     recipient_name,
     recipient_email,
+    quote_sender_name,
+    quote_sender_email,
     original_subject,
     original_body,
     original_timestamp,

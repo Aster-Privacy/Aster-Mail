@@ -229,6 +229,8 @@ export function ThreadMessageBlock({
 
   const is_system = is_system_email(message.sender_email);
   const is_ghost_sender = is_ghost_email(message.sender_email);
+  const show_sender_name = message.display_sender_name ?? message.sender_name;
+  const show_sender_email = message.display_sender_email ?? message.sender_email;
   const is_ratchet_undecryptable =
     message.body === RATCHET_UNDECRYPTABLE_SENTINEL;
   const rich_html_source = message.html_content || message.body;
@@ -391,7 +393,7 @@ export function ThreadMessageBlock({
     return names.size > 0 ? names : undefined;
   }, [sanitized_content.html]);
 
-  const name = is_own_message ? t("common.me") : message.sender_name;
+  const name = is_own_message ? t("common.me") : show_sender_name;
   const can_collapse = !is_single_message && !is_last_in_thread;
 
   if (message.is_deleted) {
@@ -414,8 +416,8 @@ export function ThreadMessageBlock({
         <ProfileAvatar
           use_domain_logo
           className="flex-shrink-0 mt-0.5"
-          email={message.sender_email}
-          name={message.sender_name}
+          email={show_sender_email}
+          name={show_sender_name}
           size="md"
         />
         <div className="flex-1 min-w-0">
@@ -563,8 +565,8 @@ export function ThreadMessageBlock({
           >
             <ProfileAvatar
               use_domain_logo
-              email={message.sender_email}
-              name={message.sender_name}
+              email={show_sender_email}
+              name={show_sender_name}
               size="md"
             />
           </SenderProfileTrigger>
@@ -585,7 +587,7 @@ export function ThreadMessageBlock({
               </SenderProfileTrigger>
             )}
             <span className="text-xs text-txt-muted truncate hidden sm:inline max-w-full">
-              &lt;{message.sender_email}&gt;
+              &lt;{show_sender_email}&gt;
             </span>
             {is_ghost_sender && (
               <EmailTag
@@ -691,7 +693,7 @@ export function ThreadMessageBlock({
                   {t("common.from_label")}
                 </span>
                 <span className="min-w-0 text-txt-secondary break-words">
-                  {message.sender_name} &lt;{message.sender_email}&gt;
+                  {show_sender_name} &lt;{show_sender_email}&gt;
                 </span>
               </div>
               {message.to_recipients && message.to_recipients.length > 0 && (
@@ -1114,6 +1116,14 @@ export function ThreadMessageBlock({
                 original_to={all_to_emails}
                 recipient_email={inline_recipient_email}
                 recipient_name={inline_recipient_name}
+                quote_sender_email={
+                  is_own_msg ? undefined : message.display_sender_email
+                }
+                quote_sender_name={
+                  !is_own_msg && message.display_sender_email
+                    ? message.display_sender_name || message.sender_name
+                    : undefined
+                }
                 reply_from_address={inline_reply_from}
                 sender_email={message.sender_email}
                 sender_name={message.sender_name}

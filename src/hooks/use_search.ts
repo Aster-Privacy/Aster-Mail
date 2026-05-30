@@ -45,6 +45,7 @@ import { decrypt_message } from "@/services/crypto/key_manager";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { get_email_username } from "@/lib/utils";
+import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import {
   parse_search_query,
   expand_date_shortcut,
@@ -762,8 +763,16 @@ function matches_operator(
 
   switch (op.type) {
     case "from": {
-      const sender = (envelope.from?.email || "").toLowerCase();
-      const sender_name = (envelope.from?.name || "").toLowerCase();
+      const forwarding = resolve_forwarding_display(
+        envelope.from,
+        envelope.raw_headers,
+      );
+      const sender = `${envelope.from?.email || ""} ${
+        forwarding?.display_sender_email || ""
+      }`.toLowerCase();
+      const sender_name = `${envelope.from?.name || ""} ${
+        forwarding?.display_sender_name || ""
+      }`.toLowerCase();
 
       return sender.includes(val) || sender_name.includes(val);
     }
@@ -954,8 +963,16 @@ export function matches_query(
 
   const search_all = !fields || fields.length === 0 || fields.includes("all");
   const subject = (envelope.subject || "").toLowerCase();
-  const sender_name = (envelope.from?.name || "").toLowerCase();
-  const sender_email = (envelope.from?.email || "").toLowerCase();
+  const forwarding = resolve_forwarding_display(
+    envelope.from,
+    envelope.raw_headers,
+  );
+  const sender_name = `${envelope.from?.name || ""} ${
+    forwarding?.display_sender_name || ""
+  }`.toLowerCase();
+  const sender_email = `${envelope.from?.email || ""} ${
+    forwarding?.display_sender_email || ""
+  }`.toLowerCase();
   const recipients = (envelope.to || [])
     .map(
       (r: { email?: string; name?: string }) =>
@@ -995,6 +1012,11 @@ function to_search_result(
   envelope: DecryptedEnvelope | null,
   metadata: MailItemMetadata | null,
 ): SearchResultItem {
+  const forwarding_display = resolve_forwarding_display(
+    envelope?.from,
+    envelope?.raw_headers,
+  );
+
   return {
     id: item.id,
     subject: envelope?.subject || "(Encrypted)",
@@ -1002,8 +1024,13 @@ function to_search_result(
       ? strip_html_tags(envelope.body_text || "").substring(0, 150)
       : "",
     sender_name:
-      envelope?.from?.name || get_email_username(envelope?.from?.email || ""),
-    sender_email: envelope?.from?.email || "",
+      forwarding_display?.display_sender_name ||
+      envelope?.from?.name ||
+      get_email_username(envelope?.from?.email || ""),
+    sender_email:
+      forwarding_display?.display_sender_email ||
+      envelope?.from?.email ||
+      "",
     timestamp: item.message_ts || item.created_at,
     is_read: metadata?.is_read ?? false,
     is_starred: metadata?.is_starred ?? false,

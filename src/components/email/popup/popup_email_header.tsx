@@ -108,6 +108,9 @@ export function PopupEmailHeader({
     return resolved;
   }, [mail_item?.labels, mail_item?.folders, mail_item?.tag_tokens, mail_item?.id, label_hints, get_tag_by_token, email.id, email.sender_email, t]);
 
+  const show_sender_name = email.display_sender_name ?? email.sender;
+  const show_sender_email = email.display_sender_email ?? email.sender_email;
+
   return (
     <>
       <div className="flex items-center gap-2 mb-4">
@@ -160,8 +163,8 @@ export function PopupEmailHeader({
           <ProfileAvatar
             clickable
             use_domain_logo
-            email={email.sender_email}
-            name={email.sender}
+            email={show_sender_email}
+            name={show_sender_name}
             on_compose={on_compose}
             size="md"
           />
@@ -169,7 +172,7 @@ export function PopupEmailHeader({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-medium text-sm text-txt-primary">
-                {email.sender}
+                {show_sender_name}
               </span>
               {snoozed_until && (
                 <SnoozeBadge
@@ -202,19 +205,19 @@ export function PopupEmailHeader({
                     {t("common.from_label")}
                   </span>
                   <span className="text-txt-secondary">
-                    {email.sender ? `${email.sender} ` : ""}
+                    {show_sender_name ? `${show_sender_name} ` : ""}
                     <button
                       className="hover:underline text-txt-muted"
                       onClick={() => {
                         navigator.clipboard
-                          .writeText(email.sender_email)
+                          .writeText(show_sender_email)
                           .then(() => {
                             show_toast(t("common.email_copied"), "success");
                           })
                           .catch(() => {});
                       }}
                     >
-                      &lt;{email.sender_email}&gt;
+                      &lt;{show_sender_email}&gt;
                     </button>
                   </span>
                 </div>

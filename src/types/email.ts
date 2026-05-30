@@ -140,6 +140,9 @@ export interface InboxEmail {
   item_type: MailItemType;
   sender_name: string;
   sender_email: string;
+  display_sender_name?: string;
+  display_sender_email?: string;
+  forwarding_service?: string;
   subject: string;
   preview: string;
   body_html?: string;

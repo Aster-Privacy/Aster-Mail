@@ -27,6 +27,7 @@ import type {
 
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { get_email_username } from "@/lib/utils";
+import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import {
   list_mail_items,
   type ListMailItemsParams,
@@ -304,12 +305,17 @@ export function mail_to_email(
     item.created_at;
 
   const sender_profile = get_cached_profile(envelope.from.email);
+  const forwarding = resolve_forwarding_display(
+    envelope.from,
+    envelope.raw_headers,
+  );
 
   return {
     id: item.id,
     item_type: effective_metadata.item_type as MailItem["item_type"],
     sender_name: envelope.from.name || get_email_username(envelope.from.email),
     sender_email: envelope.from.email,
+    ...(forwarding ?? {}),
     subject: envelope.subject || "",
     preview: strip_html_tags(resolved_text || resolved_html).substring(0, 100),
     body_html: resolved_html || resolved_text,

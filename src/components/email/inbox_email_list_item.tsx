@@ -196,6 +196,8 @@ export const InboxEmailListItem = memo(
       const peer_profile = use_peer_profile(
         is_system_email(email.sender_email) ? null : email.sender_email,
       );
+      const show_sender_email = email.display_sender_email ?? email.sender_email;
+      const show_sender_name = email.display_sender_name ?? email.sender_name;
       const peer_badge = peer_profile?.active_badge ?? null;
       const show_sender_ring =
         (peer_profile?.show_badge_ring ?? false) && !!peer_badge;
@@ -412,9 +414,9 @@ export const InboxEmailListItem = memo(
                   >
                     <ProfileAvatar
                       use_domain_logo={show_profile_pictures}
-                      email={email.sender_email}
+                      email={show_sender_email}
                       image_url={peer_profile?.profile_picture ?? email.avatar_url}
-                      name={peer_profile?.display_name ?? email.sender_name}
+                      name={peer_profile?.display_name ?? show_sender_name}
                       size="sm"
                     />
                   </AvatarRing>
@@ -469,7 +471,7 @@ export const InboxEmailListItem = memo(
                 {email.thread_participant_names &&
                 email.thread_participant_names.length > 0
                   ? email.thread_participant_names.join(", ")
-                  : (peer_profile?.display_name ?? email.sender_name)}
+                  : (peer_profile?.display_name ?? show_sender_name)}
               </span>
 
               {show_sender_badge && peer_badge && (

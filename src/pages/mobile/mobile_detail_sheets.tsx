@@ -142,13 +142,13 @@ export function MobileActionMenuSheet({
           <div className="mb-3 flex items-center gap-3">
             <ProfileAvatar
               use_domain_logo
-              email={menu_message.sender_email}
-              name={menu_message.sender_name}
+              email={menu_message.display_sender_email ?? menu_message.sender_email}
+              name={menu_message.display_sender_name ?? menu_message.sender_name}
               size="sm"
             />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[14px] font-medium text-[var(--text-primary)]">
-                {menu_message.sender_name}
+                {menu_message.display_sender_name ?? menu_message.sender_name}
               </p>
               <p className="truncate text-[12px] text-[var(--text-muted)]">
                 {format_safe_date(menu_message.timestamp, format_detail)}
@@ -727,7 +727,8 @@ export function MobileMessageDetailsSheet({
                 {t("common.from_label")}
               </span>
               <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
-                {message.sender_name} &lt;{message.sender_email}&gt;
+                {message.display_sender_name ?? message.sender_name} &lt;
+                {message.display_sender_email ?? message.sender_email}&gt;
               </span>
             </div>
 

@@ -27,8 +27,10 @@ import {
   try_decrypt_pgp_body,
   try_extract_mime_body,
   extract_subject_bundle,
+  is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
+import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 
 export interface ProcessedEnvelope {
   body_text: string;
@@ -45,6 +47,10 @@ export async function process_envelope_body(
 
   if (resolved_html && /^content-type\s*:/im.test(resolved_html)) {
     resolved_html = try_extract_mime_body(resolved_html) || undefined;
+  }
+
+  if (is_ratchet_envelope(resolved_html)) {
+    resolved_html = undefined;
   }
   const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
 
@@ -133,6 +139,11 @@ export function build_single_thread_message(
   safe_html: string | undefined,
   decrypted_metadata: { is_read?: boolean; is_starred?: boolean } | null,
 ): DecryptedThreadMessage {
+  const forwarding = resolve_forwarding_display(
+    envelope.from,
+    envelope.raw_headers,
+  );
+
   return {
     id: item.id,
     item_type: item.item_type as "received" | "sent" | "draft",
@@ -141,6 +152,7 @@ export function build_single_thread_message(
       get_email_username(envelope.from.email) ||
       "Unknown",
     sender_email: envelope.from.email || "",
+    ...(forwarding ?? {}),
     subject: envelope.subject || "",
     body: body_text || "",
     html_content: safe_html,

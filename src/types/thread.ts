@@ -37,6 +37,9 @@ export interface DecryptedThreadMessage {
   item_type: "received" | "sent" | "draft";
   sender_name: string;
   sender_email: string;
+  display_sender_name?: string;
+  display_sender_email?: string;
+  forwarding_service?: string;
   sender_verification?: SenderVerificationStatus;
   subject: string;
   body: string;
