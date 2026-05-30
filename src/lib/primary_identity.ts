@@ -36,6 +36,12 @@ export interface PrimaryIdentity {
   is_custom: boolean;
 }
 
+const PRIMARY_IDENTITY_TYPES: ReadonlySet<SenderOption["type"]> = new Set([
+  "primary",
+  "alias",
+  "domain",
+]);
+
 export function resolve_primary_identity(
   sender_options: SenderOption[],
   preferred_sender_id: string | null,
@@ -47,7 +53,10 @@ export function resolve_primary_identity(
   const chosen =
     preferred_sender_id !== null
       ? sender_options.find(
-          (o) => o.id === preferred_sender_id && o.is_enabled,
+          (o) =>
+            o.id === preferred_sender_id &&
+            o.is_enabled &&
+            PRIMARY_IDENTITY_TYPES.has(o.type),
         ) ?? null
       : null;
 
