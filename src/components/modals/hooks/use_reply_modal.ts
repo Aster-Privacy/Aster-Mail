@@ -32,6 +32,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { show_action_toast } from "@/components/toast/action_toast";
 import { format_bytes } from "@/lib/utils";
 import {
   emit_thread_reply_sent,
@@ -830,10 +831,16 @@ export function use_reply_modal({
       {
         on_complete: () => {
           is_sending_ref.current = false;
-          if (delay_seconds === 0) {
-            show_toast(t("common.email_sent"), "success");
-          }
           window.dispatchEvent(new CustomEvent("astermail:email-sent"));
+          show_action_toast({
+            message: t("common.email_sent"),
+            action_type: "read",
+            email_ids: [],
+            duration_ms: 5000,
+            on_view_message: () => {
+              window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+            },
+          });
 
           if (pending_thread_token_ref.current) {
             emit_thread_reply_sent({

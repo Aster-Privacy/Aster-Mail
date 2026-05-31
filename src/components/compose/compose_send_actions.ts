@@ -135,6 +135,15 @@ export async function execute_internal_send(
           invalidate_mail_counts();
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
+          show_action_toast({
+            message: ctx.t("common.email_sent"),
+            action_type: "read",
+            email_ids: [],
+            duration_ms: 5000,
+            on_view_message: () => {
+              window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+            },
+          });
         },
         on_cancelled: () => {
           ctx.set_queued_email_id(null);
@@ -170,9 +179,17 @@ export async function execute_internal_send(
         ...email_data,
         on_complete: () => {
           ctx.set_queued_email_id(null);
-          show_toast(ctx.t("common.email_sent"), "success");
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
+          show_action_toast({
+            message: ctx.t("common.email_sent"),
+            action_type: "read",
+            email_ids: [],
+            duration_ms: 5000,
+            on_view_message: () => {
+              window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+            },
+          });
         },
         on_cancel: () => {
           ctx.set_queued_email_id(null);

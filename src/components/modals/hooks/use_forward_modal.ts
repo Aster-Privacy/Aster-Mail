@@ -39,6 +39,7 @@ import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { show_action_toast } from "@/components/toast/action_toast";
 import { format_bytes } from "@/lib/utils";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import {
@@ -594,12 +595,18 @@ export function use_forward_modal({
       {
         on_complete: () => {
           is_sending_ref.current = false;
-          if (delay_seconds === 0) {
-            show_toast(t("common.email_sent"), "success");
-          }
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent("astermail:email-sent"));
           }, 100);
+          show_action_toast({
+            message: t("common.email_sent"),
+            action_type: "read",
+            email_ids: [],
+            duration_ms: 5000,
+            on_view_message: () => {
+              window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+            },
+          });
         },
         on_cancel: () => {
           is_sending_ref.current = false;
