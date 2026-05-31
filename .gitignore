@@ -92,3 +92,6 @@ updates/build_linux.sh
 updates/build_latest_json.sh
 updates/MAC_HANDOFF.md
 updates/UPLOAD.md
+
+# temp build dirs
+.tmp_*/
