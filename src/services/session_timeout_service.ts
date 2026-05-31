@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
+
 const SESSION_TIMEOUT_KEY = "astermail_session_timeout_config";
 const LAST_ACTIVITY_KEY_PREFIX = "astermail_last_activity_";
 
@@ -172,6 +174,7 @@ function trigger_timeout(): void {
 
   detach_activity_listeners();
   detach_storage_listener();
+  clear_vault_from_memory();
 
   if (on_timeout_callback) {
     on_timeout_callback();

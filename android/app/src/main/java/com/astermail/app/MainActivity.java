@@ -88,14 +88,17 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    private static final java.util.Set<String> ALLOWED_IMAGE_MIME_TYPES =
+        new java.util.HashSet<>(java.util.Arrays.asList(
+            "image/png", "image/jpeg", "image/gif", "image/webp"
+        ));
+
     private void injectImageIntoWebView(WebView webView, Uri uri) {
         ContentResolver cr = getContentResolver();
         String mimeType = cr.getType(uri);
 
-        if (mimeType == null) {
+        if (mimeType == null || !ALLOWED_IMAGE_MIME_TYPES.contains(mimeType)) {
             mimeType = "image/png";
-        } else if (!mimeType.startsWith("image/")) {
-            return;
         }
 
         try {
@@ -112,34 +115,38 @@ public class MainActivity extends BridgeActivity {
 
             String base64 = Base64.encodeToString(
                 buffer.toByteArray(), Base64.NO_WRAP);
-            String dataUrl = "data:" + mimeType + ";base64," + base64;
 
-            String escapedDataUrl = dataUrl.replace("'", "\\'");
+            try {
+                org.json.JSONObject arg = new org.json.JSONObject();
+                arg.put("dataUrl", "data:" + mimeType + ";base64," + base64);
+                arg.put("mimeType", mimeType);
+                String safeArg = arg.toString();
 
-            String js = "(function() {" +
-                "if (typeof window.__aster_paste_image === 'function') {" +
-                "  window.__aster_paste_image('" + escapedDataUrl + "');" +
-                "  return;" +
-                "}" +
-                "var img = document.createElement('img');" +
-                "img.src = '" + escapedDataUrl + "';" +
-                "img.style.maxWidth = '100%';" +
-                "img.style.height = 'auto';" +
-                "img.style.borderRadius = '8px';" +
-                "img.style.display = 'block';" +
-                "img.style.margin = '4px 0';" +
-                "var editors = document.querySelectorAll('[contenteditable=\"true\"]');" +
-                "for (var i = editors.length - 1; i >= 0; i--) {" +
-                "  var ed = editors[i];" +
-                "  if (ed.offsetHeight > 0) {" +
-                "    ed.appendChild(img);" +
-                "    ed.dispatchEvent(new Event('input', {bubbles: true}));" +
-                "    return;" +
-                "  }" +
-                "}" +
-                "})()";
+                String js = "(function(arg){" +
+                    "if(typeof window.__aster_paste_image==='function'){" +
+                    "  window.__aster_paste_image(arg.dataUrl,arg.mimeType);return;" +
+                    "}" +
+                    "var img=document.createElement('img');" +
+                    "img.src=arg.dataUrl;" +
+                    "img.style.maxWidth='100%';" +
+                    "img.style.height='auto';" +
+                    "img.style.borderRadius='8px';" +
+                    "img.style.display='block';" +
+                    "img.style.margin='4px 0';" +
+                    "var eds=document.querySelectorAll('[contenteditable=\"true\"]');" +
+                    "for(var i=eds.length-1;i>=0;i--){" +
+                    "  var ed=eds[i];" +
+                    "  if(ed.offsetHeight>0){" +
+                    "    ed.appendChild(img);" +
+                    "    ed.dispatchEvent(new Event('input',{bubbles:true}));return;" +
+                    "  }" +
+                    "}" +
+                    "})(" + safeArg + ")";
 
-            webView.post(() -> webView.evaluateJavascript(js, null));
+                webView.post(() -> webView.evaluateJavascript(js, null));
+            } catch (org.json.JSONException e) {
+                Log.w(TAG, "Failed to build image inject payload", e);
+            }
 
         } catch (SecurityException e) {
             Log.w(TAG, "SecurityException reading clipboard URI: " + uri, e);
