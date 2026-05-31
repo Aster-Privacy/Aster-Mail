@@ -725,6 +725,19 @@ export function html_to_readable_plain_text(html: string): string {
     .querySelectorAll("script, style, head, noscript, template, iframe, object, embed")
     .forEach((el) => el.remove());
 
+  doc.querySelectorAll<HTMLElement>("*").forEach((el) => {
+    const s = el.getAttribute("style") ?? "";
+    if (
+      /display\s*:\s*none/i.test(s) ||
+      /visibility\s*:\s*hidden/i.test(s) ||
+      /max-height\s*:\s*0/i.test(s) ||
+      /font-size\s*:\s*0/i.test(s) ||
+      /opacity\s*:\s*0/i.test(s)
+    ) {
+      el.remove();
+    }
+  });
+
   doc.querySelectorAll("br").forEach((el) => el.replaceWith(doc.createTextNode("\n")));
 
   doc
