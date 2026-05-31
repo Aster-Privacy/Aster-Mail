@@ -769,6 +769,46 @@ export function html_to_readable_plain_text(html: string): string {
     .trim();
 }
 
+export function html_to_readable_plain_text(html: string): string {
+  if (!html || typeof html !== "string") return "";
+  if (typeof DOMParser === "undefined") return strip_html_tags(html);
+
+  let doc: Document;
+
+  try {
+    doc = new DOMParser().parseFromString(html, "text/html");
+  } catch {
+    return strip_html_tags(html);
+  }
+
+  doc
+    .querySelectorAll("script, style, head, noscript, template, iframe, object, embed")
+    .forEach((el) => el.remove());
+
+  doc.querySelectorAll("br").forEach((el) => el.replaceWith(doc.createTextNode("\n")));
+
+  doc
+    .querySelectorAll("p, div, section, article, header, footer, h1, h2, h3, h4, h5, h6, li, blockquote")
+    .forEach((el) => {
+      el.prepend(doc.createTextNode("\n"));
+      el.append(doc.createTextNode("\n"));
+    });
+
+  doc.querySelectorAll("td, th").forEach((el) => el.append(doc.createTextNode(" ")));
+  doc.querySelectorAll("tr").forEach((el) => el.append(doc.createTextNode("\n")));
+
+  const text = doc.body?.textContent ?? "";
+
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export function strip_html_tags(html: string): string {
   if (!html || typeof html !== "string") return "";
 
