@@ -260,26 +260,12 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           userSelect: "none",
         }}
       >
-<<<<<<< Updated upstream
-        <span
-          aria-hidden="true"
-          style={{
-            fontSize: font_size,
-            fontWeight: 600,
-            color: text_color,
-            lineHeight: 1,
-            transform: "translateY(0.06em)",
-            userSelect: "none",
-            letterSpacing: initials.length > 1 ? "-0.02em" : undefined,
-          }}
-=======
         <svg
           aria-hidden="true"
           height={pixel_size}
           style={{ display: "block", pointerEvents: "none" }}
           viewBox={`0 0 ${pixel_size} ${pixel_size}`}
           width={pixel_size}
->>>>>>> Stashed changes
         >
           <text
             dominantBaseline="middle"

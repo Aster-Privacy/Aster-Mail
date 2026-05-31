@@ -66,10 +66,7 @@ import {
 } from "@/services/session_timeout_service";
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_plan_limits_cache } from "@/hooks/use_plan_limits";
-<<<<<<< Updated upstream
-=======
 import { clear_aliases_cache } from "@/components/settings/hooks/use_aliases";
->>>>>>> Stashed changes
 import { clear_plan_cache } from "@/services/plan_limits";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
@@ -382,10 +379,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_mail_stats();
         clear_mail_cache();
         clear_plan_limits_cache();
-<<<<<<< Updated upstream
-=======
         clear_aliases_cache();
->>>>>>> Stashed changes
         clear_plan_cache();
         clear_stored_encrypted_vault(account_id);
         await clear_session_passphrase(account_id);
@@ -439,10 +433,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_preload_cache();
         await clear_all_ratchet_states();
         clear_plan_limits_cache();
-<<<<<<< Updated upstream
-=======
         clear_aliases_cache();
->>>>>>> Stashed changes
         clear_plan_cache();
         request_cache.clear();
         api_client.clear_in_memory_token();
@@ -519,10 +510,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_mail_cache();
         clear_preload_cache();
         clear_plan_limits_cache();
-<<<<<<< Updated upstream
-=======
         clear_aliases_cache();
->>>>>>> Stashed changes
         clear_plan_cache();
         await clear_all_ratchet_states();
         clear_stored_encrypted_vault(current_id);
@@ -599,20 +587,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api_client.clear_auth_data();
       api_client.set_authenticated(false);
 
-<<<<<<< Updated upstream
-=======
       const path = window.location.pathname;
->>>>>>> Stashed changes
       const current_id = state.current_account_id;
       const all_accounts = await get_all_accounts();
       const target = all_accounts.find((a) => a.id === current_id);
 
       if (target && all_accounts.length > 1) {
-<<<<<<< Updated upstream
-        const local = target.user.email.split("@")[0] ?? "";
-
-        set_is_adding_account(true);
-=======
         set_is_adding_account(true);
 
         if (path === "/sign-in") {
@@ -629,7 +609,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         const local = target.user.email.split("@")[0] ?? "";
 
->>>>>>> Stashed changes
         show_toast(t("common.session_expired_sign_in"), "info");
         hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
 
