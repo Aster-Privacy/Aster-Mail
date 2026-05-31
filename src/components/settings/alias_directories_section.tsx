@@ -24,6 +24,13 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button, Switch } from "@aster/ui";
 
 import {
@@ -40,6 +47,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { FeatureLockOverlay } from "@/components/settings/aliases/feature_lock";
+import { InfoHint } from "@/components/settings/aliases/info_hint";
 
 const INPUT_CLASS =
   "flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none";
@@ -53,6 +61,7 @@ export function AliasDirectoriesSection() {
   );
   const [loading, set_loading] = useState(true);
   const [directory_key, set_directory_key] = useState("");
+  const [separator, set_separator] = useState<"." | "/" | "+" | "#">(".") ;
   const [busy, set_busy] = useState(false);
 
   const load = useCallback(async () => {
@@ -155,6 +164,7 @@ export function AliasDirectoriesSection() {
           <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
             <FolderIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.alias_directories_title")}
+            <InfoHint tip={t("settings.alias_directories_info")} title={t("settings.alias_directories_title")} />
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
@@ -169,28 +179,49 @@ export function AliasDirectoriesSection() {
         />
       ) : (
         <>
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-txt-muted">@</span>
-        <input
-          className={INPUT_CLASS}
-          placeholder={t("settings.alias_directory_key_placeholder")}
-          value={directory_key}
-          onChange={(e) =>
-            set_directory_key(
-              e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
-            )
-          }
-          onKeyDown={(e) => e["key"] === "Enter" && handle_create()}
-        />
-        <Button
-          disabled={busy || !directory_key.trim()}
-          size="xl"
-          variant="depth"
-          onClick={handle_create}
-        >
-          <PlusIcon className="w-4 h-4" />
-          {t("settings.alias_directory_create")}
-        </Button>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-txt-muted">@</span>
+          <input
+            className={INPUT_CLASS}
+            placeholder={t("settings.alias_directory_key_placeholder")}
+            value={directory_key}
+            onChange={(e) =>
+              set_directory_key(
+                e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+              )
+            }
+            onKeyDown={(e) => e["key"] === "Enter" && handle_create()}
+          />
+          <Select
+            value={separator}
+            onValueChange={(v) => set_separator(v as "." | "/" | "+" | "#")}
+          >
+            <SelectTrigger className="h-10 w-28 shrink-0 bg-transparent">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value=".">. (dot)</SelectItem>
+              <SelectItem value="/">/ (slash)</SelectItem>
+              <SelectItem value="+">+ (plus)</SelectItem>
+              <SelectItem value="#"># (hash)</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            disabled={busy || !directory_key.trim()}
+            size="xl"
+            variant="depth"
+            onClick={handle_create}
+          >
+            <PlusIcon className="w-4 h-4" />
+            {t("settings.alias_directory_create")}
+          </Button>
+        </div>
+        {directory_key.trim() && (
+          <p className="text-xs text-txt-muted pl-5">
+            anything{separator}{directory_key}@{DIRECTORY_DOMAIN}
+          </p>
+        )}
       </div>
 
       {directories.length === 0 ? (
@@ -207,14 +238,8 @@ export function AliasDirectoriesSection() {
               key={directory.id}
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary"
             >
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%)",
-                }}
-              >
-                <FolderIcon className="w-4 h-4 text-white" />
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-surf-secondary border border-edge-secondary">
+                <FolderIcon className="w-4 h-4 text-txt-muted" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate text-txt-primary">

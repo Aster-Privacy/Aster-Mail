@@ -25,10 +25,9 @@ import {
   ShieldCheckIcon,
   AdjustmentsHorizontalIcon,
   UserGroupIcon,
-  ArrowUpRightIcon,
-  ExclamationTriangleIcon,
   NoSymbolIcon,
   XMarkIcon,
+  EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
@@ -44,6 +43,8 @@ import {
 } from "@/components/ui/select";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { FeatureLockOverlay } from "@/components/settings/aliases/feature_lock";
+import { get_alias_preferences } from "@/services/api/aliases";
+import { InfoHint } from "@/components/settings/aliases/info_hint";
 import {
   list_alias_pins,
   add_alias_pin,
@@ -76,35 +77,30 @@ import {
   type DecryptedAliasContact,
 } from "@/services/api/alias_contacts";
 import {
-  list_alias_destinations,
-  add_alias_destination,
-  delete_alias_destination,
-  set_alias_delivery_mode,
-  decrypt_alias_destination,
-  DELIVERY_MODE_NATIVE,
-  DELIVERY_MODE_RELAY,
-  type DecryptedAliasDestination,
-  type DeliveryMode,
-} from "@/services/api/alias_destinations";
+  get_alias_delivery_log,
+  type DeliveryEvent,
+} from "@/services/api/aliases";
 
 const INPUT_CLASS =
   "flex-1 min-w-0 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none";
 
-const SEGMENT_SELECTED = "border-blue-600 bg-blue-600 text-white shadow-sm";
-const SEGMENT_UNSELECTED =
-  "border-edge-secondary text-txt-primary hover:bg-surf-hover";
 
 function SectionTitle({
   icon,
+  info,
+  info_title,
   children,
 }: {
   icon: React.ReactNode;
+  info?: string;
+  info_title?: string;
   children: React.ReactNode;
 }) {
   return (
     <h4 className="flex items-center gap-2 text-sm font-semibold text-txt-primary">
       {icon}
       {children}
+      {info && <InfoHint tip={info} title={info_title} />}
     </h4>
   );
 }
@@ -158,10 +154,18 @@ function SenderPinningPanel({ alias_id }: { alias_id: string }) {
   };
 
   const handle_add = async () => {
-    if (!email.trim()) return;
+    const value = email.trim();
+
+    if (!value) return;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      show_toast(t("settings.alias_sender_invalid"), "error");
+      return;
+    }
+
     set_busy(true);
     try {
-      const response = await add_alias_pin(alias_id, email);
+      const response = await add_alias_pin(alias_id, value);
 
       if (response.error) {
         show_toast(t("settings.alias_sender_add_failed"), "error");
@@ -210,38 +214,34 @@ function SenderPinningPanel({ alias_id }: { alias_id: string }) {
 
   return (
     <div className="space-y-3">
-      <SectionTitle icon={<ShieldCheckIcon className="w-4 h-4" />}>
-        {t("settings.alias_sender_pinning_title")}
-      </SectionTitle>
-      <p className="text-xs text-txt-muted">
-        {t("settings.alias_sender_pinning_description")}
-      </p>
-      <div className="space-y-1.5">
-        {modes.map((m) => (
-          <button
-            key={m.value}
-            className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
-              mode === m.value ? SEGMENT_SELECTED : SEGMENT_UNSELECTED
-            }`}
-            type="button"
-            onClick={() => change_mode(m.value)}
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <SectionTitle
+            icon={<ShieldCheckIcon className="w-4 h-4" />}
+            info={t("settings.alias_sender_pinning_info")}
+            info_title={t("settings.alias_sender_pinning_title")}
           >
-            <span
-              className={`block text-sm font-medium ${
-                mode === m.value ? "text-white" : "text-txt-primary"
-              }`}
-            >
-              {m.label}
-            </span>
-            <span
-              className={`block text-xs ${
-                mode === m.value ? "text-white/80" : "text-txt-muted"
-              }`}
-            >
-              {m.hint}
-            </span>
-          </button>
-        ))}
+            {t("settings.alias_sender_pinning_title")}
+          </SectionTitle>
+          <p className="text-xs text-txt-muted mt-0.5">
+            {t("settings.alias_sender_pinning_description")}
+          </p>
+        </div>
+        <Select
+          value={String(mode)}
+          onValueChange={(v) => change_mode(Number(v) as SenderPinMode)}
+        >
+          <SelectTrigger className="h-9 w-44 shrink-0 bg-transparent">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {modes.map((m) => (
+              <SelectItem key={m.value} value={String(m.value)}>
+                {m.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {mode === SENDER_PIN_MODE_ALLOWLIST && (
@@ -361,10 +361,7 @@ function RuleBuilder({
   const has_action =
     !!actions.block ||
     !!actions.to_trash ||
-    !!actions.label?.trim() ||
-    !!actions.banner?.trim() ||
-    !!actions.subject_mask?.trim() ||
-    !!actions.auto_reply?.trim();
+    !!actions.label?.trim();
   const has_conditions = conditions.every(
     (c) => c.field === "all" || c.value.trim().length > 0,
   );
@@ -388,7 +385,7 @@ function RuleBuilder({
   };
 
   const update_text_action = (
-    key: "label" | "banner" | "subject_mask" | "auto_reply",
+    key: "label",
     value: string,
   ) => {
     set_actions((prev) => ({ ...prev, [key]: value }));
@@ -400,11 +397,6 @@ function RuleBuilder({
     if (actions.block) cleaned_actions.block = true;
     if (actions.to_trash) cleaned_actions.to_trash = true;
     if (actions.label?.trim()) cleaned_actions.label = actions.label.trim();
-    if (actions.banner?.trim()) cleaned_actions.banner = actions.banner.trim();
-    if (actions.subject_mask?.trim())
-      cleaned_actions.subject_mask = actions.subject_mask.trim();
-    if (actions.auto_reply?.trim())
-      cleaned_actions.auto_reply = actions.auto_reply.trim();
 
     if (Object.keys(cleaned_actions).length === 0) {
       show_toast(t("settings.alias_rule_needs_action"), "error");
@@ -495,7 +487,7 @@ function RuleBuilder({
                 {t("settings.alias_rule_value_label")}
               </span>
               <input
-                className={INPUT_CLASS}
+                className="w-full min-w-0 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none disabled:opacity-60"
                 disabled={condition.field === "all"}
                 placeholder={t("settings.alias_rule_value_placeholder")}
                 value={condition.value}
@@ -558,24 +550,6 @@ function RuleBuilder({
           placeholder={t("settings.alias_rule_action_label_placeholder")}
           value={actions.label ?? ""}
           onChange={(e) => update_text_action("label", e.target.value)}
-        />
-        <input
-          className={`${INPUT_CLASS} w-full`}
-          placeholder={t("settings.alias_rule_action_banner_placeholder")}
-          value={actions.banner ?? ""}
-          onChange={(e) => update_text_action("banner", e.target.value)}
-        />
-        <input
-          className={`${INPUT_CLASS} w-full`}
-          placeholder={t("settings.alias_rule_action_subject_mask_placeholder")}
-          value={actions.subject_mask ?? ""}
-          onChange={(e) => update_text_action("subject_mask", e.target.value)}
-        />
-        <textarea
-          className="w-full min-h-[60px] px-3 py-2 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
-          placeholder={t("settings.alias_rule_action_auto_reply_placeholder")}
-          value={actions.auto_reply ?? ""}
-          onChange={(e) => update_text_action("auto_reply", e.target.value)}
         />
       </div>
 
@@ -692,23 +666,37 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
     if (actions.block) parts.push(t("settings.alias_rule_action_block"));
     if (actions.to_trash) parts.push(t("settings.alias_rule_action_to_trash"));
     if (actions.label) parts.push(t("settings.alias_rule_action_label"));
-    if (actions.banner) parts.push(t("settings.alias_rule_action_banner"));
-    if (actions.subject_mask)
-      parts.push(t("settings.alias_rule_action_subject_mask"));
-    if (actions.auto_reply)
-      parts.push(t("settings.alias_rule_action_auto_reply"));
 
     return parts.join(", ");
   };
 
   return (
     <div className="space-y-3">
-      <SectionTitle icon={<AdjustmentsHorizontalIcon className="w-4 h-4" />}>
-        {t("settings.alias_rules_title")}
-      </SectionTitle>
-      <p className="text-xs text-txt-muted">
-        {t("settings.alias_rules_description")}
-      </p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <SectionTitle
+            icon={<AdjustmentsHorizontalIcon className="w-4 h-4" />}
+            info={t("settings.alias_rules_info")}
+            info_title={t("settings.alias_rules_title")}
+          >
+            {t("settings.alias_rules_title")}
+          </SectionTitle>
+          <p className="text-xs text-txt-muted mt-0.5">
+            {t("settings.alias_rules_description")}
+          </p>
+        </div>
+        {!show_builder && (
+          <Button
+            className="shrink-0"
+            size="sm"
+            variant="depth"
+            onClick={() => set_show_builder(true)}
+          >
+            <PlusIcon className="w-4 h-4" />
+            {t("settings.alias_rule_add")}
+          </Button>
+        )}
+      </div>
 
       {loading ? (
         <Spinner size="md" />
@@ -756,17 +744,12 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
         </div>
       )}
 
-      {show_builder ? (
+      {show_builder && (
         <RuleBuilder
           on_cancel={() => set_show_builder(false)}
           on_save={handle_create}
           saving={saving}
         />
-      ) : (
-        <Button size="sm" variant="depth" onClick={() => set_show_builder(true)}>
-          <PlusIcon className="w-4 h-4" />
-          {t("settings.alias_rule_add")}
-        </Button>
       )}
     </div>
   );
@@ -778,6 +761,13 @@ function ContactsPanel({ alias_id }: { alias_id: string }) {
   const [loading, set_loading] = useState(true);
   const [email, set_email] = useState("");
   const [busy, set_busy] = useState(false);
+  const [readable_reverse, set_readable_reverse] = useState(false);
+
+  useEffect(() => {
+    get_alias_preferences().then((r) => {
+      if (r.data?.readable_reverse_aliases) set_readable_reverse(true);
+    }).catch(() => {});
+  }, []);
 
   const load = useCallback(async () => {
     set_loading(true);
@@ -805,10 +795,18 @@ function ContactsPanel({ alias_id }: { alias_id: string }) {
   }, [load]);
 
   const handle_add = async () => {
-    if (!email.trim()) return;
+    const value = email.trim();
+
+    if (!value) return;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      show_toast(t("settings.alias_sender_invalid"), "error");
+      return;
+    }
+
     set_busy(true);
     try {
-      const response = await add_alias_contact(alias_id, email);
+      const response = await add_alias_contact(alias_id, value, readable_reverse);
 
       if (response.error) {
         show_toast(t("settings.alias_contact_add_failed"), "error");
@@ -857,7 +855,11 @@ function ContactsPanel({ alias_id }: { alias_id: string }) {
 
   return (
     <div className="space-y-3">
-      <SectionTitle icon={<UserGroupIcon className="w-4 h-4" />}>
+      <SectionTitle
+        icon={<UserGroupIcon className="w-4 h-4" />}
+        info={t("settings.alias_contacts_info")}
+        info_title={t("settings.alias_contacts_title")}
+      >
         {t("settings.alias_contacts_title")}
       </SectionTitle>
       <p className="text-xs text-txt-muted">
@@ -900,29 +902,31 @@ function ContactsPanel({ alias_id }: { alias_id: string }) {
               <span className="flex-1 min-w-0 text-sm truncate text-txt-primary">
                 {contact.contact}
               </span>
-              {contact.is_blocked && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-600 dark:text-red-400">
-                  {t("settings.alias_contact_blocked")}
-                </span>
-              )}
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => handle_block(contact)}
-              >
-                <NoSymbolIcon className="w-4 h-4" />
-                {contact.is_blocked
-                  ? t("settings.alias_contact_unblock")
-                  : t("settings.alias_contact_block")}
-              </Button>
-              <Button
-                className="h-7 w-7 text-red-500 hover:text-red-500 hover:bg-red-500/10"
-                size="icon"
-                variant="ghost"
-                onClick={() => handle_delete(contact.id)}
-              >
-                <TrashIcon className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-1 shrink-0">
+                {contact.is_blocked && (
+                  <span className="inline-flex items-center text-[11px] px-2 py-0.5 rounded-md bg-red-100 text-red-700 border border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30">
+                    {t("settings.alias_contact_blocked")}
+                  </span>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handle_block(contact)}
+                >
+                  <NoSymbolIcon className="w-4 h-4" />
+                  {contact.is_blocked
+                    ? t("settings.alias_contact_unblock")
+                    : t("settings.alias_contact_block")}
+                </Button>
+                <Button
+                  className="h-7 w-7 text-red-500 hover:text-red-500 hover:bg-red-500/10"
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handle_delete(contact.id)}
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
@@ -931,235 +935,110 @@ function ContactsPanel({ alias_id }: { alias_id: string }) {
   );
 }
 
-function RelayPanel({ alias_id }: { alias_id: string }) {
+function delivery_reason_label(t: ReturnType<typeof use_i18n>["t"], reason: string): string {
+  switch (reason) {
+    case "sender_pin":
+      return t("settings.alias_delivery_log_reason_sender_pin");
+    case "alias_rule":
+      return t("settings.alias_delivery_log_reason_alias_rule");
+    case "alias_disabled":
+      return t("settings.alias_delivery_log_reason_alias_disabled");
+    default:
+      return t("settings.alias_delivery_log_reason_unknown");
+  }
+}
+
+function delivery_reason_icon(reason: string): React.ReactNode {
+  switch (reason) {
+    case "sender_pin":
+      return <NoSymbolIcon className="w-4 h-4 text-red-500 shrink-0" />;
+    case "alias_rule":
+      return <AdjustmentsHorizontalIcon className="w-4 h-4 text-orange-500 shrink-0" />;
+    case "alias_disabled":
+      return <EyeSlashIcon className="w-4 h-4 text-txt-muted shrink-0" />;
+    default:
+      return <NoSymbolIcon className="w-4 h-4 text-txt-muted shrink-0" />;
+  }
+}
+
+function format_relative_time(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 2) return "just now";
+  if (mins < 60) return `${mins} minutes ago`;
+  if (hours < 24) return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+  return `${days} ${days === 1 ? "day" : "days"} ago`;
+}
+
+function DeliveryLogPanel({ alias_id }: { alias_id: string }) {
   const { t } = use_i18n();
-  const [mode, set_mode] = useState<DeliveryMode>(DELIVERY_MODE_NATIVE);
-  const [destinations, set_destinations] = useState<
-    DecryptedAliasDestination[]
-  >([]);
+  const [events, set_events] = useState<DeliveryEvent[]>([]);
   const [loading, set_loading] = useState(true);
-  const [address, set_address] = useState("");
-  const [pgp_key, set_pgp_key] = useState("");
-  const [strip_trackers, set_strip_trackers] = useState(true);
-  const [keep_copy, set_keep_copy] = useState(false);
-  const [busy, set_busy] = useState(false);
+  const [expanded, set_expanded] = useState(false);
 
   const load = useCallback(async () => {
     set_loading(true);
     try {
-      const response = await list_alias_destinations(alias_id);
+      const response = await get_alias_delivery_log(alias_id);
 
       if (response.data) {
-        set_mode(response.data.delivery_mode ?? DELIVERY_MODE_NATIVE);
-        const decrypted = await Promise.all(
-          (response.data.destinations ?? []).map((d) =>
-            decrypt_alias_destination(
-              d,
-              t("settings.alias_relay_destination_unknown"),
-            ),
-          ),
-        );
-
-        set_destinations(decrypted);
+        set_events(response.data.events ?? []);
       }
     } catch {
-      set_destinations([]);
+      set_events([]);
     } finally {
       set_loading(false);
     }
-  }, [alias_id, t]);
+  }, [alias_id]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const change_mode = async (next: DeliveryMode) => {
-    const prev = mode;
-
-    set_mode(next);
-    const response = await set_alias_delivery_mode(alias_id, next);
-
-    if (response.error) {
-      set_mode(prev);
-      show_toast(response.error, "error");
-    } else {
-      show_toast(t("settings.alias_relay_mode_updated"), "success");
-    }
-  };
-
-  const handle_add = async () => {
-    if (!address.trim()) return;
-    set_busy(true);
-    try {
-      const response = await add_alias_destination(alias_id, address, {
-        pgp_public_key: pgp_key,
-        strip_trackers,
-        keep_copy,
-      });
-
-      if (response.error) {
-        show_toast(t("settings.alias_relay_destination_add_failed"), "error");
-      } else {
-        set_address("");
-        set_pgp_key("");
-        show_toast(t("settings.alias_relay_destination_added"), "success");
-        await load();
-      }
-    } finally {
-      set_busy(false);
-    }
-  };
-
-  const handle_delete = async (destination_id: string) => {
-    const response = await delete_alias_destination(alias_id, destination_id);
-
-    if (response.error) {
-      show_toast(response.error, "error");
-    } else {
-      show_toast(t("settings.alias_relay_destination_removed"), "success");
-      set_destinations((prev) => prev.filter((d) => d.id !== destination_id));
-    }
-  };
-
   return (
     <div className="space-y-3">
-      <SectionTitle icon={<ArrowUpRightIcon className="w-4 h-4" />}>
-        {t("settings.alias_relay_title")}
+      <SectionTitle
+        icon={<NoSymbolIcon className="w-4 h-4" />}
+        info={t("settings.alias_delivery_log_info")}
+        info_title={t("settings.alias_delivery_log_title")}
+      >
+        {t("settings.alias_delivery_log_title")}
       </SectionTitle>
-      <p className="text-xs text-txt-muted">
-        {t("settings.alias_relay_description")}
-      </p>
 
-      <div className="space-y-1.5">
-        <button
-          className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
-            mode === DELIVERY_MODE_NATIVE
-              ? SEGMENT_SELECTED
-              : SEGMENT_UNSELECTED
-          }`}
-          type="button"
-          onClick={() => change_mode(DELIVERY_MODE_NATIVE)}
-        >
-          <span
-            className={`block text-sm font-medium ${
-              mode === DELIVERY_MODE_NATIVE ? "text-white" : "text-txt-primary"
-            }`}
-          >
-            {t("settings.alias_relay_mode_native")}
-          </span>
-          <span
-            className={`block text-xs ${
-              mode === DELIVERY_MODE_NATIVE ? "text-white/80" : "text-txt-muted"
-            }`}
-          >
-            {t("settings.alias_relay_mode_native_hint")}
-          </span>
-        </button>
-        <button
-          className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
-            mode === DELIVERY_MODE_RELAY
-              ? SEGMENT_SELECTED
-              : SEGMENT_UNSELECTED
-          }`}
-          type="button"
-          onClick={() => change_mode(DELIVERY_MODE_RELAY)}
-        >
-          <span
-            className={`block text-sm font-medium ${
-              mode === DELIVERY_MODE_RELAY ? "text-white" : "text-txt-primary"
-            }`}
-          >
-            {t("settings.alias_relay_mode_relay")}
-          </span>
-          <span
-            className={`block text-xs ${
-              mode === DELIVERY_MODE_RELAY ? "text-white/80" : "text-txt-muted"
-            }`}
-          >
-            {t("settings.alias_relay_mode_relay_hint")}
-          </span>
-        </button>
-      </div>
-
-      {mode === DELIVERY_MODE_RELAY && (
-        <div className="space-y-3">
-          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
-            <ExclamationTriangleIcon className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
-            <p className="text-xs text-amber-700 dark:text-amber-300">
-              {t("settings.alias_relay_not_private_warning")}
-            </p>
-          </div>
-
-          <p className="text-xs font-medium uppercase tracking-wide text-txt-muted">
-            {t("settings.alias_relay_destinations_title")}
-          </p>
-
-          {loading ? (
-            <Spinner size="md" />
-          ) : destinations.length === 0 ? (
-            <p className="text-xs text-txt-muted">
-              {t("settings.alias_relay_destination_empty")}
-            </p>
-          ) : (
-            <div className="space-y-1.5">
-              {destinations.map((destination) => (
-                <div
-                  key={destination.id}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surf-tertiary border border-edge-secondary"
-                >
-                  <span className="flex-1 min-w-0 text-sm truncate text-txt-primary">
-                    {destination.destination}
-                  </span>
-                  <Button
-                    className="h-7 w-7 text-red-500 hover:text-red-500 hover:bg-red-500/10"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => handle_delete(destination.id)}
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
+      {loading ? (
+        <Spinner size="md" />
+      ) : events.length === 0 ? (
+        <p className="text-xs text-txt-muted">
+          {t("settings.alias_delivery_log_empty")}
+        </p>
+      ) : (
+        <div className="space-y-1.5">
+          {(expanded ? events : events.slice(0, 3)).map((ev) => (
+            <div
+              key={ev.id}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surf-tertiary border border-edge-secondary"
+            >
+              {delivery_reason_icon(ev.blocked_reason)}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-txt-primary truncate">
+                  {delivery_reason_label(t, ev.blocked_reason)}
+                </p>
+                <p className="text-xs text-txt-muted">
+                  {format_relative_time(ev.created_at)}
+                </p>
+              </div>
             </div>
+          ))}
+          {events.length > 3 && (
+            <button
+              className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
+              onClick={() => set_expanded((v) => !v)}
+            >
+              {expanded ? `- show less` : `+ ${events.length - 3} more`}
+            </button>
           )}
-
-          <input
-            className={`${INPUT_CLASS} w-full`}
-            placeholder={t("settings.alias_relay_destination_placeholder")}
-            type="email"
-            value={address}
-            onChange={(e) => set_address(e.target.value)}
-          />
-          <textarea
-            className="w-full min-h-[60px] px-3 py-2 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
-            placeholder={t("settings.alias_relay_pgp_key_placeholder")}
-            value={pgp_key}
-            onChange={(e) => set_pgp_key(e.target.value)}
-          />
-          <label className="flex items-center justify-between gap-2">
-            <span className="text-sm text-txt-primary">
-              {t("settings.alias_relay_strip_trackers")}
-            </span>
-            <Switch
-              checked={strip_trackers}
-              onCheckedChange={set_strip_trackers}
-            />
-          </label>
-          <label className="flex items-center justify-between gap-2">
-            <span className="text-sm text-txt-primary">
-              {t("settings.alias_relay_keep_copy")}
-            </span>
-            <Switch checked={keep_copy} onCheckedChange={set_keep_copy} />
-          </label>
-          <Button
-            disabled={busy || !address.trim()}
-            size="sm"
-            variant="depth"
-            onClick={handle_add}
-          >
-            <PlusIcon className="w-4 h-4" />
-            {t("settings.alias_relay_destination_add")}
-          </Button>
         </div>
       )}
     </div>
@@ -1196,8 +1075,8 @@ export function AliasAdvancedPanel({ alias_id }: { alias_id: string }) {
   }
 
   const sender_locked = is_feature_locked("has_sender_pinning");
-  const relay_locked = is_feature_locked("has_alias_external_relay");
   const rules_locked = is_feature_locked("has_alias_rules");
+  const delivery_log_locked = is_feature_locked("has_advanced_aliases");
   const contacts_locked = is_feature_locked("max_reverse_contacts_per_alias");
 
   return (
@@ -1211,15 +1090,6 @@ export function AliasAdvancedPanel({ alias_id }: { alias_id: string }) {
       ) : (
         <SenderPinningPanel alias_id={alias_id} />
       )}
-      {relay_locked ? (
-        <LockedSection
-          icon={<ArrowUpRightIcon className="w-4 h-4" />}
-          message={t("settings.alias_feature_locked_relay")}
-          title={t("settings.alias_relay_title")}
-        />
-      ) : (
-        <RelayPanel alias_id={alias_id} />
-      )}
       {rules_locked ? (
         <LockedSection
           icon={<AdjustmentsHorizontalIcon className="w-4 h-4" />}
@@ -1228,6 +1098,15 @@ export function AliasAdvancedPanel({ alias_id }: { alias_id: string }) {
         />
       ) : (
         <RulesPanel alias_id={alias_id} />
+      )}
+      {delivery_log_locked ? (
+        <LockedSection
+          icon={<NoSymbolIcon className="w-4 h-4" />}
+          message={t("settings.alias_feature_locked_upgrade_plan")}
+          title={t("settings.alias_delivery_log_title")}
+        />
+      ) : (
+        <DeliveryLogPanel alias_id={alias_id} />
       )}
       {contacts_locked ? (
         <LockedSection

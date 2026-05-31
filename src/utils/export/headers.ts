@@ -156,7 +156,7 @@ export function emit_address_header(name: string, addrs: Address[]): string {
 }
 
 export function emit_raw_header_passthrough(name: string, value: string): string {
-  const single_line = value.replace(/\r?\n[ \t]+/g, " ").trim();
+  const single_line = value.replace(/\r?\n[ \t]+/g, " ").replace(/[\r\n]/g, " ").trim();
   if (single_line.length + name.length + 2 <= FOLD_TARGET) {
     return `${name}: ${single_line}\r\n`;
   }

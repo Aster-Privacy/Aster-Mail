@@ -18,15 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { LockClosedIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Badge, UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 
-function go_to_billing() {
+export function go_to_billing() {
   window.dispatchEvent(
     new CustomEvent("navigate-settings", { detail: "billing" }),
   );
+}
+
+export function prompt_upgrade(feature_name?: string) {
+  const msg = feature_name
+    ? `${feature_name} is a paid feature. Upgrade your plan to unlock it.`
+    : "This feature requires a paid plan. Upgrade to unlock it.";
+  show_toast(msg, "info", 5000);
+  go_to_billing();
 }
 
 export function FeatureLockOverlay({ message }: { message: string }) {
@@ -34,13 +42,11 @@ export function FeatureLockOverlay({ message }: { message: string }) {
 
   return (
     <div className="flex flex-col items-center gap-3 px-4 py-6 rounded-lg bg-surf-tertiary border border-dashed border-edge-secondary text-center">
-      <div className="flex items-center justify-center w-9 h-9 rounded-full bg-surf-secondary border border-edge-secondary">
-        <LockClosedIcon className="w-4 h-4 text-txt-muted" />
-      </div>
+      <Badge color="blue">{t("settings.alias_feature_locked_upgrade_plan")}</Badge>
       <p className="text-sm text-txt-secondary max-w-[280px]">{message}</p>
-      <Button size="sm" variant="depth" onClick={go_to_billing}>
-        {t("settings.alias_feature_locked_view_plans")}
-      </Button>
+      <UpgradeBtn size="sm" onClick={go_to_billing}>
+        {t("settings.alias_feature_locked_upgrade_cta")}
+      </UpgradeBtn>
     </div>
   );
 }

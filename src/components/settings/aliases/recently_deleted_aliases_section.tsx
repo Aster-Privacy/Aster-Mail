@@ -32,6 +32,7 @@ import { Button } from "@aster/ui";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   list_deleted_aliases,
   restore_alias,
@@ -59,6 +60,7 @@ export function RecentlyDeletedAliasesSection({
   on_restored,
 }: RecentlyDeletedAliasesSectionProps) {
   const { t } = use_i18n();
+  const { is_feature_locked } = use_plan_limits();
   const [aliases, set_aliases] = useState<DecryptedDeletedAlias[]>([]);
   const [loading, set_loading] = useState(true);
   const [load_error, set_load_error] = useState(false);
@@ -168,6 +170,8 @@ export function RecentlyDeletedAliasesSection({
       year: "numeric",
     });
 
+  const restore_locked = is_feature_locked("has_advanced_aliases");
+
   if (loading) return null;
 
   if (load_error) {
@@ -237,24 +241,34 @@ export function RecentlyDeletedAliasesSection({
                   })}
                 </p>
               </div>
-              <Button
-                disabled={restoring_id === alias.id}
-                size="sm"
-                variant="depth"
-                onClick={() => handle_restore(alias.id)}
-              >
-                {restoring_id === alias.id ? (
-                  <Spinner size="xs" />
-                ) : (
-                  <>
-                    <ArrowUturnLeftIcon
-                      aria-hidden="true"
-                      className="w-3.5 h-3.5"
-                    />
-                    {t("settings.restore_alias_action" as TranslationKey)}
-                  </>
-                )}
-              </Button>
+              {restore_locked ? (
+                <button
+                  className="text-[11px] px-2 py-1 rounded-md bg-blue-500 text-white hover:bg-blue-600 font-medium shrink-0 transition-colors"
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))}
+                >
+                  {t("settings.alias_feature_locked_view_plans")}
+                </button>
+              ) : (
+                <Button
+                  disabled={restoring_id === alias.id}
+                  size="sm"
+                  variant="depth"
+                  onClick={() => handle_restore(alias.id)}
+                >
+                  {restoring_id === alias.id ? (
+                    <Spinner size="xs" />
+                  ) : (
+                    <>
+                      <ArrowUturnLeftIcon
+                        aria-hidden="true"
+                        className="w-3.5 h-3.5"
+                      />
+                      {t("settings.restore_alias_action" as TranslationKey)}
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           ))}
         </div>

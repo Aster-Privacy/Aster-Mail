@@ -21,7 +21,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import { format_bytes } from "@/lib/utils";
+import { strip_image_metadata } from "@/lib/strip_image_metadata";
 import {
   type Attachment,
   generate_attachment_id,
@@ -105,6 +107,7 @@ export interface UseComposeAttachmentsReturn {
 
 export function use_compose_attachments(): UseComposeAttachmentsReturn {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const [attachments, set_attachments] = useState<Attachment[]>([]);
   const [attachment_error, set_attachment_error] = useState<string | null>(
     null,
@@ -169,17 +172,21 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         }
 
         try {
-          const data = await file.arrayBuffer();
+          const raw = await file.arrayBuffer();
+          const data =
+            preferences.strip_exif_on_compose && mime_type.startsWith("image/")
+              ? await strip_image_metadata(raw, mime_type)
+              : raw;
 
           new_attachments.push({
             id: generate_attachment_id(),
             name: file.name,
-            size: format_bytes(file.size),
-            size_bytes: file.size,
+            size: format_bytes(data.byteLength),
+            size_bytes: data.byteLength,
             mime_type,
             data,
           });
-          running_total += file.size;
+          running_total += data.byteLength;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
           set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
@@ -194,7 +201,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         file_input_ref.current.value = "";
       }
     },
-    [attachments, get_total_attachments_size, t],
+    [attachments, get_total_attachments_size, preferences.strip_exif_on_compose, t],
   );
 
   const handle_files_drop = useCallback(
@@ -233,17 +240,21 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         }
 
         try {
-          const data = await file.arrayBuffer();
+          const raw = await file.arrayBuffer();
+          const data =
+            preferences.strip_exif_on_compose && mime_type.startsWith("image/")
+              ? await strip_image_metadata(raw, mime_type)
+              : raw;
 
           new_attachments.push({
             id: generate_attachment_id(),
             name: file.name,
-            size: format_bytes(file.size),
-            size_bytes: file.size,
+            size: format_bytes(data.byteLength),
+            size_bytes: data.byteLength,
             mime_type,
             data,
           });
-          running_total += file.size;
+          running_total += data.byteLength;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
           set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
@@ -254,7 +265,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         set_attachments((prev) => [...prev, ...new_attachments]);
       }
     },
-    [attachments, get_total_attachments_size, t],
+    [attachments, get_total_attachments_size, preferences.strip_exif_on_compose, t],
   );
 
   const trigger_file_select = useCallback(() => {

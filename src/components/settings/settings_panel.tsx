@@ -37,7 +37,7 @@ import {
   BuildingOffice2Icon,
   SwatchIcon,
   EyeIcon,
-  EyeSlashIcon,
+
   ShieldCheckIcon,
   ArrowDownTrayIcon,
   BellIcon,
@@ -178,11 +178,6 @@ function get_nav_items(
         id: "aliases",
         label: t("settings.aliases_and_domains"),
         icon: AtSymbolIcon,
-      },
-      {
-        id: "ghost_aliases",
-        label: t("settings.ghost_aliases"),
-        icon: EyeSlashIcon,
       },
       { id: "billing", label: t("settings.billing"), icon: CreditCardIcon },
       {
@@ -568,6 +563,7 @@ function SettingsPanelInner({
   const handle_desktop_nav_click = useCallback((item_id: Section) => {
     set_section(item_id);
     set_persisted_section(item_id);
+    window.history.pushState({}, "", `/settings/${item_id}`);
   }, []);
 
   const render_nav_item = (item: NavItem) => {

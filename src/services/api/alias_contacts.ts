@@ -50,15 +50,23 @@ export async function list_alias_contacts(
   );
 }
 
+function make_readable_reverse_local(email: string): string {
+  const safe = email.toLowerCase().replace("@", "_at_").replace(/[^a-z0-9_-]/g, "_").slice(0, 50);
+  return safe || generate_ghost_local_part();
+}
+
 export async function add_alias_contact(
   alias_id: string,
   contact_email: string,
+  readable = false,
 ): Promise<ApiResponse<{ id: string; success: boolean }>> {
   const contact_hash = await sha256_base64(contact_email);
   let last: ApiResponse<{ id: string; success: boolean }> | null = null;
 
   for (let attempt = 0; attempt < 5; attempt++) {
-    const reverse_local = generate_ghost_local_part();
+    const reverse_local = readable
+      ? `${make_readable_reverse_local(contact_email)}_${Math.floor(Math.random() * 10000)}`
+      : generate_ghost_local_part();
     const reverse_alias_hash = await sha256_base64(
       `${reverse_local}@${GHOST_DOMAIN}`,
     );

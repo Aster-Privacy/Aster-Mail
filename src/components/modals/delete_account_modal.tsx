@@ -128,14 +128,17 @@ export function DeleteAccountModal({
       if (response.data?.success || response.data?.message) {
         await logout_all();
         on_deleted();
+      } else if (response.server_code === "INVALID_CREDENTIALS") {
+        set_error(t("settings.incorrect_password_error"));
+      } else if (
+        response.server_code === "VALIDATION_ERROR" ||
+        (response.code === "VALIDATION_ERROR" && !response.server_code)
+      ) {
+        set_error(t("settings.invalid_2fa_code"));
+      } else if (response.code === "UNAUTHORIZED") {
+        set_error(t("settings.session_expired_sign_in"));
       } else {
-        if (response.code === "UNAUTHORIZED") {
-          set_error(t("settings.incorrect_password_error"));
-        } else if (response.code === "VALIDATION_ERROR") {
-          set_error(t("settings.invalid_2fa_code"));
-        } else {
-          set_error(response.error || t("common.failed_to_delete_account"));
-        }
+        set_error(response.error || t("common.failed_to_delete_account"));
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);

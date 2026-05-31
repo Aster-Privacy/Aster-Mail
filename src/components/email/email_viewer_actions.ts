@@ -52,6 +52,8 @@ import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { add_alias_pin } from "@/services/api/alias_pins";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 
 export interface EmailViewerActionsDeps {
   email_id: string;
@@ -83,6 +85,7 @@ export interface EmailViewerActionsDeps {
   on_reply?: (data: ReplyData) => void;
   on_forward?: (data: ForwardData) => void;
   on_edit_draft?: (draft: DraftWithContent) => void;
+  is_sender_pinning_locked?: boolean;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   format_email_detail: (date: Date) => string;
   preferences_default_reply_behavior: string;
@@ -889,6 +892,50 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     [deps.thread_messages, deps.on_dismiss],
   );
 
+  const is_own_message =
+    deps.mail_item?.item_type === "sent" ||
+    (!!deps.current_user_email &&
+      !!deps.email?.sender_email &&
+      deps.email.sender_email.toLowerCase() ===
+        deps.current_user_email.toLowerCase());
+
+  const handle_block_sender_on_alias = useCallback(async () => {
+    const routing_token = deps.mail_item?.routing_token;
+    const sender = deps.email?.sender_email;
+
+    if (!routing_token || !sender || is_own_message) return;
+
+    if (deps.is_sender_pinning_locked) {
+      prompt_upgrade("Block sender on alias");
+      return;
+    }
+
+    const aliases = get_cached_aliases();
+    const matched = aliases.find((a) => a.alias_address_hash === routing_token);
+
+    if (!matched) return;
+
+    const response = await add_alias_pin(matched.id, sender, true);
+
+    if (response.error) {
+      show_toast(deps.t("mail.block_sender_on_alias_failed"), "error");
+    } else {
+      show_toast(
+        deps.t("mail.block_sender_on_alias_success", {
+          sender,
+          alias: matched.full_address,
+        }),
+        "success",
+      );
+    }
+  }, [
+    deps.mail_item?.routing_token,
+    deps.email?.sender_email,
+    deps.is_sender_pinning_locked,
+    deps.t,
+    is_own_message,
+  ]);
+
   return {
     copy_to_clipboard,
     handle_reply,
@@ -913,5 +960,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     handle_per_message_report_phishing,
     handle_per_message_not_spam,
     handle_toggle_message_read,
+    handle_block_sender_on_alias,
+    show_block_sender_on_alias:
+      !!deps.mail_item?.routing_token && !is_own_message,
   };
 }

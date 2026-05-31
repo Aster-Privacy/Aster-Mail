@@ -58,6 +58,7 @@ export function dismiss_toast(id: string) {
 export function show_toast(
   message: string,
   icon_type?: ToastIconType,
+  duration = 2000,
 ): string {
   const new_toast: ToastState = {
     message,
@@ -87,7 +88,7 @@ export function show_toast(
     toast_timeouts.delete(new_toast.id);
     toast_stack = toast_stack.filter((t) => t.id !== new_toast.id);
     toast_listeners.forEach((listener) => listener([...toast_stack]));
-  }, 2000);
+  }, duration);
 
   toast_timeouts.set(new_toast.id, timeout);
 

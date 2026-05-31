@@ -265,6 +265,14 @@ function App() {
                 }
                 path="/compose"
               />
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <IndexPage />
+                  </ProtectedRoute>
+                }
+                path="/settings/:section?"
+              />
               <Route element={<LinkDevicePage />} path="/link-device" />
               <Route element={<SecureViewPage />} path="/view/:token" />
               <Route element={<NotFoundPage />} path="*" />

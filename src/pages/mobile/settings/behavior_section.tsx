@@ -245,6 +245,24 @@ export function BehaviorSection({
           />
         </SettingsGroup>
 
+        <SettingsGroup title={t("settings.html_content_section_title")}>
+          <SettingsRow
+            label={t("settings.html_rendering_mode_label")}
+            trailing={
+              <Switch
+                checked={preferences.html_rendering_mode === "plain_text"}
+                onCheckedChange={() =>
+                  update_preference(
+                    "html_rendering_mode",
+                    preferences.html_rendering_mode === "plain_text" ? "html" : "plain_text",
+                    true,
+                  )
+                }
+              />
+            }
+          />
+        </SettingsGroup>
+
         <SettingsGroup title={t("settings.images_section_title")}>
           <SettingsRow
             label={t("settings.block_remote_images_label")}

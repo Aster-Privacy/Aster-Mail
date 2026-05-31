@@ -233,21 +233,6 @@ async function decrypt_with_ephemeral_key(
   }
 }
 
-const FIELD_ID_ENVELOPE = 0x01;
-const FIELD_ID_RECIPIENTS = 0x02;
-
-function derive_field_nonce(
-  base_nonce: Uint8Array,
-  field_id: number,
-): Uint8Array {
-  const derived = new Uint8Array(12);
-
-  derived.set(base_nonce.slice(0, 11));
-  derived[11] = base_nonce[11] ^ field_id;
-
-  return derived;
-}
-
 async function encrypt_with_ephemeral_key(
   content: ScheduledEmailContent,
 ): Promise<{
@@ -264,7 +249,8 @@ async function encrypt_with_ephemeral_key(
     ["encrypt", "decrypt"],
   );
 
-  const base_nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
+  const envelope_nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
+  const recipients_nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
 
   const envelope_data = {
     to_recipients: content.to_recipients,
@@ -278,7 +264,6 @@ async function encrypt_with_ephemeral_key(
   const envelope_plaintext = new TextEncoder().encode(
     JSON.stringify(envelope_data),
   );
-  const envelope_nonce = derive_field_nonce(base_nonce, FIELD_ID_ENVELOPE);
 
   const encrypted_envelope_buffer = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: envelope_nonce },
@@ -294,7 +279,6 @@ async function encrypt_with_ephemeral_key(
   const recipients_plaintext = new TextEncoder().encode(
     JSON.stringify(recipients),
   );
-  const recipients_nonce = derive_field_nonce(base_nonce, FIELD_ID_RECIPIENTS);
 
   const encrypted_recipients_buffer = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: recipients_nonce },
@@ -317,7 +301,9 @@ async function encrypt_with_ephemeral_key(
     ),
     recipients_nonce: uint8_array_to_base64(recipients_nonce),
     ephemeral_key: uint8_array_to_base64(new Uint8Array(raw_key)),
-    base_nonce: uint8_array_to_base64(base_nonce),
+    base_nonce: uint8_array_to_base64(
+      crypto.getRandomValues(new Uint8Array(NONCE_LENGTH)),
+    ),
   };
 }
 

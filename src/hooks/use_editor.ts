@@ -34,6 +34,7 @@ import {
 } from "@/hooks/editor_utils";
 import { use_editor_image } from "@/hooks/use_editor_image";
 import { use_editor_format } from "@/hooks/use_editor_format";
+import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
 
 export type {
   HeadingLevel,
@@ -52,6 +53,7 @@ export function use_editor({
   enable_keyboard_shortcuts = true,
   is_plain_text_mode = false,
   on_files_drop,
+  strip_exif_on_compose = false,
 }: UseEditorOptions): UseEditorReturn {
   const handle_input = useCallback(() => {
     const editor = editor_ref.current;
@@ -103,14 +105,18 @@ export function use_editor({
 
           const reader = new FileReader();
 
-          reader.onload = () => {
-            const data_url = reader.result as string;
+          reader.onload = async () => {
+            let data_url = reader.result as string;
             const arr_buf = Uint8Array.from(
               atob(data_url.split(",")[1] || ""),
               (c) => c.charCodeAt(0),
             ).buffer;
 
             if (!validate_image_magic_bytes(arr_buf, file.type)) return;
+
+            if (strip_exif_on_compose) {
+              data_url = await strip_image_metadata_data_url(data_url);
+            }
 
             const escaped_name = file.name
               .replace(/&/g, "&amp;")
@@ -147,7 +153,7 @@ export function use_editor({
       document.execCommand("insertText", false, text);
       handle_input();
     },
-    [editor_ref, is_plain_text_mode, enable_rich_paste, handle_input],
+    [editor_ref, is_plain_text_mode, enable_rich_paste, handle_input, strip_exif_on_compose],
   );
 
   const handle_drag_over = useCallback((e: React.DragEvent) => {
@@ -222,14 +228,18 @@ export function use_editor({
         const file = image_files[0];
         const reader = new FileReader();
 
-        reader.onload = () => {
-          const data_url = reader.result as string;
+        reader.onload = async () => {
+          let data_url = reader.result as string;
           const arr_buf = Uint8Array.from(
             atob(data_url.split(",")[1] || ""),
             (c) => c.charCodeAt(0),
           ).buffer;
 
           if (!validate_image_magic_bytes(arr_buf, file.type)) return;
+
+          if (strip_exif_on_compose) {
+            data_url = await strip_image_metadata_data_url(data_url);
+          }
 
           const escaped_name = file.name
             .replace(/&/g, "&amp;")
@@ -266,6 +276,7 @@ export function use_editor({
       handle_input,
       on_files_drop,
       update_image_rect,
+      strip_exif_on_compose,
     ],
   );
 

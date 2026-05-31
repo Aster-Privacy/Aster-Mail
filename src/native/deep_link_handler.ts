@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { sanitize_compose_paste } from "@/lib/html_sanitizer";
+
 type DeepLinkHandler = (params: Record<string, string>) => void;
 
 interface DeepLinkRoute {
@@ -165,20 +167,24 @@ register_deep_link_route("/inbox", () => {
 });
 
 register_deep_link_route("/compose", (params) => {
+  const safe_body = sanitize_compose_paste(params.body || "");
+  const to_raw = params.to || "";
+  const safe_to = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to_raw) ? to_raw : "";
+
   (window as unknown as Record<string, unknown>).__aster_pending_compose = {
-    to: params.to || "",
+    to: safe_to,
     subject: params.subject || "",
-    body: params.body || "",
+    body: safe_body,
   };
 
   window.dispatchEvent(
     new CustomEvent("aster:mobile-compose", {
       detail: {
-        to_recipients: params.to ? [params.to] : [],
+        to_recipients: safe_to ? [safe_to] : [],
         cc_recipients: [],
         bcc_recipients: [],
         subject: params.subject || "",
-        message: params.body || "",
+        message: safe_body,
         draft_type: "new",
       },
     }),

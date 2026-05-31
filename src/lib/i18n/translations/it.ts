@@ -2300,6 +2300,9 @@ export const it = {
     info_block_css_title: "Perché bloccare i fogli di stile remoti?",
     info_block_css_description:
       "I file CSS nelle e-mail agiscono come tracker nascosti. Caricarli dice al server del mittente il tuo IP, quando hai aperto e quale dispositivo usi.",
+    info_strip_exif_title: "Cosa sono i metadati delle immagini?",
+    info_strip_exif_description:
+      "Le foto scattate con telefoni e fotocamere incorporano dati nascosti come coordinate GPS, modello del dispositivo, data e ora e informazioni sull'obiettivo. Aster li rimuove prima dell'invio affinché i destinatari vedano solo i pixel.",
     info_spy_pixels_title: "Cosa sono i pixel spia?",
     info_spy_pixels_description:
       "Immagini 1x1 invisibili nelle e-mail. Al caricamento, il mittente vede il tuo IP, quando hai aperto il messaggio e il tipo di dispositivo. Aster li rimuove prima che possano caricarsi.",
@@ -3152,6 +3155,24 @@ export const it = {
     block_remote_css_label: "Blocca CSS remoto",
     block_remote_css_description:
       "Impedisci alle email di caricare fogli di stile da server esterni",
+    strip_exif_on_compose_label: "Rimuovi metadati immagini",
+    strip_exif_on_compose_description:
+      "Rimuovi i metadati EXIF e altri dalle immagini prima dell'invio per proteggere la tua posizione e le informazioni del dispositivo",
+    account_protection_title: "Protezione account",
+    account_protection_weak: "Debole",
+    account_protection_fair: "Sufficiente",
+    account_protection_partial: "Parziale",
+    account_protection_strong: "Forte",
+    account_protection_hint_weak: "Il tuo account è a rischio. Attiva subito più opzioni di protezione.",
+    account_protection_hint_fair: "Il tuo account ha bisogno di più protezione.",
+    account_protection_hint_partial: "Attiva più opzioni per una protezione più solida.",
+    account_protection_hint_strong: "Il tuo account è ben protetto.",
+    protection_breakdown_title: "Riepilogo protezione",
+    criterion_two_factor: "Autenticazione a due fattori",
+    criterion_recovery_email: "E-mail di recupero verificata",
+    criterion_auto_lock: "Blocco automatico",
+    criterion_login_alerts: "Avvisi di accesso",
+    criterion_forward_secrecy: "Forward secrecy",
     or_pay_with_card: "O paga con carta",
     cardholder_name_placeholder: "Nome completo",
     billing_postal_placeholder: "12345",

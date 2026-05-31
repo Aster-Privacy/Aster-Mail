@@ -19,9 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback, useRef } from "react";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
+import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
   Select,
@@ -77,6 +80,7 @@ interface CreateAliasModalProps {
   available_domains: string[];
   custom_domains: CustomDomain[];
   domain_addresses: (DecryptedDomainAddress & { domain_name: string })[];
+  initial_domain?: string;
 }
 
 export function CreateAliasModal({
@@ -88,14 +92,19 @@ export function CreateAliasModal({
   available_domains,
   custom_domains,
   domain_addresses,
+  initial_domain,
 }: CreateAliasModalProps) {
   const { t } = use_i18n();
+  const { is_feature_locked } = use_plan_limits();
+  const display_name_locked = is_feature_locked("has_alias_avatars");
   const [local_part, set_local_part] = useState("");
   const [display_name, set_display_name] = useState("");
-  const [note, set_note] = useState("");
-  const [domain, set_domain] = useState(
-    available_domains[0] || DEFAULT_DOMAINS[0],
-  );
+  const [alias_format, set_alias_format] = useState<"words" | "uuid">("words");
+  const resolve_initial_domain = () => {
+    if (initial_domain && available_domains.includes(initial_domain)) return initial_domain;
+    return available_domains[0] || DEFAULT_DOMAINS[0];
+  };
+  const [domain, set_domain] = useState(resolve_initial_domain);
   const [saving, set_saving] = useState(false);
   const [error, set_error] = useState<string | null>(null);
   const [checking, set_checking] = useState(false);
@@ -114,8 +123,7 @@ export function CreateAliasModal({
     if (is_open) {
       set_local_part("");
       set_display_name("");
-      set_note("");
-      set_domain(available_domains[0] || DEFAULT_DOMAINS[0]);
+      set_domain(resolve_initial_domain());
       set_error(null);
       set_is_available(null);
       set_captcha_token(null);
@@ -235,7 +243,7 @@ export function CreateAliasModal({
           domain,
           display_name.trim() || undefined,
           captcha_token ?? undefined,
-          note.trim() || undefined,
+          undefined,
         );
 
         if (response.error) {
@@ -344,6 +352,32 @@ export function CreateAliasModal({
                 )}
               </div>
               <div className="flex items-center gap-2">
+                <Select
+                  value={alias_format}
+                  onValueChange={(v) => set_alias_format(v as "words" | "uuid")}
+                >
+                  <SelectTrigger className="h-10 w-24 shrink-0 bg-transparent">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="words">{t("settings.alias_format_words")}</SelectItem>
+                    <SelectItem value="uuid">{t("settings.alias_format_uuid")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <button
+                  className="h-10 w-10 shrink-0 flex items-center justify-center rounded-lg border border-edge-secondary text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors"
+                  title={t("settings.alias_generate_random")}
+                  type="button"
+                  onClick={() => {
+                    const generated =
+                      alias_format === "uuid"
+                        ? crypto.randomUUID().split("-")[0]
+                        : generate_ghost_local_part();
+                    set_local_part(generated);
+                  }}
+                >
+                  <ArrowPathIcon className="w-4 h-4" />
+                </button>
                 <input
                   autoFocus
                   className={`flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border text-sm text-txt-primary placeholder:text-txt-muted outline-none ${
@@ -436,36 +470,32 @@ export function CreateAliasModal({
               >
                 {t("settings.create_alias_display_name_label")}
               </label>
-              <input
-                className="w-full h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
-                id="alias-display-name"
-                maxLength={128}
-                placeholder={t(
-                  "settings.create_alias_display_name_placeholder",
-                )}
-                value={display_name}
-                onChange={(e) => set_display_name(e.target.value)}
-              />
-            </div>
-            {!is_custom_domain && (
-              <div>
-                <label
-                  className="block mb-2 text-sm font-medium text-txt-primary"
-                  htmlFor="alias-note"
-                >
-                  {t("settings.create_alias_note_label")}
-                </label>
-                <textarea
-                  className="w-full px-3 py-2 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none resize-none"
-                  id="alias-note"
-                  maxLength={1024}
-                  placeholder={t("settings.create_alias_note_placeholder")}
-                  rows={2}
-                  value={note}
-                  onChange={(e) => set_note(e.target.value)}
+              {display_name_locked ? (
+                <div className="flex items-center justify-between w-full h-10 px-3 rounded-lg border border-edge-secondary opacity-60 cursor-not-allowed">
+                  <span className="text-sm text-txt-muted">
+                    {t("settings.create_alias_display_name_placeholder")}
+                  </span>
+                  <button
+                    className="text-[11px] px-2 py-0.5 rounded-md bg-blue-500 text-white hover:bg-blue-600 shrink-0 transition-colors font-medium"
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))}
+                  >
+                    {t("settings.alias_feature_locked_view_plans")}
+                  </button>
+                </div>
+              ) : (
+                <input
+                  className="w-full h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
+                  id="alias-display-name"
+                  maxLength={128}
+                  placeholder={t(
+                    "settings.create_alias_display_name_placeholder",
+                  )}
+                  value={display_name}
+                  onChange={(e) => set_display_name(e.target.value)}
                 />
-              </div>
-            )}
+              )}
+            </div>
             {turnstile_required && (
               <div className="flex justify-center">
                 <TurnstileWidget

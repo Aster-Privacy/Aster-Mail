@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useMemo } from "react";
-import { Button } from "@aster/ui";
+import { Button, UpgradeBtn } from "@aster/ui";
 
 import {
   Modal,
@@ -263,14 +263,13 @@ export function UpgradeModal() {
             >
               {t("settings.upgrade_buy_storage")}
             </Button>
-            <Button
+            <UpgradeBtn
               className="max-sm:flex-1"
               size="xl"
-              variant="primary"
               onClick={handle_upgrade}
             >
-              {t("settings.upgrade_view_plans")}
-            </Button>
+              {t("settings.alias_feature_locked_upgrade_cta")}
+            </UpgradeBtn>
           </>
         ) : (
           <>
@@ -282,14 +281,13 @@ export function UpgradeModal() {
             >
               {t("common.not_now")}
             </Button>
-            <Button
+            <UpgradeBtn
               className="max-sm:flex-1"
               size="xl"
-              variant="primary"
               onClick={handle_upgrade}
             >
-              {t("settings.upgrade_view_plans")}
-            </Button>
+              {t("settings.alias_feature_locked_upgrade_cta")}
+            </UpgradeBtn>
           </>
         )}
       </ModalFooter>

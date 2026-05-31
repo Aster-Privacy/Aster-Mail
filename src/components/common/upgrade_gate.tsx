@@ -20,8 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { LockClosedIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Badge, UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -57,42 +56,30 @@ export function UpgradeGate({
   if (variant === "centered") {
     return (
       <div className="flex flex-col items-center justify-center text-center min-h-[60vh] gap-3 px-6">
-        <LockClosedIcon className="w-6 h-6 text-txt-muted" />
-        <h3 className="text-lg font-semibold text-txt-primary">
-          {feature_name}
-        </h3>
+        <Badge color="blue">{t("settings.alias_feature_locked_upgrade_plan" as TranslationKey)}</Badge>
+        <h3 className="text-lg font-semibold text-txt-primary">{feature_name}</h3>
         <p className="text-sm text-txt-secondary max-w-md">{description}</p>
         <p className="text-sm text-txt-muted">
-          {t("settings.available_on_plan" as TranslationKey, {
-            plan: min_plan,
-          })}
+          {t("settings.available_on_plan" as TranslationKey, { plan: min_plan })}
         </p>
-        <Button size="lg" variant="depth" onClick={navigate_to_billing}>
+        <UpgradeBtn size="lg" onClick={navigate_to_billing}>
           {t("settings.upgrade_to_unlock" as TranslationKey)}
-        </Button>
+        </UpgradeBtn>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center text-center py-6 gap-2 px-6">
-      <LockClosedIcon className="w-5 h-5 text-txt-muted mb-2" />
-
-      <h3 className="text-sm font-semibold text-txt-primary">
-        {feature_name}
-      </h3>
-
+    <div className="flex flex-col items-center justify-center text-center py-6 gap-3 px-6">
+      <Badge color="blue">{t("settings.alias_feature_locked_upgrade_plan" as TranslationKey)}</Badge>
+      <h3 className="text-sm font-semibold text-txt-primary">{feature_name}</h3>
       <p className="text-xs text-txt-secondary max-w-md">{description}</p>
-
-      <p className="text-xs text-txt-muted mb-3">
-        {t("settings.available_on_plan" as TranslationKey, {
-          plan: min_plan,
-        })}
+      <p className="text-xs text-txt-muted">
+        {t("settings.available_on_plan" as TranslationKey, { plan: min_plan })}
       </p>
-
-      <Button variant="depth" onClick={navigate_to_billing}>
+      <UpgradeBtn onClick={navigate_to_billing}>
         {t("settings.upgrade_to_unlock" as TranslationKey)}
-      </Button>
+      </UpgradeBtn>
     </div>
   );
 }

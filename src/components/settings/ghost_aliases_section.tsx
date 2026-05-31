@@ -31,6 +31,7 @@ import {
 } from "@/services/api/ghost_aliases";
 import { register_ghost_email } from "@/stores/ghost_alias_store";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { InfoHint } from "@/components/settings/aliases/info_hint";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -167,6 +168,7 @@ export function GhostAliasesSection() {
             <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
               <EyeSlashIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
               {t("settings.ghost_aliases_title")}
+              <InfoHint tip={t("settings.ghost_aliases_info")} title={t("settings.ghost_aliases_title")} />
             </h3>
             <span className="text-xs text-txt-muted">
               {t("settings.ghost_aliases_this_month", { count: this_month_count })}

@@ -35,24 +35,25 @@ import {
   LockClosedIcon,
   ClockIcon,
   Cog6ToothIcon,
+  ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
-import { Switch } from "@aster/ui";
+import { Button, Checkbox, Switch } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
-import { update_alias, get_alias_stats } from "@/services/api/aliases";
-import type { AliasStats } from "@/services/api/aliases";
+import { update_alias, get_alias_stats, get_alias_activity } from "@/services/api/aliases";
+import type { AliasStats, AliasActivityDay } from "@/services/api/aliases";
 import { update_domain_address } from "@/services/api/domains";
 import {
   get_preferred_sender_id,
   set_preferred_sender_id,
   subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
-import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
 import { AliasAdvancedPanel } from "@/components/settings/aliases/alias_advanced_panel";
 
 const AVATAR_MAX_SIZE = 256;
@@ -180,12 +181,14 @@ function AliasAvatar({
       )}
       <div className="absolute -bottom-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5">
         {is_locked ? (
-          <div
-            className="p-1 rounded-full bg-surf-card border border-edge-secondary"
+          <button
+            className="p-1 rounded-full bg-surf-card border border-edge-secondary cursor-pointer hover:border-blue-500/30 transition-colors"
             title={t("common.alias_avatars_locked" as TranslationKey)}
+            type="button"
+            onClick={() => prompt_upgrade("Custom avatars & display names")}
           >
             <LockClosedIcon className="w-2.5 h-2.5 text-txt-muted" />
-          </div>
+          </button>
         ) : (
           <>
             <button
@@ -234,28 +237,39 @@ interface AliasItemProps {
   alias: DecryptedEmailAlias;
   on_toggle: (id: string, enabled: boolean) => void;
   on_delete: (id: string) => void;
+  on_pin_toggle?: (alias_id: string) => void;
+  default_advanced_open?: boolean;
   on_avatar_changed?: () => void;
   on_display_name_saved?: (alias_id: string, name: string) => void;
-  on_note_saved?: (alias_id: string, note: string) => void;
+  on_transfer_requested?: (alias_id: string) => void;
   toggling: boolean;
   deleting: boolean;
   is_avatar_locked: boolean;
+  bulk_mode?: boolean;
+  is_selected?: boolean;
+  on_select?: (alias_id: string, selected: boolean) => void;
 }
 
 export function AliasItem({
   alias,
   on_toggle,
   on_delete,
+  on_pin_toggle,
+  default_advanced_open,
   on_avatar_changed,
   on_display_name_saved,
-  on_note_saved,
+  on_transfer_requested,
   toggling,
   deleting,
   is_avatar_locked,
+  bulk_mode,
+  is_selected,
+  on_select,
 }: AliasItemProps) {
   const { t } = use_i18n();
+  const { is_feature_locked } = use_plan_limits();
   const [uploading, set_uploading] = useState(false);
-  const [advanced_open, set_advanced_open] = useState(false);
+  const [advanced_open, set_advanced_open] = useState(!!default_advanced_open);
   const [local_picture, set_local_picture] = useState<string | undefined>(
     undefined,
   );
@@ -270,6 +284,7 @@ export function AliasItem({
     : 0;
 
   const [stats, set_stats] = useState<AliasStats | null>(null);
+  const [activity, set_activity] = useState<AliasActivityDay[] | null>(null);
 
   useEffect(() => {
     if (!advanced_open) return;
@@ -279,6 +294,12 @@ export function AliasItem({
     get_alias_stats(alias.id)
       .then((response) => {
         if (active && response.data) set_stats(response.data);
+      })
+      .catch(() => {});
+
+    get_alias_activity(alias.id)
+      .then((response) => {
+        if (active && response.data) set_activity(response.data.days.slice(0, 7).reverse());
       })
       .catch(() => {});
 
@@ -382,8 +403,15 @@ export function AliasItem({
   };
 
   return (
-    <div className="rounded-xl transition-all bg-surf-secondary border border-edge-secondary">
-    <div className="flex items-center gap-3 p-3">
+    <div className="group rounded-xl transition-all border border-edge-secondary">
+    <div className="flex items-center gap-3 p-4">
+      {bulk_mode && (
+        <Checkbox
+          checked={!!is_selected}
+          className="shrink-0"
+          onCheckedChange={(v) => on_select?.(alias.id, !!v)}
+        />
+      )}
       <div
         className="flex flex-1 min-w-0 items-center gap-3"
         style={{
@@ -431,23 +459,43 @@ export function AliasItem({
           on_save={(name) => update_alias(alias.id, { display_name: name })}
           on_saved={(name) => on_display_name_saved?.(alias.id, name)}
         />
-        <AliasNoteEditor
-          alias_address={alias.full_address}
-          is_locked={is_avatar_locked}
-          note={alias.note}
-          on_save={(note) => update_alias(alias.id, { note })}
-          on_saved={(note) => on_note_saved?.(alias.id, note)}
-        />
-        {stats && (stats.received > 0 || stats.blocked > 0) && (
-          <p className="mt-0.5 text-[11px] text-txt-muted">
-            {t("settings.alias_stats_received" as TranslationKey, {
-              count: stats.received,
-            })}
-            {" · "}
-            {t("settings.alias_stats_blocked" as TranslationKey, {
-              count: stats.blocked,
-            })}
-          </p>
+        {!is_feature_locked("has_advanced_aliases") && stats && (
+          <div className="mt-0.5 flex items-center gap-2">
+            <p className="text-[11px] text-txt-muted">
+              {t("settings.alias_stats_received" as TranslationKey, {
+                count: stats.received,
+              })}
+              {" · "}
+              {t("settings.alias_stats_blocked" as TranslationKey, {
+                count: stats.blocked,
+              })}
+            </p>
+            {activity && activity.length > 0 && (() => {
+              const max_val = Math.max(...activity.map((d) => d.received + d.blocked), 1);
+              return (
+                <div
+                  className="flex items-end gap-px"
+                  title={t("settings.alias_activity_title")}
+                >
+                  {activity.map((day, i) => {
+                    const total = day.received + day.blocked;
+                    const height = Math.max(2, Math.round((total / max_val) * 14));
+                    return (
+                      <div
+                        key={i}
+                        className="w-1 rounded-sm transition-opacity hover:opacity-70"
+                        style={{
+                          height: `${height}px`,
+                          backgroundColor: day.blocked > 0 ? "var(--color-red-400, #f87171)" : "var(--color-indigo-400, #818cf8)",
+                        }}
+                        title={`${day.date}: ${t("settings.alias_activity_received" as TranslationKey, { count: day.received })}, ${t("settings.alias_activity_blocked" as TranslationKey, { count: day.blocked })}`}
+                      />
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
         )}
         {in_grace_period && (
           <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
@@ -476,6 +524,31 @@ export function AliasItem({
           <Cog6ToothIcon className="w-4 h-4 text-txt-muted" />
         </Button>
 
+        {on_pin_toggle && (
+          <Button
+            className={
+              alias.is_pinned
+                ? "h-8 w-8 text-amber-500 hover:text-amber-500 hover:bg-amber-500/10"
+                : "hidden group-hover:inline-flex h-8 w-8"
+            }
+            size="icon"
+            title={alias.is_pinned ? t("settings.alias_unpin") : t("settings.alias_pin")}
+            variant="ghost"
+            onClick={() => {
+              if (is_feature_locked("has_advanced_aliases")) {
+                prompt_upgrade("Alias pinning");
+                return;
+              }
+              on_pin_toggle(alias.id);
+            }}
+          >
+            <PinIcon
+              className={alias.is_pinned ? "w-4 h-4" : "w-4 h-4 text-txt-muted"}
+              filled={!!alias.is_pinned}
+            />
+          </Button>
+        )}
+
         <Button
           className="h-8 w-8"
           size="icon"
@@ -492,6 +565,18 @@ export function AliasItem({
           disabled={toggling || in_grace_period}
           onCheckedChange={(checked) => on_toggle(alias.id, checked)}
         />
+
+        {on_transfer_requested && (
+          <Button
+            className="hidden group-hover:inline-flex h-8 w-8"
+            size="icon"
+            title={t("settings.alias_transfer")}
+            variant="ghost"
+            onClick={() => on_transfer_requested(alias.id)}
+          >
+            <ArrowRightStartOnRectangleIcon className="w-4 h-4 text-txt-muted" />
+          </Button>
+        )}
 
         <Button
           className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"

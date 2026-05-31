@@ -54,6 +54,7 @@ import {
   is_html_content,
   has_rich_html,
   plain_text_to_html,
+  html_to_readable_plain_text,
   strip_html_tags,
 } from "@/lib/html_sanitizer";
 import {
@@ -378,6 +379,15 @@ export function ThreadMessageBlock({
   }, []);
 
   const effective_html = cid_resolved_html ?? sanitized_content.html;
+
+  const html_blocked =
+    is_html_content(clean_body) &&
+    preferences.html_rendering_mode === "plain_text";
+
+  const plain_text_html = useMemo(() => {
+    if (!html_blocked) return null;
+    return plain_text_to_html(html_to_readable_plain_text(clean_body));
+  }, [html_blocked, clean_body]);
 
   const inline_cids = useMemo(() => {
     const refs = extract_cid_references(sanitized_content.html);
@@ -1023,28 +1033,28 @@ export function ThreadMessageBlock({
         </div>
       )}
 
-      <div className={`${is_plain_text ? "pl-[52px] pb-4" : "pb-0"} pt-1`}>
+      <div className={`${is_plain_text || html_blocked ? "pl-[52px] pb-4" : "pb-0"} pt-1`}>
         {is_ratchet_undecryptable ? (
           <p className="px-4 py-3 text-sm italic text-txt-muted">
             {t("mail.encrypted_message_unavailable")}
           </p>
         ) : (
           <ThreadMessageBody
-            body_background={sanitized_content.body_background}
+            body_background={html_blocked ? undefined : sanitized_content.body_background}
             clean_body={clean_body}
             email_id={message.id}
             force_dark_mode={force_dark_mode}
-            is_plain_text={is_plain_text}
-            load_remote_content={load_remote_content}
+            is_plain_text={html_blocked ? true : is_plain_text}
+            load_remote_content={html_blocked ? false : load_remote_content}
             preserve_formatting={message.is_sending === true}
-            sanitized_html={effective_html}
+            sanitized_html={html_blocked ? (plain_text_html ?? "") : effective_html}
             set_wrap_source={set_wrap_source}
             viewing_source={viewing_source}
             wrap_source={wrap_source}
           />
         )}
 
-        <div className={is_plain_text ? "" : "pl-[52px]"} onClick={(e) => e.stopPropagation()}>
+        <div className={is_plain_text || html_blocked ? "" : "pl-[52px]"} onClick={(e) => e.stopPropagation()}>
           <AttachmentList
             has_recipient_key={message.has_recipient_key}
             inline_cids={inline_cids}

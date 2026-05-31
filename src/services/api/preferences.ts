@@ -137,6 +137,8 @@ export interface UserPreferences {
   search_encrypted_content: boolean;
   migration_haptic_v1_done: boolean;
   migration_tracker_blocking_v2_done: boolean;
+  html_rendering_mode: "html" | "plain_text";
+  strip_exif_on_compose: boolean;
 }
 
 export async function sync_quiet_hours_to_server(
@@ -411,6 +413,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   search_encrypted_content: false,
   migration_haptic_v1_done: false,
   migration_tracker_blocking_v2_done: false,
+  html_rendering_mode: "html",
+  strip_exif_on_compose: true,
 };
 
 type GetPreferencesViaHttpResult = UserPreferences | "not_found" | null;

@@ -163,6 +163,7 @@ export interface UseEditorOptions {
   enable_keyboard_shortcuts?: boolean;
   is_plain_text_mode?: boolean;
   on_files_drop?: (files: File[]) => void;
+  strip_exif_on_compose?: boolean;
 }
 
 export interface ImageResizeState {

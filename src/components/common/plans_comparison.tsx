@@ -182,6 +182,57 @@ function get_features(
     },
 
     {
+      category: t("settings.category_advanced_aliases"),
+      name: "",
+      free: "",
+      star: "",
+      nova: "",
+      supernova: "",
+    },
+    {
+      name: t("settings.feature_alias_sender_pinning"),
+      free: false,
+      star: true,
+      nova: true,
+      supernova: true,
+    },
+    {
+      name: t("settings.feature_per_alias_rules"),
+      free: false,
+      star: true,
+      nova: true,
+      supernova: true,
+    },
+    {
+      name: t("settings.feature_alias_stats_restore"),
+      free: false,
+      star: true,
+      nova: true,
+      supernova: true,
+    },
+    {
+      name: t("settings.feature_soft_delete_restore"),
+      free: false,
+      star: true,
+      nova: true,
+      supernova: true,
+    },
+    {
+      name: t("settings.feature_alias_directory"),
+      free: false,
+      star: false,
+      nova: true,
+      supernova: true,
+    },
+    {
+      name: t("settings.feature_reverse_alias"),
+      free: false,
+      star: false,
+      nova: true,
+      supernova: true,
+    },
+
+    {
       category: t("settings.category_organization"),
       name: "",
       free: "",

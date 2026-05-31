@@ -69,6 +69,7 @@ import {
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { use_email_viewer_actions } from "@/components/email/email_viewer_actions";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 
 export type {
   EmailRecipient,
@@ -108,6 +109,7 @@ export function use_email_viewer({
   const { format_email_detail } = use_date_format();
   const { preferences } = use_preferences();
   const { user } = use_auth();
+  const { is_feature_locked } = use_plan_limits();
   const [email, set_email] = useState<DecryptedEmail | null>(null);
   const [mail_item, set_mail_item] = useState<MailItem | null>(null);
   const [is_loading, set_is_loading] = useState(true);
@@ -217,6 +219,7 @@ export function use_email_viewer({
     t,
     format_email_detail,
     preferences_default_reply_behavior: preferences.default_reply_behavior,
+    is_sender_pinning_locked: is_feature_locked("has_sender_pinning"),
   });
 
   useEffect(() => {
@@ -1092,5 +1095,7 @@ export function use_email_viewer({
       actions.handle_per_message_report_phishing,
     handle_per_message_not_spam: actions.handle_per_message_not_spam,
     handle_toggle_message_read: actions.handle_toggle_message_read,
+    handle_block_sender_on_alias: actions.handle_block_sender_on_alias,
+    show_block_sender_on_alias: actions.show_block_sender_on_alias,
   };
 }

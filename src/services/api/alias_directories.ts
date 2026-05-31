@@ -32,6 +32,7 @@ export interface AliasDirectory {
   domain: string;
   auto_create_enabled: boolean;
   default_routing_hash?: string;
+  color?: string;
   created_at: string;
 }
 
@@ -55,6 +56,7 @@ export async function create_alias_directory(
   directory_key: string,
   domain: string,
   auto_create_enabled: boolean,
+  color?: string,
 ): Promise<ApiResponse<{ id: string; success: boolean }>> {
   const directory_hash = await sha256_base64(directory_key);
   const { encrypted, nonce } = await encrypt_alias_field(
@@ -69,13 +71,14 @@ export async function create_alias_directory(
       label_nonce: nonce,
       domain,
       auto_create_enabled,
+      color,
     },
   );
 }
 
 export async function update_alias_directory(
   directory_id: string,
-  updates: { auto_create_enabled: boolean },
+  updates: { auto_create_enabled: boolean; color?: string },
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.patch<{ success: boolean }>(
     `/addresses/v1/aliases/directories/${directory_id}`,

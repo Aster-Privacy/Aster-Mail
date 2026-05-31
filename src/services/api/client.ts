@@ -1206,6 +1206,7 @@ class ApiClient {
           last_error = {
             error: sanitized_error,
             code: error_code,
+            server_code: error_data.code,
             resets_at: error_data.resets_at,
           };
 

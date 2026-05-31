@@ -36,6 +36,7 @@ import {
   is_html_content,
   has_rich_html,
   plain_text_to_html,
+  html_to_readable_plain_text,
 } from "@/lib/html_sanitizer";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -89,6 +90,15 @@ export function EmailViewerContent({
   const is_plain_text = !raw_content || !has_rich_html(raw_content);
   const is_literal_plain_text = !raw_content || !is_html_content(raw_content);
 
+  const html_blocked =
+    !is_literal_plain_text &&
+    preferences.html_rendering_mode === "plain_text";
+
+  const plain_text_html = useMemo(() => {
+    if (!html_blocked) return null;
+    return plain_text_to_html(html_to_readable_plain_text(raw_content ?? ""));
+  }, [html_blocked, raw_content]);
+
   const effective_content_mode = is_system
     ? ("always" as const)
     : !preferences.block_external_content
@@ -96,6 +106,22 @@ export function EmailViewerContent({
       : (external_content_mode_override ?? preferences.load_remote_images);
 
   const sanitize_result = useMemo(() => {
+    if (html_blocked) {
+      return {
+        html: "",
+        external_content: {
+          has_remote_images: false,
+          has_remote_fonts: false,
+          has_remote_css: false,
+          has_tracking_pixels: false,
+          blocked_count: 0,
+          blocked_items: [],
+          cleaned_links: [],
+        } as ExternalContentReport,
+        body_background: undefined,
+      };
+    }
+
     if (preloaded_sanitized && effective_content_mode !== "always") {
       return {
         html: preloaded_sanitized.html,
@@ -135,6 +161,7 @@ export function EmailViewerContent({
           : undefined,
     });
   }, [
+    html_blocked,
     preloaded_sanitized,
     raw_content,
     effective_content_mode,
@@ -277,14 +304,23 @@ export function EmailViewerContent({
               on_load={handle_load_remote}
             />
           )}
-          <SandboxedEmailRenderer
-            body_background={sanitize_result.body_background}
-            email_id={email.id}
-            is_literal_plain_text={is_literal_plain_text}
-            is_plain_text={is_plain_text}
-            load_remote_content={force_load_content}
-            sanitized_html={effective_html}
-          />
+          {html_blocked ? (
+            <SandboxedEmailRenderer
+              email_id={email.id}
+              is_literal_plain_text
+              is_plain_text
+              sanitized_html={plain_text_html ?? ""}
+            />
+          ) : (
+            <SandboxedEmailRenderer
+              body_background={sanitize_result.body_background}
+              email_id={email.id}
+              is_literal_plain_text={is_literal_plain_text}
+              is_plain_text={is_plain_text}
+              load_remote_content={force_load_content}
+              sanitized_html={effective_html}
+            />
+          )}
         </div>
       </div>
     </>

@@ -22,14 +22,17 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import type { DecryptedSecureMessage } from "@/services/crypto/secure_message_crypto";
 import type { SecureViewMetadata } from "@/services/api/secure_view";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { LockIcon } from "@/components/common/icons";
+import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { sanitize_html } from "@/lib/html_sanitizer";
+import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
 import {
   derive_auth_proof,
   decrypt_secure_message,
@@ -40,6 +43,77 @@ import {
 } from "@/services/api/secure_view";
 
 type ViewState = "loading" | "not_found" | "expired" | "ready" | "unlocked";
+
+const SECURE_BODY_CSS =
+  EMAIL_BODY_CSS +
+  `
+body { padding: 16px 18px !important; color: #111827; }
+.aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix { display: block !important; }
+`;
+
+const SECURE_BODY_CSP = [
+  "default-src 'none'",
+  "img-src data: blob:",
+  "style-src 'unsafe-inline'",
+  "font-src data:",
+  "media-src data: blob:",
+  "script-src 'none'",
+  "object-src 'none'",
+  "frame-src 'none'",
+  "child-src 'none'",
+  "connect-src 'none'",
+  "form-action 'none'",
+  "base-uri 'none'",
+].join("; ");
+
+function SecureMessageBody({ html, title }: { html: string; title: string }) {
+  const frame_ref = useRef<HTMLIFrameElement | null>(null);
+  const [height, set_height] = useState(0);
+
+  const srcdoc = useMemo(
+    () =>
+      `<!DOCTYPE html><html><head><meta charset="utf-8">` +
+      `<meta name="viewport" content="width=device-width, initial-scale=1">` +
+      `<meta name="referrer" content="no-referrer">` +
+      `<meta http-equiv="Content-Security-Policy" content="${SECURE_BODY_CSP}">` +
+      `<base target="_blank">` +
+      `<style>${SECURE_BODY_CSS}</style></head>` +
+      `<body>${html}</body></html>`,
+    [html],
+  );
+
+  const measure = useCallback(() => {
+    const doc = frame_ref.current?.contentDocument;
+
+    if (!doc?.body) return;
+
+    set_height(Math.min(doc.body.scrollHeight + 8, 20000));
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(measure, 200);
+
+    return () => clearTimeout(timer);
+  }, [srcdoc, measure]);
+
+  return (
+    <iframe
+      ref={frame_ref}
+      referrerPolicy="no-referrer"
+      sandbox="allow-same-origin allow-popups"
+      srcDoc={srcdoc}
+      style={{
+        width: "100%",
+        height: height ? `${height}px` : "320px",
+        border: "none",
+        display: "block",
+        backgroundColor: "#ffffff",
+      }}
+      title={title}
+      onLoad={measure}
+    />
+  );
+}
 
 export default function SecureViewPage() {
   const { t } = use_i18n();
@@ -235,8 +309,8 @@ export default function SecureViewPage() {
     switch (view_state) {
       case "loading":
         return (
-          <div className="flex flex-col items-center gap-4">
-            <Spinner className="h-10 w-10 text-blue-500" size="lg" />
+          <div className="flex w-full flex-col items-center gap-4 rounded-2xl border border-edge-secondary bg-surf-card p-8">
+            <Spinner className="h-8 w-8 text-blue-500" size="lg" />
             <p className="text-sm text-txt-tertiary">
               {sv("secure_view.loading")}
             </p>
@@ -245,16 +319,18 @@ export default function SecureViewPage() {
 
       case "not_found":
         return (
-          <p className="text-sm text-center text-txt-tertiary">
-            {sv("secure_view.not_found")}
-          </p>
+          <div className="w-full rounded-2xl border border-edge-secondary bg-surf-card p-8">
+            <p className="text-center text-sm text-txt-tertiary">
+              {sv("secure_view.not_found")}
+            </p>
+          </div>
         );
 
       case "expired":
         return (
-          <div className="w-full space-y-6">
+          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-left">
             {render_meta()}
-            <p className="text-sm text-center text-txt-tertiary">
+            <p className="text-sm text-txt-tertiary">
               {sv("secure_view.expired")}
             </p>
           </div>
@@ -262,41 +338,42 @@ export default function SecureViewPage() {
 
       case "ready":
         return (
-          <div className="w-full space-y-6">
+          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-left">
             {render_meta()}
 
             {metadata?.requires_password && (
-              <div className="w-full space-y-3">
+              <div className="space-y-3">
                 <p className="text-sm text-txt-tertiary">
                   {sv("secure_view.password_prompt")}
                 </p>
                 <Input
                   aria-label={sv("secure_view.password_label")}
+                  autoCapitalize="none"
+                  autoComplete="off"
+                  autoCorrect="off"
                   placeholder={sv("secure_view.password_label")}
+                  spellCheck={false}
+                  status={error ? "error" : "default"}
                   type="password"
                   value={password}
-                  onChange={(e) => set_password(e.target.value)}
+                  onChange={(e) => {
+                    set_password(e.target.value);
+                    if (error) set_error("");
+                  }}
                   onKeyDown={(e) => {
-                    if (e["key"] === "Enter" && !is_unlocking) {
+                    if (e.key === "Enter" && !is_unlocking) {
                       handle_unlock();
                     }
                   }}
                 />
 
-                {error && (
-                  <p
-                    className="text-sm text-danger"
-                    style={{ color: "#dc2626" }}
-                  >
-                    {error}
-                  </p>
-                )}
+                {error && <p className="text-sm text-danger">{error}</p>}
 
                 <Button
                   className="w-full"
                   disabled={is_unlocking || !password}
                   size="xl"
-                  variant="depth"
+                  variant="primary"
                   onClick={handle_unlock}
                 >
                   {is_unlocking
@@ -310,54 +387,49 @@ export default function SecureViewPage() {
 
       case "unlocked":
         return (
-          <div className="w-full space-y-6">
-            {render_meta()}
-
-            {decrypted && (
-              <>
-                <h1 className="text-xl font-semibold text-txt-primary">
+          decrypted && (
+            <div className="w-full overflow-hidden rounded-2xl border border-edge-secondary bg-surf-card text-left">
+              <div className="space-y-3 border-b border-edge-secondary px-6 pb-4 pt-6">
+                {render_meta()}
+                <h2 className="break-words text-xl font-semibold text-txt-primary">
                   {decrypted.subject}
-                </h1>
+                </h2>
+              </div>
 
-                <div
-                  className="prose max-w-none text-txt-primary"
-                  // eslint-disable-next-line react/no-danger
-                  dangerouslySetInnerHTML={{ __html: sanitized_body }}
-                />
+              <SecureMessageBody html={sanitized_body} title={decrypted.subject} />
 
-                {decrypted.attachments.length > 0 && (
-                  <div className="w-full space-y-2">
-                    <p className="text-sm font-medium text-txt-muted">
-                      {sv("secure_view.attachments")}
-                    </p>
-                    {decrypted.attachments.map((attachment, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 bg-surf-tertiary border-edge-secondary"
+              {decrypted.attachments.length > 0 && (
+                <div className="space-y-2 border-t border-edge-secondary px-6 py-4">
+                  <p className="text-sm font-medium text-txt-muted">
+                    {sv("secure_view.attachments")}
+                  </p>
+                  {decrypted.attachments.map((attachment, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-edge-secondary bg-surf-tertiary px-3 py-2"
+                    >
+                      <span className="truncate text-sm text-txt-primary">
+                        {attachment.filename}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() =>
+                          handle_download(
+                            attachment.filename,
+                            attachment.content_type,
+                            attachment.data,
+                          )
+                        }
                       >
-                        <span className="text-sm truncate text-txt-primary">
-                          {attachment.filename}
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() =>
-                            handle_download(
-                              attachment.filename,
-                              attachment.content_type,
-                              attachment.data,
-                            )
-                          }
-                        >
-                          {sv("secure_view.download")}
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+                        {sv("secure_view.download")}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
         );
 
       default:
@@ -367,11 +439,21 @@ export default function SecureViewPage() {
 
   return (
     <div className="fixed inset-0 overflow-y-auto bg-surf-primary">
-      <div className="min-h-full flex items-start md:items-center justify-center py-8 md:py-4 px-4">
-        <div className="flex flex-col items-center w-full max-w-md px-4 space-y-6 text-center">
-          <h2 className="text-lg font-semibold text-txt-primary">
-            {sv("secure_view.title")}
-          </h2>
+      <div className="flex min-h-full items-start justify-center px-4 py-10 md:items-center">
+        <div
+          className={cn(
+            "flex w-full flex-col items-center gap-6",
+            view_state === "unlocked" ? "max-w-2xl" : "max-w-md",
+          )}
+        >
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surf-tertiary text-txt-secondary">
+              <LockIcon size={22} />
+            </div>
+            <h1 className="text-lg font-semibold text-txt-primary">
+              {sv("secure_view.title")}
+            </h1>
+          </div>
 
           {render_body()}
 

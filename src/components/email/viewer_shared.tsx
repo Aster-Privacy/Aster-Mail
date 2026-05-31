@@ -127,6 +127,8 @@ interface ViewerToolbarActionsProps {
   on_print: () => void;
   on_unsubscribe: () => void;
   on_snooze?: () => void;
+  on_block_sender_on_alias?: () => void;
+  show_block_sender_on_alias?: boolean;
   folders?: { id: string; name: string; color: string }[];
   on_folder_toggle?: (folder_id: string) => void;
   can_go_prev?: boolean;
@@ -165,6 +167,8 @@ export function ViewerToolbarActions({
   on_print,
   on_unsubscribe,
   on_snooze,
+  on_block_sender_on_alias,
+  show_block_sender_on_alias = false,
   folders = [],
   on_folder_toggle,
   button_size = "h-9 w-9",
@@ -540,6 +544,12 @@ export function ViewerToolbarActions({
             <DropdownMenuItem onClick={on_unsubscribe}>
               <XMarkIcon className="w-4 h-4 mr-2" />
               {t("mail.unsubscribe")}
+            </DropdownMenuItem>
+          )}
+          {show_block_sender_on_alias && on_block_sender_on_alias && (
+            <DropdownMenuItem onClick={on_block_sender_on_alias}>
+              <NoSymbolIcon className="w-4 h-4 mr-2" />
+              {t("mail.block_sender_on_alias")}
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
