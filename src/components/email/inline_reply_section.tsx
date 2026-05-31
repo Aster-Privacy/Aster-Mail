@@ -37,7 +37,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_signatures } from "@/contexts/signatures_context";
-import { show_toast } from "@/components/toast/simple_toast";
+import { show_action_toast } from "@/components/toast/action_toast";
 import { emit_thread_reply_sent } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
 import {
@@ -387,10 +387,16 @@ export const InlineReplySection = forwardRef<
         on_complete: () => {
           is_sending_ref.current = false;
           set_send_state("sent");
-          if (!undo_enabled) {
-            show_toast(t("common.email_sent"), "success");
-          }
           on_sending_end?.();
+          show_action_toast({
+            message: t("common.email_sent"),
+            action_type: "read",
+            email_ids: [],
+            duration_ms: 5000,
+            on_view_message: () => {
+              window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+            },
+          });
 
           if (thread_token) {
             emit_thread_reply_sent({
