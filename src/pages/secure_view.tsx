@@ -448,14 +448,12 @@ export default function SecureViewPage() {
             view_state === "unlocked" ? "max-w-2xl" : "max-w-md",
           )}
         >
-          <div className="flex flex-col items-center gap-2 text-center">
-            {view_state === "unlocked" && (
-              <img
-                alt="Aster Mail"
-                className="h-10 w-10"
-                src="/mail_logo.png"
-              />
-            )}
+          <div className="flex flex-col items-center gap-3 text-center">
+            <img
+              alt="Aster Mail"
+              className="h-8 w-auto"
+              src="/text_logo.png"
+            />
             <h1 className="text-lg font-semibold text-txt-primary">
               {sv("secure_view.title")}
             </h1>
@@ -466,7 +464,7 @@ export default function SecureViewPage() {
           <p className="text-xs text-txt-muted">
             {sv("secure_view.powered_by_prefix")}{" "}
             <a
-              className="underline hover:text-txt-secondary"
+              className="text-blue-400 hover:text-blue-300 underline"
               href="https://astermail.org"
               rel="noopener noreferrer"
               target="_blank"
