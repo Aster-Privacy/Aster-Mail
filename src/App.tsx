@@ -79,6 +79,7 @@ const EmailDetailPage = lazy_with_retry(
 const VerifyRecoveryEmailPage = lazy_with_retry(
   () => import("@/pages/verify_recovery_email"),
 );
+const SecureViewPage = lazy_with_retry(() => import("@/pages/secure_view"));
 const NotFoundPage = lazy_with_retry(() => import("@/pages/not_found"));
 const LinkDevicePage = lazy_with_retry(() => import("@/pages/link_device"));
 const ExternalRedirect = ({ url }: { url: string }) => {
@@ -265,6 +266,7 @@ function App() {
                 path="/compose"
               />
               <Route element={<LinkDevicePage />} path="/link-device" />
+              <Route element={<SecureViewPage />} path="/view/:token" />
               <Route element={<NotFoundPage />} path="*" />
             </Routes>
           </Suspense>

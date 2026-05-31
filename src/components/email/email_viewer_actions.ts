@@ -33,7 +33,11 @@ import { useCallback } from "react";
 import { is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
-import { build_reply_from_address } from "@/components/email/build_reply_from_address";
+import {
+  build_reply_from_address,
+  resolve_received_on_alias,
+} from "@/components/email/build_reply_from_address";
+import { get_cached_aliases } from "@/components/settings/hooks/use_aliases";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -150,7 +154,13 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     const to_emails = deps.email.to?.map((r) => r.email) ?? [];
     const cc_emails = deps.email.cc?.map((r) => r.email) ?? [];
     const reply_from_address = build_reply_from_address(
-      { sender_email: deps.email.sender_email },
+      {
+        sender_email: deps.email.sender_email,
+        received_on_alias: resolve_received_on_alias(
+          deps.mail_item?.routing_token,
+          get_cached_aliases(),
+        ),
+      },
       is_own_message,
     );
 
@@ -590,7 +600,13 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       const to_emails = msg.to_recipients?.map((r) => r.email) ?? [];
       const cc_emails = msg.cc_recipients?.map((r) => r.email) ?? [];
       const reply_from_address = build_reply_from_address(
-        { sender_email: msg.sender_email },
+        {
+          sender_email: msg.sender_email,
+          received_on_alias: resolve_received_on_alias(
+            deps.mail_item?.routing_token,
+            get_cached_aliases(),
+          ),
+        },
         is_own_message,
       );
 

@@ -591,12 +591,14 @@ export default function SignInPage() {
 
         set_is_loading(false);
 
-        hard_redirect(get_safe_next_path());
+        navigate(get_safe_next_path());
+        setTimeout(() => emit_auth_ready(), 50);
 
         return;
       } catch (err) {
         if (err instanceof Error && err.message === "login_timeout") {
-          hard_redirect(get_safe_next_path());
+          navigate(get_safe_next_path());
+          setTimeout(() => emit_auth_ready(), 50);
 
           return;
         }
@@ -982,6 +984,7 @@ export default function SignInPage() {
                   on_success: handle_totp_success,
                   on_cancel: handle_totp_cancel,
                   set_active_2fa_method,
+                  remember_me,
                 })
               ) : active_2fa_method === "webauthn" ? (
                 webauthn_flow({
@@ -990,6 +993,7 @@ export default function SignInPage() {
                   on_success: handle_totp_success,
                   on_cancel: handle_totp_cancel,
                   set_active_2fa_method,
+                  remember_me,
                 })
               ) : (
                 totp_flow({
@@ -997,6 +1001,7 @@ export default function SignInPage() {
                   on_success: handle_totp_success,
                   on_cancel: handle_totp_cancel,
                   set_active_2fa_method,
+                  remember_me,
                 })
               )}
             </motion.div>

@@ -243,13 +243,13 @@ export default defineConfig({
           {
             name: "Compose Email",
             short_name: "Compose",
-            url: "/mail?compose=true",
+            url: "/?compose=true",
             icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
           },
           {
             name: "Inbox",
             short_name: "Inbox",
-            url: "/mail/inbox",
+            url: "/",
             icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
           },
         ],

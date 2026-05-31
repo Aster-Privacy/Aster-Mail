@@ -100,6 +100,12 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 export const RATCHET_UNDECRYPTABLE_SENTINEL =
   "\x00ASTER_RATCHET_UNDECRYPTABLE\x00";
 
+export function is_ratchet_envelope(body: string | null | undefined): boolean {
+  if (!body) return false;
+
+  return parse_ratchet_envelope(body) !== null;
+}
+
 export async function try_decrypt_ratchet_body(
   body_text: string,
   our_email: string,

@@ -4922,4 +4922,30 @@ export const es = {
     show_on_profile_description: "Muestra tu insignia activa a otros usuarios de Aster.",
     title: "Insignias",
   },
+  secure_view: {
+    title: "Mensaje seguro",
+    from: "De",
+    expires: "Caduca",
+    expired: "Este mensaje seguro ha caducado y ya no está disponible.",
+    password_prompt:
+      "Este mensaje está protegido. Introduce la contraseña para verlo.",
+    password_label: "Contraseña",
+    view_button: "Ver mensaje",
+    unlocking: "Desbloqueando...",
+    wrong_password: "Contraseña incorrecta. Inténtalo de nuevo.",
+    locked: "Demasiados intentos. Inténtalo de nuevo más tarde.",
+    decrypt_failed: "No se pudo descifrar este mensaje.",
+    loading: "Cargando...",
+    not_found: "No se pudo encontrar este mensaje seguro.",
+    attachments: "Adjuntos",
+    download: "Descargar",
+    powered_by: "Enviado de forma segura con AsterMail",
+  },
+  compose: {
+    encrypt_external_label: "Cifrar para destinatarios externos",
+    encrypt_external_desc:
+      "Los destinatarios abren un enlace privado e introducen una contraseña para leer este mensaje.",
+    encrypt_password_required:
+      "Establece una contraseña para cifrar este mensaje.",
+  },
 };

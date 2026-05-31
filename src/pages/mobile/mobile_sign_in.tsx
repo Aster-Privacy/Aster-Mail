@@ -589,6 +589,7 @@ export default function MobileSignInPage() {
                   )
                 }
                 pending_login_token={pending_login_token}
+                remember_me={remember_me}
               />
             ) : active_2fa_method === "webauthn" ? (
               <WebauthnVerification
@@ -600,6 +601,7 @@ export default function MobileSignInPage() {
                   )
                 }
                 pending_login_token={pending_login_token}
+                remember_me={remember_me}
               />
             ) : (
               <TotpVerification
@@ -607,6 +609,7 @@ export default function MobileSignInPage() {
                 on_success={handle_totp_success}
                 on_use_backup_code={() => set_active_2fa_method("backup")}
                 pending_login_token={pending_login_token}
+                remember_me={remember_me}
               />
             )}
           </AnimatePresence>

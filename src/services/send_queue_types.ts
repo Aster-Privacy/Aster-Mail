@@ -79,6 +79,7 @@ export interface EmailParams {
   recipient_keys?: RecipientKeyResult[];
   expires_at?: string;
   expiry_password?: string;
+  secure_external?: boolean;
   attachments?: import("@/components/compose/compose_shared").Attachment[];
   forward_original_mail_id?: string;
   in_reply_to?: string;

@@ -6,6 +6,7 @@ export default defineConfig({
     "local_security_fixes.spec.ts",
     "local_full_sweep.spec.ts",
     "tests/152_encryption_settings_sync.spec.ts",
+    "tests/alias_features_local.spec.ts",
   ],
   fullyParallel: false,
   retries: 0,

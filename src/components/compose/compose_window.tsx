@@ -128,9 +128,7 @@ export function ComposeWindow({
 
   const expiration_picker = (
     <ExpirationPicker
-      disabled={
-        compose.recipients.to.length === 0 || compose.has_external_recipients
-      }
+      disabled={compose.recipients.to.length === 0}
       expires_at={compose.expires_at}
       on_expiration_change={compose.set_expires_at}
       on_password_change={compose.set_expiry_password}

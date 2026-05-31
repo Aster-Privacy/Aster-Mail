@@ -193,12 +193,15 @@ export async function encrypt_for_ratchet_recipient(
     let ephemeral_key_base64 = "";
     let pq_ciphertext_base64: string | undefined;
     let pq_key_id_value: number | undefined;
+    let did_bootstrap = false;
 
     if (ratchet && !ratchet.get_bootstrap()) {
       ratchet = null;
     }
 
     if (!ratchet) {
+      did_bootstrap = true;
+
       const bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
 
       if (!bundle) {
@@ -256,13 +259,15 @@ export async function encrypt_for_ratchet_recipient(
 
     await save_ratchet_state(ratchet);
 
-    const sync_key = await get_sync_encryption_key();
+    if (!did_bootstrap) {
+      const sync_key = await get_sync_encryption_key();
 
-    if (sync_key) {
-      try {
-        await sync_ratchet_to_server(ratchet, sync_key);
-      } catch {
-        /* best-effort */
+      if (sync_key) {
+        try {
+          await sync_ratchet_to_server(ratchet, sync_key);
+        } catch {
+          /* best-effort */
+        }
       }
     }
 
@@ -534,13 +539,15 @@ async function decrypt_ratchet_for_recipient(
 
   await save_ratchet_state(ratchet);
 
-  const sync_key = await get_sync_encryption_key();
+  if (!is_fresh_bootstrap) {
+    const sync_key = await get_sync_encryption_key();
 
-  if (sync_key) {
-    try {
-      await sync_ratchet_to_server(ratchet, sync_key);
-    } catch {
-      /* best-effort */
+    if (sync_key) {
+      try {
+        await sync_ratchet_to_server(ratchet, sync_key);
+      } catch {
+        /* best-effort */
+      }
     }
   }
 

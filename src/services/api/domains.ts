@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { api_client, type ApiResponse } from "./client";
 import { en } from "@/lib/i18n/translations/en";
 
@@ -532,17 +534,30 @@ export function validate_domain_name(domain: string): {
 export function validate_local_part(local_part: string): {
   valid: boolean;
   error?: string;
+  error_key?: TranslationKey;
 } {
   if (!local_part || local_part.length === 0) {
-    return { valid: false, error: en.errors.address_empty };
+    return {
+      valid: false,
+      error: en.errors.address_empty,
+      error_key: "errors.address_empty",
+    };
   }
 
   if (local_part.length < 1) {
-    return { valid: false, error: en.errors.address_too_short };
+    return {
+      valid: false,
+      error: en.errors.address_too_short,
+      error_key: "errors.address_too_short",
+    };
   }
 
   if (local_part.length > 64) {
-    return { valid: false, error: en.errors.address_too_long };
+    return {
+      valid: false,
+      error: en.errors.address_too_long,
+      error_key: "errors.address_too_long",
+    };
   }
 
   const valid_pattern = /^[a-z0-9][a-z0-9._-]*[a-z0-9]$|^[a-z0-9]$/;
@@ -551,11 +566,16 @@ export function validate_local_part(local_part: string): {
     return {
       valid: false,
       error: en.errors.address_invalid_chars,
+      error_key: "errors.address_invalid_chars",
     };
   }
 
   if (local_part.includes("..")) {
-    return { valid: false, error: en.errors.address_consecutive_dots };
+    return {
+      valid: false,
+      error: en.errors.address_consecutive_dots,
+      error_key: "errors.address_consecutive_dots",
+    };
   }
 
   return { valid: true };

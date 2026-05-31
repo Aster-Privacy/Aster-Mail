@@ -2386,7 +2386,7 @@ export const ja = {
     external_accounts_description:
       "外部のメールアカウントを接続して、他のプロバイダーからメールをインポートして送信できます。",
     add_account: "アカウントを追加",
-    remove_account: "アカ��ントを削除",
+    remove_account: "アカウントを削除",
     no_external_accounts: "外部アカウントはありません",
     no_external_accounts_description:
       "外部のメールアカウントを接続して、他のプロバイダーからメールをインポートして送信しましょう",
@@ -2637,7 +2637,7 @@ export const ja = {
     no_encryption_key: "暗号化キーがありません",
     no_encryption_key_description: "暗号化キーは自動的に生成されます",
     encryption_banner_title:
-      "秘���鍵はお使いのデバイ��から離れることはありません",
+      "秘密鍵はお使いのデバイスから離れることはありません",
     encryption_banner_subtitle:
       "メールはデバイスから送信される前に暗号化されます。Asterは読み取り不可能な暗号文のみを保存し、あなたのメールを見ることはできません。",
     encryption_banner_you: "あなた",
@@ -4759,5 +4759,29 @@ export const ja = {
     badge_pulsar_description: "雑音の中に信号を聞いた者。",
     badge_stargazer: "星空観測者",
     badge_stargazer_description: "適切な瞬間に空を見上げた者。",
+  },
+  secure_view: {
+    title: "セキュアメッセージ",
+    from: "差出人",
+    expires: "有効期限",
+    expired: "このセキュアメッセージは有効期限が切れており、利用できなくなりました。",
+    password_prompt: "このメッセージは保護されています。表示するにはパスワードを入力してください。",
+    password_label: "パスワード",
+    view_button: "メッセージを表示",
+    unlocking: "ロック解除中...",
+    wrong_password: "パスワードが正しくありません。もう一度お試しください。",
+    locked: "試行回数が多すぎます。しばらくしてからもう一度お試しください。",
+    decrypt_failed: "このメッセージを復号できませんでした。",
+    loading: "読み込み中...",
+    not_found: "このセキュアメッセージが見つかりませんでした。",
+    attachments: "添付ファイル",
+    download: "ダウンロード",
+    powered_by: "AsterMail で安全に送信されました",
+  },
+  compose: {
+    encrypt_external_label: "外部の受信者向けに暗号化",
+    encrypt_external_desc:
+      "受信者はプライベートリンクを開き、パスワードを入力してこのメッセージを読みます。",
+    encrypt_password_required: "このメッセージを暗号化するにはパスワードを設定してください。",
   },
 };

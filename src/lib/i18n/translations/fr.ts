@@ -4820,4 +4820,30 @@ export const fr = {
     show_on_profile_description: "Afficher votre badge actif aux autres utilisateurs d'Aster.",
     title: "Badges",
   },
+  secure_view: {
+    title: "Message sécurisé",
+    from: "De",
+    expires: "Expire",
+    expired: "Ce message sécurisé a expiré et n'est plus disponible.",
+    password_prompt:
+      "Ce message est protégé. Saisissez le mot de passe pour l'afficher.",
+    password_label: "Mot de passe",
+    view_button: "Afficher le message",
+    unlocking: "Déverrouillage...",
+    wrong_password: "Mot de passe incorrect. Veuillez réessayer.",
+    locked: "Trop de tentatives. Veuillez réessayer plus tard.",
+    decrypt_failed: "Impossible de déchiffrer ce message.",
+    loading: "Chargement...",
+    not_found: "Ce message sécurisé est introuvable.",
+    attachments: "Pièces jointes",
+    download: "Télécharger",
+    powered_by: "Envoyé en toute sécurité via AsterMail",
+  },
+  compose: {
+    encrypt_external_label: "Chiffrer pour les destinataires externes",
+    encrypt_external_desc:
+      "Les destinataires ouvrent un lien privé et saisissent un mot de passe pour lire ce message.",
+    encrypt_password_required:
+      "Définissez un mot de passe pour chiffrer ce message.",
+  },
 };

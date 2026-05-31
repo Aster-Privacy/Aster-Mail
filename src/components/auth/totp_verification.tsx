@@ -30,6 +30,7 @@ interface TotpVerificationProps {
   on_success: (response: TotpVerifyResponse) => void;
   on_use_backup_code: () => void;
   on_cancel: () => void;
+  remember_me?: boolean;
 }
 
 export function TotpVerification({
@@ -37,6 +38,7 @@ export function TotpVerification({
   on_success,
   on_use_backup_code,
   on_cancel,
+  remember_me = true,
 }: TotpVerificationProps) {
   const { t } = use_i18n();
   const [code, set_code] = useState("");
@@ -55,6 +57,7 @@ export function TotpVerification({
       code,
       pending_login_token,
       trust_device,
+      remember_me,
     });
 
     if (response.error) {
@@ -74,7 +77,7 @@ export function TotpVerification({
     }
 
     set_is_loading(false);
-  }, [code, pending_login_token, on_success, trust_device]);
+  }, [code, pending_login_token, on_success, trust_device, remember_me]);
 
   useEffect(() => {
     if (code.length === 6 && !is_loading) {

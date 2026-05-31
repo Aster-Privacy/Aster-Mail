@@ -4410,7 +4410,7 @@ export const pl = {
     recovery_codes_important: "Przechowuj je bezpiecznie",
     recovery_codes_important_desc:
       "Te kody to jedyny sposób na odzyskanie konta w przypadku utraty hasła. Przechowuj je w bezpiecznym miejscu.",
-    recovery_backup_tip: "Wskazówka dotycz��ca kopii zapasowej",
+    recovery_backup_tip: "Wskazówka dotycząca kopii zapasowej",
     recovery_backup_tip_desc:
       "Zapisz kody w menedżerze haseł lub wydrukuj je i przechowuj w bezpiecznym miejscu.",
     onboarding_appearance_title: "Spersonalizuj swoją skrzynkę",
@@ -4874,4 +4874,30 @@ export const pl = {
     badge_pulsar_description: "Usłyszał(-a) sygnał w hałasie.",
     badge_stargazer: "Obserwator gwiazd",
     badge_stargazer_description: "Spojrzał(-a) w górę w odpowiednim momencie.",},
+  secure_view: {
+    title: "Bezpieczna wiadomość",
+    from: "Od",
+    expires: "Wygasa",
+    expired: "Ta bezpieczna wiadomość wygasła i nie jest już dostępna.",
+    password_prompt:
+      "Ta wiadomość jest chroniona. Wprowadź hasło, aby ją wyświetlić.",
+    password_label: "Hasło",
+    view_button: "Wyświetl wiadomość",
+    unlocking: "Odblokowywanie...",
+    wrong_password: "Nieprawidłowe hasło. Spróbuj ponownie.",
+    locked: "Zbyt wiele prób. Spróbuj ponownie później.",
+    decrypt_failed: "Nie można odszyfrować tej wiadomości.",
+    loading: "Ładowanie...",
+    not_found: "Nie można znaleźć tej bezpiecznej wiadomości.",
+    attachments: "Załączniki",
+    download: "Pobierz",
+    powered_by: "Wysłane bezpiecznie przez AsterMail",
+  },
+  compose: {
+    encrypt_external_label: "Szyfruj dla odbiorców zewnętrznych",
+    encrypt_external_desc:
+      "Odbiorcy otwierają prywatny link i wprowadzają hasło, aby przeczytać tę wiadomość.",
+    encrypt_password_required:
+      "Ustaw hasło, aby zaszyfrować tę wiadomość.",
+  },
 };

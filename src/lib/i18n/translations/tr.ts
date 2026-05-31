@@ -4382,7 +4382,7 @@ export const tr = {
     recovery_email_verified: "Kurtarma e-postası doğrulandı",
     verification_failed: "Doğrulama tamamlanmadı.",
     go_to_inbox: "Gelen kutusuna git",
-    end_to_end_encrypted: "Uçtan Uca ��ifreli",
+    end_to_end_encrypted: "Uçtan Uca Şifreli",
     zero_knowledge: "Sıfır Erişim Mimarisi",
     zero_knowledge_desc: "E-postalarınızı veya verilerinizi asla okuyamayız",
     password_never_stored: "Parola Asla Saklanmaz",
@@ -4855,4 +4855,30 @@ export const tr = {
     badge_pulsar_description: "Gürültüdeki sinyali duydu.",
     badge_stargazer: "Yıldız Gözlemcisi",
     badge_stargazer_description: "Tam doğru anda yukarı baktı.",},
+  secure_view: {
+    title: "Güvenli mesaj",
+    from: "Gönderen",
+    expires: "Son kullanma",
+    expired: "Bu güvenli mesajın süresi doldu ve artık kullanılamıyor.",
+    password_prompt:
+      "Bu mesaj korumalıdır. Görüntülemek için parolayı girin.",
+    password_label: "Parola",
+    view_button: "Mesajı görüntüle",
+    unlocking: "Kilit açılıyor...",
+    wrong_password: "Parola yanlış. Lütfen tekrar deneyin.",
+    locked: "Çok fazla deneme. Lütfen daha sonra tekrar deneyin.",
+    decrypt_failed: "Bu mesajın şifresi çözülemedi.",
+    loading: "Yükleniyor...",
+    not_found: "Bu güvenli mesaj bulunamadı.",
+    attachments: "Ekler",
+    download: "İndir",
+    powered_by: "AsterMail ile güvenli şekilde gönderildi",
+  },
+  compose: {
+    encrypt_external_label: "Harici alıcılar için şifrele",
+    encrypt_external_desc:
+      "Alıcılar bu mesajı okumak için özel bir bağlantı açar ve bir parola girer.",
+    encrypt_password_required:
+      "Bu mesajı şifrelemek için bir parola belirleyin.",
+  },
 };

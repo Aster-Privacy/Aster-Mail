@@ -317,6 +317,8 @@ export function use_compose_send({
           has_external_recipients && expiry_password
             ? expiry_password
             : undefined,
+        secure_external:
+          has_external_recipients && Boolean(expiry_password) ? true : undefined,
         attachments: attachments.length > 0 ? attachments : undefined,
       };
 

@@ -66,6 +66,7 @@ import {
 } from "@/services/session_timeout_service";
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_plan_limits_cache } from "@/hooks/use_plan_limits";
+import { clear_aliases_cache } from "@/components/settings/hooks/use_aliases";
 import { clear_plan_cache } from "@/services/plan_limits";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
@@ -378,6 +379,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_mail_stats();
         clear_mail_cache();
         clear_plan_limits_cache();
+        clear_aliases_cache();
         clear_plan_cache();
         clear_stored_encrypted_vault(account_id);
         await clear_session_passphrase(account_id);
@@ -431,6 +433,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_preload_cache();
         await clear_all_ratchet_states();
         clear_plan_limits_cache();
+        clear_aliases_cache();
         clear_plan_cache();
         request_cache.clear();
         api_client.clear_in_memory_token();
@@ -507,6 +510,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_mail_cache();
         clear_preload_cache();
         clear_plan_limits_cache();
+        clear_aliases_cache();
         clear_plan_cache();
         await clear_all_ratchet_states();
         clear_stored_encrypted_vault(current_id);
@@ -576,14 +580,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api_client.clear_auth_data();
       api_client.set_authenticated(false);
 
+      const path = window.location.pathname;
       const current_id = state.current_account_id;
       const all_accounts = await get_all_accounts();
       const target = all_accounts.find((a) => a.id === current_id);
 
       if (target && all_accounts.length > 1) {
+        set_is_adding_account(true);
+
+        if (path === "/sign-in") {
+          set_state((prev) => ({
+            ...prev,
+            user: null,
+            is_loading: false,
+            is_authenticated: false,
+            has_keys: false,
+          }));
+
+          return;
+        }
+
         const local = target.user.email.split("@")[0] ?? "";
 
-        set_is_adding_account(true);
         show_toast(t("common.session_expired_sign_in"), "info");
         hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
 
@@ -591,6 +609,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       await clear_local_auth_data();
+
+      if (path === "/sign-in") return;
+
       show_toast(t("common.session_expired_sign_in"), "info");
       hard_redirect("/sign-in");
     };

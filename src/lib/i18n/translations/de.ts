@@ -4921,4 +4921,31 @@ export const de = {
     show_in_signature_description: "Ihr aktives Abzeichen in ausgehende E-Mail-Signaturen einbeziehen.",
     show_on_profile_description: "Ihr aktives Abzeichen anderen Aster-Nutzern anzeigen.",
   },
+  secure_view: {
+    title: "Sichere Nachricht",
+    from: "Von",
+    expires: "Läuft ab",
+    expired:
+      "Diese sichere Nachricht ist abgelaufen und nicht mehr verfügbar.",
+    password_prompt:
+      "Diese Nachricht ist geschützt. Geben Sie das Passwort ein, um sie anzuzeigen.",
+    password_label: "Passwort",
+    view_button: "Nachricht anzeigen",
+    unlocking: "Wird entsperrt...",
+    wrong_password: "Falsches Passwort. Bitte versuchen Sie es erneut.",
+    locked: "Zu viele Versuche. Bitte versuchen Sie es später erneut.",
+    decrypt_failed: "Diese Nachricht konnte nicht entschlüsselt werden.",
+    loading: "Wird geladen...",
+    not_found: "Diese sichere Nachricht wurde nicht gefunden.",
+    attachments: "Anhänge",
+    download: "Herunterladen",
+    powered_by: "Sicher gesendet über AsterMail",
+  },
+  compose: {
+    encrypt_external_label: "Für externe Empfänger verschlüsseln",
+    encrypt_external_desc:
+      "Empfänger öffnen einen privaten Link und geben ein Passwort ein, um diese Nachricht zu lesen.",
+    encrypt_password_required:
+      "Legen Sie ein Passwort fest, um diese Nachricht zu verschlüsseln.",
+  },
 };

@@ -4789,4 +4789,30 @@ export const nl = {
     badge_stargazer: "Sterrenwaarnemer",
     badge_stargazer_description: "Op het juiste moment omhoog gekeken.",
   },
+  secure_view: {
+    title: "Beveiligd bericht",
+    from: "Van",
+    expires: "Verloopt",
+    expired: "Dit beveiligde bericht is verlopen en niet langer beschikbaar.",
+    password_prompt:
+      "Dit bericht is beveiligd. Voer het wachtwoord in om het te bekijken.",
+    password_label: "Wachtwoord",
+    view_button: "Bericht bekijken",
+    unlocking: "Ontgrendelen...",
+    wrong_password: "Onjuist wachtwoord. Probeer het opnieuw.",
+    locked: "Te veel pogingen. Probeer het later opnieuw.",
+    decrypt_failed: "Kan dit bericht niet ontsleutelen.",
+    loading: "Laden...",
+    not_found: "Dit beveiligde bericht kon niet worden gevonden.",
+    attachments: "Bijlagen",
+    download: "Downloaden",
+    powered_by: "Veilig verzonden via AsterMail",
+  },
+  compose: {
+    encrypt_external_label: "Versleutelen voor externe ontvangers",
+    encrypt_external_desc:
+      "Ontvangers openen een privélink en voeren een wachtwoord in om dit bericht te lezen.",
+    encrypt_password_required:
+      "Stel een wachtwoord in om dit bericht te versleutelen.",
+  },
 };

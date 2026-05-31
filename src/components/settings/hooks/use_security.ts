@@ -442,8 +442,15 @@ export function use_security() {
         vault_nonce: new_vault_nonce,
       } = await encrypt_vault(vault, new_password);
 
-      const { re_encrypted_aliases, re_encrypted_contacts } =
-        await re_encrypt_user_data(current_password, new_password);
+      const {
+        re_encrypted_aliases,
+        re_encrypted_contacts,
+        re_encrypted_pins,
+        re_encrypted_alias_contacts,
+        re_encrypted_destinations,
+        re_encrypted_directories,
+        re_encrypted_domain_addresses,
+      } = await re_encrypt_user_data(current_password, new_password);
 
       const response = await change_password({
         current_password_hash,
@@ -453,6 +460,11 @@ export function use_security() {
         new_vault_nonce,
         re_encrypted_aliases,
         re_encrypted_contacts,
+        re_encrypted_pins,
+        re_encrypted_alias_contacts,
+        re_encrypted_destinations,
+        re_encrypted_directories,
+        re_encrypted_domain_addresses,
       });
 
       if (response.error) {

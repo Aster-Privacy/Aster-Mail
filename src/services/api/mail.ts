@@ -44,6 +44,7 @@ export interface MailItem {
   has_recipient_key?: boolean;
   thread_token?: string;
   thread_message_count?: number;
+  routing_token?: string;
   created_at: string;
   labels?: MailItemLabel[];
   encrypted_metadata?: string;
