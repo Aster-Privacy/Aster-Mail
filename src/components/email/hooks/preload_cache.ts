@@ -430,7 +430,7 @@ export async function preload_email_detail(
       const content_is_html = /<[a-z][\s\S]*>/i.test(body_text);
       const decrypted_is_html =
         (html_has_pgp || text_had_pgp) && pgp_was_decrypted && content_is_html;
-      const safe_html =
+      let safe_html: string | undefined =
         mime_extracted && content_is_html
           ? body_text
           : html_has_pgp || text_had_pgp
@@ -438,6 +438,10 @@ export async function preload_email_detail(
               ? body_text
               : undefined
             : resolved_html;
+
+      if (is_ratchet_envelope(safe_html)) {
+        safe_html = undefined;
+      }
 
       const unsubscribe_info = detect_unsubscribe_info(
         resolved_html || "",

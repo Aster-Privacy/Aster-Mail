@@ -87,7 +87,7 @@ import {
   resolve_cid_references,
   revoke_cid_blob_urls,
 } from "@/lib/cid_resolver";
-import { RATCHET_UNDECRYPTABLE_SENTINEL } from "@/utils/email_crypto";
+import { RATCHET_UNDECRYPTABLE_SENTINEL, is_ratchet_envelope } from "@/utils/email_crypto";
 
 interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;
@@ -233,7 +233,8 @@ export function ThreadMessageBlock({
   const show_sender_name = message.display_sender_name ?? message.sender_name;
   const show_sender_email = message.display_sender_email ?? message.sender_email;
   const is_ratchet_undecryptable =
-    message.body === RATCHET_UNDECRYPTABLE_SENTINEL;
+    message.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
+    is_ratchet_envelope(message.html_content);
   const rich_html_source = message.html_content || message.body;
   const is_plain_text = !rich_html_source || !has_rich_html(rich_html_source);
 

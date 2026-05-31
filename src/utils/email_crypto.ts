@@ -116,7 +116,12 @@ export async function try_decrypt_ratchet_body(
 
   const envelope = parse_ratchet_envelope(body_text);
 
-  if (!envelope) return body_text;
+  if (!envelope) {
+    if (body_text.includes('"type":"double_ratchet')) {
+      return RATCHET_UNDECRYPTABLE_SENTINEL;
+    }
+    return body_text;
+  }
 
   const vault = get_vault_from_memory();
 
