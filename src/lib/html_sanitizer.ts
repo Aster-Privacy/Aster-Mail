@@ -737,9 +737,15 @@ export function html_to_readable_plain_text(html: string): string {
   doc.querySelectorAll("td, th").forEach((el) => el.append(doc.createTextNode(" ")));
   doc.querySelectorAll("tr").forEach((el) => el.append(doc.createTextNode("\n")));
 
+  doc
+    .querySelectorAll("img[width='1'], img[height='1'], img[width='0'], img[height='0']")
+    .forEach((el) => el.remove());
+
   const text = doc.body?.textContent ?? "";
 
   return text
+    .replace(/ /g, " ")
+    .replace(/[​‌‍﻿]/g, "")
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n")
     .replace(/[ \t]+/g, " ")
