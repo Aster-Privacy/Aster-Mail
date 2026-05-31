@@ -5134,7 +5134,7 @@ export const en: Translations = {
     not_found: "This secure message could not be found.",
     attachments: "Attachments",
     download: "Download",
-    powered_by: "Sent securely via AsterMail",
+    powered_by: "♠ Sent securely via Aster Mail",
   },
   compose: {
     encrypt_external_label: "Encrypt for external recipients",

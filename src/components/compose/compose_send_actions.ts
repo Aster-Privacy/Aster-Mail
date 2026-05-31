@@ -34,6 +34,7 @@ import {
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { show_toast } from "@/components/toast/simple_toast";
+import { show_action_toast } from "@/components/toast/action_toast";
 import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
 
 export interface SendActionContext {
@@ -265,7 +266,6 @@ export async function execute_external_email_send(
   } else {
     try {
       await execute_external_send(external_email_data, true);
-      show_toast(ctx.t("common.email_sent"), "success");
       dispatch_email_sent();
       log_activities_for_sent(ctx, email_data);
       ctx.reset_form();
@@ -273,6 +273,15 @@ export async function execute_external_email_send(
       if (ctx.edit_draft && ctx.on_draft_cleared) {
         ctx.on_draft_cleared();
       }
+      show_action_toast({
+        message: ctx.t("common.email_sent"),
+        action_type: "read",
+        email_ids: [],
+        duration_ms: 5000,
+        on_view_message: () => {
+          window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+        },
+      });
     } catch (err) {
       show_toast(
         (err as Error).message ||
