@@ -688,25 +688,26 @@ export function plain_text_to_html(text: string): string {
   if (!text) return "";
 
   const url_regex = /(https?:\/\/[^\s<>"'{}|\\^`[\]]+)/g;
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const paragraphs = normalized.split(/\n\n+/);
 
-  let escaped = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return paragraphs
+    .map((para) => {
+      let escaped = para
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
 
-  escaped = escaped.replace(url_regex, (url) => {
-    const href_url = url.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+      escaped = escaped.replace(url_regex, (url) => {
+        const href_url = url.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        return `<a href="${href_url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+      });
 
-    return `<a href="${href_url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-  });
-
-  escaped = escaped
-    .replace(/\r\n/g, "<br>")
-    .replace(/\r/g, "<br>")
-    .replace(/\n/g, "<br>");
-
-  return escaped;
+      escaped = escaped.replace(/\n/g, "<br>");
+      return `<p>${escaped}</p>`;
+    })
+    .join("\n");
 }
 
 export function html_to_readable_plain_text(html: string): string {
