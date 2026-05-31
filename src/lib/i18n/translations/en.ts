@@ -5135,6 +5135,7 @@ export const en: Translations = {
     attachments: "Attachments",
     download: "Download",
     powered_by: "♠ Sent securely via Aster Mail",
+    powered_by_prefix: "Sent securely via",
   },
   compose: {
     encrypt_external_label: "Encrypt for external recipients",

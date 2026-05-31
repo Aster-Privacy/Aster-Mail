@@ -72,6 +72,7 @@ export interface SecureViewTranslations {
   attachments: string;
   download: string;
   powered_by: string;
+  powered_by_prefix: string;
 }
 
 export interface ComposeTranslations {
