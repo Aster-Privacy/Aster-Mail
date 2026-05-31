@@ -280,14 +280,6 @@ export function AliasesSection() {
               on_domain_address_display_name_saved={
                 hook.handle_domain_address_display_name_saved
               }
-              on_transfer_requested={(alias_id) => {
-                hook.set_show_create_alias_modal(false);
-                window.dispatchEvent(
-                  new CustomEvent("astermail:transfer-alias", {
-                    detail: alias_id,
-                  }),
-                );
-              }}
               toggling_id={hook.toggling_id}
             />
           </div>
