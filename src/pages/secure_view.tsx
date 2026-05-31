@@ -46,7 +46,8 @@ type ViewState = "loading" | "not_found" | "expired" | "ready" | "unlocked";
 const SECURE_BODY_CSS =
   EMAIL_BODY_CSS +
   `
-body { padding: 16px 18px !important; color: #111827; }
+html, body { background: transparent !important; }
+body { padding: 16px 18px !important; color: inherit; }
 .aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix { display: block !important; }
 `;
 
@@ -106,7 +107,8 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
         height: height ? `${height}px` : "320px",
         border: "none",
         display: "block",
-        backgroundColor: "#ffffff",
+        backgroundColor: "transparent",
+        colorScheme: "dark",
       }}
       title={title}
       onLoad={measure}
@@ -448,8 +450,8 @@ export default function SecureViewPage() {
           <div className="flex flex-col items-center gap-3 text-center">
             <img
               alt="Aster Mail"
-              className="h-12 w-12"
-              src="/mail_logo.png"
+              className="h-8 w-auto"
+              src="/text_logo.png"
             />
             <h1 className="text-lg font-semibold text-txt-primary">
               {sv("secure_view.title")}

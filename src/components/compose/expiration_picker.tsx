@@ -35,6 +35,7 @@ import {
   XMarkIcon,
   LockClosedIcon,
   EyeIcon,
+  EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -110,6 +111,7 @@ export function ExpirationPicker({
     expires_at ? expires_at.getMinutes() : 0,
   );
   const [password_input, set_password_input] = useState(password || "");
+  const [show_password, set_show_password] = useState(false);
 
   const quick_options: QuickOption[] = useMemo(
     () => [
@@ -453,13 +455,26 @@ export function ExpirationPicker({
             <p className="text-sm mb-3 text-txt-muted">
               {t("mail.password_description")}
             </p>
-            <Input
-              autoFocus
-              placeholder={t("mail.enter_password_placeholder")}
-              type="password"
-              value={password_input}
-              onChange={(e) => set_password_input(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                autoFocus
+                className="pr-10"
+                placeholder={t("mail.enter_password_placeholder")}
+                type={show_password ? "text" : "password"}
+                value={password_input}
+                onChange={(e) => set_password_input(e.target.value)}
+              />
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary"
+                tabIndex={-1}
+                type="button"
+                onClick={() => set_show_password((v) => !v)}
+              >
+                {show_password
+                  ? <EyeSlashIcon className="w-4 h-4" />
+                  : <EyeIcon className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
           <AlertDialogFooter className="flex-row gap-3 px-4 pb-4 sm:justify-end">
             <Button
