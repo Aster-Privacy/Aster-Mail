@@ -52,6 +52,7 @@ import {
   array_to_base64,
 } from "./crypto/envelope";
 import { zero_uint8_array } from "./crypto/secure_memory";
+import { encrypt_secure_message } from "./crypto/secure_message_crypto";
 import { encrypt_mail_metadata } from "./crypto/mail_metadata";
 import { mark_thread_read, list_encrypted_mail_items, update_mail_item } from "./api/mail";
 import { decrypt_envelope_with_bytes, base64_to_array } from "./crypto/envelope";
@@ -656,10 +657,43 @@ export async function execute_external_send(
     }
   }
 
+  const is_secure_external = Boolean(
+    email.secure_external && email.expiry_password,
+  );
+
+  let secure_message;
+
+  if (is_secure_external && email.expiry_password) {
+    const secure_attachments = (email.attachments || []).map((a) => ({
+      filename: a.name,
+      content_type: a.mime_type,
+      data: new Uint8Array(a.data),
+    }));
+
+    const encrypted_secure = await encrypt_secure_message(
+      email.expiry_password,
+      { subject: email.subject, body: body_to_send },
+      secure_attachments,
+    );
+
+    secure_message = {
+      kdf_salt: encrypted_secure.kdf_salt,
+      auth_proof: encrypted_secure.auth_proof,
+      encrypted_subject: encrypted_secure.encrypted_subject,
+      encrypted_body: encrypted_secure.encrypted_body,
+      attachments: encrypted_secure.encrypted_attachments,
+    };
+  }
+
+  const ephemeral_subject = is_secure_external
+    ? "[secure message]"
+    : email.subject;
+  const ephemeral_body = is_secure_external ? "[secure message]" : body_to_send;
+
   const encrypted = await encrypt_with_ephemeral_key(
     { to: email.to, cc: email.cc, bcc: email.bcc },
-    email.subject,
-    body_to_send,
+    ephemeral_subject,
+    ephemeral_body,
   );
 
   const current_account = await get_current_account();
@@ -695,7 +729,7 @@ export async function execute_external_send(
 
   let external_attachments;
 
-  if (smtp_attachments.length > 0) {
+  if (!is_secure_external && smtp_attachments.length > 0) {
     external_attachments = prepare_external_attachments(smtp_attachments);
   }
 
@@ -715,8 +749,9 @@ export async function execute_external_send(
     metadata_nonce: envelope_data.metadata_nonce,
     acknowledge_server_readable,
     expires_at: email.expires_at,
-    expiry_password: email.expiry_password,
-    attachments: external_attachments,
+    expiry_password: is_secure_external ? undefined : email.expiry_password,
+    attachments: is_secure_external ? undefined : external_attachments,
+    secure_message,
   };
 
   let effective_thread_id = email.thread_id;

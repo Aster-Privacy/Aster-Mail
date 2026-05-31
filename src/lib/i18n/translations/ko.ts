@@ -4671,4 +4671,28 @@ export const ko = {
     badge_stargazer: "별 관측자",
     badge_stargazer_description: "알맞은 순간에 위를 올려다봤습니다.",
   },
+  secure_view: {
+    title: "보안 메시지",
+    from: "보낸 사람",
+    expires: "만료",
+    expired: "이 보안 메시지는 만료되어 더 이상 사용할 수 없습니다.",
+    password_prompt: "이 메시지는 보호되어 있습니다. 보려면 비밀번호를 입력하세요.",
+    password_label: "비밀번호",
+    view_button: "메시지 보기",
+    unlocking: "잠금 해제 중...",
+    wrong_password: "비밀번호가 올바르지 않습니다. 다시 시도하세요.",
+    locked: "시도 횟수가 너무 많습니다. 나중에 다시 시도하세요.",
+    decrypt_failed: "이 메시지를 복호화할 수 없습니다.",
+    loading: "불러오는 중...",
+    not_found: "이 보안 메시지를 찾을 수 없습니다.",
+    attachments: "첨부 파일",
+    download: "다운로드",
+    powered_by: "AsterMail을 통해 안전하게 전송됨",
+  },
+  compose: {
+    encrypt_external_label: "외부 수신자를 위해 암호화",
+    encrypt_external_desc:
+      "수신자는 비공개 링크를 열고 비밀번호를 입력하여 이 메시지를 읽습니다.",
+    encrypt_password_required: "이 메시지를 암호화하려면 비밀번호를 설정하세요.",
+  },
 };

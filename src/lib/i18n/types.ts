@@ -51,6 +51,33 @@ export interface TranslationNamespace {
   errors: ErrorTranslations;
   mail_rules: MailRulesTranslations;
   badges: BadgesTranslations;
+  secure_view: SecureViewTranslations;
+  compose: ComposeTranslations;
+}
+
+export interface SecureViewTranslations {
+  title: string;
+  from: string;
+  expires: string;
+  expired: string;
+  password_prompt: string;
+  password_label: string;
+  view_button: string;
+  unlocking: string;
+  wrong_password: string;
+  locked: string;
+  decrypt_failed: string;
+  loading: string;
+  not_found: string;
+  attachments: string;
+  download: string;
+  powered_by: string;
+}
+
+export interface ComposeTranslations {
+  encrypt_external_label: string;
+  encrypt_external_desc: string;
+  encrypt_password_required: string;
 }
 
 export interface MailRulesTranslations {
@@ -320,6 +347,13 @@ export interface CommonTranslations {
   display_name_too_long: string;
   add_display_name_placeholder: string;
   edit_display_name: string;
+  alias_note_placeholder: string;
+  edit_alias_note: string;
+  alias_note_updated: string;
+  failed_update_alias_note: string;
+  alias_note_too_long: string;
+  alias_note_char_count: string;
+  toggle_alias: string;
   change_alias_avatar: string;
   remove_alias_avatar: string;
   alias_avatars_locked: string;
@@ -2321,6 +2355,14 @@ export interface SettingsTranslations {
   alias_reserved: string;
   alias_grace_upgrade_hint: string;
   alias_reserved_upgrade_hint: string;
+  create_alias_display_name_label: string;
+  create_alias_display_name_placeholder: string;
+  create_alias_note_label: string;
+  create_alias_note_placeholder: string;
+  alias_availability_on_save: string;
+  alias_decrypt_failed_title: string;
+  alias_decrypt_failed_hint: string;
+  recently_deleted_load_failed: string;
   invalid_address: string;
   alias_already_taken: string;
   alias_create_failed: string;
@@ -3265,6 +3307,128 @@ export interface SettingsTranslations {
   ghost_alias_expire_now: string;
   ghost_alias_expired_grace: string;
   ghost_alias_grace_until: string;
+  recently_deleted_aliases_title: string;
+  recently_deleted_aliases_description: string;
+  recently_deleted_aliases_empty: string;
+  alias_deleted_at: string;
+  restore_alias_action: string;
+  alias_restored: string;
+  failed_restore_alias: string;
+  alias_stats_received: string;
+  alias_stats_blocked: string;
+  alias_advanced: string;
+  alias_advanced_hide: string;
+  alias_advanced_show: string;
+  alias_sender_pinning_title: string;
+  alias_sender_pinning_description: string;
+  alias_sender_pin_mode_off: string;
+  alias_sender_pin_mode_off_hint: string;
+  alias_sender_pin_mode_lock_first: string;
+  alias_sender_pin_mode_lock_first_hint: string;
+  alias_sender_pin_mode_allowlist: string;
+  alias_sender_pin_mode_allowlist_hint: string;
+  alias_sender_add: string;
+  alias_sender_email_placeholder: string;
+  alias_sender_list_empty: string;
+  alias_sender_unknown: string;
+  alias_sender_added: string;
+  alias_sender_removed: string;
+  alias_sender_add_failed: string;
+  alias_pin_mode_updated: string;
+  alias_toggle_failed: string;
+  alias_delete_failed: string;
+  domain_address_delete_failed: string;
+  domain_delete_failed: string;
+  aliases_load_failed: string;
+  alias_rules_title: string;
+  alias_rules_description: string;
+  alias_rules_empty: string;
+  alias_rule_add: string;
+  alias_rule_save: string;
+  alias_rule_added: string;
+  alias_rule_removed: string;
+  alias_rule_updated: string;
+  alias_rule_save_failed: string;
+  alias_rule_when: string;
+  alias_rule_then: string;
+  alias_rule_add_condition: string;
+  alias_rule_field_all: string;
+  alias_rule_field_from: string;
+  alias_rule_field_to: string;
+  alias_rule_field_subject: string;
+  alias_rule_op_contains: string;
+  alias_rule_op_equals: string;
+  alias_rule_op_starts_with: string;
+  alias_rule_op_ends_with: string;
+  alias_rule_op_matches_regex: string;
+  alias_rule_value_placeholder: string;
+  alias_rule_action_block: string;
+  alias_rule_action_to_trash: string;
+  alias_rule_action_label: string;
+  alias_rule_action_banner: string;
+  alias_rule_action_subject_mask: string;
+  alias_rule_action_auto_reply: string;
+  alias_rule_action_label_placeholder: string;
+  alias_rule_action_banner_placeholder: string;
+  alias_rule_action_subject_mask_placeholder: string;
+  alias_rule_action_auto_reply_placeholder: string;
+  alias_rule_needs_action: string;
+  alias_contacts_title: string;
+  alias_contacts_description: string;
+  alias_contacts_empty: string;
+  alias_contact_add: string;
+  alias_contact_email_placeholder: string;
+  alias_contact_unknown: string;
+  alias_contact_added: string;
+  alias_contact_removed: string;
+  alias_contact_add_failed: string;
+  alias_contact_block: string;
+  alias_contact_unblock: string;
+  alias_contact_blocked: string;
+  alias_relay_title: string;
+  alias_relay_description: string;
+  alias_relay_mode_native: string;
+  alias_relay_mode_native_hint: string;
+  alias_relay_mode_relay: string;
+  alias_relay_mode_relay_hint: string;
+  alias_relay_not_private_warning: string;
+  alias_relay_destinations_title: string;
+  alias_relay_destination_empty: string;
+  alias_relay_destination_unknown: string;
+  alias_relay_destination_placeholder: string;
+  alias_relay_destination_add: string;
+  alias_relay_destination_added: string;
+  alias_relay_destination_removed: string;
+  alias_relay_destination_add_failed: string;
+  alias_relay_pgp_key: string;
+  alias_relay_pgp_key_placeholder: string;
+  alias_relay_strip_trackers: string;
+  alias_relay_keep_copy: string;
+  alias_relay_mode_updated: string;
+  alias_directories_title: string;
+  alias_directories_description: string;
+  alias_directories_empty: string;
+  alias_directory_key_label: string;
+  alias_directory_key_placeholder: string;
+  alias_directory_create: string;
+  alias_directory_created: string;
+  alias_directory_removed: string;
+  alias_directory_create_failed: string;
+  alias_directory_auto_create: string;
+  alias_directory_pattern_hint: string;
+  alias_directory_updated: string;
+  alias_feature_locked_directories: string;
+  alias_feature_locked_rules: string;
+  alias_feature_locked_relay: string;
+  alias_feature_locked_contacts: string;
+  alias_feature_locked_sender_pinning: string;
+  alias_feature_locked_view_plans: string;
+  alias_rule_cancel: string;
+  alias_rule_close: string;
+  alias_rule_field_label: string;
+  alias_rule_operator_label: string;
+  alias_rule_value_label: string;
+  alias_rule_new_title: string;
   external_accounts_tab: string;
   blocked_tab: string;
   allowlist_tab: string;
@@ -4487,6 +4651,8 @@ export type TranslationKey =
   | `auth.${keyof AuthTranslations}`
   | `errors.${keyof ErrorTranslations}`
   | `mail_rules.${keyof MailRulesTranslations}`
-  | `badges.${keyof BadgesTranslations}`;
+  | `badges.${keyof BadgesTranslations}`
+  | `secure_view.${keyof SecureViewTranslations}`
+  | `compose.${keyof ComposeTranslations}`;
 
 export type Translations = TranslationNamespace;

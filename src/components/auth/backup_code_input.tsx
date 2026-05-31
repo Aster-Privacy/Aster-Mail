@@ -33,6 +33,7 @@ interface BackupCodeInputProps {
   on_success: (response: TotpVerifyResponse) => void;
   on_use_authenticator: () => void;
   on_cancel: () => void;
+  remember_me?: boolean;
 }
 
 export function BackupCodeInput({
@@ -40,6 +41,7 @@ export function BackupCodeInput({
   on_success,
   on_use_authenticator,
   on_cancel,
+  remember_me = true,
 }: BackupCodeInputProps) {
   const { t } = use_i18n();
   const [code, set_code] = useState("");
@@ -68,6 +70,7 @@ export function BackupCodeInput({
     const response = await verify_backup_code_login({
       code: formatted_code,
       pending_login_token,
+      remember_me,
     });
 
     if (response.error) {

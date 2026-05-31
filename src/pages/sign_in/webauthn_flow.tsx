@@ -29,6 +29,7 @@ interface WebauthnFlowProps {
   set_active_2fa_method: (
     method: "totp" | "webauthn" | "backup" | "choose",
   ) => void;
+  remember_me: boolean;
 }
 
 export function webauthn_flow({
@@ -37,6 +38,7 @@ export function webauthn_flow({
   on_success,
   on_cancel,
   set_active_2fa_method,
+  remember_me,
 }: WebauthnFlowProps) {
   return (
     <WebauthnVerification
@@ -48,6 +50,7 @@ export function webauthn_flow({
         )
       }
       pending_login_token={pending_login_token}
+      remember_me={remember_me}
     />
   );
 }

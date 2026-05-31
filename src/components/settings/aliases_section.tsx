@@ -38,11 +38,15 @@ import {
 } from "@/components/ui/modal";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_aliases } from "@/components/settings/hooks/use_aliases";
-import { CreateAliasModal } from "@/components/settings/aliases/alias_form";
+import {
+  CreateAliasModal,
+  compute_alias_at_limit,
+} from "@/components/settings/aliases/alias_form";
 import { AliasList } from "@/components/settings/aliases/alias_list";
 import { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 import { DomainCardV2 } from "@/components/settings/aliases/domain_card_v2";
 import { DomainDeleteModal } from "@/components/settings/aliases/domain_delete_modal";
+import { AliasDirectoriesSection } from "@/components/settings/alias_directories_section";
 
 export { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 
@@ -167,7 +171,7 @@ export function AliasesSection() {
                 (d) => d.status === "active",
               );
 
-              if (max !== -1 && total_count >= max && !has_custom_domains) {
+              if (compute_alias_at_limit(max, total_count, has_custom_domains)) {
                 hook.set_show_upgrade_modal(true);
               } else {
                 hook.set_show_create_alias_modal(true);
@@ -188,12 +192,14 @@ export function AliasesSection() {
             domain_addresses={hook.domain_addresses}
             on_alias_delete={hook.handle_alias_delete}
             on_alias_toggle={hook.handle_alias_toggle}
+            on_aliases_changed={hook.load_aliases}
             on_avatar_changed={hook.load_aliases}
             on_display_name_saved={hook.handle_display_name_saved}
             on_domain_addr_delete={hook.handle_domain_addr_delete}
             on_domain_address_display_name_saved={
               hook.handle_domain_address_display_name_saved
             }
+            on_note_saved={hook.handle_note_saved}
             toggling_id={hook.toggling_id}
           />
         </div>
@@ -284,6 +290,10 @@ export function AliasesSection() {
             )}
           </>
         )}
+      </div>
+
+      <div className="border-t border-edge-secondary pt-8">
+        <AliasDirectoriesSection />
       </div>
 
       <CreateAliasModal

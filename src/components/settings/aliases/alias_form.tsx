@@ -56,6 +56,18 @@ import {
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
 
+export function compute_alias_at_limit(
+  max_aliases: number,
+  total_count: number,
+  has_active_custom_domains: boolean,
+): boolean {
+  return (
+    max_aliases !== -1 &&
+    total_count >= max_aliases &&
+    !has_active_custom_domains
+  );
+}
+
 interface CreateAliasModalProps {
   is_open: boolean;
   on_close: () => void;
@@ -79,6 +91,8 @@ export function CreateAliasModal({
 }: CreateAliasModalProps) {
   const { t } = use_i18n();
   const [local_part, set_local_part] = useState("");
+  const [display_name, set_display_name] = useState("");
+  const [note, set_note] = useState("");
   const [domain, set_domain] = useState(
     available_domains[0] || DEFAULT_DOMAINS[0],
   );
@@ -99,6 +113,8 @@ export function CreateAliasModal({
   useEffect(() => {
     if (is_open) {
       set_local_part("");
+      set_display_name("");
+      set_note("");
       set_domain(available_domains[0] || DEFAULT_DOMAINS[0]);
       set_error(null);
       set_is_available(null);
@@ -170,7 +186,11 @@ export function CreateAliasModal({
       : validate_local_part(local_part);
 
     if (!validation.valid) {
-      set_error(validation.error || t("settings.invalid_address"));
+      set_error(
+        validation.error_key
+          ? t(validation.error_key)
+          : t("settings.invalid_address"),
+      );
 
       return;
     }
@@ -197,6 +217,7 @@ export function CreateAliasModal({
           local_part,
           domain,
           captcha_token ?? undefined,
+          display_name.trim() || undefined,
         );
 
         if (response.error) {
@@ -212,8 +233,9 @@ export function CreateAliasModal({
         const response = await create_alias(
           local_part,
           domain,
-          undefined,
+          display_name.trim() || undefined,
           captcha_token ?? undefined,
+          note.trim() || undefined,
         );
 
         if (response.error) {
@@ -244,8 +266,11 @@ export function CreateAliasModal({
   };
 
   const has_custom_domains = custom_domains.some((d) => d.status === "active");
-  const at_limit =
-    max_aliases !== -1 && current_count >= max_aliases && !has_custom_domains;
+  const at_limit = compute_alias_at_limit(
+    max_aliases,
+    current_count + domain_addresses.length,
+    has_custom_domains,
+  );
 
   const current_validation = is_custom_domain
     ? validate_domain_local_part(local_part)
@@ -258,21 +283,27 @@ export function CreateAliasModal({
     (d) => !DEFAULT_DOMAINS.includes(d),
   );
 
-  const custom_domain_address_count =
-    is_custom_domain && matched_custom_domain
-      ? domain_addresses.filter((a) => a.domain_id === matched_custom_domain.id)
-          .length
-      : 0;
-
   const remaining =
     max_aliases === -1
       ? Infinity
-      : is_custom_domain
-        ? Math.max(0, max_aliases - custom_domain_address_count)
-        : Math.max(0, max_aliases - current_count);
+      : Math.max(0, max_aliases - current_count);
+
+  const show_remaining = !is_custom_domain;
+
+  const can_submit =
+    !saving &&
+    !!local_part &&
+    current_validation.valid &&
+    (is_custom_domain || is_available !== false) &&
+    (!turnstile_required || !!captcha_token);
+
+  const request_close = () => {
+    if (saving) return;
+    on_close();
+  };
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="xl">
+    <Modal is_open={is_open} close_on_overlay={!saving} on_close={request_close} size="xl">
       <ModalHeader>
         <ModalTitle>
           {at_limit
@@ -304,11 +335,13 @@ export function CreateAliasModal({
                 >
                   {t("settings.address_label")}
                 </label>
-                <span className="text-[11px] tabular-nums text-txt-muted">
-                  {remaining === Infinity
-                    ? t("settings.unlimited")
-                    : `${remaining} ${t("common.remaining")}`}
-                </span>
+                {show_remaining && (
+                  <span className="text-[11px] tabular-nums text-txt-muted">
+                    {remaining === Infinity
+                      ? t("settings.unlimited")
+                      : `${remaining} ${t("common.remaining")}`}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -328,7 +361,12 @@ export function CreateAliasModal({
                   onChange={(e) =>
                     set_local_part(e.target.value.toLowerCase().trim())
                   }
-                  onKeyDown={(e) => e["key"] === "Enter" && handle_create()}
+                  onKeyDown={(e) => {
+                    if (e["key"] !== "Enter") return;
+                    e.preventDefault();
+                    if (!can_submit) return;
+                    handle_create();
+                  }}
                 />
                 <Select value={domain} onValueChange={set_domain}>
                   <SelectTrigger className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0">
@@ -380,10 +418,54 @@ export function CreateAliasModal({
               )}
               {local_part && !current_validation.valid && (
                 <p className="text-xs mt-1.5 text-red-500">
-                  {current_validation.error}
+                  {current_validation.error_key
+                    ? t(current_validation.error_key)
+                    : t("settings.invalid_address")}
+                </p>
+              )}
+              {is_custom_domain && (
+                <p className="text-xs mt-1.5 text-txt-muted">
+                  {t("settings.alias_availability_on_save")}
                 </p>
               )}
             </div>
+            <div>
+              <label
+                className="block mb-2 text-sm font-medium text-txt-primary"
+                htmlFor="alias-display-name"
+              >
+                {t("settings.create_alias_display_name_label")}
+              </label>
+              <input
+                className="w-full h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
+                id="alias-display-name"
+                maxLength={128}
+                placeholder={t(
+                  "settings.create_alias_display_name_placeholder",
+                )}
+                value={display_name}
+                onChange={(e) => set_display_name(e.target.value)}
+              />
+            </div>
+            {!is_custom_domain && (
+              <div>
+                <label
+                  className="block mb-2 text-sm font-medium text-txt-primary"
+                  htmlFor="alias-note"
+                >
+                  {t("settings.create_alias_note_label")}
+                </label>
+                <textarea
+                  className="w-full px-3 py-2 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none resize-none"
+                  id="alias-note"
+                  maxLength={1024}
+                  placeholder={t("settings.create_alias_note_placeholder")}
+                  rows={2}
+                  value={note}
+                  onChange={(e) => set_note(e.target.value)}
+                />
+              </div>
+            )}
             {turnstile_required && (
               <div className="flex justify-center">
                 <TurnstileWidget
@@ -404,7 +486,11 @@ export function CreateAliasModal({
       </ModalBody>
 
       <ModalFooter>
-        <Button variant={at_limit ? "outline" : "ghost"} onClick={on_close}>
+        <Button
+          disabled={saving}
+          variant={at_limit ? "outline" : "ghost"}
+          onClick={request_close}
+        >
           {t("common.cancel")}
         </Button>
         {at_limit ? (
@@ -423,13 +509,7 @@ export function CreateAliasModal({
           </Button>
         ) : (
           <Button
-            disabled={
-              saving ||
-              !local_part ||
-              (!is_custom_domain && is_available === false) ||
-              !current_validation.valid ||
-              (turnstile_required && !captcha_token)
-            }
+            disabled={!can_submit}
             variant="depth"
             onClick={handle_create}
           >

@@ -34,6 +34,7 @@ import {
   XMarkIcon,
   LockClosedIcon,
   ClockIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
@@ -42,7 +43,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
-import { update_alias } from "@/services/api/aliases";
+import { update_alias, get_alias_stats } from "@/services/api/aliases";
+import type { AliasStats } from "@/services/api/aliases";
 import { update_domain_address } from "@/services/api/domains";
 import {
   get_preferred_sender_id,
@@ -50,6 +52,8 @@ import {
   subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
+import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
+import { AliasAdvancedPanel } from "@/components/settings/aliases/alias_advanced_panel";
 
 const AVATAR_MAX_SIZE = 256;
 
@@ -185,7 +189,8 @@ function AliasAvatar({
         ) : (
           <>
             <button
-              className="p-1 rounded-full bg-surf-card border border-edge-secondary cursor-pointer hover:bg-surf-hover transition-colors"
+              className="p-1 rounded-full bg-surf-card border border-edge-secondary cursor-pointer hover:bg-surf-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={uploading}
               title={t("common.change_alias_avatar" as TranslationKey)}
               type="button"
               onClick={() => file_ref.current?.click()}
@@ -194,7 +199,8 @@ function AliasAvatar({
             </button>
             {profile_picture && (
               <button
-                className="p-1 rounded-full bg-surf-card border border-edge-secondary cursor-pointer hover:border-red-500/30 hover:text-red-600 transition-colors"
+                className="p-1 rounded-full bg-surf-card border border-edge-secondary cursor-pointer hover:border-red-500/30 hover:text-red-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={uploading}
                 title={t("common.remove_alias_avatar" as TranslationKey)}
                 type="button"
                 onClick={on_remove}
@@ -230,6 +236,7 @@ interface AliasItemProps {
   on_delete: (id: string) => void;
   on_avatar_changed?: () => void;
   on_display_name_saved?: (alias_id: string, name: string) => void;
+  on_note_saved?: (alias_id: string, note: string) => void;
   toggling: boolean;
   deleting: boolean;
   is_avatar_locked: boolean;
@@ -241,12 +248,14 @@ export function AliasItem({
   on_delete,
   on_avatar_changed,
   on_display_name_saved,
+  on_note_saved,
   toggling,
   deleting,
   is_avatar_locked,
 }: AliasItemProps) {
   const { t } = use_i18n();
   const [uploading, set_uploading] = useState(false);
+  const [advanced_open, set_advanced_open] = useState(false);
   const [local_picture, set_local_picture] = useState<string | undefined>(
     undefined,
   );
@@ -259,6 +268,28 @@ export function AliasItem({
   const grace_days = in_grace_period
     ? get_grace_days_remaining(alias.downgrade_grace_expires_at!)
     : 0;
+
+  const [stats, set_stats] = useState<AliasStats | null>(null);
+
+  useEffect(() => {
+    if (!advanced_open) return;
+
+    let active = true;
+
+    get_alias_stats(alias.id)
+      .then((response) => {
+        if (active && response.data) set_stats(response.data);
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [alias.id, advanced_open]);
+
+  useEffect(() => {
+    set_local_picture(undefined);
+  }, [alias.profile_picture]);
 
   const displayed_picture =
     local_picture !== undefined
@@ -351,12 +382,14 @@ export function AliasItem({
   };
 
   return (
-    <div
-      className="flex items-center gap-3 p-3 rounded-xl transition-all bg-surf-secondary border border-edge-secondary"
-      style={{
-        opacity: alias.is_enabled && !in_grace_period ? 1 : 0.5,
-      }}
-    >
+    <div className="rounded-xl transition-all bg-surf-secondary border border-edge-secondary">
+    <div className="flex items-center gap-3 p-3">
+      <div
+        className="flex flex-1 min-w-0 items-center gap-3"
+        style={{
+          opacity: alias.is_enabled && !in_grace_period ? 1 : 0.5,
+        }}
+      >
       <AliasAvatar
         gradient={gradient}
         icon={
@@ -398,14 +431,51 @@ export function AliasItem({
           on_save={(name) => update_alias(alias.id, { display_name: name })}
           on_saved={(name) => on_display_name_saved?.(alias.id, name)}
         />
+        <AliasNoteEditor
+          alias_address={alias.full_address}
+          is_locked={is_avatar_locked}
+          note={alias.note}
+          on_save={(note) => update_alias(alias.id, { note })}
+          on_saved={(note) => on_note_saved?.(alias.id, note)}
+        />
+        {stats && (stats.received > 0 || stats.blocked > 0) && (
+          <p className="mt-0.5 text-[11px] text-txt-muted">
+            {t("settings.alias_stats_received" as TranslationKey, {
+              count: stats.received,
+            })}
+            {" · "}
+            {t("settings.alias_stats_blocked" as TranslationKey, {
+              count: stats.blocked,
+            })}
+          </p>
+        )}
         {in_grace_period && (
           <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
             {t("settings.alias_grace_upgrade_hint" as TranslationKey)}
           </p>
         )}
       </div>
+      </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
+        <Button
+          className={
+            advanced_open
+              ? "h-8 w-8 text-blue-500 hover:text-blue-500 hover:bg-blue-500/10"
+              : "h-8 w-8"
+          }
+          size="icon"
+          title={
+            advanced_open
+              ? t("settings.alias_advanced_hide" as TranslationKey)
+              : t("settings.alias_advanced_show" as TranslationKey)
+          }
+          variant="ghost"
+          onClick={() => set_advanced_open((open) => !open)}
+        >
+          <Cog6ToothIcon className="w-4 h-4 text-txt-muted" />
+        </Button>
+
         <Button
           className="h-8 w-8"
           size="icon"
@@ -417,6 +487,7 @@ export function AliasItem({
         </Button>
 
         <Switch
+          aria-label={t("common.toggle_alias")}
           checked={alias.is_enabled}
           disabled={toggling || in_grace_period}
           onCheckedChange={(checked) => on_toggle(alias.id, checked)}
@@ -429,9 +500,15 @@ export function AliasItem({
           variant="ghost"
           onClick={() => on_delete(alias.id)}
         >
-          {deleting ? <Spinner size="md" /> : <TrashIcon className="w-4 h-4" />}
+          {deleting ? <Spinner size="xs" /> : <TrashIcon className="w-4 h-4" />}
         </Button>
       </div>
+    </div>
+      {advanced_open && (
+        <div className="px-3 pb-3">
+          <AliasAdvancedPanel alias_id={alias.id} />
+        </div>
+      )}
     </div>
   );
 }
@@ -467,6 +544,10 @@ export function DomainAddressItem({
   useEffect(() => {
     return subscribe_preferred_sender((id) => set_preferred_id(id));
   }, []);
+
+  useEffect(() => {
+    set_local_picture(undefined);
+  }, [address.profile_picture]);
 
   const toggle_primary = () => {
     const next = is_primary ? null : sender_option_id;
@@ -657,7 +738,7 @@ export function DomainAddressItem({
           variant="ghost"
           onClick={() => on_delete(address.id, address.domain_id)}
         >
-          {deleting ? <Spinner size="md" /> : <TrashIcon className="w-4 h-4" />}
+          {deleting ? <Spinner size="xs" /> : <TrashIcon className="w-4 h-4" />}
         </Button>
       </div>
     </div>

@@ -4266,7 +4266,7 @@ export const ar = {
     resend_in_seconds: "إعادة الإرسال خلال {{seconds}} ثانية",
     skip_verification: "تخطي التحقق",
     recovery_email_required_notice:
-      "البريد الإلكتروني الاحتياطي مطلوب لمنع الرسائل المزعج��.",
+      "البريد الإلكتروني الاحتياطي مطلوب لمنع الرسائل المزعجة.",
     abuse_account_limit:
       "وضع نظام الأمان الآلي علامة على هذا التسجيل، وتعذّر إنشاء الحساب. إن بدا هذا خطأً، يمكن التواصل مع hello@astermail.org.",
     abuse_flagged_message:
@@ -4744,5 +4744,29 @@ export const ar = {
     badge_pulsar_description: "سمع الإشارة في الضوضاء.",
     badge_stargazer: "راصد النجوم",
     badge_stargazer_description: "نظر إلى الأعلى في اللحظة المناسبة.",
+  },
+  secure_view: {
+    title: "رسالة آمنة",
+    from: "من",
+    expires: "تنتهي الصلاحية",
+    expired: "انتهت صلاحية هذه الرسالة الآمنة ولم تعد متاحة.",
+    password_prompt: "هذه الرسالة محمية. أدخل كلمة المرور لعرضها.",
+    password_label: "كلمة المرور",
+    view_button: "عرض الرسالة",
+    unlocking: "جارٍ إلغاء القفل...",
+    wrong_password: "كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى.",
+    locked: "محاولات كثيرة جدًا. يرجى المحاولة لاحقًا.",
+    decrypt_failed: "تعذّر فك تشفير هذه الرسالة.",
+    loading: "جارٍ التحميل...",
+    not_found: "تعذّر العثور على هذه الرسالة الآمنة.",
+    attachments: "المرفقات",
+    download: "تنزيل",
+    powered_by: "أُرسلت بأمان عبر AsterMail",
+  },
+  compose: {
+    encrypt_external_label: "تشفير للمستلمين الخارجيين",
+    encrypt_external_desc:
+      "يفتح المستلمون رابطًا خاصًا ويُدخلون كلمة مرور لقراءة هذه الرسالة.",
+    encrypt_password_required: "عيّن كلمة مرور لتشفير هذه الرسالة.",
   },
 };

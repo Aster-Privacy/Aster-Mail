@@ -201,22 +201,25 @@ export async function execute_external_email_send(
     body: string;
     expires_at?: string;
     expiry_password?: string;
+    secure_external?: boolean;
     attachments?: Attachment[];
   },
   pgp_enabled = false,
 ) {
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
+  const use_pgp = pgp_enabled && !email_data.secure_external;
+
   const external_email_data = {
     ...email_data,
     encryption_options: {
-      auto_discover_keys: pgp_enabled,
-      encrypt_emails: pgp_enabled,
+      auto_discover_keys: use_pgp,
+      encrypt_emails: use_pgp,
       require_encryption: false,
     },
   };
 
-  if (delay_seconds > 0) {
+  if (delay_seconds > 0 && !email_data.secure_external) {
     const result = await queue_email_to_server(
       external_email_data,
       delay_seconds,

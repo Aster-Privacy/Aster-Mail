@@ -20,6 +20,8 @@
 //
 import { useState, useEffect, useCallback, useMemo } from "react";
 
+import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
   list_aliases,
@@ -71,9 +73,24 @@ const aliases_cache: AliasesCache = {
   loaded: false,
 };
 
+export function clear_aliases_cache(): void {
+  aliases_cache.aliases = [];
+  aliases_cache.domain_addresses = [];
+  aliases_cache.alias_counts = null;
+  aliases_cache.domains = [];
+  aliases_cache.max_aliases = 3;
+  aliases_cache.max_domains = 0;
+  aliases_cache.loaded = false;
+}
+
+export function get_cached_aliases(): DecryptedEmailAlias[] {
+  return aliases_cache.aliases;
+}
+
 export { DEFAULT_DOMAINS };
 
 export function use_aliases() {
+  const { t } = use_i18n();
   const [aliases, set_aliases] = useState<DecryptedEmailAlias[]>(
     aliases_cache.aliases,
   );
@@ -183,6 +200,7 @@ export function use_aliases() {
         aliases_cache.alias_counts = derived_counts;
       }
     } catch (error) {
+      show_toast(t("settings.aliases_load_failed"), "error");
       if (import.meta.env.DEV) console.error(error);
     } finally {
       set_aliases_loading(false);
@@ -193,7 +211,7 @@ export function use_aliases() {
     try {
       const response = await get_alias_counts();
 
-      if (response.data && response.data.max !== 0) {
+      if (response.data && typeof response.data.max === "number") {
         set_alias_counts(response.data);
         aliases_cache.alias_counts = response.data;
       }
@@ -303,6 +321,7 @@ export function use_aliases() {
           aliases_cache.aliases = reverted;
           return reverted;
         });
+        show_toast(response.error || t("settings.alias_toggle_failed"), "error");
       }
     } catch (error) {
       set_aliases((prev) => {
@@ -312,6 +331,7 @@ export function use_aliases() {
         aliases_cache.aliases = reverted;
         return reverted;
       });
+      show_toast(t("settings.alias_toggle_failed"), "error");
       if (import.meta.env.DEV) console.error(error);
     } finally {
       set_toggling_id(null);
@@ -372,8 +392,11 @@ export function use_aliases() {
             new CustomEvent("astermail:navigate", { detail: "/" }),
           );
         }
+      } else {
+        show_toast(response.error || t("settings.alias_delete_failed"), "error");
       }
     } catch (error) {
+      show_toast(t("settings.alias_delete_failed"), "error");
       if (import.meta.env.DEV) console.error(error);
     } finally {
       set_alias_deleting_id(null);
@@ -425,8 +448,14 @@ export function use_aliases() {
           return updated;
         });
         emit_aliases_changed();
+      } else {
+        show_toast(
+          response.error || t("settings.domain_address_delete_failed"),
+          "error",
+        );
       }
     } catch (error) {
+      show_toast(t("settings.domain_address_delete_failed"), "error");
       if (import.meta.env.DEV) console.error(error);
     } finally {
       set_domain_addr_deleting_id(null);
@@ -495,6 +524,18 @@ export function use_aliases() {
     });
   };
 
+  const handle_note_saved = (alias_id: string, note: string) => {
+    set_aliases((prev) => {
+      const updated = prev.map((a) =>
+        a.id === alias_id ? { ...a, note: note || undefined } : a,
+      );
+
+      aliases_cache.aliases = updated;
+
+      return updated;
+    });
+  };
+
   const handle_domain_address_display_name_saved = (
     address_id: string,
     name: string,
@@ -538,8 +579,11 @@ export function use_aliases() {
 
           return updated;
         });
+      } else {
+        show_toast(response.error || t("settings.domain_delete_failed"), "error");
       }
     } catch (error) {
+      show_toast(t("settings.domain_delete_failed"), "error");
       if (import.meta.env.DEV) console.error(error);
     } finally {
       set_domain_deleting_id(null);
@@ -591,6 +635,7 @@ export function use_aliases() {
     handle_open_setup,
     handle_wizard_close,
     handle_display_name_saved,
+    handle_note_saved,
     handle_domain_address_display_name_saved,
     handle_domain_delete,
     confirm_domain_delete,

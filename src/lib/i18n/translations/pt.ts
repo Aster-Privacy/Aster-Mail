@@ -4780,4 +4780,30 @@ export const pt = {
     badge_stargazer: "Observador de Estrelas",
     badge_stargazer_description: "Olhou para cima no momento certo.",
   },
+  secure_view: {
+    title: "Mensagem segura",
+    from: "De",
+    expires: "Expira",
+    expired: "Esta mensagem segura expirou e já não está disponível.",
+    password_prompt:
+      "Esta mensagem está protegida. Introduza a palavra-passe para a ver.",
+    password_label: "Palavra-passe",
+    view_button: "Ver mensagem",
+    unlocking: "A desbloquear...",
+    wrong_password: "Palavra-passe incorreta. Tente novamente.",
+    locked: "Demasiadas tentativas. Tente novamente mais tarde.",
+    decrypt_failed: "Não foi possível descodificar esta mensagem.",
+    loading: "A carregar...",
+    not_found: "Não foi possível encontrar esta mensagem segura.",
+    attachments: "Anexos",
+    download: "Transferir",
+    powered_by: "Enviado de forma segura através do AsterMail",
+  },
+  compose: {
+    encrypt_external_label: "Cifrar para destinatários externos",
+    encrypt_external_desc:
+      "Os destinatários abrem uma ligação privada e introduzem uma palavra-passe para ler esta mensagem.",
+    encrypt_password_required:
+      "Defina uma palavra-passe para cifrar esta mensagem.",
+  },
 };

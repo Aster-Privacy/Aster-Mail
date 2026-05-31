@@ -21,8 +21,14 @@
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { DecryptedDomainAddress } from "@/services/api/domains";
 
-import { AtSymbolIcon } from "@heroicons/react/24/outline";
+import {
+  AtSymbolIcon,
+  ExclamationTriangleIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
 
+import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { UpgradeInlineCard } from "@/components/upgrade/upgrade_inline_card";
@@ -30,6 +36,7 @@ import {
   AliasItem,
   DomainAddressItem,
 } from "@/components/settings/aliases/alias_card";
+import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/recently_deleted_aliases_section";
 
 interface AliasListProps {
   aliases: DecryptedEmailAlias[];
@@ -43,10 +50,50 @@ interface AliasListProps {
   on_domain_addr_delete: (id: string, domain_id: string) => void;
   on_avatar_changed?: () => void;
   on_display_name_saved?: (alias_id: string, name: string) => void;
+  on_note_saved?: (alias_id: string, note: string) => void;
+  on_aliases_changed?: () => void;
   on_domain_address_display_name_saved?: (
     address_id: string,
     name: string,
   ) => void;
+}
+
+function UndecryptableAliasCard({
+  alias,
+  deleting,
+  on_delete,
+}: {
+  alias: DecryptedEmailAlias;
+  deleting: boolean;
+  on_delete: (id: string) => void;
+}) {
+  const { t } = use_i18n();
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-surf-secondary border border-amber-500/30">
+      <div className="flex w-10 h-10 items-center justify-center rounded-full flex-shrink-0 bg-amber-500/10">
+        <ExclamationTriangleIcon className="w-5 h-5 text-amber-500" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-txt-primary">
+          {t("settings.alias_decrypt_failed_title")}
+        </p>
+        <p className="text-xs mt-0.5 text-txt-muted">
+          {t("settings.alias_decrypt_failed_hint")}
+        </p>
+      </div>
+      <Button
+        className="h-8 w-8 flex-shrink-0 text-red-500 hover:text-red-500 hover:bg-red-500/10"
+        disabled={deleting}
+        size="icon"
+        title={t("common.delete")}
+        variant="ghost"
+        onClick={() => on_delete(alias.id)}
+      >
+        {deleting ? <Spinner size="xs" /> : <TrashIcon className="w-4 h-4" />}
+      </Button>
+    </div>
+  );
 }
 
 export function AliasList({
@@ -61,6 +108,8 @@ export function AliasList({
   on_domain_addr_delete,
   on_avatar_changed,
   on_display_name_saved,
+  on_note_saved,
+  on_aliases_changed,
   on_domain_address_display_name_saved,
 }: AliasListProps) {
   const { t } = use_i18n();
@@ -88,9 +137,20 @@ export function AliasList({
 
   if (aliases.length === 0 && domain_addresses.length === 0) {
     return (
-      <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-        <AtSymbolIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-        <p className="text-sm text-txt-muted">{t("settings.no_aliases_yet")}</p>
+      <div className="space-y-4">
+        <UpgradeInlineCard
+          limit_key="max_email_aliases"
+          resource_label="aliases"
+        />
+        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+          <AtSymbolIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
+          <p className="text-sm text-txt-muted">
+            {t("settings.no_aliases_yet")}
+          </p>
+        </div>
+        <RecentlyDeletedAliasesSection
+          on_restored={() => on_aliases_changed?.()}
+        />
       </div>
     );
   }
@@ -102,19 +162,29 @@ export function AliasList({
         limit_key="max_email_aliases"
         resource_label="aliases"
       />
-      {aliases.map((alias) => (
-        <AliasItem
-          key={alias.id}
-          alias={alias}
-          deleting={alias_deleting_id === alias.id}
-          is_avatar_locked={is_avatar_locked}
-          on_avatar_changed={on_avatar_changed}
-          on_delete={on_alias_delete}
-          on_display_name_saved={on_display_name_saved}
-          on_toggle={on_alias_toggle}
-          toggling={toggling_id === alias.id}
-        />
-      ))}
+      {aliases.map((alias) =>
+        alias.decryption_failed ? (
+          <UndecryptableAliasCard
+            key={alias.id}
+            alias={alias}
+            deleting={alias_deleting_id === alias.id}
+            on_delete={on_alias_delete}
+          />
+        ) : (
+          <AliasItem
+            key={alias.id}
+            alias={alias}
+            deleting={alias_deleting_id === alias.id}
+            is_avatar_locked={is_avatar_locked}
+            on_avatar_changed={on_avatar_changed}
+            on_delete={on_alias_delete}
+            on_display_name_saved={on_display_name_saved}
+            on_note_saved={on_note_saved}
+            on_toggle={on_alias_toggle}
+            toggling={toggling_id === alias.id}
+          />
+        ),
+      )}
       {domain_addresses.map((addr) => (
         <DomainAddressItem
           key={`da-${addr.id}`}
@@ -126,6 +196,9 @@ export function AliasList({
           on_display_name_saved={on_domain_address_display_name_saved}
         />
       ))}
+      <RecentlyDeletedAliasesSection
+        on_restored={() => on_aliases_changed?.()}
+      />
     </>
   );
 }

@@ -123,6 +123,8 @@ interface ReEncryptedAlias {
   encrypted_display_name?: string;
   display_name_nonce?: string;
   alias_address_hash: string;
+  encrypted_note?: string;
+  note_nonce?: string;
 }
 
 interface ReEncryptedContact {
@@ -132,9 +134,47 @@ interface ReEncryptedContact {
   contact_token: string;
 }
 
+interface ReEncryptedPin {
+  id: string;
+  encrypted_sender: string;
+  sender_nonce: string;
+}
+
+interface ReEncryptedAliasContact {
+  id: string;
+  encrypted_contact: string;
+  contact_nonce: string;
+}
+
+interface ReEncryptedDestination {
+  id: string;
+  encrypted_destination: string;
+  destination_nonce: string;
+}
+
+interface ReEncryptedDirectory {
+  id: string;
+  encrypted_label: string;
+  label_nonce: string;
+}
+
+interface ReEncryptedDomainAddress {
+  id: string;
+  encrypted_local_part: string;
+  local_part_nonce: string;
+  local_part_hash: string;
+  encrypted_display_name?: string;
+  display_name_nonce?: string;
+}
+
 interface RekeyRequest {
   re_encrypted_aliases?: ReEncryptedAlias[];
   re_encrypted_contacts?: ReEncryptedContact[];
+  re_encrypted_pins?: ReEncryptedPin[];
+  re_encrypted_alias_contacts?: ReEncryptedAliasContact[];
+  re_encrypted_destinations?: ReEncryptedDestination[];
+  re_encrypted_directories?: ReEncryptedDirectory[];
+  re_encrypted_domain_addresses?: ReEncryptedDomainAddress[];
 }
 
 interface RekeyResponse {
@@ -151,6 +191,11 @@ interface ChangePasswordRequest {
   new_vault_nonce: string;
   re_encrypted_aliases?: ReEncryptedAlias[];
   re_encrypted_contacts?: ReEncryptedContact[];
+  re_encrypted_pins?: ReEncryptedPin[];
+  re_encrypted_alias_contacts?: ReEncryptedAliasContact[];
+  re_encrypted_destinations?: ReEncryptedDestination[];
+  re_encrypted_directories?: ReEncryptedDirectory[];
+  re_encrypted_domain_addresses?: ReEncryptedDomainAddress[];
 }
 
 interface ChangePasswordResponse {

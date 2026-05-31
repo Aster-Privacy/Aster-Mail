@@ -1828,7 +1828,7 @@ export const it = {
     storage_locked_description: "La nuova posta è in pausa finché non libera spazio. Eliminare alcune email, o passare a un piano superiore, la farà tornare a fluire. La posta esistente è al sicuro.",
     storage_locked_bounce_warning: "La posta in arrivo verrà rifiutata tra {{days}} giorni a meno che non si liberi spazio. Eliminare alcune email o passare a un piano superiore presto manterrà la posta in arrivo.",
     plan_limit_reached: "Ha raggiunto il limite del suo piano attuale. Passare a un piano superiore, o rimuovere alcuni elementi per fare spazio, la farà ripartire.",
-    upgrade_to_unlock: "Aggiorna per sbloccare di pi��",
+    upgrade_to_unlock: "Aggiorna per sbloccare di più",
     usage_overview: "Panoramica utilizzo",
     usage_overview_description:
       "Monitora il tuo utilizzo attuale delle funzionalità del piano.",
@@ -4849,5 +4849,31 @@ export const it = {
     badge_pulsar_description: "Ha sentito il segnale nel rumore.",
     badge_stargazer: "Osservatore di stelle",
     badge_stargazer_description: "Ha alzato lo sguardo al momento giusto.",
+  },
+  secure_view: {
+    title: "Messaggio sicuro",
+    from: "Da",
+    expires: "Scade",
+    expired: "Questo messaggio sicuro è scaduto e non è più disponibile.",
+    password_prompt:
+      "Questo messaggio è protetto. Inserisci la password per visualizzarlo.",
+    password_label: "Password",
+    view_button: "Visualizza messaggio",
+    unlocking: "Sblocco in corso...",
+    wrong_password: "Password errata. Riprova.",
+    locked: "Troppi tentativi. Riprova più tardi.",
+    decrypt_failed: "Impossibile decifrare questo messaggio.",
+    loading: "Caricamento...",
+    not_found: "Impossibile trovare questo messaggio sicuro.",
+    attachments: "Allegati",
+    download: "Scarica",
+    powered_by: "Inviato in modo sicuro tramite AsterMail",
+  },
+  compose: {
+    encrypt_external_label: "Cifra per destinatari esterni",
+    encrypt_external_desc:
+      "I destinatari aprono un link privato e inseriscono una password per leggere questo messaggio.",
+    encrypt_password_required:
+      "Imposta una password per cifrare questo messaggio.",
   },
 };
