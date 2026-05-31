@@ -69,7 +69,6 @@ interface AliasListProps {
     address_id: string,
     name: string,
   ) => void;
-  on_transfer_requested?: (alias_id: string) => void;
   on_alias_pin_toggled?: () => void;
 }
 
@@ -125,7 +124,6 @@ export function AliasList({
   on_display_name_saved,
   on_aliases_changed,
   on_domain_address_display_name_saved,
-  on_transfer_requested,
   on_alias_pin_toggled,
 }: AliasListProps) {
   const { t } = use_i18n();
@@ -379,7 +377,6 @@ export function AliasList({
               default_advanced_open={auto_expand}
               on_pin_toggle={handle_pin_toggle}
               on_toggle={on_alias_toggle}
-              on_transfer_requested={on_transfer_requested}
               toggling={toggling_id === alias.id}
             />
           ),

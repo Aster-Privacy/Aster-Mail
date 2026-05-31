@@ -26,10 +26,11 @@ import {
   AdjustmentsHorizontalIcon,
   UserGroupIcon,
   NoSymbolIcon,
-  XMarkIcon,
+  PencilSquareIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
+import { AliasRuleEditorModal } from "@/components/settings/aliases/alias_rule_editor_modal";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -59,7 +60,6 @@ import {
 } from "@/services/api/alias_pins";
 import {
   list_alias_rules,
-  create_alias_rule,
   update_alias_rule,
   delete_alias_rule,
   type AliasRule,
@@ -300,14 +300,6 @@ function SenderPinningPanel({ alias_id }: { alias_id: string }) {
   );
 }
 
-const RULE_FIELDS: AliasRuleField[] = ["all", "from", "to", "subject"];
-const RULE_OPERATORS: AliasRuleOperator[] = [
-  "contains",
-  "equals",
-  "starts_with",
-  "ends_with",
-  "matches_regex",
-];
 
 function field_label(t: ReturnType<typeof use_i18n>["t"], field: AliasRuleField) {
   switch (field) {
@@ -337,260 +329,24 @@ function operator_label(
       return t("settings.alias_rule_op_ends_with");
     case "matches_regex":
       return t("settings.alias_rule_op_matches_regex");
+    default:
+      return operator;
   }
 }
 
-function RuleBuilder({
-  on_save,
-  on_cancel,
-  saving,
-}: {
-  on_save: (
-    conditions: AliasRuleCondition[],
-    actions: AliasRuleActions,
-  ) => void;
-  on_cancel: () => void;
-  saving: boolean;
-}) {
-  const { t } = use_i18n();
-  const [conditions, set_conditions] = useState<AliasRuleCondition[]>([
-    { field: "from", operator: "contains", value: "" },
-  ]);
-  const [actions, set_actions] = useState<AliasRuleActions>({});
-
-  const has_action =
-    !!actions.block ||
-    !!actions.to_trash ||
-    !!actions.label?.trim();
-  const has_conditions = conditions.every(
-    (c) => c.field === "all" || c.value.trim().length > 0,
-  );
-  const can_save = has_action && has_conditions && !saving;
-
-  const update_condition = (
-    index: number,
-    patch: Partial<AliasRuleCondition>,
-  ) => {
-    set_conditions((prev) =>
-      prev.map((c, i) => (i === index ? { ...c, ...patch } : c)),
-    );
-  };
-
-  const remove_condition = (index: number) => {
-    set_conditions((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const toggle_bool_action = (key: "block" | "to_trash") => {
-    set_actions((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const update_text_action = (
-    key: "label",
-    value: string,
-  ) => {
-    set_actions((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handle_save = () => {
-    const cleaned_actions: AliasRuleActions = {};
-
-    if (actions.block) cleaned_actions.block = true;
-    if (actions.to_trash) cleaned_actions.to_trash = true;
-    if (actions.label?.trim()) cleaned_actions.label = actions.label.trim();
-
-    if (Object.keys(cleaned_actions).length === 0) {
-      show_toast(t("settings.alias_rule_needs_action"), "error");
-
-      return;
-    }
-
-    on_save(
-      conditions.filter((c) => c.field === "all" || c.value.trim().length > 0),
-      cleaned_actions,
-    );
-    set_conditions([{ field: "from", operator: "contains", value: "" }]);
-    set_actions({});
-  };
-
-  return (
-    <div className="space-y-3 p-3 rounded-lg border border-dashed border-edge-secondary">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-txt-primary">
-          {t("settings.alias_rule_new_title")}
-        </p>
-        <Button
-          className="h-7 w-7"
-          size="icon"
-          title={t("settings.alias_rule_close")}
-          variant="ghost"
-          onClick={on_cancel}
-        >
-          <XMarkIcon className="w-4 h-4 text-txt-muted" />
-        </Button>
-      </div>
-      <p className="text-xs font-medium uppercase tracking-wide text-txt-muted">
-        {t("settings.alias_rule_when")}
-      </p>
-      <div className="space-y-2">
-        {conditions.map((condition, index) => (
-          <div key={index} className="flex flex-wrap items-end gap-2">
-            <div className="flex flex-col gap-1 min-w-[120px]">
-              <span className="text-[11px] text-txt-muted">
-                {t("settings.alias_rule_field_label")}
-              </span>
-              <Select
-                value={condition.field}
-                onValueChange={(value) =>
-                  update_condition(index, {
-                    field: value as AliasRuleField,
-                  })
-                }
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {RULE_FIELDS.map((f) => (
-                    <SelectItem key={f} value={f}>
-                      {field_label(t, f)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1 min-w-[130px]">
-              <span className="text-[11px] text-txt-muted">
-                {t("settings.alias_rule_operator_label")}
-              </span>
-              <Select
-                value={condition.operator}
-                onValueChange={(value) =>
-                  update_condition(index, {
-                    operator: value as AliasRuleOperator,
-                  })
-                }
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {RULE_OPERATORS.map((op) => (
-                    <SelectItem key={op} value={op}>
-                      {operator_label(t, op)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1 flex-1 min-w-[140px]">
-              <span className="text-[11px] text-txt-muted">
-                {t("settings.alias_rule_value_label")}
-              </span>
-              <input
-                className="w-full min-w-0 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none disabled:opacity-60"
-                disabled={condition.field === "all"}
-                placeholder={t("settings.alias_rule_value_placeholder")}
-                value={condition.value}
-                onChange={(e) =>
-                  update_condition(index, { value: e.target.value })
-                }
-              />
-            </div>
-            {conditions.length > 1 && (
-              <Button
-                className="h-9 w-9 text-red-500 hover:text-red-500 hover:bg-red-500/10"
-                size="icon"
-                variant="ghost"
-                onClick={() => remove_condition(index)}
-              >
-                <TrashIcon className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        ))}
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() =>
-            set_conditions((prev) => [
-              ...prev,
-              { field: "from", operator: "contains", value: "" },
-            ])
-          }
-        >
-          <PlusIcon className="w-4 h-4" />
-          {t("settings.alias_rule_add_condition")}
-        </Button>
-      </div>
-
-      <p className="text-xs font-medium uppercase tracking-wide text-txt-muted">
-        {t("settings.alias_rule_then")}
-      </p>
-      <div className="space-y-2">
-        <label className="flex items-center justify-between gap-2">
-          <span className="text-sm text-txt-primary">
-            {t("settings.alias_rule_action_block")}
-          </span>
-          <Switch
-            checked={!!actions.block}
-            onCheckedChange={() => toggle_bool_action("block")}
-          />
-        </label>
-        <label className="flex items-center justify-between gap-2">
-          <span className="text-sm text-txt-primary">
-            {t("settings.alias_rule_action_to_trash")}
-          </span>
-          <Switch
-            checked={!!actions.to_trash}
-            onCheckedChange={() => toggle_bool_action("to_trash")}
-          />
-        </label>
-        <input
-          className={`${INPUT_CLASS} w-full`}
-          placeholder={t("settings.alias_rule_action_label_placeholder")}
-          value={actions.label ?? ""}
-          onChange={(e) => update_text_action("label", e.target.value)}
-        />
-      </div>
-
-      <div className="flex items-center justify-end gap-2 pt-1">
-        <Button
-          disabled={saving}
-          size="sm"
-          variant="outline"
-          onClick={on_cancel}
-        >
-          {t("settings.alias_rule_cancel")}
-        </Button>
-        <Button
-          disabled={!can_save}
-          size="sm"
-          variant="depth"
-          onClick={handle_save}
-        >
-          {saving ? <Spinner size="xs" /> : null}
-          {t("settings.alias_rule_save")}
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 function RulesPanel({ alias_id }: { alias_id: string }) {
   const { t } = use_i18n();
   const [rules, set_rules] = useState<AliasRule[]>([]);
   const [loading, set_loading] = useState(true);
-  const [saving, set_saving] = useState(false);
-  const [show_builder, set_show_builder] = useState(false);
+  const [modal_open, set_modal_open] = useState(false);
+  const [editing_rule, set_editing_rule] = useState<AliasRule | null>(null);
 
   const load = useCallback(async () => {
     set_loading(true);
     try {
       const response = await list_alias_rules(alias_id);
-
-      if (response.data) {
-        set_rules(response.data.rules ?? []);
-      }
+      if (response.data) set_rules(response.data.rules ?? []);
     } catch {
       set_rules([]);
     } finally {
@@ -602,41 +358,12 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
     load();
   }, [load]);
 
-  const handle_create = async (
-    conditions: AliasRuleCondition[],
-    actions: AliasRuleActions,
-  ) => {
-    set_saving(true);
-    try {
-      const response = await create_alias_rule(alias_id, {
-        priority: rules.length,
-        conditions,
-        actions,
-        is_enabled: true,
-      });
-
-      if (response.error) {
-        show_toast(t("settings.alias_rule_save_failed"), "error");
-      } else {
-        show_toast(t("settings.alias_rule_added"), "success");
-        set_show_builder(false);
-        await load();
-      }
-    } finally {
-      set_saving(false);
-    }
-  };
-
   const handle_toggle = async (rule: AliasRule) => {
     const next = !rule.is_enabled;
-
     set_rules((prev) =>
       prev.map((r) => (r.id === rule.id ? { ...r, is_enabled: next } : r)),
     );
-    const response = await update_alias_rule(alias_id, rule.id, {
-      is_enabled: next,
-    });
-
+    const response = await update_alias_rule(alias_id, rule.id, { is_enabled: next });
     if (response.error) {
       set_rules((prev) =>
         prev.map((r) =>
@@ -644,14 +371,11 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
         ),
       );
       show_toast(response.error, "error");
-    } else {
-      show_toast(t("settings.alias_rule_updated"), "success");
     }
   };
 
   const handle_delete = async (rule_id: string) => {
     const response = await delete_alias_rule(alias_id, rule_id);
-
     if (response.error) {
       show_toast(response.error, "error");
     } else {
@@ -660,13 +384,20 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
     }
   };
 
-  const describe_actions = (actions: AliasRuleActions): string => {
+  const describe_conditions = (conditions: AliasRuleCondition[]) =>
+    conditions
+      .map((c) =>
+        c.field === "all"
+          ? t("settings.alias_rule_field_all")
+          : `${field_label(t, c.field)} ${operator_label(t, c.operator)} "${c.value}"`,
+      )
+      .join(" · ");
+
+  const describe_actions = (a: AliasRuleActions): string => {
     const parts: string[] = [];
-
-    if (actions.block) parts.push(t("settings.alias_rule_action_block"));
-    if (actions.to_trash) parts.push(t("settings.alias_rule_action_to_trash"));
-    if (actions.label) parts.push(t("settings.alias_rule_action_label"));
-
+    if (a.block) parts.push(t("settings.alias_rule_action_block"));
+    if (a.to_trash) parts.push(t("settings.alias_rule_action_to_trash"));
+    if (a.label) parts.push(`${t("settings.alias_rule_action_label")}: ${a.label}`);
     return parts.join(", ");
   };
 
@@ -685,25 +416,24 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
             {t("settings.alias_rules_description")}
           </p>
         </div>
-        {!show_builder && (
-          <Button
-            className="shrink-0"
-            size="sm"
-            variant="depth"
-            onClick={() => set_show_builder(true)}
-          >
-            <PlusIcon className="w-4 h-4" />
-            {t("settings.alias_rule_add")}
-          </Button>
-        )}
+        <Button
+          className="shrink-0"
+          size="sm"
+          variant="depth"
+          onClick={() => {
+            set_editing_rule(null);
+            set_modal_open(true);
+          }}
+        >
+          <PlusIcon className="w-4 h-4" />
+          {t("settings.alias_rule_add")}
+        </Button>
       </div>
 
       {loading ? (
         <Spinner size="md" />
-      ) : rules.length === 0 && !show_builder ? (
-        <p className="text-xs text-txt-muted">
-          {t("settings.alias_rules_empty")}
-        </p>
+      ) : rules.length === 0 ? (
+        <p className="text-xs text-txt-muted">{t("settings.alias_rules_empty")}</p>
       ) : (
         <div className="space-y-1.5">
           {rules.map((rule) => (
@@ -713,15 +443,7 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm truncate text-txt-primary">
-                  {rule.conditions
-                    .map(
-                      (c) =>
-                        `${field_label(t, c.field)} ${operator_label(
-                          t,
-                          c.operator,
-                        )} ${c.value}`.trim(),
-                    )
-                    .join(" · ")}
+                  {describe_conditions(rule.conditions)}
                 </p>
                 <p className="text-xs text-txt-muted truncate">
                   {describe_actions(rule.actions)}
@@ -731,6 +453,17 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
                 checked={rule.is_enabled}
                 onCheckedChange={() => handle_toggle(rule)}
               />
+              <Button
+                className="h-7 w-7"
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  set_editing_rule(rule);
+                  set_modal_open(true);
+                }}
+              >
+                <PencilSquareIcon className="w-4 h-4 text-txt-muted" />
+              </Button>
               <Button
                 className="h-7 w-7 text-red-500 hover:text-red-500 hover:bg-red-500/10"
                 size="icon"
@@ -744,13 +477,13 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
         </div>
       )}
 
-      {show_builder && (
-        <RuleBuilder
-          on_cancel={() => set_show_builder(false)}
-          on_save={handle_create}
-          saving={saving}
-        />
-      )}
+      <AliasRuleEditorModal
+        alias_id={alias_id}
+        is_open={modal_open}
+        rule={editing_rule}
+        on_close={() => set_modal_open(false)}
+        on_saved={load}
+      />
     </div>
   );
 }

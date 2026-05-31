@@ -3475,6 +3475,10 @@ export interface SettingsTranslations {
   alias_rule_operator_label: string;
   alias_rule_value_label: string;
   alias_rule_new_title: string;
+  alias_rule_edit_title: string;
+  alias_rule_save_changes: string;
+  alias_rule_needs_condition: string;
+  alias_rule_match_all_emails: string;
   external_accounts_tab: string;
   blocked_tab: string;
   allowlist_tab: string;

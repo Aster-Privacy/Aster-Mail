@@ -35,7 +35,6 @@ import {
   LockClosedIcon,
   ClockIcon,
   Cog6ToothIcon,
-  ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Checkbox, Switch } from "@aster/ui";
 
@@ -241,7 +240,6 @@ interface AliasItemProps {
   default_advanced_open?: boolean;
   on_avatar_changed?: () => void;
   on_display_name_saved?: (alias_id: string, name: string) => void;
-  on_transfer_requested?: (alias_id: string) => void;
   toggling: boolean;
   deleting: boolean;
   is_avatar_locked: boolean;
@@ -258,7 +256,6 @@ export function AliasItem({
   default_advanced_open,
   on_avatar_changed,
   on_display_name_saved,
-  on_transfer_requested,
   toggling,
   deleting,
   is_avatar_locked,
@@ -565,18 +562,6 @@ export function AliasItem({
           disabled={toggling || in_grace_period}
           onCheckedChange={(checked) => on_toggle(alias.id, checked)}
         />
-
-        {on_transfer_requested && (
-          <Button
-            className="hidden group-hover:inline-flex h-8 w-8"
-            size="icon"
-            title={t("settings.alias_transfer")}
-            variant="ghost"
-            onClick={() => on_transfer_requested(alias.id)}
-          >
-            <ArrowRightStartOnRectangleIcon className="w-4 h-4 text-txt-muted" />
-          </Button>
-        )}
 
         <Button
           className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"

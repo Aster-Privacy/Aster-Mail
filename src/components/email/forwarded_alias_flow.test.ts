@@ -24,11 +24,8 @@ import { build_single_thread_message } from "@/components/email/shared/build_ema
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
 import { matches_query } from "@/hooks/use_search";
 import { parse_search_query } from "@/utils/search_operators";
-import type {
-  DecryptedEnvelope,
-  MailItem,
-  MailItemMetadata,
-} from "@/types/email";
+import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
+import type { MailItem } from "@/services/api/mail";
 
 const ALIAS_EMAIL = "reverse_alias_718jakwi@simplelogin.co";
 const ORIGINAL_EMAIL = "hi@example.com";
