@@ -3,6 +3,7 @@
 @import "tw-animate-css";
 
 @import "@aster/ui/styles";
+@source "../../node_modules/@aster/ui/dist/index.js";
 
 @custom-variant dark (&:is(.dark *));
 

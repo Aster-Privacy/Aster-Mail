@@ -131,4 +131,36 @@ describe("build_reply_recipient", () => {
 
     expect(result.recipient_email).toBe("sender@mail.example.com");
   });
+
+  it("routes a forwarded-alias reply to the reverse alias, overriding Reply-To", () => {
+    const result = build_reply_recipient(
+      {
+        sender_name: "Hi Example",
+        sender_email: "reverse_alias_x@simplelogin.co",
+        reply_to: { name: "", email: "hi@example.com" },
+        reply_alias: {
+          name: "Hi Example",
+          email: "reverse_alias_x@simplelogin.co",
+        },
+      },
+      false,
+    );
+
+    expect(result.recipient_email).toBe("reverse_alias_x@simplelogin.co");
+    expect(result.recipient_email).not.toBe("hi@example.com");
+  });
+
+  it("never applies reply_alias to an own sent message", () => {
+    const result = build_reply_recipient(
+      {
+        sender_name: "Me",
+        sender_email: "me@astermail.org",
+        first_to: { name: "Recipient", email: "them@example.com" },
+        reply_alias: { email: "reverse_alias_x@simplelogin.co" },
+      },
+      true,
+    );
+
+    expect(result.recipient_email).toBe("them@example.com");
+  });
 });

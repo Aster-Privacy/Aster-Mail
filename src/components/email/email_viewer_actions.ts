@@ -33,7 +33,11 @@ import { useCallback } from "react";
 import { is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
-import { build_reply_from_address } from "@/components/email/build_reply_from_address";
+import {
+  build_reply_from_address,
+  resolve_received_on_alias,
+} from "@/components/email/build_reply_from_address";
+import { get_cached_aliases } from "@/components/settings/hooks/use_aliases";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -48,6 +52,8 @@ import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { add_alias_pin } from "@/services/api/alias_pins";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 
 export interface EmailViewerActionsDeps {
   email_id: string;
@@ -79,6 +85,7 @@ export interface EmailViewerActionsDeps {
   on_reply?: (data: ReplyData) => void;
   on_forward?: (data: ForwardData) => void;
   on_edit_draft?: (draft: DraftWithContent) => void;
+  is_sender_pinning_locked?: boolean;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   format_email_detail: (date: Date) => string;
   preferences_default_reply_behavior: string;
@@ -132,12 +139,17 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       (!!deps.current_user_email &&
         deps.email.sender_email.toLowerCase() ===
           deps.current_user_email.toLowerCase());
+    const is_forwarded =
+      !is_own_message && !!deps.email.display_sender_email;
     const { recipient_name, recipient_email } = build_reply_recipient(
       {
         sender_name: deps.email.sender,
         sender_email: deps.email.sender_email,
         first_to: deps.email.to?.[0],
         reply_to: deps.email.reply_to,
+        reply_alias: is_forwarded
+          ? { name: deps.email.sender, email: deps.email.sender_email }
+          : undefined,
       },
       is_own_message,
     );
@@ -145,7 +157,13 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     const to_emails = deps.email.to?.map((r) => r.email) ?? [];
     const cc_emails = deps.email.cc?.map((r) => r.email) ?? [];
     const reply_from_address = build_reply_from_address(
-      { sender_email: deps.email.sender_email },
+      {
+        sender_email: deps.email.sender_email,
+        received_on_alias: resolve_received_on_alias(
+          deps.mail_item?.routing_token,
+          get_cached_aliases(),
+        ),
+      },
       is_own_message,
     );
 
@@ -157,6 +175,13 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       recipient_name,
       recipient_email,
       recipient_avatar: "",
+      ...(is_forwarded
+        ? {
+            quote_sender_name:
+              deps.email.display_sender_name || deps.email.sender,
+            quote_sender_email: deps.email.display_sender_email,
+          }
+        : {}),
       original_subject: deps.email.subject,
       original_body: deps.email.body,
       original_timestamp: deps.email.timestamp,
@@ -240,6 +265,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       adjust_unread_count(new_state ? -1 : 1);
     }
 
+    if (!new_state) {
+      deps.on_dismiss();
+    }
+
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -284,7 +313,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         metadata_nonce: result.encrypted?.metadata_nonce,
       });
     }
-  }, [deps.email_id, deps.is_read, deps.mail_item]);
+  }, [deps.email_id, deps.is_read, deps.mail_item, deps.on_dismiss]);
 
   const handle_pin_toggle = useCallback(async () => {
     if (!deps.email_id || deps.is_pin_loading || !deps.mail_item) return;
@@ -499,8 +528,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     if (!deps.email) return;
     print_email({
       subject: deps.email.subject,
-      sender: deps.email.sender,
-      sender_email: deps.email.sender_email,
+      sender: deps.email.display_sender_name || deps.email.sender,
+      sender_email: deps.email.display_sender_email || deps.email.sender_email,
       to: deps.email.to,
       cc: deps.email.cc,
       bcc: deps.email.bcc,
@@ -554,6 +583,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
   const build_reply_data = useCallback(
     (msg: DecryptedThreadMessage, is_reply_all: boolean): ReplyData => {
       const is_own_message = msg.item_type === "sent";
+      const is_forwarded = !is_own_message && !!msg.display_sender_email;
       const parsed_reply_to = extract_reply_to(msg.raw_headers);
       const { recipient_name, recipient_email } = build_reply_recipient(
         {
@@ -563,6 +593,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           reply_to: parsed_reply_to
             ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
             : undefined,
+          reply_alias: is_forwarded
+            ? { name: msg.sender_name, email: msg.sender_email }
+            : undefined,
         },
         is_own_message,
       );
@@ -570,7 +603,13 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       const to_emails = msg.to_recipients?.map((r) => r.email) ?? [];
       const cc_emails = msg.cc_recipients?.map((r) => r.email) ?? [];
       const reply_from_address = build_reply_from_address(
-        { sender_email: msg.sender_email },
+        {
+          sender_email: msg.sender_email,
+          received_on_alias: resolve_received_on_alias(
+            deps.mail_item?.routing_token,
+            get_cached_aliases(),
+          ),
+        },
         is_own_message,
       );
 
@@ -582,6 +621,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         recipient_name,
         recipient_email,
         recipient_avatar: "",
+        ...(is_forwarded
+          ? {
+              quote_sender_name: msg.display_sender_name || msg.sender_name,
+              quote_sender_email: msg.display_sender_email,
+            }
+          : {}),
         original_subject: msg.subject,
         original_body: msg.body,
         original_timestamp: new Date(msg.timestamp).toLocaleString(),
@@ -704,8 +749,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     (msg: DecryptedThreadMessage) => {
       print_email({
         subject: msg.subject,
-        sender: msg.sender_name,
-        sender_email: msg.sender_email,
+        sender: msg.display_sender_name || msg.sender_name,
+        sender_email: msg.display_sender_email || msg.sender_email,
         to: [],
         timestamp: new Date(msg.timestamp).toLocaleString(),
         body: msg.html_content || msg.body,
@@ -802,6 +847,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         adjust_unread_count(new_read ? -1 : 1);
       }
 
+      if (!new_read) {
+        deps.on_dismiss();
+      }
+
       update_item_metadata(
         message_id,
         {
@@ -840,8 +889,52 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         }
       });
     },
-    [deps.thread_messages],
+    [deps.thread_messages, deps.on_dismiss],
   );
+
+  const is_own_message =
+    deps.mail_item?.item_type === "sent" ||
+    (!!deps.current_user_email &&
+      !!deps.email?.sender_email &&
+      deps.email.sender_email.toLowerCase() ===
+        deps.current_user_email.toLowerCase());
+
+  const handle_block_sender_on_alias = useCallback(async () => {
+    const routing_token = deps.mail_item?.routing_token;
+    const sender = deps.email?.sender_email;
+
+    if (!routing_token || !sender || is_own_message) return;
+
+    if (deps.is_sender_pinning_locked) {
+      prompt_upgrade("Block sender on alias");
+      return;
+    }
+
+    const aliases = get_cached_aliases();
+    const matched = aliases.find((a) => a.alias_address_hash === routing_token);
+
+    if (!matched) return;
+
+    const response = await add_alias_pin(matched.id, sender, true);
+
+    if (response.error) {
+      show_toast(deps.t("mail.block_sender_on_alias_failed"), "error");
+    } else {
+      show_toast(
+        deps.t("mail.block_sender_on_alias_success", {
+          sender,
+          alias: matched.full_address,
+        }),
+        "success",
+      );
+    }
+  }, [
+    deps.mail_item?.routing_token,
+    deps.email?.sender_email,
+    deps.is_sender_pinning_locked,
+    deps.t,
+    is_own_message,
+  ]);
 
   return {
     copy_to_clipboard,
@@ -867,5 +960,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     handle_per_message_report_phishing,
     handle_per_message_not_spam,
     handle_toggle_message_read,
+    handle_block_sender_on_alias,
+    show_block_sender_on_alias:
+      !!deps.mail_item?.routing_token && !is_own_message,
   };
 }

@@ -1842,7 +1842,7 @@ export const ru = {
     ghost_alias_too_new_title: "Этот ghost-псевдоним слишком новый для отзыва",
     ghost_alias_too_new_message: "Новые ghost-псевдонимы остаются активными 30 дней до возможности отзыва. Этот можно отозвать начиная с {{date}}.",
     delete_signature_confirmation:
-      "Вы уверены, что х��тите удалить эту подпись? Это действие нельзя отменить.",
+      "Вы уверены, что хотите удалить эту подпись? Это действие нельзя отменить.",
     delete_domain_confirmation:
       "Вы уверены, что хотите удалить этот домен? Это действие нельзя отменить.",
     delete_address_confirmation:
@@ -1894,6 +1894,9 @@ export const ru = {
     info_block_css_title: "Зачем блокировать внешние таблицы стилей?",
     info_block_css_description:
       "CSS-файлы в письмах работают как скрытые трекеры. Их загрузка раскрывает серверу отправителя ваш IP, время открытия и тип устройства.",
+    info_strip_exif_title: "Что такое метаданные изображения?",
+    info_strip_exif_description:
+      "Фотографии с телефонов и камер содержат скрытые данные: GPS-координаты, модель устройства, временную метку и данные объектива. Aster удаляет их перед отправкой, чтобы получатели видели только пиксели.",
     info_spy_pixels_title: "Что такое пиксели-шпионы?",
     info_spy_pixels_description:
       "Невидимые изображения 1x1 в письмах. При загрузке отправитель видит ваш IP, время открытия и тип устройства. Aster удаляет их до загрузки.",
@@ -1990,6 +1993,12 @@ export const ru = {
     generate_random: "Сгенерировать случайный",
     alias_copied: "Псевдоним скопирован в буфер обмена",
     address_copied: "Адрес скопирован в буфер обмена",
+    set_as_primary: "Сделать основным адресом",
+    primary_badge: "Основной",
+    primary_address_label: "Основной адрес",
+    primary_address_set: "Основной адрес обновлён",
+    primary_address_reset: "Сбросить на адрес по умолчанию",
+    also_receives_at: "Также получает на {{email}}",
     alias_grace_days: "{{days}}д осталось",
     alias_reserved: "Зарезервировано",
     alias_grace_upgrade_hint:
@@ -3062,6 +3071,24 @@ export const ru = {
     billing_postal_placeholder: "123456",
     block_remote_css_description: "Запретить письмам загружать таблицы стилей с внешних серверов",
     block_remote_css_label: "Блокировать внешний CSS",
+    strip_exif_on_compose_label: "Удалять метаданные изображений",
+    strip_exif_on_compose_description:
+      "Удалять метаданные EXIF и другие из изображений перед отправкой для защиты информации о местоположении и устройстве",
+    account_protection_title: "Защита аккаунта",
+    account_protection_weak: "Слабая",
+    account_protection_fair: "Средняя",
+    account_protection_partial: "Частичная",
+    account_protection_strong: "Сильная",
+    account_protection_hint_weak: "Ваш аккаунт под угрозой. Включите дополнительные параметры защиты.",
+    account_protection_hint_fair: "Вашему аккаунту нужна дополнительная защита.",
+    account_protection_hint_partial: "Включите больше параметров для более надёжной защиты.",
+    account_protection_hint_strong: "Ваш аккаунт хорошо защищён.",
+    protection_breakdown_title: "Детали защиты",
+    criterion_two_factor: "Двухфакторная аутентификация",
+    criterion_recovery_email: "Подтверждённый резервный email",
+    criterion_auto_lock: "Автоблокировка",
+    criterion_login_alerts: "Оповещения о входе",
+    criterion_forward_secrecy: "Прямая секретность",
     block_remote_fonts_description: "Запретить письмам загружать шрифты с внешних серверов",
     block_remote_fonts_label: "Блокировать внешние шрифты",
     block_remote_images_description: "Запретить письмам загружать изображения с внешних серверов",
@@ -4776,5 +4803,31 @@ export const ru = {
     show_avatar_ring_description: "Добавить цветное кольцо вокруг аватара.",
     show_in_signature_description: "Включать активный значок в подписи исходящих писем.",
     show_on_profile_description: "Показывать активный значок другим пользователям Aster.",
+  },
+  secure_view: {
+    title: "Защищённое сообщение",
+    from: "От",
+    expires: "Истекает",
+    expired: "Срок действия этого защищённого сообщения истёк, оно больше недоступно.",
+    password_prompt:
+      "Это сообщение защищено. Введите пароль, чтобы просмотреть его.",
+    password_label: "Пароль",
+    view_button: "Просмотреть сообщение",
+    unlocking: "Разблокировка...",
+    wrong_password: "Неверный пароль. Пожалуйста, попробуйте ещё раз.",
+    locked: "Слишком много попыток. Пожалуйста, повторите попытку позже.",
+    decrypt_failed: "Не удалось расшифровать это сообщение.",
+    loading: "Загрузка...",
+    not_found: "Не удалось найти это защищённое сообщение.",
+    attachments: "Вложения",
+    download: "Скачать",
+    powered_by: "Отправлено безопасно через AsterMail",
+  },
+  compose: {
+    encrypt_external_label: "Шифровать для внешних получателей",
+    encrypt_external_desc:
+      "Получатели открывают приватную ссылку и вводят пароль, чтобы прочитать это сообщение.",
+    encrypt_password_required:
+      "Задайте пароль для шифрования этого сообщения.",
   },
 };

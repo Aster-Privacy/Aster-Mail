@@ -25,6 +25,7 @@ import type {
   DecryptedEmail,
 } from "@/components/email/hooks/email_detail_types";
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { NavigateFunction } from "react-router-dom";
 
 import { useCallback } from "react";
 
@@ -74,7 +75,7 @@ export interface EmailDetailActionsDeps {
   set_forward_target: (v: DecryptedThreadMessage | null) => void;
   set_view_source_message: (v: DecryptedThreadMessage | null) => void;
   get_next_email_destination: () => string;
-  navigate: (path: string) => void;
+  navigate: NavigateFunction;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   preferences_default_reply_behavior: string;
 }
@@ -107,9 +108,18 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         (h) => h.name.toLowerCase() === "message-id",
       )?.value;
 
+      const quote_sender =
+        !is_own_message && msg.display_sender_email
+          ? {
+              quote_sender_name: msg.display_sender_name || msg.sender_name,
+              quote_sender_email: msg.display_sender_email,
+            }
+          : {};
+
       const data: ReplyModalData = {
         recipient_name: reply_name,
         recipient_email: reply_email,
+        ...quote_sender,
         original_subject: msg.subject,
         original_body: msg.body,
         original_timestamp: new Date(msg.timestamp).toLocaleString(),
@@ -337,8 +347,8 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
     (msg: DecryptedThreadMessage) => {
       print_email({
         subject: msg.subject,
-        sender: msg.sender_name,
-        sender_email: msg.sender_email,
+        sender: msg.display_sender_name || msg.sender_name,
+        sender_email: msg.display_sender_email || msg.sender_email,
         to: msg.to_recipients || [],
         timestamp: new Date(msg.timestamp).toLocaleString(),
         body: msg.html_content || msg.body,
@@ -459,8 +469,12 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           });
         }
       });
+
+      if (!new_read) {
+        deps.navigate(-1);
+      }
     },
-    [deps.thread_messages],
+    [deps.thread_messages, deps.navigate],
   );
 
   const handle_copy_text = (text: string, label: string) => {

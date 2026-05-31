@@ -26,6 +26,8 @@ import {
   read_clipboard_uri,
 } from "@/native/clipboard_image";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
+import { use_preferences } from "@/contexts/preferences_context";
+import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
 
 interface ComposeHandle {
   message_textarea_ref: React.RefObject<HTMLDivElement | null>;
@@ -63,15 +65,21 @@ function insert_at_cursor_or_append(editor: HTMLElement, node: Node) {
 
 export function use_mobile_compose_images(compose: ComposeHandle) {
   const image_input_ref = useRef<HTMLInputElement>(null);
+  const { preferences } = use_preferences();
 
   const insert_image_file = useCallback(
     (file: File) => {
       const reader = new FileReader();
 
-      reader.onload = (evt) => {
-        const data_url = evt.target?.result as string;
+      reader.onload = async (evt) => {
+        let data_url = evt.target?.result as string;
 
         if (!data_url) return;
+
+        if (preferences.strip_exif_on_compose) {
+          data_url = await strip_image_metadata_data_url(data_url);
+        }
+
         const img = document.createElement("img");
 
         img.src = data_url;
@@ -86,14 +94,18 @@ export function use_mobile_compose_images(compose: ComposeHandle) {
       };
       reader.readAsDataURL(file);
     },
-    [compose],
+    [compose, preferences.strip_exif_on_compose],
   );
 
   const insert_data_url_image = useCallback(
-    (data_url: string) => {
+    async (data_url: string) => {
+      const processed =
+        preferences.strip_exif_on_compose
+          ? await strip_image_metadata_data_url(data_url)
+          : data_url;
       const img = document.createElement("img");
 
-      img.src = data_url;
+      img.src = processed;
       style_inline_image(img);
 
       const editor = compose.message_textarea_ref.current;
@@ -102,7 +114,7 @@ export function use_mobile_compose_images(compose: ComposeHandle) {
       insert_at_cursor_or_append(editor, img);
       compose.handle_editor_input();
     },
-    [compose],
+    [compose, preferences.strip_exif_on_compose],
   );
 
   const process_pasted_image_node = useCallback(

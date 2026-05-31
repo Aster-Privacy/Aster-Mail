@@ -53,6 +53,7 @@ import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   extract_subject_bundle,
 } from "@/utils/email_crypto";
+import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
@@ -344,6 +345,7 @@ export async function fetch_and_decrypt_thread_messages(
       item_type: msg.item_type as "received" | "sent" | "draft",
       sender_name: envelope.from.name || envelope.from.email.split("@")[0],
       sender_email: envelope.from.email,
+      ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ?? {}),
       subject: envelope.subject,
       body: body_content,
       html_content: effective_html,
@@ -511,6 +513,7 @@ export async function fetch_and_decrypt_virtual_group(
       item_type: item.item_type as "received" | "sent" | "draft",
       sender_name: envelope.from.name || envelope.from.email.split("@")[0],
       sender_email: envelope.from.email,
+      ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ?? {}),
       subject: envelope.subject,
       body: body_content,
       html_content: effective_html,

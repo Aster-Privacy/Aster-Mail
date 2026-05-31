@@ -117,6 +117,9 @@ export function MobileThreadMessage({
   }, [clean_body, t]);
 
   const is_system = is_system_email(message.sender_email);
+  const show_sender_name = message.display_sender_name ?? message.sender_name;
+  const show_sender_email =
+    message.display_sender_email ?? message.sender_email;
 
   const sanitize_result = useMemo(() => {
     if (!is_html_content(clean_body)) {
@@ -189,8 +192,8 @@ export function MobileThreadMessage({
           <div className="shrink-0">
             <ProfileAvatar
               use_domain_logo
-              email={message.sender_email}
-              name={message.sender_name}
+              email={show_sender_email}
+              name={show_sender_name}
               size="sm"
             />
           </div>
@@ -203,7 +206,7 @@ export function MobileThreadMessage({
                     : "font-semibold text-[var(--text-primary)]"
                 }`}
               >
-                {message.sender_name}
+                {show_sender_name}
               </span>
               <span className="shrink-0 text-[11px] tabular-nums text-[var(--text-muted)]">
                 {format_safe_date(message.timestamp, format_detail)}
@@ -229,15 +232,15 @@ export function MobileThreadMessage({
         <div className="shrink-0">
           <ProfileAvatar
             use_domain_logo
-            email={message.sender_email}
-            name={message.sender_name}
+            email={show_sender_email}
+            name={show_sender_name}
             size="md"
           />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="flex-1 truncate text-[15px] font-semibold text-[var(--text-primary)]">
-              {message.sender_name}
+              {show_sender_name}
             </span>
             <div
               className="flex shrink-0 items-center gap-1.5"
@@ -293,7 +296,7 @@ export function MobileThreadMessage({
             </p>
           ) : (
             <p className="-mt-0.5 text-[12px] leading-tight text-[var(--text-muted)]">
-              {message.sender_email}
+              {show_sender_email}
             </p>
           )}
           <div className="flex items-center gap-1">

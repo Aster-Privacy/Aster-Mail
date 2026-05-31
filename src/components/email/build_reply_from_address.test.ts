@@ -22,6 +22,7 @@ import { describe, it, expect } from "vitest";
 
 import {
   build_reply_from_address,
+  resolve_received_on_alias,
   collect_recipient_emails,
 } from "./build_reply_from_address";
 
@@ -35,7 +36,7 @@ describe("build_reply_from_address", () => {
     ).toBe("alias@my.example");
   });
 
-  it("returns undefined for incoming message (let original_to matcher pick)", () => {
+  it("returns undefined for incoming message with no received-on alias", () => {
     expect(
       build_reply_from_address(
         { sender_email: "stranger@x.example" },
@@ -44,11 +45,44 @@ describe("build_reply_from_address", () => {
     ).toBeUndefined();
   });
 
+  it("returns the received-on alias for an incoming message when matched", () => {
+    expect(
+      build_reply_from_address(
+        {
+          sender_email: "stranger@x.example",
+          received_on_alias: "shopping@my.example",
+        },
+        false,
+      ),
+    ).toBe("shopping@my.example");
+  });
+
   it("returns undefined when own message has no sender_email", () => {
     expect(build_reply_from_address({ sender_email: "" }, true)).toBeUndefined();
     expect(
       build_reply_from_address({ sender_email: "   " }, true),
     ).toBeUndefined();
+  });
+});
+
+describe("resolve_received_on_alias", () => {
+  const aliases = [
+    { alias_address_hash: "HASH_A", full_address: "shopping@my.example" },
+    { alias_address_hash: "HASH_B", full_address: "news@my.example" },
+  ];
+
+  it("returns the alias whose hash matches the routing token", () => {
+    expect(resolve_received_on_alias("HASH_B", aliases)).toBe(
+      "news@my.example",
+    );
+  });
+
+  it("returns undefined when the routing token is missing", () => {
+    expect(resolve_received_on_alias(undefined, aliases)).toBeUndefined();
+  });
+
+  it("returns undefined when no alias matches the token", () => {
+    expect(resolve_received_on_alias("HASH_X", aliases)).toBeUndefined();
   });
 });
 

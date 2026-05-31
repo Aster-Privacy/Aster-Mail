@@ -83,27 +83,37 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
 });
 
 const ALLOWED_NOTIFICATION_PATH_PREFIXES = [
-  "/mail/",
-  "/settings/",
-  "/billing/",
-  "/contacts/",
-  "/search/",
+  "/inbox",
+  "/email/",
+  "/search",
+  "/settings",
+  "/contacts",
+  "/subscriptions",
+  "/all",
+  "/starred",
+  "/sent",
+  "/drafts",
+  "/archive",
+  "/spam",
+  "/trash",
+  "/folder/",
+  "/tag/",
 ];
 
 function sanitize_notification_path(input: unknown): string {
-  if (typeof input !== "string") return "/mail/inbox";
-  if (!input.startsWith("/")) return "/mail/inbox";
-  if (input.startsWith("//")) return "/mail/inbox";
-  if (input.startsWith("/\\")) return "/mail/inbox";
-  if (/[\r\n\t]/.test(input)) return "/mail/inbox";
-  if (input.length > 256) return "/mail/inbox";
+  if (typeof input !== "string") return "/";
+  if (!input.startsWith("/")) return "/";
+  if (input.startsWith("//")) return "/";
+  if (input.startsWith("/\\")) return "/";
+  if (/[\r\n\t]/.test(input)) return "/";
+  if (input.length > 256) return "/";
   for (const prefix of ALLOWED_NOTIFICATION_PATH_PREFIXES) {
     if (input === prefix.replace(/\/$/, "") || input.startsWith(prefix)) {
       return input;
     }
   }
 
-  return "/mail/inbox";
+  return "/";
 }
 
 self.addEventListener("push", (event: PushEvent) => {

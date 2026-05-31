@@ -1937,6 +1937,9 @@ export const pl = {
     info_block_css_title: "Dlaczego blokować zdalne arkusze stylów?",
     info_block_css_description:
       "Pliki CSS w e-mailach działają jak ukryte trackery. Ich ładowanie ujawnia serwerowi nadawcy Twoje IP, czas otwarcia i typ urządzenia.",
+    info_strip_exif_title: "Czym są metadane obrazu?",
+    info_strip_exif_description:
+      "Zdjęcia wykonane telefonami i aparatami zawierają ukryte dane, takie jak współrzędne GPS, model urządzenia, znacznik czasu i dane obiektywu. Aster usuwa je przed wysłaniem, aby odbiorcy widzieli tylko piksele.",
     info_spy_pixels_title: "Czym są piksele szpiegowskie?",
     info_spy_pixels_description:
       "Niewidoczne obrazy 1x1 w e-mailach. Po załadowaniu nadawca widzi Twoje IP, kiedy otworzyłeś wiadomość i typ urządzenia. Aster usuwa je zanim zdążą się załadować.",
@@ -2031,6 +2034,12 @@ export const pl = {
     generate_random: "Generuj losowo",
     alias_copied: "Alias skopiowany do schowka",
     address_copied: "Adres skopiowany do schowka",
+    set_as_primary: "Ustaw jako adres główny",
+    primary_badge: "Główny",
+    primary_address_label: "Adres główny",
+    primary_address_set: "Zaktualizowano adres główny",
+    primary_address_reset: "Przywróć domyślny adres",
+    also_receives_at: "Odbiera również na {{email}}",
     alias_grace_days: "{{days}}d pozostało",
     alias_reserved: "Zarezerwowany",
     alias_grace_upgrade_hint: "Ulepsz plan, aby zachować ten alias aktywnym",
@@ -3195,6 +3204,24 @@ export const pl = {
     block_remote_fonts_description: "Zapobiegaj ładowaniu przez wiadomości e-mail czcionek z zewnętrznych serwerów",
     block_remote_css_label: "Blokuj zdalne CSS",
     block_remote_css_description: "Zapobiegaj ładowaniu przez wiadomości e-mail arkuszy stylów z zewnętrznych serwerów",
+    strip_exif_on_compose_label: "Usuń metadane obrazów",
+    strip_exif_on_compose_description:
+      "Usuń metadane EXIF i inne z obrazów przed wysłaniem, aby chronić lokalizację i informacje o urządzeniu",
+    account_protection_title: "Ochrona konta",
+    account_protection_weak: "Słaba",
+    account_protection_fair: "Wystarczająca",
+    account_protection_partial: "Częściowa",
+    account_protection_strong: "Silna",
+    account_protection_hint_weak: "Twoje konto jest zagrożone. Włącz teraz więcej opcji ochrony.",
+    account_protection_hint_fair: "Twoje konto potrzebuje więcej ochrony.",
+    account_protection_hint_partial: "Włącz więcej opcji dla silniejszej ochrony.",
+    account_protection_hint_strong: "Twoje konto jest dobrze chronione.",
+    protection_breakdown_title: "Szczegóły ochrony",
+    criterion_two_factor: "Uwierzytelnianie dwuskładnikowe",
+    criterion_recovery_email: "Zweryfikowany e-mail odzyskiwania",
+    criterion_auto_lock: "Automatyczne blokowanie",
+    criterion_login_alerts: "Alerty logowania",
+    criterion_forward_secrecy: "Utajnianie z wyprzedzeniem",
     or_pay_with_card: "Lub zapłać kartą",
     cardholder_name_placeholder: "Imię i nazwisko",
     billing_postal_placeholder: "00-000",
@@ -4404,7 +4431,7 @@ export const pl = {
     recovery_codes_important: "Przechowuj je bezpiecznie",
     recovery_codes_important_desc:
       "Te kody to jedyny sposób na odzyskanie konta w przypadku utraty hasła. Przechowuj je w bezpiecznym miejscu.",
-    recovery_backup_tip: "Wskazówka dotycz��ca kopii zapasowej",
+    recovery_backup_tip: "Wskazówka dotycząca kopii zapasowej",
     recovery_backup_tip_desc:
       "Zapisz kody w menedżerze haseł lub wydrukuj je i przechowuj w bezpiecznym miejscu.",
     onboarding_appearance_title: "Spersonalizuj swoją skrzynkę",
@@ -4868,4 +4895,30 @@ export const pl = {
     badge_pulsar_description: "Usłyszał(-a) sygnał w hałasie.",
     badge_stargazer: "Obserwator gwiazd",
     badge_stargazer_description: "Spojrzał(-a) w górę w odpowiednim momencie.",},
+  secure_view: {
+    title: "Bezpieczna wiadomość",
+    from: "Od",
+    expires: "Wygasa",
+    expired: "Ta bezpieczna wiadomość wygasła i nie jest już dostępna.",
+    password_prompt:
+      "Ta wiadomość jest chroniona. Wprowadź hasło, aby ją wyświetlić.",
+    password_label: "Hasło",
+    view_button: "Wyświetl wiadomość",
+    unlocking: "Odblokowywanie...",
+    wrong_password: "Nieprawidłowe hasło. Spróbuj ponownie.",
+    locked: "Zbyt wiele prób. Spróbuj ponownie później.",
+    decrypt_failed: "Nie można odszyfrować tej wiadomości.",
+    loading: "Ładowanie...",
+    not_found: "Nie można znaleźć tej bezpiecznej wiadomości.",
+    attachments: "Załączniki",
+    download: "Pobierz",
+    powered_by: "Wysłane bezpiecznie przez AsterMail",
+  },
+  compose: {
+    encrypt_external_label: "Szyfruj dla odbiorców zewnętrznych",
+    encrypt_external_desc:
+      "Odbiorcy otwierają prywatny link i wprowadzają hasło, aby przeczytać tę wiadomość.",
+    encrypt_password_required:
+      "Ustaw hasło, aby zaszyfrować tę wiadomość.",
+  },
 };

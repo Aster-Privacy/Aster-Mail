@@ -88,6 +88,28 @@ interface SendOptions {
   in_reply_to?: string;
 }
 
+export interface SecureMessageFieldPayload {
+  ciphertext: string;
+  nonce: string;
+}
+
+export interface SecureMessageAttachmentPayload {
+  ciphertext: string;
+  nonce: string;
+  encrypted_filename: string;
+  filename_nonce: string;
+  content_type: string;
+  size_bytes: number;
+}
+
+export interface SecureMessagePayload {
+  kdf_salt: string;
+  auth_proof: string;
+  encrypted_subject: SecureMessageFieldPayload;
+  encrypted_body: SecureMessageFieldPayload;
+  attachments?: SecureMessageAttachmentPayload[];
+}
+
 interface ExternalSendRequest {
   encrypted_recipients: string;
   encrypted_subject: string;
@@ -107,6 +129,7 @@ interface ExternalSendRequest {
   expires_at?: string;
   expiry_password?: string;
   attachments?: ExternalAttachmentPayload[];
+  secure_message?: SecureMessagePayload;
 }
 
 export async function send_simple_email(

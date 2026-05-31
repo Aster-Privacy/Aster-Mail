@@ -123,6 +123,7 @@ export interface UserPreferences {
   sidebar_folders_collapsed: boolean;
   sidebar_labels_collapsed: boolean;
   sidebar_aliases_collapsed: boolean;
+  sidebar_minimized: boolean;
   sidebar_width: number;
   notification_banner_snooze_until: string;
   storage_format: "aster" | "ipfs";
@@ -136,6 +137,8 @@ export interface UserPreferences {
   search_encrypted_content: boolean;
   migration_haptic_v1_done: boolean;
   migration_tracker_blocking_v2_done: boolean;
+  html_rendering_mode: "html" | "plain_text";
+  strip_exif_on_compose: boolean;
 }
 
 export async function sync_quiet_hours_to_server(
@@ -396,6 +399,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   sidebar_folders_collapsed: false,
   sidebar_labels_collapsed: false,
   sidebar_aliases_collapsed: false,
+  sidebar_minimized: false,
   sidebar_width: 256,
   notification_banner_snooze_until: "",
   storage_format: "aster",
@@ -409,6 +413,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   search_encrypted_content: false,
   migration_haptic_v1_done: false,
   migration_tracker_blocking_v2_done: false,
+  html_rendering_mode: "html",
+  strip_exif_on_compose: true,
 };
 
 type GetPreferencesViaHttpResult = UserPreferences | "not_found" | null;

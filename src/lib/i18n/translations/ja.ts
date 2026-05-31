@@ -1882,6 +1882,9 @@ export const ja = {
     info_block_css_title: "リモートスタイルシートをブロックする理由",
     info_block_css_description:
       "メール内のCSSファイルは隠しトラッカーとして機能します。読み込むと送信者のサーバーにIP、開封時刻、デバイスが伝わります。",
+    info_strip_exif_title: "画像メタデータとは？",
+    info_strip_exif_description:
+      "スマートフォンやカメラで撮影した写真には、GPS座標・デバイスモデル・タイムスタンプ・レンズ情報などの隠しデータが含まれています。Asterは送信前にこれらを削除し、受信者がピクセルのみを見られるようにします。",
     info_spy_pixels_title: "スパイピクセルとは？",
     info_spy_pixels_description:
       "メールに隠された1x1の不可視画像です。読み込まれると送信者はIPアドレス、開封時刻、デバイスタイプを確認できます。Asterは読み込まれる前に削除します。",
@@ -1976,6 +1979,12 @@ export const ja = {
     generate_random: "ランダム生成",
     alias_copied: "エイリアスをクリップボードにコピーしました",
     address_copied: "アドレスをクリップボードにコピーしました",
+    set_as_primary: "プライマリアドレスに設定",
+    primary_badge: "プライマリ",
+    primary_address_label: "プライマリアドレス",
+    primary_address_set: "プライマリアドレスを更新しました",
+    primary_address_reset: "既定のアドレスに戻す",
+    also_receives_at: "{{email}} でも受信します",
     alias_grace_days: "残り{{days}}日",
     alias_reserved: "予約済み",
     alias_grace_upgrade_hint:
@@ -2380,7 +2389,7 @@ export const ja = {
     external_accounts_description:
       "外部のメールアカウントを接続して、他のプロバイダーからメールをインポートして送信できます。",
     add_account: "アカウントを追加",
-    remove_account: "アカ��ントを削除",
+    remove_account: "アカウントを削除",
     no_external_accounts: "外部アカウントはありません",
     no_external_accounts_description:
       "外部のメールアカウントを接続して、他のプロバイダーからメールをインポートして送信しましょう",
@@ -2631,7 +2640,7 @@ export const ja = {
     no_encryption_key: "暗号化キーがありません",
     no_encryption_key_description: "暗号化キーは自動的に生成されます",
     encryption_banner_title:
-      "秘���鍵はお使いのデバイ��から離れることはありません",
+      "秘密鍵はお使いのデバイスから離れることはありません",
     encryption_banner_subtitle:
       "メールはデバイスから送信される前に暗号化されます。Asterは読み取り不可能な暗号文のみを保存し、あなたのメールを見ることはできません。",
     encryption_banner_you: "あなた",
@@ -3032,6 +3041,24 @@ export const ja = {
     billing_postal_placeholder: "150-0001",
     block_remote_css_description: "外部サーバーからのスタイルシートの読み込みをブロックします",
     block_remote_css_label: "リモートCSSをブロック",
+    strip_exif_on_compose_label: "画像メタデータを削除",
+    strip_exif_on_compose_description:
+      "送信前に画像から EXIF などのメタデータを削除し、位置情報やデバイス情報を保護します",
+    account_protection_title: "アカウント保護",
+    account_protection_weak: "弱い",
+    account_protection_fair: "普通",
+    account_protection_partial: "一部",
+    account_protection_strong: "強い",
+    account_protection_hint_weak: "アカウントが危険な状態です。今すぐ保護オプションを有効にしてください。",
+    account_protection_hint_fair: "アカウントにはより多くの保護が必要です。",
+    account_protection_hint_partial: "より強力な保護のためにオプションを追加してください。",
+    account_protection_hint_strong: "アカウントは十分に保護されています。",
+    protection_breakdown_title: "保護の詳細",
+    criterion_two_factor: "二段階認証",
+    criterion_recovery_email: "確認済みの回復メール",
+    criterion_auto_lock: "自動ロック",
+    criterion_login_alerts: "ログインアラート",
+    criterion_forward_secrecy: "前方秘匿性",
     block_remote_fonts_description: "外部サーバーからのフォントの読み込みをブロックします",
     block_remote_fonts_label: "リモートフォントをブロック",
     block_remote_images_description: "外部サーバーからの画像の読み込みをブロックします",
@@ -4753,5 +4780,29 @@ export const ja = {
     badge_pulsar_description: "雑音の中に信号を聞いた者。",
     badge_stargazer: "星空観測者",
     badge_stargazer_description: "適切な瞬間に空を見上げた者。",
+  },
+  secure_view: {
+    title: "セキュアメッセージ",
+    from: "差出人",
+    expires: "有効期限",
+    expired: "このセキュアメッセージは有効期限が切れており、利用できなくなりました。",
+    password_prompt: "このメッセージは保護されています。表示するにはパスワードを入力してください。",
+    password_label: "パスワード",
+    view_button: "メッセージを表示",
+    unlocking: "ロック解除中...",
+    wrong_password: "パスワードが正しくありません。もう一度お試しください。",
+    locked: "試行回数が多すぎます。しばらくしてからもう一度お試しください。",
+    decrypt_failed: "このメッセージを復号できませんでした。",
+    loading: "読み込み中...",
+    not_found: "このセキュアメッセージが見つかりませんでした。",
+    attachments: "添付ファイル",
+    download: "ダウンロード",
+    powered_by: "AsterMail で安全に送信されました",
+  },
+  compose: {
+    encrypt_external_label: "外部の受信者向けに暗号化",
+    encrypt_external_desc:
+      "受信者はプライベートリンクを開き、パスワードを入力してこのメッセージを読みます。",
+    encrypt_password_required: "このメッセージを暗号化するにはパスワードを設定してください。",
   },
 };

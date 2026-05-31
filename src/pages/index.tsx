@@ -20,7 +20,8 @@
 //
 import type { SettingsSection } from "@/components/settings/settings_panel";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
 import { use_index_page_state } from "./use_index_page_state";
@@ -50,6 +51,17 @@ import { OnboardingChecklist } from "@/components/onboarding/onboarding_checklis
 export default function IndexPage() {
   const state = use_index_page_state();
   const { t } = use_i18n();
+  const navigate = useNavigate();
+  const { section } = useParams<{ section?: string }>();
+  const did_init_settings = useRef(false);
+
+  useEffect(() => {
+    if (!did_init_settings.current && section) {
+      did_init_settings.current = true;
+      state.set_settings_section(section as SettingsSection);
+      state.set_is_settings_open(true);
+    }
+  }, [section, state]);
 
   useEffect(() => {
     const result = sessionStorage.getItem("recovery_email_verification_result");
@@ -66,10 +78,11 @@ export default function IndexPage() {
 
   useEffect(() => {
     const handle_navigate = (e: Event) => {
-      const section = (e as CustomEvent<string>).detail as SettingsSection;
+      const nav_section = (e as CustomEvent<string>).detail as SettingsSection;
 
-      state.set_settings_section(section);
+      state.set_settings_section(nav_section);
       state.set_is_settings_open(true);
+      navigate(`/settings/${nav_section}`, { replace: false });
     };
 
     window.addEventListener("navigate-settings", handle_navigate);
@@ -77,7 +90,7 @@ export default function IndexPage() {
     return () => {
       window.removeEventListener("navigate-settings", handle_navigate);
     };
-  }, [state]);
+  }, [state, navigate]);
 
   return (
     <>
@@ -262,6 +275,7 @@ export default function IndexPage() {
         on_close={() => {
           state.set_is_settings_open(false);
           state.set_settings_section(undefined);
+          navigate(-1);
         }}
       />
       {state.reply_data && (
@@ -282,6 +296,8 @@ export default function IndexPage() {
           recipient_avatar={state.reply_data.recipient_avatar}
           recipient_email={state.reply_data.recipient_email}
           recipient_name={state.reply_data.recipient_name}
+          quote_sender_email={state.reply_data.quote_sender_email}
+          quote_sender_name={state.reply_data.quote_sender_name}
           reply_all={state.reply_data.reply_all}
           reply_from_address={state.reply_data.reply_from_address}
           thread_ghost_email={state.reply_data.thread_ghost_email}

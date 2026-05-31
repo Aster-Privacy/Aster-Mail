@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { api_client, type ApiResponse } from "./client";
 import { en } from "@/lib/i18n/translations/en";
 
@@ -40,7 +42,10 @@ export interface EmailAlias {
   domain: string;
   is_enabled: boolean;
   is_random: boolean;
+  is_pinned?: boolean;
   profile_picture?: string;
+  encrypted_note?: string;
+  note_nonce?: string;
   downgrade_grace_expires_at?: string;
   created_at: string;
   updated_at: string;
@@ -50,11 +55,13 @@ export interface DecryptedEmailAlias {
   id: string;
   local_part: string;
   display_name?: string;
+  note?: string;
   alias_address_hash: string;
   domain: string;
   full_address: string;
   is_enabled: boolean;
   is_random: boolean;
+  is_pinned?: boolean;
   decryption_failed?: boolean;
   profile_picture?: string;
   downgrade_grace_expires_at?: string;
@@ -77,6 +84,8 @@ export interface CreateAliasRequest {
   alias_address_hash: string;
   routing_address_hash: string;
   domain: string;
+  encrypted_note?: string;
+  note_nonce?: string;
   captcha_token?: string;
 }
 
@@ -92,6 +101,8 @@ export interface UpdateAliasRequest {
   profile_picture?: string | null;
   encrypted_local_part?: string;
   local_part_nonce?: string;
+  encrypted_note?: string | null;
+  note_nonce?: string | null;
 }
 
 export interface AliasLimitResponse {
@@ -240,6 +251,7 @@ export async function decrypt_alias(
       full_address: `${local_part}@${alias.domain}`,
       is_enabled: alias.is_enabled,
       is_random: alias.is_random,
+      is_pinned: alias.is_pinned,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,
@@ -264,15 +276,28 @@ export async function decrypt_alias(
       } catch {}
     }
 
+    let note: string | undefined;
+
+    if (alias.encrypted_note && alias.note_nonce) {
+      try {
+        note = await decrypt_alias_field(
+          alias.encrypted_note,
+          alias.note_nonce,
+        );
+      } catch {}
+    }
+
     return {
       id: alias.id,
       local_part,
       display_name,
+      note,
       alias_address_hash: alias.alias_address_hash,
       domain: alias.domain,
       full_address: `${local_part}@${alias.domain}`,
       is_enabled: alias.is_enabled,
       is_random: alias.is_random,
+      is_pinned: alias.is_pinned,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,
@@ -287,6 +312,7 @@ export async function decrypt_alias(
       full_address: `@${alias.domain}`,
       is_enabled: alias.is_enabled,
       is_random: alias.is_random,
+      is_pinned: alias.is_pinned,
       decryption_failed: true,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
@@ -341,6 +367,7 @@ export async function create_alias(
   domain: string,
   display_name?: string,
   captcha_token?: string,
+  note?: string,
 ): Promise<ApiResponse<CreateAliasResponse>> {
   const normalized_local_part = local_part.toLowerCase().trim();
   const alias_hash = await compute_alias_hash(normalized_local_part, domain);
@@ -368,6 +395,14 @@ export async function create_alias(
     request.display_name_nonce = display_name_nonce;
   }
 
+  if (note) {
+    const { encrypted: encrypted_note, nonce: note_nonce } =
+      await encrypt_alias_field(note);
+
+    request.encrypted_note = encrypted_note;
+    request.note_nonce = note_nonce;
+  }
+
   return api_client.post<CreateAliasResponse>("/addresses/v1/aliases", request);
 }
 
@@ -377,6 +412,7 @@ export async function update_alias(
     display_name?: string;
     is_enabled?: boolean;
     profile_picture?: string | null;
+    note?: string | null;
   },
 ): Promise<ApiResponse<{ success: boolean }>> {
   const request: UpdateAliasRequest = {};
@@ -396,6 +432,18 @@ export async function update_alias(
 
   if (updates.profile_picture !== undefined) {
     request.profile_picture = updates.profile_picture;
+  }
+
+  if (updates.note !== undefined) {
+    if (updates.note === null || updates.note === "") {
+      request.encrypted_note = null;
+      request.note_nonce = null;
+    } else {
+      const { encrypted, nonce } = await encrypt_alias_field(updates.note);
+
+      request.encrypted_note = encrypted;
+      request.note_nonce = nonce;
+    }
   }
 
   return api_client.patch<{ success: boolean }>(
@@ -424,6 +472,15 @@ export async function delete_alias(
 ): Promise<ApiResponse<{ status: string }>> {
   return api_client.delete<{ status: string }>(
     `/addresses/v1/aliases/${alias_id}`,
+  );
+}
+
+export async function toggle_alias_pin(
+  alias_id: string,
+): Promise<ApiResponse<{ is_pinned: boolean }>> {
+  return api_client.post<{ is_pinned: boolean }>(
+    `/addresses/v1/aliases/${alias_id}/pin`,
+    {},
   );
 }
 
@@ -476,17 +533,30 @@ const RESERVED_ALIAS_NAMES = new Set([
 export function validate_local_part(local_part: string): {
   valid: boolean;
   error?: string;
+  error_key?: TranslationKey;
 } {
   if (!local_part || local_part.length === 0) {
-    return { valid: false, error: en.errors.alias_empty };
+    return {
+      valid: false,
+      error: en.errors.alias_empty,
+      error_key: "errors.alias_empty",
+    };
   }
 
   if (local_part.length < 3) {
-    return { valid: false, error: en.errors.alias_too_short };
+    return {
+      valid: false,
+      error: en.errors.alias_too_short,
+      error_key: "errors.alias_too_short",
+    };
   }
 
   if (local_part.length > 64) {
-    return { valid: false, error: en.errors.alias_too_long };
+    return {
+      valid: false,
+      error: en.errors.alias_too_long,
+      error_key: "errors.alias_too_long",
+    };
   }
 
   const valid_pattern = /^[a-z0-9][a-z0-9._-]*[a-z0-9]$|^[a-z0-9]$/;
@@ -495,15 +565,24 @@ export function validate_local_part(local_part: string): {
     return {
       valid: false,
       error: en.errors.alias_invalid_chars,
+      error_key: "errors.alias_invalid_chars",
     };
   }
 
   if (local_part.includes("..")) {
-    return { valid: false, error: en.errors.alias_consecutive_dots };
+    return {
+      valid: false,
+      error: en.errors.alias_consecutive_dots,
+      error_key: "errors.alias_consecutive_dots",
+    };
   }
 
   if (RESERVED_ALIAS_NAMES.has(local_part.toLowerCase())) {
-    return { valid: false, error: en.errors.alias_not_available };
+    return {
+      valid: false,
+      error: en.errors.alias_not_available,
+      error_key: "errors.alias_not_available",
+    };
   }
 
   return { valid: true };
@@ -533,6 +612,19 @@ export async function reencrypt_all_aliases(): Promise<void> {
           display_name_nonce: nonce,
         });
       }
+
+      if (alias.encrypted_note && alias.note_nonce) {
+        const note = await decrypt_alias_field(
+          alias.encrypted_note,
+          alias.note_nonce,
+        );
+        const { encrypted, nonce } = await encrypt_alias_field(note);
+
+        await api_client.patch(`/addresses/v1/aliases/${alias.id}`, {
+          encrypted_note: encrypted,
+          note_nonce: nonce,
+        });
+      }
     } catch {
       continue;
     }
@@ -559,4 +651,142 @@ export async function get_alias_counts(): Promise<
   }
 
   return response as unknown as ApiResponse<AliasCountsResponse>;
+}
+
+export interface DeletedAlias {
+  id: string;
+  original_alias_id: string;
+  encrypted_local_part: string;
+  local_part_nonce: string;
+  encrypted_display_name?: string;
+  display_name_nonce?: string;
+  encrypted_note?: string;
+  note_nonce?: string;
+  alias_address_hash: string;
+  routing_address_hash?: string;
+  domain: string;
+  is_random: boolean;
+  profile_picture?: string;
+  deleted_at: string;
+}
+
+export interface ListDeletedAliasesResponse {
+  aliases: DeletedAlias[];
+  total: number;
+}
+
+export interface AliasStats {
+  received: number;
+  forwarded: number;
+  blocked: number;
+  replied: number;
+  distinct_senders: number;
+}
+
+export async function list_deleted_aliases(): Promise<
+  ApiResponse<ListDeletedAliasesResponse>
+> {
+  return api_client.get<ListDeletedAliasesResponse>(
+    "/addresses/v1/aliases/deleted",
+  );
+}
+
+export async function restore_alias(
+  deleted_id: string,
+): Promise<ApiResponse<{ id: string; success: boolean }>> {
+  return api_client.post<{ id: string; success: boolean }>(
+    `/addresses/v1/aliases/deleted/${deleted_id}/restore`,
+    {},
+  );
+}
+
+export async function get_alias_stats(
+  alias_id: string,
+): Promise<ApiResponse<AliasStats>> {
+  return api_client.get<AliasStats>(
+    `/addresses/v1/aliases/${alias_id}/stats`,
+  );
+}
+
+export interface AliasActivityDay {
+  date: string;
+  received: number;
+  blocked: number;
+  forwarded: number;
+}
+
+export interface AliasActivityResponse {
+  days: AliasActivityDay[];
+}
+
+export async function get_alias_activity(
+  alias_id: string,
+): Promise<ApiResponse<AliasActivityResponse>> {
+  return api_client.get<AliasActivityResponse>(
+    `/addresses/v1/aliases/${alias_id}/activity`,
+  );
+}
+
+export interface BulkCreateAliasItem {
+  encrypted_local_part: string;
+  local_part_nonce: string;
+  encrypted_display_name?: string;
+  display_name_nonce?: string;
+  alias_address_hash: string;
+  routing_address_hash?: string;
+  domain: string;
+  encrypted_note?: string;
+  note_nonce?: string;
+}
+
+export interface BulkCreateAliasResponse {
+  created: number;
+  failed: number;
+}
+
+export async function bulk_create_aliases(
+  aliases: BulkCreateAliasItem[],
+): Promise<ApiResponse<BulkCreateAliasResponse>> {
+  return api_client.post<BulkCreateAliasResponse>(
+    "/addresses/v1/aliases/bulk-create",
+    { aliases },
+  );
+}
+
+export interface AliasPreferences {
+  alias_default_domain?: string;
+  alias_sender_format: "via" | "at";
+  readable_reverse_aliases: boolean;
+  alias_always_expand: boolean;
+  alias_unsubscribe_action: "preserve" | "disable_alias" | "block_contact";
+  alias_disabled_response: "ignore" | "reject";
+  alias_delete_action: "trash" | "immediate";
+}
+
+export async function get_alias_preferences(): Promise<ApiResponse<AliasPreferences>> {
+  return api_client.get<AliasPreferences>("/addresses/v1/aliases/preferences");
+}
+
+export async function update_alias_preferences(
+  prefs: Partial<AliasPreferences>,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.patch<{ success: boolean }>(
+    "/addresses/v1/aliases/preferences",
+    prefs,
+  );
+}
+
+export interface DeliveryEvent {
+  id: string;
+  blocked_reason: "sender_pin" | "alias_rule" | "alias_disabled" | string;
+  created_at: string;
+}
+
+export interface AliasDeliveryLogResponse {
+  events: DeliveryEvent[];
+  total: number;
+}
+
+export async function get_alias_delivery_log(alias_id: string): Promise<ApiResponse<AliasDeliveryLogResponse>> {
+  return api_client.get<AliasDeliveryLogResponse>(`/addresses/v1/aliases/${alias_id}/delivery-log`);
 }

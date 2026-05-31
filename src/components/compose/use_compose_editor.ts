@@ -63,6 +63,7 @@ export function use_compose_editor({
     enable_keyboard_shortcuts: !is_plain_text_mode,
     is_plain_text_mode,
     on_files_drop,
+    strip_exif_on_compose: preferences.strip_exif_on_compose,
   });
 
   const [show_plain_text_confirm, set_show_plain_text_confirm] =

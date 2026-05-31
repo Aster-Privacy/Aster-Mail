@@ -260,6 +260,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           userSelect: "none",
         }}
       >
+<<<<<<< Updated upstream
         <span
           aria-hidden="true"
           style={{
@@ -271,9 +272,31 @@ export const ProfileAvatar = memo(function ProfileAvatar({
             userSelect: "none",
             letterSpacing: initials.length > 1 ? "-0.02em" : undefined,
           }}
+=======
+        <svg
+          aria-hidden="true"
+          height={pixel_size}
+          style={{ display: "block", pointerEvents: "none" }}
+          viewBox={`0 0 ${pixel_size} ${pixel_size}`}
+          width={pixel_size}
+>>>>>>> Stashed changes
         >
-          {initials}
-        </span>
+          <text
+            dominantBaseline="middle"
+            fill={text_color}
+            fontSize={font_size}
+            fontWeight={600}
+            style={{
+              fontFamily: "inherit",
+              letterSpacing: initials.length > 1 ? "-0.02em" : undefined,
+            }}
+            textAnchor="middle"
+            x="50%"
+            y="50%"
+          >
+            {initials}
+          </text>
+        </svg>
       </div>
     );
 

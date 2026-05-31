@@ -24,6 +24,7 @@ import { InfoPopover } from "@/components/ui/info_popover";
 import {
   ShieldCheckIcon,
   PhotoIcon,
+  CodeBracketIcon,
 } from "@heroicons/react/24/outline";
 
 import { TotpSetupModal } from "./totp_setup_modal";
@@ -36,6 +37,7 @@ import { TwoFactorSection } from "@/components/settings/security/two_factor_sect
 import { PasswordSection } from "@/components/settings/security/password_section";
 import { SessionSection } from "@/components/settings/security/session_section";
 import { TrustedDevicesSection } from "@/components/settings/security/trusted_devices_section";
+import { AccountProtectionScore } from "@/components/settings/security/account_protection_score";
 import { use_security } from "@/components/settings/hooks/use_security";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -51,6 +53,33 @@ interface SecuritySectionProps {
   on_account_deleted?: () => void;
 }
 
+function scroll_to_id(id: string) {
+  const el = document.getElementById(id);
+
+  if (!el) return;
+
+  let container: HTMLElement | null = el.parentElement;
+
+  while (container && container !== document.body) {
+    const { overflowY } = window.getComputedStyle(container);
+
+    if (overflowY === "auto" || overflowY === "scroll") {
+      const offset =
+        el.getBoundingClientRect().top -
+        container.getBoundingClientRect().top -
+        24;
+
+      container.scrollBy({ top: offset, behavior: "smooth" });
+
+      return;
+    }
+
+    container = container.parentElement;
+  }
+
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
   const security = use_security();
   const { t } = use_i18n();
@@ -60,7 +89,64 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
 
   return (
     <div className="space-y-4">
+      <AccountProtectionScore
+        block_external_content={preferences.block_external_content}
+        block_remote_css={preferences.block_remote_css}
+        block_remote_fonts={preferences.block_remote_fonts}
+        block_remote_images={preferences.block_remote_images}
+        block_tracking_pixels={preferences.block_tracking_pixels}
+        forward_secrecy_enabled={preferences.forward_secrecy_enabled}
+        login_alerts_enabled={security.login_alerts_enabled}
+        on_criterion_click={[
+          () => scroll_to_id("sec-2fa"),
+          () => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "account" })),
+          () => scroll_to_id("sec-2fa"),
+          () => scroll_to_id("sec-tracking"),
+          () => scroll_to_id("sec-tracking"),
+          () => scroll_to_id("sec-images"),
+          () => scroll_to_id("sec-images"),
+          () => scroll_to_id("sec-images"),
+          () => scroll_to_id("sec-images"),
+          () => scroll_to_id("sec-2fa"),
+        ]}
+        recovery_email_verified={security.recovery_email_verified}
+        strip_exif_on_compose={preferences.strip_exif_on_compose}
+        totp_enabled={security.totp_status?.enabled ?? false}
+      />
+
       <div>
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <CodeBracketIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.html_content_section_title")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.html_rendering_mode_label")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.html_rendering_mode_description")}
+            </p>
+          </div>
+          <Switch
+            checked={preferences.html_rendering_mode === "plain_text"}
+            onCheckedChange={() =>
+              update_preference(
+                "html_rendering_mode",
+                preferences.html_rendering_mode === "plain_text" ? "html" : "plain_text",
+                true,
+              )
+            }
+          />
+        </div>
+
+      </div>
+
+      <div id="sec-images">
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
             <PhotoIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
@@ -173,9 +259,31 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
             }
           />
         </div>
+
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+              {t("settings.strip_exif_on_compose_label")}
+              <InfoPopover description={t("settings.info_strip_exif_description")} title={t("settings.info_strip_exif_title")} />
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.strip_exif_on_compose_description")}
+            </p>
+          </div>
+          <Switch
+            checked={preferences.strip_exif_on_compose}
+            onCheckedChange={() =>
+              update_preference(
+                "strip_exif_on_compose",
+                !preferences.strip_exif_on_compose,
+                true,
+              )
+            }
+          />
+        </div>
       </div>
 
-      <div>
+      <div id="sec-tracking">
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
             <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
@@ -246,15 +354,21 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
                   {t("settings.block_tracking_links_description")}
                 </p>
               </div>
-              <Switch
-                checked={preferences.block_external_content}
-                disabled
-              />
+              {preferences.block_external_content ? (
+                <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+                  Active
+                </span>
+              ) : (
+                <span className="text-[11px] px-2 py-0.5 rounded-md bg-surf-secondary border border-edge-secondary text-txt-muted shrink-0">
+                  Inactive
+                </span>
+              )}
             </div>
           </>
         )}
       </div>
 
+      <div id="sec-2fa">
       <TwoFactorSection
         external_link_warning_dismissed={
           security.preferences.external_link_warning_dismissed
@@ -292,6 +406,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         }
         totp_enabled={security.totp_status?.enabled ?? false}
       />
+      </div>
 
       <PasswordSection
         confirm_password={security.confirm_password}

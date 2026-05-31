@@ -29,6 +29,7 @@ import { get_favicon_url, is_valid_favicon_domain } from "@/lib/favicon_url";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import { get_avatar_color, get_contrast_text } from "@/lib/avatar_color";
 import { get_root_domain } from "@/lib/utils";
+import { use_peer_profile } from "@/hooks/use_peer_profile";
 
 const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
 
@@ -64,6 +65,9 @@ export function ContactAvatar({
   const favicon_eligible =
     !!domain && !is_aster && is_valid_favicon_domain(domain);
 
+  const peer_profile = use_peer_profile(is_aster ? email : null);
+  const effective_avatar_url = avatar_url || (is_aster ? (peer_profile?.profile_picture ?? undefined) : undefined);
+
   const [avatar_failed, set_avatar_failed] = useState(false);
   const [favicon_failed, set_favicon_failed] = useState<boolean>(
     domain ? is_icon_failed(domain) : false,
@@ -76,7 +80,7 @@ export function ContactAvatar({
     minHeight: size_px,
   } as const;
 
-  if (avatar_url && !avatar_failed) {
+  if (effective_avatar_url && !avatar_failed) {
     return (
       <div
         className={`${rounded} overflow-hidden flex items-center justify-center ${className}`}
@@ -86,7 +90,7 @@ export function ContactAvatar({
           alt=""
           className="w-full h-full object-cover"
           draggable={false}
-          src={avatar_url}
+          src={effective_avatar_url}
           onError={() => set_avatar_failed(true)}
         />
       </div>

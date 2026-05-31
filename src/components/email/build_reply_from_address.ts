@@ -22,6 +22,7 @@ export interface ReplyFromSource {
   sender_email: string;
   to_emails?: string[];
   cc_emails?: string[];
+  received_on_alias?: string;
 }
 
 export function build_reply_from_address(
@@ -34,7 +35,20 @@ export function build_reply_from_address(
     return trimmed ? trimmed : undefined;
   }
 
-  return undefined;
+  const alias = source.received_on_alias?.trim();
+
+  return alias ? alias : undefined;
+}
+
+export function resolve_received_on_alias(
+  routing_token: string | undefined,
+  aliases: { alias_address_hash: string; full_address: string }[],
+): string | undefined {
+  if (!routing_token) return undefined;
+
+  const match = aliases.find((a) => a.alias_address_hash === routing_token);
+
+  return match?.full_address;
 }
 
 export function collect_recipient_emails(

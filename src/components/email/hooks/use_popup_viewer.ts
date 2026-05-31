@@ -55,6 +55,7 @@ import { use_date_format } from "@/hooks/use_date_format";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { extract_email_details } from "@/services/extraction/extractor";
 import { get_email_username } from "@/lib/utils";
+import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { extract_reply_to } from "@/utils/reply_to";
 import {
   process_envelope_body,
@@ -292,6 +293,9 @@ export function use_popup_viewer({
         id: pe.id,
         sender: pe.sender,
         sender_email: pe.sender_email,
+        display_sender_name: pe.display_sender_name,
+        display_sender_email: pe.display_sender_email,
+        forwarding_service: pe.forwarding_service,
         subject: pe.subject,
         preview: pe.preview,
         timestamp: format_email_detail(timestamp_date.current),
@@ -392,6 +396,10 @@ export function use_popup_viewer({
           id: response.data.id,
           sender: envelope.from.name || get_email_username(envelope.from.email),
           sender_email: envelope.from.email,
+          ...(resolve_forwarding_display(
+            envelope.from,
+            envelope.raw_headers,
+          ) ?? {}),
           subject: envelope.subject || t("mail.no_subject"),
           preview: build_preview_text(body_text, safe_html),
           timestamp: format_email_detail(timestamp_date.current),

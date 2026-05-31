@@ -153,6 +153,9 @@ export function EmailDetailBody({
 }: EmailDetailBodyProps) {
   const reduce_motion = use_should_reduce_motion();
   const { preferences } = use_preferences();
+  const show_sender_name = email?.display_sender_name ?? email?.sender ?? "";
+  const show_sender_email =
+    email?.display_sender_email ?? email?.sender_email ?? "";
 
   return (
     <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-20 sm:pb-6">
@@ -214,8 +217,8 @@ export function EmailDetailBody({
               <ProfileAvatar
                 use_domain_logo
                 className="cursor-pointer hover:opacity-80"
-                email={email.sender_email}
-                name={email.sender}
+                email={show_sender_email}
+                name={show_sender_name}
                 size="md"
               />
             </button>
@@ -227,10 +230,10 @@ export function EmailDetailBody({
                     set_is_sender_dropdown_open(!is_sender_dropdown_open)
                   }
                 >
-                  {email.sender}
+                  {show_sender_name}
                 </button>
                 <span className="text-xs sm:text-sm text-txt-muted truncate">
-                  &lt;{email.sender_email}&gt;
+                  &lt;{show_sender_email}&gt;
                 </span>
               </div>
               <div className="text-xs sm:text-sm text-txt-muted mt-0.5 truncate">
@@ -263,26 +266,26 @@ export function EmailDetailBody({
                         <div className="flex items-center gap-2 sm:gap-3">
                           <ProfileAvatar
                             use_domain_logo
-                            email={email.sender_email}
-                            name={email.sender}
+                            email={show_sender_email}
+                            name={show_sender_name}
                             size="md"
                           />
                           <div className="flex-1 min-w-0">
                             <button
                               className="font-medium text-xs sm:text-sm text-txt-primary hover:text-blue-500 transition-colors text-left w-full truncate"
                               onClick={() =>
-                                handle_copy_text(email.sender, "name")
+                                handle_copy_text(show_sender_name, "name")
                               }
                             >
-                              {email.sender}
+                              {show_sender_name}
                             </button>
                             <button
                               className="text-xs text-txt-muted hover:text-blue-500 transition-colors text-left w-full truncate"
                               onClick={() =>
-                                handle_copy_text(email.sender_email, "email")
+                                handle_copy_text(show_sender_email, "email")
                               }
                             >
-                              {email.sender_email}
+                              {show_sender_email}
                             </button>
                           </div>
                         </div>
@@ -348,6 +351,10 @@ export function EmailDetailBody({
                         item_type: "received" as const,
                         sender_name: email.sender,
                         sender_email: email.sender_email,
+                        display_sender_name: email.display_sender_name,
+                        display_sender_email: email.display_sender_email,
+                        forwarding_service: email.forwarding_service,
+                        raw_headers: email.raw_headers,
                         subject: email.subject,
                         body: email.body,
                         timestamp: email.timestamp,

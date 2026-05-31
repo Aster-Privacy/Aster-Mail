@@ -29,6 +29,9 @@ export interface DecryptedEmail {
   id: string;
   sender: string;
   sender_email: string;
+  display_sender_name?: string;
+  display_sender_email?: string;
+  forwarding_service?: string;
   subject: string;
   preview: string;
   timestamp: string;
@@ -64,6 +67,8 @@ export interface EmailPopupViewerProps {
     recipient_name: string;
     recipient_email: string;
     recipient_avatar: string;
+    quote_sender_name?: string;
+    quote_sender_email?: string;
     original_subject: string;
     original_body: string;
     original_timestamp: string;

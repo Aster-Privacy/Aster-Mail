@@ -127,6 +127,8 @@ interface ViewerToolbarActionsProps {
   on_print: () => void;
   on_unsubscribe: () => void;
   on_snooze?: () => void;
+  on_block_sender_on_alias?: () => void;
+  show_block_sender_on_alias?: boolean;
   folders?: { id: string; name: string; color: string }[];
   on_folder_toggle?: (folder_id: string) => void;
   can_go_prev?: boolean;
@@ -165,6 +167,8 @@ export function ViewerToolbarActions({
   on_print,
   on_unsubscribe,
   on_snooze,
+  on_block_sender_on_alias,
+  show_block_sender_on_alias = false,
   folders = [],
   on_folder_toggle,
   button_size = "h-9 w-9",
@@ -542,6 +546,12 @@ export function ViewerToolbarActions({
               {t("mail.unsubscribe")}
             </DropdownMenuItem>
           )}
+          {show_block_sender_on_alias && on_block_sender_on_alias && (
+            <DropdownMenuItem onClick={on_block_sender_on_alias}>
+              <NoSymbolIcon className="w-4 h-4 mr-2" />
+              {t("mail.block_sender_on_alias")}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() =>
@@ -634,7 +644,9 @@ export function ViewerEmailHeader({
     (peer_profile?.show_badge_ring ?? false) && !!peer_badge;
   const show_sender_badge =
     (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
-  const display_sender = peer_profile?.display_name || email.sender;
+  const display_sender =
+    peer_profile?.display_name || email.display_sender_name || email.sender;
+  const show_sender_email = email.display_sender_email ?? email.sender_email;
 
   return (
     <>
@@ -688,7 +700,7 @@ export function ViewerEmailHeader({
             clickable
             use_domain_logo
             className={avatar_class}
-            email={email.sender_email}
+            email={show_sender_email}
             image_url={peer_profile?.profile_picture ?? undefined}
             name={display_sender}
             size={avatar_size}
@@ -717,10 +729,10 @@ export function ViewerEmailHeader({
               <button
                 className={`text-xs whitespace-nowrap ${email_button_hide_class} hover:underline transition-all text-txt-muted`}
                 onClick={() =>
-                  copy_to_clipboard(email.sender_email, t("common.email"))
+                  copy_to_clipboard(show_sender_email, t("common.email"))
                 }
               >
-                &lt;{email.sender_email}&gt;
+                &lt;{show_sender_email}&gt;
               </button>
               {is_system_email(email.sender_email) && (
                 <EmailTag

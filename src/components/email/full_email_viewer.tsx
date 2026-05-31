@@ -383,6 +383,11 @@ export function FullEmailViewer({
               on_folder_toggle={on_folder_toggle}
               on_navigate_next={on_navigate_next}
               on_navigate_prev={on_navigate_prev}
+              on_block_sender_on_alias={
+                viewer.show_block_sender_on_alias
+                  ? viewer.handle_block_sender_on_alias
+                  : undefined
+              }
               on_not_spam={viewer.handle_not_spam}
               on_pin_toggle={viewer.handle_pin_toggle}
               on_print={viewer.handle_print}
@@ -390,6 +395,7 @@ export function FullEmailViewer({
               on_spam={viewer.handle_spam}
               on_trash={viewer.handle_trash}
               on_unsubscribe={viewer.handle_unsubscribe}
+              show_block_sender_on_alias={viewer.show_block_sender_on_alias}
               thread_expand_state={viewer.thread_expand_state}
               thread_list_ref={viewer.thread_list_ref}
               thread_messages={viewer.thread_messages}

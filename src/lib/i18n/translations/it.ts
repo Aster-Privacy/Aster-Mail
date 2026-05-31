@@ -1828,7 +1828,7 @@ export const it = {
     storage_locked_description: "La nuova posta è in pausa finché non libera spazio. Eliminare alcune email, o passare a un piano superiore, la farà tornare a fluire. La posta esistente è al sicuro.",
     storage_locked_bounce_warning: "La posta in arrivo verrà rifiutata tra {{days}} giorni a meno che non si liberi spazio. Eliminare alcune email o passare a un piano superiore presto manterrà la posta in arrivo.",
     plan_limit_reached: "Ha raggiunto il limite del suo piano attuale. Passare a un piano superiore, o rimuovere alcuni elementi per fare spazio, la farà ripartire.",
-    upgrade_to_unlock: "Aggiorna per sbloccare di pi��",
+    upgrade_to_unlock: "Aggiorna per sbloccare di più",
     usage_overview: "Panoramica utilizzo",
     usage_overview_description:
       "Monitora il tuo utilizzo attuale delle funzionalità del piano.",
@@ -2300,6 +2300,9 @@ export const it = {
     info_block_css_title: "Perché bloccare i fogli di stile remoti?",
     info_block_css_description:
       "I file CSS nelle e-mail agiscono come tracker nascosti. Caricarli dice al server del mittente il tuo IP, quando hai aperto e quale dispositivo usi.",
+    info_strip_exif_title: "Cosa sono i metadati delle immagini?",
+    info_strip_exif_description:
+      "Le foto scattate con telefoni e fotocamere incorporano dati nascosti come coordinate GPS, modello del dispositivo, data e ora e informazioni sull'obiettivo. Aster li rimuove prima dell'invio affinché i destinatari vedano solo i pixel.",
     info_spy_pixels_title: "Cosa sono i pixel spia?",
     info_spy_pixels_description:
       "Immagini 1x1 invisibili nelle e-mail. Al caricamento, il mittente vede il tuo IP, quando hai aperto il messaggio e il tipo di dispositivo. Aster li rimuove prima che possano caricarsi.",
@@ -2396,6 +2399,12 @@ export const it = {
     generate_random: "Genera casuale",
     alias_copied: "Alias copiato negli appunti",
     address_copied: "Indirizzo copiato negli appunti",
+    set_as_primary: "Imposta come indirizzo principale",
+    primary_badge: "Principale",
+    primary_address_label: "Indirizzo principale",
+    primary_address_set: "Indirizzo principale aggiornato",
+    primary_address_reset: "Ripristina l'indirizzo predefinito",
+    also_receives_at: "Riceve anche su {{email}}",
     alias_grace_days: "{{days}}g rimanenti",
     alias_reserved: "Riservato",
     alias_grace_upgrade_hint:
@@ -3146,6 +3155,24 @@ export const it = {
     block_remote_css_label: "Blocca CSS remoto",
     block_remote_css_description:
       "Impedisci alle email di caricare fogli di stile da server esterni",
+    strip_exif_on_compose_label: "Rimuovi metadati immagini",
+    strip_exif_on_compose_description:
+      "Rimuovi i metadati EXIF e altri dalle immagini prima dell'invio per proteggere la tua posizione e le informazioni del dispositivo",
+    account_protection_title: "Protezione account",
+    account_protection_weak: "Debole",
+    account_protection_fair: "Sufficiente",
+    account_protection_partial: "Parziale",
+    account_protection_strong: "Forte",
+    account_protection_hint_weak: "Il tuo account è a rischio. Attiva subito più opzioni di protezione.",
+    account_protection_hint_fair: "Il tuo account ha bisogno di più protezione.",
+    account_protection_hint_partial: "Attiva più opzioni per una protezione più solida.",
+    account_protection_hint_strong: "Il tuo account è ben protetto.",
+    protection_breakdown_title: "Riepilogo protezione",
+    criterion_two_factor: "Autenticazione a due fattori",
+    criterion_recovery_email: "E-mail di recupero verificata",
+    criterion_auto_lock: "Blocco automatico",
+    criterion_login_alerts: "Avvisi di accesso",
+    criterion_forward_secrecy: "Forward secrecy",
     or_pay_with_card: "O paga con carta",
     cardholder_name_placeholder: "Nome completo",
     billing_postal_placeholder: "12345",
@@ -4843,5 +4870,31 @@ export const it = {
     badge_pulsar_description: "Ha sentito il segnale nel rumore.",
     badge_stargazer: "Osservatore di stelle",
     badge_stargazer_description: "Ha alzato lo sguardo al momento giusto.",
+  },
+  secure_view: {
+    title: "Messaggio sicuro",
+    from: "Da",
+    expires: "Scade",
+    expired: "Questo messaggio sicuro è scaduto e non è più disponibile.",
+    password_prompt:
+      "Questo messaggio è protetto. Inserisci la password per visualizzarlo.",
+    password_label: "Password",
+    view_button: "Visualizza messaggio",
+    unlocking: "Sblocco in corso...",
+    wrong_password: "Password errata. Riprova.",
+    locked: "Troppi tentativi. Riprova più tardi.",
+    decrypt_failed: "Impossibile decifrare questo messaggio.",
+    loading: "Caricamento...",
+    not_found: "Impossibile trovare questo messaggio sicuro.",
+    attachments: "Allegati",
+    download: "Scarica",
+    powered_by: "Inviato in modo sicuro tramite AsterMail",
+  },
+  compose: {
+    encrypt_external_label: "Cifra per destinatari esterni",
+    encrypt_external_desc:
+      "I destinatari aprono un link privato e inseriscono una password per leggere questo messaggio.",
+    encrypt_password_required:
+      "Imposta una password per cifrare questo messaggio.",
   },
 };

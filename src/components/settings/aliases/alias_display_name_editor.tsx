@@ -24,6 +24,7 @@ import { useEffect, useRef, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 
 const MAX_DISPLAY_NAME_LENGTH = 128;
 
@@ -69,7 +70,11 @@ export function AliasDisplayNameEditor({
   }, [is_editing]);
 
   const enter_edit = () => {
-    if (saving || is_locked) return;
+    if (saving) return;
+    if (is_locked) {
+      prompt_upgrade("Custom display names");
+      return;
+    }
     commit_lock.current = false;
     set_value(display_name ?? "");
     set_is_editing(true);
@@ -174,7 +179,7 @@ export function AliasDisplayNameEditor({
 
   const has_name = !!display_name;
   const display_label = has_name ? display_name : placeholder_label;
-  const cursor_class = is_locked ? "cursor-not-allowed" : "cursor-text";
+  const cursor_class = is_locked ? "cursor-pointer" : "cursor-text";
 
   if (variant === "mobile") {
     return (
@@ -185,7 +190,6 @@ export function AliasDisplayNameEditor({
             ? "text-[var(--mobile-text-muted)]"
             : "text-[var(--mobile-text-muted)] opacity-70"
         } focus:outline-none focus:ring-0`}
-        disabled={is_locked}
         type="button"
         onClick={enter_edit}
       >
@@ -200,7 +204,6 @@ export function AliasDisplayNameEditor({
       className={`mt-0.5 block max-w-full ${cursor_class} truncate text-left text-xs ${
         has_name ? "text-txt-muted" : "text-txt-muted opacity-70"
       } focus:outline-none focus:ring-0`}
-      disabled={is_locked}
       type="button"
       onClick={enter_edit}
     >

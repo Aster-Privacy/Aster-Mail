@@ -19,9 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback, useRef } from "react";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
+import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
   Select,
@@ -56,6 +59,18 @@ import {
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
 
+export function compute_alias_at_limit(
+  max_aliases: number,
+  total_count: number,
+  has_active_custom_domains: boolean,
+): boolean {
+  return (
+    max_aliases !== -1 &&
+    total_count >= max_aliases &&
+    !has_active_custom_domains
+  );
+}
+
 interface CreateAliasModalProps {
   is_open: boolean;
   on_close: () => void;
@@ -65,6 +80,7 @@ interface CreateAliasModalProps {
   available_domains: string[];
   custom_domains: CustomDomain[];
   domain_addresses: (DecryptedDomainAddress & { domain_name: string })[];
+  initial_domain?: string;
 }
 
 export function CreateAliasModal({
@@ -76,12 +92,19 @@ export function CreateAliasModal({
   available_domains,
   custom_domains,
   domain_addresses,
+  initial_domain,
 }: CreateAliasModalProps) {
   const { t } = use_i18n();
+  const { is_feature_locked } = use_plan_limits();
+  const display_name_locked = is_feature_locked("has_alias_avatars");
   const [local_part, set_local_part] = useState("");
-  const [domain, set_domain] = useState(
-    available_domains[0] || DEFAULT_DOMAINS[0],
-  );
+  const [display_name, set_display_name] = useState("");
+  const [alias_format, set_alias_format] = useState<"words" | "uuid">("words");
+  const resolve_initial_domain = () => {
+    if (initial_domain && available_domains.includes(initial_domain)) return initial_domain;
+    return available_domains[0] || DEFAULT_DOMAINS[0];
+  };
+  const [domain, set_domain] = useState(resolve_initial_domain);
   const [saving, set_saving] = useState(false);
   const [error, set_error] = useState<string | null>(null);
   const [checking, set_checking] = useState(false);
@@ -99,7 +122,8 @@ export function CreateAliasModal({
   useEffect(() => {
     if (is_open) {
       set_local_part("");
-      set_domain(available_domains[0] || DEFAULT_DOMAINS[0]);
+      set_display_name("");
+      set_domain(resolve_initial_domain());
       set_error(null);
       set_is_available(null);
       set_captcha_token(null);
@@ -170,7 +194,11 @@ export function CreateAliasModal({
       : validate_local_part(local_part);
 
     if (!validation.valid) {
-      set_error(validation.error || t("settings.invalid_address"));
+      set_error(
+        validation.error_key
+          ? t(validation.error_key)
+          : t("settings.invalid_address"),
+      );
 
       return;
     }
@@ -197,6 +225,7 @@ export function CreateAliasModal({
           local_part,
           domain,
           captcha_token ?? undefined,
+          display_name.trim() || undefined,
         );
 
         if (response.error) {
@@ -212,8 +241,9 @@ export function CreateAliasModal({
         const response = await create_alias(
           local_part,
           domain,
-          undefined,
+          display_name.trim() || undefined,
           captcha_token ?? undefined,
+          undefined,
         );
 
         if (response.error) {
@@ -244,8 +274,11 @@ export function CreateAliasModal({
   };
 
   const has_custom_domains = custom_domains.some((d) => d.status === "active");
-  const at_limit =
-    max_aliases !== -1 && current_count >= max_aliases && !has_custom_domains;
+  const at_limit = compute_alias_at_limit(
+    max_aliases,
+    current_count + domain_addresses.length,
+    has_custom_domains,
+  );
 
   const current_validation = is_custom_domain
     ? validate_domain_local_part(local_part)
@@ -258,21 +291,27 @@ export function CreateAliasModal({
     (d) => !DEFAULT_DOMAINS.includes(d),
   );
 
-  const custom_domain_address_count =
-    is_custom_domain && matched_custom_domain
-      ? domain_addresses.filter((a) => a.domain_id === matched_custom_domain.id)
-          .length
-      : 0;
-
   const remaining =
     max_aliases === -1
       ? Infinity
-      : is_custom_domain
-        ? Math.max(0, max_aliases - custom_domain_address_count)
-        : Math.max(0, max_aliases - current_count);
+      : Math.max(0, max_aliases - current_count);
+
+  const show_remaining = !is_custom_domain;
+
+  const can_submit =
+    !saving &&
+    !!local_part &&
+    current_validation.valid &&
+    (is_custom_domain || is_available !== false) &&
+    (!turnstile_required || !!captcha_token);
+
+  const request_close = () => {
+    if (saving) return;
+    on_close();
+  };
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="xl">
+    <Modal is_open={is_open} close_on_overlay={!saving} on_close={request_close} size="xl">
       <ModalHeader>
         <ModalTitle>
           {at_limit
@@ -304,13 +343,41 @@ export function CreateAliasModal({
                 >
                   {t("settings.address_label")}
                 </label>
-                <span className="text-[11px] tabular-nums text-txt-muted">
-                  {remaining === Infinity
-                    ? t("settings.unlimited")
-                    : `${remaining} ${t("common.remaining")}`}
-                </span>
+                {show_remaining && (
+                  <span className="text-[11px] tabular-nums text-txt-muted">
+                    {remaining === Infinity
+                      ? t("settings.unlimited")
+                      : `${remaining} ${t("common.remaining")}`}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
+                <Select
+                  value={alias_format}
+                  onValueChange={(v) => set_alias_format(v as "words" | "uuid")}
+                >
+                  <SelectTrigger className="h-10 w-24 shrink-0 bg-transparent">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="words">{t("settings.alias_format_words")}</SelectItem>
+                    <SelectItem value="uuid">{t("settings.alias_format_uuid")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <button
+                  className="h-10 w-10 shrink-0 flex items-center justify-center rounded-lg border border-edge-secondary text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors"
+                  title={t("settings.alias_generate_random")}
+                  type="button"
+                  onClick={() => {
+                    const generated =
+                      alias_format === "uuid"
+                        ? crypto.randomUUID().split("-")[0]
+                        : generate_ghost_local_part();
+                    set_local_part(generated);
+                  }}
+                >
+                  <ArrowPathIcon className="w-4 h-4" />
+                </button>
                 <input
                   autoFocus
                   className={`flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border text-sm text-txt-primary placeholder:text-txt-muted outline-none ${
@@ -328,7 +395,12 @@ export function CreateAliasModal({
                   onChange={(e) =>
                     set_local_part(e.target.value.toLowerCase().trim())
                   }
-                  onKeyDown={(e) => e["key"] === "Enter" && handle_create()}
+                  onKeyDown={(e) => {
+                    if (e["key"] !== "Enter") return;
+                    e.preventDefault();
+                    if (!can_submit) return;
+                    handle_create();
+                  }}
                 />
                 <Select value={domain} onValueChange={set_domain}>
                   <SelectTrigger className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0">
@@ -380,8 +452,48 @@ export function CreateAliasModal({
               )}
               {local_part && !current_validation.valid && (
                 <p className="text-xs mt-1.5 text-red-500">
-                  {current_validation.error}
+                  {current_validation.error_key
+                    ? t(current_validation.error_key)
+                    : t("settings.invalid_address")}
                 </p>
+              )}
+              {is_custom_domain && (
+                <p className="text-xs mt-1.5 text-txt-muted">
+                  {t("settings.alias_availability_on_save")}
+                </p>
+              )}
+            </div>
+            <div>
+              <label
+                className="block mb-2 text-sm font-medium text-txt-primary"
+                htmlFor="alias-display-name"
+              >
+                {t("settings.create_alias_display_name_label")}
+              </label>
+              {display_name_locked ? (
+                <div className="flex items-center justify-between w-full h-10 px-3 rounded-lg border border-edge-secondary opacity-60 cursor-not-allowed">
+                  <span className="text-sm text-txt-muted">
+                    {t("settings.create_alias_display_name_placeholder")}
+                  </span>
+                  <button
+                    className="text-[11px] px-2 py-0.5 rounded-md bg-blue-500 text-white hover:bg-blue-600 shrink-0 transition-colors font-medium"
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))}
+                  >
+                    {t("settings.alias_feature_locked_view_plans")}
+                  </button>
+                </div>
+              ) : (
+                <input
+                  className="w-full h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
+                  id="alias-display-name"
+                  maxLength={128}
+                  placeholder={t(
+                    "settings.create_alias_display_name_placeholder",
+                  )}
+                  value={display_name}
+                  onChange={(e) => set_display_name(e.target.value)}
+                />
               )}
             </div>
             {turnstile_required && (
@@ -404,7 +516,11 @@ export function CreateAliasModal({
       </ModalBody>
 
       <ModalFooter>
-        <Button variant={at_limit ? "outline" : "ghost"} onClick={on_close}>
+        <Button
+          disabled={saving}
+          variant={at_limit ? "outline" : "ghost"}
+          onClick={request_close}
+        >
           {t("common.cancel")}
         </Button>
         {at_limit ? (
@@ -423,13 +539,7 @@ export function CreateAliasModal({
           </Button>
         ) : (
           <Button
-            disabled={
-              saving ||
-              !local_part ||
-              (!is_custom_domain && is_available === false) ||
-              !current_validation.valid ||
-              (turnstile_required && !captcha_token)
-            }
+            disabled={!can_submit}
             variant="depth"
             onClick={handle_create}
           >

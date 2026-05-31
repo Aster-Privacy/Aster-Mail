@@ -36,6 +36,7 @@ import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { use_platform } from "@/hooks/use_platform";
 import { use_should_reduce_motion } from "@/provider";
 import { use_auth } from "@/contexts/auth_context";
+import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_folders } from "@/hooks/use_folders";
@@ -77,6 +78,7 @@ export const MobileDrawer = memo(function MobileDrawer({
   const { safe_area_insets } = use_platform();
   const reduce_motion = use_should_reduce_motion();
   const { user, logout } = use_auth();
+  const primary_identity = use_primary_identity(user?.email ?? "");
   const { t } = use_i18n();
   const user_domain = useMemo(() => {
     const parts = user?.email?.split("@");
@@ -557,7 +559,7 @@ export const MobileDrawer = memo(function MobileDrawer({
                 Aster Mail
               </span>
               <span className="block truncate text-left text-[13px] text-[var(--text-muted)]">
-                {user?.email ?? ""}
+                {primary_identity.email || (user?.email ?? "")}
               </span>
             </div>
             <ChevronDownIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />

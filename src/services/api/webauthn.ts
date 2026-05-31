@@ -158,6 +158,7 @@ export async function verify_webauthn_assertion(request: {
   type: string;
   challenge_token: string;
   pending_login_token: string;
+  remember_me?: boolean;
 }): Promise<ApiResponse<TotpVerifyResponse>> {
   const response = await api_client.post<TotpVerifyResponse>(
     "/core/v1/auth/hardware-keys/assert/verify",
@@ -246,6 +247,7 @@ export async function perform_webauthn_registration(
 export async function perform_webauthn_assertion(
   options: WebAuthnAssertionOptions,
   pending_login_token: string,
+  remember_me?: boolean,
 ): Promise<ApiResponse<TotpVerifyResponse>> {
   const public_key: PublicKeyCredentialRequestOptions = {
     challenge: base64_url_to_array_buffer(options.challenge),
@@ -290,6 +292,7 @@ export async function perform_webauthn_assertion(
     type: credential.type,
     challenge_token: options.challenge_token,
     pending_login_token,
+    remember_me,
   });
 }
 

@@ -24,6 +24,11 @@ export interface DecryptedEmail {
   id: string;
   sender: string;
   sender_email: string;
+  display_sender_name?: string;
+  display_sender_email?: string;
+  forwarding_service?: string;
+  raw_headers?: { name: string; value: string }[];
+  reply_to?: { name?: string; email: string };
   subject: string;
   preview: string;
   timestamp: string;
@@ -55,6 +60,8 @@ export interface DecryptedEmail {
 export interface ReplyModalData {
   recipient_name: string;
   recipient_email: string;
+  quote_sender_name?: string;
+  quote_sender_email?: string;
   original_subject: string;
   original_body: string;
   original_timestamp: string;

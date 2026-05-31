@@ -36,6 +36,7 @@ import {
   revoke_all_sessions,
   type Session,
 } from "@/services/api/sessions";
+import { get_recovery_email } from "@/services/api/recovery_email";
 import {
   hash_email,
   derive_password_hash,
@@ -145,6 +146,7 @@ export function use_security() {
   const [sessions, set_sessions] = useState<Session[]>([]);
   const [sessions_loading, set_sessions_loading] = useState(true);
   const [sessions_error, set_sessions_error] = useState<string | null>(null);
+  const [recovery_email_verified, set_recovery_email_verified] = useState(false);
 
   const fetch_totp_status = useCallback(async () => {
     try {
@@ -192,6 +194,18 @@ export function use_security() {
     }
   }, []);
 
+  const fetch_recovery_email_status = useCallback(async () => {
+    const vault = get_vault_from_memory();
+
+    if (!vault) return;
+
+    try {
+      const result = await get_recovery_email(vault);
+
+      set_recovery_email_verified(result.data.verified ?? false);
+    } catch {}
+  }, []);
+
   const fetch_sessions = useCallback(async () => {
     set_sessions_loading(true);
     set_sessions_error(null);
@@ -219,11 +233,13 @@ export function use_security() {
     fetch_login_alerts_status();
     fetch_ipfs_status();
     fetch_sessions();
+    fetch_recovery_email_status();
   }, [
     fetch_totp_status,
     fetch_login_alerts_status,
     fetch_ipfs_status,
     fetch_sessions,
+    fetch_recovery_email_status,
   ]);
 
   const handle_login_alerts_toggle = async () => {
@@ -442,8 +458,15 @@ export function use_security() {
         vault_nonce: new_vault_nonce,
       } = await encrypt_vault(vault, new_password);
 
-      const { re_encrypted_aliases, re_encrypted_contacts } =
-        await re_encrypt_user_data(current_password, new_password);
+      const {
+        re_encrypted_aliases,
+        re_encrypted_contacts,
+        re_encrypted_pins,
+        re_encrypted_alias_contacts,
+        re_encrypted_destinations,
+        re_encrypted_directories,
+        re_encrypted_domain_addresses,
+      } = await re_encrypt_user_data(current_password, new_password);
 
       const response = await change_password({
         current_password_hash,
@@ -453,6 +476,11 @@ export function use_security() {
         new_vault_nonce,
         re_encrypted_aliases,
         re_encrypted_contacts,
+        re_encrypted_pins,
+        re_encrypted_alias_contacts,
+        re_encrypted_destinations,
+        re_encrypted_directories,
+        re_encrypted_domain_addresses,
       });
 
       if (response.error) {
@@ -714,6 +742,8 @@ export function use_security() {
     t,
     preferences,
     update_preference,
+
+    recovery_email_verified,
 
     totp_status,
     show_totp_setup_modal,

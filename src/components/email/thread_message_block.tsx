@@ -54,6 +54,7 @@ import {
   is_html_content,
   has_rich_html,
   plain_text_to_html,
+  html_to_readable_plain_text,
   strip_html_tags,
 } from "@/lib/html_sanitizer";
 import {
@@ -229,6 +230,8 @@ export function ThreadMessageBlock({
 
   const is_system = is_system_email(message.sender_email);
   const is_ghost_sender = is_ghost_email(message.sender_email);
+  const show_sender_name = message.display_sender_name ?? message.sender_name;
+  const show_sender_email = message.display_sender_email ?? message.sender_email;
   const is_ratchet_undecryptable =
     message.body === RATCHET_UNDECRYPTABLE_SENTINEL;
   const rich_html_source = message.html_content || message.body;
@@ -377,6 +380,15 @@ export function ThreadMessageBlock({
 
   const effective_html = cid_resolved_html ?? sanitized_content.html;
 
+  const html_blocked =
+    is_html_content(clean_body) &&
+    preferences.html_rendering_mode === "plain_text";
+
+  const plain_text_html = useMemo(() => {
+    if (!html_blocked) return null;
+    return plain_text_to_html(html_to_readable_plain_text(clean_body));
+  }, [html_blocked, clean_body]);
+
   const inline_cids = useMemo(() => {
     const refs = extract_cid_references(sanitized_content.html);
 
@@ -391,7 +403,7 @@ export function ThreadMessageBlock({
     return names.size > 0 ? names : undefined;
   }, [sanitized_content.html]);
 
-  const name = is_own_message ? t("common.me") : message.sender_name;
+  const name = is_own_message ? t("common.me") : show_sender_name;
   const can_collapse = !is_single_message && !is_last_in_thread;
 
   if (message.is_deleted) {
@@ -414,8 +426,8 @@ export function ThreadMessageBlock({
         <ProfileAvatar
           use_domain_logo
           className="flex-shrink-0 mt-0.5"
-          email={message.sender_email}
-          name={message.sender_name}
+          email={show_sender_email}
+          name={show_sender_name}
           size="md"
         />
         <div className="flex-1 min-w-0">
@@ -563,8 +575,8 @@ export function ThreadMessageBlock({
           >
             <ProfileAvatar
               use_domain_logo
-              email={message.sender_email}
-              name={message.sender_name}
+              email={show_sender_email}
+              name={show_sender_name}
               size="md"
             />
           </SenderProfileTrigger>
@@ -585,7 +597,7 @@ export function ThreadMessageBlock({
               </SenderProfileTrigger>
             )}
             <span className="text-xs text-txt-muted truncate hidden sm:inline max-w-full">
-              &lt;{message.sender_email}&gt;
+              &lt;{show_sender_email}&gt;
             </span>
             {is_ghost_sender && (
               <EmailTag
@@ -691,7 +703,7 @@ export function ThreadMessageBlock({
                   {t("common.from_label")}
                 </span>
                 <span className="min-w-0 text-txt-secondary break-words">
-                  {message.sender_name} &lt;{message.sender_email}&gt;
+                  {show_sender_name} &lt;{show_sender_email}&gt;
                 </span>
               </div>
               {message.to_recipients && message.to_recipients.length > 0 && (
@@ -1021,28 +1033,28 @@ export function ThreadMessageBlock({
         </div>
       )}
 
-      <div className={`${is_plain_text ? "pl-[52px] pb-4" : "pb-0"} pt-1`}>
+      <div className={`${is_plain_text || html_blocked ? "pl-[52px] pb-4" : "pb-0"} pt-1`}>
         {is_ratchet_undecryptable ? (
           <p className="px-4 py-3 text-sm italic text-txt-muted">
             {t("mail.encrypted_message_unavailable")}
           </p>
         ) : (
           <ThreadMessageBody
-            body_background={sanitized_content.body_background}
+            body_background={html_blocked ? undefined : sanitized_content.body_background}
             clean_body={clean_body}
             email_id={message.id}
             force_dark_mode={force_dark_mode}
-            is_plain_text={is_plain_text}
-            load_remote_content={load_remote_content}
+            is_plain_text={html_blocked ? true : is_plain_text}
+            load_remote_content={html_blocked ? false : load_remote_content}
             preserve_formatting={message.is_sending === true}
-            sanitized_html={effective_html}
+            sanitized_html={html_blocked ? (plain_text_html ?? "") : effective_html}
             set_wrap_source={set_wrap_source}
             viewing_source={viewing_source}
             wrap_source={wrap_source}
           />
         )}
 
-        <div className={is_plain_text ? "" : "pl-[52px]"} onClick={(e) => e.stopPropagation()}>
+        <div className={is_plain_text || html_blocked ? "" : "pl-[52px]"} onClick={(e) => e.stopPropagation()}>
           <AttachmentList
             has_recipient_key={message.has_recipient_key}
             inline_cids={inline_cids}
@@ -1114,6 +1126,14 @@ export function ThreadMessageBlock({
                 original_to={all_to_emails}
                 recipient_email={inline_recipient_email}
                 recipient_name={inline_recipient_name}
+                quote_sender_email={
+                  is_own_msg ? undefined : message.display_sender_email
+                }
+                quote_sender_name={
+                  !is_own_msg && message.display_sender_email
+                    ? message.display_sender_name || message.sender_name
+                    : undefined
+                }
                 reply_from_address={inline_reply_from}
                 sender_email={message.sender_email}
                 sender_name={message.sender_name}

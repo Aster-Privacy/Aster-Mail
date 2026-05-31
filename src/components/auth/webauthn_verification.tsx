@@ -33,6 +33,7 @@ interface WebauthnVerificationProps {
   on_success: (response: TotpVerifyResponse) => void;
   on_use_other_method: () => void;
   on_cancel: () => void;
+  remember_me?: boolean;
 }
 
 export function WebauthnVerification({
@@ -40,6 +41,7 @@ export function WebauthnVerification({
   on_success,
   on_use_other_method,
   on_cancel,
+  remember_me = true,
 }: WebauthnVerificationProps) {
   const { t } = use_i18n();
   const [is_loading, set_is_loading] = useState(false);
@@ -62,6 +64,7 @@ export function WebauthnVerification({
     const result = await perform_webauthn_assertion(
       options_response.data,
       pending_login_token,
+      remember_me,
     );
 
     if (result.error) {
@@ -79,7 +82,7 @@ export function WebauthnVerification({
     }
 
     set_is_loading(false);
-  }, [pending_login_token, on_success, t]);
+  }, [pending_login_token, on_success, remember_me, t]);
 
   useEffect(() => {
     start_assertion();
