@@ -28,7 +28,6 @@ import { Button } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { LockIcon } from "@/components/common/icons";
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { sanitize_html } from "@/lib/html_sanitizer";
@@ -447,9 +446,11 @@ export default function SecureViewPage() {
           )}
         >
           <div className="flex flex-col items-center gap-3 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surf-tertiary text-txt-secondary">
-              <LockIcon size={22} />
-            </div>
+            <img
+              alt="Aster Mail"
+              className="h-12 w-12"
+              src="/mail_logo.png"
+            />
             <h1 className="text-lg font-semibold text-txt-primary">
               {sv("secure_view.title")}
             </h1>

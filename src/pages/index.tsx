@@ -85,10 +85,14 @@ export default function IndexPage() {
       navigate(`/settings/${nav_section}`, { replace: false });
     };
 
+    const handle_navigate_sent = () => navigate("/sent");
+
     window.addEventListener("navigate-settings", handle_navigate);
+    window.addEventListener("astermail:navigate-to-sent", handle_navigate_sent);
 
     return () => {
       window.removeEventListener("navigate-settings", handle_navigate);
+      window.removeEventListener("astermail:navigate-to-sent", handle_navigate_sent);
     };
   }, [state, navigate]);
 
