@@ -457,7 +457,6 @@ export default function SecureViewPage() {
           {render_body()}
 
           <p className="text-xs text-txt-muted">
-            ♠{" "}
             {sv("secure_view.powered_by_prefix")}{" "}
             <a
               className="underline hover:text-txt-secondary"

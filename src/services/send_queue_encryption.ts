@@ -670,9 +670,13 @@ export async function execute_external_send(
       data: new Uint8Array(a.data),
     }));
 
+    const secure_body = body_to_send.replace(
+      /<br\s*\/?>\s*<br\s*\/?>\s*.*?<a\s[^>]*href="https:\/\/astermail\.org"[^>]*>.*?<\/a>/gi,
+      "",
+    );
     const encrypted_secure = await encrypt_secure_message(
       email.expiry_password,
-      { subject: email.subject, body: body_to_send },
+      { subject: email.subject, body: secure_body },
       secure_attachments,
     );
 

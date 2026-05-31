@@ -161,7 +161,7 @@ export function use_compose_send({
 
   const build_send_context = useCallback(
     (): SendActionContext => ({
-      undo_send_enabled: preferences.undo_send_enabled,
+      undo_send_enabled: preferences.undo_send_enabled ?? true,
       undo_send_seconds: preferences.undo_send_seconds,
       undo_send_period: preferences.undo_send_period,
       message,
