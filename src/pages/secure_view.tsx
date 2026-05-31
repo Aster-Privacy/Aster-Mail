@@ -46,8 +46,9 @@ type ViewState = "loading" | "not_found" | "expired" | "ready" | "unlocked";
 const SECURE_BODY_CSS =
   EMAIL_BODY_CSS +
   `
-html, body { background: transparent !important; }
-body { padding: 16px 18px !important; color: inherit; }
+html { color-scheme: dark !important; background: transparent !important; }
+body { background: transparent !important; padding: 16px 18px !important; color: #e5e7eb !important; }
+a { color: #93c5fd !important; }
 .aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix { display: block !important; }
 `;
 
