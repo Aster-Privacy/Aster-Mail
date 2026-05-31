@@ -138,7 +138,7 @@ export function ReplyBody({
     const el = message_editor_ref.current;
 
     if (el && message_content && !el.innerHTML) {
-      el.innerHTML = message_content;
+      el.innerHTML = sanitize_compose_paste(message_content);
     }
   });
 

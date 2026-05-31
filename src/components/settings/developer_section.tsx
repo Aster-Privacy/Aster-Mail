@@ -344,14 +344,9 @@ export function DeveloperSection() {
         build: build_hash,
         environment: import.meta.env.MODE,
       },
-      user: {
-        id_prefix: user?.id?.slice(0, 8) || null,
-      },
       crypto: {
         vault_loaded: !!vault,
         passphrase_cached: has_passphrase,
-        key_age_hours: key_status?.key_age_hours ?? null,
-        key_fingerprint: key_status?.key_fingerprint ?? null,
         wkd_published: wkd_published,
         keyserver_published: keyserver_published,
         algorithms: {
@@ -371,30 +366,19 @@ export function DeveloperSection() {
         memory: get_memory_usage(t("settings.dev_unavailable")),
         page_load: get_page_load_time(t("settings.dev_unavailable")),
         dom_ready: get_dom_content_loaded(t("settings.dev_unavailable")),
-        session_duration: session_duration,
       },
       storage: {
         local_storage: get_local_storage_size(),
-        local_storage_keys: count_local_storage_keys(),
-        session_storage_keys: Object.keys(sessionStorage).length,
         indexed_db: idb_info,
       },
       mail: {
-        total_emails,
-        inbox: stats.inbox,
-        sent: stats.sent,
-        archived: stats.archived,
-        trash: stats.trash,
-        unread: stats.unread,
-        drafts: stats.drafts,
-        custom_folders,
+        has_emails: total_emails > 0,
         storage_used: storage_used,
         storage_total: storage_total,
       },
       display: {
         screen: get_screen_info(),
         viewport: get_viewport_info(),
-        user_agent: navigator.userAgent,
       },
     };
     const blob = new Blob([JSON.stringify(debug_data, null, 2)], {
