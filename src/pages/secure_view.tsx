@@ -449,6 +449,13 @@ export default function SecureViewPage() {
           )}
         >
           <div className="flex flex-col items-center gap-2 text-center">
+            {view_state === "unlocked" && (
+              <img
+                alt="Aster Mail"
+                className="h-10 w-10"
+                src="/mail_logo.png"
+              />
+            )}
             <h1 className="text-lg font-semibold text-txt-primary">
               {sv("secure_view.title")}
             </h1>
