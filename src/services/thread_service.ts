@@ -52,6 +52,7 @@ import {
   try_extract_mime_body,
   RATCHET_UNDECRYPTABLE_SENTINEL,
   extract_subject_bundle,
+  is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 
@@ -259,6 +260,9 @@ export async function fetch_and_decrypt_thread_messages(
     if (resolved_html && /^content-type\s*:/im.test(resolved_html)) {
       resolved_html = try_extract_mime_body(resolved_html) || undefined;
     }
+    if (is_ratchet_envelope(resolved_html)) {
+      resolved_html = undefined;
+    }
     const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
     let body_content = resolved_html || resolved_text;
     let body_decrypted = false;
@@ -333,12 +337,16 @@ export async function fetch_and_decrypt_thread_messages(
     const content_is_html = /<[a-z][\s\S]*>/i.test(body_content);
     const html_had_pgp =
       resolved_html?.includes("-----BEGIN PGP MESSAGE-----") ?? false;
-    const effective_html =
+    let effective_html: string | undefined =
       (body_decrypted || mime_extracted) && content_is_html
         ? body_content
         : html_had_pgp && body_decrypted
           ? undefined
           : resolved_html;
+
+    if (is_ratchet_envelope(effective_html)) {
+      effective_html = undefined;
+    }
 
     return {
       id: msg.id,
@@ -427,6 +435,9 @@ export async function fetch_and_decrypt_virtual_group(
     if (resolved_html && /^content-type\s*:/im.test(resolved_html)) {
       resolved_html = try_extract_mime_body(resolved_html) || undefined;
     }
+    if (is_ratchet_envelope(resolved_html)) {
+      resolved_html = undefined;
+    }
     const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
     let body_content = resolved_html || resolved_text;
     let body_decrypted = false;
@@ -501,12 +512,16 @@ export async function fetch_and_decrypt_virtual_group(
     const content_is_html = /<[a-z][\s\S]*>/i.test(body_content);
     const html_had_pgp =
       resolved_html?.includes("-----BEGIN PGP MESSAGE-----") ?? false;
-    const effective_html =
+    let effective_html: string | undefined =
       (body_decrypted || mime_extracted) && content_is_html
         ? body_content
         : html_had_pgp && body_decrypted
           ? undefined
           : resolved_html;
+
+    if (is_ratchet_envelope(effective_html)) {
+      effective_html = undefined;
+    }
 
     return {
       id: item.id,
