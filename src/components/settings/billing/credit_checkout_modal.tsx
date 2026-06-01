@@ -44,7 +44,6 @@ import {
   type CreditPackageItem,
 } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
-import { useTheme } from "@/contexts/theme_context";
 import {
   use_stripe_theme_tokens,
   build_stripe_appearance,
@@ -63,7 +62,6 @@ function CreditPayForm({
   client_secret,
   payment_intent_id,
   price_display,
-  currency,
   on_close,
   on_success,
 }: CreditPayFormProps) {
@@ -155,7 +153,6 @@ export function CreditCheckoutModal({
   on_success,
 }: CreditCheckoutModalProps) {
   const { t } = use_i18n();
-  const { theme } = useTheme();
   const stripe_tokens = use_stripe_theme_tokens();
   const [stripe_promise, set_stripe_promise] = useState<Promise<Stripe | null> | null>(null);
   const [client_secret, set_client_secret] = useState<string | null>(null);
