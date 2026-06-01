@@ -2850,6 +2850,8 @@ export const ru = {
     credit_purchase_error: "Could not start checkout. Please try again.",
     credit_pay_card: "Card",
     credit_pay_crypto: "Crypto",
+    credits_added_to_account: "Credits have been added to your account.",
+    in_credits: "in credits",
     credit_transactions: "Ð¢Ñ€Ð°Ð½Ð·Ð°ÐºÑ†Ð¸Ð¸ ÐºÑ€ÐµÐ´Ð¸Ñ‚Ð¾Ð²",
     referral_program: "Ð ÐµÑ„ÐµÑ€Ð°Ð»ÑŒÐ½Ð°Ñ Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼Ð°",
     your_referral_link: "Ð’Ð°ÑˆÐ° Ñ€ÐµÑ„ÐµÑ€Ð°Ð»ÑŒÐ½Ð°Ñ ÑÑÑ‹Ð»ÐºÐ°",

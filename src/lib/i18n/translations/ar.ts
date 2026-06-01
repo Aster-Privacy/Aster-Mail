@@ -2887,6 +2887,8 @@ export const ar = {
     credit_purchase_error: "Could not start checkout. Please try again.",
     credit_pay_card: "Card",
     credit_pay_crypto: "Crypto",
+    credits_added_to_account: "Credits have been added to your account.",
+    in_credits: "in credits",
     credit_transactions: "Ù…Ø¹Ø§Ù…Ù„Ø§Øª Ø§Ù„Ø£Ø±ØµØ¯Ø©",
     referral_program: "Ø¨Ø±Ù†Ø§Ù…Ø¬ Ø§Ù„Ø¥Ø­Ø§Ù„Ø©",
     referral_program_description:

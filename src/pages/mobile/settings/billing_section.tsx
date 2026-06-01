@@ -1059,6 +1059,7 @@ export function BillingSection({
               <CreditsSection
                 credit_balance={credit_balance}
                 set_credit_balance={set_credit_balance}
+                preferred_currency={preferred_currency}
               />
             </div>
 
