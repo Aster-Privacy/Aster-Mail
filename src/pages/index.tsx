@@ -20,7 +20,7 @@
 //
 import type { SettingsSection } from "@/components/settings/settings_panel";
 
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
@@ -35,7 +35,11 @@ import { SubscriptionsContent } from "@/components/subscriptions/subscriptions_c
 import { SenderDetailHeader } from "@/components/subscriptions/sender_detail_header";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_i18n } from "@/lib/i18n/context";
-import { SettingsPanel } from "@/components/settings/settings_panel";
+const SettingsPanel = lazy(() =>
+  import("@/components/settings/settings_panel").then((m) => ({
+    default: m.SettingsPanel,
+  })),
+);
 import { ReplyModal } from "@/components/modals/reply_modal";
 import { ForwardModal } from "@/components/modals/forward_modal";
 import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
@@ -273,15 +277,17 @@ export default function IndexPage() {
           </div>
         </div>
       </div>
-      <SettingsPanel
-        initial_section={state.settings_section}
-        is_open={state.is_settings_open}
-        on_close={() => {
-          state.set_is_settings_open(false);
-          state.set_settings_section(undefined);
-          navigate(-1);
-        }}
-      />
+      <Suspense fallback={null}>
+        <SettingsPanel
+          initial_section={state.settings_section}
+          is_open={state.is_settings_open}
+          on_close={() => {
+            state.set_is_settings_open(false);
+            state.set_settings_section(undefined);
+            navigate(-1);
+          }}
+        />
+      </Suspense>
       {state.reply_data && (
         <ReplyModal
           is_external={state.reply_data.is_external}
