@@ -982,7 +982,8 @@ export function ThreadMessageBlock({
         size_bytes={size_bytes}
       />
 
-      {message.item_type === "received" && (
+      {message.item_type === "received" &&
+        message.dmarc_result !== "pass" && (
         message.spf_result === "fail" ||
         message.dkim_result === "fail" ||
         message.dmarc_result === "fail"
