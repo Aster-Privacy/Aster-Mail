@@ -280,6 +280,66 @@ export async function execute_external_email_send(
     });
 
     save_and_close(ctx, result.queue_id, email_data);
+  } else if (delay_seconds > 0 && email_data.secure_external) {
+    const email_id = crypto.randomUUID();
+
+    const timeout_id = window.setTimeout(async () => {
+      try {
+        await execute_external_send(external_email_data, true);
+        undo_send_manager.remove(email_id);
+        ctx.set_queued_email_id(null);
+        dispatch_email_sent();
+        log_activities_for_sent(ctx, email_data);
+        show_action_toast({
+          message: ctx.t("common.email_sent"),
+          action_type: "read",
+          email_ids: [],
+          duration_ms: 5000,
+          on_view_message: () => {
+            window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+          },
+        });
+      } catch (err) {
+        undo_send_manager.remove(email_id);
+        ctx.set_queued_email_id(null);
+        show_toast(
+          (err as Error).message ||
+            ctx.t("common.failed_to_send_external_email"),
+          "error",
+        );
+      }
+    }, delay_ms);
+
+    undo_send_manager.add({
+      id: email_id,
+      to: email_data.to,
+      cc: email_data.cc,
+      bcc: email_data.bcc,
+      subject: email_data.subject,
+      body: email_data.body,
+      scheduled_time: Date.now() + delay_ms,
+      total_seconds: delay_seconds,
+      timeout_id,
+      is_external: true,
+      on_send_immediately: async () => {
+        window.clearTimeout(timeout_id);
+        try {
+          await execute_external_send(external_email_data, true);
+          ctx.set_queued_email_id(null);
+          dispatch_email_sent();
+          log_activities_for_sent(ctx, email_data);
+        } catch (err) {
+          ctx.set_queued_email_id(null);
+          show_toast(
+            (err as Error).message ||
+              ctx.t("common.failed_to_send_external_email"),
+            "error",
+          );
+        }
+      },
+    });
+
+    save_and_close(ctx, email_id, email_data);
   } else {
     try {
       await execute_external_send(external_email_data, true);
