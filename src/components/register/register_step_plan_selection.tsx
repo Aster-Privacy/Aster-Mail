@@ -29,6 +29,8 @@ import { Button } from "@aster/ui";
 import { Logo } from "@/components/auth/auth_styles";
 import { Spinner } from "@/components/ui/spinner";
 import { CheckoutModal } from "@/components/settings/checkout_modal";
+import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
+import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import {
   get_available_plans,
   format_price,
@@ -214,6 +216,8 @@ export const RegisterStepPlanSelection = ({
   const [is_loading, set_is_loading] = useState(true);
   const [checkout, set_checkout] = useState<SelectedCheckout | null>(null);
   const [is_finalizing, set_is_finalizing] = useState(false);
+  const [pending_tier, set_pending_tier] = useState<{ tier: PlanTier; plan: AvailablePlan } | null>(null);
+  const [crypto_tier, set_crypto_tier] = useState<{ tier: PlanTier; plan: AvailablePlan } | null>(null);
 
   useEffect(() => {
     set_currency(detect_currency_from_locale());
@@ -247,27 +251,39 @@ export const RegisterStepPlanSelection = ({
     billing_period === "yearly" ? "year" : "month";
 
   const handle_select_tier = useCallback(
-    async (tier: PlanTier) => {
+    (tier: PlanTier) => {
       const api_plan = plans.find((p) => p.code === tier.id);
 
       if (!api_plan) return;
-
-      set_is_finalizing(true);
-      localStorage.setItem("show_onboarding", "true");
-
-      const result = await start_hosted_checkout(
-        api_plan.code,
-        billing_interval,
-        currency,
-      );
-
-      if (!result.ok) {
-        set_is_finalizing(false);
-        show_toast(t("settings.failed_checkout"), "error");
-      }
+      set_pending_tier({ tier, plan: api_plan });
     },
-    [plans, billing_interval, currency, t],
+    [plans],
   );
+
+  const handle_pay_with_card = useCallback(async () => {
+    if (!pending_tier) return;
+
+    set_pending_tier(null);
+    set_is_finalizing(true);
+    localStorage.setItem("show_onboarding", "true");
+
+    const result = await start_hosted_checkout(
+      pending_tier.plan.code,
+      billing_interval,
+      currency,
+    );
+
+    if (!result.ok) {
+      set_is_finalizing(false);
+      show_toast(t("settings.failed_checkout"), "error");
+    }
+  }, [pending_tier, billing_interval, currency, t]);
+
+  const handle_pay_with_crypto = useCallback(() => {
+    if (!pending_tier) return;
+    set_crypto_tier(pending_tier);
+    set_pending_tier(null);
+  }, [pending_tier]);
 
   const handle_continue_free = useCallback(async () => {
     if (is_finalizing) return;
@@ -518,6 +534,29 @@ export const RegisterStepPlanSelection = ({
               : checkout.tier.monthly_cents
           }
           price_display={price_display_for_checkout}
+        />
+      )}
+
+      {pending_tier && (
+        <PlanPaymentMethodModal
+          busy={is_finalizing}
+          on_choose_card={handle_pay_with_card}
+          on_choose_crypto={handle_pay_with_crypto}
+          on_close={() => set_pending_tier(null)}
+          open={!!pending_tier}
+          plan_name={pending_tier.tier.name}
+        />
+      )}
+
+      {crypto_tier && (
+        <CryptoTermModal
+          is_open={!!crypto_tier}
+          monthly_price_cents={crypto_tier.tier.monthly_cents}
+          on_close={() => set_crypto_tier(null)}
+          plan_code={crypto_tier.plan.code}
+          plan_name={crypto_tier.tier.name}
+          preferred_currency={currency}
+          yearly_price_cents={crypto_tier.tier.yearly_cents}
         />
       )}
     </motion.div>

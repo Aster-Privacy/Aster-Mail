@@ -26,7 +26,7 @@ import {
   type StorageAddonItem,
   type UserActiveAddon,
 } from "@/services/api/billing";
-import { ADDON_BADGES } from "@/components/settings/billing/billing_constants";
+import { ADDON_BADGES, convert_cents } from "@/components/settings/billing/billing_constants";
 import { use_i18n } from "@/lib/i18n/context";
 
 interface StorageAddonsSectionProps {
@@ -37,6 +37,7 @@ interface StorageAddonsSectionProps {
   is_action_loading: boolean;
   on_cancel_addon: (addon: UserActiveAddon) => void;
   on_purchase_addon: (addon: StorageAddonItem) => void;
+  preferred_currency: string;
 }
 
 export function StorageAddonsSection({
@@ -47,6 +48,7 @@ export function StorageAddonsSection({
   is_action_loading,
   on_cancel_addon,
   on_purchase_addon,
+  preferred_currency,
 }: StorageAddonsSectionProps) {
   const { t } = use_i18n();
 
@@ -79,7 +81,7 @@ export function StorageAddonsSection({
                     {addon.size_label}
                   </p>
                   <p className="text-xs text-txt-muted">
-                    {format_price(addon.price_cents)}
+                    {format_price(convert_cents(addon.price_cents, preferred_currency), preferred_currency)}
                     {t("settings.per_month_short")}
                   </p>
                   {addon.cancel_at_period_end && addon.current_period_end && (
@@ -149,7 +151,7 @@ export function StorageAddonsSection({
                 {addon.name}
               </p>
               <p className="text-xs text-txt-muted mt-0.5">
-                {format_price(addon.price_cents)}
+                {format_price(addon.price_cents, preferred_currency)}
                 {t("settings.per_month_short")}
               </p>
             </button>

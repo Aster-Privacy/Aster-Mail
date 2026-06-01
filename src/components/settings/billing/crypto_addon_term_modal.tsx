@@ -35,6 +35,7 @@ import {
 } from "@/services/api/billing";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { convert_cents } from "@/components/settings/billing/billing_constants";
 
 type TermMonths = 1 | 3 | 6 | 12 | 24;
 
@@ -44,6 +45,7 @@ interface CryptoAddonTermModalProps {
   addon_id: string;
   addon_name: string;
   price_cents: number;
+  preferred_currency: string;
 }
 
 const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12, 24];
@@ -54,6 +56,7 @@ export function crypto_addon_term_modal({
   addon_id,
   addon_name,
   price_cents,
+  preferred_currency,
 }: CryptoAddonTermModalProps) {
   const { t } = use_i18n();
   const [selected_term, set_selected_term] = useState<TermMonths>(12);
@@ -129,7 +132,7 @@ export function crypto_addon_term_modal({
                   style={{ color: is_selected ? "#ffffff" : "var(--text-primary)" }}
                 >
                   {t("settings.crypto_modal_price", {
-                    amount: format_price(price),
+                    amount: format_price(convert_cents(price, preferred_currency), preferred_currency),
                   })}
                 </span>
               </button>

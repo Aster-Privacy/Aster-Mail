@@ -52,6 +52,7 @@ import {
   PLAN_TIERS,
   CURRENCY_STORAGE_KEY,
   detect_currency_from_locale,
+  convert_cents,
 } from "@/components/settings/billing/billing_constants";
 import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card";
 import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
@@ -259,6 +260,16 @@ export function BillingSection() {
     } finally {
       set_is_initial_load(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const handle_page_show = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        set_is_action_loading(false);
+      }
+    };
+    window.addEventListener("pageshow", handle_page_show);
+    return () => window.removeEventListener("pageshow", handle_page_show);
   }, []);
 
   useEffect(() => {
@@ -472,7 +483,7 @@ export function BillingSection() {
     (tier) => tier.id === subscription?.plan.code,
   );
   const yearly_savings = current_tier
-    ? format_price(current_tier.savings_cents)
+    ? format_price(convert_cents(current_tier.savings_cents, preferred_currency), preferred_currency)
     : null;
 
   const handle_switch_billing = async () => {
@@ -530,6 +541,7 @@ export function BillingSection() {
         on_reactivate={handle_reactivate}
         on_renew_with_crypto={handle_crypto_renew}
         on_scroll_to_plans={scroll_to_plans}
+        preferred_currency={preferred_currency}
         storage_limit_bytes={storage_limit_bytes}
         storage_percentage={storage_percentage}
         storage_used_bytes={storage_used_bytes}
@@ -572,6 +584,7 @@ export function BillingSection() {
           set_addon_method_target(addon);
           set_show_addon_method_modal(true);
         }}
+        preferred_currency={preferred_currency}
         selected_storage={selected_storage}
         set_selected_storage={set_selected_storage}
       />
@@ -599,6 +612,7 @@ export function BillingSection() {
               }}
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
+              preferred_currency={preferred_currency}
               yearly_price_cents={yearly_cents}
             />
           );
@@ -665,6 +679,7 @@ export function BillingSection() {
             set_show_crypto_addon_modal(false);
             set_crypto_addon(null);
           }}
+          preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}
         />
       )}
