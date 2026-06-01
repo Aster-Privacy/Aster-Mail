@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2461,7 +2461,7 @@ export const fr = {
     enter_email_placeholder: "Saisir une adresse e-mail...",
     remove_count: "Supprimer ({{count}})",
     select_import_source: "Sélectionner la source de vos e-mails",
-    back_to_providers: "�? Retour aux fournisseurs",
+    back_to_providers: "← Retour aux fournisseurs",
     drop_files_here: "Déposez les fichiers ici",
     drag_drop_files: "Glissez et déposez vos fichiers ici",
     supported_import_formats:
@@ -4001,7 +4001,7 @@ export const fr = {
     advanced_search: "Recherche avancée",
     all_in_folder_selected: "Toutes les {{ count }} conversations sont sélectionnées.",
     all_on_page_selected: "Toutes les {{ count }} conversations de cette page sont sélectionnées.",
-    all_search_results_for: "Tous les résultats pour “{{query}}�?",
+    all_search_results_for: "Tous les résultats pour “{{query}}”",
     attachment_singular: "pièce jointe",
     bounced: "Rejeté",
     copy_headers: "Copier les en-têtes",
@@ -4066,7 +4066,7 @@ export const fr = {
     n_blocked: "{{count}} bloqué(s)",
     n_forwarded: "{{count}} transféré(s)",
     n_messages: "{{count}} message(s)",
-    no_emails_match_query: "Aucun e-mail ne correspond à “{{query}}�?",
+    no_emails_match_query: "Aucun e-mail ne correspond à “{{query}}”",
     no_raw_headers: "Aucun en-tête brut disponible",
     no_trackers_detected: "Aucun traqueur détecté",
     no_trackers_found: "Aucun traqueur trouvé",
