@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Aster Mail",
   "version": "1.4.7",
@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "npx vite --host 127.0.0.1 --port 1420",
     "devUrl": "http://127.0.0.1:1420",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npx vite build",
     "frontendDist": "../dist"
   },
   "app": {
