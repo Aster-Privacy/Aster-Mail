@@ -323,7 +323,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   undo_send_seconds: 10,
   auto_advance: "Go to next message",
   smart_reply: true,
-  desktop_notifications: false,
+  desktop_notifications: true,
   sound: true,
   badge_count: true,
   push_notifications: true,

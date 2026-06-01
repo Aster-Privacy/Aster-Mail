@@ -25,6 +25,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   play_notification_sound,
+  request_notification_permission,
   show_notification,
 } from "@/services/notification_service";
 import {
@@ -47,6 +48,10 @@ export function EmailNotificationManager() {
     if (!is_authenticated || !preferences.desktop_notifications) {
       push_subscribed_ref.current = false;
       return;
+    }
+
+    if (is_tauri()) {
+      request_notification_permission();
     }
 
     let cancelled = false;
