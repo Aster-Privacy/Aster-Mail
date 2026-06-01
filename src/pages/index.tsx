@@ -61,7 +61,7 @@ export default function IndexPage() {
       state.set_settings_section(section as SettingsSection);
       state.set_is_settings_open(true);
     }
-  }, [section, state]);
+  }, [section]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const result = sessionStorage.getItem("recovery_email_verification_result");
