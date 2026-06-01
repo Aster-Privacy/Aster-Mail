@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -245,7 +245,7 @@ export const es = {
     two_fa_code_placeholder: "Código 2FA de 6 dígitos",
     export_private_key: "Exportar clave privada",
     regenerate_recovery_codes: "Regenerar códigos de recuperación",
-    search_index: "�?ndice de búsqueda",
+    search_index: "Índice de búsqueda",
     all_emails_and_conversations: "Todos los correos y conversaciones",
     delete_imported_emails: "¿Eliminar correos importados?",
     deleting: "Eliminando...",
@@ -996,9 +996,9 @@ export const es = {
     phone_colon: "Teléfono:",
     company_colon: "Empresa:",
     address_colon: "Dirección:",
-    icon_label: "�?cono",
+    icon_label: "Ícono",
     color_label: "Color",
-    icon_optional: "�?cono (opcional)",
+    icon_optional: "Ícono (opcional)",
     label_preview: "Vista previa de etiqueta",
     verify_setup: "Verificar configuración",
     share_aster_mail_label: "Compartir Aster Mail",
@@ -4089,7 +4089,7 @@ export const es = {
     advanced_search: "Búsqueda avanzada",
     all_in_folder_selected: "Todas las {{ count }} conversaciones están seleccionadas.",
     all_on_page_selected: "Las {{ count }} conversaciones de esta página están seleccionadas.",
-    all_search_results_for: "Todos los resultados para “{{query}}�?",
+    all_search_results_for: "Todos los resultados para “{{query}}”",
     attachment_singular: "archivo adjunto",
     bounced: "Rebotado",
     copy_headers: "Copiar encabezados",
@@ -4154,7 +4154,7 @@ export const es = {
     n_blocked: "{{count}} bloqueado(s)",
     n_forwarded: "{{count}} reenviado(s)",
     n_messages: "{{count}} mensaje(s)",
-    no_emails_match_query: "Ningún correo coincide con “{{query}}�?",
+    no_emails_match_query: "Ningún correo coincide con “{{query}}”",
     no_raw_headers: "No hay encabezados disponibles",
     no_trackers_detected: "No se detectaron rastreadores",
     no_trackers_found: "No se encontraron rastreadores",

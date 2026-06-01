@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -4079,9 +4079,9 @@ export const it = {
     search_message_content: "Cerca nel contenuto del messaggio",
     create_filter: "Crea filtro",
     search_placeholder_hint: "Cerca posta, contatti e cartelle",
-    all_search_results_for: "Tutti i risultati per “{{query}}�?",
+    all_search_results_for: "Tutti i risultati per “{{query}}”",
     try_adjusting_filters: "Prova ad aggiustare i filtri o cerca qualcos'altro",
-    no_emails_match_query: "Nessuna email corrisponde a “{{query}}�?",
+    no_emails_match_query: "Nessuna email corrisponde a “{{query}}”",
     more_folders_count: "+{{count}} altre cartelle",
     folder_item_count: "{{count}} elementi",
     folder_item_count_singular: "{{count}} elemento",

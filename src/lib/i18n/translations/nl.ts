@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -4077,10 +4077,10 @@ export const nl = {
     search_message_content: "Berichtinhoud doorzoeken",
     create_filter: "Filter aanmaken",
     search_placeholder_hint: "Zoek in mail, contacten en mappen",
-    all_search_results_for: "Alle zoekresultaten voor “{{query}}�?",
+    all_search_results_for: "Alle zoekresultaten voor “{{query}}”",
     try_adjusting_filters:
       "Probeer je filters aan te passen of op iets anders te zoeken",
-    no_emails_match_query: "Geen e-mails komen overeen met “{{query}}�?",
+    no_emails_match_query: "Geen e-mails komen overeen met “{{query}}”",
     more_folders_count: "+{{count}} meer mappen",
     folder_item_count: "{{count}} items",
     folder_item_count_singular: "{{count}} item",

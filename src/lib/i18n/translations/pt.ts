@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -196,7 +196,7 @@ export const pt = {
     two_fa_code_placeholder: "Código 2FA de 6 dígitos",
     export_private_key: "Exportar Chave Privada",
     regenerate_recovery_codes: "Regenerar Códigos de Recuperação",
-    search_index: "�?ndice de pesquisa",
+    search_index: "Índice de pesquisa",
     all_emails_and_conversations: "Todos os e-mails e conversas",
     delete_imported_emails: "Excluir e-mails importados?",
     deleting: "Excluindo...",
@@ -888,9 +888,9 @@ export const pt = {
     phone_colon: "Telefone:",
     company_colon: "Empresa:",
     address_colon: "Endereço:",
-    icon_label: "�?cone",
+    icon_label: "Ícone",
     color_label: "Cor",
-    icon_optional: "�?cone (opcional)",
+    icon_optional: "Ícone (opcional)",
     label_preview: "Pré-visualização da etiqueta",
     verify_setup: "Verificar configuração",
     share_aster_mail_label: "Compartilhar Aster Mail",
@@ -1529,7 +1529,7 @@ export const pt = {
     permission_required_description:
       "Conceda permissão para receber notificações",
     channels: "Canais",
-    desktop: "�?rea de trabalho",
+    desktop: "Área de trabalho",
     show_desktop_notifications: "Mostrar notificações de desktop",
     blocked_by_browser: "Bloqueado pelo navegador",
     sound_new_notifications: "Reproduzir som para novas notificações",
@@ -3992,9 +3992,9 @@ export const pt = {
     search_message_content: "Pesquisar conteúdo da mensagem",
     create_filter: "Criar filtro",
     search_placeholder_hint: "Pesquisar e-mail, contatos e pastas",
-    all_search_results_for: "Todos os resultados para “{{query}}�?",
+    all_search_results_for: "Todos os resultados para “{{query}}”",
     try_adjusting_filters: "Tente ajustar seus filtros ou pesquise outra coisa",
-    no_emails_match_query: "Nenhum e-mail corresponde a “{{query}}�?",
+    no_emails_match_query: "Nenhum e-mail corresponde a “{{query}}”",
     more_folders_count: "+{{count}} mais pastas",
     folder_item_count: "{{count}} itens",
     folder_item_count_singular: "{{count}} item",
@@ -4114,7 +4114,7 @@ export const pt = {
     filter_type_document: "Documento",
     filter_type_spreadsheet: "Planilha",
     filter_type_video: "Vídeo",
-    filter_type_audio: "�?udio",
+    filter_type_audio: "Áudio",
     filter_type_archive: "Arquivo compactado",
     filter_read: "Lido",
     filter_not_starred: "Sem favorito",
