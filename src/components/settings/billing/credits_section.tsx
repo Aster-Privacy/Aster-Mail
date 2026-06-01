@@ -27,15 +27,14 @@ import {
   update_credit_settings,
   get_credit_transactions,
   get_credit_packages,
-  purchase_credits_crypto,
+  purchase_credits,
   type CreditBalanceResponse,
   type CreditTransactionItem,
   type CreditPackageItem,
 } from "@/services/api/billing";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
-import { CreditCheckoutModal } from "@/components/settings/billing/credit_checkout_modal";
+import { convert_cents } from "@/components/settings/billing/billing_constants";
 
 interface CreditsSectionProps {
   credit_balance: CreditBalanceResponse | null;
@@ -57,13 +56,11 @@ export function CreditsSection({
   const [show_all_transactions, set_show_all_transactions] = useState(false);
   const [packages, set_packages] = useState<CreditPackageItem[]>([]);
   const [selected_package, set_selected_package] = useState<CreditPackageItem | null>(null);
-  const [show_package_picker, set_show_package_picker] = useState(false);
-  const [show_method_modal, set_show_method_modal] = useState(false);
-  const [show_card_checkout, set_show_card_checkout] = useState(false);
-  const [crypto_busy, set_crypto_busy] = useState(false);
+  const [show_picker, set_show_picker] = useState(false);
+  const [buying, set_buying] = useState(false);
 
   useEffect(() => {
-    if (show_package_picker && packages.length === 0) {
+    if (show_picker && packages.length === 0) {
       get_credit_packages().then((res) => {
         if (res.data?.packages?.length) {
           set_packages(res.data.packages);
@@ -71,53 +68,27 @@ export function CreditsSection({
         }
       });
     }
-  }, [show_package_picker, packages.length]);
+  }, [show_picker, packages.length]);
 
-  const open_top_up = () => {
-    set_show_package_picker(true);
-  };
-
-  const proceed_to_payment = () => {
-    if (!selected_package) return;
-    set_show_method_modal(true);
-  };
-
-  const handle_choose_card = () => {
-    set_show_method_modal(false);
-    set_show_card_checkout(true);
-  };
-
-  const handle_choose_crypto = async () => {
-    if (!selected_package) return;
-    set_show_method_modal(false);
-    set_crypto_busy(true);
+  const handle_buy = async () => {
+    if (!selected_package || buying) return;
+    set_buying(true);
     try {
-      const res = await purchase_credits_crypto(selected_package.id);
+      const res = await purchase_credits(selected_package.id, preferred_currency);
       if (res.data?.url) {
         window.location.assign(res.data.url);
       } else {
         show_toast(t("settings.credit_purchase_error"), "error");
+        set_buying(false);
       }
     } catch {
       show_toast(t("settings.credit_purchase_error"), "error");
-    } finally {
-      set_crypto_busy(false);
+      set_buying(false);
     }
   };
 
-  const handle_card_success = (new_balance_cents: number) => {
-    set_show_card_checkout(false);
-    set_show_package_picker(false);
-    set_credit_balance((prev) =>
-      prev
-        ? { ...prev, balance_cents: new_balance_cents, balance_dollars: (new_balance_cents / 100).toFixed(2), use_credits_for_renewals: true }
-        : prev,
-    );
-  };
-
   const has_transactions =
-    !!credit_balance &&
-    (credit_balance.recent_transactions?.length ?? 0) > 0;
+    !!credit_balance && (credit_balance.recent_transactions?.length ?? 0) > 0;
 
   return (
     <div className="border-t border-edge-secondary pt-8">
@@ -134,9 +105,7 @@ export function CreditsSection({
 
       <div className="flex items-center justify-between px-4 py-4 rounded-lg border border-edge-secondary mb-3">
         <div>
-          <p className="text-xs text-txt-muted">
-            {t("settings.credit_balance")}
-          </p>
+          <p className="text-xs text-txt-muted">{t("settings.credit_balance")}</p>
           <p className="text-2xl font-bold text-txt-primary mt-0.5">
             {credit_balance ? `$${credit_balance.balance_dollars}` : "$0.00"}
           </p>
@@ -144,13 +113,13 @@ export function CreditsSection({
         <button
           type="button"
           className="aster_btn aster_btn_primary aster_btn_md"
-          onClick={open_top_up}
+          onClick={() => set_show_picker((v) => !v)}
         >
           {t("settings.top_up_credits")}
         </button>
       </div>
 
-      {show_package_picker && (
+      {show_picker && (
         <div className="rounded-lg border border-edge-secondary mb-3 overflow-hidden">
           <div className="px-4 py-3 border-b border-edge-secondary">
             <p className="text-sm font-semibold text-txt-primary">
@@ -165,7 +134,11 @@ export function CreditsSection({
             <div className="p-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
                 {packages.map((pkg) => {
-                  const total = pkg.amount_cents + pkg.bonus_cents;
+                  const price = convert_cents(pkg.price_cents, preferred_currency);
+                  const total = convert_cents(pkg.amount_cents + pkg.bonus_cents, preferred_currency);
+                  const bonus = pkg.bonus_cents > 0
+                    ? convert_cents(pkg.bonus_cents, preferred_currency)
+                    : 0;
                   const is_selected = selected_package?.id === pkg.id;
                   return (
                     <button
@@ -179,18 +152,18 @@ export function CreditsSection({
                       }`}
                     >
                       <p className="text-base font-bold text-txt-primary">
-                        {format_price(pkg.price_cents)}
+                        {format_price(price, preferred_currency)}
                       </p>
-                      {pkg.bonus_cents > 0 && (
+                      {bonus > 0 && (
                         <p className="text-xs text-green-500 mt-0.5">
                           {t("settings.credit_package_bonus", {
-                            bonus: format_price(pkg.bonus_cents),
+                            bonus: format_price(bonus, preferred_currency),
                           })}
                         </p>
                       )}
                       <p className="text-xs text-txt-muted mt-0.5">
                         {t("settings.credit_package_total", {
-                          total: format_price(total),
+                          total: format_price(total, preferred_currency),
                         })}
                       </p>
                     </button>
@@ -199,11 +172,11 @@ export function CreditsSection({
               </div>
               <button
                 type="button"
-                disabled={!selected_package}
-                onClick={proceed_to_payment}
+                disabled={buying || !selected_package}
+                onClick={handle_buy}
                 className="aster_btn aster_btn_primary aster_btn_lg w-full disabled:opacity-50"
               >
-                {t("settings.buy_credits")}
+                {buying ? t("settings.buying_credits") : t("settings.buy_credits")}
               </button>
             </div>
           )}
@@ -223,9 +196,7 @@ export function CreditsSection({
             </div>
             <button
               className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                credit_balance?.use_credits_for_renewals
-                  ? "bg-blue-500"
-                  : "bg-zinc-600"
+                credit_balance?.use_credits_for_renewals ? "bg-blue-500" : "bg-zinc-600"
               }`}
               type="button"
               onClick={async () => {
@@ -238,13 +209,7 @@ export function CreditsSection({
                   const res = await update_credit_settings(new_value);
                   if (res.data) {
                     set_credit_balance((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            use_credits_for_renewals: new_value,
-                            balance_cents: res.data!.balance_cents,
-                          }
-                        : prev,
+                      prev ? { ...prev, use_credits_for_renewals: new_value, balance_cents: res.data!.balance_cents } : prev,
                     );
                     show_toast(t("settings.credits_toggle_updated"), "success");
                   }
@@ -255,9 +220,7 @@ export function CreditsSection({
             >
               <span
                 className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  credit_balance?.use_credits_for_renewals
-                    ? "translate-x-4"
-                    : "translate-x-0"
+                  credit_balance?.use_credits_for_renewals ? "translate-x-4" : "translate-x-0"
                 }`}
               />
             </button>
@@ -280,16 +243,11 @@ export function CreditsSection({
                     }
                   }}
                 >
-                  {show_all_transactions
-                    ? t("common.close")
-                    : t("settings.view_all_transactions")}
+                  {show_all_transactions ? t("common.close") : t("settings.view_all_transactions")}
                 </button>
               </div>
               <div className="rounded-lg border overflow-hidden border-edge-secondary">
-                {(show_all_transactions
-                  ? credit_transactions_list
-                  : credit_balance.recent_transactions
-                ).map((tx) => {
+                {(show_all_transactions ? credit_transactions_list : credit_balance.recent_transactions).map((tx) => {
                   const credit_type_labels: Record<string, string> = {
                     referral_reward: t("settings.credit_type_referral_reward"),
                     referral_commission: t("settings.credit_type_referral_commission"),
@@ -305,17 +263,10 @@ export function CreditsSection({
                   const type_label = credit_type_labels[tx.transaction_type] || tx.transaction_type;
                   const is_positive = tx.amount_cents > 0;
                   return (
-                    <div
-                      key={tx.id}
-                      className="flex items-center justify-between px-4 py-2.5 hover:bg-surf-hover transition-colors"
-                    >
+                    <div key={tx.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-surf-hover transition-colors">
                       <div>
-                        <p className="text-sm text-txt-primary">
-                          {tx.description || tx.transaction_type}
-                        </p>
-                        <p className="text-xs mt-0.5 text-txt-muted">
-                          {format_date(tx.created_at)}
-                        </p>
+                        <p className="text-sm text-txt-primary">{tx.description || tx.transaction_type}</p>
+                        <p className="text-xs mt-0.5 text-txt-muted">{format_date(tx.created_at)}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`text-xs font-medium px-2 py-0.5 rounded ${is_positive ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}`}>
@@ -333,29 +284,6 @@ export function CreditsSection({
           )}
         </>
       )}
-
-      <PlanPaymentMethodModal
-        open={show_method_modal}
-        plan_name={selected_package ? `${format_price(selected_package.amount_cents + selected_package.bonus_cents)} ${t("settings.in_credits")}` : ""}
-        busy={crypto_busy}
-        on_close={() => {
-          set_show_method_modal(false);
-          set_show_package_picker(true);
-        }}
-        on_choose_card={handle_choose_card}
-        on_choose_crypto={handle_choose_crypto}
-      />
-
-      <CreditCheckoutModal
-        open={show_card_checkout}
-        package_item={selected_package}
-        currency={preferred_currency}
-        on_close={() => {
-          set_show_card_checkout(false);
-          set_show_package_picker(true);
-        }}
-        on_success={handle_card_success}
-      />
     </div>
   );
 }

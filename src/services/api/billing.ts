@@ -552,9 +552,10 @@ export async function get_credit_packages() {
   return api_client.get<CreditPackagesResponse>("/payments/v1/credits/packages");
 }
 
-export async function purchase_credits(package_id: string) {
+export async function purchase_credits(package_id: string, currency?: string) {
   return api_client.post<PurchaseCreditsResponse>("/payments/v1/credits/purchase", {
     package_id,
+    ...(currency ? { currency } : {}),
   });
 }
 
