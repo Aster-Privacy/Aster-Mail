@@ -224,6 +224,17 @@ export const RegisterStepPlanSelection = ({
   }, []);
 
   useEffect(() => {
+    const handle_page_show = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        set_is_finalizing(false);
+        set_pending_tier(null);
+      }
+    };
+    window.addEventListener("pageshow", handle_page_show);
+    return () => window.removeEventListener("pageshow", handle_page_show);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
 
     (async () => {
