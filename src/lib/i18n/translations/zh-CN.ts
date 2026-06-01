@@ -2734,8 +2734,11 @@ export const zh_CN = {
     credit_package_bonus: "+{{ bonus }} bonus",
     credit_package_total: "{{ total }} total",
     buy_credits: "Buy Credits",
+    buy_credits_crypto: "Pay with Crypto",
     buying_credits: "Redirecting...",
     credit_purchase_error: "Could not start checkout. Please try again.",
+    credit_pay_card: "Card",
+    credit_pay_crypto: "Crypto",
     credit_transactions: "ç§¯åˆ†äº¤æ˜“",
     referral_program: "æŽ¨èè®¡åˆ’",
     referral_program_description:

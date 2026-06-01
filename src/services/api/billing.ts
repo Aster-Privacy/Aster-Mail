@@ -558,6 +558,12 @@ export async function purchase_credits(package_id: string) {
   });
 }
 
+export async function purchase_credits_crypto(package_id: string) {
+  return api_client.post<PurchaseCreditsResponse>("/payments/v1/credits/crypto-purchase", {
+    package_id,
+  });
+}
+
 export interface ReferralInfo {
   referral_link: string;
   referral_code: string;
