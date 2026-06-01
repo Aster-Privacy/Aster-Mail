@@ -39,6 +39,20 @@ function is_chunk_load_error(error: unknown): boolean {
   );
 }
 
+const CHUNK_RELOAD_KEY = "aster:chunk_reload_at";
+const CHUNK_RELOAD_COOLDOWN = 30_000;
+
+function safe_chunk_reload(): void {
+  try {
+    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || "0");
+    if (Date.now() - last < CHUNK_RELOAD_COOLDOWN) return;
+    sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  } catch {
+    return;
+  }
+  window.location.reload();
+}
+
 function lazy_with_retry<T extends { default: React.ComponentType }>(
   import_fn: () => Promise<T>,
   retries = 3,
@@ -48,7 +62,7 @@ function lazy_with_retry<T extends { default: React.ComponentType }>(
     const attempt = (remaining: number): Promise<T> =>
       import_fn().catch((error: unknown) => {
         if (is_chunk_load_error(error) && remaining <= 0) {
-          window.location.reload();
+          safe_chunk_reload();
 
           return new Promise<T>(() => {});
         }
