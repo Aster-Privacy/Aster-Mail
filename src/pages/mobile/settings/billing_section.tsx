@@ -39,6 +39,10 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { SettingsGroup, SettingsHeader } from "./shared";
+import {
+  detect_currency_from_locale,
+  convert_cents,
+} from "@/components/settings/billing/billing_constants";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
@@ -177,6 +181,7 @@ export function BillingSection({
   const [crypto_addon, set_crypto_addon] = useState<StorageAddonItem | null>(
     null,
   );
+  const [preferred_currency] = useState(detect_currency_from_locale);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
   >("monthly");
@@ -669,7 +674,7 @@ export function BillingSection({
                     {is_paid_plan && subscription.current_period_end && (
                       <div className="text-right">
                         <span className="text-[14px] font-medium text-[var(--text-secondary)]">
-                          {format_price(subscription.plan.price_cents)}
+                          {format_price(convert_cents(subscription.plan.price_cents, preferred_currency), preferred_currency)}
                           <span className="text-[11px] font-normal text-[var(--text-muted)]">
                             /{subscription.plan.billing_period || t("settings.per_month_short")}
                           </span>
@@ -788,7 +793,7 @@ export function BillingSection({
                         {addon.name}
                       </p>
                       <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
-                        {format_price(addon.price_cents)}
+                        {format_price(convert_cents(addon.price_cents, preferred_currency), preferred_currency)}
                         {t("settings.per_month_short")}
                       </p>
                     </button>
@@ -892,9 +897,13 @@ export function BillingSection({
                             <div className="mt-1.5">
                               <span className="text-[28px] font-bold text-[var(--text-primary)]">
                                 {format_price(
-                                  billing_period === "monthly"
-                                    ? tier.monthly_cents
-                                    : tier.yearly_cents,
+                                  convert_cents(
+                                    billing_period === "monthly"
+                                      ? tier.monthly_cents
+                                      : tier.yearly_cents,
+                                    preferred_currency,
+                                  ),
+                                  preferred_currency,
                                 )}
                               </span>
                               <span className="text-[13px] text-[var(--text-muted)]">
@@ -905,10 +914,10 @@ export function BillingSection({
                             </div>
                             {billing_period === "monthly" ? (
                               <p className="text-[11px] text-[var(--text-muted)] mt-1">
-                                {format_price(tier.yearly_cents)}
+                                {format_price(convert_cents(tier.yearly_cents, preferred_currency), preferred_currency)}
                                 {t("settings.per_year_short")} ·{" "}
                                 {t("settings.save_yearly", {
-                                  amount: format_price(tier.savings_cents),
+                                  amount: format_price(convert_cents(tier.savings_cents, preferred_currency), preferred_currency),
                                 })}
                               </p>
                             ) : (
@@ -917,7 +926,7 @@ export function BillingSection({
                                 style={{ color: "var(--color-success)" }}
                               >
                                 {t("settings.save_yearly", {
-                                  amount: format_price(tier.savings_cents),
+                                  amount: format_price(convert_cents(tier.savings_cents, preferred_currency), preferred_currency),
                                 })}
                               </p>
                             )}
@@ -1335,6 +1344,7 @@ export function BillingSection({
               }}
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
+              preferred_currency={preferred_currency}
               yearly_price_cents={yearly_cents}
             />
           );
@@ -1375,6 +1385,7 @@ export function BillingSection({
             set_show_crypto_addon_modal(false);
             set_crypto_addon(null);
           }}
+          preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}
         />
       )}

@@ -60,7 +60,7 @@ import {
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
-import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
+import { PLAN_TIERS, convert_cents } from "@/components/settings/billing/billing_constants";
 import { use_i18n } from "@/lib/i18n/context";
 
 interface BillingDialogsProps {
@@ -383,14 +383,18 @@ export function BillingDialogs({
                     ?.monthly_cents || selected_plan.price_cents
           }
           price_display={format_price(
-            billing_period === "yearly"
-              ? PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                  ?.yearly_cents || selected_plan.price_cents
-              : billing_period === "biennial"
+            convert_cents(
+              billing_period === "yearly"
                 ? PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                    ?.biennial_cents || selected_plan.price_cents
-                : PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                    ?.monthly_cents || selected_plan.price_cents,
+                    ?.yearly_cents || selected_plan.price_cents
+                : billing_period === "biennial"
+                  ? PLAN_TIERS.find((t) => t.id === selected_plan.code)
+                      ?.biennial_cents || selected_plan.price_cents
+                  : PLAN_TIERS.find((t) => t.id === selected_plan.code)
+                      ?.monthly_cents || selected_plan.price_cents,
+              preferred_currency,
+            ),
+            preferred_currency,
           )}
         />
       )}
@@ -556,7 +560,7 @@ export function BillingDialogs({
           plan_code="addon"
           plan_name={checkout_addon.name}
           price_cents={checkout_addon.price_cents}
-          price_display={format_price(checkout_addon.price_cents)}
+          price_display={format_price(convert_cents(checkout_addon.price_cents, preferred_currency), preferred_currency)}
         />
       )}
 
@@ -626,7 +630,7 @@ export function BillingDialogs({
               {addon_to_cancel && (
                 <span className="block mt-2 font-medium text-txt-primary">
                   {addon_to_cancel.size_label} -{" "}
-                  {format_price(addon_to_cancel.price_cents)}
+                  {format_price(convert_cents(addon_to_cancel.price_cents, preferred_currency), preferred_currency)}
                   {t("settings.per_month_short")}
                 </span>
               )}

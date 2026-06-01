@@ -37,6 +37,7 @@ import {
   type SubscriptionResponse,
 } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
+import { convert_cents } from "@/components/settings/billing/billing_constants";
 
 interface CurrentPlanCardProps {
   subscription: SubscriptionResponse | null;
@@ -53,6 +54,7 @@ interface CurrentPlanCardProps {
   on_reactivate: () => void;
   on_manage_plan: () => void;
   on_renew_with_crypto?: () => void;
+  preferred_currency: string;
 }
 
 export function CurrentPlanCard({
@@ -70,6 +72,7 @@ export function CurrentPlanCard({
   on_reactivate,
   on_manage_plan,
   on_renew_with_crypto,
+  preferred_currency,
 }: CurrentPlanCardProps) {
   const { t } = use_i18n();
   const is_paid_plan = subscription && subscription.plan.code !== "free";
@@ -215,7 +218,7 @@ export function CurrentPlanCard({
             {is_paid_plan && subscription.current_period_end && (
               <div className="text-right">
                 <span className="text-sm font-medium text-txt-secondary">
-                  {format_price(subscription.plan.price_cents)}
+                  {format_price(convert_cents(subscription.plan.price_cents, preferred_currency), preferred_currency)}
                   <span className="text-xs font-normal text-txt-muted">
                     {subscription.plan.billing_period?.startsWith("year")
                       ? t("settings.per_year_short")
