@@ -3183,8 +3183,11 @@ export interface SettingsTranslations {
   credit_package_bonus: string;
   credit_package_total: string;
   buy_credits: string;
+  buy_credits_crypto: string;
   buying_credits: string;
   credit_purchase_error: string;
+  credit_pay_card: string;
+  credit_pay_crypto: string;
   credit_transactions: string;
   refer_a_friend: string;
   referral_program: string;

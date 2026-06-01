@@ -28,6 +28,7 @@ import {
   get_credit_transactions,
   get_credit_packages,
   purchase_credits,
+  purchase_credits_crypto,
   type CreditBalanceResponse,
   type CreditTransactionItem,
   type CreditPackageItem,
@@ -55,6 +56,7 @@ export function CreditsSection({
   const [selected_package_id, set_selected_package_id] = useState<string | null>(null);
   const [buying, set_buying] = useState(false);
   const [show_top_up, set_show_top_up] = useState(false);
+  const [pay_method, set_pay_method] = useState<"card" | "crypto">("card");
 
   useEffect(() => {
     if (show_top_up && packages.length === 0) {
@@ -71,7 +73,10 @@ export function CreditsSection({
     if (!selected_package_id) return;
     set_buying(true);
     try {
-      const res = await purchase_credits(selected_package_id);
+      const res =
+        pay_method === "crypto"
+          ? await purchase_credits_crypto(selected_package_id)
+          : await purchase_credits(selected_package_id);
       if (res.data?.url) {
         window.location.assign(res.data.url);
       } else {
@@ -112,7 +117,7 @@ export function CreditsSection({
         </div>
         <button
           type="button"
-          className="aster_btn aster_btn_primary aster_btn_sm"
+          className="aster_btn aster_btn_primary aster_btn_md"
           onClick={() => set_show_top_up((v) => !v)}
         >
           {t("settings.top_up_credits")}
@@ -122,7 +127,7 @@ export function CreditsSection({
       {show_top_up && (
         <div className="rounded-lg border border-edge-secondary mb-3 overflow-hidden">
           <div className="px-4 py-3 border-b border-edge-secondary">
-            <p className="text-sm font-medium text-txt-primary">
+            <p className="text-sm font-semibold text-txt-primary">
               {t("settings.top_up_credits")}
             </p>
           </div>
@@ -150,13 +155,13 @@ export function CreditsSection({
                       <p className="text-base font-bold text-txt-primary">
                         {format_price(pkg.price_cents)}
                       </p>
-                      {pkg.bonus_cents > 0 ? (
+                      {pkg.bonus_cents > 0 && (
                         <p className="text-xs text-green-500 mt-0.5">
                           {t("settings.credit_package_bonus", {
                             bonus: format_price(pkg.bonus_cents),
                           })}
                         </p>
-                      ) : null}
+                      )}
                       <p className="text-xs text-txt-muted mt-0.5">
                         {t("settings.credit_package_total", {
                           total: format_price(total),
@@ -166,15 +171,37 @@ export function CreditsSection({
                   );
                 })}
               </div>
+
+              <div className="flex gap-2 mb-3">
+                {(["card", "crypto"] as const).map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => set_pay_method(method)}
+                    className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                      pay_method === method
+                        ? "border-blue-500 bg-blue-500/10 text-blue-500"
+                        : "border-edge-secondary text-txt-muted hover:border-edge-primary"
+                    }`}
+                  >
+                    {method === "card"
+                      ? t("settings.credit_pay_card")
+                      : t("settings.credit_pay_crypto")}
+                  </button>
+                ))}
+              </div>
+
               <button
                 type="button"
                 disabled={buying || !selected_package_id}
                 onClick={handle_buy}
-                className="aster_btn aster_btn_primary w-full disabled:opacity-50"
+                className="aster_btn aster_btn_primary aster_btn_lg w-full disabled:opacity-50"
               >
                 {buying
                   ? t("settings.buying_credits")
-                  : t("settings.buy_credits")}
+                  : pay_method === "crypto"
+                    ? t("settings.buy_credits_crypto")
+                    : t("settings.buy_credits")}
               </button>
             </div>
           )}
@@ -252,7 +279,6 @@ export function CreditsSection({
                       credit_transactions_list.length === 0
                     ) {
                       const res = await get_credit_transactions(1, 50);
-
                       if (res.data)
                         set_credit_transactions_list(res.data.transactions);
                     }
@@ -270,20 +296,14 @@ export function CreditsSection({
                 ).map((tx) => {
                   const credit_type_labels: Record<string, string> = {
                     referral_reward: t("settings.credit_type_referral_reward"),
-                    referral_commission: t(
-                      "settings.credit_type_referral_commission",
-                    ),
+                    referral_commission: t("settings.credit_type_referral_commission"),
                     admin_grant: t("settings.credit_type_admin_grant"),
                     promo: t("settings.credit_type_promo"),
                     renewal_deduction: t("settings.credit_type_renewal_deduction"),
                     reversal: t("settings.credit_type_reversal"),
                     purchase: t("settings.credit_type_purchase"),
-                    install_android_reward: t(
-                      "settings.credit_type_install_android",
-                    ),
-                    install_desktop_reward: t(
-                      "settings.credit_type_install_desktop",
-                    ),
+                    install_android_reward: t("settings.credit_type_install_android"),
+                    install_desktop_reward: t("settings.credit_type_install_desktop"),
                     install_ios_reward: t("settings.credit_type_install_ios"),
                   };
                   const type_label =

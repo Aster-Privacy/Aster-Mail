@@ -2828,8 +2828,11 @@ export const ko = {
     credit_package_bonus: "+{{ bonus }} bonus",
     credit_package_total: "{{ total }} total",
     buy_credits: "Buy Credits",
+    buy_credits_crypto: "Pay with Crypto",
     buying_credits: "Redirecting...",
     credit_purchase_error: "Could not start checkout. Please try again.",
+    credit_pay_card: "Card",
+    credit_pay_crypto: "Crypto",
     credit_transactions: "í¬ë ˆë”§ ê±°ëž˜",
     referral_program: "ì¶”ì²œ í”„ë¡œê·¸ëž¨",
     referral_program_description:
