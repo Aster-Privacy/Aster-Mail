@@ -2881,6 +2881,8 @@ export const fr = {
     credit_purchase_error: "Could not start checkout. Please try again.",
     credit_pay_card: "Card",
     credit_pay_crypto: "Crypto",
+    credits_added_to_account: "Credits have been added to your account.",
+    in_credits: "in credits",
     credit_transactions: "Transactions de crÃ©dits",
     referral_program: "Programme de parrainage",
     your_referral_link: "Votre lien de parrainage",

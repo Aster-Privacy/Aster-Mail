@@ -3188,6 +3188,8 @@ export interface SettingsTranslations {
   credit_purchase_error: string;
   credit_pay_card: string;
   credit_pay_crypto: string;
+  credits_added_to_account: string;
+  in_credits: string;
   credit_transactions: string;
   refer_a_friend: string;
   referral_program: string;

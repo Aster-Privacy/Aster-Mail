@@ -2739,6 +2739,8 @@ export const zh_CN = {
     credit_purchase_error: "Could not start checkout. Please try again.",
     credit_pay_card: "Card",
     credit_pay_crypto: "Crypto",
+    credits_added_to_account: "Credits have been added to your account.",
+    in_credits: "in credits",
     credit_transactions: "ç§¯åˆ†äº¤æ˜“",
     referral_program: "æŽ¨èè®¡åˆ’",
     referral_program_description:

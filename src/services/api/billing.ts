@@ -564,6 +564,27 @@ export async function purchase_credits_crypto(package_id: string) {
   });
 }
 
+export interface CreditPaymentIntentResponse {
+  client_secret: string;
+  payment_intent_id: string;
+  amount_cents: number;
+  currency: string;
+}
+
+export async function create_credit_payment_intent(package_id: string, currency: string) {
+  return api_client.post<CreditPaymentIntentResponse>("/payments/v1/credits/payment-intent", {
+    package_id,
+    currency,
+  });
+}
+
+export async function confirm_credit_purchase(payment_intent_id: string) {
+  return api_client.post<{ credited: boolean; balance_cents: number }>(
+    "/payments/v1/credits/confirm",
+    { payment_intent_id },
+  );
+}
+
 export interface ReferralInfo {
   referral_link: string;
   referral_code: string;
