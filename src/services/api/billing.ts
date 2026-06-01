@@ -532,6 +532,32 @@ export async function get_credit_transactions(
   );
 }
 
+export interface CreditPackageItem {
+  id: string;
+  amount_cents: number;
+  price_cents: number;
+  bonus_cents: number;
+  sort_order: number;
+}
+
+export interface CreditPackagesResponse {
+  packages: CreditPackageItem[];
+}
+
+export interface PurchaseCreditsResponse {
+  url: string;
+}
+
+export async function get_credit_packages() {
+  return api_client.get<CreditPackagesResponse>("/payments/v1/credits/packages");
+}
+
+export async function purchase_credits(package_id: string) {
+  return api_client.post<PurchaseCreditsResponse>("/payments/v1/credits/purchase", {
+    package_id,
+  });
+}
+
 export interface ReferralInfo {
   referral_link: string;
   referral_code: string;

@@ -3177,6 +3177,14 @@ export interface SettingsTranslations {
   credit_task_desktop_hint: string;
   credit_task_download_cta: string;
   credit_task_earned: string;
+  top_up_credits: string;
+  top_up_credits_description: string;
+  credit_packages_loading: string;
+  credit_package_bonus: string;
+  credit_package_total: string;
+  buy_credits: string;
+  buying_credits: string;
+  credit_purchase_error: string;
   credit_transactions: string;
   refer_a_friend: string;
   referral_program: string;
@@ -3625,6 +3633,10 @@ export interface SettingsTranslations {
   alias_import_summary_skipped: string;
   alias_import_summary_failed: string;
   alias_import_error_no_aliases: string;
+  alias_import_protonpass_encrypted_error: string;
+  alias_import_col_address: string;
+  alias_import_col_domain: string;
+  alias_import_col_status: string;
   alias_pref_section: string;
   alias_pref_default_domain: string;
   alias_pref_default_domain_desc: string;
