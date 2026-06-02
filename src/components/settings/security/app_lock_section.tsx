@@ -125,6 +125,7 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
   const [verifying, set_verifying] = useState(false);
   const [locked_out, set_locked_out] = useState(false);
   const [lockout_secs, set_lockout_secs] = useState(0);
+  const [show_passphrase, set_show_passphrase] = useState(false);
 
   useEffect(() => {
     if (!is_open) {
@@ -134,6 +135,7 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
       set_verifying(false);
       set_locked_out(false);
       set_lockout_secs(0);
+      set_show_passphrase(false);
       return;
     }
     const { locked, remaining_ms } = is_locked_out(account_id);
@@ -251,18 +253,28 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
               animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
               transition={{ duration: 0.35 }}
             >
-              <input
-                ref={text_input_ref}
-                type="password"
-                autoComplete="off"
-                data-form-type="other"
-                className="w-full px-3 py-2.5 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
-                value={input}
-                disabled={verifying || locked_out}
-                onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
-                onKeyDown={e => { if (e.key === "Enter") handle_text_submit(); }}
-                placeholder={t("settings.app_lock_text_placeholder")}
-              />
+              <div className="relative">
+                <input
+                  ref={text_input_ref}
+                  type={show_passphrase ? "text" : "password"}
+                  autoComplete="off"
+                  data-form-type="other"
+                  className="w-full px-3 py-2.5 pr-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                  value={input}
+                  disabled={verifying || locked_out}
+                  onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
+                  onKeyDown={e => { if (e.key === "Enter") handle_text_submit(); }}
+                  placeholder={t("settings.app_lock_text_placeholder")}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary transition-colors"
+                  onClick={() => set_show_passphrase(v => !v)}
+                >
+                  {show_passphrase ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                </button>
+              </div>
             </motion.div>
             {error_msg && <p className="text-sm text-red-500 -mt-1">{error_msg}</p>}
             <Button variant="depth" disabled={verifying || locked_out || input.length < 1} onClick={handle_text_submit}>
@@ -310,6 +322,8 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
     set_shake_key(0);
     set_error_msg(null);
     set_saving(false);
+    set_show_passphrase(false);
+    set_pressed_key(null);
   }, []);
 
   useEffect(() => {
