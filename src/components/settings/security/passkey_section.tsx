@@ -32,6 +32,8 @@ import { Button } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { cn } from "@/lib/utils";
+import { use_auth } from "@/contexts/auth_context";
+import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
 import {
   list_hardware_keys,
   remove_hardware_key,
@@ -152,6 +154,7 @@ function KeyRow({ key_info, on_remove, removing }: KeyRowProps) {
 
 export function PasskeySection() {
   const { t } = use_i18n();
+  const { current_account_id } = use_auth();
   const [keys, set_keys] = useState<HardwareKeyInfo[]>([]);
   const [loading, set_loading] = useState(true);
   const [removing_id, set_removing_id] = useState<string | null>(null);
@@ -198,7 +201,10 @@ export function PasskeySection() {
   const handle_add_passkey = useCallback(async () => {
     set_registering("passkey");
     try {
-      const resp = await register_platform_passkey(null);
+      const passphrase = current_account_id
+        ? await get_session_passphrase(current_account_id).catch(() => null)
+        : null;
+      const resp = await register_platform_passkey(null, passphrase ?? undefined);
       if (resp.data?.success) {
         show_toast(t("passkeys.register_success"), "success");
         await load_keys();
@@ -208,7 +214,7 @@ export function PasskeySection() {
     } finally {
       set_registering(null);
     }
-  }, [load_keys, t]);
+  }, [current_account_id, load_keys, t]);
 
   const handle_add_security_key = useCallback(async () => {
     set_registering("security_key");

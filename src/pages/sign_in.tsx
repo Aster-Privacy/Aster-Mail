@@ -567,6 +567,7 @@ export default function SignInPage() {
           if (password) {
             throw vault_err;
           }
+
           const stored = await get_session_passphrase(totp_response.user_id).catch(() => null);
           if (stored) {
             try {
@@ -576,14 +577,11 @@ export default function SignInPage() {
                 stored,
               );
             } catch {
-              set_error(t("passkeys.vault_needs_password"));
-              set_is_loading(false);
-              return;
+              // stored passphrase is stale - fall through to PRF
             }
-          } else if (
-            totp_response.prf_encrypted_passphrase &&
-            totp_response.prf_nonce
-          ) {
+          }
+
+          if (!vault && totp_response.prf_encrypted_passphrase && totp_response.prf_nonce) {
             const prf_out = (totp_response as any).prf_output as ArrayBuffer | undefined;
             if (prf_out) {
               const prf_passphrase = await decrypt_with_prf(
@@ -599,21 +597,13 @@ export default function SignInPage() {
                     prf_passphrase,
                   );
                 } catch {
-                  set_error(t("passkeys.vault_needs_password"));
-                  set_is_loading(false);
-                  return;
+                  // PRF passphrase also wrong
                 }
-              } else {
-                set_error(t("passkeys.vault_needs_password"));
-                set_is_loading(false);
-                return;
               }
-            } else {
-              set_error(t("passkeys.vault_needs_password"));
-              set_is_loading(false);
-              return;
             }
-          } else {
+          }
+
+          if (!vault) {
             set_error(t("passkeys.vault_needs_password"));
             set_is_loading(false);
             return;

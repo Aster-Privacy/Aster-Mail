@@ -192,6 +192,7 @@ function get_platform_passkey_name(): string {
 
 export async function register_platform_passkey(
   friendly_name: string | null,
+  vault_passphrase?: string,
 ): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
   const options_response = await initiate_hardware_key_registration();
   if (!options_response.data) {
@@ -269,10 +270,10 @@ export async function register_platform_passkey(
     challenge_token: options.challenge_token,
   });
 
-  if (reg_result.data?.success) {
+  if (reg_result.data?.success && vault_passphrase) {
     const key_id = reg_result.data.key_id;
     const raw_credential_id = array_buffer_to_base64url(credential.rawId);
-    setup_prf_passphrase(key_id, raw_credential_id, options.rp.id).catch(() => {});
+    setup_prf_passphrase(key_id, raw_credential_id, options.rp.id, vault_passphrase).catch(() => {});
   }
 
   return reg_result;
@@ -360,9 +361,8 @@ async function setup_prf_passphrase(
   key_id: string,
   credential_id: string,
   rp_id: string,
+  passphrase: string,
 ): Promise<void> {
-  const passphrase = await get_vault_passphrase_for_prf();
-  if (!passphrase) return;
 
   const prf_eval = await get_prf_eval();
 
@@ -398,10 +398,6 @@ async function setup_prf_passphrase(
     prf_encrypted_passphrase: enc.encrypted,
     prf_nonce: enc.nonce,
   });
-}
-
-async function get_vault_passphrase_for_prf(): Promise<string | null> {
-  return null;
 }
 
 async function encrypt_with_prf(
