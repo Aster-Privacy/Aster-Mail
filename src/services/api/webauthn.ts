@@ -270,6 +270,7 @@ export async function perform_webauthn_assertion(
   try {
     credential = (await navigator.credentials.get({
       publicKey: public_key,
+      mediation: "required" as CredentialMediationRequirement,
     })) as PublicKeyCredential | null;
   } catch {
     return { data: undefined, error: en.errors.authentication_failed_webauthn };

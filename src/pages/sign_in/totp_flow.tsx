@@ -28,6 +28,7 @@ interface TotpFlowProps {
   set_active_2fa_method: (
     method: "totp" | "webauthn" | "backup" | "choose",
   ) => void;
+  available_2fa_methods: string[];
   remember_me: boolean;
 }
 
@@ -36,13 +37,17 @@ export function totp_flow({
   on_success,
   on_cancel,
   set_active_2fa_method,
+  available_2fa_methods,
   remember_me,
 }: TotpFlowProps) {
+  const has_webauthn = available_2fa_methods.includes("webauthn");
+
   return (
     <TotpVerification
       on_cancel={on_cancel}
       on_success={on_success}
       on_use_backup_code={() => set_active_2fa_method("backup")}
+      on_use_passkey={has_webauthn ? () => set_active_2fa_method("webauthn") : undefined}
       pending_login_token={pending_login_token}
       remember_me={remember_me}
     />

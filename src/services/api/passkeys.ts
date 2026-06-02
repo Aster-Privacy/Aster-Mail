@@ -306,13 +306,14 @@ export async function register_security_key(
       type: p.type as PublicKeyCredentialType,
       alg: p.alg,
     })),
-    timeout: options.timeout,
+    timeout: 30000,
     attestation: options.attestation as AttestationConveyancePreference,
     authenticatorSelection: {
       authenticatorAttachment: "cross-platform",
       residentKey: "preferred",
-      userVerification: "required",
+      userVerification: "preferred",
     },
+    ...({ hints: ["security-key"] } as object),
   };
 
   let credential: PublicKeyCredential | null;

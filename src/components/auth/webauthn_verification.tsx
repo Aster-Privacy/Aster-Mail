@@ -100,9 +100,9 @@ export function WebauthnVerification({
           />
         </div>
         <h2 className="text-xl font-semibold mb-2 text-txt-primary">
-          {t("auth.security_key_verification")}
+          {t("auth.passkey_verification")}
         </h2>
-        <p className="text-sm text-txt-muted">{t("auth.tap_security_key")}</p>
+        <p className="text-sm text-txt-muted">{t("auth.use_passkey_or_key")}</p>
       </div>
 
       <div className="space-y-4">

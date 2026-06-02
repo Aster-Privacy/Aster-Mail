@@ -292,23 +292,21 @@ export function PasskeySection() {
 
       {webauthn_supported && (
         <div className="flex flex-wrap gap-2 mt-2">
-          {platform_available && (
-            <Button
-              disabled={registering !== null}
-              size="sm"
-              variant="outline"
-              onClick={handle_add_passkey}
-            >
-              {registering === "passkey" ? (
-                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
-              ) : (
-                <FingerPrintIcon className="w-4 h-4 mr-2" />
-              )}
-              {registering === "passkey"
-                ? t("passkeys.registering")
-                : t("passkeys.add_passkey")}
-            </Button>
-          )}
+          <Button
+            disabled={registering !== null}
+            size="sm"
+            variant="outline"
+            onClick={handle_add_passkey}
+          >
+            {registering === "passkey" ? (
+              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
+            ) : (
+              <FingerPrintIcon className="w-4 h-4 mr-2" />
+            )}
+            {registering === "passkey"
+              ? t("passkeys.registering")
+              : t("passkeys.add_passkey")}
+          </Button>
           <Button
             disabled={registering !== null}
             size="sm"

@@ -29,6 +29,7 @@ interface TotpVerificationProps {
   pending_login_token: string;
   on_success: (response: TotpVerifyResponse) => void;
   on_use_backup_code: () => void;
+  on_use_passkey?: () => void;
   on_cancel: () => void;
   remember_me?: boolean;
 }
@@ -37,6 +38,7 @@ export function TotpVerification({
   pending_login_token,
   on_success,
   on_use_backup_code,
+  on_use_passkey,
   on_cancel,
   remember_me = true,
 }: TotpVerificationProps) {
@@ -47,14 +49,16 @@ export function TotpVerification({
   const [trust_device, set_trust_device] = useState(false);
   const input_refs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const handle_verify = useCallback(async () => {
-    if (code.length !== 6) return;
+  const handle_verify_ref = useRef<((c: string) => Promise<void>) | null>(null);
+
+  const handle_verify = useCallback(async (current_code: string) => {
+    if (current_code.length !== 6) return;
 
     set_is_loading(true);
     set_error("");
 
     const response = await verify_totp_login({
-      code,
+      code: current_code,
       pending_login_token,
       trust_device,
       remember_me,
@@ -77,13 +81,15 @@ export function TotpVerification({
     }
 
     set_is_loading(false);
-  }, [code, pending_login_token, on_success, trust_device, remember_me]);
+  }, [pending_login_token, on_success, trust_device, remember_me]);
+
+  handle_verify_ref.current = handle_verify;
 
   useEffect(() => {
-    if (code.length === 6 && !is_loading) {
-      handle_verify();
+    if (code.length === 6) {
+      handle_verify_ref.current?.(code);
     }
-  }, [code, is_loading, handle_verify]);
+  }, [code]);
 
   useEffect(() => {
     input_refs.current[0]?.focus();
@@ -190,6 +196,16 @@ export function TotpVerification({
         >
           {t("auth.use_backup_code_instead")}
         </button>
+
+        {on_use_passkey && (
+          <button
+            className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted"
+            type="button"
+            onClick={on_use_passkey}
+          >
+            {t("auth.use_passkey_instead")}
+          </button>
+        )}
       </div>
     </div>
   );

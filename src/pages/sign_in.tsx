@@ -1088,6 +1088,7 @@ export default function SignInPage() {
                   on_success: handle_totp_success,
                   on_cancel: handle_totp_cancel,
                   set_active_2fa_method,
+                  available_2fa_methods,
                   remember_me,
                 })
               )}
