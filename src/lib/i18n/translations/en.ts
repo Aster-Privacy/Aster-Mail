@@ -4899,6 +4899,10 @@ export const en: Translations = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    passkey_setup_cancelled: "Passkey setup cancelled.",
+    security_key_not_found: "No security key detected. Insert your USB key and touch it when prompted.",
+    passkey_hint: "Uses Windows Hello, Face ID, or Touch ID",
+    security_key_hint: "Requires a physical USB or NFC key such as a YubiKey",
   },
   errors: {
     generic: "That did not work. Another attempt should do it.",

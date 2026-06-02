@@ -208,7 +208,9 @@ export function PasskeySection() {
       if (resp.data?.success) {
         show_toast(t("passkeys.register_success"), "success");
         await load_keys();
-      } else if (resp.error && resp.error !== "passkey_cancelled") {
+      } else if (resp.error === "passkey_cancelled") {
+        show_toast(t("passkeys.passkey_setup_cancelled"), "info");
+      } else if (resp.error) {
         show_toast(resp.error, "error");
       }
     } finally {
@@ -223,7 +225,9 @@ export function PasskeySection() {
       if (resp.data?.success) {
         show_toast(t("passkeys.register_success"), "success");
         await load_keys();
-      } else if (resp.error && resp.error !== "passkey_cancelled") {
+      } else if (resp.error === "passkey_cancelled") {
+        show_toast(t("passkeys.security_key_not_found"), "error");
+      } else if (resp.error) {
         show_toast(resp.error, "error");
       }
     } finally {
@@ -291,37 +295,47 @@ export function PasskeySection() {
       )}
 
       {webauthn_supported && (
-        <div className="flex flex-wrap gap-2 mt-2">
-          <Button
-            disabled={registering !== null}
-            size="sm"
-            variant="outline"
-            onClick={handle_add_passkey}
-          >
-            {registering === "passkey" ? (
-              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
-            ) : (
-              <FingerPrintIcon className="w-4 h-4 mr-2" />
-            )}
-            {registering === "passkey"
-              ? t("passkeys.registering")
-              : t("passkeys.add_passkey")}
-          </Button>
-          <Button
-            disabled={registering !== null}
-            size="sm"
-            variant="outline"
-            onClick={handle_add_security_key}
-          >
-            {registering === "security_key" ? (
-              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
-            ) : (
-              <PlusIcon className="w-4 h-4 mr-2" />
-            )}
-            {registering === "security_key"
-              ? t("passkeys.registering")
-              : t("passkeys.add_security_key")}
-          </Button>
+        <div className="space-y-3 mt-2">
+          <div>
+            <Button
+              disabled={registering !== null}
+              size="sm"
+              variant="outline"
+              onClick={handle_add_passkey}
+            >
+              {registering === "passkey" ? (
+                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
+              ) : (
+                <FingerPrintIcon className="w-4 h-4 mr-2" />
+              )}
+              {registering === "passkey"
+                ? t("passkeys.registering")
+                : t("passkeys.add_passkey")}
+            </Button>
+            <p className="text-xs text-txt-muted mt-1">
+              {t("passkeys.passkey_hint")}
+            </p>
+          </div>
+          <div>
+            <Button
+              disabled={registering !== null}
+              size="sm"
+              variant="outline"
+              onClick={handle_add_security_key}
+            >
+              {registering === "security_key" ? (
+                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
+              ) : (
+                <PlusIcon className="w-4 h-4 mr-2" />
+              )}
+              {registering === "security_key"
+                ? t("passkeys.registering")
+                : t("passkeys.add_security_key")}
+            </Button>
+            <p className="text-xs text-txt-muted mt-1">
+              {t("passkeys.security_key_hint")}
+            </p>
+          </div>
         </div>
       )}
     </div>

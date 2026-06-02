@@ -79,6 +79,10 @@ export interface PasskeysTranslations {
   vault_needs_password: string;
   unnamed_passkey: string;
   unnamed_security_key: string;
+  passkey_setup_cancelled: string;
+  security_key_not_found: string;
+  passkey_hint: string;
+  security_key_hint: string;
 }
 
 export interface SecureViewTranslations {
