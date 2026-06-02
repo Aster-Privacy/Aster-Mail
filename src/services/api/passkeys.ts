@@ -206,6 +206,8 @@ export async function register_platform_passkey(
       residentKey: "required",
       userVerification: "required",
     },
+    // WebAuthn L3 hint - reinforces platform-only request to browsers/extensions
+    ...({ hints: ["client-device"] } as object),
   };
 
   let credential: PublicKeyCredential | null;
