@@ -110,6 +110,8 @@ export async function perform_passkey_login(
     allowCredentials: [],
     timeout: options.timeout,
     userVerification: options.userVerification as UserVerificationRequirement,
+    // WebAuthn L3 hint - ignored by older browsers, prefers platform auth on Chrome/Edge
+    ...({ hints: ["client-device"] } as object),
   };
 
   if (!options.challenge_token) {
@@ -120,6 +122,7 @@ export async function perform_passkey_login(
   try {
     credential = (await navigator.credentials.get({
       publicKey: public_key,
+      mediation: "required" as CredentialMediationRequirement,
     })) as PublicKeyCredential | null;
   } catch (err) {
     if (err instanceof DOMException && err.name === "NotAllowedError") {
