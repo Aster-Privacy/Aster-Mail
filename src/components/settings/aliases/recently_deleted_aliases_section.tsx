@@ -27,12 +27,13 @@ import {
   ChevronDownIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, UpgradeBtn } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { go_to_billing } from "@/components/settings/aliases/feature_lock";
 import {
   list_deleted_aliases,
   restore_alias,
@@ -242,13 +243,9 @@ export function RecentlyDeletedAliasesSection({
                 </p>
               </div>
               {restore_locked ? (
-                <button
-                  className="text-[11px] px-2 py-1 rounded-md bg-blue-500 text-white hover:bg-blue-600 font-medium shrink-0 transition-colors"
-                  type="button"
-                  onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))}
-                >
-                  {t("settings.alias_feature_locked_view_plans")}
-                </button>
+                <UpgradeBtn size="sm" onClick={go_to_billing}>
+                  {t("settings.alias_feature_locked_upgrade_cta")}
+                </UpgradeBtn>
               ) : (
                 <Button
                   disabled={restoring_id === alias.id}

@@ -31,7 +31,7 @@ import {
   CheckIcon,
   PhotoIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import { Button, Switch, UpgradeBtn } from "@aster/ui";
 
 import {
   SettingsGroup,
@@ -55,6 +55,7 @@ import { use_signatures } from "@/contexts/signatures_context";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { go_to_billing } from "@/components/settings/aliases/feature_lock";
 import { use_editor } from "@/hooks/use_editor";
 import { validate_image_magic_bytes } from "@/hooks/editor_utils";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
@@ -657,14 +658,16 @@ export function SignaturesSection({
           <SettingsRow
             label={t("settings.show_aster_branding")}
             trailing={
-              <Switch
-                checked={preferences.show_aster_branding}
-                disabled={!is_paid_plan}
-                onCheckedChange={(v) => {
-                  if (!is_paid_plan) return;
-                  update_preference("show_aster_branding", v, true);
-                }}
-              />
+              is_paid_plan ? (
+                <Switch
+                  checked={preferences.show_aster_branding}
+                  onCheckedChange={(v) => update_preference("show_aster_branding", v, true)}
+                />
+              ) : (
+                <UpgradeBtn size="sm" onClick={go_to_billing}>
+                  {t("settings.upgrade_to_unlock")}
+                </UpgradeBtn>
+              )
             }
           />
         </SettingsGroup>
