@@ -273,8 +273,13 @@ export function get_cached_preferences(): UserPreferences | null {
 
     if (cached) {
       const parsed = JSON.parse(cached) as UserPreferences;
+      const result = { ...DEFAULT_PREFERENCES, ...parsed };
 
-      return { ...DEFAULT_PREFERENCES, ...parsed };
+      if (result.theme !== "light" && result.theme !== "dark") {
+        result.theme = "dark";
+      }
+
+      return result;
     }
   } catch {}
 
@@ -514,6 +519,10 @@ export async function get_preferences(
       ),
     );
     let merged = { ...DEFAULT_PREFERENCES, ...cleaned } as UserPreferences;
+
+    if (merged.theme !== "light" && merged.theme !== "dark") {
+      merged.theme = "dark";
+    }
 
     const raw = preferences as unknown as Record<string, unknown>;
 
