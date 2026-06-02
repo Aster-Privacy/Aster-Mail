@@ -35,6 +35,7 @@ import {
 } from "@/native/capacitor_bridge";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { Button } from "@aster/ui";
 import { use_auth_safe } from "@/contexts/auth_context";
 import {
   get_app_lock_config,
@@ -106,7 +107,7 @@ function PinPad({
         className={cn(btn_base, "bg-muted hover:bg-muted/70 focus:outline-none", pressed_key === "Enter" && "scale-90 bg-muted/50")}
         onClick={on_check}
       >
-        <CheckIcon className="h-5 w-5 text-primary-foreground" />
+        <CheckIcon className="h-5 w-5 text-white/80" />
       </button>
     </div>
   );
@@ -278,7 +279,7 @@ function WebPinOverlay({
             </button>
           </>
         ) : (
-          <div className="flex flex-col items-center gap-4 w-72">
+          <div className="flex flex-col items-center gap-2 w-72">
             <motion.div
               key={shake_key}
               animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
@@ -287,9 +288,9 @@ function WebPinOverlay({
             >
               <input
                 type="password"
-                autoComplete="current-password"
+                autoComplete="off"
                 autoFocus
-                className="w-full px-3 py-2.5 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:ring-2 focus:ring-primary/50 text-center"
+                className="w-full px-4 py-2.5 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:border-brand transition-colors text-center"
                 value={input}
                 disabled={verifying || locked_out}
                 onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
@@ -300,16 +301,16 @@ function WebPinOverlay({
             <div className="h-4 flex items-center justify-center">
               {message && <p className="text-xs text-red-500">{message}</p>}
             </div>
-            <button
-              type="button"
+            <Button
+              variant="depth"
+              className="w-full"
               disabled={verifying || locked_out || input.length < 1}
-              className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-40 transition-opacity"
               onClick={handle_text_submit}
             >
               {verifying
                 ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
                 : t("common.unlock")}
-            </button>
+            </Button>
             <button
               type="button"
               className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
