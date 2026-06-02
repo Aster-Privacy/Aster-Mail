@@ -187,10 +187,10 @@ function filter_valid_emails(result: ParseResult): ParseResult {
 
   if (skipped > 0 && valid.length === 0 && result.emails.length > 0) {
     warnings.push(
-      en.errors.all_emails_rejected.replace("{{ count }}", String(skipped)),
+      en.errors.all_emails_rejected.replace("{{count}}", String(skipped)),
     );
   } else if (skipped > 0) {
-    warnings.push(en.errors.emails_skipped_invalid.replace("{{ count }}", String(skipped)));
+    warnings.push(en.errors.emails_skipped_invalid.replace("{{count}}", String(skipped)));
   }
 
   return { emails: valid, errors: result.errors, warnings };
@@ -206,7 +206,7 @@ export async function parse_import_file(
     return {
       emails: [],
       errors: [
-        en.errors.unrecognized_format.replace("{{ name }}", file.name),
+        en.errors.unrecognized_format.replace("{{name}}", file.name),
       ],
       warnings: [],
     };
@@ -233,7 +233,7 @@ export async function parse_import_file(
       return {
         emails: [],
         errors: [
-          en.errors.unrecognized_format.replace("{{ name }}", file.name),
+          en.errors.unrecognized_format.replace("{{name}}", file.name),
         ],
         warnings: [],
       };
