@@ -248,7 +248,7 @@ export async function register_platform_passkey(
     },
     type: credential.type,
     name_encrypted: resolved_name,
-    challenge_token: options.challenge,
+    challenge_token: options.challenge_token,
   });
 }
 
@@ -326,7 +326,7 @@ export async function register_security_key(
     },
     type: credential.type,
     name_encrypted: resolved_name,
-    challenge_token: options.challenge,
+    challenge_token: options.challenge_token,
   });
 }
 

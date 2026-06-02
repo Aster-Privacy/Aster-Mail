@@ -162,11 +162,14 @@ export function PasskeySection() {
   const webauthn_supported = is_passkey_supported();
 
   const load_keys = useCallback(async () => {
-    const resp = await list_hardware_keys();
-    if (resp.data) {
-      set_keys(resp.data.keys);
+    try {
+      const resp = await list_hardware_keys();
+      if (resp.data) {
+        set_keys(resp.data.keys);
+      }
+    } finally {
+      set_loading(false);
     }
-    set_loading(false);
   }, []);
 
   useEffect(() => {
@@ -177,14 +180,17 @@ export function PasskeySection() {
   const handle_remove = useCallback(
     async (key_id: string) => {
       set_removing_id(key_id);
-      const resp = await remove_hardware_key(key_id);
-      if (resp.data?.success) {
-        set_keys((prev) => prev.filter((k) => k.id !== key_id));
-        show_toast(t("passkeys.removed"), "success");
-      } else {
-        show_toast(resp.error || t("errors.generic"), "error");
+      try {
+        const resp = await remove_hardware_key(key_id);
+        if (resp.data?.success) {
+          set_keys((prev) => prev.filter((k) => k.id !== key_id));
+          show_toast(t("passkeys.removed"), "success");
+        } else {
+          show_toast(resp.error || t("errors.generic"), "error");
+        }
+      } finally {
+        set_removing_id(null);
       }
-      set_removing_id(null);
     },
     [t],
   );
