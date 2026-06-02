@@ -251,6 +251,82 @@ export async function register_platform_passkey(
   });
 }
 
+export async function register_security_key(
+  friendly_name: string | null,
+): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
+  const options_response = await initiate_hardware_key_registration();
+  if (!options_response.data) {
+    return { data: undefined, error: options_response.error };
+  }
+
+  const options = options_response.data;
+  const public_key: PublicKeyCredentialCreationOptions = {
+    challenge: base64url_to_array_buffer(options.challenge),
+    rp: { name: options.rp.name, id: options.rp.id },
+    user: {
+      id: base64url_to_array_buffer(
+        btoa(options.user.id)
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, ""),
+      ),
+      name: options.user.name,
+      displayName: options.user.displayName,
+    },
+    pubKeyCredParams: options.pubKeyCredParams.map((p) => ({
+      type: p.type as PublicKeyCredentialType,
+      alg: p.alg,
+    })),
+    timeout: options.timeout,
+    attestation: options.attestation as AttestationConveyancePreference,
+    authenticatorSelection: {
+      authenticatorAttachment: "cross-platform",
+      residentKey: "preferred",
+      userVerification: "preferred",
+    },
+  };
+
+  let credential: PublicKeyCredential | null;
+  try {
+    credential = (await navigator.credentials.create({
+      publicKey: public_key,
+    })) as PublicKeyCredential | null;
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "NotAllowedError") {
+      return { data: undefined, error: "passkey_cancelled" };
+    }
+    return { data: undefined, error: "Registration failed." };
+  }
+
+  if (!credential) {
+    return { data: undefined, error: "passkey_cancelled" };
+  }
+
+  const attestation_response =
+    credential.response as AuthenticatorAttestationResponse;
+
+  return complete_hardware_key_registration({
+    id: array_buffer_to_base64url(credential.rawId),
+    raw_id: array_buffer_to_base64url(credential.rawId),
+    response: {
+      attestation_object: btoa(
+        Array.from(
+          new Uint8Array(attestation_response.attestationObject),
+          (b) => String.fromCharCode(b),
+        ).join(""),
+      ),
+      client_data_json: btoa(
+        Array.from(
+          new Uint8Array(attestation_response.clientDataJSON),
+          (b) => String.fromCharCode(b),
+        ).join(""),
+      ),
+    },
+    type: credential.type,
+    name_encrypted: friendly_name,
+  });
+}
+
 export function is_passkey_supported(): boolean {
   return (
     typeof window !== "undefined" &&

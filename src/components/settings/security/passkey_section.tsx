@@ -35,12 +35,11 @@ import { cn } from "@/lib/utils";
 import {
   list_hardware_keys,
   remove_hardware_key,
-  perform_webauthn_registration,
-  initiate_hardware_key_registration,
   type HardwareKeyInfo,
 } from "@/services/api/webauthn";
 import {
   register_platform_passkey,
+  register_security_key,
   is_passkey_supported,
   is_platform_passkey_available,
 } from "@/services/api/passkeys";
@@ -208,12 +207,7 @@ export function PasskeySection() {
   const handle_add_security_key = useCallback(async () => {
     set_registering("security_key");
     try {
-      const options_resp = await initiate_hardware_key_registration();
-      if (!options_resp.data) {
-        show_toast(options_resp.error || t("passkeys.register_failed"), "error");
-        return;
-      }
-      const resp = await perform_webauthn_registration(options_resp.data, null);
+      const resp = await register_security_key(null);
       if (resp.data?.success) {
         show_toast(t("passkeys.register_success"), "success");
         await load_keys();
