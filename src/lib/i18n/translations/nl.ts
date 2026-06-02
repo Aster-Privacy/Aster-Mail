@@ -3363,7 +3363,7 @@ export const nl = {
     app_lock_wrong_pin: "Onjuiste PIN",
     app_lock_locked_out_for: "Te veel pogingen - probeer opnieuw over {{s}}s",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "Geavanceerde beveiliging voor journalisten, activisten en iedereen met verhoogd risico. Schakelt geavanceerde beveiligingen in die niet beschikbaar zijn bij standaardaccounts.",
+    vanguard_description: "Alleen Nova+. Meer functies komen binnenkort.",
     vanguard_info: "Aster Vanguard activeert geavanceerde beveiligingsfuncties voor journalisten, advocaten en personen met verhoogd risico. Inclusief PIN-appvergrendeling, verbeterde sessiebeheer en meer.",
     vanguard_active: "Vanguard Actief",
     vanguard_learn_more: "Meer informatie",

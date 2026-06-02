@@ -2943,7 +2943,7 @@ export const zh_CN = {
     app_lock_wrong_pin: "PIN 不正确",
     app_lock_locked_out_for: "尝试次数过多 - {{s}}秒后重试",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "为记者、活动人士及高风险人群提供的精密安全防护。启用标准帐户不具备的高级保护功能。",
+    vanguard_description: "仅限 Nova+。更多功能即将推出。",
     vanguard_info: "Aster Vanguard 为记者、律师及高风险用户启用精密安全功能，包括 PIN 应用锁定、增强的会话控制及更多保护措施。",
     vanguard_active: "Vanguard 已激活",
     vanguard_learn_more: "了解更多",

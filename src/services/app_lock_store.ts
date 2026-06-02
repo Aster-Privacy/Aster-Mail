@@ -28,6 +28,7 @@ const attempts_key = (id: string) => `aster:app_lock_attempts:${id}`;
 
 export interface AppLockConfig {
   enabled: boolean;
+  pin_type: "numeric" | "text";
   digits: number;
   pin_hash: string;
   pin_salt: string;

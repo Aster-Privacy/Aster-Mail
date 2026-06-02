@@ -115,6 +115,7 @@ function PinPad({
 function WebPinOverlay({
   account_id,
   digits,
+  pin_type,
   on_unlock,
   on_sign_out,
   reduce_motion,
@@ -122,6 +123,7 @@ function WebPinOverlay({
 }: {
   account_id: string;
   digits: number;
+  pin_type: "numeric" | "text";
   on_unlock: () => void;
   on_sign_out: () => void;
   reduce_motion: boolean;
@@ -157,59 +159,72 @@ function WebPinOverlay({
     return () => clearInterval(interval);
   }, [locked_out, account_id]);
 
+  const attempt_verify = useCallback(async (value: string) => {
+    set_verifying(true);
+    const result = await verify_pin(account_id, value);
+    if (result.ok) {
+      mark_session_unlocked(account_id);
+      set_verifying(false);
+      on_unlock();
+      return;
+    }
+    if (result.locked) {
+      set_locked_out(true);
+      set_input("");
+      const { remaining_ms } = is_locked_out(account_id);
+      set_lockout_remaining(Math.ceil(remaining_ms / 1000));
+      set_message(t("common.app_lock_locked_out"));
+    } else {
+      set_shake_key(k => k + 1);
+      set_input("");
+      const msg = result.attempts_remaining > 0
+        ? t("common.app_lock_attempts_remaining", { n: result.attempts_remaining })
+        : t("common.wrong_pin");
+      set_message(msg);
+      setTimeout(() => set_message(null), 2000);
+    }
+    set_verifying(false);
+  }, [account_id, on_unlock, t]);
+
   const handle_digit = useCallback(async (d: string) => {
     if (verifying || locked_out) return;
     const next = input + d;
     set_input(next);
     if (next.length === digits) {
-      set_verifying(true);
-      const result = await verify_pin(account_id, next);
-      if (result.ok) {
-        mark_session_unlocked(account_id);
-        set_verifying(false);
-        on_unlock();
-        return;
-      }
-      if (result.locked) {
-        set_locked_out(true);
-        set_input("");
-        const { remaining_ms } = is_locked_out(account_id);
-        set_lockout_remaining(Math.ceil(remaining_ms / 1000));
-        set_message(t("common.app_lock_locked_out"));
-      } else {
-        set_shake_key(k => k + 1);
-        set_input("");
-        const msg = result.attempts_remaining > 0
-          ? t("common.app_lock_attempts_remaining", { n: result.attempts_remaining })
-          : t("common.wrong_pin");
-        set_message(msg);
-        setTimeout(() => set_message(null), 2000);
-      }
-      set_verifying(false);
+      await attempt_verify(next);
     }
-  }, [account_id, input, digits, verifying, locked_out, on_unlock, t]);
+  }, [account_id, input, digits, verifying, locked_out, attempt_verify]);
 
   const handle_backspace = useCallback(() => {
     if (locked_out || verifying) return;
     set_input(prev => prev.slice(0, -1));
   }, [locked_out, verifying]);
 
+  const handle_text_submit = useCallback(async () => {
+    if (verifying || locked_out || input.length < 1) return;
+    await attempt_verify(input);
+  }, [verifying, locked_out, input, attempt_verify]);
+
   useEffect(() => {
     const on_key = (e: KeyboardEvent) => {
-      const k = e.key;
-      if (k >= "0" && k <= "9") {
-        set_pressed_key(k);
-        setTimeout(() => set_pressed_key(null), 120);
-        handle_digit(k);
-      } else if (k === "Backspace") {
-        set_pressed_key("Backspace");
-        setTimeout(() => set_pressed_key(null), 120);
-        handle_backspace();
+      if (pin_type === "text") {
+        if (e.key === "Enter") handle_text_submit();
+      } else {
+        const k = e.key;
+        if (k >= "0" && k <= "9") {
+          set_pressed_key(k);
+          setTimeout(() => set_pressed_key(null), 120);
+          handle_digit(k);
+        } else if (k === "Backspace") {
+          set_pressed_key("Backspace");
+          setTimeout(() => set_pressed_key(null), 120);
+          handle_backspace();
+        }
       }
     };
     window.addEventListener("keydown", on_key);
     return () => window.removeEventListener("keydown", on_key);
-  }, [handle_digit, handle_backspace]);
+  }, [pin_type, handle_digit, handle_backspace, handle_text_submit]);
 
   return (
     <motion.div
@@ -233,21 +248,66 @@ function WebPinOverlay({
               : t("common.enter_pin_to_unlock")}
           </p>
         </div>
-        <div className="flex flex-col items-center gap-2">
-          <PinDots digits={digits} filled={input.length} shake_key={shake_key} />
-          <div className="h-4 flex items-center justify-center">
-            {message && <p className="text-xs text-red-500">{message}</p>}
-            {verifying && !message && (
-              <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            )}
+        {pin_type === "numeric" ? (
+          <>
+            <div className="flex flex-col items-center gap-2">
+              <PinDots digits={digits} filled={input.length} shake_key={shake_key} />
+              <div className="h-4 flex items-center justify-center">
+                {message && <p className="text-xs text-red-500">{message}</p>}
+                {verifying && !message && (
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                )}
+              </div>
+            </div>
+            <PinPad
+              on_digit={handle_digit}
+              on_backspace={handle_backspace}
+              on_sign_out={on_sign_out}
+              pressed_key={pressed_key}
+            />
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-4 w-72">
+            <motion.div
+              key={shake_key}
+              animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
+              transition={{ duration: 0.4 }}
+              className="w-full"
+            >
+              <input
+                type="password"
+                autoComplete="current-password"
+                autoFocus
+                className="w-full px-3 py-2.5 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:ring-2 focus:ring-primary/50 text-center"
+                value={input}
+                disabled={verifying || locked_out}
+                onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
+                onKeyDown={e => { if (e.key === "Enter" && input.length >= 1) handle_text_submit(); }}
+                placeholder={t("common.enter_pin_to_unlock")}
+              />
+            </motion.div>
+            <div className="h-4 flex items-center justify-center">
+              {message && <p className="text-xs text-red-500">{message}</p>}
+            </div>
+            <button
+              type="button"
+              disabled={verifying || locked_out || input.length < 1}
+              className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-40 transition-opacity"
+              onClick={handle_text_submit}
+            >
+              {verifying
+                ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
+                : t("common.unlock")}
+            </button>
+            <button
+              type="button"
+              className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
+              onClick={on_sign_out}
+            >
+              {t("settings.sign_out")}
+            </button>
           </div>
-        </div>
-        <PinPad
-          on_digit={handle_digit}
-          on_backspace={handle_backspace}
-          on_sign_out={on_sign_out}
-          pressed_key={pressed_key}
-        />
+        )}
       </motion.div>
     </motion.div>
   );
@@ -266,6 +326,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   const [last_active, set_last_active] = useState(Date.now());
   const [is_web_locked, set_is_web_locked] = useState(false);
   const [web_pin_digits, set_web_pin_digits] = useState(4);
+  const [web_pin_type, set_web_pin_type] = useState<"numeric" | "text">("numeric");
   const hidden_at_ref = useRef<number | null>(null);
   const is_authenticated_ref = useRef(false);
   const account_id_ref = useRef("");
@@ -325,7 +386,8 @@ export function AppLock({ children }: { children: React.ReactNode }) {
     }
     const config = get_app_lock_config(account_id);
     if (!config?.enabled) return;
-    set_web_pin_digits(config.digits);
+    set_web_pin_type(config.pin_type ?? "numeric");
+    set_web_pin_digits(config.pin_type === "numeric" ? config.digits : 0);
     set_is_web_locked(true);
   }, [auth?.is_authenticated, account_id]);
 
@@ -344,7 +406,8 @@ export function AppLock({ children }: { children: React.ReactNode }) {
       hidden_at_ref.current = null;
       if (hidden_for >= LOCK_TIMEOUT_MS) {
         clear_session_unlock(id);
-        set_web_pin_digits(config.digits);
+        set_web_pin_type(config.pin_type ?? "numeric");
+        set_web_pin_digits(config.pin_type === "numeric" ? config.digits : 0);
         set_is_web_locked(true);
       }
     };
@@ -407,6 +470,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
           <WebPinOverlay
             account_id={account_id}
             digits={web_pin_digits}
+            pin_type={web_pin_type}
             on_unlock={() => set_is_web_locked(false)}
             on_sign_out={() => { set_is_web_locked(false); auth?.logout?.(); }}
             reduce_motion={reduce_motion}

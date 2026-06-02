@@ -119,7 +119,9 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
   description: string;
 }) {
   const { t } = use_i18n();
-  const digits = get_app_lock_config(account_id)?.digits ?? 4;
+  const config = get_app_lock_config(account_id);
+  const pin_type = config?.pin_type ?? "numeric";
+  const digits = pin_type === "numeric" ? (config?.digits ?? 4) : 0;
   const [input, set_input] = useState("");
   const [shake_key, set_shake_key] = useState(0);
   const [error_msg, set_error_msg] = useState<string | null>(null);
@@ -158,52 +160,65 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
     return () => clearInterval(interval);
   }, [locked_out, account_id]);
 
+  const attempt_verify = useCallback(async (value: string) => {
+    set_verifying(true);
+    const result = await verify_pin(account_id, value);
+    if (result.ok) {
+      set_input("");
+      set_verifying(false);
+      on_success();
+      return;
+    }
+    if (result.locked) {
+      set_locked_out(true);
+      set_input("");
+      const { remaining_ms } = is_locked_out(account_id);
+      set_lockout_secs(Math.ceil(remaining_ms / 1000));
+      set_error_msg(null);
+    } else {
+      set_shake_key(k => k + 1);
+      set_input("");
+      const msg = result.attempts_remaining > 0
+        ? t("settings.app_lock_attempts_remaining", { n: result.attempts_remaining })
+        : t("settings.app_lock_wrong_pin");
+      set_error_msg(msg);
+      setTimeout(() => set_error_msg(null), 2000);
+    }
+    set_verifying(false);
+  }, [account_id, on_success, t]);
+
   const handle_digit = useCallback(async (d: string) => {
     if (verifying || locked_out) return;
     const next = input + d;
     set_input(next);
     if (next.length === digits) {
-      set_verifying(true);
-      const result = await verify_pin(account_id, next);
-      if (result.ok) {
-        set_input("");
-        set_verifying(false);
-        on_success();
-        return;
-      }
-      if (result.locked) {
-        set_locked_out(true);
-        set_input("");
-        const { remaining_ms } = is_locked_out(account_id);
-        set_lockout_secs(Math.ceil(remaining_ms / 1000));
-        set_error_msg(null);
-      } else {
-        set_shake_key(k => k + 1);
-        set_input("");
-        const msg = result.attempts_remaining > 0
-          ? t("settings.app_lock_attempts_remaining", { n: result.attempts_remaining })
-          : t("settings.app_lock_wrong_pin");
-        set_error_msg(msg);
-        setTimeout(() => set_error_msg(null), 2000);
-      }
-      set_verifying(false);
+      await attempt_verify(next);
     }
-  }, [account_id, input, digits, verifying, locked_out, on_success, t]);
+  }, [account_id, input, digits, verifying, locked_out, attempt_verify]);
 
   const handle_backspace = useCallback(() => {
     if (locked_out || verifying) return;
     set_input(prev => prev.slice(0, -1));
   }, [locked_out, verifying]);
 
+  const handle_text_submit = useCallback(async () => {
+    if (verifying || locked_out || input.length < 1) return;
+    await attempt_verify(input);
+  }, [verifying, locked_out, input, attempt_verify]);
+
   useEffect(() => {
     if (!is_open) return;
     const on_key = (e: KeyboardEvent) => {
-      if (e.key >= "0" && e.key <= "9") handle_digit(e.key);
-      else if (e.key === "Backspace") handle_backspace();
+      if (pin_type === "text") {
+        if (e.key === "Enter") handle_text_submit();
+      } else {
+        if (e.key >= "0" && e.key <= "9") handle_digit(e.key);
+        else if (e.key === "Backspace") handle_backspace();
+      }
     };
     window.addEventListener("keydown", on_key);
     return () => window.removeEventListener("keydown", on_key);
-  }, [is_open, handle_digit, handle_backspace]);
+  }, [is_open, pin_type, handle_digit, handle_backspace, handle_text_submit]);
 
   return (
     <Modal is_open={is_open} on_close={on_close} size="sm">
@@ -216,22 +231,59 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
         </ModalDescription>
       </ModalHeader>
       <ModalBody>
-        <div className="flex flex-col items-center gap-5 py-2">
-          <PinDots digits={digits} filled={input.length} shake_key={shake_key} />
-          <div className="h-4 flex items-center justify-center">
-            {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
-            {verifying && !error_msg && (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            )}
+        {pin_type === "numeric" ? (
+          <div className="flex flex-col items-center gap-5 py-2">
+            <PinDots digits={digits} filled={input.length} shake_key={shake_key} />
+            <div className="h-4 flex items-center justify-center">
+              {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
+              {verifying && !error_msg && (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              )}
+            </div>
+            <PinPad on_digit={handle_digit} on_backspace={handle_backspace} disabled={verifying || locked_out} />
           </div>
-          <PinPad on_digit={handle_digit} on_backspace={handle_backspace} disabled={verifying || locked_out} />
-        </div>
+        ) : (
+          <div className="flex flex-col gap-4 py-2">
+            <motion.div
+              key={shake_key}
+              animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
+              transition={{ duration: 0.35 }}
+            >
+              <input
+                type="password"
+                autoComplete="current-password"
+                autoFocus
+                className="w-full px-3 py-2 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+                value={input}
+                disabled={verifying || locked_out}
+                onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
+                onKeyDown={e => { if (e.key === "Enter") handle_text_submit(); }}
+                placeholder={t("settings.app_lock_text_placeholder")}
+              />
+            </motion.div>
+            <div className="h-4 flex items-center justify-center">
+              {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
+              {verifying && !error_msg && (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              )}
+            </div>
+          </div>
+        )}
       </ModalBody>
+      {pin_type === "text" && (
+        <ModalFooter>
+          <Button variant="depth" disabled={verifying || locked_out || input.length < 1} onClick={handle_text_submit}>
+            {verifying
+              ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              : t("common.continue")}
+          </Button>
+        </ModalFooter>
+      )}
     </Modal>
   );
 }
 
-type SetupStep = "choose_digits" | "set_pin" | "confirm_pin";
+type SetupStep = "choose_mode" | "choose_digits" | "set_pin" | "confirm_pin" | "set_text" | "confirm_text";
 
 function SetupPinModal({ account_id, is_open, on_close, on_success }: {
   account_id: string;
@@ -240,19 +292,25 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
   on_success: () => void;
 }) {
   const { t } = use_i18n();
-  const [step, set_step] = useState<SetupStep>("choose_digits");
+  const [step, set_step] = useState<SetupStep>("choose_mode");
+  const [chosen_mode, set_chosen_mode] = useState<"numeric" | "text">("numeric");
   const [chosen_digits, set_chosen_digits] = useState(4);
   const [first_pin, set_first_pin] = useState("");
   const [confirm_input, set_confirm_input] = useState("");
+  const [text_input, set_text_input] = useState("");
+  const [first_text, set_first_text] = useState("");
   const [shake_key, set_shake_key] = useState(0);
   const [error_msg, set_error_msg] = useState<string | null>(null);
   const [saving, set_saving] = useState(false);
 
   const reset = useCallback(() => {
-    set_step("choose_digits");
+    set_step("choose_mode");
+    set_chosen_mode("numeric");
     set_chosen_digits(4);
     set_first_pin("");
     set_confirm_input("");
+    set_text_input("");
+    set_first_text("");
     set_shake_key(0);
     set_error_msg(null);
     set_saving(false);
@@ -263,9 +321,17 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
   }, [is_open, reset]);
 
   const handle_back = useCallback(() => {
-    if (step === "set_pin") { set_step("choose_digits"); set_first_pin(""); }
+    if (step === "choose_digits") { set_step("choose_mode"); }
+    else if (step === "set_pin") { set_step("choose_digits"); set_first_pin(""); }
     else if (step === "confirm_pin") { set_step("set_pin"); set_first_pin(""); set_confirm_input(""); set_error_msg(null); }
+    else if (step === "set_text") { set_step("choose_mode"); set_text_input(""); set_first_text(""); }
+    else if (step === "confirm_text") { set_step("set_text"); set_text_input(""); set_first_text(""); set_error_msg(null); }
   }, [step]);
+
+  const handle_mode_continue = useCallback(() => {
+    if (chosen_mode === "numeric") set_step("choose_digits");
+    else set_step("set_text");
+  }, [chosen_mode]);
 
   const handle_first_digit = useCallback((d: string) => {
     const next = first_pin + d;
@@ -297,7 +363,7 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
       const salt = generate_pin_salt();
       const pin_hash = await hash_pin(next, salt);
       const pin_salt = Array.from(salt).map(b => b.toString(16).padStart(2, "0")).join("");
-      save_app_lock_config(account_id, { enabled: true, digits: chosen_digits, pin_hash, pin_salt });
+      save_app_lock_config(account_id, { enabled: true, pin_type: "numeric", digits: chosen_digits, pin_hash, pin_salt });
       mark_session_unlocked(account_id);
       set_saving(false);
       on_success();
@@ -307,6 +373,40 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
   const handle_confirm_backspace = useCallback(() => {
     set_confirm_input(prev => prev.slice(0, -1));
   }, []);
+
+  const handle_text_continue = useCallback(() => {
+    if (step === "set_text") {
+      if (text_input.length < 4) {
+        set_error_msg(t("settings.app_lock_passphrase_too_short"));
+        setTimeout(() => set_error_msg(null), 2000);
+        return;
+      }
+      set_first_text(text_input);
+      set_text_input("");
+      set_step("confirm_text");
+    } else if (step === "confirm_text") {
+      if (text_input !== first_text) {
+        set_shake_key(k => k + 1);
+        set_error_msg(t("settings.app_lock_passphrase_mismatch"));
+        setTimeout(() => {
+          set_text_input("");
+          set_first_text("");
+          set_step("set_text");
+          set_error_msg(null);
+        }, 800);
+        return;
+      }
+      set_saving(true);
+      const salt = generate_pin_salt();
+      hash_pin(text_input, salt).then(pin_hash => {
+        const pin_salt = Array.from(salt).map(b => b.toString(16).padStart(2, "0")).join("");
+        save_app_lock_config(account_id, { enabled: true, pin_type: "text", digits: 0, pin_hash, pin_salt });
+        mark_session_unlocked(account_id);
+        set_saving(false);
+        on_success();
+      });
+    }
+  }, [step, text_input, first_text, account_id, on_success, t]);
 
   useEffect(() => {
     if (!is_open) return;
@@ -323,22 +423,29 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
     return () => window.removeEventListener("keydown", on_key);
   }, [is_open, step, handle_first_digit, handle_first_backspace, handle_confirm_digit, handle_confirm_backspace]);
 
-  const step_index = step === "choose_digits" ? 0 : step === "set_pin" ? 1 : 2;
+  const step_index = step === "choose_mode" ? 0
+    : step === "choose_digits" || step === "set_text" ? 1
+    : 2;
+
+  const is_first_step = step === "choose_mode";
+
+  const modal_title = step === "choose_mode" ? t("settings.app_lock_choose_mode")
+    : step === "choose_digits" ? t("settings.app_lock_choose_digits")
+    : step === "set_pin" ? t("settings.app_lock_set_pin")
+    : step === "confirm_pin" ? t("settings.app_lock_confirm_pin")
+    : step === "set_text" ? t("settings.app_lock_set_passphrase")
+    : t("settings.app_lock_confirm_passphrase");
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="sm" close_on_overlay={step === "choose_digits"}>
+    <Modal is_open={is_open} on_close={on_close} size="sm" close_on_overlay={is_first_step}>
       <ModalHeader>
         <div className="flex items-center gap-2">
-          {step !== "choose_digits" && (
+          {!is_first_step && (
             <button type="button" className="p-1 -ml-1 rounded-lg hover:bg-muted transition-colors" onClick={handle_back}>
               <ArrowLeftIcon className="h-4 w-4" />
             </button>
           )}
-          <ModalTitle>
-            {step === "choose_digits" ? t("settings.app_lock_choose_digits")
-              : step === "set_pin" ? t("settings.app_lock_set_pin")
-              : t("settings.app_lock_confirm_pin")}
-          </ModalTitle>
+          <ModalTitle>{modal_title}</ModalTitle>
         </div>
         <div className="flex items-center gap-1.5 mt-2">
           {[0, 1, 2].map(i => (
@@ -347,6 +454,40 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
         </div>
       </ModalHeader>
       <ModalBody>
+        {step === "choose_mode" && (
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              className={cn(
+                "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
+                chosen_mode === "numeric"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
+              )}
+              onClick={() => set_chosen_mode("numeric")}
+            >
+              <div className="font-medium">{t("settings.app_lock_mode_numeric")}</div>
+              <div className={cn("text-xs mt-0.5", chosen_mode === "numeric" ? "text-primary-foreground/80" : "text-txt-muted")}>
+                {t("settings.app_lock_mode_numeric_desc")}
+              </div>
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
+                chosen_mode === "text"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
+              )}
+              onClick={() => set_chosen_mode("text")}
+            >
+              <div className="font-medium">{t("settings.app_lock_mode_text")}</div>
+              <div className={cn("text-xs mt-0.5", chosen_mode === "text" ? "text-primary-foreground/80" : "text-txt-muted")}>
+                {t("settings.app_lock_mode_text_desc")}
+              </div>
+            </button>
+          </div>
+        )}
         {step === "choose_digits" && (
           <div className="flex flex-col gap-2">
             {([4, 6, 8] as const).map(n => (
@@ -382,11 +523,40 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
             <PinPad on_digit={handle_confirm_digit} on_backspace={handle_confirm_backspace} disabled={saving} />
           </div>
         )}
+        {(step === "set_text" || step === "confirm_text") && (
+          <div className="flex flex-col gap-4 py-2">
+            <motion.div
+              key={shake_key}
+              animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
+              transition={{ duration: 0.35 }}
+            >
+              <input
+                type="password"
+                autoComplete="new-password"
+                autoFocus
+                className="w-full px-3 py-2 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+                value={text_input}
+                onChange={e => set_text_input(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handle_text_continue()}
+                placeholder={t("settings.app_lock_text_placeholder")}
+              />
+            </motion.div>
+            <div className="h-4 flex items-center justify-center">
+              {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
+              {saving && <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />}
+            </div>
+          </div>
+        )}
       </ModalBody>
-      {step === "choose_digits" && (
+      {(step === "choose_mode" || step === "choose_digits" || step === "set_text" || step === "confirm_text") && (
         <ModalFooter>
-          <Button variant="outline" onClick={on_close}>{t("common.cancel")}</Button>
-          <Button variant="depth" onClick={() => set_step("set_pin")}>{t("common.continue")}</Button>
+          <Button variant="outline" onClick={is_first_step ? on_close : handle_back}>{is_first_step ? t("common.cancel") : t("common.back")}</Button>
+          {(step === "choose_mode" || step === "choose_digits") && (
+            <Button variant="depth" onClick={step === "choose_mode" ? handle_mode_continue : () => set_step("set_pin")}>{t("common.continue")}</Button>
+          )}
+          {(step === "set_text" || step === "confirm_text") && (
+            <Button variant="depth" disabled={saving || text_input.length < 1} onClick={handle_text_continue}>{t("common.continue")}</Button>
+          )}
         </ModalFooter>
       )}
     </Modal>

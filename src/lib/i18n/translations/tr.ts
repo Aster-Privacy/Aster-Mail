@@ -3175,7 +3175,7 @@ export const tr = {
     app_lock_wrong_pin: "Yanlış PIN",
     app_lock_locked_out_for: "Çok fazla deneme - {{s}}s içinde tekrar deneyin",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "Gazeteciler, aktivistler ve yüksek riskli herkes için gelişmiş güvenlik. Standart hesaplarda bulunmayan gelişmiş korumaları etkinleştirir.",
+    vanguard_description: "Sadece Nova+. Daha fazla özellik yakında.",
     vanguard_info: "Aster Vanguard, gazeteciler, avukatlar ve yüksek riskli kullanıcılar için gelişmiş güvenlik özelliklerini etkinleştirir. PIN kilit, gelişmiş oturum kontrolleri ve daha fazlasını içerir.",
     vanguard_active: "Vanguard Aktif",
     vanguard_learn_more: "Daha fazla bilgi",
