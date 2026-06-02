@@ -106,14 +106,22 @@ export function get_app_lock_config(account_id: string): AppLockConfig | null {
   }
 }
 
+const hint_key = (id: string) => `aster:app_lock_hint:${id}`;
+
 export function save_app_lock_config(account_id: string, config: AppLockConfig): void {
   localStorage.setItem(lock_key(account_id), JSON.stringify(config));
-  if (config.enabled) localStorage.setItem("aster:app_lock_hint", "1");
+  if (config.enabled) localStorage.setItem(hint_key(account_id), "1");
 }
 
 export function clear_app_lock_config(account_id: string): void {
   localStorage.removeItem(lock_key(account_id));
-  localStorage.removeItem("aster:app_lock_hint");
+  localStorage.removeItem(hint_key(account_id));
+  localStorage.removeItem(attempts_key(account_id));
+}
+
+export function get_lock_hint(account_id: string): boolean {
+  if (!account_id) return false;
+  return localStorage.getItem(hint_key(account_id)) === "1";
 }
 
 export function generate_pin_salt(): Uint8Array {
@@ -148,11 +156,13 @@ export async function verify_pin(
   if (lockout.locked) return { ok: false, locked: true, attempts_remaining: 0 };
 
   const config = get_app_lock_config(account_id);
-  if (!config || !config.enabled) return { ok: false, locked: false, attempts_remaining: MAX_ATTEMPTS };
+  if (!config || !config.enabled || !config.pin_hash || !config.pin_salt) {
+    return { ok: false, locked: false, attempts_remaining: MAX_ATTEMPTS };
+  }
 
-  const salt_bytes = Uint8Array.from(
-    config.pin_salt.match(/.{2}/g)!.map((h) => parseInt(h, 16)),
-  );
+  const salt_pairs = config.pin_salt.match(/.{2}/g);
+  if (!salt_pairs) return { ok: false, locked: false, attempts_remaining: MAX_ATTEMPTS };
+  const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
   const computed = await hash_pin(pin, salt_bytes);
   const ok = constant_time_equal(computed, config.pin_hash);
 

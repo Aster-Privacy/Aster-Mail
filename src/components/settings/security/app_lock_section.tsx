@@ -374,13 +374,17 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
         return;
       }
       set_saving(true);
-      const salt = generate_pin_salt();
-      const pin_hash = await hash_pin(next, salt);
-      const pin_salt = Array.from(salt).map(b => b.toString(16).padStart(2, "0")).join("");
-      save_app_lock_config(account_id, { enabled: true, pin_type: "numeric", digits: chosen_digits, pin_hash, pin_salt });
-      mark_session_unlocked(account_id);
+      try {
+        const salt = generate_pin_salt();
+        const pin_hash = await hash_pin(next, salt);
+        const pin_salt = Array.from(salt).map(b => b.toString(16).padStart(2, "0")).join("");
+        save_app_lock_config(account_id, { enabled: true, pin_type: "numeric", digits: chosen_digits, pin_hash, pin_salt });
+        mark_session_unlocked(account_id);
+        on_success();
+      } catch {
+        set_error_msg(t("common.something_went_wrong"));
+      }
       set_saving(false);
-      on_success();
     }
   }, [account_id, confirm_input, first_pin, chosen_digits, saving, on_success, t]);
 
@@ -418,6 +422,9 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
         mark_session_unlocked(account_id);
         set_saving(false);
         on_success();
+      }).catch(() => {
+        set_error_msg(t("common.something_went_wrong"));
+        set_saving(false);
       });
     }
   }, [step, text_input, first_text, account_id, on_success, t]);

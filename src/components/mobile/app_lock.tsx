@@ -39,6 +39,7 @@ import { Button } from "@aster/ui";
 import { use_auth_safe } from "@/contexts/auth_context";
 import {
   get_app_lock_config,
+  get_lock_hint,
   is_session_unlocked,
   is_locked_out,
   mark_session_unlocked,
@@ -163,26 +164,31 @@ function WebPinOverlay({
 
   const attempt_verify = useCallback(async (value: string) => {
     set_verifying(true);
-    const result = await verify_pin(account_id, value);
-    if (result.ok) {
-      mark_session_unlocked(account_id);
-      set_verifying(false);
-      on_unlock();
-      return;
-    }
-    if (result.locked) {
-      set_locked_out(true);
-      set_input("");
-      const { remaining_ms } = is_locked_out(account_id);
-      set_lockout_remaining(Math.ceil(remaining_ms / 1000));
-      set_message(t("common.app_lock_locked_out"));
-    } else {
-      set_shake_key(k => k + 1);
-      set_input("");
-      const msg = result.attempts_remaining > 0
-        ? t("common.app_lock_attempts_remaining", { n: result.attempts_remaining })
-        : t("common.wrong_pin");
-      set_message(msg);
+    try {
+      const result = await verify_pin(account_id, value);
+      if (result.ok) {
+        mark_session_unlocked(account_id);
+        set_verifying(false);
+        on_unlock();
+        return;
+      }
+      if (result.locked) {
+        set_locked_out(true);
+        set_input("");
+        const { remaining_ms } = is_locked_out(account_id);
+        set_lockout_remaining(Math.ceil(remaining_ms / 1000));
+        set_message(t("common.app_lock_locked_out"));
+      } else {
+        set_shake_key(k => k + 1);
+        set_input("");
+        const msg = result.attempts_remaining > 0
+          ? t("common.app_lock_attempts_remaining", { n: result.attempts_remaining })
+          : t("common.wrong_pin");
+        set_message(msg);
+        setTimeout(() => set_message(null), 2000);
+      }
+    } catch {
+      set_message(t("common.wrong_pin"));
       setTimeout(() => set_message(null), 2000);
     }
     set_verifying(false);
@@ -341,8 +347,8 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   const [last_active, set_last_active] = useState(Date.now());
   const [is_web_locked, set_is_web_locked] = useState(() => {
     if (is_native_platform()) return false;
-    const stored = localStorage.getItem("aster:app_lock_hint");
-    return stored === "1";
+    const stored_id = (() => { try { const raw = localStorage.getItem("aster:accounts"); return raw ? JSON.parse(raw).current_account_id ?? "" : ""; } catch { return ""; } })();
+    return stored_id ? get_lock_hint(stored_id) : false;
   });
   const [web_pin_digits, set_web_pin_digits] = useState(4);
   const [web_pin_type, set_web_pin_type] = useState<"numeric" | "text">("numeric");
@@ -399,17 +405,25 @@ export function AppLock({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (is_native_platform()) return;
+    if (auth?.is_loading) return;
     if (!auth?.is_authenticated || !account_id) {
-      set_is_web_locked(false);
+      if (!auth?.is_loading) set_is_web_locked(false);
       return;
     }
     const config = get_app_lock_config(account_id);
-    if (!config?.enabled) return;
+    if (!config?.enabled) { set_is_web_locked(false); return; }
     const resolved_type = config.pin_type ?? "numeric";
     set_web_pin_type(resolved_type);
     set_web_pin_digits(resolved_type === "numeric" ? (config.digits || 4) : 0);
-    set_is_web_locked(true);
-  }, [auth?.is_authenticated, account_id]);
+    if (!is_session_unlocked(account_id)) set_is_web_locked(true);
+  }, [auth?.is_authenticated, auth?.is_loading, account_id]);
+
+  useEffect(() => {
+    if (is_native_platform()) return;
+    const on_unload = () => { if (account_id_ref.current) clear_session_unlock(account_id_ref.current); };
+    window.addEventListener("beforeunload", on_unload);
+    return () => window.removeEventListener("beforeunload", on_unload);
+  }, []);
 
   useEffect(() => {
     if (is_native_platform()) return;
@@ -435,6 +449,22 @@ export function AppLock({ children }: { children: React.ReactNode }) {
     document.addEventListener("visibilitychange", handle_visibility);
     return () => document.removeEventListener("visibilitychange", handle_visibility);
   }, []);
+
+  if (is_web_locked && account_id) {
+    return (
+      <AnimatePresence>
+        <WebPinOverlay
+          account_id={account_id}
+          digits={web_pin_digits}
+          pin_type={web_pin_type}
+          on_unlock={() => { mark_session_unlocked(account_id); set_is_web_locked(false); }}
+          on_sign_out={() => { set_is_web_locked(false); auth?.logout?.(); }}
+          reduce_motion={reduce_motion}
+          t={t}
+        />
+      </AnimatePresence>
+    );
+  }
 
   return (
     <>
@@ -486,19 +516,6 @@ export function AppLock({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {is_web_locked && account_id && (
-          <WebPinOverlay
-            account_id={account_id}
-            digits={web_pin_digits}
-            pin_type={web_pin_type}
-            on_unlock={() => set_is_web_locked(false)}
-            on_sign_out={() => { set_is_web_locked(false); auth?.logout?.(); }}
-            reduce_motion={reduce_motion}
-            t={t}
-          />
-        )}
-      </AnimatePresence>
     </>
   );
 }
