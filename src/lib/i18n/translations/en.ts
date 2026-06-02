@@ -4916,6 +4916,7 @@ export const en: Translations = {
     timeout: "The request took too long to finish. Checking your connection and trying again usually does it.",
     rate_limit: "You have done that a lot in a short time. A moment, then another attempt, will work.",
     send_limit_reached: "You have hit your daily sending limit. Another attempt in {{time}} will work. Your draft is saved.",
+    pending_email_verification: "Check your email and click the verification link to activate this account.",
     ip_blocked: "Too many failed sign-in attempts from here. A wait of {{time}} before trying again will sort it. Your account is not locked.",
     invalid_credentials: "That email and password did not match. Another attempt, or a reset at astermail.org/reset, will sort it.",
     session_expired: "Your session has ended. Signing in again will pick up where you left off. Your data and drafts are saved on the server.",

@@ -863,6 +863,8 @@ export default function SignInPage() {
           const time_str = minutes > 0 ? `${minutes}m` : t("errors.try_again");
 
           set_error(t("errors.ip_blocked", { time: time_str }));
+        } else if (response.server_code === "PENDING_EMAIL_VERIFICATION") {
+          set_error(t("errors.pending_email_verification"));
         } else {
           set_error(response.error);
         }

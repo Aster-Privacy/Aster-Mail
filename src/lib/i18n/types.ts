@@ -4722,6 +4722,7 @@ export interface ErrorTranslations {
   timeout: string;
   rate_limit: string;
   send_limit_reached: string;
+  pending_email_verification: string;
   ip_blocked: string;
   invalid_credentials: string;
   session_expired: string;
