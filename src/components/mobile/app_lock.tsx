@@ -20,7 +20,7 @@
 //
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BackspaceIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { BackspaceIcon, CheckIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { cn } from "@/lib/utils";
 import {
@@ -137,6 +137,7 @@ function WebPinOverlay({
   const [locked_out, set_locked_out] = useState(false);
   const [lockout_remaining, set_lockout_remaining] = useState(0);
   const [pressed_key, set_pressed_key] = useState<string | null>(null);
+  const [show_passphrase, set_show_passphrase] = useState(false);
 
   useEffect(() => {
     const { locked, remaining_ms } = is_locked_out(account_id);
@@ -280,17 +281,27 @@ function WebPinOverlay({
               transition={{ duration: 0.4 }}
               className="w-full"
             >
-              <input
-                type="password"
-                autoComplete="off"
-                autoFocus
-                className="w-full px-4 py-2.5 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:border-brand transition-colors text-center"
-                value={input}
-                disabled={verifying || locked_out}
-                onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
-                onKeyDown={e => { if (e.key === "Enter" && input.length >= 1) handle_text_submit(); }}
-                placeholder={t("common.enter_passphrase")}
-              />
+              <div className="relative w-full">
+                <input
+                  type={show_passphrase ? "text" : "password"}
+                  autoComplete="off"
+                  autoFocus
+                  className="w-full px-4 py-2.5 pr-10 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:border-brand transition-colors text-center"
+                  value={input}
+                  disabled={verifying || locked_out}
+                  onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
+                  onKeyDown={e => { if (e.key === "Enter" && input.length >= 1) handle_text_submit(); }}
+                  placeholder={t("common.enter_passphrase")}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary transition-colors"
+                  onClick={() => set_show_passphrase(v => !v)}
+                >
+                  {show_passphrase ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                </button>
+              </div>
             </motion.div>
             {message && <p className="text-xs text-red-500 -mt-1">{message}</p>}
             <Button
