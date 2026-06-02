@@ -20,7 +20,7 @@
 //
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BackspaceIcon } from "@heroicons/react/24/outline";
+import { BackspaceIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 import { cn } from "@/lib/utils";
 import {
@@ -73,17 +73,17 @@ function PinDots({ digits, filled, shake_key }: { digits: number; filled: number
 function PinPad({
   on_digit,
   on_backspace,
-  on_sign_out,
+  on_check,
   pressed_key,
 }: {
   on_digit: (d: string) => void;
   on_backspace: () => void;
-  on_sign_out: () => void;
+  on_check: () => void;
   pressed_key: string | null;
 }) {
   const btn_base = "h-14 w-14 mx-auto rounded-full flex items-center justify-center transition-all duration-75";
   const digit_cls = (k: string) =>
-    cn(btn_base, "text-xl font-medium bg-muted hover:bg-muted/70", pressed_key === k && "scale-90 bg-muted/50");
+    cn(btn_base, "text-xl font-medium bg-muted hover:bg-muted/70 focus:outline-none", pressed_key === k && "scale-90 bg-muted/50");
   return (
     <div className="grid grid-cols-3 gap-2.5">
       {["1","2","3","4","5","6","7","8","9"].map(k => (
@@ -91,10 +91,10 @@ function PinPad({
       ))}
       <button
         type="button"
-        className="h-14 w-14 mx-auto rounded-full flex items-center justify-center text-xs text-txt-muted hover:text-txt-primary transition-colors"
-        onClick={on_sign_out}
+        className={cn(btn_base, "bg-muted hover:bg-muted/70 focus:outline-none", pressed_key === "Backspace" && "scale-90 bg-muted/50")}
+        onClick={on_backspace}
       >
-        Sign out
+        <BackspaceIcon className="h-5 w-5 text-txt-primary" />
       </button>
       <button
         type="button"
@@ -103,10 +103,10 @@ function PinPad({
       >0</button>
       <button
         type="button"
-        className={cn(btn_base, "bg-muted hover:bg-muted/70", pressed_key === "Backspace" && "scale-90 bg-muted/50")}
-        onClick={on_backspace}
+        className={cn(btn_base, "bg-muted hover:bg-muted/70 focus:outline-none", pressed_key === "Enter" && "scale-90 bg-muted/50")}
+        onClick={on_check}
       >
-        <BackspaceIcon className="h-5 w-5 text-txt-primary" />
+        <CheckIcon className="h-5 w-5 text-primary-foreground" />
       </button>
     </div>
   );
@@ -219,6 +219,10 @@ function WebPinOverlay({
           set_pressed_key("Backspace");
           setTimeout(() => set_pressed_key(null), 120);
           handle_backspace();
+        } else if (k === "Enter") {
+          set_pressed_key("Enter");
+          setTimeout(() => set_pressed_key(null), 120);
+          handle_text_submit();
         }
       }
     };
@@ -237,7 +241,7 @@ function WebPinOverlay({
         animate={{ scale: 1, opacity: 1 }}
         initial={reduce_motion ? false : { scale: 0.9, opacity: 0 }}
         transition={{ delay: 0.05 }}
-        className="flex flex-col items-center gap-5"
+        className="flex flex-col items-center gap-4"
       >
         <img src="/text_logo.png" alt="Aster Mail" className="h-7 opacity-90" draggable={false} />
         <div className="text-center">
@@ -262,9 +266,16 @@ function WebPinOverlay({
             <PinPad
               on_digit={handle_digit}
               on_backspace={handle_backspace}
-              on_sign_out={on_sign_out}
+              on_check={handle_text_submit}
               pressed_key={pressed_key}
             />
+            <button
+              type="button"
+              className="mt-1 text-xs text-txt-muted hover:text-txt-primary transition-colors"
+              onClick={on_sign_out}
+            >
+              {t("settings.sign_out")}
+            </button>
           </>
         ) : (
           <div className="flex flex-col items-center gap-4 w-72">
@@ -386,8 +397,9 @@ export function AppLock({ children }: { children: React.ReactNode }) {
     }
     const config = get_app_lock_config(account_id);
     if (!config?.enabled) return;
-    set_web_pin_type(config.pin_type ?? "numeric");
-    set_web_pin_digits(config.pin_type === "numeric" ? config.digits : 0);
+    const resolved_type = config.pin_type ?? "numeric";
+    set_web_pin_type(resolved_type);
+    set_web_pin_digits(resolved_type === "numeric" ? (config.digits || 4) : 0);
     set_is_web_locked(true);
   }, [auth?.is_authenticated, account_id]);
 
@@ -406,8 +418,9 @@ export function AppLock({ children }: { children: React.ReactNode }) {
       hidden_at_ref.current = null;
       if (hidden_for >= LOCK_TIMEOUT_MS) {
         clear_session_unlock(id);
-        set_web_pin_type(config.pin_type ?? "numeric");
-        set_web_pin_digits(config.pin_type === "numeric" ? config.digits : 0);
+        const vt = config.pin_type ?? "numeric";
+        set_web_pin_type(vt);
+        set_web_pin_digits(vt === "numeric" ? (config.digits || 4) : 0);
         set_is_web_locked(true);
       }
     };

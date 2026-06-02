@@ -21,7 +21,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button, Switch } from "@aster/ui";
-import { ArrowLeftIcon, BackspaceIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, BackspaceIcon, CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -85,7 +85,7 @@ function PinPad({ on_digit, on_backspace, disabled }: {
             type="button"
             disabled={disabled}
             className={cn(
-              "h-12 w-12 mx-auto rounded-full flex items-center justify-center transition-colors",
+              "h-12 w-12 mx-auto rounded-full flex items-center justify-center transition-colors focus:outline-none",
               disabled ? "opacity-40 cursor-not-allowed" : "bg-muted hover:bg-muted/70 active:scale-95",
             )}
             onClick={on_backspace}
@@ -447,9 +447,9 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
           )}
           <ModalTitle>{modal_title}</ModalTitle>
         </div>
-        <div className="flex items-center gap-1.5 mt-2">
+        <div className="flex items-center gap-1 mt-2 w-full">
           {[0, 1, 2].map(i => (
-            <div key={i} className={cn("h-1 rounded-full transition-all duration-300", i <= step_index ? "bg-primary w-6" : "bg-muted w-3")} />
+            <div key={i} className={cn("h-1 flex-1 rounded-full transition-all duration-300", i <= step_index ? "bg-brand" : "bg-muted")} />
           ))}
         </div>
       </ModalHeader>
@@ -461,13 +461,13 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
               className={cn(
                 "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
                 chosen_mode === "numeric"
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-brand text-white"
                   : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
               )}
               onClick={() => set_chosen_mode("numeric")}
             >
               <div className="font-medium">{t("settings.app_lock_mode_numeric")}</div>
-              <div className={cn("text-xs mt-0.5", chosen_mode === "numeric" ? "text-primary-foreground/80" : "text-txt-muted")}>
+              <div className={cn("text-xs mt-0.5", chosen_mode === "numeric" ? "text-white/70" : "text-txt-muted")}>
                 {t("settings.app_lock_mode_numeric_desc")}
               </div>
             </button>
@@ -476,13 +476,13 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
               className={cn(
                 "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
                 chosen_mode === "text"
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-brand text-white"
                   : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
               )}
               onClick={() => set_chosen_mode("text")}
             >
               <div className="font-medium">{t("settings.app_lock_mode_text")}</div>
-              <div className={cn("text-xs mt-0.5", chosen_mode === "text" ? "text-primary-foreground/80" : "text-txt-muted")}>
+              <div className={cn("text-xs mt-0.5", chosen_mode === "text" ? "text-white/70" : "text-txt-muted")}>
                 {t("settings.app_lock_mode_text_desc")}
               </div>
             </button>
@@ -497,7 +497,7 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
                 className={cn(
                   "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
                   chosen_digits === n
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-brand text-white"
                     : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
                 )}
                 onClick={() => set_chosen_digits(n)}
@@ -550,12 +550,34 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
       </ModalBody>
       {(step === "choose_mode" || step === "choose_digits" || step === "set_text" || step === "confirm_text") && (
         <ModalFooter>
-          <Button variant="outline" onClick={is_first_step ? on_close : handle_back}>{is_first_step ? t("common.cancel") : t("common.back")}</Button>
+          <button
+            type="button"
+            className="flex items-center justify-center h-10 w-10 rounded-full bg-surf-secondary border border-edge-secondary hover:bg-surf-tertiary transition-colors"
+            onClick={is_first_step ? on_close : handle_back}
+            aria-label={is_first_step ? t("common.cancel") : t("common.back")}
+          >
+            {is_first_step ? <XMarkIcon className="h-4 w-4 text-txt-primary" /> : <ArrowLeftIcon className="h-4 w-4 text-txt-primary" />}
+          </button>
           {(step === "choose_mode" || step === "choose_digits") && (
-            <Button variant="depth" onClick={step === "choose_mode" ? handle_mode_continue : () => set_step("set_pin")}>{t("common.continue")}</Button>
+            <button
+              type="button"
+              className="flex items-center justify-center h-10 w-10 rounded-full bg-brand hover:opacity-90 transition-opacity focus:outline-none"
+              onClick={step === "choose_mode" ? handle_mode_continue : () => set_step("set_pin")}
+              aria-label={t("common.continue")}
+            >
+              <CheckIcon className="h-4 w-4 text-primary-foreground" />
+            </button>
           )}
           {(step === "set_text" || step === "confirm_text") && (
-            <Button variant="depth" disabled={saving || text_input.length < 1} onClick={handle_text_continue}>{t("common.continue")}</Button>
+            <button
+              type="button"
+              disabled={saving || text_input.length < 1}
+              className="flex items-center justify-center h-10 w-10 rounded-full bg-brand hover:opacity-90 transition-opacity disabled:opacity-40 focus:outline-none"
+              onClick={handle_text_continue}
+              aria-label={t("common.continue")}
+            >
+              <CheckIcon className="h-4 w-4 text-primary-foreground" />
+            </button>
           )}
         </ModalFooter>
       )}
