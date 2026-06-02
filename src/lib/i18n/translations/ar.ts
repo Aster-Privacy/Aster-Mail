@@ -4224,6 +4224,8 @@ export const ar = {
     download_as_text: "تنزيل كنص",
     add_backup_email: "إضافة بريد إلكتروني احتياطي",
     skip_for_now: "تخطي في الوقت الحالي",
+    recovery_email_required_gate_title: "البريد الإلكتروني للاسترداد مطلوب",
+    recovery_email_required_gate_desc: "البريد الإلكتروني للاسترداد مطلوب لإنشاء حساب إضافي. يساعد هذا في حماية جميع حساباتك.",
     username_min_length: "3 أحرف على الأقل ستعمل هنا.",
     username_max_length: "أقل من 40 حرفًا سيعمل هنا.",
     username_alphanumeric: "الأحرف والأرقام هي الأحرف المسموحة.",

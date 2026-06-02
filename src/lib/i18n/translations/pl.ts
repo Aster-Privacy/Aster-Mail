@@ -4341,6 +4341,8 @@ export const pl = {
     download_as_text: "Pobierz jako tekst",
     add_backup_email: "Dodaj zapasowy adres e-mail",
     skip_for_now: "Pomiń na razie",
+    recovery_email_required_gate_title: "Wymagany adres e-mail do odzyskiwania",
+    recovery_email_required_gate_desc: "Do utworzenia dodatkowego konta wymagany jest adres e-mail do odzyskiwania. Pomaga to chronić wszystkie Twoje konta.",
     username_min_length: "Co najmniej 3 znaki zadziałają tutaj.",
     username_max_length: "Mniej niż 40 znaków zadziała tutaj.",
     username_alphanumeric:

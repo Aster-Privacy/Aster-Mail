@@ -4295,6 +4295,8 @@ export const fr = {
     download_as_text: "Télécharger en texte",
     add_backup_email: "Ajouter un e-mail de secours",
     skip_for_now: "Passer pour le moment",
+    recovery_email_required_gate_title: "Adresse e-mail de récupération requise",
+    recovery_email_required_gate_desc: "Une adresse e-mail de récupération est requise pour créer un compte supplémentaire. Cela aide à protéger tous vos comptes.",
     username_min_length: "Au moins 3 caractères fonctionneront ici.",
     username_max_length: "Moins de 40 caractères fonctionneront ici.",
     username_alphanumeric: "Les lettres et chiffres sont les caractères autorisés.",

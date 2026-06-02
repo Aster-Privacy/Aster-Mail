@@ -4502,6 +4502,8 @@ export interface AuthTranslations {
   download_as_text: string;
   add_backup_email: string;
   skip_for_now: string;
+  recovery_email_required_gate_title: string;
+  recovery_email_required_gate_desc: string;
   recovery_email_required_notice: string;
   account_flagged_notice: string;
   username_min_length: string;

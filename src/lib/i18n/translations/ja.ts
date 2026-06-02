@@ -4226,6 +4226,8 @@ export const ja = {
     download_as_text: "テキストとしてダウンロード",
     add_backup_email: "バックアップメールを追加",
     skip_for_now: "今はスキップ",
+    recovery_email_required_gate_title: "回復用メールアドレスが必要です",
+    recovery_email_required_gate_desc: "追加アカウントを作成するには回復用メールアドレスが必要です。これによりすべてのアカウントが保護されます。",
     username_min_length: "ここには 3 文字以上が必要です。",
     username_max_length: "ここには 40 文字未満で入力すると使えます。",
     username_alphanumeric: "使用できるのは英字と数字です。",

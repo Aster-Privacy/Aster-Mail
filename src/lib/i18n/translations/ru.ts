@@ -4262,6 +4262,8 @@ export const ru = {
     download_as_text: "Скачать как текст",
     add_backup_email: "Добавить резервную почту",
     skip_for_now: "Пропустить пока",
+    recovery_email_required_gate_title: "Требуется резервный email",
+    recovery_email_required_gate_desc: "Для создания дополнительного аккаунта требуется резервный email. Это помогает защитить все ваши аккаунты.",
     username_min_length: "Сюда подходит не менее 3 символов.",
     username_max_length: "Сюда подходит меньше 40 символов.",
     username_alphanumeric: "Здесь разрешены буквы и цифры.",

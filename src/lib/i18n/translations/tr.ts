@@ -4329,6 +4329,8 @@ export const tr = {
     download_as_text: "Metin Olarak İndir",
     add_backup_email: "Yedek e-posta ekle",
     skip_for_now: "Şimdilik atla",
+    recovery_email_required_gate_title: "Kurtarma e-postası gerekli",
+    recovery_email_required_gate_desc: "Ek hesap oluşturmak için bir kurtarma e-postası gereklidir. Bu, tüm hesaplarınızı korumaya yardımcı olur.",
     username_min_length: "Burada en az 3 karakter işe yarar.",
     username_max_length: "Burada 40 karakterden az işe yarar.",
     username_alphanumeric: "İzin verilen karakterler harfler ve rakamlardır.",

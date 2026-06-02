@@ -4381,6 +4381,8 @@ export const es = {
     download_as_text: "Descargar como texto",
     add_backup_email: "Añadir correo de respaldo",
     skip_for_now: "Omitir por ahora",
+    recovery_email_required_gate_title: "Correo de recuperación obligatorio",
+    recovery_email_required_gate_desc: "Se requiere un correo de recuperación para crear una cuenta adicional. Esto ayuda a proteger todas tus cuentas.",
     username_min_length:
       "Usa al menos 3 caracteres.",
     username_max_length:

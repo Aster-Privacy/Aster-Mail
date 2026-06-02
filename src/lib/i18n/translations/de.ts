@@ -4364,6 +4364,8 @@ export const de = {
     download_as_text: "Als Text herunterladen",
     add_backup_email: "Backup-E-Mail hinzufügen",
     skip_for_now: "Vorerst überspringen",
+    recovery_email_required_gate_title: "E-Mail-Adresse zur Wiederherstellung erforderlich",
+    recovery_email_required_gate_desc: "Für die Erstellung eines weiteren Kontos ist eine Wiederherstellungs-E-Mail erforderlich. Dies schützt alle Ihre Konten.",
     username_min_length: "Mindestens 3 Zeichen funktionieren hier.",
     username_max_length: "Weniger als 40 Zeichen funktionieren hier.",
     username_not_available: "Dieser Benutzername ist vergeben. Ein anderer funktioniert.",

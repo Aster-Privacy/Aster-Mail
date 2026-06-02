@@ -65,6 +65,7 @@ interface RegisterRequest {
   captcha_token?: string;
   referral_code?: string;
   client_platform?: string;
+  recovery_email?: string;
 }
 
 interface RegisterResponse {

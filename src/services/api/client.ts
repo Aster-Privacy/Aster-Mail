@@ -136,7 +136,8 @@ export type ApiErrorCode =
   | "UNKNOWN_ERROR"
   | "ABUSE_ACCOUNT_LIMIT"
   | "USERNAME_IN_USE"
-  | "REGISTRATION_SUSPENDED";
+  | "REGISTRATION_SUSPENDED"
+  | "RECOVERY_EMAIL_REQUIRED";
 
 export interface ApiError {
   message: string;
@@ -1091,6 +1092,16 @@ class ApiClient {
             return {
               error: error_data.error || "Account limit reached",
               code: "ABUSE_ACCOUNT_LIMIT",
+            };
+          }
+
+          if (
+            response.status === 422 &&
+            error_data.code === "RECOVERY_EMAIL_REQUIRED"
+          ) {
+            return {
+              error: error_data.error || "Recovery email required",
+              code: "RECOVERY_EMAIL_REQUIRED",
             };
           }
 

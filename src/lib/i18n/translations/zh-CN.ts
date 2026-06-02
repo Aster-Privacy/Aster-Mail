@@ -4067,6 +4067,8 @@ export const zh_CN = {
     download_as_text: "下载为文本",
     add_backup_email: "添加备份邮箱",
     skip_for_now: "暂时跳过",
+    recovery_email_required_gate_title: "需要恢复邮箱",
+    recovery_email_required_gate_desc: "创建附加账户需要提供恢复邮箱。这有助于保护您的所有账户。",
     username_min_length: "这里至少需要 3 个字符。",
     username_max_length: "这里需要少于 40 个字符。",
     username_alphanumeric: "可使用的字符包括字母和数字。",

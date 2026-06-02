@@ -4260,6 +4260,8 @@ export const pt = {
     download_as_text: "Baixar como Texto",
     add_backup_email: "Adicionar e-mail de backup",
     skip_for_now: "Pular por enquanto",
+    recovery_email_required_gate_title: "E-mail de recuperação obrigatório",
+    recovery_email_required_gate_desc: "Um e-mail de recuperação é necessário para criar uma conta adicional. Isso ajuda a proteger todas as suas contas.",
     username_min_length: "Pelo menos 3 caracteres vão funcionar aqui.",
     username_max_length: "Menos de 40 caracteres vão funcionar aqui.",
     username_alphanumeric: "Letras e números são os caracteres permitidos.",

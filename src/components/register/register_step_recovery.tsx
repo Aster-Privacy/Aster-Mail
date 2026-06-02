@@ -353,3 +353,77 @@ export const RegisterStepRecoveryEmail = ({
     </motion.div>
   );
 };
+
+interface RegisterStepRecoveryEmailGateProps {
+  reg: UseRegistrationReturn;
+}
+
+export const RegisterStepRecoveryEmailGate = ({
+  reg,
+}: RegisterStepRecoveryEmailGateProps) => {
+  return (
+    <motion.div
+      key="recovery_email_gate"
+      animate="animate"
+      className="flex flex-col items-center w-full max-w-sm px-4"
+      exit="exit"
+      initial="initial"
+      transition={page_transition}
+      variants={page_variants}
+    >
+      <Logo />
+
+      <h1 className="text-xl font-semibold mt-6 text-txt-primary">
+        {reg.t("auth.recovery_email_required_gate_title")}
+      </h1>
+      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
+        {reg.t("auth.recovery_email_required_gate_desc")}
+      </p>
+
+      <AnimatePresence>
+        {reg.recovery_email_error && (
+          <Alert is_dark={reg.is_dark} message={reg.recovery_email_error} />
+        )}
+      </AnimatePresence>
+
+      <div className={`w-full ${reg.recovery_email_error ? "mt-4" : "mt-6"}`}>
+        <Input
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
+          autoComplete="email"
+          disabled={reg.is_saving_recovery_email}
+          placeholder={reg.t("auth.backup_email_placeholder")}
+          status={reg.recovery_email_error ? "error" : "default"}
+          type="email"
+          value={reg.recovery_email}
+          onChange={(e) => {
+            reg.set_recovery_email(e.target.value);
+            if (reg.recovery_email_error) reg.set_recovery_email_error("");
+          }}
+          onKeyDown={(e) =>
+            e["key"] === "Enter" &&
+            !reg.is_saving_recovery_email &&
+            reg.handle_recovery_email_gate_submit()
+          }
+        />
+      </div>
+
+      <Button
+        className="w-full mt-6"
+        disabled={reg.is_saving_recovery_email}
+        size="xl"
+        variant="depth"
+        onClick={reg.handle_recovery_email_gate_submit}
+      >
+        {reg.is_saving_recovery_email ? (
+          <>
+            <Spinner className="mr-2" size="md" />
+            {reg.t("common.saving")}
+          </>
+        ) : (
+          reg.t("common.continue")
+        )}
+      </Button>
+    </motion.div>
+  );
+};

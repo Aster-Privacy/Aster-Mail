@@ -4244,6 +4244,8 @@ export const nl = {
     download_as_text: "Downloaden als tekst",
     add_backup_email: "Voeg een back-up-e-mailadres toe",
     skip_for_now: "Voorlopig overslaan",
+    recovery_email_required_gate_title: "Herstel-e-mail vereist",
+    recovery_email_required_gate_desc: "Voor het aanmaken van een extra account is een herstel-e-mail vereist. Dit helpt al uw accounts te beveiligen.",
     username_min_length: "Minstens 3 tekens werken hier.",
     username_max_length: "Minder dan 40 tekens werken hier.",
     username_not_available: "Deze gebruikersnaam is bezet. Een andere zou moeten werken.",

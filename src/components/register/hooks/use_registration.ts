@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { RegistrationStep } from "@/components/register/register_types";
+import type { RegisterRequest } from "@/services/api/auth";
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -256,6 +257,13 @@ export function use_registration() {
 
   const registration_promise_ref = useRef<Promise<void> | null>(null);
   const registration_done_ref = useRef(false);
+  const pending_register_params_ref = useRef<Omit<RegisterRequest, "recovery_email"> | null>(null);
+  const pending_vault_data_ref = useRef<{
+    identity_key: string;
+    signed_prekey: string;
+    signed_prekey_private: string;
+    recovery_codes: string[];
+  } | null>(null);
 
   const handle_password_next = async () => {
     set_error("");
@@ -343,7 +351,7 @@ export function use_registration() {
       set_generation_status(t("auth.creating_your_account"));
       await yield_to_ui();
       const trimmed_display_name = display_name.trim();
-      const response = await register_user({
+      const base_params: Omit<RegisterRequest, "recovery_email"> = {
         username: clean_username,
         display_name: trimmed_display_name || undefined,
         profile_color,
@@ -367,7 +375,10 @@ export function use_registration() {
         client_platform: import.meta.env.DEV ? "desktop" : undefined,
         referral_code:
           new URLSearchParams(window.location.search).get("ref") || undefined,
-      });
+      };
+      pending_register_params_ref.current = base_params;
+      pending_vault_data_ref.current = vault_data;
+      const response = await register_user(base_params);
 
       if (response.error) {
         await timing_safe_delay();
@@ -380,6 +391,11 @@ export function use_registration() {
         if (response.code === "USERNAME_IN_USE") {
           set_error(t("auth.username_in_use"));
           set_step("email");
+          registration_promise_ref.current = null;
+          return;
+        }
+        if (response.code === "RECOVERY_EMAIL_REQUIRED") {
+          set_step("recovery_email_gate");
           registration_promise_ref.current = null;
           return;
         }
@@ -632,6 +648,79 @@ export function use_registration() {
     await complete_registration();
   };
 
+  const handle_recovery_email_gate_submit = async () => {
+    set_recovery_email_error("");
+
+    if (!recovery_email.trim()) {
+      set_recovery_email_error(t("auth.please_enter_recovery_email"));
+      return;
+    }
+    if (!validate_email(recovery_email.trim())) {
+      set_recovery_email_error(t("auth.please_enter_valid_email"));
+      return;
+    }
+
+    const saved_params = pending_register_params_ref.current;
+    if (!saved_params) {
+      set_error(t("auth.registration_failed"));
+      set_step("email");
+      return;
+    }
+
+    set_is_saving_recovery_email(true);
+    const response = await register_user({
+      ...saved_params,
+      recovery_email: recovery_email.trim(),
+    });
+    set_is_saving_recovery_email(false);
+
+    if (response.error) {
+      await timing_safe_delay();
+      if (
+        response.code === "ABUSE_ACCOUNT_LIMIT" ||
+        response.code === "REGISTRATION_SUSPENDED"
+      ) {
+        set_is_abuse_blocked(true);
+        set_step("email");
+        return;
+      }
+      if (response.code === "USERNAME_IN_USE") {
+        set_error(t("auth.username_in_use"));
+        set_step("email");
+        return;
+      }
+      set_recovery_email_error(response.error);
+      return;
+    }
+
+    const saved_vault = pending_vault_data_ref.current;
+    pending_register_params_ref.current = null;
+    pending_vault_data_ref.current = null;
+
+    if (response.data && saved_vault) {
+      set_recovery_email_required(true);
+      set_is_completing_registration(true);
+      const trimmed_display_name = display_name.trim();
+      await login(
+        {
+          id: response.data.user_id,
+          username: response.data.username,
+          email: response.data.email,
+          display_name: trimmed_display_name || undefined,
+          profile_color,
+        },
+        saved_vault,
+        password,
+        saved_params.encrypted_vault,
+        saved_params.vault_nonce,
+      );
+      check_and_replenish_prekeys();
+    }
+
+    registration_done_ref.current = true;
+    set_step("recovery_key");
+  };
+
   return {
     t,
     is_dark,
@@ -698,6 +787,7 @@ export function use_registration() {
     handle_download_txt,
     handle_recovery_email_continue,
     handle_recovery_email_skip,
+    handle_recovery_email_gate_submit,
     handle_resend_verification,
     handle_skip_verification,
 

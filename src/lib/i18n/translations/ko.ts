@@ -4160,6 +4160,8 @@ export const ko = {
     download_as_text: "텍스트로 다운로드",
     add_backup_email: "백업 이메일 추가",
     skip_for_now: "지금은 건너뛰기",
+    recovery_email_required_gate_title: "복구 이메일 필요",
+    recovery_email_required_gate_desc: "추가 계정을 만들려면 복구 이메일이 필요합니다. 이를 통해 모든 계정을 보호할 수 있습니다.",
     username_min_length: "여기에는 최소 3자가 필요합니다.",
     username_max_length: "여기에는 40자 미만이면 됩니다.",
     username_alphanumeric: "사용 가능한 문자는 영문자와 숫자입니다.",
