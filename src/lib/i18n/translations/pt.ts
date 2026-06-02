@@ -974,6 +974,8 @@ export const pt = {
     delete_folder_warning: "Esta pasta será removida, e você não pode desfazer. Os e-mails de dentro permanecem na sua conta, apenas não estarão mais arquivados nesta pasta.",
     unsubscribe_error_manual: "Não foi possível cancelar a inscrição por você. Abrir link levará você ao site do remetente para cancelar manualmente.",
     unexpected_error_refresh: "Esta página teve um percalço. Uma atualização costuma recuperá-la. Seus dados estão seguros.",
+    unsupported_browser: "Navegador não suportado.",
+    unsupported_browser_detail: "Por favor, tente outro navegador.",
     email_render_error: "Não foi possível renderizar este e-mail neste dispositivo. Abri-lo novamente, ou ver a origem bruta, costuma resolver. Sua caixa de entrada não é afetada.",
     composer_load_error: "O editor não carregou. Fechar esta janela e abri-la de novo costuma resolver. Seu rascunho está salvo.",
     email_in_locked_folder: "Este e-mail está em uma pasta que você bloqueou. Desbloquear a pasta vai abri-lo.",

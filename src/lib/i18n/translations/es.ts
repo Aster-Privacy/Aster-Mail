@@ -401,6 +401,8 @@ export const es = {
     something_went_wrong: "Esta página tuvo un problema.",
     unexpected_error_refresh:
       "Esta página tuvo un problema. Actualizar suele recuperarla. Tus datos están a salvo.",
+    unsupported_browser: "Navegador no compatible.",
+    unsupported_browser_detail: "Por favor, prueba con otro navegador.",
     try_again: "Inténtalo de nuevo.",
     view_status: "Ver estado",
     error_details: "Detalles del error",

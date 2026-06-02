@@ -396,6 +396,8 @@ export const it = {
     something_went_wrong_try_again: "Non ha funzionato. Un altro tentativo tra poco di solito risolve la cosa.",
     something_went_wrong: "Questa pagina ha avuto un intoppo.",
     unexpected_error_refresh: "Questa pagina ha avuto un intoppo. Un aggiornamento di solito la recupera. I suoi dati sono al sicuro.",
+    unsupported_browser: "Browser non supportato.",
+    unsupported_browser_detail: "Per favore prova un altro browser.",
     try_again: "Riprova",
     view_status: "Visualizza stato",
     error_details: "Dettagli errore",

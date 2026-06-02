@@ -386,6 +386,8 @@ export const nl = {
     failed_to_archive_emails: "Het archiveren is niet voltooid. Een nieuwe poging zou werken. De e-mails staan nog in uw inbox.",
     something_went_wrong: "Deze pagina liep tegen een probleem aan.",
     unexpected_error_refresh: "Deze pagina liep tegen een probleem aan. Een vernieuwing herstelt het meestal. Uw gegevens zijn veilig.",
+    unsupported_browser: "Browser niet ondersteund.",
+    unsupported_browser_detail: "Probeer een andere browser.",
     try_again: "Een nieuwe poging zou werken.",
     view_status: "View Status",
     error_details: "Foutdetails",

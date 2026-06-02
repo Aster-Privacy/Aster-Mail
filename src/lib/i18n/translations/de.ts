@@ -399,6 +399,8 @@ export const de = {
     try_again: "Erneut versuchen",
     unexpected_error_refresh:
       "Diese Seite ist auf einen Haken gestoßen. Ein Aktualisieren stellt sie meist wieder her. Ihre Daten sind sicher.",
+    unsupported_browser: "Browser nicht unterstützt.",
+    unsupported_browser_detail: "Bitte versuchen Sie einen anderen Browser.",
     and: "und",
     emails_marked_as_read: "{{count}} E-Mail(s) als gelesen markiert",
     emails_archived: "{{count}} E-Mail(s) archiviert",

@@ -1106,6 +1106,8 @@ export const zh_CN = {
     delete_folder_warning: "该文件夹将被移除，且无法撤销。其中的邮件会保留在您的账户里，只是不再归在这个文件夹之下。",
     unsubscribe_error_manual: "我们无法为您退订，「打开链接」会带您前往发件人的网站自行退订。",
     unexpected_error_refresh: "这个页面遇到了一些问题，刷新一下通常可以恢复。您的数据是安全的。",
+    unsupported_browser: "不支持的浏览器。",
+    unsupported_browser_detail: "请尝试使用其他浏览器。",
     email_render_error: "我们无法在这台设备上呈现这封邮件，重新打开它，或查看原始信源，通常可以解决。您的收件箱不受影响。",
     composer_load_error: "撰写窗口未能加载，关闭这个窗口再打开一次通常可以。您的草稿已保存。",
     email_in_locked_folder: "这封邮件位于您已锁定的文件夹中，解锁该文件夹之后就可以打开。",

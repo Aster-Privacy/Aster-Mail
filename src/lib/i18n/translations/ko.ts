@@ -385,6 +385,8 @@ export const ko = {
     something_went_wrong_try_again: "동작이 완료되지 않았습니다. 잠시 뒤 다시 시도하면 보통 해결됩니다.",
     something_went_wrong: "이 페이지에서 문제가 생겼습니다.",
     unexpected_error_refresh: "이 페이지에서 문제가 생겼습니다. 새로고침하면 보통 복구됩니다. 데이터는 안전합니다.",
+    unsupported_browser: "지원하지 않는 브라우저입니다.",
+    unsupported_browser_detail: "다른 브라우저를 사용해 주세요.",
     try_again: "다시 시도",
     view_status: "상태 보기",
     error_details: "오류 세부 정보",

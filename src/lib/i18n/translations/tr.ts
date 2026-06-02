@@ -398,6 +398,8 @@ export const tr = {
     something_went_wrong: "Bu sayfa bir pürüze takıldı.",
     unexpected_error_refresh:
       "Bu sayfa bir pürüze takıldı. Yenileme çoğunlukla onu geri getirir. Verileriniz güvende.",
+    unsupported_browser: "Tarayıcı desteklenmiyor.",
+    unsupported_browser_detail: "Lütfen farklı bir tarayıcı deneyin.",
     try_again: "Tekrar dene",
     view_status: "Durumu görüntüle",
     error_details: "Hata ayrıntıları",

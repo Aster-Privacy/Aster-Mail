@@ -391,6 +391,8 @@ export const ru = {
     something_went_wrong_try_again: "Это не сработало. Повторная попытка через мгновение обычно помогает.",
     something_went_wrong: "На этой странице возникла заминка.",
     unexpected_error_refresh: "На этой странице возникла заминка. Обновление обычно её устраняет. Данные в безопасности.",
+    unsupported_browser: "Браузер не поддерживается.",
+    unsupported_browser_detail: "Попробуйте другой браузер.",
     try_again: "Повторная попытка обычно помогает.",
     view_status: "Посмотреть статус",
     error_details: "Подробности ошибки",

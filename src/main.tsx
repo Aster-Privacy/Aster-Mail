@@ -24,6 +24,7 @@ import { BrowserRouter, HashRouter } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 
 import App from "@/App";
+import UnsupportedBrowserPage from "@/pages/unsupported_browser";
 import { Provider } from "@/provider";
 import { initialize_capacitor, hide_splash } from "@/native/capacitor_bridge";
 import {
@@ -280,13 +281,16 @@ if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
 }
 
 const use_mobile = is_mobile_experience();
+const browser_supported = typeof window.crypto?.subtle === "object";
 
 const Router = is_tauri_runtime ? HashRouter : BrowserRouter;
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <Router>
     <Provider>
-      {use_mobile ? (
+      {!browser_supported ? (
+        <UnsupportedBrowserPage />
+      ) : use_mobile ? (
         <Suspense
           fallback={
             <div className="h-screen w-screen bg-[var(--bg-primary)]" />

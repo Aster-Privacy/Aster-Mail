@@ -388,6 +388,8 @@ export const ja = {
     something_went_wrong_try_again: "うまくいきませんでした。しばらくしてからもう一度試すと、解決することが多いです。",
     something_went_wrong: "このページで問題が発生しました。",
     unexpected_error_refresh: "このページで問題が発生しました。更新すると元に戻ることが多いです。データは安全です。",
+    unsupported_browser: "対応していないブラウザです。",
+    unsupported_browser_detail: "別のブラウザをお試しください。",
     try_again: "もう一度試す",
     view_status: "ステータスを表示",
     error_details: "エラーの詳細",

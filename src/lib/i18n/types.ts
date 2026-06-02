@@ -661,6 +661,8 @@ export interface CommonTranslations {
   something_went_wrong_try_again: string;
   something_went_wrong: string;
   unexpected_error_refresh: string;
+  unsupported_browser: string;
+  unsupported_browser_detail: string;
   try_again: string;
   view_status: string;
   error_details: string;
@@ -1150,6 +1152,7 @@ export interface CommonTranslations {
   app_lock: string;
   app_locked: string;
   enter_pin_to_unlock: string;
+  enter_passphrase: string;
   wrong_pin: string;
   app_lock_locked_out: string;
   app_lock_attempts_remaining: string;

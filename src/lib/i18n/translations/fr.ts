@@ -403,6 +403,8 @@ export const fr = {
     view_status: "Voir l'état",
     try_again: "Réessayer",
     unexpected_error_refresh: "Cette page a rencontré un souci. Actualiser suffit en général à la rétablir. Vos données sont en sécurité.",
+    unsupported_browser: "Navigateur non pris en charge.",
+    unsupported_browser_detail: "Veuillez essayer un autre navigateur.",
     and: "et",
     emails_marked_as_read: "{{count}} e-mail(s) marqué(s) comme lu(s)",
     emails_archived: "{{count}} e-mail(s) archivé(s)",

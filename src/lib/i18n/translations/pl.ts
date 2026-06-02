@@ -397,6 +397,8 @@ export const pl = {
     something_went_wrong: "Ta strona napotkała problem.",
     unexpected_error_refresh:
       "Ta strona napotkała problem. Odświeżenie zwykle ją przywraca. Dane są bezpieczne.",
+    unsupported_browser: "Przeglądarka nie jest obsługiwana.",
+    unsupported_browser_detail: "Spróbuj innej przeglądarki.",
     try_again: "Spróbuj ponownie.",
     view_status: "Zobacz status",
     error_details: "Szczegóły błędu",

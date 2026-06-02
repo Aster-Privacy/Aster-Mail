@@ -394,6 +394,8 @@ export const ar = {
     something_went_wrong: "هذه الصفحة واجهت عقبة.",
     unexpected_error_refresh:
       "هذه الصفحة واجهت عقبة. تحديث الصفحة غالبًا ما يستعيدها. بياناتك بأمان.",
+    unsupported_browser: "متصفح غير مدعوم.",
+    unsupported_browser_detail: "يرجى تجربة متصفح آخر.",
     try_again: "محاولة أخرى ينبغي أن تنجح.",
     view_status: "عرض الحالة",
     error_details: "تفاصيل الخطأ",
