@@ -140,13 +140,14 @@ export function EmailList({
     () => [...pinned_emails, ...primary_emails],
     [pinned_emails, primary_emails],
   );
-  const attachment_previews = use_attachment_previews(all_emails);
+  const attachment_previews = use_attachment_previews(all_emails, !preferences.low_network_mode);
 
   const is_special_view =
     current_view === "drafts" || current_view === "scheduled";
 
   const handle_hover_preload = useCallback(
     (email_id: string) => {
+      if (preferences.low_network_mode) return;
       if (is_special_view) return;
       if (last_preloaded_ref.current === email_id) return;
 
@@ -165,7 +166,7 @@ export function EmailList({
         ).catch(() => {});
       }, 50);
     },
-    [user?.email, is_special_view, preferences.conversation_grouping],
+    [user?.email, is_special_view, preferences.conversation_grouping, preferences.low_network_mode],
   );
 
   useEffect(() => {

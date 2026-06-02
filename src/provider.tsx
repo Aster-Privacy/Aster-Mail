@@ -63,7 +63,7 @@ function MotionWrapper({ children }: { children: React.ReactNode }) {
   const { preferences } = use_preferences();
   const os_prefers_reduced = use_os_reduced_motion();
 
-  const should_reduce = preferences.reduce_motion || os_prefers_reduced;
+  const should_reduce = preferences.reduce_motion || preferences.low_network_mode || os_prefers_reduced;
   const transition = useMemo(
     () => (should_reduce ? INSTANT_TRANSITION : undefined),
     [should_reduce],

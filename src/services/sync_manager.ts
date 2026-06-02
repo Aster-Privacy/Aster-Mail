@@ -22,6 +22,7 @@ import { get_sync_progress } from "@/services/api/external_accounts";
 import { show_toast } from "@/components/toast/simple_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { en } from "@/lib/i18n/translations/en";
+import { is_low_network } from "@/services/low_network_state";
 
 export interface SyncProgressState {
   status: string;
@@ -32,7 +33,7 @@ export interface SyncProgressState {
 
 const POLL_INTERVAL_MS = 1500;
 
-const polling_intervals = new Map<string, ReturnType<typeof setInterval>>();
+const polling_intervals = new Map<string, ReturnType<typeof setTimeout>>();
 const progress_state = new Map<string, SyncProgressState>();
 const account_token_map = new Map<string, string>();
 
@@ -71,82 +72,93 @@ export function start_sync_polling(
 ): void {
   const existing = polling_intervals.get(account_id);
 
-  if (existing) clearInterval(existing);
+  if (existing) clearTimeout(existing);
 
   account_token_map.set(account_id, account_token);
   notify_listeners();
 
-  const interval = setInterval(async () => {
-    try {
-      const result = await get_sync_progress(account_token);
-
-      if (!result.data) {
-        if (result.error) {
-          clearInterval(interval);
-          polling_intervals.delete(account_id);
-          account_token_map.delete(account_id);
-          progress_state.delete(account_id);
-          notify_listeners();
-        }
+  const schedule_tick = () => {
+    const timer = setTimeout(async () => {
+      if (is_low_network()) {
+        const next = setTimeout(schedule_tick, POLL_INTERVAL_MS);
+        polling_intervals.set(account_id, next);
         return;
       }
+      try {
+        const result = await get_sync_progress(account_token);
 
-      progress_state.set(account_id, {
-        status: result.data.status,
-        processed: result.data.processed_messages,
-        total: result.data.total_messages,
-        current_folder: result.data.current_folder,
-      });
-      notify_listeners();
-
-      if (result.data.status === "complete" || result.data.status === "error") {
-        clearInterval(interval);
-        polling_intervals.delete(account_id);
-        account_token_map.delete(account_id);
-
-        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-        window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
-        invalidate_mail_stats();
-
-        if (result.data.status === "complete") {
-          if (
-            result.data.error_message &&
-            result.data.error_message.toLowerCase().includes("quota")
-          ) {
-            window.dispatchEvent(
-              new CustomEvent("astermail:sync-quota-exceeded", {
-                detail: result.data.error_message,
-              }),
-            );
+        if (!result.data) {
+          if (result.error) {
+            polling_intervals.delete(account_id);
+            account_token_map.delete(account_id);
+            progress_state.delete(account_id);
+            notify_listeners();
           } else {
-            show_toast(en.common.sync_complete, "success");
+            const next = setTimeout(schedule_tick, POLL_INTERVAL_MS);
+            polling_intervals.set(account_id, next);
           }
-        } else {
-          show_toast(result.data.error_message || en.common.sync_failed, "error");
+          return;
         }
 
-        setTimeout(() => {
-          progress_state.delete(account_id);
-          notify_listeners();
-        }, 2000);
-      }
-    } catch {
-      clearInterval(interval);
-      polling_intervals.delete(account_id);
-      account_token_map.delete(account_id);
-      progress_state.delete(account_id);
-      notify_listeners();
-    }
-  }, POLL_INTERVAL_MS);
+        progress_state.set(account_id, {
+          status: result.data.status,
+          processed: result.data.processed_messages,
+          total: result.data.total_messages,
+          current_folder: result.data.current_folder,
+        });
+        notify_listeners();
 
-  polling_intervals.set(account_id, interval);
+        if (result.data.status === "complete" || result.data.status === "error") {
+          polling_intervals.delete(account_id);
+          account_token_map.delete(account_id);
+
+          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+          window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
+          invalidate_mail_stats();
+
+          if (result.data.status === "complete") {
+            if (
+              result.data.error_message &&
+              result.data.error_message.toLowerCase().includes("quota")
+            ) {
+              window.dispatchEvent(
+                new CustomEvent("astermail:sync-quota-exceeded", {
+                  detail: result.data.error_message,
+                }),
+              );
+            } else {
+              show_toast(en.common.sync_complete, "success");
+            }
+          } else {
+            show_toast(result.data.error_message || en.common.sync_failed, "error");
+          }
+
+          setTimeout(() => {
+            progress_state.delete(account_id);
+            notify_listeners();
+          }, 2000);
+        } else {
+          const next = setTimeout(schedule_tick, POLL_INTERVAL_MS);
+          polling_intervals.set(account_id, next);
+        }
+      } catch {
+        polling_intervals.delete(account_id);
+        account_token_map.delete(account_id);
+        progress_state.delete(account_id);
+        notify_listeners();
+      }
+    }, POLL_INTERVAL_MS);
+    polling_intervals.set(account_id, timer);
+  };
+
+  schedule_tick();
 }
 
 export function stop_sync_polling(account_id: string): void {
-  const interval = polling_intervals.get(account_id);
+  const timer = polling_intervals.get(account_id);
 
-  if (interval) {
-    clearInterval(interval);
+  if (timer) {
+    clearTimeout(timer);
     polling_intervals.delete(account_id);
     account_token_map.delete(account_id);
     progress_state.delete(account_id);
@@ -155,7 +167,7 @@ export function stop_sync_polling(account_id: string): void {
 }
 
 export function stop_all_sync_polling(): void {
-  polling_intervals.forEach((interval) => clearInterval(interval));
+  polling_intervals.forEach((timer) => clearTimeout(timer));
   polling_intervals.clear();
   account_token_map.clear();
   progress_state.clear();

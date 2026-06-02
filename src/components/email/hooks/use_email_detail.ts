@@ -163,6 +163,7 @@ export function use_email_detail() {
   const [thread_messages, set_thread_messages] = useState<
     DecryptedThreadMessage[]
   >([]);
+  const [thread_truncated, set_thread_truncated] = useState(false);
   const [thread_draft, set_thread_draft] = useState<DraftWithContent | null>(
     null,
   );
@@ -648,13 +649,16 @@ export function use_email_detail() {
             {
               is_trashed: !!response.data.is_trashed,
               is_spam: !!response.data.is_spam,
+              limit: preferences.low_network_mode ? 4 : undefined,
             },
           );
 
           if (thread_result.messages.length > 0) {
             set_thread_messages(thread_result.messages);
+            set_thread_truncated(thread_result.truncated);
           } else {
             set_thread_messages([single_message]);
+            set_thread_truncated(false);
           }
         } else if (
           preferences.conversation_grouping !== false &&
@@ -705,7 +709,7 @@ export function use_email_detail() {
       await ensure_min_duration();
       set_is_loading(false);
     }
-  }, [email_id, folders_state.folders, user?.id, user?.email]);
+  }, [email_id, folders_state.folders, user?.id, user?.email, preferences.low_network_mode, preferences.conversation_grouping]);
 
   useEffect(() => {
     if (mark_as_read_timeout.current) {
@@ -914,6 +918,24 @@ export function use_email_detail() {
     set_thread_draft(null);
   }, []);
 
+  const load_all_thread_messages = useCallback(async () => {
+    if (!mail_item?.thread_token || !user?.email) return;
+
+    const thread_result = await fetch_and_decrypt_thread_messages(
+      mail_item.thread_token,
+      user.email,
+      {
+        is_trashed: !!mail_item.is_trashed,
+        is_spam: !!mail_item.is_spam,
+      },
+    );
+
+    if (thread_result.messages.length > 0) {
+      set_thread_messages(thread_result.messages);
+      set_thread_truncated(false);
+    }
+  }, [mail_item?.thread_token, mail_item?.is_trashed, mail_item?.is_spam, user?.email]);
+
   return {
     t,
     email_id,
@@ -952,6 +974,8 @@ export function use_email_detail() {
     is_mobile_sidebar_open,
     toggle_mobile_sidebar,
     thread_messages,
+    thread_truncated,
+    load_all_thread_messages,
     thread_draft,
     current_user_email,
     is_reply_modal_open,

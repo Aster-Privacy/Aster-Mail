@@ -92,18 +92,21 @@ export function EmailViewerContent({
 
   const html_blocked =
     !is_literal_plain_text &&
-    preferences.html_rendering_mode === "plain_text";
+    (preferences.html_rendering_mode === "plain_text" ||
+      preferences.low_network_mode);
 
   const plain_text_html = useMemo(() => {
     if (!html_blocked) return null;
     return plain_text_to_html(html_to_readable_plain_text(raw_content ?? ""));
   }, [html_blocked, raw_content]);
 
-  const effective_content_mode = is_system
-    ? ("always" as const)
-    : !preferences.block_external_content
+  const effective_content_mode = preferences.low_network_mode
+    ? ("never" as const)
+    : is_system
       ? ("always" as const)
-      : (external_content_mode_override ?? preferences.load_remote_images);
+      : !preferences.block_external_content
+        ? ("always" as const)
+        : (external_content_mode_override ?? preferences.load_remote_images);
 
   const sanitize_result = useMemo(() => {
     if (html_blocked) {
@@ -202,7 +205,7 @@ export function EmailViewerContent({
 
     const has_cid = extract_cid_references(sanitize_result.html).length > 0;
 
-    if (!has_cid) {
+    if (!has_cid || preferences.low_network_mode) {
       set_cid_resolved_html(null);
 
       return;
@@ -224,7 +227,7 @@ export function EmailViewerContent({
     return () => {
       cancelled = true;
     };
-  }, [sanitize_result.html, email.id]);
+  }, [sanitize_result.html, email.id, preferences.low_network_mode]);
 
   useEffect(() => {
     return () => {

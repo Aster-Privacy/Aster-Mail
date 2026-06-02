@@ -27,17 +27,20 @@ import {
   subscribe_profile_updates,
   type PublicProfile,
 } from "@/services/api/profiles";
+import { use_preferences } from "@/contexts/preferences_context";
 
 export function use_peer_profile(email: string | undefined | null): PublicProfile | null {
+  const { preferences } = use_preferences();
+  const low_network = preferences.low_network_mode;
   const normalized = email ? email.trim().toLowerCase() : "";
   const initial =
-    normalized && is_aster_email(normalized)
+    !low_network && normalized && is_aster_email(normalized)
       ? (get_cached_peer_profile(normalized) ?? null)
       : null;
   const [profile, set_profile] = useState<PublicProfile | null>(initial);
 
   useEffect(() => {
-    if (!normalized || !is_aster_email(normalized)) {
+    if (low_network || !normalized || !is_aster_email(normalized)) {
       set_profile(null);
       return;
     }
@@ -62,7 +65,7 @@ export function use_peer_profile(email: string | undefined | null): PublicProfil
       cancelled = true;
       unsubscribe();
     };
-  }, [normalized]);
+  }, [normalized, low_network]);
 
   return profile;
 }

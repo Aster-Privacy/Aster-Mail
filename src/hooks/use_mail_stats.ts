@@ -21,6 +21,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 import { MAIL_EVENTS } from "./mail_events";
+import { is_low_network } from "@/services/low_network_state";
 
 import { get_contacts_count } from "@/services/api/contacts";
 import { list_snoozed_emails, type SnoozedItem } from "@/services/api/snooze";
@@ -76,8 +77,10 @@ const DEFAULT_STATS: MailStats = {
   storage_total_bytes: 1073741824,
 };
 
-const CACHE_TTL_MS = 120_000;
+const LOW_NETWORK_TTL_MS = 20 * 60 * 1000;
+const NORMAL_TTL_MS = 120_000;
 const DEBOUNCE_MS = 500;
+
 const INITIAL_STATS_DELAY_MS = 1_000;
 const STORAGE_KEY_PREFIX = "aster_mail_stats_";
 const STORAGE_SCHEMA_VERSION = 3;
@@ -117,7 +120,8 @@ class MailStatsStore {
   }
 
   is_stale(): boolean {
-    return Date.now() - this.cache.timestamp > CACHE_TTL_MS;
+    const effective_ttl = is_low_network() ? LOW_NETWORK_TTL_MS : NORMAL_TTL_MS;
+    return Date.now() - this.cache.timestamp > effective_ttl;
   }
 
   set_user_id(id: string | null): void {

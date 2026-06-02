@@ -53,6 +53,32 @@ export interface TranslationNamespace {
   badges: BadgesTranslations;
   secure_view: SecureViewTranslations;
   compose: ComposeTranslations;
+  passkeys: PasskeysTranslations;
+}
+
+export interface PasskeysTranslations {
+  section_title: string;
+  section_description: string;
+  add_passkey: string;
+  add_security_key: string;
+  no_passkeys: string;
+  passkey_badge: string;
+  security_key_badge: string;
+  registered: string;
+  last_used: string;
+  never_used: string;
+  remove: string;
+  confirm_remove: string;
+  removed: string;
+  register_success: string;
+  register_failed: string;
+  registering: string;
+  not_supported: string;
+  sign_in_with_passkey: string;
+  authenticating: string;
+  vault_needs_password: string;
+  unnamed_passkey: string;
+  unnamed_security_key: string;
 }
 
 export interface SecureViewTranslations {
@@ -1122,6 +1148,12 @@ export interface CommonTranslations {
   powered_by: string;
   mobile_settings: string;
   app_lock: string;
+  app_locked: string;
+  enter_pin_to_unlock: string;
+  wrong_pin: string;
+  app_lock_locked_out: string;
+  app_lock_attempts_remaining: string;
+  app_lock_try_again_in: string;
   secure_send: string;
   push_notifications: string;
   enabled: string;
@@ -1509,6 +1541,7 @@ export interface CommonTranslations {
   onboarding_checklist_import_mail: string;
   onboarding_checklist_recovery_method: string;
   onboarding_checklist_first_email: string;
+  or: string;
 }
 
 export interface SettingsTranslations {
@@ -1590,6 +1623,23 @@ export interface SettingsTranslations {
   never_used: string;
   remove_key: string;
   confirm_remove_key: string;
+  vanguard_title: string;
+  vanguard_description: string;
+  vanguard_active: string;
+  vanguard_learn_more: string;
+  vanguard_enable: string;
+  vanguard_disable: string;
+  vanguard_requires_nova: string;
+  vanguard_upgrade_cta: string;
+  vanguard_what_you_get: string;
+  vanguard_feature_app_lock: string;
+  vanguard_feature_app_lock_desc: string;
+  vanguard_feature_enhanced_monitoring: string;
+  vanguard_feature_enhanced_monitoring_desc: string;
+  vanguard_confirm_disable_title: string;
+  vanguard_confirm_disable_desc: string;
+  vanguard_enabled_toast: string;
+  vanguard_disabled_toast: string;
   encryption_keys: string;
   encryption_keys_description: string;
   no_encryption_key: string;
@@ -3676,6 +3726,12 @@ export interface SettingsTranslations {
   alias_transfer_recipient_placeholder: string;
   alias_transfer_confirm: string;
   alias_transfer_success: string;
+  low_network_mode_section_title: string;
+  low_network_mode_label: string;
+  low_network_mode_description: string;
+  low_network_mode_active_banner: string;
+  info_low_network_mode_title: string;
+  info_low_network_mode_description: string;
 }
 
 export interface MailTranslations {
@@ -4256,6 +4312,7 @@ export interface MailTranslations {
   delivered: string;
   n_messages: string;
   attachment_singular: string;
+  load_attachments: string;
   forwarded_count: string;
   forwarded_count_k: string;
   last_forwarded: string;
@@ -4799,6 +4856,7 @@ export type TranslationKey =
   | `mail_rules.${keyof MailRulesTranslations}`
   | `badges.${keyof BadgesTranslations}`
   | `secure_view.${keyof SecureViewTranslations}`
-  | `compose.${keyof ComposeTranslations}`;
+  | `compose.${keyof ComposeTranslations}`
+  | `passkeys.${keyof PasskeysTranslations}`;
 
 export type Translations = TranslationNamespace;

@@ -348,7 +348,7 @@ export function ThreadMessageBlock({
 
     const has_cid = extract_cid_references(sanitized_content.html).length > 0;
 
-    if (!has_cid || !is_expanded || message.is_sending === true) {
+    if (!has_cid || !is_expanded || message.is_sending === true || preferences.low_network_mode) {
       set_cid_resolved_html(null);
 
       return;
@@ -370,7 +370,7 @@ export function ThreadMessageBlock({
     return () => {
       cancelled = true;
     };
-  }, [sanitized_content.html, message.id, is_expanded]);
+  }, [sanitized_content.html, message.id, is_expanded, preferences.low_network_mode]);
 
   useEffect(() => {
     return () => {
@@ -383,7 +383,8 @@ export function ThreadMessageBlock({
 
   const html_blocked =
     is_html_content(clean_body) &&
-    preferences.html_rendering_mode === "plain_text";
+    (preferences.html_rendering_mode === "plain_text" ||
+      preferences.low_network_mode);
 
   const plain_text_html = useMemo(() => {
     if (!html_blocked) return null;

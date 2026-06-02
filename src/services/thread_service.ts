@@ -205,21 +205,34 @@ export function get_thread_context_from_email(
 export async function fetch_and_decrypt_thread_messages(
   thread_token: string,
   our_email?: string,
-  options?: { is_trashed?: boolean; is_spam?: boolean },
+  options?: { is_trashed?: boolean; is_spam?: boolean; limit?: number },
 ): Promise<{
   messages: DecryptedThreadMessage[];
   thread_data: ThreadWithMessages | null;
+  truncated: boolean;
 }> {
   const response = await get_thread_messages(thread_token, options);
 
   if (response.error || !response.data) {
-    return { messages: [], thread_data: null };
+    return { messages: [], thread_data: null, truncated: false };
   }
 
   const thread_data = response.data;
+  const all_messages = thread_data.messages;
+  let messages_to_decrypt = all_messages;
+  let truncated = false;
+
+  if (options?.limit !== undefined && all_messages.length > options.limit) {
+    const head_count = options.limit - 1;
+    const head = all_messages.slice(0, head_count);
+    const tail = all_messages[all_messages.length - 1];
+    messages_to_decrypt = [...head, tail];
+    truncated = true;
+  }
+
   const decrypted_messages: DecryptedThreadMessage[] = [];
 
-  const decrypt_promises = thread_data.messages.map(async (msg) => {
+  const decrypt_promises = messages_to_decrypt.map(async (msg) => {
     const [envelope, decrypted_metadata] = await Promise.all([
       decrypt_message_envelope(msg.encrypted_envelope, msg.envelope_nonce),
       msg.encrypted_metadata && msg.metadata_nonce
@@ -382,7 +395,7 @@ export async function fetch_and_decrypt_thread_messages(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
   );
 
-  return { messages: decrypted_messages, thread_data };
+  return { messages: decrypted_messages, thread_data, truncated };
 }
 
 export async function fetch_and_decrypt_virtual_group(

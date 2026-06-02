@@ -91,6 +91,7 @@ function build_initial_state(
 
 export function use_attachment_previews(
   emails: InboxEmail[],
+  enabled = true,
 ): Map<string, AttachmentPreviewEntry> {
   const group_map = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -127,7 +128,7 @@ export function use_attachment_previews(
 
   const [raw_previews, set_raw_previews] = useState<
     Map<string, AttachmentPreviewEntry>
-  >(() => build_initial_state(all_ids));
+  >(() => (enabled ? build_initial_state(all_ids) : new Map()));
   const abort_ref = useRef<AbortController | null>(null);
   const fetching_ref = useRef<Set<string>>(new Set());
 
@@ -252,6 +253,7 @@ export function use_attachment_previews(
   }, []);
 
   useEffect(() => {
+    if (!enabled) return;
     const now = Date.now();
     const email_ids = ids_key ? ids_key.split(",") : [];
 
@@ -289,7 +291,7 @@ export function use_attachment_previews(
 
       fetch_previews(uncached_ids);
     }
-  }, [ids_key, fetch_previews]);
+  }, [ids_key, fetch_previews, enabled]);
 
   useEffect(() => {
     return () => {

@@ -22,6 +22,7 @@ import type { UserPreferences } from "@/services/api/preferences";
 
 import { useEffect, useMemo, useState } from "react";
 import { Switch } from "@aster/ui";
+import { InfoPopover } from "@/components/ui/info_popover";
 import {
   AdjustmentsHorizontalIcon,
   EyeIcon,
@@ -29,6 +30,7 @@ import {
   DocumentTextIcon,
   Square2StackIcon,
   CommandLineIcon,
+  WifiIcon,
 } from "@heroicons/react/24/outline";
 
 import { KeyboardShortcutsModal } from "@/components/modals/keyboard_shortcuts_modal";
@@ -385,6 +387,38 @@ export function AccessibilitySection() {
               checked={preferences.keyboard_shortcuts_enabled}
               onCheckedChange={(v) =>
                 update_preference("keyboard_shortcuts_enabled", v, true)
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <WifiIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.low_network_mode_section_title")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <div className="flex items-center justify-between py-3">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+              {t("settings.low_network_mode_label")}
+              <InfoPopover
+                description={t("settings.info_low_network_mode_description")}
+                title={t("settings.info_low_network_mode_title")}
+              />
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.low_network_mode_description")}
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <Switch
+              checked={preferences.low_network_mode}
+              onCheckedChange={(v) =>
+                update_preference("low_network_mode", v, true)
               }
             />
           </div>

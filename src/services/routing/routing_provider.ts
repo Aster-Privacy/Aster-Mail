@@ -36,6 +36,9 @@ import {
   TOR_RETRY_COUNT,
   TOR_RETRY_DELAY,
 } from "./types";
+import { is_low_network } from "@/services/low_network_state";
+
+const LOW_NETWORK_TIMEOUT = 45000;
 
 function is_tauri_env(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -144,6 +147,10 @@ export function get_effective_timeout(default_timeout: number): number {
 
   if (is_tor_method(method)) {
     return TOR_TIMEOUT;
+  }
+
+  if (is_low_network()) {
+    return Math.max(default_timeout, LOW_NETWORK_TIMEOUT);
   }
 
   return default_timeout;

@@ -56,9 +56,11 @@ export function EmailNotificationManager() {
 
     let cancelled = false;
     (async () => {
-      const ok = await subscribe_to_push();
-      if (cancelled) return;
-      push_subscribed_ref.current = ok && (await is_push_subscribed());
+      if (!preferences.low_network_mode) {
+        const ok = await subscribe_to_push();
+        if (cancelled) return;
+        push_subscribed_ref.current = ok && (await is_push_subscribed());
+      }
     })();
 
     return () => {
@@ -74,7 +76,7 @@ export function EmailNotificationManager() {
       const email_id = detail?.email_id || "";
 
       if (push_subscribed_ref.current && !is_tauri()) {
-        if (preferences.sound) {
+        if (preferences.sound && !preferences.low_network_mode) {
           play_notification_sound();
         }
         return;

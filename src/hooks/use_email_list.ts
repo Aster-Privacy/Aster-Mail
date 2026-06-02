@@ -132,6 +132,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
   const is_mail_view = useMemo(() => current_view !== "drafts", [current_view]);
 
+  const page_size = preferences.low_network_mode ? 15 : DEFAULT_PAGE_SIZE;
+
   const format_options: FormatOptions = useMemo(
     () => ({
       date_format: preferences.date_format as FormatOptions["date_format"],
@@ -281,7 +283,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         signal,
         format_options,
         user?.email || "",
-        DEFAULT_PAGE_SIZE,
+        page_size,
         undefined,
         0,
         preferences.conversation_grouping ?? true,
@@ -327,7 +329,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     if (!state.has_more || state.is_loading_more) return;
 
     const next_page = page_ref.current + 1;
-    const offset = next_page * DEFAULT_PAGE_SIZE;
+    const offset = next_page * page_size;
 
     set_state((prev) => ({ ...prev, is_loading_more: true }));
 
@@ -339,7 +341,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         controller.signal,
         format_options,
         user?.email || "",
-        DEFAULT_PAGE_SIZE,
+        page_size,
         undefined,
         offset,
         preferences.conversation_grouping ?? true,
@@ -386,8 +388,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       has_more: false,
       has_initial_load: false,
     });
-    fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
-  }, []);
+    fetch_page_ref.current?.(0, page_size);
+  }, [page_size]);
 
   const prev_grouping_ref = useRef(preferences.conversation_grouping);
 
@@ -530,7 +532,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         if (nothing_changed && already_has_data) {
           return () => abort_ref.current?.abort();
         }
-        fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE, true);
+        fetch_page_ref.current?.(0, page_size, true);
       }
     } else if (!is_online && Capacitor.isNativePlatform() && has_keys) {
       get_cached_email_list(current_view)

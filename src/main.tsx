@@ -57,7 +57,24 @@ initialize_capacitor().catch((e) => {
   if (import.meta.env.DEV) console.error(e);
 });
 
-start_version_check();
+const cached_prefs_raw = localStorage.getItem("aster_preferences_cache");
+let low_network_on_startup = false;
+try {
+  if (cached_prefs_raw) {
+    const cached_prefs = JSON.parse(cached_prefs_raw);
+    low_network_on_startup = cached_prefs.low_network_mode === true;
+  }
+} catch {}
+if (!low_network_on_startup) {
+  start_version_check();
+}
+if (low_network_on_startup) {
+  const style = document.createElement("style");
+  style.id = "aster-low-network-fonts";
+  style.textContent =
+    "*, *::before, *::after { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; }";
+  document.head.appendChild(style);
+}
 show_self_xss_warning();
 
 connection_store.initialize().catch(() => {});

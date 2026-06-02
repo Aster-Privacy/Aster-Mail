@@ -39,6 +39,7 @@ const loaded_build =
 const loaded_version =
   typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "";
 
+let check_interval: ReturnType<typeof setInterval> | null = null;
 let is_flushing = false;
 let last_checked_at = 0;
 const session_start_ts = Date.now();
@@ -183,7 +184,7 @@ export function start_version_check(): void {
 
   void check_once();
 
-  setInterval(() => {
+  check_interval = setInterval(() => {
     void check_once();
   }, CHECK_INTERVAL_MS);
 
@@ -200,4 +201,11 @@ export function start_version_check(): void {
   window.addEventListener("online", () => {
     void check_once();
   });
+}
+
+export function stop_version_check(): void {
+  if (check_interval !== null) {
+    clearInterval(check_interval);
+    check_interval = null;
+  }
 }

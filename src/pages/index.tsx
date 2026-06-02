@@ -45,6 +45,7 @@ import { ForwardModal } from "@/components/modals/forward_modal";
 import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
 import { ScheduledPopupViewer } from "@/components/scheduled/scheduled_popup_viewer";
 import { NotificationBanner } from "@/components/common/notification_banner";
+import { WifiIcon } from "@heroicons/react/24/outline";
 import { SearchResultsPage } from "@/components/search/search_results_page";
 import { CommandPalette } from "@/components/search/command_palette";
 import { KeyboardShortcutsModal } from "@/components/modals/keyboard_shortcuts_modal";
@@ -139,15 +140,33 @@ export default function IndexPage() {
             }}
           />
           <div className="flex-1 p-1 md:p-2 min-h-0 min-w-0 flex flex-col overflow-hidden">
+            {state.preferences.low_network_mode && (
+              <div className="flex items-center gap-2 px-3 py-1.5 mb-1 rounded-lg text-xs font-medium flex-shrink-0" style={{ backgroundColor: "var(--bg-tertiary)", color: "var(--txt-muted)" }}>
+                <WifiIcon className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
+                <span className="flex-1">{t("settings.low_network_mode_active_banner")}</span>
+                <button
+                  className="text-xs underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+                  type="button"
+                  onClick={() => {
+                    state.set_settings_section("accessibility");
+                    state.set_is_settings_open(true);
+                  }}
+                >
+                  {t("settings.accessibility")}
+                </button>
+              </div>
+            )}
             <div className="md:hidden flex items-center h-12 px-2 flex-shrink-0">
               <MobileMenuButton on_click={state.toggle_mobile_sidebar} />
               <div className="flex-1 flex justify-center">
-                <img
-                  alt="Aster Mail"
-                  className="h-7 select-none"
-                  draggable={false}
-                  src="/text_logo.png"
-                />
+                {!state.preferences.low_network_mode && (
+                  <img
+                    alt="Aster Mail"
+                    className="h-7 select-none"
+                    draggable={false}
+                    src="/text_logo.png"
+                  />
+                )}
               </div>
               <div className="w-10" />
             </div>
