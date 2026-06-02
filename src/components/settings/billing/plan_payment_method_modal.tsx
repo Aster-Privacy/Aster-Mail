@@ -62,12 +62,7 @@ export function PlanPaymentMethodModal({
       <ModalBody>
         {credit_dollars && (
           <div
-            className="flex items-center gap-2.5 rounded-[14px] border px-3.5 py-2.5 mb-3 text-sm"
-            style={{
-              backgroundColor: "color-mix(in srgb, var(--color-success) 10%, transparent)",
-              borderColor: "color-mix(in srgb, var(--color-success) 30%, transparent)",
-              color: "var(--color-success)",
-            }}
+            className="flex items-center gap-2.5 rounded-[14px] border px-3.5 py-2.5 mb-3 text-sm bg-emerald-500 border-emerald-600 text-white"
           >
             <SparklesIcon className="w-4 h-4 flex-shrink-0" />
             <span>{t("settings.credits_will_be_applied", { amount: `$${credit_dollars}` })}</span>
