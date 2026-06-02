@@ -21,7 +21,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button, Switch } from "@aster/ui";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, BackspaceIcon } from "@heroicons/react/24/outline";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -73,12 +73,25 @@ function PinPad({ on_digit, on_backspace, disabled }: {
   on_backspace: () => void;
   disabled?: boolean;
 }) {
-  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "←"];
+  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "back"];
   return (
     <div className="grid grid-cols-3 gap-2">
       {keys.map((k, i) =>
         k === "" ? (
           <div key={i} />
+        ) : k === "back" ? (
+          <button
+            key={i}
+            type="button"
+            disabled={disabled}
+            className={cn(
+              "h-12 w-12 mx-auto rounded-full flex items-center justify-center transition-colors",
+              disabled ? "opacity-40 cursor-not-allowed" : "bg-muted hover:bg-muted/70 active:scale-95",
+            )}
+            onClick={on_backspace}
+          >
+            <BackspaceIcon className="h-4 w-4 text-txt-primary" />
+          </button>
         ) : (
           <button
             key={i}
@@ -88,7 +101,7 @@ function PinPad({ on_digit, on_backspace, disabled }: {
               "h-12 w-12 mx-auto rounded-full text-base font-medium flex items-center justify-center transition-colors",
               disabled ? "opacity-40 cursor-not-allowed" : "bg-muted hover:bg-muted/70 active:scale-95",
             )}
-            onClick={() => k === "←" ? on_backspace() : on_digit(k)}
+            onClick={() => on_digit(k)}
           >
             {k}
           </button>
@@ -341,10 +354,10 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
                 key={n}
                 type="button"
                 className={cn(
-                  "w-full py-3 px-4 rounded-xl border-2 text-sm font-medium transition-colors text-left",
+                  "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
                   chosen_digits === n
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-edge-secondary bg-surf-secondary text-txt-primary hover:bg-surf-tertiary",
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
                 )}
                 onClick={() => set_chosen_digits(n)}
               >
@@ -435,7 +448,7 @@ export function AppLockSection() {
         {enabled && (
           <button
             type="button"
-            className="mt-3 text-xs text-primary hover:underline"
+            className="mt-3 text-xs text-brand underline underline-offset-2 hover:opacity-80"
             onClick={() => set_modal("verify_to_change")}
           >
             {t("settings.app_lock_change_pin")}

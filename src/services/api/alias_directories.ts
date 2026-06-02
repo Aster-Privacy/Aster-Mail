@@ -57,6 +57,7 @@ export async function create_alias_directory(
   domain: string,
   auto_create_enabled: boolean,
   color?: string,
+  captcha_token?: string,
 ): Promise<ApiResponse<{ id: string; success: boolean }>> {
   const directory_hash = await sha256_base64(directory_key);
   const { encrypted, nonce } = await encrypt_alias_field(
@@ -72,6 +73,7 @@ export async function create_alias_directory(
       domain,
       auto_create_enabled,
       color,
+      captcha_token,
     },
   );
 }

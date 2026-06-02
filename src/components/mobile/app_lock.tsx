@@ -20,7 +20,7 @@
 //
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LockClosedIcon } from "@heroicons/react/24/outline";
+import { BackspaceIcon } from "@heroicons/react/24/outline";
 
 import { cn } from "@/lib/utils";
 import {
@@ -70,24 +70,44 @@ function PinDots({ digits, filled, shake_key }: { digits: number; filled: number
   );
 }
 
-function PinPad({ on_digit, on_backspace }: { on_digit: (d: string) => void; on_backspace: () => void }) {
-  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "←"];
+function PinPad({
+  on_digit,
+  on_backspace,
+  on_sign_out,
+  pressed_key,
+}: {
+  on_digit: (d: string) => void;
+  on_backspace: () => void;
+  on_sign_out: () => void;
+  pressed_key: string | null;
+}) {
+  const btn_base = "h-14 w-14 mx-auto rounded-full flex items-center justify-center transition-all duration-75";
+  const digit_cls = (k: string) =>
+    cn(btn_base, "text-xl font-medium bg-muted hover:bg-muted/70", pressed_key === k && "scale-90 bg-muted/50");
   return (
-    <div className="grid grid-cols-3 gap-3">
-      {keys.map((k, i) =>
-        k === "" ? (
-          <div key={i} />
-        ) : (
-          <button
-            key={i}
-            type="button"
-            className="h-14 w-14 mx-auto rounded-full bg-muted hover:bg-muted/80 text-xl font-medium flex items-center justify-center transition-colors"
-            onClick={() => k === "←" ? on_backspace() : on_digit(k)}
-          >
-            {k}
-          </button>
-        ),
-      )}
+    <div className="grid grid-cols-3 gap-2.5">
+      {["1","2","3","4","5","6","7","8","9"].map(k => (
+        <button key={k} type="button" className={digit_cls(k)} onClick={() => on_digit(k)}>{k}</button>
+      ))}
+      <button
+        type="button"
+        className="h-14 w-14 mx-auto rounded-full flex items-center justify-center text-xs text-txt-muted hover:text-txt-primary transition-colors"
+        onClick={on_sign_out}
+      >
+        Sign out
+      </button>
+      <button
+        type="button"
+        className={digit_cls("0")}
+        onClick={() => on_digit("0")}
+      >0</button>
+      <button
+        type="button"
+        className={cn(btn_base, "bg-muted hover:bg-muted/70", pressed_key === "Backspace" && "scale-90 bg-muted/50")}
+        onClick={on_backspace}
+      >
+        <BackspaceIcon className="h-5 w-5 text-txt-primary" />
+      </button>
     </div>
   );
 }
@@ -96,12 +116,14 @@ function WebPinOverlay({
   account_id,
   digits,
   on_unlock,
+  on_sign_out,
   reduce_motion,
   t,
 }: {
   account_id: string;
   digits: number;
   on_unlock: () => void;
+  on_sign_out: () => void;
   reduce_motion: boolean;
   t: (key: string, vars?: Record<string, string | number>) => string;
 }) {
@@ -111,6 +133,7 @@ function WebPinOverlay({
   const [verifying, set_verifying] = useState(false);
   const [locked_out, set_locked_out] = useState(false);
   const [lockout_remaining, set_lockout_remaining] = useState(0);
+  const [pressed_key, set_pressed_key] = useState<string | null>(null);
 
   useEffect(() => {
     const { locked, remaining_ms } = is_locked_out(account_id);
@@ -173,8 +196,16 @@ function WebPinOverlay({
 
   useEffect(() => {
     const on_key = (e: KeyboardEvent) => {
-      if (e.key >= "0" && e.key <= "9") handle_digit(e.key);
-      else if (e.key === "Backspace") handle_backspace();
+      const k = e.key;
+      if (k >= "0" && k <= "9") {
+        set_pressed_key(k);
+        setTimeout(() => set_pressed_key(null), 120);
+        handle_digit(k);
+      } else if (k === "Backspace") {
+        set_pressed_key("Backspace");
+        setTimeout(() => set_pressed_key(null), 120);
+        handle_backspace();
+      }
     };
     window.addEventListener("keydown", on_key);
     return () => window.removeEventListener("keydown", on_key);
@@ -191,27 +222,32 @@ function WebPinOverlay({
         animate={{ scale: 1, opacity: 1 }}
         initial={reduce_motion ? false : { scale: 0.9, opacity: 0 }}
         transition={{ delay: 0.05 }}
-        className="flex flex-col items-center gap-8"
+        className="flex flex-col items-center gap-5"
       >
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-          <LockClosedIcon className="h-10 w-10 text-primary" />
-        </div>
+        <img src="/text_logo.png" alt="Aster Mail" className="h-7 opacity-90" draggable={false} />
         <div className="text-center">
-          <h1 className="text-xl font-semibold">{t("common.app_locked")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-lg font-semibold text-txt-primary">{t("common.app_locked")}</h1>
+          <p className="mt-0.5 text-sm text-txt-muted">
             {locked_out
               ? t("common.app_lock_try_again_in", { s: lockout_remaining })
               : t("common.enter_pin_to_unlock")}
           </p>
         </div>
-        <PinDots digits={digits} filled={input.length} shake_key={shake_key} />
-        <div className="h-5 flex items-center justify-center -mt-4">
-          {message && <p className="text-sm text-red-500">{message}</p>}
-          {verifying && !message && (
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          )}
+        <div className="flex flex-col items-center gap-2">
+          <PinDots digits={digits} filled={input.length} shake_key={shake_key} />
+          <div className="h-4 flex items-center justify-center">
+            {message && <p className="text-xs text-red-500">{message}</p>}
+            {verifying && !message && (
+              <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            )}
+          </div>
         </div>
-        <PinPad on_digit={handle_digit} on_backspace={handle_backspace} />
+        <PinPad
+          on_digit={handle_digit}
+          on_backspace={handle_backspace}
+          on_sign_out={on_sign_out}
+          pressed_key={pressed_key}
+        />
       </motion.div>
     </motion.div>
   );
@@ -290,7 +326,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
     const config = get_app_lock_config(account_id);
     if (!config?.enabled) return;
     set_web_pin_digits(config.digits);
-    if (!is_session_unlocked(account_id)) set_is_web_locked(true);
+    set_is_web_locked(true);
   }, [auth?.is_authenticated, account_id]);
 
   useEffect(() => {
@@ -334,9 +370,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
               initial={reduce_motion ? false : { scale: 0.8, opacity: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                <LockClosedIcon className="h-10 w-10 text-primary" />
-              </div>
+              <img src="/text_logo.png" alt="Aster Mail" className="h-7 opacity-90" draggable={false} />
               <div className="text-center">
                 <h1 className="text-xl font-semibold">{t("common.aster_mail_locked")}</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -355,7 +389,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
                 {is_authenticating ? (
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 ) : (
-                  <LockClosedIcon className="h-5 w-5" />
+                  <BackspaceIcon className="h-5 w-5 rotate-180" />
                 )}
                 <span>
                   {is_authenticating
@@ -374,6 +408,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
             account_id={account_id}
             digits={web_pin_digits}
             on_unlock={() => set_is_web_locked(false)}
+            on_sign_out={() => { set_is_web_locked(false); auth?.logout?.(); }}
             reduce_motion={reduce_motion}
             t={t}
           />

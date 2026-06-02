@@ -19,7 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MS = 5 * 60 * 1000;
+const BASE_LOCKOUT_MS = 5 * 60 * 1000;
+const MAX_LOCKOUT_MS = 60 * 60 * 1000;
 
 const lock_key = (id: string) => `aster:app_lock:${id}`;
 const session_key = (id: string) => `aster:app_unlocked:${id}`;
@@ -35,15 +36,16 @@ export interface AppLockConfig {
 interface AttemptState {
   count: number;
   locked_until: number | null;
+  lockout_count: number;
 }
 
 function get_attempt_state(account_id: string): AttemptState {
   try {
     const raw = localStorage.getItem(attempts_key(account_id));
-    if (!raw) return { count: 0, locked_until: null };
+    if (!raw) return { count: 0, locked_until: null, lockout_count: 0 };
     return JSON.parse(raw) as AttemptState;
   } catch {
-    return { count: 0, locked_until: null };
+    return { count: 0, locked_until: null, lockout_count: 0 };
   }
 }
 
@@ -62,16 +64,26 @@ function record_failed_attempt(account_id: string): { locked: boolean; attempts_
   const state = get_attempt_state(account_id);
   const new_count = state.count + 1;
   const now_locked = new_count >= MAX_ATTEMPTS;
+  const new_lockout_count = now_locked ? state.lockout_count + 1 : state.lockout_count;
+  const lockout_ms = now_locked
+    ? Math.min(BASE_LOCKOUT_MS * Math.pow(2, state.lockout_count), MAX_LOCKOUT_MS)
+    : 0;
   const new_state: AttemptState = {
-    count: new_count,
-    locked_until: now_locked ? Date.now() + LOCKOUT_DURATION_MS : null,
+    count: now_locked ? 0 : new_count,
+    locked_until: now_locked ? Date.now() + lockout_ms : null,
+    lockout_count: new_lockout_count,
   };
   localStorage.setItem(attempts_key(account_id), JSON.stringify(new_state));
   return { locked: now_locked, attempts_remaining: Math.max(0, MAX_ATTEMPTS - new_count) };
 }
 
 function reset_attempts(account_id: string): void {
-  localStorage.removeItem(attempts_key(account_id));
+  const state = get_attempt_state(account_id);
+  if (state.lockout_count > 0) {
+    localStorage.setItem(attempts_key(account_id), JSON.stringify({ count: 0, locked_until: null, lockout_count: 0 }));
+  } else {
+    localStorage.removeItem(attempts_key(account_id));
+  }
 }
 
 function constant_time_equal(a: string, b: string): boolean {

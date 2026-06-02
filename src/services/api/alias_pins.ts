@@ -96,6 +96,55 @@ export async function set_alias_pin_mode(
   );
 }
 
+export async function list_domain_address_pins(
+  domain_address_id: string,
+): Promise<ApiResponse<ListPinsResponse>> {
+  return api_client.get<ListPinsResponse>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/pins`,
+  );
+}
+
+export async function add_domain_address_pin(
+  domain_address_id: string,
+  sender_email: string,
+  is_blocked = false,
+): Promise<ApiResponse<{ id: string; success: boolean }>> {
+  const sender_hash = await sha256_base64(sender_email);
+  const { encrypted, nonce } = await encrypt_alias_field(
+    sender_email.trim(),
+  );
+
+  return api_client.post<{ id: string; success: boolean }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/pins`,
+    {
+      domain_address_id,
+      sender_hash,
+      encrypted_sender: encrypted,
+      sender_nonce: nonce,
+      is_blocked,
+    },
+  );
+}
+
+export async function delete_domain_address_pin(
+  domain_address_id: string,
+  pin_id: string,
+): Promise<ApiResponse<{ status: string }>> {
+  return api_client.delete<{ status: string }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/pins/${pin_id}`,
+  );
+}
+
+export async function set_domain_address_pin_mode(
+  domain_address_id: string,
+  sender_pin_mode: SenderPinMode,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.patch<{ success: boolean }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/pin-mode`,
+    { mode: sender_pin_mode },
+  );
+}
+
 export async function decrypt_alias_pin(
   pin: AliasPin,
   fallback: string,

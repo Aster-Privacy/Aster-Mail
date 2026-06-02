@@ -51,6 +51,10 @@ import {
   add_alias_pin,
   delete_alias_pin,
   set_alias_pin_mode,
+  list_domain_address_pins,
+  add_domain_address_pin,
+  delete_domain_address_pin,
+  set_domain_address_pin_mode,
   decrypt_alias_pin,
   SENDER_PIN_MODE_OFF,
   SENDER_PIN_MODE_LOCK_FIRST,
@@ -62,6 +66,9 @@ import {
   list_alias_rules,
   update_alias_rule,
   delete_alias_rule,
+  list_domain_address_rules,
+  update_domain_address_rule,
+  delete_domain_address_rule,
   type AliasRule,
   type AliasRuleCondition,
   type AliasRuleField,
@@ -73,11 +80,16 @@ import {
   add_alias_contact,
   delete_alias_contact,
   set_alias_contact_blocked,
+  list_domain_address_contacts,
+  add_domain_address_contact,
+  delete_domain_address_contact,
+  set_domain_address_contact_blocked,
   decrypt_alias_contact,
   type DecryptedAliasContact,
 } from "@/services/api/alias_contacts";
 import {
   get_alias_delivery_log,
+  get_domain_address_delivery_log,
   type DeliveryEvent,
 } from "@/services/api/aliases";
 
@@ -105,7 +117,7 @@ function SectionTitle({
   );
 }
 
-function SenderPinningPanel({ alias_id }: { alias_id: string }) {
+function SenderPinningPanel({ alias_id, domain_address_id }: { alias_id?: string; domain_address_id?: string }) {
   const { t } = use_i18n();
   const [mode, set_mode] = useState<SenderPinMode>(SENDER_PIN_MODE_OFF);
   const [pins, set_pins] = useState<DecryptedAliasPin[]>([]);
@@ -116,7 +128,9 @@ function SenderPinningPanel({ alias_id }: { alias_id: string }) {
   const load = useCallback(async () => {
     set_loading(true);
     try {
-      const response = await list_alias_pins(alias_id);
+      const response = domain_address_id
+        ? await list_domain_address_pins(domain_address_id)
+        : await list_alias_pins(alias_id!);
 
       if (response.data) {
         set_mode(response.data.mode ?? SENDER_PIN_MODE_OFF);
@@ -133,7 +147,7 @@ function SenderPinningPanel({ alias_id }: { alias_id: string }) {
     } finally {
       set_loading(false);
     }
-  }, [alias_id, t]);
+  }, [alias_id, domain_address_id, t]);
 
   useEffect(() => {
     load();
@@ -143,7 +157,9 @@ function SenderPinningPanel({ alias_id }: { alias_id: string }) {
     const prev = mode;
 
     set_mode(next);
-    const response = await set_alias_pin_mode(alias_id, next);
+    const response = domain_address_id
+      ? await set_domain_address_pin_mode(domain_address_id, next)
+      : await set_alias_pin_mode(alias_id!, next);
 
     if (response.error) {
       set_mode(prev);
@@ -165,7 +181,9 @@ function SenderPinningPanel({ alias_id }: { alias_id: string }) {
 
     set_busy(true);
     try {
-      const response = await add_alias_pin(alias_id, value);
+      const response = domain_address_id
+        ? await add_domain_address_pin(domain_address_id, value)
+        : await add_alias_pin(alias_id!, value);
 
       if (response.error) {
         show_toast(t("settings.alias_sender_add_failed"), "error");
@@ -180,7 +198,9 @@ function SenderPinningPanel({ alias_id }: { alias_id: string }) {
   };
 
   const handle_remove = async (pin_id: string) => {
-    const response = await delete_alias_pin(alias_id, pin_id);
+    const response = domain_address_id
+      ? await delete_domain_address_pin(domain_address_id, pin_id)
+      : await delete_alias_pin(alias_id!, pin_id);
 
     if (response.error) {
       show_toast(response.error, "error");
@@ -335,7 +355,7 @@ function operator_label(
 }
 
 
-function RulesPanel({ alias_id }: { alias_id: string }) {
+function RulesPanel({ alias_id, domain_address_id }: { alias_id?: string; domain_address_id?: string }) {
   const { t } = use_i18n();
   const [rules, set_rules] = useState<AliasRule[]>([]);
   const [loading, set_loading] = useState(true);
@@ -345,14 +365,16 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
   const load = useCallback(async () => {
     set_loading(true);
     try {
-      const response = await list_alias_rules(alias_id);
+      const response = domain_address_id
+        ? await list_domain_address_rules(domain_address_id)
+        : await list_alias_rules(alias_id!);
       if (response.data) set_rules(response.data.rules ?? []);
     } catch {
       set_rules([]);
     } finally {
       set_loading(false);
     }
-  }, [alias_id]);
+  }, [alias_id, domain_address_id]);
 
   useEffect(() => {
     load();
@@ -363,7 +385,9 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
     set_rules((prev) =>
       prev.map((r) => (r.id === rule.id ? { ...r, is_enabled: next } : r)),
     );
-    const response = await update_alias_rule(alias_id, rule.id, { is_enabled: next });
+    const response = domain_address_id
+      ? await update_domain_address_rule(domain_address_id, rule.id, { is_enabled: next })
+      : await update_alias_rule(alias_id!, rule.id, { is_enabled: next });
     if (response.error) {
       set_rules((prev) =>
         prev.map((r) =>
@@ -375,7 +399,9 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
   };
 
   const handle_delete = async (rule_id: string) => {
-    const response = await delete_alias_rule(alias_id, rule_id);
+    const response = domain_address_id
+      ? await delete_domain_address_rule(domain_address_id, rule_id)
+      : await delete_alias_rule(alias_id!, rule_id);
     if (response.error) {
       show_toast(response.error, "error");
     } else {
@@ -479,6 +505,7 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
 
       <AliasRuleEditorModal
         alias_id={alias_id}
+        domain_address_id={domain_address_id}
         is_open={modal_open}
         rule={editing_rule}
         on_close={() => set_modal_open(false)}
@@ -488,7 +515,7 @@ function RulesPanel({ alias_id }: { alias_id: string }) {
   );
 }
 
-function ContactsPanel({ alias_id }: { alias_id: string }) {
+function ContactsPanel({ alias_id, domain_address_id, alias_local_part, alias_domain }: { alias_id?: string; domain_address_id?: string; alias_local_part?: string; alias_domain?: string }) {
   const { t } = use_i18n();
   const [contacts, set_contacts] = useState<DecryptedAliasContact[]>([]);
   const [loading, set_loading] = useState(true);
@@ -505,7 +532,9 @@ function ContactsPanel({ alias_id }: { alias_id: string }) {
   const load = useCallback(async () => {
     set_loading(true);
     try {
-      const response = await list_alias_contacts(alias_id);
+      const response = domain_address_id
+        ? await list_domain_address_contacts(domain_address_id)
+        : await list_alias_contacts(alias_id!);
 
       if (response.data) {
         const decrypted = await Promise.all(
@@ -521,7 +550,7 @@ function ContactsPanel({ alias_id }: { alias_id: string }) {
     } finally {
       set_loading(false);
     }
-  }, [alias_id, t]);
+  }, [alias_id, domain_address_id, t]);
 
   useEffect(() => {
     load();
@@ -539,7 +568,9 @@ function ContactsPanel({ alias_id }: { alias_id: string }) {
 
     set_busy(true);
     try {
-      const response = await add_alias_contact(alias_id, value, readable_reverse);
+      const response = domain_address_id
+        ? await add_domain_address_contact(domain_address_id, value, alias_local_part ?? "", alias_domain ?? "")
+        : await add_alias_contact(alias_id!, value, readable_reverse);
 
       if (response.error) {
         show_toast(t("settings.alias_contact_add_failed"), "error");
@@ -559,11 +590,9 @@ function ContactsPanel({ alias_id }: { alias_id: string }) {
     set_contacts((prev) =>
       prev.map((c) => (c.id === contact.id ? { ...c, is_blocked: next } : c)),
     );
-    const response = await set_alias_contact_blocked(
-      alias_id,
-      contact.id,
-      next,
-    );
+    const response = domain_address_id
+      ? await set_domain_address_contact_blocked(domain_address_id, contact.id, next)
+      : await set_alias_contact_blocked(alias_id!, contact.id, next);
 
     if (response.error) {
       set_contacts((prev) =>
@@ -576,7 +605,9 @@ function ContactsPanel({ alias_id }: { alias_id: string }) {
   };
 
   const handle_delete = async (contact_id: string) => {
-    const response = await delete_alias_contact(alias_id, contact_id);
+    const response = domain_address_id
+      ? await delete_domain_address_contact(domain_address_id, contact_id)
+      : await delete_alias_contact(alias_id!, contact_id);
 
     if (response.error) {
       show_toast(response.error, "error");
@@ -705,7 +736,7 @@ function format_relative_time(iso: string): string {
   return `${days} ${days === 1 ? "day" : "days"} ago`;
 }
 
-function DeliveryLogPanel({ alias_id }: { alias_id: string }) {
+function DeliveryLogPanel({ alias_id, domain_address_id }: { alias_id?: string; domain_address_id?: string }) {
   const { t } = use_i18n();
   const [events, set_events] = useState<DeliveryEvent[]>([]);
   const [loading, set_loading] = useState(true);
@@ -714,7 +745,9 @@ function DeliveryLogPanel({ alias_id }: { alias_id: string }) {
   const load = useCallback(async () => {
     set_loading(true);
     try {
-      const response = await get_alias_delivery_log(alias_id);
+      const response = domain_address_id
+        ? await get_domain_address_delivery_log(domain_address_id)
+        : await get_alias_delivery_log(alias_id!);
 
       if (response.data) {
         set_events(response.data.events ?? []);
@@ -724,7 +757,7 @@ function DeliveryLogPanel({ alias_id }: { alias_id: string }) {
     } finally {
       set_loading(false);
     }
-  }, [alias_id]);
+  }, [alias_id, domain_address_id]);
 
   useEffect(() => {
     load();
@@ -795,7 +828,11 @@ function LockedSection({
   );
 }
 
-export function AliasAdvancedPanel({ alias_id }: { alias_id: string }) {
+type AliasAdvancedPanelProps =
+  | { alias_id: string; domain_address_id?: never; alias_local_part?: never; alias_domain?: never }
+  | { alias_id?: never; domain_address_id: string; alias_local_part: string; alias_domain: string };
+
+export function AliasAdvancedPanel({ alias_id, domain_address_id, alias_local_part, alias_domain }: AliasAdvancedPanelProps) {
   const { t } = use_i18n();
   const { is_feature_locked, is_loading } = use_plan_limits();
 
@@ -821,7 +858,7 @@ export function AliasAdvancedPanel({ alias_id }: { alias_id: string }) {
           title={t("settings.alias_sender_pinning_title")}
         />
       ) : (
-        <SenderPinningPanel alias_id={alias_id} />
+        <SenderPinningPanel alias_id={alias_id} domain_address_id={domain_address_id} />
       )}
       {rules_locked ? (
         <LockedSection
@@ -830,7 +867,7 @@ export function AliasAdvancedPanel({ alias_id }: { alias_id: string }) {
           title={t("settings.alias_rules_title")}
         />
       ) : (
-        <RulesPanel alias_id={alias_id} />
+        <RulesPanel alias_id={alias_id} domain_address_id={domain_address_id} />
       )}
       {delivery_log_locked ? (
         <LockedSection
@@ -839,7 +876,7 @@ export function AliasAdvancedPanel({ alias_id }: { alias_id: string }) {
           title={t("settings.alias_delivery_log_title")}
         />
       ) : (
-        <DeliveryLogPanel alias_id={alias_id} />
+        <DeliveryLogPanel alias_id={alias_id} domain_address_id={domain_address_id} />
       )}
       {contacts_locked ? (
         <LockedSection
@@ -848,7 +885,7 @@ export function AliasAdvancedPanel({ alias_id }: { alias_id: string }) {
           title={t("settings.alias_contacts_title")}
         />
       ) : (
-        <ContactsPanel alias_id={alias_id} />
+        <ContactsPanel alias_id={alias_id} domain_address_id={domain_address_id} alias_local_part={alias_local_part} alias_domain={alias_domain} />
       )}
     </div>
   );

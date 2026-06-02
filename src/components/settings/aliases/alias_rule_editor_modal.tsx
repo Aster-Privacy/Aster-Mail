@@ -51,6 +51,8 @@ import type {
 import {
   create_alias_rule,
   update_alias_rule,
+  create_domain_address_rule,
+  update_domain_address_rule,
   type AliasRule,
   type AliasRuleCondition,
   type AliasRuleField,
@@ -89,7 +91,8 @@ function default_leaf(): LeafCondition {
 interface AliasRuleEditorModalProps {
   is_open: boolean;
   on_close: () => void;
-  alias_id: string;
+  alias_id?: string;
+  domain_address_id?: string;
   rule?: AliasRule | null;
   on_saved: () => void;
 }
@@ -98,6 +101,7 @@ export function AliasRuleEditorModal({
   is_open,
   on_close,
   alias_id,
+  domain_address_id,
   rule,
   on_saved,
 }: AliasRuleEditorModalProps) {
@@ -178,17 +182,29 @@ export function AliasRuleEditorModal({
 
     set_saving(true);
     try {
-      const resp = is_edit && rule
-        ? await update_alias_rule(alias_id, rule.id, {
-            conditions: alias_conditions,
-            actions: final_actions,
-          })
-        : await create_alias_rule(alias_id, {
-            priority: 0,
-            conditions: alias_conditions,
-            actions: final_actions,
-            is_enabled: true,
-          });
+      const resp = domain_address_id
+        ? is_edit && rule
+          ? await update_domain_address_rule(domain_address_id, rule.id, {
+              conditions: alias_conditions,
+              actions: final_actions,
+            })
+          : await create_domain_address_rule(domain_address_id, {
+              priority: 0,
+              conditions: alias_conditions,
+              actions: final_actions,
+              is_enabled: true,
+            })
+        : is_edit && rule
+          ? await update_alias_rule(alias_id!, rule.id, {
+              conditions: alias_conditions,
+              actions: final_actions,
+            })
+          : await create_alias_rule(alias_id!, {
+              priority: 0,
+              conditions: alias_conditions,
+              actions: final_actions,
+              is_enabled: true,
+            });
 
       if (resp.error) {
         show_toast(resp.error, "error");

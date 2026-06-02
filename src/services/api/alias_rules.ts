@@ -110,3 +110,41 @@ export async function delete_alias_rule(
     `/addresses/v1/aliases/${alias_id}/rules/${rule_id}`,
   );
 }
+
+export async function list_domain_address_rules(
+  domain_address_id: string,
+): Promise<ApiResponse<ListAliasRulesResponse>> {
+  return api_client.get<ListAliasRulesResponse>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/rules`,
+  );
+}
+
+export async function create_domain_address_rule(
+  domain_address_id: string,
+  rule: CreateAliasRuleRequest,
+): Promise<ApiResponse<{ id: string; success: boolean }>> {
+  return api_client.post<{ id: string; success: boolean }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/rules`,
+    rule,
+  );
+}
+
+export async function update_domain_address_rule(
+  domain_address_id: string,
+  rule_id: string,
+  updates: UpdateAliasRuleRequest,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.patch<{ success: boolean }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/rules/${rule_id}`,
+    updates,
+  );
+}
+
+export async function delete_domain_address_rule(
+  domain_address_id: string,
+  rule_id: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.delete<{ success: boolean }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/rules/${rule_id}`,
+  );
+}

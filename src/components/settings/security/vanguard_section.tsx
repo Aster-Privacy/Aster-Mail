@@ -109,12 +109,9 @@ export function VanguardSection() {
               <InfoPopover
                 title={t("settings.vanguard_title")}
                 description={t("settings.vanguard_info")}
-                learn_more_url="https://astermail.org"
-                learn_more_label={t("settings.vanguard_learn_more")}
               />
               {enabled && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-green-600 dark:text-green-400 uppercase">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                <span className="inline-flex items-center px-1.5 py-0.5 text-[11px] font-medium rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30">
                   {t("settings.vanguard_active")}
                 </span>
               )}

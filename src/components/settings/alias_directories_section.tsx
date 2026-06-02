@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FolderIcon,
   PlusIcon,
@@ -48,6 +48,11 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { FeatureLockOverlay } from "@/components/settings/aliases/feature_lock";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
+import {
+  TurnstileWidget,
+  type TurnstileWidgetRef,
+  TURNSTILE_SITE_KEY,
+} from "@/components/auth/turnstile_widget";
 
 const INPUT_CLASS =
   "flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none";
@@ -63,6 +68,9 @@ export function AliasDirectoriesSection() {
   const [directory_key, set_directory_key] = useState("");
   const [separator, set_separator] = useState<"." | "/" | "+" | "#">(".") ;
   const [busy, set_busy] = useState(false);
+  const [captcha_token, set_captcha_token] = useState<string | null>(null);
+  const turnstile_ref = useRef<TurnstileWidgetRef>(null);
+  const turnstile_required = !!TURNSTILE_SITE_KEY;
 
   const load = useCallback(async () => {
     set_loading(true);
@@ -96,13 +104,19 @@ export function AliasDirectoriesSection() {
 
   const handle_create = async () => {
     if (locked || !directory_key.trim()) return;
+    if (turnstile_required && !captcha_token) return;
     set_busy(true);
     try {
       const response = await create_alias_directory(
         directory_key,
         DIRECTORY_DOMAIN,
         true,
+        undefined,
+        captcha_token ?? undefined,
       );
+
+      set_captcha_token(null);
+      turnstile_ref.current?.reset();
 
       if (response.error) {
         show_toast(t("settings.alias_directory_create_failed"), "error");
@@ -208,7 +222,7 @@ export function AliasDirectoriesSection() {
             </SelectContent>
           </Select>
           <Button
-            disabled={busy || !directory_key.trim()}
+            disabled={busy || !directory_key.trim() || (turnstile_required && !captcha_token)}
             size="xl"
             variant="depth"
             onClick={handle_create}
@@ -221,6 +235,13 @@ export function AliasDirectoriesSection() {
           <p className="text-xs text-txt-muted pl-5">
             anything{separator}{directory_key}@{DIRECTORY_DOMAIN}
           </p>
+        )}
+        {turnstile_required && directory_key.trim() && (
+          <TurnstileWidget
+            ref={turnstile_ref}
+            on_verify={set_captcha_token}
+            on_expire={() => set_captcha_token(null)}
+          />
         )}
       </div>
 

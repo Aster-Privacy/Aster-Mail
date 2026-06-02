@@ -124,6 +124,71 @@ export async function set_alias_delivery_mode(
   );
 }
 
+export async function list_domain_address_destinations(
+  domain_address_id: string,
+): Promise<ApiResponse<ListAliasDestinationsResponse>> {
+  return api_client.get<ListAliasDestinationsResponse>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/destinations`,
+  );
+}
+
+export async function add_domain_address_destination(
+  domain_address_id: string,
+  destination_address: string,
+  options: CreateAliasDestinationOptions,
+): Promise<ApiResponse<{ id: string; success: boolean }>> {
+  const trimmed = destination_address.trim();
+  const { encrypted, nonce } = await encrypt_alias_field(trimmed);
+
+  const body: Record<string, unknown> = {
+    domain_address_id,
+    encrypted_destination: encrypted,
+    destination_nonce: nonce,
+    destination_address: trimmed,
+    strip_trackers: options.strip_trackers,
+    keep_copy: options.keep_copy,
+  };
+
+  if (options.pgp_public_key && options.pgp_public_key.trim().length > 0) {
+    body.pgp_public_key = options.pgp_public_key.trim();
+  }
+
+  return api_client.post<{ id: string; success: boolean }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/destinations`,
+    body,
+  );
+}
+
+export async function update_domain_address_destination(
+  domain_address_id: string,
+  destination_id: string,
+  updates: UpdateAliasDestinationRequest,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.patch<{ success: boolean }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/destinations/${destination_id}`,
+    updates,
+  );
+}
+
+export async function delete_domain_address_destination(
+  domain_address_id: string,
+  destination_id: string,
+): Promise<ApiResponse<{ status: string }>> {
+  return api_client.delete<{ status: string }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/destinations/${destination_id}`,
+  );
+}
+
+export async function set_domain_address_delivery_mode(
+  domain_address_id: string,
+  delivery_mode: DeliveryMode,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.patch<{ success: boolean }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/delivery-mode`,
+    { delivery_mode },
+  );
+}
+
 export async function decrypt_alias_destination(
   destination: AliasDestination,
   fallback: string,

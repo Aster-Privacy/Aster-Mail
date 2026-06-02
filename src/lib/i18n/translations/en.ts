@@ -1453,7 +1453,7 @@ export const en: Translations = {
     app_lock_attempts_remaining: "{{n}} attempt(s) remaining",
     app_lock_locked_out_for: "Too many attempts - try again in {{s}}s",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "Advanced protection for high-risk accounts. Nova+ only.",
+    vanguard_description: "Nova+ only. More features coming soon.",
     vanguard_info: "Aster Vanguard enables sophisticated security features designed for journalists, activists, lawyers, and anyone with elevated risk. Includes PIN app lock, enhanced session controls, and more protections as they roll out.",
     vanguard_active: "Vanguard Active",
     vanguard_learn_more: "Learn more",

@@ -114,6 +114,74 @@ export async function delete_alias_contact(
   );
 }
 
+export async function list_domain_address_contacts(
+  domain_address_id: string,
+): Promise<ApiResponse<ListAliasContactsResponse>> {
+  return api_client.get<ListAliasContactsResponse>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/contacts`,
+  );
+}
+
+export async function add_domain_address_contact(
+  domain_address_id: string,
+  contact_email: string,
+  alias_local_part: string,
+  alias_domain: string,
+): Promise<ApiResponse<{ id: string; success: boolean }>> {
+  const contact_hash = await sha256_base64(contact_email);
+  const key_suffix = contact_hash.replace(/[^a-z0-9]/gi, "").toLowerCase().slice(0, 8);
+  let last: ApiResponse<{ id: string; success: boolean }> | null = null;
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const suffix = attempt === 0 ? key_suffix : `${key_suffix}${attempt}`;
+    const reverse_local = `${alias_local_part}.${suffix}`;
+    const reverse_alias_hash = await sha256_base64(
+      `${reverse_local}@${alias_domain}`,
+    );
+    const { encrypted, nonce } = await encrypt_alias_field(contact_email.trim());
+
+    const response = await api_client.post<{ id: string; success: boolean }>(
+      `/addresses/v1/aliases/domain-addresses/${domain_address_id}/contacts`,
+      {
+        domain_address_id,
+        contact_hash,
+        reverse_alias_hash,
+        encrypted_contact: encrypted,
+        contact_nonce: nonce,
+      },
+    );
+
+    if (!response.error) return response;
+    last = response;
+
+    if (!/in use|already|taken|exists|conflict|duplicate/i.test(response.error)) {
+      break;
+    }
+  }
+
+  return last as ApiResponse<{ id: string; success: boolean }>;
+}
+
+export async function set_domain_address_contact_blocked(
+  domain_address_id: string,
+  contact_id: string,
+  is_blocked: boolean,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.post<{ success: boolean }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/contacts/${contact_id}/block`,
+    { is_blocked },
+  );
+}
+
+export async function delete_domain_address_contact(
+  domain_address_id: string,
+  contact_id: string,
+): Promise<ApiResponse<{ status: string }>> {
+  return api_client.delete<{ status: string }>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/contacts/${contact_id}`,
+  );
+}
+
 export async function decrypt_alias_contact(
   contact: AliasContact,
   fallback: string,

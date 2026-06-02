@@ -602,6 +602,7 @@ export function DomainAddressItem({
 }: DomainAddressItemProps) {
   const { t } = use_i18n();
   const [uploading, set_uploading] = useState(false);
+  const [advanced_open, set_advanced_open] = useState(false);
   const [local_picture, set_local_picture] = useState<string | undefined>(
     undefined,
   );
@@ -732,85 +733,110 @@ export function DomainAddressItem({
   };
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl transition-all bg-surf-secondary border border-edge-secondary">
-      <AliasAvatar
-        gradient={gradient}
-        icon={<GlobeAltIcon className="w-5 h-5 text-white" />}
-        is_locked={is_avatar_locked}
-        on_file_select={handle_file_select}
-        on_remove={handle_remove}
-        profile_picture={displayed_picture}
-        uploading={uploading}
-      />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-medium truncate text-txt-primary">
-            {full_address}
-          </p>
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surf-tertiary text-txt-muted">
-            {t("common.custom")}
-          </span>
-          {is_primary && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-              {t("settings.primary_badge")}
-            </span>
-          )}
-        </div>
-        <AliasDisplayNameEditor
-          alias_address={full_address}
-          display_name={address.display_name}
+    <div className="group rounded-xl transition-all border border-edge-secondary">
+      <div className="flex items-center gap-3 p-4">
+        <AliasAvatar
+          gradient={gradient}
+          icon={<GlobeAltIcon className="w-5 h-5 text-white" />}
           is_locked={is_avatar_locked}
-          on_save={(name) =>
-            update_domain_address(address.domain_id, address.id, {
-              display_name: name,
-            })
-          }
-          on_saved={(name) => on_display_name_saved?.(address.id, name)}
+          on_file_select={handle_file_select}
+          on_remove={handle_remove}
+          profile_picture={displayed_picture}
+          uploading={uploading}
         />
-      </div>
-
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <Button
-          className={
-            is_primary
-              ? "h-8 w-8 text-emerald-500 hover:text-emerald-500 hover:bg-emerald-500/10"
-              : "h-8 w-8"
-          }
-          size="icon"
-          title={
-            is_primary
-              ? t("settings.primary_address_reset")
-              : t("settings.set_as_primary")
-          }
-          variant="ghost"
-          onClick={toggle_primary}
-        >
-          <PinIcon
-            className={is_primary ? "w-4 h-4" : "w-4 h-4 text-txt-muted"}
-            filled={is_primary}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium truncate text-txt-primary">
+              {full_address}
+            </p>
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surf-tertiary text-txt-muted">
+              {t("common.custom")}
+            </span>
+            {is_primary && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                {t("settings.primary_badge")}
+              </span>
+            )}
+          </div>
+          <AliasDisplayNameEditor
+            alias_address={full_address}
+            display_name={address.display_name}
+            is_locked={is_avatar_locked}
+            on_save={(name) =>
+              update_domain_address(address.domain_id, address.id, {
+                display_name: name,
+              })
+            }
+            on_saved={(name) => on_display_name_saved?.(address.id, name)}
           />
-        </Button>
+        </div>
 
-        <Button
-          className="h-8 w-8"
-          size="icon"
-          title={t("common.copy_address")}
-          variant="ghost"
-          onClick={copy_address}
-        >
-          <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted" />
-        </Button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Button
+            className={
+              advanced_open
+                ? "h-8 w-8 text-blue-500 hover:text-blue-500 hover:bg-blue-500/10"
+                : "h-8 w-8"
+            }
+            size="icon"
+            title={
+              advanced_open
+                ? t("settings.alias_advanced_hide" as TranslationKey)
+                : t("settings.alias_advanced_show" as TranslationKey)
+            }
+            variant="ghost"
+            onClick={() => set_advanced_open((open) => !open)}
+          >
+            <Cog6ToothIcon className="w-4 h-4 text-txt-muted" />
+          </Button>
 
-        <Button
-          className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
-          disabled={deleting}
-          size="icon"
-          variant="ghost"
-          onClick={() => on_delete(address.id, address.domain_id)}
-        >
-          {deleting ? <Spinner size="xs" /> : <TrashIcon className="w-4 h-4" />}
-        </Button>
+          <Button
+            className={
+              is_primary
+                ? "h-8 w-8 text-emerald-500 hover:text-emerald-500 hover:bg-emerald-500/10"
+                : "h-8 w-8"
+            }
+            size="icon"
+            title={
+              is_primary
+                ? t("settings.primary_address_reset")
+                : t("settings.set_as_primary")
+            }
+            variant="ghost"
+            onClick={toggle_primary}
+          >
+            <PinIcon
+              className={is_primary ? "w-4 h-4" : "w-4 h-4 text-txt-muted"}
+              filled={is_primary}
+            />
+          </Button>
+
+          <Button
+            className="h-8 w-8"
+            size="icon"
+            title={t("common.copy_address")}
+            variant="ghost"
+            onClick={copy_address}
+          >
+            <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted" />
+          </Button>
+
+          <Button
+            className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
+            disabled={deleting}
+            size="icon"
+            variant="ghost"
+            onClick={() => on_delete(address.id, address.domain_id)}
+          >
+            {deleting ? <Spinner size="xs" /> : <TrashIcon className="w-4 h-4" />}
+          </Button>
+        </div>
       </div>
+      {advanced_open && (
+        <div className="px-3 pb-3">
+          <AliasAdvancedPanel domain_address_id={address.id} alias_local_part={address.local_part} alias_domain={address.domain_name} />
+        </div>
+      )}
     </div>
   );
 }
