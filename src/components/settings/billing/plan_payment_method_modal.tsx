@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { CreditCardIcon, CurrencyDollarIcon } from "@heroicons/react/24/outline";
+import { CreditCardIcon, CurrencyDollarIcon, SparklesIcon } from "@heroicons/react/24/outline";
 
 import {
   Modal,
@@ -33,6 +33,7 @@ interface plan_payment_method_modal_props {
   open: boolean;
   plan_name: string;
   busy?: boolean;
+  credit_balance_cents?: number;
   on_close: () => void;
   on_choose_card: () => void;
   on_choose_crypto: () => void;
@@ -42,11 +43,15 @@ export function PlanPaymentMethodModal({
   open,
   plan_name,
   busy = false,
+  credit_balance_cents,
   on_close,
   on_choose_card,
   on_choose_crypto,
 }: plan_payment_method_modal_props) {
   const { t } = use_i18n();
+  const credit_dollars = credit_balance_cents && credit_balance_cents > 0
+    ? (credit_balance_cents / 100).toFixed(2)
+    : null;
 
   return (
     <Modal show_close_button is_open={open} on_close={on_close} size="md">
@@ -55,6 +60,19 @@ export function PlanPaymentMethodModal({
         <ModalDescription>{t("settings.checkout_description")}</ModalDescription>
       </ModalHeader>
       <ModalBody>
+        {credit_dollars && (
+          <div
+            className="flex items-center gap-2.5 rounded-[14px] border px-3.5 py-2.5 mb-3 text-sm"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--color-success) 10%, transparent)",
+              borderColor: "color-mix(in srgb, var(--color-success) 30%, transparent)",
+              color: "var(--color-success)",
+            }}
+          >
+            <SparklesIcon className="w-4 h-4 flex-shrink-0" />
+            <span>{t("settings.credits_will_be_applied", { amount: `$${credit_dollars}` })}</span>
+          </div>
+        )}
         <div className="space-y-2">
           <button
             className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-left transition-colors hover:opacity-80 disabled:opacity-50 disabled:pointer-events-none"

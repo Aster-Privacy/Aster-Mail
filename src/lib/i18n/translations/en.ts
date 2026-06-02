@@ -2155,6 +2155,7 @@ export const en: Translations = {
     subscribe_now: "Subscribe Now",
     stripe_secure_notice: "Secured by Stripe. Your payment info is encrypted.",
     preparing_checkout: "Preparing checkout...",
+    credits_will_be_applied: "{{amount}} in credits will be applied at checkout",
     checkout_method_card: "Card",
     checkout_method_wallet: "Apple / Google Pay",
     checkout_method_sepa: "SEPA",

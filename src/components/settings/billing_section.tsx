@@ -627,6 +627,7 @@ export function BillingSection() {
           open={show_method_modal}
           plan_name={method_modal_plan.name}
           busy={is_action_loading}
+          credit_balance_cents={credit_balance?.balance_cents}
           on_choose_card={() => {
             const plan = method_modal_plan;
 
@@ -653,6 +654,7 @@ export function BillingSection() {
           open={show_addon_method_modal}
           plan_name={addon_method_target.name}
           busy={is_action_loading}
+          credit_balance_cents={credit_balance?.balance_cents}
           on_choose_card={() => {
             const addon = addon_method_target;
 

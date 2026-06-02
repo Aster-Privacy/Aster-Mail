@@ -3182,6 +3182,7 @@ export interface SettingsTranslations {
   subscribe_now: string;
   stripe_secure_notice: string;
   preparing_checkout: string;
+  credits_will_be_applied: string;
   checkout_method_card: string;
   checkout_method_wallet: string;
   checkout_method_sepa: string;
