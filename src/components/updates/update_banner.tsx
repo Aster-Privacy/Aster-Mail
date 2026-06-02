@@ -20,7 +20,6 @@
 //
 import { useEffect, useState } from "react";
 import { XMarkIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -95,19 +94,21 @@ export function UpdateBanner() {
             {t("settings.updates_banner_title", { version: info.version })}
           </p>
           <div className="mt-2 flex items-center gap-2">
-            <Button
-              variant="primary"
-              size="sm"
+            <button
+              className="h-7 px-3 rounded-lg bg-indigo-600 text-xs font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={installing}
               onClick={handle_install}
             >
               {installing
                 ? t("settings.updates_installing", { percent: "" })
                 : t("settings.updates_banner_action")}
-            </Button>
-            <Button variant="secondary" size="sm" onClick={handle_dismiss}>
+            </button>
+            <button
+              className="h-7 px-3 rounded-lg border border-edge-secondary bg-surf-tertiary text-xs font-medium text-txt-primary transition-colors hover:opacity-80"
+              onClick={handle_dismiss}
+            >
               {t("settings.updates_dismiss")}
-            </Button>
+            </button>
           </div>
         </div>
         <button

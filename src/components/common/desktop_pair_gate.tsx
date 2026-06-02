@@ -20,7 +20,6 @@
 //
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@aster/ui";
 
 import {
   type DevicePubkeys,
@@ -487,17 +486,15 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                   {error_detail}
                 </pre>
               )}
-              <Button
-                className="w-full mt-6"
-                size="xl"
-                variant="depth"
+              <button
+                className="w-full mt-6 h-12 rounded-xl bg-surf-secondary border border-edge-secondary text-sm font-medium text-txt-primary transition-colors hover:opacity-80"
                 onClick={() => {
                   set_error_detail(null);
                   handle_new_code();
                 }}
               >
                 {t("auth.device_code_get_new")}
-              </Button>
+              </button>
             </motion.div>
           )}
 
@@ -518,14 +515,12 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
               <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
                 {t("auth.device_code_expired_description")}
               </p>
-              <Button
-                className="w-full mt-6"
-                size="xl"
-                variant="depth"
+              <button
+                className="w-full mt-6 h-12 rounded-xl bg-surf-secondary border border-edge-secondary text-sm font-medium text-txt-primary transition-colors hover:opacity-80"
                 onClick={handle_new_code}
               >
                 {t("auth.device_code_get_new")}
-              </Button>
+              </button>
             </motion.div>
           )}
 
@@ -608,24 +603,20 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
               </div>
 
               <div className="flex items-center gap-3 w-full mt-6">
-                <Button
-                  className="flex-1"
-                  size="xl"
-                  variant="secondary"
+                <button
+                  className="flex-1 h-12 rounded-xl border border-edge-secondary bg-surf-tertiary text-sm font-medium text-txt-primary transition-colors hover:opacity-80"
                   onClick={handle_copy_code}
                 >
                   {copied
                     ? t("auth.device_code_copied")
                     : t("auth.device_code_copy")}
-                </Button>
-                <Button
-                  className="flex-1"
-                  size="xl"
-                  variant="depth"
+                </button>
+                <button
+                  className="flex-1 h-12 rounded-xl bg-surf-secondary border border-edge-secondary text-sm font-medium text-txt-primary transition-colors hover:opacity-80"
                   onClick={handle_open_browser}
                 >
                   {t("auth.device_code_open_browser")}
-                </Button>
+                </button>
               </div>
 
               <div className="mt-6 flex items-center gap-2">

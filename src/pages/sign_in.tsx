@@ -53,7 +53,10 @@ import {
 import { webauthn_flow } from "@/pages/sign_in/webauthn_flow";
 import { totp_flow } from "@/pages/sign_in/totp_flow";
 import { password_recovery_flow } from "@/pages/sign_in/password_recovery_flow";
+import { PasskeySignInButton } from "@/pages/sign_in/passkey_sign_in";
 import { is_webauthn_supported } from "@/services/api/webauthn";
+import { is_passkey_supported } from "@/services/api/passkeys";
+import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import {
   is_tauri,
@@ -502,6 +505,17 @@ export default function SignInPage() {
   const [active_2fa_method, set_active_2fa_method] = useState<
     "totp" | "webauthn" | "backup" | "choose"
   >("totp");
+  const [passkey_supported, set_passkey_supported] = useState(false);
+
+  useEffect(() => {
+    if (is_passkey_supported()) {
+      set_passkey_supported(true);
+    }
+  }, []);
+
+  const on_passkey_error = useCallback((msg: string) => {
+    set_error(msg);
+  }, []);
 
   const handle_totp_success = useCallback(
     async (totp_response: TotpVerifyResponse) => {
@@ -517,11 +531,36 @@ export default function SignInPage() {
           return;
         }
 
-        const vault = await decrypt_vault(
-          totp_response.encrypted_vault,
-          totp_response.vault_nonce,
-          password,
-        );
+        let vault;
+        try {
+          vault = await decrypt_vault(
+            totp_response.encrypted_vault,
+            totp_response.vault_nonce,
+            password,
+          );
+        } catch {
+          if (password) {
+            throw;
+          }
+          const stored = await get_session_passphrase(totp_response.user_id).catch(() => null);
+          if (stored) {
+            try {
+              vault = await decrypt_vault(
+                totp_response.encrypted_vault,
+                totp_response.vault_nonce,
+                stored,
+              );
+            } catch {
+              set_error(t("passkeys.vault_needs_password"));
+              set_is_loading(false);
+              return;
+            }
+          } else {
+            set_error(t("passkeys.vault_needs_password"));
+            set_is_loading(false);
+            return;
+          }
+        }
 
         set_status(t("auth.getting_user_info"));
         let user_info_response: Awaited<
@@ -1216,6 +1255,26 @@ export default function SignInPage() {
             >
               {t("auth.create_account")}
             </Button>
+
+            {passkey_supported && !is_loading && !pending_login_token && (
+              <>
+                <div className="relative my-3 w-full">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-edge-secondary" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-surf-primary px-2 text-txt-muted">
+                      {t("common.or")}
+                    </span>
+                  </div>
+                </div>
+                <PasskeySignInButton
+                  remember_me={remember_me}
+                  on_error={on_passkey_error}
+                  on_success={handle_totp_success}
+                />
+              </>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>

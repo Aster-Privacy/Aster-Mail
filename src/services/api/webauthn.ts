@@ -229,14 +229,16 @@ export async function perform_webauthn_registration(
     raw_id: array_buffer_to_base64_url(credential.rawId),
     response: {
       attestation_object: btoa(
-        String.fromCharCode(
-          ...new Uint8Array(attestation_response.attestationObject),
-        ),
+        Array.from(
+          new Uint8Array(attestation_response.attestationObject),
+          (b) => String.fromCharCode(b),
+        ).join(""),
       ),
       client_data_json: btoa(
-        String.fromCharCode(
-          ...new Uint8Array(attestation_response.clientDataJSON),
-        ),
+        Array.from(
+          new Uint8Array(attestation_response.clientDataJSON),
+          (b) => String.fromCharCode(b),
+        ).join(""),
       ),
     },
     type: credential.type,

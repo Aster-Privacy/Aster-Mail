@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useMemo } from "react";
-import { Button, UpgradeBtn } from "@aster/ui";
+import { UpgradeBtn } from "@aster/ui";
 
 import {
   Modal,
@@ -255,14 +255,12 @@ export function UpgradeModal() {
       <ModalFooter className="flex-row gap-3">
         {is_storage ? (
           <>
-            <Button
-              className="max-sm:flex-1"
-              size="xl"
-              variant="outline"
+            <button
+              className="max-sm:flex-1 px-4 py-2.5 rounded-xl text-sm font-medium border border-edge-secondary bg-surf-secondary text-txt-primary hover:bg-surf-tertiary transition-colors"
               onClick={handle_buy_storage}
             >
               {t("settings.upgrade_buy_storage")}
-            </Button>
+            </button>
             <UpgradeBtn
               className="max-sm:flex-1"
               size="xl"
@@ -273,14 +271,12 @@ export function UpgradeModal() {
           </>
         ) : (
           <>
-            <Button
-              className="max-sm:flex-1"
-              size="xl"
-              variant="ghost"
+            <button
+              className="max-sm:flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-txt-secondary hover:bg-surf-secondary transition-colors"
               onClick={close_upgrade_modal}
             >
               {t("common.not_now")}
-            </Button>
+            </button>
             <UpgradeBtn
               className="max-sm:flex-1"
               size="xl"
