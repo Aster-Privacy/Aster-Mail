@@ -42,8 +42,7 @@ interface AttemptState {
 
 function get_attempt_state(account_id: string): AttemptState {
   try {
-    const raw = sessionStorage.getItem(attempts_key(account_id))
-      ?? localStorage.getItem(attempts_key(account_id));
+    const raw = sessionStorage.getItem(attempts_key(account_id));
     if (!raw) return { count: 0, locked_until: null, lockout_count: 0 };
     return JSON.parse(raw) as AttemptState;
   } catch {
@@ -143,7 +142,7 @@ export async function hash_pin(pin: string, salt: Uint8Array): Promise<string> {
     ["deriveBits"],
   );
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+    { name: "PBKDF2", salt, iterations: 300000, hash: "SHA-256" },
     key_material,
     256,
   );
@@ -189,4 +188,14 @@ export function mark_session_unlocked(account_id: string): void {
 
 export function clear_session_unlock(account_id: string): void {
   sessionStorage.removeItem(session_key(account_id));
+}
+
+export function clear_all_app_lock_data(): void {
+  const prefixes = ["aster:app_lock:", "aster:app_unlocked:", "aster:app_lock_attempts:", "aster:app_lock_hint:"];
+  for (const prefix of prefixes) {
+    const ls_keys = Object.keys(localStorage).filter((k) => k.startsWith(prefix));
+    ls_keys.forEach((k) => localStorage.removeItem(k));
+    const ss_keys = Object.keys(sessionStorage).filter((k) => k.startsWith(prefix));
+    ss_keys.forEach((k) => sessionStorage.removeItem(k));
+  }
 }

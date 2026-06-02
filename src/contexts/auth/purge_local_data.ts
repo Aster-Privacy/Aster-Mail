@@ -37,6 +37,7 @@ import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_recovery_email_cache } from "@/services/api/recovery_email";
 import { clear_search_index } from "@/hooks/use_search";
+import { clear_all_app_lock_data } from "@/services/app_lock_store";
 
 export async function purge_all_local_data(): Promise<void> {
   const errors: Error[] = [];
@@ -56,6 +57,7 @@ export async function purge_all_local_data(): Promise<void> {
     errors.push(e instanceof Error ? e : new Error(String(e)));
   }
 
+  clear_all_app_lock_data();
   clear_cache();
   clear_mail_stats();
   clear_mail_cache();

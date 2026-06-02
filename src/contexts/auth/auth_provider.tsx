@@ -78,6 +78,7 @@ import { connection_store } from "@/services/routing/connection_store";
 import { load_preferred_sender_from_server } from "@/lib/preferred_sender";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
+import { clear_app_lock_config, clear_session_unlock } from "@/services/app_lock_store";
 import { use_i18n } from "@/lib/i18n/context";
 
 function safe_log_error(err: unknown): void {
@@ -384,6 +385,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_stored_encrypted_vault(account_id);
         await clear_session_passphrase(account_id);
         clear_session_timeout_data(account_id);
+        clear_app_lock_config(account_id);
+        clear_session_unlock(account_id);
 
         if (is_current && result.switched_to) {
           const survivor = result.switched_to;
@@ -516,6 +519,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_stored_encrypted_vault(current_id);
         await with_timeout(clear_session_passphrase(current_id), 2000);
         clear_session_timeout_data(current_id);
+        clear_app_lock_config(current_id);
+        clear_session_unlock(current_id);
         api_client.clear_in_memory_token();
 
         await with_timeout(api_client.clear_session_cookies(), 2000);
