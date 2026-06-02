@@ -35,6 +35,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import {
   get_app_lock_config,
   save_app_lock_config,
@@ -243,17 +244,16 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
             <PinPad on_digit={handle_digit} on_backspace={handle_backspace} disabled={verifying || locked_out} />
           </div>
         ) : (
-          <div className="flex flex-col gap-4 py-2">
+          <div className="flex flex-col gap-2">
             <motion.div
               key={shake_key}
               animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
               transition={{ duration: 0.35 }}
             >
-              <input
+              <Input
                 type="password"
-                autoComplete="current-password"
+                autoComplete="off"
                 autoFocus
-                className="w-full px-3 py-2 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
                 value={input}
                 disabled={verifying || locked_out}
                 onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
@@ -530,11 +530,10 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
               animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
               transition={{ duration: 0.35 }}
             >
-              <input
+              <Input
                 type="password"
-                autoComplete="new-password"
+                autoComplete="off"
                 autoFocus
-                className="w-full px-3 py-2 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
                 value={text_input}
                 onChange={e => set_text_input(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handle_text_continue()}
@@ -565,7 +564,7 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
               onClick={step === "choose_mode" ? handle_mode_continue : () => set_step("set_pin")}
               aria-label={t("common.continue")}
             >
-              <CheckIcon className="h-4 w-4 text-primary-foreground" />
+              <CheckIcon className="h-4 w-4 text-white" />
             </button>
           )}
           {(step === "set_text" || step === "confirm_text") && (
@@ -576,7 +575,7 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
               onClick={handle_text_continue}
               aria-label={t("common.continue")}
             >
-              <CheckIcon className="h-4 w-4 text-primary-foreground" />
+              <CheckIcon className="h-4 w-4 text-white" />
             </button>
           )}
         </ModalFooter>
