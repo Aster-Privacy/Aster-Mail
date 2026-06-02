@@ -1625,6 +1625,7 @@ export interface SettingsTranslations {
   confirm_remove_key: string;
   vanguard_title: string;
   vanguard_description: string;
+  vanguard_info: string;
   vanguard_active: string;
   vanguard_learn_more: string;
   vanguard_enable: string;

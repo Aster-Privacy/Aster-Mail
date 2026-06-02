@@ -25,6 +25,7 @@ import {
   ShieldCheckIcon,
   PhotoIcon,
   CodeBracketIcon,
+  CpuChipIcon,
 } from "@heroicons/react/24/outline";
 
 import { TotpSetupModal } from "./totp_setup_modal";
@@ -33,8 +34,10 @@ import { TotpDisableModal } from "./totp_disable_modal";
 import { KeyRotationModal } from "@/components/modals/key_rotation_modal";
 import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
 import { ConnectionSection } from "@/components/settings/connection_section";
+import { PasskeySection } from "@/components/settings/security/passkey_section";
 import { TwoFactorSection } from "@/components/settings/security/two_factor_section";
 import { PasswordSection } from "@/components/settings/security/password_section";
+import { VanguardSection } from "@/components/settings/security/vanguard_section";
 import { SessionSection } from "@/components/settings/security/session_section";
 import { TrustedDevicesSection } from "@/components/settings/security/trusted_devices_section";
 import { AccountProtectionScore } from "@/components/settings/security/account_protection_score";
@@ -113,6 +116,17 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         strip_exif_on_compose={preferences.strip_exif_on_compose}
         totp_enabled={security.totp_status?.enabled ?? false}
       />
+
+      <div id="sec-vanguard">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <CpuChipIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.vanguard_title")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <VanguardSection />
+      </div>
 
       <div>
         <div className="mb-4">
@@ -366,6 +380,10 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
             </div>
           </>
         )}
+      </div>
+
+      <div id="sec-passkeys">
+        <PasskeySection />
       </div>
 
       <div id="sec-2fa">

@@ -30,9 +30,11 @@ import { use_translation } from "@/lib/i18n";
 interface InfoPopoverProps {
   title: string;
   description: string;
+  learn_more_url?: string;
+  learn_more_label?: string;
 }
 
-export function InfoPopover({ title, description }: InfoPopoverProps) {
+export function InfoPopover({ title, description, learn_more_url, learn_more_label }: InfoPopoverProps) {
   const { t } = use_translation();
 
   return (
@@ -53,6 +55,16 @@ export function InfoPopover({ title, description }: InfoPopoverProps) {
       >
         <p className="text-sm font-semibold text-txt-primary mb-1.5">{title}</p>
         <p className="text-sm text-txt-muted leading-relaxed">{description}</p>
+        {learn_more_url && (
+          <a
+            href={learn_more_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-2.5 text-xs text-brand hover:underline"
+          >
+            {learn_more_label ?? t("common.learn_more")}
+          </a>
+        )}
       </PopoverContent>
     </Popover>
   );
