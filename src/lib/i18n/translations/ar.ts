@@ -3078,7 +3078,7 @@ export const ar = {
     app_lock_wrong_pin: "رمز غير صحيح",
     app_lock_locked_out_for: "محاولات كثيرة - حاول بعد {{s}} ثانية",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "أمان متطور للصحفيين والناشطين وأي شخص معرض لمخاطر عالية. يتيح حمايات متقدمة غير متوفرة في الحسابات العادية.",
+    vanguard_description: "Nova+ فقط. المزيد من الميزات قريباً.",
     vanguard_info: "يُتيح Aster Vanguard ميزات أمان متطورة مصممة للصحفيين والمحامين وأصحاب المخاطر العالية. يشمل قفل التطبيق بالرمز والتحكم المحسّن في الجلسات والمزيد.",
     vanguard_active: "Vanguard نشط",
     vanguard_learn_more: "اعرف المزيد",

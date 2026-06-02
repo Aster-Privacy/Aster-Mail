@@ -39,12 +39,18 @@ import { AppLockSection } from "@/components/settings/security/app_lock_section"
 import {
   is_vanguard_enabled,
   set_vanguard_enabled,
+  init_vanguard_from_server,
 } from "@/services/vanguard_store";
 import {
   clear_app_lock_config,
   clear_session_unlock,
 } from "@/services/app_lock_store";
 import { go_to_billing } from "@/components/settings/aliases/feature_lock";
+import {
+  enable_vanguard,
+  disable_vanguard,
+  get_vanguard_status,
+} from "@/services/api/vanguard";
 
 export function VanguardSection() {
   const { t } = use_i18n();
@@ -60,9 +66,11 @@ export function VanguardSection() {
   const [show_disable_confirm, set_show_disable_confirm] = useState(false);
 
   useEffect(() => {
-    if (account_id) {
-      set_enabled(is_vanguard_enabled(account_id));
-    }
+    if (!account_id) return;
+    set_enabled(is_vanguard_enabled(account_id));
+    init_vanguard_from_server(account_id).then((server_enabled) => {
+      set_enabled(server_enabled);
+    });
   }, [account_id]);
 
   useEffect(() => {
@@ -76,21 +84,41 @@ export function VanguardSection() {
 
   const handle_toggle = (checked: boolean) => {
     if (checked) {
-      set_vanguard_enabled(account_id, true);
       set_enabled(true);
-      show_toast(t("settings.vanguard_enabled_toast"), "success");
+      set_vanguard_enabled(account_id, true);
+      enable_vanguard().then((res) => {
+        if (res.error) {
+          set_enabled(false);
+          set_vanguard_enabled(account_id, false);
+          show_toast(res.error, "error");
+        } else {
+          show_toast(t("settings.vanguard_enabled_toast"), "success");
+        }
+      });
     } else {
       set_show_disable_confirm(true);
     }
   };
 
   const confirm_disable = () => {
+    set_enabled(false);
     set_vanguard_enabled(account_id, false);
     clear_app_lock_config(account_id);
     clear_session_unlock(account_id);
-    set_enabled(false);
     set_show_disable_confirm(false);
-    show_toast(t("settings.vanguard_disabled_toast"), "success");
+    disable_vanguard().then((res) => {
+      if (res.error) {
+        get_vanguard_status().then((status) => {
+          if (status.data) {
+            set_enabled(status.data.enabled);
+            set_vanguard_enabled(account_id, status.data.enabled);
+          }
+        });
+        show_toast(res.error, "error");
+      } else {
+        show_toast(t("settings.vanguard_disabled_toast"), "success");
+      }
+    });
   };
 
   if (is_loading) {

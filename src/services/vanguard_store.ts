@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { get_vanguard_status } from "@/services/api/vanguard";
+
 const KEY = (account_id: string) => `aster:vanguard:${account_id}`;
 
 export function is_vanguard_enabled(account_id: string): boolean {
@@ -30,4 +32,13 @@ export function set_vanguard_enabled(account_id: string, enabled: boolean): void
   } else {
     localStorage.removeItem(KEY(account_id));
   }
+}
+
+export async function init_vanguard_from_server(account_id: string): Promise<boolean> {
+  const response = await get_vanguard_status();
+  if (response.data) {
+    set_vanguard_enabled(account_id, response.data.enabled);
+    return response.data.enabled;
+  }
+  return is_vanguard_enabled(account_id);
 }

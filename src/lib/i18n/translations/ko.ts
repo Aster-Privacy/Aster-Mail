@@ -3027,7 +3027,7 @@ export const ko = {
     app_lock_wrong_pin: "PIN이 올바르지 않습니다",
     app_lock_locked_out_for: "시도 횟수 초과 - {{s}}초 후 재시도",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "기자, 활동가 및 높은 위험에 처한 모든 사람을 위한 정교한 보안. 표준 계정에서는 사용할 수 없는 고급 보호 기능을 활성화합니다.",
+    vanguard_description: "Nova+ 전용. 더 많은 기능이 곧 출시됩니다.",
     vanguard_info: "Aster Vanguard는 기자, 변호사, 위험 노출이 높은 사용자를 위한 정교한 보안 기능을 활성화합니다. PIN 앱 잠금, 향상된 세션 제어 등이 포함됩니다.",
     vanguard_active: "Vanguard 활성",
     vanguard_learn_more: "자세히 알아보기",
