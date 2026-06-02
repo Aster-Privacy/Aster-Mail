@@ -20,7 +20,6 @@
 //
 import { Component, ReactNode } from "react";
 import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import { open_external } from "@/utils/open_link";
@@ -102,16 +101,18 @@ function ErrorBoundaryFallback({
       </div>
       <div className="text-xs mb-4">{t("common.unexpected_error_refresh")}</div>
       <div className="flex gap-2">
-        <Button size="md" variant="depth" onClick={on_retry}>
+        <button
+          className="px-4 py-2 rounded-xl text-sm font-medium bg-surf-secondary border border-edge-secondary text-txt-primary hover:bg-surf-tertiary transition-colors"
+          onClick={on_retry}
+        >
           {t("common.try_again")}
-        </Button>
-        <Button
-          size="md"
-          variant="secondary"
+        </button>
+        <button
+          className="px-4 py-2 rounded-xl text-sm font-medium bg-surf-secondary border border-edge-secondary text-txt-primary hover:bg-surf-tertiary transition-colors"
           onClick={() => open_external("https://status.astermail.org/")}
         >
           {t("common.view_status")}
-        </Button>
+        </button>
       </div>
       {error && <ErrorDetails error={error} />}
     </div>

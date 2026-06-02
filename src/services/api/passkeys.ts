@@ -112,6 +112,10 @@ export async function perform_passkey_login(
     userVerification: options.userVerification as UserVerificationRequirement,
   };
 
+  if (!options.challenge_token) {
+    return { data: undefined, error: "Authentication failed." };
+  }
+
   let credential: PublicKeyCredential | null;
   try {
     credential = (await navigator.credentials.get({

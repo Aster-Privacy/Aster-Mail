@@ -197,11 +197,8 @@ export function PasskeySection() {
       if (resp.data?.success) {
         show_toast(t("passkeys.register_success"), "success");
         await load_keys();
-      } else {
-        const msg = resp.error ?? t("passkeys.register_failed");
-        if (!msg.toLowerCase().includes("cancel")) {
-          show_toast(msg, "error");
-        }
+      } else if (resp.error && resp.error !== "passkey_cancelled") {
+        show_toast(resp.error, "error");
       }
     } finally {
       set_registering(null);
@@ -220,11 +217,8 @@ export function PasskeySection() {
       if (resp.data?.success) {
         show_toast(t("passkeys.register_success"), "success");
         await load_keys();
-      } else {
-        const msg = resp.error ?? t("passkeys.register_failed");
-        if (!msg.toLowerCase().includes("cancel")) {
-          show_toast(msg, "error");
-        }
+      } else if (resp.error && resp.error !== "passkey_cancelled") {
+        show_toast(resp.error, "error");
       }
     } finally {
       set_registering(null);
@@ -282,7 +276,7 @@ export function PasskeySection() {
                   key={key.id}
                   key_info={key}
                   on_remove={handle_remove}
-                  removing={removing_id === key.id}
+                  removing={removing_id !== null}
                 />
               ))}
             </motion.div>

@@ -20,8 +20,6 @@
 //
 import { useState, useEffect, useRef } from "react";
 import { EnvelopeIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
-
 import { use_i18n } from "@/lib/i18n/context";
 import {
   AlertDialog,
@@ -177,22 +175,18 @@ export function UnsubscribeConfirmationModal() {
           </div>
 
           <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end max-sm:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]">
-            <Button
-              className="mt-0 max-sm:flex-1"
-              size="xl"
-              variant="outline"
+            <button
+              className="mt-0 max-sm:flex-1 px-4 py-2.5 rounded-xl text-sm font-medium border border-edge-secondary bg-surf-secondary text-txt-primary hover:bg-surf-tertiary transition-colors"
               onClick={handle_cancel}
             >
               {t("common.cancel")}
-            </Button>
-            <Button
-              className="max-sm:flex-1"
-              size="xl"
-              variant="depth"
+            </button>
+            <button
+              className="max-sm:flex-1 px-4 py-2.5 rounded-xl text-sm font-medium bg-accent-primary text-white hover:opacity-90 transition-opacity"
               onClick={handle_confirm}
             >
               {t("mail.unsubscribe")}
-            </Button>
+            </button>
           </AlertDialogFooter>
         </div>
       </AlertDialogContent>
