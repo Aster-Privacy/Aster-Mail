@@ -242,16 +242,14 @@ function WebPinOverlay({
         animate={{ scale: 1, opacity: 1 }}
         initial={reduce_motion ? false : { scale: 0.9, opacity: 0 }}
         transition={{ delay: 0.05 }}
-        className="flex flex-col items-center gap-4"
+        className={cn("flex flex-col items-center", pin_type === "text" ? "gap-3" : "gap-4")}
       >
         <img src="/text_logo.png" alt="Aster Mail" className="h-7 opacity-90" draggable={false} />
         <div className="text-center">
           <h1 className="text-lg font-semibold text-txt-primary">{t("common.app_locked")}</h1>
-          <p className="mt-0.5 text-sm text-txt-muted">
-            {locked_out
-              ? t("common.app_lock_try_again_in", { s: lockout_remaining })
-              : t("common.enter_pin_to_unlock")}
-          </p>
+          {locked_out && (
+            <p className="mt-0.5 text-sm text-txt-muted">{t("common.app_lock_try_again_in", { s: lockout_remaining })}</p>
+          )}
         </div>
         {pin_type === "numeric" ? (
           <>
@@ -295,7 +293,7 @@ function WebPinOverlay({
                 disabled={verifying || locked_out}
                 onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
                 onKeyDown={e => { if (e.key === "Enter" && input.length >= 1) handle_text_submit(); }}
-                placeholder={t("common.enter_pin_to_unlock")}
+                placeholder=""
               />
             </motion.div>
             <div className="h-4 flex items-center justify-center">
@@ -311,13 +309,13 @@ function WebPinOverlay({
                 ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
                 : t("common.unlock")}
             </Button>
-            <button
-              type="button"
-              className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
+            <Button
+              variant="outline"
+              className="w-full"
               onClick={on_sign_out}
             >
               {t("settings.sign_out")}
-            </button>
+            </Button>
           </div>
         )}
       </motion.div>
