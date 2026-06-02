@@ -418,7 +418,10 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
         job_id = job_response.data.id;
 
-        await update_import_job(job_id!, { status: "processing" });
+        const update_response = await update_import_job(job_id!, { status: "processing" });
+        if (update_response.error) {
+          throw new Error(update_response.error);
+        }
 
         const message_id_hashes = new Map<string, string>();
 
@@ -615,7 +618,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         set_is_processing(false);
       }
     },
-    [vault, user],
+    [vault, user, create_new_folder, folders_state],
   );
 
   const handle_file_select = useCallback(
