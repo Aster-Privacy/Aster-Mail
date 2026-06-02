@@ -21,10 +21,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
-import { Switch } from "@aster/ui";
+import { Switch, UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { go_to_billing } from "@/components/settings/aliases/feature_lock";
 import {
   Select,
   SelectTrigger,
@@ -168,21 +168,16 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
                 info="When on, reverse alias addresses include the sender's email so you can tell who's writing at a glance."
                 label={t("settings.alias_pref_readable_reverse")}
               >
-                <div
-                  className={readable_locked ? "cursor-pointer" : ""}
-                  role={readable_locked ? "button" : undefined}
-                  onClick={
-                    readable_locked
-                      ? () => prompt_upgrade(t("settings.alias_pref_readable_reverse"))
-                      : undefined
-                  }
-                >
+                {readable_locked ? (
+                  <UpgradeBtn size="sm" onClick={go_to_billing}>
+                    {t("settings.alias_feature_locked_upgrade_cta")}
+                  </UpgradeBtn>
+                ) : (
                   <Switch
-                    checked={!readable_locked && prefs.readable_reverse_aliases}
-                    disabled={readable_locked}
-                    onCheckedChange={readable_locked ? undefined : (v) => save_pref({ readable_reverse_aliases: v })}
+                    checked={prefs.readable_reverse_aliases}
+                    onCheckedChange={(v) => save_pref({ readable_reverse_aliases: v })}
                   />
-                </div>
+                )}
               </PrefRow>
 
               <PrefRow

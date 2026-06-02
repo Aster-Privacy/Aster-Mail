@@ -29,7 +29,7 @@ import {
   PencilSquareIcon,
   Bars3BottomLeftIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Radio } from "@aster/ui";
+import { Button, Radio, UpgradeBtn } from "@aster/ui";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
@@ -68,6 +68,7 @@ import {
 import { fetch_my_badges } from "@/services/api/user";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";
+import { go_to_billing } from "@/components/settings/aliases/feature_lock";
 
 function escape_html(str: string): string {
   return str
@@ -953,30 +954,33 @@ export function SignatureSection() {
               </p>
             )}
           </div>
-          <button
-            className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              !is_paid_plan ? "cursor-default opacity-50" : "cursor-pointer"
-            } ${
-              preferences.show_aster_branding ? "bg-blue-500" : "bg-zinc-600"
-            }`}
-            type="button"
-            onClick={() => {
-              if (!is_paid_plan) return;
-              update_preference(
-                "show_aster_branding",
-                !preferences.show_aster_branding,
-                true,
-              );
-            }}
-          >
-            <span
-              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                preferences.show_aster_branding
-                  ? "translate-x-4"
-                  : "translate-x-0"
+          {is_paid_plan ? (
+            <button
+              className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none cursor-pointer ${
+                preferences.show_aster_branding ? "bg-blue-500" : "bg-zinc-600"
               }`}
-            />
-          </button>
+              type="button"
+              onClick={() => {
+                update_preference(
+                  "show_aster_branding",
+                  !preferences.show_aster_branding,
+                  true,
+                );
+              }}
+            >
+              <span
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  preferences.show_aster_branding
+                    ? "translate-x-4"
+                    : "translate-x-0"
+                }`}
+              />
+            </button>
+          ) : (
+            <UpgradeBtn size="sm" onClick={go_to_billing}>
+              {t("settings.upgrade_to_unlock")}
+            </UpgradeBtn>
+          )}
         </div>
       </div>
     </div>

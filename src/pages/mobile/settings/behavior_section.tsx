@@ -23,7 +23,7 @@ import type { SpamSettings } from "@/services/api/preferences";
 import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { CheckIcon } from "@heroicons/react/24/outline";
-import { Switch } from "@aster/ui";
+import { Switch, UpgradeBtn } from "@aster/ui";
 
 import {
   SettingsGroup,
@@ -36,6 +36,7 @@ import {
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { go_to_billing } from "@/components/settings/aliases/feature_lock";
 import { Input } from "@/components/ui/input";
 import {
   get_spam_settings,
@@ -485,14 +486,16 @@ export function BehaviorSection({
           <SettingsRow
             label={t("settings.show_aster_branding")}
             trailing={
-              <Switch
-                checked={preferences.show_aster_branding}
-                disabled={!is_paid_plan}
-                onCheckedChange={(v) => {
-                  if (!is_paid_plan) return;
-                  update_preference("show_aster_branding", v, true);
-                }}
-              />
+              is_paid_plan ? (
+                <Switch
+                  checked={preferences.show_aster_branding}
+                  onCheckedChange={(v) => update_preference("show_aster_branding", v, true)}
+                />
+              ) : (
+                <UpgradeBtn size="sm" onClick={go_to_billing}>
+                  {t("settings.upgrade_to_unlock")}
+                </UpgradeBtn>
+              )
             }
           />
         </SettingsGroup>

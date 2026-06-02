@@ -22,7 +22,7 @@ import type { ApiResponse } from "@/services/api/client";
 
 import { useState } from "react";
 import { TrashIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
@@ -145,13 +145,9 @@ export function TrustedDevicesPanel() {
             {t("settings.desktop_bridge_upgrade_description")}
           </p>
           <div className="mt-3">
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={open_billing_settings}
-            >
+            <UpgradeBtn size="sm" onClick={open_billing_settings}>
               {t("settings.desktop_bridge_upgrade_cta")}
-            </Button>
+            </UpgradeBtn>
           </div>
         </div>
       ) : (
