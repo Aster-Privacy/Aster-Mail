@@ -206,7 +206,12 @@ export function PasskeySection() {
         : null;
       const resp = await register_platform_passkey(null, passphrase ?? undefined);
       if (resp.data?.success) {
-        show_toast(t("passkeys.register_success"), "success");
+        const is_native = (resp.data as any).is_platform_authenticator !== false;
+        if (!is_native) {
+          show_toast(t("passkeys.saved_to_password_manager"), "info");
+        } else {
+          show_toast(t("passkeys.register_success"), "success");
+        }
         await load_keys();
       } else if (resp.error === "passkey_cancelled") {
         show_toast(t("passkeys.passkey_setup_cancelled"), "info");

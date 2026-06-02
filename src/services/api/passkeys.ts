@@ -248,6 +248,14 @@ export async function register_platform_passkey(
   const attestation_response =
     credential.response as AuthenticatorAttestationResponse;
 
+  const transports: string[] =
+    attestation_response.getTransports?.() ?? [];
+  const is_platform_authenticator = transports.includes("internal");
+
+  const actual_name = is_platform_authenticator
+    ? resolved_name
+    : `${resolved_name} (via password manager)`;
+
   const reg_result = await complete_hardware_key_registration({
     id: array_buffer_to_base64url(credential.rawId),
     raw_id: array_buffer_to_base64url(credential.rawId),
@@ -266,11 +274,18 @@ export async function register_platform_passkey(
       ),
     },
     type: credential.type,
-    name_encrypted: resolved_name,
+    name_encrypted: actual_name,
     challenge_token: options.challenge_token,
   });
 
-  if (reg_result.data?.success && vault_passphrase) {
+  if (reg_result.data) {
+    reg_result.data = {
+      ...reg_result.data,
+      is_platform_authenticator,
+    } as typeof reg_result.data & { is_platform_authenticator: boolean };
+  }
+
+  if (reg_result.data?.success && vault_passphrase && is_platform_authenticator) {
     const key_id = reg_result.data.key_id;
     const raw_credential_id = array_buffer_to_base64url(credential.rawId);
     setup_prf_passphrase(key_id, raw_credential_id, options.rp.id, vault_passphrase).catch(() => {});
