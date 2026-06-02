@@ -768,9 +768,11 @@ export function use_email_viewer({
         last_thread_fetch_ref.current = Date.now();
         set_thread_messages((prev) => {
           const server_ids = new Set(thread_result.messages.map((m) => m.id));
-          const still_sending = prev.filter(
-            (m) => m.is_sending && !server_ids.has(m.id),
-          );
+          const prev_non_sending = prev.filter((m) => !m.is_sending).length;
+          const grew = thread_result.messages.length > prev_non_sending;
+          const still_sending = grew
+            ? []
+            : prev.filter((m) => m.is_sending && !server_ids.has(m.id));
 
           return [...thread_result.messages, ...still_sending];
         });
@@ -933,7 +935,7 @@ export function use_email_viewer({
         sender_email: detail.sender_email,
         subject: detail.subject,
         body: detail.body,
-        html_content: detail.display_body,
+        html_content: detail.body,
         timestamp: new Date().toISOString(),
         is_read: true,
         is_starred: false,

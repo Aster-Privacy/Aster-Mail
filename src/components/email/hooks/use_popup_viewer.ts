@@ -783,7 +783,7 @@ export function use_popup_viewer({
         sender_email: detail.sender_email,
         subject: detail.subject,
         body: detail.body,
-        html_content: detail.display_body,
+        html_content: detail.body,
         timestamp: new Date().toISOString(),
         is_read: true,
         is_starred: false,
