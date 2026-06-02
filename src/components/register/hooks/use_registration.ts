@@ -721,6 +721,14 @@ export function use_registration() {
     set_step("recovery_key");
   };
 
+  const handle_advance_from_recovery_key = async () => {
+    if (recovery_email_required && recovery_email.trim()) {
+      await handle_recovery_email_continue();
+    } else {
+      set_step("recovery_email");
+    }
+  };
+
   return {
     t,
     is_dark,
@@ -788,6 +796,7 @@ export function use_registration() {
     handle_recovery_email_continue,
     handle_recovery_email_skip,
     handle_recovery_email_gate_submit,
+    handle_advance_from_recovery_key,
     handle_resend_verification,
     handle_skip_verification,
 

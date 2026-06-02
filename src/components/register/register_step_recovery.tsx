@@ -137,7 +137,7 @@ export const RegisterStepRecoveryCodes = ({
         className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
         onClick={() => {
           if (reg.is_pdf_downloaded || reg.is_text_downloaded) {
-            reg.set_step("recovery_email");
+            reg.handle_advance_from_recovery_key();
           } else {
             reg.set_show_skip_confirmation(true);
           }
@@ -156,7 +156,7 @@ export const RegisterStepRecoveryCodes = ({
         on_cancel={() => reg.set_show_skip_confirmation(false)}
         on_confirm={() => {
           reg.set_show_skip_confirmation(false);
-          reg.set_step("recovery_email");
+          reg.handle_advance_from_recovery_key();
         }}
         title={reg.t("common.are_you_sure")}
         variant="warning"
