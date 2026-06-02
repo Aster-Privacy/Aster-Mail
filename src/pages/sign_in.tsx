@@ -538,9 +538,9 @@ export default function SignInPage() {
             totp_response.vault_nonce,
             password,
           );
-        } catch {
+        } catch (vault_err) {
           if (password) {
-            throw;
+            throw vault_err;
           }
           const stored = await get_session_passphrase(totp_response.user_id).catch(() => null);
           if (stored) {
