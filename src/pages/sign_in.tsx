@@ -89,6 +89,44 @@ function get_safe_next_path(): string {
   }
 }
 
+async function decrypt_with_prf(
+  prf_output: ArrayBuffer,
+  encrypted_b64: string,
+  nonce_b64: string,
+): Promise<string | null> {
+  try {
+    const key_material = await crypto.subtle.importKey(
+      "raw",
+      prf_output,
+      "HKDF",
+      false,
+      ["deriveKey"],
+    );
+    const key = await crypto.subtle.deriveKey(
+      {
+        name: "HKDF",
+        hash: "SHA-256",
+        salt: new TextEncoder().encode("aster-vault-passphrase-key-v1"),
+        info: new Uint8Array(0),
+      },
+      key_material,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["decrypt"],
+    );
+    const enc_bytes = Uint8Array.from(atob(encrypted_b64), (c) => c.charCodeAt(0));
+    const nonce_bytes = Uint8Array.from(atob(nonce_b64), (c) => c.charCodeAt(0));
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce_bytes },
+      key,
+      enc_bytes,
+    );
+    return new TextDecoder().decode(decrypted);
+  } catch {
+    return null;
+  }
+}
+
 interface AlertProps {
   message: string;
   is_dark: boolean;
@@ -538,6 +576,39 @@ export default function SignInPage() {
                 stored,
               );
             } catch {
+              set_error(t("passkeys.vault_needs_password"));
+              set_is_loading(false);
+              return;
+            }
+          } else if (
+            totp_response.prf_encrypted_passphrase &&
+            totp_response.prf_nonce
+          ) {
+            const prf_out = (totp_response as any).prf_output as ArrayBuffer | undefined;
+            if (prf_out) {
+              const prf_passphrase = await decrypt_with_prf(
+                prf_out,
+                totp_response.prf_encrypted_passphrase,
+                totp_response.prf_nonce,
+              ).catch(() => null);
+              if (prf_passphrase) {
+                try {
+                  vault = await decrypt_vault(
+                    totp_response.encrypted_vault,
+                    totp_response.vault_nonce,
+                    prf_passphrase,
+                  );
+                } catch {
+                  set_error(t("passkeys.vault_needs_password"));
+                  set_is_loading(false);
+                  return;
+                }
+              } else {
+                set_error(t("passkeys.vault_needs_password"));
+                set_is_loading(false);
+                return;
+              }
+            } else {
               set_error(t("passkeys.vault_needs_password"));
               set_is_loading(false);
               return;

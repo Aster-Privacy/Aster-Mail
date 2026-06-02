@@ -27,6 +27,13 @@ import {
 } from "./webauthn";
 import type { HardwareKeyRegistrationCompleteResponse } from "./webauthn";
 
+async function get_prf_eval(): Promise<ArrayBuffer> {
+  return crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode("aster-vault-prf-eval-v1"),
+  );
+}
+
 export interface PasskeyInitiateResponse {
   challenge: string;
   challenge_token: string;
@@ -104,6 +111,7 @@ export async function perform_passkey_login(
   options: PasskeyInitiateResponse,
   remember_me?: boolean,
 ): Promise<ApiResponse<TotpVerifyResponse>> {
+  const prf_eval = await get_prf_eval();
   const public_key: PublicKeyCredentialRequestOptions = {
     challenge: base64url_to_array_buffer(options.challenge),
     rpId: options.rpId,
@@ -112,6 +120,7 @@ export async function perform_passkey_login(
     userVerification: options.userVerification as UserVerificationRequirement,
     // WebAuthn L3 hint - ignored by older browsers, prefers platform auth on Chrome/Edge
     ...({ hints: ["client-device"] } as object),
+    ...({ extensions: { prf: { eval: { first: prf_eval } } } } as object),
   };
 
   if (!options.challenge_token) {
@@ -146,7 +155,10 @@ export async function perform_passkey_login(
         )
       : null;
 
-  return passkey_login_verify({
+  const prf_output: ArrayBuffer | null =
+    (credential.getClientExtensionResults() as any)?.prf?.results?.first ?? null;
+
+  const result = await passkey_login_verify({
     id: credential.id,
     raw_id: array_buffer_to_base64url(credential.rawId),
     response: {
@@ -161,6 +173,12 @@ export async function perform_passkey_login(
     challenge_token: options.challenge_token,
     remember_me,
   });
+
+  if (result.data && prf_output) {
+    (result as any).prf_output = prf_output;
+  }
+
+  return result;
 }
 
 function get_platform_passkey_name(): string {
@@ -229,7 +247,7 @@ export async function register_platform_passkey(
   const attestation_response =
     credential.response as AuthenticatorAttestationResponse;
 
-  return complete_hardware_key_registration({
+  const reg_result = await complete_hardware_key_registration({
     id: array_buffer_to_base64url(credential.rawId),
     raw_id: array_buffer_to_base64url(credential.rawId),
     response: {
@@ -250,6 +268,14 @@ export async function register_platform_passkey(
     name_encrypted: resolved_name,
     challenge_token: options.challenge_token,
   });
+
+  if (reg_result.data?.success) {
+    const key_id = reg_result.data.key_id;
+    const raw_credential_id = array_buffer_to_base64url(credential.rawId);
+    setup_prf_passphrase(key_id, raw_credential_id, options.rp.id).catch(() => {});
+  }
+
+  return reg_result;
 }
 
 export async function register_security_key(
@@ -284,7 +310,7 @@ export async function register_security_key(
     authenticatorSelection: {
       authenticatorAttachment: "cross-platform",
       residentKey: "preferred",
-      userVerification: "preferred",
+      userVerification: "required",
     },
   };
 
@@ -328,6 +354,93 @@ export async function register_security_key(
     name_encrypted: resolved_name,
     challenge_token: options.challenge_token,
   });
+}
+
+async function setup_prf_passphrase(
+  key_id: string,
+  credential_id: string,
+  rp_id: string,
+): Promise<void> {
+  const passphrase = await get_vault_passphrase_for_prf();
+  if (!passphrase) return;
+
+  const prf_eval = await get_prf_eval();
+
+  let credential: PublicKeyCredential | null;
+  try {
+    credential = (await navigator.credentials.get({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)).buffer,
+        rpId: rp_id,
+        allowCredentials: [
+          { type: "public-key", id: base64url_to_array_buffer(credential_id) },
+        ],
+        userVerification: "required",
+        timeout: 60000,
+        ...({ extensions: { prf: { eval: { first: prf_eval } } } } as object),
+      },
+    })) as PublicKeyCredential | null;
+  } catch {
+    return;
+  }
+
+  if (!credential) return;
+
+  const prf_output: ArrayBuffer | null =
+    (credential.getClientExtensionResults() as any)?.prf?.results?.first ?? null;
+
+  if (!prf_output) return;
+
+  const enc = await encrypt_with_prf(prf_output, passphrase);
+  if (!enc) return;
+
+  await api_client.post(`/core/v1/auth/hardware-keys/${key_id}/prf`, {
+    prf_encrypted_passphrase: enc.encrypted,
+    prf_nonce: enc.nonce,
+  });
+}
+
+async function get_vault_passphrase_for_prf(): Promise<string | null> {
+  return null;
+}
+
+async function encrypt_with_prf(
+  prf_output: ArrayBuffer,
+  passphrase: string,
+): Promise<{ encrypted: string; nonce: string } | null> {
+  try {
+    const key_material = await crypto.subtle.importKey(
+      "raw",
+      prf_output,
+      "HKDF",
+      false,
+      ["deriveKey"],
+    );
+    const key = await crypto.subtle.deriveKey(
+      {
+        name: "HKDF",
+        hash: "SHA-256",
+        salt: new TextEncoder().encode("aster-vault-passphrase-key-v1"),
+        info: new Uint8Array(0),
+      },
+      key_material,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt"],
+    );
+    const nonce = crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: nonce },
+      key,
+      new TextEncoder().encode(passphrase),
+    );
+    return {
+      encrypted: btoa(Array.from(new Uint8Array(encrypted), (b) => String.fromCharCode(b)).join("")),
+      nonce: btoa(Array.from(nonce, (b) => String.fromCharCode(b)).join("")),
+    };
+  } catch {
+    return null;
+  }
 }
 
 export function is_passkey_supported(): boolean {

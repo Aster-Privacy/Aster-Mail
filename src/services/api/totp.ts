@@ -55,6 +55,8 @@ export interface TotpVerifyResponse {
   access_token?: string;
   needs_prekey_replenishment?: boolean;
   is_suspended?: boolean;
+  prf_encrypted_passphrase?: string;
+  prf_nonce?: string;
 }
 
 export interface TotpBackupCodeRequest {
