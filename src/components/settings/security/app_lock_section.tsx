@@ -236,7 +236,7 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
       </ModalHeader>
       <ModalBody>
         {pin_type === "numeric" ? (
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-4 pt-1">
             <PinDots digits={digits} filled={input.length} shake_key={shake_key} />
             <div className="h-4 flex items-center justify-center">
               {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
@@ -508,7 +508,7 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
                 className={cn(
                   "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
                   chosen_digits === n
-                    ? "bg-brand text-white"
+                    ? "bg-brand text-white border border-brand"
                     : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
                 )}
                 onClick={() => set_chosen_digits(n)}
@@ -519,16 +519,19 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
           </div>
         )}
         {step === "set_pin" && (
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 pt-1">
             <PinDots digits={chosen_digits} filled={first_pin.length} shake_key={0} />
+            <div className="h-4" />
             <PinPad on_digit={handle_first_digit} on_backspace={handle_first_backspace} pressed_key={pressed_key} />
           </div>
         )}
         {step === "confirm_pin" && (
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 pt-1">
             <PinDots digits={chosen_digits} filled={confirm_input.length} shake_key={shake_key} />
-            {error_msg && <p className="text-sm text-red-500 -mt-2">{error_msg}</p>}
-            {saving && <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent -mt-2" />}
+            <div className="h-4 flex items-center justify-center">
+              {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
+              {saving && <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />}
+            </div>
             <PinPad on_digit={handle_confirm_digit} on_backspace={handle_confirm_backspace} disabled={saving} pressed_key={pressed_key} />
           </div>
         )}
