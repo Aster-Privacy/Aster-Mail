@@ -69,18 +69,35 @@ function PinDots({ digits, filled, shake_key }: { digits: number; filled: number
   );
 }
 
-function PinPad({ on_digit, on_backspace, on_check, disabled, pressed_key }: {
+function PinPad({ on_digit, on_backspace, on_check, disabled }: {
   on_digit: (d: string) => void;
   on_backspace: () => void;
   on_check?: () => void;
   disabled?: boolean;
-  pressed_key?: string | null;
 }) {
-  const btn = (active: boolean, extra?: string) => cn(
+  const [pressed_key, set_pressed_key] = useState<string | null>(null);
+
+  const flash = useCallback((k: string) => {
+    set_pressed_key(k);
+    setTimeout(() => set_pressed_key(null), 120);
+  }, []);
+
+  useEffect(() => {
+    const on_key = (e: KeyboardEvent) => {
+      if (disabled) return;
+      const k = e.key;
+      if (k >= "0" && k <= "9") { flash(k); on_digit(k); }
+      else if (k === "Backspace") { flash("Backspace"); on_backspace(); }
+      else if (k === "Enter") { flash("Enter"); on_check?.(); }
+    };
+    window.addEventListener("keydown", on_key);
+    return () => window.removeEventListener("keydown", on_key);
+  }, [disabled, on_digit, on_backspace, on_check, flash]);
+
+  const btn = (active: boolean) => cn(
     "h-12 w-12 mx-auto rounded-full flex items-center justify-center transition-all duration-75 focus:outline-none focus-visible:outline-none",
     disabled ? "opacity-40 cursor-not-allowed" : "bg-muted hover:bg-muted/70",
     active && !disabled && "scale-90 bg-muted/50",
-    extra,
   );
   return (
     <div className="grid grid-cols-3 gap-2">
@@ -89,17 +106,13 @@ function PinPad({ on_digit, on_backspace, on_check, disabled, pressed_key }: {
           className={cn(btn(pressed_key === k), "text-base font-medium")}
           onClick={() => on_digit(k)}>{k}</button>
       ))}
-      <button type="button" disabled={disabled}
-        className={btn(pressed_key === "Backspace")}
-        onClick={on_backspace}>
+      <button type="button" disabled={disabled} className={btn(pressed_key === "Backspace")} onClick={on_backspace}>
         <BackspaceIcon className="h-4 w-4 text-txt-primary" />
       </button>
       <button key="0" type="button" disabled={disabled}
         className={cn(btn(pressed_key === "0"), "text-base font-medium")}
         onClick={() => on_digit("0")}>0</button>
-      <button type="button" disabled={disabled}
-        className={btn(pressed_key === "Enter")}
-        onClick={on_check}>
+      <button type="button" disabled={disabled} className={btn(pressed_key === "Enter")} onClick={on_check}>
         <CheckIcon className="h-4 w-4 text-txt-primary" />
       </button>
     </div>
@@ -119,7 +132,6 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
   const digits = pin_type === "numeric" ? (config?.digits ?? 4) : 0;
   const text_input_ref = useRef<HTMLInputElement>(null);
   const [input, set_input] = useState("");
-  const [pressed_key, set_pressed_key] = useState<string | null>(null);
   const [shake_key, set_shake_key] = useState(0);
   const [error_msg, set_error_msg] = useState<string | null>(null);
   const [verifying, set_verifying] = useState(false);
@@ -210,19 +222,13 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
   }, [verifying, locked_out, input, attempt_verify]);
 
   useEffect(() => {
-    if (!is_open) return;
+    if (!is_open || pin_type !== "text") return;
     const on_key = (e: KeyboardEvent) => {
-      if (pin_type === "text") {
-        if (e.key === "Enter") handle_text_submit();
-      } else {
-        const k = e.key;
-        if (k >= "0" && k <= "9") { set_pressed_key(k); setTimeout(() => set_pressed_key(null), 120); handle_digit(k); }
-        else if (k === "Backspace") { set_pressed_key("Backspace"); setTimeout(() => set_pressed_key(null), 120); handle_backspace(); }
-      }
+      if (e.key === "Enter") handle_text_submit();
     };
     window.addEventListener("keydown", on_key);
     return () => window.removeEventListener("keydown", on_key);
-  }, [is_open, pin_type, handle_digit, handle_backspace, handle_text_submit]);
+  }, [is_open, pin_type, handle_text_submit]);
 
   return (
     <Modal is_open={is_open} on_close={on_close} size="sm">
@@ -236,15 +242,15 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
       </ModalHeader>
       <ModalBody>
         {pin_type === "numeric" ? (
-          <div className="flex flex-col items-center gap-4 pt-1">
+          <div className="flex flex-col items-center gap-2 pt-1">
             <PinDots digits={digits} filled={input.length} shake_key={shake_key} />
-            <div className="h-4 flex items-center justify-center">
-              {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
-              {verifying && !error_msg && (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              )}
-            </div>
-            <PinPad on_digit={handle_digit} on_backspace={handle_backspace} disabled={verifying || locked_out} pressed_key={pressed_key} />
+            {(error_msg || verifying) && (
+              <div className="flex items-center justify-center -mb-1">
+                {error_msg && <p className="text-xs text-red-500">{error_msg}</p>}
+                {verifying && !error_msg && <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />}
+              </div>
+            )}
+            <PinPad on_digit={handle_digit} on_backspace={handle_backspace} disabled={verifying || locked_out} />
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -309,7 +315,6 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
   const [error_msg, set_error_msg] = useState<string | null>(null);
   const [saving, set_saving] = useState(false);
   const [show_passphrase, set_show_passphrase] = useState(false);
-  const [pressed_key, set_pressed_key] = useState<string | null>(null);
 
   const reset = useCallback(() => {
     set_step("choose_mode");
@@ -323,7 +328,6 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
     set_error_msg(null);
     set_saving(false);
     set_show_passphrase(false);
-    set_pressed_key(null);
   }, []);
 
   useEffect(() => {
@@ -418,22 +422,6 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
     }
   }, [step, text_input, first_text, account_id, on_success, t]);
 
-  useEffect(() => {
-    if (!is_open) return;
-    const on_key = (e: KeyboardEvent) => {
-      const k = e.key;
-      if (step === "set_pin") {
-        if (k >= "0" && k <= "9") { set_pressed_key(k); setTimeout(() => set_pressed_key(null), 120); handle_first_digit(k); }
-        else if (k === "Backspace") { set_pressed_key("Backspace"); setTimeout(() => set_pressed_key(null), 120); handle_first_backspace(); }
-      } else if (step === "confirm_pin") {
-        if (k >= "0" && k <= "9") { set_pressed_key(k); setTimeout(() => set_pressed_key(null), 120); handle_confirm_digit(k); }
-        else if (k === "Backspace") { set_pressed_key("Backspace"); setTimeout(() => set_pressed_key(null), 120); handle_confirm_backspace(); }
-      }
-    };
-    window.addEventListener("keydown", on_key);
-    return () => window.removeEventListener("keydown", on_key);
-  }, [is_open, step, handle_first_digit, handle_first_backspace, handle_confirm_digit, handle_confirm_backspace]);
-
   const step_index = step === "choose_mode" ? 0
     : step === "choose_digits" || step === "set_text" ? 1
     : 2;
@@ -519,20 +507,21 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
           </div>
         )}
         {step === "set_pin" && (
-          <div className="flex flex-col items-center gap-4 pt-1">
+          <div className="flex flex-col items-center gap-2 pt-1">
             <PinDots digits={chosen_digits} filled={first_pin.length} shake_key={0} />
-            <div className="h-4" />
-            <PinPad on_digit={handle_first_digit} on_backspace={handle_first_backspace} pressed_key={pressed_key} />
+            <PinPad on_digit={handle_first_digit} on_backspace={handle_first_backspace} />
           </div>
         )}
         {step === "confirm_pin" && (
-          <div className="flex flex-col items-center gap-4 pt-1">
+          <div className="flex flex-col items-center gap-2 pt-1">
             <PinDots digits={chosen_digits} filled={confirm_input.length} shake_key={shake_key} />
-            <div className="h-4 flex items-center justify-center">
-              {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
-              {saving && <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />}
-            </div>
-            <PinPad on_digit={handle_confirm_digit} on_backspace={handle_confirm_backspace} disabled={saving} pressed_key={pressed_key} />
+            {(error_msg || saving) && (
+              <div className="flex items-center justify-center -mb-1">
+                {error_msg && <p className="text-xs text-red-500">{error_msg}</p>}
+                {saving && <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />}
+              </div>
+            )}
+            <PinPad on_digit={handle_confirm_digit} on_backspace={handle_confirm_backspace} disabled={saving} />
           </div>
         )}
         {(step === "set_text" || step === "confirm_text") && (
