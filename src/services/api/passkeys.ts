@@ -248,6 +248,7 @@ export async function register_platform_passkey(
     },
     type: credential.type,
     name_encrypted: resolved_name,
+    challenge_token: options.challenge,
   });
 }
 
@@ -260,6 +261,7 @@ export async function register_security_key(
   }
 
   const options = options_response.data;
+  const resolved_name = friendly_name ?? "Security Key";
   const public_key: PublicKeyCredentialCreationOptions = {
     challenge: base64url_to_array_buffer(options.challenge),
     rp: { name: options.rp.name, id: options.rp.id },
@@ -323,7 +325,8 @@ export async function register_security_key(
       ),
     },
     type: credential.type,
-    name_encrypted: friendly_name,
+    name_encrypted: resolved_name,
+    challenge_token: options.challenge,
   });
 }
 
