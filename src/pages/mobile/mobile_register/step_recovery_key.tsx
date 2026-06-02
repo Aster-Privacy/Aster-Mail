@@ -172,7 +172,7 @@ export function StepRecoveryKey({
           type="button"
           onClick={() => {
             if (reg.is_pdf_downloaded || reg.is_text_downloaded) {
-              go_forward("recovery_email");
+              reg.handle_advance_from_recovery_key();
             } else {
               reg.set_show_skip_confirmation(true);
             }
@@ -225,7 +225,7 @@ export function StepRecoveryKey({
                   whileTap={button_tap}
                   onClick={() => {
                     reg.set_show_skip_confirmation(false);
-                    go_forward("recovery_email");
+                    reg.handle_advance_from_recovery_key();
                   }}
                 >
                   {reg.t("common.continue_anyway")}
