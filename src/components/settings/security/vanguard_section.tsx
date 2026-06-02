@@ -139,7 +139,7 @@ export function VanguardSection() {
                 description={t("settings.vanguard_info")}
               />
               {enabled && (
-                <span className="inline-flex items-center px-1.5 py-0.5 text-[11px] font-medium rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30">
+                <span className="inline-flex items-center px-1.5 py-0.5 text-[11px] font-medium rounded-md bg-emerald-500 text-white border border-emerald-600">
                   {t("settings.vanguard_active")}
                 </span>
               )}

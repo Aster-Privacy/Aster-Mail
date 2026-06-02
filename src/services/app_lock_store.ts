@@ -42,7 +42,8 @@ interface AttemptState {
 
 function get_attempt_state(account_id: string): AttemptState {
   try {
-    const raw = localStorage.getItem(attempts_key(account_id));
+    const raw = sessionStorage.getItem(attempts_key(account_id))
+      ?? localStorage.getItem(attempts_key(account_id));
     if (!raw) return { count: 0, locked_until: null, lockout_count: 0 };
     return JSON.parse(raw) as AttemptState;
   } catch {
@@ -74,16 +75,18 @@ function record_failed_attempt(account_id: string): { locked: boolean; attempts_
     locked_until: now_locked ? Date.now() + lockout_ms : null,
     lockout_count: new_lockout_count,
   };
-  localStorage.setItem(attempts_key(account_id), JSON.stringify(new_state));
+  sessionStorage.setItem(attempts_key(account_id), JSON.stringify(new_state));
+  localStorage.removeItem(attempts_key(account_id));
   return { locked: now_locked, attempts_remaining: Math.max(0, MAX_ATTEMPTS - new_count) };
 }
 
 function reset_attempts(account_id: string): void {
   const state = get_attempt_state(account_id);
+  localStorage.removeItem(attempts_key(account_id));
   if (state.lockout_count > 0) {
-    localStorage.setItem(attempts_key(account_id), JSON.stringify({ count: 0, locked_until: null, lockout_count: 0 }));
+    sessionStorage.setItem(attempts_key(account_id), JSON.stringify({ count: 0, locked_until: null, lockout_count: 0 }));
   } else {
-    localStorage.removeItem(attempts_key(account_id));
+    sessionStorage.removeItem(attempts_key(account_id));
   }
 }
 
@@ -117,6 +120,7 @@ export function clear_app_lock_config(account_id: string): void {
   localStorage.removeItem(lock_key(account_id));
   localStorage.removeItem(hint_key(account_id));
   localStorage.removeItem(attempts_key(account_id));
+  sessionStorage.removeItem(attempts_key(account_id));
 }
 
 export function get_lock_hint(account_id: string): boolean {
