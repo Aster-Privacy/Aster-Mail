@@ -159,6 +159,7 @@ export async function create_checkout_session(
   plan_code: string,
   billing_interval: string = "month",
   currency?: string,
+  apply_credits_cents?: number,
 ) {
   return api_client.post<CheckoutSessionResponse>(
     "/payments/v1/checkout-session",
@@ -166,6 +167,7 @@ export async function create_checkout_session(
       plan_code,
       billing_interval,
       ...(currency ? { currency } : {}),
+      ...(apply_credits_cents && apply_credits_cents > 0 ? { apply_credits_cents } : {}),
     },
   );
 }
@@ -174,11 +176,13 @@ export async function start_hosted_checkout(
   plan_code: string,
   billing_interval: string = "month",
   currency?: string,
+  apply_credits_cents?: number,
 ): Promise<{ ok: boolean; error?: string }> {
   const response = await create_checkout_session(
     plan_code,
     billing_interval,
     currency,
+    apply_credits_cents,
   );
 
   const url = response.data?.url;
@@ -318,10 +322,13 @@ export async function get_storage_addons() {
   return api_client.get<StorageAddonsResponse>("/sync/v1/storage/addons");
 }
 
-export async function purchase_storage_addon(addon_id: string) {
+export async function purchase_storage_addon(addon_id: string, apply_credits_cents?: number) {
   return api_client.post<PurchaseAddonResponse>(
     "/sync/v1/storage/addons/purchase",
-    { addon_id },
+    {
+      addon_id,
+      ...(apply_credits_cents && apply_credits_cents > 0 ? { apply_credits_cents } : {}),
+    },
   );
 }
 

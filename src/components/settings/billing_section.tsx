@@ -175,6 +175,7 @@ export function BillingSection() {
         t("settings.plan_f_custom_key_rotation"),
         t("settings.plan_f_external_accounts"),
         t("settings.plan_f_imap_smtp_bridge"),
+        t("settings.vanguard_title"),
       ],
       supernova: [
         t("settings.plan_f_storage", { value: "5 TB" }),
@@ -194,6 +195,7 @@ export function BillingSection() {
         t("settings.plan_f_imap_smtp_bridge"),
         t("settings.plan_f_support_dedicated"),
         t("settings.plan_f_early_access"),
+        t("settings.vanguard_title"),
       ],
     }),
     [t],
@@ -367,6 +369,7 @@ export function BillingSection() {
       plan.code,
       checkout_interval,
       preferred_currency,
+      credit_balance?.balance_cents,
     );
 
     if (!result.ok) {
@@ -385,7 +388,7 @@ export function BillingSection() {
 
     set_is_action_loading(true);
     try {
-      const response = await purchase_storage_addon(addon.id);
+      const response = await purchase_storage_addon(addon.id, credit_balance?.balance_cents);
       const url = response.data?.url;
 
       if (url) {
