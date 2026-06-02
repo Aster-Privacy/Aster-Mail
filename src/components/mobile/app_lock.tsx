@@ -268,13 +268,9 @@ function WebPinOverlay({
               on_check={handle_text_submit}
               pressed_key={pressed_key}
             />
-            <button
-              type="button"
-              className="mt-1 text-xs text-txt-muted hover:text-txt-primary transition-colors"
-              onClick={on_sign_out}
-            >
+            <Button variant="outline" onClick={on_sign_out}>
               {t("settings.sign_out")}
-            </button>
+            </Button>
           </>
         ) : (
           <div className="flex flex-col items-center gap-2 w-72">
@@ -293,12 +289,10 @@ function WebPinOverlay({
                 disabled={verifying || locked_out}
                 onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
                 onKeyDown={e => { if (e.key === "Enter" && input.length >= 1) handle_text_submit(); }}
-                placeholder=""
+                placeholder={t("common.enter_passphrase")}
               />
             </motion.div>
-            <div className="h-4 flex items-center justify-center">
-              {message && <p className="text-xs text-red-500">{message}</p>}
-            </div>
+            {message && <p className="text-xs text-red-500 -mt-1">{message}</p>}
             <Button
               variant="depth"
               className="w-full"
@@ -334,7 +328,11 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   const [is_authenticating, set_is_authenticating] = useState(false);
   const [biometry_name, set_biometry_name] = useState("Biometric");
   const [last_active, set_last_active] = useState(Date.now());
-  const [is_web_locked, set_is_web_locked] = useState(false);
+  const [is_web_locked, set_is_web_locked] = useState(() => {
+    if (is_native_platform()) return false;
+    const stored = localStorage.getItem("aster:app_lock_hint");
+    return stored === "1";
+  });
   const [web_pin_digits, set_web_pin_digits] = useState(4);
   const [web_pin_type, set_web_pin_type] = useState<"numeric" | "text">("numeric");
   const hidden_at_ref = useRef<number | null>(null);

@@ -108,10 +108,12 @@ export function get_app_lock_config(account_id: string): AppLockConfig | null {
 
 export function save_app_lock_config(account_id: string, config: AppLockConfig): void {
   localStorage.setItem(lock_key(account_id), JSON.stringify(config));
+  if (config.enabled) localStorage.setItem("aster:app_lock_hint", "1");
 }
 
 export function clear_app_lock_config(account_id: string): void {
   localStorage.removeItem(lock_key(account_id));
+  localStorage.removeItem("aster:app_lock_hint");
 }
 
 export function generate_pin_salt(): Uint8Array {

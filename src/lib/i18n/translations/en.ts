@@ -1466,7 +1466,7 @@ export const en: Translations = {
     app_lock_passphrase_mismatch: "Passphrases do not match. Try again.",
     app_lock_passphrase_too_short: "Passphrase must be at least 4 characters",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "Nova+ only. More features coming soon.",
+    vanguard_description: "Advanced protection for journalists, activists, and high-risk accounts. Nova+ only.",
     vanguard_info: "Aster Vanguard enables sophisticated security features designed for journalists, activists, lawyers, and anyone with elevated risk. Includes PIN app lock, enhanced session controls, and more protections as they roll out.",
     vanguard_active: "Vanguard Active",
     vanguard_learn_more: "Learn more",

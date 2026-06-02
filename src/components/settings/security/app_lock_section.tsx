@@ -18,10 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button, Switch } from "@aster/ui";
-import { ArrowLeftIcon, BackspaceIcon, CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, BackspaceIcon, CheckIcon, XMarkIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -69,45 +69,39 @@ function PinDots({ digits, filled, shake_key }: { digits: number; filled: number
   );
 }
 
-function PinPad({ on_digit, on_backspace, disabled }: {
+function PinPad({ on_digit, on_backspace, on_check, disabled, pressed_key }: {
   on_digit: (d: string) => void;
   on_backspace: () => void;
+  on_check?: () => void;
   disabled?: boolean;
+  pressed_key?: string | null;
 }) {
-  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "back"];
+  const btn = (active: boolean, extra?: string) => cn(
+    "h-12 w-12 mx-auto rounded-full flex items-center justify-center transition-all duration-75 focus:outline-none focus-visible:outline-none",
+    disabled ? "opacity-40 cursor-not-allowed" : "bg-muted hover:bg-muted/70",
+    active && !disabled && "scale-90 bg-muted/50",
+    extra,
+  );
   return (
     <div className="grid grid-cols-3 gap-2">
-      {keys.map((k, i) =>
-        k === "" ? (
-          <div key={i} />
-        ) : k === "back" ? (
-          <button
-            key={i}
-            type="button"
-            disabled={disabled}
-            className={cn(
-              "h-12 w-12 mx-auto rounded-full flex items-center justify-center transition-colors focus:outline-none",
-              disabled ? "opacity-40 cursor-not-allowed" : "bg-muted hover:bg-muted/70 active:scale-95",
-            )}
-            onClick={on_backspace}
-          >
-            <BackspaceIcon className="h-4 w-4 text-txt-primary" />
-          </button>
-        ) : (
-          <button
-            key={i}
-            type="button"
-            disabled={disabled}
-            className={cn(
-              "h-12 w-12 mx-auto rounded-full text-base font-medium flex items-center justify-center transition-colors",
-              disabled ? "opacity-40 cursor-not-allowed" : "bg-muted hover:bg-muted/70 active:scale-95",
-            )}
-            onClick={() => on_digit(k)}
-          >
-            {k}
-          </button>
-        ),
-      )}
+      {["1","2","3","4","5","6","7","8","9"].map(k => (
+        <button key={k} type="button" disabled={disabled}
+          className={cn(btn(pressed_key === k), "text-base font-medium")}
+          onClick={() => on_digit(k)}>{k}</button>
+      ))}
+      <button type="button" disabled={disabled}
+        className={btn(pressed_key === "Backspace")}
+        onClick={on_backspace}>
+        <BackspaceIcon className="h-4 w-4 text-txt-primary" />
+      </button>
+      <button key="0" type="button" disabled={disabled}
+        className={cn(btn(pressed_key === "0"), "text-base font-medium")}
+        onClick={() => on_digit("0")}>0</button>
+      <button type="button" disabled={disabled}
+        className={btn(pressed_key === "Enter")}
+        onClick={on_check}>
+        <CheckIcon className="h-4 w-4 text-txt-primary" />
+      </button>
     </div>
   );
 }
@@ -123,7 +117,9 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
   const config = get_app_lock_config(account_id);
   const pin_type = config?.pin_type ?? "numeric";
   const digits = pin_type === "numeric" ? (config?.digits ?? 4) : 0;
+  const text_input_ref = useRef<HTMLInputElement>(null);
   const [input, set_input] = useState("");
+  const [pressed_key, set_pressed_key] = useState<string | null>(null);
   const [shake_key, set_shake_key] = useState(0);
   const [error_msg, set_error_msg] = useState<string | null>(null);
   const [verifying, set_verifying] = useState(false);
@@ -145,7 +141,11 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
       set_locked_out(true);
       set_lockout_secs(Math.ceil(remaining_ms / 1000));
     }
-  }, [is_open, account_id]);
+    if (pin_type === "text") {
+      const timer = setTimeout(() => text_input_ref.current?.focus(), 150);
+      return () => clearTimeout(timer);
+    }
+  }, [is_open, account_id, pin_type]);
 
   useEffect(() => {
     if (!locked_out) return;
@@ -213,8 +213,9 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
       if (pin_type === "text") {
         if (e.key === "Enter") handle_text_submit();
       } else {
-        if (e.key >= "0" && e.key <= "9") handle_digit(e.key);
-        else if (e.key === "Backspace") handle_backspace();
+        const k = e.key;
+        if (k >= "0" && k <= "9") { set_pressed_key(k); setTimeout(() => set_pressed_key(null), 120); handle_digit(k); }
+        else if (k === "Backspace") { set_pressed_key("Backspace"); setTimeout(() => set_pressed_key(null), 120); handle_backspace(); }
       }
     };
     window.addEventListener("keydown", on_key);
@@ -233,7 +234,7 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
       </ModalHeader>
       <ModalBody>
         {pin_type === "numeric" ? (
-          <div className="flex flex-col items-center gap-5 py-2">
+          <div className="flex flex-col items-center gap-3">
             <PinDots digits={digits} filled={input.length} shake_key={shake_key} />
             <div className="h-4 flex items-center justify-center">
               {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
@@ -241,19 +242,21 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               )}
             </div>
-            <PinPad on_digit={handle_digit} on_backspace={handle_backspace} disabled={verifying || locked_out} />
+            <PinPad on_digit={handle_digit} on_backspace={handle_backspace} disabled={verifying || locked_out} pressed_key={pressed_key} />
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             <motion.div
               key={shake_key}
               animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
               transition={{ duration: 0.35 }}
             >
-              <Input
+              <input
+                ref={text_input_ref}
                 type="password"
                 autoComplete="off"
-                autoFocus
+                data-form-type="other"
+                className="w-full px-3 py-2.5 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
                 value={input}
                 disabled={verifying || locked_out}
                 onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
@@ -261,24 +264,15 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
                 placeholder={t("settings.app_lock_text_placeholder")}
               />
             </motion.div>
-            <div className="h-4 flex items-center justify-center">
-              {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
-              {verifying && !error_msg && (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              )}
-            </div>
+            {error_msg && <p className="text-sm text-red-500 -mt-1">{error_msg}</p>}
+            <Button variant="depth" disabled={verifying || locked_out || input.length < 1} onClick={handle_text_submit}>
+              {verifying
+                ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
+                : t("common.continue")}
+            </Button>
           </div>
         )}
       </ModalBody>
-      {pin_type === "text" && (
-        <ModalFooter>
-          <Button variant="depth" disabled={verifying || locked_out || input.length < 1} onClick={handle_text_submit}>
-            {verifying
-              ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              : t("common.continue")}
-          </Button>
-        </ModalFooter>
-      )}
     </Modal>
   );
 }
@@ -302,6 +296,8 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
   const [shake_key, set_shake_key] = useState(0);
   const [error_msg, set_error_msg] = useState<string | null>(null);
   const [saving, set_saving] = useState(false);
+  const [show_passphrase, set_show_passphrase] = useState(false);
+  const [pressed_key, set_pressed_key] = useState<string | null>(null);
 
   const reset = useCallback(() => {
     set_step("choose_mode");
@@ -411,12 +407,13 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
   useEffect(() => {
     if (!is_open) return;
     const on_key = (e: KeyboardEvent) => {
+      const k = e.key;
       if (step === "set_pin") {
-        if (e.key >= "0" && e.key <= "9") handle_first_digit(e.key);
-        else if (e.key === "Backspace") handle_first_backspace();
+        if (k >= "0" && k <= "9") { set_pressed_key(k); setTimeout(() => set_pressed_key(null), 120); handle_first_digit(k); }
+        else if (k === "Backspace") { set_pressed_key("Backspace"); setTimeout(() => set_pressed_key(null), 120); handle_first_backspace(); }
       } else if (step === "confirm_pin") {
-        if (e.key >= "0" && e.key <= "9") handle_confirm_digit(e.key);
-        else if (e.key === "Backspace") handle_confirm_backspace();
+        if (k >= "0" && k <= "9") { set_pressed_key(k); setTimeout(() => set_pressed_key(null), 120); handle_confirm_digit(k); }
+        else if (k === "Backspace") { set_pressed_key("Backspace"); setTimeout(() => set_pressed_key(null), 120); handle_confirm_backspace(); }
       }
     };
     window.addEventListener("keydown", on_key);
@@ -461,7 +458,7 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
               className={cn(
                 "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
                 chosen_mode === "numeric"
-                  ? "bg-brand text-white"
+                  ? "bg-brand text-white border border-brand"
                   : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
               )}
               onClick={() => set_chosen_mode("numeric")}
@@ -476,7 +473,7 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
               className={cn(
                 "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
                 chosen_mode === "text"
-                  ? "bg-brand text-white"
+                  ? "bg-brand text-white border border-brand"
                   : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
               )}
               onClick={() => set_chosen_mode("text")}
@@ -508,75 +505,66 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
           </div>
         )}
         {step === "set_pin" && (
-          <div className="flex flex-col items-center gap-6 py-2">
+          <div className="flex flex-col items-center gap-4">
             <PinDots digits={chosen_digits} filled={first_pin.length} shake_key={0} />
-            <PinPad on_digit={handle_first_digit} on_backspace={handle_first_backspace} />
+            <PinPad on_digit={handle_first_digit} on_backspace={handle_first_backspace} pressed_key={pressed_key} />
           </div>
         )}
         {step === "confirm_pin" && (
-          <div className="flex flex-col items-center gap-5 py-2">
+          <div className="flex flex-col items-center gap-4">
             <PinDots digits={chosen_digits} filled={confirm_input.length} shake_key={shake_key} />
-            <div className="h-4 flex items-center justify-center">
-              {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
-              {saving && <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />}
-            </div>
-            <PinPad on_digit={handle_confirm_digit} on_backspace={handle_confirm_backspace} disabled={saving} />
+            {error_msg && <p className="text-sm text-red-500 -mt-2">{error_msg}</p>}
+            {saving && <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent -mt-2" />}
+            <PinPad on_digit={handle_confirm_digit} on_backspace={handle_confirm_backspace} disabled={saving} pressed_key={pressed_key} />
           </div>
         )}
         {(step === "set_text" || step === "confirm_text") && (
-          <div className="flex flex-col gap-4 py-2">
+          <div className="flex flex-col gap-3">
             <motion.div
               key={shake_key}
               animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
               transition={{ duration: 0.35 }}
+              className="relative"
             >
-              <Input
-                type="password"
+              <input
+                type={show_passphrase ? "text" : "password"}
                 autoComplete="off"
+                data-form-type="other"
                 autoFocus
+                className="w-full px-3 py-2.5 pr-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
                 value={text_input}
                 onChange={e => set_text_input(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handle_text_continue()}
                 placeholder={t("settings.app_lock_text_placeholder")}
               />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary transition-colors"
+                onClick={() => set_show_passphrase(v => !v)}
+              >
+                {show_passphrase ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+              </button>
             </motion.div>
-            <div className="h-4 flex items-center justify-center">
-              {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
-              {saving && <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />}
-            </div>
+            {error_msg && <p className="text-sm text-red-500 -mt-1">{error_msg}</p>}
+            {saving && <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />}
           </div>
         )}
       </ModalBody>
       {(step === "choose_mode" || step === "choose_digits" || step === "set_text" || step === "confirm_text") && (
         <ModalFooter>
-          <button
-            type="button"
-            className="flex items-center justify-center h-10 w-10 rounded-full bg-surf-secondary border border-edge-secondary hover:bg-surf-tertiary transition-colors"
-            onClick={is_first_step ? on_close : handle_back}
-            aria-label={is_first_step ? t("common.cancel") : t("common.back")}
-          >
-            {is_first_step ? <XMarkIcon className="h-4 w-4 text-txt-primary" /> : <ArrowLeftIcon className="h-4 w-4 text-txt-primary" />}
-          </button>
+          <Button variant="outline" onClick={is_first_step ? on_close : handle_back}>
+            {is_first_step ? t("common.cancel") : t("common.back")}
+          </Button>
           {(step === "choose_mode" || step === "choose_digits") && (
-            <button
-              type="button"
-              className="flex items-center justify-center h-10 w-10 rounded-full bg-brand hover:opacity-90 transition-opacity focus:outline-none"
-              onClick={step === "choose_mode" ? handle_mode_continue : () => set_step("set_pin")}
-              aria-label={t("common.continue")}
-            >
-              <CheckIcon className="h-4 w-4 text-white" />
-            </button>
+            <Button variant="depth" onClick={step === "choose_mode" ? handle_mode_continue : () => set_step("set_pin")}>
+              {t("common.continue")}
+            </Button>
           )}
           {(step === "set_text" || step === "confirm_text") && (
-            <button
-              type="button"
-              disabled={saving || text_input.length < 1}
-              className="flex items-center justify-center h-10 w-10 rounded-full bg-brand hover:opacity-90 transition-opacity disabled:opacity-40 focus:outline-none"
-              onClick={handle_text_continue}
-              aria-label={t("common.continue")}
-            >
-              <CheckIcon className="h-4 w-4 text-white" />
-            </button>
+            <Button variant="depth" disabled={saving || text_input.length < 1} onClick={handle_text_continue}>
+              {t("common.continue")}
+            </Button>
           )}
         </ModalFooter>
       )}
