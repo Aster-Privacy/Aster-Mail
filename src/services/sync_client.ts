@@ -29,6 +29,7 @@ import { TorUnavailableError } from "./routing/tor_unavailable_error";
 import { is_onion_host } from "@/lib/onion_host";
 
 import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { is_low_network } from "@/services/low_network_state";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -188,8 +189,8 @@ class SyncClient {
   private schedule_reconnect(): void {
     if (this.reconnect_timeout || !this.should_reconnect) return;
 
-    const base_delay = 3000;
-    const max_delay = 60000;
+    const base_delay = is_low_network() ? 10000 : 3000;
+    const max_delay = is_low_network() ? 300000 : 60000;
     const delay = Math.min(
       base_delay * Math.pow(2, this.reconnect_attempt),
       max_delay,

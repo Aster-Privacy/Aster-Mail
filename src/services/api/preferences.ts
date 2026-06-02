@@ -138,6 +138,7 @@ export interface UserPreferences {
   migration_haptic_v1_done: boolean;
   migration_tracker_blocking_v2_done: boolean;
   html_rendering_mode: "html" | "plain_text";
+  low_network_mode: boolean;
   strip_exif_on_compose: boolean;
 }
 
@@ -414,6 +415,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   migration_haptic_v1_done: false,
   migration_tracker_blocking_v2_done: false,
   html_rendering_mode: "html",
+  low_network_mode: false,
   strip_exif_on_compose: true,
 };
 

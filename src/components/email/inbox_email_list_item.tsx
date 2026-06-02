@@ -56,6 +56,7 @@ import {
   get_alias_hash_by_address,
   subscribe_aliases,
 } from "@/hooks/use_sidebar_aliases";
+import { use_preferences } from "@/contexts/preferences_context";
 
 interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
   email: InboxEmail;
@@ -98,8 +99,11 @@ function get_density_classes(density: string): string {
   return "py-2.5";
 }
 
-function truncate_preview(preview: string, subject_length: number): string {
-  const char_budget = Math.max(30, 100 - subject_length);
+function truncate_preview(preview: string, subject_length: number, max_cap?: number): string {
+  const char_budget = Math.min(
+    max_cap ?? Infinity,
+    Math.max(30, 100 - subject_length),
+  );
 
   if (preview.length <= char_budget) return preview;
 
@@ -193,6 +197,7 @@ export const InboxEmailListItem = memo(
       ref,
     ) {
       const { t } = use_i18n();
+      const { preferences } = use_preferences();
       const peer_profile = use_peer_profile(
         is_system_email(email.sender_email) ? null : email.sender_email,
       );
@@ -691,6 +696,7 @@ export const InboxEmailListItem = memo(
                         truncate_preview(
                           email.preview,
                           (email.subject || "").length,
+                          preferences.low_network_mode ? 80 : undefined,
                         )}
                     </span>
                   )}

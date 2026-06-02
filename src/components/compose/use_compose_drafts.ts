@@ -21,6 +21,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
+import { use_preferences } from "@/contexts/preferences_context";
 import {
   get_preferences,
   DEFAULT_PREFERENCES,
@@ -81,6 +82,7 @@ export function use_compose_drafts({
   draft_context_id_ref,
 }: UseComposeDraftsOptions): UseComposeDraftsReturn {
   const { vault } = use_auth();
+  const { preferences } = use_preferences();
 
   const [auto_save_drafts, set_auto_save_drafts] = useState(
     DEFAULT_PREFERENCES.auto_save_drafts,
@@ -137,6 +139,7 @@ export function use_compose_drafts({
     }
 
     const context_id = draft_context_id_ref.current;
+    const autosave_delay = preferences.low_network_mode ? 5000 : 1000;
 
     save_timer_ref.current = setTimeout(async () => {
       if (is_sending_ref.current || !context_id) {
@@ -176,14 +179,14 @@ export function use_compose_drafts({
         set_draft_status("error");
       }
       save_timer_ref.current = null;
-    }, 1000);
+    }, autosave_delay);
 
     return () => {
       if (save_timer_ref.current) {
         clearTimeout(save_timer_ref.current);
       }
     };
-  }, [recipients, subject, message, attachments, auto_save_drafts, vault]);
+  }, [recipients, subject, message, attachments, auto_save_drafts, vault, preferences.low_network_mode]);
 
   const handle_delete_draft = useCallback(async () => {
     if (save_timer_ref.current) {
@@ -221,7 +224,11 @@ export function use_compose_drafts({
         const has_content =
           data.recipients.to.length > 0 || data.subject || data.message;
 
-        const should_save = has_content && (edit_draft || user_modified_ref.current);
+        const body_empty = !data.message;
+        const should_save =
+          has_content &&
+          (edit_draft || user_modified_ref.current) &&
+          !(preferences.low_network_mode && body_empty);
 
         if (should_save) {
           const close_att_data =
@@ -267,7 +274,7 @@ export function use_compose_drafts({
     if (edit_draft && on_draft_cleared) {
       on_draft_cleared();
     }
-  }, [on_close, edit_draft, on_draft_cleared, vault, auto_save_drafts]);
+  }, [on_close, edit_draft, on_draft_cleared, vault, auto_save_drafts, preferences.low_network_mode]);
 
   return {
     draft_status,

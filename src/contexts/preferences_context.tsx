@@ -59,6 +59,8 @@ import {
   get_display_name,
 } from "@/lib/i18n/languages";
 import { configure_session_timeout } from "@/services/session_timeout_service";
+import { set_low_network_mode } from "@/services/low_network_state";
+import { stop_version_check } from "@/lib/version_check";
 
 const LANGUAGE_OPTIONS = get_supported_languages().map((lang) => ({
   code: lang.code,
@@ -287,10 +289,12 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       });
     }
 
+    const save_delay = latest_prefs_ref.current?.low_network_mode ? 2000 : 400;
+
     debounce_timer.current = window.setTimeout(() => {
       debounce_timer.current = null;
       flush_save_ref.current();
-    }, 400);
+    }, save_delay);
   }, []);
 
   const trigger_save = useCallback((prefs: UserPreferences) => {
@@ -527,15 +531,40 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     }
 
     if (response.loaded_from_server && response.data) {
-      const merged = normalize_preferences({ ...DEFAULT_PREFERENCES, ...response.data });
+      let merged = normalize_preferences({ ...DEFAULT_PREFERENCES, ...response.data });
+
+      const nav_conn = (navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+      const is_save_data = nav_conn?.saveData === true;
+      const is_slow = nav_conn?.effectiveType === "slow-2g" || nav_conn?.effectiveType === "2g";
+      if ((is_save_data || is_slow) && !merged.low_network_mode) {
+        merged = { ...merged, low_network_mode: true };
+        cache_preferences_locally(merged);
+        do_save(merged).catch(() => {});
+      }
+
+      const url_low_bandwidth = new URLSearchParams(window.location.search).get("low_bandwidth");
+      const is_same_origin_nav =
+        !document.referrer ||
+        new URL(document.referrer).origin === window.location.origin;
+      if (url_low_bandwidth !== null && is_same_origin_nav) {
+        const want_enabled = url_low_bandwidth === "1" || url_low_bandwidth === "true";
+        const want_disabled = url_low_bandwidth === "0" || url_low_bandwidth === "false";
+        if ((want_enabled && !merged.low_network_mode) || (want_disabled && merged.low_network_mode)) {
+          merged = { ...merged, low_network_mode: want_enabled };
+          cache_preferences_locally(merged);
+          do_save(merged).catch(() => {});
+        }
+      }
 
       set_preferences(merged);
-      apply_visual_preferences(response.data);
+      set_low_network_mode(merged.low_network_mode);
+      apply_visual_preferences(merged);
     } else {
       const cached = get_cached_preferences();
 
       if (cached) {
         set_preferences(cached);
+        set_low_network_mode(cached.low_network_mode);
         apply_visual_preferences(cached);
       }
     }
@@ -734,6 +763,46 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   useEffect(() => {
     sync_haptic_state(preferences.haptic_enabled);
   }, [preferences.haptic_enabled]);
+
+  useEffect(() => {
+    const style_id = "aster-low-network-fonts";
+    const existing = document.getElementById(style_id);
+    if (preferences.low_network_mode) {
+      stop_version_check();
+      if (!existing) {
+        const style = document.createElement("style");
+        style.id = style_id;
+        style.textContent = [
+          "*, *::before, *::after { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; }",
+          "@media all { .animate-pulse, [class*='animate-'] { animation: none !important; transition: none !important; } }",
+        ].join("\n");
+        document.head.appendChild(style);
+      }
+    } else {
+      if (existing) existing.remove();
+    }
+    set_low_network_mode(preferences.low_network_mode);
+  }, [preferences.low_network_mode]);
+
+  useEffect(() => {
+    const nav_conn = (navigator as unknown as {
+      connection?: { saveData?: boolean; effectiveType?: string; addEventListener: (e: string, h: () => void) => void; removeEventListener: (e: string, h: () => void) => void };
+    }).connection;
+
+    if (!nav_conn || typeof nav_conn.addEventListener !== "function") return;
+
+    const handle_connection_change = () => {
+      const is_save_data = nav_conn.saveData === true;
+      const is_slow =
+        nav_conn.effectiveType === "slow-2g" || nav_conn.effectiveType === "2g";
+      if (is_save_data || is_slow) {
+        update_preference("low_network_mode", true, true);
+      }
+    };
+
+    nav_conn.addEventListener("change", handle_connection_change);
+    return () => nav_conn.removeEventListener("change", handle_connection_change);
+  }, [update_preference]);
 
   useEffect(() => {
     const flush_via_beacon = () => {

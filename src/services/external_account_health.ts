@@ -23,6 +23,7 @@ import {
   type ExternalAccountHealthStatus,
 } from "@/services/api/external_accounts";
 import { en } from "@/lib/i18n/translations/en";
+import { is_low_network } from "@/services/low_network_state";
 
 export type HealthErrorType =
   | "auth_failure"
@@ -56,6 +57,8 @@ export interface HealthCheckHistoryEntry {
 }
 
 const POLL_INTERVAL_MS = 5 * 60 * 1000;
+const LOW_NETWORK_POLL_INTERVAL_MS = 30 * 60 * 1000;
+
 const MAX_CONSECUTIVE_FAILURES_FOR_REAUTH = 3;
 const MAX_HISTORY_ENTRIES = 5;
 const MAX_ERROR_MESSAGE_LENGTH = 512;
@@ -167,7 +170,7 @@ function create_default_health_state(
 class ExternalAccountHealthMonitor {
   private health_states: Map<string, AccountHealthState> = new Map();
   private health_history: Map<string, HealthCheckHistoryEntry[]> = new Map();
-  private poll_timer: ReturnType<typeof setInterval> | null = null;
+  private poll_timer: ReturnType<typeof setTimeout> | null = null;
   private listeners: Set<(states: AccountHealthState[]) => void> = new Set();
   private monitored_tokens: Set<string> = new Set();
   private in_flight_checks: Map<string, AbortController> = new Map();
@@ -203,15 +206,21 @@ class ExternalAccountHealthMonitor {
       this.check_health(token);
     }
 
-    this.poll_timer = setInterval(() => {
-      if (this.destroyed) {
-        return;
-      }
+    this.schedule_poll();
+  }
 
-      for (const token of this.monitored_tokens) {
-        this.check_health(token);
+  private schedule_poll(): void {
+    if (this.destroyed) return;
+    const interval = is_low_network() ? LOW_NETWORK_POLL_INTERVAL_MS : POLL_INTERVAL_MS;
+    this.poll_timer = setTimeout(() => {
+      if (this.destroyed) return;
+      if (!is_low_network()) {
+        for (const token of this.monitored_tokens) {
+          this.check_health(token);
+        }
       }
-    }, POLL_INTERVAL_MS);
+      this.schedule_poll();
+    }, interval);
   }
 
   async check_health(account_token: string): Promise<AccountHealthState> {
@@ -511,7 +520,7 @@ class ExternalAccountHealthMonitor {
     this.destroyed = true;
 
     if (this.poll_timer !== null) {
-      clearInterval(this.poll_timer);
+      clearTimeout(this.poll_timer);
       this.poll_timer = null;
     }
 

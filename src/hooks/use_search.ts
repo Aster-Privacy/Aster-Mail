@@ -57,6 +57,7 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import {
   secure_store,
   secure_retrieve,
@@ -406,6 +407,7 @@ interface CachedIndex {
 const HASH_ALG = ["SHA", "256"].join("-");
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 const INDEX_TTL_MS = 5 * 60 * 1000;
+const INDEX_TTL_MS_LOW_NETWORK = 20 * 60 * 1000;
 
 let cached_index: CachedIndex | null = null;
 let index_build_promise: Promise<CachedIndex> | null = null;
@@ -722,6 +724,7 @@ export async function prewarm_search_index(
 async function build_search_index(
   user_email: string,
   include_body: boolean,
+  ttl_ms: number = INDEX_TTL_MS,
 ): Promise<CachedIndex> {
   if (cached_index && cached_index.user_email !== user_email) {
     cached_index = null;
@@ -732,7 +735,7 @@ async function build_search_index(
   const cache_valid =
     cached_index &&
     cached_index.user_email === user_email &&
-    Date.now() - cached_index.built_at < INDEX_TTL_MS &&
+    Date.now() - cached_index.built_at < ttl_ms &&
     (cached_index.include_body || !include_body);
 
   if (cache_valid) {
@@ -1051,6 +1054,11 @@ function to_search_result(
 export function use_search() {
   const { user } = use_auth();
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
+
+  const ttl = preferences.low_network_mode
+    ? INDEX_TTL_MS_LOW_NETWORK
+    : INDEX_TTL_MS;
   const [state, set_state] = useState<SearchState>({
     query: "",
     results: [],
@@ -1111,6 +1119,7 @@ export function use_search() {
         const index = await build_search_index(
           user?.email || "",
           search_body,
+          ttl,
         );
 
         set_state((prev) => ({ ...prev, index_building: false }));
@@ -1250,11 +1259,11 @@ export function use_search() {
 
   const start_index_build = useCallback(
     (include_body: boolean) => {
-      build_search_index(user?.email || "", include_body).catch(() => {
+      build_search_index(user?.email || "", include_body, ttl).catch(() => {
         // first real search will surface the error
       });
     },
-    [user?.email],
+    [user?.email, ttl],
   );
 
   return {

@@ -30,6 +30,7 @@ import { get_initials, get_active_locale } from "@/lib/initials";
 import { get_avatar_color, get_contrast_text } from "@/lib/avatar_color";
 import { get_root_domain } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
+import { use_preferences } from "@/contexts/preferences_context";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 
@@ -96,14 +97,17 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   profile_color,
 }: ProfileAvatarProps) {
   const { user } = use_auth();
+  const { preferences } = use_preferences();
+  const low_network = preferences.low_network_mode;
   const is_current_user =
     !!email &&
     !!user?.email &&
     email.trim().toLowerCase() === user.email.trim().toLowerCase();
   const peer_profile = use_peer_profile(is_current_user ? null : email);
-  const resolved_image_url =
-    image_url ||
-    (is_current_user ? user?.profile_picture : peer_profile?.profile_picture ?? undefined);
+  const resolved_image_url = low_network
+    ? undefined
+    : image_url ||
+      (is_current_user ? user?.profile_picture : peer_profile?.profile_picture ?? undefined);
   const my_badge_prefs = use_my_badge_prefs();
   const show_self_ring =
     is_current_user &&
@@ -159,6 +163,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
 
   const ddg_logo_url = useMemo(() => {
     if (
+      low_network ||
       !use_domain_logo ||
       !domain ||
       is_aster_mail ||
@@ -169,7 +174,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
       return null;
 
     return get_favicon_url(domain);
-  }, [use_domain_logo, domain, is_aster_mail, is_aster_domain, ddg_logo_error]);
+  }, [low_network, use_domain_logo, domain, is_aster_mail, is_aster_domain, ddg_logo_error]);
 
   const handle_ddg_logo_error = useCallback(() => {
     if (domain) mark_icon_failed(domain);
@@ -181,12 +186,14 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   }, []);
 
   const actual_src = useMemo(() => {
+    if (low_network) return null;
     if (resolved_image_url && !image_error) return resolved_image_url;
     if (is_aster_mail) return "/mail_logo.webp";
     if (ddg_logo_url && !ddg_logo_error) return ddg_logo_url;
 
     return null;
   }, [
+    low_network,
     is_aster_mail,
     resolved_image_url,
     ddg_logo_url,
@@ -195,8 +202,8 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   ]);
 
   const error_handler = useMemo(() => {
-    if (resolved_image_url && !image_error) return handle_image_error;
     if (is_aster_mail) return undefined;
+    if (resolved_image_url && !image_error) return handle_image_error;
     if (ddg_logo_url && !ddg_logo_error) return handle_ddg_logo_error;
 
     return undefined;
@@ -328,6 +335,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         crossOrigin={is_favicon_source ? undefined : "anonymous"}
         decoding="async"
         draggable={false}
+        fetchPriority="low"
         referrerPolicy="no-referrer"
         src={actual_src}
         style={

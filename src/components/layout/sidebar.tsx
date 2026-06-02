@@ -595,21 +595,27 @@ export const Sidebar = ({
               <div
                 className={`${is_collapsed ? "w-10 h-10" : "w-11 h-11"} flex-shrink-0 relative`}
               >
-                {!mail_logo_loaded && (
+                {!preferences.low_network_mode && !mail_logo_loaded && (
                   <Skeleton className="absolute inset-0 rounded-lg" />
                 )}
-                <img
-                  ref={mail_logo_ref}
-                  alt="Mail"
-                  className={`w-full h-full select-none rounded-lg transition-opacity duration-150 ${mail_logo_loaded ? "opacity-100" : "opacity-0"}`}
-                  decoding="async"
-                  draggable={false}
-                  src="/mail_logo.webp"
-                  onLoad={() => {
-                    mail_logo_cached = true;
-                    set_mail_logo_loaded(true);
-                  }}
-                />
+                {preferences.low_network_mode ? (
+                  <div className="w-full h-full rounded-lg bg-surf-secondary flex items-center justify-center text-txt-muted font-bold text-lg select-none">
+                    A
+                  </div>
+                ) : (
+                  <img
+                    ref={mail_logo_ref}
+                    alt="Mail"
+                    className={`w-full h-full select-none rounded-lg transition-opacity duration-150 ${mail_logo_loaded ? "opacity-100" : "opacity-0"}`}
+                    decoding="async"
+                    draggable={false}
+                    src="/mail_logo.webp"
+                    onLoad={() => {
+                      mail_logo_cached = true;
+                      set_mail_logo_loaded(true);
+                    }}
+                  />
+                )}
               </div>
               {!is_collapsed && (
                 <>

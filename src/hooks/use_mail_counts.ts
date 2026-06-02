@@ -31,6 +31,7 @@ import type { InboxEmail } from "@/types/email";
 import { useEffect, useSyncExternalStore } from "react";
 
 import { MAIL_EVENTS } from "./mail_events";
+import { is_low_network } from "@/services/low_network_state";
 import {
   adjust_stats_inbox,
   adjust_stats_unread,
@@ -76,6 +77,7 @@ const EMPTY_STATS: MailStats = {
 };
 
 const CACHE_TTL_MS = 30_000;
+const LOW_NETWORK_CACHE_TTL_MS = 5 * 60 * 1000;
 const REFETCH_DEBOUNCE_MS = 500;
 
 interface Cache {
@@ -231,11 +233,12 @@ function debounced_refetch(): void {
   if (refetch_timeout) {
     clearTimeout(refetch_timeout);
   }
+  const refetch_debounce = is_low_network() ? 3000 : REFETCH_DEBOUNCE_MS;
   refetch_timeout = setTimeout(() => {
     refetch_timeout = null;
     cache.timestamp = 0;
     broadcast();
-  }, REFETCH_DEBOUNCE_MS);
+  }, refetch_debounce);
 }
 
 export function invalidate_mail_counts(): void {
@@ -251,7 +254,8 @@ export function use_mail_counts(): MailCountsState {
   );
 
   useEffect(() => {
-    if (Date.now() - cache.timestamp > CACHE_TTL_MS) {
+    const effective_ttl = is_low_network() ? LOW_NETWORK_CACHE_TTL_MS : CACHE_TTL_MS;
+    if (Date.now() - cache.timestamp > effective_ttl) {
       invalidate_mail_stats();
     }
   }, []);

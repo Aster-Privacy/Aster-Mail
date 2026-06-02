@@ -58,6 +58,8 @@ interface EmailDetailBodyProps {
   is_loading: boolean;
   error: string | null;
   thread_messages: DecryptedThreadMessage[];
+  thread_truncated?: boolean;
+  load_all_thread_messages?: () => void;
   thread_draft: DraftWithContent | null;
   current_user_email: string;
   is_sender_dropdown_open: boolean;
@@ -131,6 +133,8 @@ export function EmailDetailBody({
   is_loading,
   error,
   thread_messages,
+  thread_truncated,
+  load_all_thread_messages,
   thread_draft,
   current_user_email,
   is_sender_dropdown_open,
@@ -335,6 +339,17 @@ export function EmailDetailBody({
                 />
               </div>
             )}
+
+          {thread_truncated && load_all_thread_messages && (
+            <div className="mb-3 flex items-center justify-center">
+              <button
+                className="text-xs text-txt-muted hover:text-txt-primary underline underline-offset-2 transition-colors"
+                onClick={load_all_thread_messages}
+              >
+                {t("settings.load_all_thread_messages" as TranslationKey)}
+              </button>
+            </div>
+          )}
 
           <div className="mt-4">
             <ThreadMessagesList

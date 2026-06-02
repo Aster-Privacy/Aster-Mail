@@ -23,6 +23,8 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
+import { use_preferences } from "@/contexts/preferences_context";
+
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
@@ -284,11 +286,13 @@ export function AttachmentList({
   is_local = false,
 }: AttachmentListProps): React.ReactElement | null {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const reduce_motion = use_should_reduce_motion();
   const [attachments, set_attachments] = useState<DecryptedAttachmentInfo[]>(
     [],
   );
-  const [loading, set_loading] = useState(true);
+  const [loading, set_loading] = useState(!preferences.low_network_mode);
+  const [user_expanded, set_user_expanded] = useState(false);
   const [downloading, set_downloading] = useState<string | null>(null);
   const [preview_state, set_preview_state] = useState<{
     type: "image" | "pdf";
@@ -298,6 +302,8 @@ export function AttachmentList({
   } | null>(null);
 
   useEffect(() => {
+    if (preferences.low_network_mode && !user_expanded) return;
+
     let cancelled = false;
 
     async function fetch_attachments() {
@@ -407,10 +413,11 @@ export function AttachmentList({
         return [];
       });
     };
-  }, [mail_item_id, inline_cids, inline_filenames, t]);
+  }, [mail_item_id, inline_cids, inline_filenames, t, preferences.low_network_mode, user_expanded]);
 
   useEffect(() => {
     if (loading || attachments.length === 0) return;
+    if (preferences.low_network_mode && !user_expanded) return;
 
     let cancelled = false;
 
@@ -526,6 +533,38 @@ export function AttachmentList({
     },
     [handle_download],
   );
+
+  if (preferences.low_network_mode && !user_expanded) {
+    return (
+      <div
+        className="border-t px-3 @md:px-4 py-2.5"
+        style={{
+          borderColor: "var(--thread-card-border)",
+          backgroundColor: "var(--thread-content-bg)",
+        }}
+      >
+        <button
+          className="text-xs text-txt-muted hover:text-txt-primary transition-colors flex items-center gap-1.5"
+          onClick={() => set_user_expanded(true)}
+        >
+          <svg
+            className="w-3.5 h-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          {t("mail.load_attachments")}
+        </button>
+      </div>
+    );
+  }
 
   if (loading || attachments.length === 0) {
     return null;

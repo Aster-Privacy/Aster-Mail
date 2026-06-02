@@ -680,7 +680,7 @@ function MobileMailDetail() {
     const user_email = detail.current_user_email;
     const grouping = detail.preferences.conversation_grouping !== false;
 
-    if (detail.can_go_newer) {
+    if (detail.can_go_newer && !detail.preferences.low_network_mode) {
       preload_email_detail(
         detail.email_list[detail.current_email_index - 1],
         user_email,
@@ -688,7 +688,7 @@ function MobileMailDetail() {
         grouping,
       );
     }
-    if (detail.can_go_older) {
+    if (detail.can_go_older && !detail.preferences.low_network_mode) {
       preload_email_detail(
         detail.email_list[detail.current_email_index + 1],
         user_email,
@@ -705,6 +705,7 @@ function MobileMailDetail() {
     detail.current_email_index,
     detail.current_user_email,
     detail.preferences.conversation_grouping,
+    detail.preferences.low_network_mode,
   ]);
 
   const get_last_message = useCallback(() => {

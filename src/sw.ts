@@ -23,7 +23,8 @@ export {};
 
 declare let self: ServiceWorkerGlobalScope;
 
-self.addEventListener("install", () => {
+self.addEventListener("install", (event: ExtendableEvent) => {
+  void event;
   self.skipWaiting();
 });
 
@@ -34,9 +35,7 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
         if (typeof caches !== "undefined") {
           const keys = await caches.keys();
 
-          await Promise.all(
-            keys.map((k) => caches.delete(k).catch(() => false)),
-          );
+          await Promise.all(keys.map((k) => caches.delete(k).catch(() => false)));
         }
       } catch {}
       try {
@@ -44,14 +43,6 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
       } catch {}
     })(),
   );
-});
-
-self.addEventListener("fetch", (event: FetchEvent) => {
-  const url = new URL(event.request.url);
-
-  if (url.origin === self.location.origin && url.pathname.startsWith("/api/")) {
-    return;
-  }
 });
 
 let logout_purge_in_progress = false;

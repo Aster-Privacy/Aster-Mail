@@ -130,6 +130,8 @@ export default function EmailDetailPage() {
               t={detail.t}
               thread_draft={detail.thread_draft}
               thread_messages={detail.thread_messages}
+              thread_truncated={detail.thread_truncated}
+              load_all_thread_messages={detail.load_all_thread_messages}
               user={detail.user}
             />
           </div>
