@@ -396,47 +396,69 @@ export const InboxEmailListItem = memo(
                 }
               }}
             >
-              <div
-                className={cn(
-                  "w-8 h-8 transition-opacity duration-150",
-                  email.is_selected
-                    ? "opacity-0"
-                    : "group-hover/avatar:opacity-0",
-                )}
-              >
-                {is_system_email(email.sender_email) ? (
-                  <img
-                    alt={t("common.aster_mail")}
-                    className="w-8 h-8 rounded-full object-cover"
-                    draggable={false}
-                    src="/mail_logo.webp"
+              {preferences.low_network_mode ? (
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors duration-150",
+                    email.is_selected
+                      ? "bg-[var(--accent-color,#3b82f6)] border-[var(--accent-color,#3b82f6)]"
+                      : "border-edge-primary group-hover/avatar:border-[var(--accent-color,#3b82f6)]",
+                  )}
+                >
+                  <CheckIcon
+                    className={cn(
+                      "w-4 h-4 transition-opacity duration-150",
+                      email.is_selected
+                        ? "text-white opacity-100"
+                        : "text-[var(--accent-color,#3b82f6)] opacity-0 group-hover/avatar:opacity-100",
+                    )}
                   />
-                ) : (
-                  <AvatarRing
-                    badge_slug={peer_badge?.slug}
-                    enabled={show_sender_ring}
-                    thickness={2}
+                </div>
+              ) : (
+                <>
+                  <div
+                    className={cn(
+                      "w-8 h-8 transition-opacity duration-150",
+                      email.is_selected
+                        ? "opacity-0"
+                        : "group-hover/avatar:opacity-0",
+                    )}
                   >
-                    <ProfileAvatar
-                      use_domain_logo={show_profile_pictures}
-                      email={show_sender_email}
-                      image_url={peer_profile?.profile_picture ?? email.avatar_url}
-                      name={peer_profile?.display_name ?? show_sender_name}
-                      size="sm"
-                    />
-                  </AvatarRing>
-                )}
-              </div>
-              <div
-                className={cn(
-                  "absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
-                  email.is_selected
-                    ? "opacity-100 bg-[var(--accent-color,#3b82f6)]"
-                    : "opacity-0 group-hover/avatar:opacity-100 bg-black/20 dark:bg-white/20",
-                )}
-              >
-                <CheckIcon className="w-4 h-4 text-white" />
-              </div>
+                    {is_system_email(email.sender_email) ? (
+                      <img
+                        alt={t("common.aster_mail")}
+                        className="w-8 h-8 rounded-full object-cover"
+                        draggable={false}
+                        src="/mail_logo.webp"
+                      />
+                    ) : (
+                      <AvatarRing
+                        badge_slug={peer_badge?.slug}
+                        enabled={show_sender_ring}
+                        thickness={2}
+                      >
+                        <ProfileAvatar
+                          use_domain_logo={show_profile_pictures}
+                          email={show_sender_email}
+                          image_url={peer_profile?.profile_picture ?? email.avatar_url}
+                          name={peer_profile?.display_name ?? show_sender_name}
+                          size="sm"
+                        />
+                      </AvatarRing>
+                    )}
+                  </div>
+                  <div
+                    className={cn(
+                      "absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
+                      email.is_selected
+                        ? "opacity-100 bg-[var(--accent-color,#3b82f6)]"
+                        : "opacity-0 group-hover/avatar:opacity-100 bg-black/20 dark:bg-white/20",
+                    )}
+                  >
+                    <CheckIcon className="w-4 h-4 text-white" />
+                  </div>
+                </>
+              )}
             </div>
           </Tooltip>
 
