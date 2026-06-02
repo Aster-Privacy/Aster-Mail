@@ -1,0 +1,331 @@
+﻿//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the AGPLv3 as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// AGPLv3 for more details.
+//
+// You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FingerPrintIcon,
+  KeyIcon,
+  TrashIcon,
+  PlusIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
+
+import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
+import { cn } from "@/lib/utils";
+import {
+  list_hardware_keys,
+  remove_hardware_key,
+  perform_webauthn_registration,
+  initiate_hardware_key_registration,
+  type HardwareKeyInfo,
+} from "@/services/api/webauthn";
+import {
+  register_platform_passkey,
+  is_passkey_supported,
+  is_platform_passkey_available,
+} from "@/services/api/passkeys";
+
+function format_date(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+function key_display_type(key: HardwareKeyInfo): "passkey" | "security_key" {
+  const name = key.name_encrypted?.toLowerCase() ?? "";
+  if (name.startsWith("passkey")) {
+    return "passkey";
+  }
+  return "security_key";
+}
+
+interface KeyRowProps {
+  key_info: HardwareKeyInfo;
+  on_remove: (id: string) => void;
+  removing: boolean;
+}
+
+function KeyRow({ key_info, on_remove, removing }: KeyRowProps) {
+  const { t } = use_i18n();
+  const [confirm, set_confirm] = useState(false);
+  const display_type = key_display_type(key_info);
+
+  return (
+    <div className="flex items-center justify-between py-3 border-b border-edge-secondary last:border-0">
+      <div className="flex items-center gap-3 min-w-0">
+        {display_type === "passkey" ? (
+          <FingerPrintIcon className="w-5 h-5 text-primary flex-shrink-0" />
+        ) : (
+          <KeyIcon className="w-5 h-5 text-txt-muted flex-shrink-0" />
+        )}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-txt-primary truncate">
+              {key_info.name_encrypted ||
+                (display_type === "passkey"
+                  ? t("passkeys.unnamed_passkey")
+                  : t("passkeys.unnamed_security_key"))}
+            </span>
+            <span
+              className={cn(
+                "text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0",
+                display_type === "passkey"
+                  ? "bg-primary/10 text-primary"
+                  : "bg-surf-secondary text-txt-muted border border-edge-secondary",
+              )}
+            >
+              {display_type === "passkey"
+                ? t("passkeys.passkey_badge")
+                : t("passkeys.security_key_badge")}
+            </span>
+          </div>
+          <p className="text-xs text-txt-muted mt-0.5">
+            {t("passkeys.registered")}{" "}
+            {format_date(key_info.registered_at)}
+            {key_info.last_used
+              ? ` · ${t("passkeys.last_used")} ${format_date(key_info.last_used)}`
+              : ` · ${t("passkeys.never_used")}`}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+        {confirm ? (
+          <div className="flex items-center gap-2">
+            <button
+              className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
+              onClick={() => set_confirm(false)}
+            >
+              {t("common.cancel")}
+            </button>
+            <button
+              className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors"
+              disabled={removing}
+              onClick={() => on_remove(key_info.id)}
+            >
+              {removing ? (
+                <span className="flex items-center gap-1">
+                  <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                </span>
+              ) : (
+                t("passkeys.confirm_remove")
+              )}
+            </button>
+          </div>
+        ) : (
+          <button
+            className="p-1.5 rounded-md text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+            onClick={() => set_confirm(true)}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function PasskeySection() {
+  const { t } = use_i18n();
+  const [keys, set_keys] = useState<HardwareKeyInfo[]>([]);
+  const [loading, set_loading] = useState(true);
+  const [removing_id, set_removing_id] = useState<string | null>(null);
+  const [registering, set_registering] = useState<
+    "passkey" | "security_key" | null
+  >(null);
+  const [platform_available, set_platform_available] = useState(false);
+  const webauthn_supported = is_passkey_supported();
+
+  const load_keys = useCallback(async () => {
+    const resp = await list_hardware_keys();
+    if (resp.data) {
+      set_keys(resp.data.keys);
+    }
+    set_loading(false);
+  }, []);
+
+  useEffect(() => {
+    load_keys();
+    is_platform_passkey_available().then(set_platform_available);
+  }, [load_keys]);
+
+  const handle_remove = useCallback(
+    async (key_id: string) => {
+      set_removing_id(key_id);
+      const resp = await remove_hardware_key(key_id);
+      if (resp.data?.success) {
+        set_keys((prev) => prev.filter((k) => k.id !== key_id));
+        show_toast(t("passkeys.removed"), "success");
+      } else {
+        show_toast(resp.error || t("errors.generic"), "error");
+      }
+      set_removing_id(null);
+    },
+    [t],
+  );
+
+  const handle_add_passkey = useCallback(async () => {
+    set_registering("passkey");
+    try {
+      const resp = await register_platform_passkey(null);
+      if (resp.data?.success) {
+        show_toast(t("passkeys.register_success"), "success");
+        await load_keys();
+      } else {
+        const msg = resp.error ?? t("passkeys.register_failed");
+        if (!msg.toLowerCase().includes("cancel")) {
+          show_toast(msg, "error");
+        }
+      }
+    } finally {
+      set_registering(null);
+    }
+  }, [load_keys, t]);
+
+  const handle_add_security_key = useCallback(async () => {
+    set_registering("security_key");
+    try {
+      const options_resp = await initiate_hardware_key_registration();
+      if (!options_resp.data) {
+        show_toast(options_resp.error || t("passkeys.register_failed"), "error");
+        return;
+      }
+      const resp = await perform_webauthn_registration(options_resp.data, null);
+      if (resp.data?.success) {
+        show_toast(t("passkeys.register_success"), "success");
+        await load_keys();
+      } else {
+        const msg = resp.error ?? t("passkeys.register_failed");
+        if (!msg.toLowerCase().includes("cancel")) {
+          show_toast(msg, "error");
+        }
+      }
+    } finally {
+      set_registering(null);
+    }
+  }, [load_keys, t]);
+
+  return (
+    <div>
+      <div className="mb-4">
+        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+          <FingerPrintIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+          {t("passkeys.section_title")}
+        </h3>
+        <div className="mt-2 h-px bg-edge-secondary" />
+      </div>
+
+      <p className="text-sm text-txt-muted mb-4">
+        {t("passkeys.section_description")}
+      </p>
+
+      {!webauthn_supported && (
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-4">
+          <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-600 dark:text-amber-400">
+            {t("passkeys.not_supported")}
+          </p>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-6">
+          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <AnimatePresence mode="popLayout">
+          {keys.length === 0 ? (
+            <motion.div
+              animate={{ opacity: 1 }}
+              className="py-6 text-center"
+              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+            >
+              <FingerPrintIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
+              <p className="text-sm text-txt-muted">{t("passkeys.no_passkeys")}</p>
+            </motion.div>
+          ) : (
+            <motion.div
+              animate={{ opacity: 1 }}
+              className="mb-4"
+              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+            >
+              {keys.map((key) => (
+                <KeyRow
+                  key={key.id}
+                  key_info={key}
+                  on_remove={handle_remove}
+                  removing={removing_id === key.id}
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
+
+      {webauthn_supported && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {platform_available && (
+            <Button
+              disabled={registering !== null}
+              size="sm"
+              variant="outline"
+              onClick={handle_add_passkey}
+            >
+              {registering === "passkey" ? (
+                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
+              ) : (
+                <FingerPrintIcon className="w-4 h-4 mr-2" />
+              )}
+              {registering === "passkey"
+                ? t("passkeys.registering")
+                : t("passkeys.add_passkey")}
+            </Button>
+          )}
+          <Button
+            disabled={registering !== null}
+            size="sm"
+            variant="outline"
+            onClick={handle_add_security_key}
+          >
+            {registering === "security_key" ? (
+              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
+            ) : (
+              <PlusIcon className="w-4 h-4 mr-2" />
+            )}
+            {registering === "security_key"
+              ? t("passkeys.registering")
+              : t("passkeys.add_security_key")}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
