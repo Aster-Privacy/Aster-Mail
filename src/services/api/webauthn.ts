@@ -37,6 +37,7 @@ export interface HardwareKeysListResponse {
 
 export interface HardwareKeyRegistrationOptions {
   challenge: string;
+  challenge_token: string;
   rp: { name: string; id: string };
   user: { id: string; name: string; displayName: string };
   pubKeyCredParams: { type: string; alg: number }[];
@@ -244,7 +245,7 @@ export async function perform_webauthn_registration(
     },
     type: credential.type,
     name_encrypted: friendly_name,
-    challenge_token: options.challenge,
+    challenge_token: options.challenge_token,
   });
 }
 

@@ -62,10 +62,15 @@ export function PasskeySignInButton({
 
       if (verify_resp.data) {
         await on_success(verify_resp.data);
-      } else if (verify_resp.error !== "passkey_cancelled") {
+        return;
+      }
+      if (verify_resp.error !== "passkey_cancelled") {
         on_error(verify_resp.error ?? t("errors.generic"));
       }
-    } catch {
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "NotAllowedError") {
+        return;
+      }
       on_error(t("errors.generic"));
     } finally {
       set_is_loading(false);
