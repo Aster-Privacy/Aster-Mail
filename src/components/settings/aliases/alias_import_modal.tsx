@@ -40,6 +40,7 @@ import {
   type BulkCreateAliasItem,
   type DecryptedEmailAlias,
 } from "@/services/api/aliases";
+import { bulk_add_domain_addresses } from "@/services/api/domains";
 
 type ImportStep = "select" | "preview" | "progress" | "done";
 type ConflictMode = "skip" | "update";
@@ -227,14 +228,18 @@ interface AliasImportModalProps {
   on_close: () => void;
   on_imported: () => void;
   available_domains: string[];
+  custom_domains?: Array<{ name: string; id: string }>;
   existing_aliases: DecryptedEmailAlias[];
 }
+
+const SYSTEM_DOMAINS = new Set(["astermail.org", "aster.cx"]);
 
 export function AliasImportModal({
   is_open,
   on_close,
   on_imported,
   available_domains,
+  custom_domains = [],
   existing_aliases,
 }: AliasImportModalProps) {
   const { t } = use_i18n();
@@ -372,43 +377,71 @@ export function AliasImportModal({
     let failed = 0;
 
     if (importable.length > 0) {
-      const items: BulkCreateAliasItem[] = [];
-      for (const row of importable) {
-        const normalized = row.local_part.toLowerCase().trim();
-        const [alias_hash, routing_hash, enc] = await Promise.all([
-          compute_alias_hash(normalized, row.domain),
-          compute_routing_hash(normalized, row.domain),
-          encrypt_alias_field(normalized),
-        ]);
-        const item: BulkCreateAliasItem = {
-          encrypted_local_part: enc.encrypted,
-          local_part_nonce: enc.nonce,
-          alias_address_hash: alias_hash,
-          routing_address_hash: routing_hash,
-          domain: row.domain,
-        };
-        if (row.display_name) {
-          const enc_dn = await encrypt_alias_field(row.display_name);
-          item.encrypted_display_name = enc_dn.encrypted;
-          item.display_name_nonce = enc_dn.nonce;
+      const custom_domain_map = new Map(custom_domains.map((d) => [d.name, d.id]));
+
+      const system_rows = importable.filter((r) => SYSTEM_DOMAINS.has(r.domain));
+      const custom_rows = importable.filter((r) => !SYSTEM_DOMAINS.has(r.domain));
+
+      if (system_rows.length > 0) {
+        const items: BulkCreateAliasItem[] = [];
+        for (const row of system_rows) {
+          const normalized = row.local_part.toLowerCase().trim();
+          const [alias_hash, routing_hash, enc] = await Promise.all([
+            compute_alias_hash(normalized, row.domain),
+            compute_routing_hash(normalized, row.domain),
+            encrypt_alias_field(normalized),
+          ]);
+          const item: BulkCreateAliasItem = {
+            encrypted_local_part: enc.encrypted,
+            local_part_nonce: enc.nonce,
+            alias_address_hash: alias_hash,
+            routing_address_hash: routing_hash,
+            domain: row.domain,
+          };
+          if (row.display_name) {
+            const enc_dn = await encrypt_alias_field(row.display_name);
+            item.encrypted_display_name = enc_dn.encrypted;
+            item.display_name_nonce = enc_dn.nonce;
+          }
+          items.push(item);
         }
-        items.push(item);
+        for (let i = 0; i < items.length; i += 100) {
+          const batch = items.slice(i, i + 100);
+          try {
+            const resp = await bulk_create_aliases(batch);
+            if (resp.error) { failed += batch.length; }
+            else { created += resp.data?.created ?? 0; failed += resp.data?.failed ?? 0; }
+          } catch { failed += batch.length; }
+          set_progress_current(Math.min(i + batch.length, system_rows.length));
+        }
       }
 
-      for (let i = 0; i < items.length; i += 100) {
-        const batch = items.slice(i, i + 100);
-        try {
-          const resp = await bulk_create_aliases(batch);
-          if (resp.error) {
-            failed += batch.length;
-          } else {
-            created += resp.data?.created ?? 0;
-            failed += resp.data?.failed ?? 0;
-          }
-        } catch {
-          failed += batch.length;
+      if (custom_rows.length > 0) {
+        const by_domain = new Map<string, typeof custom_rows>();
+        for (const row of custom_rows) {
+          const group = by_domain.get(row.domain) ?? [];
+          group.push(row);
+          by_domain.set(row.domain, group);
         }
-        set_progress_current(Math.min(i + batch.length, importable.length));
+        let custom_processed = 0;
+        for (const [domain_name, rows] of by_domain) {
+          const domain_id = custom_domain_map.get(domain_name);
+          if (!domain_id) { failed += rows.length; custom_processed += rows.length; continue; }
+          for (let i = 0; i < rows.length; i += 100) {
+            const batch = rows.slice(i, i + 100);
+            try {
+              const resp = await bulk_add_domain_addresses(
+                domain_id,
+                domain_name,
+                batch.map((r) => ({ local_part: r.local_part, display_name: r.display_name })),
+              );
+              if (resp.error) { failed += batch.length; }
+              else { created += resp.data?.created ?? 0; failed += resp.data?.failed ?? 0; }
+            } catch { failed += batch.length; }
+            custom_processed += batch.length;
+            set_progress_current(system_rows.length + custom_processed);
+          }
+        }
       }
     }
 

@@ -586,6 +586,7 @@ export function AliasItem({
 interface DomainAddressItemProps {
   address: DecryptedDomainAddress & { domain_name: string };
   on_delete: (id: string, domain_id: string) => void;
+  on_toggle?: (id: string, domain_id: string, enabled: boolean) => void;
   on_avatar_changed?: () => void;
   on_display_name_saved?: (address_id: string, name: string) => void;
   deleting: boolean;
@@ -595,6 +596,7 @@ interface DomainAddressItemProps {
 export function DomainAddressItem({
   address,
   on_delete,
+  on_toggle,
   on_avatar_changed,
   on_display_name_saved,
   deleting,
@@ -602,6 +604,8 @@ export function DomainAddressItem({
 }: DomainAddressItemProps) {
   const { t } = use_i18n();
   const [uploading, set_uploading] = useState(false);
+  const [toggling, set_toggling] = useState(false);
+  const [is_enabled, set_is_enabled] = useState(address.is_enabled);
   const [advanced_open, set_advanced_open] = useState(false);
   const [local_picture, set_local_picture] = useState<string | undefined>(
     undefined,
@@ -820,6 +824,25 @@ export function DomainAddressItem({
           >
             <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted" />
           </Button>
+
+          <Switch
+            aria-label={t("common.toggle_alias")}
+            checked={is_enabled}
+            disabled={toggling}
+            onCheckedChange={async (checked) => {
+              set_is_enabled(checked);
+              set_toggling(true);
+              try {
+                const resp = await update_domain_address(address.domain_id, address.id, { is_enabled: checked });
+                if (resp.error) set_is_enabled(!checked);
+                else on_toggle?.(address.id, address.domain_id, checked);
+              } catch {
+                set_is_enabled(!checked);
+              } finally {
+                set_toggling(false);
+              }
+            }}
+          />
 
           <Button
             className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"

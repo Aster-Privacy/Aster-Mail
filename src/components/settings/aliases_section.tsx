@@ -498,6 +498,7 @@ export function AliasesSection() {
 
       <AliasImportModal
         available_domains={hook.available_domains_for_aliases}
+        custom_domains={hook.custom_domains_for_import}
         existing_aliases={hook.aliases}
         is_open={show_import_modal}
         on_close={() => set_show_import_modal(false)}
