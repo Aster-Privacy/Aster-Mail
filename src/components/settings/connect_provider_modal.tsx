@@ -103,7 +103,7 @@ export function ConnectProviderModal({
           if (parsed.protocol !== "https:") {
             throw new Error("invalid_protocol");
           }
-          window.location.href = parsed.toString();
+          window.location.replace(parsed.toString());
         } catch {
           show_toast(
             t("settings.oauth_import_error", { reason: "invalid_url" }),

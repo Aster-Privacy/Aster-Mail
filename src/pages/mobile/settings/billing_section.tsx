@@ -279,6 +279,7 @@ export function BillingSection({
         t("settings.plan_f_password_folders"),
         t("settings.plan_f_custom_key_rotation"),
         t("settings.plan_f_external_accounts"),
+        t("settings.vanguard_title"),
       ],
       supernova: [
         t("settings.plan_f_storage", { value: "5 TB" }),
@@ -290,6 +291,7 @@ export function BillingSection({
         t("settings.plan_f_external_accounts"),
         t("settings.plan_f_support_dedicated"),
         t("settings.plan_f_early_access"),
+        t("settings.vanguard_title"),
       ],
     }),
     [t],

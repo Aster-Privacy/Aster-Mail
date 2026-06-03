@@ -170,23 +170,23 @@ export function use_index_page_state() {
       set_is_settings_open(true);
     } else if (oauth_status === "error") {
       const raw_reason = search_params.get("reason") || "";
-      const reason_key_map: Record<string, string> = {
-        provider_denied: "settings.oauth_reason_provider_denied",
-        missing_code: "settings.oauth_reason_missing_code",
-        missing_state: "settings.oauth_reason_missing_state",
-        internal_error: "settings.oauth_reason_internal_error",
-        invalid_state: "settings.oauth_reason_invalid_state",
-        expired_state: "settings.oauth_reason_expired_state",
-        invalid_provider: "settings.oauth_reason_invalid_provider",
-        provider_not_configured: "settings.oauth_reason_provider_not_configured",
-        token_exchange_failed: "settings.oauth_reason_token_exchange_failed",
-        encryption_error: "settings.oauth_reason_encryption_error",
-        account_creation_failed: "settings.oauth_reason_account_creation_failed",
-      };
-      const reason_i18n_key = reason_key_map[raw_reason] || "settings.oauth_reason_unknown";
-      const reason = t(reason_i18n_key as TranslationKey);
+      if (raw_reason !== "invalid_state" && raw_reason !== "expired_state") {
+        const reason_key_map: Record<string, string> = {
+          provider_denied: "settings.oauth_reason_provider_denied",
+          missing_code: "settings.oauth_reason_missing_code",
+          missing_state: "settings.oauth_reason_missing_state",
+          internal_error: "settings.oauth_reason_internal_error",
+          invalid_provider: "settings.oauth_reason_invalid_provider",
+          provider_not_configured: "settings.oauth_reason_provider_not_configured",
+          token_exchange_failed: "settings.oauth_reason_token_exchange_failed",
+          encryption_error: "settings.oauth_reason_encryption_error",
+          account_creation_failed: "settings.oauth_reason_account_creation_failed",
+        };
+        const reason_i18n_key = reason_key_map[raw_reason] || "settings.oauth_reason_unknown";
+        const reason = t(reason_i18n_key as TranslationKey);
 
-      show_toast(t("settings.oauth_import_error", { reason }), "error");
+        show_toast(t("settings.oauth_import_error", { reason }), "error");
+      }
     }
 
     set_search_params({}, { replace: true });

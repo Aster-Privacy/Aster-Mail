@@ -119,6 +119,7 @@ export function use_security() {
   const [totp_status, set_totp_status] = useState<TotpStatusResponse | null>(
     null,
   );
+  const [security_score_loaded, set_security_score_loaded] = useState(false);
   const [show_totp_setup_modal, set_show_totp_setup_modal] = useState(false);
   const [show_totp_disable_modal, set_show_totp_disable_modal] =
     useState(false);
@@ -229,11 +230,13 @@ export function use_security() {
   }, [t]);
 
   useEffect(() => {
-    fetch_totp_status();
-    fetch_login_alerts_status();
+    Promise.all([
+      fetch_totp_status(),
+      fetch_login_alerts_status(),
+      fetch_recovery_email_status(),
+    ]).then(() => set_security_score_loaded(true));
     fetch_ipfs_status();
     fetch_sessions();
-    fetch_recovery_email_status();
   }, [
     fetch_totp_status,
     fetch_login_alerts_status,
@@ -744,6 +747,7 @@ export function use_security() {
     update_preference,
 
     recovery_email_verified,
+    security_score_loaded,
 
     totp_status,
     show_totp_setup_modal,

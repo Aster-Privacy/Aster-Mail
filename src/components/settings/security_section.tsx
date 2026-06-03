@@ -100,6 +100,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         block_tracking_pixels={preferences.block_tracking_pixels}
         forward_secrecy_enabled={preferences.forward_secrecy_enabled}
         login_alerts_enabled={security.login_alerts_enabled}
+        security_loaded={security.security_score_loaded}
         on_criterion_click={[
           () => scroll_to_id("sec-2fa"),
           () => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "account" })),

@@ -89,7 +89,6 @@ import {
 } from "@/services/api/alias_contacts";
 import {
   get_alias_delivery_log,
-  get_domain_address_delivery_log,
   type DeliveryEvent,
 } from "@/services/api/aliases";
 
@@ -745,9 +744,7 @@ function DeliveryLogPanel({ alias_id, domain_address_id }: { alias_id?: string; 
   const load = useCallback(async () => {
     set_loading(true);
     try {
-      const response = domain_address_id
-        ? await get_domain_address_delivery_log(domain_address_id)
-        : await get_alias_delivery_log(alias_id!);
+      const response = await get_alias_delivery_log(domain_address_id ?? alias_id!);
 
       if (response.data) {
         set_events(response.data.events ?? []);

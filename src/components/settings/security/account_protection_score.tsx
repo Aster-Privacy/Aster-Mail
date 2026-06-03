@@ -47,6 +47,7 @@ interface AccountProtectionScoreProps {
   block_remote_css: boolean;
   strip_exif_on_compose: boolean;
   forward_secrecy_enabled: boolean;
+  security_loaded?: boolean;
   on_criterion_click?: Array<(() => void) | undefined>;
 }
 
@@ -82,6 +83,7 @@ export function AccountProtectionScore({
   block_remote_css,
   strip_exif_on_compose,
   forward_secrecy_enabled,
+  security_loaded = true,
   on_criterion_click,
 }: AccountProtectionScoreProps) {
   const { t } = use_i18n();
@@ -217,6 +219,19 @@ export function AccountProtectionScore({
               {criteria_labels.map((label, i) => {
                 const click_handler = on_criterion_click?.[i];
                 const is_clickable = !!click_handler;
+                const is_async_row = i < 3;
+                const show_skeleton = is_async_row && !security_loaded;
+
+                if (show_skeleton) {
+                  return (
+                    <li key={label}>
+                      <div className="w-full flex items-center gap-2.5 px-2 py-1.5">
+                        <div className="w-4 h-4 rounded-full bg-edge-secondary animate-pulse flex-shrink-0" />
+                        <div className="h-3.5 rounded bg-edge-secondary animate-pulse flex-1" />
+                      </div>
+                    </li>
+                  );
+                }
 
                 return (
                   <li key={label}>
