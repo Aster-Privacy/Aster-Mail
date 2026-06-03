@@ -49,7 +49,6 @@ export function StepRecoveryKey({
   reg,
   reduce_motion,
   navigate,
-  go_forward,
   show_leave_confirmation,
   set_show_leave_confirmation,
 }: step_recovery_key_props) {

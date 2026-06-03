@@ -21,7 +21,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button, Switch } from "@aster/ui";
-import { ArrowLeftIcon, BackspaceIcon, CheckIcon, XMarkIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, BackspaceIcon, CheckIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -35,7 +35,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
+
 import {
   get_app_lock_config,
   save_app_lock_config,
