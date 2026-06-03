@@ -3882,6 +3882,7 @@ export interface MailTranslations {
   block: string;
   unblock_sender: string;
   unsubscribe: string;
+  load_all_thread_messages: string;
   load_external_content: string;
   image: string;
   images: string;
@@ -4483,7 +4484,10 @@ export interface AuthTranslations {
   use_backup_code_instead: string;
   trust_this_device_30_days: string;
   security_key_verification: string;
+  passkey_verification: string;
   tap_security_key: string;
+  use_passkey_or_key: string;
+  use_passkey_instead: string;
   use_another_method: string;
   webauthn_not_supported: string;
   recovery_codes_warning: string;
