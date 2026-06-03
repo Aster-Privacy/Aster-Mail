@@ -390,7 +390,7 @@ export async function list_domain_addresses(
 export async function bulk_add_domain_addresses(
   domain_id: string,
   domain_name: string,
-  items: Array<{ local_part: string; display_name?: string }>,
+  items: Array<{ local_part: string; display_name?: string; is_enabled?: boolean }>,
 ): Promise<ApiResponse<{ created: number; failed: number }>> {
   const addresses = await Promise.all(
     items.map(async (item) => {
@@ -407,12 +407,14 @@ export async function bulk_add_domain_addresses(
         address_routing_hash: string;
         encrypted_display_name?: string;
         display_name_nonce?: string;
+        is_enabled?: boolean;
       } = {
         encrypted_local_part: enc.encrypted,
         local_part_nonce: enc.nonce,
         local_part_hash,
         address_routing_hash,
       };
+      if (item.is_enabled !== undefined) entry.is_enabled = item.is_enabled;
       if (item.display_name) {
         const enc_dn = await encrypt_address_field(item.display_name);
         entry.encrypted_display_name = enc_dn.encrypted;

@@ -737,6 +737,7 @@ export interface BulkCreateAliasItem {
   domain: string;
   encrypted_note?: string;
   note_nonce?: string;
+  is_enabled?: boolean;
 }
 
 export interface BulkCreateAliasResponse {
