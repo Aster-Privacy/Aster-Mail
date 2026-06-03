@@ -40,7 +40,12 @@ import {
   type BulkCreateAliasItem,
   type DecryptedEmailAlias,
 } from "@/services/api/aliases";
-import { bulk_add_domain_addresses, update_domain_address, type DecryptedDomainAddress } from "@/services/api/domains";
+import {
+  bulk_add_domain_addresses,
+  update_domain_address,
+  validate_local_part as validate_domain_local_part,
+  type DecryptedDomainAddress,
+} from "@/services/api/domains";
 
 type ImportStep = "select" | "preview" | "progress" | "done";
 type ConflictMode = "skip" | "update";
@@ -135,8 +140,9 @@ function parse_protonpass_json(text: string): ParsedRow[] {
       const local_part = sanitize_local_part(alias_email.slice(0, at));
       const original_domain = alias_email.slice(at + 1);
       if (!local_part || !original_domain) continue;
-      if (seen.has(local_part)) continue;
-      seen.add(local_part);
+      const seen_key = `${local_part}@${original_domain}`;
+      if (seen.has(seen_key)) continue;
+      seen.add(seen_key);
 
       const name = item.data?.metadata?.name?.trim();
       const note = item.data?.metadata?.note?.trim();
@@ -179,12 +185,14 @@ function parse_csv_file(text: string): ParsedRow[] {
     const original_domain = raw_address.slice(at + 1).toLowerCase();
 
     if (!local_part || !original_domain) continue;
-    if (seen.has(local_part)) continue;
-    seen.add(local_part);
+    const seen_key = `${local_part}@${original_domain}`;
+    if (seen.has(seen_key)) continue;
+    seen.add(seen_key);
 
     const display_name = (note_col >= 0 && cols[note_col]) ? cols[note_col].trim() || undefined : undefined;
     const enabled_raw = (enabled_col >= 0 && cols[enabled_col]) ? cols[enabled_col].trim().toLowerCase() : undefined;
-    const enabled = enabled_raw !== undefined ? enabled_raw !== "false" && enabled_raw !== "0" : undefined;
+    const DISABLED_VALUES = new Set(["false", "0", "no", "off", "disabled", "inactive"]);
+    const enabled = enabled_raw !== undefined ? !DISABLED_VALUES.has(enabled_raw) : undefined;
 
     rows.push({ local_part, original_domain, display_name, enabled });
   }
@@ -211,7 +219,8 @@ function build_preview(
   return rows.map((row) => {
     const address = `${row.local_part}@${target_domain}`;
 
-    const validation = validate_local_part(row.local_part);
+    const validator = SYSTEM_DOMAINS.has(target_domain) ? validate_local_part : validate_domain_local_part;
+    const validation = validator(row.local_part);
     if (!validation.valid) {
       return { ...row, address, domain: target_domain, status: "invalid" as RowStatus, invalid_reason: validation.error };
     }
@@ -399,7 +408,8 @@ export function AliasImportModal({
 
       if (system_rows.length > 0) {
         const items: BulkCreateAliasItem[] = [];
-        for (const row of system_rows) {
+        for (let ei = 0; ei < system_rows.length; ei++) {
+          const row = system_rows[ei];
           const normalized = row.local_part.toLowerCase().trim();
           const [alias_hash, routing_hash, enc] = await Promise.all([
             compute_alias_hash(normalized, row.domain),
@@ -413,12 +423,14 @@ export function AliasImportModal({
             routing_address_hash: routing_hash,
             domain: row.domain,
           };
+          if (row.enabled !== undefined) item.is_enabled = row.enabled;
           if (row.display_name) {
             const enc_dn = await encrypt_alias_field(row.display_name);
             item.encrypted_display_name = enc_dn.encrypted;
             item.display_name_nonce = enc_dn.nonce;
           }
           items.push(item);
+          set_progress_current(ei + 1);
         }
         for (let i = 0; i < items.length; i += 100) {
           const batch = items.slice(i, i + 100);
@@ -448,7 +460,7 @@ export function AliasImportModal({
               const resp = await bulk_add_domain_addresses(
                 domain_id,
                 domain_name,
-                batch.map((r) => ({ local_part: r.local_part, display_name: r.display_name })),
+                batch.map((r) => ({ local_part: r.local_part, display_name: r.display_name, is_enabled: r.enabled })),
               );
               if (resp.error) { failed += batch.length; }
               else { created += resp.data?.created ?? 0; failed += resp.data?.failed ?? 0; }
@@ -738,7 +750,7 @@ export function AliasImportModal({
 
         {step === "preview" && (
           <>
-            <Button variant="ghost" onClick={() => { set_step("select"); set_parsed_rows([]); set_preview_rows([]); }}>
+            <Button variant="ghost" onClick={() => { set_step("select"); set_parsed_rows([]); set_preview_rows([]); set_error_msg(null); }}>
               {t("common.back")}
             </Button>
             <Button
