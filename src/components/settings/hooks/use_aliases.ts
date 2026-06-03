@@ -164,6 +164,13 @@ export function use_aliases() {
     [domains],
   );
 
+  const custom_domains_for_import = useMemo(
+    () => domains
+      .filter((d) => d.status === "active")
+      .map((d) => ({ name: d.domain_name, id: d.id })),
+    [domains],
+  );
+
   const load_aliases = useCallback(async () => {
     if (!has_passphrase_in_memory() || !get_derived_encryption_key()) {
       set_aliases_loading(false);
@@ -621,6 +628,7 @@ export function use_aliases() {
     domain_delete_confirm,
     set_domain_delete_confirm,
     available_domains_for_aliases,
+    custom_domains_for_import,
     load_aliases,
     load_alias_counts,
     load_domain_addresses,
