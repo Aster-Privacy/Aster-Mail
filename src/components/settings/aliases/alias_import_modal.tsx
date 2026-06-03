@@ -31,9 +31,13 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import {
-  create_alias,
+  bulk_create_aliases,
   update_alias,
   validate_local_part,
+  compute_alias_hash,
+  compute_routing_hash,
+  encrypt_alias_field,
+  type BulkCreateAliasItem,
   type DecryptedEmailAlias,
 } from "@/services/api/aliases";
 
@@ -366,33 +370,59 @@ export function AliasImportModal({
 
     let created = 0;
     let failed = 0;
-    let processed = 0;
 
-    for (const row of importable) {
-      try {
-        const resp = await create_alias(row.local_part, row.domain, row.display_name);
-        if (resp.error) {
-          failed++;
-        } else {
-          created++;
+    if (importable.length > 0) {
+      const items: BulkCreateAliasItem[] = [];
+      for (const row of importable) {
+        const normalized = row.local_part.toLowerCase().trim();
+        const [alias_hash, routing_hash, enc] = await Promise.all([
+          compute_alias_hash(normalized, row.domain),
+          compute_routing_hash(normalized, row.domain),
+          encrypt_alias_field(normalized),
+        ]);
+        const item: BulkCreateAliasItem = {
+          encrypted_local_part: enc.encrypted,
+          local_part_nonce: enc.nonce,
+          alias_address_hash: alias_hash,
+          routing_address_hash: routing_hash,
+          domain: row.domain,
+        };
+        if (row.display_name) {
+          const enc_dn = await encrypt_alias_field(row.display_name);
+          item.encrypted_display_name = enc_dn.encrypted;
+          item.display_name_nonce = enc_dn.nonce;
         }
-      } catch {
-        failed++;
+        items.push(item);
       }
-      processed++;
-      set_progress_current(processed);
+
+      for (let i = 0; i < items.length; i += 100) {
+        const batch = items.slice(i, i + 100);
+        try {
+          const resp = await bulk_create_aliases(batch);
+          if (resp.error) {
+            failed += batch.length;
+          } else {
+            created += resp.data?.created ?? 0;
+            failed += resp.data?.failed ?? 0;
+          }
+        } catch {
+          failed += batch.length;
+        }
+        set_progress_current(Math.min(i + batch.length, importable.length));
+      }
     }
 
+    let update_processed = 0;
     for (const row of to_update) {
-      if (!row.existing_id) { failed++; processed++; set_progress_current(processed); continue; }
+      if (!row.existing_id) { failed++; update_processed++; set_progress_current(importable.length + update_processed); continue; }
       try {
         await update_alias(row.existing_id, { is_enabled: true });
         created++;
       } catch {
         failed++;
       }
-      processed++;
-      set_progress_current(processed);
+      update_processed++;
+      set_progress_current(importable.length + update_processed);
     }
 
     const skipped = not_attempted + (conflict_mode === "skip"
