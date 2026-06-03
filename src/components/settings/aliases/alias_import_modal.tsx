@@ -40,7 +40,7 @@ import {
   type BulkCreateAliasItem,
   type DecryptedEmailAlias,
 } from "@/services/api/aliases";
-import { bulk_add_domain_addresses } from "@/services/api/domains";
+import { bulk_add_domain_addresses, update_domain_address, type DecryptedDomainAddress } from "@/services/api/domains";
 
 type ImportStep = "select" | "preview" | "progress" | "done";
 type ConflictMode = "skip" | "update";
@@ -59,6 +59,7 @@ interface PreviewRow extends ParsedRow {
   domain: string;
   status: RowStatus;
   existing_id?: string;
+  existing_domain_id?: string;
   invalid_reason?: string;
 }
 
@@ -194,11 +195,17 @@ function parse_csv_file(text: string): ParsedRow[] {
 function build_preview(
   rows: ParsedRow[],
   existing: DecryptedEmailAlias[],
+  existing_domain_addresses: (DecryptedDomainAddress & { domain_name: string })[],
   target_domain: string,
 ): PreviewRow[] {
-  const existing_map = new Map<string, DecryptedEmailAlias>();
+  const existing_alias_map = new Map<string, DecryptedEmailAlias>();
   for (const a of existing) {
-    existing_map.set(a.full_address.toLowerCase(), a);
+    existing_alias_map.set(a.full_address.toLowerCase(), a);
+  }
+
+  const existing_domain_addr_map = new Map<string, DecryptedDomainAddress & { domain_name: string }>();
+  for (const a of existing_domain_addresses) {
+    existing_domain_addr_map.set(`${a.local_part}@${a.domain_name}`.toLowerCase(), a);
   }
 
   return rows.map((row) => {
@@ -209,10 +216,16 @@ function build_preview(
       return { ...row, address, domain: target_domain, status: "invalid" as RowStatus, invalid_reason: validation.error };
     }
 
-    const existing_alias = existing_map.get(address);
+    const existing_alias = existing_alias_map.get(address);
     if (existing_alias) {
       return { ...row, address, domain: target_domain, status: "exists" as RowStatus, existing_id: existing_alias.id };
     }
+
+    const existing_domain_addr = existing_domain_addr_map.get(address);
+    if (existing_domain_addr) {
+      return { ...row, address, domain: target_domain, status: "exists" as RowStatus, existing_id: existing_domain_addr.id, existing_domain_id: existing_domain_addr.domain_id };
+    }
+
     return { ...row, address, domain: target_domain, status: "will_import" as RowStatus };
   });
 }
@@ -230,6 +243,7 @@ interface AliasImportModalProps {
   available_domains: string[];
   custom_domains?: Array<{ name: string; id: string }>;
   existing_aliases: DecryptedEmailAlias[];
+  existing_domain_addresses?: (DecryptedDomainAddress & { domain_name: string })[];
 }
 
 const SYSTEM_DOMAINS = new Set(["astermail.org", "aster.cx"]);
@@ -241,6 +255,7 @@ export function AliasImportModal({
   available_domains,
   custom_domains = [],
   existing_aliases,
+  existing_domain_addresses = [],
 }: AliasImportModalProps) {
   const { t } = use_i18n();
   const file_ref = useRef<HTMLInputElement>(null);
@@ -280,10 +295,10 @@ export function AliasImportModal({
   };
 
   const apply_preview = (rows: ParsedRow[], domain: string) => {
-    const preview = build_preview(rows, existing_aliases, domain);
+    const preview = build_preview(rows, existing_aliases, existing_domain_addresses, domain);
     set_preview_rows(preview);
     const initial_selected = new Set(
-      preview.map((_, i) => i).filter((i) => preview[i].status !== "invalid"),
+      preview.map((_, i) => i).filter((i) => preview[i].status === "will_import"),
     );
     set_selected_indices(initial_selected);
   };
@@ -449,7 +464,16 @@ export function AliasImportModal({
     for (const row of to_update) {
       if (!row.existing_id) { failed++; update_processed++; set_progress_current(importable.length + update_processed); continue; }
       try {
-        await update_alias(row.existing_id, { is_enabled: true });
+        const enabled_value = row.enabled ?? true;
+        if (row.existing_domain_id) {
+          const updates: Parameters<typeof update_domain_address>[2] = { is_enabled: enabled_value };
+          if (row.display_name) updates.display_name = row.display_name;
+          await update_domain_address(row.existing_domain_id, row.existing_id, updates);
+        } else {
+          const updates: Parameters<typeof update_alias>[1] = { is_enabled: enabled_value };
+          if (row.display_name) updates.display_name = row.display_name;
+          await update_alias(row.existing_id, updates);
+        }
         created++;
       } catch {
         failed++;
@@ -458,9 +482,7 @@ export function AliasImportModal({
       set_progress_current(importable.length + update_processed);
     }
 
-    const skipped = not_attempted + (conflict_mode === "skip"
-      ? preview_rows.filter((r, i) => r.status === "exists" && selected_indices.has(i)).length
-      : 0);
+    const skipped = not_attempted;
 
     set_result({ created, skipped, failed });
     set_step("done");

@@ -500,11 +500,13 @@ export function AliasesSection() {
         available_domains={hook.available_domains_for_aliases}
         custom_domains={hook.custom_domains_for_import}
         existing_aliases={hook.aliases}
+        existing_domain_addresses={hook.domain_addresses}
         is_open={show_import_modal}
         on_close={() => set_show_import_modal(false)}
         on_imported={() => {
           hook.load_aliases();
           hook.load_alias_counts();
+          hook.load_domain_addresses(hook.domains);
           set_show_import_modal(false);
         }}
       />
