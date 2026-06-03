@@ -607,6 +607,10 @@ export function DomainAddressItem({
   const [toggling, set_toggling] = useState(false);
   const [is_enabled, set_is_enabled] = useState(address.is_enabled);
   const [advanced_open, set_advanced_open] = useState(false);
+
+  useEffect(() => {
+    set_is_enabled(address.is_enabled);
+  }, [address.is_enabled]);
   const [local_picture, set_local_picture] = useState<string | undefined>(
     undefined,
   );
