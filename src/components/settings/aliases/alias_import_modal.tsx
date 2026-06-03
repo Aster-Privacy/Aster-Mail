@@ -99,6 +99,10 @@ interface ProtonPassExport {
   vaults?: Record<string, ProtonPassVault>;
 }
 
+function sanitize_local_part(lp: string): string {
+  return lp.replace(/^[._-]+|[._-]+$/g, "");
+}
+
 function parse_protonpass_json(text: string): ParsedRow[] {
   let root: ProtonPassExport;
   try {
@@ -110,6 +114,7 @@ function parse_protonpass_json(text: string): ParsedRow[] {
   if (root.encrypted === true) return [];
 
   const rows: ParsedRow[] = [];
+  const seen = new Set<string>();
   const vaults = root.vaults ?? {};
 
   for (const vault of Object.values(vaults)) {
@@ -121,9 +126,11 @@ function parse_protonpass_json(text: string): ParsedRow[] {
       if (!alias_email || !alias_email.includes("@")) continue;
 
       const at = alias_email.lastIndexOf("@");
-      const local_part = alias_email.slice(0, at);
+      const local_part = sanitize_local_part(alias_email.slice(0, at));
       const original_domain = alias_email.slice(at + 1);
       if (!local_part || !original_domain) continue;
+      if (seen.has(local_part)) continue;
+      seen.add(local_part);
 
       const name = item.data?.metadata?.name?.trim();
       const note = item.data?.metadata?.note?.trim();
@@ -147,6 +154,7 @@ function parse_csv_file(text: string): ParsedRow[] {
   const enabled_col = header.findIndex((h) => ["enabled", "active"].includes(h));
 
   const rows: ParsedRow[] = [];
+  const seen = new Set<string>();
 
   for (let i = 1; i < lines.length; i++) {
     const cols = parse_csv_row(lines[i]);
@@ -161,10 +169,12 @@ function parse_csv_file(text: string): ParsedRow[] {
     if (!raw_address.includes("@")) continue;
 
     const at = raw_address.lastIndexOf("@");
-    const local_part = raw_address.slice(0, at).toLowerCase();
+    const local_part = sanitize_local_part(raw_address.slice(0, at).toLowerCase());
     const original_domain = raw_address.slice(at + 1).toLowerCase();
 
     if (!local_part || !original_domain) continue;
+    if (seen.has(local_part)) continue;
+    seen.add(local_part);
 
     const display_name = (note_col >= 0 && cols[note_col]) ? cols[note_col].trim() || undefined : undefined;
     const enabled_raw = (enabled_col >= 0 && cols[enabled_col]) ? cols[enabled_col].trim().toLowerCase() : undefined;
@@ -186,8 +196,6 @@ function build_preview(
     existing_map.set(a.full_address.toLowerCase(), a);
   }
 
-  const seen_local_parts = new Set<string>();
-
   return rows.map((row) => {
     const address = `${row.local_part}@${target_domain}`;
 
@@ -195,11 +203,6 @@ function build_preview(
     if (!validation.valid) {
       return { ...row, address, domain: target_domain, status: "invalid" as RowStatus, invalid_reason: validation.error };
     }
-
-    if (seen_local_parts.has(row.local_part)) {
-      return { ...row, address, domain: target_domain, status: "invalid" as RowStatus, invalid_reason: "Duplicate in file" };
-    }
-    seen_local_parts.add(row.local_part);
 
     const existing_alias = existing_map.get(address);
     if (existing_alias) {
