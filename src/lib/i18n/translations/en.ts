@@ -3874,7 +3874,6 @@ export const en: Translations = {
     info_low_network_mode_title: "What does Low Network Mode do?",
     info_low_network_mode_description:
       "Blocks all non-essential network requests to keep Aster usable on slow or metered connections. Disables profile pictures, sender logos, domain favicons, external images in emails, email preloading, custom fonts, attachment previews, and notification sounds. All emails are rendered as plain text. Email threads are capped at 4 messages. Activates automatically on 2G or Save-Data connections. You can also enable it via ?low_bandwidth=1 in the URL.",
-    load_all_thread_messages: "Load all messages",
   },
   mail: {
     encrypted_message_unavailable:
@@ -3991,6 +3990,7 @@ export const en: Translations = {
     block: "Block",
     unblock_sender: "Unblock sender",
     unsubscribe: "Unsubscribe",
+    load_all_thread_messages: "Load all messages",
     load_external_content: "Load external content",
     image: "image",
     images: "images",

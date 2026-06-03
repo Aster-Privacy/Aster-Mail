@@ -4488,6 +4488,7 @@ export interface AuthTranslations {
   tap_security_key: string;
   use_passkey_or_key: string;
   use_passkey_instead: string;
+  passkey_sign_in: string;
   use_another_method: string;
   webauthn_not_supported: string;
   recovery_codes_warning: string;

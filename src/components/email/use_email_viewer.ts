@@ -857,7 +857,7 @@ export function use_email_viewer({
       const delays_ms = [500, 800, 1200, 2000, 3000];
       let thread_result: Awaited<
         ReturnType<typeof fetch_and_decrypt_thread_messages>
-      > = { messages: [], thread_data: null };
+      > = { messages: [], thread_data: null, truncated: false };
 
       for (const delay of delays_ms) {
         await new Promise((resolve) => setTimeout(resolve, delay));

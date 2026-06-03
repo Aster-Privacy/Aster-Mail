@@ -35,6 +35,7 @@ import {
 } from "@/native/capacitor_bridge";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { Button } from "@aster/ui";
 import { use_auth_safe } from "@/contexts/auth_context";
 import {
@@ -129,7 +130,7 @@ function WebPinOverlay({
   on_unlock: () => void;
   on_sign_out: () => void;
   reduce_motion: boolean;
-  t: (key: string, vars?: Record<string, string | number>) => string;
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
 }) {
   const [input, set_input] = useState("");
   const [shake_key, set_shake_key] = useState(0);

@@ -161,7 +161,7 @@ export function PasskeySection() {
   const [registering, set_registering] = useState<
     "passkey" | "security_key" | null
   >(null);
-  const [platform_available, set_platform_available] = useState(false);
+  const [_platform_available, set_platform_available] = useState(false);
   const webauthn_supported = is_passkey_supported();
 
   const load_keys = useCallback(async () => {

@@ -43,7 +43,7 @@ interface ModalHeaderProps {
 }
 
 interface ModalBodyProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
 }
 
