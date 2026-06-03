@@ -3726,8 +3726,9 @@ export interface SettingsTranslations {
   alias_import_summary_failed: string;
   alias_import_error_no_aliases: string;
   alias_import_protonpass_encrypted_error: string;
+  alias_import_target_domain: string;
+  alias_import_invalid: string;
   alias_import_col_address: string;
-  alias_import_col_domain: string;
   alias_import_col_status: string;
   alias_pref_section: string;
   alias_pref_default_domain: string;

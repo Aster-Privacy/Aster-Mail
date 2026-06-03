@@ -182,7 +182,8 @@ export async function generate_identity_keypair(
   }
 
   const { privateKey, publicKey } = await openpgp.generateKey({
-    type: "curve25519",
+    type: "ecc",
+    curve: "ed25519Legacy",
     userIDs: [{ name, email }],
     passphrase,
     format: "armored",
@@ -221,7 +222,8 @@ export async function generate_signed_prekey(
   }
 
   const { privateKey, publicKey } = await openpgp.generateKey({
-    type: "curve25519",
+    type: "ecc",
+    curve: "ed25519Legacy",
     userIDs: [{ name: `${name} (prekey)`, email }],
     passphrase,
     format: "armored",

@@ -33,6 +33,7 @@ import {
 import {
   create_alias,
   update_alias,
+  validate_local_part,
   type DecryptedEmailAlias,
 } from "@/services/api/aliases";
 
@@ -40,18 +41,20 @@ type ImportStep = "select" | "preview" | "progress" | "done";
 type ConflictMode = "skip" | "update";
 
 interface ParsedRow {
-  address: string;
   local_part: string;
-  domain: string;
+  original_domain: string;
   display_name?: string;
   enabled?: boolean;
 }
 
-type RowStatus = "will_import" | "exists" | "bad_domain";
+type RowStatus = "will_import" | "exists" | "invalid";
 
 interface PreviewRow extends ParsedRow {
+  address: string;
+  domain: string;
   status: RowStatus;
   existing_id?: string;
+  invalid_reason?: string;
 }
 
 function parse_csv_row(line: string): string[] {
@@ -76,6 +79,61 @@ function parse_csv_row(line: string): string[] {
   }
   cols.push(cur);
   return cols;
+}
+
+interface ProtonPassItem {
+  data?: {
+    type?: string;
+    metadata?: { name?: string; note?: string };
+    content?: { aliasEmail?: string };
+  };
+  state?: number;
+}
+
+interface ProtonPassVault {
+  items?: ProtonPassItem[];
+}
+
+interface ProtonPassExport {
+  encrypted?: boolean;
+  vaults?: Record<string, ProtonPassVault>;
+}
+
+function parse_protonpass_json(text: string): ParsedRow[] {
+  let root: ProtonPassExport;
+  try {
+    root = JSON.parse(text) as ProtonPassExport;
+  } catch {
+    return [];
+  }
+
+  if (root.encrypted === true) return [];
+
+  const rows: ParsedRow[] = [];
+  const vaults = root.vaults ?? {};
+
+  for (const vault of Object.values(vaults)) {
+    for (const item of vault.items ?? []) {
+      if (item.data?.type !== "alias") continue;
+      if (item.state === 2) continue;
+
+      const alias_email = item.data?.content?.aliasEmail?.trim().toLowerCase();
+      if (!alias_email || !alias_email.includes("@")) continue;
+
+      const at = alias_email.lastIndexOf("@");
+      const local_part = alias_email.slice(0, at);
+      const original_domain = alias_email.slice(at + 1);
+      if (!local_part || !original_domain) continue;
+
+      const name = item.data?.metadata?.name?.trim();
+      const note = item.data?.metadata?.note?.trim();
+      const display_name = name || note || undefined;
+
+      rows.push({ local_part, original_domain, display_name });
+    }
+  }
+
+  return rows;
 }
 
 function parse_csv_file(text: string): ParsedRow[] {
@@ -104,15 +162,15 @@ function parse_csv_file(text: string): ParsedRow[] {
 
     const at = raw_address.lastIndexOf("@");
     const local_part = raw_address.slice(0, at).toLowerCase();
-    const domain = raw_address.slice(at + 1).toLowerCase();
+    const original_domain = raw_address.slice(at + 1).toLowerCase();
 
-    if (!local_part || !domain) continue;
+    if (!local_part || !original_domain) continue;
 
     const display_name = (note_col >= 0 && cols[note_col]) ? cols[note_col].trim() || undefined : undefined;
     const enabled_raw = (enabled_col >= 0 && cols[enabled_col]) ? cols[enabled_col].trim().toLowerCase() : undefined;
     const enabled = enabled_raw !== undefined ? enabled_raw !== "false" && enabled_raw !== "0" : undefined;
 
-    rows.push({ address: raw_address.toLowerCase(), local_part, domain, display_name, enabled });
+    rows.push({ local_part, original_domain, display_name, enabled });
   }
 
   return rows;
@@ -121,22 +179,33 @@ function parse_csv_file(text: string): ParsedRow[] {
 function build_preview(
   rows: ParsedRow[],
   existing: DecryptedEmailAlias[],
-  available_domains: string[],
+  target_domain: string,
 ): PreviewRow[] {
   const existing_map = new Map<string, DecryptedEmailAlias>();
   for (const a of existing) {
     existing_map.set(a.full_address.toLowerCase(), a);
   }
 
+  const seen_local_parts = new Set<string>();
+
   return rows.map((row) => {
-    const existing_alias = existing_map.get(row.address);
+    const address = `${row.local_part}@${target_domain}`;
+
+    const validation = validate_local_part(row.local_part);
+    if (!validation.valid) {
+      return { ...row, address, domain: target_domain, status: "invalid" as RowStatus, invalid_reason: validation.error };
+    }
+
+    if (seen_local_parts.has(row.local_part)) {
+      return { ...row, address, domain: target_domain, status: "invalid" as RowStatus, invalid_reason: "Duplicate in file" };
+    }
+    seen_local_parts.add(row.local_part);
+
+    const existing_alias = existing_map.get(address);
     if (existing_alias) {
-      return { ...row, status: "exists" as RowStatus, existing_id: existing_alias.id };
+      return { ...row, address, domain: target_domain, status: "exists" as RowStatus, existing_id: existing_alias.id };
     }
-    if (!available_domains.includes(row.domain)) {
-      return { ...row, status: "bad_domain" as RowStatus };
-    }
-    return { ...row, status: "will_import" as RowStatus };
+    return { ...row, address, domain: target_domain, status: "will_import" as RowStatus };
   });
 }
 
@@ -167,7 +236,10 @@ export function AliasImportModal({
 
   const [step, set_step] = useState<ImportStep>("select");
   const [drag_over, set_drag_over] = useState(false);
+  const [parsed_rows, set_parsed_rows] = useState<ParsedRow[]>([]);
   const [preview_rows, set_preview_rows] = useState<PreviewRow[]>([]);
+  const [target_domain, set_target_domain] = useState<string>(available_domains[0] ?? "");
+  const [selected_indices, set_selected_indices] = useState<Set<number>>(new Set());
   const [conflict_mode, set_conflict_mode] = useState<ConflictMode>("skip");
   const [progress_current, set_progress_current] = useState(0);
   const [progress_total, set_progress_total] = useState(0);
@@ -177,7 +249,10 @@ export function AliasImportModal({
   const reset = () => {
     set_step("select");
     set_drag_over(false);
+    set_parsed_rows([]);
     set_preview_rows([]);
+    set_target_domain(available_domains[0] ?? "");
+    set_selected_indices(new Set());
     set_conflict_mode("skip");
     set_progress_current(0);
     set_progress_total(0);
@@ -192,15 +267,40 @@ export function AliasImportModal({
     on_close();
   };
 
-  const process_file_text = (text: string) => {
-    const parsed = parse_csv_file(text);
+  const apply_preview = (rows: ParsedRow[], domain: string) => {
+    const preview = build_preview(rows, existing_aliases, domain);
+    set_preview_rows(preview);
+    const initial_selected = new Set(
+      preview.map((_, i) => i).filter((i) => preview[i].status !== "invalid"),
+    );
+    set_selected_indices(initial_selected);
+  };
+
+  const process_file_text = (text: string, filename: string) => {
+    const is_json = filename.toLowerCase().endsWith(".json");
+    let parsed: ParsedRow[];
+
+    if (is_json) {
+      const root = (() => { try { return JSON.parse(text); } catch { return null; } })();
+      if (root?.encrypted === true) {
+        set_error_msg(t("settings.alias_import_protonpass_encrypted_error"));
+        return;
+      }
+      parsed = parse_protonpass_json(text);
+    } else {
+      parsed = parse_csv_file(text);
+    }
+
     if (parsed.length === 0) {
       set_error_msg(t("settings.alias_import_error_no_aliases"));
       return;
     }
+
     set_error_msg(null);
-    const rows = build_preview(parsed, existing_aliases, available_domains);
-    set_preview_rows(rows);
+    const domain = available_domains[0] ?? "";
+    set_parsed_rows(parsed);
+    set_target_domain(domain);
+    apply_preview(parsed, domain);
     set_step("preview");
   };
 
@@ -208,7 +308,7 @@ export function AliasImportModal({
     const file = e.target.files?.[0];
     if (!file) return;
     const text = await file.text();
-    process_file_text(text);
+    process_file_text(text, file.name);
   };
 
   const handle_drop = async (e: React.DragEvent<HTMLDivElement>) => {
@@ -217,23 +317,52 @@ export function AliasImportModal({
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
     const text = await file.text();
-    process_file_text(text);
+    process_file_text(text, file.name);
+  };
+
+  const handle_domain_change = (domain: string) => {
+    set_target_domain(domain);
+    apply_preview(parsed_rows, domain);
+  };
+
+  const toggle_row = (index: number) => {
+    set_selected_indices((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
+
+  const toggle_all_rows = () => {
+    if (selected_indices.size === selectable_count) {
+      set_selected_indices(new Set());
+    } else {
+      set_selected_indices(
+        new Set(preview_rows.map((_, i) => i).filter((i) => preview_rows[i].status !== "invalid")),
+      );
+    }
   };
 
   const handle_import = async () => {
-    const importable = preview_rows.filter((r) => r.status === "will_import");
+    const importable = preview_rows.filter(
+      (r, i) => r.status === "will_import" && selected_indices.has(i),
+    );
     const to_update = conflict_mode === "update"
-      ? preview_rows.filter((r) => r.status === "exists" && r.existing_id)
+      ? preview_rows.filter(
+          (r, i) => r.status === "exists" && !!r.existing_id && selected_indices.has(i),
+        )
       : [];
 
+    const not_attempted = preview_rows.length - importable.length - to_update.length;
     const total = importable.length + to_update.length;
+
     set_progress_total(total);
     set_progress_current(0);
     set_step("progress");
 
     let created = 0;
     let failed = 0;
-    let skipped = preview_rows.filter((r) => r.status === "bad_domain").length;
     let processed = 0;
 
     for (const row of importable) {
@@ -252,7 +381,7 @@ export function AliasImportModal({
     }
 
     for (const row of to_update) {
-      if (!row.existing_id) { skipped++; processed++; set_progress_current(processed); continue; }
+      if (!row.existing_id) { failed++; processed++; set_progress_current(processed); continue; }
       try {
         await update_alias(row.existing_id, { is_enabled: true });
         created++;
@@ -263,9 +392,9 @@ export function AliasImportModal({
       set_progress_current(processed);
     }
 
-    if (conflict_mode === "skip") {
-      skipped += preview_rows.filter((r) => r.status === "exists").length;
-    }
+    const skipped = not_attempted + (conflict_mode === "skip"
+      ? preview_rows.filter((r, i) => r.status === "exists" && selected_indices.has(i)).length
+      : 0);
 
     set_result({ created, skipped, failed });
     set_step("done");
@@ -274,9 +403,18 @@ export function AliasImportModal({
 
   const will_import_count = preview_rows.filter((r) => r.status === "will_import").length;
   const exists_count = preview_rows.filter((r) => r.status === "exists").length;
-  const bad_domain_count = preview_rows.filter((r) => r.status === "bad_domain").length;
+  const invalid_count = preview_rows.filter((r) => r.status === "invalid").length;
 
-  const import_action_count = will_import_count + (conflict_mode === "update" ? exists_count : 0);
+  const selectable_count = preview_rows.filter((r) => r.status !== "invalid").length;
+
+  const import_action_count = [...selected_indices].filter((i) => {
+    const r = preview_rows[i];
+    if (!r) return false;
+    return r.status === "will_import" || (conflict_mode === "update" && r.status === "exists");
+  }).length;
+
+  const all_rows_selected = selectable_count > 0 && selected_indices.size === selectable_count;
+  const some_rows_selected = selected_indices.size > 0 && selected_indices.size < selectable_count;
 
   return (
     <Modal close_on_overlay={step !== "progress"} is_open={is_open} on_close={handle_close} size="lg">
@@ -315,7 +453,7 @@ export function AliasImportModal({
             </div>
             <input
               ref={file_ref}
-              accept=".csv,.txt"
+              accept=".csv,.txt,.json"
               className="hidden"
               type="file"
               onChange={handle_file_change}
@@ -330,29 +468,77 @@ export function AliasImportModal({
 
         {step === "preview" && (
           <div className="space-y-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.alias_import_preview_title")}
-            </p>
-            <div className="text-xs text-txt-muted space-y-0.5">
-              <div>{will_import_count} {t("settings.alias_import_will_import").toLowerCase()}</div>
-              {exists_count > 0 && <div>{exists_count} {t("settings.alias_import_already_exists").toLowerCase()}</div>}
-              {bad_domain_count > 0 && <div>{bad_domain_count} {t("settings.alias_import_unsupported_domain").toLowerCase()}</div>}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                {available_domains.length > 1 && (
+                  <>
+                    <span className="text-sm text-txt-muted shrink-0">
+                      {t("settings.alias_import_target_domain")}
+                    </span>
+                    <select
+                      className="text-sm rounded-lg border border-edge-secondary bg-surf-primary text-txt-primary px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
+                      value={target_domain}
+                      onChange={(e) => handle_domain_change(e.target.value)}
+                    >
+                      {available_domains.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </>
+                )}
+                {available_domains.length === 1 && (
+                  <span className="text-sm text-txt-muted">
+                    {t("settings.alias_import_target_domain")}{" "}
+                    <span className="font-mono text-txt-primary">{target_domain}</span>
+                  </span>
+                )}
+              </div>
+              <div className="text-xs text-txt-muted space-x-2 shrink-0">
+                <span>{will_import_count} {t("settings.alias_import_will_import").toLowerCase()}</span>
+                {exists_count > 0 && <span>{exists_count} {t("settings.alias_import_already_exists").toLowerCase()}</span>}
+                {invalid_count > 0 && <span>{invalid_count} {t("settings.alias_import_invalid").toLowerCase()}</span>}
+              </div>
             </div>
 
             <div className="overflow-y-auto max-h-64 rounded-lg border border-edge-secondary">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-edge-secondary bg-surf-secondary">
-                    <th className="text-left px-3 py-2 font-medium text-txt-muted">Address</th>
-                    <th className="text-left px-3 py-2 font-medium text-txt-muted">Domain</th>
-                    <th className="text-left px-3 py-2 font-medium text-txt-muted">Status</th>
+                    <th className="px-3 py-2 w-8">
+                      <input
+                        checked={all_rows_selected}
+                        className="accent-blue-500 cursor-pointer"
+                        ref={(el) => { if (el) el.indeterminate = some_rows_selected; }}
+                        type="checkbox"
+                        onChange={toggle_all_rows}
+                      />
+                    </th>
+                    <th className="text-left px-3 py-2 font-medium text-txt-muted">{t("settings.alias_import_col_address")}</th>
+                    <th className="text-left px-3 py-2 font-medium text-txt-muted">{t("settings.alias_import_col_status")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {preview_rows.map((row, i) => (
-                    <tr key={i} className="border-b border-edge-secondary last:border-0">
-                      <td className="px-3 py-2 text-txt-primary font-mono truncate max-w-[200px]">{row.address}</td>
-                      <td className="px-3 py-2 text-txt-muted">{row.domain}</td>
+                    <tr
+                      key={i}
+                      className={[
+                        "border-b border-edge-secondary last:border-0",
+                        row.status !== "invalid" ? "cursor-pointer hover:bg-surf-secondary/50" : "opacity-50",
+                      ].join(" ")}
+                      onClick={() => row.status !== "invalid" && toggle_row(i)}
+                    >
+                      <td className="px-3 py-2 w-8" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          checked={selected_indices.has(i)}
+                          className="accent-blue-500 cursor-pointer disabled:cursor-not-allowed"
+                          disabled={row.status === "invalid"}
+                          type="checkbox"
+                          onChange={() => toggle_row(i)}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-txt-primary font-mono truncate max-w-[220px]">
+                        {row.address}
+                      </td>
                       <td className="px-3 py-2">
                         {row.status === "will_import" && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600">
@@ -366,10 +552,13 @@ export function AliasImportModal({
                             {t("settings.alias_import_already_exists")}
                           </span>
                         )}
-                        {row.status === "bad_domain" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-500">
+                        {row.status === "invalid" && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-500"
+                            title={row.invalid_reason}
+                          >
                             <XCircleIcon className="w-3 h-3" />
-                            {t("settings.alias_import_unsupported_domain")}
+                            {t("settings.alias_import_invalid")}
                           </span>
                         )}
                       </td>
@@ -461,7 +650,7 @@ export function AliasImportModal({
 
         {step === "preview" && (
           <>
-            <Button variant="ghost" onClick={() => { set_step("select"); set_preview_rows([]); }}>
+            <Button variant="ghost" onClick={() => { set_step("select"); set_parsed_rows([]); set_preview_rows([]); }}>
               {t("common.back")}
             </Button>
             <Button

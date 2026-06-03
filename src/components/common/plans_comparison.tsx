@@ -354,6 +354,13 @@ function get_features(
       nova: false,
       supernova: true,
     },
+    {
+      name: t("settings.vanguard_title"),
+      free: false,
+      star: false,
+      nova: true,
+      supernova: true,
+    },
 
     {
       category: t("settings.category_privacy"),

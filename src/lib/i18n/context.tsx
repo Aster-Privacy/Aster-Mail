@@ -180,10 +180,22 @@ export function I18nProvider({
   );
 }
 
+const FALLBACK_I18N: I18nContextType = {
+  language: "en",
+  set_language: () => {},
+  t: (key: TranslationKey) => key,
+  translations: get_translations("en"),
+  is_rtl: false,
+  is_loading: false,
+};
+
 export function use_i18n(): I18nContextType {
   const context = useContext(I18nContext);
 
   if (!context) {
+    if (import.meta.env.DEV) {
+      return FALLBACK_I18N;
+    }
     throw new Error("use_i18n must be used within an I18nProvider");
   }
 

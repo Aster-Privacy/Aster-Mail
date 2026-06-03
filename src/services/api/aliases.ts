@@ -790,3 +790,7 @@ export interface AliasDeliveryLogResponse {
 export async function get_alias_delivery_log(alias_id: string): Promise<ApiResponse<AliasDeliveryLogResponse>> {
   return api_client.get<AliasDeliveryLogResponse>(`/addresses/v1/aliases/${alias_id}/delivery-log`);
 }
+
+export async function get_domain_address_delivery_log(domain_address_id: string): Promise<ApiResponse<AliasDeliveryLogResponse>> {
+  return api_client.get<AliasDeliveryLogResponse>(`/addresses/v1/aliases/domain-addresses/${domain_address_id}/delivery-log`);
+}

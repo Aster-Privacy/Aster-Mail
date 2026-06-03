@@ -63,8 +63,12 @@ export default function IndexPage() {
   useEffect(() => {
     if (!did_init_settings.current && section) {
       did_init_settings.current = true;
-      state.set_settings_section(section as SettingsSection);
-      state.set_is_settings_open(true);
+      navigate("/", { replace: true });
+      const timer = setTimeout(() => {
+        state.set_settings_section(section as SettingsSection);
+        state.set_is_settings_open(true);
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [section]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -303,7 +307,7 @@ export default function IndexPage() {
           on_close={() => {
             state.set_is_settings_open(false);
             state.set_settings_section(undefined);
-            navigate(-1);
+            navigate("/", { replace: true });
           }}
         />
       </Suspense>
