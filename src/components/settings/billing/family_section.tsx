@@ -25,6 +25,7 @@ import {
   LinkIcon,
   TrashIcon,
   ArrowRightOnRectangleIcon,
+  ArrowRightIcon,
   PencilIcon,
   XMarkIcon,
   CircleStackIcon,
@@ -1189,14 +1190,21 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 </div>
                 <ChevronRightIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
               </div>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="aster_badge aster_badge_green">
-                  {active_members.length} member{active_members.length !== 1 ? "s" : ""} total
-                </span>
-                <button className="aster_btn aster_btn_ghost aster_btn_sm">
-                  View 2FA status &rarr;
-                </button>
-              </div>
+              {(() => {
+                const compliant = Object.values(compliance_map).filter(m => m.has_2fa).length;
+                const total = Object.keys(compliance_map).length || active_members.length;
+                const all_ok = total > 0 && compliant === total;
+                return (
+                  <div className="flex items-center justify-between mt-2.5">
+                    <span className={all_ok ? "aster_badge aster_badge_green" : "aster_badge aster_badge_amber"}>
+                      {compliant} / {total} {total === 1 ? "member" : "members"} have 2FA
+                    </span>
+                    <span className="flex items-center gap-1 text-xs text-txt-muted">
+                      View security <ArrowRightIcon className="w-3.5 h-3.5" />
+                    </span>
+                  </div>
+                );
+              })()}
             </button>
           )}
 
