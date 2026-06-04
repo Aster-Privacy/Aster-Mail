@@ -18,8 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { Route, Routes } from "react-router-dom";
+import { activate_subscription, get_subscription } from "@/services/api/billing";
+import { request_cache } from "@/services/api/request_cache";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { show_toast } from "@/components/toast/simple_toast";
+import { use_i18n } from "@/lib/i18n/context";
+import { use_auth } from "@/contexts/auth_context";
 
 import { ProtectedRoute } from "@/components/common/protected_route";
 import { SuspensionBanner } from "@/components/common/suspension_overlay";
@@ -115,9 +121,49 @@ import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { AppLock } from "@/components/mobile";
 
+function BillingSuccessHandler() {
+  const { t } = use_i18n();
+  const { is_authenticated } = use_auth();
+  const handled = useRef(false);
+
+  useEffect(() => {
+    if (!is_authenticated || handled.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("billing") !== "success") return;
+
+    handled.current = true;
+    window.history.replaceState({}, "", window.location.pathname);
+
+    (async () => {
+      request_cache.invalidate("/payments/v1");
+      invalidate_mail_stats();
+      try {
+        await activate_subscription();
+      } catch {
+        // best-effort; webhook is source of truth
+      }
+      for (let i = 0; i < 8; i++) {
+        await new Promise((r) => setTimeout(r, i === 0 ? 800 : 1500));
+        request_cache.invalidate("/payments/v1");
+        const res = await get_subscription();
+        if (res.data && res.data.plan.code !== "free") {
+          invalidate_mail_stats();
+          show_toast(t("settings.payment_success"), "success");
+          return;
+        }
+      }
+      // fallback toast even if polling didn't confirm
+      show_toast(t("settings.payment_success"), "success");
+    })();
+  }, [is_authenticated, t]);
+
+  return null;
+}
+
 function App() {
   return (
     <AppLock>
+      <BillingSuccessHandler />
       <SuspensionBanner />
       <PendingDeletionDialog />
       <UpdateBanner />
