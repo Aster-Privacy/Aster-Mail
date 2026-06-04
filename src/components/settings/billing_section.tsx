@@ -567,7 +567,7 @@ export function BillingSection() {
       )}
 
       {(subscription?.plan?.code === "duo" || subscription?.plan?.code === "family") && (
-        <div className="rounded-2xl border p-5 flex flex-col gap-4" style={{ borderColor: "var(--border-primary)", backgroundColor: "var(--bg-hover)" }}>
+        <div className="rounded-2xl border border-edge-secondary p-5 flex flex-col gap-4 bg-surf-secondary">
           <div>
             <p className="text-sm font-medium text-txt-primary">
               {subscription?.plan.name ?? "Family plan"}
