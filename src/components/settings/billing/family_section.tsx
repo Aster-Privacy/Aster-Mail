@@ -30,7 +30,6 @@ import {
   XMarkIcon,
   CircleStackIcon,
   EnvelopeIcon,
-  ShieldCheckIcon,
   ArrowsRightLeftIcon,
   AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
@@ -406,35 +405,48 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
       {family_view === "overview" && (<>
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-xl bg-surf-secondary border border-edge-secondary p-4">
-          <CircleStackIcon className="w-5 h-5 text-txt-muted mb-2" />
-          <p className="text-xs text-txt-muted">Storage used</p>
-          <p className="text-sm font-semibold text-txt-primary mt-0.5">{format_bytes(pool_used)}</p>
-          <p className="text-xs text-txt-muted">of {format_bytes(group.storage_pool_bytes)}</p>
-          <div className="w-full bg-edge-secondary rounded-full h-1 mt-2">
-            <div className={`h-1 rounded-full ${pool_pct >= 90 ? "bg-red-500" : pool_pct >= 70 ? "bg-amber-500" : "bg-accent-blue"}`} style={{ width: `${pool_pct}%` }} />
+      {/* ── Storage stat row ── */}
+      <div>
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-2">
+            <CircleStackIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+            Storage
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <div className="flex items-center justify-between py-2">
+          <div className="flex-1 pr-6">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-sm font-semibold text-txt-primary">{format_bytes(pool_used)}</span>
+              <span className="text-xs text-txt-muted">of {format_bytes(group.storage_pool_bytes)} used</span>
+            </div>
+            <div className="w-full bg-edge-secondary rounded-full h-1.5 mt-2">
+              <div className={`h-1.5 rounded-full transition-all ${pool_pct >= 90 ? "bg-red-500" : pool_pct >= 70 ? "bg-amber-500" : "bg-accent-blue"}`} style={{ width: `${pool_pct}%` }} />
+            </div>
           </div>
-        </div>
-        <div className="rounded-xl bg-surf-secondary border border-edge-secondary p-4">
-          <UserGroupIcon className="w-5 h-5 text-txt-muted mb-2" />
-          <p className="text-xs text-txt-muted">Members</p>
-          <p className="text-sm font-semibold text-txt-primary mt-0.5">{active_members.length} / {group.max_members}</p>
-          <p className="text-xs text-txt-muted">Separate accounts</p>
-        </div>
-        <div className="rounded-xl bg-surf-secondary border border-edge-secondary p-4">
-          <ShieldCheckIcon className="w-5 h-5 text-txt-muted mb-2" />
-          <p className="text-xs text-txt-muted">Encryption</p>
-          <p className="text-sm font-semibold text-txt-primary mt-0.5">Zero-access</p>
-          <p className="text-xs text-txt-muted">End-to-end</p>
+          <div className="flex gap-6 flex-shrink-0 text-right">
+            <div>
+              <p className="text-xs text-txt-muted">Members</p>
+              <p className="text-sm font-semibold text-txt-primary">{active_members.length} / {group.max_members}</p>
+            </div>
+            <div>
+              <p className="text-xs text-txt-muted">Encryption</p>
+              <p className="text-sm font-semibold text-txt-primary">Zero-access</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-xl bg-surf-secondary border border-edge-secondary divide-y divide-edge-secondary">
-        <div className="px-4 py-3">
-          <p className="text-xs font-semibold text-txt-muted uppercase tracking-wide">{t("settings.family_members")}</p>
+      {/* ── Members ── */}
+      <div>
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-2">
+            <UserGroupIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+            {t("settings.family_members")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
-        <div className="px-4 divide-y divide-edge-secondary">
+        <div className="divide-y divide-edge-secondary">
           {active_members.map((m) => (
             <MemberRow
               key={m.user_id}
@@ -448,145 +460,103 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         </div>
       </div>
 
-
+      {/* ── Invite ── */}
       {is_owner && active_members.length < group.max_members && (
-        <div className="rounded-lg border border-edge-secondary p-4 space-y-3">
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.family_invite_member")}
-          </p>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Input
-                type="email"
-                placeholder={t("settings.family_invite_email_placeholder")}
-                value={invite_email}
-                onChange={(e) => set_invite_email(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center gap-1">
-              <Input
-                type="number"
-                min="1"
-                value={invite_storage_gb}
-                onChange={(e) => set_invite_storage_gb(e.target.value)}
-                className="w-20"
-              />
-              <span className="text-sm text-txt-muted">GB</span>
-            </div>
+        <div>
+          <div className="mb-3">
+            <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-2">
+              <UserPlusIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+              {t("settings.family_invite_member")}
+            </h3>
+            <div className="mt-2 h-px bg-edge-secondary" />
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={handle_invite_email}
-              disabled={invite_loading}
-              className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50"
-            >
-              <UserPlusIcon className="w-4 h-4" />
-              {t("settings.family_invite_send")}
-            </button>
-            <button
-              onClick={handle_copy_link}
-              disabled={invite_loading || has_pending_link}
-              className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50"
-              title={has_pending_link ? "Revoke the existing link first" : undefined}
-            >
-              <LinkIcon className="w-4 h-4" />
-              {t("settings.family_invite_copy_link")}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {group.pending_invites.length > 0 && (
-        <div className="rounded-lg border border-edge-secondary divide-y divide-edge-secondary">
-          <div className="px-4 py-2 text-xs font-semibold text-txt-muted uppercase tracking-wide">
-            {t("settings.family_invite_pending")}
-          </div>
-          {group.pending_invites.map((inv) => (
-            <div key={inv.id} className="flex items-center justify-between px-4 py-2">
-              <div>
-                <span className="text-xs text-txt-muted">
-                  {inv.link_only
-                    ? t("settings.family_invite_link")
-                    : t("settings.family_invite_by_email")}
-                </span>
-                <span className="text-xs text-txt-muted ml-2">
-                  {t("settings.family_invite_expires", {
-                    date: new Date(inv.expires_at).toLocaleDateString(),
-                  })}
-                </span>
+          <div className="py-2 space-y-3">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Input type="email" placeholder={t("settings.family_invite_email_placeholder")} value={invite_email} onChange={(e) => set_invite_email(e.target.value)} />
               </div>
-              {is_owner && (
-                <button
-                  onClick={() => handle_revoke_invite(inv.id)}
-                  className="aster_btn aster_btn_ghost aster_btn_sm text-red-500 hover:text-red-600"
-                >
-                  {t("settings.family_invite_revoke")}
-                </button>
-              )}
+              <div className="flex items-center gap-1">
+                <Input type="number" min="1" value={invite_storage_gb} onChange={(e) => set_invite_storage_gb(e.target.value)} className="w-20" />
+                <span className="text-sm text-txt-muted">GB</span>
+              </div>
             </div>
-          ))}
+            <div className="flex gap-2">
+              <button onClick={handle_invite_email} disabled={invite_loading} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50">
+                <UserPlusIcon className="w-4 h-4" />
+                {t("settings.family_invite_send")}
+              </button>
+              <button onClick={handle_copy_link} disabled={invite_loading || has_pending_link} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50" title={has_pending_link ? "Revoke the existing link first" : undefined}>
+                <LinkIcon className="w-4 h-4" />
+                {t("settings.family_invite_copy_link")}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      <div className="rounded-xl bg-surf-secondary border border-edge-secondary p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <EnvelopeIcon className="w-4 h-4 text-txt-muted" />
-          <p className="text-sm font-medium text-txt-primary">What's included</p>
+      {/* ── Pending invites ── */}
+      {group.pending_invites.length > 0 && (
+        <div>
+          <div className="mb-3">
+            <h3 className="text-xs font-semibold text-txt-muted uppercase tracking-wide">{t("settings.family_invite_pending")}</h3>
+            <div className="mt-2 h-px bg-edge-secondary" />
+          </div>
+          <div className="divide-y divide-edge-secondary">
+            {group.pending_invites.map((inv) => (
+              <div key={inv.id} className="flex items-center justify-between py-3">
+                <div>
+                  <p className="text-sm text-txt-primary">{inv.link_only ? t("settings.family_invite_link") : t("settings.family_invite_by_email")}</p>
+                  <p className="text-xs text-txt-muted">{t("settings.family_invite_expires", { date: new Date(inv.expires_at).toLocaleDateString() })}</p>
+                </div>
+                {is_owner && (
+                  <button onClick={() => handle_revoke_invite(inv.id)} className="aster_btn aster_btn_ghost aster_btn_sm text-red-500 hover:text-red-600">
+                    {t("settings.family_invite_revoke")}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            "Unlimited email aliases per member",
-            "30 custom domains per member",
-            "End-to-end encrypted email",
-            "Quantum-safe internal mail",
-            "Shared family aliases",
-            "Full IMAP/SMTP per member",
-            "Catch-all email address",
-            "Auto-forwarding rules",
-            "Priority support",
-            "Email import & export",
-            "Admin storage controls",
-            "Admin role transfer",
-          ].map((feat) => (
-            <div key={feat} className="flex items-center gap-1.5 text-xs text-txt-secondary">
-              <CheckIcon className="w-3.5 h-3.5 text-accent-blue flex-shrink-0" />
+      )}
+
+      {/* ── What's included ── */}
+      <div>
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-2">
+            <EnvelopeIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+            What's included
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2 py-2">
+          {["Unlimited email aliases per member","30 custom domains per member","End-to-end encrypted email","Quantum-safe internal mail","Shared family aliases","Full IMAP/SMTP per member","Catch-all email address","Auto-forwarding rules","Priority support","Email import & export","Admin storage controls","Admin role transfer"].map((feat) => (
+            <div key={feat} className="flex items-center gap-2 text-xs text-txt-secondary">
+              <CheckIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--accent-blue)" }} />
               {feat}
             </div>
           ))}
         </div>
       </div>
 
+      {/* ── Change plan ── */}
       {is_owner && (
-        <div className="rounded-xl bg-surf-secondary border border-edge-secondary p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <ArrowsRightLeftIcon className="w-4 h-4 text-txt-muted" />
-            <p className="text-sm font-medium text-txt-primary">Change plan</p>
+        <div>
+          <div className="mb-3">
+            <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-2">
+              <ArrowsRightLeftIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+              Change plan
+            </h3>
+            <div className="mt-2 h-px bg-edge-secondary" />
           </div>
-          <p className="text-xs text-txt-muted">Switch to a different plan. Your billing is prorated.</p>
-          <div className="flex flex-wrap gap-2">
-            {group.plan_name === "Family" && (
-              <button
-                onClick={() => handle_change_to_individual("duo")}
-                disabled={changing_plan}
-                className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50"
-              >
-                Switch to Duo ($10/mo)
-              </button>
-            )}
-            <button
-              onClick={() => handle_change_to_individual("supernova")}
-              disabled={changing_plan}
-              className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50"
-            >
-              Switch to Supernova
-            </button>
-            <button
-              onClick={() => handle_change_to_individual("nova")}
-              disabled={changing_plan}
-              className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50"
-            >
-              Switch to Nova
-            </button>
+          <div className="py-2 space-y-3">
+            <p className="text-xs text-txt-muted">Switch to a different plan. Your billing is prorated.</p>
+            <div className="flex flex-wrap gap-2">
+              {group.plan_name === "Family" && (
+                <button onClick={() => handle_change_to_individual("duo")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Duo</button>
+              )}
+              <button onClick={() => handle_change_to_individual("supernova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Supernova</button>
+              <button onClick={() => handle_change_to_individual("nova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Nova</button>
+            </div>
           </div>
         </div>
       )}
