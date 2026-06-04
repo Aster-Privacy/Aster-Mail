@@ -34,12 +34,33 @@ import {
   ShieldCheckIcon,
   ArchiveBoxIcon,
   ExclamationTriangleIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
+  PlusIcon,
+  InformationCircleIcon,
+  ReceiptPercentIcon,
+  GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@aster/ui";
 import { get_avatar_color } from "@/lib/avatar_color";
-import { change_plan } from "@/services/api/billing";
+import { change_plan, get_billing_history, format_price, type BillingHistoryItem } from "@/services/api/billing";
+import {
+  list_org_groups, create_org_group, delete_org_group,
+  list_group_members, add_group_member, remove_group_member,
+  get_activity_log,
+  list_org_filters, create_org_filter, update_org_filter, delete_org_filter,
+  list_family_domains, share_domain,
+  get_data_retention, update_data_retention,
+  get_security_policy, update_security_policy,
+  get_member_compliance,
+  type OrgGroup, type OrgGroupMember, type OrgFilter, type FamilyDomain,
+  type ActivityLogEntry, type DataRetentionPolicy, type SecurityPolicy,
+  type MemberComplianceInfo,
+} from "@/services/api/family_org";
 import {
   get_family_group,
   invite_member,
@@ -52,12 +73,6 @@ import {
   type FamilyGroupResponse,
   type FamilyMemberInfo,
 } from "@/services/api/family";
-import {
-  get_data_retention, update_data_retention,
-  get_security_policy, update_security_policy,
-  get_member_compliance,
-  type DataRetentionPolicy, type SecurityPolicy, type MemberComplianceInfo,
-} from "@/services/api/family_org";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
@@ -72,7 +87,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert_dialog";
 
-type FamilyTab = "overview" | "members" | "security" | "retention";
+type FamilyTab = "overview" | "members" | "groups" | "activity" | "filters" | "domains" | "security" | "retention";
+
+const EVENT_LABELS: Record<string, string> = {
+  member_joined: "Member joined", member_removed: "Member removed",
+  member_left: "Member left", admin_transferred: "Admin transferred",
+  group_created: "Group created", group_deleted: "Group deleted",
+  filter_created: "Filter created", domain_shared: "Domain shared",
+  retention_updated: "Retention updated", security_policy_updated: "Security updated",
+  invite_sent: "Invite sent", invite_revoked: "Invite revoked",
+  storage_updated: "Storage updated",
+};
 
 interface FamilySectionProps {
   is_family_plan: boolean;
@@ -166,6 +191,341 @@ function MemberRow({ member, is_owner_view, on_remove, on_transfer, on_reload }:
 }
 
 // â”€â”€ Security tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Groups tab ────────────────────────────────────────────────────────────────
+function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
+  const [groups, set_groups] = useState<OrgGroup[]>([]);
+  const [loading, set_loading] = useState(true);
+  const [new_name, set_new_name] = useState("");
+  const [new_email_prefix, set_new_email_prefix] = useState("");
+  const [creating, set_creating] = useState(false);
+  const [expanded, set_expanded] = useState<string | null>(null);
+  const [group_members, set_group_members] = useState<Record<string, OrgGroupMember[]>>({});
+  const [adding_to, set_adding_to] = useState<string | null>(null);
+  const [add_user_id, set_add_user_id] = useState("");
+
+  const load_groups = useCallback(async () => {
+    set_loading(true);
+    try { const r = await list_org_groups(); if (r.data) set_groups(r.data); }
+    catch { show_toast("Failed to load groups", "error"); }
+    finally { set_loading(false); }
+  }, []);
+
+  useEffect(() => { load_groups(); }, [load_groups]);
+
+  const handle_expand = async (gid: string) => {
+    if (expanded === gid) { set_expanded(null); return; }
+    set_expanded(gid);
+    if (!group_members[gid]) {
+      try { const r = await list_group_members(gid); if (r.data) set_group_members(p => ({ ...p, [gid]: r.data! })); }
+      catch { show_toast("Failed to load members", "error"); }
+    }
+  };
+
+  const handle_create = async () => {
+    if (!new_name.trim() || creating) return;
+    set_creating(true);
+    try {
+      const payload: { name: string; email_local_part?: string } = { name: new_name.trim() };
+      if (new_email_prefix.trim()) payload.email_local_part = new_email_prefix.trim();
+      const r = await create_org_group(payload);
+      if (r.data) { set_groups(p => [...p, r.data!]); set_new_name(""); set_new_email_prefix(""); show_toast("Group created", "success"); }
+    } catch { show_toast("Failed to create group", "error"); }
+    finally { set_creating(false); }
+  };
+
+  const handle_delete = async (gid: string) => {
+    try { await delete_org_group(gid); set_groups(p => p.filter(g => g.id !== gid)); if (expanded === gid) set_expanded(null); show_toast("Group deleted", "success"); }
+    catch { show_toast("Failed to delete group", "error"); }
+  };
+
+  const handle_remove_member = async (gid: string, uid: string) => {
+    try {
+      await remove_group_member(gid, uid);
+      set_group_members(p => ({ ...p, [gid]: (p[gid] ?? []).filter(m => m.user_id !== uid) }));
+      set_groups(p => p.map(g => g.id === gid ? { ...g, member_count: g.member_count - 1 } : g));
+      show_toast("Member removed", "success");
+    } catch { show_toast("Failed to remove member", "error"); }
+  };
+
+  const handle_add_member = async (gid: string) => {
+    if (!add_user_id) return;
+    try {
+      await add_group_member(gid, add_user_id);
+      const r = await list_group_members(gid);
+      if (r.data) set_group_members(p => ({ ...p, [gid]: r.data! }));
+      set_groups(p => p.map(g => g.id === gid ? { ...g, member_count: g.member_count + 1 } : g));
+      set_adding_to(null); set_add_user_id(""); show_toast("Member added", "success");
+    } catch { show_toast("Failed to add member", "error"); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Input placeholder="Group name" value={new_name} onChange={e => set_new_name(e.target.value)} onKeyDown={e => e.key === "Enter" && handle_create()} className="flex-1" />
+        <Input placeholder="Email prefix (optional)" value={new_email_prefix} onChange={e => set_new_email_prefix(e.target.value)} className="flex-1" />
+        <button onClick={handle_create} disabled={creating || !new_name.trim()} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50 flex items-center gap-1.5">
+          <PlusIcon className="w-4 h-4" /> Create
+        </button>
+      </div>
+      {loading ? (
+        <div className="flex items-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>
+      ) : groups.length === 0 ? (
+        <p className="text-sm text-txt-muted py-4">No groups yet.</p>
+      ) : (
+        <div className="divide-y divide-edge-secondary">
+          {groups.map(g => {
+            const is_open = expanded === g.id;
+            const gm = group_members[g.id] ?? [];
+            return (
+              <div key={g.id}>
+                <div className="flex items-center gap-2 py-3">
+                  <button onClick={() => handle_expand(g.id)} className="flex items-center gap-2 flex-1 min-w-0 text-left">
+                    {is_open ? <ChevronDownIcon className="w-4 h-4 text-txt-muted flex-shrink-0" /> : <ChevronRightIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />}
+                    <span className="text-sm font-medium text-txt-primary truncate">{g.name}</span>
+                    <span className="text-xs text-txt-muted flex-shrink-0">{g.member_count} member{g.member_count !== 1 ? "s" : ""}</span>
+                  </button>
+                  <button onClick={() => handle_delete(g.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
+                </div>
+                {is_open && (
+                  <div className="pl-6 pb-3 space-y-1">
+                    {gm.length === 0 ? <p className="text-xs text-txt-muted">No members yet.</p> : (
+                      <div className="divide-y divide-edge-secondary">
+                        {gm.map(m => (
+                          <div key={m.user_id} className="flex items-center justify-between py-2">
+                            <span className="text-sm text-txt-primary">{m.username}@{m.email_domain}</span>
+                            <button onClick={() => handle_remove_member(g.id, m.user_id)} className="p-1 text-txt-muted hover:text-red-500"><XMarkIcon className="w-3.5 h-3.5" /></button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {adding_to === g.id ? (
+                      <div className="flex items-center gap-2 pt-2">
+                        <select value={add_user_id} onChange={e => set_add_user_id(e.target.value)} className="flex-1 text-sm border border-edge-secondary rounded px-2 py-1 bg-transparent text-txt-primary">
+                          <option value="">Select member...</option>
+                          {members.filter(m => !gm.some(x => x.user_id === m.user_id)).map(m => (
+                            <option key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</option>
+                          ))}
+                        </select>
+                        <button onClick={() => handle_add_member(g.id)} disabled={!add_user_id} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">Add</button>
+                        <button onClick={() => { set_adding_to(null); set_add_user_id(""); }} className="aster_btn aster_btn_ghost aster_btn_sm">Cancel</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => { set_adding_to(g.id); set_add_user_id(""); }} className="text-xs text-accent-blue hover:underline pt-1">Add member</button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Activity tab ────────────────────────────────────────────────────────────────
+function ActivityContent() {
+  const [entries, set_entries] = useState<ActivityLogEntry[]>([]);
+  const [total, set_total] = useState(0);
+  const [page, set_page] = useState(1);
+  const [loading, set_loading] = useState(true);
+  const [filter_type, set_filter_type] = useState("");
+
+  const load_page = useCallback(async (p: number) => {
+    set_loading(true);
+    try {
+      const r = await get_activity_log(p, 20);
+      if (r.data) {
+        if (p === 1) set_entries(r.data.entries); else set_entries(prev => [...prev, ...r.data!.entries]);
+        set_total(r.data.total); set_page(p);
+      }
+    } catch { show_toast("Failed to load activity", "error"); }
+    finally { set_loading(false); }
+  }, []);
+
+  useEffect(() => { load_page(1); }, [load_page]);
+
+  const unique_types = Array.from(new Set(entries.map(e => e.event_type)));
+  const filtered = filter_type ? entries.filter(e => e.event_type === filter_type) : entries;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-txt-muted">{total} event{total !== 1 ? "s" : ""}</span>
+        <select value={filter_type} onChange={e => set_filter_type(e.target.value)} className="text-sm border border-edge-secondary rounded px-2 py-1 bg-transparent text-txt-primary">
+          <option value="">All events</option>
+          {unique_types.map(type => <option key={type} value={type}>{EVENT_LABELS[type] ?? type}</option>)}
+        </select>
+      </div>
+      {loading && entries.length === 0 ? (
+        <div className="flex items-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm text-txt-muted py-4">No activity yet.</p>
+      ) : (
+        <div className="divide-y divide-edge-secondary">
+          {filtered.map(entry => (
+            <div key={entry.id} className="flex items-center gap-4 py-3">
+              <div className="flex-1 min-w-0">
+                <span className="text-sm text-txt-primary">{EVENT_LABELS[entry.event_type] ?? entry.event_type}</span>
+                {entry.actor_username && <span className="text-xs text-txt-muted ml-2">by {entry.actor_username}</span>}
+                {entry.target_username && <span className="text-xs text-txt-muted ml-1">&#8594; {entry.target_username}</span>}
+              </div>
+              <span className="text-xs text-txt-muted flex-shrink-0">{new Date(entry.created_at).toLocaleDateString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {entries.length < total && (
+        <button onClick={() => load_page(page + 1)} disabled={loading} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">
+          {loading ? <Spinner size="sm" /> : "Load more"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ── Filters tab ────────────────────────────────────────────────────────────────
+function FiltersContent() {
+  const [filters, set_filters] = useState<OrgFilter[]>([]);
+  const [loading, set_loading] = useState(true);
+  const [show_form, set_show_form] = useState(false);
+  const [creating, set_creating] = useState(false);
+  const [form, set_form] = useState({ name: "", value: "", field: "from", action: "trash" });
+
+  const load = useCallback(async () => {
+    const r = await list_org_filters(); if (r.data) set_filters(r.data); set_loading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const create = async () => {
+    if (!form.name.trim() || !form.value.trim()) return;
+    set_creating(true);
+    try {
+      const r = await create_org_filter({ name: form.name.trim(), filter_type: "block", field: form.field, value: form.value.trim(), action: form.action });
+      if (r.data) { set_filters(f => [...f, r.data!]); set_form({ name: "", value: "", field: "from", action: "trash" }); set_show_form(false); show_toast("Filter created", "success"); }
+    } catch { show_toast("Failed to create filter", "error"); }
+    finally { set_creating(false); }
+  };
+  const toggle_f = async (f: OrgFilter) => {
+    const r = await update_org_filter(f.id, { is_enabled: !f.is_enabled });
+    if (r.data) set_filters(fs => fs.map(x => x.id === f.id ? r.data! : x));
+  };
+  const del_f = async (id: string) => { await delete_org_filter(id); set_filters(f => f.filter(x => x.id !== id)); show_toast("Filter deleted", "success"); };
+  const fl = (v: string) => ({ from: "Sender", to: "Recipient", domain: "Domain", subject: "Subject" }[v] ?? v);
+  const al = (v: string) => ({ trash: "Trash", block: "Block", archive: "Archive", mark_read: "Mark read" }[v] ?? v);
+
+  if (loading) return <div className="flex items-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>;
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-txt-muted">Filters apply to all family members' inboxes org-wide.</p>
+        <button onClick={() => set_show_form(!show_form)} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5">
+          <PlusIcon className="w-3.5 h-3.5" /> New Filter
+        </button>
+      </div>
+      {show_form && (
+        <div className="rounded-xl border border-edge-secondary p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <Input placeholder="Filter name" value={form.name} onChange={e => set_form(f => ({ ...f, name: e.target.value }))} />
+            <Input placeholder="Value (domain, email, keyword)" value={form.value} onChange={e => set_form(f => ({ ...f, value: e.target.value }))} />
+          </div>
+          <div className="flex gap-2">
+            <select value={form.field} onChange={e => set_form(f => ({ ...f, field: e.target.value }))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
+              <option value="from">Sender (from)</option><option value="to">Recipient (to)</option>
+              <option value="domain">Domain</option><option value="subject">Subject</option>
+            </select>
+            <select value={form.action} onChange={e => set_form(f => ({ ...f, action: e.target.value }))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
+              <option value="trash">Move to Trash</option><option value="block">Block</option>
+              <option value="archive">Archive</option><option value="mark_read">Mark as read</option>
+            </select>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={create} disabled={creating || !form.name.trim() || !form.value.trim()} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">
+              {creating ? <Spinner size="sm" /> : "Create Filter"}
+            </button>
+            <button onClick={() => set_show_form(false)} className="aster_btn aster_btn_ghost aster_btn_sm">Cancel</button>
+          </div>
+        </div>
+      )}
+      {filters.length === 0 ? (
+        <p className="text-sm text-txt-muted text-center py-6">No org filters yet.</p>
+      ) : (
+        <div className="divide-y divide-edge-secondary">
+          {filters.map(f => (
+            <div key={f.id} className="flex items-center gap-3 py-3">
+              <button onClick={() => toggle_f(f)} className="flex-shrink-0">
+                {f.is_enabled ? <CheckCircleIcon className="w-5 h-5" style={{ color: "var(--accent-blue)" }} /> : <XCircleIcon className="w-5 h-5 text-txt-muted" />}
+              </button>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-txt-primary">{f.name}</p>
+                <p className="text-xs text-txt-muted">{fl(f.field)} = &ldquo;{f.value}&rdquo; &rarr; {al(f.action)}</p>
+              </div>
+              <button onClick={() => del_f(f.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Domains tab ────────────────────────────────────────────────────────────────
+function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
+  const [domains, set_domains] = useState<FamilyDomain[]>([]);
+  const [loading, set_loading] = useState(true);
+  const [sharing, set_sharing] = useState<string | null>(null);
+  const [share_uid, set_share_uid] = useState("");
+
+  useEffect(() => { list_family_domains().then(r => { if (r.data) set_domains(r.data); set_loading(false); }); }, []);
+
+  const do_share = async (dn: string) => {
+    if (!share_uid) return;
+    try {
+      await share_domain(dn, share_uid, true);
+      set_domains(d => d.map(x => x.domain_name === dn ? { ...x, shared_with_count: x.shared_with_count + 1 } : x));
+      set_sharing(null); set_share_uid(""); show_toast("Domain shared", "success");
+    } catch { show_toast("Failed to share domain", "error"); }
+  };
+
+  if (loading) return <div className="flex items-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>;
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-txt-muted">Share custom domains so family members can create aliases on them.</p>
+      {domains.length === 0 ? (
+        <p className="text-sm text-txt-muted text-center py-6">No custom domains found. Members can add domains in Aliases &amp; Domains settings.</p>
+      ) : (
+        <div className="divide-y divide-edge-secondary">
+          {domains.map(d => (
+            <div key={d.domain_name} className="py-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <GlobeAltIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+                    <span className="text-sm font-medium text-txt-primary">{d.domain_name}</span>
+                    {d.dkim_verified ? <span className="aster_badge aster_badge_green">Verified</span> : <span className="aster_badge aster_badge_amber">Unverified</span>}
+                  </div>
+                  <p className="text-xs text-txt-muted mt-0.5 ml-6">Owner: {d.owner_username} &middot; {d.shared_with_count} shared</p>
+                </div>
+                <button onClick={() => { set_sharing(d.domain_name); set_share_uid(""); }} className="aster_btn aster_btn_secondary aster_btn_sm flex-shrink-0">Share</button>
+              </div>
+              {sharing === d.domain_name && (
+                <div className="flex gap-2 mt-3 ml-6">
+                  <select value={share_uid} onChange={e => set_share_uid(e.target.value)} className="flex-1 text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
+                    <option value="">Select member...</option>
+                    {members.filter(m => m.user_id !== d.owner_user_id).map(m => <option key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</option>)}
+                  </select>
+                  <button onClick={() => do_share(d.domain_name)} disabled={!share_uid} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">Share</button>
+                  <button onClick={() => set_sharing(null)} className="aster_btn aster_btn_ghost aster_btn_sm">Cancel</button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SecurityContent() {
   const [policy, set_policy] = useState<SecurityPolicy | null>(null);
   const [compliance, set_compliance] = useState<MemberComplianceInfo[]>([]);
@@ -235,6 +595,30 @@ function SecurityContent() {
             </div>
           </div>
         )}
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">Max active sessions per member</p>
+            <p className="text-sm mt-0.5 text-txt-muted">Limit simultaneous device sign-ins. Leave blank for no limit.</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Input type="number" min="1" className="w-16" placeholder="No limit"
+              value={policy.max_sessions_per_member ?? ""}
+              onChange={e => set_policy(p => p ? { ...p, max_sessions_per_member: e.target.value ? parseInt(e.target.value) : null } : p)} />
+            <span className="text-xs text-txt-muted">sessions</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">Auto sign-out after</p>
+            <p className="text-sm mt-0.5 text-txt-muted">Sign members out after N hours of inactivity.</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Input type="number" min="1" className="w-16" placeholder="Never"
+              value={policy.session_timeout_hours ?? ""}
+              onChange={e => set_policy(p => p ? { ...p, session_timeout_hours: e.target.value ? parseInt(e.target.value) : null } : p)} />
+            <span className="text-xs text-txt-muted">hours</span>
+          </div>
+        </div>
       </div>
       <button onClick={save} disabled={saving} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">
         {saving ? "Saving..." : "Save Security Policy"}
@@ -262,6 +646,7 @@ function SecurityContent() {
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     {m.has_2fa ? <span className="aster_badge aster_badge_green">2FA</span> : <span className="aster_badge aster_badge_amber">No 2FA</span>}
+                    {m.imap_enabled && <span className="aster_badge aster_badge_gray">IMAP</span>}
                   </div>
                 </div>
               );
@@ -355,6 +740,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [show_leave_dialog, set_show_leave_dialog] = useState(false);
   const [action_loading, set_action_loading] = useState(false);
   const [changing_plan, set_changing_plan] = useState(false);
+  const [billing_history, set_billing_history] = useState<BillingHistoryItem[]>([]);
+  const [billing_loading, set_billing_loading] = useState(false);
 
   const load_group = useCallback(async () => {
     try {
@@ -378,6 +765,25 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
   const is_owner = group?.viewer_role === "owner";
   const has_pending_link = group?.pending_invites.some(i => i.link_only) ?? false;
+
+  useEffect(() => {
+    if (tab !== "overview" || !is_owner) return;
+    if (billing_history.length > 0) return;
+    set_billing_loading(true);
+    get_billing_history(1, 3)
+      .then(r => { if (r.data) set_billing_history(r.data.items || []); })
+      .finally(() => set_billing_loading(false));
+  }, [tab, is_owner, billing_history.length]);
+
+  const handle_upgrade_to_family = async () => {
+    set_changing_plan(true);
+    try {
+      const res = await change_plan("family", "year");
+      if (res.ok) { show_toast(t("settings.change_plan"), "success"); window.location.reload(); }
+      else show_toast(t("settings.failed_save_setting"), "error");
+    } catch { show_toast(t("settings.failed_save_setting"), "error"); }
+    finally { set_changing_plan(false); }
+  };
 
   const handle_invite_email = async () => {
     const email = invite_email.trim();
@@ -480,11 +886,16 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const pool_used = group.members.reduce((s, m) => s + m.storage_used_bytes, 0);
   const pool_pct = storage_pct(pool_used, group.storage_pool_bytes);
   const seats_remaining = group.max_members - active_members.length;
+  const seats_full = active_members.length >= group.max_members;
 
   // Tabs: owners see Overview + management tabs; members just see Overview
   const owner_tabs: { id: FamilyTab; label: string; icon: React.ElementType }[] = is_owner ? [
     { id: "overview", label: "Overview", icon: UserGroupIcon },
     { id: "members", label: "Members", icon: UserPlusIcon },
+    { id: "groups", label: "Groups", icon: UserGroupIcon },
+    { id: "activity", label: "Activity", icon: ArrowsRightLeftIcon },
+    { id: "filters", label: "Filters", icon: ShieldCheckIcon },
+    { id: "domains", label: "Domains", icon: GlobeAltIcon },
     { id: "security", label: "Security", icon: ShieldCheckIcon },
     { id: "retention", label: "Retention", icon: ArchiveBoxIcon },
   ] : [];
@@ -555,6 +966,43 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           </div>
 
+          {/* Per member storage breakdown */}
+          <div>
+            <div className="mb-3">
+              <h3 className="text-base font-semibold text-txt-primary">Per member</h3>
+              <div className="mt-2 h-px bg-edge-secondary" />
+            </div>
+            <div className="space-y-2">
+              {active_members.map(m => {
+                const pct = storage_pct(m.storage_used_bytes, m.allocated_storage_bytes);
+                const bar_color = pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-amber-500" : "bg-accent-blue";
+                return (
+                  <div key={m.user_id}>
+                    <div className="flex items-center gap-3 py-1.5">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white" style={{ backgroundColor: get_avatar_color(m.username) }}>
+                        {m.username[0]?.toUpperCase()}
+                      </div>
+                      <span className="text-xs text-txt-primary flex-1 min-w-0 truncate">{m.username}@{m.email_domain}</span>
+                      <span className="text-xs text-txt-muted flex-shrink-0 w-28 text-right">{format_bytes(m.storage_used_bytes)} / {format_bytes(m.allocated_storage_bytes)}</span>
+                    </div>
+                    <div className="ml-9 w-full bg-edge-secondary h-1 rounded-full">
+                      <div className={`${bar_color} h-1 rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Seat upgrade banner for Duo at capacity */}
+          {is_owner && seats_full && group.plan_name === "Duo" && (
+            <div className="flex items-center gap-3 py-3 px-4 rounded-xl border border-edge-secondary">
+              <InformationCircleIcon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
+              <p className="text-sm text-txt-secondary flex-1">All 2 seats used. Upgrade to Family plan for up to 6 members.</p>
+              <button onClick={handle_upgrade_to_family} disabled={changing_plan} className="aster_btn aster_btn_primary aster_btn_sm flex-shrink-0 disabled:opacity-50">Upgrade</button>
+            </div>
+          )}
+
           {/* What's included */}
           <div>
             <div className="mb-3">
@@ -599,6 +1047,33 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                   <button onClick={() => handle_change_plan("supernova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Supernova</button>
                   <button onClick={() => handle_change_plan("nova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Nova</button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Billing history (owner only) */}
+          {is_owner && (
+            <div>
+              <div className="mb-3">
+                <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+                  <ReceiptPercentIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+                  Billing
+                </h3>
+                <div className="mt-2 h-px bg-edge-secondary" />
+              </div>
+              <div className="py-2 space-y-1">
+                {billing_loading && <div className="flex items-center gap-2 py-2"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>}
+                {!billing_loading && billing_history.length === 0 && <p className="text-sm text-txt-muted py-1">No billing history yet.</p>}
+                {!billing_loading && billing_history.slice(0, 3).map(inv => (
+                  <div key={inv.id} className="flex items-center justify-between py-2">
+                    <span className="text-xs text-txt-muted">{new Date(inv.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</span>
+                    <span className="text-sm text-txt-primary flex-1 px-3">{format_price(inv.amount_cents, inv.currency)}</span>
+                    <span className={inv.status === "paid" ? "aster_badge aster_badge_green" : "aster_badge aster_badge_amber"}>{inv.status}</span>
+                  </div>
+                ))}
+                <button onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))} className="text-xs text-accent-blue hover:underline pt-1">
+                  View all billing
+                </button>
               </div>
             </div>
           )}
@@ -701,6 +1176,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       )}
 
       {/* â”€â”€ Security tab â”€â”€ */}
+      {tab === "groups"    && is_owner && <GroupsContent members={active_members} />}
+      {tab === "activity"  && is_owner && <ActivityContent />}
+      {tab === "filters"   && is_owner && <FiltersContent />}
+      {tab === "domains"   && is_owner && <DomainsContent members={active_members} />}
       {tab === "security" && is_owner && <SecurityContent />}
 
       {/* â”€â”€ Retention tab â”€â”€ */}
