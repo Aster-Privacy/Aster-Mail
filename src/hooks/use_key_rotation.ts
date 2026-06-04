@@ -32,6 +32,7 @@ import {
   store_vault_in_memory,
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
+import { store_encrypted_vault } from "@/contexts/auth/session_passphrase";
 import { show_toast } from "@/components/toast/simple_toast";
 
 export interface KeyRotationState {
@@ -157,14 +158,7 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
           await store_vault_in_memory(result.new_vault, password);
 
           if (result.encrypted_vault && result.vault_nonce) {
-            localStorage.setItem(
-              `astermail_encrypted_vault_${user.id}`,
-              result.encrypted_vault,
-            );
-            localStorage.setItem(
-              `astermail_vault_nonce_${user.id}`,
-              result.vault_nonce,
-            );
+            store_encrypted_vault(user.id, result.encrypted_vault, result.vault_nonce);
           }
 
           set_state((prev) => ({
