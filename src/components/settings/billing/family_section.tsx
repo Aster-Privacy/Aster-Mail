@@ -305,7 +305,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
 
   const load_groups = useCallback(async () => {
     set_loading(true);
-    try { const r = await list_org_groups(); if (r.data) set_groups(r.data); }
+    try { const r = await list_org_groups(); set_groups(r.data ?? []); }
     catch { show_toast("Failed to load groups", "error"); }
     finally { set_loading(false); }
   }, []);
@@ -525,7 +525,7 @@ function FiltersContent() {
   const [form, set_form] = useState({ name: "", value: "", field: "from", action: "trash" });
 
   const load = useCallback(async () => {
-    try { const r = await list_org_filters(); if (r.data) set_filters(r.data); }
+    try { const r = await list_org_filters(); set_filters(r.data ?? []); }
     catch { show_toast("Failed to load filters", "error"); }
     finally { set_loading(false); }
   }, []);
@@ -648,7 +648,7 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
       <p className="text-xs text-txt-muted">Share custom domains so family members can create aliases on them.</p>
       {domains.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
-          <GlobeAltIcon className="w-12 h-12 text-txt-muted" />
+          <div className="w-16 h-16 rounded-full bg-surf-secondary flex items-center justify-center"><GlobeAltIcon className="w-8 h-8 text-txt-muted" /></div>
           <p className="text-sm font-medium text-txt-primary">No custom domains in this family</p>
           <p className="text-xs text-txt-muted text-center max-w-xs">Custom domains let family members send from their own @yourdomain.com addresses.</p>
           <button onClick={nav_aliases} className="aster_btn aster_btn_primary aster_btn_sm mt-1">
@@ -749,8 +749,8 @@ function SecurityContent() {
           </div>
           <div className="w-full h-2 bg-edge-secondary rounded-full overflow-hidden">
             <div
-              className="h-2 rounded-full transition-all"
-              style={{ width: `${(with_2fa / total_members) * 100}%`, backgroundColor: non_2fa === 0 ? "rgb(34 197 94)" : "rgb(245 158 11)" }}
+              className={`h-2 rounded-full transition-all ${non_2fa === 0 ? "bg-green-500" : "bg-amber-500"}`}
+              style={{ width: `${(with_2fa / total_members) * 100}%` }}
             />
           </div>
         </div>
@@ -845,7 +845,7 @@ function SecurityContent() {
                     <p className="text-sm font-medium text-txt-primary truncate">{m.username}@{m.email_domain}</p>
                     <p className="text-xs text-txt-muted mt-0.5">
                       {m.session_count} active session{m.session_count !== 1 ? "s" : ""}
-                      {m.last_login && <span> &middot; last seen {last_seen_relative(m.last_login)}</span>}
+                      {m.last_login && <span> · last seen {last_seen_relative(m.last_login)}</span>}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -992,7 +992,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     set_changing_plan(true);
     try {
       const res = await change_plan("family", "year");
-      if (res.ok) { show_toast(t("settings.change_plan"), "success"); window.location.reload(); }
+      if (res.ok) { show_toast("Plan upgraded successfully", "success"); window.location.reload(); }
       else show_toast(t("settings.failed_save_setting"), "error");
     } catch { show_toast(t("settings.failed_save_setting"), "error"); }
     finally { set_changing_plan(false); }
@@ -1111,7 +1111,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           <span className="aster_badge aster_badge_blue">{group.plan_name}</span>
         </h2>
         <p className="text-sm text-txt-secondary mt-0.5">
-          {active_members.length} of {group.max_members} members &middot; {seats_remaining} seat{seats_remaining !== 1 ? "s" : ""} available
+          {active_members.length} of {group.max_members} members · {seats_remaining} seat{seats_remaining !== 1 ? "s" : ""} available
         </p>
       </div>
 
@@ -1309,7 +1309,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                   ))}
               {active_members.filter(m => m.role !== "owner").length === 0 ? (
                 <div className="flex flex-col items-center gap-3 py-8">
-                  <UserGroupIcon className="w-12 h-12 text-txt-muted" />
+                  <div className="w-16 h-16 rounded-full bg-surf-secondary flex items-center justify-center"><UserGroupIcon className="w-8 h-8 text-txt-muted" /></div>
                   <div className="text-center">
                     <p className="text-base font-semibold text-txt-primary">No members yet</p>
                     <p className="text-sm text-txt-muted mt-1">Invite someone to share this family plan</p>
@@ -1389,10 +1389,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                         <p className="text-sm text-txt-primary">{inv.link_only ? t("settings.family_invite_link") : t("settings.family_invite_by_email")}</p>
                         <p className="text-xs text-txt-muted">
                           {t("settings.family_invite_expires", { date: new Date(inv.expires_at).toLocaleDateString() })}
-                          {inv.allocated_storage_bytes > 0 && <span> &middot; <strong>{Math.round(inv.allocated_storage_bytes / 1073741824)} GB</strong> allocated</span>}
-                          {inv.created_at && <span> &middot; sent {invite_sent_relative(inv.created_at)}</span>}
+                          {inv.allocated_storage_bytes > 0 && <span> · <strong>{Math.round(inv.allocated_storage_bytes / 1073741824)} GB</strong> allocated</span>}
+                          {inv.created_at && <span> · sent {invite_sent_relative(inv.created_at)}</span>}
                         </p>
-                        <p className="text-xs text-txt-muted">Sent {invite_sent_relative(inv.created_at)}</p>
+                  
                       </div>
                     </div>
                     <button onClick={() => handle_revoke_invite(inv.id)} className="aster_btn aster_btn_ghost aster_btn_sm text-red-500 hover:text-red-600 flex-shrink-0">
