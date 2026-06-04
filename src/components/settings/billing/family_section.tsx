@@ -1128,17 +1128,17 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       </div>
 
       {is_owner && (
-        <div className="flex border-b border-edge-secondary overflow-x-auto scrollbar-thin">
+        <div className="inline-flex p-1 rounded-lg bg-surf-secondary overflow-x-auto scrollbar-none max-w-full">
           {owner_tabs.map(t_item => (
             <button
               key={t_item.id}
               onClick={() => set_tab(t_item.id)}
-              className={[
-                "px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors duration-150 outline-none border-b-2 -mb-px",
-                tab === t_item.id
-                  ? "border-accent-blue text-txt-primary"
-                  : "border-transparent text-txt-muted hover:text-txt-secondary",
-              ].join(" ")}
+              className="relative px-4 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none whitespace-nowrap"
+              style={{
+                backgroundColor: tab === t_item.id ? "var(--bg-primary)" : "transparent",
+                color: tab === t_item.id ? "var(--text-primary)" : "var(--text-muted)",
+                boxShadow: tab === t_item.id ? "rgba(0,0,0,0.1) 0px 1px 3px,rgba(0,0,0,0.06) 0px 1px 2px" : "none",
+              }}
             >
               {t_item.label}
             </button>
@@ -1199,7 +1199,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               </div>
               <div className="w-full bg-edge-secondary rounded-full h-2">
                 <div className={`h-2 rounded-full transition-all ${pool_pct >= 90 ? "bg-red-500" : pool_pct >= 70 ? "bg-amber-500" : "bg-accent-blue"}`}
-                  style={{ width: `${pool_pct}%` }} />
+                  style={{ width: `${Math.max(pool_pct, 0.3)}%` }} />
               </div>
               <p className="text-xs text-txt-muted">{format_bytes(group.storage_pool_bytes - pool_used)} remaining in pool</p>
             </div>
@@ -1218,13 +1218,12 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 <ChevronRightIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
               </div>
               <div className="flex items-center gap-2 mt-2">
-                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium border" style={{ borderColor: "rgba(34,197,94,0.3)", color: "var(--color-green-600, #16a34a)", backgroundColor: "rgba(34,197,94,0.08)" }}>
-                  <CheckCircleIcon className="w-3 h-3" />
+                <span className="aster_badge aster_badge_green">
                   {active_members.length} member{active_members.length !== 1 ? "s" : ""} total
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium border border-edge-secondary text-txt-muted">
+                <button className="aster_btn aster_btn_ghost aster_btn_sm">
                   View 2FA status &rarr;
-                </span>
+                </button>
               </div>
             </button>
           )}
