@@ -37,7 +37,6 @@ import {
   ChevronDownIcon,
   PlusIcon,
   InformationCircleIcon,
-  ReceiptPercentIcon,
   GlobeAltIcon,
   LockClosedIcon,
   FunnelIcon,
@@ -49,7 +48,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@aster/ui";
 import { get_avatar_color } from "@/lib/avatar_color";
-import { change_plan, get_billing_history, format_price, type BillingHistoryItem } from "@/services/api/billing";
+import { change_plan } from "@/services/api/billing";
 import {
   list_org_groups, create_org_group, delete_org_group,
   list_group_members, add_group_member, remove_group_member,
@@ -360,10 +359,10 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Input placeholder="Group name" value={new_name} onChange={e => set_new_name(e.target.value)} onKeyDown={e => e.key === "Enter" && handle_create()} className="flex-1" />
-        <Input placeholder="Email prefix (optional)" value={new_email_prefix} onChange={e => set_new_email_prefix(e.target.value)} className="flex-1" />
-        <button onClick={handle_create} disabled={creating || !new_name.trim()} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50 flex items-center gap-1.5">
+      <div className="flex gap-2">
+        <Input placeholder="Group name" value={new_name} onChange={e => set_new_name(e.target.value)} onKeyDown={e => e.key === "Enter" && handle_create()} className="flex-1 h-9" />
+        <Input placeholder="Email prefix (optional)" value={new_email_prefix} onChange={e => set_new_email_prefix(e.target.value)} className="flex-1 h-9" />
+        <button onClick={handle_create} disabled={creating || !new_name.trim()} className="aster_btn aster_btn_primary aster_btn_sm h-9 flex items-center gap-1.5 disabled:opacity-50 flex-shrink-0">
           <PlusIcon className="w-4 h-4" /> Create
         </button>
       </div>
@@ -891,15 +890,11 @@ function RetentionContent() {
           { key: "sent_retention_days" as const, label: "Sent", hint: "Auto-delete sent mail" },
           { key: "all_mail_retention_days" as const, label: "All Mail", hint: "Hard limit on all messages" },
         ]).map(({ key, label, hint }) => {
-          const is_active = (policy[key] as number | null) !== null;
           return (
             <div key={key} className="flex items-center justify-between py-4">
-              <div className="flex items-center gap-2 flex-1 pr-4">
-                {is_active && <ArchiveBoxIcon className="w-4 h-4 flex-shrink-0 text-amber-500" />}
-                <div>
-                  <p className="text-sm font-medium text-txt-primary">{label}</p>
-                  <p className="text-sm mt-0.5 text-txt-muted">{hint}</p>
-                </div>
+              <div className="flex-1 pr-4">
+                <p className="text-sm font-medium text-txt-primary">{label}</p>
+                <p className="text-sm mt-0.5 text-txt-muted">{hint}</p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Input type="number" min="0"
@@ -943,8 +938,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [show_leave_dialog, set_show_leave_dialog] = useState(false);
   const [action_loading, set_action_loading] = useState(false);
   const [changing_plan, set_changing_plan] = useState(false);
-  const [billing_history, set_billing_history] = useState<BillingHistoryItem[]>([]);
-  const [billing_loading, set_billing_loading] = useState(false);
   const [compliance_map, set_compliance_map] = useState<Record<string, MemberComplianceInfo>>({});
 
   const load_group = useCallback(async () => {
@@ -970,13 +963,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const is_owner = group?.viewer_role === "owner";
   const has_pending_link = group?.pending_invites.some(i => i.link_only) ?? false;
 
-  useEffect(() => {
-    if (!is_owner || billing_history.length > 0) return;
-    set_billing_loading(true);
-    get_billing_history(1, 3)
-      .then(r => { if (r.data) set_billing_history(r.data.items || []); })
-      .finally(() => set_billing_loading(false));
-  }, [is_owner, billing_history.length]);
 
   useEffect(() => {
     if (!is_owner || Object.keys(compliance_map).length > 0) return;
@@ -1072,15 +1058,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     finally { set_action_loading(false); set_show_leave_dialog(false); }
   };
 
-  const handle_change_plan = async (plan_code: string) => {
-    set_changing_plan(true);
-    try {
-      const res = await change_plan(plan_code, "year");
-      if (res.ok) { show_toast(t("settings.change_plan"), "success"); window.location.reload(); }
-      else show_toast(t("settings.failed_save_setting"), "error");
-    } catch { show_toast(t("settings.failed_save_setting"), "error"); }
-    finally { set_changing_plan(false); }
-  };
 
   if (!is_family_plan || loading) return null;
 
@@ -1148,34 +1125,29 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
       {(tab === "overview" || !is_owner) && (
         <>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl border border-edge-secondary px-4 py-3">
-              <p className="text-xs text-txt-muted">Members</p>
-              <p className="text-lg font-semibold text-txt-primary tabular-nums mt-0.5">{active_members.length} <span className="text-sm font-normal text-txt-muted">/ {group.max_members}</span></p>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                {group.pending_invites.length > 0 && (
-                  <span className="flex items-center gap-0.5 text-[10px] text-amber-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
-                    {group.pending_invites.length} pending
-                  </span>
-                )}
-                {active_members.length > 0 && (
-                  <span className="flex items-center gap-0.5 text-[10px] text-txt-muted">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                    {active_members.length} active
-                  </span>
-                )}
-              </div>
+          <div className="grid grid-cols-3 divide-x divide-edge-secondary rounded-xl border border-edge-secondary">
+            <div className="px-5 py-4">
+              <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">Members</p>
+              <p className="text-2xl font-bold text-txt-primary tabular-nums mt-1.5">
+                {active_members.length}
+                <span className="text-base font-normal text-txt-muted"> / {group.max_members}</span>
+              </p>
+              <p className="text-xs text-txt-muted mt-1">
+                {seats_remaining} seat{seats_remaining !== 1 ? "s" : ""} available
+                {group.pending_invites.length > 0 && <span className="text-amber-500"> · {group.pending_invites.length} pending</span>}
+              </p>
             </div>
-            <div className="rounded-xl border border-edge-secondary px-4 py-3">
-              <p className="text-xs text-txt-muted">Storage</p>
-              <p className="text-lg font-semibold text-txt-primary tabular-nums mt-0.5">{Math.round(pool_pct)}<span className="text-sm font-normal text-txt-muted">%</span></p>
-              <p className="text-[10px] text-txt-muted mt-1.5 truncate">{format_bytes(pool_used)} of {format_bytes(group.storage_pool_bytes)}</p>
+            <div className="px-5 py-4">
+              <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">Storage used</p>
+              <p className="text-2xl font-bold text-txt-primary tabular-nums mt-1.5">
+                {format_bytes(pool_used)}
+              </p>
+              <p className="text-xs text-txt-muted mt-1">of {format_bytes(group.storage_pool_bytes)} total</p>
             </div>
-            <div className="rounded-xl border border-edge-secondary px-4 py-3">
-              <p className="text-xs text-txt-muted">Encryption</p>
-              <p className="text-base font-semibold text-txt-primary mt-0.5 truncate">Zero-access</p>
-              <p className="text-[10px] text-txt-muted mt-1.5">E2E by default</p>
+            <div className="px-5 py-4">
+              <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">Encryption</p>
+              <p className="text-2xl font-bold text-txt-primary mt-1.5">E2E</p>
+              <p className="text-xs text-txt-muted mt-1">Zero-access · quantum-safe</p>
             </div>
           </div>
 
@@ -1283,51 +1255,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           )}
 
-          {is_owner && (
-            <div>
-              <div className="mb-3">
-                <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                  <ReceiptPercentIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                  Billing
-                </h3>
-                <div className="mt-2 h-px bg-edge-secondary" />
-              </div>
-              <div className="py-2 space-y-3">
-                {billing_loading && <div className="flex justify-center items-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>}
-                {!billing_loading && billing_history.length === 0 && <p className="text-sm text-txt-muted py-1">No billing history yet.</p>}
-                {!billing_loading && billing_history.slice(0, 3).map(inv => (
-                  <div key={inv.id} className="flex items-center justify-between py-2">
-                    <span className="text-xs text-txt-muted">{new Date(inv.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</span>
-                    <span className="text-sm text-txt-primary flex-1 px-3">{format_price(inv.amount_cents, inv.currency)}</span>
-                    <span className={inv.status === "paid" ? "aster_badge aster_badge_green" : "aster_badge aster_badge_amber"}>{inv.status}</span>
-                  </div>
-                ))}
-                <div className="mt-1 h-px bg-edge-secondary" />
-                <div className="pt-2">
-                  <p className="text-xs text-txt-muted mb-2">Switch to a different plan. Billing is prorated.</p>
-                  <div className="flex flex-wrap gap-2">
-                    {group.plan_name === "Family" && (
-                      <div className="flex flex-col gap-0.5">
-                        <button onClick={() => handle_change_plan("duo")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Duo</button>
-                        <span className="text-xs text-txt-muted pl-0.5">Duo - 2 members</span>
-                      </div>
-                    )}
-                    <div className="flex flex-col gap-0.5">
-                      <button onClick={() => handle_change_plan("supernova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Supernova</button>
-                      <span className="text-xs text-txt-muted pl-0.5">Supernova - 1 member, 50 GB</span>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <button onClick={() => handle_change_plan("nova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Nova</button>
-                      <span className="text-xs text-txt-muted pl-0.5">Nova - 1 member, 15 GB</span>
-                    </div>
-                  </div>
-                </div>
-                <button onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))} className="text-xs text-accent-blue hover:underline pt-1">
-                  View all billing
-                </button>
-              </div>
-            </div>
-          )}
+
 
           {!is_owner && (
             <button onClick={() => set_show_leave_dialog(true)} className="aster_btn aster_btn_destructive aster_btn_sm">
