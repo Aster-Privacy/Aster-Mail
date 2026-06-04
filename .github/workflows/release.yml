@@ -62,6 +62,7 @@ jobs:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          APPLE_SIGNING_IDENTITY_SECRET: ${{ secrets.APPLE_SIGNING_IDENTITY }}
         run: |
           echo "$APPLE_CERTIFICATE" | base64 --decode > cert.p12
           security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
@@ -70,6 +71,18 @@ jobs:
           security import cert.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
           rm cert.p12
+
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning build.keychain
+
+          if [ -n "$APPLE_SIGNING_IDENTITY_SECRET" ]; then
+            SIGNING_IDENTITY="$APPLE_SIGNING_IDENTITY_SECRET"
+          else
+            SIGNING_IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep '"' | head -1 | sed 's/.*"\(.*\)"/\1/')
+          fi
+
+          echo "Using signing identity: $SIGNING_IDENTITY"
+          echo "APPLE_SIGNING_IDENTITY=$SIGNING_IDENTITY" >> $GITHUB_ENV
 
       - name: Write Apple API key
         if: matrix.os == 'macos-latest'
@@ -96,7 +109,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_SIGNING_IDENTITY: ${{ env.APPLE_SIGNING_IDENTITY }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY_PATH: ~/private_keys/AuthKey_${{ secrets.APPLE_API_KEY }}.p8
