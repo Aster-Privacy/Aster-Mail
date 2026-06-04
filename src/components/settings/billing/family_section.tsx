@@ -1177,6 +1177,12 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [action_loading, set_action_loading] = useState(false);
   const [changing_plan, set_changing_plan] = useState(false);
   const [compliance_map, set_compliance_map] = useState<Record<string, MemberComplianceInfo>>({});
+  const [wizard_open, set_wizard_open] = useState(false);
+  const [wizard_step, set_wizard_step] = useState(1);
+  const [wizard_invite_email, set_wizard_invite_email] = useState("");
+  const [wizard_invite_gb, set_wizard_invite_gb] = useState("500");
+  const [wizard_invite_loading, set_wizard_invite_loading] = useState(false);
+  const [wizard_sent_email, set_wizard_sent_email] = useState("");
 
   // Preload compliance map so security snapshot and member rows show 2FA status immediately
   useEffect(() => {
@@ -1202,7 +1208,16 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         const remaining_seats = Math.max(1, res.data.max_members - active);
         const used_alloc = res.data.members.reduce((s, m) => s + m.allocated_storage_bytes, 0);
         const remaining_bytes = res.data.storage_pool_bytes - used_alloc;
-        set_invite_storage_gb(String(Math.max(1, Math.round(remaining_bytes / remaining_seats / 1073741824))));
+        const default_gb = String(Math.max(1, Math.round(remaining_bytes / remaining_seats / 1073741824)));
+        set_invite_storage_gb(default_gb);
+        set_wizard_invite_gb(default_gb);
+        if (
+          res.data.viewer_role === "owner" &&
+          res.data.members.filter(m => m.status !== "removed").length === 1 &&
+          !localStorage.getItem(`aster_family_setup_${res.data.id}`)
+        ) {
+          set_wizard_open(true);
+        }
       }
     } catch { /* not in a group */ }
     finally { set_loading(false); }
@@ -1231,6 +1246,31 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     finally { set_changing_plan(false); }
   };
 
+
+  const handle_wizard_invite = async () => {
+    const email = wizard_invite_email.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      show_toast("Enter a valid email address", "error"); return;
+    }
+    const storage = Math.round(parseFloat(wizard_invite_gb) * 1073741824);
+    if (!wizard_invite_gb || isNaN(storage) || storage < 1) return;
+    set_wizard_invite_loading(true);
+    try {
+      await invite_member(email, storage);
+      set_wizard_sent_email(email);
+      set_wizard_step(3);
+      await load_group();
+    } catch { show_toast(t("settings.failed_save_setting"), "error"); }
+    finally { set_wizard_invite_loading(false); }
+  };
+
+  const close_wizard = () => {
+    if (group) localStorage.setItem(`aster_family_setup_${group.id}`, "1");
+    set_wizard_open(false);
+    set_wizard_step(1);
+    set_wizard_invite_email("");
+    set_wizard_sent_email("");
+  };
 
   const handle_invite_email = async () => {
     const email = invite_email.trim();
@@ -1367,6 +1407,55 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
       {(tab === "overview" || !is_owner) && (
         <>
+          {is_owner && (active_members.length === 1 || group.pending_invites.length > 0) && (() => {
+            const step1_done = true;
+            const step2_done = active_members.length > 1 || group.pending_invites.length > 0;
+            const security_policy_done = Object.values(compliance_map).length > 0 &&
+              (() => { try { return (group as unknown as { security_policy?: { require_2fa?: boolean } }).security_policy?.require_2fa === true; } catch { return false; } })();
+            const compliance_all_2fa = Object.values(compliance_map).length > 1 &&
+              Object.values(compliance_map).every(m => m.has_2fa);
+            const checklist = [
+              { label: "Subscribe to a family plan", done: step1_done, tab_target: null as FamilyTab | null },
+              { label: "Invite your first member", done: step2_done, tab_target: "members" as FamilyTab },
+              { label: "Enable security policy", done: security_policy_done, tab_target: "security" as FamilyTab },
+              { label: "Configure 2FA reminder", done: compliance_all_2fa, tab_target: "security" as FamilyTab },
+            ];
+            const completed = checklist.filter(c => c.done).length;
+            return (
+              <div className="rounded-xl border border-edge-secondary bg-surf-secondary p-4 mb-4">
+                <p className="text-sm font-semibold text-txt-primary mb-2">Get started with your family plan</p>
+                <div className="w-full h-1.5 bg-edge-secondary rounded-full mb-3">
+                  <div
+                    className="h-full bg-accent-blue rounded-full transition-all"
+                    style={{ width: `${(completed / 4) * 100}%` }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  {checklist.map(item => (
+                    <div key={item.label} className="flex items-center gap-2">
+                      {item.done ? (
+                        <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border-2 border-edge-secondary flex-shrink-0" />
+                      )}
+                      <span className={`text-sm flex-1 ${item.done ? "text-txt-muted line-through" : "text-txt-primary"}`}>
+                        {item.label}
+                      </span>
+                      {!item.done && item.tab_target && (
+                        <button
+                          onClick={() => set_tab(item.tab_target!)}
+                          className="p-0.5 text-txt-muted hover:text-txt-secondary flex-shrink-0"
+                          aria-label={`Go to ${item.tab_target}`}
+                        >
+                          <ChevronRightIcon className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           <div className="grid grid-cols-3 divide-x divide-edge-secondary rounded-xl border border-edge-secondary">
             <div className="px-5 py-4">
               <div className="flex items-center gap-1.5 mb-1.5">
@@ -1577,6 +1666,26 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                       </div>
                     </div>
                   </div>
+                  {(() => {
+                    const pool = group.storage_pool_bytes;
+                    const used_alloc = active_members.reduce((s, m) => s + m.allocated_storage_bytes, 0);
+                    const invite_bytes = Math.round(parseFloat(invite_storage_gb) || 0) * 1073741824;
+                    const remaining = Math.max(0, pool - used_alloc - invite_bytes);
+                    const used_pct = pool > 0 ? Math.min(100, (used_alloc / pool) * 100) : 0;
+                    const invite_pct = pool > 0 ? Math.min(100 - used_pct, (invite_bytes / pool) * 100) : 0;
+                    return (
+                      <div>
+                        <div className="w-full h-2 bg-edge-secondary rounded-full overflow-hidden flex mt-1">
+                          <div className="h-full bg-accent-blue" style={{ width: `${used_pct}%` }} />
+                          <div className="h-full bg-indigo-400 opacity-70" style={{ width: `${invite_pct}%` }} />
+                        </div>
+                        <div className="flex justify-between text-[10px] text-txt-muted mt-0.5">
+                          <span>{format_bytes(used_alloc)} used</span>
+                          <span>{format_bytes(remaining)} remaining</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   <p className="text-xs text-txt-muted">{t("settings.family_member_storage")}</p>
                   <div className="flex gap-2">
                     <button onClick={handle_invite_email} disabled={invite_loading} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50">
@@ -1631,6 +1740,116 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       {tab === "domains"   && is_owner && <DomainsContent members={active_members} />}
       {tab === "security"  && is_owner && <SecurityContent />}
       {tab === "retention" && is_owner && <RetentionContent />}
+
+
+      {group && wizard_open && (
+        <Modal is_open={wizard_open} on_close={close_wizard} size="md" close_on_overlay={false}>
+          {wizard_step === 1 && (
+            <>
+              <ModalHeader>
+                <div className="flex flex-col items-center gap-3 pt-2 pb-1">
+                  <UserGroupIcon className="w-12 h-12 text-accent-blue" />
+                  <ModalTitle className="text-xl font-bold text-center">Welcome to your family plan</ModalTitle>
+                </div>
+              </ModalHeader>
+              <div className="px-6 pb-4 space-y-3 text-center">
+                <ModalDescription className="sr-only">Family plan setup wizard</ModalDescription>
+                <div>
+                  <span className="aster_badge aster_badge_blue">{group.plan_name}</span>
+                </div>
+                <p className="text-sm text-txt-secondary">
+                  You have <strong>{format_bytes(group.storage_pool_bytes)}</strong> of shared storage across up to <strong>{group.max_members} members</strong>.
+                </p>
+                <p className="text-xs text-txt-muted">Members can't access each other's emails - only shared storage.</p>
+              </div>
+              <ModalFooter>
+                <Button variant="ghost" onClick={close_wizard}>Cancel</Button>
+                <Button variant="depth" onClick={() => set_wizard_step(2)}>
+                  Invite a member <ArrowRightIcon className="w-4 h-4 ml-1" />
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+          {wizard_step === 2 && (() => {
+            const pool_gb = group.storage_pool_bytes / 1073741824;
+            const used_alloc = group.members.reduce((s, m) => s + m.allocated_storage_bytes, 0);
+            const used_gb = used_alloc / 1073741824;
+            const invite_gb_num = Math.max(0, parseFloat(wizard_invite_gb) || 0);
+            const remaining_gb = Math.max(0, pool_gb - used_gb - invite_gb_num);
+            const low_remaining = remaining_gb / pool_gb < 0.1;
+            return (
+              <>
+                <ModalHeader>
+                  <ModalTitle>Invite your first member</ModalTitle>
+                  <ModalDescription>They'll receive an email with a link to join.</ModalDescription>
+                </ModalHeader>
+                <div className="px-6 pb-4 space-y-4">
+                  <Input
+                    type="email"
+                    placeholder="member@example.com"
+                    value={wizard_invite_email}
+                    onChange={e => set_wizard_invite_email(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-medium text-txt-muted">Storage for this member</label>
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min="1"
+                          max={String(Math.max(1, Math.floor(pool_gb - used_gb)))}
+                          value={wizard_invite_gb}
+                          onChange={e => set_wizard_invite_gb(e.target.value)}
+                          className="w-20 h-8 text-sm"
+                        />
+                        <span className="text-xs text-txt-muted">GB</span>
+                      </div>
+                    </div>
+                    <p className={`text-xs mt-0.5 ${low_remaining ? "text-amber-500" : "text-txt-muted"}`}>
+                      {remaining_gb.toFixed(1)} GB remaining in pool
+                    </p>
+                  </div>
+                </div>
+                <ModalFooter>
+                  <Button variant="ghost" onClick={() => set_wizard_step(1)}>Back</Button>
+                  <Button
+                    variant="depth"
+                    onClick={handle_wizard_invite}
+                    disabled={!wizard_invite_email.trim() || wizard_invite_loading}
+                  >
+                    {wizard_invite_loading ? <Spinner size="sm" /> : "Send invite"}
+                  </Button>
+                </ModalFooter>
+              </>
+            );
+          })()}
+          {wizard_step === 3 && (
+            <>
+              <ModalHeader>
+                <div className="flex flex-col items-center gap-3 pt-2 pb-1">
+                  <CheckCircleIcon className="w-12 h-12 text-green-500" />
+                  <ModalTitle className="text-xl font-bold text-center">Invite sent!</ModalTitle>
+                </div>
+              </ModalHeader>
+              <div className="px-6 pb-4 space-y-3">
+                <ModalDescription className="sr-only">Invite sent confirmation</ModalDescription>
+                <p className="text-sm text-txt-secondary text-center">
+                  We sent an invite to <strong>{wizard_sent_email}</strong>. They have 7 days to accept.
+                </p>
+                <div className="bg-surf-secondary rounded-lg p-3">
+                  <p className="text-xs text-txt-muted">
+                    <strong>Tip:</strong> You can manage storage, set security policies, and track activity from the tabs above.
+                  </p>
+                </div>
+              </div>
+              <ModalFooter>
+                <Button variant="depth" onClick={close_wizard}>Get started</Button>
+              </ModalFooter>
+            </>
+          )}
+        </Modal>
+      )}
 
       <AlertDialog open={!!remove_target} onOpenChange={open => !open && set_remove_target(null)}>
         <AlertDialogContent>
