@@ -42,6 +42,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
+  FAMILY_PLAN_DUO_FEATURES,
+  FAMILY_PLAN_FAMILY_FEATURES,
   type PlanTier,
   type FamilyPlanTier,
   convert_cents,
@@ -436,40 +438,7 @@ export const RegisterStepPlanSelection = ({
         <div className="w-full grid gap-5 mt-10 md:grid-cols-2 max-w-3xl items-stretch">
           {FAMILY_PLAN_TIERS.map((tier) => {
             const price_cents = billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents;
-            const features = tier.max_members === 2
-              ? [
-                  "2 members, separate accounts",
-                  "1 TB shared encrypted storage",
-                  "Unlimited aliases per member",
-                  "5 custom domains per member",
-                  "Shared family aliases",
-                  "End-to-end encryption",
-                  "Zero-access architecture",
-                  "Admin storage controls",
-                  "Invite by email or link",
-                  "Quantum-safe internal mail",
-                  "Full IMAP/SMTP per member",
-                  "Catch-all email address",
-                  "Priority support",
-                ]
-              : [
-                  "Up to 6 members, separate accounts",
-                  "3 TB shared encrypted storage",
-                  "Unlimited aliases per member",
-                  "30 custom domains per member",
-                  "Shared family aliases",
-                  "End-to-end encryption",
-                  "Zero-access architecture",
-                  "Admin storage controls",
-                  "Invite by email or link",
-                  "Quantum-safe internal mail",
-                  "Full IMAP/SMTP per member",
-                  "Catch-all email address",
-                  "Org filters & activity log",
-                  "Data retention policies",
-                  "Security policy controls",
-                  "Priority support",
-                ];
+            const features = tier.max_members === 2 ? FAMILY_PLAN_DUO_FEATURES : FAMILY_PLAN_FAMILY_FEATURES;
 
             return (
               <div

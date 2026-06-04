@@ -183,3 +183,41 @@ export function detect_currency_from_locale(): string {
 
   return "usd";
 }
+
+export const FAMILY_PLAN_DUO_FEATURES: string[] = [
+  "2 members, separate accounts",
+  "1 TB shared encrypted storage",
+  "Unlimited aliases per member",
+  "5 custom domains per member",
+  "Shared family aliases",
+  "End-to-end encryption",
+  "Zero-access architecture",
+  "Admin storage controls",
+  "Invite by email or link",
+  "Quantum-safe internal mail",
+  "Full IMAP/SMTP per member",
+  "Catch-all email address",
+  "Priority support",
+];
+
+export const FAMILY_PLAN_FAMILY_FEATURES: string[] = [
+  "Up to 6 members, separate accounts",
+  "3 TB shared encrypted storage",
+  "Unlimited aliases per member",
+  "30 custom domains per member",
+  "Shared family aliases",
+  "End-to-end encryption",
+  "Zero-access architecture",
+  "Admin storage controls",
+  "Invite by email or link",
+  "Quantum-safe internal mail",
+  "Full IMAP/SMTP per member",
+  "Catch-all email address",
+  "Org groups & distribution lists",
+  "Activity log & audit trail",
+  "Org-wide email filters",
+  "Domain sharing across members",
+  "Security policies (2FA enforcement)",
+  "Data retention policies",
+  "Priority support",
+];

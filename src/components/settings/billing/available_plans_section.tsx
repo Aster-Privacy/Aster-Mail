@@ -30,6 +30,8 @@ import {
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
+  FAMILY_PLAN_DUO_FEATURES,
+  FAMILY_PLAN_FAMILY_FEATURES,
   SUPPORTED_CURRENCIES,
   convert_cents,
   type FamilyPlanTier,
@@ -178,40 +180,7 @@ export function AvailablePlansSection({
             const current_plan_code = subscription?.plan.code;
             const is_current = current_plan_code === tier.id;
             const price_cents = billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents;
-            const features = tier.max_members === 2
-              ? [
-                  "2 members, separate accounts",
-                  "1 TB shared encrypted storage",
-                  "Unlimited aliases per member",
-                  "5 custom domains per member",
-                  "Shared family aliases",
-                  "End-to-end encryption",
-                  "Zero-access architecture",
-                  "Admin storage controls",
-                  "Invite by email or link",
-                  "Quantum-safe internal mail",
-                  "Full IMAP/SMTP per member",
-                  "Catch-all email address",
-                  "Priority support",
-                ]
-              : [
-                  "Up to 6 members, separate accounts",
-                  "3 TB shared encrypted storage",
-                  "Unlimited aliases per member",
-                  "30 custom domains per member",
-                  "Shared family aliases",
-                  "End-to-end encryption",
-                  "Zero-access architecture",
-                  "Admin storage controls",
-                  "Invite by email or link",
-                  "Quantum-safe internal mail",
-                  "Full IMAP/SMTP per member",
-                  "Catch-all email address",
-                  "Org filters & activity log",
-                  "Data retention policies",
-                  "Security policy controls",
-                  "Priority support",
-                ];
+            const features = tier.max_members === 2 ? FAMILY_PLAN_DUO_FEATURES : FAMILY_PLAN_FAMILY_FEATURES;
 
             return (
               <div
@@ -222,7 +191,7 @@ export function AvailablePlansSection({
                   backgroundColor: "var(--bg-tertiary)",
                 }}
               >
-                <div className="px-5 pt-5 pb-4 text-center" style={{ backgroundColor: "transparent" }}>
+                <div className="px-5 pt-5 pb-4 text-center">
                   {is_current && (
                     <div className="inline-flex px-3 py-1 rounded-full text-xs font-medium mb-3" style={{ backgroundColor: "#2563eb", color: "#fff" }}>
                       {t("settings.current_plan")}
