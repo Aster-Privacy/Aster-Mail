@@ -630,6 +630,7 @@ interface CreateAliasSheetProps {
   creating: boolean;
   handle_create: () => void;
   domain: string;
+  at_limit?: boolean;
 }
 
 export function CreateAliasSheet({
@@ -642,6 +643,7 @@ export function CreateAliasSheet({
   creating,
   handle_create,
   domain,
+  at_limit = false,
 }: CreateAliasSheetProps) {
   const { t } = use_i18n();
 
@@ -649,39 +651,47 @@ export function CreateAliasSheet({
     <MobileBottomSheet is_open={is_open} on_close={on_close}>
       <div className="px-4 pb-4">
         <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
-          {t("settings.create_alias")}
+          {at_limit ? t("common.alias_limit_reached") : t("settings.create_alias")}
         </p>
-        <div className="mb-3 flex items-center gap-0">
-          <Input
-            className="flex-1 !rounded-r-none"
-            disabled={creating}
-            placeholder={t("settings.alias_local_part_placeholder")}
-            status={alias_error ? "error" : "default"}
-            value={alias_local}
-            onChange={(e) => {
-              set_alias_local(e.target.value);
-              set_alias_error("");
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handle_create();
-            }}
-          />
-          <span className="rounded-r-xl bg-[var(--bg-tertiary)] px-3 py-3 text-[15px] text-[var(--text-muted)] select-none">
-            @{domain}
-          </span>
-        </div>
-        {alias_error && (
-          <p className="mb-3 text-[13px] text-red-500">{alias_error}</p>
+        {at_limit ? (
+          <p className="mb-4 text-[14px] text-[var(--text-secondary)]">
+            {t("settings.upgrade_plan_more_aliases")}
+          </p>
+        ) : (
+          <>
+            <div className="mb-3 flex items-center gap-0">
+              <Input
+                className="flex-1 !rounded-r-none"
+                disabled={creating}
+                placeholder={t("settings.alias_local_part_placeholder")}
+                status={alias_error ? "error" : "default"}
+                value={alias_local}
+                onChange={(e) => {
+                  set_alias_local(e.target.value);
+                  set_alias_error("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handle_create();
+                }}
+              />
+              <span className="rounded-r-xl bg-[var(--bg-tertiary)] px-3 py-3 text-[15px] text-[var(--text-muted)] select-none">
+                @{domain}
+              </span>
+            </div>
+            {alias_error && (
+              <p className="mb-3 text-[13px] text-red-500">{alias_error}</p>
+            )}
+            <Button
+              className="w-full rounded-[16px] py-3 text-[15px] font-medium"
+              disabled={!alias_local.trim() || creating}
+              type="button"
+              variant="depth"
+              onClick={handle_create}
+            >
+              {creating ? t("common.creating") : t("common.create")}
+            </Button>
+          </>
         )}
-        <Button
-          className="w-full rounded-[16px] py-3 text-[15px] font-medium"
-          disabled={!alias_local.trim() || creating}
-          type="button"
-          variant="depth"
-          onClick={handle_create}
-        >
-          {creating ? t("common.creating") : t("common.create")}
-        </Button>
       </div>
     </MobileBottomSheet>
   );

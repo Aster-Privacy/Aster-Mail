@@ -48,6 +48,7 @@ import {
   create_alias,
   validate_local_part,
   check_alias_availability,
+  get_alias_limit,
 } from "@/services/api/aliases";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
@@ -123,6 +124,7 @@ export const MobileDrawer = memo(function MobileDrawer({
   const [new_alias_local, set_new_alias_local] = useState("");
   const [alias_error, set_alias_error] = useState("");
   const [creating_alias, set_creating_alias] = useState(false);
+  const [can_create_alias, set_can_create_alias] = useState(true);
   const [password_modal_folder, set_password_modal_folder] = useState<{
     folder_id: string;
     folder_name: string;
@@ -153,6 +155,14 @@ export const MobileDrawer = memo(function MobileDrawer({
   const bounce_touch_y = useRef(0);
   const bounce_origin_y = useRef(0);
   const is_bouncing = useRef(false);
+
+  useEffect(() => {
+    get_alias_limit()
+      .then((response) => {
+        if (response.data) set_can_create_alias(response.data.can_create);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (is_open) {
@@ -388,6 +398,11 @@ export const MobileDrawer = memo(function MobileDrawer({
         set_new_alias_local("");
         set_alias_error("");
         set_show_create_alias(false);
+        get_alias_limit()
+          .then((r) => {
+            if (r.data) set_can_create_alias(r.data.can_create);
+          })
+          .catch(() => {});
       } else {
         set_alias_error(result.error || t("settings.alias_create_failed"));
       }
@@ -681,6 +696,7 @@ export const MobileDrawer = memo(function MobileDrawer({
       <CreateAliasSheet
         alias_error={alias_error}
         alias_local={new_alias_local}
+        at_limit={!can_create_alias}
         creating={creating_alias}
         domain={user_domain}
         handle_create={handle_create_alias}

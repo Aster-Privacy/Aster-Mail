@@ -41,6 +41,7 @@ import {
   NewspaperIcon,
   AtSymbolIcon,
   BoltIcon,
+  ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -255,6 +256,20 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           transition: "opacity 150ms ease",
         }}
       />
+
+      {(active_path.startsWith("/alias/") ||
+        active_path.startsWith("/folder/") ||
+        active_path.startsWith("/tag/")) && (
+        <button
+          className="relative flex w-full items-center gap-2 rounded-xl px-3 py-2.5 mb-2 active:bg-[var(--bg-tertiary)]"
+          style={{ zIndex: 1, color: "var(--accent-color, #3b82f6)" }}
+          type="button"
+          onClick={() => handle_nav("/")}
+        >
+          <ChevronLeftIcon className="h-4 w-4 shrink-0" />
+          <span className="text-[14px] font-medium">{t("mail.inbox")}</span>
+        </button>
+      )}
 
       <div className="mb-1 px-2.5">
         <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--text-muted)] opacity-70">
