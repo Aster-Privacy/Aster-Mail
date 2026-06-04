@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState } from "react";
-import { CheckIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, SparklesIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -32,9 +32,11 @@ import {
   FAMILY_PLAN_TIERS,
   SUPPORTED_CURRENCIES,
   convert_cents,
+  type FamilyPlanTier,
 } from "@/components/settings/billing/billing_constants";
+import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
+import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { create_family_group } from "@/services/api/family";
-import { UserGroupIcon } from "@heroicons/react/24/outline";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -66,13 +68,22 @@ export function AvailablePlansSection({
   const { t } = use_i18n();
   const [plan_type, set_plan_type] = useState<"individual" | "family">("individual");
   const [family_loading, set_family_loading] = useState(false);
+  const [pending_family_tier, set_pending_family_tier] = useState<FamilyPlanTier | null>(null);
+  const [crypto_family_tier, set_crypto_family_tier] = useState<FamilyPlanTier | null>(null);
 
-  const handle_family_checkout = async (plan_id: string) => {
-    if (family_loading) return;
+  const billing_interval: "month" | "year" = billing_period === "yearly" ? "year" : "month";
+
+  const handle_family_select = (tier: FamilyPlanTier) => {
+    set_pending_family_tier(tier);
+  };
+
+  const handle_family_card = async () => {
+    if (!pending_family_tier) return;
+    const tier = pending_family_tier;
+    set_pending_family_tier(null);
     set_family_loading(true);
     try {
-      const billing_interval = billing_period === "yearly" ? "year" : "month";
-      const res = await create_family_group(plan_id, billing_interval);
+      const res = await create_family_group(tier.id, billing_interval);
       if (res.data?.checkout_url) {
         window.location.href = res.data.checkout_url;
       } else {
@@ -83,6 +94,12 @@ export function AvailablePlansSection({
     } finally {
       set_family_loading(false);
     }
+  };
+
+  const handle_family_crypto = () => {
+    if (!pending_family_tier) return;
+    set_crypto_family_tier(pending_family_tier);
+    set_pending_family_tier(null);
   };
 
   return (
@@ -161,6 +178,40 @@ export function AvailablePlansSection({
             const current_plan_code = subscription?.plan.code;
             const is_current = current_plan_code === tier.id;
             const price_cents = billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents;
+            const features = tier.max_members === 2
+              ? [
+                  "2 members, separate accounts",
+                  "1 TB shared encrypted storage",
+                  "Unlimited aliases per member",
+                  "5 custom domains per member",
+                  "Shared family aliases",
+                  "End-to-end encryption",
+                  "Zero-access architecture",
+                  "Admin storage controls",
+                  "Invite by email or link",
+                  "Quantum-safe internal mail",
+                  "Full IMAP/SMTP per member",
+                  "Catch-all email address",
+                  "Priority support",
+                ]
+              : [
+                  "Up to 6 members, separate accounts",
+                  "3 TB shared encrypted storage",
+                  "Unlimited aliases per member",
+                  "30 custom domains per member",
+                  "Shared family aliases",
+                  "End-to-end encryption",
+                  "Zero-access architecture",
+                  "Admin storage controls",
+                  "Invite by email or link",
+                  "Quantum-safe internal mail",
+                  "Full IMAP/SMTP per member",
+                  "Catch-all email address",
+                  "Org filters & activity log",
+                  "Data retention policies",
+                  "Security policy controls",
+                  "Priority support",
+                ];
 
             return (
               <div
@@ -171,29 +222,32 @@ export function AvailablePlansSection({
                   backgroundColor: "var(--bg-tertiary)",
                 }}
               >
-                <div className="px-5 pt-5 pb-4 text-center">
+                <div
+                  className="px-5 pt-5 pb-4 text-center"
+                  style={{ background: "linear-gradient(160deg, #1e3a5f 0%, #0f1f3d 100%)" }}
+                >
                   {is_current && (
                     <div className="inline-flex px-3 py-1 rounded-full text-xs font-medium mb-3" style={{ backgroundColor: "#2563eb", color: "#fff" }}>
                       {t("settings.current_plan")}
                     </div>
                   )}
                   <div className="flex items-center justify-center gap-2 mb-1">
-                    <UserGroupIcon className="w-5 h-5" style={{ color: "var(--accent-blue)" }} />
-                    <h4 className="text-lg font-bold text-txt-primary">{tier.name}</h4>
+                    <UserGroupIcon className="w-5 h-5 text-white" />
+                    <h4 className="text-lg font-bold text-white">{tier.name}</h4>
                   </div>
-                  <p className="text-xs text-txt-muted mb-3">
+                  <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.6)" }}>
                     {tier.max_members === 2 ? t("settings.family_duo_tagline") : t("settings.family_plan_tagline")}
                   </p>
                   <div className="mt-2">
-                    <span className="text-3xl font-bold text-txt-primary">
+                    <span className="text-3xl font-bold text-white">
                       {format_price(convert_cents(price_cents, preferred_currency), preferred_currency)}
                     </span>
-                    <span className="text-sm text-txt-muted">
+                    <span className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
                       {billing_period === "monthly" ? t("settings.per_month_short") : t("settings.per_year_short")}
                     </span>
                   </div>
                   {billing_period === "yearly" && (
-                    <p className="text-xs font-medium mt-1.5" style={{ color: "var(--color-success)" }}>
+                    <p className="text-xs font-medium mt-1.5 text-emerald-400">
                       {tier.savings_label}
                     </p>
                   )}
@@ -201,22 +255,16 @@ export function AvailablePlansSection({
                     className="w-full mt-4"
                     disabled={is_action_loading || family_loading || is_current}
                     variant={is_current ? "outline" : "primary"}
-                    onClick={() => { if (!is_current) handle_family_checkout(tier.id); }}
+                    onClick={() => { if (!is_current) handle_family_select(tier); }}
                   >
                     {is_current ? t("settings.current_plan") : t("settings.upgrade")}
                   </Button>
                 </div>
                 <div className="px-5 pb-5 flex-1" style={{ borderTop: "1px solid var(--border-secondary)" }}>
                   <div className="space-y-2.5 pt-4">
-                    {[
-                      `${tier.max_members} members, separate accounts`,
-                      `${tier.storage_label} encrypted storage`,
-                      t("settings.family_invite_member"),
-                      t("settings.family_shared_aliases"),
-                      t("settings.family_admin_controls"),
-                    ].map((feat, i) => (
+                    {features.map((feat, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <CheckIcon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} style={{ color: "var(--accent-blue)" }} />
+                        <CheckIcon className="w-3.5 h-3.5 flex-shrink-0 text-accent-blue" strokeWidth={2.5} />
                         <span className="text-xs text-txt-secondary">{feat}</span>
                       </div>
                     ))}
@@ -226,6 +274,29 @@ export function AvailablePlansSection({
             );
           })}
         </div>
+      )}
+
+      {pending_family_tier && (
+        <PlanPaymentMethodModal
+          busy={family_loading}
+          on_choose_card={handle_family_card}
+          on_choose_crypto={handle_family_crypto}
+          on_close={() => set_pending_family_tier(null)}
+          open={!!pending_family_tier}
+          plan_name={pending_family_tier.name}
+        />
+      )}
+
+      {crypto_family_tier && (
+        <CryptoTermModal
+          is_open={!!crypto_family_tier}
+          monthly_price_cents={crypto_family_tier.monthly_cents}
+          on_close={() => set_crypto_family_tier(null)}
+          plan_code={crypto_family_tier.id}
+          plan_name={crypto_family_tier.name}
+          preferred_currency={preferred_currency}
+          yearly_price_cents={crypto_family_tier.yearly_cents}
+        />
       )}
 
       {plan_type === "individual" && (
