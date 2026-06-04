@@ -54,7 +54,7 @@ import {
   list_group_members, add_group_member, remove_group_member,
   get_activity_log,
   list_org_filters, create_org_filter, update_org_filter, delete_org_filter,
-  list_family_domains, share_domain,
+  list_family_domains, share_domain, revoke_domain_share,
   get_data_retention, update_data_retention,
   get_security_policy, update_security_policy,
   get_member_compliance, notify_non_compliant_2fa,
@@ -668,6 +668,14 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
     } catch { show_toast("Failed to share domain", "error"); }
   };
 
+  const do_revoke = async (dn: string, uid: string) => {
+    try {
+      await revoke_domain_share(dn, uid);
+      set_domains(d => d.map(x => x.domain_name === dn ? { ...x, shared_with_count: Math.max(0, x.shared_with_count - 1) } : x));
+      show_toast("Domain share revoked", "success");
+    } catch { show_toast("Failed to revoke domain share", "error"); }
+  };
+
   const nav_aliases = () => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "aliases" }));
 
   if (loading) return <div className="flex justify-center items-center gap-2 py-8"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>;
@@ -715,13 +723,29 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
                   <button onClick={() => { set_sharing(d.domain_name); set_share_uid(""); }} className="text-sm text-accent-blue hover:underline flex-shrink-0 font-medium">Share</button>
                 </div>
                 {sharing === d.domain_name && (
-                  <div className="flex gap-2 mt-3 ml-10">
-                    <select value={share_uid} onChange={e => set_share_uid(e.target.value)} className="flex-1 text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
-                      <option value="">Select member...</option>
-                      {members.filter(m => m.user_id !== d.owner_user_id).map(m => <option key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</option>)}
-                    </select>
-                    <button onClick={() => do_share(d.domain_name)} disabled={!share_uid} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">Share</button>
-                    <button onClick={() => set_sharing(null)} className="aster_btn aster_btn_ghost aster_btn_sm">Cancel</button>
+                  <div className="mt-3 ml-10 space-y-2">
+                    <div className="flex gap-2">
+                      <select value={share_uid} onChange={e => set_share_uid(e.target.value)} className="flex-1 text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
+                        <option value="">Add a member...</option>
+                        {members.filter(m => m.user_id !== d.owner_user_id).map(m => <option key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</option>)}
+                      </select>
+                      <button onClick={() => do_share(d.domain_name)} disabled={!share_uid} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">Add</button>
+                      <button onClick={() => set_sharing(null)} className="aster_btn aster_btn_ghost aster_btn_sm">Done</button>
+                    </div>
+                    {d.shared_with_count > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-medium text-txt-muted uppercase tracking-wide">Currently shared with</p>
+                        {members.filter(m => m.user_id !== d.owner_user_id).slice(0, d.shared_with_count).map(m => (
+                          <div key={m.user_id} className="flex items-center gap-2 py-0.5">
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold flex-shrink-0" style={{ backgroundColor: get_avatar_color(m.username) }}>
+                              {m.username[0]?.toUpperCase()}
+                            </div>
+                            <span className="text-xs text-txt-primary flex-1 truncate">{m.username}@{m.email_domain}</span>
+                            <button onClick={() => do_revoke(d.domain_name, m.user_id)} className="text-[10px] text-red-500 hover:underline flex-shrink-0">Revoke</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
