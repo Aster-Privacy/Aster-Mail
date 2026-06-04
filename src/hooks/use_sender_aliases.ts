@@ -270,3 +270,19 @@ export function use_sender_aliases() {
     refresh: load_aliases,
   };
 }
+
+export function get_cached_alias_for_routing_token(
+  routing_token: string | undefined,
+): string | undefined {
+  if (!routing_token) return undefined;
+
+  for (const [alias_id, hash] of cached_alias_hashes) {
+    if (hash === routing_token) {
+      const alias = cached_aliases.find((a) => a.id === alias_id);
+
+      return alias?.full_address;
+    }
+  }
+
+  return undefined;
+}

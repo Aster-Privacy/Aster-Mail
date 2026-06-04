@@ -551,18 +551,35 @@ export function BillingSection() {
         subscription={subscription}
       />
 
-      <AvailablePlansSection
-        billing_period={billing_period}
-        current_billing_interval={current_billing_interval}
-        handle_currency_change={handle_currency_change}
-        is_action_loading={is_action_loading}
-        on_upgrade={handle_select_plan}
-        plan_features={plan_features}
-        plans={plans}
-        preferred_currency={preferred_currency}
-        set_billing_period={set_billing_period}
-        subscription={subscription}
-      />
+      {subscription?.plan?.code !== "duo" && subscription?.plan?.code !== "family" && (
+        <AvailablePlansSection
+          billing_period={billing_period}
+          current_billing_interval={current_billing_interval}
+          handle_currency_change={handle_currency_change}
+          is_action_loading={is_action_loading}
+          on_upgrade={handle_select_plan}
+          plan_features={plan_features}
+          plans={plans}
+          preferred_currency={preferred_currency}
+          set_billing_period={set_billing_period}
+          subscription={subscription}
+        />
+      )}
+
+      {(subscription?.plan?.code === "duo" || subscription?.plan?.code === "family") && (
+        <AvailablePlansSection
+          billing_period={billing_period}
+          current_billing_interval={current_billing_interval}
+          handle_currency_change={handle_currency_change}
+          is_action_loading={is_action_loading}
+          on_upgrade={handle_select_plan}
+          plan_features={plan_features}
+          plans={plans}
+          preferred_currency={preferred_currency}
+          set_billing_period={set_billing_period}
+          subscription={subscription}
+        />
+      )}
 
       <div className="flex justify-center mt-2 mb-4">
         <a

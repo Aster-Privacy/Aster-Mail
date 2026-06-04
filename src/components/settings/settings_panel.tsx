@@ -54,6 +54,7 @@ import {
   ChatBubbleBottomCenterTextIcon,
   ComputerDesktopIcon,
   UserGroupIcon,
+  HomeModernIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -81,6 +82,11 @@ import { AliasesSection } from "@/components/settings/aliases_section";
 const BillingSection = lazy(() =>
   import("@/components/settings/billing_section").then((m) => ({
     default: m.BillingSection,
+  })),
+);
+const FamilySection = lazy(() =>
+  import("@/components/settings/billing/family_section").then((m) => ({
+    default: m.FamilySection,
   })),
 );
 
@@ -111,6 +117,7 @@ export type SettingsSection =
   | "aliases"
   | "ghost_aliases"
   | "billing"
+  | "family"
   | "referral"
   | "import"
   | "notifications"
@@ -149,6 +156,7 @@ interface NavItem {
 
 function get_nav_items(
   t: (key: TranslationKey) => string,
+  is_family_plan?: boolean,
 ): {
   general: NavItem[];
   mail: NavItem[];
@@ -180,6 +188,7 @@ function get_nav_items(
         icon: AtSymbolIcon,
       },
       { id: "billing", label: t("settings.billing"), icon: CreditCardIcon },
+      ...(is_family_plan ? [{ id: "family" as Section, label: t("settings.plan_type_family"), icon: HomeModernIcon }] : []),
       {
         id: "referral",
         label: t("settings.refer_a_friend"),
@@ -262,7 +271,8 @@ function SettingsPanelInner({
   );
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
   const [has_devices, set_has_devices] = useState(false);
-  const NAV_ITEMS = useMemo(() => get_nav_items(t), [t]);
+  const [is_family_plan, set_is_family_plan] = useState(false);
+  const NAV_ITEMS = useMemo(() => get_nav_items(t, is_family_plan), [t, is_family_plan]);
   const [indicator_style, set_indicator_style] = useState<{
     top: number;
     height: number;
@@ -282,6 +292,7 @@ function SettingsPanelInner({
     aliases: null,
     ghost_aliases: null,
     billing: null,
+    family: null,
     referral: null,
     import: null,
     notifications: null,
@@ -306,7 +317,10 @@ function SettingsPanelInner({
       set_show_mobile_nav(true);
       animation_complete_ref.current = false;
 
-      get_subscription();
+      get_subscription().then((res) => {
+        const code = res.data?.plan?.code ?? "";
+        set_is_family_plan(code === "duo" || code === "family");
+      }).catch(() => {});
       get_available_plans();
       get_billing_history(1, 10);
       get_plan_limits();
@@ -528,6 +542,12 @@ function SettingsPanelInner({
         return (
           <Suspense fallback={null}>
             <BillingSection />
+          </Suspense>
+        );
+      case "family":
+        return (
+          <Suspense fallback={null}>
+            <FamilySection is_family_plan={is_family_plan} />
           </Suspense>
         );
       case "referral":

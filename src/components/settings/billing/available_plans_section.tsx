@@ -18,8 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { useState } from "react";
 import { CheckIcon, SparklesIcon } from "@heroicons/react/24/outline";
-import { Button, SegmentedToggle } from "@aster/ui";
+import { Button } from "@aster/ui";
 
 import {
   format_price,
@@ -28,9 +29,12 @@ import {
 } from "@/services/api/billing";
 import {
   PLAN_TIERS,
+  FAMILY_PLAN_TIERS,
   SUPPORTED_CURRENCIES,
   convert_cents,
 } from "@/components/settings/billing/billing_constants";
+import { create_family_group } from "@/services/api/family";
+import { UserGroupIcon } from "@heroicons/react/24/outline";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -60,6 +64,26 @@ export function AvailablePlansSection({
   current_billing_interval,
 }: AvailablePlansSectionProps) {
   const { t } = use_i18n();
+  const [plan_type, set_plan_type] = useState<"individual" | "family">("individual");
+  const [family_loading, set_family_loading] = useState(false);
+
+  const handle_family_checkout = async (plan_id: string) => {
+    if (family_loading) return;
+    set_family_loading(true);
+    try {
+      const billing_interval = billing_period === "yearly" ? "year" : "month";
+      const res = await create_family_group(plan_id, billing_interval);
+      if (res.data?.checkout_url) {
+        window.location.href = res.data.checkout_url;
+      } else {
+        show_toast(t("settings.failed_checkout"), "error");
+      }
+    } catch {
+      show_toast(t("settings.failed_checkout"), "error");
+    } finally {
+      set_family_loading(false);
+    }
+  };
 
   return (
     <div className="pt-4" id="available-plans">
@@ -71,18 +95,47 @@ export function AvailablePlansSection({
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
-      <div className="flex items-center justify-center mb-4 gap-3">
-        <SegmentedToggle
-          name="billing_period"
-          on_change={(v) =>
-            set_billing_period(v as "monthly" | "yearly" | "biennial")
-          }
-          options={[
-            { value: "monthly", label: t("settings.billing_monthly") },
-            { value: "yearly", label: t("settings.billing_yearly") },
-          ]}
-          value={billing_period}
-        />
+      <div className="flex flex-col items-center gap-2 mb-4">
+        <div
+          className="inline-flex rounded-full p-1 gap-0.5"
+          style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-secondary)" }}
+        >
+          {(["individual", "family"] as const).map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => set_plan_type(type)}
+              className="px-5 py-1.5 rounded-full text-sm font-semibold transition-all flex items-center gap-1.5"
+              style={plan_type === type
+                ? { background: "var(--accent-blue)", color: "#fff" }
+                : { background: "transparent", color: "var(--txt-secondary)" }
+              }
+            >
+              {type === "family" && <UserGroupIcon className="w-3.5 h-3.5" />}
+              {type === "individual" ? t("settings.plan_type_individual") : t("settings.plan_type_family")}
+            </button>
+          ))}
+        </div>
+
+        <div
+          className="inline-flex rounded-full p-0.5 gap-0.5"
+          style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-secondary)" }}
+        >
+          {(["monthly", "yearly"] as const).map((period) => (
+            <button
+              key={period}
+              type="button"
+              onClick={() => set_billing_period(period)}
+              className="px-4 py-1 rounded-full text-xs font-medium transition-all"
+              style={billing_period === period
+                ? { background: "var(--accent-blue)", color: "#fff" }
+                : { background: "transparent", color: "var(--txt-muted)" }
+              }
+            >
+              {period === "monthly" ? t("settings.billing_monthly") : t("settings.billing_yearly")}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex items-center justify-center gap-2 mb-4">
@@ -102,6 +155,80 @@ export function AvailablePlansSection({
         </select>
       </div>
 
+      {plan_type === "family" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {FAMILY_PLAN_TIERS.map((tier) => {
+            const current_plan_code = subscription?.plan.code;
+            const is_current = current_plan_code === tier.id;
+            const price_cents = billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents;
+
+            return (
+              <div
+                key={tier.id}
+                className="relative rounded-2xl border-2 overflow-hidden flex flex-col"
+                style={{
+                  borderColor: is_current ? "var(--accent-blue)" : "var(--border-secondary)",
+                  backgroundColor: "var(--bg-tertiary)",
+                }}
+              >
+                <div className="px-5 pt-5 pb-4 text-center">
+                  {is_current && (
+                    <div className="inline-flex px-3 py-1 rounded-full text-xs font-medium mb-3" style={{ backgroundColor: "#2563eb", color: "#fff" }}>
+                      {t("settings.current_plan")}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <UserGroupIcon className="w-5 h-5" style={{ color: "var(--accent-blue)" }} />
+                    <h4 className="text-lg font-bold text-txt-primary">{tier.name}</h4>
+                  </div>
+                  <p className="text-xs text-txt-muted mb-3">
+                    {tier.max_members === 2 ? t("settings.family_duo_tagline") : t("settings.family_plan_tagline")}
+                  </p>
+                  <div className="mt-2">
+                    <span className="text-3xl font-bold text-txt-primary">
+                      {format_price(convert_cents(price_cents, preferred_currency), preferred_currency)}
+                    </span>
+                    <span className="text-sm text-txt-muted">
+                      {billing_period === "monthly" ? t("settings.per_month_short") : t("settings.per_year_short")}
+                    </span>
+                  </div>
+                  {billing_period === "yearly" && (
+                    <p className="text-xs font-medium mt-1.5" style={{ color: "var(--color-success)" }}>
+                      {tier.savings_label}
+                    </p>
+                  )}
+                  <Button
+                    className="w-full mt-4"
+                    disabled={is_action_loading || family_loading || is_current}
+                    variant={is_current ? "outline" : "primary"}
+                    onClick={() => { if (!is_current) handle_family_checkout(tier.id); }}
+                  >
+                    {is_current ? t("settings.current_plan") : t("settings.upgrade")}
+                  </Button>
+                </div>
+                <div className="px-5 pb-5 flex-1" style={{ borderTop: "1px solid var(--border-secondary)" }}>
+                  <div className="space-y-2.5 pt-4">
+                    {[
+                      `${tier.max_members} members, separate accounts`,
+                      `${tier.storage_label} encrypted storage`,
+                      t("settings.family_invite_member"),
+                      t("settings.family_shared_aliases"),
+                      t("settings.family_admin_controls"),
+                    ].map((feat, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <CheckIcon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} style={{ color: "var(--accent-blue)" }} />
+                        <span className="text-xs text-txt-secondary">{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {plan_type === "individual" && (
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {PLAN_TIERS.map((tier, tier_index) => {
           const current_plan_code = subscription?.plan.code;
@@ -250,6 +377,7 @@ export function AvailablePlansSection({
           );
         })}
       </div>
+      )}
     </div>
   );
 }

@@ -34,6 +34,37 @@ export interface PlanTier {
   is_recommended?: boolean;
 }
 
+export interface FamilyPlanTier {
+  id: string;
+  name: string;
+  max_members: number;
+  storage_label: string;
+  monthly_cents: number;
+  yearly_cents: number;
+  savings_label: string;
+}
+
+export const FAMILY_PLAN_TIERS: FamilyPlanTier[] = [
+  {
+    id: "duo",
+    name: "Duo",
+    max_members: 2,
+    storage_label: "1 TB shared",
+    monthly_cents: 1299,
+    yearly_cents: 11999,
+    savings_label: "Save $35.89/yr",
+  },
+  {
+    id: "family",
+    name: "Family",
+    max_members: 6,
+    storage_label: "3 TB shared",
+    monthly_cents: 2699,
+    yearly_cents: 26399,
+    savings_label: "Save $59.89/yr",
+  },
+];
+
 export const PLAN_TIERS: PlanTier[] = [
   {
     id: "star",

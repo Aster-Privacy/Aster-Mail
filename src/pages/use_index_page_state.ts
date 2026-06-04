@@ -151,7 +151,23 @@ export function use_index_page_state() {
     if (!oauth_status) return;
 
     const provider = search_params.get("provider") || "";
+    const raw_reason = search_params.get("reason") || "";
 
+    // When running in an OAuth popup, relay the result to the opener and close.
+    if (window.opener && typeof window.opener.postMessage === "function") {
+      try {
+        window.opener.postMessage(
+          { type: "oauth_callback", status: oauth_status, provider, reason: raw_reason },
+          window.location.origin,
+        );
+      } catch {
+        /* cross-origin opener - ignore */
+      }
+      window.close();
+      return;
+    }
+
+    // Fallback: full-page redirect path (popup was blocked or Tauri).
     if (oauth_status === "success") {
       const provider_label =
         provider === "google"
@@ -168,25 +184,28 @@ export function use_index_page_state() {
       );
       set_settings_section("import" as SettingsSection);
       set_is_settings_open(true);
+      // Dispatch after a tick so ImportSection has time to mount.
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("astermail:oauth-completed", { detail: { provider } }));
+      }, 50);
     } else if (oauth_status === "error") {
-      const raw_reason = search_params.get("reason") || "";
-      if (raw_reason !== "invalid_state" && raw_reason !== "expired_state") {
-        const reason_key_map: Record<string, string> = {
-          provider_denied: "settings.oauth_reason_provider_denied",
-          missing_code: "settings.oauth_reason_missing_code",
-          missing_state: "settings.oauth_reason_missing_state",
-          internal_error: "settings.oauth_reason_internal_error",
-          invalid_provider: "settings.oauth_reason_invalid_provider",
-          provider_not_configured: "settings.oauth_reason_provider_not_configured",
-          token_exchange_failed: "settings.oauth_reason_token_exchange_failed",
-          encryption_error: "settings.oauth_reason_encryption_error",
-          account_creation_failed: "settings.oauth_reason_account_creation_failed",
-        };
-        const reason_i18n_key = reason_key_map[raw_reason] || "settings.oauth_reason_unknown";
-        const reason = t(reason_i18n_key as TranslationKey);
-
-        show_toast(t("settings.oauth_import_error", { reason }), "error");
-      }
+      const reason_key_map: Record<string, string> = {
+        provider_denied: "settings.oauth_reason_provider_denied",
+        missing_code: "settings.oauth_reason_missing_code",
+        missing_state: "settings.oauth_reason_missing_state",
+        internal_error: "settings.oauth_reason_internal_error",
+        invalid_provider: "settings.oauth_reason_invalid_provider",
+        provider_not_configured: "settings.oauth_reason_provider_not_configured",
+        token_exchange_failed: "settings.oauth_reason_token_exchange_failed",
+        encryption_error: "settings.oauth_reason_encryption_error",
+        account_creation_failed: "settings.oauth_reason_account_creation_failed",
+        email_not_found: "settings.oauth_reason_email_not_found",
+        invalid_state: "settings.oauth_reason_session_expired",
+        expired_state: "settings.oauth_reason_session_expired",
+      };
+      const reason_i18n_key = reason_key_map[raw_reason] || "settings.oauth_reason_unknown";
+      const reason = t(reason_i18n_key as TranslationKey);
+      show_toast(t("settings.oauth_import_error", { reason }), "error");
     }
 
     set_search_params({}, { replace: true });

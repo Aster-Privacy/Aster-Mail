@@ -204,35 +204,32 @@ function ImportJobCard({
     job.skipped_emails > 0 ? `, ${t("settings.n_skipped", { count: job.skipped_emails })}` : "";
   const can_delete = job.status !== "processing" && job.status !== "pending";
 
+  const is_active = job.status === "processing" || job.status === "pending";
+
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg bg-surf-secondary">
-      <div className="flex items-center gap-3">
-        {get_status_icon(job.status)}
-        <div>
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.source_import", { source: source_label })}
-          </p>
-          <p className="text-xs text-txt-muted">
-            {t("settings.imported_skipped", {
-              imported: String(job.processed_emails),
-              skipped: skipped_text,
-            })}
-          </p>
-        </div>
+    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary">
+      <div className="flex-shrink-0">{get_status_icon(job.status)}</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-txt-primary truncate">
+          {t("settings.source_import", { source: source_label })}
+        </p>
+        <p className="text-xs text-txt-muted">
+          {is_active
+            ? get_status_label(job.status, t)
+            : t("settings.imported_skipped", {
+                imported: job.processed_emails.toLocaleString(),
+                skipped: skipped_text,
+              })}
+        </p>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-txt-muted">
-          {get_status_label(job.status, t)}
-        </span>
-        <ClockIcon className="w-3 h-3 text-txt-muted" />
-        <span className="text-xs text-txt-muted">
-          {format_relative_time(job.created_at, t)}
-        </span>
+      <div className="flex items-center gap-2 flex-shrink-0 text-xs text-txt-muted">
+        <ClockIcon className="w-3 h-3" />
+        <span>{format_relative_time(job.created_at, t)}</span>
         {can_delete && (
           <button
             type="button"
             aria-label={t("common.delete")}
-            className="ml-1 p-1 rounded hover:bg-surf-tertiary text-txt-muted"
+            className="p-1 rounded hover:bg-surf-tertiary text-txt-muted ml-1"
             onClick={() => on_delete(job.id)}
           >
             <TrashIcon className="w-4 h-4" />
@@ -243,30 +240,34 @@ function ImportJobCard({
   );
 }
 
-function get_provider_icon(protocol: string, email: string) {
-  const lower = email.toLowerCase();
-
+function get_provider_icon(protocol: string, email: string, oauth_provider?: string | null) {
   if (protocol === "oauth_imap") {
-    if (lower.includes("gmail") || lower.includes("google")) {
+    const p = oauth_provider ?? "";
+    if (p === "google") {
       return (
         <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/gmail_logo.svg" />
       );
     }
-
-    if (
-      lower.includes("outlook") ||
-      lower.includes("hotmail") ||
-      lower.includes("live")
-    ) {
+    if (p === "microsoft") {
       return (
         <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/outlook_logo.svg" />
       );
     }
-
-    if (lower.includes("yahoo")) {
+    if (p === "yahoo") {
       return (
         <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/yahoo_mail_logo.svg" />
       );
+    }
+    // Fallback: infer from email domain for legacy rows
+    const lower = email.toLowerCase();
+    if (lower.includes("gmail") || lower.includes("google")) {
+      return <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/gmail_logo.svg" />;
+    }
+    if (lower.includes("outlook") || lower.includes("hotmail") || lower.includes("live")) {
+      return <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/outlook_logo.svg" />;
+    }
+    if (lower.includes("yahoo")) {
+      return <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/yahoo_mail_logo.svg" />;
     }
   }
 
@@ -278,6 +279,7 @@ function ConnectedAccountCard({
   on_sync,
   on_disconnect,
   on_refresh,
+  on_reconnect,
   is_syncing,
   on_sync_finished,
   is_setting_up_folders,
@@ -287,6 +289,7 @@ function ConnectedAccountCard({
   on_sync: (token: string) => void;
   on_disconnect: (token: string) => void;
   on_refresh: () => void;
+  on_reconnect: (provider: string) => void;
   is_syncing: boolean;
   on_sync_finished?: (token: string) => void;
   is_setting_up_folders: boolean;
@@ -294,6 +297,7 @@ function ConnectedAccountCard({
 }) {
   const { t } = use_i18n();
   const has_error = account.last_sync_status === "error";
+  const needs_reauth = account.needs_reauth && account.protocol === "oauth_imap";
   const [progress, set_progress] = useState<SyncProgressEvent | null>(null);
   const should_poll =
     is_syncing ||
@@ -377,25 +381,57 @@ function ConnectedAccountCard({
   const percent =
     total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
 
+  // For OAuth accounts, the display_name is just the provider label ("Gmail").
+  // Show the actual email address as the primary identifier instead.
+  const primary_label =
+    account.protocol === "oauth_imap" && account.email && !account.email.endsWith("@import")
+      ? account.email
+      : account.display_name;
+
+  const sync_active = is_syncing || should_poll;
+
   return (
-    <div className="flex flex-col gap-3 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary">
-      <div className="flex items-center gap-3">
-        <div className="flex-shrink-0">
-          {get_provider_icon(account.protocol, account.email)}
+    <div
+      className={[
+        "flex flex-col gap-0 rounded-xl border overflow-hidden",
+        needs_reauth
+          ? "border-amber-400/40 bg-amber-50/30 dark:bg-amber-900/10"
+          : has_error && !sync_active
+            ? "border-red-400/30 bg-surf-secondary"
+            : "border-edge-secondary bg-surf-secondary",
+      ].join(" ")}
+    >
+      {/* Main row */}
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex-shrink-0 relative">
+          {get_provider_icon(account.protocol, account.email, account.oauth_provider)}
+          {needs_reauth && (
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 ring-1 ring-surf-secondary" />
+          )}
         </div>
+
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-txt-primary truncate">
-            {account.display_name}
+          <p className="text-sm font-medium text-txt-primary truncate leading-tight">
+            {primary_label}
           </p>
-          <div className="flex items-center gap-2 text-xs text-txt-muted">
-            {has_error ? (
-              <span className="flex items-center gap-1 text-red-500">
-                <ExclamationTriangleIcon className="w-3 h-3" />
-                {t("settings.connected_accounts_error")}
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-txt-muted leading-tight">
+            {needs_reauth ? (
+              <span className="flex items-center gap-1 text-amber-500 font-medium">
+                <ExclamationTriangleIcon className="w-3 h-3 flex-shrink-0" />
+                {t("settings.connected_accounts_reauth_needed")}
               </span>
-            ) : account.last_sync_at ? (
+            ) : has_error && !sync_active ? (
+              <span className="flex items-center gap-1 text-red-500">
+                <ExclamationTriangleIcon className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate max-w-[220px]">
+                  {account.last_sync_error
+                    ? account.last_sync_error.replace(/^IMAP authentication failed:\s*/i, "").slice(0, 70)
+                    : t("settings.connected_accounts_error")}
+                </span>
+              </span>
+            ) : sync_active ? null : account.last_sync_at ? (
               <span className="flex items-center gap-1">
-                <ClockIcon className="w-3 h-3" />
+                <ClockIcon className="w-3 h-3 flex-shrink-0" />
                 {t("settings.connected_accounts_last_sync", {
                   time: format_relative_time(account.last_sync_at, t),
                 })}
@@ -403,121 +439,110 @@ function ConnectedAccountCard({
             ) : (
               <span>{t("settings.connected_accounts_never_synced")}</span>
             )}
-            {account.email_count > 0 && (
+            {account.email_count > 0 && !sync_active && (
               <>
-                <span>·</span>
+                <span aria-hidden="true">·</span>
                 <span>
                   {t("settings.connected_accounts_emails", {
-                    count: account.email_count,
+                    count: account.email_count.toLocaleString(),
                   })}
                 </span>
               </>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {needs_reauth && account.oauth_provider ? (
+            <Button
+              size="sm"
+              variant="depth"
+              onClick={() => on_reconnect(account.oauth_provider!)}
+            >
+              {t("settings.connected_accounts_reconnect")}
+            </Button>
+          ) : is_setting_up_folders ? (
+            <Button size="sm" variant="outline" onClick={on_cancel_setup}>
+              {t("settings.import_stage_cancel")}
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              aria-label={sync_active ? t("common.stop") : t("settings.connected_accounts_sync_now")}
+              onClick={() => on_sync(account.account_token)}
+            >
+              {sync_active ? (
+                <span className="flex items-center gap-1.5">
+                  <Spinner className="text-current" size="sm" />
+                  {t("common.stop")}
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  <ArrowPathIcon className="w-4 h-4" />
+                  {t("settings.connected_accounts_sync_now")}
+                </span>
+              )}
+            </Button>
+          )}
           <Button
-            disabled={is_setting_up_folders}
             size="sm"
             variant="outline"
-            onClick={() => on_sync(account.account_token)}
-          >
-            {is_syncing || is_setting_up_folders ? (
-              <span className="flex items-center gap-1.5">
-                <Spinner className="text-current" size="sm" />
-                {t("common.stop")}
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5">
-                <ArrowPathIcon className="w-4 h-4" />
-                {t("settings.connected_accounts_sync_now")}
-              </span>
-            )}
-          </Button>
-          <Button
-            disabled={is_setting_up_folders}
-            size="sm"
-            variant="outline"
+            aria-label={t("settings.connected_accounts_disconnect")}
+            disabled={is_setting_up_folders && !needs_reauth}
             onClick={() => on_disconnect(account.account_token)}
           >
             <TrashIcon className="w-4 h-4" />
           </Button>
         </div>
       </div>
+
+      {/* Progress / status strip */}
       {is_setting_up_folders && (
-        <div className="w-full">
-          <div className="flex items-center justify-between mb-1.5 text-xs gap-2">
-            <span className="flex items-center gap-2 text-txt-secondary truncate">
-              <Spinner className="text-brand" size="sm" />
-              {t("settings.import_stage_setting_up_folders")}
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={on_cancel_setup}
-            >
-              {t("settings.import_stage_cancel")}
-            </Button>
+        <div className="px-4 pb-3">
+          <div className="flex items-center gap-2 mb-1.5 text-xs text-txt-secondary">
+            <Spinner className="text-brand flex-shrink-0" size="sm" />
+            {t("settings.import_stage_setting_up_folders")}
           </div>
-          <div className="h-1.5 w-full rounded-full bg-surf-tertiary overflow-hidden">
-            <div
-              className="h-full rounded-full animate-pulse"
-              style={{
-                width: "30%",
-                background: "var(--color-brand)",
-              }}
-            />
+          <div className="h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
+            <div className="h-full rounded-full bg-brand animate-[indeterminate_1.5s_ease-in-out_infinite]"
+              style={{ width: "40%" }} />
           </div>
         </div>
       )}
       {!is_setting_up_folders && show_progress && (
-        <div className="w-full">
+        <div className="px-4 pb-3">
           <div className="flex items-center justify-between mb-1.5 text-xs gap-2">
-            <span className="flex items-center gap-2 text-txt-secondary truncate min-w-0">
-              <span className="font-medium text-txt-primary flex-shrink-0">
-                {t("settings.import_stage_importing_emails")}
+            <span className="flex items-center gap-1.5 text-txt-secondary truncate min-w-0">
+              <span className="font-medium text-txt-primary flex-shrink-0 tabular-nums">
+                {percent}%
               </span>
-              <span className="truncate">
-                · {t("settings.sync_progress_count", { processed, total })}
+              <span className="truncate text-txt-muted">
+                {t("settings.sync_progress_count", { processed, total })}
                 {progress?.current_folder ? ` · ${progress.current_folder}` : ""}
               </span>
             </span>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-txt-muted tabular-nums">{percent}%</span>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => on_sync(account.account_token)}
-              >
-                {t("common.stop")}
-              </Button>
-            </div>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-surf-tertiary overflow-hidden">
+          <div className="h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
             <div
-              className="h-full rounded-full"
+              className="h-full rounded-full transition-[width] duration-700 ease-out"
               style={{
-                width: total > 0 ? `${percent}%` : "15%",
+                width: `${Math.max(4, percent)}%`,
                 background: "var(--color-brand)",
-                transition: "width 1s ease-out",
               }}
             />
           </div>
         </div>
       )}
-      {!is_setting_up_folders && should_poll && !show_progress && (
-        <div className="flex items-center justify-between gap-2 text-xs text-txt-muted">
-          <span className="flex items-center gap-2">
-            <Spinner className="text-brand" size="sm" />
-            <span>{t("settings.connected_accounts_syncing")}</span>
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => on_sync(account.account_token)}
-          >
-            {t("common.stop")}
-          </Button>
+      {!is_setting_up_folders && sync_active && !show_progress && (
+        <div className="px-4 pb-3">
+          <div className="flex items-center gap-2 text-xs text-txt-muted">
+            <Spinner className="text-brand flex-shrink-0" size="sm" />
+            <span className="flex-1">{t("settings.connected_accounts_syncing")}</span>
+          </div>
+          <div className="mt-1.5 h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
+            <div className="h-full rounded-full bg-brand animate-pulse" style={{ width: "60%" }} />
+          </div>
         </div>
       )}
     </div>
@@ -531,12 +556,14 @@ export function ImportSection() {
   const [recent_jobs, set_recent_jobs] = useState<ImportJob[]>([]);
   const [is_loading_jobs, set_is_loading_jobs] = useState(true);
   const [has_error, set_has_error] = useState(false);
-  const [oauth_loading] = useState<string | null>(null);
+  const [how_it_works_open, set_how_it_works_open] = useState(false);
+  const [oauth_loading, set_oauth_loading] = useState<string | null>(null);
   const [connect_provider, set_connect_provider] =
     useState<ConnectProvider | null>(null);
   const [connected_accounts, set_connected_accounts] = useState<
     DecryptedExternalAccount[]
   >([]);
+  const [is_loading_accounts, set_is_loading_accounts] = useState(true);
   const [syncing_accounts, set_syncing_accounts] = useState<Set<string>>(
     new Set(),
   );
@@ -548,7 +575,6 @@ export function ImportSection() {
   );
   const [delete_messages_on_disconnect, set_delete_messages_on_disconnect] =
     useState(false);
-  const [stop_sync_token, set_stop_sync_token] = useState<string | null>(null);
   const setup_account_tokens_ref = useRef<Set<string>>(new Set());
   const oauth_cancelled_ref = useRef(false);
   const [oauth_setup_token, set_oauth_setup_token] = useState<string | null>(
@@ -593,7 +619,10 @@ export function ImportSection() {
 
         set_connected_accounts(oauth_accounts);
       }
-    } catch {}
+    } catch {
+    } finally {
+      set_is_loading_accounts(false);
+    }
   }, []);
 
   const setup_oauth_folders = useCallback(
@@ -753,6 +782,22 @@ export function ImportSection() {
     [t, load_connected_accounts],
   );
 
+  const stop_sync = useCallback(async (account_token: string) => {
+    set_syncing_accounts((prev) => {
+      const next = new Set(prev);
+      next.delete(account_token);
+      return next;
+    });
+    try {
+      await toggle_external_account(account_token, false);
+      // Brief pause lets the backend notice the disable before we re-enable.
+      window.setTimeout(() => {
+        toggle_external_account(account_token, true).catch(() => {});
+        load_connected_accounts();
+      }, 2000);
+    } catch {}
+  }, [load_connected_accounts]);
+
   const handle_sync = useCallback(
     async (account_token: string) => {
       const account = connected_accounts.find(
@@ -760,8 +805,7 @@ export function ImportSection() {
       );
 
       if (syncing_accounts.has(account_token)) {
-        set_stop_sync_token(account_token);
-
+        await stop_sync(account_token);
         return;
       }
 
@@ -770,7 +814,6 @@ export function ImportSection() {
         !setup_account_tokens_ref.current.has(account_token)
       ) {
         await setup_oauth_folders(account_token);
-
         return;
       }
 
@@ -778,14 +821,11 @@ export function ImportSection() {
 
       try {
         const result = await trigger_sync(account_token);
-
         if (result.error) {
           show_toast(result.error, "error");
           set_syncing_accounts((prev) => {
             const next = new Set(prev);
-
             next.delete(account_token);
-
             return next;
           });
         }
@@ -793,9 +833,7 @@ export function ImportSection() {
         show_toast(t("settings.connected_accounts_error"), "error");
         set_syncing_accounts((prev) => {
           const next = new Set(prev);
-
           next.delete(account_token);
-
           return next;
         });
       }
@@ -808,26 +846,10 @@ export function ImportSection() {
       connected_accounts,
       setup_oauth_folders,
       syncing_accounts,
+      stop_sync,
     ],
   );
 
-  const handle_stop_sync_confirm = useCallback(async () => {
-    const token = stop_sync_token;
-    set_stop_sync_token(null);
-    if (!token) return;
-    set_syncing_accounts((prev) => {
-      const next = new Set(prev);
-      next.delete(token);
-      return next;
-    });
-    try {
-      await toggle_external_account(token, false);
-      window.setTimeout(() => {
-        toggle_external_account(token, true).catch(() => {});
-        load_connected_accounts();
-      }, 1500);
-    } catch {}
-  }, [stop_sync_token, load_connected_accounts]);
 
   const handle_disconnect_click = useCallback((account_token: string) => {
     set_delete_messages_on_disconnect(false);
@@ -877,6 +899,8 @@ export function ImportSection() {
         set_connected_accounts((prev) =>
           prev.filter((a) => a.account_token !== token),
         );
+        // Clear from setup tracker so reconnecting the same account runs folder setup again
+        setup_account_tokens_ref.current.delete(token);
         show_toast(t("settings.disconnect_success"), "success");
       }
     } catch {
@@ -902,11 +926,12 @@ export function ImportSection() {
     if (token) {
       set_syncing_accounts((prev) => {
         const next = new Set(prev);
-
         next.delete(token);
-
         return next;
       });
+
+      // Clear from setup tracker so a reconnect attempt runs setup again
+      setup_account_tokens_ref.current.delete(token);
 
       try {
         await delete_external_account(token);
@@ -955,139 +980,96 @@ export function ImportSection() {
     return () => window.clearInterval(interval);
   }, [connected_accounts, syncing_accounts]);
 
-  const oauth_handled_ref = useRef(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (oauth_handled_ref.current) return;
-
-    const params = new URLSearchParams(window.location.search);
-
-    if (params.get("oauth") !== "success") return;
-
-    oauth_handled_ref.current = true;
-
-    const url = new URL(window.location.href);
-
-    url.searchParams.delete("oauth");
-    url.searchParams.delete("provider");
-    window.history.replaceState({}, "", url.toString());
-
+  const trigger_post_oauth_setup = useCallback(() => {
     const snapshot_tokens = new Set(
       connected_accounts.map((a) => a.account_token),
     );
+    const snapshot_error_tokens = new Set(
+      connected_accounts
+        .filter((a) => a.protocol === "oauth_imap" && a.last_sync_status === "error")
+        .map((a) => a.account_token),
+    );
+
+    let stopped = false;
 
     const poll_for_new_account = async () => {
       const response = await list_external_accounts();
-
       if (!response.data) return false;
 
       const oauth_accounts = response.data.filter(
         (a) => a.protocol === "oauth_imap",
       );
-
       set_connected_accounts(oauth_accounts);
 
+      // New account connected
       const new_account = oauth_accounts.find(
         (a) => !snapshot_tokens.has(a.account_token),
       );
-
       if (new_account) {
         setup_oauth_folders(new_account.account_token);
-
         return true;
       }
+
+      // Re-auth: kick any account that was previously in error state.
+      // last_sync_status won't have changed yet (it updates only after a sync runs),
+      // so we can't detect re-auth by status change. Instead, trigger sync for all
+      // previously-errored oauth accounts and let the backend handle dedup.
+      let kicked = false;
+      for (const a of oauth_accounts) {
+        if (snapshot_error_tokens.has(a.account_token)) {
+          trigger_sync(a.account_token).catch(() => {});
+          kicked = true;
+        }
+      }
+      if (kicked) return true;
 
       return false;
     };
 
-    let stopped = false;
-
     poll_for_new_account().then((found) => {
-      if (found) {
-        stopped = true;
-
-        return;
-      }
+      if (found) { stopped = true; return; }
 
       const id = window.setInterval(async () => {
         if (stopped) return;
         const found = await poll_for_new_account();
-
-        if (found) {
-          stopped = true;
-          window.clearInterval(id);
-        }
+        if (found) { stopped = true; window.clearInterval(id); }
       }, 2000);
 
-      window.setTimeout(() => window.clearInterval(id), 30000);
+      window.setTimeout(() => window.clearInterval(id), 60000);
     });
   }, [connected_accounts, setup_oauth_folders]);
 
+  // Fallback: handle redirect-path OAuth result (popup blocked / Tauri).
+  // use_index_page_state clears the URL before we can read it, so it emits a custom event.
+  useEffect(() => {
+    const handler = () => trigger_post_oauth_setup();
+    window.addEventListener("astermail:oauth-completed", handler);
+    return () => window.removeEventListener("astermail:oauth-completed", handler);
+  }, [trigger_post_oauth_setup]);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Page header */}
       <div>
-        <div className="mb-4">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <ArrowDownTrayIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.import_emails_title")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-        <p className="text-sm text-txt-muted">
+        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
+          <ArrowDownTrayIcon className="w-[18px] h-[18px] flex-shrink-0" />
+          {t("settings.import_emails_title")}
+        </h3>
+        <div className="mt-2 h-px bg-edge-secondary" />
+        <p className="text-sm text-txt-muted mt-2">
           {t("settings.import_emails_description")}
         </p>
       </div>
 
-      <div className="space-y-3">
-        {PROVIDERS.map((provider) => (
-          <div
-            key={provider.id}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary"
-          >
-            <div className="flex-shrink-0">{provider.icon}</div>
-            <span className="flex-1 text-sm font-medium text-txt-primary">
-              {t(provider.label_key)}
-            </span>
-            <div className="flex items-center gap-2">
-              <Button
-                size="md"
-                variant="outline"
-                onClick={() => set_selected_provider(provider.id)}
-              >
-                {t("settings.import_manual_button")}
-              </Button>
-              {OAUTH_PROVIDERS.has(provider.id) && (
-                <Button
-                  disabled={oauth_loading !== null}
-                  size="md"
-                  variant="depth"
-                  onClick={() => {
-                    const mapped = PROVIDER_TO_OAUTH[provider.id];
-                    if (mapped) set_connect_provider(mapped);
-                  }}
-                >
-                  {oauth_loading === provider.id ? (
-                    <Spinner className="text-current" size="sm" />
-                  ) : (
-                    t("settings.import_oauth_button")
-                  )}
-                </Button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {connected_accounts.length > 0 && (
+      {/* Connected accounts - shown at top when present */}
+      {(is_loading_accounts || connected_accounts.length > 0) && (
         <div>
-          <div className="mb-4">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-              <LinkIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-              {t("settings.connected_accounts_title")}
-            </h3>
-            <div className="mt-2 h-px bg-edge-secondary" />
-          </div>
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">
+            {t("settings.connected_accounts_title")}
+          </h4>
+          {is_loading_accounts ? (
+            <div className="rounded-xl border border-edge-secondary bg-surf-secondary h-16 animate-pulse" />
+          ) : null}
           <div className="space-y-2">
             {connected_accounts.map((account) => (
               <ConnectedAccountCard
@@ -1100,14 +1082,17 @@ export function ImportSection() {
                 is_syncing={syncing_accounts.has(account.account_token)}
                 on_cancel_setup={handle_cancel_oauth_setup}
                 on_disconnect={handle_disconnect_click}
+                on_reconnect={(provider) => {
+                  const mapped = provider as ConnectProvider;
+                  set_oauth_loading(provider);
+                  set_connect_provider(mapped);
+                }}
                 on_refresh={load_connected_accounts}
                 on_sync={handle_sync}
                 on_sync_finished={(token) => {
                   set_syncing_accounts((prev) => {
                     const next = new Set(prev);
-
                     next.delete(token);
-
                     return next;
                   });
                 }}
@@ -1117,63 +1102,73 @@ export function ImportSection() {
         </div>
       )}
 
-      <div className="rounded-xl border p-4 space-y-4 bg-surf-secondary/50 border-edge-secondary">
-        <h4 className="flex items-center gap-2 text-sm font-semibold text-txt-primary">
-          <InformationCircleIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-          {t("settings.import_how_it_works")}
+      {/* Import options */}
+      <div>
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">
+          {!is_loading_accounts && connected_accounts.length > 0
+            ? t("settings.import_add_another")
+            : t("settings.import_choose_source")}
         </h4>
-
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-txt-secondary">
-            {t("settings.import_oauth_title")}
-          </p>
-          <p className="text-xs text-txt-muted leading-relaxed">
-            {t("settings.import_oauth_description")}
-          </p>
-        </div>
-
         <div className="space-y-2">
-          <p className="text-xs font-medium text-txt-secondary">
-            {t("settings.import_manual_title")}
-          </p>
-          <ol className="list-none space-y-1.5 text-xs text-txt-secondary leading-relaxed">
-            <li className="flex gap-2">
-              <span className="font-medium text-txt-secondary flex-shrink-0">
-                1.
-              </span>
-              {t("settings.import_manual_step_1")}
-            </li>
-            <li className="flex gap-2">
-              <span className="font-medium text-txt-secondary flex-shrink-0">
-                2.
-              </span>
-              {t("settings.import_manual_step_2")}
-            </li>
-            <li className="flex gap-2">
-              <span className="font-medium text-txt-secondary flex-shrink-0">
-                3.
-              </span>
-              {t("settings.import_manual_step_3")}
-            </li>
-            <li className="flex gap-2">
-              <span className="font-medium text-txt-secondary flex-shrink-0">
-                4.
-              </span>
-              {t("settings.import_manual_step_4")}
-            </li>
-          </ol>
+          {PROVIDERS.map((provider) => {
+            const is_oauth = OAUTH_PROVIDERS.has(provider.id);
+            const is_loading = oauth_loading === provider.id;
+            const any_loading = oauth_loading !== null || connect_provider !== null;
+            return (
+              <div
+                key={provider.id}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary"
+              >
+                <div className="flex-shrink-0 w-6 flex items-center justify-center">
+                  {provider.icon}
+                </div>
+                <span className="flex-1 text-sm font-medium text-txt-primary">
+                  {t(provider.label_key)}
+                </span>
+                <div className="flex items-center gap-2">
+                  {is_oauth && (
+                    <Button
+                      disabled={any_loading}
+                      size="sm"
+                      variant="depth"
+                      onClick={() => {
+                        const mapped = PROVIDER_TO_OAUTH[provider.id];
+                        if (mapped) {
+                          set_oauth_loading(provider.id);
+                          set_connect_provider(mapped);
+                        }
+                      }}
+                    >
+                      {is_loading ? (
+                        <span className="flex items-center gap-1.5">
+                          <Spinner className="text-current" size="sm" />
+                          {t("settings.import_oauth_button")}
+                        </span>
+                      ) : (
+                        t("settings.import_oauth_button")
+                      )}
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => set_selected_provider(provider.id)}
+                  >
+                    {t("settings.import_manual_button")}
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
+      {/* Recent one-time imports */}
       {!is_loading_jobs && recent_jobs.length > 0 && (
         <div>
-          <div className="mb-4">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-              <ClockIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-              {t("settings.recent_imports")}
-            </h3>
-            <div className="mt-2 h-px bg-edge-secondary" />
-          </div>
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">
+            {t("settings.recent_imports")}
+          </h4>
           <div className="space-y-2">
             {recent_jobs.map((job) => (
               <ImportJobCard
@@ -1186,6 +1181,55 @@ export function ImportSection() {
         </div>
       )}
 
+      {/* Collapsible "How it works" */}
+      <div className="rounded-xl border border-edge-secondary overflow-hidden">
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-3 text-sm text-txt-secondary hover:bg-surf-secondary/50 transition-colors"
+          onClick={() => set_how_it_works_open((o) => !o)}
+          aria-expanded={how_it_works_open}
+        >
+          <span className="flex items-center gap-2 font-medium">
+            <InformationCircleIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+            {t("settings.import_how_it_works")}
+          </span>
+          <span
+            className="text-txt-muted transition-transform duration-200"
+            style={{ transform: how_it_works_open ? "rotate(180deg)" : "rotate(0deg)" }}
+            aria-hidden="true"
+          >
+            ▾
+          </span>
+        </button>
+        {how_it_works_open && (
+          <div className="px-4 pb-4 pt-1 space-y-3 border-t border-edge-secondary bg-surf-secondary/30">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-txt-secondary">
+                {t("settings.import_oauth_title")}
+              </p>
+              <p className="text-xs text-txt-muted leading-relaxed">
+                {t("settings.import_oauth_description")}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-txt-secondary">
+                {t("settings.import_manual_title")}
+              </p>
+              <ol className="list-none space-y-1.5 text-xs text-txt-muted leading-relaxed">
+                {[1, 2, 3, 4].map((n) => (
+                  <li key={n} className="flex gap-2">
+                    <span className="font-medium text-txt-secondary flex-shrink-0 tabular-nums">
+                      {n}.
+                    </span>
+                    {t(("settings.import_manual_step_" + n) as TranslationKey)}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        )}
+      </div>
+
       {selected_provider && (
         <ImportModal
           is_open={true}
@@ -1196,7 +1240,12 @@ export function ImportSection() {
 
       <ConnectProviderModal
         provider={connect_provider}
-        on_close={() => set_connect_provider(null)}
+        on_close={() => { set_connect_provider(null); set_oauth_loading(null); }}
+        on_oauth_success={() => {
+          set_connect_provider(null);
+          set_oauth_loading(null);
+          trigger_post_oauth_setup();
+        }}
       />
 
       <AlertDialog
@@ -1260,29 +1309,6 @@ export function ImportSection() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog
-        open={stop_sync_token !== null}
-        onOpenChange={(open) => {
-          if (!open) set_stop_sync_token(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("settings.stop_sync_title")}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("settings.stop_sync_description")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.no")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handle_stop_sync_confirm}>
-              {t("common.yes")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
