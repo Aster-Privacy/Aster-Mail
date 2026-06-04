@@ -413,7 +413,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                       {g.member_count} member{g.member_count !== 1 ? "s" : ""}
                     </span>
                   </button>
-                  <button onClick={() => handle_delete(g.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
+                  <button onClick={() => handle_delete(g.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0" title="Delete group" aria-label="Delete group"><TrashIcon className="w-4 h-4" /></button>
                 </div>
                 <div className={`overflow-hidden transition-all duration-200 ${is_open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
                   <div className="pl-6 pb-3 space-y-1">
@@ -422,14 +422,14 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                         {gm.map(m => (
                           <div key={m.user_id} className="flex items-center justify-between py-2">
                             <span className="text-sm text-txt-primary">{m.username}@{m.email_domain}</span>
-                            <button onClick={() => handle_remove_member(g.id, m.user_id)} className="p-1 text-txt-muted hover:text-red-500"><XMarkIcon className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => handle_remove_member(g.id, m.user_id)} className="p-1 text-txt-muted hover:text-red-500" title="Remove from group" aria-label="Remove from group"><XMarkIcon className="w-3.5 h-3.5" /></button>
                           </div>
                         ))}
                       </div>
                     )}
                     {adding_to === g.id ? (
                       <div className="flex items-center gap-2 pt-2">
-                        <select value={add_user_id} onChange={e => set_add_user_id(e.target.value)} className="flex-1 text-sm border border-edge-secondary rounded px-2 py-1 bg-transparent text-txt-primary">
+                        <select value={add_user_id} onChange={e => set_add_user_id(e.target.value)} className="flex-1 text-sm border border-edge-secondary rounded px-2 py-1 bg-transparent text-txt-primary" aria-label="Select member to add">
                           <option value="">Select member...</option>
                           {members.filter(m => !gm.some(x => x.user_id === m.user_id)).map(m => (
                             <option key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</option>
@@ -488,10 +488,7 @@ function ActivityContent() {
     finally { set_loading(false); }
   }, []);
 
-  useEffect(() => { load_page(1); }, [load_page]);
-
-  // Reload when filter changes
-  useEffect(() => { set_page(1); set_entries([]); load_page(1, filter_type || undefined); }, [filter_type]);
+  useEffect(() => { set_entries([]); load_page(1, filter_type || undefined); }, [load_page, filter_type]);
 
   const unique_types = Array.from(new Set(entries.map(e => e.event_type)));
   const filtered = filter_type ? entries.filter(e => e.event_type === filter_type) : entries;
@@ -500,7 +497,7 @@ function ActivityContent() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <span className="text-sm text-txt-muted">{total} event{total !== 1 ? "s" : ""}</span>
-        <select value={filter_type} onChange={e => set_filter_type(e.target.value)} className="text-sm border border-edge-secondary rounded px-2 py-1 bg-transparent text-txt-primary">
+        <select value={filter_type} onChange={e => set_filter_type(e.target.value)} className="text-sm border border-edge-secondary rounded px-2 py-1 bg-transparent text-txt-primary" aria-label="Filter by event type">
           <option value="">All events</option>
           {unique_types.map(type => <option key={type} value={type}>{EVENT_LABELS[type] ?? type}</option>)}
         </select>
@@ -640,7 +637,7 @@ function FiltersContent() {
                   If {fl(f.field)} = <span className="text-txt-secondary">"{f.value}"</span> <ArrowRightIcon className="w-3 h-3 inline-block mx-0.5 align-middle" /> {al(f.action)}
                 </p>
               </div>
-              <button onClick={() => del_f(f.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
+              <button onClick={() => del_f(f.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0" title="Delete filter" aria-label="Delete filter"><TrashIcon className="w-4 h-4" /></button>
             </div>
           ))}
         </div>
@@ -1181,12 +1178,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             <button
               key={t_item.id}
               onClick={() => set_tab(t_item.id)}
-              className="relative px-4 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none whitespace-nowrap"
-              style={{
-                backgroundColor: tab === t_item.id ? "var(--bg-primary)" : "transparent",
-                color: tab === t_item.id ? "var(--text-primary)" : "var(--text-muted)",
-                boxShadow: tab === t_item.id ? "rgba(0,0,0,0.1) 0px 1px 3px,rgba(0,0,0,0.06) 0px 1px 2px" : "none",
-              }}
+              className={`relative px-4 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none whitespace-nowrap ${tab === t_item.id ? "bg-surf-primary" : "bg-transparent"}`}
+              style={{ color: tab === t_item.id ? "var(--text-primary)" : "var(--text-muted)", boxShadow: tab === t_item.id ? "rgba(0,0,0,0.1) 0px 1px 3px,rgba(0,0,0,0.06) 0px 1px 2px" : "none" }}
             >
               {t_item.label}
             </button>
@@ -1277,33 +1270,11 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               <div className="mt-2 h-px bg-edge-secondary" />
             </div>
             <div className="divide-y divide-edge-secondary">
-              {active_members.map(m => {
-                const pct = storage_pct(m.storage_used_bytes, m.allocated_storage_bytes);
-                const bar_color = pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-amber-500" : "bg-accent-blue";
-                const badge_class = m.role === "owner" ? "aster_badge aster_badge_blue"
-                  : m.status === "grace" ? "aster_badge aster_badge_amber"
-                  : "aster_badge aster_badge_gray";
-                const role_label = m.role === "owner" ? t("settings.family_member_owner")
-                  : m.status === "grace" ? t("settings.family_member_grace")
-                  : t("settings.family_member_member");
-                return (
-                  <div key={m.user_id} className="flex items-center gap-3 py-3">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white select-none" style={{ backgroundColor: get_avatar_color(m.username) }}>
-                      {m.username[0]?.toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-sm font-medium text-txt-primary truncate">{m.username}@{m.email_domain}</span>
-                        <span className={badge_class}>{role_label}</span>
-                      </div>
-                      <div className="text-xs text-txt-muted mt-0.5 tabular-nums">{format_bytes(m.storage_used_bytes)} / {format_bytes(m.allocated_storage_bytes)}</div>
-                      <div className="w-full bg-edge-secondary h-1 rounded-full mt-1">
-                        <div className={`${bar_color} h-1 rounded-full transition-all`} style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {active_members.map(m => (
+                <MemberRow key={m.user_id} member={m} is_owner_view={false}
+                  compliance={compliance_map[m.user_id]}
+                  on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
+              ))}
             </div>
           </div>
 
