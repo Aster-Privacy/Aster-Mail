@@ -69,7 +69,7 @@ function storage_bar(used: number, limit: number) {
   const pct = limit > 0 ? Math.min(100, (used / limit) * 100) : 0;
   const color = pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-amber-500" : "bg-indigo-500";
   return (
-    <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-1.5 mt-1">
+    <div className="w-full bg-edge-secondary rounded-full h-1.5 mt-1">
       <div className={`${color} h-1.5 rounded-full`} style={{ width: `${pct}%` }} />
     </div>
   );
@@ -136,7 +136,7 @@ function MemberRow({
             {role_label}
           </span>
         </div>
-        <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+        <div className="text-xs text-txt-muted mt-0.5">
           {format_bytes(member.storage_used_bytes)} / {format_bytes(member.allocated_storage_bytes)}
         </div>
         {storage_bar(member.storage_used_bytes, member.allocated_storage_bytes)}
@@ -151,15 +151,15 @@ function MemberRow({
                 min="1"
                 value={storage_input}
                 onChange={(e) => set_storage_input(e.target.value)}
-                className="w-16 text-xs border border-neutral-300 dark:border-neutral-600 rounded px-1.5 py-0.5 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                className="w-16 text-xs border border-edge-secondary rounded px-1.5 py-0.5 bg-surf-primary text-txt-primary"
               />
-              <span className="text-xs text-neutral-400">GB</span>
+              <span className="text-xs text-txt-muted">GB</span>
               <button onClick={save_storage} className="text-green-600 hover:text-green-700">
                 <CheckIcon className="w-4 h-4" />
               </button>
               <button
                 onClick={() => set_editing_storage(false)}
-                className="text-neutral-400 hover:text-neutral-600"
+                className="text-txt-muted hover:text-txt-secondary"
               >
                 <XMarkIcon className="w-4 h-4" />
               </button>
@@ -167,7 +167,7 @@ function MemberRow({
           ) : (
             <button
               onClick={() => set_editing_storage(true)}
-              className="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+              className="p-1 text-txt-muted hover:text-txt-secondary "
               title={t("settings.family_storage_edit")}
             >
               <PencilIcon className="w-4 h-4" />
@@ -175,14 +175,14 @@ function MemberRow({
           )}
           <button
             onClick={() => on_transfer(member.user_id)}
-            className="p-1 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+            className="p-1 text-txt-muted hover:text-accent-blue"
             title={t("settings.family_transfer_admin")}
           >
             <ArrowRightOnRectangleIcon className="w-4 h-4" />
           </button>
           <button
             onClick={() => on_remove(member.user_id)}
-            className="p-1 text-neutral-400 hover:text-red-600 dark:hover:text-red-400"
+            className="p-1 text-txt-muted hover:text-red-600 dark:hover:text-red-400"
             title={t("settings.family_remove_member")}
           >
             <TrashIcon className="w-4 h-4" />
@@ -372,34 +372,33 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const seats_remaining = group.max_members - active_members.length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-base font-semibold text-txt-primary">
-            {group.plan_name}
-          </h2>
-          <p className="text-sm text-txt-secondary mt-0.5">
-            {active_members.length} of {group.max_members} members &middot; {seats_remaining} seat{seats_remaining !== 1 ? "s" : ""} available
-          </p>
-        </div>
-        {is_owner && (
-          <div className="flex items-center rounded-lg border border-edge-secondary bg-surf-secondary p-0.5 gap-0.5">
-            <button
-              onClick={() => set_family_view("overview")}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${family_view === "overview" ? "bg-white dark:bg-neutral-800 text-txt-primary shadow-sm" : "text-txt-muted hover:text-txt-secondary"}`}
-            >
-              Overview
-            </button>
-            <button
-              onClick={() => set_family_view("admin")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${family_view === "admin" ? "bg-white dark:bg-neutral-800 text-txt-primary shadow-sm" : "text-txt-muted hover:text-txt-secondary"}`}
-            >
-              <AdjustmentsHorizontalIcon className="w-3.5 h-3.5" />
-              Admin
-            </button>
-          </div>
-        )}
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-base font-semibold text-txt-primary">{group.plan_name}</h2>
+        <p className="text-sm text-txt-secondary mt-0.5">
+          {active_members.length} of {group.max_members} members &middot; {seats_remaining} seat{seats_remaining !== 1 ? "s" : ""} available
+        </p>
       </div>
+
+      {is_owner && (
+        <div className="inline-flex p-1 rounded-lg bg-surf-secondary">
+          {(["overview", "admin"] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => set_family_view(v)}
+              className="relative flex items-center gap-1.5 px-5 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none"
+              style={{
+                backgroundColor: family_view === v ? "var(--bg-primary)" : "transparent",
+                color: family_view === v ? "var(--text-primary)" : "var(--text-muted)",
+                boxShadow: family_view === v ? "rgba(0,0,0,0.1) 0px 1px 3px, rgba(0,0,0,0.06) 0px 1px 2px" : "none",
+              }}
+            >
+              {v === "admin" && <AdjustmentsHorizontalIcon className="w-3.5 h-3.5" />}
+              {v === "overview" ? "Overview" : "Admin"}
+            </button>
+          ))}
+        </div>
+      )}
 
       {is_owner && family_view === "admin" && (
         <FamilyOrgPanel group={group} members={active_members} />
@@ -451,8 +450,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
 
       {is_owner && active_members.length < group.max_members && (
-        <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 space-y-3">
-          <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+        <div className="rounded-lg border border-edge-secondary p-4 space-y-3">
+          <p className="text-sm font-medium text-txt-primary">
             {t("settings.family_invite_member")}
           </p>
           <div className="flex gap-2">
@@ -498,19 +497,19 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       )}
 
       {group.pending_invites.length > 0 && (
-        <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 divide-y divide-neutral-200 dark:divide-neutral-700">
-          <div className="px-4 py-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+        <div className="rounded-lg border border-edge-secondary divide-y divide-edge-secondary">
+          <div className="px-4 py-2 text-xs font-semibold text-txt-muted uppercase tracking-wide">
             {t("settings.family_invite_pending")}
           </div>
           {group.pending_invites.map((inv) => (
             <div key={inv.id} className="flex items-center justify-between px-4 py-2">
               <div>
-                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                <span className="text-xs text-txt-muted">
                   {inv.link_only
                     ? t("settings.family_invite_link")
                     : t("settings.family_invite_by_email")}
                 </span>
-                <span className="text-xs text-neutral-400 dark:text-neutral-500 ml-2">
+                <span className="text-xs text-txt-muted ml-2">
                   {t("settings.family_invite_expires", {
                     date: new Date(inv.expires_at).toLocaleDateString(),
                   })}

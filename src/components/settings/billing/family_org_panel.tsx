@@ -20,13 +20,6 @@
 //
 import { useState, useEffect, useCallback } from "react";
 import {
-  UsersIcon,
-  UserGroupIcon,
-  GlobeAltIcon,
-  ChartBarIcon,
-  FunnelIcon,
-  ArchiveBoxIcon,
-  ShieldCheckIcon,
   PlusIcon,
   TrashIcon,
   CheckCircleIcon,
@@ -52,15 +45,32 @@ import {
 
 type OrgTab = "users" | "groups" | "domains" | "activity" | "filters" | "retention" | "security";
 
-const NAV_ITEMS: { id: OrgTab; label: string; icon: React.ElementType }[] = [
-  { id: "users", label: "Users & Addresses", icon: UsersIcon },
-  { id: "groups", label: "Groups", icon: UserGroupIcon },
-  { id: "domains", label: "Domain Names", icon: GlobeAltIcon },
-  { id: "activity", label: "Activity Monitor", icon: ChartBarIcon },
-  { id: "filters", label: "Org Filters", icon: FunnelIcon },
-  { id: "retention", label: "Data Retention", icon: ArchiveBoxIcon },
-  { id: "security", label: "Security", icon: ShieldCheckIcon },
+const TABS: { id: OrgTab; label: string }[] = [
+  { id: "users", label: "Users" },
+  { id: "groups", label: "Groups" },
+  { id: "domains", label: "Domains" },
+  { id: "activity", label: "Activity" },
+  { id: "filters", label: "Filters" },
+  { id: "retention", label: "Retention" },
+  { id: "security", label: "Security" },
 ];
+
+function tab_btn(active: boolean, label: string, on_click: () => void) {
+  return (
+    <button
+      key={label}
+      className="relative px-4 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none whitespace-nowrap"
+      style={{
+        backgroundColor: active ? "var(--bg-primary)" : "transparent",
+        color: active ? "var(--text-primary)" : "var(--text-muted)",
+        boxShadow: active ? "rgba(0,0,0,0.1) 0px 1px 3px, rgba(0,0,0,0.06) 0px 1px 2px" : "none",
+      }}
+      onClick={on_click}
+    >
+      {label}
+    </button>
+  );
+}
 
 interface Props {
   group: FamilyGroupResponse;
@@ -69,33 +79,23 @@ interface Props {
 
 function event_label(type: string): string {
   const map: Record<string, string> = {
-    member_joined: "Member joined",
-    member_removed: "Member removed",
-    member_left: "Member left",
-    admin_transferred: "Admin transferred",
-    group_created: "Group created",
-    group_deleted: "Group deleted",
-    group_member_added: "Added to group",
-    group_member_removed: "Removed from group",
-    filter_created: "Filter created",
-    domain_shared: "Domain shared",
-    retention_updated: "Retention policy updated",
-    security_policy_updated: "Security policy updated",
-    invite_sent: "Invite sent",
-    invite_revoked: "Invite revoked",
+    member_joined: "Member joined", member_removed: "Member removed",
+    member_left: "Member left", admin_transferred: "Admin transferred",
+    group_created: "Group created", group_deleted: "Group deleted",
+    group_member_added: "Added to group", group_member_removed: "Removed from group",
+    filter_created: "Filter created", domain_shared: "Domain shared",
+    retention_updated: "Retention policy updated", security_policy_updated: "Security policy updated",
+    invite_sent: "Invite sent", invite_revoked: "Invite revoked",
     storage_updated: "Storage allocation updated",
   };
   return map[type] ?? type.replace(/_/g, " ");
 }
 
-function UsersSection({ members, group }: { members: FamilyMemberInfo[]; group: FamilyGroupResponse }) {
+function UsersTab({ members, group }: { members: FamilyMemberInfo[]; group: FamilyGroupResponse }) {
   const active = members.filter(m => m.status === "active");
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-semibold text-txt-primary">Users & Addresses</h3>
-        <p className="text-xs text-txt-muted mt-0.5">{active.length} of {group.max_members} seats used</p>
-      </div>
+    <div className="space-y-3">
+      <p className="text-xs text-txt-muted">{active.length} of {group.max_members} seats used</p>
       <div className="rounded-xl border border-edge-secondary divide-y divide-edge-secondary">
         {active.map(m => {
           const color = get_avatar_color(m.username);
@@ -108,11 +108,9 @@ function UsersSection({ members, group }: { members: FamilyMemberInfo[]; group: 
                 <p className="text-sm font-medium text-txt-primary truncate">{m.username}@{m.email_domain}</p>
                 <p className="text-xs text-txt-muted">{format_bytes(m.storage_used_bytes)} used of {format_bytes(m.allocated_storage_bytes)}</p>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span className={`aster_badge ${m.role === "owner" ? "aster_badge_blue" : "aster_badge_gray"}`}>
-                  {m.role === "owner" ? "Owner" : "Member"}
-                </span>
-              </div>
+              <span className={`aster_badge ${m.role === "owner" ? "aster_badge_blue" : "aster_badge_gray"}`}>
+                {m.role === "owner" ? "Owner" : "Member"}
+              </span>
             </div>
           );
         })}
@@ -121,11 +119,9 @@ function UsersSection({ members, group }: { members: FamilyMemberInfo[]; group: 
   );
 }
 
-function GroupsSection(_: { family_id: string; members: FamilyMemberInfo[] }) {
+function GroupsTab({ family_id: _ }: { family_id: string }) {
   const [groups, set_groups] = useState<OrgGroup[]>([]);
   const [new_name, set_new_name] = useState("");
-  const [new_local, set_new_local] = useState("");
-  const [new_domain, set_new_domain] = useState("");
   const [loading, set_loading] = useState(true);
   const [creating, set_creating] = useState(false);
 
@@ -141,8 +137,8 @@ function GroupsSection(_: { family_id: string; members: FamilyMemberInfo[] }) {
     if (!new_name.trim()) return;
     set_creating(true);
     try {
-      const res = await create_org_group({ name: new_name.trim(), email_local_part: new_local || undefined, domain_name: new_domain || undefined });
-      if (res.data) { set_groups(g => [...g, res.data!]); set_new_name(""); set_new_local(""); set_new_domain(""); }
+      const res = await create_org_group({ name: new_name.trim() });
+      if (res.data) { set_groups(g => [...g, res.data!]); set_new_name(""); }
     } catch { show_toast("Failed to create group", "error"); }
     finally { set_creating(false); }
   };
@@ -152,42 +148,29 @@ function GroupsSection(_: { family_id: string; members: FamilyMemberInfo[] }) {
     set_groups(g => g.filter(x => x.id !== id));
   };
 
-  if (loading) return <div className="text-sm text-txt-muted py-4">Loading...</div>;
+  if (loading) return <p className="text-sm text-txt-muted py-4">Loading...</p>;
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-txt-primary">Email Groups</h3>
-      <p className="text-xs text-txt-muted">Create distribution groups to route email to multiple family members at once.</p>
-
-      <div className="rounded-xl border border-edge-secondary p-4 space-y-3">
-        <p className="text-xs font-medium text-txt-secondary">New Group</p>
-        <div className="grid grid-cols-2 gap-2">
-          <Input placeholder="Group name (e.g. Parents)" value={new_name} onChange={e => set_new_name(e.target.value)} />
-          <div className="flex gap-1 items-center">
-            <Input placeholder="email" value={new_local} onChange={e => set_new_local(e.target.value)} className="flex-1" />
-            <span className="text-txt-muted text-xs">@</span>
-            <Input placeholder="domain.com" value={new_domain} onChange={e => set_new_domain(e.target.value)} className="flex-1" />
-          </div>
-        </div>
+      <p className="text-xs text-txt-muted">Create distribution groups to route email to multiple members at once.</p>
+      <div className="flex gap-2">
+        <Input placeholder="Group name" value={new_name} onChange={e => set_new_name(e.target.value)} className="flex-1" />
         <button onClick={create} disabled={creating || !new_name.trim()} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50">
-          <PlusIcon className="w-4 h-4" /> Create Group
+          <PlusIcon className="w-4 h-4" /> Create
         </button>
       </div>
-
       {groups.length === 0 ? (
-        <p className="text-sm text-txt-muted text-center py-6">No groups yet. Create one above.</p>
+        <p className="text-sm text-txt-muted text-center py-6">No groups yet.</p>
       ) : (
         <div className="rounded-xl border border-edge-secondary divide-y divide-edge-secondary">
           {groups.map(g => (
             <div key={g.id} className="flex items-center justify-between px-4 py-3">
               <div>
                 <p className="text-sm font-medium text-txt-primary">{g.name}</p>
-                {g.email_local_part && g.domain_name && (
-                  <p className="text-xs text-txt-muted">{g.email_local_part}@{g.domain_name}</p>
-                )}
+                {g.email_local_part && g.domain_name && <p className="text-xs text-txt-muted">{g.email_local_part}@{g.domain_name}</p>}
                 <p className="text-xs text-txt-muted">{g.member_count} member{g.member_count !== 1 ? "s" : ""}</p>
               </div>
-              <button onClick={() => remove(g.id)} className="aster_btn aster_btn_ghost aster_btn_sm text-red-500 hover:text-red-600">
+              <button onClick={() => remove(g.id)} className="aster_btn aster_btn_ghost aster_btn_sm text-red-500">
                 <TrashIcon className="w-4 h-4" />
               </button>
             </div>
@@ -198,7 +181,7 @@ function GroupsSection(_: { family_id: string; members: FamilyMemberInfo[] }) {
   );
 }
 
-function DomainsSection(_: { members: FamilyMemberInfo[] }) {
+function DomainsTab() {
   const [domains, set_domains] = useState<FamilyDomain[]>([]);
   const [loading, set_loading] = useState(true);
 
@@ -206,14 +189,13 @@ function DomainsSection(_: { members: FamilyMemberInfo[] }) {
     list_family_domains().then(r => { if (r.data) set_domains(r.data); set_loading(false); });
   }, []);
 
-  if (loading) return <div className="text-sm text-txt-muted py-4">Loading...</div>;
+  if (loading) return <p className="text-sm text-txt-muted py-4">Loading...</p>;
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-txt-primary">Domain Names</h3>
-      <p className="text-xs text-txt-muted">All custom domains owned by family members. Share domains to let other members create aliases on them.</p>
+      <p className="text-xs text-txt-muted">Custom domains owned by family members. Share them to let others create aliases.</p>
       {domains.length === 0 ? (
-        <p className="text-sm text-txt-muted text-center py-6">No custom domains found. Members can add domains in Aliases &amp; Domains settings.</p>
+        <p className="text-sm text-txt-muted text-center py-6">No custom domains. Members can add domains in Aliases &amp; Domains settings.</p>
       ) : (
         <div className="rounded-xl border border-edge-secondary divide-y divide-edge-secondary">
           {domains.map(d => (
@@ -222,13 +204,7 @@ function DomainsSection(_: { members: FamilyMemberInfo[] }) {
                 <p className="text-sm font-medium text-txt-primary">{d.domain_name}</p>
                 <p className="text-xs text-txt-muted">Owner: {d.owner_username} &middot; {d.shared_with_count} shared</p>
               </div>
-              <div className="flex items-center gap-2">
-                {d.dkim_verified ? (
-                  <span className="aster_badge aster_badge_green">Verified</span>
-                ) : (
-                  <span className="aster_badge aster_badge_amber">Pending</span>
-                )}
-              </div>
+              {d.dkim_verified ? <span className="aster_badge aster_badge_green">Verified</span> : <span className="aster_badge aster_badge_amber">Pending</span>}
             </div>
           ))}
         </div>
@@ -237,7 +213,7 @@ function DomainsSection(_: { members: FamilyMemberInfo[] }) {
   );
 }
 
-function ActivitySection() {
+function ActivityTab() {
   const [entries, set_entries] = useState<ActivityLogEntry[]>([]);
   const [total, set_total] = useState(0);
   const [loading, set_loading] = useState(true);
@@ -249,14 +225,11 @@ function ActivitySection() {
     });
   }, []);
 
-  if (loading) return <div className="text-sm text-txt-muted py-4">Loading...</div>;
+  if (loading) return <p className="text-sm text-txt-muted py-4">Loading...</p>;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-txt-primary">Activity Monitor</h3>
-        <span className="text-xs text-txt-muted">{total} events</span>
-      </div>
+    <div className="space-y-3">
+      <p className="text-xs text-txt-muted">{total} events recorded</p>
       {entries.length === 0 ? (
         <p className="text-sm text-txt-muted text-center py-6">No activity recorded yet.</p>
       ) : (
@@ -279,7 +252,7 @@ function ActivitySection() {
   );
 }
 
-function FiltersSection() {
+function FiltersTab() {
   const [filters, set_filters] = useState<OrgFilter[]>([]);
   const [loading, set_loading] = useState(true);
   const [creating, set_creating] = useState(false);
@@ -310,39 +283,36 @@ function FiltersSection() {
     set_filters(f => f.filter(x => x.id !== id));
   };
 
-  if (loading) return <div className="text-sm text-txt-muted py-4">Loading...</div>;
+  if (loading) return <p className="text-sm text-txt-muted py-4">Loading...</p>;
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-txt-primary">Organization Filters</h3>
-      <p className="text-xs text-txt-muted">Filters that apply to all family members' inboxes. Block senders, domains, or subjects org-wide.</p>
-
+      <p className="text-xs text-txt-muted">Filters applied to all members' inboxes org-wide.</p>
       <div className="rounded-xl border border-edge-secondary p-4 space-y-3">
-        <p className="text-xs font-medium text-txt-secondary">New Filter</p>
+        <p className="text-xs font-semibold text-txt-secondary uppercase tracking-wide">New Filter</p>
         <div className="grid grid-cols-2 gap-2">
-          <Input placeholder="Filter name" value={form.name} onChange={e => set_form(f => ({...f, name: e.target.value}))} />
-          <Input placeholder="Value (email, domain, subject)" value={form.value} onChange={e => set_form(f => ({...f, value: e.target.value}))} />
+          <Input placeholder="Filter name" value={form.name} onChange={e => set_form(f => ({ ...f, name: e.target.value }))} />
+          <Input placeholder="Value (email, domain, subject)" value={form.value} onChange={e => set_form(f => ({ ...f, value: e.target.value }))} />
         </div>
         <div className="flex gap-2">
-          <select value={form.field} onChange={e => set_form(f => ({...f, field: e.target.value}))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
+          <select value={form.field} onChange={e => set_form(f => ({ ...f, field: e.target.value }))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
             <option value="from">Sender (from)</option>
             <option value="domain">Domain</option>
             <option value="subject">Subject</option>
             <option value="to">Recipient (to)</option>
           </select>
-          <select value={form.action} onChange={e => set_form(f => ({...f, action: e.target.value}))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
+          <select value={form.action} onChange={e => set_form(f => ({ ...f, action: e.target.value }))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
             <option value="trash">Move to Trash</option>
             <option value="block">Block</option>
             <option value="archive">Archive</option>
           </select>
+          <button onClick={create} disabled={creating || !form.name.trim() || !form.value.trim()} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50">
+            <PlusIcon className="w-4 h-4" /> Add
+          </button>
         </div>
-        <button onClick={create} disabled={creating || !form.name.trim() || !form.value.trim()} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50">
-          <PlusIcon className="w-4 h-4" /> Add Filter
-        </button>
       </div>
-
       {filters.length === 0 ? (
-        <p className="text-sm text-txt-muted text-center py-6">No org-level filters. Add one above to block content for all members.</p>
+        <p className="text-sm text-txt-muted text-center py-4">No filters yet.</p>
       ) : (
         <div className="rounded-xl border border-edge-secondary divide-y divide-edge-secondary">
           {filters.map(f => (
@@ -352,7 +322,7 @@ function FiltersSection() {
               </button>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-txt-primary">{f.name}</p>
-                <p className="text-xs text-txt-muted">{f.field} contains "{f.value}" → {f.action}</p>
+                <p className="text-xs text-txt-muted">{f.field} contains "{f.value}" &rarr; {f.action}</p>
               </div>
               <button onClick={() => remove(f.id)} className="aster_btn aster_btn_ghost aster_btn_sm text-red-500">
                 <TrashIcon className="w-4 h-4" />
@@ -365,7 +335,7 @@ function FiltersSection() {
   );
 }
 
-function RetentionSection() {
+function RetentionTab() {
   const [policy, set_policy] = useState<DataRetentionPolicy | null>(null);
   const [saving, set_saving] = useState(false);
 
@@ -383,23 +353,16 @@ function RetentionSection() {
     finally { set_saving(false); }
   };
 
-  if (!policy) return <div className="text-sm text-txt-muted py-4">Loading...</div>;
+  if (!policy) return <p className="text-sm text-txt-muted py-4">Loading...</p>;
 
   const field = (label: string, key: keyof DataRetentionPolicy, hint: string) => (
-    <div className="flex items-center justify-between py-3 border-b border-edge-secondary last:border-0">
+    <div key={key} className="flex items-center justify-between py-3 border-b border-edge-secondary last:border-0">
       <div>
         <p className="text-sm font-medium text-txt-primary">{label}</p>
         <p className="text-xs text-txt-muted">{hint}</p>
       </div>
       <div className="flex items-center gap-2">
-        <Input
-          type="number"
-          min="0"
-          value={(policy[key] as number | null) ?? ""}
-          onChange={e => set_policy(p => p ? { ...p, [key]: e.target.value ? parseInt(e.target.value) : null } : p)}
-          className="w-20"
-          placeholder="Off"
-        />
+        <Input type="number" min="0" value={(policy[key] as number | null) ?? ""} onChange={e => set_policy(p => p ? { ...p, [key]: e.target.value ? parseInt(e.target.value) : null } : p)} className="w-20" placeholder="Off" />
         <span className="text-xs text-txt-muted">days</span>
       </div>
     </div>
@@ -407,29 +370,22 @@ function RetentionSection() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-txt-primary">Data Retention</h3>
-      <p className="text-xs text-txt-muted">Automatically purge old messages after a set number of days. Leave blank to keep forever.</p>
-
+      <p className="text-xs text-txt-muted">Automatically purge old messages. Leave blank to keep forever.</p>
       <div className="rounded-xl border border-edge-secondary px-4">
         {field("Trash", "trash_retention_days", "Auto-delete trashed mail")}
-        {field("Spam", "spam_retention_days", "Auto-delete spam (default 30 days)")}
+        {field("Spam", "spam_retention_days", "Auto-delete spam")}
         {field("Sent", "sent_retention_days", "Auto-delete sent mail")}
         {field("All Mail", "all_mail_retention_days", "Hard limit on all messages")}
       </div>
-
       <div className="flex items-center justify-between rounded-xl border border-edge-secondary px-4 py-3">
         <div>
           <p className="text-sm font-medium text-txt-primary">Enforce on all members</p>
           <p className="text-xs text-txt-muted">Apply these policies to every family account</p>
         </div>
-        <button
-          onClick={() => set_policy(p => p ? { ...p, enforce_on_members: !p.enforce_on_members } : p)}
-          className={`w-10 h-6 rounded-full transition-colors ${policy.enforce_on_members ? "bg-accent-blue" : "bg-edge-secondary"}`}
-        >
+        <button onClick={() => set_policy(p => p ? { ...p, enforce_on_members: !p.enforce_on_members } : p)} className={`w-10 h-6 rounded-full transition-colors ${policy.enforce_on_members ? "bg-accent-blue" : "bg-edge-secondary"}`}>
           <div className={`w-4 h-4 bg-white rounded-full mx-1 transition-transform ${policy.enforce_on_members ? "translate-x-4" : ""}`} />
         </button>
       </div>
-
       <button onClick={save} disabled={saving} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">
         {saving ? "Saving..." : "Save Retention Policy"}
       </button>
@@ -437,7 +393,7 @@ function RetentionSection() {
   );
 }
 
-function SecuritySection(_: { members: FamilyMemberInfo[] }) {
+function SecurityTab(_: { members: FamilyMemberInfo[] }) {
   const [policy, set_policy] = useState<SecurityPolicy | null>(null);
   const [compliance, set_compliance] = useState<MemberComplianceInfo[]>([]);
   const [saving, set_saving] = useState(false);
@@ -457,61 +413,38 @@ function SecuritySection(_: { members: FamilyMemberInfo[] }) {
     finally { set_saving(false); }
   };
 
-  if (!policy) return <div className="text-sm text-txt-muted py-4">Loading...</div>;
+  if (!policy) return <p className="text-sm text-txt-muted py-4">Loading...</p>;
 
   const non_2fa = compliance.filter(m => !m.has_2fa).length;
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-txt-primary">Security & Access Controls</h3>
-
       {non_2fa > 0 && (
-        <div className="flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-4 py-3">
+        <div className="flex items-center gap-2 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-4 py-3">
           <ExclamationTriangleIcon className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
           <p className="text-sm text-amber-700 dark:text-amber-300">{non_2fa} member{non_2fa !== 1 ? "s have" : " has"} not enabled 2FA</p>
         </div>
       )}
-
       <div className="rounded-xl border border-edge-secondary divide-y divide-edge-secondary">
         {[
-          { key: "require_2fa" as const, label: "Require two-factor authentication", hint: "All members must enable 2FA to access their accounts" },
+          { key: "require_2fa" as const, label: "Require two-factor authentication", hint: "All members must enable 2FA" },
           { key: "allow_imap_smtp" as const, label: "Allow IMAP/SMTP access", hint: "Members can connect third-party email clients" },
-          { key: "block_external_forwarding" as const, label: "Block external email forwarding", hint: "Prevent members from auto-forwarding to external addresses" },
+          { key: "block_external_forwarding" as const, label: "Block external forwarding", hint: "Prevent auto-forwarding to external addresses" },
         ].map(({ key, label, hint }) => (
           <div key={key} className="flex items-center justify-between px-4 py-3">
             <div>
               <p className="text-sm font-medium text-txt-primary">{label}</p>
               <p className="text-xs text-txt-muted">{hint}</p>
             </div>
-            <button
-              onClick={() => set_policy(p => p ? { ...p, [key]: !p[key] } : p)}
-              className={`w-10 h-6 rounded-full transition-colors flex-shrink-0 ${policy[key] ? "bg-accent-blue" : "bg-edge-secondary"}`}
-            >
+            <button onClick={() => set_policy(p => p ? { ...p, [key]: !p[key] } : p)} className={`w-10 h-6 rounded-full transition-colors flex-shrink-0 ${policy[key] ? "bg-accent-blue" : "bg-edge-secondary"}`}>
               <div className={`w-4 h-4 bg-white rounded-full mx-1 transition-transform ${policy[key] ? "translate-x-4" : ""}`} />
             </button>
           </div>
         ))}
-
-        {policy.require_2fa && (
-          <div className="flex items-center justify-between px-4 py-3">
-            <div>
-              <p className="text-sm font-medium text-txt-primary">Grace period for 2FA</p>
-              <p className="text-xs text-txt-muted">Days before 2FA is enforced for new members</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Input type="number" min="0" max="30" value={policy.require_2fa_grace_days}
-                onChange={e => set_policy(p => p ? { ...p, require_2fa_grace_days: parseInt(e.target.value) || 0 } : p)}
-                className="w-16" />
-              <span className="text-xs text-txt-muted">days</span>
-            </div>
-          </div>
-        )}
       </div>
-
       <button onClick={save} disabled={saving} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">
         {saving ? "Saving..." : "Save Security Policy"}
       </button>
-
       {compliance.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-txt-muted uppercase tracking-wide">Member Compliance</p>
@@ -527,13 +460,7 @@ function SecuritySection(_: { members: FamilyMemberInfo[] }) {
                     <p className="text-sm text-txt-primary truncate">{m.username}@{m.email_domain}</p>
                     <p className="text-xs text-txt-muted">{m.session_count} active session{m.session_count !== 1 ? "s" : ""}</p>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {m.has_2fa ? (
-                      <span className="aster_badge aster_badge_green">2FA On</span>
-                    ) : (
-                      <span className="aster_badge aster_badge_amber">No 2FA</span>
-                    )}
-                  </div>
+                  {m.has_2fa ? <span className="aster_badge aster_badge_green">2FA On</span> : <span className="aster_badge aster_badge_amber">No 2FA</span>}
                 </div>
               );
             })}
@@ -548,36 +475,19 @@ export function FamilyOrgPanel({ group, members }: Props) {
   const [tab, set_tab] = useState<OrgTab>("users");
 
   return (
-    <div className="flex gap-0 h-full">
-      <nav className="w-44 flex-shrink-0 pr-4 border-r border-edge-secondary space-y-0.5">
-        {NAV_ITEMS.map(item => {
-          const Icon = item.icon;
-          const active = tab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => set_tab(item.id)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors ${
-                active
-                  ? "bg-accent-blue-subtle text-accent-blue font-medium"
-                  : "text-txt-secondary hover:bg-surf-secondary hover:text-txt-primary"
-              }`}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+    <div className="space-y-4">
+      <div className="inline-flex p-1 rounded-lg bg-surf-secondary flex-wrap gap-y-1">
+        {TABS.map(t => tab_btn(tab === t.id, t.label, () => set_tab(t.id)))}
+      </div>
 
-      <div className="flex-1 pl-6 overflow-y-auto">
-        {tab === "users" && <UsersSection members={members} group={group} />}
-        {tab === "groups" && <GroupsSection family_id={group.id} members={members} />}
-        {tab === "domains" && <DomainsSection members={members} />}
-        {tab === "activity" && <ActivitySection />}
-        {tab === "filters" && <FiltersSection />}
-        {tab === "retention" && <RetentionSection />}
-        {tab === "security" && <SecuritySection members={members} />}
+      <div>
+        {tab === "users" && <UsersTab members={members} group={group} />}
+        {tab === "groups" && <GroupsTab family_id={group.id} />}
+        {tab === "domains" && <DomainsTab />}
+        {tab === "activity" && <ActivityTab />}
+        {tab === "filters" && <FiltersTab />}
+        {tab === "retention" && <RetentionTab />}
+        {tab === "security" && <SecurityTab members={members} />}
       </div>
     </div>
   );
