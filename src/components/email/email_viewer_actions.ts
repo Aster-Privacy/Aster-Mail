@@ -38,6 +38,7 @@ import {
   resolve_received_on_alias,
 } from "@/components/email/build_reply_from_address";
 import { get_cached_aliases } from "@/components/settings/hooks/use_aliases";
+import { get_cached_alias_for_routing_token } from "@/hooks/use_sender_aliases";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -159,10 +160,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     const reply_from_address = build_reply_from_address(
       {
         sender_email: deps.email.sender_email,
-        received_on_alias: resolve_received_on_alias(
-          deps.mail_item?.routing_token,
-          get_cached_aliases(),
-        ),
+        received_on_alias:
+          resolve_received_on_alias(
+            deps.mail_item?.routing_token,
+            get_cached_aliases(),
+          ) ??
+          get_cached_alias_for_routing_token(deps.mail_item?.routing_token),
       },
       is_own_message,
     );
@@ -605,10 +608,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       const reply_from_address = build_reply_from_address(
         {
           sender_email: msg.sender_email,
-          received_on_alias: resolve_received_on_alias(
-            deps.mail_item?.routing_token,
-            get_cached_aliases(),
-          ),
+          received_on_alias:
+            resolve_received_on_alias(
+              deps.mail_item?.routing_token,
+              get_cached_aliases(),
+            ) ??
+            get_cached_alias_for_routing_token(deps.mail_item?.routing_token),
         },
         is_own_message,
       );

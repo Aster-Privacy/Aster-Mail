@@ -249,15 +249,6 @@ export function use_reply_modal({
   const is_mac = editor.is_mac;
 
   useEffect(() => {
-    if (!is_external || sender_loading || selected_sender) return;
-    const ext = sender_options.find(
-      (s) => s.type === "external" && s.is_enabled,
-    );
-
-    if (ext) set_selected_sender(ext);
-  }, [is_external, sender_options, sender_loading, selected_sender]);
-
-  useEffect(() => {
     if (sender_loading || selected_sender) return;
 
     if (reply_from_address) {
@@ -273,9 +264,7 @@ export function use_reply_modal({
       }
     }
 
-    const to_addresses = (original_to ?? []).filter(Boolean);
-
-    for (const addr of to_addresses) {
+    for (const addr of (original_to ?? []).filter(Boolean)) {
       const normalized = addr.toLowerCase().trim();
       const match = sender_options.find(
         (s) => s.is_enabled && s.email?.toLowerCase() === normalized,
@@ -287,30 +276,41 @@ export function use_reply_modal({
         return;
       }
     }
+
+    if (is_external) {
+      const ext = sender_options.find(
+        (s) => s.type === "external" && s.is_enabled,
+      );
+
+      if (ext) {
+        set_selected_sender(ext);
+
+        return;
+      }
+    }
+
+    if (preferred_sender_id) {
+      const match = sender_options.find(
+        (s) => s.is_enabled && s.id === preferred_sender_id,
+      );
+
+      if (match) {
+        set_selected_sender(match);
+      }
+    }
   }, [
     sender_options,
     sender_loading,
     selected_sender,
     reply_from_address,
     original_to,
+    is_external,
+    preferred_sender_id,
   ]);
 
   useEffect(() => {
     return subscribe_preferred_sender((id) => set_preferred_sender_state(id));
-  }, []);
-
-  useEffect(() => {
-    if (sender_loading || selected_sender) return;
-    if (!preferred_sender_id) return;
-
-    const match = sender_options.find(
-      (s) => s.is_enabled && s.id === preferred_sender_id,
-    );
-
-    if (match) {
-      set_selected_sender(match);
-    }
-  }, [sender_options, sender_loading, selected_sender, preferred_sender_id]);
+  }, [])
 
   const handle_set_preferred = useCallback(
     (id: string | null) => {

@@ -77,8 +77,9 @@ const AUTH_FAILURE_PATTERNS = [
   "invalid password",
   "access denied",
   "app password required",
-  "oauth",
+  "oauth token",
   "token expired",
+  "re-authorization required",
 ];
 
 const CONNECTION_REFUSED_PATTERNS = [

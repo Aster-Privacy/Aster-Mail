@@ -27,12 +27,21 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { start_oauth_authorize } from "@/services/api/external_accounts";
+import type { TranslationKey } from "@/lib/i18n/types";
+
+function is_tauri(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
+  );
+}
 
 export type ConnectProvider = "google" | "microsoft" | "yahoo";
 
 interface ConnectProviderModalProps {
   provider: ConnectProvider | null;
   on_close: () => void;
+  on_oauth_success?: (provider: string) => void;
 }
 
 interface ProviderTheme {
@@ -74,6 +83,7 @@ const PROVIDER_THEME: Record<ConnectProvider, ProviderTheme> = {
 export function ConnectProviderModal({
   provider,
   on_close,
+  on_oauth_success,
 }: ConnectProviderModalProps) {
   const { t } = use_i18n();
   const [is_loading, set_is_loading] = useState(false);
@@ -96,24 +106,96 @@ export function ConnectProviderModal({
         set_is_loading(false);
         return;
       }
-      if (result.data?.authorize_url) {
-        try {
-          const parsed = new URL(result.data.authorize_url);
-
-          if (parsed.protocol !== "https:") {
-            throw new Error("invalid_protocol");
-          }
-          window.location.replace(parsed.toString());
-        } catch {
-          show_toast(
-            t("settings.oauth_import_error", { reason: "invalid_url" }),
-            "error",
-          );
-          set_is_loading(false);
-        }
+      if (!result.data?.authorize_url) {
+        set_is_loading(false);
         return;
       }
-      set_is_loading(false);
+
+      let parsed: URL;
+      try {
+        parsed = new URL(result.data.authorize_url);
+        if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
+      } catch {
+        show_toast(
+          t("settings.oauth_import_error", { reason: "invalid_url" }),
+          "error",
+        );
+        set_is_loading(false);
+        return;
+      }
+
+      // Tauri uses a different origin (tauri://localhost) so postMessage from the popup
+      // would be cross-origin and silently dropped. Use full-page redirect instead.
+      if (is_tauri()) {
+        window.location.replace(parsed.toString());
+        return;
+      }
+
+      // Try to open a popup so the main window state is preserved.
+      const popup = window.open(
+        parsed.toString(),
+        "aster_oauth",
+        "width=600,height=700,scrollbars=yes,resizable=yes",
+      );
+
+      if (!popup) {
+        // Popup blocked - fall back to full-page redirect.
+        window.location.replace(parsed.toString());
+        return;
+      }
+
+      let finished = false;
+
+      const reason_key_map: Record<string, string> = {
+        provider_denied: "settings.oauth_reason_provider_denied",
+        missing_code: "settings.oauth_reason_missing_code",
+        missing_state: "settings.oauth_reason_missing_state",
+        internal_error: "settings.oauth_reason_internal_error",
+        invalid_provider: "settings.oauth_reason_invalid_provider",
+        provider_not_configured: "settings.oauth_reason_provider_not_configured",
+        token_exchange_failed: "settings.oauth_reason_token_exchange_failed",
+        encryption_error: "settings.oauth_reason_encryption_error",
+        account_creation_failed: "settings.oauth_reason_account_creation_failed",
+        email_not_found: "settings.oauth_reason_email_not_found",
+        invalid_state: "settings.oauth_reason_session_expired",
+        expired_state: "settings.oauth_reason_session_expired",
+      };
+
+      const cleanup = (success: boolean, oauth_provider?: string, reason?: string) => {
+        if (finished) return;
+        finished = true;
+        window.removeEventListener("message", handle_message);
+        window.clearInterval(poll_id);
+        set_is_loading(false);
+        if (success && oauth_provider) {
+          on_oauth_success?.(oauth_provider);
+          on_close();
+        } else if (!success && reason) {
+          const i18n_key = reason_key_map[reason] || "settings.oauth_reason_unknown";
+          show_toast(
+            t("settings.oauth_import_error", { reason: t(i18n_key as TranslationKey) }),
+            "error",
+          );
+        }
+      };
+
+      const handle_message = (event: MessageEvent) => {
+        if (event.source !== popup) return;
+        if (event.origin !== window.location.origin) return;
+        if (event.data?.type !== "oauth_callback") return;
+        if (event.data.status === "success") {
+          cleanup(true, event.data.provider as string);
+        } else {
+          cleanup(false, undefined, (event.data.reason as string) || "unknown");
+        }
+      };
+
+      window.addEventListener("message", handle_message);
+
+      // Detect user closing the popup without completing OAuth.
+      const poll_id = window.setInterval(() => {
+        if (popup.closed) cleanup(false, undefined, undefined);
+      }, 500);
     } catch {
       show_toast(
         t("settings.oauth_import_error", { reason: "unexpected_error" }),

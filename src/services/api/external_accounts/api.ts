@@ -82,6 +82,13 @@ export async function list_external_accounts(): Promise<
                 ? data.display_name || "Connected account"
                 : data.email;
 
+          const oauth_provider_field =
+            (item as { oauth_provider?: string | null }).oauth_provider ?? null;
+          const raw = item as {
+            needs_reauth?: boolean;
+            last_sync_error?: string | null;
+          };
+
           return {
             id: item.id,
             account_token: item.account_token,
@@ -90,10 +97,13 @@ export async function list_external_accounts(): Promise<
             label_name: data.label_name,
             label_color: data.label_color,
             protocol: item.protocol,
+            oauth_provider: oauth_provider_field,
             is_enabled: item.is_enabled,
             is_verified: item.is_verified,
             last_sync_at: item.last_sync_at,
             last_sync_status: item.last_sync_status,
+            last_sync_error: raw.last_sync_error ?? null,
+            needs_reauth: raw.needs_reauth ?? false,
             email_count: item.email_count,
             created_at: item.created_at,
             updated_at: item.updated_at,
@@ -101,6 +111,12 @@ export async function list_external_accounts(): Promise<
         } catch {
           const fallback_email =
             (item as { oauth_email?: string }).oauth_email || "Connected account";
+          const oauth_provider_field =
+            (item as { oauth_provider?: string | null }).oauth_provider ?? null;
+          const raw = item as {
+            needs_reauth?: boolean;
+            last_sync_error?: string | null;
+          };
 
           return {
             id: item.id,
@@ -110,10 +126,13 @@ export async function list_external_accounts(): Promise<
             label_name: "",
             label_color: "",
             protocol: item.protocol,
+            oauth_provider: oauth_provider_field,
             is_enabled: item.is_enabled,
             is_verified: item.is_verified,
             last_sync_at: item.last_sync_at,
             last_sync_status: item.last_sync_status,
+            last_sync_error: raw.last_sync_error ?? null,
+            needs_reauth: raw.needs_reauth ?? false,
             email_count: item.email_count,
             created_at: item.created_at,
             updated_at: item.updated_at,

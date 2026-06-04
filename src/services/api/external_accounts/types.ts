@@ -63,10 +63,13 @@ export interface DecryptedExternalAccount {
   label_name: string;
   label_color: string;
   protocol: string;
+  oauth_provider: string | null;
   is_enabled: boolean;
   is_verified: boolean;
   last_sync_at: string | null;
   last_sync_status: string | null;
+  last_sync_error: string | null;
+  needs_reauth: boolean;
   email_count: number;
   created_at: string;
   updated_at: string;

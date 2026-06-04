@@ -142,17 +142,18 @@ export function AccountCard({
               {account.is_enabled ? t("common.active") : t("common.paused")}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            {account.display_name && (
-              <span
-                className="text-[12px] truncate max-w-[150px] text-txt-muted"
-                title={account.display_name}
-              >
-                {account.display_name}
-              </span>
-            )}
-            {account.display_name && (
-              <span className="text-[12px] text-txt-muted">&middot;</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Only show display_name for non-OAuth accounts (for OAuth it's just the provider label) */}
+            {account.display_name && account.protocol !== "oauth_imap" && (
+              <>
+                <span
+                  className="text-[12px] truncate max-w-[150px] text-txt-muted"
+                  title={account.display_name}
+                >
+                  {account.display_name}
+                </span>
+                <span className="text-[12px] text-txt-muted">&middot;</span>
+              </>
             )}
             <SyncStatusIndicator
               account={account}
@@ -166,7 +167,7 @@ export function AccountCard({
                 <span className="text-[12px] text-txt-muted">&middot;</span>
                 <span className="text-[11px] text-txt-muted">
                   {t("settings.email_count", {
-                    count: String(account.email_count),
+                    count: account.email_count.toLocaleString(),
                   })}
                 </span>
               </>
@@ -175,22 +176,41 @@ export function AccountCard({
         </div>
 
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <Switch
-            aria-label={`${account.is_enabled ? t("common.disable") : t("common.enable")} ${account.email}`}
-            checked={account.is_enabled}
-            onCheckedChange={() => handle_toggle(account)}
-          />
-          <Button
-            aria-label={`${t("common.sync")} ${account.email}`}
-            disabled={check_is_syncing(account.id) || !account.is_enabled}
-            size="md"
-            variant="ghost"
-            onClick={() => handle_sync(account)}
-          >
-            <ArrowPathIcon
-              className={`w-4 h-4 ${check_is_syncing(account.id) ? "animate-spin" : ""}`}
-            />
-          </Button>
+          {account.needs_reauth && account.protocol === "oauth_imap" ? (
+            <Button
+              aria-label={t("settings.connected_accounts_reconnect")}
+              size="sm"
+              variant="depth"
+              onClick={() => {
+                window.dispatchEvent(
+                  new CustomEvent("astermail:navigate-settings-section", {
+                    detail: "import",
+                  }),
+                );
+              }}
+            >
+              {t("settings.connected_accounts_reconnect")}
+            </Button>
+          ) : (
+            <>
+              <Switch
+                aria-label={`${account.is_enabled ? t("common.disable") : t("common.enable")} ${account.email}`}
+                checked={account.is_enabled}
+                onCheckedChange={() => handle_toggle(account)}
+              />
+              <Button
+                aria-label={`${t("common.sync")} ${account.email}`}
+                disabled={check_is_syncing(account.id) || !account.is_enabled}
+                size="md"
+                variant="ghost"
+                onClick={() => handle_sync(account)}
+              >
+                <ArrowPathIcon
+                  className={`w-4 h-4 ${check_is_syncing(account.id) ? "animate-spin" : ""}`}
+                />
+              </Button>
+            </>
+          )}
           <Button
             aria-label={`${t("common.edit")} ${account.email}`}
             size="md"
@@ -213,18 +233,17 @@ export function AccountCard({
         expanded_error_ids.has(account.id) && (
           <div className="px-4 pb-3 pt-0" style={{ paddingLeft: "3.75rem" }}>
             <div
-              className="px-3 py-2 rounded-lg text-xs"
+              className="px-3 py-2 rounded-lg text-xs leading-relaxed"
               role="alert"
-              style={{
-                backgroundColor: "#dc2626",
-                color: "#fff",
-              }}
+              style={{ backgroundColor: "rgba(220,38,38,0.08)", color: "rgb(220,38,38)" }}
             >
-              {t("settings.sync_failed_detail", {
-                time:
-                  format_sync_time(account.last_sync_at) ||
-                  t("common.unknown_time"),
-              })}
+              {account.last_sync_error
+                ? account.last_sync_error.replace(/^IMAP authentication failed:\s*/i, "")
+                : t("settings.sync_failed_detail", {
+                    time:
+                      format_sync_time(account.last_sync_at) ||
+                      t("common.unknown_time"),
+                  })}
             </div>
           </div>
         )}

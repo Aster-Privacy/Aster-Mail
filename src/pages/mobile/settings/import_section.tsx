@@ -29,6 +29,10 @@ import {
 import { Button } from "@aster/ui";
 
 import { SettingsGroup, SettingsHeader } from "./shared";
+import {
+  ConnectProviderModal,
+  type ConnectProvider,
+} from "@/components/settings/connect_provider_modal";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
@@ -60,6 +64,8 @@ export function ImportSection({
   const [is_loading, set_is_loading] = useState(true);
   const [selected_provider, set_selected_provider] =
     useState<ImportSource | null>(null);
+  const [connect_provider, set_connect_provider] =
+    useState<ConnectProvider | null>(null);
   const [confirm_delete_id, set_confirm_delete_id] = useState<string | null>(
     null,
   );
@@ -171,8 +177,25 @@ export function ImportSection({
                   {provider.label}
                 </span>
                 <div className="flex items-center gap-2">
+                  {OAUTH_PROVIDERS.has(provider.id) && (
+                    <Button
+                      size="sm"
+                      variant="depth"
+                      onClick={() => {
+                        const PROVIDER_MAP: Record<string, ConnectProvider> = {
+                          gmail: "google",
+                          outlook: "microsoft",
+                          yahoo: "yahoo",
+                        };
+                        const mapped = PROVIDER_MAP[provider.id];
+                        if (mapped) set_connect_provider(mapped);
+                      }}
+                    >
+                      {t("settings.import_oauth_button")}
+                    </Button>
+                  )}
                   <Button
-                    size="md"
+                    size="sm"
                     variant="outline"
                     onClick={() => set_selected_provider(provider.id)}
                   >
@@ -180,16 +203,6 @@ export function ImportSection({
                       ? t("settings.import_manual_button")
                       : t("settings.browse_files")}
                   </Button>
-                  {OAUTH_PROVIDERS.has(provider.id) && (
-                    <Button
-                      disabled
-                      size="md"
-                      title={t("settings.import_oauth_coming_soon")}
-                      variant="depth"
-                    >
-                      {t("settings.import_oauth_button")}
-                    </Button>
-                  )}
                 </div>
               </div>
             ))}
@@ -289,6 +302,14 @@ export function ImportSection({
           provider={selected_provider}
         />
       )}
+      <ConnectProviderModal
+        provider={connect_provider}
+        on_close={() => set_connect_provider(null)}
+        on_oauth_success={() => {
+          set_connect_provider(null);
+          load_jobs();
+        }}
+      />
       <AlertDialog
         open={confirm_delete_id !== null}
         onOpenChange={(open) => {

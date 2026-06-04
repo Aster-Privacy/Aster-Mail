@@ -44,7 +44,10 @@ export function SyncHealthDot({ account, t }: SyncHealthDotProps) {
   let dot_color = "var(--text-muted)";
   let dot_label = t("common.never_synced");
 
-  if (account.last_sync_status === "success") {
+  if (account.needs_reauth) {
+    dot_color = "rgb(245, 158, 11)";
+    dot_label = t("settings.connected_accounts_reauth_needed");
+  } else if (account.last_sync_status === "success") {
     dot_color = "rgb(34, 197, 94)";
     dot_label = t("common.last_sync_successful");
   } else if (account.last_sync_status === "error") {
@@ -132,6 +135,18 @@ export function SyncStatusIndicator({
           )}
         </div>
       </div>
+    );
+  }
+
+  if (account.needs_reauth) {
+    return (
+      <span
+        className="flex items-center gap-1 text-[11px]"
+        style={{ color: "rgb(245, 158, 11)" }}
+      >
+        <ExclamationTriangleIcon className="w-3 h-3" />
+        {t("settings.connected_accounts_reauth_needed")}
+      </span>
     );
   }
 
