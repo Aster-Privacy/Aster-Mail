@@ -602,7 +602,7 @@ function FiltersContent() {
           {filters.map(f => (
             <div key={f.id} className={`flex items-center gap-3 py-3 pl-3 border-l-2 ${f.is_enabled ? "border-accent-blue" : "border-edge-secondary"}`}>
               <button onClick={() => toggle_f(f)} className="flex-shrink-0">
-                {f.is_enabled ? <CheckCircleIcon className="w-5 h-5" style={{ color: "var(--accent-blue)" }} /> : <XCircleIcon className="w-5 h-5 text-txt-muted" />}
+                {f.is_enabled ? <CheckCircleIcon className="w-5 h-5 text-accent-blue" /> : <XCircleIcon className="w-5 h-5 text-txt-muted" />}
               </button>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-txt-primary">{f.name}</p>
