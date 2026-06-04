@@ -37,6 +37,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@aster/ui";
 import { get_avatar_color } from "@/lib/avatar_color";
 import { change_plan } from "@/services/api/billing";
 import {
@@ -196,9 +197,9 @@ function SecurityContent() {
   return (
     <div className="space-y-4">
       {non_2fa > 0 && (
-        <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10">
-          <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
-          <p className="text-sm text-amber-600 dark:text-amber-400">
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-500 text-white">
+          <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0" />
+          <p className="text-sm font-medium">
             {non_2fa} member{non_2fa !== 1 ? "s have" : " has"} not enabled 2FA
           </p>
         </div>
@@ -214,10 +215,10 @@ function SecurityContent() {
               <p className="text-sm font-medium text-txt-primary">{label}</p>
               <p className="text-sm mt-0.5 text-txt-muted">{hint}</p>
             </div>
-            <button onClick={() => set_policy(p => p ? { ...p, [key]: !p[key] } : p)}
-              className={`w-10 h-6 rounded-full transition-colors flex-shrink-0 ${policy[key] ? "bg-accent-blue" : "bg-edge-secondary"}`}>
-              <div className={`w-4 h-4 bg-white rounded-full mx-1 transition-transform ${policy[key] ? "translate-x-4" : ""}`} />
-            </button>
+            <Switch
+              checked={policy[key]}
+              onCheckedChange={val => set_policy(p => p ? { ...p, [key]: val } : p)}
+            />
           </div>
         ))}
         {policy.require_2fa && (
@@ -326,10 +327,10 @@ function RetentionContent() {
             <p className="text-sm font-medium text-txt-primary">Enforce on all members</p>
             <p className="text-sm mt-0.5 text-txt-muted">Apply these policies to every account in this family</p>
           </div>
-          <button onClick={() => set_policy(p => p ? { ...p, enforce_on_members: !p.enforce_on_members } : p)}
-            className={`w-10 h-6 rounded-full transition-colors flex-shrink-0 ${policy.enforce_on_members ? "bg-accent-blue" : "bg-edge-secondary"}`}>
-            <div className={`w-4 h-4 bg-white rounded-full mx-1 transition-transform ${policy.enforce_on_members ? "translate-x-4" : ""}`} />
-          </button>
+          <Switch
+            checked={policy.enforce_on_members}
+            onCheckedChange={val => set_policy(p => p ? { ...p, enforce_on_members: val } : p)}
+          />
         </div>
       </div>
       <button onClick={save} disabled={saving} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">
