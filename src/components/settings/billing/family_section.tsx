@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -29,7 +29,6 @@ import {
   CheckIcon,
   XMarkIcon,
   CircleStackIcon,
-  ArrowsRightLeftIcon,
   ShieldCheckIcon,
   ArchiveBoxIcon,
   ExclamationTriangleIcon,
@@ -41,6 +40,10 @@ import {
   InformationCircleIcon,
   ReceiptPercentIcon,
   GlobeAltIcon,
+  LockClosedIcon,
+  FunnelIcon,
+  ClockIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/outline";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -106,6 +109,65 @@ function storage_pct(used: number, total: number) {
   return total > 0 ? Math.min(100, (used / total) * 100) : 0;
 }
 
+function last_seen_relative(iso: string | null | undefined): string {
+  if (!iso) return "Never seen";
+  const diff_ms = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff_ms / 60000);
+  if (mins < 2) return "just now";
+  if (mins < 60) return `${mins} minutes ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hour${hrs !== 1 ? "s" : ""} ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days} days ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months !== 1 ? "s" : ""} ago`;
+  const years = Math.floor(months / 12);
+  return `${years} year${years !== 1 ? "s" : ""} ago`;
+}
+
+function invite_sent_relative(iso: string): string {
+  const diff_ms = Date.now() - new Date(iso).getTime();
+  const days = Math.floor(diff_ms / 86400000);
+  if (days < 1) return "today";
+  if (days === 1) return "1 day ago";
+  return `${days} days ago`;
+}
+
+function activity_dot_color(event_type: string): string {
+  if (event_type === "member_joined" || event_type === "member_removed") return "bg-indigo-500";
+  if (event_type === "invite_sent" || event_type === "invite_revoked") return "bg-amber-500";
+  if (event_type === "security_policy_updated") return "bg-green-500";
+  if (event_type === "storage_updated") return "bg-blue-500";
+  return "bg-txt-muted";
+}
+
+function format_activity_time(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function activity_event_text(entry: { event_type: string; actor_username: string | null; target_username: string | null }): string {
+  const actor = entry.actor_username ?? "Someone";
+  const target = entry.target_username;
+  switch (entry.event_type) {
+    case "member_joined": return target ? `${target} joined the family` : "A member joined";
+    case "member_removed": return target ? `${actor} removed ${target}` : `${actor} removed a member`;
+    case "member_left": return target ? `${target} left the family` : "A member left";
+    case "admin_transferred": return target ? `${actor} transferred admin to ${target}` : `${actor} transferred admin`;
+    case "group_created": return `${actor} created a group`;
+    case "group_deleted": return `${actor} deleted a group`;
+    case "filter_created": return `${actor} created a filter`;
+    case "domain_shared": return target ? `${actor} shared a domain with ${target}` : `${actor} shared a domain`;
+    case "retention_updated": return `${actor} updated retention policy`;
+    case "security_policy_updated": return `${actor} updated security policy`;
+    case "invite_sent": return target ? `${actor} invited ${target}` : `${actor} sent an invite`;
+    case "invite_revoked": return target ? `${actor} revoked invite for ${target}` : `${actor} revoked an invite`;
+    case "storage_updated": return target ? `${actor} updated storage for ${target}` : `${actor} updated storage`;
+    default: return EVENT_LABELS[entry.event_type] ?? entry.event_type;
+  }
+}
+
 function StorageBar({ used, total }: { used: number; total: number }) {
   const pct = storage_pct(used, total);
   const color = pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-amber-500" : "bg-accent-blue";
@@ -116,10 +178,10 @@ function StorageBar({ used, total }: { used: number; total: number }) {
   );
 }
 
-// â”€â”€ Member row (overview read-only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function MemberRow({ member, is_owner_view, on_remove, on_transfer, on_reload }: {
+function MemberRow({ member, is_owner_view, compliance, on_remove, on_transfer, on_reload }: {
   member: FamilyMemberInfo;
   is_owner_view: boolean;
+  compliance?: MemberComplianceInfo;
   on_remove: (m: FamilyMemberInfo) => void;
   on_transfer: (m: FamilyMemberInfo) => void;
   on_reload: () => Promise<void>;
@@ -149,6 +211,8 @@ function MemberRow({ member, is_owner_view, on_remove, on_transfer, on_reload }:
     : member.status === "grace" ? t("settings.family_member_grace")
     : t("settings.family_member_member");
 
+  const no_2fa = compliance && !compliance.has_2fa && member.role !== "owner";
+
   return (
     <div className="flex items-center gap-3 py-3">
       <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-bold select-none" style={{ backgroundColor: avatar_color }}>
@@ -158,6 +222,8 @@ function MemberRow({ member, is_owner_view, on_remove, on_transfer, on_reload }:
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-medium text-txt-primary truncate">{member.username}@{member.email_domain}</span>
           <span className={badge_class}>{role_label}</span>
+          {no_2fa && <span className="aster_badge aster_badge_amber">No 2FA</span>}
+          {compliance?.has_2fa && <ShieldCheckIcon className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />}
         </div>
         {editing ? (
           <div className="flex items-center gap-1.5 mt-1">
@@ -171,6 +237,9 @@ function MemberRow({ member, is_owner_view, on_remove, on_transfer, on_reload }:
           <div className="text-xs text-txt-muted mt-0.5">{format_bytes(member.storage_used_bytes)} / {format_bytes(member.allocated_storage_bytes)}</div>
         )}
         <StorageBar used={member.storage_used_bytes} total={member.allocated_storage_bytes} />
+        {compliance?.last_login && (
+          <div className="text-[10px] text-txt-muted mt-0.5">Last seen {last_seen_relative(compliance.last_login)}</div>
+        )}
       </div>
       {is_owner_view && member.role !== "owner" && !editing && (
         <div className="flex items-center gap-0.5 flex-shrink-0">
@@ -189,8 +258,6 @@ function MemberRow({ member, is_owner_view, on_remove, on_transfer, on_reload }:
   );
 }
 
-// â”€â”€ Security tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ── Groups tab ────────────────────────────────────────────────────────────────
 function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
   const [groups, set_groups] = useState<OrgGroup[]>([]);
   const [loading, set_loading] = useState(true);
@@ -267,9 +334,13 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
         </button>
       </div>
       {loading ? (
-        <div className="flex items-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>
+        <div className="flex justify-center items-center gap-2 py-8"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>
       ) : groups.length === 0 ? (
-        <p className="text-sm text-txt-muted py-4">No groups yet.</p>
+        <div className="flex flex-col items-center py-10 gap-3">
+          <UserGroupIcon className="w-12 h-12 text-txt-muted" />
+          <p className="text-sm font-medium text-txt-primary">No distribution groups yet</p>
+          <p className="text-xs text-txt-muted text-center max-w-xs">Groups let you send one email to all family members at once. Perfect for family announcements.</p>
+        </div>
       ) : (
         <div className="divide-y divide-edge-secondary">
           {groups.map(g => {
@@ -280,12 +351,20 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                 <div className="flex items-center gap-2 py-3">
                   <button onClick={() => handle_expand(g.id)} className="flex items-center gap-2 flex-1 min-w-0 text-left">
                     {is_open ? <ChevronDownIcon className="w-4 h-4 text-txt-muted flex-shrink-0" /> : <ChevronRightIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />}
-                    <span className="text-sm font-medium text-txt-primary truncate">{g.name}</span>
-                    <span className="text-xs text-txt-muted flex-shrink-0">{g.member_count} member{g.member_count !== 1 ? "s" : ""}</span>
+                    {g.email_local_part && <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" title="Has email address" />}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium text-txt-primary truncate">{g.name}</span>
+                      {g.email_local_part && (
+                        <p className="text-xs text-txt-muted">{g.email_local_part}{g.domain_name ? `@${g.domain_name}` : "@..."}</p>
+                      )}
+                    </div>
+                    <span className="text-xs font-medium text-txt-muted flex-shrink-0">
+                      {g.member_count} member{g.member_count !== 1 ? "s" : ""}
+                    </span>
                   </button>
                   <button onClick={() => handle_delete(g.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
                 </div>
-                {is_open && (
+                <div className={`overflow-hidden transition-all duration-200 ${is_open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
                   <div className="pl-6 pb-3 space-y-1">
                     {gm.length === 0 ? <p className="text-xs text-txt-muted">No members yet.</p> : (
                       <div className="divide-y divide-edge-secondary">
@@ -312,7 +391,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                       <button onClick={() => { set_adding_to(g.id); set_add_user_id(""); }} className="text-xs text-accent-blue hover:underline pt-1">Add member</button>
                     )}
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
@@ -322,7 +401,6 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
   );
 }
 
-// ── Activity tab ────────────────────────────────────────────────────────────────
 function ActivityContent() {
   const [entries, set_entries] = useState<ActivityLogEntry[]>([]);
   const [total, set_total] = useState(0);
@@ -357,19 +435,22 @@ function ActivityContent() {
         </select>
       </div>
       {loading && entries.length === 0 ? (
-        <div className="flex items-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>
+        <div className="flex justify-center items-center gap-2 py-8"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-txt-muted py-4">No activity yet.</p>
+        <div className="flex flex-col items-center py-10 gap-3">
+          <ChartBarIcon className="w-12 h-12 text-txt-muted" />
+          <p className="text-sm font-medium text-txt-primary">No activity yet</p>
+          <p className="text-xs text-txt-muted text-center max-w-xs">Actions taken on this family account will appear here - member joins, security changes, and more.</p>
+        </div>
       ) : (
         <div className="divide-y divide-edge-secondary">
           {filtered.map(entry => (
-            <div key={entry.id} className="flex items-center gap-4 py-3">
+            <div key={entry.id} className="flex items-start gap-3 py-3">
+              <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${activity_dot_color(entry.event_type)}`} />
               <div className="flex-1 min-w-0">
-                <span className="text-sm text-txt-primary">{EVENT_LABELS[entry.event_type] ?? entry.event_type}</span>
-                {entry.actor_username && <span className="text-xs text-txt-muted ml-2">by {entry.actor_username}</span>}
-                {entry.target_username && <span className="text-xs text-txt-muted ml-1">&#8594; {entry.target_username}</span>}
+                <span className="text-sm text-txt-primary">{activity_event_text(entry)}</span>
+                <p className="text-xs text-txt-muted mt-0.5">{last_seen_relative(entry.created_at)} - {format_activity_time(entry.created_at)}</p>
               </div>
-              <span className="text-xs text-txt-muted flex-shrink-0">{new Date(entry.created_at).toLocaleDateString()}</span>
             </div>
           ))}
         </div>
@@ -383,7 +464,6 @@ function ActivityContent() {
   );
 }
 
-// ── Filters tab ────────────────────────────────────────────────────────────────
 function FiltersContent() {
   const [filters, set_filters] = useState<OrgFilter[]>([]);
   const [loading, set_loading] = useState(true);
@@ -415,12 +495,12 @@ function FiltersContent() {
   const fl = (v: string) => ({ from: "Sender", to: "Recipient", domain: "Domain", subject: "Subject" }[v] ?? v);
   const al = (v: string) => ({ trash: "Trash", block: "Block", archive: "Archive", mark_read: "Mark read" }[v] ?? v);
 
-  if (loading) return <div className="flex items-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>;
+  if (loading) return <div className="flex justify-center items-center gap-2 py-8"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>;
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-txt-muted">Filters apply to all family members' inboxes org-wide.</p>
-        <button onClick={() => set_show_form(!show_form)} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs text-txt-muted max-w-xs">Filters apply to all family members' inboxes org-wide.</p>
+        <button onClick={() => set_show_form(!show_form)} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5 flex-shrink-0">
           <PlusIcon className="w-3.5 h-3.5" /> New Filter
         </button>
       </div>
@@ -449,17 +529,26 @@ function FiltersContent() {
         </div>
       )}
       {filters.length === 0 ? (
-        <p className="text-sm text-txt-muted text-center py-6">No org filters yet.</p>
+        <div className="flex flex-col items-center py-10 gap-3">
+          <FunnelIcon className="w-12 h-12 text-txt-muted" />
+          <p className="text-sm font-medium text-txt-primary">No org-wide filters</p>
+          <p className="text-xs text-txt-muted text-center max-w-xs">Filters block unwanted content from every family member's inbox automatically.</p>
+          <button onClick={() => set_show_form(true)} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 mt-1">
+            <PlusIcon className="w-3.5 h-3.5" /> Create your first filter
+          </button>
+        </div>
       ) : (
         <div className="divide-y divide-edge-secondary">
           {filters.map(f => (
-            <div key={f.id} className="flex items-center gap-3 py-3">
+            <div key={f.id} className={`flex items-center gap-3 py-3 pl-3 border-l-2 ${f.is_enabled ? "border-accent-blue" : "border-edge-secondary"}`}>
               <button onClick={() => toggle_f(f)} className="flex-shrink-0">
                 {f.is_enabled ? <CheckCircleIcon className="w-5 h-5" style={{ color: "var(--accent-blue)" }} /> : <XCircleIcon className="w-5 h-5 text-txt-muted" />}
               </button>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-txt-primary">{f.name}</p>
-                <p className="text-xs text-txt-muted">{fl(f.field)} = &ldquo;{f.value}&rdquo; &rarr; {al(f.action)}</p>
+                <p className="text-xs text-txt-muted font-mono mt-0.5">
+                  If {fl(f.field)} = <span className="text-txt-secondary">&ldquo;{f.value}&rdquo;</span> &rarr; {al(f.action)}
+                </p>
               </div>
               <button onClick={() => del_f(f.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
             </div>
@@ -470,7 +559,6 @@ function FiltersContent() {
   );
 }
 
-// ── Domains tab ────────────────────────────────────────────────────────────────
 function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
   const [domains, set_domains] = useState<FamilyDomain[]>([]);
   const [loading, set_loading] = useState(true);
@@ -493,39 +581,58 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
     } catch { show_toast("Failed to share domain", "error"); }
   };
 
-  if (loading) return <div className="flex items-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>;
+  const nav_aliases = () => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "aliases" }));
+
+  if (loading) return <div className="flex justify-center items-center gap-2 py-8"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>;
   return (
     <div className="space-y-4">
       <p className="text-xs text-txt-muted">Share custom domains so family members can create aliases on them.</p>
       {domains.length === 0 ? (
-        <p className="text-sm text-txt-muted text-center py-6">No custom domains found. Members can add domains in Aliases &amp; Domains settings.</p>
+        <div className="flex flex-col items-center py-10 gap-3">
+          <GlobeAltIcon className="w-12 h-12 text-txt-muted" />
+          <p className="text-sm font-medium text-txt-primary">No custom domains in this family</p>
+          <p className="text-xs text-txt-muted text-center max-w-xs">Custom domains let family members send from their own @yourdomain.com addresses.</p>
+          <button onClick={nav_aliases} className="aster_btn aster_btn_primary aster_btn_sm mt-1">
+            Add a domain
+          </button>
+        </div>
       ) : (
         <div className="divide-y divide-edge-secondary">
-          {domains.map(d => (
-            <div key={d.domain_name} className="py-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <GlobeAltIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                    <span className="text-sm font-medium text-txt-primary">{d.domain_name}</span>
-                    {d.dkim_verified ? <span className="aster_badge aster_badge_green">Verified</span> : <span className="aster_badge aster_badge_amber">Unverified</span>}
+          {domains.map(d => {
+            const owner_color = get_avatar_color(d.owner_username);
+            return (
+              <div key={d.domain_name} className="py-3 hover:bg-surf-secondary/50 transition-colors rounded-lg px-2 -mx-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-white text-[10px] font-bold" style={{ backgroundColor: owner_color }}>
+                      {d.owner_username[0]?.toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-txt-primary">{d.domain_name}</span>
+                        {d.dkim_verified ? <span className="aster_badge aster_badge_green">Verified</span> : <span className="aster_badge aster_badge_amber">Unverified</span>}
+                        {d.shared_with_count > 0 && (
+                          <span className="aster_badge aster_badge_gray">{d.shared_with_count} shared</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-txt-muted mt-0.5">Owned by {d.owner_username}</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-txt-muted mt-0.5 ml-6">Owner: {d.owner_username} &middot; {d.shared_with_count} shared</p>
+                  <button onClick={() => { set_sharing(d.domain_name); set_share_uid(""); }} className="text-sm text-accent-blue hover:underline flex-shrink-0 font-medium">Share</button>
                 </div>
-                <button onClick={() => { set_sharing(d.domain_name); set_share_uid(""); }} className="aster_btn aster_btn_secondary aster_btn_sm flex-shrink-0">Share</button>
+                {sharing === d.domain_name && (
+                  <div className="flex gap-2 mt-3 ml-10">
+                    <select value={share_uid} onChange={e => set_share_uid(e.target.value)} className="flex-1 text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
+                      <option value="">Select member...</option>
+                      {members.filter(m => m.user_id !== d.owner_user_id).map(m => <option key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</option>)}
+                    </select>
+                    <button onClick={() => do_share(d.domain_name)} disabled={!share_uid} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">Share</button>
+                    <button onClick={() => set_sharing(null)} className="aster_btn aster_btn_ghost aster_btn_sm">Cancel</button>
+                  </div>
+                )}
               </div>
-              {sharing === d.domain_name && (
-                <div className="flex gap-2 mt-3 ml-6">
-                  <select value={share_uid} onChange={e => set_share_uid(e.target.value)} className="flex-1 text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
-                    <option value="">Select member...</option>
-                    {members.filter(m => m.user_id !== d.owner_user_id).map(m => <option key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</option>)}
-                  </select>
-                  <button onClick={() => do_share(d.domain_name)} disabled={!share_uid} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">Share</button>
-                  <button onClick={() => set_sharing(null)} className="aster_btn aster_btn_ghost aster_btn_sm">Cancel</button>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -557,20 +664,36 @@ function SecurityContent() {
   };
 
   if (!policy) return (
-    <div className="flex items-center gap-2 py-4">
+    <div className="flex justify-center items-center gap-2 py-8">
       <Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span>
     </div>
   );
 
   const non_2fa = compliance.filter(m => !m.has_2fa).length;
+  const with_2fa = compliance.filter(m => m.has_2fa).length;
+  const total_members = compliance.length;
 
   return (
     <div className="space-y-4">
+      {total_members > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-txt-primary font-medium">{with_2fa} of {total_members} members have 2FA enabled</span>
+            <span className="text-txt-muted text-xs">{total_members > 0 ? Math.round((with_2fa / total_members) * 100) : 0}%</span>
+          </div>
+          <div className="w-full h-1.5 bg-edge-secondary rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${total_members > 0 ? (with_2fa / total_members) * 100 : 0}%`, backgroundColor: non_2fa === 0 ? "rgb(34 197 94)" : "rgb(245 158 11)" }}
+            />
+          </div>
+        </div>
+      )}
       {non_2fa > 0 && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-500 text-white">
-          <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0" />
-          <p className="text-sm font-medium">
-            {non_2fa} member{non_2fa !== 1 ? "s have" : " has"} not enabled 2FA
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-amber-500/15 border border-amber-500/30">
+          <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 text-amber-500 mt-0.5" />
+          <p className="text-sm font-medium text-txt-primary flex-1 min-w-0">
+            {non_2fa} member{non_2fa !== 1 ? "s haven't" : " hasn't"} enabled 2FA
           </p>
         </div>
       )}
@@ -637,15 +760,15 @@ function SecurityContent() {
             {compliance.map(m => {
               const color = get_avatar_color(m.username);
               return (
-                <div key={m.user_id} className="flex items-center gap-3 py-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: color }}>
+                <div key={m.user_id} className="flex items-center gap-3 py-3.5">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: color }}>
                     {m.username[0]?.toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-txt-primary truncate">{m.username}@{m.email_domain}</p>
-                    <p className="text-xs text-txt-muted">
+                    <p className="text-sm font-medium text-txt-primary truncate">{m.username}@{m.email_domain}</p>
+                    <p className="text-xs text-txt-muted mt-0.5">
                       {m.session_count} active session{m.session_count !== 1 ? "s" : ""}
-                      {m.last_login && <span> &middot; last seen {new Date(m.last_login).toLocaleDateString()}</span>}
+                      {m.last_login && <span> &middot; last seen {last_seen_relative(m.last_login)}</span>}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -662,7 +785,6 @@ function SecurityContent() {
   );
 }
 
-// â”€â”€ Retention tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function RetentionContent() {
   const [policy, set_policy] = useState<DataRetentionPolicy | null>(null);
   const [saving, set_saving] = useState(false);
@@ -684,39 +806,48 @@ function RetentionContent() {
   };
 
   if (!policy) return (
-    <div className="flex items-center gap-2 py-4">
+    <div className="flex justify-center items-center gap-2 py-8">
       <Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span>
     </div>
   );
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-txt-muted">Auto-purge old messages after a set number of days. Leave blank to keep forever.</p>
+      <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-edge-secondary">
+        <InformationCircleIcon className="w-4 h-4 flex-shrink-0 text-txt-muted mt-0.5" />
+        <p className="text-xs text-txt-muted">By default, Aster keeps all mail forever. Set limits below to automatically clean up old messages. Leave blank to keep forever.</p>
+      </div>
       <div className="divide-y divide-edge-secondary">
         {([
           { key: "trash_retention_days" as const, label: "Trash", hint: "Auto-delete trashed mail" },
           { key: "spam_retention_days" as const, label: "Spam", hint: "Auto-delete spam (default 30 days)" },
           { key: "sent_retention_days" as const, label: "Sent", hint: "Auto-delete sent mail" },
           { key: "all_mail_retention_days" as const, label: "All Mail", hint: "Hard limit on all messages" },
-        ]).map(({ key, label, hint }) => (
-          <div key={key} className="flex items-center justify-between py-4">
-            <div className="flex-1 pr-4">
-              <p className="text-sm font-medium text-txt-primary">{label}</p>
-              <p className="text-sm mt-0.5 text-txt-muted">{hint}</p>
+        ]).map(({ key, label, hint }) => {
+          const is_active = (policy[key] as number | null) !== null;
+          return (
+            <div key={key} className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-2 flex-1 pr-4">
+                {is_active && <ArchiveBoxIcon className="w-4 h-4 flex-shrink-0 text-amber-500" />}
+                <div>
+                  <p className="text-sm font-medium text-txt-primary">{label}</p>
+                  <p className="text-sm mt-0.5 text-txt-muted">{hint}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Input type="number" min="0"
+                  value={(policy[key] as number | null) ?? ""}
+                  onChange={e => set_policy(p => p ? { ...p, [key]: e.target.value ? parseInt(e.target.value) : null } : p)}
+                  className="w-20" placeholder="Off" />
+                <span className="text-xs text-txt-muted">days</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Input type="number" min="0"
-                value={(policy[key] as number | null) ?? ""}
-                onChange={e => set_policy(p => p ? { ...p, [key]: e.target.value ? parseInt(e.target.value) : null } : p)}
-                className="w-20" placeholder="Off" />
-              <span className="text-xs text-txt-muted">days</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
             <p className="text-sm font-medium text-txt-primary">Enforce on all members</p>
-            <p className="text-sm mt-0.5 text-txt-muted">Apply these policies to every account in this family</p>
+            <p className="text-sm mt-0.5 text-txt-muted">When enabled, these limits apply to all member accounts. Members cannot override.</p>
           </div>
           <Switch
             checked={policy.enforce_on_members}
@@ -731,7 +862,6 @@ function RetentionContent() {
   );
 }
 
-// â”€â”€ Main section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const { t } = use_i18n();
   const [group, set_group] = useState<FamilyGroupResponse | null>(null);
@@ -748,6 +878,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [changing_plan, set_changing_plan] = useState(false);
   const [billing_history, set_billing_history] = useState<BillingHistoryItem[]>([]);
   const [billing_loading, set_billing_loading] = useState(false);
+  const [compliance_map, set_compliance_map] = useState<Record<string, MemberComplianceInfo>>({});
 
   const load_group = useCallback(async () => {
     try {
@@ -772,7 +903,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const is_owner = group?.viewer_role === "owner";
   const has_pending_link = group?.pending_invites.some(i => i.link_only) ?? false;
 
-  // Preload billing history as soon as the owner's group loads - no lazy tab check
   useEffect(() => {
     if (!is_owner || billing_history.length > 0) return;
     set_billing_loading(true);
@@ -780,6 +910,19 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       .then(r => { if (r.data) set_billing_history(r.data.items || []); })
       .finally(() => set_billing_loading(false));
   }, [is_owner, billing_history.length]);
+
+  useEffect(() => {
+    if (!is_owner || Object.keys(compliance_map).length > 0) return;
+    get_member_compliance()
+      .then(r => {
+        if (r.data) {
+          const m: Record<string, MemberComplianceInfo> = {};
+          r.data.forEach(c => { m[c.user_id] = c; });
+          set_compliance_map(m);
+        }
+      })
+      .catch(() => {});
+  }, [is_owner, compliance_map]);
 
   const handle_upgrade_to_family = async () => {
     set_changing_plan(true);
@@ -879,7 +1022,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       <div className="space-y-3">
         <h2 className="text-base font-semibold text-txt-primary">Family</h2>
         <div className="mt-2 h-px bg-edge-secondary" />
-        <div className="flex items-center gap-2 py-4">
+        <div className="flex justify-center items-center gap-2 py-8">
           <Spinner size="sm" />
           <span className="text-sm text-txt-muted">Setting up your family plan...</span>
         </div>
@@ -894,41 +1037,41 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const seats_remaining = group.max_members - active_members.length;
   const seats_full = active_members.length >= group.max_members;
 
-  // Tabs: owners see Overview + management tabs; members just see Overview
-  const owner_tabs: { id: FamilyTab; label: string; icon: React.ElementType }[] = is_owner ? [
-    { id: "overview", label: "Overview", icon: UserGroupIcon },
-    { id: "members", label: "Members", icon: UserPlusIcon },
-    { id: "groups", label: "Groups", icon: UserGroupIcon },
-    { id: "activity", label: "Activity", icon: ArrowsRightLeftIcon },
-    { id: "filters", label: "Filters", icon: ShieldCheckIcon },
-    { id: "domains", label: "Domains", icon: GlobeAltIcon },
-    { id: "security", label: "Security", icon: ShieldCheckIcon },
-    { id: "retention", label: "Retention", icon: ArchiveBoxIcon },
+  const owner_tabs: { id: FamilyTab; label: string }[] = is_owner ? [
+    { id: "overview", label: "Overview" },
+    { id: "members", label: "Members" },
+    { id: "groups", label: "Groups" },
+    { id: "activity", label: "Activity" },
+    { id: "filters", label: "Filters" },
+    { id: "domains", label: "Domains" },
+    { id: "security", label: "Security" },
+    { id: "retention", label: "Retention" },
   ] : [];
 
   return (
     <div className="space-y-4 w-full min-w-0">
-      {/* Header */}
       <div>
-        <h2 className="text-base font-semibold text-txt-primary">{group.plan_name}</h2>
+        <h2 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+          Family
+          <span className="aster_badge aster_badge_blue">{group.plan_name}</span>
+        </h2>
         <p className="text-sm text-txt-secondary mt-0.5">
           {active_members.length} of {group.max_members} members &middot; {seats_remaining} seat{seats_remaining !== 1 ? "s" : ""} available
         </p>
       </div>
 
-      {/* Single flat tab row - owners only */}
       {is_owner && (
-        <div className="flex p-1 rounded-lg bg-surf-secondary overflow-x-auto scrollbar-none max-w-full">
+        <div className="flex border-b border-edge-secondary overflow-x-auto scrollbar-thin">
           {owner_tabs.map(t_item => (
             <button
               key={t_item.id}
               onClick={() => set_tab(t_item.id)}
-              className="relative px-3 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none whitespace-nowrap"
-              style={{
-                backgroundColor: tab === t_item.id ? "var(--bg-primary)" : "transparent",
-                color: tab === t_item.id ? "var(--text-primary)" : "var(--text-muted)",
-                boxShadow: tab === t_item.id ? "rgba(0,0,0,0.1) 0px 1px 3px,rgba(0,0,0,0.06) 0px 1px 2px" : "none",
-              }}
+              className={[
+                "px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors duration-150 outline-none border-b-2 -mb-px",
+                tab === t_item.id
+                  ? "border-accent-blue text-txt-primary"
+                  : "border-transparent text-txt-muted hover:text-txt-secondary",
+              ].join(" ")}
             >
               {t_item.label}
             </button>
@@ -936,61 +1079,118 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         </div>
       )}
 
-      {/* â”€â”€ Overview tab â”€â”€ */}
       {(tab === "overview" || !is_owner) && (
         <>
-          {/* Storage */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-xl border border-edge-secondary px-4 py-3">
+              <p className="text-xs text-txt-muted">Members</p>
+              <p className="text-lg font-semibold text-txt-primary tabular-nums mt-0.5">{active_members.length} <span className="text-sm font-normal text-txt-muted">/ {group.max_members}</span></p>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                {group.pending_invites.length > 0 && (
+                  <span className="flex items-center gap-0.5 text-[10px] text-amber-500">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                    {group.pending_invites.length} pending
+                  </span>
+                )}
+                {active_members.length > 0 && (
+                  <span className="flex items-center gap-0.5 text-[10px] text-txt-muted">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                    {active_members.length} active
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="rounded-xl border border-edge-secondary px-4 py-3">
+              <p className="text-xs text-txt-muted">Storage</p>
+              <p className="text-lg font-semibold text-txt-primary tabular-nums mt-0.5">{Math.round(pool_pct)}<span className="text-sm font-normal text-txt-muted">%</span></p>
+              <p className="text-[10px] text-txt-muted mt-1.5 truncate">{format_bytes(pool_used)} of {format_bytes(group.storage_pool_bytes)}</p>
+            </div>
+            <div className="rounded-xl border border-edge-secondary px-4 py-3">
+              <p className="text-xs text-txt-muted">Encryption</p>
+              <p className="text-base font-semibold text-txt-primary mt-0.5 truncate">Zero-access</p>
+              <p className="text-[10px] text-txt-muted mt-1.5">E2E by default</p>
+            </div>
+          </div>
+
           <div>
             <div className="mb-3">
               <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
                 <CircleStackIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                Storage
+                Storage pool
               </h3>
               <div className="mt-2 h-px bg-edge-secondary" />
             </div>
             <div className="space-y-2 py-2">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-sm font-semibold text-txt-primary">{format_bytes(pool_used)}</span>
-                <span className="text-xs text-txt-muted">of {format_bytes(group.storage_pool_bytes)} used</span>
+              <div className="flex items-baseline justify-between">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-semibold text-txt-primary">{format_bytes(pool_used)}</span>
+                  <span className="text-xs text-txt-muted">of {format_bytes(group.storage_pool_bytes)} used</span>
+                </div>
+                <span className="text-xs tabular-nums font-medium" style={{ color: pool_pct >= 90 ? "var(--color-red-500)" : pool_pct >= 70 ? "var(--color-amber-500)" : "var(--accent-blue)" }}>
+                  {Math.round(pool_pct)}%
+                </span>
               </div>
-              <div className="w-full bg-edge-secondary rounded-full h-1.5">
-                <div className={`h-1.5 rounded-full transition-all ${pool_pct >= 90 ? "bg-red-500" : pool_pct >= 70 ? "bg-amber-500" : "bg-accent-blue"}`}
+              <div className="w-full bg-edge-secondary rounded-full h-2">
+                <div className={`h-2 rounded-full transition-all ${pool_pct >= 90 ? "bg-red-500" : pool_pct >= 70 ? "bg-amber-500" : "bg-accent-blue"}`}
                   style={{ width: `${pool_pct}%` }} />
               </div>
-              <div className="flex gap-6 text-right">
-                <div>
-                  <p className="text-xs text-txt-muted">Members</p>
-                  <p className="text-sm font-semibold text-txt-primary">{active_members.length} / {group.max_members}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-txt-muted">Encryption</p>
-                  <p className="text-sm font-semibold text-txt-primary">Zero-access</p>
-                </div>
-              </div>
+              <p className="text-xs text-txt-muted">{format_bytes(group.storage_pool_bytes - pool_used)} remaining in pool</p>
             </div>
           </div>
 
-          {/* Per member storage breakdown */}
+          {is_owner && (
+            <button
+              onClick={() => set_tab("security")}
+              className="w-full text-left rounded-xl border border-edge-secondary px-4 py-3 hover:border-accent-blue/40 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <LockClosedIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+                  <span className="text-sm font-medium text-txt-primary">Security snapshot</span>
+                </div>
+                <ChevronRightIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium border" style={{ borderColor: "rgba(34,197,94,0.3)", color: "var(--color-green-600, #16a34a)", backgroundColor: "rgba(34,197,94,0.08)" }}>
+                  <CheckCircleIcon className="w-3 h-3" />
+                  {active_members.length} member{active_members.length !== 1 ? "s" : ""} total
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium border border-edge-secondary text-txt-muted">
+                  View 2FA status &rarr;
+                </span>
+              </div>
+            </button>
+          )}
+
           <div>
             <div className="mb-3">
-              <h3 className="text-base font-semibold text-txt-primary">Per member</h3>
+              <h3 className="text-base font-semibold text-txt-primary">Members</h3>
               <div className="mt-2 h-px bg-edge-secondary" />
             </div>
-            <div className="space-y-2">
+            <div className="divide-y divide-edge-secondary">
               {active_members.map(m => {
                 const pct = storage_pct(m.storage_used_bytes, m.allocated_storage_bytes);
                 const bar_color = pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-amber-500" : "bg-accent-blue";
+                const badge_class = m.role === "owner" ? "aster_badge aster_badge_blue"
+                  : m.status === "grace" ? "aster_badge aster_badge_amber"
+                  : "aster_badge aster_badge_gray";
+                const role_label = m.role === "owner" ? t("settings.family_member_owner")
+                  : m.status === "grace" ? t("settings.family_member_grace")
+                  : t("settings.family_member_member");
                 return (
-                  <div key={m.user_id}>
-                    <div className="flex items-center gap-3 py-1.5">
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white" style={{ backgroundColor: get_avatar_color(m.username) }}>
-                        {m.username[0]?.toUpperCase()}
-                      </div>
-                      <span className="text-xs text-txt-primary flex-1 min-w-0 truncate">{m.username}@{m.email_domain}</span>
-                      <span className="text-xs text-txt-muted flex-shrink-0 text-right tabular-nums">{format_bytes(m.storage_used_bytes)}</span>
+                  <div key={m.user_id} className="flex items-center gap-3 py-3">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white select-none" style={{ backgroundColor: get_avatar_color(m.username) }}>
+                      {m.username[0]?.toUpperCase()}
                     </div>
-                    <div className="ml-9 w-full bg-edge-secondary h-1 rounded-full">
-                      <div className={`${bar_color} h-1 rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-sm font-medium text-txt-primary truncate">{m.username}@{m.email_domain}</span>
+                        <span className={badge_class}>{role_label}</span>
+                      </div>
+                      <div className="text-xs text-txt-muted mt-0.5 tabular-nums">{format_bytes(m.storage_used_bytes)} / {format_bytes(m.allocated_storage_bytes)}</div>
+                      <div className="w-full bg-edge-secondary h-1 rounded-full mt-1">
+                        <div className={`${bar_color} h-1 rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                      </div>
                     </div>
                   </div>
                 );
@@ -998,7 +1198,17 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           </div>
 
-          {/* Seat upgrade banner for Duo at capacity */}
+          {is_owner && (
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => set_tab("members")} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5">
+                <UserPlusIcon className="w-3.5 h-3.5" /> Invite member
+              </button>
+              <button onClick={() => set_tab("security")} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5">
+                <ShieldCheckIcon className="w-3.5 h-3.5" /> Set security
+              </button>
+            </div>
+          )}
+
           {is_owner && seats_full && group.plan_name === "Duo" && (
             <div className="flex items-center gap-3 py-3 px-4 rounded-xl border border-edge-secondary">
               <InformationCircleIcon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
@@ -1007,30 +1217,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           )}
 
-          {/* Change plan          {/* Change plan (owner only) */}
-          {is_owner && (
-            <div>
-              <div className="mb-3">
-                <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                  <ArrowsRightLeftIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                  Change plan
-                </h3>
-                <div className="mt-2 h-px bg-edge-secondary" />
-              </div>
-              <div className="py-2 space-y-3">
-                <p className="text-xs text-txt-muted">Switch to a different plan. Your billing is prorated.</p>
-                <div className="flex flex-wrap gap-2">
-                  {group.plan_name === "Family" && (
-                    <button onClick={() => handle_change_plan("duo")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Duo</button>
-                  )}
-                  <button onClick={() => handle_change_plan("supernova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Supernova</button>
-                  <button onClick={() => handle_change_plan("nova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Nova</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Billing history (owner only) */}
           {is_owner && (
             <div>
               <div className="mb-3">
@@ -1040,8 +1226,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 </h3>
                 <div className="mt-2 h-px bg-edge-secondary" />
               </div>
-              <div className="py-2 space-y-1">
-                {billing_loading && <div className="flex items-center justify-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>}
+              <div className="py-2 space-y-3">
+                {billing_loading && <div className="flex justify-center items-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>}
                 {!billing_loading && billing_history.length === 0 && <p className="text-sm text-txt-muted py-1">No billing history yet.</p>}
                 {!billing_loading && billing_history.slice(0, 3).map(inv => (
                   <div key={inv.id} className="flex items-center justify-between py-2">
@@ -1050,6 +1236,26 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                     <span className={inv.status === "paid" ? "aster_badge aster_badge_green" : "aster_badge aster_badge_amber"}>{inv.status}</span>
                   </div>
                 ))}
+                <div className="mt-1 h-px bg-edge-secondary" />
+                <div className="pt-2">
+                  <p className="text-xs text-txt-muted mb-2">Switch to a different plan. Billing is prorated.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {group.plan_name === "Family" && (
+                      <div className="flex flex-col gap-0.5">
+                        <button onClick={() => handle_change_plan("duo")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Duo</button>
+                        <span className="text-xs text-txt-muted pl-0.5">Duo - 2 members</span>
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-0.5">
+                      <button onClick={() => handle_change_plan("supernova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Supernova</button>
+                      <span className="text-xs text-txt-muted pl-0.5">Supernova - 1 member, 50 GB</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <button onClick={() => handle_change_plan("nova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Nova</button>
+                      <span className="text-xs text-txt-muted pl-0.5">Nova - 1 member, 15 GB</span>
+                    </div>
+                  </div>
+                </div>
                 <button onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))} className="text-xs text-accent-blue hover:underline pt-1">
                   View all billing
                 </button>
@@ -1057,7 +1263,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           )}
 
-          {/* Leave (non-owner) */}
           {!is_owner && (
             <button onClick={() => set_show_leave_dialog(true)} className="aster_btn aster_btn_destructive aster_btn_sm">
               {t("settings.family_leave")}
@@ -1080,13 +1285,25 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             <div className="divide-y divide-edge-secondary">
               {active_members.filter(m => m.role === "owner").map(m => (
                 <MemberRow key={m.user_id} member={m} is_owner_view={true}
+                  compliance={compliance_map[m.user_id]}
                   on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
               ))}
               {active_members.filter(m => m.role !== "owner").length === 0 ? (
-                <p className="text-sm text-txt-muted py-4">No other members yet.</p>
+                <div className="flex flex-col items-center gap-3 py-8">
+                  <UserGroupIcon className="w-12 h-12 text-txt-muted" />
+                  <div className="text-center">
+                    <p className="text-base font-semibold text-txt-primary">No members yet</p>
+                    <p className="text-sm text-txt-muted mt-1">Invite someone to share this family plan</p>
+                  </div>
+                  <button onClick={() => set_show_invite_form(true)} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5">
+                    <UserPlusIcon className="w-4 h-4" />
+                    {t("settings.family_invite_member")}
+                  </button>
+                </div>
               ) : (
                 active_members.filter(m => m.role !== "owner").map(m => (
                   <MemberRow key={m.user_id} member={m} is_owner_view={true}
+                    compliance={compliance_map[m.user_id]}
                     on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
                 ))
               )}
@@ -1099,18 +1316,25 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               {!show_invite_form ? (
                 <button onClick={() => set_show_invite_form(true)} className="flex items-center gap-2 text-sm text-accent-blue hover:underline py-1">
                   <UserPlusIcon className="w-4 h-4" />
-                  Add a member
+                  {t("settings.family_invite_member")}
                 </button>
               ) : (
                 <div className="space-y-3">
                   <div className="flex gap-2">
-                    <Input type="email" placeholder={t("settings.family_invite_email_placeholder")} value={invite_email}
-                      onChange={e => set_invite_email(e.target.value)} autoFocus className="flex-1" />
-                    <div className="flex items-center gap-1">
-                      <Input type="number" min="1" value={invite_storage_gb} onChange={e => set_invite_storage_gb(e.target.value)} className="w-20" />
-                      <span className="text-sm text-txt-muted">GB</span>
+                    <div className="flex-1 space-y-1">
+                      <label className="text-xs text-txt-muted">{t("settings.family_invite_email_placeholder")}</label>
+                      <Input type="email" placeholder={t("settings.family_invite_email_placeholder")} value={invite_email}
+                        onChange={e => set_invite_email(e.target.value)} autoFocus />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-txt-muted">{t("settings.family_invite_storage")}</label>
+                      <div className="flex items-center gap-1">
+                        <Input type="number" min="1" value={invite_storage_gb} onChange={e => set_invite_storage_gb(e.target.value)} className="w-20" />
+                        <span className="text-sm text-txt-muted">GB</span>
+                      </div>
                     </div>
                   </div>
+                  <p className="text-xs text-txt-muted">{t("settings.family_member_storage")}</p>
                   <div className="flex gap-2">
                     <button onClick={handle_invite_email} disabled={invite_loading} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50">
                       <UserPlusIcon className="w-4 h-4" /> {t("settings.family_invite_send")}
@@ -1136,11 +1360,15 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               <div className="divide-y divide-edge-secondary">
                 {group.pending_invites.map(inv => (
                   <div key={inv.id} className="flex items-center justify-between py-3">
-                    <div>
-                      <p className="text-sm text-txt-primary">{inv.link_only ? t("settings.family_invite_link") : t("settings.family_invite_by_email")}</p>
-                      <p className="text-xs text-txt-muted">{t("settings.family_invite_expires", { date: new Date(inv.expires_at).toLocaleDateString() })}</p>
+                    <div className="flex items-start gap-2 flex-1 min-w-0">
+                      <ClockIcon className="w-4 h-4 text-txt-muted flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-txt-primary">{inv.link_only ? t("settings.family_invite_link") : t("settings.family_invite_by_email")}</p>
+                        <p className="text-xs text-txt-muted">{t("settings.family_invite_expires", { date: new Date(inv.expires_at).toLocaleDateString() })}</p>
+                        <p className="text-xs text-txt-muted">Sent {invite_sent_relative(inv.created_at)}</p>
+                      </div>
                     </div>
-                    <button onClick={() => handle_revoke_invite(inv.id)} className="aster_btn aster_btn_ghost aster_btn_sm text-red-500 hover:text-red-600">
+                    <button onClick={() => handle_revoke_invite(inv.id)} className="aster_btn aster_btn_ghost aster_btn_sm text-red-500 hover:text-red-600 flex-shrink-0">
                       {t("settings.family_invite_revoke")}
                     </button>
                   </div>
@@ -1151,17 +1379,13 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         </>
       )}
 
-            {/* â”€â”€ Security tab â”€â”€ */}
       {tab === "groups"    && is_owner && <GroupsContent members={active_members} />}
       {tab === "activity"  && is_owner && <ActivityContent />}
       {tab === "filters"   && is_owner && <FiltersContent />}
       {tab === "domains"   && is_owner && <DomainsContent members={active_members} />}
-      {tab === "security" && is_owner && <SecurityContent />}
-
-      {/* â”€â”€ Retention tab â”€â”€ */}
+      {tab === "security"  && is_owner && <SecurityContent />}
       {tab === "retention" && is_owner && <RetentionContent />}
 
-      {/* Confirmation dialogs */}
       <AlertDialog open={!!remove_target} onOpenChange={open => !open && set_remove_target(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
