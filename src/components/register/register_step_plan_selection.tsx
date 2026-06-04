@@ -369,8 +369,7 @@ export const RegisterStepPlanSelection = ({
 
       <div className="flex flex-col items-center gap-3 mt-6">
         <div
-          className="inline-flex rounded-full p-[5px] gap-1"
-          style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--border-primary)" }}
+          className="inline-flex rounded-full p-[5px] gap-1 bg-surf-secondary border border-edge-secondary"
         >
           {(["individual", "family"] as const).map((type) => {
             const active = plan_type === type;
@@ -390,9 +389,8 @@ export const RegisterStepPlanSelection = ({
         </div>
 
         <div
-          className="inline-flex items-center rounded-full p-[5px] gap-1"
+          className="inline-flex items-center rounded-full p-[5px] gap-1 bg-surf-secondary border border-edge-secondary"
           role="tablist"
-          style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--border-primary)" }}
         >
           {(["yearly", "monthly"] as const).map((p) => {
             const active = billing_period === p;
@@ -459,7 +457,7 @@ export const RegisterStepPlanSelection = ({
                       {billing_period === "monthly" ? t("settings.per_month_short") : t("settings.per_year_short")}
                     </span>
                     {billing_period === "yearly" && (
-                      <span className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-white" style={{ backgroundColor: "var(--accent-blue)" }}>
+                      <span className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-white bg-accent-blue">
                         {tier.savings_label}
                       </span>
                     )}
@@ -471,7 +469,7 @@ export const RegisterStepPlanSelection = ({
                 <ul className="flex flex-col gap-3 flex-1">
                   {features.map((feat, i) => (
                     <li key={i} className="flex items-start gap-2.5 text-[13px] leading-snug text-txt-primary">
-                      <span className="shrink-0 mt-[1px]" style={{ color: "var(--accent-blue)" }}>
+                      <span className="shrink-0 mt-[1px] text-accent-blue">
                         {CHECK_SVG}
                       </span>
                       <span className="flex-1">{feat}</span>
