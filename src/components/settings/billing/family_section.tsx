@@ -373,8 +373,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
         <Input placeholder="Group name" value={new_name} onChange={e => set_new_name(e.target.value)} onKeyDown={e => e.key === "Enter" && handle_create()} className="flex-1 h-9" />
         <Input placeholder="Email prefix (optional)" value={new_email_prefix} onChange={e => set_new_email_prefix(e.target.value)} className="flex-1 h-9" />
         <button onClick={handle_create} disabled={creating || !new_name.trim()}
-          className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-sm font-medium text-white flex-shrink-0 disabled:opacity-50 transition-colors"
-          style={{ backgroundColor: "var(--accent-blue)" }}>
+          className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-sm font-medium text-white flex-shrink-0 disabled:opacity-50 transition-colors bg-accent-blue hover:opacity-90">
           <PlusIcon className="w-4 h-4" /> Create
         </button>
       </div>
@@ -430,12 +429,16 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                     )}
                     {adding_to === g.id ? (
                       <div className="flex items-center gap-2 pt-2">
-                        <select value={add_user_id} onChange={e => set_add_user_id(e.target.value)} className="flex-1 text-sm border border-edge-secondary rounded px-2 py-1 bg-transparent text-txt-primary" aria-label="Select member to add">
-                          <option value="">Select member...</option>
-                          {members.filter(m => !gm.some(x => x.user_id === m.user_id)).map(m => (
-                            <option key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</option>
-                          ))}
-                        </select>
+                        <Select value={add_user_id || "_none"} onValueChange={v => set_add_user_id(v === "_none" ? "" : v)}>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Select member..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {members.filter(m => !gm.some(x => x.user_id === m.user_id)).map(m => (
+                              <SelectItem key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <button onClick={() => handle_add_member(g.id)} disabled={!add_user_id} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">Add</button>
                         <button onClick={() => { set_adding_to(null); set_add_user_id(""); }} className="aster_btn aster_btn_ghost aster_btn_sm">Cancel</button>
                       </div>
@@ -566,6 +569,7 @@ function FiltersContent() {
   const [form, set_form] = useState({ name: "", value: "", field: "from", action: "trash" });
 
   const load = useCallback(async () => {
+    set_loading(true);
     try { const r = await list_org_filters(); set_filters(r.data ?? []); }
     catch { show_toast("Failed to load filters", "error"); }
     finally { set_loading(false); }
@@ -607,14 +611,10 @@ function FiltersContent() {
             <Input placeholder="Value (domain, email, keyword)" value={form.value} onChange={e => set_form(f => ({ ...f, value: e.target.value }))} />
           </div>
           <div className="flex gap-2">
-            <select value={form.field} onChange={e => set_form(f => ({ ...f, field: e.target.value }))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
-              <option value="from">Sender (from)</option><option value="to">Recipient (to)</option>
-              <option value="domain">Domain</option><option value="subject">Subject</option>
-            </select>
-            <select value={form.action} onChange={e => set_form(f => ({ ...f, action: e.target.value }))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
-              <option value="trash">Move to Trash</option><option value="block">Block</option>
-              <option value="archive">Archive</option><option value="mark_read">Mark as read</option>
-            </select>
+            <Select value={form.field} onValueChange={v => set_form(f => ({ ...f, field: v }))}><SelectTrigger className="flex-1"><SelectValue /></SelectTrigger><SelectContent>
+              <SelectItem value="from">Sender (from)</SelectItem><SelectItem value="to">Recipient (to)</SelectItem><SelectItem value="domain">Domain</SelectItem><SelectItem value="subject">Subject</SelectItem></SelectContent></Select>
+            <Select value={form.action} onValueChange={v => set_form(f => ({ ...f, action: v }))}><SelectTrigger className="flex-1"><SelectValue /></SelectTrigger><SelectContent>
+              <SelectItem value="trash">Move to Trash</SelectItem><SelectItem value="block">Block</SelectItem><SelectItem value="archive">Archive</SelectItem><SelectItem value="mark_read">Mark as read</SelectItem></SelectContent></Select>
           </div>
           <div className="flex gap-2">
             <button onClick={create} disabled={creating || !form.name.trim() || !form.value.trim()} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">
@@ -746,10 +746,16 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
                 {sharing === d.domain_name && (
                   <div className="mt-3 ml-10 space-y-2">
                     <div className="flex gap-2">
-                      <select value={share_uid} onChange={e => set_share_uid(e.target.value)} className="flex-1 text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
-                        <option value="">Add a member...</option>
-                        {members.filter(m => m.user_id !== d.owner_user_id).map(m => <option key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</option>)}
-                      </select>
+                      <Select value={share_uid || "_none"} onValueChange={v => set_share_uid(v === "_none" ? "" : v)}>
+                        <SelectTrigger className="flex-1 text-xs">
+                          <SelectValue placeholder="Add a member..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {members.filter(m => m.user_id !== d.owner_user_id).map(m => (
+                            <SelectItem key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <button onClick={() => do_share(d.domain_name)} disabled={!share_uid} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">Add</button>
                       <button onClick={() => set_sharing(null)} className="aster_btn aster_btn_ghost aster_btn_sm">Done</button>
                     </div>
