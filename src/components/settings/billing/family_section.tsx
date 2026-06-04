@@ -134,12 +134,14 @@ function invite_sent_relative(iso: string): string {
   return `${days} days ago`;
 }
 
-function activity_dot_color(event_type: string): string {
-  if (event_type === "member_joined" || event_type === "member_removed") return "bg-indigo-500";
-  if (event_type === "invite_sent" || event_type === "invite_revoked") return "bg-amber-500";
-  if (event_type === "security_policy_updated") return "bg-green-500";
-  if (event_type === "storage_updated") return "bg-blue-500";
-  return "bg-txt-muted";
+function activity_icon_color(event_type: string): string {
+  if (["member_joined", "invite_sent", "group_created"].includes(event_type)) return "text-indigo-500";
+  if (["member_removed", "invite_revoked", "group_deleted"].includes(event_type)) return "text-red-500";
+  if (["security_policy_updated"].includes(event_type)) return "text-green-500";
+  if (["storage_updated", "admin_transferred"].includes(event_type)) return "text-blue-500";
+  if (["domain_shared"].includes(event_type)) return "text-violet-500";
+  if (["retention_updated"].includes(event_type)) return "text-amber-500";
+  return "text-txt-muted";
 }
 
 function format_activity_time(iso: string): string {
@@ -492,13 +494,13 @@ function ActivityContent() {
                 ['member_removed','invite_revoked','group_deleted'].includes(entry.event_type)
                   ? 'bg-red-500/10' : 'bg-surf-secondary'
               }`}>
-                {['member_joined','invite_sent'].includes(entry.event_type) ? <UserPlusIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} /> :
+                {['member_joined','invite_sent'].includes(entry.event_type) ? <UserPlusIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} /> :
                  ['member_removed','invite_revoked','group_deleted'].includes(entry.event_type) ? <TrashIcon className="w-4 h-4 text-red-500" /> :
-                 ['admin_transferred','storage_updated'].includes(entry.event_type) ? <ArrowsRightLeftIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} /> :
-                 ['security_policy_updated'].includes(entry.event_type) ? <ShieldCheckIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} /> :
-                 ['retention_updated'].includes(entry.event_type) ? <ArchiveBoxIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} /> :
-                 ['domain_shared'].includes(entry.event_type) ? <GlobeAltIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} /> :
-                 <PlusIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} />}
+                 ['admin_transferred','storage_updated'].includes(entry.event_type) ? <ArrowsRightLeftIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} /> :
+                 ['security_policy_updated'].includes(entry.event_type) ? <ShieldCheckIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} /> :
+                 ['retention_updated'].includes(entry.event_type) ? <ArchiveBoxIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} /> :
+                 ['domain_shared'].includes(entry.event_type) ? <GlobeAltIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} /> :
+                 <PlusIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} />}
               </div>
               <div className="flex-1 min-w-0">
                 <span className="text-sm text-txt-primary">{activity_event_text(entry)}</span>
