@@ -907,7 +907,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   ] : [];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full min-w-0">
       {/* Header */}
       <div>
         <h2 className="text-base font-semibold text-txt-primary">{group.plan_name}</h2>

@@ -753,7 +753,7 @@ function SettingsPanelInner({
 
               <div
                 ref={content_container_ref}
-                className={`p-4 md:p-6 flex-1 overflow-y-auto relative ${show_mobile_nav ? "hidden md:flex" : "flex"} flex-col`}
+                className={`p-4 md:p-6 flex-1 overflow-y-auto overflow-x-hidden relative ${show_mobile_nav ? "hidden md:flex" : "flex"} flex-col`}
                 style={{ scrollbarGutter: "stable" }}
               >
                 {is_suspended && (
