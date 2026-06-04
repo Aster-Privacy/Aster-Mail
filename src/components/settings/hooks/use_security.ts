@@ -114,7 +114,7 @@ export function use_security() {
     show_manual_rotation_modal,
     show_modal: show_rotation_modal,
     close_modal: close_rotation_modal,
-  } = use_key_rotation();
+  } = use_key_rotation({ auto_check: false });
 
   const [totp_status, set_totp_status] = useState<TotpStatusResponse | null>(
     null,
