@@ -163,6 +163,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
           }
 
+          if (!has_keys && "__TAURI_INTERNALS__" in window) {
+            try {
+              const { invoke } = await import("@tauri-apps/api/core");
+              const raw_b64 = await invoke<string | null>("device_get_stored_passphrase");
+              if (raw_b64) {
+                const bytes = Uint8Array.from(
+                  atob(raw_b64.replace(/-/g, "+").replace(/_/g, "/")),
+                  (c) => c.charCodeAt(0),
+                );
+                const native_passphrase = new TextDecoder().decode(bytes);
+                const stored_vault = get_stored_encrypted_vault(current.id);
+                if (stored_vault) {
+                  try {
+                    const recovered = await decrypt_vault_with_lock(
+                      stored_vault.encrypted_vault,
+                      stored_vault.vault_nonce,
+                      native_passphrase,
+                    );
+                    if (recovered !== null) {
+                      has_keys = true;
+                      store_session_passphrase(current.id, native_passphrase).catch(() => {});
+                    }
+                  } catch {}
+                }
+              }
+            } catch {}
+          }
+
           if (!has_keys) {
             sync_client.disconnect();
             api_client.set_authenticated(false);
@@ -176,7 +204,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
             });
 
             const local = current.user.email.split("@")[0] ?? "";
-            const path = window.location.pathname;
+            const uses_hash = "__TAURI_INTERNALS__" in window;
+            const path = uses_hash
+              ? window.location.hash.slice(1).split("?")[0] || "/"
+              : window.location.pathname;
             if (path !== "/sign-in" && path !== "/register") {
               hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
             }
