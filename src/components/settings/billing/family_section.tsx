@@ -931,6 +931,7 @@ function SecurityContent() {
   const [policy, set_policy] = useState<SecurityPolicy | null>(null);
   const [compliance, set_compliance] = useState<MemberComplianceInfo[]>([]);
   const [saving, set_saving] = useState(false);
+  const [reminding, set_reminding] = useState(false);
 
   useEffect(() => {
     get_security_policy()
@@ -984,15 +985,19 @@ function SecurityContent() {
             {non_2fa} member{non_2fa !== 1 ? "s haven't" : " hasn't"} enabled 2FA
           </p>
           <button
-            className="text-xs font-medium text-amber-600 dark:text-amber-400 hover:underline flex-shrink-0"
+            className="text-xs font-medium text-amber-600 dark:text-amber-400 hover:underline flex-shrink-0 disabled:opacity-50"
+            disabled={reminding}
             onClick={async () => {
+              if (reminding) return;
+              set_reminding(true);
               try {
                 const r = await notify_non_compliant_2fa();
                 if (r.data) show_toast(`Reminder sent to ${r.data.notified} member${r.data.notified !== 1 ? 's' : ''}`, "success");
               } catch { show_toast("Failed to send reminder", "error"); }
+              finally { set_reminding(false); }
             }}
           >
-            Send reminder
+            {reminding ? "Sending..." : "Send reminder"}
           </button>
         </div>
       )}
@@ -1184,9 +1189,9 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [wizard_invite_loading, set_wizard_invite_loading] = useState(false);
   const [wizard_sent_email, set_wizard_sent_email] = useState("");
 
-  // Preload compliance map so security snapshot and member rows show 2FA status immediately
+  // Preload compliance map keyed on group.id so it resets if the group changes
   useEffect(() => {
-    if (group?.viewer_role !== "owner" || Object.keys(compliance_map).length > 0) return;
+    if (group?.viewer_role !== "owner" || !group?.id) return;
     get_member_compliance()
       .then(r => {
         if (r.data) {
@@ -1196,8 +1201,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         }
       })
       .catch(() => {});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [group?.viewer_role, compliance_map]);
+  }, [group?.id, group?.viewer_role]);
 
   const load_group = useCallback(async () => {
     try {
