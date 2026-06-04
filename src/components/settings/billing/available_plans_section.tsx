@@ -261,8 +261,14 @@ export function AvailablePlansSection({
                   <div className="space-y-2.5 pt-4">
                     {features.map((feat, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <CheckIcon className="w-3.5 h-3.5 flex-shrink-0 text-accent-blue" strokeWidth={2.5} />
-                        <span className="text-xs text-txt-secondary">{feat}</span>
+                        <CheckIcon
+                          className="w-3.5 h-3.5 flex-shrink-0"
+                          strokeWidth={2.5}
+                          style={{ color: "var(--accent-blue)" }}
+                        />
+                        <span className="text-xs text-txt-secondary">
+                          {feat}
+                        </span>
                       </div>
                     ))}
                   </div>
