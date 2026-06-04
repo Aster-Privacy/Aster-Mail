@@ -360,7 +360,23 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   };
 
   if (!is_family_plan || loading) return null;
-  if (!group) return null;
+  if (!group) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-txt-primary">Family</h2>
+          <p className="text-sm text-txt-secondary mt-0.5">Setting up your family plan...</p>
+        </div>
+        <div className="mt-2 h-px bg-edge-secondary" />
+        <p className="text-sm text-txt-muted py-4">
+          Your plan is activating. If this takes more than a minute, try refreshing the page.
+        </p>
+        <button onClick={() => window.location.reload()} className="aster_btn aster_btn_secondary aster_btn_sm">
+          Refresh
+        </button>
+      </div>
+    );
+  }
 
   const active_members = group.members.filter((m) => m.status !== "removed");
   const pool_used = group.members.reduce((s, m) => s + m.storage_used_bytes, 0);

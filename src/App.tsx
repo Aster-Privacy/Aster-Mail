@@ -148,6 +148,7 @@ function BillingSuccessHandler() {
         const res = await get_subscription();
         if (res.data && res.data.plan.code !== "free") {
           invalidate_mail_stats();
+          window.dispatchEvent(new CustomEvent("aster:plan-changed"));
           show_toast(t("settings.payment_success"), "success");
           return;
         }

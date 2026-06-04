@@ -234,6 +234,8 @@ export const RegisterStepPlanSelection = ({
       if (e.persisted) {
         set_is_finalizing(false);
         set_pending_tier(null);
+        set_pending_family_tier(null);
+        set_crypto_family_tier(null);
       }
     };
     window.addEventListener("pageshow", handle_page_show);

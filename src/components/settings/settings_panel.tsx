@@ -402,12 +402,21 @@ function SettingsPanelInner({
       set_persisted_section(value);
     };
 
+    const handle_plan_changed = () => {
+      get_subscription().then((res) => {
+        const code = res.data?.plan?.code ?? "";
+        set_is_family_plan(code === "duo" || code === "family");
+      }).catch(() => {});
+    };
+
     window.addEventListener("dev-mode-changed", handle_dev_mode_change);
     window.addEventListener("navigate-settings", handle_navigate_section);
+    window.addEventListener("aster:plan-changed", handle_plan_changed);
 
     return () => {
       window.removeEventListener("dev-mode-changed", handle_dev_mode_change);
       window.removeEventListener("navigate-settings", handle_navigate_section);
+      window.removeEventListener("aster:plan-changed", handle_plan_changed);
     };
   }, []);
 
@@ -578,7 +587,7 @@ function SettingsPanelInner({
       default:
         return null;
     }
-  }, [section, handle_account_deleted]);
+  }, [section, handle_account_deleted, is_family_plan]);
 
   const handle_desktop_nav_click = useCallback((item_id: Section) => {
     set_section(item_id);
