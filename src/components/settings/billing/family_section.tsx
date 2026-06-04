@@ -371,9 +371,11 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
         <SkeletonRows count={3} has_icon={false} />
       ) : groups.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
-          <UserGroupIcon className="w-12 h-12 text-txt-muted" />
-          <p className="text-sm font-medium text-txt-primary">No distribution groups yet</p>
-          <p className="text-xs text-txt-muted text-center max-w-xs">Groups let you send one email to all family members at once. Perfect for family announcements.</p>
+          <div className="w-16 h-16 rounded-full bg-surf-secondary flex items-center justify-center">
+            <UserGroupIcon className="w-8 h-8 text-txt-muted" />
+          </div>
+          <p className="text-sm font-medium text-txt-primary">No groups yet</p>
+          <p className="text-xs text-txt-muted text-center max-w-xs">Create a group to route email to multiple family members at once.</p>
         </div>
       ) : (
         <div className="divide-y divide-edge-secondary">
@@ -476,9 +478,11 @@ function ActivityContent() {
         <SkeletonRows count={4} />
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
-          <ChartBarIcon className="w-12 h-12 text-txt-muted" />
+          <div className="w-16 h-16 rounded-full bg-surf-secondary flex items-center justify-center">
+            <ChartBarIcon className="w-8 h-8 text-txt-muted" />
+          </div>
           <p className="text-sm font-medium text-txt-primary">No activity yet</p>
-          <p className="text-xs text-txt-muted text-center max-w-xs">Actions taken on this family account will appear here - member joins, security changes, and more.</p>
+          <p className="text-xs text-txt-muted text-center max-w-xs">Member joins, security changes, and administrative actions will appear here.</p>
         </div>
       ) : (
         <div className="divide-y divide-edge-secondary">
@@ -547,12 +551,14 @@ function FiltersContent() {
   if (loading) return <div className="flex justify-center items-center gap-2 py-8"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>;
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-txt-muted max-w-xs">Filters apply to all family members' inboxes org-wide.</p>
-        <button onClick={() => set_show_form(!show_form)} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5 flex-shrink-0">
-          <PlusIcon className="w-3.5 h-3.5" /> New Filter
-        </button>
-      </div>
+      {(filters.length > 0 || show_form) && (
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-txt-muted max-w-xs">Filters apply to all family members' inboxes org-wide.</p>
+          <button onClick={() => set_show_form(!show_form)} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5 flex-shrink-0">
+            <PlusIcon className="w-3.5 h-3.5" /> New Filter
+          </button>
+        </div>
+      )}
       {show_form && (
         <div className="rounded-xl border border-edge-secondary p-4 space-y-3">
           <div className="grid grid-cols-2 gap-2">
@@ -579,12 +585,16 @@ function FiltersContent() {
       )}
       {filters.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
-          <FunnelIcon className="w-12 h-12 text-txt-muted" />
+          <div className="w-16 h-16 rounded-full bg-surf-secondary flex items-center justify-center">
+            <FunnelIcon className="w-8 h-8 text-txt-muted" />
+          </div>
           <p className="text-sm font-medium text-txt-primary">No org-wide filters</p>
-          <p className="text-xs text-txt-muted text-center max-w-xs">Filters block unwanted content from every family member's inbox automatically.</p>
-          <button onClick={() => set_show_form(true)} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 mt-1">
-            <PlusIcon className="w-3.5 h-3.5" /> Create your first filter
-          </button>
+          <p className="text-xs text-txt-muted text-center max-w-xs">Block specific senders, domains, or keywords for all family members automatically.</p>
+          {!show_form && (
+            <button onClick={() => set_show_form(true)} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 mt-1">
+              <PlusIcon className="w-3.5 h-3.5" /> Create your first filter
+            </button>
+          )}
         </div>
       ) : (
         <div className="divide-y divide-edge-secondary">
@@ -596,7 +606,7 @@ function FiltersContent() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-txt-primary">{f.name}</p>
                 <p className="text-xs text-txt-muted font-mono mt-0.5">
-                  If {fl(f.field)} = <span className="text-txt-secondary">&ldquo;{f.value}&rdquo;</span> &rarr; {al(f.action)}
+                  If {fl(f.field)} = <span className="text-txt-secondary">"{f.value}"</span> <ArrowRightIcon className="w-3 h-3 inline-block mx-0.5 align-middle" /> {al(f.action)}
                 </p>
               </div>
               <button onClick={() => del_f(f.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
@@ -735,12 +745,12 @@ function SecurityContent() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-txt-primary font-medium">{with_2fa} of {total_members} members have 2FA enabled</span>
-            <span className="text-txt-muted text-xs">{total_members > 0 ? Math.round((with_2fa / total_members) * 100) : 0}%</span>
+            <span className="text-txt-muted text-xs font-semibold tabular-nums">{Math.round((with_2fa / total_members) * 100)}%</span>
           </div>
-          <div className="w-full h-1.5 bg-edge-secondary rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-edge-secondary rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full transition-all"
-              style={{ width: `${total_members > 0 ? (with_2fa / total_members) * 100 : 0}%`, backgroundColor: non_2fa === 0 ? "rgb(34 197 94)" : "rgb(245 158 11)" }}
+              className="h-2 rounded-full transition-all"
+              style={{ width: `${(with_2fa / total_members) * 100}%`, backgroundColor: non_2fa === 0 ? "rgb(34 197 94)" : "rgb(245 158 11)" }}
             />
           </div>
         </div>
@@ -1181,14 +1191,13 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           {is_owner && (
             <button
               onClick={() => set_tab("security")}
-              className="w-full text-left rounded-xl border border-edge-secondary px-4 py-3 hover:border-accent-blue/40 transition-colors"
+              className="w-full text-left rounded-xl border border-edge-secondary border-l-4 border-l-accent-blue px-4 py-3 hover:border-accent-blue/40 transition-colors"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <LockClosedIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                  <span className="text-sm font-medium text-txt-primary">Security snapshot</span>
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-accent-blue/10 flex items-center justify-center flex-shrink-0">
+                  <LockClosedIcon className="w-4 h-4" style={{ color: "var(--accent-blue)" }} />
                 </div>
-                <ChevronRightIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+                <span className="text-sm font-medium text-txt-primary">Security snapshot</span>
               </div>
               {(() => {
                 const compliant = Object.values(compliance_map).filter(m => m.has_2fa).length;
@@ -1210,7 +1219,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
           <div>
             <div className="mb-3">
-              <h3 className="text-base font-semibold text-txt-primary">Members</h3>
+              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+                Members
+                <span className="ml-auto text-xs text-txt-muted">{active_members.length} of {group.max_members}</span>
+              </h3>
               <div className="mt-2 h-px bg-edge-secondary" />
             </div>
             <div className="divide-y divide-edge-secondary">
@@ -1330,14 +1342,15 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 </button>
               ) : (
                 <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <div className="flex-1 space-y-1">
-                      <label className="text-xs text-txt-muted">{t("settings.family_invite_email_placeholder")}</label>
+                  <div className="h-px bg-edge-secondary" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-txt-muted mb-1 block">{t("settings.family_invite_email_placeholder")}</label>
                       <Input type="email" placeholder={t("settings.family_invite_email_placeholder")} value={invite_email}
                         onChange={e => set_invite_email(e.target.value)} autoFocus />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs text-txt-muted">{t("settings.family_invite_storage")}</label>
+                      <label className="text-xs font-medium text-txt-muted mb-1 block">{t("settings.family_invite_storage")}</label>
                       <div className="flex items-center gap-1">
                         <Input type="number" min="1" value={invite_storage_gb} onChange={e => set_invite_storage_gb(e.target.value)} className="w-20" />
                         <span className="text-sm text-txt-muted">GB</span>
