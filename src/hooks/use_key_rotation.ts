@@ -43,7 +43,8 @@ export interface KeyRotationState {
   last_check_error: string | null;
 }
 
-export function use_key_rotation() {
+export function use_key_rotation(options?: { auto_check?: boolean }) {
+  const auto_check = options?.auto_check !== false;
   const { t } = use_i18n();
   const { user, is_authenticated, has_keys } = use_auth();
   const { preferences } = use_preferences();
@@ -208,6 +209,7 @@ export function use_key_rotation() {
   }, []);
 
   useEffect(() => {
+    if (!auto_check) return;
     if (is_authenticated && has_keys && preferences?.forward_secrecy_enabled) {
       if (!has_checked_ref.current) {
         has_checked_ref.current = true;
@@ -217,6 +219,7 @@ export function use_key_rotation() {
       has_checked_ref.current = false;
     }
   }, [
+    auto_check,
     is_authenticated,
     has_keys,
     preferences?.forward_secrecy_enabled,
