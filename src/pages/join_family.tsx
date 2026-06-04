@@ -45,7 +45,6 @@ export default function JoinFamilyPage() {
   const [joining, set_joining] = useState(false);
   const [error_msg, set_error_msg] = useState<string | null>(null);
   const [joined_bytes, set_joined_bytes] = useState<number | null>(null);
-  const has_attempted = useState(false);
 
   useEffect(() => {
     if (!token) { set_preview_loading(false); set_error_msg("Invalid invite link."); return; }
@@ -71,14 +70,7 @@ export default function JoinFamilyPage() {
     }
   };
 
-  // Auto-join authenticated users once preview loads
-  useEffect(() => {
-    if (!is_loading && is_authenticated && token && !joining && !error_msg && joined_bytes === null && preview && !preview_loading && !has_attempted[0]) {
-      has_attempted[1](true);
-      handle_join();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [is_loading, is_authenticated, preview, preview_loading]);
+  // Do not auto-join: always require explicit button click to prevent CSRF-style forced joins.
 
   if (is_loading || preview_loading) {
     return <div className="min-h-screen flex items-center justify-center"><Spinner size="lg" /></div>;
