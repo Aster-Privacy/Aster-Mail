@@ -47,7 +47,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@aster/ui";
+import { Switch, Button } from "@aster/ui";
 import { get_avatar_color } from "@/lib/avatar_color";
 import { change_plan } from "@/services/api/billing";
 import {
@@ -561,6 +561,99 @@ function ActivityContent() {
   );
 }
 
+const FILTER_FIELD_COLORS: Record<string, string> = {
+  from: "#6366f1",
+  domain: "#8b5cf6",
+  to: "#3b82f6",
+  subject: "#f59e0b",
+};
+
+const FILTER_FIELD_LABELS: Record<string, string> = {
+  from: "Sender",
+  to: "Recipient",
+  domain: "Domain",
+  subject: "Subject",
+};
+
+const FILTER_ACTION_LABELS: Record<string, string> = {
+  trash: "Move to Trash",
+  block: "Block",
+  archive: "Archive",
+  mark_read: "Mark as read",
+};
+
+const FILTER_ACTION_COLORS: Record<string, string> = {
+  trash: "#ef4444",
+  block: "#ef4444",
+  archive: "#6366f1",
+  mark_read: "#10b981",
+};
+
+interface FilterCardProps {
+  filter: OrgFilter;
+  on_toggle: (f: OrgFilter) => void;
+  on_delete: (id: string) => void;
+}
+
+function FilterCard({ filter, on_toggle, on_delete }: FilterCardProps) {
+  const dot_color = FILTER_FIELD_COLORS[filter.field] ?? "#a3a3a3";
+  const action_color = FILTER_ACTION_COLORS[filter.action] ?? "#a3a3a3";
+  const action_label = FILTER_ACTION_LABELS[filter.action] ?? filter.action;
+  const field_label = FILTER_FIELD_LABELS[filter.field] ?? filter.field;
+
+  return (
+    <div
+      className={`group relative rounded-xl border bg-surf-primary p-4 transition-colors border-neutral-200 dark:border-neutral-700 hover:bg-surf-secondary hover:border-neutral-300 dark:hover:border-neutral-600${!filter.is_enabled ? " opacity-60" : ""}`}
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: dot_color }} />
+            <span className="text-[13px] font-medium text-txt-primary truncate">{filter.name}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-stretch h-7 rounded-[12px] border bg-transparent border-neutral-200 dark:border-neutral-700 overflow-hidden">
+              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-neutral-700 dark:text-neutral-200 rounded-l-[11px]">
+                {field_label}
+              </span>
+              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-neutral-700 dark:text-neutral-200 border-l border-neutral-200 dark:border-neutral-700">
+                <span className="truncate max-w-[200px]">{filter.value}</span>
+              </span>
+            </span>
+            <span className="text-neutral-400 text-[12px] px-0.5">→</span>
+            <span
+              className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[12px] text-[12.5px] font-medium text-white"
+              style={{ backgroundColor: action_color }}
+            >
+              {action_label}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); on_toggle(filter); }}
+            className="p-1.5 text-txt-muted hover:text-txt-primary"
+            title={filter.is_enabled ? "Disable filter" : "Enable filter"}
+          >
+            {filter.is_enabled
+              ? <CheckCircleIcon className="w-4 h-4" style={{ color: "var(--accent-blue)" }} />
+              : <XCircleIcon className="w-4 h-4" />}
+          </button>
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); on_delete(filter.id); }}
+            className="p-1.5 text-txt-muted hover:text-red-500"
+            title="Delete filter"
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FiltersContent() {
   const [filters, set_filters] = useState<OrgFilter[]>([]);
   const [loading, set_loading] = useState(true);
@@ -569,8 +662,7 @@ function FiltersContent() {
   const [form, set_form] = useState({ name: "", value: "", field: "from", action: "trash" });
 
   const load = useCallback(async () => {
-    set_loading(true);
-    try { const r = await list_org_filters(); set_filters(r.data ?? []); }
+    try { const r = await list_org_filters(); if (r.data) set_filters(r.data); }
     catch { show_toast("Failed to load filters", "error"); }
     finally { set_loading(false); }
   }, []);
@@ -585,75 +677,109 @@ function FiltersContent() {
     } catch { show_toast("Failed to create filter", "error"); }
     finally { set_creating(false); }
   };
-  const toggle_f = async (f: OrgFilter) => {
-    const r = await update_org_filter(f.id, { is_enabled: !f.is_enabled });
-    if (r.data) set_filters(fs => fs.map(x => x.id === f.id ? r.data! : x));
-  };
-  const del_f = async (id: string) => { await delete_org_filter(id); set_filters(f => f.filter(x => x.id !== id)); show_toast("Filter deleted", "success"); };
-  const fl = (v: string) => ({ from: "Sender", to: "Recipient", domain: "Domain", subject: "Subject" }[v] ?? v);
-  const al = (v: string) => ({ trash: "Trash", block: "Block", archive: "Archive", mark_read: "Mark read" }[v] ?? v);
 
-  if (loading) return <div className="flex justify-center items-center gap-2 py-8"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>;
+  const toggle_f = async (f: OrgFilter) => {
+    try {
+      const r = await update_org_filter(f.id, { is_enabled: !f.is_enabled });
+      if (r.data) set_filters(fs => fs.map(x => x.id === f.id ? r.data! : x));
+    } catch { show_toast("Failed to update filter", "error"); }
+  };
+
+  const del_f = async (id: string) => {
+    try { await delete_org_filter(id); set_filters(f => f.filter(x => x.id !== id)); show_toast("Filter deleted", "success"); }
+    catch { show_toast("Failed to delete filter", "error"); }
+  };
+
   return (
     <div className="space-y-4">
-      {(filters.length > 0 || show_form) && (
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-txt-muted max-w-xs">Filters apply to all family members' inboxes org-wide.</p>
-          <button onClick={() => set_show_form(!show_form)} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5 flex-shrink-0">
-            <PlusIcon className="w-3.5 h-3.5" /> New Filter
-          </button>
+      <div>
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
+              <FunnelIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+              Org-wide filters
+              <span className="text-xs font-normal text-txt-muted">
+                {loading ? "..." : filters.length}
+              </span>
+            </h3>
+            <Button
+              size="md"
+              variant="depth"
+              onClick={() => set_show_form(true)}
+            >
+              <PlusIcon className="w-4 h-4" />
+              New filter
+            </Button>
+          </div>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <p className="text-sm mb-4 text-txt-muted">
+          Filters apply to all family members' inboxes org-wide.
+        </p>
+      </div>
+
+      {loading && filters.length === 0 && (
+        <div className="space-y-3">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="h-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
+          ))}
         </div>
       )}
+
       {show_form && (
-        <div className="rounded-xl border border-edge-secondary p-4 space-y-3">
+        <div className="rounded-xl border border-blue-500/30 bg-surf-primary p-4 space-y-3">
           <div className="grid grid-cols-2 gap-2">
             <Input placeholder="Filter name" value={form.name} onChange={e => set_form(f => ({ ...f, name: e.target.value }))} />
             <Input placeholder="Value (domain, email, keyword)" value={form.value} onChange={e => set_form(f => ({ ...f, value: e.target.value }))} />
           </div>
           <div className="flex gap-2">
-            <Select value={form.field} onValueChange={v => set_form(f => ({ ...f, field: v }))}><SelectTrigger className="flex-1"><SelectValue /></SelectTrigger><SelectContent>
-              <SelectItem value="from">Sender (from)</SelectItem><SelectItem value="to">Recipient (to)</SelectItem><SelectItem value="domain">Domain</SelectItem><SelectItem value="subject">Subject</SelectItem></SelectContent></Select>
-            <Select value={form.action} onValueChange={v => set_form(f => ({ ...f, action: v }))}><SelectTrigger className="flex-1"><SelectValue /></SelectTrigger><SelectContent>
-              <SelectItem value="trash">Move to Trash</SelectItem><SelectItem value="block">Block</SelectItem><SelectItem value="archive">Archive</SelectItem><SelectItem value="mark_read">Mark as read</SelectItem></SelectContent></Select>
+            <select value={form.field} onChange={e => set_form(f => ({ ...f, field: e.target.value }))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
+              <option value="from">Sender (from)</option>
+              <option value="to">Recipient (to)</option>
+              <option value="domain">Domain</option>
+              <option value="subject">Subject</option>
+            </select>
+            <select value={form.action} onChange={e => set_form(f => ({ ...f, action: e.target.value }))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
+              <option value="trash">Move to Trash</option>
+              <option value="block">Block</option>
+              <option value="archive">Archive</option>
+              <option value="mark_read">Mark as read</option>
+            </select>
           </div>
           <div className="flex gap-2">
             <button onClick={create} disabled={creating || !form.name.trim() || !form.value.trim()} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">
-              {creating ? <Spinner size="sm" /> : "Create Filter"}
+              {creating ? <Spinner size="sm" /> : "Create filter"}
             </button>
             <button onClick={() => set_show_form(false)} className="aster_btn aster_btn_ghost aster_btn_sm">Cancel</button>
           </div>
         </div>
       )}
-      {filters.length === 0 ? (
-        <div className="flex flex-col items-center py-10 gap-3">
-          <FunnelIcon className="w-12 h-12 text-txt-muted" />
-          <p className="text-sm font-medium text-txt-primary">No org-wide filters</p>
-          <p className="text-xs text-txt-muted text-center max-w-xs">Block specific senders, domains, or keywords for all family members automatically.</p>
-          <div className="rounded-lg border border-edge-secondary px-3 py-2 text-left w-full max-w-xs">
-            <p className="text-[10px] font-medium text-txt-muted uppercase tracking-wide mb-1">Example</p>
-            <span className="text-xs font-mono text-txt-secondary">sender = &ldquo;spam.com&rdquo; &rarr; Trash</span>
-          </div>
+
+      {!loading && filters.length === 0 && (
+        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+          <FunnelIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
+          <p className="text-sm text-txt-muted mb-1">No org-wide filters</p>
+          <p className="text-xs text-txt-muted">Create filters to apply rules across all member inboxes.</p>
           {!show_form && (
-            <button onClick={() => set_show_form(true)} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 mt-1">
-              <PlusIcon className="w-3.5 h-3.5" /> Create your first filter
+            <button
+              onClick={() => set_show_form(true)}
+              className="aster_btn aster_btn_secondary aster_btn_sm mt-4"
+            >
+              Create first filter
             </button>
           )}
         </div>
-      ) : (
-        <div className="divide-y divide-edge-secondary">
+      )}
+
+      {filters.length > 0 && (
+        <div className="space-y-2">
           {filters.map(f => (
-            <div key={f.id} className={`flex items-center gap-3 py-3 pl-3 border-l-2 ${f.is_enabled ? "border-accent-blue" : "border-edge-secondary"}`}>
-              <button onClick={() => toggle_f(f)} className="flex-shrink-0">
-                {f.is_enabled ? <CheckCircleIcon className="w-5 h-5 text-accent-blue" /> : <XCircleIcon className="w-5 h-5 text-txt-muted" />}
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-txt-primary">{f.name}</p>
-                <p className="text-xs text-txt-muted font-mono mt-0.5">
-                  If {fl(f.field)} = <span className="text-txt-secondary">&ldquo;{f.value}&rdquo;</span> <ArrowRightIcon className="w-3 h-3 inline-block mx-0.5 align-middle" /> {al(f.action)}
-                </p>
-              </div>
-              <button onClick={() => del_f(f.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0" title="Delete filter" aria-label="Delete filter"><TrashIcon className="w-4 h-4" /></button>
-            </div>
+            <FilterCard
+              key={f.id}
+              filter={f}
+              on_toggle={toggle_f}
+              on_delete={del_f}
+            />
           ))}
         </div>
       )}
