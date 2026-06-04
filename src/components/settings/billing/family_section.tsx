@@ -476,10 +476,10 @@ function ActivityContent() {
   const [loading, set_loading] = useState(true);
   const [filter_type, set_filter_type] = useState("");
 
-  const load_page = useCallback(async (p: number) => {
+  const load_page = useCallback(async (p: number, ft?: string) => {
     set_loading(true);
     try {
-      const r = await get_activity_log(p, 20);
+      const r = await get_activity_log(p, 20, ft);
       if (r.data) {
         if (p === 1) set_entries(r.data.entries); else set_entries(prev => [...prev, ...r.data!.entries]);
         set_total(r.data.total); set_page(p);
@@ -489,6 +489,9 @@ function ActivityContent() {
   }, []);
 
   useEffect(() => { load_page(1); }, [load_page]);
+
+  // Reload when filter changes
+  useEffect(() => { set_page(1); set_entries([]); load_page(1, filter_type || undefined); }, [filter_type]);
 
   const unique_types = Array.from(new Set(entries.map(e => e.event_type)));
   const filtered = filter_type ? entries.filter(e => e.event_type === filter_type) : entries;
@@ -537,7 +540,7 @@ function ActivityContent() {
         </div>
       )}
       {entries.length < total && (
-        <button onClick={() => load_page(page + 1)} disabled={loading} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">
+        <button onClick={() => load_page(page + 1, filter_type || undefined)} disabled={loading} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">
           {loading ? <Spinner size="sm" /> : "Load more"}
         </button>
       )}

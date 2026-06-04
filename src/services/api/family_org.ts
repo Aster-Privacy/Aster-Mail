@@ -117,8 +117,8 @@ export const add_group_member = (group_id: string, user_id: string) =>
 export const remove_group_member = (group_id: string, user_id: string) =>
   api_client.delete<unknown>(`${BASE}/groups/${group_id}/members/${user_id}`);
 
-export const get_activity_log = (page = 1, per_page = 50) =>
-  api_client.get<ActivityLogResponse>(`${BASE}/activity?page=${page}&per_page=${per_page}`);
+export const get_activity_log = (page = 1, per_page = 50, event_type?: string) =>
+  api_client.get<ActivityLogResponse>(`${BASE}/activity?page=${page}&per_page=${per_page}${event_type ? `&event_type=${encodeURIComponent(event_type)}` : ""}`);
 
 export const list_org_filters = () => api_client.get<OrgFilter[]>(`${BASE}/filters`);
 export const create_org_filter = (data: { name: string; filter_type: string; field: string; value: string; action: string; description?: string; operator?: string; applies_to?: string; priority?: number }) =>
