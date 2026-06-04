@@ -222,32 +222,29 @@ export function AvailablePlansSection({
                   backgroundColor: "var(--bg-tertiary)",
                 }}
               >
-                <div
-                  className="px-5 pt-5 pb-4 text-center"
-                  style={{ background: "linear-gradient(160deg, #1e3a5f 0%, #0f1f3d 100%)" }}
-                >
+                <div className="px-5 pt-5 pb-4 text-center" style={{ backgroundColor: "transparent" }}>
                   {is_current && (
                     <div className="inline-flex px-3 py-1 rounded-full text-xs font-medium mb-3" style={{ backgroundColor: "#2563eb", color: "#fff" }}>
                       {t("settings.current_plan")}
                     </div>
                   )}
                   <div className="flex items-center justify-center gap-2 mb-1">
-                    <UserGroupIcon className="w-5 h-5 text-white" />
-                    <h4 className="text-lg font-bold text-white">{tier.name}</h4>
+                    <UserGroupIcon className="w-5 h-5 text-txt-primary" />
+                    <h4 className="text-lg font-bold text-txt-primary">{tier.name}</h4>
                   </div>
-                  <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  <p className="text-xs text-txt-muted mb-3">
                     {tier.max_members === 2 ? t("settings.family_duo_tagline") : t("settings.family_plan_tagline")}
                   </p>
                   <div className="mt-2">
-                    <span className="text-3xl font-bold text-white">
+                    <span className="text-3xl font-bold text-txt-primary">
                       {format_price(convert_cents(price_cents, preferred_currency), preferred_currency)}
                     </span>
-                    <span className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+                    <span className="text-sm text-txt-muted">
                       {billing_period === "monthly" ? t("settings.per_month_short") : t("settings.per_year_short")}
                     </span>
                   </div>
                   {billing_period === "yearly" && (
-                    <p className="text-xs font-medium mt-1.5 text-emerald-400">
+                    <p className="text-xs font-medium mt-1.5" style={{ color: "var(--color-success)" }}>
                       {tier.savings_label}
                     </p>
                   )}
