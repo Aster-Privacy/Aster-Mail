@@ -28,6 +28,7 @@ import {
   ArrowRightIcon,
   PencilIcon,
   XMarkIcon,
+  CircleStackIcon,
   ShieldCheckIcon,
   ArchiveBoxIcon,
   ExclamationTriangleIcon,
@@ -37,6 +38,7 @@ import {
   ChevronDownIcon,
   PlusIcon,
   InformationCircleIcon,
+  ReceiptPercentIcon,
   GlobeAltIcon,
   FunnelIcon,
   ClockIcon,
@@ -47,7 +49,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@aster/ui";
 import { get_avatar_color } from "@/lib/avatar_color";
-import { change_plan } from "@/services/api/billing";
+import { change_plan, get_billing_history, format_price, type BillingHistoryItem } from "@/services/api/billing";
 import {
   list_org_groups, create_org_group, delete_org_group,
   list_group_members, add_group_member, remove_group_member,
@@ -195,7 +197,6 @@ function SkeletonRows({ count = 3, has_icon = true }: { count?: number; has_icon
   );
 }
 
-
 function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on_remove, on_transfer, on_reload }: {
   member: FamilyMemberInfo;
   is_owner_view: boolean;
@@ -338,9 +339,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
 
   const [confirm_delete_gid, set_confirm_delete_gid] = useState<string | null>(null);
 
-  const handle_delete = async (gid: string) => {
-    set_confirm_delete_gid(gid);
-  };
+  const handle_delete = (gid: string) => { set_confirm_delete_gid(gid); };
   const confirm_delete = async () => {
     if (!confirm_delete_gid) return;
     try { await delete_org_group(confirm_delete_gid); set_groups(p => p.filter(g => g.id !== confirm_delete_gid)); if (expanded === confirm_delete_gid) set_expanded(null); show_toast("Group deleted", "success"); }
@@ -377,6 +376,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
           <PlusIcon className="w-4 h-4" /> Create
         </button>
       </div>
+      <p className="text-[11px] text-txt-muted">Email prefix is optional - creates a group address like <span className="font-mono">team@yourdomain.com</span></p>
       {loading ? (
         <SkeletonRows count={3} has_icon={false} />
       ) : groups.length === 0 ? (
@@ -408,15 +408,17 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                         </div>
                       )}
                     </div>
-                    <span className="text-xs font-medium text-txt-muted flex-shrink-0">
-                      {g.member_count} member{g.member_count !== 1 ? "s" : ""}
-                    </span>
+                    <span className="aster_badge aster_badge_gray flex-shrink-0">{g.member_count}</span>
                   </button>
                   <button onClick={() => handle_delete(g.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0" title="Delete group" aria-label="Delete group"><TrashIcon className="w-4 h-4" /></button>
                 </div>
                 <div className={`overflow-hidden transition-all duration-200 ${is_open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
                   <div className="pl-6 pb-3 space-y-1">
-                    {gm.length === 0 ? <p className="text-xs text-txt-muted">No members yet.</p> : (
+                    {gm.length === 0 ? (
+                      <p className="text-xs text-txt-muted">No members.{" "}
+                        <button onClick={() => { set_adding_to(g.id); }} className="text-accent-blue hover:underline">Add someone</button>
+                      </p>
+                    ) : (
                       <div className="divide-y divide-edge-secondary">
                         {gm.map(m => (
                           <div key={m.user_id} className="flex items-center justify-between py-2">
@@ -489,7 +491,6 @@ function ActivityContent() {
 
   useEffect(() => { set_entries([]); load_page(1, filter_type || undefined); }, [load_page, filter_type]);
 
-  const unique_types = Array.from(new Set(entries.map(e => e.event_type)));
   const filtered = filter_type ? entries.filter(e => e.event_type === filter_type) : entries;
 
   return (
@@ -498,7 +499,7 @@ function ActivityContent() {
         <span className="text-sm text-txt-muted">{total} event{total !== 1 ? "s" : ""}</span>
         <select value={filter_type} onChange={e => set_filter_type(e.target.value)} className="text-sm border border-edge-secondary rounded px-2 py-1 bg-transparent text-txt-primary" aria-label="Filter by event type">
           <option value="">All events</option>
-          {unique_types.map(type => <option key={type} value={type}>{EVENT_LABELS[type] ?? type}</option>)}
+          {Object.entries(EVENT_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
         </select>
       </div>
       {loading && entries.length === 0 ? (
@@ -510,6 +511,14 @@ function ActivityContent() {
           </div>
           <p className="text-sm font-medium text-txt-primary">No activity yet</p>
           <p className="text-xs text-txt-muted text-center max-w-xs">Member joins, security changes, and administrative actions will appear here.</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-1 text-left">
+            {["Member joins", "Security changes", "Filter updates", "Domain sharing", "Storage changes", "Invite activity"].map(e => (
+              <div key={e} className="flex items-center gap-1.5 text-xs text-txt-muted">
+                <div className="w-1 h-1 rounded-full bg-edge-secondary flex-shrink-0" />
+                {e}
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="divide-y divide-edge-secondary">
@@ -529,7 +538,7 @@ function ActivityContent() {
               </div>
               <div className="flex-1 min-w-0">
                 <span className="text-sm text-txt-primary">{activity_event_text(entry)}</span>
-                <p className="text-xs text-txt-muted mt-0.5">{last_seen_relative(entry.created_at)} - {format_activity_time(entry.created_at)}</p>
+                <p className="text-xs text-txt-muted mt-0.5" title={format_activity_time(entry.created_at)}>{last_seen_relative(entry.created_at)}</p>
               </div>
             </div>
           ))}
@@ -617,6 +626,10 @@ function FiltersContent() {
           </div>
           <p className="text-sm font-medium text-txt-primary">No org-wide filters</p>
           <p className="text-xs text-txt-muted text-center max-w-xs">Block specific senders, domains, or keywords for all family members automatically.</p>
+          <div className="rounded-lg border border-edge-secondary px-3 py-2 text-left w-full max-w-xs">
+            <p className="text-[10px] font-medium text-txt-muted uppercase tracking-wide mb-1">Example</p>
+            <span className="text-xs font-mono text-txt-secondary">sender = &ldquo;spam.com&rdquo; &rarr; Trash</span>
+          </div>
           {!show_form && (
             <button onClick={() => set_show_form(true)} className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 mt-1">
               <PlusIcon className="w-3.5 h-3.5" /> Create your first filter
@@ -633,7 +646,7 @@ function FiltersContent() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-txt-primary">{f.name}</p>
                 <p className="text-xs text-txt-muted font-mono mt-0.5">
-                  If {fl(f.field)} = <span className="text-txt-secondary">"{f.value}"</span> <ArrowRightIcon className="w-3 h-3 inline-block mx-0.5 align-middle" /> {al(f.action)}
+                  If {fl(f.field)} = <span className="text-txt-secondary">&ldquo;{f.value}&rdquo;</span> <ArrowRightIcon className="w-3 h-3 inline-block mx-0.5 align-middle" /> {al(f.action)}
                 </p>
               </div>
               <button onClick={() => del_f(f.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0" title="Delete filter" aria-label="Delete filter"><TrashIcon className="w-4 h-4" /></button>
@@ -719,7 +732,13 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
                       <p className="text-xs text-txt-muted mt-0.5">Owned by {d.owner_username}</p>
                     </div>
                   </div>
-                  <button onClick={() => { set_sharing(d.domain_name); set_share_uid(""); }} className="text-sm text-accent-blue hover:underline flex-shrink-0 font-medium">Share</button>
+                  <button
+                    onClick={() => { if (d.dkim_verified) { set_sharing(d.domain_name); set_share_uid(""); } }}
+                    disabled={!d.dkim_verified}
+                    title={d.dkim_verified ? "Share with members" : "Verify DKIM first to enable sharing"}
+                    className="text-sm text-accent-blue hover:underline flex-shrink-0 font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none">
+                    Share
+                  </button>
                 </div>
                 {sharing === d.domain_name && (
                   <div className="mt-3 ml-10 space-y-2">
@@ -828,7 +847,10 @@ function SecurityContent() {
       <div className="divide-y divide-edge-secondary">
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
-            <p className="text-sm font-medium text-txt-primary">Require two-factor authentication</p>
+            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+              Require two-factor authentication
+              {policy.require_2fa && <span className="aster_badge aster_badge_green text-[10px]">Active</span>}
+            </p>
             <p className="text-sm mt-0.5 text-txt-muted">All members must enable 2FA to access their accounts</p>
           </div>
           <Switch
@@ -895,8 +917,8 @@ function SecurityContent() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-txt-primary truncate">{m.username}@{m.email_domain}</p>
                     <p className="text-xs text-txt-muted mt-0.5">
-                      {m.session_count} active session{m.session_count !== 1 ? "s" : ""}
-                      {m.last_login && <span> · last seen {last_seen_relative(m.last_login)}</span>}
+                      {m.session_count === 0 ? "No active sessions" : `${m.session_count} active session${m.session_count !== 1 ? "s" : ""}`}
+                      {m.last_login ? <span> · last seen {last_seen_relative(m.last_login)}</span> : <span> · Never signed in</span>}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -941,9 +963,9 @@ function RetentionContent() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-edge-secondary">
-        <InformationCircleIcon className="w-4 h-4 flex-shrink-0 text-txt-muted mt-0.5" />
-        <p className="text-xs text-txt-muted">By default, Aster keeps all mail forever. Set limits below to automatically clean up old messages. Leave blank to keep forever.</p>
+      <div className="flex items-start gap-2 rounded-lg bg-surf-secondary px-3 py-2.5 border border-edge-secondary">
+        <InformationCircleIcon className="w-4 h-4 text-txt-muted flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-txt-muted">Set limits to auto-delete old messages. Leave blank to keep forever. Applies to all members when "Enforce on all members" is on.</p>
       </div>
       <div className="divide-y divide-edge-secondary">
         {([
@@ -971,7 +993,9 @@ function RetentionContent() {
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
             <p className="text-sm font-medium text-txt-primary">Enforce on all members</p>
-            <p className="text-sm mt-0.5 text-txt-muted">When enabled, these limits apply to all member accounts. Members cannot override.</p>
+            <p className={policy.enforce_on_members ? "text-sm mt-0.5 text-amber-500 dark:text-amber-400 font-medium" : "text-sm mt-0.5 text-txt-muted"}>
+              {policy.enforce_on_members ? "Enforced on all members - they cannot override" : "When enabled, these limits apply to all member accounts. Members cannot override."}
+            </p>
           </div>
           <Switch
             checked={policy.enforce_on_members}
@@ -1001,6 +1025,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [action_loading, set_action_loading] = useState(false);
   const [changing_plan, set_changing_plan] = useState(false);
   const [compliance_map, set_compliance_map] = useState<Record<string, MemberComplianceInfo>>({});
+  const [billing_history, set_billing_history] = useState<BillingHistoryItem[]>([]);
+  const [billing_loading, set_billing_loading] = useState(false);
 
   const load_group = useCallback(async () => {
     try {
@@ -1025,7 +1051,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const is_owner = group?.viewer_role === "owner";
   const has_pending_link = group?.pending_invites.some(i => i.link_only) ?? false;
 
-
   useEffect(() => {
     if (!is_owner || Object.keys(compliance_map).length > 0) return;
     get_member_compliance()
@@ -1039,10 +1064,17 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       .catch(() => {});
   }, [is_owner, compliance_map]);
 
+  useEffect(() => {
+    if (!is_owner || billing_history.length > 0) return;
+    set_billing_loading(true);
+    get_billing_history(1, 3)
+      .then(r => { if (r.data) set_billing_history(r.data.items || []); })
+      .finally(() => set_billing_loading(false));
+  }, [is_owner, billing_history.length]);
+
   const handle_upgrade_to_family = async () => {
     set_changing_plan(true);
     try {
-      // Try yearly first (most common), fall back to monthly if that fails
       const res = await change_plan("family", "year");
       if (res.ok) { show_toast("Plan upgraded successfully", "success"); window.location.reload(); }
       else {
@@ -1050,6 +1082,16 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         if (res2.ok) { show_toast("Plan upgraded successfully", "success"); window.location.reload(); }
         else show_toast(t("settings.failed_save_setting"), "error");
       }
+    } catch { show_toast(t("settings.failed_save_setting"), "error"); }
+    finally { set_changing_plan(false); }
+  };
+
+  const handle_change_plan = async (plan_code: string) => {
+    set_changing_plan(true);
+    try {
+      const res = await change_plan(plan_code, "year");
+      if (res.ok) { show_toast(t("settings.change_plan"), "success"); window.location.reload(); }
+      else show_toast(t("settings.failed_save_setting"), "error");
     } catch { show_toast(t("settings.failed_save_setting"), "error"); }
     finally { set_changing_plan(false); }
   };
@@ -1125,7 +1167,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     finally { set_action_loading(false); set_show_leave_dialog(false); }
   };
 
-
   if (!is_family_plan || loading) return null;
 
   if (!group) {
@@ -1192,8 +1233,11 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         <>
           <div className="grid grid-cols-3 divide-x divide-edge-secondary rounded-xl border border-edge-secondary">
             <div className="px-5 py-4">
-              <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">Members</p>
-              <p className="text-2xl font-bold text-txt-primary tabular-nums mt-1.5">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <UserGroupIcon className="w-3.5 h-3.5 text-txt-muted" />
+                <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">Members</p>
+              </div>
+              <p className="text-2xl font-bold text-txt-primary tabular-nums">
                 {active_members.length}
                 <span className="text-base font-normal text-txt-muted"> / {group.max_members}</span>
               </p>
@@ -1203,8 +1247,11 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               </p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">Storage used</p>
-              <p className="text-2xl font-bold text-txt-primary tabular-nums mt-1.5">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <CircleStackIcon className="w-3.5 h-3.5 text-txt-muted" />
+                <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">Storage used</p>
+              </div>
+              <p className="text-2xl font-bold text-txt-primary tabular-nums">
                 {format_bytes(pool_used)}
               </p>
               <p className="text-xs text-txt-muted mt-1">of {format_bytes(group.storage_pool_bytes)} total</p>
@@ -1216,13 +1263,50 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               </div>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">Encryption</p>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <ShieldCheckIcon className="w-3.5 h-3.5 text-green-500" />
+                <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">Encryption</p>
+              </div>
               <p className="text-2xl font-bold text-txt-primary mt-1.5">E2E</p>
               <p className="text-xs text-txt-muted mt-1">Zero-access · quantum-safe</p>
             </div>
           </div>
 
-
+          <div>
+            <div className="mb-3">
+              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+                Members
+                <span className="ml-auto text-xs text-txt-muted">{active_members.length} of {group.max_members}</span>
+              </h3>
+              <div className="mt-2 h-px bg-edge-secondary" />
+            </div>
+            <div className="flex items-center gap-3 py-2">
+              <div className="flex items-center">
+                {active_members.slice(0, 5).map((m, i) => (
+                  <div key={m.user_id}
+                    className={`w-8 h-8 rounded-full border-2 border-surf-primary flex items-center justify-center text-white text-xs font-bold${i > 0 ? " -ml-2" : ""}`}
+                    style={{ backgroundColor: get_avatar_color(m.username) }}
+                    title={m.username + "@" + m.email_domain}>
+                    {m.username[0]?.toUpperCase()}
+                  </div>
+                ))}
+                {active_members.length > 5 && (
+                  <div className="w-8 h-8 rounded-full border-2 border-surf-primary bg-surf-secondary flex items-center justify-center text-xs font-medium text-txt-muted -ml-2">
+                    +{active_members.length - 5}
+                  </div>
+                )}
+              </div>
+              <div>
+                <p className="text-sm text-txt-primary">{active_members.length} member{active_members.length !== 1 ? "s" : ""}</p>
+                <p className="text-xs text-txt-muted">{seats_remaining} seat{seats_remaining !== 1 ? "s" : ""} available</p>
+              </div>
+              {is_owner && (
+                <button onClick={() => set_tab("members")} className="ml-auto aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5">
+                  <UserPlusIcon className="w-3.5 h-3.5" /> Manage
+                </button>
+              )}
+            </div>
+          </div>
 
           {is_owner && (
             <button
@@ -1242,7 +1326,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                   return (
                     <div className="flex items-center justify-between mt-2.5">
                       <span className="flex items-center gap-1.5 text-xs text-txt-muted"><Spinner size="sm" /> Checking compliance...</span>
-                      <span className="flex items-center gap-1 text-xs text-txt-muted">View security <ArrowRightIcon className="w-3.5 h-3.5" /></span>
                     </div>
                   );
                 }
@@ -1254,39 +1337,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                     <span className={all_ok ? "aster_badge aster_badge_green" : "aster_badge aster_badge_amber"}>
                       {all_ok ? "All members have 2FA" : `${compliant}/${total} have 2FA`}
                     </span>
-
                   </div>
                 );
               })()}
             </button>
-          )}
-
-          <div>
-            <div className="mb-3">
-              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                Members
-                <span className="ml-auto text-xs text-txt-muted">{active_members.length} of {group.max_members}</span>
-              </h3>
-              <div className="mt-2 h-px bg-edge-secondary" />
-            </div>
-            <div className="divide-y divide-edge-secondary">
-              {active_members.map(m => (
-                <MemberRow key={m.user_id} member={m} is_owner_view={false}
-                  compliance={compliance_map[m.user_id]}
-                  on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
-              ))}
-            </div>
-          </div>
-
-          {is_owner && (
-            <div className="flex flex-wrap gap-2">
-              <button onClick={() => set_tab("members")} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5">
-                <UserPlusIcon className="w-3.5 h-3.5" /> Invite member
-              </button>
-              <button onClick={() => set_tab("security")} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5">
-                <ShieldCheckIcon className="w-3.5 h-3.5" /> Set security
-              </button>
-            </div>
           )}
 
           {is_owner && seats_full && group.plan_name === "Duo" && (
@@ -1297,7 +1351,53 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           )}
 
+          {is_owner && (
+            <div>
+              <div className="mb-3">
+                <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+                  <ArrowsRightLeftIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+                  Change plan
+                </h3>
+                <div className="mt-2 h-px bg-edge-secondary" />
+              </div>
+              <div className="py-2 space-y-3">
+                <p className="text-xs text-txt-muted">Switch to a different plan. Your billing is prorated.</p>
+                <div className="flex flex-wrap gap-2">
+                  {group.plan_name === "Family" && (
+                    <button onClick={() => handle_change_plan("duo")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Duo</button>
+                  )}
+                  <button onClick={() => handle_change_plan("supernova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Supernova</button>
+                  <button onClick={() => handle_change_plan("nova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Nova</button>
+                </div>
+              </div>
+            </div>
+          )}
 
+          {is_owner && (
+            <div>
+              <div className="mb-3">
+                <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+                  <ReceiptPercentIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+                  Billing
+                </h3>
+                <div className="mt-2 h-px bg-edge-secondary" />
+              </div>
+              <div className="py-2 space-y-1">
+                {billing_loading && <div className="flex items-center justify-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>}
+                {!billing_loading && billing_history.length === 0 && <p className="text-sm text-txt-muted py-1">No billing history yet.</p>}
+                {!billing_loading && billing_history.slice(0, 3).map(inv => (
+                  <div key={inv.id} className="flex items-center justify-between py-2">
+                    <span className="text-xs text-txt-muted">{new Date(inv.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</span>
+                    <span className="text-sm text-txt-primary flex-1 px-3">{format_price(inv.amount_cents, inv.currency)}</span>
+                    <span className={inv.status === "paid" ? "aster_badge aster_badge_green" : "aster_badge aster_badge_amber"}>{inv.status}</span>
+                  </div>
+                ))}
+                <button onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))} className="text-xs text-accent-blue hover:underline pt-1">
+                  View all billing
+                </button>
+              </div>
+            </div>
+          )}
 
           {!is_owner && (
             <button onClick={() => set_show_leave_dialog(true)} className="aster_btn aster_btn_destructive aster_btn_sm">
@@ -1414,7 +1514,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                           {inv.allocated_storage_bytes > 0 && <span> · <strong>{Math.round(inv.allocated_storage_bytes / 1073741824)} GB</strong> allocated</span>}
                           {inv.created_at && <span> · sent {invite_sent_relative(inv.created_at)}</span>}
                         </p>
-                  
                       </div>
                     </div>
                     <button onClick={() => handle_revoke_invite(inv.id)} className="aster_btn aster_btn_ghost aster_btn_sm text-red-500 hover:text-red-600 flex-shrink-0">
