@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import { activate_subscription, get_subscription } from "@/services/api/billing";
+import { FamilyWelcomeModal } from "@/components/settings/billing/family_welcome_modal";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -121,10 +122,17 @@ import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { AppLock } from "@/components/mobile";
 
+interface FamilyWelcomeState {
+  plan_name: string;
+  max_members: number;
+  storage_pool_bytes: number;
+}
+
 function BillingSuccessHandler() {
   const { t } = use_i18n();
   const { is_authenticated } = use_auth();
   const handled = useRef(false);
+  const [family_welcome, set_family_welcome] = useState<FamilyWelcomeState | null>(null);
 
   useEffect(() => {
     if (!is_authenticated || handled.current) return;
@@ -150,15 +158,38 @@ function BillingSuccessHandler() {
           invalidate_mail_stats();
           window.dispatchEvent(new CustomEvent("aster:plan-changed"));
           show_toast(t("settings.payment_success"), "success");
+          const code = res.data.plan.code;
+          if (code === "duo" || code === "family") {
+            const max_members = code === "duo" ? 2 : 6;
+            const storage_gb = code === "duo" ? 500 : 3000;
+            set_family_welcome({
+              plan_name: res.data.plan.name ?? (code === "duo" ? "Duo" : "Family"),
+              max_members,
+              storage_pool_bytes: storage_gb * 1073741824,
+            });
+          }
           return;
         }
       }
-      // fallback toast even if polling didn't confirm
       show_toast(t("settings.payment_success"), "success");
     })();
   }, [is_authenticated, t]);
 
-  return null;
+  if (!family_welcome) return null;
+
+  return (
+    <FamilyWelcomeModal
+      is_open={true}
+      on_close={() => set_family_welcome(null)}
+      plan_name={family_welcome.plan_name}
+      max_members={family_welcome.max_members}
+      storage_pool_bytes={family_welcome.storage_pool_bytes}
+      on_go_to_family={() => {
+        set_family_welcome(null);
+        window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "family" }));
+      }}
+    />
+  );
 }
 
 function App() {
