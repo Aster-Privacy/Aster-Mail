@@ -271,7 +271,9 @@ function SettingsPanelInner({
   );
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
   const [has_devices, set_has_devices] = useState(false);
-  const [is_family_plan, set_is_family_plan] = useState(false);
+  const [is_family_plan, set_is_family_plan] = useState(
+    () => localStorage.getItem("aster_is_family_plan") === "1",
+  );
   const NAV_ITEMS = useMemo(() => get_nav_items(t, is_family_plan), [t, is_family_plan]);
   const [indicator_style, set_indicator_style] = useState<{
     top: number;
@@ -321,9 +323,7 @@ function SettingsPanelInner({
         const code = res.data?.plan?.code ?? "";
         const is_fam = code === "duo" || code === "family";
         set_is_family_plan(is_fam);
-        if (is_fam) {
-          import("@/components/settings/billing/family_section");
-        }
+        localStorage.setItem("aster_is_family_plan", is_fam ? "1" : "0");
       }).catch(() => {});
       get_available_plans();
       get_billing_history(1, 10);
@@ -558,11 +558,7 @@ function SettingsPanelInner({
           </Suspense>
         );
       case "family":
-        return (
-          <Suspense fallback={null}>
-            <FamilySection is_family_plan={is_family_plan} />
-          </Suspense>
-        );
+        return null;
       case "referral":
         return <ReferralTab />;
       case "import":
@@ -803,6 +799,13 @@ function SettingsPanelInner({
                   }
                 >
                   {active_section_element}
+                  {is_family_plan && (
+                    <div className={section !== "family" ? "hidden" : undefined}>
+                      <Suspense fallback={null}>
+                        <FamilySection is_family_plan={is_family_plan} />
+                      </Suspense>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
