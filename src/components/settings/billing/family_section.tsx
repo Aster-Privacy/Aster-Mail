@@ -1409,13 +1409,13 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           </div>
 
-          {active_members.length < group.max_members && (
+          {active_members.length < group.max_members && (show_invite_form || active_members.filter(m => m.role !== "owner").length > 0) && (
             <div>
               <div className="mt-1 h-px bg-edge-secondary mb-3" />
               {!show_invite_form ? (
                 <button onClick={() => set_show_invite_form(true)} className="flex items-center gap-2 text-sm text-accent-blue hover:underline py-1">
                   <UserPlusIcon className="w-4 h-4" />
-                  {t("settings.family_invite_member")}
+                  Add another member
                 </button>
               ) : (
                 <div className="space-y-3">
