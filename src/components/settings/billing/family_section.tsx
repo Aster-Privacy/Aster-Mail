@@ -1257,7 +1257,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
             <div className="px-5 py-4">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <ShieldCheckIcon className="w-3.5 h-3.5 text-green-500" />
+                <ShieldCheckIcon className="w-3.5 h-3.5 text-txt-muted" />
                 <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">Encryption</p>
               </div>
               <p className="text-2xl font-bold text-txt-primary mt-1.5">E2E</p>
@@ -1277,14 +1277,14 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               <div className="flex items-center">
                 {active_members.slice(0, 5).map((m, i) => (
                   <div key={m.user_id}
-                    className={`w-8 h-8 rounded-full border-2 border-surf-primary flex items-center justify-center text-white text-xs font-bold${i > 0 ? " -ml-2" : ""}`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold${i > 0 ? " -ml-2" : ""}`}
                     style={{ backgroundColor: get_avatar_color(m.username) }}
                     title={m.username + "@" + m.email_domain}>
                     {m.username[0]?.toUpperCase()}
                   </div>
                 ))}
                 {active_members.length > 5 && (
-                  <div className="w-8 h-8 rounded-full border-2 border-surf-primary bg-surf-secondary flex items-center justify-center text-xs font-medium text-txt-muted -ml-2">
+                  <div className="w-8 h-8 rounded-full bg-surf-secondary flex items-center justify-center text-xs font-medium text-txt-muted -ml-2">
                     +{active_members.length - 5}
                   </div>
                 )}
