@@ -138,3 +138,14 @@ export function transfer_family_admin(
 export function leave_family(): Promise<ApiResponse<unknown>> {
   return api_client.post<unknown>("/payments/v1/family/leave", {});
 }
+
+export interface InvitePreview {
+  plan_name: string | null;
+  allocated_storage_bytes: number | null;
+  require_2fa: boolean;
+  valid: boolean;
+}
+
+export function preview_invite(token: string): Promise<ApiResponse<InvitePreview>> {
+  return api_client.get<InvitePreview>(`/payments/v1/family/invites/${encodeURIComponent(token)}/preview`);
+}

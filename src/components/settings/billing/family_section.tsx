@@ -575,22 +575,18 @@ function SecurityContent() {
         </div>
       )}
       <div className="divide-y divide-edge-secondary">
-        {([
-          { key: "require_2fa" as const, label: "Require two-factor authentication", hint: "All members must enable 2FA to access their accounts" },
-          { key: "allow_imap_smtp" as const, label: "Allow IMAP/SMTP access", hint: "Members can connect third-party email clients via Aster Bridge" },
-          { key: "block_external_forwarding" as const, label: "Block external forwarding", hint: "Prevent members from auto-forwarding mail outside the family" },
-        ]).map(({ key, label, hint }) => (
-          <div key={key} className="flex items-center justify-between py-4">
-            <div className="flex-1 pr-4">
-              <p className="text-sm font-medium text-txt-primary">{label}</p>
-              <p className="text-sm mt-0.5 text-txt-muted">{hint}</p>
-            </div>
-            <Switch
-              checked={policy[key]}
-              onCheckedChange={val => set_policy(p => p ? { ...p, [key]: val } : p)}
-            />
+        {/* Require 2FA - the only legitimate admin-enforced security requirement.
+            IMAP access and forwarding are member choices, not admin controls. */}
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">Require two-factor authentication</p>
+            <p className="text-sm mt-0.5 text-txt-muted">All members must enable 2FA to access their accounts</p>
           </div>
-        ))}
+          <Switch
+            checked={policy.require_2fa}
+            onCheckedChange={val => set_policy(p => p ? { ...p, require_2fa: val } : p)}
+          />
+        </div>
         {policy.require_2fa && (
           <div className="flex items-center justify-between py-4">
             <div className="flex-1 pr-4">

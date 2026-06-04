@@ -24,27 +24,36 @@ import {
   UserGroupIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { join_family } from "@/services/api/family";
+import { join_family, preview_invite, type InvitePreview } from "@/services/api/family";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
-import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import { Logo } from "@/components/auth/auth_styles";
 
 export default function JoinFamilyPage() {
-  use_i18n();
   const [search_params] = useSearchParams();
   const navigate = useNavigate();
   const { is_authenticated, is_loading } = use_auth();
   const token = search_params.get("token") ?? "";
 
+  const [preview, set_preview] = useState<InvitePreview | null>(null);
+  const [preview_loading, set_preview_loading] = useState(true);
   const [joining, set_joining] = useState(false);
   const [error_msg, set_error_msg] = useState<string | null>(null);
   const [joined_bytes, set_joined_bytes] = useState<number | null>(null);
 
+  // Load invite preview (public endpoint, no auth needed)
   useEffect(() => {
-    if (!token) set_error_msg("Invalid invite link.");
+    if (!token) { set_preview_loading(false); set_error_msg("Invalid invite link."); return; }
+    preview_invite(token)
+      .then(r => {
+        if (r.data?.valid) set_preview(r.data);
+        else set_error_msg("This invite has expired or is no longer valid.");
+      })
+      .catch(() => set_error_msg("This invite has expired or is no longer valid."))
+      .finally(() => set_preview_loading(false));
   }, [token]);
 
   const handle_join = async () => {
@@ -64,15 +73,15 @@ export default function JoinFamilyPage() {
     }
   };
 
-  // Auto-join if already authenticated when page loads
+  // Auto-join if already authenticated
   useEffect(() => {
-    if (!is_loading && is_authenticated && token && !joining && !error_msg && joined_bytes === null) {
+    if (!is_loading && is_authenticated && token && !joining && !error_msg && joined_bytes === null && preview && !preview_loading) {
       handle_join();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [is_loading, is_authenticated, token]);
+  }, [is_loading, is_authenticated, token, preview, preview_loading]);
 
-  if (is_loading) {
+  if (is_loading || preview_loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner size="lg" />
@@ -101,8 +110,8 @@ export default function JoinFamilyPage() {
     );
   }
 
-  // Error state (invalid token, no token)
-  if ((error_msg && !joining) || !token) {
+  // Error state
+  if (error_msg && !preview) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "var(--bg-secondary)" }}>
         <div className="max-w-sm w-full text-center space-y-6">
@@ -112,57 +121,60 @@ export default function JoinFamilyPage() {
           </div>
           <div className="space-y-2">
             <h1 className="text-xl font-bold text-txt-primary">Invalid invite</h1>
-            <p className="text-txt-muted text-sm">{error_msg ?? "This invite link is invalid or has expired."}</p>
+            <p className="text-txt-muted text-sm">{error_msg}</p>
           </div>
-          <div className="space-y-3">
-            <Link
-              to="/sign-in"
-              className="aster_btn aster_btn_primary aster_btn_lg w-full text-center block"
-            >
-              Sign in to Aster
-            </Link>
-            <p className="text-xs text-txt-muted">Ask the family owner to send a new invite.</p>
-          </div>
+          <Link to="/sign-in" className="aster_btn aster_btn_primary aster_btn_lg w-full text-center block">
+            Sign in to Aster
+          </Link>
         </div>
       </div>
     );
   }
 
-  // Main join page - authenticated user can join, unauthenticated needs to sign up first
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "var(--bg-secondary)" }}>
-      <div className="max-w-sm w-full space-y-8">
-        <div className="text-center space-y-4">
+      <div className="max-w-sm w-full space-y-6">
+        <div className="text-center space-y-3">
           <Logo />
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ backgroundColor: "var(--accent-blue-subtle)" }}>
             <UserGroupIcon className="w-9 h-9" style={{ color: "var(--accent-blue)" }} />
           </div>
-          <div className="space-y-1">
+          <div>
             <h1 className="text-2xl font-bold text-txt-primary">Join family plan</h1>
-            <p className="text-txt-muted text-sm">
-              You've been invited to join an Aster family plan. Each member gets their own private, encrypted inbox.
-            </p>
+            {preview?.plan_name && (
+              <p className="text-txt-muted text-sm mt-1">{preview.plan_name} &middot; {preview.allocated_storage_bytes ? format_bytes(preview.allocated_storage_bytes) + " storage" : "shared storage"}</p>
+            )}
           </div>
         </div>
 
+        {/* What you get */}
         <div className="rounded-2xl border border-edge-secondary p-5 space-y-3" style={{ backgroundColor: "var(--bg-primary)" }}>
-          <div className="flex items-center gap-2">
-            <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-txt-primary">Separate private inbox</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-txt-primary">End-to-end encrypted email</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-txt-primary">Shared family storage pool</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-txt-primary">No ads, no tracking</span>
-          </div>
+          <p className="text-xs font-semibold text-txt-muted uppercase tracking-wide">What you get</p>
+          {[
+            "Your own private, encrypted inbox",
+            "Separate from other family members",
+            "End-to-end encrypted email",
+            "No ads, no tracking",
+          ].map(item => (
+            <div key={item} className="flex items-center gap-2">
+              <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
+              <span className="text-sm text-txt-primary">{item}</span>
+            </div>
+          ))}
         </div>
+
+        {/* Security requirements - shown only if any are set */}
+        {preview?.require_2fa && (
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheckIcon className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+              <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">Security requirement</p>
+            </div>
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              This family requires two-factor authentication. You'll need to enable 2FA after joining.
+            </p>
+          </div>
+        )}
 
         {error_msg && (
           <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20">
@@ -177,7 +189,7 @@ export default function JoinFamilyPage() {
             disabled={joining}
             className="aster_btn aster_btn_primary aster_btn_lg w-full flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {joining ? <><Spinner size="sm" /> Joining...</> : "Accept Invite"}
+            {joining ? <><Spinner size="sm" /> Joining...</> : "Accept & Join"}
           </button>
         ) : (
           <div className="space-y-3">
