@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -91,7 +91,7 @@ function StorageBar({ used, total }: { used: number; total: number }) {
   );
 }
 
-// ── Member row (overview read-only) ────────────────────────────────────────────
+// â”€â”€ Member row (overview read-only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function MemberRow({ member, is_owner_view, on_remove, on_transfer, on_reload }: {
   member: FamilyMemberInfo;
   is_owner_view: boolean;
@@ -164,7 +164,7 @@ function MemberRow({ member, is_owner_view, on_remove, on_transfer, on_reload }:
   );
 }
 
-// ── Security tab ───────────────────────────────────────────────────────────────
+// â”€â”€ Security tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function SecurityContent() {
   const [policy, set_policy] = useState<SecurityPolicy | null>(null);
   const [compliance, set_compliance] = useState<MemberComplianceInfo[]>([]);
@@ -272,7 +272,7 @@ function SecurityContent() {
   );
 }
 
-// ── Retention tab ──────────────────────────────────────────────────────────────
+// â”€â”€ Retention tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function RetentionContent() {
   const [policy, set_policy] = useState<DataRetentionPolicy | null>(null);
   const [saving, set_saving] = useState(false);
@@ -339,7 +339,7 @@ function RetentionContent() {
   );
 }
 
-// ── Main section ───────────────────────────────────────────────────────────────
+// â”€â”€ Main section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const { t } = use_i18n();
   const [group, set_group] = useState<FamilyGroupResponse | null>(null);
@@ -518,13 +518,13 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         </div>
       )}
 
-      {/* ── Overview tab ── */}
+      {/* â”€â”€ Overview tab â”€â”€ */}
       {(tab === "overview" || !is_owner) && (
         <>
           {/* Storage */}
           <div>
             <div className="mb-3">
-              <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-2">
+              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
                 <CircleStackIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
                 Storage
               </h3>
@@ -557,7 +557,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           {/* What's included */}
           <div>
             <div className="mb-3">
-              <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-2">
+              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
                 <EnvelopeIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
                 What's included
               </h3>
@@ -583,7 +583,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           {is_owner && (
             <div>
               <div className="mb-3">
-                <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-2">
+                <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
                   <ArrowsRightLeftIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
                   Change plan
                 </h3>
@@ -611,13 +611,13 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         </>
       )}
 
-      {/* ── Members tab ── */}
+      {/* â”€â”€ Members tab â”€â”€ */}
       {tab === "members" && is_owner && (
         <>
           {/* Member list */}
           <div>
             <div className="mb-3">
-              <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-2">
+              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
                 <UserGroupIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
                 {t("settings.family_members")}
               </h3>
@@ -636,7 +636,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             <div>
               <div className="mb-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-2">
+                  <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
                     <UserPlusIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
                     {t("settings.family_invite_member")}
                   </h3>
@@ -699,10 +699,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         </>
       )}
 
-      {/* ── Security tab ── */}
+      {/* â”€â”€ Security tab â”€â”€ */}
       {tab === "security" && is_owner && <SecurityContent />}
 
-      {/* ── Retention tab ── */}
+      {/* â”€â”€ Retention tab â”€â”€ */}
       {tab === "retention" && is_owner && <RetentionContent />}
 
       {/* Confirmation dialogs */}
