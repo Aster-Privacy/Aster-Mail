@@ -733,18 +733,24 @@ function FiltersContent() {
             <Input placeholder="Value (domain, email, keyword)" value={form.value} onChange={e => set_form(f => ({ ...f, value: e.target.value }))} />
           </div>
           <div className="flex gap-2">
-            <select value={form.field} onChange={e => set_form(f => ({ ...f, field: e.target.value }))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
-              <option value="from">Sender (from)</option>
-              <option value="to">Recipient (to)</option>
-              <option value="domain">Domain</option>
-              <option value="subject">Subject</option>
-            </select>
-            <select value={form.action} onChange={e => set_form(f => ({ ...f, action: e.target.value }))} className="flex-1 text-sm bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1.5 text-txt-primary">
-              <option value="trash">Move to Trash</option>
-              <option value="block">Block</option>
-              <option value="archive">Archive</option>
-              <option value="mark_read">Mark as read</option>
-            </select>
+            <Select value={form.field} onValueChange={v => set_form(f => ({ ...f, field: v }))}>
+              <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="from">Sender (from)</SelectItem>
+                <SelectItem value="to">Recipient (to)</SelectItem>
+                <SelectItem value="domain">Domain</SelectItem>
+                <SelectItem value="subject">Subject</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={form.action} onValueChange={v => set_form(f => ({ ...f, action: v }))}>
+              <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="trash">Move to Trash</SelectItem>
+                <SelectItem value="block">Block</SelectItem>
+                <SelectItem value="archive">Archive</SelectItem>
+                <SelectItem value="mark_read">Mark as read</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex gap-2">
             <button onClick={create} disabled={creating || !form.name.trim() || !form.value.trim()} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">
