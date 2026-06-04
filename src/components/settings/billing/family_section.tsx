@@ -38,7 +38,6 @@ import {
   ChevronDownIcon,
   PlusIcon,
   InformationCircleIcon,
-  ReceiptPercentIcon,
   GlobeAltIcon,
   FunnelIcon,
   ClockIcon,
@@ -47,9 +46,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@aster/ui";
 import { get_avatar_color } from "@/lib/avatar_color";
-import { change_plan, get_billing_history, format_price, type BillingHistoryItem } from "@/services/api/billing";
+import { change_plan } from "@/services/api/billing";
 import {
   list_org_groups, create_org_group, delete_org_group,
   list_group_members, add_group_member, remove_group_member,
@@ -372,7 +372,9 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
       <div className="flex gap-2">
         <Input placeholder="Group name" value={new_name} onChange={e => set_new_name(e.target.value)} onKeyDown={e => e.key === "Enter" && handle_create()} className="flex-1 h-9" />
         <Input placeholder="Email prefix (optional)" value={new_email_prefix} onChange={e => set_new_email_prefix(e.target.value)} className="flex-1 h-9" />
-        <button onClick={handle_create} disabled={creating || !new_name.trim()} className="aster_btn aster_btn_primary aster_btn_sm h-9 flex items-center gap-1.5 disabled:opacity-50 flex-shrink-0">
+        <button onClick={handle_create} disabled={creating || !new_name.trim()}
+          className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-sm font-medium text-white flex-shrink-0 disabled:opacity-50 transition-colors"
+          style={{ backgroundColor: "var(--accent-blue)" }}>
           <PlusIcon className="w-4 h-4" /> Create
         </button>
       </div>
@@ -381,9 +383,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
         <SkeletonRows count={3} has_icon={false} />
       ) : groups.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
-          <div className="w-16 h-16 rounded-full bg-surf-secondary flex items-center justify-center">
-            <UserGroupIcon className="w-8 h-8 text-txt-muted" />
-          </div>
+          <UserGroupIcon className="w-12 h-12 text-txt-muted" />
           <p className="text-sm font-medium text-txt-primary">No groups yet</p>
           <p className="text-xs text-txt-muted text-center max-w-xs">Create a group to route email to multiple family members at once.</p>
         </div>
@@ -497,18 +497,23 @@ function ActivityContent() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <span className="text-sm text-txt-muted">{total} event{total !== 1 ? "s" : ""}</span>
-        <select value={filter_type} onChange={e => set_filter_type(e.target.value)} className="text-sm border border-edge-secondary rounded px-2 py-1 bg-transparent text-txt-primary" aria-label="Filter by event type">
-          <option value="">All events</option>
-          {Object.entries(EVENT_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-        </select>
+        <Select value={filter_type || "all"} onValueChange={v => set_filter_type(v === "all" ? "" : v)}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="All events" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All events</SelectItem>
+            {Object.entries(EVENT_LABELS).map(([key, label]) => (
+              <SelectItem key={key} value={key}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       {loading && entries.length === 0 ? (
         <SkeletonRows count={4} />
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
-          <div className="w-16 h-16 rounded-full bg-surf-secondary flex items-center justify-center">
-            <ChartBarIcon className="w-8 h-8 text-txt-muted" />
-          </div>
+          <ChartBarIcon className="w-12 h-12 text-txt-muted" />
           <p className="text-sm font-medium text-txt-primary">No activity yet</p>
           <p className="text-xs text-txt-muted text-center max-w-xs">Member joins, security changes, and administrative actions will appear here.</p>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-1 text-left">
@@ -621,9 +626,7 @@ function FiltersContent() {
       )}
       {filters.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
-          <div className="w-16 h-16 rounded-full bg-surf-secondary flex items-center justify-center">
-            <FunnelIcon className="w-8 h-8 text-txt-muted" />
-          </div>
+          <FunnelIcon className="w-12 h-12 text-txt-muted" />
           <p className="text-sm font-medium text-txt-primary">No org-wide filters</p>
           <p className="text-xs text-txt-muted text-center max-w-xs">Block specific senders, domains, or keywords for all family members automatically.</p>
           <div className="rounded-lg border border-edge-secondary px-3 py-2 text-left w-full max-w-xs">
@@ -696,7 +699,7 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
       <p className="text-xs text-txt-muted">Share custom domains so family members can create aliases on them.</p>
       {domains.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
-          <div className="w-16 h-16 rounded-full bg-surf-secondary flex items-center justify-center"><GlobeAltIcon className="w-8 h-8 text-txt-muted" /></div>
+          <GlobeAltIcon className="w-8 h-8 text-txt-muted" />
           <p className="text-sm font-medium text-txt-primary">No custom domains in this family</p>
           <p className="text-xs text-txt-muted text-center max-w-xs">Custom domains let family members send from their own @yourdomain.com addresses.</p>
           <button onClick={nav_aliases} className="aster_btn aster_btn_primary aster_btn_sm mt-1">
@@ -1025,8 +1028,21 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [action_loading, set_action_loading] = useState(false);
   const [changing_plan, set_changing_plan] = useState(false);
   const [compliance_map, set_compliance_map] = useState<Record<string, MemberComplianceInfo>>({});
-  const [billing_history, set_billing_history] = useState<BillingHistoryItem[]>([]);
-  const [billing_loading, set_billing_loading] = useState(false);
+
+  // Preload compliance map so security snapshot and member rows show 2FA status immediately
+  useEffect(() => {
+    if (group?.viewer_role !== "owner" || Object.keys(compliance_map).length > 0) return;
+    get_member_compliance()
+      .then(r => {
+        if (r.data) {
+          const map: Record<string, MemberComplianceInfo> = {};
+          r.data.forEach(m => { map[m.user_id] = m; });
+          set_compliance_map(map);
+        }
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [group?.viewer_role, compliance_map]);
 
   const load_group = useCallback(async () => {
     try {
@@ -1051,26 +1067,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const is_owner = group?.viewer_role === "owner";
   const has_pending_link = group?.pending_invites.some(i => i.link_only) ?? false;
 
-  useEffect(() => {
-    if (!is_owner || Object.keys(compliance_map).length > 0) return;
-    get_member_compliance()
-      .then(r => {
-        if (r.data) {
-          const m: Record<string, MemberComplianceInfo> = {};
-          r.data.forEach(c => { m[c.user_id] = c; });
-          set_compliance_map(m);
-        }
-      })
-      .catch(() => {});
-  }, [is_owner, compliance_map]);
-
-  useEffect(() => {
-    if (!is_owner || billing_history.length > 0) return;
-    set_billing_loading(true);
-    get_billing_history(1, 3)
-      .then(r => { if (r.data) set_billing_history(r.data.items || []); })
-      .finally(() => set_billing_loading(false));
-  }, [is_owner, billing_history.length]);
 
   const handle_upgrade_to_family = async () => {
     set_changing_plan(true);
@@ -1086,15 +1082,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     finally { set_changing_plan(false); }
   };
 
-  const handle_change_plan = async (plan_code: string) => {
-    set_changing_plan(true);
-    try {
-      const res = await change_plan(plan_code, "year");
-      if (res.ok) { show_toast(t("settings.change_plan"), "success"); window.location.reload(); }
-      else show_toast(t("settings.failed_save_setting"), "error");
-    } catch { show_toast(t("settings.failed_save_setting"), "error"); }
-    finally { set_changing_plan(false); }
-  };
 
   const handle_invite_email = async () => {
     const email = invite_email.trim();
@@ -1352,51 +1339,13 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           )}
 
           {is_owner && (
-            <div>
-              <div className="mb-3">
-                <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                  <ArrowsRightLeftIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                  Change plan
-                </h3>
-                <div className="mt-2 h-px bg-edge-secondary" />
-              </div>
-              <div className="py-2 space-y-3">
-                <p className="text-xs text-txt-muted">Switch to a different plan. Your billing is prorated.</p>
-                <div className="flex flex-wrap gap-2">
-                  {group.plan_name === "Family" && (
-                    <button onClick={() => handle_change_plan("duo")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Duo</button>
-                  )}
-                  <button onClick={() => handle_change_plan("supernova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Supernova</button>
-                  <button onClick={() => handle_change_plan("nova")} disabled={changing_plan} className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50">Switch to Nova</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {is_owner && (
-            <div>
-              <div className="mb-3">
-                <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                  <ReceiptPercentIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                  Billing
-                </h3>
-                <div className="mt-2 h-px bg-edge-secondary" />
-              </div>
-              <div className="py-2 space-y-1">
-                {billing_loading && <div className="flex items-center justify-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>}
-                {!billing_loading && billing_history.length === 0 && <p className="text-sm text-txt-muted py-1">No billing history yet.</p>}
-                {!billing_loading && billing_history.slice(0, 3).map(inv => (
-                  <div key={inv.id} className="flex items-center justify-between py-2">
-                    <span className="text-xs text-txt-muted">{new Date(inv.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</span>
-                    <span className="text-sm text-txt-primary flex-1 px-3">{format_price(inv.amount_cents, inv.currency)}</span>
-                    <span className={inv.status === "paid" ? "aster_badge aster_badge_green" : "aster_badge aster_badge_amber"}>{inv.status}</span>
-                  </div>
-                ))}
-                <button onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))} className="text-xs text-accent-blue hover:underline pt-1">
-                  View all billing
-                </button>
-              </div>
-            </div>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))}
+              className="flex items-center gap-2 text-xs text-accent-blue hover:underline py-1"
+            >
+              <ArrowRightIcon className="w-3.5 h-3.5" />
+              Manage billing & plan changes
+            </button>
           )}
 
           {!is_owner && (
@@ -1431,7 +1380,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                   ))}
               {active_members.filter(m => m.role !== "owner").length === 0 ? (
                 <div className="flex flex-col items-center gap-3 py-8">
-                  <div className="w-16 h-16 rounded-full bg-surf-secondary flex items-center justify-center"><UserGroupIcon className="w-8 h-8 text-txt-muted" /></div>
+                  <UserGroupIcon className="w-8 h-8 text-txt-muted" />
                   <div className="text-center">
                     <p className="text-base font-semibold text-txt-primary">No members yet</p>
                     <p className="text-sm text-txt-muted mt-1">Invite someone to share this family plan</p>
