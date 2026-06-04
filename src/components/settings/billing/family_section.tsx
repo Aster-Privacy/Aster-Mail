@@ -1216,13 +1216,21 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               </div>
               {(() => {
                 const comp_members = Object.values(compliance_map);
+                if (comp_members.length === 0) {
+                  return (
+                    <div className="flex items-center justify-between mt-2.5">
+                      <span className="flex items-center gap-1.5 text-xs text-txt-muted"><Spinner size="sm" /> Checking compliance...</span>
+                      <span className="flex items-center gap-1 text-xs text-txt-muted">View security <ArrowRightIcon className="w-3.5 h-3.5" /></span>
+                    </div>
+                  );
+                }
                 const compliant = comp_members.filter(m => m.has_2fa).length;
-                const total = comp_members.length > 0 ? comp_members.length : active_members.length;
-                const all_ok = comp_members.length > 0 && compliant === total;
+                const total = comp_members.length;
+                const all_ok = compliant === total;
                 return (
                   <div className="flex items-center justify-between mt-2.5">
                     <span className={all_ok ? "aster_badge aster_badge_green" : "aster_badge aster_badge_amber"}>
-                      {compliant} / {total} {total === 1 ? "member" : "members"} have 2FA
+                      {all_ok ? "All members have 2FA" : `${compliant}/${total} have 2FA`}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-txt-muted">
                       View security <ArrowRightIcon className="w-3.5 h-3.5" />
