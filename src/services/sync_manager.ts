@@ -151,7 +151,7 @@ export function start_sync_polling(
         notify_listeners();
 
         if (result.data.status === "complete" || result.data.status === "error") {
-          finish(result.data.status, result.data.error_message);
+          finish(result.data.status, result.data.error_message ?? undefined);
         } else {
           const next = setTimeout(schedule_tick, POLL_INTERVAL_MS);
           polling_intervals.set(account_id, next);
