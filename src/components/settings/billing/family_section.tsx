@@ -38,7 +38,6 @@ import {
   PlusIcon,
   InformationCircleIcon,
   GlobeAltIcon,
-  LockClosedIcon,
   FunnelIcon,
   ClockIcon,
   ChartBarIcon,
@@ -1149,15 +1148,16 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const seats_remaining = group.max_members - active_members.length;
   const seats_full = active_members.length >= group.max_members;
 
-  const owner_tabs: { id: FamilyTab; label: string }[] = is_owner ? [
-    { id: "overview", label: "Overview" },
-    { id: "members", label: "Members" },
-    { id: "groups", label: "Groups" },
-    { id: "activity", label: "Activity" },
-    { id: "filters", label: "Filters" },
-    { id: "domains", label: "Domains" },
-    { id: "security", label: "Security" },
-    { id: "retention", label: "Retention" },
+  type OwnTab = { id: FamilyTab; label: string; Icon: React.ElementType };
+  const owner_tabs: OwnTab[] = is_owner ? [
+    { id: "overview", label: "Overview", Icon: UserGroupIcon },
+    { id: "members", label: "Members", Icon: UserPlusIcon },
+    { id: "groups", label: "Groups", Icon: UserGroupIcon },
+    { id: "activity", label: "Activity", Icon: ChartBarIcon },
+    { id: "filters", label: "Filters", Icon: FunnelIcon },
+    { id: "domains", label: "Domains", Icon: GlobeAltIcon },
+    { id: "security", label: "Security", Icon: ShieldCheckIcon },
+    { id: "retention", label: "Retention", Icon: ArchiveBoxIcon },
   ] : [];
 
   return (
@@ -1178,9 +1178,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             <button
               key={t_item.id}
               onClick={() => set_tab(t_item.id)}
-              className={`relative px-4 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none whitespace-nowrap ${tab === t_item.id ? "bg-surf-primary" : "bg-transparent"}`}
+              className={`relative flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none whitespace-nowrap ${tab === t_item.id ? "bg-surf-primary" : "bg-transparent"}`}
               style={{ color: tab === t_item.id ? "var(--text-primary)" : "var(--text-muted)", boxShadow: tab === t_item.id ? "rgba(0,0,0,0.1) 0px 1px 3px,rgba(0,0,0,0.06) 0px 1px 2px" : "none" }}
             >
+              <t_item.Icon className="w-3.5 h-3.5 flex-shrink-0" />
               {t_item.label}
             </button>
           ))}
@@ -1226,13 +1227,14 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           {is_owner && (
             <button
               onClick={() => set_tab("security")}
-              className="w-full text-left rounded-xl border border-edge-secondary border-l-4 border-l-accent-blue px-4 py-3 hover:border-accent-blue/40 transition-colors"
+              className="w-full text-left rounded-xl border border-edge-secondary px-4 py-3 hover:bg-surf-secondary transition-colors group"
             >
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-accent-blue/10 flex items-center justify-center flex-shrink-0">
-                  <LockClosedIcon className="w-4 h-4" style={{ color: "var(--accent-blue)" }} />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheckIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+                  <span className="text-sm font-medium text-txt-primary">Security</span>
                 </div>
-                <span className="text-sm font-medium text-txt-primary">Security snapshot</span>
+                <ArrowRightIcon className="w-4 h-4 text-txt-muted group-hover:text-txt-secondary transition-colors" />
               </div>
               {(() => {
                 const comp_members = Object.values(compliance_map);
@@ -1252,9 +1254,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                     <span className={all_ok ? "aster_badge aster_badge_green" : "aster_badge aster_badge_amber"}>
                       {all_ok ? "All members have 2FA" : `${compliant}/${total} have 2FA`}
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-txt-muted">
-                      View security <ArrowRightIcon className="w-3.5 h-3.5" />
-                    </span>
+
                   </div>
                 );
               })()}
