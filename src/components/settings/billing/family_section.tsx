@@ -79,6 +79,13 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
 import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalFooter,
+} from "@/components/ui/modal";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -98,7 +105,7 @@ const EVENT_LABELS: Record<string, string> = {
   filter_created: "Filter created", domain_shared: "Domain shared",
   retention_updated: "Retention updated", security_policy_updated: "Security updated",
   invite_sent: "Invite sent", invite_revoked: "Invite revoked",
-  storage_updated: "Storage updated",
+  storage_updated: "Storage updated", security_notify_sent: "2FA reminder sent",
 };
 
 interface FamilySectionProps {
@@ -137,7 +144,7 @@ function invite_sent_relative(iso: string): string {
 function activity_icon_color(event_type: string): string {
   if (["member_joined", "invite_sent", "group_created"].includes(event_type)) return "text-indigo-500";
   if (["member_removed", "invite_revoked", "group_deleted"].includes(event_type)) return "text-red-500";
-  if (["security_policy_updated"].includes(event_type)) return "text-green-500";
+  if (["security_policy_updated", "security_notify_sent"].includes(event_type)) return "text-green-500";
   if (["storage_updated", "admin_transferred"].includes(event_type)) return "text-blue-500";
   if (["domain_shared"].includes(event_type)) return "text-violet-500";
   if (["retention_updated"].includes(event_type)) return "text-amber-500";
@@ -163,6 +170,7 @@ function activity_event_text(entry: { event_type: string; actor_username: string
     case "domain_shared": return target ? `${actor} shared a domain with ${target}` : `${actor} shared a domain`;
     case "retention_updated": return `${actor} updated retention policy`;
     case "security_policy_updated": return `${actor} updated security policy`;
+    case "security_notify_sent": return `${actor} sent a 2FA reminder to members`;
     case "invite_sent": return target ? `${actor} invited ${target}` : `${actor} sent an invite`;
     case "invite_revoked": return target ? `${actor} revoked invite for ${target}` : `${actor} revoked an invite`;
     case "storage_updated": return target ? `${actor} updated storage for ${target}` : `${actor} updated storage`;
@@ -494,14 +502,12 @@ function ActivityContent() {
 
   useEffect(() => { set_entries([]); load_page(1, filter_type || undefined); }, [load_page, filter_type]);
 
-  const filtered = filter_type ? entries.filter(e => e.event_type === filter_type) : entries;
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <span className="text-sm text-txt-muted">{total} event{total !== 1 ? "s" : ""}</span>
         <Select value={filter_type || "all"} onValueChange={v => set_filter_type(v === "all" ? "" : v)}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-48">
             <SelectValue placeholder="All events" />
           </SelectTrigger>
           <SelectContent>
@@ -514,7 +520,7 @@ function ActivityContent() {
       </div>
       {loading && entries.length === 0 ? (
         <SkeletonRows count={4} />
-      ) : filtered.length === 0 ? (
+      ) : entries.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
           <ChartBarIcon className="w-12 h-12 text-txt-muted" />
           <p className="text-sm font-medium text-txt-primary">No activity yet</p>
@@ -530,7 +536,7 @@ function ActivityContent() {
         </div>
       ) : (
         <div className="divide-y divide-edge-secondary">
-          {filtered.map(entry => (
+          {entries.map(entry => (
             <div key={entry.id} className="flex items-start gap-3 py-3">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                 ['member_removed','invite_revoked','group_deleted'].includes(entry.event_type)
@@ -539,7 +545,7 @@ function ActivityContent() {
                 {['member_joined','invite_sent'].includes(entry.event_type) ? <UserPlusIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} /> :
                  ['member_removed','invite_revoked','group_deleted'].includes(entry.event_type) ? <TrashIcon className="w-4 h-4 text-red-500" /> :
                  ['admin_transferred','storage_updated'].includes(entry.event_type) ? <ArrowsRightLeftIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} /> :
-                 ['security_policy_updated'].includes(entry.event_type) ? <ShieldCheckIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} /> :
+                 ['security_policy_updated','security_notify_sent'].includes(entry.event_type) ? <ShieldCheckIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} /> :
                  ['retention_updated'].includes(entry.event_type) ? <ArchiveBoxIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} /> :
                  ['domain_shared'].includes(entry.event_type) ? <GlobeAltIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} /> :
                  <PlusIcon className={`w-4 h-4 ${activity_icon_color(entry.event_type)}`} />}
@@ -726,54 +732,59 @@ function FiltersContent() {
         </div>
       )}
 
-      {show_form && (
-        <div className="rounded-xl border border-blue-500/30 bg-surf-primary p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Filter name" value={form.name} onChange={e => set_form(f => ({ ...f, name: e.target.value }))} />
-            <Input placeholder="Value (domain, email, keyword)" value={form.value} onChange={e => set_form(f => ({ ...f, value: e.target.value }))} />
+      <Modal is_open={show_form} on_close={() => { set_show_form(false); set_form({ name: "", value: "", field: "from", action: "trash" }); }} size="md" close_on_overlay={false}>
+        <ModalHeader>
+          <ModalTitle>New org-wide filter</ModalTitle>
+          <ModalDescription>Applies to all family members' inboxes automatically.</ModalDescription>
+        </ModalHeader>
+        <div className="px-6 pb-2 space-y-4">
+          <div className="space-y-1">
+            <label className="text-[11px] font-semibold uppercase tracking-wide text-txt-muted">Filter name</label>
+            <Input placeholder="e.g. Block spam domain" value={form.name} onChange={e => set_form(f => ({ ...f, name: e.target.value }))} autoFocus />
           </div>
-          <div className="flex gap-2">
-            <Select value={form.field} onValueChange={v => set_form(f => ({ ...f, field: v }))}>
-              <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="from">Sender (from)</SelectItem>
-                <SelectItem value="to">Recipient (to)</SelectItem>
-                <SelectItem value="domain">Domain</SelectItem>
-                <SelectItem value="subject">Subject</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="border-t border-neutral-200 dark:border-neutral-700" />
+          <div className="space-y-1">
+            <label className="text-[11px] font-semibold uppercase tracking-wide text-txt-muted">Condition</label>
+            <div className="flex gap-2">
+              <Select value={form.field} onValueChange={v => set_form(f => ({ ...f, field: v }))}>
+                <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="from">Sender (from)</SelectItem>
+                  <SelectItem value="to">Recipient (to)</SelectItem>
+                  <SelectItem value="domain">Domain</SelectItem>
+                  <SelectItem value="subject">Subject</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input placeholder="value, domain, keyword..." className="flex-1" value={form.value} onChange={e => set_form(f => ({ ...f, value: e.target.value }))} />
+            </div>
+          </div>
+          <div className="border-t border-neutral-200 dark:border-neutral-700" />
+          <div className="space-y-1">
+            <label className="text-[11px] font-semibold uppercase tracking-wide text-txt-muted">Action</label>
             <Select value={form.action} onValueChange={v => set_form(f => ({ ...f, action: v }))}>
-              <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="trash">Move to Trash</SelectItem>
-                <SelectItem value="block">Block</SelectItem>
+                <SelectItem value="block">Block sender</SelectItem>
                 <SelectItem value="archive">Archive</SelectItem>
                 <SelectItem value="mark_read">Mark as read</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="flex gap-2">
-            <button onClick={create} disabled={creating || !form.name.trim() || !form.value.trim()} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">
-              {creating ? <Spinner size="sm" /> : "Create filter"}
-            </button>
-            <button onClick={() => set_show_form(false)} className="aster_btn aster_btn_ghost aster_btn_sm">Cancel</button>
-          </div>
         </div>
-      )}
+        <ModalFooter>
+          <Button variant="outline" onClick={() => { set_show_form(false); set_form({ name: "", value: "", field: "from", action: "trash" }); }}>Cancel</Button>
+          <Button variant="depth" onClick={create} disabled={creating || !form.name.trim() || !form.value.trim()}>
+            {creating ? <Spinner size="sm" /> : "Create filter"}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       {!loading && filters.length === 0 && (
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
           <FunnelIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
           <p className="text-sm text-txt-muted mb-1">No org-wide filters</p>
           <p className="text-xs text-txt-muted">Create filters to apply rules across all member inboxes.</p>
-          {!show_form && (
-            <button
-              onClick={() => set_show_form(true)}
-              className="aster_btn aster_btn_secondary aster_btn_sm mt-4"
-            >
-              Create first filter
-            </button>
-          )}
         </div>
       )}
 

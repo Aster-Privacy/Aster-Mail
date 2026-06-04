@@ -319,7 +319,11 @@ function SettingsPanelInner({
 
       get_subscription().then((res) => {
         const code = res.data?.plan?.code ?? "";
-        set_is_family_plan(code === "duo" || code === "family");
+        const is_fam = code === "duo" || code === "family";
+        set_is_family_plan(is_fam);
+        if (is_fam) {
+          import("@/components/settings/billing/family_section");
+        }
       }).catch(() => {});
       get_available_plans();
       get_billing_history(1, 10);
