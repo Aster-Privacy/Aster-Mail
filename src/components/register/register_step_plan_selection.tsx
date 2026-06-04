@@ -23,7 +23,7 @@ import type { AvailablePlan } from "@/services/api/billing";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import { ArrowTopRightOnSquareIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { Logo } from "@/components/auth/auth_styles";
@@ -37,10 +37,13 @@ import {
   start_hosted_checkout,
   type AvailablePlansResponse,
 } from "@/services/api/billing";
+import { create_family_group } from "@/services/api/family";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
+  FAMILY_PLAN_TIERS,
   type PlanTier,
+  type FamilyPlanTier,
   convert_cents,
   detect_currency_from_locale,
   SUPPORTED_CURRENCIES,
@@ -208,6 +211,7 @@ export const RegisterStepPlanSelection = ({
   reg,
 }: RegisterStepPlanSelectionProps) => {
   const { t } = reg;
+  const [plan_type, set_plan_type] = useState<"individual" | "family">("individual");
   const [billing_period, set_billing_period] = useState<"monthly" | "yearly">(
     "yearly",
   );
@@ -218,6 +222,8 @@ export const RegisterStepPlanSelection = ({
   const [is_finalizing, set_is_finalizing] = useState(false);
   const [pending_tier, set_pending_tier] = useState<{ tier: PlanTier; plan: AvailablePlan } | null>(null);
   const [crypto_tier, set_crypto_tier] = useState<{ tier: PlanTier; plan: AvailablePlan } | null>(null);
+  const [pending_family_tier, set_pending_family_tier] = useState<FamilyPlanTier | null>(null);
+  const [crypto_family_tier, set_crypto_family_tier] = useState<FamilyPlanTier | null>(null);
 
   useEffect(() => {
     set_currency(detect_currency_from_locale());
@@ -296,6 +302,27 @@ export const RegisterStepPlanSelection = ({
     set_pending_tier(null);
   }, [pending_tier]);
 
+  const handle_family_card = useCallback(async () => {
+    if (!pending_family_tier) return;
+    const tier = pending_family_tier;
+    set_pending_family_tier(null);
+    set_is_finalizing(true);
+    localStorage.setItem("show_onboarding", "true");
+    const res = await create_family_group(tier.id, billing_interval);
+    if (res.data?.checkout_url) {
+      window.location.href = res.data.checkout_url;
+    } else {
+      set_is_finalizing(false);
+      show_toast(t("settings.failed_checkout"), "error");
+    }
+  }, [pending_family_tier, billing_interval, t]);
+
+  const handle_family_crypto = useCallback(() => {
+    if (!pending_family_tier) return;
+    set_crypto_family_tier(pending_family_tier);
+    set_pending_family_tier(null);
+  }, [pending_family_tier]);
+
   const handle_continue_free = useCallback(async () => {
     if (is_finalizing) return;
     set_is_finalizing(true);
@@ -336,38 +363,49 @@ export const RegisterStepPlanSelection = ({
         {t("auth.plan_selection_subtitle")}
       </p>
 
-      <div
-        className="inline-flex items-center mt-6 rounded-full p-[5px] gap-1"
-        role="tablist"
-        style={{
-          backgroundColor: "var(--bg-hover)",
-          border: "1px solid var(--border-primary)",
-        }}
-      >
-        {(["yearly", "monthly"] as const).map((p) => {
-          const active = billing_period === p;
-          return (
-            <button
-              key={p}
-              className="px-[18px] py-[8px] rounded-full text-[13px] font-medium transition-colors"
-              role="tab"
-              style={{
-                backgroundColor: active ? "var(--accent-blue)" : "transparent",
-                color: active ? "#ffffff" : "var(--text-tertiary)",
-              }}
-              type="button"
-              onClick={() =>
-                set_billing_period((prev) =>
-                  prev === "yearly" ? "monthly" : "yearly",
-                )
-              }
-            >
-              {p === "yearly"
-                ? t("settings.billing_yearly")
-                : t("settings.billing_monthly")}
-            </button>
-          );
-        })}
+      <div className="flex flex-col items-center gap-3 mt-6">
+        <div
+          className="inline-flex rounded-full p-[5px] gap-1"
+          style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--border-primary)" }}
+        >
+          {(["individual", "family"] as const).map((type) => {
+            const active = plan_type === type;
+            return (
+              <button
+                key={type}
+                type="button"
+                className="flex items-center gap-1.5 px-[18px] py-[8px] rounded-full text-[13px] font-medium transition-colors"
+                style={{ backgroundColor: active ? "var(--accent-blue)" : "transparent", color: active ? "#fff" : "var(--text-tertiary)" }}
+                onClick={() => set_plan_type(type)}
+              >
+                {type === "family" && <UserGroupIcon className="w-4 h-4" />}
+                {type === "individual" ? t("settings.plan_type_individual") : t("settings.plan_type_family")}
+              </button>
+            );
+          })}
+        </div>
+
+        <div
+          className="inline-flex items-center rounded-full p-[5px] gap-1"
+          role="tablist"
+          style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--border-primary)" }}
+        >
+          {(["yearly", "monthly"] as const).map((p) => {
+            const active = billing_period === p;
+            return (
+              <button
+                key={p}
+                className="px-[18px] py-[8px] rounded-full text-[13px] font-medium transition-colors"
+                role="tab"
+                style={{ backgroundColor: active ? "var(--accent-blue)" : "transparent", color: active ? "#ffffff" : "var(--text-tertiary)" }}
+                type="button"
+                onClick={() => set_billing_period((prev) => prev === "yearly" ? "monthly" : "yearly")}
+              >
+                {p === "yearly" ? t("settings.billing_yearly") : t("settings.billing_monthly")}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="flex items-center justify-center gap-2 mt-3">
@@ -391,6 +429,96 @@ export const RegisterStepPlanSelection = ({
         <div className="flex items-center gap-2 mt-10 text-txt-tertiary">
           <Spinner size="md" />
           <span className="text-sm">{t("auth.plan_loading")}</span>
+        </div>
+      ) : plan_type === "family" ? (
+        <div className="w-full grid gap-5 mt-10 md:grid-cols-2 max-w-3xl items-stretch">
+          {FAMILY_PLAN_TIERS.map((tier) => {
+            const price_cents = billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents;
+            const features = tier.max_members === 2
+              ? [
+                  "2 members, separate accounts",
+                  "1 TB shared encrypted storage",
+                  "Unlimited aliases per member",
+                  "5 custom domains per member",
+                  "Shared family aliases",
+                  "End-to-end encryption",
+                  "Zero-access architecture",
+                  "Admin storage controls",
+                  "Invite by email or link",
+                  "Quantum-safe internal mail",
+                  "Full IMAP/SMTP per member",
+                  "Catch-all email address",
+                  "Priority support",
+                ]
+              : [
+                  "Up to 6 members, separate accounts",
+                  "3 TB shared encrypted storage",
+                  "Unlimited aliases per member",
+                  "30 custom domains per member",
+                  "Shared family aliases",
+                  "End-to-end encryption",
+                  "Zero-access architecture",
+                  "Admin storage controls",
+                  "Invite by email or link",
+                  "Quantum-safe internal mail",
+                  "Full IMAP/SMTP per member",
+                  "Catch-all email address",
+                  "Org filters & activity log",
+                  "Data retention policies",
+                  "Security policy controls",
+                  "Priority support",
+                ];
+
+            return (
+              <div
+                key={tier.id}
+                className="relative rounded-3xl border flex flex-col gap-6 p-7"
+                style={{ borderColor: "var(--accent-blue)", backgroundColor: "var(--bg-hover)" }}
+              >
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <UserGroupIcon className="w-5 h-5 text-txt-primary" />
+                    <h3 className="text-lg font-bold text-txt-primary">{tier.name}</h3>
+                  </div>
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-[40px] font-bold leading-none tracking-tight text-txt-primary">
+                      {format_price(convert_cents(price_cents, currency), currency)}
+                    </span>
+                    <span className="text-sm text-txt-muted">
+                      {billing_period === "monthly" ? t("settings.per_month_short") : t("settings.per_year_short")}
+                    </span>
+                    {billing_period === "yearly" && (
+                      <span className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-white" style={{ backgroundColor: "var(--accent-blue)" }}>
+                        {tier.savings_label}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[13px] leading-relaxed text-txt-tertiary">
+                    {tier.max_members === 2 ? t("settings.family_duo_tagline") : t("settings.family_plan_tagline")}
+                  </p>
+                </div>
+                <ul className="flex flex-col gap-3 flex-1">
+                  {features.map((feat, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-[13px] leading-snug text-txt-primary">
+                      <span className="shrink-0 mt-[1px]" style={{ color: "var(--accent-blue)" }}>
+                        {CHECK_SVG}
+                      </span>
+                      <span className="flex-1">{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className="w-full"
+                  disabled={is_finalizing}
+                  size="xl"
+                  variant="depth"
+                  onClick={() => set_pending_family_tier(tier)}
+                >
+                  {t("auth.plan_select")}
+                </Button>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="w-full grid gap-5 mt-10 md:grid-cols-3 max-w-5xl items-stretch">
@@ -490,6 +618,29 @@ export const RegisterStepPlanSelection = ({
             );
           })}
         </div>
+      )}
+
+      {pending_family_tier && (
+        <PlanPaymentMethodModal
+          busy={is_finalizing}
+          on_choose_card={handle_family_card}
+          on_choose_crypto={handle_family_crypto}
+          on_close={() => set_pending_family_tier(null)}
+          open={!!pending_family_tier}
+          plan_name={pending_family_tier.name}
+        />
+      )}
+
+      {crypto_family_tier && (
+        <CryptoTermModal
+          is_open={!!crypto_family_tier}
+          monthly_price_cents={crypto_family_tier.monthly_cents}
+          on_close={() => set_crypto_family_tier(null)}
+          plan_code={crypto_family_tier.id}
+          plan_name={crypto_family_tier.name}
+          preferred_currency={currency}
+          yearly_price_cents={crypto_family_tier.yearly_cents}
+        />
       )}
 
       {!is_loading && (
