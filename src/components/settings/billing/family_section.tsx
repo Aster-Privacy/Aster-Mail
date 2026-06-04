@@ -575,8 +575,6 @@ function SecurityContent() {
         </div>
       )}
       <div className="divide-y divide-edge-secondary">
-        {/* Require 2FA - the only legitimate admin-enforced security requirement.
-            IMAP access and forwarding are member choices, not admin controls. */}
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
             <p className="text-sm font-medium text-txt-primary">Require two-factor authentication</p>
@@ -774,14 +772,14 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const is_owner = group?.viewer_role === "owner";
   const has_pending_link = group?.pending_invites.some(i => i.link_only) ?? false;
 
+  // Preload billing history as soon as the owner's group loads - no lazy tab check
   useEffect(() => {
-    if (tab !== "overview" || !is_owner) return;
-    if (billing_history.length > 0) return;
+    if (!is_owner || billing_history.length > 0) return;
     set_billing_loading(true);
     get_billing_history(1, 3)
       .then(r => { if (r.data) set_billing_history(r.data.items || []); })
       .finally(() => set_billing_loading(false));
-  }, [tab, is_owner, billing_history.length]);
+  }, [is_owner, billing_history.length]);
 
   const handle_upgrade_to_family = async () => {
     set_changing_plan(true);
@@ -950,18 +948,16 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               </h3>
               <div className="mt-2 h-px bg-edge-secondary" />
             </div>
-            <div className="flex items-center justify-between py-2">
-              <div className="flex-1 pr-6">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-sm font-semibold text-txt-primary">{format_bytes(pool_used)}</span>
-                  <span className="text-xs text-txt-muted">of {format_bytes(group.storage_pool_bytes)} used</span>
-                </div>
-                <div className="w-full bg-edge-secondary rounded-full h-1.5 mt-2">
-                  <div className={`h-1.5 rounded-full transition-all ${pool_pct >= 90 ? "bg-red-500" : pool_pct >= 70 ? "bg-amber-500" : "bg-accent-blue"}`}
-                    style={{ width: `${pool_pct}%` }} />
-                </div>
+            <div className="space-y-2 py-2">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-sm font-semibold text-txt-primary">{format_bytes(pool_used)}</span>
+                <span className="text-xs text-txt-muted">of {format_bytes(group.storage_pool_bytes)} used</span>
               </div>
-              <div className="flex gap-6 flex-shrink-0 text-right">
+              <div className="w-full bg-edge-secondary rounded-full h-1.5">
+                <div className={`h-1.5 rounded-full transition-all ${pool_pct >= 90 ? "bg-red-500" : pool_pct >= 70 ? "bg-amber-500" : "bg-accent-blue"}`}
+                  style={{ width: `${pool_pct}%` }} />
+              </div>
+              <div className="flex gap-6 text-right">
                 <div>
                   <p className="text-xs text-txt-muted">Members</p>
                   <p className="text-sm font-semibold text-txt-primary">{active_members.length} / {group.max_members}</p>
@@ -991,7 +987,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                         {m.username[0]?.toUpperCase()}
                       </div>
                       <span className="text-xs text-txt-primary flex-1 min-w-0 truncate">{m.username}@{m.email_domain}</span>
-                      <span className="text-xs text-txt-muted flex-shrink-0 w-28 text-right">{format_bytes(m.storage_used_bytes)} / {format_bytes(m.allocated_storage_bytes)}</span>
+                      <span className="text-xs text-txt-muted flex-shrink-0 text-right tabular-nums">{format_bytes(m.storage_used_bytes)}</span>
                     </div>
                     <div className="ml-9 w-full bg-edge-secondary h-1 rounded-full">
                       <div className={`${bar_color} h-1 rounded-full transition-all`} style={{ width: `${pct}%` }} />
@@ -1045,7 +1041,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 <div className="mt-2 h-px bg-edge-secondary" />
               </div>
               <div className="py-2 space-y-1">
-                {billing_loading && <div className="flex items-center gap-2 py-2"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>}
+                {billing_loading && <div className="flex items-center justify-center gap-2 py-4"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>}
                 {!billing_loading && billing_history.length === 0 && <p className="text-sm text-txt-muted py-1">No billing history yet.</p>}
                 {!billing_loading && billing_history.slice(0, 3).map(inv => (
                   <div key={inv.id} className="flex items-center justify-between py-2">
