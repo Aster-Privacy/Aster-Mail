@@ -333,4 +333,11 @@ const dismiss_once = () => {
 
 window.addEventListener("astermail:app-ready", dismiss_once, { once: true });
 
+window.addEventListener("astermail:auth-loaded", () => {
+  const path = window.location.pathname;
+  if (path.startsWith("/sign-in") || path.startsWith("/register")) {
+    dismiss_once();
+  }
+});
+
 setTimeout(dismiss_once, 5000);
