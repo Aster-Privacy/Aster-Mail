@@ -251,7 +251,10 @@ function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on
               <input
                 type="range"
                 min="1"
-                max={String(Math.round((member.allocated_storage_bytes + (pool_remaining_bytes ?? 0)) / 1073741824))}
+                max={String(Math.max(
+                    Math.round((member.allocated_storage_bytes + (pool_remaining_bytes ?? 0)) / 1073741824),
+                    Math.round(member.allocated_storage_bytes / 1073741824) + 1
+                  ))}
                 value={storage_input}
                 onChange={e => set_storage_input(e.target.value)}
                 className="flex-1 h-1.5 accent-blue-500"
@@ -260,7 +263,7 @@ function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on
             </div>
             {pool_remaining_bytes !== undefined && (
               <p className="text-[10px] text-txt-muted">
-                {Math.max(0, Math.round((pool_remaining_bytes - (parseFloat(storage_input) - member.allocated_storage_bytes / 1073741824)) ))} GB remaining in pool
+                {Math.max(0, Math.round(((pool_remaining_bytes ?? 0) / 1073741824) - (parseFloat(storage_input) - member.allocated_storage_bytes / 1073741824)))} GB remaining in pool
               </p>
             )}
             <div className="flex gap-1">
@@ -334,9 +337,16 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
     finally { set_creating(false); }
   };
 
+  const [confirm_delete_gid, set_confirm_delete_gid] = useState<string | null>(null);
+
   const handle_delete = async (gid: string) => {
-    try { await delete_org_group(gid); set_groups(p => p.filter(g => g.id !== gid)); if (expanded === gid) set_expanded(null); show_toast("Group deleted", "success"); }
+    set_confirm_delete_gid(gid);
+  };
+  const confirm_delete = async () => {
+    if (!confirm_delete_gid) return;
+    try { await delete_org_group(confirm_delete_gid); set_groups(p => p.filter(g => g.id !== confirm_delete_gid)); if (expanded === confirm_delete_gid) set_expanded(null); show_toast("Group deleted", "success"); }
     catch { show_toast("Failed to delete group", "error"); }
+    finally { set_confirm_delete_gid(null); }
   };
 
   const handle_remove_member = async (gid: string, uid: string) => {
@@ -438,6 +448,23 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
           })}
         </div>
       )}
+
+      <AlertDialog open={!!confirm_delete_gid} onOpenChange={open => !open && set_confirm_delete_gid(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete group?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this group and remove all its members. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirm_delete} className="aster_btn_destructive">
+              Delete Group
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -992,9 +1019,14 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const handle_upgrade_to_family = async () => {
     set_changing_plan(true);
     try {
+      // Try yearly first (most common), fall back to monthly if that fails
       const res = await change_plan("family", "year");
       if (res.ok) { show_toast("Plan upgraded successfully", "success"); window.location.reload(); }
-      else show_toast(t("settings.failed_save_setting"), "error");
+      else {
+        const res2 = await change_plan("family", "month");
+        if (res2.ok) { show_toast("Plan upgraded successfully", "success"); window.location.reload(); }
+        else show_toast(t("settings.failed_save_setting"), "error");
+      }
     } catch { show_toast(t("settings.failed_save_setting"), "error"); }
     finally { set_changing_plan(false); }
   };
@@ -1283,12 +1315,12 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             <div className="divide-y divide-edge-secondary">
               {(() => {
                 const used_alloc = active_members.reduce((s, m) => s + m.allocated_storage_bytes, 0);
-                const pool_remaining_gb = Math.max(0, Math.round((group.storage_pool_bytes - used_alloc) / 1073741824));
+                const pool_remaining_raw = Math.max(0, group.storage_pool_bytes - used_alloc);
                 return (<>
                   {active_members.filter(m => m.role === "owner").map(m => (
                     <MemberRow key={m.user_id} member={m} is_owner_view={true}
                       compliance={compliance_map[m.user_id]}
-                      pool_remaining_bytes={pool_remaining_gb}
+                      pool_remaining_bytes={pool_remaining_raw}
                       on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
                   ))}
               {active_members.filter(m => m.role !== "owner").length === 0 ? (
@@ -1307,7 +1339,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                   active_members.filter(m => m.role !== "owner").map(m => (
                     <MemberRow key={m.user_id} member={m} is_owner_view={true}
                       compliance={compliance_map[m.user_id]}
-                      pool_remaining_bytes={pool_remaining_gb}
+                      pool_remaining_bytes={pool_remaining_raw}
                       on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
                   ))
                 )}
