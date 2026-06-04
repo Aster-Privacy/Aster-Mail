@@ -568,17 +568,57 @@ export function BillingSection() {
 
       {(subscription?.plan?.code === "duo" || subscription?.plan?.code === "family") && (
         <div className="rounded-2xl border p-5 flex flex-col gap-4" style={{ borderColor: "var(--border-primary)", backgroundColor: "var(--bg-hover)" }}>
-          <p className="text-sm text-txt-secondary">
-            {t("settings.family_plan_billing_notice", { plan_name: subscription?.plan.name ?? "" })}
-          </p>
-          <button
-            className="self-start text-sm font-medium px-4 py-2 rounded-xl transition-colors"
-            style={{ backgroundColor: "var(--accent-blue)", color: "#ffffff" }}
-            type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "family" }))}
-          >
-            {t("settings.go_to_family_settings")}
-          </button>
+          <div>
+            <p className="text-sm font-medium text-txt-primary">
+              {subscription?.plan.name ?? "Family plan"}
+            </p>
+            <p className="text-sm text-txt-secondary mt-1">
+              {t("settings.family_plan_billing_notice", { plan_name: subscription?.plan.name ?? "" })}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="aster_btn aster_btn_secondary aster_btn_sm"
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "family" }))}
+            >
+              {t("settings.go_to_family_settings")}
+            </button>
+            {subscription?.plan?.code === "duo" && (
+              <button
+                className="aster_btn aster_btn_secondary aster_btn_sm"
+                type="button"
+                disabled={is_action_loading}
+                onClick={async () => {
+                  set_is_action_loading(true);
+                  try {
+                    const r = await change_plan("family", billing_period === "yearly" ? "year" : "month");
+                    if (r.ok) { window.location.reload(); }
+                  } catch { /* handled */ }
+                  finally { set_is_action_loading(false); }
+                }}
+              >
+                Upgrade to Family (6 members)
+              </button>
+            )}
+            {subscription?.plan?.code === "family" && (
+              <button
+                className="aster_btn aster_btn_secondary aster_btn_sm"
+                type="button"
+                disabled={is_action_loading}
+                onClick={async () => {
+                  set_is_action_loading(true);
+                  try {
+                    const r = await change_plan("duo", billing_period === "yearly" ? "year" : "month");
+                    if (r.ok) { window.location.reload(); }
+                  } catch { /* handled */ }
+                  finally { set_is_action_loading(false); }
+                }}
+              >
+                Downgrade to Duo (2 members)
+              </button>
+            )}
+          </div>
         </div>
       )}
 
