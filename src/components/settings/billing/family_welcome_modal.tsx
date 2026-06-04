@@ -19,23 +19,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   UserGroupIcon,
   ShieldCheckIcon,
   CircleStackIcon,
-  Cog6ToothIcon,
-  CheckCircleIcon,
   ArrowRightIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
-import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalDescription,
-  ModalFooter,
-} from "@/components/ui/modal";
+import { Modal } from "@/components/ui/modal";
 import { format_bytes } from "@/lib/utils";
+import { use_should_reduce_motion } from "@/provider";
 
 interface FamilyWelcomeModalProps {
   is_open: boolean;
@@ -49,53 +45,61 @@ interface FamilyWelcomeModalProps {
 const STEPS = [
   {
     icon: UserGroupIcon,
-    icon_color: "text-accent-blue",
-    icon_bg: "bg-accent-blue/10",
+    accent: "indigo",
     title: "Welcome to your family plan",
-    description: "You now have a shared plan for the whole family - everyone gets their own private inbox.",
+    description: "Everyone in your family gets their own private, encrypted inbox - completely separate from yours.",
     points: [
-      { icon: CheckCircleIcon, text: "Each member gets their own account and address" },
-      { icon: CheckCircleIcon, text: "Complete privacy - members can't see each other's emails" },
-      { icon: CheckCircleIcon, text: "You manage the plan, everyone else just uses it" },
+      "Each member gets their own @astermail.org address",
+      "Complete privacy - members can't see each other's emails",
+      "Quantum-safe encryption on every account",
     ],
   },
   {
     icon: CircleStackIcon,
-    icon_color: "text-violet-500",
-    icon_bg: "bg-violet-500/10",
-    title: "Shared storage pool",
-    description: "Your plan includes a storage pool you control. Allocate however much each member needs.",
+    accent: "violet",
+    title: "One storage pool, you control it",
+    description: "Your plan comes with a shared pool of storage. Decide how much each member gets and adjust any time.",
     points: [
-      { icon: CheckCircleIcon, text: "You decide how much storage each member gets" },
-      { icon: CheckCircleIcon, text: "Move storage between members any time" },
-      { icon: CheckCircleIcon, text: "Members see only their own usage" },
+      "Allocate storage to each member when you invite them",
+      "Move storage between members with a slider",
+      "Members only see their own usage - nothing else",
     ],
   },
   {
     icon: ShieldCheckIcon,
-    icon_color: "text-green-500",
-    icon_bg: "bg-green-500/10",
-    title: "Built for privacy and security",
-    description: "Set security policies for the whole family, track who's logged in, and keep everyone safe.",
+    accent: "emerald",
+    title: "Security for the whole family",
+    description: "Set policies that apply to every member - enforce 2FA, limit sessions, control access.",
     points: [
-      { icon: CheckCircleIcon, text: "Require 2FA for all members" },
-      { icon: CheckCircleIcon, text: "Set session timeouts and device limits" },
-      { icon: CheckCircleIcon, text: "Full quantum-safe encryption on every account" },
+      "Require 2-factor authentication for all members",
+      "Set session timeouts and device limits org-wide",
+      "View activity logs and member compliance at a glance",
     ],
   },
-  {
-    icon: Cog6ToothIcon,
-    icon_color: "text-amber-500",
-    icon_bg: "bg-amber-500/10",
-    title: "Invite your first member",
-    description: "Head to Family settings to invite members, allocate storage, and set up your plan.",
-    points: [
-      { icon: CheckCircleIcon, text: "Send email invites directly from Family settings" },
-      { icon: CheckCircleIcon, text: "Or share a private invite link" },
-      { icon: CheckCircleIcon, text: "Members join in seconds - no credit card needed" },
-    ],
+] as const;
+
+type Accent = (typeof STEPS)[number]["accent"];
+
+const ACCENT: Record<Accent, { bg: string; icon: string; dot_active: string; check: string }> = {
+  indigo: {
+    bg: "bg-indigo-500/10 dark:bg-indigo-500/15",
+    icon: "text-indigo-500",
+    dot_active: "bg-indigo-500",
+    check: "text-indigo-500",
   },
-];
+  violet: {
+    bg: "bg-violet-500/10 dark:bg-violet-500/15",
+    icon: "text-violet-500",
+    dot_active: "bg-violet-500",
+    check: "text-violet-500",
+  },
+  emerald: {
+    bg: "bg-emerald-500/10 dark:bg-emerald-500/15",
+    icon: "text-emerald-500",
+    dot_active: "bg-emerald-500",
+    check: "text-emerald-500",
+  },
+};
 
 export function FamilyWelcomeModal({
   is_open,
@@ -106,89 +110,128 @@ export function FamilyWelcomeModal({
   on_go_to_family,
 }: FamilyWelcomeModalProps) {
   const [step, set_step] = useState(0);
+  const [dir, set_dir] = useState(1);
+  const reduce_motion = use_should_reduce_motion();
   const current = STEPS[step];
+  const colors = ACCENT[current.accent];
   const Icon = current.icon;
   const is_last = step === STEPS.length - 1;
 
-  const handle_close = () => {
-    set_step(0);
-    on_close();
+  const handle_close = () => { set_step(0); on_close(); };
+
+  const go = (next: number) => {
+    set_dir(next > step ? 1 : -1);
+    set_step(next);
   };
 
   const handle_next = () => {
-    if (is_last) {
-      handle_close();
-      on_go_to_family();
-    } else {
-      set_step(s => s + 1);
-    }
+    if (is_last) { handle_close(); on_go_to_family(); }
+    else go(step + 1);
+  };
+
+  const variants = {
+    enter: (d: number) => ({ opacity: 0, x: reduce_motion ? 0 : d * 20 }),
+    center: { opacity: 1, x: 0 },
+    exit: (d: number) => ({ opacity: 0, x: reduce_motion ? 0 : d * -20 }),
   };
 
   return (
-    <Modal is_open={is_open} on_close={handle_close} size="md" close_on_overlay={false}>
-      <ModalHeader>
-        <div className="flex flex-col items-center text-center gap-3 pt-2">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${current.icon_bg}`}>
-            <Icon className={`w-7 h-7 ${current.icon_color}`} />
-          </div>
-          <div>
-            <div className="flex items-center justify-center gap-1.5 mb-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-accent-blue/10 text-accent-blue">
+    <Modal is_open={is_open} on_close={handle_close} size="lg" show_close_button={false} close_on_overlay={false}>
+      <div className="relative flex flex-col overflow-hidden">
+        {/* Close */}
+        <button
+          onClick={handle_close}
+          className="absolute right-4 top-4 z-20 w-7 h-7 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-secondary"
+        >
+          <XMarkIcon className="w-4 h-4" />
+        </button>
+
+        <AnimatePresence mode="wait" custom={dir}>
+          <motion.div
+            key={step}
+            custom={dir}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: reduce_motion ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="px-8 pt-8 pb-6"
+          >
+            {/* Plan pill */}
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
                 {plan_name}
               </span>
-              <span className="text-xs text-txt-muted">
-                {max_members} members - {format_bytes(storage_pool_bytes)} storage
-              </span>
+              <span className="text-xs text-txt-muted">{max_members} members · {format_bytes(storage_pool_bytes)}</span>
             </div>
-            <ModalTitle className="text-xl">{current.title}</ModalTitle>
-          </div>
-          <ModalDescription>{current.description}</ModalDescription>
-        </div>
-      </ModalHeader>
 
-      <div className="px-6 pb-2">
-        <ul className="space-y-2.5">
-          {current.points.map((p, i) => (
-            <li key={i} className="flex items-start gap-2.5">
-              <p.icon className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-              <span className="text-sm text-txt-primary">{p.text}</span>
-            </li>
-          ))}
-        </ul>
+            {/* Icon */}
+            <div className="flex justify-center mb-5">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center ${colors.bg}`}>
+                <Icon className={`w-8 h-8 ${colors.icon}`} strokeWidth={1.5} />
+              </div>
+            </div>
 
-        <div className="flex items-center justify-center gap-1.5 mt-6">
-          {STEPS.map((_, i) => (
+            {/* Text */}
+            <div className="text-center mb-6">
+              <h2 className="text-lg font-semibold text-txt-primary mb-2">{current.title}</h2>
+              <p className="text-sm text-txt-muted leading-relaxed max-w-xs mx-auto">{current.description}</p>
+            </div>
+
+            {/* Points */}
+            <ul className="space-y-3 bg-surf-secondary rounded-xl p-4 border border-edge-secondary">
+              {current.points.map((point, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <CheckCircleIcon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${colors.check}`} />
+                  <span className="text-sm text-txt-primary">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Progress dots */}
+        <div className="flex items-center justify-center gap-2 pb-2">
+          {STEPS.map((s, i) => (
             <button
               key={i}
-              onClick={() => set_step(i)}
-              className={`h-1.5 rounded-full transition-all ${
+              onClick={() => go(i)}
+              className={`rounded-full transition-all duration-300 ${
                 i === step
-                  ? "w-6 bg-accent-blue"
+                  ? `w-6 h-1.5 ${colors.dot_active}`
                   : i < step
-                  ? "w-1.5 bg-accent-blue/40"
-                  : "w-1.5 bg-edge-secondary"
+                  ? `w-1.5 h-1.5 ${colors.dot_active} opacity-40`
+                  : "w-1.5 h-1.5 bg-edge-secondary"
               }`}
-              aria-label={`Go to step ${i + 1}`}
+              aria-label={`Step ${i + 1}: ${s.title}`}
             />
           ))}
         </div>
-      </div>
 
-      <ModalFooter>
-        <Button variant="ghost" onClick={handle_close}>
-          Skip intro
-        </Button>
-        <Button variant="depth" onClick={handle_next}>
-          {is_last ? (
-            <>
-              Go to Family settings
-              <ArrowRightIcon className="w-4 h-4 ml-1" />
-            </>
-          ) : (
-            "Next"
-          )}
-        </Button>
-      </ModalFooter>
+        {/* Footer */}
+        <div className="px-6 pb-6 pt-3 flex items-center justify-between border-t border-edge-secondary mt-2">
+          <Button variant="ghost" size="sm" onClick={handle_close}>
+            Skip
+          </Button>
+          <div className="flex items-center gap-2">
+            {step > 0 && (
+              <Button variant="outline" size="sm" onClick={() => go(step - 1)}>
+                Back
+              </Button>
+            )}
+            <Button variant="depth" size="sm" onClick={handle_next}>
+              {is_last ? (
+                <span className="flex items-center gap-1.5">
+                  Set up family
+                  <ArrowRightIcon className="w-3.5 h-3.5" />
+                </span>
+              ) : (
+                "Next"
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
     </Modal>
   );
 }
