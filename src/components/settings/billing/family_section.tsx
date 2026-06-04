@@ -26,7 +26,6 @@ import {
   TrashIcon,
   ArrowRightOnRectangleIcon,
   PencilIcon,
-  CheckIcon,
   XMarkIcon,
   CircleStackIcon,
   ShieldCheckIcon,
@@ -44,6 +43,7 @@ import {
   FunnelIcon,
   ClockIcon,
   ChartBarIcon,
+  ArrowsRightLeftIcon,
 } from "@heroicons/react/24/outline";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -178,10 +178,11 @@ function StorageBar({ used, total }: { used: number; total: number }) {
   );
 }
 
-function MemberRow({ member, is_owner_view, compliance, on_remove, on_transfer, on_reload }: {
+function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on_remove, on_transfer, on_reload }: {
   member: FamilyMemberInfo;
   is_owner_view: boolean;
   compliance?: MemberComplianceInfo;
+  pool_remaining_bytes?: number;
   on_remove: (m: FamilyMemberInfo) => void;
   on_transfer: (m: FamilyMemberInfo) => void;
   on_reload: () => Promise<void>;
@@ -226,12 +227,27 @@ function MemberRow({ member, is_owner_view, compliance, on_remove, on_transfer, 
           {compliance?.has_2fa && <ShieldCheckIcon className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />}
         </div>
         {editing ? (
-          <div className="flex items-center gap-1.5 mt-1">
-            <input type="number" min="1" value={storage_input} onChange={e => set_storage_input(e.target.value)}
-              className="w-16 text-xs border border-edge-secondary rounded px-1.5 py-0.5 bg-transparent text-txt-primary" autoFocus />
-            <span className="text-xs text-txt-muted">GB</span>
-            <button onClick={save_storage} className="text-green-600 hover:text-green-700"><CheckIcon className="w-3.5 h-3.5" /></button>
-            <button onClick={() => set_editing(false)} className="text-txt-muted hover:text-txt-secondary"><XMarkIcon className="w-3.5 h-3.5" /></button>
+          <div className="mt-2 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="1"
+                max={String(Math.round((member.allocated_storage_bytes + (pool_remaining_bytes ?? 0)) / 1073741824))}
+                value={storage_input}
+                onChange={e => set_storage_input(e.target.value)}
+                className="flex-1 h-1.5 accent-blue-500"
+              />
+              <span className="text-xs font-semibold text-txt-primary w-12 text-right">{storage_input} GB</span>
+            </div>
+            {pool_remaining_bytes !== undefined && (
+              <p className="text-[10px] text-txt-muted">
+                {Math.max(0, Math.round((pool_remaining_bytes - (parseFloat(storage_input) - member.allocated_storage_bytes / 1073741824)) ))} GB remaining in pool
+              </p>
+            )}
+            <div className="flex gap-1">
+              <button onClick={save_storage} className="aster_btn aster_btn_primary aster_btn_sm">Save</button>
+              <button onClick={() => set_editing(false)} className="aster_btn aster_btn_ghost aster_btn_sm">Cancel</button>
+            </div>
           </div>
         ) : (
           <div className="text-xs text-txt-muted mt-0.5">{format_bytes(member.storage_used_bytes)} / {format_bytes(member.allocated_storage_bytes)}</div>
@@ -446,7 +462,18 @@ function ActivityContent() {
         <div className="divide-y divide-edge-secondary">
           {filtered.map(entry => (
             <div key={entry.id} className="flex items-start gap-3 py-3">
-              <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${activity_dot_color(entry.event_type)}`} />
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                ['member_removed','invite_revoked','group_deleted'].includes(entry.event_type)
+                  ? 'bg-red-500/10' : 'bg-surf-secondary'
+              }`}>
+                {['member_joined','invite_sent'].includes(entry.event_type) ? <UserPlusIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} /> :
+                 ['member_removed','invite_revoked','group_deleted'].includes(entry.event_type) ? <TrashIcon className="w-4 h-4 text-red-500" /> :
+                 ['admin_transferred','storage_updated'].includes(entry.event_type) ? <ArrowsRightLeftIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} /> :
+                 ['security_policy_updated'].includes(entry.event_type) ? <ShieldCheckIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} /> :
+                 ['retention_updated'].includes(entry.event_type) ? <ArchiveBoxIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} /> :
+                 ['domain_shared'].includes(entry.event_type) ? <GlobeAltIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} /> :
+                 <PlusIcon className={`w-4 h-4 ${activity_dot_color(entry.event_type)}`} />}
+              </div>
               <div className="flex-1 min-w-0">
                 <span className="text-sm text-txt-primary">{activity_event_text(entry)}</span>
                 <p className="text-xs text-txt-muted mt-0.5">{last_seen_relative(entry.created_at)} - {format_activity_time(entry.created_at)}</p>
@@ -612,7 +639,14 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
                         <span className="text-sm font-medium text-txt-primary">{d.domain_name}</span>
                         {d.dkim_verified ? <span className="aster_badge aster_badge_green">Verified</span> : <span className="aster_badge aster_badge_amber">Unverified</span>}
                         {d.shared_with_count > 0 && (
-                          <span className="aster_badge aster_badge_gray">{d.shared_with_count} shared</span>
+                          <div className="flex items-center gap-0.5">
+                            {members.filter(m => m.user_id !== d.owner_user_id).slice(0, d.shared_with_count).map(m => (
+                              <div key={m.user_id} className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold ring-1 ring-edge-secondary -ml-1 first:ml-0"
+                                style={{ backgroundColor: get_avatar_color(m.username) }} title={`${m.username}@${m.email_domain}`}>
+                                {m.username[0]?.toUpperCase()}
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
                       <p className="text-xs text-txt-muted mt-0.5">Owned by {d.owner_username}</p>
@@ -1283,11 +1317,16 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               <div className="mt-2 h-px bg-edge-secondary" />
             </div>
             <div className="divide-y divide-edge-secondary">
-              {active_members.filter(m => m.role === "owner").map(m => (
-                <MemberRow key={m.user_id} member={m} is_owner_view={true}
-                  compliance={compliance_map[m.user_id]}
-                  on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
-              ))}
+              {(() => {
+                const used_alloc = active_members.reduce((s, m) => s + m.allocated_storage_bytes, 0);
+                const pool_remaining_gb = Math.max(0, Math.round((group.storage_pool_bytes - used_alloc) / 1073741824));
+                return (<>
+                  {active_members.filter(m => m.role === "owner").map(m => (
+                    <MemberRow key={m.user_id} member={m} is_owner_view={true}
+                      compliance={compliance_map[m.user_id]}
+                      pool_remaining_bytes={pool_remaining_gb}
+                      on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
+                  ))}
               {active_members.filter(m => m.role !== "owner").length === 0 ? (
                 <div className="flex flex-col items-center gap-3 py-8">
                   <UserGroupIcon className="w-12 h-12 text-txt-muted" />
@@ -1301,12 +1340,15 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                   </button>
                 </div>
               ) : (
-                active_members.filter(m => m.role !== "owner").map(m => (
-                  <MemberRow key={m.user_id} member={m} is_owner_view={true}
-                    compliance={compliance_map[m.user_id]}
-                    on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
-                ))
-              )}
+                  active_members.filter(m => m.role !== "owner").map(m => (
+                    <MemberRow key={m.user_id} member={m} is_owner_view={true}
+                      compliance={compliance_map[m.user_id]}
+                      pool_remaining_bytes={pool_remaining_gb}
+                      on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
+                  ))
+                )}
+              </>);
+              })()}
             </div>
           </div>
 
@@ -1364,7 +1406,11 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                       <ClockIcon className="w-4 h-4 text-txt-muted flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="text-sm text-txt-primary">{inv.link_only ? t("settings.family_invite_link") : t("settings.family_invite_by_email")}</p>
-                        <p className="text-xs text-txt-muted">{t("settings.family_invite_expires", { date: new Date(inv.expires_at).toLocaleDateString() })}</p>
+                        <p className="text-xs text-txt-muted">
+                          {t("settings.family_invite_expires", { date: new Date(inv.expires_at).toLocaleDateString() })}
+                          {inv.allocated_storage_bytes > 0 && <span> &middot; <strong>{Math.round(inv.allocated_storage_bytes / 1073741824)} GB</strong> allocated</span>}
+                          {inv.created_at && <span> &middot; sent {invite_sent_relative(inv.created_at)}</span>}
+                        </p>
                         <p className="text-xs text-txt-muted">Sent {invite_sent_relative(inv.created_at)}</p>
                       </div>
                     </div>
