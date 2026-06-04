@@ -20,109 +20,164 @@
 //
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
-import { UserGroupIcon } from "@heroicons/react/24/outline";
-
+import {
+  UserGroupIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
 import { join_family } from "@/services/api/family";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
+import { Logo } from "@/components/auth/auth_styles";
 
 export default function JoinFamilyPage() {
-  const { t } = use_i18n();
+  use_i18n();
   const [search_params] = useSearchParams();
   const navigate = useNavigate();
   const { is_authenticated, is_loading } = use_auth();
   const token = search_params.get("token") ?? "";
 
   const [joining, set_joining] = useState(false);
-  const [error, set_error] = useState(false);
+  const [error_msg, set_error_msg] = useState<string | null>(null);
   const [joined_bytes, set_joined_bytes] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!token) {
-      set_error(true);
-    }
+    if (!token) set_error_msg("Invalid invite link.");
   }, [token]);
 
   const handle_join = async () => {
-    if (!token) return;
+    if (!token || joining) return;
     set_joining(true);
-    set_error(false);
+    set_error_msg(null);
     try {
       const res = await join_family(token);
-      if (!res.data) throw new Error();
+      if (!res.data) throw new Error("Join failed");
       set_joined_bytes(res.data.allocated_storage_bytes);
-      setTimeout(() => navigate("/", { replace: true }), 2000);
-    } catch {
-      set_error(true);
+      setTimeout(() => navigate("/", { replace: true }), 2500);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to join. The invite may have expired.";
+      set_error_msg(msg);
     } finally {
       set_joining(false);
     }
   };
 
+  // Auto-join if already authenticated when page loads
   useEffect(() => {
-    if (!is_loading && is_authenticated && token && !joining && !error && joined_bytes === null) {
+    if (!is_loading && is_authenticated && token && !joining && !error_msg && joined_bytes === null) {
       handle_join();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [is_loading, is_authenticated, token]);
 
-  if (is_loading) return null;
+  if (is_loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
+  // Success state
   if (joined_bytes !== null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-4">
-        <div className="max-w-md w-full text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mx-auto">
-            <UserGroupIcon className="w-8 h-8 text-green-600 dark:text-green-400" />
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "var(--bg-secondary)" }}>
+        <div className="max-w-sm w-full text-center space-y-6">
+          <div className="w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center mx-auto">
+            <CheckCircleIcon className="w-9 h-9 text-green-500" />
           </div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            {t("settings.family_plan_title")}
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            {format_bytes(joined_bytes)} {t("settings.family_invite_storage").toLowerCase()}
-          </p>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-txt-primary">You're in!</h1>
+            <p className="text-txt-muted">
+              You've joined the family plan with {format_bytes(joined_bytes)} of storage.
+            </p>
+            <p className="text-sm text-txt-muted">Redirecting to your inbox...</p>
+          </div>
+          <Spinner size="sm" />
         </div>
       </div>
     );
   }
 
-  if (error || !token) {
+  // Error state (invalid token, no token)
+  if ((error_msg && !joining) || !token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-4">
-        <div className="max-w-md w-full text-center space-y-4">
-          <p className="text-red-600 dark:text-red-400">
-            {t("settings.family_join_invalid")}
-          </p>
-          <Link to="/sign-in" className="aster_btn aster_btn_primary aster_btn_md inline-block">
-            {t("settings.family_join_login")}
-          </Link>
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "var(--bg-secondary)" }}>
+        <div className="max-w-sm w-full text-center space-y-6">
+          <Logo />
+          <div className="w-14 h-14 rounded-full bg-red-500/15 flex items-center justify-center mx-auto">
+            <ExclamationTriangleIcon className="w-8 h-8 text-red-500" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-xl font-bold text-txt-primary">Invalid invite</h1>
+            <p className="text-txt-muted text-sm">{error_msg ?? "This invite link is invalid or has expired."}</p>
+          </div>
+          <div className="space-y-3">
+            <Link
+              to="/sign-in"
+              className="aster_btn aster_btn_primary aster_btn_lg w-full text-center block"
+            >
+              Sign in to Aster
+            </Link>
+            <p className="text-xs text-txt-muted">Ask the family owner to send a new invite.</p>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Main join page - authenticated user can join, unauthenticated needs to sign up first
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-4">
-      <div className="max-w-md w-full space-y-6">
-        <div className="text-center space-y-2">
-          <div className="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center mx-auto">
-            <UserGroupIcon className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "var(--bg-secondary)" }}>
+      <div className="max-w-sm w-full space-y-8">
+        <div className="text-center space-y-4">
+          <Logo />
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ backgroundColor: "var(--accent-blue-subtle)" }}>
+            <UserGroupIcon className="w-9 h-9" style={{ color: "var(--accent-blue)" }} />
           </div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            {t("settings.family_join_title")}
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            {t("settings.family_join_body")}
-          </p>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold text-txt-primary">Join family plan</h1>
+            <p className="text-txt-muted text-sm">
+              You've been invited to join an Aster family plan. Each member gets their own private, encrypted inbox.
+            </p>
+          </div>
         </div>
+
+        <div className="rounded-2xl border border-edge-secondary p-5 space-y-3" style={{ backgroundColor: "var(--bg-primary)" }}>
+          <div className="flex items-center gap-2">
+            <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
+            <span className="text-sm text-txt-primary">Separate private inbox</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
+            <span className="text-sm text-txt-primary">End-to-end encrypted email</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
+            <span className="text-sm text-txt-primary">Shared family storage pool</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
+            <span className="text-sm text-txt-primary">No ads, no tracking</span>
+          </div>
+        </div>
+
+        {error_msg && (
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20">
+            <ExclamationTriangleIcon className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <p className="text-sm text-red-600 dark:text-red-400">{error_msg}</p>
+          </div>
+        )}
 
         {is_authenticated ? (
           <button
             onClick={handle_join}
             disabled={joining}
-            className="aster_btn aster_btn_primary aster_btn_lg w-full disabled:opacity-50"
+            className="aster_btn aster_btn_primary aster_btn_lg w-full flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {joining ? "..." : t("settings.family_join_login")}
+            {joining ? <><Spinner size="sm" /> Joining...</> : "Accept Invite"}
           </button>
         ) : (
           <div className="space-y-3">
@@ -130,16 +185,21 @@ export default function JoinFamilyPage() {
               to={`/register?next=${encodeURIComponent(`/join/family?token=${token}`)}`}
               className="aster_btn aster_btn_primary aster_btn_lg w-full text-center block"
             >
-              {t("settings.family_join_create_account")}
+              Create account & join
             </Link>
             <Link
               to={`/sign-in?next=${encodeURIComponent(`/join/family?token=${token}`)}`}
               className="aster_btn aster_btn_secondary aster_btn_lg w-full text-center block"
             >
-              {t("settings.family_join_login")}
+              Sign in & join
             </Link>
           </div>
         )}
+
+        <p className="text-center text-xs text-txt-muted">
+          By joining you agree to{" "}
+          <a href="https://astermail.org/terms" target="_blank" rel="noopener noreferrer" className="underline">Terms of Service</a>
+        </p>
       </div>
     </div>
   );
