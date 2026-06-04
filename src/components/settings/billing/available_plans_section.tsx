@@ -244,9 +244,9 @@ export function AvailablePlansSection({
                     </span>
                   </div>
                   {billing_period === "yearly" && (
-                    <p className="text-xs font-medium mt-1.5" style={{ color: "var(--color-success)" }}>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white mt-1.5" style={{ backgroundColor: "var(--accent-blue)" }}>
                       {tier.savings_label}
-                    </p>
+                    </span>
                   )}
                   <Button
                     className="w-full mt-4"
