@@ -32,10 +32,12 @@ import {
   EnvelopeIcon,
   ShieldCheckIcon,
   ArrowsRightLeftIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { Input } from "@/components/ui/input";
 import { get_avatar_color } from "@/lib/avatar_color";
 import { change_plan } from "@/services/api/billing";
+import { FamilyOrgPanel } from "./family_org_panel";
 
 import {
   get_family_group,
@@ -359,6 +361,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     }
   };
 
+  const [family_view, set_family_view] = useState<"overview" | "admin">("overview");
+
   if (!is_family_plan || loading) return null;
   if (!group) return null;
 
@@ -369,14 +373,39 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-base font-semibold text-txt-primary">
-          {group.plan_name}
-        </h2>
-        <p className="text-sm text-txt-secondary mt-0.5">
-          {active_members.length} of {group.max_members} members &middot; {seats_remaining} seat{seats_remaining !== 1 ? "s" : ""} available
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-semibold text-txt-primary">
+            {group.plan_name}
+          </h2>
+          <p className="text-sm text-txt-secondary mt-0.5">
+            {active_members.length} of {group.max_members} members &middot; {seats_remaining} seat{seats_remaining !== 1 ? "s" : ""} available
+          </p>
+        </div>
+        {is_owner && (
+          <div className="flex items-center rounded-lg border border-edge-secondary bg-surf-secondary p-0.5 gap-0.5">
+            <button
+              onClick={() => set_family_view("overview")}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${family_view === "overview" ? "bg-white dark:bg-neutral-800 text-txt-primary shadow-sm" : "text-txt-muted hover:text-txt-secondary"}`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => set_family_view("admin")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${family_view === "admin" ? "bg-white dark:bg-neutral-800 text-txt-primary shadow-sm" : "text-txt-muted hover:text-txt-secondary"}`}
+            >
+              <AdjustmentsHorizontalIcon className="w-3.5 h-3.5" />
+              Admin
+            </button>
+          </div>
+        )}
       </div>
+
+      {is_owner && family_view === "admin" && (
+        <FamilyOrgPanel group={group} members={active_members} />
+      )}
+
+      {family_view === "overview" && (<>
 
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl bg-surf-secondary border border-edge-secondary p-4">
@@ -571,7 +600,9 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           {t("settings.family_leave")}
         </button>
       )}
+      </>)}
 
+      {/* Dialogs rendered outside view-tab so state isn't lost on tab switch */}
       <AlertDialog
         open={!!remove_target}
         onOpenChange={(open) => !open && set_remove_target(null)}
