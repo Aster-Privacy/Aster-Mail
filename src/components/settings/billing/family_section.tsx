@@ -28,7 +28,6 @@ import {
   ArrowRightIcon,
   PencilIcon,
   XMarkIcon,
-  CircleStackIcon,
   ShieldCheckIcon,
   ArchiveBoxIcon,
   ExclamationTriangleIcon,
@@ -1156,6 +1155,12 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 {format_bytes(pool_used)}
               </p>
               <p className="text-xs text-txt-muted mt-1">of {format_bytes(group.storage_pool_bytes)} total</p>
+              <div className="w-full bg-edge-secondary rounded-full h-1.5 mt-2">
+                <div
+                  className={`h-1.5 rounded-full transition-all ${pool_pct >= 90 ? "bg-red-500" : pool_pct >= 70 ? "bg-amber-500" : "bg-accent-blue"}`}
+                  style={{ width: `${Math.max(pool_pct, 0.3)}%` }}
+                />
+              </div>
             </div>
             <div className="px-5 py-4">
               <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">Encryption</p>
@@ -1164,31 +1169,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           </div>
 
-          <div>
-            <div className="mb-3">
-              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                <CircleStackIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                Storage pool
-              </h3>
-              <div className="mt-2 h-px bg-edge-secondary" />
-            </div>
-            <div className="space-y-2 py-2">
-              <div className="flex items-baseline justify-between">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-sm font-semibold text-txt-primary">{format_bytes(pool_used)}</span>
-                  <span className="text-xs text-txt-muted">of {format_bytes(group.storage_pool_bytes)} used</span>
-                </div>
-                <span className="text-xs tabular-nums font-medium" style={{ color: pool_pct >= 90 ? "var(--color-red-500)" : pool_pct >= 70 ? "var(--color-amber-500)" : "var(--accent-blue)" }}>
-                  {Math.round(pool_pct)}%
-                </span>
-              </div>
-              <div className="w-full bg-edge-secondary rounded-full h-2">
-                <div className={`h-2 rounded-full transition-all ${pool_pct >= 90 ? "bg-red-500" : pool_pct >= 70 ? "bg-amber-500" : "bg-accent-blue"}`}
-                  style={{ width: `${Math.max(pool_pct, 0.3)}%` }} />
-              </div>
-              <p className="text-xs text-txt-muted">{format_bytes(group.storage_pool_bytes - pool_used)} remaining in pool</p>
-            </div>
-          </div>
+
 
           {is_owner && (
             <button
@@ -1202,9 +1183,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 <span className="text-sm font-medium text-txt-primary">Security snapshot</span>
               </div>
               {(() => {
-                const compliant = Object.values(compliance_map).filter(m => m.has_2fa).length;
-                const total = Object.keys(compliance_map).length || active_members.length;
-                const all_ok = total > 0 && compliant === total;
+                const comp_members = Object.values(compliance_map);
+                const compliant = comp_members.filter(m => m.has_2fa).length;
+                const total = comp_members.length > 0 ? comp_members.length : active_members.length;
+                const all_ok = comp_members.length > 0 && compliant === total;
                 return (
                   <div className="flex items-center justify-between mt-2.5">
                     <span className={all_ok ? "aster_badge aster_badge_green" : "aster_badge aster_badge_amber"}>
