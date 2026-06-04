@@ -29,7 +29,6 @@ import {
   CheckIcon,
   XMarkIcon,
   CircleStackIcon,
-  EnvelopeIcon,
   ArrowsRightLeftIcon,
   ShieldCheckIcon,
   ArchiveBoxIcon,
@@ -1016,32 +1015,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           )}
 
-          {/* What's included */}
-          <div>
-            <div className="mb-3">
-              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                <EnvelopeIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                What's included
-              </h3>
-              <div className="mt-2 h-px bg-edge-secondary" />
-            </div>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2 py-2">
-              {["Unlimited email aliases per member", "30 custom domains per member",
-                "End-to-end encrypted email", "Quantum-safe internal mail",
-                "Shared family aliases", "Full IMAP/SMTP per member",
-                "Catch-all email address", "Auto-forwarding rules",
-                "Priority support", "Email import & export",
-                "Admin storage controls", "Admin role transfer",
-              ].map(feat => (
-                <div key={feat} className="flex items-center gap-2 text-xs text-txt-secondary">
-                  <CheckIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--accent-blue)" }} />
-                  {feat}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Change plan (owner only) */}
+          {/* Change plan          {/* Change plan (owner only) */}
           {is_owner && (
             <div>
               <div className="mb-3">
@@ -1100,45 +1074,43 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         </>
       )}
 
-      {/* â”€â”€ Members tab â”€â”€ */}
       {tab === "members" && is_owner && (
         <>
-          {/* Member list */}
           <div>
             <div className="mb-3">
               <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
                 <UserGroupIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
                 {t("settings.family_members")}
+                <span className="ml-auto text-xs font-normal text-txt-muted">{active_members.length} / {group.max_members}</span>
               </h3>
               <div className="mt-2 h-px bg-edge-secondary" />
             </div>
             <div className="divide-y divide-edge-secondary">
-              {active_members.map(m => (
+              {active_members.filter(m => m.role === "owner").map(m => (
                 <MemberRow key={m.user_id} member={m} is_owner_view={true}
                   on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
               ))}
+              {active_members.filter(m => m.role !== "owner").length === 0 ? (
+                <p className="text-sm text-txt-muted py-4">No other members yet.</p>
+              ) : (
+                active_members.filter(m => m.role !== "owner").map(m => (
+                  <MemberRow key={m.user_id} member={m} is_owner_view={true}
+                    on_remove={set_remove_target} on_transfer={set_transfer_target} on_reload={load_group} />
+                ))
+              )}
             </div>
           </div>
 
-          {/* Invite */}
           {active_members.length < group.max_members && (
             <div>
-              <div className="mb-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                    <UserPlusIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                    {t("settings.family_invite_member")}
-                  </h3>
-                  {!show_invite_form && (
-                    <button onClick={() => set_show_invite_form(true)} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5">
-                      <UserPlusIcon className="w-3.5 h-3.5" /> Add Member
-                    </button>
-                  )}
-                </div>
-                <div className="mt-2 h-px bg-edge-secondary" />
-              </div>
-              {show_invite_form && (
-                <div className="py-2 space-y-3">
+              <div className="mt-1 h-px bg-edge-secondary mb-3" />
+              {!show_invite_form ? (
+                <button onClick={() => set_show_invite_form(true)} className="flex items-center gap-2 text-sm text-accent-blue hover:underline py-1">
+                  <UserPlusIcon className="w-4 h-4" />
+                  Add a member
+                </button>
+              ) : (
+                <div className="space-y-3">
                   <div className="flex gap-2">
                     <Input type="email" placeholder={t("settings.family_invite_email_placeholder")} value={invite_email}
                       onChange={e => set_invite_email(e.target.value)} autoFocus className="flex-1" />
@@ -1163,7 +1135,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           )}
 
-          {/* Pending invites */}
           {group.pending_invites.length > 0 && (
             <div>
               <div className="mb-3">
@@ -1188,7 +1159,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         </>
       )}
 
-      {/* â”€â”€ Security tab â”€â”€ */}
+            {/* â”€â”€ Security tab â”€â”€ */}
       {tab === "groups"    && is_owner && <GroupsContent members={active_members} />}
       {tab === "activity"  && is_owner && <ActivityContent />}
       {tab === "filters"   && is_owner && <FiltersContent />}
