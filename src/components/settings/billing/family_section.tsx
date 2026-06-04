@@ -58,7 +58,7 @@ import {
   list_family_domains, share_domain,
   get_data_retention, update_data_retention,
   get_security_policy, update_security_policy,
-  get_member_compliance,
+  get_member_compliance, notify_non_compliant_2fa,
   type OrgGroup, type OrgGroupMember, type OrgFilter, type FamilyDomain,
   type ActivityLogEntry, type DataRetentionPolicy, type SecurityPolicy,
   type MemberComplianceInfo,
@@ -177,6 +177,24 @@ function StorageBar({ used, total }: { used: number; total: number }) {
     </div>
   );
 }
+
+function SkeletonRows({ count = 3, has_icon = true }: { count?: number; has_icon?: boolean }) {
+  return (
+    <div className="space-y-1">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 py-3">
+          {has_icon && <div className="w-8 h-8 rounded-full bg-edge-secondary animate-pulse flex-shrink-0" />}
+          <div className="flex-1 space-y-2">
+            <div className="h-3 bg-edge-secondary rounded-full animate-pulse" style={{ width: `${60 + (i % 3) * 10}%` }} />
+            <div className="h-2 bg-edge-secondary rounded-full animate-pulse" style={{ width: `${35 + (i % 2) * 15}%` }} />
+          </div>
+          <div className="h-2 bg-edge-secondary rounded-full animate-pulse w-16 flex-shrink-0" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on_remove, on_transfer, on_reload }: {
   member: FamilyMemberInfo;
@@ -350,7 +368,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
         </button>
       </div>
       {loading ? (
-        <div className="flex justify-center items-center gap-2 py-8"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>
+        <SkeletonRows count={3} has_icon={false} />
       ) : groups.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
           <UserGroupIcon className="w-12 h-12 text-txt-muted" />
@@ -371,7 +389,11 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-medium text-txt-primary truncate">{g.name}</span>
                       {g.email_local_part && (
-                        <p className="text-xs text-txt-muted">{g.email_local_part}{g.domain_name ? `@${g.domain_name}` : "@..."}</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <span className="text-xs font-mono text-accent-blue bg-accent-blue/10 px-1.5 py-0.5 rounded">
+                            {g.email_local_part}{g.domain_name ? `@${g.domain_name}` : "@your-domain.com"}
+                          </span>
+                        </div>
                       )}
                     </div>
                     <span className="text-xs font-medium text-txt-muted flex-shrink-0">
@@ -451,7 +473,7 @@ function ActivityContent() {
         </select>
       </div>
       {loading && entries.length === 0 ? (
-        <div className="flex justify-center items-center gap-2 py-8"><Spinner size="sm" /><span className="text-sm text-txt-muted">Loading...</span></div>
+        <SkeletonRows count={4} />
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
           <ChartBarIcon className="w-12 h-12 text-txt-muted" />
@@ -724,11 +746,22 @@ function SecurityContent() {
         </div>
       )}
       {non_2fa > 0 && (
-        <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-amber-500/15 border border-amber-500/30">
-          <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 text-amber-500 mt-0.5" />
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/15 border border-amber-500/30">
+          <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 text-amber-500" />
           <p className="text-sm font-medium text-txt-primary flex-1 min-w-0">
             {non_2fa} member{non_2fa !== 1 ? "s haven't" : " hasn't"} enabled 2FA
           </p>
+          <button
+            className="text-xs font-medium text-amber-600 dark:text-amber-400 hover:underline flex-shrink-0"
+            onClick={async () => {
+              try {
+                const r = await notify_non_compliant_2fa();
+                if (r.data) show_toast(`Reminder sent to ${r.data.notified} member${r.data.notified !== 1 ? 's' : ''}`, "success");
+              } catch { show_toast("Failed to send reminder", "error"); }
+            }}
+          >
+            Send reminder
+          </button>
         </div>
       )}
       <div className="divide-y divide-edge-secondary">

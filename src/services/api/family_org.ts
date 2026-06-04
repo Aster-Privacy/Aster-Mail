@@ -142,3 +142,6 @@ export const revoke_domain_share = (domain: string, user_id: string) =>
   api_client.delete<unknown>(`${BASE}/domains/${encodeURIComponent(domain)}/share/${user_id}`);
 
 export const get_member_compliance = () => api_client.get<MemberComplianceInfo[]>(`${BASE}/compliance`);
+
+export const notify_non_compliant_2fa = () =>
+  api_client.post<{ notified: number }>('/payments/v1/family/org/notify-2fa', {});
