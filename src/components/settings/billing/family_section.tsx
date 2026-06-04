@@ -393,7 +393,9 @@ function FiltersContent() {
   const [form, set_form] = useState({ name: "", value: "", field: "from", action: "trash" });
 
   const load = useCallback(async () => {
-    const r = await list_org_filters(); if (r.data) set_filters(r.data); set_loading(false);
+    try { const r = await list_org_filters(); if (r.data) set_filters(r.data); }
+    catch { show_toast("Failed to load filters", "error"); }
+    finally { set_loading(false); }
   }, []);
   useEffect(() => { load(); }, [load]);
 
@@ -476,7 +478,12 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
   const [sharing, set_sharing] = useState<string | null>(null);
   const [share_uid, set_share_uid] = useState("");
 
-  useEffect(() => { list_family_domains().then(r => { if (r.data) set_domains(r.data); set_loading(false); }); }, []);
+  useEffect(() => {
+    list_family_domains()
+      .then(r => { if (r.data) set_domains(r.data); })
+      .catch(() => show_toast("Failed to load domains", "error"))
+      .finally(() => set_loading(false));
+  }, []);
 
   const do_share = async (dn: string) => {
     if (!share_uid) return;
@@ -532,8 +539,12 @@ function SecurityContent() {
   const [saving, set_saving] = useState(false);
 
   useEffect(() => {
-    get_security_policy().then(r => { if (r.data) set_policy(r.data); });
-    get_member_compliance().then(r => { if (r.data) set_compliance(r.data); });
+    get_security_policy()
+      .then(r => { if (r.data) set_policy(r.data); })
+      .catch(() => { show_toast("Failed to load security settings", "error"); set_policy({ require_2fa: false, require_2fa_grace_days: 7, allow_imap_smtp: true, max_sessions_per_member: null, session_timeout_hours: null, block_external_forwarding: false }); });
+    get_member_compliance()
+      .then(r => { if (r.data) set_compliance(r.data); })
+      .catch(() => {});
   }, []);
 
   const save = async () => {
@@ -664,7 +675,9 @@ function RetentionContent() {
   const [saving, set_saving] = useState(false);
 
   useEffect(() => {
-    get_data_retention().then(r => { if (r.data) set_policy(r.data); });
+    get_data_retention()
+      .then(r => { if (r.data) set_policy(r.data); })
+      .catch(() => { show_toast("Failed to load retention settings", "error"); set_policy({ trash_retention_days: null, spam_retention_days: 30, sent_retention_days: null, all_mail_retention_days: null, enforce_on_members: false }); });
   }, []);
 
   const save = async () => {
@@ -912,12 +925,12 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
       {/* Single flat tab row - owners only */}
       {is_owner && (
-        <div className="inline-flex p-1 rounded-lg bg-surf-secondary">
+        <div className="flex p-1 rounded-lg bg-surf-secondary overflow-x-auto scrollbar-none max-w-full">
           {owner_tabs.map(t_item => (
             <button
               key={t_item.id}
               onClick={() => set_tab(t_item.id)}
-              className="relative px-5 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none"
+              className="relative px-3 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none whitespace-nowrap"
               style={{
                 backgroundColor: tab === t_item.id ? "var(--bg-primary)" : "transparent",
                 color: tab === t_item.id ? "var(--text-primary)" : "var(--text-muted)",

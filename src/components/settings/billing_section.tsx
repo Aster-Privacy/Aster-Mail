@@ -567,18 +567,19 @@ export function BillingSection() {
       )}
 
       {(subscription?.plan?.code === "duo" || subscription?.plan?.code === "family") && (
-        <AvailablePlansSection
-          billing_period={billing_period}
-          current_billing_interval={current_billing_interval}
-          handle_currency_change={handle_currency_change}
-          is_action_loading={is_action_loading}
-          on_upgrade={handle_select_plan}
-          plan_features={plan_features}
-          plans={plans}
-          preferred_currency={preferred_currency}
-          set_billing_period={set_billing_period}
-          subscription={subscription}
-        />
+        <div className="rounded-2xl border p-5 flex flex-col gap-4" style={{ borderColor: "var(--border-primary)", backgroundColor: "var(--bg-hover)" }}>
+          <p className="text-sm text-txt-secondary">
+            {t("settings.family_plan_billing_notice", { plan_name: subscription?.plan.name ?? "" })}
+          </p>
+          <button
+            className="self-start text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+            style={{ backgroundColor: "var(--accent-blue)", color: "#ffffff" }}
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "family" }))}
+          >
+            {t("settings.go_to_family_settings")}
+          </button>
+        </div>
       )}
 
       <div className="flex justify-center mt-2 mb-4">

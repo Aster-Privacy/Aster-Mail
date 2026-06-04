@@ -2172,6 +2172,7 @@ export interface SettingsTranslations {
   family_per_member: string; family_seat_upgrade_msg: string;
   family_billing_section: string; family_billing_empty: string; family_billing_view_all: string;
   family_setting_up: string; family_storage_updated: string;
+  family_plan_billing_notice: string; go_to_family_settings: string;
   current_billing_interval: string;
   switching_billing: string;
   daily: string;

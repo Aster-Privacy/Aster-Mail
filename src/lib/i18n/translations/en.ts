@@ -2089,6 +2089,8 @@ export const en: Translations = {
     family_billing_view_all: "View all billing",
     family_setting_up: "Setting up your family plan...",
     family_storage_updated: "Storage updated",
+    family_plan_billing_notice: "You're on the {{plan_name}} plan. Manage members, storage, and settings in the Family tab.",
+    go_to_family_settings: "Go to Family Settings",
     switch_billing_loss:
       "Switching to monthly billing costs you an extra {{amount}} per year.",
     billing_switched: "Billing cycle switched successfully",
