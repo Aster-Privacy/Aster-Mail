@@ -612,10 +612,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const handle_session_expired = async () => {
+      set_state((prev) => ({ ...prev, is_loading: true }));
       await new Promise((resolve) => setTimeout(resolve, 600));
       const still_valid = await api_client.check_auth_status();
       if (still_valid) {
         api_client.set_authenticated(true);
+        set_state((prev) => ({ ...prev, is_loading: false }));
         return;
       }
 
