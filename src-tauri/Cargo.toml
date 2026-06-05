@@ -54,7 +54,7 @@ atty = { path = "patches/atty-0.2.14" }
 
 [profile.release]
 panic = "abort"
-codegen-units = 1
-lto = true
+codegen-units = 4
+lto = "thin"
 opt-level = "s"
 strip = true
