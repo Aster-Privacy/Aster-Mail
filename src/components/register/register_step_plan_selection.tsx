@@ -448,8 +448,11 @@ export const RegisterStepPlanSelection = ({
             return (
               <div
                 key={tier.id}
-                className="relative rounded-3xl border flex flex-col gap-6 p-7"
-                style={{ borderColor: "var(--accent-blue)", backgroundColor: "var(--bg-hover)" }}
+                className="relative rounded-3xl border flex flex-col gap-6 p-7 transition-colors duration-300 hover:border-edge-primary"
+                style={{
+                  borderColor: tier.is_recommended ? "var(--accent-blue)" : "var(--border-primary)",
+                  backgroundColor: tier.is_recommended ? "var(--accent-blue-subtle, var(--bg-hover))" : "var(--bg-hover)",
+                }}
               >
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2">
@@ -464,7 +467,10 @@ export const RegisterStepPlanSelection = ({
                       {billing_period === "monthly" ? t("settings.per_month_short") : t("settings.per_year_short")}
                     </span>
                     {billing_period === "yearly" && (
-                      <span className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-white bg-accent-blue">
+                      <span
+                        className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-white"
+                        style={{ backgroundColor: "var(--accent-blue)" }}
+                      >
                         {tier.savings_label}
                       </span>
                     )}
@@ -476,7 +482,7 @@ export const RegisterStepPlanSelection = ({
                 <ul className="flex flex-col gap-3 flex-1">
                   {features.map((feat, i) => (
                     <li key={i} className="flex items-start gap-2.5 text-[13px] leading-snug text-txt-primary">
-                      <span className="shrink-0 mt-[1px] text-accent-blue">
+                      <span className="shrink-0 mt-[1px]" style={{ color: "var(--accent-blue)" }}>
                         {CHECK_SVG}
                       </span>
                       <span className="flex-1">{feat}</span>
@@ -487,7 +493,7 @@ export const RegisterStepPlanSelection = ({
                   className="w-full"
                   disabled={is_finalizing}
                   size="xl"
-                  variant="depth"
+                  variant={tier.is_recommended ? "depth" : "outline"}
                   onClick={() => set_pending_family_tier(tier)}
                 >
                   {t("auth.plan_select")}

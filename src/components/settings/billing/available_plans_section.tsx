@@ -189,8 +189,12 @@ export function AvailablePlansSection({
                 key={tier.id}
                 className="relative rounded-2xl border-2 overflow-hidden flex flex-col"
                 style={{
-                  borderColor: is_current ? "var(--accent-blue)" : "var(--border-secondary)",
-                  backgroundColor: "var(--bg-tertiary)",
+                  borderColor: is_current
+                    ? "var(--accent-blue)"
+                    : tier.is_recommended
+                      ? "var(--accent-blue)"
+                      : "var(--border-secondary)",
+                  backgroundColor: tier.is_recommended ? "var(--accent-blue-subtle, var(--bg-tertiary))" : "var(--bg-tertiary)",
                 }}
               >
                 <div className="px-5 pt-5 pb-4 text-center">
@@ -222,7 +226,7 @@ export function AvailablePlansSection({
                   <Button
                     className="w-full mt-4"
                     disabled={is_action_loading || family_loading || is_current}
-                    variant={is_current ? "outline" : "primary"}
+                    variant={is_current ? "outline" : tier.is_recommended ? "primary" : "outline"}
                     onClick={() => { if (!is_current) handle_family_select(tier); }}
                   >
                     {is_current ? t("settings.current_plan") : t("settings.upgrade")}

@@ -42,6 +42,7 @@ export interface FamilyPlanTier {
   monthly_cents: number;
   yearly_cents: number;
   savings_label: string;
+  is_recommended?: boolean;
 }
 
 export const FAMILY_PLAN_TIERS: FamilyPlanTier[] = [
@@ -62,6 +63,7 @@ export const FAMILY_PLAN_TIERS: FamilyPlanTier[] = [
     monthly_cents: 2699,
     yearly_cents: 26399,
     savings_label: "Save $59.89/yr",
+    is_recommended: true,
   },
 ];
 

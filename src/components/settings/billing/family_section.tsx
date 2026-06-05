@@ -22,6 +22,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   UserPlusIcon,
   UserGroupIcon,
+  Squares2X2Icon,
   LinkIcon,
   TrashIcon,
   ArrowRightOnRectangleIcon,
@@ -40,7 +41,6 @@ import {
   InformationCircleIcon,
   GlobeAltIcon,
   FunnelIcon,
-  ClockIcon,
   ChartBarIcon,
   ArrowsRightLeftIcon,
 } from "@heroicons/react/24/outline";
@@ -220,15 +220,19 @@ function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on
     String(Math.round(member.allocated_storage_bytes / 1073741824))
   );
 
+  const [saving_storage, set_saving_storage] = useState(false);
   const save_storage = useCallback(async () => {
     const gb = parseFloat(storage_input);
     if (isNaN(gb) || gb < 1) return;
+    set_saving_storage(true);
     try {
-      await update_member_storage(member.user_id, Math.round(gb * 1073741824));
+      const r = await update_member_storage(member.user_id, Math.round(gb * 1073741824));
+      if (r.error) { show_toast(r.error, "error"); return; }
       show_toast("Storage updated", "success");
       set_editing(false);
       await on_reload();
     } catch { show_toast(t("settings.failed_save_setting"), "error"); }
+    finally { set_saving_storage(false); }
   }, [storage_input, member.user_id, on_reload, t]);
 
   const avatar_color = get_avatar_color(member.username);
@@ -258,7 +262,7 @@ function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on
             <div className="flex items-center gap-2">
               <input
                 type="range"
-                min="1"
+                min={String(Math.max(1, Math.ceil(member.storage_used_bytes / 1073741824)))}
                 max={String(Math.max(
                     Math.round((member.allocated_storage_bytes + (pool_remaining_bytes ?? 0)) / 1073741824),
                     Math.round(member.allocated_storage_bytes / 1073741824) + 1
@@ -275,7 +279,9 @@ function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on
               </p>
             )}
             <div className="flex gap-1">
-              <button onClick={save_storage} className="aster_btn aster_btn_primary aster_btn_sm">Save</button>
+              <button onClick={save_storage} disabled={saving_storage} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50 flex items-center gap-1">
+                {saving_storage ? <Spinner size="sm" /> : "Save"}
+              </button>
               <button onClick={() => set_editing(false)} className="aster_btn aster_btn_ghost aster_btn_sm">Cancel</button>
             </div>
           </div>
@@ -289,13 +295,13 @@ function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on
       </div>
       {is_owner_view && member.role !== "owner" && !editing && (
         <div className="flex items-center gap-0.5 flex-shrink-0">
-          <button onClick={() => set_editing(true)} className="p-1.5 text-txt-muted hover:text-txt-secondary" title={t("settings.family_storage_edit")}>
+          <button onClick={() => set_editing(true)} className="p-1.5 text-txt-muted hover:text-txt-secondary" title={t("settings.family_storage_edit")} aria-label={t("settings.family_storage_edit")}>
             <PencilIcon className="w-4 h-4" />
           </button>
-          <button onClick={() => on_transfer(member)} className="p-1.5 text-txt-muted hover:text-accent-blue" title={t("settings.family_transfer_admin")}>
+          <button onClick={() => on_transfer(member)} className="p-1.5 text-txt-muted hover:text-accent-blue" title={t("settings.family_transfer_admin")} aria-label={t("settings.family_transfer_admin")}>
             <ArrowRightOnRectangleIcon className="w-4 h-4" />
           </button>
-          <button onClick={() => on_remove(member)} className="p-1.5 text-txt-muted hover:text-red-500" title={t("settings.family_remove_member")}>
+          <button onClick={() => on_remove(member)} className="p-1.5 text-txt-muted hover:text-red-500" title={t("settings.family_remove_member")} aria-label={t("settings.family_remove_member")}>
             <TrashIcon className="w-4 h-4" />
           </button>
         </div>
@@ -317,7 +323,10 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
 
   const load_groups = useCallback(async () => {
     set_loading(true);
-    try { const r = await list_org_groups(); set_groups(r.data ?? []); }
+    try {
+      const r = await list_org_groups();
+      if (r.error) { show_toast(r.error, "error"); } else { set_groups(r.data ?? []); }
+    }
     catch { show_toast("Failed to load groups", "error"); }
     finally { set_loading(false); }
   }, []);
@@ -328,7 +337,11 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
     if (expanded === gid) { set_expanded(null); return; }
     set_expanded(gid);
     if (!group_members[gid]) {
-      try { const r = await list_group_members(gid); if (r.data) set_group_members(p => ({ ...p, [gid]: r.data! })); }
+      try {
+        const r = await list_group_members(gid);
+        if (r.data) set_group_members(p => ({ ...p, [gid]: r.data! }));
+        else show_toast(r.error ?? "Failed to load members", "error");
+      }
       catch { show_toast("Failed to load members", "error"); }
     }
   };
@@ -341,6 +354,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
       if (new_email_prefix.trim()) payload.email_local_part = new_email_prefix.trim();
       const r = await create_org_group(payload);
       if (r.data) { set_groups(p => [...p, r.data!]); set_new_name(""); set_new_email_prefix(""); show_toast("Group created", "success"); }
+      else { show_toast(r.error ?? "Failed to create group", "error"); }
     } catch { show_toast("Failed to create group", "error"); }
     finally { set_creating(false); }
   };
@@ -350,14 +364,19 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
   const handle_delete = (gid: string) => { set_confirm_delete_gid(gid); };
   const confirm_delete = async () => {
     if (!confirm_delete_gid) return;
-    try { await delete_org_group(confirm_delete_gid); set_groups(p => p.filter(g => g.id !== confirm_delete_gid)); if (expanded === confirm_delete_gid) set_expanded(null); show_toast("Group deleted", "success"); }
+    try {
+      const r = await delete_org_group(confirm_delete_gid);
+      if (r.error) { show_toast(r.error, "error"); }
+      else { set_groups(p => p.filter(g => g.id !== confirm_delete_gid)); if (expanded === confirm_delete_gid) set_expanded(null); show_toast("Group deleted", "success"); }
+    }
     catch { show_toast("Failed to delete group", "error"); }
     finally { set_confirm_delete_gid(null); }
   };
 
   const handle_remove_member = async (gid: string, uid: string) => {
     try {
-      await remove_group_member(gid, uid);
+      const r = await remove_group_member(gid, uid);
+      if (r.error) { show_toast(r.error, "error"); return; }
       set_group_members(p => ({ ...p, [gid]: (p[gid] ?? []).filter(m => m.user_id !== uid) }));
       set_groups(p => p.map(g => g.id === gid ? { ...g, member_count: g.member_count - 1 } : g));
       show_toast("Member removed", "success");
@@ -367,9 +386,10 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
   const handle_add_member = async (gid: string) => {
     if (!add_user_id) return;
     try {
-      await add_group_member(gid, add_user_id);
-      const r = await list_group_members(gid);
-      if (r.data) set_group_members(p => ({ ...p, [gid]: r.data! }));
+      const r = await add_group_member(gid, add_user_id);
+      if (r.error) { show_toast(r.error, "error"); return; }
+      const r2 = await list_group_members(gid);
+      if (r2.data) set_group_members(p => ({ ...p, [gid]: r2.data! }));
       set_groups(p => p.map(g => g.id === gid ? { ...g, member_count: g.member_count + 1 } : g));
       set_adding_to(null); set_add_user_id(""); show_toast("Member added", "success");
     } catch { show_toast("Failed to add member", "error"); }
@@ -495,12 +515,12 @@ function ActivityContent() {
       if (r.data) {
         if (p === 1) set_entries(r.data.entries); else set_entries(prev => [...prev, ...r.data!.entries]);
         set_total(r.data.total); set_page(p);
-      }
+      } else if (r.error) { show_toast(r.error, "error"); }
     } catch { show_toast("Failed to load activity", "error"); }
     finally { set_loading(false); }
   }, []);
 
-  useEffect(() => { set_entries([]); load_page(1, filter_type || undefined); }, [load_page, filter_type]);
+  useEffect(() => { load_page(1, filter_type || undefined); }, [load_page, filter_type]);
 
   return (
     <div className="space-y-4">
@@ -585,14 +605,16 @@ const FILTER_ACTION_LABELS: Record<string, string> = {
   trash: "Move to Trash",
   block: "Block",
   archive: "Archive",
-  mark_read: "Mark as read",
+  tag: "Tag",
+  redirect: "Redirect",
 };
 
 const FILTER_ACTION_COLORS: Record<string, string> = {
   trash: "#ef4444",
   block: "#ef4444",
   archive: "#6366f1",
-  mark_read: "#10b981",
+  tag: "#f59e0b",
+  redirect: "#8b5cf6",
 };
 
 interface FilterCardProps {
@@ -635,7 +657,7 @@ function FilterCard({ filter, on_toggle, on_delete }: FilterCardProps) {
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 flex-shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
           <button
             type="button"
             onClick={e => { e.stopPropagation(); on_toggle(filter); }}
@@ -688,11 +710,16 @@ function FiltersContent() {
     try {
       const r = await update_org_filter(f.id, { is_enabled: !f.is_enabled });
       if (r.data) set_filters(fs => fs.map(x => x.id === f.id ? r.data! : x));
+      else show_toast(r.error ?? "Failed to update filter", "error");
     } catch { show_toast("Failed to update filter", "error"); }
   };
 
   const del_f = async (id: string) => {
-    try { await delete_org_filter(id); set_filters(f => f.filter(x => x.id !== id)); show_toast("Filter deleted", "success"); }
+    try {
+      const r = await delete_org_filter(id);
+      if (r.error) { show_toast(r.error, "error"); return; }
+      set_filters(f => f.filter(x => x.id !== id)); show_toast("Filter deleted", "success");
+    }
     catch { show_toast("Failed to delete filter", "error"); }
   };
 
@@ -767,7 +794,8 @@ function FiltersContent() {
                 <SelectItem value="trash">Move to Trash</SelectItem>
                 <SelectItem value="block">Block sender</SelectItem>
                 <SelectItem value="archive">Archive</SelectItem>
-                <SelectItem value="mark_read">Mark as read</SelectItem>
+                <SelectItem value="tag">Tag</SelectItem>
+                <SelectItem value="redirect">Redirect</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -820,7 +848,8 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
   const do_share = async (dn: string) => {
     if (!share_uid) return;
     try {
-      await share_domain(dn, share_uid, true);
+      const r = await share_domain(dn, share_uid, true);
+      if (r.error) { show_toast(r.error, "error"); return; }
       set_domains(d => d.map(x => x.domain_name === dn ? { ...x, shared_with_count: x.shared_with_count + 1 } : x));
       set_sharing(null); set_share_uid(""); show_toast("Domain shared", "success");
     } catch { show_toast("Failed to share domain", "error"); }
@@ -828,7 +857,8 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
 
   const do_revoke = async (dn: string, uid: string) => {
     try {
-      await revoke_domain_share(dn, uid);
+      const r = await revoke_domain_share(dn, uid);
+      if (r.error) { show_toast(r.error, "error"); return; }
       set_domains(d => d.map(x => x.domain_name === dn ? { ...x, shared_with_count: Math.max(0, x.shared_with_count - 1) } : x));
       show_toast("Domain share revoked", "success");
     } catch { show_toast("Failed to revoke domain share", "error"); }
@@ -948,6 +978,7 @@ function SecurityContent() {
     try {
       const r = await update_security_policy(policy);
       if (r.data) { set_policy(r.data); show_toast("Security policy saved", "success"); }
+      else { show_toast(r.error ?? "Failed to save", "error"); }
     } catch { show_toast("Failed to save", "error"); }
     finally { set_saving(false); }
   };
@@ -979,7 +1010,7 @@ function SecurityContent() {
         </div>
       )}
       {non_2fa > 0 && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/15 border border-amber-500/30">
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60">
           <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 text-amber-500" />
           <p className="text-sm font-medium text-txt-primary flex-1 min-w-0">
             {non_2fa} member{non_2fa !== 1 ? "s haven't" : " hasn't"} enabled 2FA
@@ -992,7 +1023,11 @@ function SecurityContent() {
               set_reminding(true);
               try {
                 const r = await notify_non_compliant_2fa();
-                if (r.data) show_toast(`Reminder sent to ${r.data.notified} member${r.data.notified !== 1 ? 's' : ''}`, "success");
+                if (r.data != null) {
+                  show_toast(`Reminder sent to ${r.data.notified} member${r.data.notified !== 1 ? 's' : ''}`, "success");
+                } else {
+                  show_toast(r.error ?? "Failed to send reminder", "error");
+                }
               } catch { show_toast("Failed to send reminder", "error"); }
               finally { set_reminding(false); }
             }}
@@ -1054,9 +1089,9 @@ function SecurityContent() {
           </div>
         </div>
       </div>
-      <button onClick={save} disabled={saving} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">
-        {saving ? "Saving..." : "Save Security Policy"}
-      </button>
+      <Button onClick={save} disabled={saving} variant="depth">
+        {saving ? <><Spinner size="sm" /><span className="ml-1.5">Saving...</span></> : "Save Security Policy"}
+      </Button>
       {compliance.length > 0 && (
         <div className="space-y-2 pt-2">
           <div className="mb-3">
@@ -1108,6 +1143,7 @@ function RetentionContent() {
     try {
       const r = await update_data_retention(policy);
       if (r.data) { set_policy(r.data); show_toast("Retention policy saved", "success"); }
+      else { show_toast(r.error ?? "Failed to save", "error"); }
     } catch { show_toast("Failed to save", "error"); }
     finally { set_saving(false); }
   };
@@ -1138,7 +1174,7 @@ function RetentionContent() {
                 <p className="text-sm mt-0.5 text-txt-muted">{hint}</p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <Input type="number" min="0"
+                <Input type="number" min="1"
                   value={(policy[key] as number | null) ?? ""}
                   onChange={e => set_policy(p => p ? { ...p, [key]: e.target.value ? parseInt(e.target.value) : null } : p)}
                   className="w-20" placeholder="Off" />
@@ -1160,9 +1196,9 @@ function RetentionContent() {
           />
         </div>
       </div>
-      <button onClick={save} disabled={saving} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">
-        {saving ? "Saving..." : "Save Retention Policy"}
-      </button>
+      <Button onClick={save} disabled={saving} variant="depth">
+        {saving ? <><Spinner size="sm" /><span className="ml-1.5">Saving...</span></> : "Save Retention Policy"}
+      </Button>
     </div>
   );
 }
@@ -1220,6 +1256,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           res.data.members.filter(m => m.status !== "removed").length === 1 &&
           !localStorage.getItem(`aster_family_setup_${res.data.id}`)
         ) {
+          localStorage.setItem(`aster_family_setup_${res.data.id}`, "1");
           set_wizard_open(true);
         }
       }
@@ -1260,7 +1297,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     if (!wizard_invite_gb || isNaN(storage) || storage < 1) return;
     set_wizard_invite_loading(true);
     try {
-      await invite_member(email, storage);
+      const res = await invite_member(email, storage);
+      if (res.error) { show_toast(res.error, "error"); return; }
       set_wizard_sent_email(email);
       set_wizard_step(3);
       await load_group();
@@ -1285,7 +1323,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     if (!invite_storage_gb || isNaN(storage) || storage < 1) return;
     set_invite_loading(true);
     try {
-      await invite_member(email, storage);
+      const res = await invite_member(email, storage);
+      if (res.error) { show_toast(res.error, "error"); return; }
       show_toast(t("settings.family_invite_sent"), "success");
       set_invite_email(""); set_show_invite_form(false);
       await load_group();
@@ -1309,7 +1348,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
   const handle_revoke_invite = async (invite_id: string) => {
     try {
-      await revoke_invite(invite_id);
+      const r = await revoke_invite(invite_id);
+      if (r.error) { show_toast(r.error, "error"); return; }
       show_toast("Invite revoked", "success");
       await load_group();
     } catch { show_toast(t("settings.failed_save_setting"), "error"); }
@@ -1319,7 +1359,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     if (!remove_target) return;
     set_action_loading(true);
     try {
-      await remove_family_member(remove_target.user_id);
+      const r = await remove_family_member(remove_target.user_id);
+      if (r.error) { show_toast(r.error, "error"); return; }
       show_toast("Member removed", "success");
       await load_group();
     } catch { show_toast(t("settings.failed_save_setting"), "error"); }
@@ -1330,7 +1371,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     if (!transfer_target) return;
     set_action_loading(true);
     try {
-      await transfer_family_admin(transfer_target.user_id);
+      const r = await transfer_family_admin(transfer_target.user_id);
+      if (r.error) { show_toast(r.error, "error"); return; }
       show_toast("Admin transferred", "success");
       await load_group();
     } catch { show_toast(t("settings.failed_save_setting"), "error"); }
@@ -1340,7 +1382,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const handle_leave_confirm = async () => {
     set_action_loading(true);
     try {
-      await leave_family();
+      const r = await leave_family();
+      if (r.error) { show_toast(r.error, "error"); return; }
       show_toast(t("settings.family_leave"), "success");
       set_group(null);
     } catch { show_toast(t("settings.failed_save_setting"), "error"); }
@@ -1371,7 +1414,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
   type OwnTab = { id: FamilyTab; label: string; Icon: React.ElementType };
   const owner_tabs: OwnTab[] = is_owner ? [
-    { id: "overview", label: "Overview", Icon: UserGroupIcon },
+    { id: "overview", label: "Overview", Icon: Squares2X2Icon },
     { id: "members", label: "Members", Icon: UserPlusIcon },
     { id: "groups", label: "Groups", Icon: UserGroupIcon },
     { id: "activity", label: "Activity", Icon: ChartBarIcon },
@@ -1383,10 +1426,31 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
   return (
     <div className="space-y-4 w-full min-w-0">
+      {group.status !== "active" && (
+        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${group.status === "grace" ? "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/60" : "bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800/60"}`}>
+          <ExclamationTriangleIcon className={`w-4 h-4 flex-shrink-0 ${group.status === "grace" ? "text-amber-500" : "text-red-500"}`} />
+          <p className="text-sm font-medium text-txt-primary flex-1 min-w-0">
+            {group.status === "grace"
+              ? `Your family plan expires ${group.grace_period_end ? new Date(group.grace_period_end).toLocaleDateString() : "soon"} - renew to keep access`
+              : "Your family plan has been cancelled - members will lose access"}
+          </p>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))}
+            className={`text-xs font-medium hover:underline flex-shrink-0 ${group.status === "grace" ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"}`}
+          >
+            Manage billing
+          </button>
+        </div>
+      )}
       <div>
         <h2 className="text-base font-semibold text-txt-primary flex items-center gap-2">
           Family
           <span className="aster_badge aster_badge_blue">{group.plan_name}</span>
+          {group.status === "active"
+            ? <span className="aster_badge aster_badge_green">Active</span>
+            : group.status === "grace"
+            ? <span className="aster_badge aster_badge_amber">Expiring</span>
+            : <span className="aster_badge aster_badge_red">Cancelled</span>}
         </h2>
         <p className="text-sm text-txt-secondary mt-0.5">
           {active_members.length} of {group.max_members} members · {seats_remaining} seat{seats_remaining !== 1 ? "s" : ""} available
@@ -1411,32 +1475,36 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
       {(tab === "overview" || !is_owner) && (
         <>
-          {is_owner && (active_members.length === 1 || group.pending_invites.length > 0) && (() => {
-            const step1_done = true;
-            const step2_done = active_members.length > 1 || group.pending_invites.length > 0;
-            const security_policy_done = Object.values(compliance_map).length > 0 &&
-              (() => { try { return (group as unknown as { security_policy?: { require_2fa?: boolean } }).security_policy?.require_2fa === true; } catch { return false; } })();
-            const compliance_all_2fa = Object.values(compliance_map).length > 1 &&
-              Object.values(compliance_map).every(m => m.has_2fa);
-            const checklist = [
-              { label: "Subscribe to a family plan", done: step1_done, tab_target: null as FamilyTab | null },
-              { label: "Invite your first member", done: step2_done, tab_target: "members" as FamilyTab },
-              { label: "Enable security policy", done: security_policy_done, tab_target: "security" as FamilyTab },
-              { label: "Configure 2FA reminder", done: compliance_all_2fa, tab_target: "security" as FamilyTab },
+          {is_owner && (() => {
+            const has_members = active_members.length > 1 || group.pending_invites.length > 0;
+            const comp_values = Object.values(compliance_map);
+            const security_done = comp_values.length > 0 && comp_values.every(m => m.has_2fa);
+            const checklist: { label: string; done: boolean; tab_target: FamilyTab | null }[] = [
+              { label: "Subscribe to a family plan", done: true, tab_target: null },
+              { label: "Invite your first member", done: has_members, tab_target: "members" },
+              { label: "Review security settings", done: security_done, tab_target: "security" },
             ];
             const completed = checklist.filter(c => c.done).length;
+            if (completed === checklist.length) return null;
             return (
               <div className="rounded-xl border border-edge-secondary bg-surf-secondary p-4 mb-4">
                 <p className="text-sm font-semibold text-txt-primary mb-2">Get started with your family plan</p>
                 <div className="w-full h-1.5 bg-edge-secondary rounded-full mb-3">
                   <div
                     className="h-full bg-accent-blue rounded-full transition-all"
-                    style={{ width: `${(completed / 4) * 100}%` }}
+                    style={{ width: `${(completed / checklist.length) * 100}%` }}
                   />
                 </div>
                 <div className="space-y-2">
                   {checklist.map(item => (
-                    <div key={item.label} className="flex items-center gap-2">
+                    <div
+                      key={item.label}
+                      role={!item.done && item.tab_target ? "button" : undefined}
+                      tabIndex={!item.done && item.tab_target ? 0 : undefined}
+                      onClick={!item.done && item.tab_target ? () => set_tab(item.tab_target!) : undefined}
+                      onKeyDown={!item.done && item.tab_target ? (e) => { if (e.key === "Enter" || e.key === " ") set_tab(item.tab_target!); } : undefined}
+                      className={`flex items-center gap-2 ${!item.done && item.tab_target ? "cursor-pointer hover:bg-surf-primary rounded-lg px-1 -mx-1 transition-colors" : ""}`}
+                    >
                       {item.done ? (
                         <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
                       ) : (
@@ -1446,13 +1514,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                         {item.label}
                       </span>
                       {!item.done && item.tab_target && (
-                        <button
-                          onClick={() => set_tab(item.tab_target!)}
-                          className="p-0.5 text-txt-muted hover:text-txt-secondary flex-shrink-0"
-                          aria-label={`Go to ${item.tab_target}`}
-                        >
-                          <ChevronRightIcon className="w-4 h-4" />
-                        </button>
+                        <ChevronRightIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
                       )}
                     </div>
                   ))}
@@ -1501,40 +1563,25 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           </div>
 
-          <div>
-            <div className="mb-3">
-              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                Members
-                <span className="ml-auto text-xs text-txt-muted">{active_members.length} of {group.max_members}</span>
-              </h3>
-              <div className="mt-2 h-px bg-edge-secondary" />
-            </div>
-            <div className="flex items-center gap-3 py-2">
-              <div className="flex items-center">
-                {active_members.slice(0, 5).map((m, i) => (
-                  <div key={m.user_id}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold${i > 0 ? " -ml-2" : ""}`}
-                    style={{ backgroundColor: get_avatar_color(m.username) }}
-                    title={m.username + "@" + m.email_domain}>
-                    {m.username[0]?.toUpperCase()}
-                  </div>
-                ))}
-                {active_members.length > 5 && (
-                  <div className="w-8 h-8 rounded-full bg-surf-secondary flex items-center justify-center text-xs font-medium text-txt-muted -ml-2">
-                    +{active_members.length - 5}
-                  </div>
-                )}
+          <div className="space-y-1.5 py-1">
+            {active_members.slice(0, 4).map(m => (
+              <div key={m.user_id} className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                  style={{ backgroundColor: get_avatar_color(m.username) }}>
+                  {m.username[0]?.toUpperCase()}
+                </div>
+                <span className="text-sm text-txt-primary truncate min-w-0 flex-1">{m.username}@{m.email_domain}</span>
+                {m.role === "owner" && <span className="aster_badge aster_badge_blue flex-shrink-0">Owner</span>}
               </div>
-              <div>
-                <p className="text-sm text-txt-primary">{active_members.length} member{active_members.length !== 1 ? "s" : ""}</p>
-                <p className="text-xs text-txt-muted">{seats_remaining} seat{seats_remaining !== 1 ? "s" : ""} available</p>
-              </div>
-              {is_owner && (
-                <button onClick={() => set_tab("members")} className="ml-auto aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5">
-                  <UserPlusIcon className="w-3.5 h-3.5" /> Manage
-                </button>
-              )}
-            </div>
+            ))}
+            {active_members.length > 4 && (
+              <p className="text-xs text-txt-muted pl-9">+{active_members.length - 4} more</p>
+            )}
+            {is_owner && (
+              <button onClick={() => set_tab("members")} className="mt-1 aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5">
+                <UserPlusIcon className="w-3.5 h-3.5" /> Manage
+              </button>
+            )}
           </div>
 
           {is_owner && (
@@ -1649,9 +1696,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             <div>
               <div className="mt-1 h-px bg-edge-secondary mb-3" />
               {!show_invite_form ? (
-                <button onClick={() => set_show_invite_form(true)} className="flex items-center gap-2 text-sm text-accent-blue hover:underline py-1">
-                  <UserPlusIcon className="w-4 h-4" />
-                  Add another member
+                <button onClick={() => set_show_invite_form(true)} className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5">
+                  <UserPlusIcon className="w-3.5 h-3.5" /> Add member
                 </button>
               ) : (
                 <div className="space-y-3">
@@ -1717,7 +1763,9 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 {group.pending_invites.map(inv => (
                   <div key={inv.id} className="flex items-center justify-between py-3">
                     <div className="flex items-start gap-2 flex-1 min-w-0">
-                      <ClockIcon className="w-4 h-4 text-txt-muted flex-shrink-0 mt-0.5" />
+                      {inv.link_only
+                        ? <LinkIcon className="w-4 h-4 text-txt-muted flex-shrink-0 mt-0.5" />
+                        : <UserPlusIcon className="w-4 h-4 text-txt-muted flex-shrink-0 mt-0.5" />}
                       <div>
                         <p className="text-sm text-txt-primary">{inv.link_only ? t("settings.family_invite_link") : t("settings.family_invite_by_email")}</p>
                         <p className="text-xs text-txt-muted">
@@ -1756,20 +1804,37 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                   <ModalTitle className="text-xl font-bold text-center">Welcome to your family plan</ModalTitle>
                 </div>
               </ModalHeader>
-              <div className="px-6 pb-4 space-y-3 text-center">
+              <div className="px-6 pb-4 space-y-4">
                 <ModalDescription className="sr-only">Family plan setup wizard</ModalDescription>
-                <div>
+                <div className="text-center space-y-2">
                   <span className="aster_badge aster_badge_blue">{group.plan_name}</span>
+                  <p className="text-sm text-txt-secondary">
+                    <strong>{format_bytes(group.storage_pool_bytes)}</strong> shared storage - up to <strong>{group.max_members} members</strong>
+                  </p>
                 </div>
-                <p className="text-sm text-txt-secondary">
-                  You have <strong>{format_bytes(group.storage_pool_bytes)}</strong> of shared storage across up to <strong>{group.max_members} members</strong>.
-                </p>
-                <p className="text-xs text-txt-muted">Members can't access each other's emails - only shared storage.</p>
+                <div className="rounded-xl border border-edge-secondary divide-y divide-edge-secondary">
+                  {([
+                    { Icon: UserPlusIcon, label: "Members", desc: "Invite up to " + group.max_members + " people, set per-member storage" },
+                    { Icon: ShieldCheckIcon, label: "Security", desc: "Require 2FA, limit sessions, block forwarding" },
+                    { Icon: UserGroupIcon, label: "Groups", desc: "Route email to multiple members at once" },
+                    { Icon: FunnelIcon, label: "Filters", desc: "Org-wide block, archive, and tagging rules" },
+                    { Icon: GlobeAltIcon, label: "Domains", desc: "Share custom domains across members" },
+                    { Icon: ArchiveBoxIcon, label: "Retention", desc: "Auto-delete trash, spam, and old mail" },
+                  ] as const).map(({ Icon, label, desc }) => (
+                    <div key={label} className="flex items-center gap-3 px-4 py-3">
+                      <Icon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+                      <div className="min-w-0">
+                        <span className="text-sm font-medium text-txt-primary">{label}</span>
+                        <span className="text-xs text-txt-muted ml-2">{desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               <ModalFooter>
-                <Button variant="ghost" onClick={close_wizard}>Cancel</Button>
+                <Button variant="ghost" onClick={close_wizard}>Not now</Button>
                 <Button variant="depth" onClick={() => set_wizard_step(2)}>
-                  Invite a member <ArrowRightIcon className="w-4 h-4 ml-1" />
+                  Get started <ArrowRightIcon className="w-4 h-4 ml-1" />
                 </Button>
               </ModalFooter>
             </>
@@ -1817,6 +1882,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 </div>
                 <ModalFooter>
                   <Button variant="ghost" onClick={() => set_wizard_step(1)}>Back</Button>
+                  <Button variant="outline" onClick={() => set_wizard_step(3)}>Skip for now</Button>
                   <Button
                     variant="depth"
                     onClick={handle_wizard_invite}
@@ -1831,24 +1897,49 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           {wizard_step === 3 && (
             <>
               <ModalHeader>
-                <div className="flex flex-col items-center gap-3 pt-2 pb-1">
-                  <CheckCircleIcon className="w-12 h-12 text-green-500" />
-                  <ModalTitle className="text-xl font-bold text-center">Invite sent!</ModalTitle>
-                </div>
+                <ModalTitle>{wizard_sent_email ? "Invite sent - explore your plan" : "Explore your family plan"}</ModalTitle>
+                <ModalDescription>
+                  {wizard_sent_email
+                    ? `Invite sent to ${wizard_sent_email}. They have 7 days to accept.`
+                    : "Here's everything you can configure from the tabs above."}
+                </ModalDescription>
               </ModalHeader>
               <div className="px-6 pb-4 space-y-3">
-                <ModalDescription className="sr-only">Invite sent confirmation</ModalDescription>
-                <p className="text-sm text-txt-secondary text-center">
-                  We sent an invite to <strong>{wizard_sent_email}</strong>. They have 7 days to accept.
-                </p>
-                <div className="bg-surf-secondary rounded-lg p-3">
-                  <p className="text-xs text-txt-muted">
-                    <strong>Tip:</strong> You can manage storage, set security policies, and track activity from the tabs above.
-                  </p>
+                {wizard_sent_email && (
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <p className="text-sm text-txt-primary">
+                      Invite sent to <strong>{wizard_sent_email}</strong>
+                    </p>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { Icon: ShieldCheckIcon, tab: "security" as FamilyTab, label: "Security", desc: "Require 2FA and set session limits for all members" },
+                    { Icon: UserGroupIcon, tab: "groups" as FamilyTab, label: "Groups", desc: "Create shared inboxes that route to multiple members" },
+                    { Icon: FunnelIcon, tab: "filters" as FamilyTab, label: "Filters", desc: "Block senders and apply rules across all member inboxes" },
+                    { Icon: GlobeAltIcon, tab: "domains" as FamilyTab, label: "Domains", desc: "Share a custom domain so members can send from it" },
+                    { Icon: ArchiveBoxIcon, tab: "retention" as FamilyTab, label: "Retention", desc: "Set auto-delete schedules for trash, spam, and sent mail" },
+                    { Icon: ChartBarIcon, tab: "activity" as FamilyTab, label: "Activity log", desc: "See every admin action: invites, removals, policy changes" },
+                  ]).map(({ Icon, tab: target_tab, label, desc }) => (
+                    <button
+                      key={label}
+                      onClick={() => { close_wizard(); set_tab(target_tab); }}
+                      className="flex flex-col gap-1.5 p-3 rounded-xl border border-edge-secondary bg-surf-primary hover:bg-surf-secondary text-left transition-colors group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
+                        <span className="text-sm font-semibold text-txt-primary">{label}</span>
+                        <ArrowRightIcon className="w-3 h-3 text-txt-muted ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <p className="text-xs text-txt-muted leading-relaxed">{desc}</p>
+                    </button>
+                  ))}
                 </div>
               </div>
               <ModalFooter>
-                <Button variant="depth" onClick={close_wizard}>Get started</Button>
+                <Button variant="ghost" onClick={() => set_wizard_step(2)}>Back</Button>
+                <Button variant="depth" onClick={close_wizard}>Done</Button>
               </ModalFooter>
             </>
           )}
