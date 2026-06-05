@@ -26,6 +26,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 import { get_email_username, is_system_email } from "@/lib/utils";
+import { extract_reply_to } from "@/utils/reply_to";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { is_ghost_email } from "@/stores/ghost_alias_store";
 import { get_recipient_hint } from "@/stores/recipient_hint_store";
@@ -627,6 +628,12 @@ export function use_email_detail() {
             attachments: [],
             labels: [],
             unsubscribe_info,
+            reply_to: (() => {
+              const parsed = extract_reply_to(envelope.raw_headers);
+              return parsed
+                ? { name: parsed.name, email: parsed.email }
+                : undefined;
+            })(),
           };
 
         set_email(decrypted);

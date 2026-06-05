@@ -31,6 +31,7 @@ import type {
 } from "@/hooks/mail_events";
 
 import { get_email_username, is_system_email } from "@/lib/utils";
+import { extract_reply_to } from "@/utils/reply_to";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
 import {
@@ -457,12 +458,16 @@ export async function preload_email_detail(
         envelope.raw_headers,
       );
 
+      const preload_reply_to = extract_reply_to(envelope.raw_headers);
       const decrypted: DecryptedEmail = {
         id: item.id,
         sender: envelope.from.name || get_email_username(envelope.from.email),
         sender_email: envelope.from.email,
         ...(forwarding ?? {}),
         raw_headers: envelope.raw_headers,
+        reply_to: preload_reply_to
+          ? { name: preload_reply_to.name, email: preload_reply_to.email }
+          : undefined,
         subject: envelope.subject || "",
         preview: (
           body_text ||

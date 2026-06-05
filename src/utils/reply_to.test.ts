@@ -122,6 +122,17 @@ describe("extract_reply_to", () => {
     ).toEqual({ email: "user@external.example" });
   });
 
+  it("handles quoted display name containing a comma", () => {
+    expect(
+      extract_reply_to([
+        {
+          name: "Reply-To",
+          value: '"Last, First" <user@external.example>',
+        },
+      ]),
+    ).toEqual({ name: "Last, First", email: "user@external.example" });
+  });
+
   it("issue #13 scenario: From and Reply-To differ", () => {
     const headers = [
       { name: "From", value: "Sender <sender@mail.example.com>" },

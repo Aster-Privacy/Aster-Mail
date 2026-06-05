@@ -57,7 +57,7 @@ export function extract_reply_to(
   );
 
   if (!header) return undefined;
-  const first = header.value.split(",")[0];
+  const first = header.value.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)[0];
 
   return parse_address(first);
 }

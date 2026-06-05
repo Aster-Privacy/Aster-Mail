@@ -304,6 +304,10 @@ export function use_popup_viewer({
         body: pe.html_content || pe.body,
         html_content: pe.html_content,
         unsubscribe_info: pe.unsubscribe_info,
+        raw_headers: pe.raw_headers,
+        reply_to: pe.reply_to
+          ? { name: pe.reply_to.name ?? "", email: pe.reply_to.email }
+          : undefined,
         to: pe.to?.length
           ? pe.to.map((r) => ({ name: r.name || "", email: r.email }))
           : get_recipient_hint(email_id).map((e) => ({ name: "", email: e })),

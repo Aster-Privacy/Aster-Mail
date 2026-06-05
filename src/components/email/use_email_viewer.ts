@@ -310,6 +310,10 @@ export function use_email_viewer({
           html_content: pe.html_content,
           unsubscribe_info: pe.unsubscribe_info,
           thread_token: preloaded.mail_item.thread_token,
+          raw_headers: pe.raw_headers,
+          reply_to: pe.reply_to
+            ? { name: pe.reply_to.name ?? "", email: pe.reply_to.email }
+            : undefined,
           to: pe.to?.map((r) => ({ name: r.name || "", email: r.email })) || [],
           cc:
             pe.cc?.map((r) => ({ name: r.name || "", email: r.email || "" })) ||

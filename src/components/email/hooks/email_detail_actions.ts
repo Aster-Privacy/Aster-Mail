@@ -29,7 +29,9 @@ import type { NavigateFunction } from "react-router-dom";
 
 import { useCallback } from "react";
 
-import { get_email_username, is_system_email } from "@/lib/utils";
+import { is_system_email } from "@/lib/utils";
+import { extract_reply_to } from "@/utils/reply_to";
+import { build_reply_recipient } from "@/components/email/build_reply_recipient";
 import { build_reply_from_address } from "@/components/email/build_reply_from_address";
 import {
   permanent_delete_mail_item,
@@ -84,15 +86,23 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
   const build_reply_modal_data = useCallback(
     (msg: DecryptedThreadMessage, is_reply_all: boolean): ReplyModalData => {
       const is_own_message = msg.item_type === "sent";
-      const first_to = msg.to_recipients?.[0];
-      const reply_name =
-        is_own_message && first_to
-          ? first_to.name ||
-            get_email_username(first_to.email) ||
-            first_to.email
-          : msg.sender_name;
-      const reply_email =
-        is_own_message && first_to ? first_to.email : msg.sender_email;
+      const is_forwarded = !is_own_message && !!msg.display_sender_email;
+      const parsed_reply_to = extract_reply_to(msg.raw_headers);
+      const { recipient_name: reply_name, recipient_email: reply_email } =
+        build_reply_recipient(
+          {
+            sender_name: msg.sender_name,
+            sender_email: msg.sender_email,
+            first_to: msg.to_recipients?.[0],
+            reply_to: parsed_reply_to
+              ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
+              : undefined,
+            reply_alias: is_forwarded
+              ? { name: msg.sender_name, email: msg.sender_email }
+              : undefined,
+          },
+          is_own_message,
+        );
 
       const to_emails = msg.to_recipients?.map((r) => r.email) ?? [];
       const cc_emails =
