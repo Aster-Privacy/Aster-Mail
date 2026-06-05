@@ -612,12 +612,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const handle_session_expired = async () => {
-      set_state((prev) => ({ ...prev, is_loading: true }));
       await new Promise((resolve) => setTimeout(resolve, 600));
       const still_valid = await api_client.check_auth_status();
       if (still_valid) {
         api_client.set_authenticated(true);
-        set_state((prev) => ({ ...prev, is_loading: false }));
         return;
       }
 
@@ -658,7 +656,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (path === "/sign-in") return;
 
       show_toast(t("common.session_expired_sign_in"), "info");
-      hard_redirect("/sign-in");
     };
 
     const handle_session_timeout = async () => {
@@ -672,13 +669,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       await clear_local_auth_data();
       show_toast(t("common.signed_out_inactivity"), "info");
-      hard_redirect("/sign-in");
     };
 
     const handle_session_revoked = async () => {
       await clear_local_auth_data();
       show_toast(t("common.device_revoked"), "info");
-      hard_redirect("/sign-in");
     };
 
     window.addEventListener(
