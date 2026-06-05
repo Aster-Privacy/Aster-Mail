@@ -683,9 +683,12 @@ export async function execute_external_send(
     secure_message = {
       kdf_salt: encrypted_secure.kdf_salt,
       auth_proof: encrypted_secure.auth_proof,
+      kem_ciphertext: encrypted_secure.kem_ciphertext,
+      encrypted_kem_seed: encrypted_secure.encrypted_kem_seed,
+      kem_seed_nonce: encrypted_secure.kem_seed_nonce,
       encrypted_subject: encrypted_secure.encrypted_subject,
       encrypted_body: encrypted_secure.encrypted_body,
-      attachments: encrypted_secure.encrypted_attachments,
+      attachments_bundle: encrypted_secure.encrypted_attachments_bundle ?? undefined,
     };
   }
 

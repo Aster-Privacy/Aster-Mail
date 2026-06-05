@@ -40,7 +40,10 @@ describe("secure_message_crypto", () => {
       {
         encrypted_subject: encrypted.encrypted_subject,
         encrypted_body: encrypted.encrypted_body,
-        encrypted_attachments: encrypted.encrypted_attachments,
+        kem_ciphertext: encrypted.kem_ciphertext,
+        encrypted_kem_seed: encrypted.encrypted_kem_seed,
+        kem_seed_nonce: encrypted.kem_seed_nonce,
+        encrypted_attachments_bundle: encrypted.encrypted_attachments_bundle,
       },
     );
 
@@ -49,7 +52,7 @@ describe("secure_message_crypto", () => {
     expect(decrypted.attachments).toHaveLength(0);
   });
 
-  it("round-trips binary attachments and filenames", async () => {
+  it("round-trips binary attachments and filenames with encrypted metadata", async () => {
     const password = "hunter2-with-entropy";
     const data = new Uint8Array([0, 1, 2, 250, 251, 255, 128, 64]);
     const encrypted = await encrypt_secure_message(
@@ -58,11 +61,7 @@ describe("secure_message_crypto", () => {
       [{ filename: "secret.pdf", content_type: "application/pdf", data }],
     );
 
-    expect(encrypted.encrypted_attachments).toHaveLength(1);
-    expect(encrypted.encrypted_attachments[0].content_type).toBe(
-      "application/pdf",
-    );
-    expect(encrypted.encrypted_attachments[0].size_bytes).toBe(8);
+    expect(encrypted.encrypted_attachments_bundle).not.toBeNull();
 
     const decrypted = await decrypt_secure_message(
       password,
@@ -70,11 +69,17 @@ describe("secure_message_crypto", () => {
       {
         encrypted_subject: encrypted.encrypted_subject,
         encrypted_body: encrypted.encrypted_body,
-        encrypted_attachments: encrypted.encrypted_attachments,
+        kem_ciphertext: encrypted.kem_ciphertext,
+        encrypted_kem_seed: encrypted.encrypted_kem_seed,
+        kem_seed_nonce: encrypted.kem_seed_nonce,
+        encrypted_attachments_bundle: encrypted.encrypted_attachments_bundle,
       },
     );
 
+    expect(decrypted.attachments).toHaveLength(1);
     expect(decrypted.attachments[0].filename).toBe("secret.pdf");
+    expect(decrypted.attachments[0].content_type).toBe("application/pdf");
+    expect(decrypted.attachments[0].size_bytes).toBe(8);
     expect(Array.from(decrypted.attachments[0].data)).toEqual(Array.from(data));
   });
 
@@ -88,7 +93,10 @@ describe("secure_message_crypto", () => {
       decrypt_secure_message("wrong-password", encrypted.kdf_salt, {
         encrypted_subject: encrypted.encrypted_subject,
         encrypted_body: encrypted.encrypted_body,
-        encrypted_attachments: encrypted.encrypted_attachments,
+        kem_ciphertext: encrypted.kem_ciphertext,
+        encrypted_kem_seed: encrypted.encrypted_kem_seed,
+        kem_seed_nonce: encrypted.kem_seed_nonce,
+        encrypted_attachments_bundle: encrypted.encrypted_attachments_bundle,
       }),
     ).rejects.toThrow();
   });
@@ -116,11 +124,13 @@ describe("secure_message_crypto", () => {
     expect(proof).not.toBe(encrypted.auth_proof);
   });
 
-  it("uses unique salts and nonces across messages", async () => {
+  it("uses unique salts, nonces, and KEM values across messages", async () => {
     const a = await encrypt_secure_message("pw", { subject: "x", body: "y" });
     const b = await encrypt_secure_message("pw", { subject: "x", body: "y" });
 
     expect(a.kdf_salt).not.toBe(b.kdf_salt);
+    expect(a.kem_ciphertext).not.toBe(b.kem_ciphertext);
+    expect(a.encrypted_kem_seed).not.toBe(b.encrypted_kem_seed);
     expect(a.encrypted_subject.nonce).not.toBe(b.encrypted_subject.nonce);
     expect(a.encrypted_subject.ciphertext).not.toBe(
       b.encrypted_subject.ciphertext,

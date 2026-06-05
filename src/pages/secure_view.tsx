@@ -257,7 +257,11 @@ export default function SecureViewPage() {
           {
             encrypted_subject: content.encrypted_subject,
             encrypted_body: content.encrypted_body,
-            encrypted_attachments: content.encrypted_attachments ?? [],
+            encrypted_attachments: content.encrypted_attachments,
+            kem_ciphertext: content.kem_ciphertext,
+            encrypted_kem_seed: content.encrypted_kem_seed,
+            kem_seed_nonce: content.kem_seed_nonce,
+            encrypted_attachments_bundle: content.encrypted_attachments_bundle,
           },
         );
 
