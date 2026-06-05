@@ -884,7 +884,7 @@ class ApiClient {
 
         return this.is_authenticated_flag;
       } catch {
-        return this.is_authenticated_flag;
+        return false;
       } finally {
         this.auth_check_promise = null;
       }

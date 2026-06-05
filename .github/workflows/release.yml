@@ -123,3 +123,63 @@ jobs:
           updaterJsonPreferNsis: true
           args: ${{ matrix.args }}
           tauriScript: npm run tauri
+
+      - name: Rename assets to canonical names
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          V=$(node -p "require('./package.json').version")
+          TAG="v${V}"
+          TMP=$(mktemp -d)
+
+          rename_asset() {
+            local src="$1" dst="$2"
+            if gh release download "$TAG" --pattern "$src" --dir "$TMP" --clobber 2>/dev/null; then
+              mv "$TMP/$src" "$TMP/$dst"
+              gh release upload "$TAG" "$TMP/$dst" --clobber
+            fi
+          }
+
+          if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]]; then
+            rename_asset "Aster.Mail_${V}_amd64.AppImage"     "Aster-Mail-x64.AppImage"
+            rename_asset "Aster.Mail_${V}_amd64.AppImage.sig" "Aster-Mail-x64.AppImage.sig"
+            rename_asset "Aster.Mail_${V}_amd64.deb"          "Aster-Mail-amd64.deb"
+            rename_asset "Aster.Mail_${V}_amd64.deb.sig"      "Aster-Mail-amd64.deb.sig"
+            rename_asset "Aster.Mail-${V}-1.x86_64.rpm"       "Aster-Mail-x86_64.rpm"
+            rename_asset "Aster.Mail-${V}-1.x86_64.rpm.sig"   "Aster-Mail-x86_64.rpm.sig"
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            rename_asset "Aster.Mail_${V}_x64-setup.exe"     "Aster-Mail-x64-setup.exe"
+            rename_asset "Aster.Mail_${V}_x64-setup.exe.sig" "Aster-Mail-x64-setup.exe.sig"
+            rename_asset "Aster.Mail_${V}_x64_en-US.msi"     "Aster-Mail-x64.msi"
+            rename_asset "Aster.Mail_${V}_x64_en-US.msi.sig" "Aster-Mail-x64.msi.sig"
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            rename_asset "Aster.Mail_${V}_universal.dmg"             "Aster-Mail-universal.dmg"
+            rename_asset "Aster.Mail_${V}_universal.dmg.sig"         "Aster-Mail-universal.dmg.sig"
+            rename_asset "Aster.Mail_${V}_universal.app.tar.gz"      "Aster-Mail-universal.app.tar.gz"
+            rename_asset "Aster.Mail_${V}_universal.app.tar.gz.sig"  "Aster-Mail-universal.app.tar.gz.sig"
+          fi
+
+  update_latest_json:
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Rewrite latest.json with canonical asset URLs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          V=$(node -p "require('./package.json').version")
+          TAG="v${V}"
+          TMP=$(mktemp -d)
+          gh release download "$TAG" --pattern latest.json --dir "$TMP" --clobber
+          sed -i \
+            -e "s|Aster\.Mail_${V}_amd64\.AppImage|Aster-Mail-x64.AppImage|g" \
+            -e "s|Aster\.Mail_${V}_amd64\.deb|Aster-Mail-amd64.deb|g" \
+            -e "s|Aster\.Mail-${V}-1\.x86_64\.rpm|Aster-Mail-x86_64.rpm|g" \
+            -e "s|Aster\.Mail_${V}_x64-setup\.exe|Aster-Mail-x64-setup.exe|g" \
+            -e "s|Aster\.Mail_${V}_x64_en-US\.msi|Aster-Mail-x64.msi|g" \
+            -e "s|Aster\.Mail_${V}_universal\.dmg|Aster-Mail-universal.dmg|g" \
+            -e "s|Aster\.Mail_${V}_universal\.app\.tar\.gz|Aster-Mail-universal.app.tar.gz|g" \
+            "$TMP/latest.json"
+          gh release upload "$TAG" "$TMP/latest.json" --clobber
