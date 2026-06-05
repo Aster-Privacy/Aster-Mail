@@ -47,6 +47,10 @@ export interface SecureViewContent {
   sender_email: string;
   expires_at: string;
   time_remaining_seconds: number;
+  kem_ciphertext?: string;
+  encrypted_kem_seed?: string;
+  kem_seed_nonce?: string;
+  encrypted_attachments_bundle?: string | null;
 }
 
 export interface SecureViewVerifyResponse {

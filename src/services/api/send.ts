@@ -93,21 +93,15 @@ export interface SecureMessageFieldPayload {
   nonce: string;
 }
 
-export interface SecureMessageAttachmentPayload {
-  ciphertext: string;
-  nonce: string;
-  encrypted_filename: string;
-  filename_nonce: string;
-  content_type: string;
-  size_bytes: number;
-}
-
 export interface SecureMessagePayload {
   kdf_salt: string;
   auth_proof: string;
+  kem_ciphertext: string;
+  encrypted_kem_seed: string;
+  kem_seed_nonce: string;
   encrypted_subject: SecureMessageFieldPayload;
   encrypted_body: SecureMessageFieldPayload;
-  attachments?: SecureMessageAttachmentPayload[];
+  attachments_bundle?: string | null;
 }
 
 interface ExternalSendRequest {
