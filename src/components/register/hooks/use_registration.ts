@@ -611,32 +611,36 @@ export function use_registration() {
       return;
     }
 
-    if (vault) {
-      set_is_saving_recovery_email(true);
-      try {
-        const result = await save_recovery_email(recovery_email.trim(), vault);
+    if (!vault) {
+      set_recovery_email_error(t("auth.failed_save_recovery_email"));
 
-        if (result.code === "CONFLICT") {
-          set_recovery_email_error(t("auth.recovery_email_conflict"));
-          set_is_saving_recovery_email(false);
+      return;
+    }
 
-          return;
-        }
+    set_is_saving_recovery_email(true);
+    try {
+      const result = await save_recovery_email(recovery_email.trim(), vault);
 
-        if (!result.data.success) {
-          set_recovery_email_error(t("auth.failed_save_recovery_email"));
-          set_is_saving_recovery_email(false);
+      if (result.code === "CONFLICT") {
+        set_recovery_email_error(t("auth.recovery_email_conflict"));
+        set_is_saving_recovery_email(false);
 
-          return;
-        }
-      } catch {
+        return;
+      }
+
+      if (!result.data.success) {
         set_recovery_email_error(t("auth.failed_save_recovery_email"));
         set_is_saving_recovery_email(false);
 
         return;
       }
+    } catch {
+      set_recovery_email_error(t("auth.failed_save_recovery_email"));
       set_is_saving_recovery_email(false);
+
+      return;
     }
+    set_is_saving_recovery_email(false);
 
     set_step("recovery_email_verification");
     start_verification_polling();
