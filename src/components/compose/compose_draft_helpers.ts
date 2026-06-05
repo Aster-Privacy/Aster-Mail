@@ -55,14 +55,26 @@ export function draft_data_to_attachments(
   }));
 }
 
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{3,8}$/;
+
+function escape_html_attr(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export function build_badge_html(badges: Badge[]): string {
   if (badges.length === 0) return "";
 
   const items = badges
-    .map(
-      (b) =>
-        `<span style="display:inline-block;color:${b.color};border:1px solid ${b.color}40;background-color:${b.color}15;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.4;">&#9733; ${b.display_name}</span>`,
-    )
+    .map((b) => {
+      const safe_color = HEX_COLOR_RE.test(b.color) ? b.color : "#6366f1";
+      const safe_name = escape_html_attr(b.display_name);
+      return `<span style="display:inline-block;color:${safe_color};border:1px solid ${safe_color}40;background-color:${safe_color}15;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.4;">&#9733; ${safe_name}</span>`;
+    })
     .join(" ");
 
   return `<br><table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr><td style="padding:4px 0;">${items}</td></tr></table>`;

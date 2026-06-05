@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export const ORCHESTRATOR_SCRIPT = `(function(){
+export const make_orchestrator_script = (parent_origin: string): string => `(function(){
 "use strict";
 var MAX_H = 12000;
 var ASTER_PATH_ALLOWLIST = /^(?:settings(?:\\/[a-z0-9_-]{1,32})?)$/i;
@@ -26,7 +26,7 @@ var last_height = 0;
 var raf_id = 0;
 var ready_sent = false;
 
-function post(msg){ try { parent.postMessage(msg, "*"); } catch(_) {} }
+function post(msg){ try { parent.postMessage(msg, ${JSON.stringify(parent_origin)}); } catch(_) {} }
 
 function detect_simple(){
   var body = document.body;
@@ -267,7 +267,7 @@ async function compute_sha256_base64(input: string): Promise<string> {
 export function get_orchestrator_hash(): Promise<string> {
   if (cached_hash) return Promise.resolve(cached_hash);
   if (pending_hash) return pending_hash;
-  pending_hash = compute_sha256_base64(ORCHESTRATOR_SCRIPT).then((h) => {
+  pending_hash = compute_sha256_base64(make_orchestrator_script(window.location.origin)).then((h) => {
     cached_hash = h;
     return h;
   });

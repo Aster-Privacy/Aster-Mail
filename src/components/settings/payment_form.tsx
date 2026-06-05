@@ -390,8 +390,14 @@ export function PaymentForm({
         );
 
         if (response.data?.url) {
-          window.location.href = response.data.url;
-
+          try {
+            const parsed = new URL(response.data.url);
+            if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
+            window.location.href = parsed.toString();
+          } catch {
+            set_error_message(t("settings.failed_checkout"));
+            set_phase("ready");
+          }
           return;
         }
         set_error_message(t("settings.failed_checkout"));

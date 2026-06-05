@@ -314,7 +314,14 @@ export const RegisterStepPlanSelection = ({
     localStorage.setItem("show_onboarding", "true");
     const res = await create_family_group(tier.id, billing_interval);
     if (res.data?.checkout_url) {
-      window.location.href = res.data.checkout_url;
+      try {
+        const parsed = new URL(res.data.checkout_url);
+        if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
+        window.location.href = parsed.toString();
+      } catch {
+        set_is_finalizing(false);
+        show_toast(t("settings.failed_checkout"), "error");
+      }
     } else {
       set_is_finalizing(false);
       show_toast(t("settings.failed_checkout"), "error");

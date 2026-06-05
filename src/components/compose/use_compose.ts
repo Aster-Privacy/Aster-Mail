@@ -604,9 +604,10 @@ export function use_compose({
     const existing = editor.querySelector<HTMLElement>(
       "[data-aster-signature='1']",
     );
-    const new_html = get_formatted_signature(target);
+    const raw_html = get_formatted_signature(target);
+    const sanitized = sanitize_html(raw_html, { external_content_mode: "always" });
     const wrapper = document.createElement("div");
-    wrapper.innerHTML = new_html;
+    wrapper.innerHTML = sanitized.html;
     const new_node = wrapper.firstElementChild;
     if (!new_node) {
       last_signature_id_ref.current = target.id;

@@ -87,7 +87,9 @@ export function AvailablePlansSection({
     try {
       const res = await create_family_group(tier.id, billing_interval);
       if (res.data?.checkout_url) {
-        window.location.href = res.data.checkout_url;
+        const parsed = new URL(res.data.checkout_url);
+        if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
+        window.location.href = parsed.toString();
       } else {
         show_toast(t("settings.failed_checkout"), "error");
       }

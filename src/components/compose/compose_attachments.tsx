@@ -24,6 +24,7 @@ import type { Attachment } from "@/components/compose/compose_shared";
 import { useRef, useState, useCallback, useEffect } from "react";
 
 import { CloseIcon } from "@/components/common/icons";
+import { sanitize_html } from "@/lib/html_sanitizer";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   get_file_icon_color,
@@ -589,7 +590,8 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
     const el = compose.message_textarea_ref.current;
 
     if (el && compose.message && !el.innerHTML) {
-      el.innerHTML = compose.message;
+      const safe = sanitize_html(compose.message, { external_content_mode: "always" });
+      el.innerHTML = safe.html;
     }
   });
 
