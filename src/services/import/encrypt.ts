@@ -94,10 +94,32 @@ export interface EncryptedImportEmail {
   message_id_hash: string;
   encrypted_envelope: string;
   envelope_nonce: string;
+  content_hash: string;
   received_at: string;
   thread_token?: string;
   item_type?: string;
   folder_token?: string;
+}
+
+// Deterministic hash of the message content so re-importing the same email
+// (which gets a fresh random message_id on every parse) is detected as a
+// duplicate. Independent of the encryption nonce, which varies per run.
+async function compute_content_hash(email: ParsedEmail): Promise<string> {
+  const canonical = [
+    email.from.trim().toLowerCase(),
+    email.to.join(",").trim().toLowerCase(),
+    email.subject.trim(),
+    email.date.toISOString(),
+    (email.text_body ?? "").trim(),
+    (email.html_body ?? "").trim(),
+  ].join("\n");
+
+  const digest = await crypto.subtle.digest(
+    HASH_ALG,
+    new TextEncoder().encode(canonical),
+  );
+
+  return uint8_array_to_base64(new Uint8Array(digest));
 }
 
 export async function encrypt_imported_email(
@@ -152,6 +174,8 @@ export async function encrypt_imported_email(
     raw_headers: preserved_headers.length > 0 ? preserved_headers : undefined,
   };
 
+  const content_hash = await compute_content_hash(email);
+
   const key = await derive_import_encryption_key(vault);
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
   const plaintext = new TextEncoder().encode(JSON.stringify(envelope));
@@ -172,6 +196,7 @@ export async function encrypt_imported_email(
     message_id_hash,
     encrypted_envelope: uint8_array_to_base64(new Uint8Array(ciphertext)),
     envelope_nonce: uint8_array_to_base64(nonce),
+    content_hash,
     received_at: email.date.toISOString(),
   };
 }

@@ -42,11 +42,17 @@ const COOLDOWN_MS = 10_000;
 let last_run_at = 0;
 let running = false;
 
+const NO_SUBJECT_SENTINELS = new Set(["(no subject)", "no subject"]);
+
 function normalize_subject(subject: string): string {
-  return subject
+  const normalized = subject
     .replace(/^(\s*(re|fwd?|aw|sv|vs|ref|rif|r)\s*:\s*)+/i, "")
     .trim()
     .toLowerCase();
+
+  if (NO_SUBJECT_SENTINELS.has(normalized)) return "";
+
+  return normalized;
 }
 
 function uint8_to_base64(array: Uint8Array): string {

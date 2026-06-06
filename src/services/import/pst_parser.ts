@@ -62,9 +62,20 @@ function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
         .filter(Boolean),
     );
   }
+  if (msg.displayBCC) {
+    bcc.push(
+      ...msg.displayBCC
+        .split(";")
+        .map((e: string) => e.trim())
+        .filter(Boolean),
+    );
+  }
 
   const subject = msg.subject || "(No Subject)";
-  const date = msg.clientSubmitTime || msg.messageDeliveryTime || new Date();
+  const raw_date = msg.clientSubmitTime || msg.messageDeliveryTime || new Date();
+  const candidate_date =
+    raw_date instanceof Date ? raw_date : new Date(raw_date);
+  const date = isNaN(candidate_date.getTime()) ? new Date() : candidate_date;
 
   const html_body = msg.bodyHTML || null;
   const text_body = msg.body || null;
@@ -78,14 +89,13 @@ function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
         const att = msg.getAttachment(i);
 
         if (att && att.filename) {
-          const content = att.fileInputStream?.read() || new Uint8Array(0);
-
+          // Imported mail is envelope-only; record metadata without reading the
+          // attachment stream to avoid buffering large payloads in memory.
           attachments.push({
             filename: att.filename,
             content_type: att.mimeTag || "application/octet-stream",
-            content:
-              content instanceof Uint8Array ? content : new Uint8Array(content),
-            size: att.attachSize || content.length,
+            content: new Uint8Array(0),
+            size: att.attachSize ?? 0,
           });
         }
       } catch {}
@@ -99,7 +109,7 @@ function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
     cc,
     bcc,
     subject,
-    date: date instanceof Date ? date : new Date(date),
+    date,
     html_body,
     text_body,
     attachments,

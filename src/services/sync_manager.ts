@@ -21,7 +21,7 @@
 import { get_sync_progress } from "@/services/api/external_accounts";
 import { show_toast } from "@/components/toast/simple_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { is_low_network } from "@/services/low_network_state";
 
 export interface SyncProgressState {
@@ -89,18 +89,20 @@ export function start_sync_polling(
     window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
     invalidate_mail_stats();
 
+    const common = get_active_translations().common;
+
     if (status === "complete") {
       if (error_message?.toLowerCase().includes("quota")) {
         window.dispatchEvent(
           new CustomEvent("astermail:sync-quota-exceeded", { detail: error_message }),
         );
       } else {
-        show_toast(en.common.sync_complete, "success");
+        show_toast(common.sync_complete, "success");
       }
     } else if (status === "timeout") {
-      show_toast("Sync is taking longer than expected and may still be running.", "error");
+      show_toast(common.sync_timeout, "error");
     } else {
-      show_toast(error_message || en.common.sync_failed, "error");
+      show_toast(error_message || common.sync_failed, "error");
     }
 
     setTimeout(() => {

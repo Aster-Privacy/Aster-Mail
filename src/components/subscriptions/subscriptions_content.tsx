@@ -351,7 +351,7 @@ export function SubscriptionsContent({
       )}
 
       {selected_ids.size > 0 && active_tab === "active" && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-edge-primary bg-bg-secondary dark:bg-bg-secondary">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-edge-primary bg-surf-secondary">
           <span className="text-sm text-txt-secondary">
             {selected_ids.size} {t("common.selected")}
           </span>

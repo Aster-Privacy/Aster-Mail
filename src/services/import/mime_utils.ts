@@ -257,16 +257,9 @@ export function decode_body(
 
   if (enc === "base64") {
     const decoded = decode_base64_safe(body);
+    const bytes = new Uint8Array([...decoded].map((c) => c.charCodeAt(0)));
 
-    if (charset) {
-      const bytes = new Uint8Array(
-        [...decoded].map((c) => c.charCodeAt(0)),
-      );
-
-      return decode_charset(bytes, charset);
-    }
-
-    return decoded;
+    return decode_charset(bytes, charset || "utf-8");
   }
 
   if (enc === "quoted-printable") {
@@ -288,6 +281,37 @@ export function decode_body(
   }
 
   return result;
+}
+
+function estimate_decoded_size(
+  part_body: string,
+  encoding: string | undefined,
+): number {
+  if (encoding?.toLowerCase() === "base64") {
+    const cleaned = part_body.replace(/[\r\n\s]/g, "");
+    const padding = (cleaned.match(/=+$/)?.[0].length ?? 0);
+
+    return Math.max(0, Math.floor((cleaned.length * 3) / 4) - padding);
+  }
+
+  return part_body.length;
+}
+
+// Imported mail is stored envelope-only: attachment bytes are never persisted,
+// so we record metadata (filename, type, size) without decoding the payload to
+// avoid holding large binary buffers in memory during bulk imports.
+function attachment_metadata(
+  filename: string,
+  content_type: string,
+  part_body: string,
+  encoding: string | undefined,
+): ParsedAttachment {
+  return {
+    filename,
+    content_type: content_type.split(";")[0].trim(),
+    content: new Uint8Array(0),
+    size: estimate_decoded_size(part_body, encoding),
+  };
 }
 
 export function parse_multipart(
@@ -329,29 +353,9 @@ export function parse_multipart(
         ? decode_header(filename_match[1].trim())
         : "attachment";
 
-      let content: Uint8Array;
-
-      if (encoding?.toLowerCase() === "base64") {
-        try {
-          const binary = atob(part_body.replace(/[\r\n\s]/g, ""));
-
-          content = new Uint8Array(binary.length);
-          for (let i = 0; i < binary.length; i++) {
-            content[i] = binary.charCodeAt(i);
-          }
-        } catch {
-          content = new TextEncoder().encode(part_body);
-        }
-      } else {
-        content = new TextEncoder().encode(part_body);
-      }
-
-      attachments.push({
-        filename,
-        content_type: content_type.split(";")[0].trim(),
-        content,
-        size: content.length,
-      });
+      attachments.push(
+        attachment_metadata(filename, content_type, part_body, encoding),
+      );
     } else if (content_type.includes("text/html") && !html) {
       html = decode_body(part_body, encoding, extract_charset(content_type));
     } else if (content_type.includes("text/plain") && !text) {
@@ -378,29 +382,9 @@ export function parse_multipart(
         ? decode_header(filename_match[1].trim())
         : "attachment";
 
-      let content: Uint8Array;
-
-      if (encoding?.toLowerCase() === "base64") {
-        try {
-          const binary = atob(part_body.replace(/[\r\n\s]/g, ""));
-
-          content = new Uint8Array(binary.length);
-          for (let i = 0; i < binary.length; i++) {
-            content[i] = binary.charCodeAt(i);
-          }
-        } catch {
-          content = new TextEncoder().encode(part_body);
-        }
-      } else {
-        content = new TextEncoder().encode(part_body);
-      }
-
-      attachments.push({
-        filename,
-        content_type: content_type.split(";")[0].trim(),
-        content,
-        size: content.length,
-      });
+      attachments.push(
+        attachment_metadata(filename, content_type, part_body, encoding),
+      );
     }
   }
 

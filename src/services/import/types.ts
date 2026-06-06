@@ -66,6 +66,7 @@ export interface PstMessage {
   senderName?: string;
   displayTo?: string;
   displayCC?: string;
+  displayBCC?: string;
   subject?: string;
   clientSubmitTime?: Date;
   messageDeliveryTime?: Date;

@@ -67,7 +67,7 @@ export const AvatarRing = memo(function AvatarRing({
       )}
       style={style}
     >
-      <span className="inline-flex items-center justify-center bg-bg-elevated rounded-full w-full h-full">
+      <span className="inline-flex items-center justify-center bg-surf-card rounded-full w-full h-full">
         {children}
       </span>
     </span>

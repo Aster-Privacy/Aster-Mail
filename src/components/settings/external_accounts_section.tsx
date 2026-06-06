@@ -181,10 +181,10 @@ export function ExternalAccountsSection() {
         >
           <div className="px-6 pt-6 pb-5">
             <AlertDialogHeader className="space-y-2">
-              <AlertDialogTitle className="text-16 font-semibold">
+              <AlertDialogTitle className="text-base font-semibold">
                 {state.t("settings.disconnect_title")}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-14 leading-normal">
+              <AlertDialogDescription className="text-sm leading-normal">
                 {state.t("settings.disconnect_confirm")}
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -195,7 +195,7 @@ export function ExternalAccountsSection() {
                   state.set_purge_also_delete_messages(v === true)
                 }
               />
-              <span className="text-13 leading-none text-txt-secondary">
+              <span className="text-[13px] leading-none text-txt-secondary">
                 {state.t("settings.disconnect_delete_messages_label")}
               </span>
             </label>

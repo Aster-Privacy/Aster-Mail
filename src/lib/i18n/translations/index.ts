@@ -90,4 +90,20 @@ export function has_translations(code: LanguageCode): boolean {
   return code in partial_map || code === "en";
 }
 
+const LANGUAGE_STORAGE_KEY = "astermail_language";
+
+// Resolve translations for the persisted locale outside of React (e.g. service
+// modules that emit toasts). Falls back to English when unavailable.
+export function get_active_translations(): Translations {
+  if (typeof window === "undefined") return en;
+
+  const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+
+  if (stored && has_translations(stored as LanguageCode)) {
+    return get_translations(stored as LanguageCode);
+  }
+
+  return en;
+}
+
 export { en, es, fr, de, it, pt, zh_CN, ja, ko, ar, ru, nl, pl, tr };

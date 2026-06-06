@@ -284,7 +284,7 @@ export default function LinkDevice() {
               {t("auth.link_device_confirm_prompt")}
             </p>
 
-            <div className="w-full rounded-xl border border-border-secondary bg-surf-secondary px-5 py-4 mt-5">
+            <div className="w-full rounded-xl border border-edge-secondary bg-surf-secondary px-5 py-4 mt-5">
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center h-10 w-10">
                   <svg
@@ -305,7 +305,7 @@ export default function LinkDevice() {
                   <p className="text-sm font-medium text-txt-primary">
                     {device_info.machine_name}
                   </p>
-                  <p className="text-xs text-txt-quaternary">
+                  <p className="text-xs text-txt-muted">
                     {t("auth.link_device_desktop")}
                   </p>
                 </div>
@@ -358,7 +358,7 @@ export default function LinkDevice() {
           <input
             autoFocus
             autoComplete="off"
-            className="w-full rounded-xl border border-border-secondary bg-surf-secondary px-5 py-4 text-center text-2xl font-mono font-bold tracking-[0.15em] text-txt-primary placeholder:text-txt-quaternary placeholder:font-normal placeholder:text-xl placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+            className="w-full rounded-xl border border-edge-secondary bg-surf-secondary px-5 py-4 text-center text-2xl font-mono font-bold tracking-[0.15em] text-txt-primary placeholder:text-txt-muted placeholder:font-normal placeholder:text-xl placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
             maxLength={9}
             placeholder={t("auth.link_device_code_placeholder")}
             spellCheck={false}

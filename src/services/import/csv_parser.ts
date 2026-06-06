@@ -29,44 +29,80 @@ import { en } from "@/lib/i18n/translations/en";
 import { MAX_FILE_SIZE } from "./types";
 import { secure_hex } from "./mime_utils";
 
-function parse_csv_line(line: string): string[] {
-  const values: string[] = [];
+function parse_csv_records(content: string): string[][] {
+  const records: string[][] = [];
+  let record: string[] = [];
   let current = "";
   let in_quotes = false;
+  let field_started = false;
+  let field_quoted = false;
 
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    const next_char = line[i + 1];
+  const push_field = () => {
+    record.push(field_quoted ? current : current.trim());
+    current = "";
+    field_started = false;
+    field_quoted = false;
+  };
 
-    if (char === '"') {
-      if (in_quotes && next_char === '"') {
-        current += '"';
-        i++;
+  const push_record = () => {
+    push_field();
+    records.push(record);
+    record = [];
+  };
+
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i];
+    const next_char = content[i + 1];
+
+    if (in_quotes) {
+      if (char === '"') {
+        if (next_char === '"') {
+          current += '"';
+          i++;
+        } else {
+          in_quotes = false;
+        }
       } else {
-        in_quotes = !in_quotes;
+        current += char;
       }
-    } else if (char === "," && !in_quotes) {
-      values.push(current.trim());
-      current = "";
+
+      continue;
+    }
+
+    if (char === '"' && !field_started) {
+      in_quotes = true;
+      field_started = true;
+      field_quoted = true;
+    } else if (char === ",") {
+      push_field();
+    } else if (char === "\r") {
+      if (next_char === "\n") i++;
+      push_record();
+    } else if (char === "\n") {
+      push_record();
     } else {
+      field_started = true;
       current += char;
     }
   }
-  values.push(current.trim());
 
-  return values;
+  if (current.length > 0 || record.length > 0 || field_started) {
+    push_record();
+  }
+
+  return records.filter((r) => r.some((field) => field.trim().length > 0));
 }
 
 function parse_csv(content: string): CsvRow[] {
-  const lines = content.split(/\r?\n/).filter((line) => line.trim());
+  const records = parse_csv_records(content);
 
-  if (lines.length < 2) return [];
+  if (records.length < 2) return [];
 
-  const headers = parse_csv_line(lines[0]).map((h) => h.toLowerCase().trim());
+  const headers = records[0].map((h) => h.toLowerCase().trim());
   const rows: CsvRow[] = [];
 
-  for (let i = 1; i < lines.length; i++) {
-    const values = parse_csv_line(lines[i]);
+  for (let i = 1; i < records.length; i++) {
+    const values = records[i];
     const row: CsvRow = {};
 
     headers.forEach((header, index) => {

@@ -114,21 +114,33 @@ export function ImportSection({
     },
   ];
 
-  const load_jobs = useCallback(async () => {
-    set_is_loading(true);
+  const load_jobs = useCallback(async (silent = false) => {
+    if (!silent) set_is_loading(true);
     try {
       const res = await list_import_jobs();
 
       if (res.data?.jobs) set_jobs(res.data.jobs);
     } catch {
     } finally {
-      set_is_loading(false);
+      if (!silent) set_is_loading(false);
     }
   }, []);
 
   useEffect(() => {
     load_jobs();
   }, [load_jobs]);
+
+  const has_active_job = jobs.some(
+    (job) => job.status === "processing" || job.status === "pending",
+  );
+
+  useEffect(() => {
+    if (!has_active_job) return;
+    const id = window.setInterval(() => {
+      load_jobs(true);
+    }, 3000);
+    return () => window.clearInterval(id);
+  }, [has_active_job, load_jobs]);
 
   const handle_import_close = useCallback(() => {
     set_selected_provider(null);
@@ -271,8 +283,11 @@ export function ImportSection({
                       {job.source}
                     </p>
                     <p className="text-[12px] text-[var(--mobile-text-muted)]">
-                      {job.processed_emails}/{job.total_emails}{" "}
-                      {t("settings.emails_count", { count: job.total_emails })}
+                      {job.status === "processing" || job.status === "pending"
+                        ? `${job.processed_emails}/${job.total_emails}`
+                        : t("settings.emails_count", {
+                            count: job.processed_emails,
+                          })}
                     </p>
                   </div>
                   <span
@@ -295,13 +310,11 @@ export function ImportSection({
           )
         )}
       </div>
-      {selected_provider && (
-        <ImportModal
-          is_open={true}
-          on_close={handle_import_close}
-          provider={selected_provider}
-        />
-      )}
+      <ImportModal
+        is_open={selected_provider !== null}
+        on_close={handle_import_close}
+        provider={selected_provider}
+      />
       <ConnectProviderModal
         provider={connect_provider}
         on_close={() => set_connect_provider(null)}
