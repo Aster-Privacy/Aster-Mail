@@ -853,10 +853,10 @@ function MemberConsentPanel() {
   );
 }
 
-function FiltersContent({ other_member_count }: { other_member_count: number }) {
+function FiltersContent({ other_member_count, initial_filters }: { other_member_count: number; initial_filters?: OrgFilter[] | null }) {
   const { t } = use_i18n();
-  const [filters, set_filters] = useState<OrgFilter[]>([]);
-  const [loading, set_loading] = useState(true);
+  const [filters, set_filters] = useState<OrgFilter[]>(initial_filters ?? []);
+  const [loading, set_loading] = useState(!initial_filters);
   const [show_form, set_show_form] = useState(false);
   const [creating, set_creating] = useState(false);
   const [form, set_form] = useState({ name: "", value: "", field: "from", action: "trash" });
@@ -868,7 +868,7 @@ function FiltersContent({ other_member_count }: { other_member_count: number }) 
     catch { show_toast(t("settings.fam_org_filters_load_failed"), "error"); }
     finally { set_loading(false); }
   }, [t]);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (!initial_filters) load(); }, [load, initial_filters]);
 
   const create = async () => {
     if (!form.name.trim() || !form.value.trim()) return;
@@ -1207,11 +1207,11 @@ function MemberSecurityView() {
   );
 }
 
-function SecurityContent({ other_member_count }: { other_member_count: number }) {
+function SecurityContent({ other_member_count, initial_security, initial_compliance }: { other_member_count: number; initial_security?: SecurityPolicy | null; initial_compliance?: MemberComplianceInfo[] | null }) {
   const { t } = use_i18n();
-  const [committed, set_committed] = useState<SecurityPolicy | null>(null);
-  const [draft, set_draft] = useState<SecurityPolicy | null>(null);
-  const [compliance, set_compliance] = useState<MemberComplianceInfo[]>([]);
+  const [committed, set_committed] = useState<SecurityPolicy | null>(initial_security ?? null);
+  const [draft, set_draft] = useState<SecurityPolicy | null>(initial_security ?? null);
+  const [compliance, set_compliance] = useState<MemberComplianceInfo[]>(initial_compliance ?? []);
   const [saving, set_saving] = useState(false);
   const [confirm_open, set_confirm_open] = useState(false);
   const [consent_open, set_consent_open] = useState(false);
@@ -1227,16 +1227,21 @@ function SecurityContent({ other_member_count }: { other_member_count: number })
   };
 
   useEffect(() => {
-    get_security_policy()
-      .then(r => { if (r.data) { set_committed(r.data); set_draft(r.data); } })
-      .catch(() => {
-        const fallback = { require_2fa: false, require_2fa_grace_days: 7, allow_imap_smtp: true, max_sessions_per_member: null, session_timeout_hours: null, block_external_forwarding: false };
-        show_toast(t("settings.fam_org_sec_load_failed"), "error");
-        set_committed(fallback); set_draft(fallback);
-      });
-    get_member_compliance()
-      .then(r => { if (r.data) set_compliance(r.data); })
-      .catch(() => {});
+    if (initial_security && initial_compliance) return;
+    if (!initial_security) {
+      get_security_policy()
+        .then(r => { if (r.data) { set_committed(r.data); set_draft(r.data); } })
+        .catch(() => {
+          const fallback = { require_2fa: false, require_2fa_grace_days: 7, allow_imap_smtp: true, max_sessions_per_member: null, session_timeout_hours: null, block_external_forwarding: false };
+          show_toast(t("settings.fam_org_sec_load_failed"), "error");
+          set_committed(fallback); set_draft(fallback);
+        });
+    }
+    if (!initial_compliance) {
+      get_member_compliance()
+        .then(r => { if (r.data) set_compliance(r.data); })
+        .catch(() => {});
+    }
   }, []);
 
   const patch_draft = useCallback((p: Partial<SecurityPolicy>) => {
@@ -1472,10 +1477,10 @@ function SecurityContent({ other_member_count }: { other_member_count: number })
   );
 }
 
-function RetentionContent({ other_member_count }: { other_member_count: number }) {
+function RetentionContent({ other_member_count, initial_retention }: { other_member_count: number; initial_retention?: DataRetentionPolicy | null }) {
   const { t } = use_i18n();
-  const [policy, set_policy] = useState<DataRetentionPolicy | null>(null);
-  const [server_policy, set_server_policy] = useState<DataRetentionPolicy | null>(null);
+  const [policy, set_policy] = useState<DataRetentionPolicy | null>(initial_retention ?? null);
+  const [server_policy, set_server_policy] = useState<DataRetentionPolicy | null>(initial_retention ?? null);
   const [saving, set_saving] = useState(false);
   const [confirm_enforce, set_confirm_enforce] = useState(false);
   const [consent_open, set_consent_open] = useState(false);
@@ -1483,6 +1488,7 @@ function RetentionContent({ other_member_count }: { other_member_count: number }
   const save_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (initial_retention) return;
     get_data_retention()
       .then(r => { if (r.data) { set_policy(r.data); set_server_policy(r.data); } })
       .catch(() => { show_toast(t("settings.fam_org_ret_load_failed"), "error"); set_policy({ trash_retention_days: null, spam_retention_days: 30, sent_retention_days: null, all_mail_retention_days: null, enforce_on_members: false }); });
@@ -1637,6 +1643,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [group, set_group] = useState<FamilyGroupResponse | null>(null);
   const [loading, set_loading] = useState(true);
   const [tab, set_tab] = useState<FamilyTab>("overview");
+  const [preloaded_filters, set_preloaded_filters] = useState<OrgFilter[] | null>(null);
+  const [preloaded_security, set_preloaded_security] = useState<SecurityPolicy | null>(null);
+  const [preloaded_retention, set_preloaded_retention] = useState<DataRetentionPolicy | null>(null);
+  const [preloaded_compliance, set_preloaded_compliance] = useState<MemberComplianceInfo[] | null>(null);
   const [invite_email, set_invite_email] = useState("");
   const [invite_storage_gb, set_invite_storage_gb] = useState("500");
   const [invite_loading, set_invite_loading] = useState(false);
@@ -1699,6 +1709,14 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       const res = await get_family_group();
       if (res.data) {
         set_group(res.data);
+        if (res.data.viewer_role === "owner") {
+          void Promise.all([
+            list_org_filters().then(r => { if (r.data) set_preloaded_filters(r.data); }).catch(() => {}),
+            get_security_policy().then(r => { if (r.data) set_preloaded_security(r.data); }).catch(() => {}),
+            get_data_retention().then(r => { if (r.data) set_preloaded_retention(r.data); }).catch(() => {}),
+            get_member_compliance().then(r => { if (r.data) set_preloaded_compliance(r.data); }).catch(() => {}),
+          ]);
+        }
         const active = res.data.members.filter(m => m.status === "active").length;
         const remaining_seats = Math.max(1, res.data.max_members - active);
         const used_alloc =
@@ -2327,11 +2345,11 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
       {tab === "groups"    && is_owner && <GroupsContent members={active_members} />}
       {tab === "activity"  && is_owner && <ActivityContent />}
-      {tab === "filters"   && is_owner && <FiltersContent other_member_count={active_members.length - 1} />}
+      {tab === "filters"   && is_owner && <FiltersContent other_member_count={active_members.length - 1} initial_filters={preloaded_filters} />}
       {tab === "domains"   && is_owner && <DomainsContent members={active_members} />}
-      {tab === "security"  && is_owner && <SecurityContent other_member_count={active_members.length - 1} />}
+      {tab === "security"  && is_owner && <SecurityContent other_member_count={active_members.length - 1} initial_security={preloaded_security} initial_compliance={preloaded_compliance} />}
       {tab === "security"  && !is_owner && <MemberSecurityView />}
-      {tab === "retention" && is_owner && <RetentionContent other_member_count={active_members.length - 1} />}
+      {tab === "retention" && is_owner && <RetentionContent other_member_count={active_members.length - 1} initial_retention={preloaded_retention} />}
 
 
       {group && wizard_open && (
