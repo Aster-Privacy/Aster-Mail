@@ -427,7 +427,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
     <div className="space-y-4">
       <div className="flex gap-2 items-start">
         <Input placeholder={t("settings.fam_org_groups_name_placeholder")} value={new_name} onChange={e => set_new_name(e.target.value)} onKeyDown={e => e.key === "Enter" && handle_create()} className="flex-1" size="md" />
-        <div className="aster_input aster_input_md !p-0 overflow-hidden flex-1">
+        <div className="flex items-center h-9 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] overflow-hidden flex-1 min-w-0">
           <input
             className="bg-transparent text-sm text-txt-primary outline-none px-3 h-full flex-1 min-w-0 placeholder:text-txt-muted"
             placeholder={t("settings.fam_org_groups_prefix_placeholder")}
@@ -436,12 +436,12 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
           />
           <span className="text-txt-muted text-sm px-1 select-none shrink-0">@</span>
           <Select value={new_domain} onValueChange={set_new_domain}>
-            <SelectTrigger className="border-0 border-l border-edge-secondary rounded-none bg-transparent h-full shadow-none text-sm min-w-[120px] px-2">
+            <SelectTrigger className="border-0 border-l border-black/10 dark:border-white/10 rounded-none bg-transparent h-full shadow-none text-sm min-w-0 max-w-[160px] px-2">
               <SelectValue placeholder={t("settings.fam_org_groups_domain_placeholder")} />
             </SelectTrigger>
             <SelectContent>
               {domains.map(d => (
-                <SelectItem key={d} value={d}>{d}</SelectItem>
+                <SelectItem key={d} value={d}>{d === "astermail.org" ? "Aster Mail" : d}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -452,7 +452,10 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
       </div>
       <p className="text-[11px] text-txt-muted flex items-center gap-1.5">
         <InfoPopover title={t("settings.fam_org_groups_info_title")} description={t("settings.fam_org_groups_info_desc")} />
-        {t("settings.fam_org_groups_prefix_hint")} <span className="font-mono">team@yourdomain.com</span>
+        {new_email_prefix.trim()
+          ? <><span className="text-txt-muted">{t("settings.fam_org_groups_address_preview")}</span><span className="font-mono text-accent-blue">{new_email_prefix.trim()}@{new_domain}</span></>
+          : <span className="text-txt-muted">{t("settings.fam_org_groups_prefix_hint")}</span>
+        }
       </p>
       {loading ? (
         <SkeletonRows count={3} has_icon={false} />
