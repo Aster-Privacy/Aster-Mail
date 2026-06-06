@@ -457,9 +457,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                   <span className="aster_badge aster_badge_gray flex-shrink-0 text-xs">{g.member_count}</span>
                   <button
                     onClick={() => handle_delete(g.id)}
-                    className="p-1 rounded-md text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors flex-shrink-0"
-                    title={t("settings.fam_org_groups_delete")}
-                    aria-label={t("settings.fam_org_groups_delete")}
+                    className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1 text-txt-muted hover:text-red-500 flex-shrink-0"
                   >
                     <TrashIcon className="w-3.5 h-3.5" />
                   </button>
@@ -493,11 +491,9 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                               <span className="text-sm text-txt-primary flex-1 min-w-0 truncate">{m.username}@{m.email_domain}</span>
                               <button
                                 onClick={() => handle_remove_member(g.id, m.user_id)}
-                                className="p-1 rounded-md text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors flex-shrink-0"
-                                title={t("settings.fam_org_groups_remove_from_group")}
-                                aria-label={t("settings.fam_org_groups_remove_from_group")}
+                                className="aster_btn aster_btn_ghost aster_btn_sm text-red-500 hover:text-red-600 flex-shrink-0"
                               >
-                                <XMarkIcon className="w-3.5 h-3.5" />
+                                {t("settings.fam_org_groups_remove")}
                               </button>
                             </div>
                           );
