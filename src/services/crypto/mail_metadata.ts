@@ -52,6 +52,8 @@ export const ENCRYPTED_METADATA_FIELDS = [
   "scheduled_at",
   "send_status",
   "snoozed_until",
+  "category",
+  "category_pinned",
 ] as const;
 
 export interface EncryptedMailMetadataResult {

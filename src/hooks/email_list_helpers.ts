@@ -18,14 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import type {
   InboxEmail,
   DecryptedEnvelope,
   MailItemMetadata,
 } from "@/types/email";
 
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { strip_html_tags } from "@/lib/html_sanitizer";
+import { classify } from "@/services/mail_categorizer";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import {
@@ -76,7 +77,12 @@ export type MailView =
   | "all";
 
 export const VIEW_PARAMS: Record<MailView, Partial<ListMailItemsParams>> = {
-  inbox: { item_type: "received", is_trashed: false, is_spam: false, is_archived: false },
+  inbox: {
+    item_type: "received",
+    is_trashed: false,
+    is_spam: false,
+    is_archived: false,
+  },
   sent: { item_type: "sent", is_trashed: false, is_spam: false },
   scheduled: { item_type: "scheduled", is_trashed: false, is_spam: false },
   starred: { is_starred: true, is_trashed: false, is_spam: false },
@@ -132,7 +138,11 @@ async function try_decrypt_with_identity_key(
         false,
         ["decrypt"],
       );
-      const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, encrypted_bytes, nonce_bytes);
+      const decrypted = await decrypt_aes_gcm_with_fallback(
+        crypto_key,
+        encrypted_bytes,
+        nonce_bytes,
+      );
 
       const parsed = JSON.parse(new TextDecoder().decode(decrypted));
       const from = normalize_envelope_from(parsed.from);
@@ -297,8 +307,7 @@ export function mail_to_email(
   const recipient_addresses = envelope.to?.map((r) => r.email).filter(Boolean);
 
   const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
-  const resolved_html =
-    envelope.body_html ?? envelope.html_body ?? "";
+  const resolved_html = envelope.body_html ?? envelope.html_body ?? "";
   const raw_ts =
     envelope.sent_at ||
     (envelope as unknown as Record<string, string>).date ||
@@ -331,6 +340,7 @@ export function mail_to_email(
     has_attachment: effective_metadata.has_attachments,
     category: "",
     category_color: "",
+    mail_category: classify(envelope, metadata),
     avatar_url: sender_profile?.profile_picture || "",
     is_encrypted: false,
     folders,
@@ -350,6 +360,62 @@ export function mail_to_email(
       Math.ceil((item.encrypted_envelope?.length || 0) * 0.75),
     phishing_level: item.phishing_level,
   };
+}
+
+export async function fetch_mail_by_ids(
+  ids: string[],
+  format_options: FormatOptions,
+  user_email = "",
+): Promise<InboxEmail[]> {
+  if (ids.length === 0) return [];
+
+  const response = await list_mail_items({ ids });
+
+  if (!response.data) return [];
+
+  const results = await Promise.allSettled(
+    response.data.items.map(async (item) => {
+      const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
+
+      const [envelope, metadata] = await Promise.all([
+        decrypt_envelope(item.encrypted_envelope, item.envelope_nonce),
+        has_metadata
+          ? decrypt_mail_metadata(
+              item.encrypted_metadata!,
+              item.metadata_nonce!,
+              item.metadata_version,
+            )
+          : Promise.resolve(null),
+      ]);
+
+      if (envelope?.body_text) {
+        const bundle = await decrypt_body_text_with_bundle(
+          envelope.body_text,
+          user_email,
+          envelope.from?.email || "",
+        );
+
+        envelope.body_text = bundle.body;
+        if (bundle.subject !== null && !envelope.subject) {
+          envelope.subject = bundle.subject;
+        }
+      }
+
+      return mail_to_email(item, envelope, metadata, format_options);
+    }),
+  );
+
+  const by_id = new Map<string, InboxEmail>();
+
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      by_id.set(result.value.id, result.value);
+    }
+  }
+
+  return ids
+    .map((id) => by_id.get(id))
+    .filter((email): email is InboxEmail => email !== undefined);
 }
 
 export function group_emails_by_thread(emails: InboxEmail[]): InboxEmail[] {
@@ -442,9 +508,7 @@ export async function fetch_mail_from_api(
   next_cursor?: string;
 } | null> {
   const should_group =
-    conversation_grouping &&
-    view !== "scheduled" &&
-    view !== "snoozed";
+    conversation_grouping && view !== "scheduled" && view !== "snoozed";
 
   const params: ListMailItemsParams = {
     limit,
@@ -503,6 +567,7 @@ export async function fetch_mail_from_api(
           user_email,
           envelope.from?.email || "",
         );
+
         envelope.body_text = bundle.body;
         if (bundle.subject !== null && !envelope.subject) {
           envelope.subject = bundle.subject;
@@ -539,12 +604,28 @@ export async function fetch_mail_from_api(
     mail_to_email(item, envelope, metadata, format_options),
   );
 
+  if (view === "inbox") {
+    const index_entries = successful
+      .filter(({ envelope }) => !!envelope)
+      .map(({ item, envelope, metadata }) => ({
+        id: item.id,
+        thread_token: item.thread_token,
+        message_ts: item.message_ts || item.created_at,
+        is_read: metadata?.is_read ?? item.is_read ?? false,
+        category: classify(envelope!, metadata),
+      }));
+
+    if (index_entries.length > 0) {
+      void import("@/services/category_index").then((m) =>
+        m.upsert_entries(index_entries),
+      );
+    }
+  }
+
   if (should_exclude_trashed_spam(view)) {
     emails = emails.filter(
       (e) =>
-        !e.is_trashed &&
-        !e.is_spam &&
-        (view === "archive" || !e.is_archived),
+        !e.is_trashed && !e.is_spam && (view === "archive" || !e.is_archived),
     );
   }
 

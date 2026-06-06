@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EmailCategory } from "@/types/email";
+
 import { api_client, type ApiResponse } from "./client";
 
 export type ConditionField =
@@ -68,13 +70,7 @@ export type DateOperator = "older_than_days" | "newer_than_days";
 export type AttachmentNameOperator = "contains" | "ends_with" | "matches_regex";
 export type AuthResultValue = "pass" | "fail" | "none" | "missing";
 
-export type CategoryValue =
-  | "primary"
-  | "important"
-  | "promotions"
-  | "social"
-  | "updates"
-  | "forums";
+export type CategoryValue = EmailCategory;
 
 export type LeafCondition =
   | {

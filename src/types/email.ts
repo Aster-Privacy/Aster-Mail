@@ -18,6 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+export type EmailCategory =
+  | "primary"
+  | "important"
+  | "promotions"
+  | "social"
+  | "updates"
+  | "forums";
+
 export interface EmailSender {
   name: string;
   email: string;
@@ -158,6 +166,7 @@ export interface InboxEmail {
   has_attachment: boolean;
   category: string;
   category_color: string;
+  mail_category?: EmailCategory;
   avatar_url: string;
   is_encrypted?: boolean;
   labels?: InboxEmailLabel[];
@@ -197,6 +206,8 @@ export interface MailItemMetadata {
   created_at?: string;
   updated_at?: string;
   item_type: string;
+  category?: EmailCategory;
+  category_pinned?: boolean;
 }
 
 export type SenderVerificationStatus =

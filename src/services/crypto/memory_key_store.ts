@@ -55,6 +55,15 @@ let secure_passphrase: SecureBuffer | null = null;
 let derived_encryption_key: Uint8Array | null = null;
 let session_expire_unsubscribe: (() => void) | null = null;
 let keys_ready_listeners: Set<() => void> = new Set();
+const vault_cleared_listeners: Set<() => void> = new Set();
+
+export function on_vault_cleared(callback: () => void): () => void {
+  vault_cleared_listeners.add(callback);
+
+  return () => {
+    vault_cleared_listeners.delete(callback);
+  };
+}
 
 if (import.meta.hot) {
   const hmr_state = import.meta.hot.data as HmrState | undefined;
@@ -297,6 +306,14 @@ export function clear_vault_from_memory(): void {
     session_expire_unsubscribe();
     session_expire_unsubscribe = null;
   }
+
+  vault_cleared_listeners.forEach((callback) => {
+    try {
+      callback();
+    } catch {
+      return;
+    }
+  });
 }
 
 export function has_vault_in_memory(): boolean {

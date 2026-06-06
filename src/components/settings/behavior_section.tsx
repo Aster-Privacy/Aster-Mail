@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SpamSettings } from "@/services/api/preferences";
+
 import { useState, useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Switch } from "@aster/ui";
@@ -41,7 +43,6 @@ import {
   get_spam_settings,
   save_spam_settings,
 } from "@/services/api/preferences";
-import type { SpamSettings } from "@/services/api/preferences";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
   Select,
@@ -70,6 +71,7 @@ interface ToggleSettingProps {
   description: string;
   enabled: boolean;
   on_toggle: () => void;
+  info?: { title: string; description: string };
 }
 
 function ToggleSetting({
@@ -77,11 +79,17 @@ function ToggleSetting({
   description,
   enabled,
   on_toggle,
+  info,
 }: ToggleSettingProps) {
   return (
     <div className="flex items-center justify-between py-4">
       <div className="flex-1 pr-4">
-        <p className="text-sm font-medium text-txt-primary">{title}</p>
+        <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
+          {title}
+          {info && (
+            <InfoPopover description={info.description} title={info.title} />
+          )}
+        </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
       <Switch checked={enabled} onCheckedChange={on_toggle} />
@@ -111,7 +119,9 @@ function SelectSetting({
       <div className="flex-1 pr-4">
         <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
           {title}
-          {info && <InfoPopover description={info.description} title={info.title} />}
+          {info && (
+            <InfoPopover description={info.description} title={info.title} />
+          )}
         </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
@@ -144,7 +154,10 @@ const SIDEBAR_PRESET_WIDTHS = [200, 256, 320] as const;
 function clamp_sidebar_width(value: number): number {
   if (!Number.isFinite(value)) return SIDEBAR_DEFAULT_WIDTH;
 
-  return Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, Math.round(value)));
+  return Math.min(
+    SIDEBAR_MAX_WIDTH,
+    Math.max(SIDEBAR_MIN_WIDTH, Math.round(value)),
+  );
 }
 
 function clamp_undo_seconds(value: number): number {
@@ -236,6 +249,10 @@ export function BehaviorSection() {
 
         <SelectSetting
           description={t("settings.mark_as_read_description")}
+          info={{
+            title: t("settings.mark_as_read"),
+            description: t("settings.mark_as_read_description"),
+          }}
           on_change={(v) =>
             update_preference(
               "mark_as_read_delay",
@@ -273,8 +290,12 @@ export function BehaviorSection() {
 
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
-            <p className="text-sm font-medium text-txt-primary">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
               {t("settings.conversation_grouping")}
+              <InfoPopover
+                description={t("settings.conversation_grouping_description")}
+                title={t("settings.conversation_grouping")}
+              />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.conversation_grouping_description")}
@@ -286,6 +307,31 @@ export function BehaviorSection() {
               update_preference(
                 "conversation_grouping",
                 preferences.conversation_grouping === false,
+                true,
+              )
+            }
+          />
+        </div>
+
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 pr-4">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
+              {t("settings.inbox_categories")}
+              <InfoPopover
+                description={t("settings.inbox_categories_description")}
+                title={t("settings.inbox_categories")}
+              />
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.inbox_categories_short")}
+            </p>
+          </div>
+          <Switch
+            checked={preferences.inbox_categories_enabled !== false}
+            onCheckedChange={() =>
+              update_preference(
+                "inbox_categories_enabled",
+                preferences.inbox_categories_enabled === false,
                 true,
               )
             }
@@ -329,6 +375,10 @@ export function BehaviorSection() {
         <ToggleSetting
           description={t("settings.force_dark_mode_emails_description")}
           enabled={preferences.force_dark_mode_emails}
+          info={{
+            title: t("settings.force_dark_mode_emails"),
+            description: t("settings.force_dark_mode_emails_description"),
+          }}
           on_toggle={() =>
             update_preference(
               "force_dark_mode_emails",
@@ -503,7 +553,10 @@ export function BehaviorSection() {
 
         <SelectSetting
           description={t("settings.folder_lock_mode_description")}
-          info={{ title: t("settings.info_folder_lock_mode_title"), description: t("settings.info_folder_lock_mode_description") }}
+          info={{
+            title: t("settings.info_folder_lock_mode_title"),
+            description: t("settings.info_folder_lock_mode_description"),
+          }}
           on_change={(v) =>
             update_preference(
               "protected_folder_lock_mode",
@@ -542,11 +595,14 @@ export function BehaviorSection() {
                 preferences.undo_send_seconds ?? UNDO_DEFAULT_SECONDS,
               );
 
-              update_preferences({
-                undo_send_enabled: true,
-                undo_send_seconds: seconds,
-                undo_send_period: `${seconds} seconds`,
-              }, true);
+              update_preferences(
+                {
+                  undo_send_enabled: true,
+                  undo_send_seconds: seconds,
+                  undo_send_period: `${seconds} seconds`,
+                },
+                true,
+              );
             }
           }}
           title={t("settings.enable_undo_send")}
@@ -584,10 +640,13 @@ export function BehaviorSection() {
                       Number.isFinite(parsed) ? parsed : UNDO_DEFAULT_SECONDS,
                     );
 
-                    update_preferences({
-                      undo_send_seconds: clamped,
-                      undo_send_period: `${clamped} seconds`,
-                    }, true);
+                    update_preferences(
+                      {
+                        undo_send_seconds: clamped,
+                        undo_send_period: `${clamped} seconds`,
+                      },
+                      true,
+                    );
                     set_undo_input_value(null);
                   }}
                   onChange={(e) => {
@@ -625,10 +684,13 @@ export function BehaviorSection() {
                     type="button"
                     onClick={() => {
                       set_undo_input_value(null);
-                      update_preferences({
-                        undo_send_seconds: seconds,
-                        undo_send_period: `${seconds} seconds`,
-                      }, true);
+                      update_preferences(
+                        {
+                          undo_send_seconds: seconds,
+                          undo_send_period: `${seconds} seconds`,
+                        },
+                        true,
+                      );
                     }}
                   >
                     {seconds}s
@@ -718,6 +780,10 @@ export function BehaviorSection() {
 
         <SelectSetting
           description={t("settings.spam_sensitivity_description")}
+          info={{
+            title: t("settings.info_spam_sensitivity_title"),
+            description: t("settings.info_spam_sensitivity_description"),
+          }}
           on_change={(value) => {
             const updated = { ...spam_settings, spam_sensitivity: value };
 
@@ -729,7 +795,6 @@ export function BehaviorSection() {
             { value: "medium", label: t("settings.spam_medium") },
             { value: "high", label: t("settings.spam_high") },
           ]}
-          info={{ title: t("settings.info_spam_sensitivity_title"), description: t("settings.info_spam_sensitivity_description") }}
           title={t("settings.spam_sensitivity")}
           value={spam_settings.spam_sensitivity}
         />
@@ -753,7 +818,11 @@ export function BehaviorSection() {
             { value: "never", label: t("settings.retention_never") },
           ]}
           title={t("settings.auto_delete_spam_after")}
-          value={spam_settings.spam_retention_days === 0 ? "never" : String(spam_settings.spam_retention_days)}
+          value={
+            spam_settings.spam_retention_days === 0
+              ? "never"
+              : String(spam_settings.spam_retention_days)
+          }
         />
       </div>
 

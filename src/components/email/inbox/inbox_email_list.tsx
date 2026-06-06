@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { InboxEmail } from "@/types/email";
+import type { InboxEmail, EmailCategory } from "@/types/email";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import {
@@ -40,10 +40,7 @@ import { Button } from "@aster/ui";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InboxEmailListItem } from "@/components/email/inbox_email_list_item";
 import { EmailContextMenuContent } from "@/components/email/email_context_menu";
-import {
-  ContextMenu,
-  ContextMenuTrigger,
-} from "@/components/ui/context_menu";
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context_menu";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { preload_email_detail } from "@/components/email/hooks/use_email_detail";
@@ -80,6 +77,8 @@ export interface EmailListProps {
   on_restore: (email: InboxEmail) => void;
   on_mark_not_spam: (email: InboxEmail) => void;
   on_move_to_inbox: (email: InboxEmail) => void;
+  on_category_change?: (email: InboxEmail, category: EmailCategory) => void;
+  categories_enabled?: boolean;
   selected_email_id?: string | null;
   focused_email_id?: string | null;
 }
@@ -114,6 +113,8 @@ export function EmailList({
   on_restore,
   on_mark_not_spam,
   on_move_to_inbox,
+  on_category_change,
+  categories_enabled,
   selected_email_id,
 }: EmailListProps): React.ReactElement {
   const { user } = use_auth();
@@ -140,7 +141,10 @@ export function EmailList({
     () => [...pinned_emails, ...primary_emails],
     [pinned_emails, primary_emails],
   );
-  const attachment_previews = use_attachment_previews(all_emails, !preferences.low_network_mode);
+  const attachment_previews = use_attachment_previews(
+    all_emails,
+    !preferences.low_network_mode,
+  );
 
   const is_special_view =
     current_view === "drafts" || current_view === "scheduled";
@@ -166,7 +170,12 @@ export function EmailList({
         ).catch(() => {});
       }, 50);
     },
-    [user?.email, is_special_view, preferences.conversation_grouping, preferences.low_network_mode],
+    [
+      user?.email,
+      is_special_view,
+      preferences.conversation_grouping,
+      preferences.low_network_mode,
+    ],
   );
 
   useEffect(() => {
@@ -259,8 +268,8 @@ export function EmailList({
                       ? "auto 88px"
                       : "auto 52px",
                   }}
-                  onMouseEnter={() => handle_hover_preload(email.id)}
                   onContextMenu={() => set_menu_email(email)}
+                  onMouseEnter={() => handle_hover_preload(email.id)}
                 >
                   {render_email_item(email)}
                 </div>
@@ -280,8 +289,8 @@ export function EmailList({
                       ? "auto 88px"
                       : "auto 52px",
                   }}
-                  onMouseEnter={() => handle_hover_preload(email.id)}
                   onContextMenu={() => set_menu_email(email)}
+                  onMouseEnter={() => handle_hover_preload(email.id)}
                 >
                   {render_email_item(email)}
                 </div>
@@ -293,10 +302,16 @@ export function EmailList({
 
       {menu_email && (
         <EmailContextMenuContent
+          categories_enabled={categories_enabled}
           current_view={current_view}
           email={menu_email}
           folders={folders}
           on_archive={() => on_archive(menu_email)}
+          on_category_change={
+            on_category_change
+              ? (category) => on_category_change(menu_email, category)
+              : undefined
+          }
           on_custom_snooze={() => on_custom_snooze(menu_email)}
           on_delete={() => on_delete(menu_email)}
           on_folder_toggle={(folder_id) =>

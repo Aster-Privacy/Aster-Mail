@@ -130,6 +130,7 @@ export interface UserPreferences {
   force_dark_mode_emails: boolean;
   conversation_grouping: boolean;
   conversation_order: "asc" | "desc";
+  inbox_categories_enabled: boolean;
   show_message_size: boolean;
   show_badges_in_signature: boolean;
   show_aster_branding: boolean;
@@ -412,6 +413,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   force_dark_mode_emails: false,
   conversation_grouping: true,
   conversation_order: "asc",
+  inbox_categories_enabled: true,
   show_message_size: false,
   show_badges_in_signature: true,
   show_aster_branding: true,

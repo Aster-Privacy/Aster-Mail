@@ -19,10 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect } from "react";
-import { Button, Switch, UpgradeBtn } from "@aster/ui";
+import { Badge, Button, Switch, UpgradeBtn } from "@aster/ui";
 
 import { InfoPopover } from "@/components/ui/info_popover";
-
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
@@ -58,9 +57,7 @@ export function VanguardSection() {
   const auth = use_auth_safe();
   const account_id = auth?.current_account_id ?? "";
 
-  const is_nova_plus = ["nova", "supernova"].includes(
-    limits?.plan_code ?? "",
-  );
+  const is_nova_plus = ["nova", "supernova"].includes(limits?.plan_code ?? "");
 
   const [enabled, set_enabled] = useState(false);
   const [show_disable_confirm, set_show_disable_confirm] = useState(false);
@@ -135,13 +132,11 @@ export function VanguardSection() {
                 {t("settings.vanguard_enable")}
               </p>
               <InfoPopover
-                title={t("settings.vanguard_title")}
                 description={t("settings.vanguard_info")}
+                title={t("settings.vanguard_title")}
               />
               {enabled && (
-                <span className="inline-flex items-center px-1.5 py-0.5 text-[11px] font-medium rounded-md bg-emerald-500 text-white border border-emerald-600">
-                  {t("settings.vanguard_active")}
-                </span>
+                <Badge color="green">{t("settings.vanguard_active")}</Badge>
               )}
             </div>
             <p className="text-xs mt-0.5 text-txt-muted">
@@ -171,14 +166,19 @@ export function VanguardSection() {
         size="sm"
       >
         <ModalHeader>
-          <ModalTitle>{t("settings.vanguard_confirm_disable_title")}</ModalTitle>
+          <ModalTitle>
+            {t("settings.vanguard_confirm_disable_title")}
+          </ModalTitle>
           <ModalDescription>
             {t("settings.vanguard_confirm_disable_desc")}
           </ModalDescription>
         </ModalHeader>
         <ModalBody />
         <ModalFooter>
-          <Button variant="outline" onClick={() => set_show_disable_confirm(false)}>
+          <Button
+            variant="outline"
+            onClick={() => set_show_disable_confirm(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button variant="destructive" onClick={confirm_disable}>
