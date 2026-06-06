@@ -33,7 +33,7 @@ jobs:
       - name: Sign
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: |
           npm install --no-save @tauri-apps/cli@^2.10.1
           npx tauri signer sign /tmp/art/Aster-Mail-universal.app.tar.gz
