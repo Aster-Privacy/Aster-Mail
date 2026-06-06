@@ -62,7 +62,6 @@ import {
   get_aster_footer,
   MAX_ATTACHMENT_SIZE,
   MAX_TOTAL_ATTACHMENTS_SIZE,
-  ALLOWED_MIME_TYPES,
   EVENT_DISPATCH_DELAY_MS,
 } from "@/components/compose/compose_shared";
 import {
@@ -1095,14 +1094,6 @@ export function use_reply_modal({
 
         const mime_type = file.type || "application/octet-stream";
 
-        if (
-          !ALLOWED_MIME_TYPES.has(mime_type) &&
-          !mime_type.startsWith("text/")
-        ) {
-          set_attachment_error(t("common.unsupported_file_type", { name: file.name }));
-          continue;
-        }
-
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
@@ -1162,14 +1153,6 @@ export function use_reply_modal({
         }
 
         const mime_type = file.type || "application/octet-stream";
-
-        if (
-          !ALLOWED_MIME_TYPES.has(mime_type) &&
-          !mime_type.startsWith("text/")
-        ) {
-          set_attachment_error(t("common.unsupported_file_type", { name: file.name }));
-          continue;
-        }
 
         const exists = attachments.some((a) => a.name === file.name);
 

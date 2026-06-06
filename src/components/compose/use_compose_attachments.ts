@@ -29,7 +29,6 @@ import {
   generate_attachment_id,
   MAX_ATTACHMENT_SIZE,
   MAX_TOTAL_ATTACHMENTS_SIZE,
-  ALLOWED_MIME_TYPES,
 } from "@/components/compose/compose_shared";
 
 const EXTENSION_MIME_MAP: Record<string, string> = {
@@ -156,14 +155,6 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         const mime_type = resolve_mime_type(file);
 
-        if (
-          !ALLOWED_MIME_TYPES.has(mime_type) &&
-          !mime_type.startsWith("text/")
-        ) {
-          set_attachment_error(t("common.unsupported_file_type"));
-          continue;
-        }
-
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
@@ -223,14 +214,6 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         }
 
         const mime_type = resolve_mime_type(file);
-
-        if (
-          !ALLOWED_MIME_TYPES.has(mime_type) &&
-          !mime_type.startsWith("text/")
-        ) {
-          set_attachment_error(t("common.unsupported_file_type"));
-          continue;
-        }
 
         const exists = attachments.some((a) => a.name === file.name);
 
