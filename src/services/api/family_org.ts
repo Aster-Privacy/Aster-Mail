@@ -176,3 +176,13 @@ export const list_member_consent_requests = () =>
 
 export const respond_consent_request = (id: string, accepted: boolean) =>
   api_client.post<void>(`/payments/v1/family/member/consent-requests/${id}/respond`, { accepted });
+
+export interface MemberGroup {
+  id: string;
+  name: string;
+  email_local_part: string | null;
+  domain_name: string | null;
+}
+
+export const list_my_groups = () =>
+  api_client.get<MemberGroup[]>('/payments/v1/family/member/groups');

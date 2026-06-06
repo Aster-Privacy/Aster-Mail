@@ -313,6 +313,49 @@ function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on
   );
 }
 
+function MemberGroupsContent() {
+  const { t } = use_i18n();
+  const [my_groups, set_my_groups] = useState<import("@/services/api/family_org").MemberGroup[]>([]);
+  const [loading, set_loading] = useState(true);
+
+  useEffect(() => {
+    import("@/services/api/family_org").then(m => m.list_my_groups()).then(r => {
+      if (r.data) set_my_groups(r.data);
+    }).catch(() => {}).finally(() => set_loading(false));
+  }, []);
+
+  if (loading) return <SkeletonRows count={2} has_icon={false} />;
+
+  if (my_groups.length === 0) return (
+    <div className="flex flex-col items-center py-10 gap-3">
+      <UserGroupIcon className="w-12 h-12 text-txt-muted" />
+      <p className="text-sm font-medium text-txt-primary">{t("settings.fam_org_member_groups_empty_title")}</p>
+      <p className="text-xs text-txt-muted text-center max-w-xs">{t("settings.fam_org_member_groups_empty_desc")}</p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-2">
+      {my_groups.map(g => (
+        <div key={g.id} className="flex items-center gap-3 px-3 py-3 rounded-xl border border-edge-secondary">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-accent-blue/10 flex-shrink-0">
+            <UserGroupIcon className="w-4 h-4 text-accent-blue" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-txt-primary truncate">{g.name}</p>
+            {g.email_local_part && g.domain_name && (
+              <p className="text-xs font-mono text-txt-muted mt-0.5">{g.email_local_part}@{g.domain_name}</p>
+            )}
+          </div>
+          {g.email_local_part && g.domain_name && (
+            <span className="aster_badge aster_badge_blue shrink-0">{t("settings.fam_org_groups_has_email_title")}</span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
   const { t } = use_i18n();
   const [groups, set_groups] = useState<OrgGroup[]>([]);
@@ -2049,7 +2092,24 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         </div>
       )}
 
-      {(tab === "overview" || !is_owner) && (
+      {!is_owner && (
+        <div className="inline-flex p-1 rounded-lg bg-surf-secondary">
+          {(["overview", "groups"] as const).map(tid => (
+            <button
+              key={tid}
+              onClick={() => set_tab(tid)}
+              className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 whitespace-nowrap ${tab === tid ? "bg-surf-primary" : "bg-transparent"}`}
+              style={{ color: tab === tid ? "var(--text-primary)" : "var(--text-muted)", boxShadow: tab === tid ? "rgba(0,0,0,0.1) 0px 1px 3px,rgba(0,0,0,0.06) 0px 1px 2px" : "none" }}
+            >
+              {tid === "overview" ? t("settings.fam_org_tab_overview") : t("settings.fam_org_tab_groups")}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!is_owner && tab === "groups" && <MemberGroupsContent />}
+
+      {(tab === "overview" || !is_owner) && tab !== "groups" && (
         <>
           {!is_owner && <MemberConsentPanel />}
           {is_owner && (() => {

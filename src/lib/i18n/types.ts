@@ -2191,6 +2191,8 @@ export interface SettingsTranslations {
   fam_org_groups_empty_title: string;
   fam_org_groups_empty_desc: string;
   fam_org_groups_has_email_title: string;
+  fam_org_member_groups_empty_title: string;
+  fam_org_member_groups_empty_desc: string;
   fam_org_groups_default_domain: string;
   fam_org_groups_delete: string;
   fam_org_groups_no_members: string;

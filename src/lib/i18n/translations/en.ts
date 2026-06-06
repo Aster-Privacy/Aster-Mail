@@ -2106,6 +2106,8 @@ export const en: Translations = {
     fam_org_groups_empty_title: "No groups yet",
     fam_org_groups_empty_desc: "Create a group to route email to multiple family members at once.",
     fam_org_groups_has_email_title: "Has email address",
+    fam_org_member_groups_empty_title: "No groups yet",
+    fam_org_member_groups_empty_desc: "You have not been added to any groups yet.",
     fam_org_groups_default_domain: "@your-domain.com",
     fam_org_groups_delete: "Delete group",
     fam_org_groups_no_members: "No members.",
