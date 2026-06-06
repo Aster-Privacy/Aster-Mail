@@ -39,7 +39,7 @@ import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 
 import { api_client } from "@/services/api/client";
 import { request_cache } from "@/services/api/request_cache";
-import { verify_auth_status } from "@/services/api/auth";
+import { verify_auth_status, get_user_info } from "@/services/api/auth";
 import {
   store_vault_in_memory,
   get_vault_from_memory,
@@ -272,6 +272,49 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
   }, []);
 
+  const backfill_user_profile = useCallback(async (logged_in_user: User) => {
+    try {
+      const response = await get_user_info();
+      const info = response?.data;
+
+      if (!info) return;
+
+      const merged: User = {
+        ...logged_in_user,
+        display_name:
+          logged_in_user.display_name || info.display_name || undefined,
+        profile_color:
+          logged_in_user.profile_color || info.profile_color || undefined,
+        profile_picture:
+          logged_in_user.profile_picture || info.profile_picture || undefined,
+      };
+
+      if (
+        merged.display_name === logged_in_user.display_name &&
+        merged.profile_color === logged_in_user.profile_color &&
+        merged.profile_picture === logged_in_user.profile_picture
+      ) {
+        return;
+      }
+
+      await update_account_user(logged_in_user.id, merged);
+      set_state((prev) =>
+        prev.current_account_id === logged_in_user.id && prev.user
+          ? {
+              ...prev,
+              user: {
+                ...prev.user,
+                display_name: prev.user.display_name || merged.display_name,
+                profile_color: prev.user.profile_color || merged.profile_color,
+                profile_picture:
+                  prev.user.profile_picture || merged.profile_picture,
+              },
+            }
+          : prev,
+      );
+    } catch {}
+  }, []);
+
   const login = useCallback(
     async (
       user: User,
@@ -332,8 +375,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         current_account_id: user.id,
       });
       set_is_adding_account(false);
+
+      backfill_user_profile(user);
     },
-    [t],
+    [t, backfill_user_profile],
   );
 
   const add_account = useCallback(

@@ -205,7 +205,7 @@ export async function add_account(
   const existing = data.accounts.find((a) => a.id === user.id);
 
   if (existing) {
-    existing.user = user;
+    existing.user = { ...existing.user, ...user };
     data.current_account_id = user.id;
     await save_accounts_data(data);
 
@@ -324,7 +324,7 @@ export async function update_account_user(
 
   if (!account) return false;
 
-  account.user = updated_user;
+  account.user = { ...account.user, ...updated_user };
   await save_accounts_data(data);
 
   return true;
