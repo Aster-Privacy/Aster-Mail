@@ -440,33 +440,33 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
             const gm = group_members[g.id] ?? [];
             const loading_members = is_open && !group_members[g.id];
             return (
-              <div key={g.id} className="rounded-xl border border-edge-secondary bg-surf-secondary overflow-hidden">
-                <button
-                  onClick={() => handle_expand(g.id)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                >
-                  <ChevronRightIcon className={`w-4 h-4 text-txt-muted flex-shrink-0 transition-transform duration-200 ${is_open ? "rotate-90" : ""}`} />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-txt-primary">{g.name}</span>
+              <div key={g.id} className="rounded-xl border border-edge-secondary overflow-hidden">
+                <div className="flex items-center gap-2 px-3 py-2.5">
+                  <button
+                    onClick={() => handle_expand(g.id)}
+                    className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
+                  >
+                    <ChevronRightIcon className={`w-3.5 h-3.5 text-txt-muted flex-shrink-0 transition-transform duration-200 ${is_open ? "rotate-90" : ""}`} />
+                    <span className="text-sm font-medium text-txt-primary truncate">{g.name}</span>
                     {g.email_local_part && (
-                      <span className="ml-2 text-xs font-mono text-accent-blue bg-accent-blue/10 px-1.5 py-0.5 rounded">
+                      <span className="text-xs font-mono text-accent-blue bg-accent-blue/10 px-1.5 py-0.5 rounded flex-shrink-0">
                         {g.email_local_part}{g.domain_name ? `@${g.domain_name}` : t("settings.fam_org_groups_default_domain")}
                       </span>
                     )}
-                  </div>
-                  <span className="aster_badge aster_badge_gray flex-shrink-0">{g.member_count}</span>
+                  </button>
+                  <span className="aster_badge aster_badge_gray flex-shrink-0 text-xs">{g.member_count}</span>
                   <button
-                    onClick={e => { e.stopPropagation(); handle_delete(g.id); }}
-                    className="p-1.5 rounded-lg text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors flex-shrink-0"
+                    onClick={() => handle_delete(g.id)}
+                    className="p-1 rounded-md text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors flex-shrink-0"
                     title={t("settings.fam_org_groups_delete")}
                     aria-label={t("settings.fam_org_groups_delete")}
                   >
-                    <TrashIcon className="w-4 h-4" />
+                    <TrashIcon className="w-3.5 h-3.5" />
                   </button>
-                </button>
+                </div>
 
                 {is_open && (
-                  <div className="border-t border-edge-secondary bg-surf-primary px-4 py-3 space-y-2">
+                  <div className="border-t border-edge-secondary px-4 py-3 space-y-2">
                     {loading_members ? (
                       <div className="flex items-center gap-2 py-2">
                         <Spinner size="sm" />
@@ -545,7 +545,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                           <Button size="sm" variant="depth" onClick={() => handle_add_member(g.id)} disabled={!add_user_id} className="flex-1">
                             {t("settings.fam_org_groups_add")}
                           </Button>
-                          <button onClick={() => { set_adding_to(null); set_add_user_id(""); set_member_search(""); }} className="aster_btn aster_btn_ghost aster_btn_sm">
+                          <button onClick={() => { set_adding_to(null); set_add_user_id(""); set_member_search(""); }} className="px-3 py-1.5 text-sm text-txt-muted hover:text-txt-primary rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                             {t("settings.fam_org_groups_cancel")}
                           </button>
                         </div>
