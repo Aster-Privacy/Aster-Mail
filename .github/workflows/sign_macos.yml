@@ -36,13 +36,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           npm install --no-save @tauri-apps/cli@^2.10.1
-          KEY_FILE=$(mktemp)
-          echo "$TAURI_SIGNING_PRIVATE_KEY" > "$KEY_FILE"
-          echo "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" | \
-            npx tauri signer sign \
-              -k "$KEY_FILE" \
-              /tmp/art/Aster-Mail-universal.app.tar.gz
-          rm -f "$KEY_FILE"
+          npx tauri signer sign /tmp/art/Aster-Mail-universal.app.tar.gz
           echo "--- sig ---"
           cat /tmp/art/Aster-Mail-universal.app.tar.gz.sig
 
