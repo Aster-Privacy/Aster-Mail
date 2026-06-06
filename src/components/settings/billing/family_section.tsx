@@ -486,14 +486,14 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                           const initials = (m.username || "?")[0].toUpperCase();
                           const color = get_avatar_color(m.username);
                           return (
-                            <div key={m.user_id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors group">
+                            <div key={m.user_id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-surf-secondary transition-colors">
                               <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ backgroundColor: color }}>
                                 {initials}
                               </div>
                               <span className="text-sm text-txt-primary flex-1 min-w-0 truncate">{m.username}@{m.email_domain}</span>
                               <button
                                 onClick={() => handle_remove_member(g.id, m.user_id)}
-                                className="p-1 rounded text-txt-muted opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                                className="p-1 rounded-md text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors flex-shrink-0"
                                 title={t("settings.fam_org_groups_remove_from_group")}
                                 aria-label={t("settings.fam_org_groups_remove_from_group")}
                               >
