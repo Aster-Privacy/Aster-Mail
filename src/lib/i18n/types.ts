@@ -2196,6 +2196,7 @@ export interface SettingsTranslations {
   fam_org_groups_add_someone: string;
   fam_org_groups_remove: string;
   fam_org_groups_remove_from_group: string;
+  fam_org_groups_domain_placeholder: string;
   fam_org_groups_select_member: string;
   fam_org_groups_add: string;
   fam_org_groups_cancel: string;
