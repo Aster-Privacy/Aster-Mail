@@ -37,21 +37,18 @@ import {
   subscribe as subscribe_index,
   get_version as get_index_version,
 } from "@/services/category_index";
+import {
+  secure_store,
+  secure_retrieve,
+} from "@/services/crypto/secure_storage";
 
 const ACTIVE_CATEGORY_KEY = "astermail_active_category";
 
-function read_initial_category(): EmailCategory {
-  try {
-    const stored = localStorage.getItem(ACTIVE_CATEGORY_KEY);
-
-    if (stored && (CATEGORY_TABS as readonly string[]).includes(stored)) {
-      return stored as EmailCategory;
-    }
-  } catch {
-    return "primary";
-  }
-
-  return "primary";
+function is_tab(value: unknown): value is EmailCategory {
+  return (
+    typeof value === "string" &&
+    (CATEGORY_TABS as readonly string[]).includes(value)
+  );
 }
 
 export interface UseInboxCategoriesReturn {
@@ -70,9 +67,8 @@ export function use_inbox_categories(
     preferences.inbox_categories_enabled !== false &&
     (current_view === "inbox" || current_view === "");
 
-  const [active_category, set_active_category_state] = useState<EmailCategory>(
-    read_initial_category,
-  );
+  const [active_category, set_active_category_state] =
+    useState<EmailCategory>("primary");
 
   const index_version = useSyncExternalStore(
     subscribe_index,
@@ -82,6 +78,24 @@ export function use_inbox_categories(
 
   const counts = useMemo(() => get_counts(), [index_version]);
 
+  // The last-viewed tab is persisted vault-encrypted (AES-256-GCM + HMAC), not
+  // as plaintext, so it leaves no readable behavioral signal on disk.
+  useEffect(() => {
+    let cancelled = false;
+
+    secure_retrieve<EmailCategory>(ACTIVE_CATEGORY_KEY)
+      .then((stored) => {
+        if (!cancelled && is_tab(stored)) {
+          set_active_category_state(stored);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     if (!enabled) return;
     mark_category_seen(active_category);
@@ -89,11 +103,7 @@ export function use_inbox_categories(
 
   const set_active_category = useCallback((category: EmailCategory) => {
     set_active_category_state(category);
-    try {
-      localStorage.setItem(ACTIVE_CATEGORY_KEY, category);
-    } catch {
-      return;
-    }
+    void secure_store(ACTIVE_CATEGORY_KEY, category).catch(() => {});
   }, []);
 
   return {
