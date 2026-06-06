@@ -36,7 +36,6 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ChevronRightIcon,
-  ChevronDownIcon,
   PlusIcon,
   InformationCircleIcon,
   GlobeAltIcon,
@@ -390,25 +389,36 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
 
   const handle_add_member = async (gid: string) => {
     if (!add_user_id) return;
+    const member = members.find(m => m.user_id === add_user_id);
+    if (!member) return;
+    const optimistic: OrgGroupMember = { user_id: member.user_id, username: member.username, email_domain: member.email_domain, added_at: new Date().toISOString() };
+    set_group_members(p => ({ ...p, [gid]: [...(p[gid] ?? []), optimistic] }));
+    set_groups(p => p.map(g => g.id === gid ? { ...g, member_count: g.member_count + 1 } : g));
+    set_adding_to(null); set_add_user_id("");
     try {
       const r = await add_group_member(gid, add_user_id);
-      if (r.error) { show_toast(t("settings.fam_org_action_failed"), "error"); return; }
-      const r2 = await list_group_members(gid);
-      if (r2.data) set_group_members(p => ({ ...p, [gid]: r2.data! }));
-      set_groups(p => p.map(g => g.id === gid ? { ...g, member_count: g.member_count + 1 } : g));
-      set_adding_to(null); set_add_user_id(""); show_toast(t("settings.fam_org_groups_member_added"), "success");
-    } catch { show_toast(t("settings.fam_org_groups_add_failed"), "error"); }
+      if (r.error) {
+        set_group_members(p => ({ ...p, [gid]: (p[gid] ?? []).filter(m => m.user_id !== add_user_id) }));
+        set_groups(p => p.map(g => g.id === gid ? { ...g, member_count: Math.max(0, g.member_count - 1) } : g));
+        show_toast(t("settings.fam_org_action_failed"), "error");
+      } else {
+        show_toast(t("settings.fam_org_groups_member_added"), "success");
+      }
+    } catch {
+      set_group_members(p => ({ ...p, [gid]: (p[gid] ?? []).filter(m => m.user_id !== add_user_id) }));
+      set_groups(p => p.map(g => g.id === gid ? { ...g, member_count: Math.max(0, g.member_count - 1) } : g));
+      show_toast(t("settings.fam_org_groups_add_failed"), "error");
+    }
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <Input placeholder={t("settings.fam_org_groups_name_placeholder")} value={new_name} onChange={e => set_new_name(e.target.value)} onKeyDown={e => e.key === "Enter" && handle_create()} className="flex-1 h-9" />
-        <Input placeholder={t("settings.fam_org_groups_prefix_placeholder")} value={new_email_prefix} onChange={e => set_new_email_prefix(e.target.value)} className="flex-1 h-9" />
-        <button onClick={handle_create} disabled={creating || !new_name.trim()}
-          className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-sm font-medium text-white flex-shrink-0 disabled:opacity-50 transition-colors bg-accent-blue hover:opacity-90">
+      <div className="flex gap-2 items-center">
+        <Input placeholder={t("settings.fam_org_groups_name_placeholder")} value={new_name} onChange={e => set_new_name(e.target.value)} onKeyDown={e => e.key === "Enter" && handle_create()} className="flex-1" size="md" />
+        <Input placeholder={t("settings.fam_org_groups_prefix_placeholder")} value={new_email_prefix} onChange={e => set_new_email_prefix(e.target.value)} className="flex-1" size="md" />
+        <Button variant="depth" size="md" onClick={handle_create} disabled={creating || !new_name.trim()}>
           <PlusIcon className="w-4 h-4" /> {t("settings.fam_org_groups_create")}
-        </button>
+        </Button>
       </div>
       <p className="text-[11px] text-txt-muted flex items-center gap-1.5">
         <InfoPopover title={t("settings.fam_org_groups_info_title")} description={t("settings.fam_org_groups_info_desc")} />
@@ -423,48 +433,79 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
           <p className="text-xs text-txt-muted text-center max-w-xs">{t("settings.fam_org_groups_empty_desc")}</p>
         </div>
       ) : (
-        <div className="divide-y divide-edge-secondary">
+        <div className="space-y-2">
           {groups.map(g => {
             const is_open = expanded === g.id;
             const gm = group_members[g.id] ?? [];
+            const loading_members = is_open && !group_members[g.id];
             return (
-              <div key={g.id}>
-                <div className="flex items-center gap-2 py-3">
-                  <button onClick={() => handle_expand(g.id)} className="flex items-center gap-2 flex-1 min-w-0 text-left">
-                    {is_open ? <ChevronDownIcon className="w-4 h-4 text-txt-muted flex-shrink-0" /> : <ChevronRightIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />}
-                    {g.email_local_part && <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" title={t("settings.fam_org_groups_has_email_title")} />}
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-medium text-txt-primary truncate">{g.name}</span>
-                      {g.email_local_part && (
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <span className="text-xs font-mono text-accent-blue bg-accent-blue/10 px-1.5 py-0.5 rounded">
-                            {g.email_local_part}{g.domain_name ? `@${g.domain_name}` : t("settings.fam_org_groups_default_domain")}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <span className="aster_badge aster_badge_gray flex-shrink-0">{g.member_count}</span>
+              <div key={g.id} className="rounded-xl border border-edge-secondary bg-surf-secondary overflow-hidden">
+                <button
+                  onClick={() => handle_expand(g.id)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                >
+                  <ChevronRightIcon className={`w-4 h-4 text-txt-muted flex-shrink-0 transition-transform duration-200 ${is_open ? "rotate-90" : ""}`} />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-txt-primary">{g.name}</span>
+                    {g.email_local_part && (
+                      <span className="ml-2 text-xs font-mono text-accent-blue bg-accent-blue/10 px-1.5 py-0.5 rounded">
+                        {g.email_local_part}{g.domain_name ? `@${g.domain_name}` : t("settings.fam_org_groups_default_domain")}
+                      </span>
+                    )}
+                  </div>
+                  <span className="aster_badge aster_badge_gray flex-shrink-0">{g.member_count}</span>
+                  <button
+                    onClick={e => { e.stopPropagation(); handle_delete(g.id); }}
+                    className="p-1.5 rounded-lg text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors flex-shrink-0"
+                    title={t("settings.fam_org_groups_delete")}
+                    aria-label={t("settings.fam_org_groups_delete")}
+                  >
+                    <TrashIcon className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handle_delete(g.id)} className="p-1.5 text-txt-muted hover:text-red-500 flex-shrink-0" title={t("settings.fam_org_groups_delete")} aria-label={t("settings.fam_org_groups_delete")}><TrashIcon className="w-4 h-4" /></button>
-                </div>
-                <div className={`overflow-hidden transition-all duration-200 ${is_open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
-                  <div className="pl-6 pb-3 space-y-1">
-                    {gm.length === 0 ? (
-                      <p className="text-xs text-txt-muted">{t("settings.fam_org_groups_no_members")}{" "}
-                        <button onClick={() => { set_adding_to(g.id); }} className="text-accent-blue hover:underline">{t("settings.fam_org_groups_add_someone")}</button>
-                      </p>
+                </button>
+
+                {is_open && (
+                  <div className="border-t border-edge-secondary bg-surf-primary px-4 py-3 space-y-2">
+                    {loading_members ? (
+                      <div className="flex items-center gap-2 py-2">
+                        <Spinner size="sm" />
+                        <span className="text-xs text-txt-muted">{t("settings.fam_org_domains_loading")}</span>
+                      </div>
+                    ) : gm.length === 0 && adding_to !== g.id ? (
+                      <div className="flex flex-col items-center gap-2 py-4 text-center">
+                        <UserGroupIcon className="w-8 h-8 text-txt-muted" />
+                        <p className="text-xs text-txt-muted">{t("settings.fam_org_groups_no_members")}</p>
+                        <Button size="sm" variant="outline" onClick={() => { set_adding_to(g.id); set_add_user_id(""); }}>
+                          <PlusIcon className="w-3.5 h-3.5" /> {t("settings.fam_org_groups_add_member")}
+                        </Button>
+                      </div>
                     ) : (
-                      <div className="divide-y divide-edge-secondary">
-                        {gm.map(m => (
-                          <div key={m.user_id} className="flex items-center justify-between py-2">
-                            <span className="text-sm text-txt-primary">{m.username}@{m.email_domain}</span>
-                            <button onClick={() => handle_remove_member(g.id, m.user_id)} className="p-1 text-txt-muted hover:text-red-500" title={t("settings.fam_org_groups_remove_from_group")} aria-label={t("settings.fam_org_groups_remove_from_group")}><XMarkIcon className="w-3.5 h-3.5" /></button>
-                          </div>
-                        ))}
+                      <div className="space-y-1">
+                        {gm.map(m => {
+                          const initials = (m.username || "?")[0].toUpperCase();
+                          const color = get_avatar_color(m.user_id);
+                          return (
+                            <div key={m.user_id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors group">
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0 ${color}`}>
+                                {initials}
+                              </div>
+                              <span className="text-sm text-txt-primary flex-1 min-w-0 truncate">{m.username}@{m.email_domain}</span>
+                              <button
+                                onClick={() => handle_remove_member(g.id, m.user_id)}
+                                className="p-1 rounded text-txt-muted opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                                title={t("settings.fam_org_groups_remove_from_group")}
+                                aria-label={t("settings.fam_org_groups_remove_from_group")}
+                              >
+                                <XMarkIcon className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
+
                     {adding_to === g.id ? (
-                      <div className="flex items-center gap-2 pt-2">
+                      <div className="flex items-center gap-2 pt-1">
                         <Select value={add_user_id || "_none"} onValueChange={v => set_add_user_id(v === "_none" ? "" : v)}>
                           <SelectTrigger className="flex-1">
                             <SelectValue placeholder={t("settings.fam_org_groups_select_member")} />
@@ -475,14 +516,18 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                             ))}
                           </SelectContent>
                         </Select>
-                        <button onClick={() => handle_add_member(g.id)} disabled={!add_user_id} className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50">{t("settings.fam_org_groups_add")}</button>
+                        <Button size="sm" variant="depth" onClick={() => handle_add_member(g.id)} disabled={!add_user_id}>
+                          {t("settings.fam_org_groups_add")}
+                        </Button>
                         <button onClick={() => { set_adding_to(null); set_add_user_id(""); }} className="aster_btn aster_btn_ghost aster_btn_sm">{t("settings.fam_org_groups_cancel")}</button>
                       </div>
-                    ) : (
-                      <button onClick={() => { set_adding_to(g.id); set_add_user_id(""); }} className="text-xs text-accent-blue hover:underline pt-1">{t("settings.fam_org_groups_add_member")}</button>
+                    ) : gm.length > 0 && (
+                      <Button size="sm" variant="outline" onClick={() => { set_adding_to(g.id); set_add_user_id(""); }}>
+                        <PlusIcon className="w-3.5 h-3.5" /> {t("settings.fam_org_groups_add_member")}
+                      </Button>
                     )}
                   </div>
-                </div>
+                )}
               </div>
             );
           })}
@@ -1613,6 +1658,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [checklist_dismissed, set_checklist_dismissed] = useState(false);
   const [left, set_left] = useState(false);
   const [invite_captcha, set_invite_captcha] = useState<string | null>(null);
+  const [invite_urls, set_invite_urls] = useState<Record<string, string>>({});
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
@@ -1640,6 +1686,14 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       .catch(() => {});
   }, [group?.id, group?.viewer_role]);
 
+  const cache_invite_url = useCallback((group_id: string, invite_id: string, join_url: string) => {
+    set_invite_urls(prev => {
+      const next = { ...prev, [invite_id]: join_url };
+      try { localStorage.setItem(`aster_family_invite_urls_${group_id}`, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+
   const load_group = useCallback(async () => {
     try {
       const res = await get_family_group();
@@ -1654,6 +1708,14 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         const default_gb = String(Math.max(1, Math.round(remaining_bytes / remaining_seats / 1073741824)));
         set_invite_storage_gb(default_gb);
         set_wizard_invite_gb(default_gb);
+        const live_ids = new Set(res.data.pending_invites.map(i => i.id));
+        try {
+          const raw = localStorage.getItem(`aster_family_invite_urls_${res.data.id}`);
+          const stored: Record<string, string> = raw ? JSON.parse(raw) : {};
+          const pruned = Object.fromEntries(Object.entries(stored).filter(([id]) => live_ids.has(id)));
+          localStorage.setItem(`aster_family_invite_urls_${res.data.id}`, JSON.stringify(pruned));
+          set_invite_urls(pruned);
+        } catch {}
         if (
           res.data.viewer_role === "owner" &&
           res.data.members.filter(m => m.status === "active").length === 1 &&
@@ -1734,6 +1796,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     try {
       const res = await invite_member(email, storage, invite_captcha ?? undefined);
       if (res.error) { show_toast(res.error && res.error.toLowerCase().includes("pending invite") ? t("settings.fam_org_invite_exists") : t("settings.fam_org_action_failed"), "error"); return; }
+      if (res.data && group) cache_invite_url(group.id, res.data.invite_id, res.data.join_url);
       show_toast(t("settings.family_invite_sent"), "success");
       set_invite_email(""); set_show_invite_form(false);
       await load_group();
@@ -1749,6 +1812,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     try {
       const res = await create_invite_link(storage, invite_captcha ?? undefined);
       if (!res.data) throw new Error();
+      if (group) cache_invite_url(group.id, res.data.invite_id, res.data.join_url);
       await navigator.clipboard.writeText(res.data.join_url);
       show_toast(t("settings.family_invite_link_copied"), "success");
       await load_group();
@@ -2237,10 +2301,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {inv.link_only && inv.join_url && (
+                      {invite_urls[inv.id] && (
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(inv.join_url!);
+                            navigator.clipboard.writeText(invite_urls[inv.id]);
                             show_toast(t("settings.family_invite_link_copied"), "success");
                           }}
                           className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1.5"
