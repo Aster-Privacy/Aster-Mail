@@ -285,7 +285,7 @@ a, a * { color: #60a5fa !important; }`
         : "https://app.astermail.org";
   const tor_csp = is_tor_mode
     ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
-    : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: ${csp_img_origin}; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; form-action 'none';">`;
+    : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: https: http:; style-src 'unsafe-inline'; font-src 'self' data: https: http:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; form-action 'none';">`;
 
   const srcdoc_html = `<!DOCTYPE html>
 <html${html_el_style}>
