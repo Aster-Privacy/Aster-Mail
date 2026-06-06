@@ -383,9 +383,12 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
 
   useEffect(() => {
     load_groups();
-    list_family_domains().then(r => {
-      const custom = (r.data ?? []).filter(d => d.dkim_verified).map(d => d.domain_name).filter(n => n !== "astermail.org");
-      set_domains(["astermail.org", ...custom]);
+    import("@/services/api/domains").then(m => m.list_domains()).then(r => {
+      const active_custom = (r.data?.domains ?? [])
+        .filter(d => d.status === "active")
+        .map(d => d.domain_name)
+        .filter(n => n !== "astermail.org" && n !== "aster.cx");
+      set_domains(["astermail.org", "aster.cx", ...active_custom]);
     }).catch(() => {});
   }, [load_groups]);
 
@@ -413,6 +416,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
       }
       const r = await create_org_group(payload);
       if (r.data) { set_groups(p => [...p, r.data!]); set_new_name(""); set_new_email_prefix(""); set_new_domain("astermail.org"); show_toast(t("settings.fam_org_groups_created"), "success"); }
+      else if ((r as { status?: number }).status === 409) { show_toast(t("settings.fam_org_groups_address_in_use"), "error"); }
       else { show_toast(t("settings.fam_org_groups_create_failed"), "error"); }
     } catch { show_toast(t("settings.fam_org_groups_create_failed"), "error"); }
     finally { set_creating(false); }
@@ -484,7 +488,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
             </SelectTrigger>
             <SelectContent>
               {domains.map(d => (
-                <SelectItem key={d} value={d}>{d === "astermail.org" ? "Aster Mail" : d}</SelectItem>
+                <SelectItem key={d} value={d}>{d}</SelectItem>
               ))}
             </SelectContent>
           </Select>
