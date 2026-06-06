@@ -39,28 +39,29 @@ jobs:
           npx tauri signer sign /tmp/art/Aster-Mail-universal.app.tar.gz
           cat /tmp/art/Aster-Mail-universal.app.tar.gz.sig
 
-      - name: Update latest.json and upload
+      - name: Patch latest.json and upload
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag }}
         run: |
-          TAG="${{ github.event.inputs.tag }}"
+          mkdir -p /tmp/json
           gh release download "$TAG" --pattern latest.json --dir /tmp/json --clobber 2>/dev/null \
-            || (mkdir -p /tmp/json && echo '{"version":"","notes":"","pub_date":"","platforms":{}}' > /tmp/json/latest.json)
+            || echo '{"version":"","notes":"","pub_date":"","platforms":{}}' > /tmp/json/latest.json
 
-          python3 - "$TAG" /tmp/json/latest.json /tmp/art/Aster-Mail-universal.app.tar.gz.sig << 'EOF'
-import json, base64, sys
-tag, path, sig_path = sys.argv[1], sys.argv[2], sys.argv[3]
-with open(path) as f: d = json.load(f)
-with open(sig_path) as f: sig = f.read().strip()
-sig_b64 = base64.b64encode(sig.encode()).decode()
-url = f'https://github.com/Aster-Privacy/Aster-Mail/releases/download/{tag}/Aster-Mail-universal.app.tar.gz'
-entry = {'signature': sig_b64, 'url': url}
-d['platforms']['darwin-universal'] = entry
-d['platforms']['darwin-aarch64']   = entry
-d['platforms']['darwin-x86_64']    = entry
-with open(path, 'w') as f: json.dump(d, f, indent=2)
-print('platforms:', list(d['platforms'].keys()))
-EOF
+          python3 -c "
+          import json, base64, os, sys
+          tag = os.environ['TAG']
+          with open('/tmp/json/latest.json') as f: d = json.load(f)
+          with open('/tmp/art/Aster-Mail-universal.app.tar.gz.sig') as f: sig = f.read().strip()
+          sig_b64 = base64.b64encode(sig.encode()).decode()
+          url = f'https://github.com/Aster-Privacy/Aster-Mail/releases/download/{tag}/Aster-Mail-universal.app.tar.gz'
+          entry = {'signature': sig_b64, 'url': url}
+          d['platforms']['darwin-universal'] = entry
+          d['platforms']['darwin-aarch64'] = entry
+          d['platforms']['darwin-x86_64'] = entry
+          with open('/tmp/json/latest.json', 'w') as f: json.dump(d, f, indent=2)
+          print('platforms:', list(d['platforms'].keys()))
+          "
 
           gh release upload "$TAG" \
             /tmp/art/Aster-Mail-universal.app.tar.gz.sig \
