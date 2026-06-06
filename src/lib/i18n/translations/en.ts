@@ -2096,7 +2096,7 @@ export const en: Translations = {
     fam_org_tab_security: "Security",
     fam_org_tab_retention: "Data Retention",
     fam_org_groups_name_placeholder: "Group name",
-    fam_org_groups_prefix_placeholder: "prefix",
+    fam_org_groups_prefix_placeholder: "Prefix",
     fam_org_groups_domain_placeholder: "Select domain",
     fam_org_groups_create: "Create",
     fam_org_groups_info_title: "Org groups",

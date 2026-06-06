@@ -319,8 +319,8 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
   const [loading, set_loading] = useState(true);
   const [new_name, set_new_name] = useState("");
   const [new_email_prefix, set_new_email_prefix] = useState("");
-  const [new_domain, set_new_domain] = useState("");
-  const [domains, set_domains] = useState<FamilyDomain[]>([]);
+  const [new_domain, set_new_domain] = useState("astermail.org");
+  const [domains, set_domains] = useState<string[]>(["astermail.org"]);
   const [creating, set_creating] = useState(false);
   const [expanded, set_expanded] = useState<string | null>(null);
   const [group_members, set_group_members] = useState<Record<string, OrgGroupMember[]>>({});
@@ -340,7 +340,10 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
 
   useEffect(() => {
     load_groups();
-    list_family_domains().then(r => { if (r.data) set_domains(r.data.filter(d => d.dkim_verified)); }).catch(() => {});
+    list_family_domains().then(r => {
+      const custom = (r.data ?? []).filter(d => d.dkim_verified).map(d => d.domain_name).filter(n => n !== "astermail.org");
+      set_domains(["astermail.org", ...custom]);
+    }).catch(() => {});
   }, [load_groups]);
 
   const handle_expand = async (gid: string) => {
@@ -366,7 +369,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
         payload.domain_name = new_domain;
       }
       const r = await create_org_group(payload);
-      if (r.data) { set_groups(p => [...p, r.data!]); set_new_name(""); set_new_email_prefix(""); set_new_domain(""); show_toast(t("settings.fam_org_groups_created"), "success"); }
+      if (r.data) { set_groups(p => [...p, r.data!]); set_new_name(""); set_new_email_prefix(""); set_new_domain("astermail.org"); show_toast(t("settings.fam_org_groups_created"), "success"); }
       else { show_toast(t("settings.fam_org_groups_create_failed"), "error"); }
     } catch { show_toast(t("settings.fam_org_groups_create_failed"), "error"); }
     finally { set_creating(false); }
@@ -424,28 +427,24 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
     <div className="space-y-4">
       <div className="flex gap-2 items-start">
         <Input placeholder={t("settings.fam_org_groups_name_placeholder")} value={new_name} onChange={e => set_new_name(e.target.value)} onKeyDown={e => e.key === "Enter" && handle_create()} className="flex-1" size="md" />
-        <div className="flex items-center gap-0 border border-edge-secondary rounded-lg bg-surf-primary overflow-hidden flex-1">
+        <div className="aster_input aster_input_md !p-0 overflow-hidden flex-1">
           <input
-            className="bg-transparent text-sm text-txt-primary outline-none px-3 py-2 flex-1 min-w-0 placeholder:text-txt-muted"
+            className="bg-transparent text-sm text-txt-primary outline-none px-3 h-full flex-1 min-w-0 placeholder:text-txt-muted"
             placeholder={t("settings.fam_org_groups_prefix_placeholder")}
             value={new_email_prefix}
             onChange={e => set_new_email_prefix(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""))}
           />
-          {domains.length > 0 && (
-            <>
-              <span className="text-txt-muted text-sm px-1 select-none">@</span>
-              <Select value={new_domain} onValueChange={set_new_domain}>
-                <SelectTrigger className="border-0 border-l border-edge-secondary rounded-none bg-transparent h-full shadow-none text-sm min-w-[120px] px-2">
-                  <SelectValue placeholder={t("settings.fam_org_groups_domain_placeholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {domains.map(d => (
-                    <SelectItem key={d.domain_name} value={d.domain_name}>{d.domain_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          )}
+          <span className="text-txt-muted text-sm px-1 select-none shrink-0">@</span>
+          <Select value={new_domain} onValueChange={set_new_domain}>
+            <SelectTrigger className="border-0 border-l border-edge-secondary rounded-none bg-transparent h-full shadow-none text-sm min-w-[120px] px-2">
+              <SelectValue placeholder={t("settings.fam_org_groups_domain_placeholder")} />
+            </SelectTrigger>
+            <SelectContent>
+              {domains.map(d => (
+                <SelectItem key={d} value={d}>{d}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <Button variant="depth" size="md" onClick={handle_create} disabled={creating || !new_name.trim()}>
           <PlusIcon className="w-4 h-4" /> {t("settings.fam_org_groups_create")}
