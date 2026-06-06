@@ -714,6 +714,7 @@ export const en: Translations = {
     draft_deleted: "Draft permanently deleted",
     no_recipients: "At least one recipient is needed before sending.",
     sync_complete: "Sync complete",
+    sync_timeout: "Sync is taking longer than expected and may still be running.",
     session_expired_login: "Your session has ended. Signing in again will pick up where you left off. Your data and drafts are saved on the server.",
     session_expired_refresh: "Your session has ended. Refreshing the page will let you sign in again. Your data is safe.",
     email_in_locked_folder: "This email lives in a folder you have locked. Unlocking the folder will open it.",

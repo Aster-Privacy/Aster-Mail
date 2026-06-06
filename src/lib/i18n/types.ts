@@ -937,6 +937,7 @@ export interface CommonTranslations {
   draft_deleted: string;
   no_recipients: string;
   sync_complete: string;
+  sync_timeout: string;
   session_expired_login: string;
   session_expired_refresh: string;
   email_in_locked_folder: string;

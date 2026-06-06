@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ArrowRightIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -87,6 +87,28 @@ export function ConnectProviderModal({
 }: ConnectProviderModalProps) {
   const { t } = use_i18n();
   const [is_loading, set_is_loading] = useState(false);
+  // Tears down the OAuth popup listener/timers without touching component state.
+  // Held in a ref so it can run if the modal unmounts mid-flow (e.g. cancelled
+  // while the popup is still open), preventing a leaked listener/interval.
+  const teardown_ref = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      teardown_ref.current?.();
+      teardown_ref.current = null;
+    };
+  }, []);
+
+  // The modal is kept mounted by its parent and toggled via `provider`. When it
+  // is closed (provider cleared), tear down any in-flight OAuth listener/timers
+  // and reset the loading state so reopening starts clean.
+  useEffect(() => {
+    if (!provider) {
+      teardown_ref.current?.();
+      teardown_ref.current = null;
+      set_is_loading(false);
+    }
+  }, [provider]);
 
   if (!provider) return null;
 
@@ -161,11 +183,19 @@ export function ConnectProviderModal({
         expired_state: "settings.oauth_reason_session_expired",
       };
 
+      let close_timeout: number | undefined;
+
+      const teardown = () => {
+        window.removeEventListener("message", handle_message);
+        window.clearInterval(poll_id);
+        if (close_timeout !== undefined) window.clearTimeout(close_timeout);
+      };
+
       const cleanup = (success: boolean, oauth_provider?: string, reason?: string) => {
         if (finished) return;
         finished = true;
-        window.removeEventListener("message", handle_message);
-        window.clearInterval(poll_id);
+        teardown();
+        teardown_ref.current = null;
         set_is_loading(false);
         if (success && oauth_provider) {
           on_oauth_success?.(oauth_provider);
@@ -192,10 +222,22 @@ export function ConnectProviderModal({
 
       window.addEventListener("message", handle_message);
 
-      // Detect user closing the popup without completing OAuth.
+      // Detect user closing the popup without completing OAuth. The popup closes
+      // itself right after posting a success message, so wait briefly for that
+      // message to arrive before treating a closed popup as a cancellation.
       const poll_id = window.setInterval(() => {
-        if (popup.closed) cleanup(false, undefined, undefined);
+        if (popup.closed) {
+          window.clearInterval(poll_id);
+          close_timeout = window.setTimeout(
+            () => cleanup(false, undefined, undefined),
+            700,
+          );
+        }
       }, 500);
+
+      // If the modal unmounts before OAuth resolves, this removes the listener
+      // and timers (no state updates on the dead component).
+      teardown_ref.current = teardown;
     } catch {
       show_toast(
         t("settings.oauth_import_error", { reason: "unexpected_error" }),

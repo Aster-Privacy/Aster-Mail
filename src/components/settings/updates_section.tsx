@@ -161,7 +161,7 @@ export function UpdatesSection() {
         )}
 
         {available && (
-          <div className="rounded-lg bg-bg-secondary p-3 space-y-2">
+          <div className="rounded-lg bg-surf-secondary p-3 space-y-2">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.updates_available", { version: available.version })}
             </p>
