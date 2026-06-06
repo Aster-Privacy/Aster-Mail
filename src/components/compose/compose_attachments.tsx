@@ -26,10 +26,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { CloseIcon } from "@/components/common/icons";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  get_file_icon_color,
-  FILE_INPUT_ACCEPT,
-} from "@/components/compose/compose_shared";
+import { get_file_icon_color } from "@/components/compose/compose_shared";
 
 function get_file_type_icon(mime_type: string): React.ReactNode {
   const cls = "w-3.5 h-3.5";
@@ -261,7 +258,6 @@ export function ComposeFileInput({ compose }: ComposeFileInputProps) {
     <input
       ref={compose.file_input_ref}
       multiple
-      accept={FILE_INPUT_ACCEPT}
       className="hidden"
       type="file"
       onChange={compose.handle_file_select}
@@ -282,7 +278,6 @@ export function ComposeFileInputSimple({
     <input
       ref={file_input_ref}
       multiple
-      accept={FILE_INPUT_ACCEPT}
       className="hidden"
       type="file"
       onChange={handle_file_select}
