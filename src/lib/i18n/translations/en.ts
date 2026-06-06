@@ -2126,6 +2126,8 @@ export const en: Translations = {
     fam_org_groups_delete_failed: "Failed to delete group",
     fam_org_groups_remove_failed: "Failed to remove member",
     fam_org_groups_add_failed: "Failed to add member",
+    fam_org_groups_search_placeholder: "Search members...",
+    fam_org_groups_no_available: "No available members to add",
     fam_org_event_member_joined: "Member joined",
     fam_org_event_member_removed: "Member removed",
     fam_org_event_member_left: "Member left",

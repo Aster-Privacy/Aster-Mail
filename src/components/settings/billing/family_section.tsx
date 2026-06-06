@@ -324,6 +324,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
   const [group_members, set_group_members] = useState<Record<string, OrgGroupMember[]>>({});
   const [adding_to, set_adding_to] = useState<string | null>(null);
   const [add_user_id, set_add_user_id] = useState("");
+  const [member_search, set_member_search] = useState("");
 
   const load_groups = useCallback(async () => {
     set_loading(true);
@@ -394,7 +395,7 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
     const optimistic: OrgGroupMember = { user_id: member.user_id, username: member.username, email_domain: member.email_domain, added_at: new Date().toISOString() };
     set_group_members(p => ({ ...p, [gid]: [...(p[gid] ?? []), optimistic] }));
     set_groups(p => p.map(g => g.id === gid ? { ...g, member_count: g.member_count + 1 } : g));
-    set_adding_to(null); set_add_user_id("");
+    set_adding_to(null); set_add_user_id(""); set_member_search("");
     try {
       const r = await add_group_member(gid, add_user_id);
       if (r.error) {
@@ -475,11 +476,11 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                       <div className="flex flex-col items-center gap-2 py-4 text-center">
                         <UserGroupIcon className="w-8 h-8 text-txt-muted" />
                         <p className="text-xs text-txt-muted">{t("settings.fam_org_groups_no_members")}</p>
-                        <Button size="sm" variant="outline" onClick={() => { set_adding_to(g.id); set_add_user_id(""); }}>
+                        <Button size="sm" variant="outline" onClick={() => { set_adding_to(g.id); set_add_user_id(""); set_member_search(""); }}>
                           <PlusIcon className="w-3.5 h-3.5" /> {t("settings.fam_org_groups_add_member")}
                         </Button>
                       </div>
-                    ) : (
+                    ) : gm.length > 0 ? (
                       <div className="space-y-1">
                         {gm.map(m => {
                           const initials = (m.username || "?")[0].toUpperCase();
@@ -502,27 +503,55 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                           );
                         })}
                       </div>
-                    )}
+                    ) : null}
 
                     {adding_to === g.id ? (
-                      <div className="flex items-center gap-2 pt-1">
-                        <Select value={add_user_id || "_none"} onValueChange={v => set_add_user_id(v === "_none" ? "" : v)}>
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder={t("settings.fam_org_groups_select_member")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {members.filter(m => !gm.some(x => x.user_id === m.user_id)).map(m => (
-                              <SelectItem key={m.user_id} value={m.user_id}>{m.username}@{m.email_domain}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button size="sm" variant="depth" onClick={() => handle_add_member(g.id)} disabled={!add_user_id}>
-                          {t("settings.fam_org_groups_add")}
-                        </Button>
-                        <button onClick={() => { set_adding_to(null); set_add_user_id(""); }} className="aster_btn aster_btn_ghost aster_btn_sm">{t("settings.fam_org_groups_cancel")}</button>
+                      <div className="pt-2 space-y-2">
+                        <Input
+                          placeholder={t("settings.fam_org_groups_search_placeholder")}
+                          value={member_search}
+                          onChange={e => set_member_search(e.target.value)}
+                          size="sm"
+                          autoFocus
+                        />
+                        <div className="rounded-lg border border-edge-secondary overflow-hidden max-h-44 overflow-y-auto">
+                          {members.filter(m => !gm.some(x => x.user_id === m.user_id) && (
+                            !member_search || `${m.username}@${m.email_domain}`.toLowerCase().includes(member_search.toLowerCase())
+                          )).length === 0 ? (
+                            <p className="text-xs text-txt-muted text-center py-3 px-3">{t("settings.fam_org_groups_no_available")}</p>
+                          ) : (
+                            members.filter(m => !gm.some(x => x.user_id === m.user_id) && (
+                              !member_search || `${m.username}@${m.email_domain}`.toLowerCase().includes(member_search.toLowerCase())
+                            )).map(m => {
+                              const initials = (m.username || "?")[0].toUpperCase();
+                              const color = get_avatar_color(m.user_id);
+                              return (
+                                <button
+                                  key={m.user_id}
+                                  onClick={() => set_add_user_id(prev => prev === m.user_id ? "" : m.user_id)}
+                                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5 ${add_user_id === m.user_id ? "bg-accent-blue/10" : ""}`}
+                                >
+                                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0 ${color}`}>
+                                    {initials}
+                                  </div>
+                                  <span className="text-sm text-txt-primary flex-1 min-w-0 truncate">{m.username}@{m.email_domain}</span>
+                                  {add_user_id === m.user_id && <CheckCircleIcon className="w-4 h-4 text-accent-blue flex-shrink-0" />}
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+                        <div className="flex gap-2 pt-0.5">
+                          <Button size="sm" variant="depth" onClick={() => handle_add_member(g.id)} disabled={!add_user_id} className="flex-1">
+                            {t("settings.fam_org_groups_add")}
+                          </Button>
+                          <button onClick={() => { set_adding_to(null); set_add_user_id(""); set_member_search(""); }} className="aster_btn aster_btn_ghost aster_btn_sm">
+                            {t("settings.fam_org_groups_cancel")}
+                          </button>
+                        </div>
                       </div>
                     ) : gm.length > 0 && (
-                      <Button size="sm" variant="outline" onClick={() => { set_adding_to(g.id); set_add_user_id(""); }}>
+                      <Button size="sm" variant="outline" onClick={() => { set_adding_to(g.id); set_add_user_id(""); set_member_search(""); }}>
                         <PlusIcon className="w-3.5 h-3.5" /> {t("settings.fam_org_groups_add_member")}
                       </Button>
                     )}
@@ -612,7 +641,7 @@ function ActivityContent() {
         <div className="divide-y divide-edge-secondary">
           {entries.map(entry => (
             <div key={entry.id} className="flex items-start gap-3 py-3">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-surf-secondary">
+              <div className="flex-shrink-0 mt-0.5">
                 {['member_joined','invite_sent'].includes(entry.event_type) ? <UserPlusIcon className="w-4 h-4 text-txt-muted" /> :
                  ['member_removed','invite_revoked','group_deleted'].includes(entry.event_type) ? <TrashIcon className="w-4 h-4 text-txt-muted" /> :
                  ['admin_transferred','storage_updated'].includes(entry.event_type) ? <ArrowsRightLeftIcon className="w-4 h-4 text-txt-muted" /> :
