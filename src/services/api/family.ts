@@ -37,6 +37,7 @@ export interface PendingInviteInfo {
   allocated_storage_bytes: number;
   expires_at: string;
   created_at: string;
+  join_url?: string;
 }
 
 export interface FamilyGroupResponse {
@@ -70,6 +71,14 @@ export interface JoinFamilyResponse {
   allocated_storage_bytes: number;
 }
 
+// Warm the shared request_cache so opening the Family tab is instant. We rely
+// on api_client's request_cache (deduped + auto-invalidated on any mutation to
+// /payments/v1/family) rather than a bespoke cache, so post-mutation reads are
+// never stale.
+export function prefetch_family_group(): void {
+  void get_family_group();
+}
+
 export function get_family_group(): Promise<ApiResponse<FamilyGroupResponse>> {
   return api_client.get<FamilyGroupResponse>("/payments/v1/family");
 }
@@ -90,19 +99,23 @@ export function create_family_group(
 
 export function invite_member(
   email: string | null,
-  allocated_storage_bytes: number
+  allocated_storage_bytes: number,
+  captcha_token?: string
 ): Promise<ApiResponse<InviteMemberResponse>> {
   return api_client.post<InviteMemberResponse>("/payments/v1/family/invite", {
     email,
     allocated_storage_bytes,
+    captcha_token,
   });
 }
 
 export function create_invite_link(
-  allocated_storage_bytes: number
+  allocated_storage_bytes: number,
+  captcha_token?: string
 ): Promise<ApiResponse<InviteMemberResponse>> {
   return api_client.post<InviteMemberResponse>("/payments/v1/family/invite/link", {
     allocated_storage_bytes,
+    captcha_token,
   });
 }
 

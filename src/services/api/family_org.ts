@@ -93,6 +93,7 @@ export interface FamilyDomain {
   status: string;
   dkim_verified: boolean;
   shared_with_count: number;
+  shared_with_user_ids: string[];
 }
 
 export interface MemberComplianceInfo {
@@ -100,8 +101,6 @@ export interface MemberComplianceInfo {
   username: string;
   email_domain: string;
   has_2fa: boolean;
-  session_count: number;
-  last_login: string | null;
   imap_enabled: boolean;
 }
 
@@ -145,3 +144,35 @@ export const get_member_compliance = () => api_client.get<MemberComplianceInfo[]
 
 export const notify_non_compliant_2fa = () =>
   api_client.post<{ notified: number }>('/payments/v1/family/org/notify-2fa', {});
+
+export type ConsentKind = 'retention_policy' | 'filter_create' | 'filter_enable' | 'security_policy';
+
+export interface PendingConsentRequest {
+  id: string;
+  kind: ConsentKind;
+  description: string;
+  status: 'pending' | 'all_accepted' | 'any_declined' | 'expired';
+  total_members: number;
+  accepted_count: number;
+  declined_count: number;
+  created_at: string;
+}
+
+export interface MemberConsentRequest {
+  id: string;
+  kind: ConsentKind;
+  description: string;
+  admin_username: string;
+  responded: boolean;
+  accepted: boolean | null;
+  created_at: string;
+}
+
+export const create_consent_request = (kind: ConsentKind, description: string, payload: unknown) =>
+  api_client.post<PendingConsentRequest>(`${BASE}/consent-requests`, { kind, description, payload });
+
+export const list_member_consent_requests = () =>
+  api_client.get<MemberConsentRequest[]>('/payments/v1/family/member/consent-requests');
+
+export const respond_consent_request = (id: string, accepted: boolean) =>
+  api_client.post<void>(`/payments/v1/family/member/consent-requests/${id}/respond`, { accepted });
