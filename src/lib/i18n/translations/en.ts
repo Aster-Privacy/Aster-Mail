@@ -2108,6 +2108,7 @@ export const en: Translations = {
     fam_org_groups_delete: "Delete group",
     fam_org_groups_no_members: "No members.",
     fam_org_groups_add_someone: "Add someone",
+    fam_org_groups_remove: "Remove",
     fam_org_groups_remove_from_group: "Remove from group",
     fam_org_groups_select_member: "Select member...",
     fam_org_groups_add: "Add",
