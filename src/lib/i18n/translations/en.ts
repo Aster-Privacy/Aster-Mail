@@ -2103,6 +2103,7 @@ export const en: Translations = {
     fam_org_groups_info_desc: "A group bundles several members under one shared address. Mail sent to the group's address is delivered to every member in it - handy for shared inboxes like family@ or parents@. The email prefix is optional.",
     fam_org_groups_prefix_hint: "Type a prefix to assign a group email address",
     fam_org_groups_address_preview: "Group address: ",
+    fam_org_groups_address_in_use: "That address is already in use by an alias or another group",
     fam_org_groups_empty_title: "No groups yet",
     fam_org_groups_empty_desc: "Create a group to route email to multiple family members at once.",
     fam_org_groups_has_email_title: "Has email address",

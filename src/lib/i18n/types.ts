@@ -2188,6 +2188,7 @@ export interface SettingsTranslations {
   fam_org_groups_info_desc: string;
   fam_org_groups_prefix_hint: string;
   fam_org_groups_address_preview: string;
+  fam_org_groups_address_in_use: string;
   fam_org_groups_empty_title: string;
   fam_org_groups_empty_desc: string;
   fam_org_groups_has_email_title: string;
