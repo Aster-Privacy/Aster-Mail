@@ -2212,6 +2212,8 @@ export interface SettingsTranslations {
   fam_org_groups_delete_failed: string;
   fam_org_groups_remove_failed: string;
   fam_org_groups_add_failed: string;
+  fam_org_groups_search_placeholder: string;
+  fam_org_groups_no_available: string;
   fam_org_event_member_joined: string;
   fam_org_event_member_removed: string;
   fam_org_event_member_left: string;
