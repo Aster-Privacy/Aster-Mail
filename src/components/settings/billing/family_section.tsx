@@ -484,10 +484,10 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                       <div className="space-y-1">
                         {gm.map(m => {
                           const initials = (m.username || "?")[0].toUpperCase();
-                          const color = get_avatar_color(m.user_id);
+                          const color = get_avatar_color(m.username);
                           return (
                             <div key={m.user_id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors group">
-                              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0 ${color}`}>
+                              <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ backgroundColor: color }}>
                                 {initials}
                               </div>
                               <span className="text-sm text-txt-primary flex-1 min-w-0 truncate">{m.username}@{m.email_domain}</span>
@@ -524,14 +524,14 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                               !member_search || `${m.username}@${m.email_domain}`.toLowerCase().includes(member_search.toLowerCase())
                             )).map(m => {
                               const initials = (m.username || "?")[0].toUpperCase();
-                              const color = get_avatar_color(m.user_id);
+                              const color = get_avatar_color(m.username);
                               return (
                                 <button
                                   key={m.user_id}
                                   onClick={() => set_add_user_id(prev => prev === m.user_id ? "" : m.user_id)}
                                   className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5 ${add_user_id === m.user_id ? "bg-accent-blue/10" : ""}`}
                                 >
-                                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0 ${color}`}>
+                                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ backgroundColor: color }}>
                                     {initials}
                                   </div>
                                   <span className="text-sm text-txt-primary flex-1 min-w-0 truncate">{m.username}@{m.email_domain}</span>
@@ -640,15 +640,15 @@ function ActivityContent() {
       ) : (
         <div className="divide-y divide-edge-secondary">
           {entries.map(entry => (
-            <div key={entry.id} className="flex items-start gap-3 py-3">
-              <div className="flex-shrink-0 mt-0.5">
-                {['member_joined','invite_sent'].includes(entry.event_type) ? <UserPlusIcon className="w-4 h-4 text-txt-muted" /> :
-                 ['member_removed','invite_revoked','group_deleted'].includes(entry.event_type) ? <TrashIcon className="w-4 h-4 text-txt-muted" /> :
-                 ['admin_transferred','storage_updated'].includes(entry.event_type) ? <ArrowsRightLeftIcon className="w-4 h-4 text-txt-muted" /> :
-                 ['security_policy_updated','security_notify_sent'].includes(entry.event_type) ? <ShieldCheckIcon className="w-4 h-4 text-txt-muted" /> :
-                 ['retention_updated'].includes(entry.event_type) ? <ArchiveBoxIcon className="w-4 h-4 text-txt-muted" /> :
-                 ['domain_shared'].includes(entry.event_type) ? <GlobeAltIcon className="w-4 h-4 text-txt-muted" /> :
-                 <PlusIcon className="w-4 h-4 text-txt-muted" />}
+            <div key={entry.id} className="flex items-center gap-3 py-3">
+              <div className="flex-shrink-0">
+                {['member_joined','invite_sent'].includes(entry.event_type) ? <UserPlusIcon className="w-5 h-5 text-txt-muted" /> :
+                 ['member_removed','invite_revoked','group_deleted'].includes(entry.event_type) ? <TrashIcon className="w-5 h-5 text-txt-muted" /> :
+                 ['admin_transferred','storage_updated'].includes(entry.event_type) ? <ArrowsRightLeftIcon className="w-5 h-5 text-txt-muted" /> :
+                 ['security_policy_updated','security_notify_sent'].includes(entry.event_type) ? <ShieldCheckIcon className="w-5 h-5 text-txt-muted" /> :
+                 ['retention_updated'].includes(entry.event_type) ? <ArchiveBoxIcon className="w-5 h-5 text-txt-muted" /> :
+                 ['domain_shared'].includes(entry.event_type) ? <GlobeAltIcon className="w-5 h-5 text-txt-muted" /> :
+                 <PlusIcon className="w-5 h-5 text-txt-muted" />}
               </div>
               <div className="flex-1 min-w-0">
                 <span className="text-sm text-txt-primary">{activity_event_text(t, entry)}</span>
