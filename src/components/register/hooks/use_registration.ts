@@ -143,6 +143,7 @@ export function use_registration() {
     null,
   );
   const complete_registration_ref = useRef<() => Promise<void>>();
+  const saving_recovery_email_ref = useRef(false);
 
   useEffect(() => {
     if (has_existing_session) {
@@ -597,23 +598,25 @@ export function use_registration() {
   }, [stop_verification_polling, stop_resend_cooldown]);
 
   const handle_recovery_email_continue = async () => {
+    if (saving_recovery_email_ref.current) return;
+    saving_recovery_email_ref.current = true;
     set_recovery_email_error("");
 
     if (!recovery_email.trim()) {
       set_recovery_email_error(t("auth.please_enter_recovery_email"));
-
+      saving_recovery_email_ref.current = false;
       return;
     }
 
     if (!validate_email(recovery_email.trim())) {
       set_recovery_email_error(t("auth.please_enter_valid_email"));
-
+      saving_recovery_email_ref.current = false;
       return;
     }
 
     if (!vault) {
       set_recovery_email_error(t("auth.failed_save_recovery_email"));
-
+      saving_recovery_email_ref.current = false;
       return;
     }
 
@@ -624,23 +627,24 @@ export function use_registration() {
       if (result.code === "CONFLICT") {
         set_recovery_email_error(t("auth.recovery_email_conflict"));
         set_is_saving_recovery_email(false);
-
+        saving_recovery_email_ref.current = false;
         return;
       }
 
       if (!result.data.success) {
         set_recovery_email_error(t("auth.failed_save_recovery_email"));
         set_is_saving_recovery_email(false);
-
+        saving_recovery_email_ref.current = false;
         return;
       }
     } catch {
       set_recovery_email_error(t("auth.failed_save_recovery_email"));
       set_is_saving_recovery_email(false);
-
+      saving_recovery_email_ref.current = false;
       return;
     }
     set_is_saving_recovery_email(false);
+    saving_recovery_email_ref.current = false;
 
     set_step("recovery_email_verification");
     start_verification_polling();
@@ -725,11 +729,9 @@ export function use_registration() {
     set_step("recovery_key");
   };
 
-  const handle_advance_from_recovery_key = () => {
+  const handle_advance_from_recovery_key = async () => {
     if (recovery_email_required && recovery_email.trim()) {
-      set_step("recovery_email_verification");
-      start_verification_polling();
-      start_resend_cooldown();
+      await handle_recovery_email_continue();
     } else {
       set_step("recovery_email");
     }

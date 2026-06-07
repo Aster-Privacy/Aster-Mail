@@ -277,12 +277,6 @@ a, a * { color: #60a5fa !important; }`
 
     return m === "tor" || m === "tor_snowflake";
   })();
-  const csp_img_origin =
-    typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
-      ? "https://app.astermail.org"
-      : typeof window !== "undefined"
-        ? window.location.origin
-        : "https://app.astermail.org";
   const tor_csp = is_tor_mode
     ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
     : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: https: http:; style-src 'unsafe-inline'; font-src 'self' data: https: http:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; form-action 'none';">`;
