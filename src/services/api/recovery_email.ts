@@ -208,6 +208,23 @@ export async function resend_recovery_verification(
   }
 }
 
+export async function resend_pending_verification(
+  user_hash: string,
+): Promise<{ data: { success: boolean } }> {
+  try {
+    const response = await api_client.post<ResendVerificationApiResponse>(
+      "/core/v1/recovery/email/resend-pending",
+      { user_hash },
+    );
+
+    return {
+      data: { success: !response.error && response.data?.success === true },
+    };
+  } catch {
+    return { data: { success: false } };
+  }
+}
+
 export async function remove_recovery_email(): Promise<{
   data: { success: boolean };
 }> {

@@ -36,6 +36,7 @@ import {
   base64_to_array,
 } from "@/services/crypto/key_manager";
 import { login_user, get_user_salt, get_user_info } from "@/services/api/auth";
+import { resend_pending_verification } from "@/services/api/recovery_email";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
 import { sanitize_username, timing_safe_delay } from "@/services/sanitize";
 import { EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
@@ -532,6 +533,10 @@ export default function SignInPage() {
 
   const [captcha_token, set_captcha_token] = useState("");
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
+  const [pending_verification_hash, set_pending_verification_hash] = useState<string | null>(null);
+  const [resend_cooldown, set_resend_cooldown] = useState(0);
+  const resend_cooldown_ref = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [is_resending, set_is_resending] = useState(false);
 
   const [totp_required, set_totp_required] = useState(false);
   const [pending_login_token, set_pending_login_token] = useState("");
@@ -737,6 +742,35 @@ export default function SignInPage() {
     );
   }
 
+  const start_resend_cooldown = useCallback(() => {
+    if (resend_cooldown_ref.current) {
+      clearInterval(resend_cooldown_ref.current);
+    }
+    set_resend_cooldown(60);
+    resend_cooldown_ref.current = setInterval(() => {
+      set_resend_cooldown((prev) => {
+        if (prev <= 1) {
+          if (resend_cooldown_ref.current) {
+            clearInterval(resend_cooldown_ref.current);
+            resend_cooldown_ref.current = null;
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  const handle_resend_pending = useCallback(async () => {
+    if (!pending_verification_hash || resend_cooldown > 0 || is_resending) return;
+    set_is_resending(true);
+    const result = await resend_pending_verification(pending_verification_hash);
+    set_is_resending(false);
+    if (result.data.success) {
+      start_resend_cooldown();
+    }
+  }, [pending_verification_hash, resend_cooldown, is_resending, start_resend_cooldown]);
+
   const handle_cancel_add_account = () => {
     set_is_adding_account(false);
     navigate("/");
@@ -752,6 +786,7 @@ export default function SignInPage() {
 
   const handle_login = async () => {
     set_error("");
+    set_pending_verification_hash(null);
 
     const raw_local = username.includes("@")
       ? username.substring(0, username.indexOf("@"))
@@ -865,6 +900,8 @@ export default function SignInPage() {
           set_error(t("errors.ip_blocked", { time: time_str }));
         } else if (response.server_code === "PENDING_EMAIL_VERIFICATION") {
           set_error(t("errors.pending_email_verification"));
+          set_pending_verification_hash(user_hash);
+          set_resend_cooldown(0);
         } else {
           set_error(response.error);
         }
@@ -1152,6 +1189,31 @@ export default function SignInPage() {
 
             <AnimatePresence>
               {error && <Alert is_dark={is_dark} message={error} />}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {pending_verification_hash && (
+                <motion.div
+                  animate={{ opacity: 1 }}
+                  className="w-full mt-3"
+                  exit={{ opacity: 0 }}
+                  initial={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <button
+                    className="w-full text-sm py-2 px-4 rounded-lg border transition-colors disabled:opacity-50 text-txt-secondary border-border-primary hover:bg-surf-secondary"
+                    disabled={resend_cooldown > 0 || is_resending}
+                    type="button"
+                    onClick={handle_resend_pending}
+                  >
+                    {resend_cooldown > 0
+                      ? t("auth.resend_in_seconds", { seconds: String(resend_cooldown) })
+                      : is_resending
+                        ? t("common.loading")
+                        : t("auth.resend_verification_email")}
+                  </button>
+                </motion.div>
+              )}
             </AnimatePresence>
 
             <div className={`w-full ${error ? "mt-4" : "mt-6"} space-y-4`}>
