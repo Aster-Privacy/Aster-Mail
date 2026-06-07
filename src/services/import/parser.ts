@@ -164,9 +164,11 @@ function is_valid_email(email: ParsedEmail): boolean {
   const has_text = (email.text_body ?? "").trim().length > 0;
   const has_html = (email.html_body ?? "").trim().length > 0;
   const has_body = has_text || has_html;
+  const has_subject = email.subject.trim().length > 0;
+  const has_attachments = email.attachments.length > 0;
 
   if (!has_from) return false;
-  if (!has_body) return false;
+  if (!has_body && !has_subject && !has_attachments) return false;
 
   return true;
 }

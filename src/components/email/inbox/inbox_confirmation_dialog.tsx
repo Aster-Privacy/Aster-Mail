@@ -69,10 +69,10 @@ export function ConfirmModal({
       >
         <div className="px-6 pt-6 pb-5">
           <AlertDialogHeader className="space-y-2">
-            <AlertDialogTitle className="text-16 font-semibold">
+            <AlertDialogTitle className="text-base font-semibold">
               {title}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-14 leading-normal">
+            <AlertDialogDescription className="text-sm leading-normal">
               {description}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -89,7 +89,7 @@ export function ConfirmModal({
                   on_dont_ask_change(checked === true)
                 }
               />
-              <span className="text-13 text-txt-muted">
+              <span className="text-[13px] text-txt-muted">
                 {t("common.dont_ask_again")}
               </span>
             </label>
@@ -143,10 +143,10 @@ export function EmptyTrashModal({
       >
         <div className="px-6 pt-6 pb-5">
           <AlertDialogHeader className="space-y-2">
-            <AlertDialogTitle className="text-16 font-semibold">
+            <AlertDialogTitle className="text-base font-semibold">
               {t("mail.empty_trash_question")}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-14 leading-normal">
+            <AlertDialogDescription className="text-sm leading-normal">
               {t("mail.empty_trash_description", { count: trash_count })}
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -36,6 +36,7 @@ import {
   decrypt_domain_addresses,
   compute_address_routing_hash,
 } from "@/services/api/domains";
+import { list_my_groups } from "@/services/api/family_org";
 import {
   has_passphrase_in_memory,
   get_derived_encryption_key,
@@ -232,6 +233,28 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
 
         for (const group of per_domain) {
           merged.push(...group);
+        }
+      } catch {}
+
+      try {
+        const groups_response = await list_my_groups();
+        for (const g of groups_response.data ?? []) {
+          if (!g.email_local_part || !g.domain_name) continue;
+          const full_address = `${g.email_local_part}@${g.domain_name}`;
+          const already = merged.some(a => a.full_address === full_address);
+          if (already) continue;
+          merged.push({
+            id: `group-${g.id}`,
+            local_part: g.email_local_part,
+            display_name: g.name,
+            alias_address_hash: "",
+            domain: g.domain_name,
+            full_address,
+            is_enabled: true,
+            is_random: false,
+            created_at: new Date(0).toISOString(),
+            updated_at: new Date(0).toISOString(),
+          });
         }
       } catch {}
 

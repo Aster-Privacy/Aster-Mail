@@ -80,6 +80,7 @@ export interface ImportedEmailData {
   message_id_hash: string;
   encrypted_envelope: string;
   envelope_nonce: string;
+  content_hash?: string;
   folder_token?: string;
   item_type?: string;
   received_at?: string;

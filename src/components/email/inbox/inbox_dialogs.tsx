@@ -221,10 +221,10 @@ export function InboxDialogs({
         >
           <div className="px-6 pt-6 pb-5">
             <AlertDialogHeader className="space-y-2">
-              <AlertDialogTitle className="text-16 font-semibold">
+              <AlertDialogTitle className="text-base font-semibold">
                 {t("mail.empty_spam_folder_question")}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-14 leading-normal">
+              <AlertDialogDescription className="text-sm leading-normal">
                 {t("mail.empty_spam_description", {
                   count: spam_count,
                 })}

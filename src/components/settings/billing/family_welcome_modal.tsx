@@ -28,7 +28,6 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
 import { Modal } from "@/components/ui/modal";
 import { format_bytes } from "@/lib/utils";
 import { use_should_reduce_motion } from "@/provider";
@@ -45,7 +44,6 @@ interface FamilyWelcomeModalProps {
 const STEPS = [
   {
     icon: UserGroupIcon,
-    accent: "indigo",
     title: "Welcome to your family plan",
     description: "Everyone in your family gets their own private, encrypted inbox - completely separate from yours.",
     points: [
@@ -56,7 +54,6 @@ const STEPS = [
   },
   {
     icon: CircleStackIcon,
-    accent: "violet",
     title: "One storage pool, you control it",
     description: "Your plan comes with a shared pool of storage. Decide how much each member gets and adjust any time.",
     points: [
@@ -67,7 +64,6 @@ const STEPS = [
   },
   {
     icon: ShieldCheckIcon,
-    accent: "emerald",
     title: "Security for the whole family",
     description: "Set policies that apply to every member - enforce 2FA, limit sessions, control access.",
     points: [
@@ -77,29 +73,6 @@ const STEPS = [
     ],
   },
 ] as const;
-
-type Accent = (typeof STEPS)[number]["accent"];
-
-const ACCENT: Record<Accent, { bg: string; icon: string; dot_active: string; check: string }> = {
-  indigo: {
-    bg: "bg-indigo-500/10 dark:bg-indigo-500/15",
-    icon: "text-indigo-500",
-    dot_active: "bg-indigo-500",
-    check: "text-indigo-500",
-  },
-  violet: {
-    bg: "bg-violet-500/10 dark:bg-violet-500/15",
-    icon: "text-violet-500",
-    dot_active: "bg-violet-500",
-    check: "text-violet-500",
-  },
-  emerald: {
-    bg: "bg-emerald-500/10 dark:bg-emerald-500/15",
-    icon: "text-emerald-500",
-    dot_active: "bg-emerald-500",
-    check: "text-emerald-500",
-  },
-};
 
 export function FamilyWelcomeModal({
   is_open,
@@ -113,7 +86,6 @@ export function FamilyWelcomeModal({
   const [dir, set_dir] = useState(1);
   const reduce_motion = use_should_reduce_motion();
   const current = STEPS[step];
-  const colors = ACCENT[current.accent];
   const Icon = current.icon;
   const is_last = step === STEPS.length - 1;
 
@@ -157,19 +129,17 @@ export function FamilyWelcomeModal({
             transition={{ duration: reduce_motion ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="px-8 pt-8 pb-6"
           >
-            {/* Plan pill */}
-            <div className="flex items-center justify-center gap-2 mb-6">
+            {/* Plan pill (stacked: plan on top, details below) */}
+            <div className="flex flex-col items-center gap-1 mb-6">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
                 {plan_name}
               </span>
               <span className="text-xs text-txt-muted">{max_members} members · {format_bytes(storage_pool_bytes)}</span>
             </div>
 
-            {/* Icon */}
+            {/* Icon (no background, blue) */}
             <div className="flex justify-center mb-5">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center ${colors.bg}`}>
-                <Icon className={`w-8 h-8 ${colors.icon}`} strokeWidth={1.5} />
-              </div>
+              <Icon className="w-12 h-12 text-accent-blue" strokeWidth={1.5} />
             </div>
 
             {/* Text */}
@@ -182,7 +152,7 @@ export function FamilyWelcomeModal({
             <ul className="space-y-3 bg-surf-secondary rounded-xl p-4 border border-edge-secondary">
               {current.points.map((point, i) => (
                 <li key={i} className="flex items-start gap-2.5">
-                  <CheckCircleIcon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${colors.check}`} />
+                  <CheckCircleIcon className="w-4 h-4 flex-shrink-0 mt-0.5 text-green-500" />
                   <span className="text-sm text-txt-primary">{point}</span>
                 </li>
               ))}
@@ -198,9 +168,9 @@ export function FamilyWelcomeModal({
               onClick={() => go(i)}
               className={`rounded-full transition-all duration-300 ${
                 i === step
-                  ? `w-6 h-1.5 ${colors.dot_active}`
+                  ? "w-6 h-1.5 bg-accent-blue"
                   : i < step
-                  ? `w-1.5 h-1.5 ${colors.dot_active} opacity-40`
+                  ? "w-1.5 h-1.5 bg-accent-blue opacity-40"
                   : "w-1.5 h-1.5 bg-edge-secondary"
               }`}
               aria-label={`Step ${i + 1}: ${s.title}`}
@@ -210,25 +180,34 @@ export function FamilyWelcomeModal({
 
         {/* Footer */}
         <div className="px-6 pb-6 pt-3 flex items-center justify-between border-t border-edge-secondary mt-2">
-          <Button variant="ghost" size="sm" onClick={handle_close}>
+          <button
+            onClick={handle_close}
+            className="text-sm font-medium text-txt-muted hover:text-txt-secondary bg-transparent px-2 py-2 outline-none focus:outline-none"
+          >
             Skip
-          </Button>
-          <div className="flex items-center gap-2">
+          </button>
+          <div className="flex items-center gap-3">
             {step > 0 && (
-              <Button variant="outline" size="sm" onClick={() => go(step - 1)}>
+              <button
+                onClick={() => go(step - 1)}
+                className="px-6 py-2.5 rounded-full text-sm font-semibold text-accent-blue bg-transparent border border-accent-blue hover:bg-accent-blue/10 outline-none focus:outline-none transition-colors"
+              >
                 Back
-              </Button>
+              </button>
             )}
-            <Button variant="depth" size="sm" onClick={handle_next}>
+            <button
+              onClick={handle_next}
+              className="px-6 py-2.5 rounded-full text-sm font-semibold text-white bg-accent-blue hover:opacity-90 active:bg-green-500 outline-none focus:outline-none shadow-none transition-colors flex items-center gap-1.5"
+            >
               {is_last ? (
-                <span className="flex items-center gap-1.5">
+                <>
                   Set up family
-                  <ArrowRightIcon className="w-3.5 h-3.5" />
-                </span>
+                  <ArrowRightIcon className="w-4 h-4" />
+                </>
               ) : (
                 "Next"
               )}
-            </Button>
+            </button>
           </div>
         </div>
       </div>

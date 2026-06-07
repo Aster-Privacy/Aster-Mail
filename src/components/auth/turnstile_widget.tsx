@@ -29,8 +29,12 @@ import {
 import { useTheme } from "@/contexts/theme_context";
 import { is_onion_host } from "@/lib/onion_host";
 
+// Onion users are exempt. Otherwise the widget shows whenever a site key is
+// configured - including in dev if VITE_TURNSTILE_SITE_KEY is set (e.g. a
+// Cloudflare test key), so captcha gating can be exercised locally. Prod is
+// unchanged (it always sets VITE_TURNSTILE_SITE_KEY).
 export const TURNSTILE_SITE_KEY =
-  import.meta.env.DEV || (typeof window !== "undefined" && is_onion_host())
+  typeof window !== "undefined" && is_onion_host()
     ? ""
     : (import.meta.env.VITE_TURNSTILE_SITE_KEY || "");
 const SCRIPT_URL =

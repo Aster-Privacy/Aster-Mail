@@ -79,6 +79,7 @@ import {
 import {
   generate_folder_token,
   encrypt_folder_field,
+  use_folders,
 } from "@/hooks/use_folders";
 import { create_folder } from "@/services/api/folders";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
@@ -204,7 +205,7 @@ function ImportJobCard({
     job.skipped_emails > 0 ? `, ${t("settings.n_skipped", { count: job.skipped_emails })}` : "";
   const can_delete = job.status !== "processing" && job.status !== "pending";
 
-  const is_active = job.status === "processing" || job.status === "pending";
+  const is_failed = job.status === "failed" || job.status === "cancelled";
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary">
@@ -213,13 +214,15 @@ function ImportJobCard({
         <p className="text-sm font-medium text-txt-primary truncate">
           {t("settings.source_import", { source: source_label })}
         </p>
-        <p className="text-xs text-txt-muted">
-          {is_active
-            ? get_status_label(job.status, t)
-            : t("settings.imported_skipped", {
+        <p
+          className={`text-xs ${is_failed ? "text-red-500" : "text-txt-muted"}`}
+        >
+          {job.status === "completed"
+            ? t("settings.imported_skipped", {
                 imported: job.processed_emails.toLocaleString(),
                 skipped: skipped_text,
-              })}
+              })
+            : get_status_label(job.status, t)}
         </p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 text-xs text-txt-muted">
@@ -505,7 +508,7 @@ function ConnectedAccountCard({
             {t("settings.import_stage_setting_up_folders")}
           </div>
           <div className="h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
-            <div className="h-full rounded-full bg-brand animate-[indeterminate_1.5s_ease-in-out_infinite]"
+            <div className="h-full rounded-full bg-brand animate-[sync_bar_indeterminate_1.5s_ease-in-out_infinite]"
               style={{ width: "40%" }} />
           </div>
         </div>
@@ -551,12 +554,12 @@ function ConnectedAccountCard({
 
 export function ImportSection() {
   const { t } = use_i18n();
+  const { state: folders_state } = use_folders();
   const [selected_provider, set_selected_provider] =
     useState<ImportSource | null>(null);
   const [recent_jobs, set_recent_jobs] = useState<ImportJob[]>([]);
   const [is_loading_jobs, set_is_loading_jobs] = useState(true);
   const [has_error, set_has_error] = useState(false);
-  const [how_it_works_open, set_how_it_works_open] = useState(false);
   const [oauth_loading, set_oauth_loading] = useState<string | null>(null);
   const [connect_provider, set_connect_provider] =
     useState<ConnectProvider | null>(null);
@@ -576,14 +579,15 @@ export function ImportSection() {
   const [delete_messages_on_disconnect, set_delete_messages_on_disconnect] =
     useState(false);
   const setup_account_tokens_ref = useRef<Set<string>>(new Set());
+  const syncing_accounts_ref = useRef<Set<string>>(syncing_accounts);
   const oauth_cancelled_ref = useRef(false);
   const [oauth_setup_token, set_oauth_setup_token] = useState<string | null>(
     null,
   );
 
-  const load_jobs = async () => {
+  const load_jobs = async (silent = false) => {
     if (has_error) return;
-    set_is_loading_jobs(true);
+    if (!silent) set_is_loading_jobs(true);
 
     try {
       const response = await list_import_jobs();
@@ -598,7 +602,7 @@ export function ImportSection() {
       set_has_error(true);
     }
 
-    set_is_loading_jobs(false);
+    if (!silent) set_is_loading_jobs(false);
   };
 
   const handle_delete_recent_job = useCallback(async (id: string) => {
@@ -664,6 +668,14 @@ export function ImportSection() {
           return name;
         };
 
+        // Reuse an existing folder with the same name instead of creating a
+        // duplicate (e.g. when setup runs again after a reload, or the user
+        // already has a folder by that name).
+        const find_existing_token = (name: string) =>
+          folders_state.folders.find(
+            (f) => f.name.toLowerCase() === name.toLowerCase(),
+          )?.folder_token;
+
         const included_folders = folders_result.data.folders
           .filter((f) => !f.excluded && f.name.toUpperCase() !== "INBOX")
           .sort((a, b) => {
@@ -698,25 +710,31 @@ export function ImportSection() {
 
             if (!is_leaf) {
               if (!parent_tokens[full_path]) {
-                try {
-                  const token = generate_folder_token();
-                  const { encrypted, nonce } = await encrypt_folder_field(
-                    display_name,
-                    vault.identity_key,
-                  );
+                const existing = find_existing_token(display_name);
 
-                  await create_folder({
-                    folder_token: token,
-                    encrypted_name: encrypted,
-                    name_nonce: nonce,
-                    parent_token: parent_token,
-                  });
+                if (existing) {
+                  parent_tokens[full_path] = existing;
+                } else {
+                  try {
+                    const token = generate_folder_token();
+                    const { encrypted, nonce } = await encrypt_folder_field(
+                      display_name,
+                      vault.identity_key,
+                    );
 
-                  parent_tokens[full_path] = token;
-                } catch {
-                  folder_failures++;
-                  aborted_branch = true;
-                  continue;
+                    await create_folder({
+                      folder_token: token,
+                      encrypted_name: encrypted,
+                      name_nonce: nonce,
+                      parent_token: parent_token,
+                    });
+
+                    parent_tokens[full_path] = token;
+                  } catch {
+                    folder_failures++;
+                    aborted_branch = true;
+                    continue;
+                  }
                 }
               }
 
@@ -724,6 +742,14 @@ export function ImportSection() {
             } else {
               if (parent_tokens[folder.name]) {
                 mapping[folder.name] = parent_tokens[folder.name];
+                continue;
+              }
+
+              const existing = find_existing_token(display_name);
+
+              if (existing) {
+                mapping[folder.name] = existing;
+                parent_tokens[folder.name] = existing;
                 continue;
               }
 
@@ -779,7 +805,7 @@ export function ImportSection() {
 
       load_connected_accounts();
     },
-    [t, load_connected_accounts],
+    [t, load_connected_accounts, folders_state],
   );
 
   const stop_sync = useCallback(async (account_token: string) => {
@@ -809,9 +835,14 @@ export function ImportSection() {
         return;
       }
 
+      // Only run first-time folder setup for an OAuth account that has never
+      // synced. Re-running it (e.g. after a reload, when the setup ref is empty)
+      // would create duplicate folders, since setup does not check for existing
+      // ones. Established accounts go straight to a normal sync.
       if (
         account?.protocol === "oauth_imap" &&
-        !setup_account_tokens_ref.current.has(account_token)
+        !setup_account_tokens_ref.current.has(account_token) &&
+        !account.last_sync_at
       ) {
         await setup_oauth_folders(account_token);
         return;
@@ -954,18 +985,39 @@ export function ImportSection() {
     load_connected_accounts();
   }, [load_connected_accounts]);
 
+  const has_active_job = recent_jobs.some(
+    (job) => job.status === "processing" || job.status === "pending",
+  );
+
+  useEffect(() => {
+    if (!has_active_job) return;
+    const id = window.setInterval(() => {
+      load_jobs(true);
+    }, 3000);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [has_active_job]);
+
+  useEffect(() => {
+    syncing_accounts_ref.current = syncing_accounts;
+  }, [syncing_accounts]);
+
   useEffect(() => {
     if (connected_accounts.length === 0) return;
     const interval = window.setInterval(
       () => {
         for (const account of connected_accounts) {
-          if (syncing_accounts.has(account.account_token)) continue;
+          if (syncing_accounts_ref.current.has(account.account_token)) continue;
           if (account.last_sync_status === "syncing") continue;
           if (account.last_sync_status === "pending") continue;
+          // Skip OAuth accounts whose folder setup hasn't run yet this session,
+          // but only if they've never synced. An account with a prior sync is
+          // already established (mapping saved server-side) and is safe to
+          // auto-sync after a reload, when the setup ref is empty.
           if (
-            setup_account_tokens_ref.current.has(account.account_token) ===
-              false &&
-            account.protocol === "oauth_imap"
+            account.protocol === "oauth_imap" &&
+            !setup_account_tokens_ref.current.has(account.account_token) &&
+            !account.last_sync_at
           ) {
             continue;
           }
@@ -978,7 +1030,7 @@ export function ImportSection() {
       90 * 1000,
     );
     return () => window.clearInterval(interval);
-  }, [connected_accounts, syncing_accounts]);
+  }, [connected_accounts]);
 
   const trigger_post_oauth_setup = useCallback(() => {
     const snapshot_tokens = new Set(
@@ -1122,10 +1174,10 @@ export function ImportSection() {
                 <div className="flex-shrink-0 w-6 flex items-center justify-center">
                   {provider.icon}
                 </div>
-                <span className="flex-1 text-sm font-medium text-txt-primary">
+                <span className="flex-1 min-w-0 truncate text-sm font-medium text-txt-primary">
                   {t(provider.label_key)}
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {is_oauth && (
                     <Button
                       disabled={any_loading}
@@ -1181,62 +1233,44 @@ export function ImportSection() {
         </div>
       )}
 
-      {/* Collapsible "How it works" */}
-      <div className="rounded-xl border border-edge-secondary overflow-hidden">
-        <button
-          type="button"
-          className="w-full flex items-center justify-between px-4 py-3 text-sm text-txt-secondary hover:bg-surf-secondary/50 transition-colors"
-          onClick={() => set_how_it_works_open((o) => !o)}
-          aria-expanded={how_it_works_open}
-        >
-          <span className="flex items-center gap-2 font-medium">
-            <InformationCircleIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-            {t("settings.import_how_it_works")}
-          </span>
-          <span
-            className="text-txt-muted transition-transform duration-200"
-            style={{ transform: how_it_works_open ? "rotate(180deg)" : "rotate(0deg)" }}
-            aria-hidden="true"
-          >
-            ▾
-          </span>
-        </button>
-        {how_it_works_open && (
-          <div className="px-4 pb-4 pt-1 space-y-3 border-t border-edge-secondary bg-surf-secondary/30">
-            <div className="space-y-1">
-              <p className="text-xs font-medium text-txt-secondary">
-                {t("settings.import_oauth_title")}
-              </p>
-              <p className="text-xs text-txt-muted leading-relaxed">
-                {t("settings.import_oauth_description")}
-              </p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-txt-secondary">
-                {t("settings.import_manual_title")}
-              </p>
-              <ol className="list-none space-y-1.5 text-xs text-txt-muted leading-relaxed">
-                {[1, 2, 3, 4].map((n) => (
-                  <li key={n} className="flex gap-2">
-                    <span className="font-medium text-txt-secondary flex-shrink-0 tabular-nums">
-                      {n}.
-                    </span>
-                    {t(("settings.import_manual_step_" + n) as TranslationKey)}
-                  </li>
-                ))}
-              </ol>
-            </div>
+      {/* "How it works" - always expanded */}
+      <div className="rounded-xl border border-edge-secondary overflow-hidden bg-surf-secondary/30">
+        <div className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-txt-secondary border-b border-edge-secondary">
+          <InformationCircleIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+          {t("settings.import_how_it_works")}
+        </div>
+        <div className="px-4 py-4 space-y-3">
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-txt-secondary">
+              {t("settings.import_oauth_title")}
+            </p>
+            <p className="text-xs text-txt-muted leading-relaxed">
+              {t("settings.import_oauth_description")}
+            </p>
           </div>
-        )}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-txt-secondary">
+              {t("settings.import_manual_title")}
+            </p>
+            <ol className="list-none space-y-1.5 text-xs text-txt-muted leading-relaxed">
+              {[1, 2, 3, 4].map((n) => (
+                <li key={n} className="flex gap-2">
+                  <span className="font-medium text-txt-secondary flex-shrink-0 tabular-nums">
+                    {n}.
+                  </span>
+                  {t(("settings.import_manual_step_" + n) as TranslationKey)}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
       </div>
 
-      {selected_provider && (
-        <ImportModal
-          is_open={true}
-          on_close={handle_modal_close}
-          provider={selected_provider}
-        />
-      )}
+      <ImportModal
+        is_open={selected_provider !== null}
+        on_close={handle_modal_close}
+        provider={selected_provider}
+      />
 
       <ConnectProviderModal
         provider={connect_provider}
@@ -1266,10 +1300,10 @@ export function ImportSection() {
         >
           <div className="px-6 pt-6 pb-5">
             <AlertDialogHeader className="space-y-2">
-              <AlertDialogTitle className="text-16 font-semibold">
+              <AlertDialogTitle className="text-base font-semibold">
                 {t("settings.disconnect_title")}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-14 leading-normal">
+              <AlertDialogDescription className="text-sm leading-normal">
                 {t("settings.disconnect_confirm")}
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -1280,7 +1314,7 @@ export function ImportSection() {
                   set_delete_messages_on_disconnect(v === true)
                 }
               />
-              <span className="text-13 leading-none text-txt-secondary">
+              <span className="text-[13px] leading-none text-txt-secondary">
                 {t("settings.disconnect_delete_messages_label")}
               </span>
             </label>
