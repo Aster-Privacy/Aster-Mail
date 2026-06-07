@@ -1246,12 +1246,12 @@ export default function SignInPage() {
                       set_username(local);
                       if (
                         domain_part === "astermail.org" ||
-                        domain_part.startsWith("astermail.org")
+                        domain_part.endsWith(".astermail.org")
                       )
                         set_email_domain("astermail.org");
                       else if (
                         domain_part === "aster.cx" ||
-                        domain_part.startsWith("aster.cx")
+                        domain_part.endsWith(".aster.cx")
                       )
                         set_email_domain("aster.cx");
                     } else {
