@@ -1388,6 +1388,7 @@ export const pl = {
     family_invite_expires: "Wygasa {{date}}",
     family_invite_pending: "Oczekujące",
     family_invite_revoke: "Cofnij",
+    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "Właściciel",
     family_member_member: "Członek",
     family_member_grace: "Okres karencji",

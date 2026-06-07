@@ -1388,6 +1388,7 @@ export const nl = {
     family_invite_expires: "Verloopt op {{date}}",
     family_invite_pending: "In afwachting",
     family_invite_revoke: "Intrekken",
+    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "Eigenaar",
     family_member_member: "Lid",
     family_member_grace: "Respijtperiode",
