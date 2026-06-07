@@ -198,16 +198,16 @@ export async function complete_device_pairing(
   device_id: string,
   sealed_envelope: string,
 ): Promise<DevicePairingResult> {
-  await invoke("device_set_id", { deviceId: device_id });
-  await invoke<string>("device_unseal_vault_envelope", {
-    envelopeB64: sealed_envelope,
-  });
-
   let login_response: Record<string, unknown> | null = null;
   let passphrase: string | null = null;
   let error: string | null = null;
 
   try {
+    await invoke("device_set_id", { deviceId: device_id });
+    await invoke<string>("device_unseal_vault_envelope", {
+      envelopeB64: sealed_envelope,
+    });
+
     await silent_device_login(device_id);
     const pending = consume_pending_device_login();
 
@@ -217,6 +217,7 @@ export async function complete_device_pairing(
     }
   } catch (err) {
     error = err instanceof Error ? err.message : String(err);
+    await clear_device_session().catch(() => {});
   }
 
   window.dispatchEvent(new CustomEvent("astermail:device-paired"));
