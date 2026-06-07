@@ -373,13 +373,13 @@ export function ModalContactDetail({
                     {selected_contact.social_links.linkedin && (
                       <a
                         className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
-                        href={
-                          selected_contact.social_links.linkedin.includes(
-                            "linkedin.com",
-                          )
-                            ? selected_contact.social_links.linkedin
-                            : `https://linkedin.com/in/${selected_contact.social_links.linkedin}`
-                        }
+                        href={(() => {
+                          try {
+                            const u = new URL(selected_contact.social_links.linkedin);
+                            if (u.hostname === "linkedin.com" || u.hostname.endsWith(".linkedin.com")) return u.href;
+                          } catch {}
+                          return `https://linkedin.com/in/${selected_contact.social_links.linkedin}`;
+                        })()}
                         rel="noopener noreferrer"
                         target="_blank"
                       >
@@ -389,16 +389,13 @@ export function ModalContactDetail({
                     {selected_contact.social_links.twitter && (
                       <a
                         className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
-                        href={
-                          selected_contact.social_links.twitter.includes(
-                            "twitter.com",
-                          ) ||
-                          selected_contact.social_links.twitter.includes(
-                            "x.com",
-                          )
-                            ? selected_contact.social_links.twitter
-                            : `https://x.com/${selected_contact.social_links.twitter.replace("@", "")}`
-                        }
+                        href={(() => {
+                          try {
+                            const u = new URL(selected_contact.social_links.twitter);
+                            if (u.hostname === "twitter.com" || u.hostname.endsWith(".twitter.com") || u.hostname === "x.com" || u.hostname.endsWith(".x.com")) return u.href;
+                          } catch {}
+                          return `https://x.com/${selected_contact.social_links.twitter.replace("@", "")}`;
+                        })()}
                         rel="noopener noreferrer"
                         target="_blank"
                       >
@@ -408,13 +405,13 @@ export function ModalContactDetail({
                     {selected_contact.social_links.github && (
                       <a
                         className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
-                        href={
-                          selected_contact.social_links.github.includes(
-                            "github.com",
-                          )
-                            ? selected_contact.social_links.github
-                            : `https://github.com/${selected_contact.social_links.github}`
-                        }
+                        href={(() => {
+                          try {
+                            const u = new URL(selected_contact.social_links.github);
+                            if (u.hostname === "github.com" || u.hostname.endsWith(".github.com")) return u.href;
+                          } catch {}
+                          return `https://github.com/${selected_contact.social_links.github}`;
+                        })()}
                         rel="noopener noreferrer"
                         target="_blank"
                       >

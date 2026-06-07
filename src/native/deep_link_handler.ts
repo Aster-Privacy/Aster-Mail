@@ -85,12 +85,13 @@ function parse_deep_link_url(url: string): ParsedDeepLink | null {
       };
     }
 
-    if (
-      url.startsWith("https://app.astermail.org") ||
-      url.startsWith("https://astermail.org")
-    ) {
-      const parsed_url = new URL(url);
+    const parsed_url = new URL(url);
 
+    if (
+      parsed_url.hostname === "app.astermail.org" ||
+      parsed_url.hostname === "astermail.org" ||
+      parsed_url.hostname.endsWith(".astermail.org")
+    ) {
       return {
         scheme: "https",
         path: parsed_url.pathname,

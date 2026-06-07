@@ -105,12 +105,12 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
                 reg.set_username(local + "@" + domain_part);
                 if (
                   domain_part === "astermail.org" ||
-                  domain_part.startsWith("astermail.org")
+                  domain_part.endsWith(".astermail.org")
                 )
                   reg.set_email_domain("astermail.org");
                 else if (
                   domain_part === "aster.cx" ||
-                  domain_part.startsWith("aster.cx")
+                  domain_part.endsWith(".aster.cx")
                 )
                   reg.set_email_domain("aster.cx");
               } else {

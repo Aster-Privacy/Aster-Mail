@@ -1,4 +1,4 @@
-import os, re, sys
+import os, re
 
 BASE = os.path.join(os.path.dirname(__file__), "..", "src", "lib", "i18n", "translations")
 
