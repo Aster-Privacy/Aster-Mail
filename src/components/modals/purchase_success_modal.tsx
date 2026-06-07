@@ -36,6 +36,8 @@ const PLAN_DISPLAY_NAMES: Record<string, string> = {
   star: "Star",
   nova: "Nova",
   supernova: "Supernova",
+  duo: "Duo",
+  family: "Family",
 };
 
 export function PurchaseSuccessModal({
@@ -48,7 +50,9 @@ export function PurchaseSuccessModal({
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
 
-  const plan_name = PLAN_DISPLAY_NAMES[plan] || plan;
+  const plan_name =
+    PLAN_DISPLAY_NAMES[plan] ||
+    (plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : plan);
   const billing_label =
     billing === "year"
       ? t("settings.billing_yearly")

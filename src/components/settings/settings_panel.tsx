@@ -84,8 +84,10 @@ const BillingSection = lazy(() =>
     default: m.BillingSection,
   })),
 );
+const load_family_section = () =>
+  import("@/components/settings/billing/family_section");
 const FamilySection = lazy(() =>
-  import("@/components/settings/billing/family_section").then((m) => ({
+  load_family_section().then((m) => ({
     default: m.FamilySection,
   })),
 );
@@ -105,6 +107,7 @@ import { SettingsSaveIndicator } from "@/components/settings/settings_save_indic
 import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_prefetch";
 import { SettingsCacheProvider } from "@/contexts/settings_cache_context";
 import { list_devices } from "@/services/api/devices";
+import { prefetch_family_group } from "@/services/api/family";
 import { is_onion_host } from "@/lib/onion_host";
 
 export type SettingsSection =
@@ -274,6 +277,16 @@ function SettingsPanelInner({
   const [is_family_plan, set_is_family_plan] = useState(
     () => localStorage.getItem("aster_is_family_plan") === "1",
   );
+
+  // Preload the Family tab (lazy chunk + group data) as soon as Settings opens
+  // for a family plan, so the tab is instant instead of loading on click.
+  useEffect(() => {
+    if (is_open && is_family_plan) {
+      load_family_section();
+      prefetch_family_group();
+    }
+  }, [is_open, is_family_plan]);
+
   const NAV_ITEMS = useMemo(() => get_nav_items(t, is_family_plan), [t, is_family_plan]);
   const [indicator_style, set_indicator_style] = useState<{
     top: number;

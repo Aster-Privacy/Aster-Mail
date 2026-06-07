@@ -20,7 +20,7 @@
 //
 import type { SettingsSection } from "@/components/settings/settings_panel";
 
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
@@ -58,17 +58,17 @@ export default function IndexPage() {
   const { t } = use_i18n();
   const navigate = useNavigate();
   const { section } = useParams<{ section?: string }>();
-  const did_init_settings = useRef(false);
 
   useEffect(() => {
-    if (!did_init_settings.current && section) {
-      did_init_settings.current = true;
+    if (section && !state.is_settings_open) {
       navigate("/", { replace: true });
       const timer = setTimeout(() => {
         state.set_settings_section(section as SettingsSection);
         state.set_is_settings_open(true);
       }, 100);
       return () => clearTimeout(timer);
+    } else if (section && state.is_settings_open) {
+      navigate("/", { replace: true });
     }
   }, [section]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -91,7 +91,6 @@ export default function IndexPage() {
 
       state.set_settings_section(nav_section);
       state.set_is_settings_open(true);
-      navigate(`/settings/${nav_section}`, { replace: false });
     };
 
     const handle_navigate_sent = () => navigate("/sent");

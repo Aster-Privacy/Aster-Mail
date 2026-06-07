@@ -186,40 +186,49 @@ export function detect_currency_from_locale(): string {
   return "usd";
 }
 
-export const FAMILY_PLAN_DUO_FEATURES: string[] = [
-  "2 members, separate accounts",
-  "1 TB shared encrypted storage",
-  "Unlimited aliases per member",
-  "5 custom domains per member",
-  "Shared family aliases",
-  "End-to-end encryption",
-  "Zero-access architecture",
-  "Admin storage controls",
-  "Invite by email or link",
-  "Quantum-safe internal mail",
-  "Full IMAP/SMTP per member",
-  "Catch-all email address",
-  "Priority support",
+export interface FamilyPlanFeature {
+  label: string;
+  on: boolean;
+}
+
+export const FAMILY_PLAN_DUO_FEATURES: FamilyPlanFeature[] = [
+  { label: "2 members, separate accounts", on: true },
+  { label: "1 TB - allocated per member, not shared", on: true },
+  { label: "End-to-end encryption", on: true },
+  { label: "Zero-access architecture", on: true },
+  { label: "Shared family aliases", on: true },
+  { label: "Unlimited email aliases", on: true },
+  { label: "30 custom domains", on: true },
+  { label: "Use your favorite mail app (via Aster Bridge)", on: true },
+  { label: "Invite by link or email", on: true },
+  { label: "Priority support", on: true },
+  { label: "Domain sharing across members", on: true },
+  { label: "Security policies (2FA enforcement)", on: true },
+  { label: "Admin role transfer", on: true },
+  { label: "Org groups & distribution lists", on: false },
+  { label: "Activity log & audit trail", on: false },
+  { label: "Org-wide email filters", on: false },
+  { label: "Data retention policies", on: false },
+  { label: "Per-member storage controls", on: false },
 ];
 
-export const FAMILY_PLAN_FAMILY_FEATURES: string[] = [
-  "Up to 6 members, separate accounts",
-  "3 TB shared encrypted storage",
-  "Unlimited aliases per member",
-  "30 custom domains per member",
-  "Shared family aliases",
-  "End-to-end encryption",
-  "Zero-access architecture",
-  "Admin storage controls",
-  "Invite by email or link",
-  "Quantum-safe internal mail",
-  "Full IMAP/SMTP per member",
-  "Catch-all email address",
-  "Org groups & distribution lists",
-  "Activity log & audit trail",
-  "Org-wide email filters",
-  "Domain sharing across members",
-  "Security policies (2FA enforcement)",
-  "Data retention policies",
-  "Priority support",
+export const FAMILY_PLAN_FAMILY_FEATURES: FamilyPlanFeature[] = [
+  { label: "Up to 6 members, separate accounts", on: true },
+  { label: "3 TB - allocated per member, not shared", on: true },
+  { label: "End-to-end encryption", on: true },
+  { label: "Zero-access architecture", on: true },
+  { label: "Shared family aliases", on: true },
+  { label: "Unlimited email aliases", on: true },
+  { label: "30 custom domains", on: true },
+  { label: "Use your favorite mail app (via Aster Bridge)", on: true },
+  { label: "Invite by link or email", on: true },
+  { label: "Priority support", on: true },
+  { label: "Org groups & distribution lists", on: true },
+  { label: "Activity log & audit trail", on: true },
+  { label: "Org-wide email filters", on: true },
+  { label: "Domain sharing across members", on: true },
+  { label: "Security policies (2FA enforcement)", on: true },
+  { label: "Data retention policies", on: true },
+  { label: "Per-member storage controls", on: true },
+  { label: "Admin role transfer", on: true },
 ];

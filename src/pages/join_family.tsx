@@ -60,11 +60,14 @@ export default function JoinFamilyPage() {
     set_error_msg(null);
     try {
       const res = await join_family(token);
-      if (!res.data) throw new Error("Join failed");
+      if (!res.data) {
+        set_error_msg(res.error || "We couldn't add you to this family. The invite may have expired or already been used.");
+        return;
+      }
       set_joined_bytes(res.data.allocated_storage_bytes);
       setTimeout(() => navigate("/", { replace: true }), 2500);
-    } catch (e: unknown) {
-      set_error_msg(e instanceof Error ? e.message : "Failed to join. The invite may have expired.");
+    } catch {
+      set_error_msg("We couldn't add you to this family. The invite may have expired or already been used.");
     } finally {
       set_joining(false);
     }
@@ -79,16 +82,16 @@ export default function JoinFamilyPage() {
   if (joined_bytes !== null) {
     return (
       <div className={page_wrap}>
-        <div className="max-w-sm w-full text-center space-y-6">
-          <div className="w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center mx-auto">
-            <CheckCircleIcon className="w-9 h-9 text-green-500" />
-          </div>
+        <div className="max-w-sm w-full text-center space-y-6 flex flex-col items-center">
+          <CheckCircleIcon className="w-16 h-16 text-green-500" />
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-txt-primary">You're in!</h1>
             <p className="text-txt-muted">You've joined the family plan with {format_bytes(joined_bytes)} of storage.</p>
             <p className="text-sm text-txt-muted">Redirecting to your inbox...</p>
           </div>
-          <Spinner size="sm" />
+          <div className="flex justify-center">
+            <Spinner size="sm" />
+          </div>
         </div>
       </div>
     );
@@ -97,11 +100,9 @@ export default function JoinFamilyPage() {
   if (error_msg && !preview) {
     return (
       <div className={page_wrap}>
-        <div className="max-w-sm w-full text-center space-y-6">
+        <div className="max-w-sm w-full text-center space-y-6 flex flex-col items-center">
           <Logo />
-          <div className="w-14 h-14 rounded-full bg-red-500/15 flex items-center justify-center mx-auto">
-            <ExclamationTriangleIcon className="w-8 h-8 text-red-500" />
-          </div>
+          <ExclamationTriangleIcon className="w-12 h-12 text-red-500" />
           <div className="space-y-2">
             <h1 className="text-xl font-bold text-txt-primary">Invalid invite</h1>
             <p className="text-txt-muted text-sm">{error_msg}</p>
@@ -117,11 +118,9 @@ export default function JoinFamilyPage() {
   return (
     <div className={page_wrap}>
       <div className="max-w-sm w-full space-y-6">
-        <div className="text-center space-y-3">
+        <div className="text-center space-y-3 flex flex-col items-center">
           <Logo />
-          <div className="w-16 h-16 rounded-full bg-accent-blue/10 flex items-center justify-center mx-auto">
-            <UserGroupIcon className="w-9 h-9 text-accent-blue" />
-          </div>
+          <UserGroupIcon className="w-12 h-12 text-accent-blue" />
           <div>
             <h1 className="text-2xl font-bold text-txt-primary">Join family plan</h1>
             {preview?.plan_name && (
@@ -132,6 +131,9 @@ export default function JoinFamilyPage() {
                   : " · shared storage"}
               </p>
             )}
+            <p className="text-txt-muted text-sm mt-3 max-w-xs mx-auto leading-relaxed">
+              Your own private, encrypted inbox - separate from everyone else on the plan.
+            </p>
           </div>
         </div>
 
@@ -151,21 +153,21 @@ export default function JoinFamilyPage() {
         </div>
 
         {preview?.require_2fa && (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2">
+          <div className="rounded-2xl p-4 space-y-2" style={{ background: "#f59e0b", border: "none" }}>
             <div className="flex items-center gap-2">
-              <ShieldCheckIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
-              <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">Security requirement</p>
+              <ShieldCheckIcon className="w-4 h-4 text-white flex-shrink-0" />
+              <p className="text-sm font-semibold text-white">Security requirement</p>
             </div>
-            <p className="text-xs text-amber-600 dark:text-amber-400">
+            <p className="text-xs text-white">
               This family requires two-factor authentication. You'll need to enable 2FA after joining.
             </p>
           </div>
         )}
 
         {error_msg && (
-          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20">
-            <ExclamationTriangleIcon className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <p className="text-sm text-red-600 dark:text-red-400">{error_msg}</p>
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl" style={{ background: "#ef4444", backgroundImage: "none", border: "none" }}>
+            <ExclamationTriangleIcon className="w-4 h-4 text-white flex-shrink-0" />
+            <p className="text-sm font-medium text-white">{error_msg}</p>
           </div>
         )}
 
@@ -195,8 +197,10 @@ export default function JoinFamilyPage() {
         )}
 
         <p className="text-center text-xs text-txt-muted">
-          By joining you agree to{" "}
+          By joining you agree to our{" "}
           <a href="https://astermail.org/terms" target="_blank" rel="noopener noreferrer" className="underline">Terms of Service</a>
+          {" "}and{" "}
+          <a href="https://astermail.org/privacy" target="_blank" rel="noopener noreferrer" className="underline">Privacy Policy</a>
         </p>
       </div>
     </div>
