@@ -1839,6 +1839,7 @@ export const fr = {
     fam_org_activity_storage_updated_generic: "{{actor}} a mis à jour le stockage",
     fam_org_activity_events: "{{count}} événement",
     fam_org_activity_events_plural: "{{count}} événements",
+    fam_org_activity_search_placeholder: "Rechercher une activité...",
     fam_org_activity_all_events: "Tous les événements",
     fam_org_activity_empty_title: "Aucune activité pour l'instant",
     fam_org_activity_empty_desc: "Les arrivées de membres, les changements de sécurité et les actions administratives apparaîtront ici.",

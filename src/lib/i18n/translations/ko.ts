@@ -1839,6 +1839,7 @@ export const ko = {
     fam_org_activity_storage_updated_generic: "{{actor}}님이 저장 용량을 업데이트했습니다",
     fam_org_activity_events: "이벤트 {{count}}개",
     fam_org_activity_events_plural: "이벤트 {{count}}개",
+    fam_org_activity_search_placeholder: "활동 검색...",
     fam_org_activity_all_events: "모든 이벤트",
     fam_org_activity_empty_title: "아직 활동이 없습니다",
     fam_org_activity_empty_desc: "구성원 참여, 보안 변경, 관리 작업이 여기에 표시됩니다.",

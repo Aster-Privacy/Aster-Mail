@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   UserPlusIcon,
   UserGroupIcon,
@@ -49,7 +49,6 @@ import { TurnstileWidget, type TurnstileWidgetRef, TURNSTILE_SITE_KEY } from "@/
 import { Spinner } from "@/components/ui/spinner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch, Button } from "@aster/ui";
-import { get_avatar_color } from "@/lib/avatar_color";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { change_plan } from "@/services/api/billing";
 import {
@@ -583,13 +582,9 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                     ) : gm.length > 0 ? (
                       <div className="space-y-1">
                         {gm.map(m => {
-                          const initials = (m.username || "?")[0].toUpperCase();
-                          const color = get_avatar_color(m.username);
                           return (
                             <div key={m.user_id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-surf-secondary transition-colors">
-                              <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ backgroundColor: color }}>
-                                {initials}
-                              </div>
+                              <ProfileAvatar email={`${m.username}@${m.email_domain}`} name={m.username} size="xs" />
                               <span className="text-sm text-txt-primary flex-1 min-w-0 truncate">{m.username}@{m.email_domain}</span>
                               <button
                                 onClick={() => handle_remove_member(g.id, m.user_id)}
@@ -621,17 +616,13 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                             members.filter(m => !gm.some(x => x.user_id === m.user_id) && (
                               !member_search || `${m.username}@${m.email_domain}`.toLowerCase().includes(member_search.toLowerCase())
                             )).map(m => {
-                              const initials = (m.username || "?")[0].toUpperCase();
-                              const color = get_avatar_color(m.username);
                               return (
                                 <button
                                   key={m.user_id}
                                   onClick={() => set_add_user_id(prev => prev === m.user_id ? "" : m.user_id)}
                                   className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5 ${add_user_id === m.user_id ? "bg-accent-blue/10" : ""}`}
                                 >
-                                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ backgroundColor: color }}>
-                                    {initials}
-                                  </div>
+                                  <ProfileAvatar email={`${m.username}@${m.email_domain}`} name={m.username} size="xs" />
                                   <span className="text-sm text-txt-primary flex-1 min-w-0 truncate">{m.username}@{m.email_domain}</span>
                                   {add_user_id === m.user_id && <CheckCircleIcon className="w-4 h-4 text-accent-blue flex-shrink-0" />}
                                 </button>
@@ -681,13 +672,14 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
   );
 }
 
-function ActivityContent() {
+function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
   const { t } = use_i18n();
   const [entries, set_entries] = useState<ActivityLogEntry[]>([]);
   const [total, set_total] = useState(0);
   const [page, set_page] = useState(1);
   const [loading, set_loading] = useState(true);
   const [filter_type, set_filter_type] = useState("");
+  const [search, set_search] = useState("");
 
   const load_page = useCallback(async (p: number, ft?: string) => {
     set_loading(true);
@@ -703,10 +695,26 @@ function ActivityContent() {
 
   useEffect(() => { load_page(1, filter_type || undefined); }, [load_page, filter_type]);
 
+  const filtered_entries = useMemo(() => {
+    if (!search) return entries;
+    const q = search.toLowerCase();
+    return entries.filter(e =>
+      (e.actor_username ?? "").toLowerCase().includes(q) ||
+      (e.target_username ?? "").toLowerCase().includes(q) ||
+      (event_labels(t)[e.event_type] ?? e.event_type).toLowerCase().includes(q)
+    );
+  }, [entries, search, t]);
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-txt-muted">{total !== 1 ? t("settings.fam_org_activity_events_plural", { count: total }) : t("settings.fam_org_activity_events", { count: total })}</span>
+      <div className="flex items-center gap-2">
+        <Input
+          placeholder={t("settings.fam_org_activity_search_placeholder")}
+          value={search}
+          onChange={e => set_search(e.target.value)}
+          size="sm"
+          className="flex-1"
+        />
         <Select value={filter_type || "all"} onValueChange={v => set_filter_type(v === "all" ? "" : v)}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder={t("settings.fam_org_activity_all_events")} />
@@ -719,6 +727,7 @@ function ActivityContent() {
           </SelectContent>
         </Select>
       </div>
+      <span className="text-sm text-txt-muted">{total !== 1 ? t("settings.fam_org_activity_events_plural", { count: total }) : t("settings.fam_org_activity_events", { count: total })}</span>
       {loading && entries.length === 0 ? (
         <SkeletonRows count={4} />
       ) : entries.length === 0 ? (
@@ -737,10 +746,13 @@ function ActivityContent() {
         </div>
       ) : (
         <div className="divide-y divide-edge-secondary">
-          {entries.map(entry => (
+          {filtered_entries.map(entry => {
+            const actor_member = entry.actor_username ? members.find(m => m.username === entry.actor_username) : null;
+            const actor_email = actor_member ? `${actor_member.username}@${actor_member.email_domain}` : entry.actor_username ? `${entry.actor_username}@astermail.org` : null;
+            return (
             <div key={entry.id} className="flex items-center gap-3 py-3">
-              {entry.actor_username && (
-                <ProfileAvatar name={entry.actor_username} size="xs" className="flex-shrink-0" />
+              {actor_email && (
+                <ProfileAvatar email={actor_email} name={entry.actor_username!} size="sm" className="flex-shrink-0" />
               )}
               {!entry.actor_username && (
                 <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
@@ -761,7 +773,8 @@ function ActivityContent() {
                 <p className="text-xs text-txt-muted mt-0.5" title={format_activity_time(entry.created_at)}>{last_seen_relative(entry.created_at, t)}</p>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
       {entries.length < total && (
@@ -1278,9 +1291,7 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
                         <p className="text-[10px] font-medium text-txt-muted uppercase tracking-wide">{t("settings.fam_org_domains_shared_with")}</p>
                         {d.shared_with_user_ids.map(uid => members.find(m => m.user_id === uid)).filter((m): m is FamilyMemberInfo => !!m).map(m => (
                           <div key={m.user_id} className="flex items-center gap-2 py-0.5">
-                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold flex-shrink-0" style={{ backgroundColor: get_avatar_color(m.username) }}>
-                              {m.username[0]?.toUpperCase()}
-                            </div>
+                            <ProfileAvatar email={`${m.username}@${m.email_domain}`} name={m.username} size="xs" />
                             <span className="text-xs text-txt-primary flex-1 truncate">{m.username}@{m.email_domain}</span>
                             <button onClick={() => do_revoke(d.domain_name, m.user_id)} className="text-[10px] text-red-500 hover:underline flex-shrink-0">{t("settings.fam_org_domains_revoke")}</button>
                           </div>
@@ -1580,12 +1591,9 @@ function SecurityContent({ other_member_count, initial_security, initial_complia
           </div>
           <div className="divide-y divide-edge-secondary">
             {compliance.map(m => {
-              const color = get_avatar_color(m.username);
               return (
                 <div key={m.user_id} className="flex items-center gap-3 py-3.5">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: color }}>
-                    {m.username[0]?.toUpperCase()}
-                  </div>
+                  <ProfileAvatar email={`${m.username}@${m.email_domain}`} name={m.username} size="sm" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-txt-primary truncate">{m.username}@{m.email_domain}</p>
                   </div>
@@ -2253,10 +2261,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           <div className="space-y-1.5 py-1">
             {active_members.slice(0, 4).map(m => (
               <div key={m.user_id} className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                  style={{ backgroundColor: get_avatar_color(m.username) }}>
-                  {m.username[0]?.toUpperCase()}
-                </div>
+                <ProfileAvatar email={`${m.username}@${m.email_domain}`} name={m.username} size="xs" />
                 <span className="text-sm text-txt-primary truncate min-w-0 flex-1">{m.username}@{m.email_domain}</span>
                 {m.role === "owner"
                   ? <span className="aster_badge aster_badge_blue flex-shrink-0">{t("settings.fam_org_preview_owner")}</span>
@@ -2501,7 +2506,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       )}
 
       {tab === "groups"    && is_owner && <GroupsContent members={active_members} />}
-      {tab === "activity"  && is_owner && <ActivityContent />}
+      {tab === "activity"  && is_owner && <ActivityContent members={active_members} />}
       {tab === "filters"   && is_owner && <FiltersContent other_member_count={active_members.length - 1} initial_filters={preloaded_filters} />}
       {tab === "domains"   && is_owner && <DomainsContent members={active_members} />}
       {tab === "security"  && is_owner && <SecurityContent other_member_count={active_members.length - 1} initial_security={preloaded_security} initial_compliance={preloaded_compliance} />}

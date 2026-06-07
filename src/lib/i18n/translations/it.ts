@@ -1840,6 +1840,7 @@ export const it = {
     fam_org_activity_storage_updated_generic: "{{actor}} ha aggiornato lo spazio di archiviazione",
     fam_org_activity_events: "{{count}} evento",
     fam_org_activity_events_plural: "{{count}} eventi",
+    fam_org_activity_search_placeholder: "Cerca attività...",
     fam_org_activity_all_events: "Tutti gli eventi",
     fam_org_activity_empty_title: "Ancora nessuna attività",
     fam_org_activity_empty_desc: "Gli ingressi dei membri, le modifiche alla sicurezza e le azioni amministrative appariranno qui.",

@@ -1839,6 +1839,7 @@ export const es = {
     fam_org_activity_storage_updated_generic: "{{actor}} actualizó el almacenamiento",
     fam_org_activity_events: "{{count}} evento",
     fam_org_activity_events_plural: "{{count}} eventos",
+    fam_org_activity_search_placeholder: "Buscar actividad...",
     fam_org_activity_all_events: "Todos los eventos",
     fam_org_activity_empty_title: "Aún no hay actividad",
     fam_org_activity_empty_desc: "Las incorporaciones de miembros, los cambios de seguridad y las acciones administrativas aparecerán aquí.",

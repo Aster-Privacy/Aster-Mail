@@ -1839,6 +1839,7 @@ export const ar = {
     fam_org_activity_storage_updated_generic: "حدّث {{actor}} التخزين",
     fam_org_activity_events: "{{count}} حدث",
     fam_org_activity_events_plural: "{{count}} أحداث",
+    fam_org_activity_search_placeholder: "بحث في النشاط...",
     fam_org_activity_all_events: "جميع الأحداث",
     fam_org_activity_empty_title: "لا يوجد نشاط بعد",
     fam_org_activity_empty_desc: "ستظهر هنا حالات انضمام الأعضاء وتغييرات الأمان والإجراءات الإدارية.",

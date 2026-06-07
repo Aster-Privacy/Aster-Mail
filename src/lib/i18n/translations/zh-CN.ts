@@ -1839,6 +1839,7 @@ export const zh_CN = {
     fam_org_activity_storage_updated_generic: "{{actor}} 更新了存储",
     fam_org_activity_events: "{{count}} 个事件",
     fam_org_activity_events_plural: "{{count}} 个事件",
+    fam_org_activity_search_placeholder: "搜索活动...",
     fam_org_activity_all_events: "所有事件",
     fam_org_activity_empty_title: "暂无活动",
     fam_org_activity_empty_desc: "成员加入、安全变更和管理操作将显示在此处。",

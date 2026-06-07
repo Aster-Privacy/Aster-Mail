@@ -38,6 +38,8 @@ import {
 } from "./email_list_helpers";
 import { use_email_list_actions } from "./use_email_list_actions";
 import { use_email_list_bulk } from "./use_email_list_bulk";
+import { MAIL_EVENTS } from "./mail_events";
+import { mark_preload_stale } from "@/components/email/hooks/preload_cache";
 
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { use_auth } from "@/contexts/auth_context";
@@ -112,6 +114,20 @@ export function use_category_inbox(
   );
 
   const [state, set_state] = useState<EmailListState>(EMPTY_STATE);
+
+  useEffect(() => {
+    const handle_item_update = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      mark_preload_stale(detail.id);
+      set_state(prev => ({
+        ...prev,
+        emails: prev.emails.map(e => e.id === detail.id ? { ...e, ...detail } : e),
+      }));
+    };
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_update);
+    return () => window.removeEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_update);
+  }, [set_state]);
+
   const last_signature_ref = useRef<string>("");
   const abort_ref = useRef<AbortController | null>(null);
   const page_cache = useRef<Map<string, InboxEmail[]>>(new Map());
