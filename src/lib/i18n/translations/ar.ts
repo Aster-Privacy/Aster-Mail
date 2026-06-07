@@ -3165,7 +3165,7 @@ export const ar = {
     save_changes: "حفظ التغييرات",
     spam_low: "منخفض",
     spam_low_description: "يتم تصفية الرسائل المزعجة الواضحة فقط",
-    spam_medium: "متوسط (موصى به)",
+    spam_medium: "متوسط",
     spam_medium_description: "تصفية متوازنة",
     spam_high: "مرتفع",
     spam_high_description: "تصفية صارمة، قد تلتقط بعض الرسائل المشروعة",

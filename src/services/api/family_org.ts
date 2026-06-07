@@ -186,3 +186,14 @@ export interface MemberGroup {
 
 export const list_my_groups = () =>
   api_client.get<MemberGroup[]>('/payments/v1/family/member/groups');
+
+export interface MemberRetentionPolicy {
+  trash_retention_days: number | null;
+  spam_retention_days: number | null;
+  sent_retention_days: number | null;
+  all_mail_retention_days: number | null;
+  enforce_on_members: boolean;
+}
+
+export const get_member_retention_policy = () =>
+  api_client.get<MemberRetentionPolicy>('/payments/v1/family/member/retention-policy');

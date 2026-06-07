@@ -3149,7 +3149,7 @@ export const zh_CN = {
     save_changes: "保存更改",
     spam_low: "低",
     spam_low_description: "仅过滤明显的垃圾邮件",
-    spam_medium: "中（推荐）",
+    spam_medium: "中",
     spam_medium_description: "均衡过滤",
     spam_high: "高",
     spam_high_description: "激进过滤，可能会误判部分正常邮件",

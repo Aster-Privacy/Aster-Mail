@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { SpamSettings } from "@/services/api/preferences";
+import type { MemberRetentionPolicy } from "@/services/api/family_org";
 
 import { useState, useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
@@ -43,6 +44,7 @@ import {
   get_spam_settings,
   save_spam_settings,
 } from "@/services/api/preferences";
+import { get_member_retention_policy } from "@/services/api/family_org";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
   Select,
@@ -104,6 +106,8 @@ interface SelectSettingProps {
   options: { value: string; label: string }[];
   on_change: (value: string) => void;
   info?: { title: string; description: string };
+  disabled?: boolean;
+  disabled_note?: string;
 }
 
 function SelectSetting({
@@ -113,6 +117,8 @@ function SelectSetting({
   options,
   on_change,
   info,
+  disabled,
+  disabled_note,
 }: SelectSettingProps) {
   return (
     <div className="flex items-center justify-between py-4">
@@ -124,8 +130,14 @@ function SelectSetting({
           )}
         </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
+        {disabled && disabled_note && (
+          <p className="text-xs mt-1 text-amber-500 dark:text-amber-400 flex items-center gap-1">
+            <LockClosedIcon className="w-3 h-3 flex-shrink-0" />
+            {disabled_note}
+          </p>
+        )}
       </div>
-      <Select value={value} onValueChange={on_change}>
+      <Select disabled={disabled} value={value} onValueChange={on_change}>
         <SelectTrigger className="w-[200px]">
           <SelectValue />
         </SelectTrigger>
@@ -181,6 +193,7 @@ export function BehaviorSection() {
     spam_sensitivity: "medium",
     spam_filter_enabled: true,
   });
+  const [family_policy, set_family_policy] = useState<MemberRetentionPolicy | null>(null);
   const [show_grouping_dialog, set_show_grouping_dialog] = useState(false);
   const [mailto_registered, set_mailto_registered] = useState(() => {
     try {
@@ -200,6 +213,11 @@ export function BehaviorSection() {
         set_spam_settings(result.data);
       }
     });
+    get_member_retention_policy().then((result) => {
+      if (result.data) {
+        set_family_policy(result.data);
+      }
+    }).catch(() => {});
   }, []);
 
   const handle_dev_mode_toggle = async () => {
@@ -801,6 +819,8 @@ export function BehaviorSection() {
 
         <SelectSetting
           description={t("settings.auto_delete_spam_description")}
+          disabled={!!family_policy?.enforce_on_members && family_policy.spam_retention_days != null}
+          disabled_note={t("settings.controlled_by_family_admin")}
           on_change={(value) => {
             const days = value === "never" ? 0 : parseInt(value, 10);
             const updated = {
@@ -819,9 +839,11 @@ export function BehaviorSection() {
           ]}
           title={t("settings.auto_delete_spam_after")}
           value={
-            spam_settings.spam_retention_days === 0
-              ? "never"
-              : String(spam_settings.spam_retention_days)
+            family_policy?.enforce_on_members && family_policy.spam_retention_days != null
+              ? (family_policy.spam_retention_days === 0 ? "never" : String(family_policy.spam_retention_days))
+              : (spam_settings.spam_retention_days === 0
+                ? "never"
+                : String(spam_settings.spam_retention_days))
           }
         />
       </div>

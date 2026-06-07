@@ -3120,7 +3120,7 @@ export const nl = {
     save_changes: "Wijzigingen opslaan",
     spam_low: "Laag",
     spam_low_description: "Alleen duidelijke spam wordt gefilterd",
-    spam_medium: "Gemiddeld (Aanbevolen)",
+    spam_medium: "Gemiddeld",
     spam_medium_description: "Gebalanceerde filtering",
     spam_high: "Hoog",
     spam_high_description: "Agressieve filtering, kan sommige legitieme e-mails onderscheppen",

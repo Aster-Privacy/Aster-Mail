@@ -3148,7 +3148,7 @@ export const fr = {
     save_changes: "Enregistrer les modifications",
     spam_low: "Faible",
     spam_low_description: "Seul le spam évident est filtré",
-    spam_medium: "Moyen (recommandé)",
+    spam_medium: "Moyen",
     spam_medium_description: "Filtrage équilibré",
     spam_high: "Élevé",
     spam_high_description: "Filtrage agressif, peut intercepter certains e-mails légitimes",

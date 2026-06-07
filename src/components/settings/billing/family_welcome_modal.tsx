@@ -130,7 +130,7 @@ export function FamilyWelcomeModal({
             className="px-8 pt-8 pb-6"
           >
             {/* Plan pill (stacked: plan on top, details below) */}
-            <div className="flex flex-col items-center gap-1 mb-6">
+            <div className="flex flex-col items-center gap-1 mb-6 w-full">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
                 {plan_name}
               </span>
@@ -138,7 +138,7 @@ export function FamilyWelcomeModal({
             </div>
 
             {/* Icon (no background, blue) */}
-            <div className="flex justify-center mb-5">
+            <div className="flex justify-center mb-5 w-full">
               <Icon className="w-12 h-12 text-accent-blue" strokeWidth={1.5} />
             </div>
 
@@ -168,10 +168,10 @@ export function FamilyWelcomeModal({
               onClick={() => go(i)}
               className={`rounded-full transition-all duration-300 ${
                 i === step
-                  ? "w-6 h-1.5 bg-accent-blue"
+                  ? "w-6 h-2 bg-accent-blue"
                   : i < step
-                  ? "w-1.5 h-1.5 bg-accent-blue opacity-40"
-                  : "w-1.5 h-1.5 bg-edge-secondary"
+                  ? "w-1.5 h-2 bg-accent-blue opacity-40"
+                  : "w-1.5 h-2 bg-edge-secondary"
               }`}
               aria-label={`Step ${i + 1}: ${s.title}`}
             />
@@ -182,7 +182,7 @@ export function FamilyWelcomeModal({
         <div className="px-6 pb-6 pt-3 flex items-center justify-between border-t border-edge-secondary mt-2">
           <button
             onClick={handle_close}
-            className="text-sm font-medium text-txt-muted hover:text-txt-secondary bg-transparent px-2 py-2 outline-none focus:outline-none"
+            className="aster_btn aster_btn_ghost aster_btn_sm"
           >
             Skip
           </button>
@@ -190,14 +190,14 @@ export function FamilyWelcomeModal({
             {step > 0 && (
               <button
                 onClick={() => go(step - 1)}
-                className="px-6 py-2.5 rounded-full text-sm font-semibold text-accent-blue bg-transparent border border-accent-blue hover:bg-accent-blue/10 outline-none focus:outline-none transition-colors"
+                className="aster_btn aster_btn_depth aster_btn_sm"
               >
                 Back
               </button>
             )}
             <button
               onClick={handle_next}
-              className="px-6 py-2.5 rounded-full text-sm font-semibold text-white bg-accent-blue hover:opacity-90 active:bg-green-500 outline-none focus:outline-none shadow-none transition-colors flex items-center gap-1.5"
+              className="aster_btn aster_btn_depth aster_btn_sm flex items-center gap-1.5"
             >
               {is_last ? (
                 <>

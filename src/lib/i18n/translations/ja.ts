@@ -3158,7 +3158,7 @@ export const ja = {
     save_changes: "変更を保存",
     spam_low: "低",
     spam_low_description: "明らかなスパムのみフィルタリングされます",
-    spam_medium: "中（推奨）",
+    spam_medium: "中",
     spam_medium_description: "バランスの取れたフィルタリング",
     spam_high: "高",
     spam_high_description: "積極的なフィルタリング、一部の正当なメールがキャッチされる場合があります",

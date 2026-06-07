@@ -3171,7 +3171,7 @@ export const ko = {
     save_changes: "변경 사항 저장",
     spam_low: "낮음",
     spam_low_description: "명백한 스팸만 필터링됩니다",
-    spam_medium: "보통 (권장)",
+    spam_medium: "보통",
     spam_medium_description: "균형 잡힌 필터링",
     spam_high: "높음",
     spam_high_description: "공격적인 필터링으로, 일부 정상 이메일이 필터링될 수 있습니다",

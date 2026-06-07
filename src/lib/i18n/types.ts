@@ -2426,6 +2426,7 @@ export interface SettingsTranslations {
   fam_org_ret_confirm_action: string;
   fam_org_ret_load_failed: string;
   fam_org_ret_save_failed: string;
+  controlled_by_family_admin: string;
   fam_consent_title: string;
   fam_consent_body: string;
   fam_consent_cancel: string;
@@ -4450,6 +4451,8 @@ export interface MailTranslations {
   trash_subtitle: string;
   trash_auto_delete_notice: string;
   spam_auto_delete_notice: string;
+  trash_auto_delete_notice_family: string;
+  spam_auto_delete_notice_family: string;
   compose_email: string;
   one_hour_option: string;
   twenty_four_hours_option: string;

@@ -3150,7 +3150,7 @@ export const tr = {
     save_changes: "Değişiklikleri Kaydet",
     spam_low: "Düşük",
     spam_low_description: "Yalnızca belirgin spam filtrelenir",
-    spam_medium: "Orta (Önerilen)",
+    spam_medium: "Orta",
     spam_medium_description: "Dengeli filtreleme",
     spam_high: "Yüksek",
     spam_high_description: "Agresif filtreleme, bazı meşru e-postaları yakalayabilir",

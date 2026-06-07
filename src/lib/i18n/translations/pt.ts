@@ -3151,7 +3151,7 @@ export const pt = {
     save_changes: "Salvar Alterações",
     spam_low: "Baixa",
     spam_low_description: "Apenas spam óbvio é filtrado",
-    spam_medium: "Média (Recomendada)",
+    spam_medium: "Média",
     spam_medium_description: "Filtragem equilibrada",
     spam_high: "Alta",
     spam_high_description: "Filtragem agressiva, pode capturar alguns e-mails legítimos",

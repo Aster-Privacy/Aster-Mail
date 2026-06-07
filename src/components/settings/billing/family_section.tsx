@@ -50,6 +50,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch, Button } from "@aster/ui";
 import { get_avatar_color } from "@/lib/avatar_color";
+import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { change_plan } from "@/services/api/billing";
 import {
   list_org_groups, create_org_group, delete_org_group,
@@ -78,6 +79,7 @@ import {
   type FamilyMemberInfo,
 } from "@/services/api/family";
 import { show_toast } from "@/components/toast/simple_toast";
+import { check_alias_availability } from "@/services/api/aliases";
 import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { format_bytes } from "@/lib/utils";
@@ -241,7 +243,6 @@ function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on
     finally { set_saving_storage(false); }
   }, [storage_input, member.user_id, on_reload, t]);
 
-  const avatar_color = get_avatar_color(member.username);
   const badge_class = member.role === "owner" ? "aster_badge aster_badge_blue"
     : member.status === "grace" ? "aster_badge aster_badge_amber"
     : "aster_badge aster_badge_gray";
@@ -253,9 +254,11 @@ function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on
 
   return (
     <div className="flex items-center gap-3 py-3">
-      <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-bold select-none" style={{ backgroundColor: avatar_color }}>
-        {member.username[0]?.toUpperCase()}
-      </div>
+      <ProfileAvatar
+        email={`${member.username}@${member.email_domain}`}
+        name={member.username}
+        size="sm"
+      />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-medium text-txt-primary truncate">{member.username}@{member.email_domain}</span>
@@ -411,7 +414,14 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
     try {
       const payload: { name: string; email_local_part?: string; domain_name?: string } = { name: new_name.trim() };
       if (new_email_prefix.trim() && new_domain) {
-        payload.email_local_part = new_email_prefix.trim().toLowerCase();
+        const trimmed_prefix = new_email_prefix.trim().toLowerCase();
+        const availability = await check_alias_availability(trimmed_prefix, new_domain);
+        if (!availability.data?.available) {
+          show_toast(t("settings.fam_org_groups_address_in_use"), "error");
+          set_creating(false);
+          return;
+        }
+        payload.email_local_part = trimmed_prefix;
         payload.domain_name = new_domain;
       }
       const r = await create_org_group(payload);
@@ -1535,8 +1545,8 @@ function SecurityContent({ other_member_count, initial_security, initial_complia
               )}
             </div>
             <div className="flex gap-2">
-              <button className="aster_btn aster_btn_ghost aster_btn_sm flex-1" onClick={() => set_confirm_open(false)}>{t("settings.fam_org_sec_confirm_cancel")}</button>
-              <button className="aster_btn aster_btn_primary aster_btn_sm flex-1" onClick={do_save}>{t("settings.fam_org_sec_confirm_apply")}</button>
+              <button className="aster_btn aster_btn_ghost aster_btn_md flex-1" onClick={() => set_confirm_open(false)}>{t("settings.fam_org_sec_confirm_cancel")}</button>
+              <button className="aster_btn aster_btn_primary aster_btn_md flex-1" onClick={do_save}>{t("settings.fam_org_sec_confirm_apply")}</button>
             </div>
           </div>
         </div>
@@ -1654,7 +1664,8 @@ function RetentionContent({ other_member_count, initial_retention }: { other_mem
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Input type="number" min="1"
                   value={(policy[key] as number | null) ?? ""}
-                  onChange={e => apply({ ...policy, [key]: e.target.value ? parseInt(e.target.value) : null }, true)}
+                  onChange={e => set_policy({ ...policy, [key]: e.target.value ? parseInt(e.target.value) : null })}
+                  onBlur={e => apply({ ...policy, [key]: e.target.value ? parseInt(e.target.value) : null })}
                   className="w-20" placeholder={t("settings.fam_org_ret_off")} />
                 <span className="text-xs text-txt-muted">{t("settings.fam_org_ret_days")}</span>
               </div>
@@ -1761,6 +1772,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [action_loading, set_action_loading] = useState(false);
   const [changing_plan, set_changing_plan] = useState(false);
   const [compliance_map, set_compliance_map] = useState<Record<string, MemberComplianceInfo>>({});
+  const [compliance_loaded, set_compliance_loaded] = useState(false);
   const [wizard_open, set_wizard_open] = useState(false);
   const [wizard_step, set_wizard_step] = useState(1);
   const [wizard_invite_email, set_wizard_invite_email] = useState("");
@@ -1786,9 +1798,9 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     try { set_checklist_dismissed(localStorage.getItem(`aster_family_checklist_dismissed_${group.id}`) === "1"); } catch {}
   }, [group?.id]);
 
-  // Preload compliance map keyed on group.id so it resets if the group changes
   useEffect(() => {
     if (group?.viewer_role !== "owner" || !group?.id) return;
+    set_compliance_loaded(false);
     get_member_compliance()
       .then(r => {
         if (r.data) {
@@ -1797,7 +1809,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           set_compliance_map(map);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => set_compliance_loaded(true));
   }, [group?.id, group?.viewer_role]);
 
   const cache_invite_url = useCallback((group_id: string, invite_id: string, join_url: string) => {
@@ -2256,13 +2269,14 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               </div>
               {(() => {
                 const comp_members = Object.values(compliance_map);
-                if (comp_members.length === 0) {
+                if (!compliance_loaded) {
                   return (
                     <div className="flex items-center justify-between mt-2.5">
                       <span className="flex items-center gap-1.5 text-xs text-txt-muted"><Spinner size="sm" /> {t("settings.fam_org_summary_checking")}</span>
                     </div>
                   );
                 }
+                if (comp_members.length === 0) return null;
                 const compliant = comp_members.filter(m => m.has_2fa).length;
                 const total = comp_members.length;
                 const all_ok = compliant === total;
@@ -2399,6 +2413,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                       ref={turnstile_ref}
                       on_verify={set_invite_captcha}
                       on_expire={() => set_invite_captcha(null)}
+                      class_name="flex justify-start mt-4"
                     />
                   )}
                   <div className="flex gap-2">
