@@ -21,6 +21,7 @@
 import { clear_all_session_passphrases } from "./session_passphrase";
 
 import { api_client } from "@/services/api/client";
+import { purge_favicon_cache } from "@/lib/favicon_cache_db";
 import { wipe_all_storage } from "@/services/crypto/secure_storage";
 import {
   logout_all as storage_logout_all,
@@ -88,6 +89,12 @@ export async function purge_all_local_data(): Promise<void> {
 
   try {
     await clear_all_session_passphrases();
+  } catch (e) {
+    errors.push(e instanceof Error ? e : new Error(String(e)));
+  }
+
+  try {
+    await purge_favicon_cache();
   } catch (e) {
     errors.push(e instanceof Error ? e : new Error(String(e)));
   }

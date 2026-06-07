@@ -24,6 +24,7 @@ import { BrowserRouter, HashRouter } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 
 import App from "@/App";
+import { evict_stale_favicons } from "@/lib/favicon_cache_db";
 import UnsupportedBrowserPage from "@/pages/unsupported_browser";
 import { Provider } from "@/provider";
 import { initialize_capacitor, hide_splash } from "@/native/capacitor_bridge";
@@ -304,6 +305,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </Provider>
   </Router>,
 );
+
+setTimeout(() => {
+  evict_stale_favicons().catch(() => {});
+}, 3000);
 
 function dismiss_initial_loader() {
   hide_splash().catch(() => {});

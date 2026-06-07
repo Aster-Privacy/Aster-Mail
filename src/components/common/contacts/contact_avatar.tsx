@@ -27,9 +27,14 @@ import {
 } from "@/lib/icon_cache";
 import { get_favicon_url, is_valid_favicon_domain } from "@/lib/favicon_url";
 import { get_initials, get_active_locale } from "@/lib/initials";
+import {
+  use_favicon_src,
+  store_favicon_if_api_url,
+} from "@/hooks/use_favicon_src";
 import { get_avatar_color, get_contrast_text } from "@/lib/avatar_color";
 import { get_root_domain } from "@/lib/utils";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
+import { use_preferences } from "@/contexts/preferences_context";
 
 const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
 
@@ -73,6 +78,10 @@ export function ContactAvatar({
     domain ? is_icon_failed(domain) : false,
   );
 
+  const { preferences } = use_preferences();
+
+  const cached_favicon_src = use_favicon_src(domain);
+
   const base_style = {
     width: size_px,
     height: size_px,
@@ -110,7 +119,7 @@ export function ContactAvatar({
           className="object-contain"
           draggable={false}
           referrerPolicy="no-referrer"
-          src={get_favicon_url(domain)}
+          src={cached_favicon_src || get_favicon_url(domain)}
           style={{
             width: size_px - pad * 2,
             height: size_px - pad * 2,
@@ -128,6 +137,9 @@ export function ContactAvatar({
               set_favicon_failed(true);
             } else {
               mark_icon_ok(domain);
+              if (!preferences.low_network_mode) {
+                store_favicon_if_api_url(domain, img.src);
+              }
             }
           }}
         />

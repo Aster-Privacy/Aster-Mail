@@ -27,6 +27,11 @@ import {
 } from "@/lib/icon_cache";
 import { get_favicon_url } from "@/lib/favicon_url";
 import { get_root_domain } from "@/lib/utils";
+import {
+  use_favicon_src,
+  store_favicon_if_api_url,
+} from "@/hooks/use_favicon_src";
+import { use_preferences } from "@/contexts/preferences_context";
 
 interface DomainLogoProps {
   domain?: string;
@@ -225,7 +230,18 @@ export const DomainLogo = memo(function DomainLogo({
     };
   }, [resolved_domain]);
 
-  const ddg_logo_url = show_ddg ? get_favicon_url(resolved_domain) : null;
+  const { preferences } = use_preferences();
+
+  const cached_favicon_src = use_favicon_src(resolved_domain);
+
+  useEffect(() => {
+    if (cached_favicon_src.startsWith("blob:") && show_ddg === null) {
+      set_show_ddg(true);
+      mark_icon_ok(resolved_domain);
+    }
+  }, [cached_favicon_src, show_ddg, resolved_domain]);
+
+  const ddg_logo_url = show_ddg ? cached_favicon_src : null;
 
   const fallback_svg = useMemo(() => {
     const display_name = fallback_name || resolved_domain;
@@ -245,9 +261,19 @@ export const DomainLogo = memo(function DomainLogo({
     set_show_ddg(false);
   }, [resolved_domain]);
 
+  const handle_ddg_load = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      if (!preferences.low_network_mode) {
+        store_favicon_if_api_url(resolved_domain, e.currentTarget.src);
+      }
+    },
+    [resolved_domain, preferences.low_network_mode],
+  );
+
   const src = ddg_logo_url || fallback_svg;
 
   const on_error = ddg_logo_url ? handle_ddg_error : undefined;
+  const on_load = ddg_logo_url ? handle_ddg_load : undefined;
 
   return (
     <img
@@ -260,6 +286,7 @@ export const DomainLogo = memo(function DomainLogo({
       style={{ userSelect: "none" }}
       width={pixel_size}
       onError={on_error}
+      onLoad={on_load}
     />
   );
 });
