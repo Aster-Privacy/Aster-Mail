@@ -241,8 +241,14 @@ export function EmailInbox({
     current_page,
     categories.enabled,
   );
+
+  const prev_categories_enabled_ref = useRef(categories.enabled);
+  const categories_just_disabled = prev_categories_enabled_ref.current && !categories.enabled;
+  prev_categories_enabled_ref.current = categories.enabled;
+
+  const active_list = categories.enabled ? category_list : default_list;
   const {
-    state: mail_state,
+    state: raw_mail_state,
     fetch_page,
     update_email,
     remove_email,
@@ -250,7 +256,14 @@ export function EmailInbox({
     bulk_delete,
     bulk_archive,
     bulk_unarchive,
-  } = categories.enabled ? category_list : default_list;
+  } = active_list;
+
+  const mail_state = useMemo(() => {
+    if (categories_just_disabled) {
+      return { ...raw_mail_state, emails: [], is_loading: true, has_initial_load: false };
+    }
+    return raw_mail_state;
+  }, [categories_just_disabled, raw_mail_state]);
   const {
     state: drafts_state,
     update_draft,

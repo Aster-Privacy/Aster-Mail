@@ -1839,6 +1839,7 @@ export const tr = {
     fam_org_activity_storage_updated_generic: "{{actor}} depolamayı güncelledi",
     fam_org_activity_events: "{{count}} etkinlik",
     fam_org_activity_events_plural: "{{count}} etkinlik",
+    fam_org_activity_search_placeholder: "Aktivite ara...",
     fam_org_activity_all_events: "Tüm etkinlikler",
     fam_org_activity_empty_title: "Henüz etkinlik yok",
     fam_org_activity_empty_desc: "Üye katılımları, güvenlik değişiklikleri ve yönetim işlemleri burada görünecek.",

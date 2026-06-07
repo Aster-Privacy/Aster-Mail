@@ -1839,6 +1839,7 @@ export const ja = {
     fam_org_activity_storage_updated_generic: "{{actor}} がストレージを更新しました",
     fam_org_activity_events: "{{count}} 件のイベント",
     fam_org_activity_events_plural: "{{count}} 件のイベント",
+    fam_org_activity_search_placeholder: "アクティビティを検索...",
     fam_org_activity_all_events: "すべてのイベント",
     fam_org_activity_empty_title: "アクティビティはまだありません",
     fam_org_activity_empty_desc: "メンバーの参加、セキュリティの変更、管理操作がここに表示されます。",

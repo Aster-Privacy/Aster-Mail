@@ -1839,6 +1839,7 @@ export const ru = {
     fam_org_activity_storage_updated_generic: "{{actor}} обновил хранилище",
     fam_org_activity_events: "{{count}} событие",
     fam_org_activity_events_plural: "{{count}} событий",
+    fam_org_activity_search_placeholder: "Поиск активности...",
     fam_org_activity_all_events: "Все события",
     fam_org_activity_empty_title: "Активности пока нет",
     fam_org_activity_empty_desc: "Здесь будут отображаться присоединения участников, изменения безопасности и административные действия.",

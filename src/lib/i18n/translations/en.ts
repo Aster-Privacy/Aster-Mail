@@ -2176,6 +2176,7 @@ export const en: Translations = {
     fam_org_activity_events: "{{count}} event",
     fam_org_activity_events_plural: "{{count}} events",
     fam_org_activity_all_events: "All events",
+    fam_org_activity_search_placeholder: "Search activity...",
     fam_org_activity_empty_title: "No activity yet",
     fam_org_activity_empty_desc: "Member joins, security changes, and administrative actions will appear here.",
     fam_org_activity_cat_member_joins: "Member joins",

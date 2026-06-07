@@ -1839,6 +1839,7 @@ export const nl = {
     fam_org_activity_storage_updated_generic: "{{actor}} heeft de opslag bijgewerkt",
     fam_org_activity_events: "{{count}} gebeurtenis",
     fam_org_activity_events_plural: "{{count}} gebeurtenissen",
+    fam_org_activity_search_placeholder: "Activiteit zoeken...",
     fam_org_activity_all_events: "Alle gebeurtenissen",
     fam_org_activity_empty_title: "Nog geen activiteit",
     fam_org_activity_empty_desc: "Toetredende leden, beveiligingswijzigingen en beheeracties verschijnen hier.",

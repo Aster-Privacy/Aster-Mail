@@ -95,7 +95,7 @@ export function CategoryTabs({
             />
             <span>{t(label_key)}</span>
             {show_new ? (
-              <span className="inline-flex items-center rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-semibold leading-none tabular-nums text-white">
+              <span className="aster_badge aster_badge_blue">
                 {format_count(new_count)} {t("mail.tab_new_count")}
               </span>
             ) : unread > 0 ? (

@@ -2262,6 +2262,7 @@ export interface SettingsTranslations {
   fam_org_activity_events: string;
   fam_org_activity_events_plural: string;
   fam_org_activity_all_events: string;
+  fam_org_activity_search_placeholder: string;
   fam_org_activity_empty_title: string;
   fam_org_activity_empty_desc: string;
   fam_org_activity_cat_member_joins: string;
