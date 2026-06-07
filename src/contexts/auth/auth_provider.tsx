@@ -104,8 +104,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const set_is_adding_account = useCallback((value: boolean) => {
     if (value) {
       api_client.suspend_account_persist();
+      api_client.begin_account_add();
     } else {
       api_client.resume_account_persist();
+      api_client.end_account_add();
     }
     _set_is_adding_account(value);
   }, []);

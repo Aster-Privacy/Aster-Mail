@@ -1388,6 +1388,7 @@ export const ru = {
     family_invite_expires: "Истекает {{date}}",
     family_invite_pending: "Ожидание",
     family_invite_revoke: "Отозвать",
+    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "Владелец",
     family_member_member: "Участник",
     family_member_grace: "Льготный период",

@@ -1967,6 +1967,7 @@ export const en: Translations = {
     family_invite_expires: "Expires {{date}}",
     family_invite_pending: "Pending",
     family_invite_revoke: "Revoke",
+    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "Owner",
     family_member_member: "Member",
     family_member_grace: "Grace period",

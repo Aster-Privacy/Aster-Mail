@@ -2103,6 +2103,7 @@ export interface SettingsTranslations {
   family_invite_expires: string;
   family_invite_pending: string;
   family_invite_revoke: string;
+  family_invite_wrong_recipient: string;
   family_member_owner: string;
   family_member_member: string;
   family_member_grace: string;

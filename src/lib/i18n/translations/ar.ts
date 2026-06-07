@@ -1388,6 +1388,7 @@ export const ar = {
     family_invite_expires: "تنتهي الصلاحية في {{date}}",
     family_invite_pending: "قيد الانتظار",
     family_invite_revoke: "إلغاء",
+    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "المالك",
     family_member_member: "عضو",
     family_member_grace: "فترة سماح",

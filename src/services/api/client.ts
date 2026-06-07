@@ -221,6 +221,7 @@ class ApiClient {
   private session_expired_dispatched: boolean = false;
   private intentional_logout: boolean = false;
   private has_ever_authenticated: boolean = false;
+  private account_add_in_progress: boolean = false;
 
   constructor() {
     this.load_stored_tokens();
@@ -705,10 +706,19 @@ class ApiClient {
 
   private dispatch_session_expired(force: boolean = false): void {
     if (this.intentional_logout) return;
+    if (this.account_add_in_progress) return;
     if (this.session_expired_dispatched) return;
     if (!force && !this.has_ever_authenticated) return;
     this.session_expired_dispatched = true;
     window.dispatchEvent(new Event("astermail:session-expired"));
+  }
+
+  begin_account_add(): void {
+    this.account_add_in_progress = true;
+  }
+
+  end_account_add(): void {
+    this.account_add_in_progress = false;
   }
 
   begin_intentional_logout(): void {

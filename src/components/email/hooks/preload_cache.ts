@@ -28,6 +28,7 @@ import type {
   ThreadReplySentEventDetail,
   ThreadReplyOptimisticEventDetail,
   ThreadReplyCancelledEventDetail,
+  MailItemUpdatedEventDetail,
 } from "@/hooks/mail_events";
 
 import { get_email_username, is_system_email } from "@/lib/utils";
@@ -261,6 +262,38 @@ window.addEventListener(MAIL_EVENTS.THREAD_REPLY_CANCELLED, ((
       });
     }
   }
+}) as EventListener);
+
+window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, ((
+  event: CustomEvent<MailItemUpdatedEventDetail>,
+) => {
+  const detail = event.detail;
+  if (!detail) return;
+
+  const cached = preload_cache.get(detail.id);
+  if (!cached) return;
+
+  const has_read_change = detail.is_read !== undefined;
+  const has_metadata_change =
+    detail.encrypted_metadata !== undefined && detail.metadata_nonce !== undefined;
+
+  if (!has_read_change && !has_metadata_change) return;
+
+  preload_cache.set(detail.id, {
+    ...cached,
+    email: {
+      ...cached.email,
+      ...(has_read_change && { is_read: detail.is_read! }),
+    },
+    mail_item: {
+      ...cached.mail_item,
+      ...(has_read_change && { is_read: detail.is_read }),
+      ...(has_metadata_change && {
+        encrypted_metadata: detail.encrypted_metadata,
+        metadata_nonce: detail.metadata_nonce,
+      }),
+    },
+  });
 }) as EventListener);
 
 function presanitize(

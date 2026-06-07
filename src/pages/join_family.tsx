@@ -28,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { join_family, preview_invite, type InvitePreview } from "@/services/api/family";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
+import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import { Logo } from "@/components/auth/auth_styles";
@@ -38,12 +39,14 @@ export default function JoinFamilyPage() {
   const [search_params] = useSearchParams();
   const navigate = useNavigate();
   const { is_authenticated, is_loading } = use_auth();
+  const { t } = use_i18n();
   const token = search_params.get("token") ?? "";
 
   const [preview, set_preview] = useState<InvitePreview | null>(null);
   const [preview_loading, set_preview_loading] = useState(true);
   const [joining, set_joining] = useState(false);
   const [error_msg, set_error_msg] = useState<string | null>(null);
+  const [is_wrong_recipient, set_is_wrong_recipient] = useState(false);
   const [joined_bytes, set_joined_bytes] = useState<number | null>(null);
 
   useEffect(() => {
@@ -58,10 +61,15 @@ export default function JoinFamilyPage() {
     if (!token || joining) return;
     set_joining(true);
     set_error_msg(null);
+    set_is_wrong_recipient(false);
     try {
       const res = await join_family(token);
       if (!res.data) {
-        set_error_msg(res.error || "We couldn't add you to this family. The invite may have expired or already been used.");
+        if (res.error?.toLowerCase().includes("different email")) {
+          set_is_wrong_recipient(true);
+        } else {
+          set_error_msg(res.error || "We couldn't add you to this family. The invite may have expired or already been used.");
+        }
         return;
       }
       set_joined_bytes(res.data.allocated_storage_bytes);
@@ -164,6 +172,13 @@ export default function JoinFamilyPage() {
           </div>
         )}
 
+        {is_wrong_recipient && (
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl" style={{ background: "#ef4444", backgroundImage: "none", border: "none" }}>
+            <ExclamationTriangleIcon className="w-4 h-4 text-white flex-shrink-0" />
+            <p className="text-sm font-medium text-white">{t.settings.family_invite_wrong_recipient}</p>
+          </div>
+        )}
+
         {error_msg && (
           <div className="flex items-center gap-2 px-4 py-3 rounded-xl" style={{ background: "#ef4444", backgroundImage: "none", border: "none" }}>
             <ExclamationTriangleIcon className="w-4 h-4 text-white flex-shrink-0" />
@@ -171,7 +186,7 @@ export default function JoinFamilyPage() {
           </div>
         )}
 
-        {is_authenticated ? (
+        {is_authenticated && !is_wrong_recipient ? (
           <button
             onClick={handle_join}
             disabled={joining}
@@ -179,7 +194,7 @@ export default function JoinFamilyPage() {
           >
             {joining ? <><Spinner size="sm" /> Joining...</> : "Accept & Join"}
           </button>
-        ) : (
+        ) : is_authenticated ? null : (
           <div className="space-y-3">
             <Link
               to={`/register?next=${encodeURIComponent(`/join/family?token=${token}`)}`}

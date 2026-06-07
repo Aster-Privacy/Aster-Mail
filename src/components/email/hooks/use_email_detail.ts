@@ -99,6 +99,8 @@ export function use_email_detail() {
   const { state: folders_state } = use_folders();
   const { format_email_popup } = use_date_format();
   const { preferences, update_preference, save_now } = use_preferences();
+  const mark_as_read_delay_ref = useRef(preferences.mark_as_read_delay);
+  mark_as_read_delay_ref.current = preferences.mark_as_read_delay;
   const mark_as_read_timeout = useRef<number | null>(null);
   const has_loaded_once = useRef(false);
   const [mail_item, set_mail_item] = useState<
@@ -356,7 +358,7 @@ export function use_email_detail() {
         !cached.email.is_read &&
         (is_sent_type ||
           (item.item_type === "received" &&
-            preferences.mark_as_read_delay !== "never"));
+            mark_as_read_delay_ref.current !== "never"));
 
       if (should_auto_mark_read) {
         const is_received = item.item_type === "received";
@@ -386,11 +388,11 @@ export function use_email_detail() {
           });
         };
 
-        if (is_sent_type || preferences.mark_as_read_delay === "immediate") {
+        if (is_sent_type || mark_as_read_delay_ref.current === "immediate") {
           mark_read();
         } else {
           const delay_ms =
-            preferences.mark_as_read_delay === "1_second" ? 1000 : 3000;
+            mark_as_read_delay_ref.current === "1_second" ? 1000 : 3000;
 
           mark_as_read_timeout.current = window.setTimeout(mark_read, delay_ms);
         }
@@ -544,7 +546,7 @@ export function use_email_detail() {
         !decrypted_metadata?.is_read &&
         (is_sent_type ||
           (response.data.item_type === "received" &&
-            preferences.mark_as_read_delay !== "never"));
+            mark_as_read_delay_ref.current !== "never"));
 
       if (should_auto_mark_read) {
         const mail_data = response.data;
@@ -575,11 +577,11 @@ export function use_email_detail() {
           });
         };
 
-        if (is_sent_type || preferences.mark_as_read_delay === "immediate") {
+        if (is_sent_type || mark_as_read_delay_ref.current === "immediate") {
           mark_read();
         } else {
           const delay_ms =
-            preferences.mark_as_read_delay === "1_second" ? 1000 : 3000;
+            mark_as_read_delay_ref.current === "1_second" ? 1000 : 3000;
 
           mark_as_read_timeout.current = window.setTimeout(mark_read, delay_ms);
         }

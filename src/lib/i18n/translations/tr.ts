@@ -1388,6 +1388,7 @@ export const tr = {
     family_invite_expires: "Son geçerlilik: {{date}}",
     family_invite_pending: "Beklemede",
     family_invite_revoke: "İptal Et",
+    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "Sahip",
     family_member_member: "Üye",
     family_member_grace: "Ek süre",

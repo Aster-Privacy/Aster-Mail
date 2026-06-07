@@ -1388,6 +1388,7 @@ export const ko = {
     family_invite_expires: "{{date}}에 만료",
     family_invite_pending: "대기 중",
     family_invite_revoke: "취소",
+    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "소유자",
     family_member_member: "구성원",
     family_member_grace: "유예 기간",

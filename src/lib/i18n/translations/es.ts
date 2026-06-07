@@ -1388,6 +1388,7 @@ export const es = {
     family_invite_expires: "Caduca el {{date}}",
     family_invite_pending: "Pendiente",
     family_invite_revoke: "Revocar",
+    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "Propietario",
     family_member_member: "Miembro",
     family_member_grace: "Periodo de gracia",

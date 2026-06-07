@@ -1388,6 +1388,7 @@ export const zh_CN = {
     family_invite_expires: "{{date}} 过期",
     family_invite_pending: "待处理",
     family_invite_revoke: "撤销",
+    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "所有者",
     family_member_member: "成员",
     family_member_grace: "宽限期",

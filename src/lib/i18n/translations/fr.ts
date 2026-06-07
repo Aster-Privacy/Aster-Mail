@@ -1388,6 +1388,7 @@ export const fr = {
     family_invite_expires: "Expire le {{date}}",
     family_invite_pending: "En attente",
     family_invite_revoke: "Révoquer",
+    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "Propriétaire",
     family_member_member: "Membre",
     family_member_grace: "Période de grâce",

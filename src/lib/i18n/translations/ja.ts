@@ -1388,6 +1388,7 @@ export const ja = {
     family_invite_expires: "有効期限 {{date}}",
     family_invite_pending: "保留中",
     family_invite_revoke: "取り消す",
+    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "オーナー",
     family_member_member: "メンバー",
     family_member_grace: "猶予期間",
