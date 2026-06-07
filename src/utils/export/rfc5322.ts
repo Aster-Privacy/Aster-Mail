@@ -79,19 +79,14 @@ function emit_text_body(text: string, encoding: "7bit" | "quoted-printable"): Ui
 }
 
 function html_to_text_fallback(html: string): string {
-  const stripped = html
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<br\s*\/?>(\s*)/gi, "\n")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
-  return stripped.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("script, style").forEach((el) => el.remove());
+  doc.querySelectorAll("br").forEach((el) => el.replaceWith("\n"));
+  doc.querySelectorAll("p, div, li, h1, h2, h3, h4, h5, h6").forEach((el) =>
+    el.after("\n"),
+  );
+  const text = doc.body.textContent ?? "";
+  return text.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 interface BuiltHeaders {
