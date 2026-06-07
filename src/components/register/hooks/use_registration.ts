@@ -725,9 +725,11 @@ export function use_registration() {
     set_step("recovery_key");
   };
 
-  const handle_advance_from_recovery_key = async () => {
+  const handle_advance_from_recovery_key = () => {
     if (recovery_email_required && recovery_email.trim()) {
-      await handle_recovery_email_continue();
+      set_step("recovery_email_verification");
+      start_verification_polling();
+      start_resend_cooldown();
     } else {
       set_step("recovery_email");
     }
