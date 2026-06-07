@@ -396,10 +396,6 @@ function SecurityTab() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-txt-primary truncate">{m.username}@{m.email_domain}</p>
-                    <p className="text-xs text-txt-muted">
-                      {m.session_count} active session{m.session_count !== 1 ? "s" : ""}
-                      {m.last_login && <span> &middot; last login {new Date(m.last_login).toLocaleDateString()}</span>}
-                    </p>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     {m.has_2fa ? <span className="aster_badge aster_badge_green">2FA</span> : <span className="aster_badge aster_badge_amber">No 2FA</span>}

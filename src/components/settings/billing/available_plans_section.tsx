@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState } from "react";
-import { CheckIcon, SparklesIcon, UserGroupIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -49,7 +49,7 @@ interface AvailablePlansSectionProps {
   set_billing_period: (value: "monthly" | "yearly" | "biennial") => void;
   preferred_currency: string;
   handle_currency_change: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  plan_features: Record<string, string[]>;
+  plan_features: Record<string, { label: string; on: boolean }[]>;
   is_action_loading: boolean;
   on_upgrade: (plan: AvailablePlan) => void;
   current_billing_interval: "month" | "year";
@@ -132,7 +132,6 @@ export function AvailablePlansSection({
                 : { background: "transparent", color: "var(--txt-secondary)" }
               }
             >
-              {type === "family" && <UserGroupIcon className="w-3.5 h-3.5" />}
               {type === "individual" ? t("settings.plan_type_individual") : t("settings.plan_type_family")}
             </button>
           ))}
@@ -180,7 +179,11 @@ export function AvailablePlansSection({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {FAMILY_PLAN_TIERS.map((tier) => {
             const current_plan_code = subscription?.plan.code;
-            const is_current = current_plan_code === tier.id;
+            const card_interval: "month" | "year" = billing_period === "yearly" ? "year" : "month";
+            const is_same_plan = current_plan_code === tier.id;
+            const is_same_interval = current_billing_interval === card_interval;
+            const is_current = is_same_plan && is_same_interval;
+            const is_interval_switch = is_same_plan && !is_same_interval;
             const price_cents = billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents;
             const features = tier.max_members === 2 ? FAMILY_PLAN_DUO_FEATURES : FAMILY_PLAN_FAMILY_FEATURES;
 
@@ -189,27 +192,19 @@ export function AvailablePlansSection({
                 key={tier.id}
                 className="relative rounded-2xl border-2 overflow-hidden flex flex-col"
                 style={{
-                  borderColor: is_current
-                    ? "var(--accent-blue)"
-                    : tier.is_recommended
-                      ? "var(--accent-blue)"
-                      : "var(--border-secondary)",
-                  backgroundColor: tier.is_recommended ? "var(--accent-blue-subtle, var(--bg-tertiary))" : "var(--bg-tertiary)",
+                  borderColor: is_current ? "var(--accent-blue)" : "var(--border-secondary)",
+                  backgroundColor: "var(--bg-tertiary)",
                 }}
               >
-                <div className="px-5 pt-5 pb-4 text-center">
+                <div className="px-5 pt-5 pb-4 text-center" style={{ backgroundColor: "transparent" }}>
                   {is_current && (
                     <div className="inline-flex px-3 py-1 rounded-full text-xs font-medium mb-3" style={{ backgroundColor: "#2563eb", color: "#fff" }}>
                       {t("settings.current_plan")}
                     </div>
                   )}
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <UserGroupIcon className="w-5 h-5 text-txt-primary" />
-                    <h4 className="text-lg font-bold text-txt-primary">{tier.name}</h4>
-                  </div>
-                  <p className="text-xs text-txt-muted mb-3">
-                    {tier.max_members === 2 ? t("settings.family_duo_tagline") : t("settings.family_plan_tagline")}
-                  </p>
+
+                  <h4 className="text-lg font-bold text-txt-primary">{tier.name}</h4>
+
                   <div className="mt-2">
                     <span className="text-3xl font-bold text-txt-primary">
                       {format_price(convert_cents(price_cents, preferred_currency), preferred_currency)}
@@ -218,32 +213,37 @@ export function AvailablePlansSection({
                       {billing_period === "monthly" ? t("settings.per_month_short") : t("settings.per_year_short")}
                     </span>
                   </div>
+
                   {billing_period === "yearly" && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white mt-1.5" style={{ backgroundColor: "var(--accent-blue)" }}>
+                    <p className="text-xs font-medium mt-1.5" style={{ color: "var(--color-success)" }}>
                       {tier.savings_label}
-                    </span>
+                    </p>
                   )}
+
                   <Button
                     className="w-full mt-4"
                     disabled={is_action_loading || family_loading || is_current}
-                    variant={is_current ? "outline" : tier.is_recommended ? "primary" : "outline"}
+                    variant={is_current ? "outline" : "primary"}
                     onClick={() => { if (!is_current) handle_family_select(tier); }}
                   >
-                    {is_current ? t("settings.current_plan") : t("settings.upgrade")}
+                    {is_current
+                      ? t("settings.current_plan")
+                      : is_interval_switch
+                        ? (card_interval === "year" ? t("settings.switch_to_yearly") : t("settings.switch_to_monthly"))
+                        : t("settings.upgrade")}
                   </Button>
                 </div>
+
                 <div className="px-5 pb-5 flex-1" style={{ borderTop: "1px solid var(--border-secondary)" }}>
                   <div className="space-y-2.5 pt-4">
                     {features.map((feat, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <CheckIcon
-                          className="w-3.5 h-3.5 flex-shrink-0"
-                          strokeWidth={2.5}
-                          style={{ color: "var(--accent-blue)" }}
-                        />
-                        <span className="text-xs text-txt-secondary">
-                          {feat}
-                        </span>
+                        {feat.on ? (
+                          <CheckIcon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} style={{ color: "var(--accent-blue)" }} />
+                        ) : (
+                          <XMarkIcon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} style={{ color: "#dc2626" }} />
+                        )}
+                        <span className="text-xs text-txt-secondary">{feat.label}</span>
                       </div>
                     ))}
                   </div>
@@ -395,28 +395,24 @@ export function AvailablePlansSection({
                   borderTop: "1px solid var(--border-secondary)",
                 }}
               >
-                {tier.id !== "star" && (
-                  <p
-                    className="text-xs font-medium pt-4 pb-1"
-                    style={{ color: "var(--accent-blue)" }}
-                  >
-                    {tier.id === "nova"
-                      ? t("settings.all_star_features")
-                      : t("settings.all_nova_features")}
-                  </p>
-                )}
-                <div
-                  className={`space-y-2.5 ${tier.id === "star" ? "pt-4" : "pt-2"}`}
-                >
+                <div className="space-y-2.5 pt-4">
                   {plan_features[tier.id]?.map((feature, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <CheckIcon
-                        className="w-3.5 h-3.5 flex-shrink-0"
-                        strokeWidth={2.5}
-                        style={{ color: "var(--accent-blue)" }}
-                      />
+                      {feature.on ? (
+                        <CheckIcon
+                          className="w-3.5 h-3.5 flex-shrink-0"
+                          strokeWidth={2.5}
+                          style={{ color: "var(--accent-blue)" }}
+                        />
+                      ) : (
+                        <XMarkIcon
+                          className="w-3.5 h-3.5 flex-shrink-0"
+                          strokeWidth={2.5}
+                          style={{ color: "#dc2626" }}
+                        />
+                      )}
                       <span className="text-xs text-txt-secondary">
-                        {feature}
+                        {feature.label}
                       </span>
                     </div>
                   ))}

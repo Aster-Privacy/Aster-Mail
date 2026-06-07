@@ -481,11 +481,22 @@ export const RegisterStepPlanSelection = ({
                 </div>
                 <ul className="flex flex-col gap-3 flex-1">
                   {features.map((feat, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-[13px] leading-snug text-txt-primary">
-                      <span className="shrink-0 mt-[1px]" style={{ color: "var(--accent-blue)" }}>
-                        {CHECK_SVG}
+                    <li
+                      key={i}
+                      className="flex items-start gap-2.5 text-[13px] leading-snug"
+                      style={{
+                        color: feat.on
+                          ? "var(--text-primary)"
+                          : "var(--text-muted)",
+                      }}
+                    >
+                      <span
+                        className="shrink-0 mt-[1px]"
+                        style={{ color: feat.on ? "var(--accent-blue)" : "#dc2626" }}
+                      >
+                        {feat.on ? CHECK_SVG : CROSS_SVG}
                       </span>
-                      <span className="flex-1">{feat}</span>
+                      <span className="flex-1">{feat.label}</span>
                     </li>
                   ))}
                 </ul>
