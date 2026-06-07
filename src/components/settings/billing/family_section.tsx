@@ -432,6 +432,19 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
     finally { set_creating(false); }
   };
 
+  const [address_available, set_address_available] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!new_email_prefix || new_email_prefix.length < 2) { set_address_available(null); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const r = await check_alias_availability(new_email_prefix, new_domain);
+        set_address_available(r.data?.available ?? null);
+      } catch { set_address_available(null); }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [new_email_prefix, new_domain]);
+
   const [confirm_delete_gid, set_confirm_delete_gid] = useState<string | null>(null);
 
   const handle_delete = (gid: string) => { set_confirm_delete_gid(gid); };
@@ -484,12 +497,12 @@ function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
     <div className="space-y-4">
       <div className="flex gap-2 items-start">
         <Input placeholder={t("settings.fam_org_groups_name_placeholder")} value={new_name} onChange={e => set_new_name(e.target.value)} onKeyDown={e => e.key === "Enter" && handle_create()} className="flex-1" size="md" />
-        <div className="flex items-center h-9 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] overflow-hidden flex-1 min-w-0">
+        <div className={`flex items-center h-9 rounded-xl border bg-white dark:bg-white/[0.04] overflow-hidden flex-1 min-w-0 ${address_available === true ? "border-green-500" : address_available === false ? "border-red-500" : "border-black/10 dark:border-white/10"}`}>
           <input
             className="bg-transparent text-sm text-txt-primary outline-none px-3 h-full flex-1 min-w-0 placeholder:text-txt-muted"
             placeholder={t("settings.fam_org_groups_prefix_placeholder")}
             value={new_email_prefix}
-            onChange={e => set_new_email_prefix(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""))}
+            onChange={e => { set_new_email_prefix(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, "")); set_address_available(null); }}
           />
           <span className="text-txt-muted text-sm px-1 select-none shrink-0">@</span>
           <Select value={new_domain} onValueChange={set_new_domain}>
@@ -726,6 +739,14 @@ function ActivityContent() {
         <div className="divide-y divide-edge-secondary">
           {entries.map(entry => (
             <div key={entry.id} className="flex items-center gap-3 py-3">
+              {entry.actor_username && (
+                <ProfileAvatar name={entry.actor_username} size="xs" className="flex-shrink-0" />
+              )}
+              {!entry.actor_username && (
+                <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-edge-secondary" />
+                </div>
+              )}
               <div className="flex-shrink-0">
                 {['member_joined','invite_sent'].includes(entry.event_type) ? <UserPlusIcon className="w-5 h-5 text-txt-muted" /> :
                  ['member_removed','invite_revoked','group_deleted'].includes(entry.event_type) ? <TrashIcon className="w-5 h-5 text-txt-muted" /> :
@@ -1202,14 +1223,15 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
       ) : (
         <div className="divide-y divide-edge-secondary">
           {domains.map(d => {
-            const owner_color = get_avatar_color(d.owner_username);
             return (
               <div key={d.domain_name} className="py-3 hover:bg-surf-secondary/50 transition-colors rounded-lg px-2 -mx-2">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-white text-[10px] font-bold" style={{ backgroundColor: owner_color }}>
-                      {d.owner_username[0]?.toUpperCase()}
-                    </div>
+                    <ProfileAvatar
+                      email={(() => { const om = members.find(m => m.user_id === d.owner_user_id); return om ? `${om.username}@${om.email_domain}` : undefined; })()}
+                      name={d.owner_username}
+                      size="xs"
+                    />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium text-txt-primary">{d.domain_name}</span>
@@ -1217,9 +1239,8 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
                         {d.shared_with_user_ids.length > 0 && (
                           <div className="flex items-center gap-0.5">
                             {d.shared_with_user_ids.map(uid => members.find(m => m.user_id === uid)).filter((m): m is FamilyMemberInfo => !!m).map(m => (
-                              <div key={m.user_id} className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold ring-1 ring-edge-secondary -ml-1 first:ml-0"
-                                style={{ backgroundColor: get_avatar_color(m.username) }} title={`${m.username}@${m.email_domain}`}>
-                                {m.username[0]?.toUpperCase()}
+                              <div key={m.user_id} className="-ml-1 first:ml-0 ring-1 ring-edge-secondary rounded-full" title={`${m.username}@${m.email_domain}`}>
+                                <ProfileAvatar email={`${m.username}@${m.email_domain}`} name={m.username} size="xs" />
                               </div>
                             ))}
                           </div>
