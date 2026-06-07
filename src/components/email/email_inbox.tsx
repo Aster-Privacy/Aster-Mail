@@ -80,6 +80,8 @@ import { BottomPagination } from "@/components/email/inbox/inbox_bottom_paginati
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
 import { get_spam_settings } from "@/services/api/preferences";
+import { get_member_retention_policy } from "@/services/api/family_org";
+import type { MemberRetentionPolicy } from "@/services/api/family_org";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_toolbar_actions";
 import { use_inbox_keyboard } from "@/components/email/inbox/use_inbox_keyboard";
@@ -168,6 +170,7 @@ export function EmailInbox({
   const [spam_retention_days, set_spam_retention_days] = useState<
     number | null
   >(null);
+  const [family_policy, set_family_policy] = useState<MemberRetentionPolicy | null>(null);
 
   useEffect(() => {
     get_spam_settings().then((result) => {
@@ -175,6 +178,11 @@ export function EmailInbox({
         set_spam_retention_days(result.data.spam_retention_days);
       }
     });
+    get_member_retention_policy().then((result) => {
+      if (result.data) {
+        set_family_policy(result.data);
+      }
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -1251,14 +1259,36 @@ export function EmailInbox({
 
         {(current_view === "trash" || current_view === "spam") &&
           !selection.some_selected &&
-          !selection.all_selected &&
-          spam_retention_days !== null &&
-          spam_retention_days > 0 && (
-            <TrashBanner
-              retention_days={spam_retention_days}
-              view={current_view as "trash" | "spam"}
-            />
-          )}
+          !selection.all_selected && (() => {
+            const is_trash = current_view === "trash";
+            const family_enforced = !!family_policy?.enforce_on_members;
+            let effective_days: number | null;
+            let banner_family_enforced: boolean;
+            if (is_trash) {
+              if (family_enforced && family_policy?.trash_retention_days != null && family_policy.trash_retention_days > 0) {
+                effective_days = family_policy.trash_retention_days;
+                banner_family_enforced = true;
+              } else {
+                effective_days = null;
+                banner_family_enforced = false;
+              }
+            } else {
+              if (family_enforced && family_policy?.spam_retention_days != null && family_policy.spam_retention_days > 0) {
+                effective_days = family_policy.spam_retention_days;
+                banner_family_enforced = true;
+              } else {
+                effective_days = spam_retention_days;
+                banner_family_enforced = false;
+              }
+            }
+            return effective_days !== null && effective_days > 0 ? (
+              <TrashBanner
+                family_enforced={banner_family_enforced}
+                retention_days={effective_days}
+                view={current_view as "trash" | "spam"}
+              />
+            ) : null;
+          })()}
 
         {show_full_email_viewer && split_email_id ? (
           <div className="flex-1 overflow-hidden">

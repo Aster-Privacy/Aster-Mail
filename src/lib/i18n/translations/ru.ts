@@ -3152,7 +3152,7 @@ export const ru = {
     save_changes: "Сохранить изменения",
     spam_low: "Низкая",
     spam_low_description: "Фильтруется только очевидный спам",
-    spam_medium: "Средняя (рекомендуется)",
+    spam_medium: "Средняя",
     spam_medium_description: "Сбалансированная фильтрация",
     spam_high: "Высокая",
     spam_high_description: "Агрессивная фильтрация, может затронуть некоторые легитимные письма",

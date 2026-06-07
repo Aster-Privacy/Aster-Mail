@@ -19,10 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { SpamSettings } from "@/services/api/preferences";
+import type { MemberRetentionPolicy } from "@/services/api/family_org";
 
 import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
-import { CheckIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import { Switch, UpgradeBtn } from "@aster/ui";
 
 import {
@@ -42,6 +43,7 @@ import {
   get_spam_settings,
   save_spam_settings,
 } from "@/services/api/preferences";
+import { get_member_retention_policy } from "@/services/api/family_org";
 import {
   SWIPE_ACTION_OPTIONS,
   get_swipe_action,
@@ -64,6 +66,7 @@ export function BehaviorSection({
     spam_sensitivity: "medium",
     spam_filter_enabled: true,
   });
+  const [family_policy, set_family_policy] = useState<MemberRetentionPolicy | null>(null);
   const is_web = !Capacitor.isNativePlatform();
   const [mailto_registered, set_mailto_registered] = useState(() => {
     try {
@@ -95,6 +98,9 @@ export function BehaviorSection({
     get_spam_settings().then((result) => {
       if (result.data) set_spam_settings(result.data);
     });
+    get_member_retention_policy().then((result) => {
+      if (result.data) set_family_policy(result.data);
+    }).catch(() => {});
   }, []);
 
   const update_spam_settings = (patch: Partial<SpamSettings>) => {
@@ -584,39 +590,47 @@ export function BehaviorSection({
                 <p className="mb-2 text-[13px] text-[var(--text-muted)]">
                   {t("settings.auto_delete_spam_after")}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {spam_retention_options.map((opt) => {
-                    const current =
-                      spam_settings.spam_retention_days === 0
-                        ? "never"
-                        : String(spam_settings.spam_retention_days);
-
-                    return (
-                      <button
-                        key={opt.value}
-                        className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
-                          current === opt.value
-                            ? "text-white"
-                            : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
-                        }`}
-                        style={
-                          current === opt.value ? chip_selected_style : undefined
-                        }
-                        type="button"
-                        onClick={() =>
-                          update_spam_settings({
-                            spam_retention_days:
-                              opt.value === "never"
-                                ? 0
-                                : parseInt(opt.value, 10),
-                          })
-                        }
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
+                {(() => {
+                  const spam_enforced = !!family_policy?.enforce_on_members && family_policy.spam_retention_days != null;
+                  const effective_value = spam_enforced
+                    ? (family_policy!.spam_retention_days === 0 ? "never" : String(family_policy!.spam_retention_days))
+                    : (spam_settings.spam_retention_days === 0 ? "never" : String(spam_settings.spam_retention_days));
+                  return (
+                    <>
+                      {spam_enforced && (
+                        <p className="mb-2 flex items-center gap-1 text-[12px] text-amber-500">
+                          <LockClosedIcon className="h-3 w-3 flex-shrink-0" />
+                          {t("settings.controlled_by_family_admin")}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {spam_retention_options.map((opt) => (
+                          <button
+                            key={opt.value}
+                            className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                              effective_value === opt.value
+                                ? "text-white"
+                                : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
+                            } ${spam_enforced ? "opacity-60 cursor-not-allowed" : ""}`}
+                            style={
+                              effective_value === opt.value ? chip_selected_style : undefined
+                            }
+                            type="button"
+                            disabled={spam_enforced}
+                            onClick={() => {
+                              if (spam_enforced) return;
+                              update_spam_settings({
+                                spam_retention_days: opt.value === "never" ? 0 : parseInt(opt.value, 10),
+                              });
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </>
           )}

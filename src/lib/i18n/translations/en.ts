@@ -2340,6 +2340,7 @@ export const en: Translations = {
     fam_org_ret_confirm_action: "Enforce on all members",
     fam_org_ret_load_failed: "Failed to load retention settings",
     fam_org_ret_save_failed: "Failed to save",
+    controlled_by_family_admin: "Controlled by family admin",
     fam_consent_title: "Member consent required",
     fam_consent_body: "This change affects all family members' data. A consent request will be sent to {{count}} member(s). The change will only take effect once all members have accepted.",
     fam_consent_cancel: "Cancel",
@@ -3791,7 +3792,7 @@ export const en: Translations = {
     save_changes: "Save Changes",
     spam_low: "Low",
     spam_low_description: "Only obvious spam is filtered",
-    spam_medium: "Medium (Recommended)",
+    spam_medium: "Medium",
     spam_medium_description: "Balanced filtering",
     spam_high: "High",
     spam_high_description:
@@ -4617,6 +4618,10 @@ export const en: Translations = {
       "Items in trash will be automatically deleted after {{ days }} days.",
     spam_auto_delete_notice:
       "Items in spam will be automatically deleted after {{ days }} days.",
+    trash_auto_delete_notice_family:
+      "Items in trash will be automatically deleted after {{ days }} days (set by family admin).",
+    spam_auto_delete_notice_family:
+      "Items in spam will be automatically deleted after {{ days }} days (set by family admin).",
     compose_email: "Compose email",
     one_hour_option: "1 hour",
     twenty_four_hours_option: "24 hours",

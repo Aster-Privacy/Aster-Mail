@@ -25,14 +25,15 @@ import { use_i18n } from "@/lib/i18n/context";
 interface TrashBannerProps {
   retention_days?: number;
   view?: "trash" | "spam";
+  family_enforced?: boolean;
 }
 
-export function TrashBanner({ retention_days = 30, view = "trash" }: TrashBannerProps) {
+export function TrashBanner({ retention_days = 30, view = "trash", family_enforced = false }: TrashBannerProps) {
   const { t } = use_i18n();
 
   const message_key = view === "spam"
-    ? "mail.spam_auto_delete_notice"
-    : "mail.trash_auto_delete_notice";
+    ? (family_enforced ? "mail.spam_auto_delete_notice_family" : "mail.spam_auto_delete_notice")
+    : (family_enforced ? "mail.trash_auto_delete_notice_family" : "mail.trash_auto_delete_notice");
 
   return (
     <div
