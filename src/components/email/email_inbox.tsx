@@ -186,6 +186,13 @@ export function EmailInbox({
   }, []);
 
   useEffect(() => {
+    if (current_view !== "trash" && current_view !== "spam") return;
+    get_member_retention_policy().then((result) => {
+      if (result.data) set_family_policy(result.data);
+    }).catch(() => {});
+  }, [current_view]);
+
+  useEffect(() => {
     const handle_folders_changed = () => {
       set_folder_unlock_key((prev) => prev + 1);
     };
