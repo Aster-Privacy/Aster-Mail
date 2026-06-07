@@ -175,7 +175,7 @@ export default function JoinFamilyPage() {
         {is_wrong_recipient && (
           <div className="flex items-center gap-2 px-4 py-3 rounded-xl" style={{ background: "#ef4444", backgroundImage: "none", border: "none" }}>
             <ExclamationTriangleIcon className="w-4 h-4 text-white flex-shrink-0" />
-            <p className="text-sm font-medium text-white">{t.settings.family_invite_wrong_recipient}</p>
+            <p className="text-sm font-medium text-white">{t("settings.family_invite_wrong_recipient")}</p>
           </div>
         )}
 

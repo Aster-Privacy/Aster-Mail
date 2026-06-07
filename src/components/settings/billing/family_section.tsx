@@ -1263,10 +1263,15 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
                     </div>
                   </div>
                   <button
-                    onClick={() => { if (d.dkim_verified) { set_sharing(d.domain_name); set_share_uid(""); } }}
-                    disabled={!d.dkim_verified}
-                    title={d.dkim_verified ? t("settings.fam_org_domains_share_enabled_title") : t("settings.fam_org_domains_share_disabled_title")}
-                    className="text-sm text-accent-blue hover:underline flex-shrink-0 font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none">
+                    onClick={() => {
+                      if (!d.dkim_verified) {
+                        show_toast(t("settings.fam_org_domains_share_disabled_title"), "error");
+                        return;
+                      }
+                      set_sharing(d.domain_name);
+                      set_share_uid("");
+                    }}
+                    className="text-sm text-accent-blue hover:underline flex-shrink-0 font-medium">
                     {t("settings.fam_org_domains_share")}
                   </button>
                 </div>
