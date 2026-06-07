@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Aster Mail",
-  "version": "1.4.8",
+  "version": "1.4.9",
   "identifier": "com.astermail.mail",
   "build": {
     "beforeDevCommand": "npx vite --host 127.0.0.1 --port 1420",
@@ -25,7 +25,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.astermail.org https://*.astermail.com https://*.stripe.com https://q.stripe.com; font-src 'self' data: blob:; connect-src 'self' ipc: http://ipc.localhost https://*.astermail.org wss://*.astermail.org https://*.astermail.com wss://*.astermail.com https://challenges.cloudflare.com https://api.stripe.com https://m.stripe.network https://r.stripe.com http://asterwkopxf427ndjpgco5swerhivljvwcsggsxmfgmve4awbahpcrqd.onion http://asterabf3d5xhqtphx5u462oegteygodgae5y542vmcai22ipkd3ojqd.onion; frame-src 'self' blob: https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com; media-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; worker-src 'self' blob:",
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: http:; font-src 'self' data: blob: https: http:; connect-src 'self' ipc: http://ipc.localhost https://*.astermail.org wss://*.astermail.org https://*.astermail.com wss://*.astermail.com https://challenges.cloudflare.com https://api.stripe.com https://m.stripe.network https://r.stripe.com http://asterwkopxf427ndjpgco5swerhivljvwcsggsxmfgmve4awbahpcrqd.onion http://asterabf3d5xhqtphx5u462oegteygodgae5y542vmcai22ipkd3ojqd.onion; frame-src 'self' blob: https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com; media-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; worker-src 'self' blob:",
       "dangerousDisableAssetCspModification": true
     }
   },
