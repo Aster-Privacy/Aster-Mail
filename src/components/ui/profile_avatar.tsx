@@ -27,6 +27,10 @@ import {
 } from "@/lib/icon_cache";
 import { get_favicon_url } from "@/lib/favicon_url";
 import { get_initials, get_active_locale } from "@/lib/initials";
+import {
+  use_favicon_src,
+  store_favicon_if_api_url,
+} from "@/hooks/use_favicon_src";
 import { get_avatar_color, get_contrast_text } from "@/lib/avatar_color";
 import { get_root_domain } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
@@ -161,6 +165,8 @@ export const ProfileAvatar = memo(function ProfileAvatar({
 
   const is_aster_domain = ASTER_DOMAINS.has(domain);
 
+  const cached_favicon_src = use_favicon_src(domain);
+
   const ddg_logo_url = useMemo(() => {
     if (
       low_network ||
@@ -173,8 +179,8 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     )
       return null;
 
-    return get_favicon_url(domain);
-  }, [low_network, use_domain_logo, domain, is_aster_mail, is_aster_domain, ddg_logo_error]);
+    return cached_favicon_src || get_favicon_url(domain);
+  }, [low_network, use_domain_logo, domain, is_aster_mail, is_aster_domain, ddg_logo_error, cached_favicon_src]);
 
   const handle_ddg_logo_error = useCallback(() => {
     if (domain) mark_icon_failed(domain);
@@ -218,7 +224,8 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   ]);
 
   const is_favicon_source =
-    (actual_src?.includes("/api/images/v1/favicon/") ||
+    (actual_src?.startsWith("blob:") ||
+      actual_src?.includes("/api/images/v1/favicon/") ||
       actual_src?.includes("/proxy?url=")) ??
     false;
 
@@ -239,10 +246,13 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           return;
         }
         if (domain) mark_icon_ok(domain);
+        if (domain && !low_network) {
+          store_favicon_if_api_url(domain, img.src);
+        }
       }
       set_img_loaded(true);
     },
-    [is_favicon_source, domain],
+    [is_favicon_source, domain, low_network],
   );
 
   if (!actual_src) {
