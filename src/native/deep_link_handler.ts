@@ -34,6 +34,7 @@ export function register_deep_link_route(
   handler: DeepLinkHandler,
 ): void {
   const regex_pattern = pattern
+    .replace(/\\/g, "\\\\")
     .replace(/:[a-zA-Z_]+/g, "([^/]+)")
     .replace(/\//g, "\\/");
 

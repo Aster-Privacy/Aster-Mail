@@ -193,10 +193,10 @@ export function use_compose_send({
     if (is_sending_ref.current) return;
     if (recipients.to.length === 0 || !user) return;
 
-    const stripped_body = message
-      .replace(/<[^>]*>/g, "")
-      .replace(/&nbsp;/g, " ")
-      .trim();
+    const stripped_body = (() => {
+      const doc = new DOMParser().parseFromString(message, "text/html");
+      return (doc.body.textContent ?? "").replace(/\s+/g, " ").trim();
+    })();
 
     if (!stripped_body) {
       show_toast(t("common.empty_body_error"), "error");

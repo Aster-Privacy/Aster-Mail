@@ -660,7 +660,14 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         el.getAttribute("data-proxy-src") ||
         el.getAttribute("data-original-src");
 
-      if (src) el.setAttribute("src", src);
+      if (src) {
+        try {
+          const safe_url = new URL(src, window.location.href);
+          if (safe_url.protocol === "https:" || safe_url.protocol === "http:") {
+            el.setAttribute("src", safe_url.href);
+          }
+        } catch {}
+      }
       el.removeAttribute("data-blocked");
       el.classList.remove("blocked-remote-image");
       const alt = el.getAttribute("alt");

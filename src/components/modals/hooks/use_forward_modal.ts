@@ -244,10 +244,11 @@ export function use_forward_modal({
 
     const header = `---------- ${t("common.forwarded_message")} ---------<br>${t("common.from_label")} ${safe_name} &lt;${safe_email}&gt;<br>${t("common.date_label")} ${formatted_date}<br>${t("common.subject_label")} ${email_subject.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}<br><br>`;
 
-    const sanitized_body = email_body
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-      .replace(/<head[^>]*>[\s\S]*?<\/head>/gi, "");
+    const sanitized_body = (() => {
+      const doc = new DOMParser().parseFromString(email_body, "text/html");
+      doc.querySelectorAll("script, style, head, link").forEach((el) => el.remove());
+      return doc.body.innerHTML;
+    })();
 
     return header + sanitized_body;
   }, [

@@ -362,26 +362,20 @@ export function use_reply_modal({
       const header = t("mail.reply_quote_header", { date: formatted_date, name: `${safe_name} &lt;${safe_email}&gt;` });
 
       if (for_display) {
-        const plain_body = original_body
-          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-          .replace(/<head[^>]*>[\s\S]*?<\/head>/gi, "")
-          .replace(/<img[^>]*alt=["']([^"']*)["'][^>]*\/?>/gi, (_m, alt) => alt.trim() ? `[${alt.trim()}]` : "[image]")
-          .replace(/<img[^>]*\/?>/gi, "[image]")
-          .replace(/<br\s*\/?>/gi, "\n")
-          .replace(/<\/p>/gi, "\n")
-          .replace(/<\/div>/gi, "\n")
-          .replace(/<div[^>]*>/gi, "\n")
-          .replace(/<\/tr>/gi, "\n")
-          .replace(/<\/li>/gi, "\n")
-          .replace(/<[^>]+>/g, "")
-          .replace(/&nbsp;/g, " ")
-          .replace(/&amp;/g, "&")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&quot;/g, '"')
-          .replace(/\n{3,}/g, "\n\n")
-          .trim();
+        const plain_body = (() => {
+          const doc = new DOMParser().parseFromString(original_body, "text/html");
+          doc.querySelectorAll("script, style, head").forEach((el) => el.remove());
+          doc.querySelectorAll("img").forEach((el) => {
+            const alt = el.getAttribute("alt");
+            el.replaceWith(alt?.trim() ? `[${alt.trim()}]` : "[image]");
+          });
+          doc.querySelectorAll("br").forEach((el) => el.replaceWith("\n"));
+          doc.querySelectorAll("p, div, tr, li").forEach((el) => el.after("\n"));
+          return (doc.body.textContent ?? "")
+            .replace(/[ \t]+\n/g, "\n")
+            .replace(/\n{3,}/g, "\n\n")
+            .trim();
+        })();
 
         const escape_html = (text: string): string =>
           text
