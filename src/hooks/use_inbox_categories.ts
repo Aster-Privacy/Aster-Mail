@@ -92,6 +92,7 @@ export function use_inbox_categories(
         stored_tab_loaded_ref.current = true;
         if (is_tab(stored)) {
           set_active_category_state(stored);
+          mark_category_seen(stored);
         } else {
           mark_category_seen("primary");
         }
