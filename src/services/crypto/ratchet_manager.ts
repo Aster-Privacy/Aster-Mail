@@ -20,6 +20,7 @@
 //
 import type { EncryptedVault } from "./key_manager";
 import type { RatchetKeySet } from "./key_manager_core";
+import { ml_kem768 } from "@noble/post-quantum/ml-kem";
 
 const _KE = ["EC", "DH"].join("");
 const _KC = ["P", "256"].join("-");
@@ -154,6 +155,7 @@ export async function upload_prekey_bundle(
     signed_prekey: vault.ratchet_signed_prekey_public,
     signed_prekey_signature: signature,
     one_time_prekeys: [],
+    pq_kem_public_key: vault.ratchet_pq_identity_public ?? null,
   });
 
   return !response.error;
@@ -559,15 +561,34 @@ export async function generate_ratchet_keys(): Promise<{
   identity_public: string;
   signed_prekey_jwk: string;
   signed_prekey_public: string;
+  pq_identity_secret: string;
+  pq_identity_public: string;
 } | null> {
   const identity = await generate_exportable_ke_keypair();
   const signed_prekey = await generate_exportable_ke_keypair();
+  const pq_seed = crypto.getRandomValues(new Uint8Array(64));
+  const pq_keys = ml_kem768.keygen(pq_seed);
 
   return {
     identity_jwk: JSON.stringify(identity.jwk),
     identity_public: array_to_base64(identity.public_key_raw),
     signed_prekey_jwk: JSON.stringify(signed_prekey.jwk),
     signed_prekey_public: array_to_base64(signed_prekey.public_key_raw),
+    pq_identity_secret: array_to_base64(pq_keys.secretKey),
+    pq_identity_public: array_to_base64(pq_keys.publicKey),
+  };
+}
+
+export async function generate_pq_identity_keys(): Promise<{
+  pq_identity_secret: string;
+  pq_identity_public: string;
+}> {
+  const pq_seed = crypto.getRandomValues(new Uint8Array(64));
+  const pq_keys = ml_kem768.keygen(pq_seed);
+
+  return {
+    pq_identity_secret: array_to_base64(pq_keys.secretKey),
+    pq_identity_public: array_to_base64(pq_keys.publicKey),
   };
 }
 
