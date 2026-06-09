@@ -50,8 +50,12 @@ fn set_tray_tooltip(state: State<TrayState>, tooltip: String) {
 
 #[tauri::command]
 fn open_external_url(url: String) -> std::result::Result<(), String> {
-    if !url.starts_with("https://") {
-        return Err("only https urls allowed".into());
+    let host_part = url
+        .strip_prefix("https://")
+        .ok_or_else(|| "only https urls allowed".to_string())?;
+    let host = host_part.split('/').next().unwrap_or("");
+    if host.is_empty() {
+        return Err("url must have a host".into());
     }
     std::thread::spawn(move || {
         #[cfg(windows)]
@@ -140,6 +144,7 @@ fn main() {
     {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
         std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+        std::env::set_var("WEBKIT_DISABLE_THREADED_COMPOSITOR", "1");
         if std::env::var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS").is_err() {
             std::env::set_var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS", "1");
         }
