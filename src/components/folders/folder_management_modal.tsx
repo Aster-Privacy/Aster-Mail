@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   LockClosedIcon,
   PencilIcon,
@@ -26,6 +26,7 @@ import {
   TrashIcon,
   ExclamationTriangleIcon,
   ShieldCheckIcon,
+  ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -54,7 +55,7 @@ interface FolderManagementModalProps {
   folder_color: string;
   is_locked: boolean;
   hasChildren?: boolean;
-  action: "encrypt" | "rename" | "recolor" | "delete" | null;
+  action: "encrypt" | "rename" | "recolor" | "delete" | "move" | null;
 }
 
 export function FolderManagementModal({
@@ -78,6 +79,7 @@ export function FolderManagementModal({
 
   const [new_name, set_new_name] = useState(folder_name);
   const [new_color, set_new_color] = useState(folder_color);
+  const [selected_parent_token, set_selected_parent_token] = useState<string | null>(null);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
 
@@ -106,9 +108,25 @@ export function FolderManagementModal({
 
   const can_rename = trimmed_name && !rename_validation_error;
 
+  const movable_folders = useMemo(() => {
+    const descendants = new Set<string>();
+    const collect = (token: string) => {
+      descendants.add(token);
+      folders_state.folders
+        .filter((f) => f.parent_token === token)
+        .forEach((f) => collect(f.folder_token));
+    };
+    const self = folders_state.folders.find((f) => f.id === folder_id);
+    if (self) collect(self.folder_token);
+    return folders_state.folders.filter(
+      (f) => !f.is_system && !descendants.has(f.folder_token),
+    );
+  }, [folder_id, folders_state.folders]);
+
   useEffect(() => {
     set_new_name(folder_name);
     set_new_color(folder_color);
+    set_selected_parent_token(null);
     set_error("");
   }, [folder_name, folder_color, is_open]);
 
@@ -188,6 +206,27 @@ export function FolderManagementModal({
       set_error(t("common.failed_to_update_folder_encryption"));
     }
   };
+
+  const handle_move = useCallback(async () => {
+    set_is_loading(true);
+    set_error("");
+
+    const success = await update_existing_folder(
+      folder_id,
+      undefined,
+      undefined,
+      undefined,
+      selected_parent_token ?? "",
+    );
+
+    set_is_loading(false);
+
+    if (success) {
+      on_close();
+    } else {
+      set_error(t("common.failed_to_move_folder"));
+    }
+  }, [folder_id, selected_parent_token, update_existing_folder, on_close, t]);
 
   const render_content = () => {
     switch (action) {
@@ -476,6 +515,83 @@ export function FolderManagementModal({
                 {is_loading
                   ? t("common.deleting")
                   : `${t("common.delete")} ${t("mail.folder")}`}
+              </Button>
+            </ModalFooter>
+          </>
+        );
+
+      case "move":
+        return (
+          <>
+            <ModalHeader>
+              <div className="flex items-center gap-3">
+                <ArrowRightIcon className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                <div className="min-w-0">
+                  <ModalTitle>{t("common.move_folder")}</ModalTitle>
+                  <ModalDescription>
+                    {t("common.move_folder_description")}
+                  </ModalDescription>
+                </div>
+              </div>
+            </ModalHeader>
+
+            <ModalBody>
+              <p className="text-[13px] font-medium mb-2 text-txt-secondary">
+                {t("common.select_parent_folder")}
+              </p>
+              <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">
+                <button
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-left transition-colors ${selected_parent_token === "" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
+                  onClick={() => set_selected_parent_token("")}
+                >
+                  <FolderIcon className="w-4 h-4 flex-shrink-0" />
+                  {t("common.top_level_no_parent")}
+                </button>
+                {movable_folders.map((f) => (
+                  <button
+                    key={f.id}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-left transition-colors ${selected_parent_token === f.folder_token ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
+                    onClick={() => set_selected_parent_token(f.folder_token)}
+                  >
+                    <FolderIcon
+                      className="w-4 h-4 flex-shrink-0"
+                      style={{ color: f.color || "#3b82f6" }}
+                    />
+                    <span className="truncate">{f.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              {error && (
+                <p className="text-[13px] text-red-500 mt-4">{error}</p>
+              )}
+            </ModalBody>
+
+            <ModalFooter>
+              <Button
+                className="flex-1"
+                disabled={is_loading}
+                size="xl"
+                variant="outline"
+                onClick={on_close}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                className="flex-1"
+                disabled={is_loading || selected_parent_token === null}
+                size="xl"
+                variant="depth"
+                onClick={handle_move}
+              >
+                {is_loading ? (
+                  <>
+                    <Spinner className="mr-2" size="md" />
+                    {t("common.saving")}
+                  </>
+                ) : (
+                  t("common.move_folder")
+                )}
               </Button>
             </ModalFooter>
           </>

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
+  ArrowRightIcon,
   FolderIcon,
   FolderPlusIcon,
   LockClosedIcon,
@@ -43,6 +44,7 @@ interface FolderContextMenuProps {
   on_lock: () => void;
   on_rename: () => void;
   on_recolor: () => void;
+  on_move?: () => void;
   on_delete: () => void;
   on_create_subfolder?: () => void;
 }
@@ -55,6 +57,7 @@ export function FolderContextMenu({
   on_lock,
   on_rename,
   on_recolor,
+  on_move,
   on_delete,
   on_create_subfolder,
 }: FolderContextMenuProps): React.ReactElement {
@@ -91,6 +94,13 @@ export function FolderContextMenu({
           />
           {t("common.change_color")}
         </ContextMenuItem>
+
+        {on_move && (
+          <ContextMenuItem onClick={on_move}>
+            <ArrowRightIcon className="mr-2 h-4 w-4" />
+            {t("common.move_to")}
+          </ContextMenuItem>
+        )}
 
         <ContextMenuSeparator />
 

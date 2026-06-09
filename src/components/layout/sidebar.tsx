@@ -209,7 +209,7 @@ export const Sidebar = ({
   >(undefined);
   const [is_contacts_open, set_is_contacts_open] = useState(false);
   const [folder_modal_action, set_folder_modal_action] = useState<
-    "encrypt" | "rename" | "recolor" | "delete" | null
+    "encrypt" | "rename" | "recolor" | "delete" | "move" | null
   >(null);
   const [selected_folder_for_modal, set_selected_folder_for_modal] =
     useState<FolderModalData | null>(null);
@@ -293,7 +293,7 @@ export const Sidebar = ({
   );
 
   const handle_folder_modal = useCallback(
-    (folder: FolderModalData, action: "rename" | "recolor" | "delete") => {
+    (folder: FolderModalData, action: "rename" | "recolor" | "delete" | "move") => {
       set_selected_folder_for_modal(folder);
       set_folder_modal_action(action);
     },
