@@ -118,17 +118,32 @@ self.addEventListener("push", (event: PushEvent) => {
     data = { title: "AsterMail", body: event.data.text() };
   }
 
-  const safe_url = sanitize_notification_path(data.url);
-  const title = data.title || "AsterMail";
-  const options: NotificationOptions = {
-    body: data.body || "You have a new notification",
-    icon: "/pwa-192x192.png",
-    badge: "/favicon-32x32.png",
-    tag: data.type || "default",
-    data: { url: safe_url },
-  };
+  event.waitUntil(
+    (async () => {
+      const clients = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      const is_test = data.type === "test";
+      const app_is_open = clients.length > 0;
 
-  event.waitUntil(self.registration.showNotification(title, options));
+      if (app_is_open && !is_test) {
+        return;
+      }
+
+      const safe_url = sanitize_notification_path(data.url);
+      const title = data.title || "AsterMail";
+      const options: NotificationOptions = {
+        body: data.body || "You have a new notification",
+        icon: "/pwa-192x192.png",
+        badge: "/favicon-32x32.png",
+        tag: data.type || "default",
+        data: { url: safe_url },
+      };
+
+      await self.registration.showNotification(title, options);
+    })(),
+  );
 });
 
 self.addEventListener("notificationclick", (event: NotificationEvent) => {

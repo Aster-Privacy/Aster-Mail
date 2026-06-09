@@ -18,20 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import {
-  play_notification_sound,
   request_notification_permission,
   show_notification,
 } from "@/services/notification_service";
-import {
-  is_push_subscribed,
-  subscribe_to_push,
-} from "@/services/push_subscription";
+import { subscribe_to_push } from "@/services/push_subscription";
 import { use_i18n } from "@/lib/i18n/context";
 
 function is_tauri(): boolean {
@@ -42,11 +38,9 @@ export function EmailNotificationManager() {
   const { is_authenticated } = use_auth();
   const { preferences } = use_preferences();
   const { t } = use_i18n();
-  const push_subscribed_ref = useRef<boolean>(false);
 
   useEffect(() => {
     if (!is_authenticated || !preferences.desktop_notifications) {
-      push_subscribed_ref.current = false;
       return;
     }
 
@@ -57,9 +51,8 @@ export function EmailNotificationManager() {
     let cancelled = false;
     (async () => {
       if (!preferences.low_network_mode) {
-        const ok = await subscribe_to_push();
+        await subscribe_to_push();
         if (cancelled) return;
-        push_subscribed_ref.current = ok && (await is_push_subscribed());
       }
     })();
 
@@ -74,13 +67,6 @@ export function EmailNotificationManager() {
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       const email_id = detail?.email_id || "";
-
-      if (push_subscribed_ref.current && !is_tauri()) {
-        if (preferences.sound && !preferences.low_network_mode) {
-          play_notification_sound();
-        }
-        return;
-      }
 
       show_notification(
         "new_email",
