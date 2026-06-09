@@ -82,7 +82,7 @@ export function use_snooze(): UseSnoozeReturn {
         set_is_loading(false);
       }
     },
-    [],
+    [t],
   );
 
   const bulk_snooze = useCallback(
@@ -126,7 +126,7 @@ export function use_snooze(): UseSnoozeReturn {
         set_is_loading(false);
       }
     },
-    [],
+    [t],
   );
 
   const unsnooze = useCallback(async (snooze_id: string) => {
@@ -155,7 +155,7 @@ export function use_snooze(): UseSnoozeReturn {
     } finally {
       set_is_loading(false);
     }
-  }, []);
+  }, [t]);
 
   const unsnooze_mail = useCallback(async (mail_item_id: string) => {
     set_is_loading(true);
@@ -183,7 +183,7 @@ export function use_snooze(): UseSnoozeReturn {
     } finally {
       set_is_loading(false);
     }
-  }, []);
+  }, [t]);
 
   const list_snoozed = useCallback(async (): Promise<SnoozedItem[]> => {
     set_is_loading(true);
@@ -206,7 +206,7 @@ export function use_snooze(): UseSnoozeReturn {
     } finally {
       set_is_loading(false);
     }
-  }, []);
+  }, [t]);
 
   return {
     snooze,
