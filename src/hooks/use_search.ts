@@ -1248,7 +1248,7 @@ export function use_search() {
         }));
       }
     },
-    [user?.email, ttl],
+    [user?.email, ttl, t],
   );
 
   const clear_results = useCallback(() => {
