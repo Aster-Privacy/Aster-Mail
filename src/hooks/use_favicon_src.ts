@@ -20,6 +20,7 @@
 //
 import { useState, useEffect } from "react";
 
+import { routed_fetch } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
 import { get_favicon_url, is_valid_favicon_domain } from "@/lib/favicon_url";
 import {
@@ -32,6 +33,8 @@ export function use_favicon_src(domain: string): string {
   const [src, set_src] = useState(api_url);
 
   useEffect(() => {
+    set_src(get_favicon_url(domain));
+
     if (!domain || !is_valid_favicon_domain(domain)) return;
 
     const method = connection_store.get_method();
@@ -72,7 +75,7 @@ export function store_favicon_if_api_url(
   const method = connection_store.get_method();
   if (method === "tor" || method === "tor_snowflake") return;
 
-  fetch(loaded_src)
+  routed_fetch(loaded_src, {})
     .then((r) => {
       if (!r.ok) return null;
       const ct = r.headers.get("content-type") ?? "";

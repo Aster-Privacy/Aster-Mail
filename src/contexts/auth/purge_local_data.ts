@@ -54,13 +54,13 @@ export async function purge_all_local_data(): Promise<void> {
   } catch {}
 
   try {
-    await wipe_all_storage();
+    await storage_logout_all();
   } catch (e) {
     errors.push(e instanceof Error ? e : new Error(String(e)));
   }
 
   try {
-    await storage_logout_all();
+    await wipe_all_storage();
   } catch (e) {
     errors.push(e instanceof Error ? e : new Error(String(e)));
   }
