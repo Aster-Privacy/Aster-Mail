@@ -356,7 +356,6 @@ export function EmailDetailBody({
               hide_counter
               current_user_email={current_user_email}
               default_expanded_id={email.id}
-              thread_token={email?.thread_token}
               force_all_dark_mode={preferences.force_dark_mode_emails}
               messages={
                 thread_messages.length > 0

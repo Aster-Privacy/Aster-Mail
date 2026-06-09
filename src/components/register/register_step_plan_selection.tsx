@@ -524,7 +524,7 @@ export const RegisterStepPlanSelection = ({
         </div>
       ) : (
         <div className="w-full grid gap-5 mt-10 md:grid-cols-3 max-w-5xl items-stretch">
-          {PLAN_TIERS.filter((p) => !p.is_family).map((tier) => {
+          {PLAN_TIERS.map((tier) => {
             const cents =
               billing_period === "yearly"
                 ? tier.yearly_cents

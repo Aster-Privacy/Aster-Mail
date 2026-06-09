@@ -38,7 +38,6 @@ import {
 import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { show_toast } from "@/components/toast/simple_toast";
 import { use_preferences } from "@/contexts/preferences_context";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
