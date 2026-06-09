@@ -123,6 +123,35 @@ export function EmailList({
   const last_preloaded_ref = useRef<string | null>(null);
   const [menu_email, set_menu_email] = useState<InboxEmail | null>(null);
   const close_time_ref = useRef(0);
+  const menu_email_ref = useRef<InboxEmail | null>(null);
+  const on_tag_toggle_ref = useRef(on_tag_toggle);
+  on_tag_toggle_ref.current = on_tag_toggle;
+  const on_folder_toggle_ref = useRef(on_folder_toggle);
+  on_folder_toggle_ref.current = on_folder_toggle;
+
+  const stable_on_tag_toggle = useCallback((tag_token: string) => {
+    if (menu_email_ref.current) {
+      on_tag_toggle_ref.current(menu_email_ref.current, tag_token);
+    }
+  }, []);
+
+  const stable_on_folder_toggle = useCallback((folder_id: string) => {
+    if (menu_email_ref.current) {
+      on_folder_toggle_ref.current(menu_email_ref.current, folder_id);
+    }
+  }, []);
+
+  const menu_tags = useMemo(
+    () =>
+      menu_email
+        ? tags.map((t) => ({
+            ...t,
+            is_assigned:
+              menu_email.tags?.some((et) => et.id === t.tag_token) || false,
+          }))
+        : [],
+    [tags, menu_email],
+  );
 
   const handle_menu_open_change = useCallback((open: boolean) => {
     if (!open) {
@@ -267,7 +296,10 @@ export function EmailList({
                     contentVisibility: "auto",
                     containIntrinsicSize: `auto ${density === "Compact" ? (email.has_attachment ? 72 : 44) : density === "Spacious" ? (email.has_attachment ? 84 : 56) : (email.has_attachment ? 76 : 48)}px`,
                   }}
-                  onContextMenu={() => set_menu_email(email)}
+                  onContextMenu={() => {
+                    set_menu_email(email);
+                    menu_email_ref.current = email;
+                  }}
                   onMouseEnter={() => handle_hover_preload(email.id)}
                 >
                   {render_email_item(email)}
@@ -286,7 +318,10 @@ export function EmailList({
                     contentVisibility: "auto",
                     containIntrinsicSize: `auto ${density === "Compact" ? (email.has_attachment ? 72 : 44) : density === "Spacious" ? (email.has_attachment ? 84 : 56) : (email.has_attachment ? 76 : 48)}px`,
                   }}
-                  onContextMenu={() => set_menu_email(email)}
+                  onContextMenu={() => {
+                    set_menu_email(email);
+                    menu_email_ref.current = email;
+                  }}
                   onMouseEnter={() => handle_hover_preload(email.id)}
                 >
                   {render_email_item(email)}
@@ -311,9 +346,7 @@ export function EmailList({
           }
           on_custom_snooze={() => on_custom_snooze(menu_email)}
           on_delete={() => on_delete(menu_email)}
-          on_folder_toggle={(folder_id) =>
-            on_folder_toggle(menu_email, folder_id)
-          }
+          on_folder_toggle={stable_on_folder_toggle}
           on_forward={() => on_forward(menu_email)}
           on_mark_not_spam={() => on_mark_not_spam(menu_email)}
           on_move_to_inbox={() => on_move_to_inbox(menu_email)}
@@ -321,15 +354,11 @@ export function EmailList({
           on_restore={() => on_restore(menu_email)}
           on_snooze={(snooze_until) => on_snooze(menu_email, snooze_until)}
           on_spam={() => on_spam(menu_email)}
-          on_tag_toggle={(tag_token) => on_tag_toggle(menu_email, tag_token)}
+          on_tag_toggle={stable_on_tag_toggle}
           on_toggle_pin={() => on_toggle_pin(menu_email)}
           on_toggle_read={() => on_toggle_read(menu_email)}
           on_unsnooze={() => on_unsnooze(menu_email)}
-          tags={tags.map((t) => ({
-            ...t,
-            is_assigned:
-              menu_email.tags?.some((et) => et.id === t.tag_token) || false,
-          }))}
+          tags={menu_tags}
         />
       )}
     </ContextMenu>

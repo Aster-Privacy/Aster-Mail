@@ -62,7 +62,7 @@ interface SidebarFoldersProps {
   set_create_folder_parent_token?: (token: string | undefined) => void;
   handle_folder_modal: (
     folder: FolderModalData,
-    action: "rename" | "recolor" | "delete",
+    action: "rename" | "recolor" | "delete" | "move",
   ) => void;
   handle_folder_lock: (folder: FolderModalData, password_set: boolean) => void;
   set_password_modal_folder: (
@@ -235,6 +235,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                 on_lock={() =>
                   handle_folder_lock(folder_data, folder.password_set)
                 }
+                on_move={() => handle_folder_modal(folder_data, "move")}
                 on_recolor={() => handle_folder_modal(folder_data, "recolor")}
                 on_rename={() => handle_folder_modal(folder_data, "rename")}
                 password_set={folder.password_set}

@@ -621,11 +621,16 @@ export function use_context_menu_actions({
         email.grouped_email_ids && email.grouped_email_ids.length > 1
           ? email.grouped_email_ids
           : [email.id];
+      const is_tag_view = current_view === `tag-${tag_token}`;
 
       if (is_already_assigned) {
-        update_email(email.id, {
-          tags: previous_tags.filter((t) => t.id !== tag_token),
-        });
+        if (is_tag_view) {
+          remove_email(email.id);
+        } else {
+          update_email(email.id, {
+            tags: previous_tags.filter((t) => t.id !== tag_token),
+          });
+        }
         const result = await bulk_remove_tag(all_ids, tag_token);
 
         if (!result.error) {
@@ -645,7 +650,11 @@ export function use_context_menu_actions({
             },
           });
         } else {
-          update_email(email.id, { tags: previous_tags });
+          if (is_tag_view) {
+            window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+          } else {
+            update_email(email.id, { tags: previous_tags });
+          }
         }
       } else {
         const new_tag = {

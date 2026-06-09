@@ -21,7 +21,7 @@
 import type { InboxEmail, EmailCategory } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect, memo } from "react";
 import {
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
@@ -123,7 +123,7 @@ function get_folder_style(color: string): React.CSSProperties {
   return {};
 }
 
-export function EmailContextMenuContent({
+function EmailContextMenuContentInner({
   email,
   folders = [],
   tags = [],
@@ -150,6 +150,13 @@ export function EmailContextMenuContent({
 }: EmailContextMenuContentProps): React.ReactElement {
   const { t } = use_i18n();
   const [loading_action, set_loading_action] = useState<string | null>(null);
+  const [tag_overrides, set_tag_overrides] = useState<Map<string, boolean>>(
+    () => new Map(),
+  );
+
+  useEffect(() => {
+    set_tag_overrides(new Map());
+  }, [email.id]);
 
   const handle_action = useCallback(
     async (action_name: string, handler?: () => void | Promise<void>) => {
@@ -380,24 +387,37 @@ export function EmailContextMenuContent({
             {t("common.labels")}
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
-            {tags.map((tag) => (
-              <ContextMenuItem
-                key={tag.tag_token}
-                onSelect={(e) => {
-                  e.preventDefault();
-                  on_tag_toggle(tag.tag_token);
-                }}
-              >
-                {tag.is_assigned && (
-                  <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
-                )}
-                <span
-                  className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: tag.color }}
-                />
-                <span className="truncate">{tag.name}</span>
-              </ContextMenuItem>
-            ))}
+            {tags.map((tag) => {
+              const effective_assigned = tag_overrides.has(tag.tag_token)
+                ? tag_overrides.get(tag.tag_token)!
+                : tag.is_assigned;
+
+              return (
+                <ContextMenuItem
+                  key={tag.tag_token}
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    set_tag_overrides((prev) => {
+                      const next = new Map(prev);
+
+                      next.set(tag.tag_token, !effective_assigned);
+
+                      return next;
+                    });
+                    on_tag_toggle(tag.tag_token);
+                  }}
+                >
+                  {effective_assigned && (
+                    <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                  )}
+                  <span
+                    className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: tag.color }}
+                  />
+                  <span className="truncate">{tag.name}</span>
+                </ContextMenuItem>
+              );
+            })}
           </ContextMenuSubContent>
         </ContextMenuSub>
       )}
@@ -525,6 +545,8 @@ export function EmailContextMenuContent({
     </ContextMenuContent>
   );
 }
+
+export const EmailContextMenuContent = memo(EmailContextMenuContentInner);
 
 export function EmailContextMenu({
   children,
