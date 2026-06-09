@@ -64,7 +64,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const [checked, set_checked] = useState(false);
-  const [pubkeys, set_pubkeys] = useState<DevicePubkeys | null>(null);
+  const [_pubkeys, set_pubkeys] = useState<DevicePubkeys | null>(null);
   const [gate_state, set_gate_state] = useState<GateState>("loading");
   const [code, set_code] = useState<string | null>(null);
   const [copied, set_copied] = useState(false);

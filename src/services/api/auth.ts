@@ -318,6 +318,46 @@ export async function set_login_alerts(
   });
 }
 
+export interface LoginEventEntry {
+  id: string;
+  device_type: string;
+  browser: string;
+  location: string | null;
+  created_at: string;
+}
+
+interface LoginEventsResponse {
+  events: LoginEventEntry[];
+}
+
+export async function get_login_events(): Promise<
+  ApiResponse<LoginEventsResponse>
+> {
+  return api_client.get<LoginEventsResponse>("/core/v1/auth/login-events");
+}
+
+export interface InactivitySettingsResponse {
+  inactivity_window_months: number;
+}
+
+export async function get_inactivity_settings(): Promise<
+  ApiResponse<InactivitySettingsResponse>
+> {
+  return api_client.get<InactivitySettingsResponse>(
+    "/core/v1/auth/inactivity-settings",
+  );
+}
+
+export async function set_inactivity_settings(
+  inactivity_window_months: number,
+): Promise<ApiResponse<InactivitySettingsResponse>> {
+  return api_client.put<InactivitySettingsResponse>(
+    "/core/v1/auth/inactivity-settings",
+    { inactivity_window_months },
+  );
+}
+
+
 export type {
   RegisterRequest,
   RegisterResponse,

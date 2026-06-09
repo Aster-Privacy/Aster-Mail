@@ -398,6 +398,8 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         key_history_limit={security.preferences.key_history_limit}
         key_rotation_hours={security.preferences.key_rotation_hours}
         login_alerts_enabled={security.login_alerts_enabled}
+        login_events={security.login_events}
+        login_events_loading={security.login_events_loading}
         on_external_link_toggle={() =>
           security.update_preference(
             "external_link_warning_dismissed",

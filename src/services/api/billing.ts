@@ -213,6 +213,21 @@ export async function open_billing_portal(): Promise<{
   return { ok: true };
 }
 
+export interface PlanChangePreviewResponse {
+  credit_cents: number;
+  amount_due_cents: number;
+  currency: string;
+}
+
+export async function preview_plan_change(
+  plan_code: string,
+  billing_interval: string = "month",
+): Promise<{ data?: PlanChangePreviewResponse; error?: string }> {
+  return api_client.get<PlanChangePreviewResponse>(
+    `/payments/v1/change-plan-preview?plan_code=${encodeURIComponent(plan_code)}&billing_interval=${encodeURIComponent(billing_interval)}`,
+  );
+}
+
 export async function change_plan(
   plan_code: string,
   billing_interval: string = "month",

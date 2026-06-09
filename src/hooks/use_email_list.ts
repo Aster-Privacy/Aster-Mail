@@ -129,6 +129,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     time: number;
   } | null>(null);
   const page_ref = useRef(0);
+  const committed_view_ref = useRef(current_view);
+  committed_view_ref.current = current_view;
 
   const is_mail_view = useMemo(() => current_view !== "drafts", [current_view]);
 
@@ -154,6 +156,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         return;
       }
 
+      const fetch_view = current_view;
       const now = Date.now();
       const last = last_fetch_ref.current;
 
@@ -188,21 +191,24 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         );
 
         if (signal.aborted) {
-          set_state((prev) => ({
-            ...prev,
-            is_loading: false,
-            has_initial_load: true,
-          }));
+          if (committed_view_ref.current === fetch_view) {
+            set_state((prev) => ({
+              ...prev,
+              is_loading: false,
+              has_initial_load: true,
+            }));
+          }
           return;
         }
 
         if (!result) {
-          set_state((prev) => ({
-            ...prev,
-            is_loading: false,
-            has_initial_load: true,
-          }));
-
+          if (committed_view_ref.current === fetch_view) {
+            set_state((prev) => ({
+              ...prev,
+              is_loading: false,
+              has_initial_load: true,
+            }));
+          }
           return;
         }
 
@@ -212,14 +218,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           await new Promise((r) => setTimeout(r, MIN_SKELETON_MS - elapsed));
         }
 
-        if (signal.aborted) {
-          set_state((prev) => ({
-            ...prev,
-            is_loading: false,
-            has_initial_load: true,
-          }));
-          return;
-        }
+        if (signal.aborted || committed_view_ref.current !== fetch_view) return;
 
         last_fetch_ref.current = { view: current_view, page, time: now };
         page_ref.current = page;
@@ -250,7 +249,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           cache_email_list(current_view, result.emails).catch(() => {});
         }
       } catch {
-        if (!signal.aborted) {
+        if (!signal.aborted && committed_view_ref.current === fetch_view) {
           set_state((prev) => ({
             ...prev,
             is_loading: false,
@@ -289,7 +288,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         preferences.conversation_grouping ?? true,
       );
 
-      if (signal.aborted || !result) return;
+      if (signal.aborted || !result || committed_view_ref.current !== current_view) return;
 
       last_fetch_ref.current = {
         view: current_view,
@@ -606,7 +605,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     if (!state.is_loading) return;
     const safety_timeout = setTimeout(() => {
       set_state((prev) =>
-        prev.is_loading ? { ...prev, is_loading: false } : prev,
+        prev.is_loading ? { ...prev, is_loading: false, has_initial_load: true } : prev,
       );
     }, 10_000);
 

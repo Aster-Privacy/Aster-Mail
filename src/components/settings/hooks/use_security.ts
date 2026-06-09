@@ -26,8 +26,10 @@ import { get_totp_status, TotpStatusResponse } from "@/services/api/totp";
 import {
   change_password,
   get_login_alerts_status,
+  get_login_events,
   get_user_salt,
   set_login_alerts,
+  type LoginEventEntry,
 } from "@/services/api/auth";
 import { api_client } from "@/services/api/client";
 import {
@@ -125,6 +127,8 @@ export function use_security() {
     useState(false);
   const [login_alerts_enabled, set_login_alerts_enabled] = useState(false);
   const [login_alerts_loading, set_login_alerts_loading] = useState(false);
+  const [login_events, set_login_events] = useState<LoginEventEntry[]>([]);
+  const [login_events_loading, set_login_events_loading] = useState(false);
   const [show_password_section, set_show_password_section] = useState(false);
   const [current_password, set_current_password] = useState("");
   const [new_password, set_new_password] = useState("");
@@ -174,6 +178,20 @@ export function use_security() {
       if (import.meta.env.DEV) console.error(error);
 
       return;
+    }
+  }, []);
+
+  const fetch_login_events = useCallback(async () => {
+    set_login_events_loading(true);
+    try {
+      const response = await get_login_events();
+      if (response.data) {
+        set_login_events(response.data.events);
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+    } finally {
+      set_login_events_loading(false);
     }
   }, []);
 
@@ -237,12 +255,14 @@ export function use_security() {
     ]).then(() => set_security_score_loaded(true));
     fetch_ipfs_status();
     fetch_sessions();
+    fetch_login_events();
   }, [
     fetch_totp_status,
     fetch_login_alerts_status,
     fetch_ipfs_status,
     fetch_sessions,
     fetch_recovery_email_status,
+    fetch_login_events,
   ]);
 
   const handle_login_alerts_toggle = async () => {
@@ -760,6 +780,8 @@ export function use_security() {
 
     login_alerts_enabled,
     handle_login_alerts_toggle,
+    login_events,
+    login_events_loading,
 
     ipfs_available,
     ipfs_storage_enabled,

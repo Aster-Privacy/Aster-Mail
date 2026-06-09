@@ -20,7 +20,7 @@
 //
 import type { EncryptedVault } from "./key_manager";
 import type { RatchetKeySet } from "./key_manager_core";
-import { ml_kem768 } from "@noble/post-quantum/ml-kem";
+import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 const _KE = ["EC", "DH"].join("");
 const _KC = ["P", "256"].join("-");
