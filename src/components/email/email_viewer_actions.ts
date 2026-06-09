@@ -893,7 +893,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         }
       });
     },
-    [deps.thread_messages, deps.on_dismiss],
+    [deps.thread_messages, deps.on_dismiss, deps.mail_item, deps.is_read],
   );
 
   const is_own_message =
