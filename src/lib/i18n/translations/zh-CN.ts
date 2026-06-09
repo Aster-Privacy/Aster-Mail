@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -536,6 +536,7 @@ export const zh_CN = {
     failed_to_rename_folder: "该文件夹未能重命名，再试一次应该可以。文件夹及其中的邮件没有变化。",
     failed_to_change_folder_color: "文件夹颜色未能更新，再试一次应该可以。",
     failed_to_delete_folder: "该文件夹未能移除，再试一次应该可以。其中的邮件是安全的。",
+    failed_to_move_folder: "此文件夹未被移动。请再试一次。",
     failed_to_update_folder_encryption: "文件夹锁定设置未能更改，再试一次应该可以。文件夹保持原状。",
     failed_to_rename_label: "该标签未能重命名，再试一次应该可以。",
     failed_to_change_label_color: "标签颜色未能更新，再试一次应该可以。",

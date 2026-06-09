@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -618,6 +618,7 @@ export const ar = {
     failed_to_rename_folder: "هذا المجلد لم تُعَد تسميته. محاولة أخرى ينبغي أن تنجح. المجلد ورسائله لم تتغير.",
     failed_to_change_folder_color: "لون المجلد لم يُحدَّث. محاولة أخرى ينبغي أن تنجح.",
     failed_to_delete_folder: "هذا المجلد لم يُزَل. محاولة أخرى ينبغي أن تنجح. رسائلك بداخله بأمان.",
+    failed_to_move_folder: "لم يتم نقل هذا المجلد. حاول مرة أخرى.",
     failed_to_update_folder_encryption: "إعداد قفل المجلد لم يتغير. محاولة أخرى ينبغي أن تنجح. يبقى المجلد كما كان.",
     failed_to_rename_label: "هذه التسمية لم تُعَد تسميتها. محاولة أخرى ينبغي أن تنجح.",
     failed_to_change_label_color: "لون التسمية لم يُحدَّث. محاولة أخرى ينبغي أن تنجح.",

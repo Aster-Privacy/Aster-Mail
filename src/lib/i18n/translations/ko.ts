@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -618,6 +618,7 @@ export const ko = {
     failed_to_rename_folder: "이 폴더 이름이 변경되지 않았습니다. 다시 시도하면 됩니다. 폴더와 이메일은 그대로입니다.",
     failed_to_change_folder_color: "폴더 색상이 업데이트되지 않았습니다. 다시 시도하면 됩니다.",
     failed_to_delete_folder: "이 폴더가 제거되지 않았습니다. 다시 시도하면 됩니다. 안에 있던 이메일은 안전합니다.",
+    failed_to_move_folder: "이 폴더를 이동하지 못했습니다. 다시 시도해 주세요.",
     failed_to_update_folder_encryption: "폴더 잠금 설정이 변경되지 않았습니다. 다시 시도하면 됩니다. 폴더는 이전 상태 그대로입니다.",
     failed_to_rename_label: "이 라벨 이름이 변경되지 않았습니다. 다시 시도하면 됩니다.",
     failed_to_change_label_color: "라벨 색상이 업데이트되지 않았습니다. 다시 시도하면 됩니다.",

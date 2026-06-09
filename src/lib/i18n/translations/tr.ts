@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -618,6 +618,7 @@ export const tr = {
     failed_to_rename_folder: "Bu klasör yeniden adlandırılmadı. Bir kez daha denemek genellikle yeterli olur. Klasör ve içindeki e-postalar olduğu gibi.",
     failed_to_change_folder_color: "Klasör rengi güncellenmedi. Bir kez daha denemek genellikle yeterli olur.",
     failed_to_delete_folder: "Bu klasör kaldırılmadı. Bir kez daha denemek genellikle yeterli olur. İçindeki e-postalarınız güvende.",
+    failed_to_move_folder: "Bu klasör taşınamadı. Tekrar deneyin.",
     failed_to_update_folder_encryption: "Klasör kilit ayarı değişmedi. Bir kez daha denemek genellikle yeterli olur. Klasör olduğu gibi kalır.",
     failed_to_rename_label: "Bu etiket yeniden adlandırılmadı. Bir kez daha denemek genellikle yeterli olur.",
     failed_to_change_label_color: "Etiket rengi güncellenmedi. Bir kez daha denemek genellikle yeterli olur.",
