@@ -139,6 +139,22 @@ const cached_folders: { data: DecryptedFolder[]; total: number } = {
   total: 0,
 };
 
+const FOLDER_SYNC_CHANNEL = "aster-folders-sync";
+
+let folder_broadcast_channel: BroadcastChannel | null = null;
+
+function get_folder_broadcast_channel(): BroadcastChannel | null {
+  if (typeof BroadcastChannel === "undefined") return null;
+  if (!folder_broadcast_channel) {
+    folder_broadcast_channel = new BroadcastChannel(FOLDER_SYNC_CHANNEL);
+  }
+  return folder_broadcast_channel;
+}
+
+export function broadcast_folders_changed(): void {
+  get_folder_broadcast_channel()?.postMessage({ type: "folders_changed" });
+}
+
 export function get_cached_folders(): DecryptedFolder[] {
   return cached_folders.data;
 }
@@ -584,6 +600,7 @@ export function use_folders(): UseFoldersReturn {
         });
 
         emit_folders_changed();
+        broadcast_folders_changed();
 
         return { folder: new_folder };
       } catch {
@@ -668,6 +685,7 @@ export function use_folders(): UseFoldersReturn {
         });
 
         emit_folders_changed();
+        broadcast_folders_changed();
 
         return true;
       } catch {
@@ -682,7 +700,7 @@ export function use_folders(): UseFoldersReturn {
       try {
         const response = await delete_folder(folder_id);
 
-        if (response.error) {
+        if (response.error && response.code !== "NOT_FOUND") {
           return false;
         }
 
@@ -702,6 +720,7 @@ export function use_folders(): UseFoldersReturn {
         });
 
         emit_folders_changed();
+        broadcast_folders_changed();
 
         return true;
       } catch {
@@ -828,6 +847,7 @@ export function use_folders(): UseFoldersReturn {
         });
 
         emit_folders_changed();
+        broadcast_folders_changed();
 
         return true;
       } catch {
@@ -901,15 +921,32 @@ export function use_folders(): UseFoldersReturn {
       }
     };
 
+    const visibility_handler = () => {
+      if (document.visibilityState === "visible" && has_passphrase_in_memory()) {
+        fetch_folders();
+      }
+    };
+
+    const channel = get_folder_broadcast_channel();
+    const broadcast_handler = (event: MessageEvent) => {
+      if (event.data?.type === "folders_changed" && has_passphrase_in_memory()) {
+        fetch_folders();
+      }
+    };
+
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, counts_handler);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
+    document.addEventListener("visibilitychange", visibility_handler);
+    channel?.addEventListener("message", broadcast_handler);
 
     return () => {
       if (counts_debounce) clearTimeout(counts_debounce);
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, counts_handler);
       window.removeEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
+      document.removeEventListener("visibilitychange", visibility_handler);
+      channel?.removeEventListener("message", broadcast_handler);
     };
   }, [fetch_counts, fetch_folders]);
 
