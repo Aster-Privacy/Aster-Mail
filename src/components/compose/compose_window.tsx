@@ -35,6 +35,7 @@ import {
   ComposeErrorFallback,
 } from "@/components/ui/error_boundary";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import { use_compose } from "@/components/compose/use_compose";
 import {
   ComposeFormFields,
@@ -72,7 +73,10 @@ export function ComposeWindow({
 }: ComposeWindowProps) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
-  const [is_expanded, set_is_expanded] = useState(false);
+  const { preferences } = use_preferences();
+  const [is_expanded, set_is_expanded] = useState(
+    () => (preferences.compose_window_mode ?? "default") === "fullscreen",
+  );
 
   const {
     handle_drag_start,

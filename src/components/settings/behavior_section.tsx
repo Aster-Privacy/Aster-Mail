@@ -306,6 +306,23 @@ export function BehaviorSection() {
           value={preferences.reading_pane_position}
         />
 
+        <SelectSetting
+          description={t("settings.thread_count_position_description")}
+          on_change={(v) =>
+            update_preference(
+              "thread_count_position",
+              v as "left" | "right",
+              true,
+            )
+          }
+          options={[
+            { value: "left", label: t("settings.thread_count_left") },
+            { value: "right", label: t("settings.thread_count_right") },
+          ]}
+          title={t("settings.thread_count_position")}
+          value={preferences.thread_count_position ?? "left"}
+        />
+
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
             <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">

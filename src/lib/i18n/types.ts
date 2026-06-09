@@ -1984,6 +1984,15 @@ export interface SettingsTranslations {
   split_view_description: string;
   full_page: string;
   full_page_description: string;
+  thread_count_position: string;
+  thread_count_position_description: string;
+  thread_count_left: string;
+  thread_count_right: string;
+  compose_window_mode: string;
+  compose_window_mode_description: string;
+  compose_mode_default: string;
+  compose_mode_fullscreen: string;
+  compose_mode_minimized: string;
   build_info: string;
   release: string;
   build: string;

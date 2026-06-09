@@ -30,6 +30,7 @@ import { ComposeWindow } from "@/components/compose/compose_window";
 import { use_should_reduce_motion } from "@/provider";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_translation } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 
 const MAX_COMPOSE_INSTANCES = 3;
 
@@ -70,6 +71,7 @@ function generate_compose_id(): string {
 
 export function use_compose_manager() {
   const { t } = use_translation();
+  const { preferences } = use_preferences();
   const [instances, set_instances] = useState<ComposeInstance[]>([]);
 
   const open_compose = useCallback(
@@ -85,13 +87,14 @@ export function use_compose_manager() {
           id: generate_compose_id(),
           edit_draft,
           initial_to,
-          is_minimized: false,
+          is_minimized:
+            (preferences.compose_window_mode ?? "default") === "minimized",
         };
 
         return [...prev, new_instance];
       });
     },
-    [t],
+    [t, preferences.compose_window_mode],
   );
 
   const close_compose = useCallback((id: string) => {

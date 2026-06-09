@@ -474,7 +474,8 @@ export const InboxEmailListItem = memo(
             <div className="flex items-center gap-1.5 min-w-0 sm:max-w-[45%] overflow-hidden pr-px">
               {show_thread_count &&
                 email.thread_message_count != null &&
-                email.thread_message_count > 1 && (
+                email.thread_message_count > 1 &&
+                (preferences.thread_count_position ?? "left") === "left" && (
                   <span
                     className={cn(
                       "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded border",
@@ -500,6 +501,22 @@ export const InboxEmailListItem = memo(
                   ? email.thread_participant_names.join(", ")
                   : (peer_profile?.display_name ?? show_sender_name)}
               </span>
+
+              {show_thread_count &&
+                email.thread_message_count != null &&
+                email.thread_message_count > 1 &&
+                (preferences.thread_count_position ?? "left") === "right" && (
+                  <span
+                    className={cn(
+                      "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded border",
+                      email.is_read
+                        ? "border-txt-muted text-txt-muted"
+                        : "border-txt-secondary text-txt-secondary",
+                    )}
+                  >
+                    {email.thread_message_count}
+                  </span>
+                )}
 
               {show_sender_badge && peer_badge && (
                 <BadgeChip

@@ -141,6 +141,8 @@ export interface UserPreferences {
   html_rendering_mode: "html" | "plain_text";
   low_network_mode: boolean;
   strip_exif_on_compose: boolean;
+  thread_count_position: "left" | "right";
+  compose_window_mode: "default" | "fullscreen" | "minimized";
 }
 
 export async function sync_quiet_hours_to_server(
@@ -424,6 +426,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   html_rendering_mode: "html",
   low_network_mode: false,
   strip_exif_on_compose: true,
+  thread_count_position: "left",
+  compose_window_mode: "default",
 };
 
 type GetPreferencesViaHttpResult = UserPreferences | "not_found" | null;

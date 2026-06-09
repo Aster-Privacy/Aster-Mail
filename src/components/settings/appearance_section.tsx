@@ -20,7 +20,7 @@
 //
 import type { LanguageCode } from "@/lib/i18n/types";
 
-import { PaintBrushIcon, ViewColumnsIcon } from "@heroicons/react/24/outline";
+import { PaintBrushIcon, PencilSquareIcon, ViewColumnsIcon } from "@heroicons/react/24/outline";
 
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -38,6 +38,7 @@ import {
 } from "@/lib/i18n/languages";
 import { ThemeCard } from "@/components/settings/appearance/theme_card";
 import { ViewModeCard } from "@/components/settings/appearance/view_mode_card";
+import { ComposeModeCard } from "@/components/settings/appearance/compose_mode_card";
 import { SettingRow } from "@/components/settings/appearance/setting_row";
 
 const LANGUAGES = get_supported_languages();
@@ -205,6 +206,48 @@ export function AppearanceSection() {
             mode="fullpage"
             on_select={() =>
               update_preference("email_view_mode", "fullpage", true)
+            }
+            theme={theme}
+          />
+        </div>
+      </div>
+
+      <div className="pt-3">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <PencilSquareIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.compose_window_mode")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <p className="text-sm mb-2 text-txt-muted">
+          {t("settings.compose_window_mode_description")}
+        </p>
+        <div className="flex gap-4">
+          <ComposeModeCard
+            is_selected={(preferences.compose_window_mode ?? "default") === "default"}
+            label={t("settings.compose_mode_default")}
+            mode="default"
+            on_select={() =>
+              update_preference("compose_window_mode", "default", true)
+            }
+            theme={theme}
+          />
+          <ComposeModeCard
+            is_selected={(preferences.compose_window_mode ?? "default") === "fullscreen"}
+            label={t("settings.compose_mode_fullscreen")}
+            mode="fullscreen"
+            on_select={() =>
+              update_preference("compose_window_mode", "fullscreen", true)
+            }
+            theme={theme}
+          />
+          <ComposeModeCard
+            is_selected={(preferences.compose_window_mode ?? "default") === "minimized"}
+            label={t("settings.compose_mode_minimized")}
+            mode="minimized"
+            on_select={() =>
+              update_preference("compose_window_mode", "minimized", true)
             }
             theme={theme}
           />
