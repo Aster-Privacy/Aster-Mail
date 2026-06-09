@@ -564,6 +564,8 @@ export const Sidebar = ({
       style={
         is_collapsed
           ? undefined
+          : is_mobile
+          ? { width: "100vw", minWidth: "100vw", maxWidth: "100vw" }
           : {
               width: expanded_width,
               minWidth: expanded_width,
@@ -867,8 +869,8 @@ export const Sidebar = ({
               <motion.div
                 animate={{ x: 0 }}
                 className="fixed top-0 left-0 h-full z-50"
-                exit={{ x: -280 }}
-                initial={reduce_motion ? false : { x: -280 }}
+                exit={{ x: -(window.innerWidth + 20) }}
+                initial={reduce_motion ? false : { x: -(window.innerWidth + 20) }}
                 transition={{
                   type: "tween",
                   duration: reduce_motion ? 0 : 0.25,
