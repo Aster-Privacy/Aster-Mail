@@ -310,12 +310,10 @@ export default function MobileForgotPasswordPage() {
         throw new Error(complete_response.error || t("auth.recovery_failed"));
       }
 
-      if (old_data_kek) {
-        store_pending_reencryption({
-          old_data_kek,
-          old_identity_key,
-        });
-      }
+      store_pending_reencryption({
+        ...(old_data_kek ? { old_data_kek } : {}),
+        old_identity_key,
+      });
 
       set_step("new_codes");
     } catch (err) {

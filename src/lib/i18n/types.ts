@@ -1551,6 +1551,13 @@ export interface CommonTranslations {
   onboarding_checklist_recovery_method: string;
   onboarding_checklist_first_email: string;
   or: string;
+  inactivity_window: string;
+  inactivity_window_description: string;
+  inactivity_window_info_title: string;
+  inactivity_window_info_description: string;
+  inactivity_window_months: string;
+  inactivity_window_saved: string;
+  inactivity_window_save_failed: string;
 }
 
 export interface SettingsTranslations {
@@ -2098,6 +2105,12 @@ export interface SettingsTranslations {
   switch_billing_loss: string;
   billing_switched: string;
   failed_switch_billing: string;
+  plan_change_confirm_title: string;
+  plan_change_confirm_description: string;
+  plan_change_credit: string;
+  plan_change_due_today: string;
+  plan_change_confirm_button: string;
+  plan_change_confirming: string;
   family_plan_title: string;
   family_plan_subtitle: string;
   family_members: string;

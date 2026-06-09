@@ -24,6 +24,7 @@ import {
   EyeSlashIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
+  ExclamationTriangleIcon,
   KeyIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -121,6 +122,21 @@ export function PasswordSection({
 
         <ModalBody>
           <div className="space-y-4">
+            <div
+              className="flex items-start gap-2 p-3 rounded-lg text-sm"
+              style={{
+                backgroundColor: "color-mix(in srgb, #f59e0b 15%, transparent)",
+                color: "var(--txt-primary)",
+                border: "1px solid color-mix(in srgb, #f59e0b 40%, transparent)",
+              }}
+            >
+              <ExclamationTriangleIcon
+                className="w-4 h-4 flex-shrink-0 mt-0.5"
+                style={{ color: "#f59e0b" }}
+              />
+              <span>{t("settings.password_change_encrypted_data_warning")}</span>
+            </div>
+
             <div>
               <label
                 className="text-sm font-medium block mb-2 text-txt-primary"

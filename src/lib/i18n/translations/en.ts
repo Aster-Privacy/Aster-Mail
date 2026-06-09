@@ -104,6 +104,16 @@ export const en: Translations = {
     delete_account: "Delete account",
     erase_all_data: "Erase all your content and data permanently",
     display_name_visible: "The name others in your workspace will see",
+    inactivity_window: "Inactivity window",
+    inactivity_window_description:
+      "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
+    inactivity_window_info_title: "How the inactivity policy works",
+    inactivity_window_info_description:
+      "If your account has no activity for the duration you set, it will be permanently deleted along with all your data. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window - sent to both your Aster inbox and your recovery email. Paid subscribers are exempt from this policy.",
+    inactivity_window_months: "{{n}} months",
+    inactivity_window_saved: "Inactivity window updated",
+    inactivity_window_save_failed:
+      "Failed to save inactivity window. Please try again.",
     recovery_email: "Recovery email address",
     recovery_email_description:
       "This is the email used to recover your account",
@@ -1963,6 +1973,12 @@ export const en: Translations = {
       "Your billing cycle will be switched immediately. A prorated credit or charge will be applied to your next invoice.",
     switch_billing_savings:
       "Switching to yearly billing saves you {{amount}} per year.",
+    plan_change_confirm_title: "Confirm Plan Change",
+    plan_change_confirm_description: "Upgrade to {{plan}}. Your unused plan time is credited toward your new plan.",
+    plan_change_credit: "Credit from current plan",
+    plan_change_due_today: "Due today",
+    plan_change_confirm_button: "Confirm and Pay",
+    plan_change_confirming: "Processing...",
     family_plan_title: "Family Plan",
     family_plan_subtitle: "Manage your family group members and storage",
     family_members: "Members",

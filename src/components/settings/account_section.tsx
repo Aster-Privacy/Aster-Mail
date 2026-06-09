@@ -59,6 +59,10 @@ import {
   fetch_badge_preferences,
   update_badge_preferences,
 } from "@/services/api/user";
+import {
+  get_inactivity_settings,
+  set_inactivity_settings,
+} from "@/services/api/auth";
 import { get_badge_visual } from "@/components/ui/badge_registry";
 import { set_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { cn } from "@/lib/utils";
@@ -68,6 +72,14 @@ import {
   resend_recovery_verification,
   remove_recovery_email,
 } from "@/services/api/recovery_email";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { InfoPopover } from "@/components/ui/info_popover";
 
 const MAX_SIZE = 256;
 
@@ -228,6 +240,8 @@ export function AccountSection() {
     useState(false);
   const [removing_recovery, set_removing_recovery] = useState(false);
   const [photo_error, set_photo_error] = useState<string | null>(null);
+  const [inactivity_window, set_inactivity_window] = useState(24);
+  const [saving_inactivity, set_saving_inactivity] = useState(false);
   const [badges, set_badges] = useState<Badge[]>([]);
   const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(null);
   const [is_badge_saving, set_is_badge_saving] = useState(false);
@@ -236,7 +250,7 @@ export function AccountSection() {
   useEffect(() => {
     const run = async () => {
       try {
-        const [badges_response, prefs_response, recovery_response] =
+        const [badges_response, prefs_response, recovery_response, inactivity_response] =
           await Promise.all([
             fetch_my_badges(),
             fetch_badge_preferences(),
@@ -245,6 +259,7 @@ export function AccountSection() {
                   data: { email: null, verified: false },
                 }))
               : Promise.resolve({ data: { email: null, verified: false } }),
+            get_inactivity_settings(),
           ]);
 
         if (badges_response.data) set_badges(badges_response.data);
@@ -253,6 +268,8 @@ export function AccountSection() {
           set_my_badge_prefs(prefs_response.data);
         }
         if (recovery_response.data) set_recovery(recovery_response.data);
+        if (inactivity_response.data)
+          set_inactivity_window(inactivity_response.data.inactivity_window_months);
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
       } finally {
@@ -461,6 +478,27 @@ export function AccountSection() {
     }
   };
 
+
+  const save_inactivity_window = async (months: number) => {
+    if (months < 3 || months > 24) return;
+    set_saving_inactivity(true);
+    const prev = inactivity_window;
+    set_inactivity_window(months);
+    try {
+      const r = await set_inactivity_settings(months);
+      if (r.error) {
+        set_inactivity_window(prev);
+        show_toast(t("common.inactivity_window_save_failed"), "error");
+      } else {
+        show_toast(t("common.inactivity_window_saved"), "success");
+      }
+    } catch {
+      set_inactivity_window(prev);
+      show_toast(t("common.inactivity_window_save_failed"), "error");
+    } finally {
+      set_saving_inactivity(false);
+    }
+  };
 
   const has_custom_picture = !!(preview || user?.profile_picture);
   const picture = preview || user?.profile_picture || "/profile.webp";
@@ -812,6 +850,38 @@ export function AccountSection() {
             )}
           </p>
         )}
+      </div>
+
+      <div className="py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+              {t("common.inactivity_window")}
+              <InfoPopover title={t("common.inactivity_window_info_title")} description={t("common.inactivity_window_info_description")} learn_more_url="https://astermail.org/terms#section-9" />
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("common.inactivity_window_description")}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Select
+              disabled={saving_inactivity}
+              value={String(inactivity_window)}
+              onValueChange={(v) => save_inactivity_window(Number(v))}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[3, 6, 9, 12, 18, 24].map((m) => (
+                  <SelectItem key={m} value={String(m)}>
+                    {t("common.inactivity_window_months").replace("{{n}}", String(m))}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
       <div className="py-4">

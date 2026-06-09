@@ -23,6 +23,7 @@ import {
   ArrowPathIcon,
   FingerPrintIcon,
   ShieldCheckIcon,
+  ComputerDesktopIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
@@ -34,6 +35,19 @@ import {
   KEY_HISTORY_OPTIONS,
 } from "@/components/settings/hooks/use_security";
 import { InfoPopover } from "@/components/ui/info_popover";
+import type { LoginEventEntry } from "@/services/api/auth";
+
+function format_relative_time(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const minutes = Math.floor(diff / 60_000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
 
 interface SecuritySettingProps {
   title: string;
@@ -90,6 +104,8 @@ interface TwoFactorSectionProps {
   timeout_description: string;
   login_alerts_enabled: boolean;
   on_login_alerts_toggle: () => void;
+  login_events: LoginEventEntry[];
+  login_events_loading: boolean;
   external_link_warning_dismissed: boolean;
   on_external_link_toggle: () => void;
   forward_secrecy_enabled: boolean;
@@ -114,6 +130,8 @@ export function TwoFactorSection({
   timeout_description,
   login_alerts_enabled,
   on_login_alerts_toggle,
+  login_events,
+  login_events_loading,
   external_link_warning_dismissed,
   on_external_link_toggle,
   forward_secrecy_enabled,
@@ -196,6 +214,42 @@ export function TwoFactorSection({
         description={t("settings.login_alerts_description")}
         title={t("settings.login_alerts")}
       />
+      <div className="pb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <ComputerDesktopIcon className="w-4 h-4 text-txt-muted" />
+          <span className="text-xs font-medium text-txt-muted">
+            {t("settings.recent_sign_ins")}
+          </span>
+        </div>
+        {login_events_loading ? (
+          <p className="text-xs text-txt-muted">{t("common.loading")}</p>
+        ) : login_events.length === 0 ? (
+          <p className="text-xs text-txt-muted">{t("settings.no_sign_in_history")}</p>
+        ) : (
+          <div className="space-y-1">
+            {login_events.slice(0, 10).map((event) => (
+              <div
+                key={event.id}
+                className="flex items-center justify-between py-2 border-b border-edge-secondary last:border-0"
+              >
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs font-medium text-txt-primary">
+                    {event.device_type} - {event.browser}
+                  </span>
+                  {event.location && (
+                    <span className="text-xs text-txt-muted">
+                      {event.location}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-txt-muted ml-4 shrink-0">
+                  {format_relative_time(event.created_at)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <SecuritySetting
         action={
           <Switch

@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -628,6 +628,7 @@ export function use_registration() {
         set_recovery_email_error(t("auth.recovery_email_conflict"));
         set_is_saving_recovery_email(false);
         saving_recovery_email_ref.current = false;
+        set_step("recovery_email");
         return;
       }
 

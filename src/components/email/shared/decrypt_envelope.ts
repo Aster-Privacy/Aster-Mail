@@ -20,7 +20,7 @@
 //
 import type { DecryptedEnvelope } from "@/types/email";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import { ml_kem768 } from "@noble/post-quantum/ml-kem";
+import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 import {
   get_passphrase_bytes,
