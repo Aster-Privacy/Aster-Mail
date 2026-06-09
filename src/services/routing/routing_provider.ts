@@ -59,21 +59,37 @@ async function tauri_proxy_fetch(
   const headers_map: Record<string, string> = {};
 
   if (options.headers) {
-    const h = options.headers as Record<string, string>;
-
-    for (const [k, v] of Object.entries(h)) {
+    const h = new Headers(options.headers);
+    h.forEach((v, k) => {
       headers_map[k] = v;
-    }
+    });
   }
+
+  const body = (() => {
+    const b = options.body;
+    if (b == null) return null;
+    if (typeof b === "string") return b;
+    if (b instanceof URLSearchParams) return b.toString();
+    return String(b);
+  })();
 
   const result = await invoke<ProxyResponse>("device_http_request", {
     url,
     method: options.method || "GET",
-    body: options.body ? String(options.body) : null,
+    body,
     headers: Object.keys(headers_map).length > 0 ? headers_map : null,
   });
 
-  return new Response(result.body, {
+  let bytes: Uint8Array;
+  try {
+    bytes = result.body
+      ? Uint8Array.from(atob(result.body), (c) => c.charCodeAt(0))
+      : new Uint8Array(0);
+  } catch {
+    return new Response(null, { status: 500 });
+  }
+
+  return new Response(bytes, {
     status: result.status,
     headers: result.headers,
   });

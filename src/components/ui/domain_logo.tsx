@@ -20,6 +20,7 @@
 //
 import { useState, useCallback, useMemo, useEffect, memo } from "react";
 
+import { routed_fetch } from "@/services/routing/routing_provider";
 import {
   is_icon_failed,
   mark_icon_failed,
@@ -139,7 +140,7 @@ async function check_icon_exists(domain: string): Promise<boolean> {
 
   const url = get_favicon_url(domain);
 
-  const promise = fetch(url, { method: "HEAD" })
+  const promise = routed_fetch(url, { method: "HEAD" })
     .then((res) => {
       const ok = res.ok;
 

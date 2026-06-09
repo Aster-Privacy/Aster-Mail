@@ -34,7 +34,7 @@ use sha2::Sha256;
 use std::collections::HashMap;
 use uuid::Uuid;
 use x25519_dalek::{PublicKey as XPublicKey, StaticSecret};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::{Zeroize, Zeroizing, ZeroizeOnDrop};
 
 const KEYRING_SERVICE: &str = "com.astermail.mail";
 const KEYRING_WRAP_USER: &str = "device-identity-wrap-v1";
@@ -182,7 +182,7 @@ fn load_stored() -> Result<Option<StoredIdentity>, String> {
         let entry = Entry::new(KEYRING_SERVICE, "device_identity").ok();
         if let Some(entry) = entry {
             if let Ok(s) = entry.get_password() {
-                if let Ok(bytes) = URL_SAFE_NO_PAD.decode(s.as_bytes()) {
+                if let Ok(bytes) = URL_SAFE_NO_PAD.decode(s.as_bytes()).map(Zeroizing::new) {
                     if let Ok(stored) = serde_json::from_slice::<StoredIdentity>(&bytes) {
                         let _ = save_stored(&stored);
                         let _ = entry.delete_credential();
@@ -203,7 +203,7 @@ fn load_stored() -> Result<Option<StoredIdentity>, String> {
                 return Ok(None);
             }
             Some(wrap_key) => {
-                let plaintext = aead_open(&wrap_key, MAGIC_ID, &data)?;
+                let plaintext = Zeroizing::new(aead_open(&wrap_key, MAGIC_ID, &data)?);
                 let stored: StoredIdentity =
                     serde_json::from_slice(&plaintext).map_err(|e| e.to_string())?;
                 return Ok(Some(stored));
@@ -211,7 +211,7 @@ fn load_stored() -> Result<Option<StoredIdentity>, String> {
         }
     }
 
-    let bytes = URL_SAFE_NO_PAD.decode(&data).map_err(|e| e.to_string())?;
+    let bytes = Zeroizing::new(URL_SAFE_NO_PAD.decode(&data).map_err(|e| e.to_string())?);
     let stored: StoredIdentity =
         serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
     if let Err(e) = save_stored(&stored) {
@@ -233,7 +233,7 @@ fn set_file_permissions_restrictive(path: &std::path::Path) -> Result<(), String
 
 fn save_stored(stored: &StoredIdentity) -> Result<(), String> {
     let path = identity_file_path()?;
-    let json = serde_json::to_vec(stored).map_err(|e| e.to_string())?;
+    let json = Zeroizing::new(serde_json::to_vec(stored).map_err(|e| e.to_string())?);
     let wrap_key = wrap_key_load_or_create()?;
     let blob = aead_seal(&wrap_key, MAGIC_ID, &json)?;
     atomic_write(&path, &blob)?;
@@ -377,9 +377,11 @@ pub fn device_unseal_vault_envelope(envelope_b64: String) -> Result<String, Stri
 
     let cipher = XChaCha20Poly1305::new((&shared_key).into());
     let xnonce = XNonce::from_slice(&nonce_bytes);
-    let plaintext = cipher
-        .decrypt(xnonce, ciphertext)
-        .map_err(|e| format!("decrypt: {:?}", e))?;
+    let plaintext = Zeroizing::new(
+        cipher
+            .decrypt(xnonce, ciphertext)
+            .map_err(|e| format!("decrypt: {:?}", e))?,
+    );
 
     shared_key.zeroize();
 
@@ -410,7 +412,7 @@ pub fn device_get_stored_passphrase() -> Result<Option<String>, String> {
                 return Ok(None);
             }
             Some(wrap_key) => {
-                let plaintext = aead_open(&wrap_key, MAGIC_PP, &data)?;
+                let plaintext = Zeroizing::new(aead_open(&wrap_key, MAGIC_PP, &data)?);
                 return Ok(Some(b64url(&plaintext)));
             }
         }
@@ -456,7 +458,12 @@ pub struct ProxyResponse {
     pub headers: HashMap<String, String>,
 }
 
+#[cfg(target_os = "windows")]
+const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (Windows; Tauri)";
+#[cfg(target_os = "macos")]
 const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (macOS; Tauri)";
+#[cfg(all(unix, not(target_os = "macos")))]
+const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (Linux; Tauri)";
 
 fn is_device_header_allowed(name: &str) -> bool {
     let n = name.to_ascii_lowercase();
@@ -536,18 +543,29 @@ pub async fn device_http_request(
     req = req.header("user-agent", DESKTOP_USER_AGENT);
 
     let path = parsed_url.path();
-    let needs_origin = path.ends_with("/auth/device/challenge")
-        || path.ends_with("/auth/device/login");
+    let needs_origin = path == "/core/v1/auth/device/challenge"
+        || path == "/core/v1/auth/device/login";
 
     if needs_origin {
         req = req.header("origin", "https://tauri.localhost");
         req = req.header("referer", "https://tauri.localhost/");
     }
 
+    const MAX_CALLER_HEADERS: usize = 32;
     if let Some(h) = headers {
+        if h.len() > MAX_CALLER_HEADERS {
+            return Err(format!(
+                "too many headers: {} exceeds limit of {}",
+                h.len(),
+                MAX_CALLER_HEADERS
+            ));
+        }
         for (k, v) in h {
             if !is_device_header_allowed(&k) {
                 continue;
+            }
+            if v.bytes().any(|b| b == b'\r' || b == b'\n') {
+                return Err("header value contains invalid characters".to_string());
             }
             req = req.header(&k, &v);
         }
@@ -564,7 +582,11 @@ pub async fn device_http_request(
         .iter()
         .filter_map(|(k, v)| v.to_str().ok().map(|val| (k.to_string(), val.to_string())))
         .collect();
-    let resp_body = resp.text().await.map_err(|e| e.to_string())?;
+    let resp_bytes = resp.bytes().await.map_err(|e| e.to_string())?;
+    let resp_body = base64::Engine::encode(
+        &base64::engine::general_purpose::STANDARD,
+        &resp_bytes,
+    );
 
     Ok(ProxyResponse {
         status,
@@ -581,6 +603,15 @@ pub fn crypto_pbkdf2(
     hash: String,
     bits: u32,
 ) -> Result<Vec<u8>, String> {
+    if iterations == 0 {
+        return Err("iterations must be greater than 0".to_string());
+    }
+    if bits == 0 || bits % 8 != 0 {
+        return Err(format!("bits must be a non-zero multiple of 8, got {}", bits));
+    }
+    if iterations > 2_000_000 {
+        return Err(format!("iterations {} exceeds maximum of 2000000", iterations));
+    }
     let dk_len = (bits / 8) as usize;
     let mut dk = vec![0u8; dk_len];
 
@@ -608,6 +639,9 @@ pub fn crypto_hkdf(
     hash: String,
     bits: u32,
 ) -> Result<Vec<u8>, String> {
+    if bits == 0 || bits % 8 != 0 {
+        return Err(format!("bits must be a non-zero multiple of 8, got {}", bits));
+    }
     let dk_len = (bits / 8) as usize;
     let mut okm = vec![0u8; dk_len];
     let salt_ref = if salt.is_empty() { None } else { Some(salt.as_slice()) };
@@ -636,6 +670,9 @@ pub fn crypto_aes_gcm_encrypt(
     data: Vec<u8>,
 ) -> Result<Vec<u8>, String> {
     use aes_gcm::{Aes256Gcm, KeyInit, Nonce, aead::Aead};
+    if iv.len() != 12 {
+        return Err("aes-gcm iv must be 12 bytes".to_string());
+    }
     let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| e.to_string())?;
     let nonce = Nonce::from_slice(&iv);
     cipher.encrypt(nonce, data.as_ref()).map_err(|e| e.to_string())
@@ -648,6 +685,9 @@ pub fn crypto_aes_gcm_decrypt(
     data: Vec<u8>,
 ) -> Result<Vec<u8>, String> {
     use aes_gcm::{Aes256Gcm, KeyInit, Nonce, aead::Aead};
+    if iv.len() != 12 {
+        return Err("aes-gcm iv must be 12 bytes".to_string());
+    }
     let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| e.to_string())?;
     let nonce = Nonce::from_slice(&iv);
     cipher.decrypt(nonce, data.as_ref()).map_err(|e| e.to_string())

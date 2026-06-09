@@ -36,6 +36,30 @@ import { connection_store } from "@/services/routing/connection_store";
 
 const IMAGE_PROXY_URL = get_image_proxy_url();
 
+function sniff_image_type(bytes: Uint8Array): string | null {
+  if (bytes.length >= 4) {
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47)
+      return "image/png";
+    if (bytes[0] === 0xff && bytes[1] === 0xd8)
+      return "image/jpeg";
+    if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46)
+      return "image/gif";
+    if (
+      bytes.length >= 12 &&
+      bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+      bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+    )
+      return "image/webp";
+  }
+  try {
+    const prefix = new TextDecoder().decode(bytes.subarray(0, Math.min(64, bytes.length)));
+    const trimmed = prefix.trimStart().replace(/^﻿/, "");
+    if (trimmed.startsWith("<svg") || trimmed.startsWith("<?xml"))
+      return "image/svg+xml";
+  } catch {}
+  return null;
+}
+
 async function resolve_native_images(doc: Document): Promise<void> {
   const is_native =
     Capacitor.isNativePlatform() ||
@@ -77,9 +101,24 @@ async function resolve_native_images(doc: Document): Promise<void> {
 
       if (!response.ok) return;
 
-      const blob = await response.blob();
+      const buffer = await response.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      const chunk = 8192;
 
-      img.src = URL.createObjectURL(blob);
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode.apply(
+          null,
+          bytes.subarray(i, i + chunk) as unknown as number[],
+        );
+      }
+
+      const content_type =
+        sniff_image_type(bytes) || response.headers.get("content-type");
+
+      if (!content_type) return;
+
+      img.src = `data:${content_type};base64,${btoa(binary)}`;
     }),
   );
 }

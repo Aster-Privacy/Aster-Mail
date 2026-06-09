@@ -127,7 +127,7 @@ fn clear_stale_webkit_keychain() {
     use std::process::Command;
     for _ in 0..5 {
         let result = Command::new("security")
-            .args(["delete-generic-password", "-l", "Aster Mail Desktop web mail web crypto master key"])
+            .args(["delete-generic-password", "-s", "com.astermail.mail", "-l", "Aster Mail Desktop web mail web crypto master key"])
             .output();
         match result {
             Ok(output) if output.status.success() => continue,
@@ -195,11 +195,6 @@ fn main() {
             let tray_icon_bytes = include_bytes!("../icons/icon_hires.png").as_slice();
             let tray_icon = tauri::image::Image::from_bytes(tray_icon_bytes)
                 .expect("failed to load tray icon");
-
-            #[cfg(target_os = "macos")]
-            if let Some(window) = app.get_webview_window("main") {
-                let _ = window.set_icon(tray_icon.clone());
-            }
 
             let show =
                 MenuItem::with_id(app, "show", "Show Aster Mail", true, None::<&str>)?;

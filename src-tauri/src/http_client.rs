@@ -36,8 +36,8 @@ use x509_parser::prelude::*;
 const PRIMARY_PIN_B64: &str = "xzW4Lh0h5AJczrSG3fvSOGZYUsDrxYyt0AlhLpZFUls=";
 const BACKUP_PIN_B64: &str = "DDf/bfpXnW80wMM5Y2b9zNCdohxBo5lX7rUMiw+DYO4=";
 
-const PINNED_SUFFIX: &str = ".astermail.org";
-const PINNED_EXACT: &str = "astermail.org";
+const PINNED_SUFFIXES: &[&str] = &[".astermail.org", ".astermail.com"];
+const PINNED_EXACT: &[&str] = &["astermail.org", "astermail.com"];
 
 #[derive(Debug)]
 struct PinnedVerifier {
@@ -75,7 +75,8 @@ fn host_requires_pin(server_name: &ServerName<'_>) -> bool {
         ServerName::DnsName(dns) => {
             let host = dns.as_ref().to_ascii_lowercase();
             let host = host.trim_end_matches('.');
-            host == PINNED_EXACT || host.ends_with(PINNED_SUFFIX)
+            PINNED_EXACT.iter().any(|e| host == *e)
+                || PINNED_SUFFIXES.iter().any(|s| host.ends_with(*s))
         }
         _ => false,
     }
@@ -166,6 +167,7 @@ pub fn build_pinned_client(timeout: Duration) -> Result<reqwest::Client, String>
         .no_proxy()
         .timeout(timeout)
         .cookie_store(true)
+        .redirect(reqwest::redirect::Policy::none())
         .use_preconfigured_tls(tls)
         .build()
         .map_err(|e| e.to_string())
