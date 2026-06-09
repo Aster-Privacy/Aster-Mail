@@ -774,7 +774,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         }
       });
     },
-    [deps.thread_messages, deps.on_close],
+    [deps.thread_messages, deps.on_close, deps.mail_item, deps.is_read],
   );
 
   return {
