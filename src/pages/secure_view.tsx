@@ -52,56 +52,58 @@ a { color: #93c5fd !important; }
 .aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix { display: block !important; }
 `;
 
-const SECURE_BODY_CSP = [
-  "default-src 'none'",
-  "img-src data: blob:",
-  "style-src 'unsafe-inline'",
-  "font-src data:",
-  "media-src data: blob:",
-  "script-src 'none'",
-  "object-src 'none'",
-  "frame-src 'none'",
-  "child-src 'none'",
-  "connect-src 'none'",
-  "form-action 'none'",
-  "base-uri 'none'",
-].join("; ");
-
 function SecureMessageBody({ html, title }: { html: string; title: string }) {
   const frame_ref = useRef<HTMLIFrameElement | null>(null);
   const [height, set_height] = useState(0);
 
-  const srcdoc = useMemo(
-    () =>
-      `<!DOCTYPE html><html><head><meta charset="utf-8">` +
+  const nonce = useMemo(() => {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return btoa(String.fromCharCode(...Array.from(bytes)));
+  }, [html]);
+
+  const srcdoc = useMemo(() => {
+    const csp = [
+      "default-src 'none'",
+      "img-src data: blob:",
+      "style-src 'unsafe-inline'",
+      "font-src data:",
+      "media-src data: blob:",
+      `script-src 'nonce-${nonce}'`,
+      "object-src 'none'",
+      "frame-src 'none'",
+      "child-src 'none'",
+      "connect-src 'none'",
+      "form-action 'none'",
+      "base-uri 'none'",
+    ].join("; ");
+    const height_script = `(function(){function m(){var h=document.body?Math.min(document.body.scrollHeight+8,20000):0;parent.postMessage({type:"aster_sv_height",value:h},"*");}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",m);}else{m();}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(m);}try{new ResizeObserver(m).observe(document.body);}catch(_){}document.querySelectorAll("img").forEach(function(img){if(!img.complete){img.addEventListener("load",m,{once:true});}});})();`;
+    return `<!DOCTYPE html><html><head><meta charset="utf-8">` +
       `<meta name="viewport" content="width=device-width, initial-scale=1">` +
       `<meta name="referrer" content="no-referrer">` +
-      `<meta http-equiv="Content-Security-Policy" content="${SECURE_BODY_CSP}">` +
+      `<meta http-equiv="Content-Security-Policy" content="${csp}">` +
       `<base target="_blank">` +
-      `<style>${SECURE_BODY_CSS}</style></head>` +
-      `<body>${html}</body></html>`,
-    [html],
-  );
-
-  const measure = useCallback(() => {
-    const doc = frame_ref.current?.contentDocument;
-
-    if (!doc?.body) return;
-
-    set_height(Math.min(doc.body.scrollHeight + 8, 20000));
-  }, []);
+      `<style>${SECURE_BODY_CSS}</style>` +
+      `<script nonce="${nonce}">${height_script}</script>` +
+      `</head><body>${html}</body></html>`;
+  }, [html, nonce]);
 
   useEffect(() => {
-    const timer = setTimeout(measure, 200);
-
-    return () => clearTimeout(timer);
-  }, [srcdoc, measure]);
+    const handler = (e: MessageEvent) => {
+      if (e.source !== frame_ref.current?.contentWindow) return;
+      if (e.data?.type === "aster_sv_height" && typeof e.data.value === "number") {
+        set_height(e.data.value);
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
   return (
     <iframe
       ref={frame_ref}
       referrerPolicy="no-referrer"
-      sandbox="allow-same-origin allow-popups"
+      sandbox="allow-scripts allow-popups"
       srcDoc={srcdoc}
       style={{
         width: "100%",
@@ -112,7 +114,6 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
         colorScheme: "dark",
       }}
       title={title}
-      onLoad={measure}
     />
   );
 }
