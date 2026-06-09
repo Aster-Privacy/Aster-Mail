@@ -4514,6 +4514,10 @@ export const en: Translations = {
   mail: {
     encrypted_message_unavailable:
       "This message could not be decrypted. The sender may have used an outdated key.",
+    add_reaction: "Add reaction",
+    remove_reaction: "Remove reaction",
+    reaction_failed: "Failed to send reaction. Try again.",
+    reaction_not_supported: "Reactions are only available between Aster users.",
     all_on_page_selected:
       "All {{ count }} conversations on this page are selected.",
     select_all_in_folder:

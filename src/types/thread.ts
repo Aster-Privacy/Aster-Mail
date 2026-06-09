@@ -61,6 +61,12 @@ export interface DecryptedThreadMessage {
   spf_result?: string;
   dkim_result?: string;
   dmarc_result?: string;
+  reaction_data?: {
+    type: "reaction" | "reaction_remove";
+    target_message_id: string;
+    emoji: string;
+    sender_email: string;
+  };
 }
 
 export interface ThreadAttachment {

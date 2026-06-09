@@ -38,11 +38,14 @@ import {
 import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_preferences } from "@/contexts/preferences_context";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
 import { adjust_starred_count } from "@/hooks/use_mail_counts";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
+import type { aggregated_reaction } from "@/components/email/message_reactions";
+import { send_reaction, send_reaction_remove } from "@/services/send_reaction";
 
 interface ThreadMessagesListProps {
   messages: DecryptedThreadMessage[];
@@ -90,6 +93,7 @@ interface ThreadMessagesListProps {
   unsubscribe_url?: string;
   loaded_content_types?: Set<string>;
   on_load_external_content?: (types?: string[]) => void;
+  thread_token?: string;
 }
 
 export interface ThreadMessagesListRef {
@@ -144,29 +148,124 @@ export const ThreadMessagesList = forwardRef<
     unsubscribe_url,
     loaded_content_types,
     on_load_external_content,
+    thread_token,
   },
   ref,
 ): React.ReactElement {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
+  const regular_messages = useMemo(
+    () => messages.filter((m) => !m.reaction_data),
+    [messages],
+  );
+
   const display_messages = useMemo(
     () =>
       preferences.conversation_order === "desc"
-        ? [...messages].reverse()
-        : messages,
-    [messages, preferences.conversation_order],
+        ? [...regular_messages].reverse()
+        : regular_messages,
+    [regular_messages, preferences.conversation_order],
   );
+
+  const [optimistic_reactions, set_optimistic_reactions] = useState<
+    Map<string, { emoji: string; sender_email: string; type: "reaction" | "reaction_remove" }[]>
+  >(new Map());
+
+  const reactions_by_message_id = useMemo<Map<string, aggregated_reaction[]>>(() => {
+    const map = new Map<string, aggregated_reaction[]>();
+
+    const all_reaction_msgs = messages.filter((m) => m.reaction_data);
+    for (const msg of all_reaction_msgs) {
+      const rd = msg.reaction_data!;
+      if (!map.has(rd.target_message_id)) map.set(rd.target_message_id, []);
+      const bucket = map.get(rd.target_message_id)!;
+      if (rd.type === "reaction_remove") {
+        const idx = bucket.findIndex(
+          (r) => r.emoji === rd.emoji && r.sender_emails.includes(rd.sender_email),
+        );
+        if (idx !== -1) {
+          const updated = { ...bucket[idx] };
+          updated.sender_emails = updated.sender_emails.filter((e) => e !== rd.sender_email);
+          updated.count = updated.sender_emails.length;
+          if (updated.count === 0) {
+            bucket.splice(idx, 1);
+          } else {
+            bucket[idx] = updated;
+          }
+        }
+      } else {
+        const existing = bucket.find((r) => r.emoji === rd.emoji);
+        if (existing) {
+          if (!existing.sender_emails.includes(rd.sender_email)) {
+            existing.sender_emails.push(rd.sender_email);
+            existing.count++;
+            existing.reacted_by_me =
+              existing.reacted_by_me ||
+              rd.sender_email.toLowerCase() === current_user_email.toLowerCase();
+          }
+        } else {
+          bucket.push({
+            emoji: rd.emoji,
+            count: 1,
+            reacted_by_me: rd.sender_email.toLowerCase() === current_user_email.toLowerCase(),
+            sender_emails: [rd.sender_email],
+          });
+        }
+      }
+    }
+
+    for (const [msg_id, pending] of optimistic_reactions) {
+      for (const p of pending) {
+        if (!map.has(msg_id)) map.set(msg_id, []);
+        const bucket = map.get(msg_id)!;
+        if (p.type === "reaction_remove") {
+          const idx = bucket.findIndex(
+            (r) => r.emoji === p.emoji && r.sender_emails.includes(p.sender_email),
+          );
+          if (idx !== -1) {
+            const updated = { ...bucket[idx] };
+            updated.sender_emails = updated.sender_emails.filter((e) => e !== p.sender_email);
+            updated.count = updated.sender_emails.length;
+            if (updated.count === 0) bucket.splice(idx, 1);
+            else bucket[idx] = updated;
+          }
+        } else {
+          const existing = bucket.find((r) => r.emoji === p.emoji);
+          if (existing) {
+            if (!existing.sender_emails.includes(p.sender_email)) {
+              existing.sender_emails.push(p.sender_email);
+              existing.count++;
+              existing.reacted_by_me =
+                existing.reacted_by_me ||
+                p.sender_email.toLowerCase() === current_user_email.toLowerCase();
+            }
+          } else {
+            bucket.push({
+              emoji: p.emoji,
+              count: 1,
+              reacted_by_me: p.sender_email.toLowerCase() === current_user_email.toLowerCase(),
+              sender_emails: [p.sender_email],
+            });
+          }
+        }
+      }
+    }
+
+    return map;
+  }, [messages, optimistic_reactions, current_user_email]);
+
   const [dark_mode_ids, set_dark_mode_ids] = useState<Set<string>>(new Set());
   const [hidden_group_revealed, set_hidden_group_revealed] = useState(false);
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(() => {
     const initial = new Set<string>();
+    const init_msgs = messages.filter((m) => !m.reaction_data);
 
-    if (messages.length > 0) {
-      initial.add(messages[messages.length - 1].id);
+    if (init_msgs.length > 0) {
+      initial.add(init_msgs[init_msgs.length - 1].id);
     }
 
-    if (messages.length <= 4) {
-      const unread = messages.filter((m) => !m.is_read);
+    if (init_msgs.length <= 4) {
+      const unread = init_msgs.filter((m) => !m.is_read);
 
       unread.slice(-5).forEach((msg) => {
         initial.add(msg.id);
@@ -240,8 +339,8 @@ export const ThreadMessagesList = forwardRef<
   }, [messages]);
 
   const message_ids_key = useMemo(
-    () => messages.map((m) => m.id).join(","),
-    [messages],
+    () => regular_messages.map((m) => m.id).join(","),
+    [regular_messages],
   );
 
   const prev_message_ids_key = useRef(message_ids_key);
@@ -252,12 +351,12 @@ export const ThreadMessagesList = forwardRef<
 
     const new_expanded = new Set<string>();
 
-    if (messages.length > 0) {
-      new_expanded.add(messages[messages.length - 1].id);
+    if (regular_messages.length > 0) {
+      new_expanded.add(regular_messages[regular_messages.length - 1].id);
     }
 
-    if (messages.length <= 4) {
-      const unread = messages.filter((m) => !m.is_read);
+    if (regular_messages.length <= 4) {
+      const unread = regular_messages.filter((m) => !m.is_read);
 
       unread.slice(-5).forEach((msg) => {
         new_expanded.add(msg.id);
@@ -267,11 +366,11 @@ export const ThreadMessagesList = forwardRef<
     set_expanded_ids(new_expanded);
     auto_read_ids.current = new Set();
     set_hidden_group_revealed(false);
-  }, [message_ids_key, messages]);
+  }, [message_ids_key, regular_messages]);
 
   const mark_as_read = useCallback(
     (msg: DecryptedThreadMessage) => {
-      if (read_ids.has(msg.id)) return;
+      if (read_ids.has(msg.id) || msg.reaction_data) return;
 
       set_read_ids((prev) => {
         const next = new Set(prev);
@@ -311,7 +410,7 @@ export const ThreadMessagesList = forwardRef<
   );
 
   useEffect(() => {
-    messages.forEach((msg) => {
+    regular_messages.forEach((msg) => {
       const is_unread = !msg.is_read && !read_ids.has(msg.id);
 
       if (
@@ -341,7 +440,7 @@ export const ThreadMessagesList = forwardRef<
 
   const toggle = useCallback(
     (msg: DecryptedThreadMessage) => {
-      const is_last = messages.length > 0 && msg.id === messages[messages.length - 1].id;
+      const is_last = regular_messages.length > 0 && msg.id === regular_messages[regular_messages.length - 1].id;
 
       if (is_last && expanded_ids.has(msg.id)) return;
 
@@ -365,7 +464,7 @@ export const ThreadMessagesList = forwardRef<
         mark_as_read(msg);
       }
     },
-    [expanded_ids, read_ids, mark_as_read],
+    [expanded_ids, read_ids, mark_as_read, regular_messages],
   );
 
   const toggle_star = useCallback(
@@ -493,28 +592,28 @@ export const ThreadMessagesList = forwardRef<
   );
 
   const expand_all = useCallback(() => {
-    set_expanded_ids(new Set(messages.map((m) => m.id)));
-  }, [messages]);
+    set_expanded_ids(new Set(regular_messages.map((m) => m.id)));
+  }, [regular_messages]);
 
   const collapse_all = useCallback(() => {
-    if (messages.length > 0) {
-      set_expanded_ids(new Set([messages[messages.length - 1].id]));
+    if (regular_messages.length > 0) {
+      set_expanded_ids(new Set([regular_messages[regular_messages.length - 1].id]));
     } else {
       set_expanded_ids(new Set());
     }
-  }, [messages]);
+  }, [regular_messages]);
 
   const first_unread_ref = useRef<HTMLDivElement>(null);
 
   const scroll_target_id = useMemo(() => {
-    const unread = messages.find((m) => !m.is_read && !read_ids.has(m.id));
+    const unread = regular_messages.find((m) => !m.is_read && !read_ids.has(m.id));
 
     if (unread) return unread.id;
 
-    const last = messages[messages.length - 1];
+    const last = regular_messages[regular_messages.length - 1];
 
     return last?.id ?? null;
-  }, [messages, read_ids]);
+  }, [regular_messages, read_ids]);
 
   const has_scrolled = useRef(false);
 
@@ -557,9 +656,9 @@ export const ThreadMessagesList = forwardRef<
 
   const send_anchor_ref = useRef<HTMLDivElement>(null);
   const last_sending_id = useMemo(() => {
-    const last = messages[messages.length - 1];
+    const last = regular_messages[regular_messages.length - 1];
     return last?.is_sending ? last.id : null;
-  }, [messages]);
+  }, [regular_messages]);
 
   useEffect(() => {
     if (!last_sending_id) return;
@@ -589,7 +688,7 @@ export const ThreadMessagesList = forwardRef<
   }, [last_sending_id]);
 
   const handle_mark_all_read = useCallback(() => {
-    const unread_messages = messages.filter(
+    const unread_messages = regular_messages.filter(
       (m) => !m.is_read && !read_ids.has(m.id),
     );
 
@@ -600,33 +699,117 @@ export const ThreadMessagesList = forwardRef<
     });
 
     on_mark_all_read?.();
-  }, [messages, read_ids, mark_as_read, on_mark_all_read]);
+  }, [regular_messages, read_ids, mark_as_read, on_mark_all_read]);
 
   const unread_count = useMemo(() => {
-    return messages.filter((m) => !m.is_read && !read_ids.has(m.id)).length;
-  }, [messages, read_ids]);
+    return regular_messages.filter((m) => !m.is_read && !read_ids.has(m.id)).length;
+  }, [regular_messages, read_ids]);
 
   const all_expanded = useMemo(() => {
-    return messages.every((m) => expanded_ids.has(m.id));
-  }, [messages, expanded_ids]);
+    return regular_messages.every((m) => expanded_ids.has(m.id));
+  }, [regular_messages, expanded_ids]);
 
   const all_collapsed = useMemo(() => {
-    return messages.every((m) => !expanded_ids.has(m.id));
-  }, [messages, expanded_ids]);
+    return regular_messages.every((m) => !expanded_ids.has(m.id));
+  }, [regular_messages, expanded_ids]);
 
   const all_dark_mode = useMemo(() => {
     return (
-      messages.length > 0 && messages.every((m) => dark_mode_ids.has(m.id))
+      regular_messages.length > 0 && regular_messages.every((m) => dark_mode_ids.has(m.id))
     );
-  }, [messages, dark_mode_ids]);
+  }, [regular_messages, dark_mode_ids]);
 
   const toggle_all_dark_mode = useCallback(() => {
     if (all_dark_mode) {
       set_dark_mode_ids(new Set());
     } else {
-      set_dark_mode_ids(new Set(messages.map((m) => m.id)));
+      set_dark_mode_ids(new Set(regular_messages.map((m) => m.id)));
     }
-  }, [all_dark_mode, messages]);
+  }, [all_dark_mode, regular_messages]);
+
+  const handle_react = useCallback(
+    async (target_msg: DecryptedThreadMessage, emoji: string) => {
+      if (!thread_token || !current_user_email) return;
+      const recipient_emails = (() => {
+        if (target_msg.item_type === "received") {
+          return [target_msg.sender_email].filter(
+            (e) => e && e.toLowerCase() !== current_user_email.toLowerCase(),
+          );
+        }
+        return [
+          ...(target_msg.to_recipients?.map((r) => r.email) ?? []),
+          ...(target_msg.cc_recipients?.map((r) => r.email) ?? []),
+        ].filter((e) => e && e.toLowerCase() !== current_user_email.toLowerCase());
+      })();
+
+      if (recipient_emails.length === 0) return;
+
+      set_optimistic_reactions((prev) => {
+        const next = new Map(prev);
+        const existing = next.get(target_msg.id) ?? [];
+        next.set(target_msg.id, [
+          ...existing,
+          { emoji, sender_email: current_user_email, type: "reaction" as const },
+        ]);
+        return next;
+      });
+
+      try {
+        await send_reaction({
+          thread_token,
+          target_message_id: target_msg.id,
+          emoji,
+          recipient_emails,
+          sender_email: current_user_email,
+        });
+      } catch {
+        show_toast(t("mail.reaction_failed"), "error");
+      }
+    },
+    [thread_token, current_user_email],
+  );
+
+  const handle_react_remove = useCallback(
+    async (target_msg: DecryptedThreadMessage, emoji: string) => {
+      if (!thread_token || !current_user_email) return;
+      const recipient_emails = (() => {
+        if (target_msg.item_type === "received") {
+          return [target_msg.sender_email].filter(
+            (e) => e && e.toLowerCase() !== current_user_email.toLowerCase(),
+          );
+        }
+        return [
+          ...(target_msg.to_recipients?.map((r) => r.email) ?? []),
+          ...(target_msg.cc_recipients?.map((r) => r.email) ?? []),
+        ].filter((e) => e && e.toLowerCase() !== current_user_email.toLowerCase());
+      })();
+
+      if (recipient_emails.length === 0) return;
+
+      set_optimistic_reactions((prev) => {
+        const next = new Map(prev);
+        const existing = next.get(target_msg.id) ?? [];
+        next.set(target_msg.id, [
+          ...existing,
+          { emoji, sender_email: current_user_email, type: "reaction_remove" as const },
+        ]);
+        return next;
+      });
+
+      try {
+        await send_reaction_remove({
+          thread_token,
+          target_message_id: target_msg.id,
+          emoji,
+          recipient_emails,
+          sender_email: current_user_email,
+        });
+      } catch {
+        show_toast(t("mail.reaction_failed"), "error");
+      }
+    },
+    [thread_token, current_user_email],
+  );
 
   useImperativeHandle(
     ref,
@@ -687,7 +870,7 @@ export const ThreadMessagesList = forwardRef<
     display_idx: number,
     extra_props?: { hide_bottom_border?: boolean },
   ) => {
-    const is_last = msg.id === messages[messages.length - 1]?.id;
+    const is_last = msg.id === regular_messages[regular_messages.length - 1]?.id;
 
     return (
     <div
@@ -707,9 +890,9 @@ export const ThreadMessagesList = forwardRef<
         inline_reply_is_external={inline_reply_is_external}
         inline_reply_thread_token={inline_reply_thread_token}
         is_expanded={expanded_ids.has(msg.id)}
-        is_single_message={messages.length === 1}
+        is_single_message={regular_messages.length === 1}
         is_last_in_thread={
-          messages.length > 1 && msg.id === messages[messages.length - 1].id
+          regular_messages.length > 1 && msg.id === regular_messages[regular_messages.length - 1].id
         }
         is_own_message={
           msg.sender_email.toLowerCase() === current_user_email.toLowerCase()
@@ -743,17 +926,20 @@ export const ThreadMessagesList = forwardRef<
         preloaded_sanitized={preloaded_sanitized?.get(msg.id)}
         show_inline_reply={inline_reply_msg?.id === msg.id}
         size_bytes={size_bytes}
+        reactions={reactions_by_message_id.get(msg.id)}
+        on_react={(emoji) => void handle_react(msg, emoji)}
+        on_react_remove={(emoji) => void handle_react_remove(msg, emoji)}
       />
     </div>
     );
   };
 
   return (
-    <div className={`flex flex-col ${messages.length > 1 ? "gap-0" : "gap-2"}`}>
-      {(thread_message_count ?? messages.length) > 1 && !hide_counter && (
+    <div className={`flex flex-col ${regular_messages.length > 1 ? "gap-0" : "gap-2"}`}>
+      {(thread_message_count ?? regular_messages.length) > 1 && !hide_counter && (
         <div className="flex items-center justify-end px-1">
           <span className="text-[11px] text-txt-muted">
-            {thread_message_count ?? messages.length} {t("mail.messages_label")}
+            {thread_message_count ?? regular_messages.length} {t("mail.messages_label")}
           </span>
         </div>
       )}

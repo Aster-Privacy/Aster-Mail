@@ -4350,6 +4350,10 @@ export interface SettingsTranslations {
 
 export interface MailTranslations {
   encrypted_message_unavailable: string;
+  add_reaction: string;
+  remove_reaction: string;
+  reaction_failed: string;
+  reaction_not_supported: string;
   all_on_page_selected: string;
   select_all_in_folder: string;
   all_in_folder_selected: string;
