@@ -565,7 +565,15 @@ export function use_popup_viewer({
         }
       }
     }
-  }, [email_id, format_email_detail, preferences.mark_as_read_delay]);
+  }, [
+    email_id,
+    format_email_detail,
+    preferences.mark_as_read_delay,
+    preferences.conversation_grouping,
+    grouped_email_ids,
+    user?.email,
+    t,
+  ]);
 
   useEffect(() => {
     if (local_email) {
