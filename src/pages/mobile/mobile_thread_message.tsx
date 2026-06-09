@@ -216,6 +216,21 @@ export function MobileThreadMessage({
               {collapsed_preview}
             </p>
           </div>
+          <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[var(--text-secondary)] active:opacity-70"
+              style={{
+                background: "var(--bg-tertiary)",
+                boxShadow:
+                  "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
+                border: "1px solid var(--border-primary)",
+              }}
+              type="button"
+              onClick={() => on_open_menu(message)}
+            >
+              <EllipsisHorizontalIcon className="h-4.5 w-4.5" />
+            </button>
+          </div>
         </div>
       </div>
     );
