@@ -407,6 +407,7 @@ export function use_compose_send({
     subject,
     message,
     user,
+    contacts,
     clear_all_errors,
     build_send_context,
     reset_form,
