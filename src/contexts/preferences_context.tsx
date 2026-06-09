@@ -649,7 +649,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           latest_prefs_ref.current = null;
           beacon_payload_ref.current = null;
 
-          const merged = { ...DEFAULT_PREFERENCES, ...response.data };
+          const merged = normalize_preferences({ ...DEFAULT_PREFERENCES, ...response.data });
 
           set_preferences(merged);
           cache_sidebar_state(
