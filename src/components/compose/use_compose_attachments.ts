@@ -155,7 +155,9 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         const mime_type = resolve_mime_type(file);
 
-        const exists = attachments.some((a) => a.name === file.name);
+        const exists =
+          attachments.some((a) => a.name === file.name) ||
+          new_attachments.some((a) => a.name === file.name);
 
         if (exists) {
           set_attachment_error(t("common.file_already_attached", { name: file.name }));
@@ -215,7 +217,9 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         const mime_type = resolve_mime_type(file);
 
-        const exists = attachments.some((a) => a.name === file.name);
+        const exists =
+          attachments.some((a) => a.name === file.name) ||
+          new_attachments.some((a) => a.name === file.name);
 
         if (exists) {
           set_attachment_error(t("common.file_already_attached", { name: file.name }));

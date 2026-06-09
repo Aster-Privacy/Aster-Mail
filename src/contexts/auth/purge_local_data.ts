@@ -21,6 +21,7 @@
 import { clear_all_session_passphrases } from "./session_passphrase";
 
 import { api_client } from "@/services/api/client";
+import { logout_user } from "@/services/api/auth";
 import { purge_favicon_cache } from "@/lib/favicon_cache_db";
 import { wipe_all_storage } from "@/services/crypto/secure_storage";
 import {
@@ -46,6 +47,11 @@ export async function purge_all_local_data(): Promise<void> {
 
   stop_session_timeout();
   sync_client.disconnect();
+
+  api_client.begin_intentional_logout();
+  try {
+    await logout_user();
+  } catch {}
 
   try {
     await wipe_all_storage();

@@ -390,6 +390,8 @@ export function AttachmentList({
           if (import.meta.env.DEV) console.error(error);
           decrypted.push({
             id: att.id,
+            mail_item_id: att.mail_item_id,
+            seq_num: att.seq_num,
             filename: t("common.encrypted_attachment"),
             content_type: "application/octet-stream",
             size_bytes: att.size_bytes,

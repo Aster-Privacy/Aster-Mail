@@ -32,6 +32,8 @@ export interface AppLockConfig {
   digits: number;
   pin_hash: string;
   pin_salt: string;
+  duress_pin_hash?: string;
+  duress_pin_salt?: string;
 }
 
 interface AttemptState {
@@ -188,6 +190,84 @@ export function mark_session_unlocked(account_id: string): void {
 
 export function clear_session_unlock(account_id: string): void {
   sessionStorage.removeItem(session_key(account_id));
+}
+
+export function has_duress_pin(account_id: string): boolean {
+  const config = get_app_lock_config(account_id);
+  return !!(config?.duress_pin_hash && config?.duress_pin_salt);
+}
+
+export function save_duress_pin(account_id: string, pin_hash: string, pin_salt: string): void {
+  const config = get_app_lock_config(account_id);
+  if (!config) return;
+  save_app_lock_config(account_id, { ...config, duress_pin_hash: pin_hash, duress_pin_salt: pin_salt });
+}
+
+export function clear_duress_pin(account_id: string): void {
+  const config = get_app_lock_config(account_id);
+  if (!config) return;
+  const { duress_pin_hash: _h, duress_pin_salt: _s, ...rest } = config;
+  save_app_lock_config(account_id, rest as AppLockConfig);
+}
+
+export type PinOutcome =
+  | { outcome: "unlocked" }
+  | { outcome: "duress" }
+  | { outcome: "failed"; locked: boolean; attempts_remaining: number }
+  | { outcome: "locked_out"; remaining_ms: number };
+
+export async function attempt_pin_unlock(account_id: string, pin: string): Promise<PinOutcome> {
+  const lockout = is_locked_out(account_id);
+  if (lockout.locked) return { outcome: "locked_out", remaining_ms: lockout.remaining_ms };
+
+  const config = get_app_lock_config(account_id);
+  if (!config || !config.enabled || !config.pin_hash || !config.pin_salt) {
+    return { outcome: "failed", locked: false, attempts_remaining: MAX_ATTEMPTS };
+  }
+
+  if (config.duress_pin_hash && config.duress_pin_salt) {
+    const duress_pairs = config.duress_pin_salt.match(/.{2}/g);
+    if (duress_pairs) {
+      const duress_salt = Uint8Array.from(duress_pairs.map((h) => parseInt(h, 16)));
+      const duress_computed = await hash_pin(pin, duress_salt);
+      if (constant_time_equal(duress_computed, config.duress_pin_hash)) {
+        return { outcome: "duress" };
+      }
+    }
+  }
+
+  const salt_pairs = config.pin_salt.match(/.{2}/g);
+  if (!salt_pairs) return { outcome: "failed", locked: false, attempts_remaining: MAX_ATTEMPTS };
+  const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
+  const computed = await hash_pin(pin, salt_bytes);
+
+  if (constant_time_equal(computed, config.pin_hash)) {
+    reset_attempts(account_id);
+    return { outcome: "unlocked" };
+  }
+
+  const result = record_failed_attempt(account_id);
+  return { outcome: "failed", locked: result.locked, attempts_remaining: result.attempts_remaining };
+}
+
+export async function pin_matches_regular(account_id: string, raw_pin: string): Promise<boolean> {
+  const config = get_app_lock_config(account_id);
+  if (!config?.pin_hash || !config?.pin_salt) return false;
+  const salt_pairs = config.pin_salt.match(/.{2}/g);
+  if (!salt_pairs) return false;
+  const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
+  const computed = await hash_pin(raw_pin, salt_bytes);
+  return constant_time_equal(computed, config.pin_hash);
+}
+
+export async function duress_pin_correct(account_id: string, raw_pin: string): Promise<boolean> {
+  const config = get_app_lock_config(account_id);
+  if (!config?.duress_pin_hash || !config?.duress_pin_salt) return false;
+  const salt_pairs = config.duress_pin_salt.match(/.{2}/g);
+  if (!salt_pairs) return false;
+  const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
+  const computed = await hash_pin(raw_pin, salt_bytes);
+  return constant_time_equal(computed, config.duress_pin_hash);
 }
 
 export function clear_all_app_lock_data(): void {

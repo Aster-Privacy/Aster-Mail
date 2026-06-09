@@ -47,6 +47,7 @@ import {
   is_locked_out,
   mark_session_unlocked,
 } from "@/services/app_lock_store";
+import { DuressPinSection } from "@/components/settings/security/duress_pin_section";
 
 function PinDots({ digits, filled, shake_key }: { digits: number; filled: number; shake_key: number }) {
   return (
@@ -647,6 +648,8 @@ export function AppLockSection() {
           </button>
         )}
       </div>
+
+      {enabled && <DuressPinSection />}
 
       <SetupPinModal
         account_id={account_id}

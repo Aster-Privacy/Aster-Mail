@@ -360,9 +360,12 @@ export async function execute_external_email_send(
         },
       });
     } catch (err) {
+      const msg = (err as Error).message;
+
       show_toast(
-        (err as Error).message ||
-          ctx.t("common.failed_to_send_external_email"),
+        msg === "pgp_encrypt_failed"
+          ? ctx.t("errors.failed_pgp_encrypt")
+          : msg || ctx.t("common.failed_to_send_external_email"),
         "error",
       );
     }

@@ -183,7 +183,7 @@ export function MobileThreadMessage({
   if (!is_expanded) {
     return (
       <div
-        className="border border-[var(--border-primary)] rounded-xl mx-3 my-1.5 overflow-hidden bg-[var(--thread-header-bg)]"
+        className="border border-[var(--border-primary)] rounded-xl mx-3 my-1.5 overflow-hidden bg-[var(--thread-header-bg)] cursor-pointer"
         role="button"
         tabIndex={0}
         onClick={on_toggle}
@@ -224,7 +224,7 @@ export function MobileThreadMessage({
   return (
     <div className="border border-[var(--border-primary)] rounded-xl mx-3 my-1.5 overflow-hidden bg-[var(--bg-primary)]">
       <div
-        className="flex items-start gap-3 px-4 py-3 bg-[var(--thread-header-bg)]"
+        className="flex items-start gap-3 px-4 py-3 bg-[var(--thread-header-bg)] cursor-pointer"
         role="button"
         tabIndex={0}
         onClick={on_toggle}

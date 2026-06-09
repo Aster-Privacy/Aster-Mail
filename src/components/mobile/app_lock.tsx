@@ -45,8 +45,9 @@ import {
   is_locked_out,
   mark_session_unlocked,
   clear_session_unlock,
-  verify_pin,
+  attempt_pin_unlock,
 } from "@/services/app_lock_store";
+import { purge_all_local_data } from "@/contexts/auth/purge_local_data";
 
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -140,6 +141,9 @@ function WebPinOverlay({
   const [lockout_remaining, set_lockout_remaining] = useState(0);
   const [pressed_key, set_pressed_key] = useState<string | null>(null);
   const [show_passphrase, set_show_passphrase] = useState(false);
+  const [show_duress_confirm, set_show_duress_confirm] = useState(false);
+  const [wiping, set_wiping] = useState(false);
+  const wiping_ref = useRef(false);
 
   useEffect(() => {
     const { locked, remaining_ms } = is_locked_out(account_id);
@@ -163,24 +167,40 @@ function WebPinOverlay({
     return () => clearInterval(interval);
   }, [locked_out, account_id]);
 
+  const handle_duress_confirm = useCallback(async () => {
+    if (wiping_ref.current) return;
+    wiping_ref.current = true;
+    set_wiping(true);
+    try {
+      await purge_all_local_data();
+    } finally {
+      window.location.href = "/";
+    }
+  }, []);
+
   const attempt_verify = useCallback(async (value: string) => {
     set_verifying(true);
     try {
-      const result = await verify_pin(account_id, value);
-      if (result.ok) {
+      const result = await attempt_pin_unlock(account_id, value);
+      if (result.outcome === "unlocked") {
         mark_session_unlocked(account_id);
         set_verifying(false);
         on_unlock();
         return;
       }
-      if (result.locked) {
+      if (result.outcome === "duress") {
+        set_input("");
+        set_verifying(false);
+        set_show_duress_confirm(true);
+        return;
+      }
+      if (result.outcome === "locked_out") {
         set_locked_out(true);
         set_input("");
-        const { remaining_ms } = is_locked_out(account_id);
-        set_lockout_remaining(Math.ceil(remaining_ms / 1000));
+        set_lockout_remaining(Math.ceil(result.remaining_ms / 1000));
         set_message(t("common.app_lock_locked_out"));
       } else {
-        set_shake_key(k => k + 1);
+        set_shake_key((k) => k + 1);
         set_input("");
         const msg = result.attempts_remaining > 0
           ? t("common.app_lock_attempts_remaining", { n: result.attempts_remaining })
@@ -238,6 +258,54 @@ function WebPinOverlay({
     window.addEventListener("keydown", on_key);
     return () => window.removeEventListener("keydown", on_key);
   }, [pin_type, handle_digit, handle_backspace, handle_text_submit]);
+
+  if (show_duress_confirm) {
+    return (
+      <motion.div
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        initial={reduce_motion ? false : { opacity: 0 }}
+        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background select-none px-6"
+      >
+        <motion.div
+          animate={{ scale: 1, opacity: 1 }}
+          initial={reduce_motion ? false : { scale: 0.9, opacity: 0 }}
+          transition={{ delay: 0.05 }}
+          className="flex flex-col items-center gap-5 max-w-sm w-full text-center"
+        >
+          <img src="/text_logo.png" alt="Aster Mail" className="h-7 opacity-90" draggable={false} />
+          <div className="flex flex-col gap-1.5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-red-500/80">{t("common.duress_confirm_subtitle")}</p>
+            <h1 className="text-xl font-semibold text-txt-primary">{t("common.duress_confirm_title")}</h1>
+          </div>
+          <div className="w-full rounded-2xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 flex flex-col gap-2 text-left">
+            <p className="text-sm text-txt-primary font-medium">{t("common.duress_confirm_desc")}</p>
+            <p className="text-xs text-txt-muted leading-relaxed">{t("common.duress_confirm_detail")}</p>
+          </div>
+          <div className="flex flex-col gap-2 w-full">
+            <Button
+              variant="depth_destructive"
+              className="w-full"
+              disabled={wiping}
+              onClick={handle_duress_confirm}
+            >
+              {wiping
+                ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
+                : t("common.duress_confirm_proceed")}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              disabled={wiping}
+              onClick={() => set_show_duress_confirm(false)}
+            >
+              {t("common.cancel")}
+            </Button>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

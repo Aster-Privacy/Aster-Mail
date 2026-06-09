@@ -35,3 +35,21 @@ export async function enable_vanguard(): Promise<ApiResponse<VanguardStatusRespo
 export async function disable_vanguard(): Promise<ApiResponse<VanguardStatusResponse>> {
   return api_client.delete<VanguardStatusResponse>("/core/v1/security/vanguard/disable");
 }
+
+export interface VerifyCredentialsRequest {
+  password_hash: string;
+  totp_code?: string;
+}
+
+export interface VerifyCredentialsResponse {
+  valid: boolean;
+}
+
+export async function verify_vanguard_credentials(
+  req: VerifyCredentialsRequest,
+): Promise<ApiResponse<VerifyCredentialsResponse>> {
+  return api_client.post<VerifyCredentialsResponse>(
+    "/core/v1/security/vanguard/verify-credentials",
+    req,
+  );
+}

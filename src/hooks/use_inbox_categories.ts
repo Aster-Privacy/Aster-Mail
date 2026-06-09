@@ -25,6 +25,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -70,6 +71,8 @@ export function use_inbox_categories(
   const [active_category, set_active_category_state] =
     useState<EmailCategory>("primary");
 
+  const stored_tab_loaded_ref = useRef(false);
+
   const index_version = useSyncExternalStore(
     subscribe_index,
     get_index_version,
@@ -85,11 +88,18 @@ export function use_inbox_categories(
 
     secure_retrieve<EmailCategory>(ACTIVE_CATEGORY_KEY)
       .then((stored) => {
-        if (!cancelled && is_tab(stored)) {
+        if (cancelled) return;
+        stored_tab_loaded_ref.current = true;
+        if (is_tab(stored)) {
           set_active_category_state(stored);
+        } else {
+          mark_category_seen("primary");
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        stored_tab_loaded_ref.current = true;
+        mark_category_seen("primary");
+      });
 
     return () => {
       cancelled = true;
@@ -98,6 +108,7 @@ export function use_inbox_categories(
 
   useEffect(() => {
     if (!enabled) return;
+    if (!stored_tab_loaded_ref.current) return;
     mark_category_seen(active_category);
   }, [enabled, active_category]);
 
