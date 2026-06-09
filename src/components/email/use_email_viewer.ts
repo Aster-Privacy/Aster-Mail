@@ -1012,13 +1012,18 @@ export function use_email_viewer({
 
   useEffect(() => {
     const update_state = () => {
-      if (thread_list_ref.current) {
-        set_thread_expand_state({
-          all_expanded: thread_list_ref.current.all_expanded,
-          all_collapsed: thread_list_ref.current.all_collapsed,
-          has_unread: thread_list_ref.current.has_unread,
-        });
-      }
+      if (!thread_list_ref.current) return;
+      const { all_expanded, all_collapsed, has_unread } = thread_list_ref.current;
+      set_thread_expand_state((prev) => {
+        if (
+          prev.all_expanded === all_expanded &&
+          prev.all_collapsed === all_collapsed &&
+          prev.has_unread === has_unread
+        ) {
+          return prev;
+        }
+        return { all_expanded, all_collapsed, has_unread };
+      });
     };
 
     update_state();
