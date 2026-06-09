@@ -21,6 +21,7 @@
 import type { DecryptedEnvelope } from "@/types/email";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
+import { register_attachment_key } from "@/services/crypto/inbound_attachment_keys";
 
 import {
   get_passphrase_bytes,
@@ -166,7 +167,7 @@ const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 
 export async function decrypt_mail_envelope<
   T extends { from: { name: string; email: string } } = DecryptedEnvelope,
->(encrypted_envelope: string, envelope_nonce: string): Promise<T | null> {
+>(encrypted_envelope: string, envelope_nonce: string, mail_item_id?: string): Promise<T | null> {
   const nonce_bytes = envelope_nonce
     ? base64_to_array(envelope_nonce)
     : new Uint8Array(0);
@@ -294,9 +295,15 @@ export async function decrypt_mail_envelope<
         }
 
         if (plain) {
-          return normalize_parsed_envelope(
-            JSON.parse(new TextDecoder().decode(plain)),
-          ) as T;
+          const parsed_obj = JSON.parse(new TextDecoder().decode(plain));
+          if (mail_item_id && Array.isArray(parsed_obj.attachment_keys)) {
+            for (const k of parsed_obj.attachment_keys) {
+              if (typeof k.seq === "number" && typeof k.key === "string") {
+                register_attachment_key(mail_item_id, k.seq, k.key);
+              }
+            }
+          }
+          return normalize_parsed_envelope(parsed_obj) as T;
         }
       }
     }
