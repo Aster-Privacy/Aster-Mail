@@ -145,10 +145,23 @@ export function apply_highlights(
 ): TextHighlight[] {
   if (ranges.length === 0) return [{ text, is_match: false }];
 
+  const merged: { start: number; end: number }[] = [];
+
+  for (const range of ranges) {
+    if (merged.length > 0 && range.start <= merged[merged.length - 1].end) {
+      merged[merged.length - 1].end = Math.max(
+        merged[merged.length - 1].end,
+        range.end,
+      );
+    } else {
+      merged.push({ ...range });
+    }
+  }
+
   const parts: TextHighlight[] = [];
   let pos = 0;
 
-  for (const range of ranges) {
+  for (const range of merged) {
     if (range.start > pos) {
       parts.push({ text: text.slice(pos, range.start), is_match: false });
     }
@@ -1235,7 +1248,7 @@ export function use_search() {
         }));
       }
     },
-    [user?.email],
+    [user?.email, ttl],
   );
 
   const clear_results = useCallback(() => {
