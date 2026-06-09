@@ -561,10 +561,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
             sender_email: detail.to_recipients[0] || "",
             subject: detail.subject || t("mail.no_subject"),
             preview: strip_html_tags(detail.message).substring(0, 100),
-            timestamp: format_email_list_timestamp(new Date(), {
-              date_format: "MM/DD/YYYY",
-              time_format: "12h",
-            }),
+            timestamp: format_email_list_timestamp(new Date(), format_options),
             to_recipients: detail.to_recipients,
             cc_recipients: detail.cc_recipients,
             bcc_recipients: detail.bcc_recipients,
@@ -573,7 +570,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
         }),
       );
     },
-    [t],
+    [t, format_options],
   );
 
   const debounced_refresh_ref = useRef<ReturnType<typeof setTimeout> | null>(
