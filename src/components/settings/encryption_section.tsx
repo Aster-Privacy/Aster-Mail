@@ -88,7 +88,13 @@ export function EncryptionSection() {
         handle_encrypt_emails_toggle={encryption.handle_encrypt_emails_toggle}
         handle_keyserver_toggle={encryption.handle_keyserver_toggle}
         handle_wkd_toggle={encryption.handle_wkd_toggle}
+        handle_add_keyserver={encryption.handle_add_keyserver}
+        handle_remove_keyserver={encryption.handle_remove_keyserver}
+        is_saving_keyservers={encryption.is_saving_keyservers}
+        keyserver_input={encryption.keyserver_input}
+        keyserver_urls={encryption.keyserver_urls}
         preferences={encryption.preferences}
+        set_keyserver_input={encryption.set_keyserver_input}
         update_preference={encryption.update_preference}
       />
     </div>

@@ -20,8 +20,8 @@
 //
 import type { UserPreferences } from "@/services/api/preferences";
 
-import { ShieldCheckIcon } from "@heroicons/react/24/outline";
-import { Switch } from "@aster/ui";
+import { ShieldCheckIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Switch, Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -55,6 +55,8 @@ function ToggleSetting({
   );
 }
 
+const DEFAULT_KEYSERVERS = ["https://keys.openpgp.org", "https://keyserver.ubuntu.com"];
+
 interface EncryptionSettingsFormProps {
   preferences: {
     auto_discover_keys: boolean;
@@ -73,6 +75,12 @@ interface EncryptionSettingsFormProps {
   handle_keyserver_toggle: () => Promise<void>;
   handle_auto_discover_keys_toggle: () => Promise<void>;
   handle_encrypt_emails_toggle: () => Promise<void>;
+  keyserver_urls: string[];
+  keyserver_input: string;
+  set_keyserver_input: (v: string) => void;
+  is_saving_keyservers: boolean;
+  handle_add_keyserver: () => void;
+  handle_remove_keyserver: (url: string) => void;
 }
 
 export function EncryptionSettingsForm({
@@ -82,6 +90,12 @@ export function EncryptionSettingsForm({
   handle_keyserver_toggle,
   handle_auto_discover_keys_toggle,
   handle_encrypt_emails_toggle,
+  keyserver_urls,
+  keyserver_input,
+  set_keyserver_input,
+  is_saving_keyservers,
+  handle_add_keyserver,
+  handle_remove_keyserver,
 }: EncryptionSettingsFormProps) {
   const { t } = use_i18n();
 
@@ -151,6 +165,78 @@ export function EncryptionSettingsForm({
         on_toggle={handle_keyserver_toggle}
         title={t("settings.publish_to_keyservers_title")}
       />
+
+      <div className="py-4">
+        <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5 mb-0.5">
+          {t("settings.keyserver_urls_title")}
+        </p>
+        <p className="text-sm text-txt-muted mb-3">
+          {t("settings.keyserver_urls_description")}
+        </p>
+
+        <p className="text-xs font-medium text-txt-muted uppercase tracking-wide mb-1.5">
+          {t("settings.keyserver_defaults_label")}
+        </p>
+        <div className="space-y-1 mb-3">
+          {DEFAULT_KEYSERVERS.map((url) => (
+            <div
+              key={url}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-txt-secondary"
+              style={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
+            >
+              <span className="flex-1 font-mono text-xs truncate">{url}</span>
+            </div>
+          ))}
+        </div>
+
+        {keyserver_urls.length > 0 && (
+          <>
+            <p className="text-xs font-medium text-txt-muted uppercase tracking-wide mb-1.5">
+              {t("settings.keyserver_custom_label")}
+            </p>
+            <div className="space-y-1 mb-3">
+              {keyserver_urls.map((url) => (
+                <div
+                  key={url}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm"
+                  style={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
+                >
+                  <span className="flex-1 font-mono text-xs truncate text-txt-primary">{url}</span>
+                  <button
+                    aria-label={t("settings.keyserver_remove")}
+                    className="text-txt-muted hover:text-txt-primary flex-shrink-0"
+                    disabled={is_saving_keyservers}
+                    onClick={() => handle_remove_keyserver(url)}
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="flex gap-2">
+          <input
+            className="flex-1 px-3 py-1.5 rounded-lg text-sm font-mono"
+            disabled={is_saving_keyservers}
+            placeholder={t("settings.keyserver_url_placeholder")}
+            style={{ backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-primary)", color: "var(--text-primary)", outline: "none" }}
+            value={keyserver_input}
+            onChange={(e) => set_keyserver_input(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handle_add_keyserver(); }}
+          />
+          <Button
+            disabled={is_saving_keyservers || !keyserver_input.trim()}
+            size="sm"
+            variant="outline"
+            onClick={handle_add_keyserver}
+          >
+            <PlusIcon className="w-4 h-4 mr-1" />
+            {t("settings.keyserver_add")}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

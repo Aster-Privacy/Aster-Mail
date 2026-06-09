@@ -2938,6 +2938,15 @@ export interface SettingsTranslations {
   info_wkd_description: string;
   info_keyservers_title: string;
   info_keyservers_description: string;
+  keyserver_urls_title: string;
+  keyserver_urls_description: string;
+  keyserver_url_placeholder: string;
+  keyserver_add: string;
+  keyserver_remove: string;
+  keyserver_defaults_label: string;
+  keyserver_custom_label: string;
+  keyserver_invalid_url: string;
+  keyserver_saved: string;
   info_require_encryption_title: string;
   info_require_encryption_description: string;
   info_storage_format_title: string;

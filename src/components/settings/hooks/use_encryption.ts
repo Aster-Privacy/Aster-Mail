@@ -82,6 +82,9 @@ export function use_encryption() {
   const [export_totp_required, set_export_totp_required] = useState(false);
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [pgp_key, set_pgp_key] = useState<PgpKeyInfo | null>(null);
+  const [keyserver_urls, set_keyserver_urls] = useState<string[]>([]);
+  const [keyserver_input, set_keyserver_input] = useState("");
+  const [is_saving_keyservers, set_is_saving_keyservers] = useState(false);
   const [recovery_info, set_recovery_info] = useState<RecoveryCodesInfo | null>(
     null,
   );
@@ -113,15 +116,22 @@ export function use_encryption() {
 
   const load_encryption_data = async () => {
     try {
-      const [key_response, recovery_response, user_response] =
+      const [key_response, recovery_response, user_response, enc_response] =
         await Promise.all([
           api_client
             .get<PgpKeyInfo>("/crypto/v1/encryption/pgp-key")
             .catch(() => ({ data: null, error: null })),
-          api_client.get<RecoveryCodesInfo>(
-            "/crypto/v1/encryption/recovery-status",
-          ),
-          get_user_info(),
+          api_client
+            .get<RecoveryCodesInfo>("/crypto/v1/encryption/recovery-status")
+            .catch(() => ({ data: null, error: null })),
+          get_user_info().catch(() => ({ data: null, error: null })),
+          api_client
+            .get<{
+              auto_discover_keys: boolean;
+              encrypt_by_default: boolean;
+              keyserver_urls: string[];
+            }>("/settings/v1/encryption")
+            .catch(() => ({ data: null, error: null })),
         ]);
 
       if (key_response.data) {
@@ -134,41 +144,21 @@ export function use_encryption() {
         set_user_email(user_response.data.email);
       }
 
-      await reconcile_server_encryption_flags();
+      if (enc_response.data) {
+        if (enc_response.data.auto_discover_keys !== preferences.auto_discover_keys) {
+          update_preference("auto_discover_keys", enc_response.data.auto_discover_keys, true);
+        }
+        if (enc_response.data.encrypt_by_default !== preferences.encrypt_emails) {
+          update_preference("encrypt_emails", enc_response.data.encrypt_by_default, true);
+        }
+        if (enc_response.data.keyserver_urls) {
+          set_keyserver_urls(enc_response.data.keyserver_urls);
+        }
+      }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
     } finally {
       set_is_initial_load(false);
-    }
-  };
-
-  const reconcile_server_encryption_flags = async () => {
-    try {
-      const response = await api_client.get<{
-        auto_discover_keys: boolean;
-        encrypt_by_default: boolean;
-      }>("/settings/v1/encryption");
-
-      if (!response.data) return;
-
-      if (
-        response.data.auto_discover_keys !== preferences.auto_discover_keys
-      ) {
-        update_preference(
-          "auto_discover_keys",
-          response.data.auto_discover_keys,
-          true,
-        );
-      }
-      if (response.data.encrypt_by_default !== preferences.encrypt_emails) {
-        update_preference(
-          "encrypt_emails",
-          response.data.encrypt_by_default,
-          true,
-        );
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
     }
   };
 
@@ -578,6 +568,47 @@ export function use_encryption() {
     }
   };
 
+  const save_keyserver_urls = async (urls: string[]) => {
+    set_is_saving_keyservers(true);
+    try {
+      await api_client.put("/settings/v1/encryption", { keyserver_urls: urls });
+      show_toast(t("settings.keyserver_saved"), "success");
+    } catch {
+      show_toast(t("settings.failed_publish_keyserver"), "error");
+    } finally {
+      set_is_saving_keyservers(false);
+    }
+  };
+
+  const handle_add_keyserver = () => {
+    const trimmed = keyserver_input.trim().replace(/\/$/, "");
+    if (!trimmed) return;
+    try {
+      const parsed = new URL(trimmed);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "hkps:") {
+        show_toast(t("settings.keyserver_invalid_url"), "error");
+        return;
+      }
+    } catch {
+      show_toast(t("settings.keyserver_invalid_url"), "error");
+      return;
+    }
+    if (keyserver_urls.includes(trimmed)) {
+      set_keyserver_input("");
+      return;
+    }
+    const updated = [...keyserver_urls, trimmed];
+    set_keyserver_urls(updated);
+    set_keyserver_input("");
+    void save_keyserver_urls(updated);
+  };
+
+  const handle_remove_keyserver = (url: string) => {
+    const updated = keyserver_urls.filter((u) => u !== url);
+    set_keyserver_urls(updated);
+    void save_keyserver_urls(updated);
+  };
+
   const close_export_prompt = () => {
     set_show_export_prompt(false);
     set_export_password("");
@@ -663,5 +694,11 @@ export function use_encryption() {
     open_export_prompt,
     close_regenerate_confirm,
     open_regenerate_confirm,
+    keyserver_urls,
+    keyserver_input,
+    set_keyserver_input,
+    is_saving_keyservers,
+    handle_add_keyserver,
+    handle_remove_keyserver,
   };
 }
