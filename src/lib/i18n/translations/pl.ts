@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -616,6 +616,7 @@ export const pl = {
     failed_to_rename_folder: "Ten folder nie został zmieniony. Kolejna próba powinna to załatwić. Folder i jego wiadomości pozostają bez zmian.",
     failed_to_change_folder_color: "Kolor folderu nie został zaktualizowany. Kolejna próba powinna to załatwić.",
     failed_to_delete_folder: "Ten folder nie został usunięty. Kolejna próba powinna to załatwić. Wiadomości w nim są bezpieczne.",
+    failed_to_move_folder: "Ten folder nie został przeniesiony. Spróbuj ponownie.",
     failed_to_update_folder_encryption: "Ustawienie blokady folderu nie zostało zmienione. Kolejna próba powinna to załatwić. Folder pozostaje taki jak był.",
     failed_to_rename_label: "Ta etykieta nie została zmieniona. Kolejna próba powinna to załatwić.",
     failed_to_change_label_color: "Kolor etykiety nie został zaktualizowany. Kolejna próba powinna to załatwić.",

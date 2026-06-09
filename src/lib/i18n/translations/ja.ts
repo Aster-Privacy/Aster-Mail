@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -616,6 +616,7 @@ export const ja = {
     failed_to_rename_folder: "このフォルダの名前は変更されませんでした。もう一度試すと通ることが多いです。フォルダとその中のメールには変更ありません。",
     failed_to_change_folder_color: "フォルダの色が更新されませんでした。もう一度試すと通ることが多いです。",
     failed_to_delete_folder: "このフォルダは削除されませんでした。もう一度試すと通ることが多いです。中のメールは安全です。",
+    failed_to_move_folder: "このフォルダは移動されませんでした。再試行してください。",
     failed_to_update_folder_encryption: "フォルダのロック設定は変更されませんでした。もう一度試すと通ることが多いです。フォルダはそのままの状態です。",
     failed_to_rename_label: "このラベルの名前は変更されませんでした。もう一度試すと通ることが多いです。",
     failed_to_change_label_color: "ラベルの色が更新されませんでした。もう一度試すと通ることが多いです。",

@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -610,6 +610,7 @@ export const nl = {
     failed_to_rename_folder: "Deze map is niet hernoemd. Een nieuwe poging zou werken. De map en de e-mails zijn ongewijzigd.",
     failed_to_change_folder_color: "De mapkleur is niet bijgewerkt. Een nieuwe poging zou werken.",
     failed_to_delete_folder: "Deze map is niet verwijderd. Een nieuwe poging zou werken. Uw e-mails erin zijn veilig.",
+    failed_to_move_folder: "Deze map is niet verplaatst. Probeer het opnieuw.",
     failed_to_update_folder_encryption: "De vergrendelinstelling van de map is niet gewijzigd. Een nieuwe poging zou werken. De map blijft zoals hij was.",
     failed_to_rename_label: "Dit label is niet hernoemd. Een nieuwe poging zou werken.",
     failed_to_change_label_color: "De labelkleur is niet bijgewerkt. Een nieuwe poging zou werken.",
