@@ -372,6 +372,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     is_mail_view,
     format_options,
     user?.email,
+    page_size,
+    preferences.conversation_grouping,
     state.has_more,
     state.is_loading_more,
   ]);
