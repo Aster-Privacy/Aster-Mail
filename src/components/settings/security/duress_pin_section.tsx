@@ -360,7 +360,7 @@ function SetupDuressPinModal({ account_id, is_open, on_close, on_success }: {
                   set_first_text("");
                   set_error_msg(null);
                 } else if (step === "confirm_setup") {
-                  set_step(pin_type === "numeric" ? "confirm_pin" : "confirm_text");
+                  set_step(pin_type === "numeric" ? "set_pin" : "set_text");
                   set_pending_pin("");
                   set_confirm_input("");
                   set_first_pin("");
@@ -554,11 +554,13 @@ function RemoveDuressPinModal({ account_id, is_open, on_close, on_success }: {
   const pin_type = config?.pin_type ?? "numeric";
   const digits = pin_type === "numeric" ? (config?.digits ?? 4) : 0;
 
+  const REMOVE_MAX_ATTEMPTS = 5;
   const [input, set_input] = useState("");
   const [shake_key, set_shake_key] = useState(0);
   const [error_msg, set_error_msg] = useState<string | null>(null);
   const [verifying, set_verifying] = useState(false);
   const [show_passphrase, set_show_passphrase] = useState(false);
+  const [attempts_remaining, set_attempts_remaining] = useState(REMOVE_MAX_ATTEMPTS);
   const text_ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -567,6 +569,7 @@ function RemoveDuressPinModal({ account_id, is_open, on_close, on_success }: {
       set_shake_key(0);
       set_error_msg(null);
       set_verifying(false);
+      set_attempts_remaining(REMOVE_MAX_ATTEMPTS);
       return;
     }
     if (pin_type === "text") setTimeout(() => text_ref.current?.focus(), 150);
@@ -579,13 +582,19 @@ function RemoveDuressPinModal({ account_id, is_open, on_close, on_success }: {
       set_verifying(false);
       on_success();
     } else {
+      const remaining = attempts_remaining - 1;
+      set_attempts_remaining(remaining);
+      if (remaining <= 0) {
+        on_close();
+        return;
+      }
       set_shake_key((k) => k + 1);
       set_input("");
-      set_error_msg(t("settings.app_lock_wrong_pin"));
+      set_error_msg(t("settings.app_lock_attempts_remaining", { n: remaining }));
       setTimeout(() => set_error_msg(null), 2000);
       set_verifying(false);
     }
-  }, [account_id, on_success, t]);
+  }, [account_id, attempts_remaining, on_success, on_close, t]);
 
   const handle_digit = useCallback(async (d: string) => {
     if (verifying) return;

@@ -46,6 +46,7 @@ import {
   verify_pin,
   is_locked_out,
   mark_session_unlocked,
+  duress_pin_correct,
 } from "@/services/app_lock_store";
 import { DuressPinSection } from "@/components/settings/security/duress_pin_section";
 
@@ -379,7 +380,12 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
         const salt = generate_pin_salt();
         const pin_hash = await hash_pin(next, salt);
         const pin_salt = Array.from(salt).map(b => b.toString(16).padStart(2, "0")).join("");
-        save_app_lock_config(account_id, { enabled: true, pin_type: "numeric", digits: chosen_digits, pin_hash, pin_salt });
+        const existing = get_app_lock_config(account_id);
+        const duress_collides = existing?.duress_pin_hash ? await duress_pin_correct(account_id, next) : false;
+        const duress_fields = !duress_collides && existing?.duress_pin_hash
+          ? { duress_pin_hash: existing.duress_pin_hash, duress_pin_salt: existing.duress_pin_salt }
+          : {};
+        save_app_lock_config(account_id, { enabled: true, pin_type: "numeric", digits: chosen_digits, pin_hash, pin_salt, ...duress_fields });
         mark_session_unlocked(account_id);
         on_success();
       } catch {
@@ -416,17 +422,24 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
         return;
       }
       set_saving(true);
-      const salt = generate_pin_salt();
-      hash_pin(text_input, salt).then(pin_hash => {
-        const pin_salt = Array.from(salt).map(b => b.toString(16).padStart(2, "0")).join("");
-        save_app_lock_config(account_id, { enabled: true, pin_type: "text", digits: 0, pin_hash, pin_salt });
-        mark_session_unlocked(account_id);
+      (async () => {
+        try {
+          const salt = generate_pin_salt();
+          const pin_hash = await hash_pin(text_input, salt);
+          const pin_salt = Array.from(salt).map(b => b.toString(16).padStart(2, "0")).join("");
+          const existing = get_app_lock_config(account_id);
+          const duress_collides = existing?.duress_pin_hash ? await duress_pin_correct(account_id, text_input) : false;
+          const duress_fields = !duress_collides && existing?.duress_pin_hash
+            ? { duress_pin_hash: existing.duress_pin_hash, duress_pin_salt: existing.duress_pin_salt }
+            : {};
+          save_app_lock_config(account_id, { enabled: true, pin_type: "text", digits: 0, pin_hash, pin_salt, ...duress_fields });
+          mark_session_unlocked(account_id);
+          on_success();
+        } catch {
+          set_error_msg(t("common.something_went_wrong"));
+        }
         set_saving(false);
-        on_success();
-      }).catch(() => {
-        set_error_msg(t("common.something_went_wrong"));
-        set_saving(false);
-      });
+      })();
     }
   }, [step, text_input, first_text, account_id, on_success, t]);
 

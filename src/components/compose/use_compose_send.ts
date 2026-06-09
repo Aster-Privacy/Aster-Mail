@@ -344,7 +344,9 @@ export function use_compose_send({
         all_recipients.length > 0
       ) {
         const existing_emails = new Set(
-          contacts.map((c) => c.emails?.[0]?.toLowerCase()).filter(Boolean),
+          contacts.flatMap((c) =>
+            (c.emails ?? []).map((e) => e?.toLowerCase()).filter(Boolean),
+          ),
         );
 
         for (const email of all_recipients) {

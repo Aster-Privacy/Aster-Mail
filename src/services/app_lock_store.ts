@@ -44,7 +44,7 @@ interface AttemptState {
 
 function get_attempt_state(account_id: string): AttemptState {
   try {
-    const raw = sessionStorage.getItem(attempts_key(account_id));
+    const raw = localStorage.getItem(attempts_key(account_id));
     if (!raw) return { count: 0, locked_until: null, lockout_count: 0 };
     return JSON.parse(raw) as AttemptState;
   } catch {
@@ -76,18 +76,16 @@ function record_failed_attempt(account_id: string): { locked: boolean; attempts_
     locked_until: now_locked ? Date.now() + lockout_ms : null,
     lockout_count: new_lockout_count,
   };
-  sessionStorage.setItem(attempts_key(account_id), JSON.stringify(new_state));
-  localStorage.removeItem(attempts_key(account_id));
+  localStorage.setItem(attempts_key(account_id), JSON.stringify(new_state));
   return { locked: now_locked, attempts_remaining: Math.max(0, MAX_ATTEMPTS - new_count) };
 }
 
 function reset_attempts(account_id: string): void {
   const state = get_attempt_state(account_id);
-  localStorage.removeItem(attempts_key(account_id));
   if (state.lockout_count > 0) {
-    sessionStorage.setItem(attempts_key(account_id), JSON.stringify({ count: 0, locked_until: null, lockout_count: 0 }));
+    localStorage.setItem(attempts_key(account_id), JSON.stringify({ count: 0, locked_until: null, lockout_count: 0 }));
   } else {
-    sessionStorage.removeItem(attempts_key(account_id));
+    localStorage.removeItem(attempts_key(account_id));
   }
 }
 
@@ -121,7 +119,6 @@ export function clear_app_lock_config(account_id: string): void {
   localStorage.removeItem(lock_key(account_id));
   localStorage.removeItem(hint_key(account_id));
   localStorage.removeItem(attempts_key(account_id));
-  sessionStorage.removeItem(attempts_key(account_id));
 }
 
 export function get_lock_hint(account_id: string): boolean {
@@ -225,23 +222,29 @@ export async function attempt_pin_unlock(account_id: string, pin: string): Promi
     return { outcome: "failed", locked: false, attempts_remaining: MAX_ATTEMPTS };
   }
 
-  if (config.duress_pin_hash && config.duress_pin_salt) {
-    const duress_pairs = config.duress_pin_salt.match(/.{2}/g);
-    if (duress_pairs) {
-      const duress_salt = Uint8Array.from(duress_pairs.map((h) => parseInt(h, 16)));
-      const duress_computed = await hash_pin(pin, duress_salt);
-      if (constant_time_equal(duress_computed, config.duress_pin_hash)) {
-        return { outcome: "duress" };
-      }
-    }
-  }
-
   const salt_pairs = config.pin_salt.match(/.{2}/g);
   if (!salt_pairs) return { outcome: "failed", locked: false, attempts_remaining: MAX_ATTEMPTS };
   const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
-  const computed = await hash_pin(pin, salt_bytes);
 
-  if (constant_time_equal(computed, config.pin_hash)) {
+  const has_duress = !!(config.duress_pin_hash && config.duress_pin_salt);
+  let duress_hash_promise: Promise<string> = Promise.resolve("");
+  if (has_duress) {
+    const duress_pairs = config.duress_pin_salt!.match(/.{2}/g)!;
+    const duress_salt = Uint8Array.from(duress_pairs.map((h) => parseInt(h, 16)));
+    duress_hash_promise = hash_pin(pin, duress_salt);
+  }
+
+  const [computed, duress_computed] = await Promise.all([
+    hash_pin(pin, salt_bytes),
+    duress_hash_promise,
+  ]);
+
+  const duress_match = has_duress && constant_time_equal(duress_computed, config.duress_pin_hash!);
+  const regular_match = constant_time_equal(computed, config.pin_hash);
+
+  if (duress_match) return { outcome: "duress" };
+
+  if (regular_match) {
     reset_attempts(account_id);
     return { outcome: "unlocked" };
   }

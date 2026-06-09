@@ -143,6 +143,7 @@ function notify_soon(): void {
 }
 
 function schedule_persist(): void {
+  if (build_in_progress) return;
   if (persist_timer) {
     clearTimeout(persist_timer);
   }
@@ -606,7 +607,8 @@ export async function build_index(options?: {
 
     fully_built = reached_end;
     last_build_ms = now_ms();
-    schedule_persist();
+    build_in_progress = false;
+    void persist_now();
     notify();
   } finally {
     build_in_progress = false;

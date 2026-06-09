@@ -144,6 +144,7 @@ function WebPinOverlay({
   const [show_duress_confirm, set_show_duress_confirm] = useState(false);
   const [wiping, set_wiping] = useState(false);
   const wiping_ref = useRef(false);
+  const verifying_ref = useRef(false);
 
   useEffect(() => {
     const { locked, remaining_ms } = is_locked_out(account_id);
@@ -179,17 +180,21 @@ function WebPinOverlay({
   }, []);
 
   const attempt_verify = useCallback(async (value: string) => {
+    if (verifying_ref.current) return;
+    verifying_ref.current = true;
     set_verifying(true);
     try {
       const result = await attempt_pin_unlock(account_id, value);
       if (result.outcome === "unlocked") {
         mark_session_unlocked(account_id);
+        verifying_ref.current = false;
         set_verifying(false);
         on_unlock();
         return;
       }
       if (result.outcome === "duress") {
         set_input("");
+        verifying_ref.current = false;
         set_verifying(false);
         set_show_duress_confirm(true);
         return;
@@ -212,17 +217,18 @@ function WebPinOverlay({
       set_message(t("common.wrong_pin"));
       setTimeout(() => set_message(null), 2000);
     }
+    verifying_ref.current = false;
     set_verifying(false);
   }, [account_id, on_unlock, t]);
 
   const handle_digit = useCallback(async (d: string) => {
-    if (verifying || locked_out) return;
+    if (verifying_ref.current || locked_out) return;
     const next = input + d;
     set_input(next);
     if (next.length === digits) {
       await attempt_verify(next);
     }
-  }, [account_id, input, digits, verifying, locked_out, attempt_verify]);
+  }, [input, digits, locked_out, attempt_verify]);
 
   const handle_backspace = useCallback(() => {
     if (locked_out || verifying) return;
