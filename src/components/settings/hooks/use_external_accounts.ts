@@ -253,6 +253,7 @@ export function use_external_accounts() {
     form.is_mounted_ref,
     create_new_tag,
     fetch_accounts,
+    t,
   ]);
 
   const handle_toggle = useCallback(
@@ -292,7 +293,7 @@ export function use_external_accounts() {
         );
       }
     },
-    [],
+    [t],
   );
 
   const handle_sync = useCallback(async (account: DecryptedExternalAccount) => {
@@ -313,7 +314,7 @@ export function use_external_accounts() {
       if (import.meta.env.DEV) console.error(error);
       show_toast(t("settings.failed_sync"), "error");
     }
-  }, []);
+  }, [t]);
 
   const handle_purge_confirm = useCallback(async () => {
     if (!purge_target || is_purging) return;
@@ -411,7 +412,7 @@ export function use_external_accounts() {
       month: "short",
       day: "numeric",
     });
-  }, []);
+  }, [t]);
 
   return {
     t,
