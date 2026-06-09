@@ -186,7 +186,7 @@ export function EmailViewerContent({
     force_load_content,
   ]);
 
-  useMemo(() => {
+  useEffect(() => {
     if (
       on_external_content_detected &&
       sanitize_result.external_content.blocked_count > 0
