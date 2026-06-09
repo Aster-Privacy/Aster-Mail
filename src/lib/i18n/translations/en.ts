@@ -1547,6 +1547,8 @@ export const en: Translations = {
       "You'll be logged out after this period of inactivity. You'll need to sign in again.",
     login_alerts: "Login Alerts",
     login_alerts_description: "Get notified of new sign-ins to your account",
+    recent_sign_ins: "Recent Sign-ins",
+    no_sign_in_history: "No sign-in history yet",
     external_link_warnings: "External Link Warnings",
     external_link_warning_enabled:
       "Show warning before opening external links in emails",
@@ -1602,6 +1604,8 @@ export const en: Translations = {
       "Could not safely re-encrypt one of your contacts. Your password was not changed. Please contact support or remove the affected contact and try again.",
     update_password: "Update Password",
     updating: "Updating...",
+    password_change_encrypted_data_warning:
+      "Your labels, signatures, and templates are re-encrypted when you change your password. If your connection drops during this, that data cannot be recovered.",
     password_changed_signing_out:
       "Password changed successfully. Signing you out...",
     vault_recovery_title: "Recover Encrypted Data",
@@ -5584,6 +5588,7 @@ export const en: Translations = {
     alias_too_short: "At least 3 characters will work here.",
     alias_too_long: "64 characters or fewer will work here.",
     alias_consecutive_dots: "Back-to-back dots are not allowed in an alias.",
+    alias_numeric_only: "An alias name can't be only numbers.",
     alias_not_available: "This alias is taken. A different one should work.",
     alias_invalid_chars: "Letters, numbers, dots, underscores, and hyphens are the allowed characters.",
     domain_empty: "A domain name is needed here.",
@@ -5597,6 +5602,7 @@ export const en: Translations = {
     address_too_long: "64 characters or fewer will work here.",
     address_invalid_chars: "Letters, numbers, dots, underscores, and hyphens are the allowed characters.",
     address_consecutive_dots: "Back-to-back dots are not allowed in an address.",
+    address_numeric_only: "An address can't be only numbers.",
     max_accounts: "Up to {{max}} accounts can be on at once. Removing one will make room for another.",
     account_already_added: "This account is already signed in on this device. Switch to it from the account menu instead.",
     failed_encrypt_draft: "We could not save this draft securely on this device. Another attempt should do it. Your typed text is still in the composer.",

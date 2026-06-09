@@ -260,7 +260,7 @@ export async function re_encrypt_user_data(
           lp_plaintext,
         );
 
-        const full_address = `${local_part.toLowerCase()}@${alias.domain}`;
+        const full_address = `${local_part.toLowerCase().replace(/\./g, "")}@${alias.domain}`;
         const addr_sig = await crypto.subtle.sign(
           "HMAC",
           new_alias_hmac,
@@ -506,7 +506,7 @@ export async function re_encrypt_user_data(
             lp_plaintext,
           );
 
-          const full_address = `${local_part.toLowerCase()}@${domain.domain_name.toLowerCase()}`;
+          const full_address = `${local_part.toLowerCase().replace(/\./g, "")}@${domain.domain_name.toLowerCase()}`;
           const hash_sig = await crypto.subtle.sign(
             "HMAC",
             new_domain_hmac,

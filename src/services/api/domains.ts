@@ -208,7 +208,7 @@ export async function compute_address_hash(
   domain: string,
 ): Promise<string> {
   const hmac_key = await get_domain_hmac_key();
-  const full_address = `${local_part.toLowerCase()}@${domain.toLowerCase()}`;
+  const full_address = `${local_part.toLowerCase().replace(/\./g, "")}@${domain.toLowerCase()}`;
   const encoder = new TextEncoder();
   const data = encoder.encode(full_address);
   const signature = await crypto.subtle.sign("HMAC", hmac_key, data);
@@ -220,7 +220,7 @@ export async function compute_address_routing_hash(
   local_part: string,
   domain: string,
 ): Promise<string> {
-  const full_address = `${local_part.toLowerCase()}@${domain.toLowerCase()}`;
+  const full_address = `${local_part.toLowerCase().replace(/\./g, "")}@${domain.toLowerCase()}`;
   const encoder = new TextEncoder();
   const data = encoder.encode(full_address);
   const hash = await crypto.subtle.digest(HASH_ALG, data);
@@ -623,6 +623,14 @@ export function validate_local_part(local_part: string): {
       valid: false,
       error: en.errors.address_consecutive_dots,
       error_key: "errors.address_consecutive_dots",
+    };
+  }
+
+  if (/^[0-9]+$/.test(local_part)) {
+    return {
+      valid: false,
+      error: en.errors.address_numeric_only,
+      error_key: "errors.address_numeric_only",
     };
   }
 
