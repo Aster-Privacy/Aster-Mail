@@ -290,7 +290,6 @@ export function PopupEmailBody({
               inline_reply_is_external={is_external_thread}
               inline_reply_msg={inline_reply_msg}
               inline_reply_thread_token={thread_token}
-              thread_token={thread_token}
               messages={thread_messages}
               on_archive={on_per_message_archive}
               on_close_inline_reply={handle_close_inline_reply}

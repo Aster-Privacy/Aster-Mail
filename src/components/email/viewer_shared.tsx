@@ -1196,7 +1196,6 @@ export function ViewerThreadContent({
         inline_reply_is_external={is_external_thread}
         inline_reply_msg={inline_reply_msg}
         inline_reply_thread_token={email.thread_token}
-        thread_token={email.thread_token}
         messages={thread_messages}
         on_archive={on_archive}
         on_close_inline_reply={handle_close_inline_reply}

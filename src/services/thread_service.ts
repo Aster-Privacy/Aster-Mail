@@ -312,36 +312,6 @@ export async function fetch_and_decrypt_thread_messages(
       }
     }
 
-    try {
-      const reaction_parsed = JSON.parse(body_content);
-      if (
-        (reaction_parsed.type === "reaction" || reaction_parsed.type === "reaction_remove") &&
-        typeof reaction_parsed.target_message_id === "string" &&
-        typeof reaction_parsed.emoji === "string"
-      ) {
-        return {
-          id: msg.id,
-          item_type: msg.item_type as "received" | "sent" | "draft",
-          sender_name: envelope.from.name || envelope.from.email.split("@")[0],
-          sender_email: envelope.from.email,
-          subject: "",
-          body: "",
-          timestamp: envelope.sent_at || msg.created_at,
-          is_read: true,
-          is_starred: false,
-          is_deleted: false,
-          is_external: false,
-          reaction_data: {
-            type: reaction_parsed.type,
-            target_message_id: reaction_parsed.target_message_id,
-            emoji: reaction_parsed.emoji,
-            sender_email: envelope.from.email,
-          },
-        };
-      }
-    } catch {
-    }
-
     if (body_content.includes("-----BEGIN PGP MESSAGE-----")) {
       const vault = get_vault_from_memory();
       const passphrase = get_passphrase_from_memory();

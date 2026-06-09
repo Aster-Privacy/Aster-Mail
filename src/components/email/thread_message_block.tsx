@@ -88,8 +88,6 @@ import {
   revoke_cid_blob_urls,
 } from "@/lib/cid_resolver";
 import { RATCHET_UNDECRYPTABLE_SENTINEL, is_ratchet_envelope } from "@/utils/email_crypto";
-import { MessageReactions } from "@/components/email/message_reactions";
-import type { aggregated_reaction } from "@/components/email/message_reactions";
 
 interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;
@@ -141,9 +139,6 @@ interface ThreadMessageBlockProps {
   unsubscribe_url?: string;
   loaded_content_types?: Set<string>;
   on_load_external_content?: (types?: string[]) => void;
-  reactions?: aggregated_reaction[];
-  on_react?: (emoji: string) => void;
-  on_react_remove?: (emoji: string) => void;
 }
 
 function strip_quotes(body: string): string {
@@ -207,9 +202,6 @@ export function ThreadMessageBlock({
   unsubscribe_url,
   loaded_content_types,
   on_load_external_content,
-  reactions,
-  on_react,
-  on_react_remove,
 }: ThreadMessageBlockProps): React.ReactElement {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -1078,16 +1070,6 @@ export function ThreadMessageBlock({
 
       </div>
 
-      {is_expanded && !message.is_external && (
-        <div className="px-4 pb-2">
-          <MessageReactions
-            reactions={reactions ?? []}
-            on_react={on_react ?? (() => {})}
-            on_react_remove={on_react_remove ?? (() => {})}
-            disabled={message.item_type === "draft"}
-          />
-        </div>
-      )}
 
       {!show_inline_reply && (
         <div className={`${is_single_message || is_last_in_thread ? "sticky bottom-0 z-10" : ""} bg-[var(--bg-primary)]`} onClick={(e) => e.stopPropagation()}>

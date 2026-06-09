@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -196,6 +196,11 @@ export const en: Translations = {
     rename_folder: "Rename Folder",
     rename_folder_description: "Enter a new name for this folder",
     folder_name: "Folder name",
+    move_folder: "Move Folder",
+    move_folder_description: "Choose a new parent for this folder",
+    select_parent_folder: "Select parent folder",
+    top_level_no_parent: "Top level (no parent)",
+    move_to: "Move to",
     change_folder_color: "Change Folder Color",
     select_a_color: "Select a color",
     delete_folder_warning: "This folder will be removed, and you cannot undo it. The emails inside stay in your account, they will just no longer be filed under this folder.",
@@ -694,6 +699,7 @@ export const en: Translations = {
     failed_to_rename_folder: "This folder was not renamed. Another attempt should do it. The folder and its emails are unchanged.",
     failed_to_change_folder_color: "The folder color did not update. Another attempt should do it.",
     failed_to_delete_folder: "This folder was not removed. Another attempt should do it. Your emails inside it are safe.",
+    failed_to_move_folder: "This folder was not moved. Another attempt should do it.",
     failed_to_update_folder_encryption: "The folder lock setting did not change. Another attempt should do it. The folder stays as it was.",
     failed_to_rename_label: "This label was not renamed. Another attempt should do it.",
     failed_to_change_label_color: "The label color did not update. Another attempt should do it.",
@@ -4514,10 +4520,6 @@ export const en: Translations = {
   mail: {
     encrypted_message_unavailable:
       "This message could not be decrypted. The sender may have used an outdated key.",
-    add_reaction: "Add reaction",
-    remove_reaction: "Remove reaction",
-    reaction_failed: "Failed to send reaction. Try again.",
-    reaction_not_supported: "Reactions are only available between Aster users.",
     all_on_page_selected:
       "All {{ count }} conversations on this page are selected.",
     select_all_in_folder:

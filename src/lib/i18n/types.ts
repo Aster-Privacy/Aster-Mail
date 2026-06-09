@@ -422,6 +422,11 @@ export interface CommonTranslations {
   rename_folder: string;
   rename_folder_description: string;
   folder_name: string;
+  move_folder: string;
+  move_folder_description: string;
+  select_parent_folder: string;
+  top_level_no_parent: string;
+  move_to: string;
   change_folder_color: string;
   select_a_color: string;
   delete_folder_warning: string;
@@ -908,6 +913,7 @@ export interface CommonTranslations {
   failed_to_rename_folder: string;
   failed_to_change_folder_color: string;
   failed_to_delete_folder: string;
+  failed_to_move_folder: string;
   failed_to_update_folder_encryption: string;
   failed_to_rename_label: string;
   failed_to_change_label_color: string;
@@ -4350,10 +4356,6 @@ export interface SettingsTranslations {
 
 export interface MailTranslations {
   encrypted_message_unavailable: string;
-  add_reaction: string;
-  remove_reaction: string;
-  reaction_failed: string;
-  reaction_not_supported: string;
   all_on_page_selected: string;
   select_all_in_folder: string;
   all_in_folder_selected: string;

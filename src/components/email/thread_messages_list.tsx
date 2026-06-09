@@ -44,8 +44,6 @@ import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
 import { adjust_starred_count } from "@/hooks/use_mail_counts";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
-import type { aggregated_reaction } from "@/components/email/message_reactions";
-import { send_reaction, send_reaction_remove } from "@/services/send_reaction";
 
 interface ThreadMessagesListProps {
   messages: DecryptedThreadMessage[];
@@ -93,7 +91,6 @@ interface ThreadMessagesListProps {
   unsubscribe_url?: string;
   loaded_content_types?: Set<string>;
   on_load_external_content?: (types?: string[]) => void;
-  thread_token?: string;
 }
 
 export interface ThreadMessagesListRef {
@@ -148,14 +145,13 @@ export const ThreadMessagesList = forwardRef<
     unsubscribe_url,
     loaded_content_types,
     on_load_external_content,
-    thread_token,
   },
   ref,
 ): React.ReactElement {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
   const regular_messages = useMemo(
-    () => messages.filter((m) => !m.reaction_data),
+    () => messages,
     [messages],
   );
 
@@ -167,98 +163,12 @@ export const ThreadMessagesList = forwardRef<
     [regular_messages, preferences.conversation_order],
   );
 
-  const [optimistic_reactions, set_optimistic_reactions] = useState<
-    Map<string, { emoji: string; sender_email: string; type: "reaction" | "reaction_remove" }[]>
-  >(new Map());
-
-  const reactions_by_message_id = useMemo<Map<string, aggregated_reaction[]>>(() => {
-    const map = new Map<string, aggregated_reaction[]>();
-
-    const all_reaction_msgs = messages.filter((m) => m.reaction_data);
-    for (const msg of all_reaction_msgs) {
-      const rd = msg.reaction_data!;
-      if (!map.has(rd.target_message_id)) map.set(rd.target_message_id, []);
-      const bucket = map.get(rd.target_message_id)!;
-      if (rd.type === "reaction_remove") {
-        const idx = bucket.findIndex(
-          (r) => r.emoji === rd.emoji && r.sender_emails.includes(rd.sender_email),
-        );
-        if (idx !== -1) {
-          const updated = { ...bucket[idx] };
-          updated.sender_emails = updated.sender_emails.filter((e) => e !== rd.sender_email);
-          updated.count = updated.sender_emails.length;
-          if (updated.count === 0) {
-            bucket.splice(idx, 1);
-          } else {
-            bucket[idx] = updated;
-          }
-        }
-      } else {
-        const existing = bucket.find((r) => r.emoji === rd.emoji);
-        if (existing) {
-          if (!existing.sender_emails.includes(rd.sender_email)) {
-            existing.sender_emails.push(rd.sender_email);
-            existing.count++;
-            existing.reacted_by_me =
-              existing.reacted_by_me ||
-              rd.sender_email.toLowerCase() === current_user_email.toLowerCase();
-          }
-        } else {
-          bucket.push({
-            emoji: rd.emoji,
-            count: 1,
-            reacted_by_me: rd.sender_email.toLowerCase() === current_user_email.toLowerCase(),
-            sender_emails: [rd.sender_email],
-          });
-        }
-      }
-    }
-
-    for (const [msg_id, pending] of optimistic_reactions) {
-      for (const p of pending) {
-        if (!map.has(msg_id)) map.set(msg_id, []);
-        const bucket = map.get(msg_id)!;
-        if (p.type === "reaction_remove") {
-          const idx = bucket.findIndex(
-            (r) => r.emoji === p.emoji && r.sender_emails.includes(p.sender_email),
-          );
-          if (idx !== -1) {
-            const updated = { ...bucket[idx] };
-            updated.sender_emails = updated.sender_emails.filter((e) => e !== p.sender_email);
-            updated.count = updated.sender_emails.length;
-            if (updated.count === 0) bucket.splice(idx, 1);
-            else bucket[idx] = updated;
-          }
-        } else {
-          const existing = bucket.find((r) => r.emoji === p.emoji);
-          if (existing) {
-            if (!existing.sender_emails.includes(p.sender_email)) {
-              existing.sender_emails.push(p.sender_email);
-              existing.count++;
-              existing.reacted_by_me =
-                existing.reacted_by_me ||
-                p.sender_email.toLowerCase() === current_user_email.toLowerCase();
-            }
-          } else {
-            bucket.push({
-              emoji: p.emoji,
-              count: 1,
-              reacted_by_me: p.sender_email.toLowerCase() === current_user_email.toLowerCase(),
-              sender_emails: [p.sender_email],
-            });
-          }
-        }
-      }
-    }
-
-    return map;
-  }, [messages, optimistic_reactions, current_user_email]);
 
   const [dark_mode_ids, set_dark_mode_ids] = useState<Set<string>>(new Set());
   const [hidden_group_revealed, set_hidden_group_revealed] = useState(false);
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(() => {
     const initial = new Set<string>();
-    const init_msgs = messages.filter((m) => !m.reaction_data);
+    const init_msgs = messages;
 
     if (init_msgs.length > 0) {
       initial.add(init_msgs[init_msgs.length - 1].id);
@@ -370,7 +280,7 @@ export const ThreadMessagesList = forwardRef<
 
   const mark_as_read = useCallback(
     (msg: DecryptedThreadMessage) => {
-      if (read_ids.has(msg.id) || msg.reaction_data) return;
+      if (read_ids.has(msg.id)) return;
 
       set_read_ids((prev) => {
         const next = new Set(prev);
@@ -727,89 +637,6 @@ export const ThreadMessagesList = forwardRef<
     }
   }, [all_dark_mode, regular_messages]);
 
-  const handle_react = useCallback(
-    async (target_msg: DecryptedThreadMessage, emoji: string) => {
-      if (!thread_token || !current_user_email) return;
-      const recipient_emails = (() => {
-        if (target_msg.item_type === "received") {
-          return [target_msg.sender_email].filter(
-            (e) => e && e.toLowerCase() !== current_user_email.toLowerCase(),
-          );
-        }
-        return [
-          ...(target_msg.to_recipients?.map((r) => r.email) ?? []),
-          ...(target_msg.cc_recipients?.map((r) => r.email) ?? []),
-        ].filter((e) => e && e.toLowerCase() !== current_user_email.toLowerCase());
-      })();
-
-      if (recipient_emails.length === 0) return;
-
-      set_optimistic_reactions((prev) => {
-        const next = new Map(prev);
-        const existing = next.get(target_msg.id) ?? [];
-        next.set(target_msg.id, [
-          ...existing,
-          { emoji, sender_email: current_user_email, type: "reaction" as const },
-        ]);
-        return next;
-      });
-
-      try {
-        await send_reaction({
-          thread_token,
-          target_message_id: target_msg.id,
-          emoji,
-          recipient_emails,
-          sender_email: current_user_email,
-        });
-      } catch {
-        show_toast(t("mail.reaction_failed"), "error");
-      }
-    },
-    [thread_token, current_user_email],
-  );
-
-  const handle_react_remove = useCallback(
-    async (target_msg: DecryptedThreadMessage, emoji: string) => {
-      if (!thread_token || !current_user_email) return;
-      const recipient_emails = (() => {
-        if (target_msg.item_type === "received") {
-          return [target_msg.sender_email].filter(
-            (e) => e && e.toLowerCase() !== current_user_email.toLowerCase(),
-          );
-        }
-        return [
-          ...(target_msg.to_recipients?.map((r) => r.email) ?? []),
-          ...(target_msg.cc_recipients?.map((r) => r.email) ?? []),
-        ].filter((e) => e && e.toLowerCase() !== current_user_email.toLowerCase());
-      })();
-
-      if (recipient_emails.length === 0) return;
-
-      set_optimistic_reactions((prev) => {
-        const next = new Map(prev);
-        const existing = next.get(target_msg.id) ?? [];
-        next.set(target_msg.id, [
-          ...existing,
-          { emoji, sender_email: current_user_email, type: "reaction_remove" as const },
-        ]);
-        return next;
-      });
-
-      try {
-        await send_reaction_remove({
-          thread_token,
-          target_message_id: target_msg.id,
-          emoji,
-          recipient_emails,
-          sender_email: current_user_email,
-        });
-      } catch {
-        show_toast(t("mail.reaction_failed"), "error");
-      }
-    },
-    [thread_token, current_user_email],
-  );
 
   useImperativeHandle(
     ref,
@@ -926,9 +753,6 @@ export const ThreadMessagesList = forwardRef<
         preloaded_sanitized={preloaded_sanitized?.get(msg.id)}
         show_inline_reply={inline_reply_msg?.id === msg.id}
         size_bytes={size_bytes}
-        reactions={reactions_by_message_id.get(msg.id)}
-        on_react={(emoji) => void handle_react(msg, emoji)}
-        on_react_remove={(emoji) => void handle_react_remove(msg, emoji)}
       />
     </div>
     );
