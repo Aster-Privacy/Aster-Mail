@@ -58,7 +58,11 @@ export function is_locked_out(account_id: string): { locked: boolean; remaining_
     return { locked: true, remaining_ms: state.locked_until - Date.now() };
   }
   if (state.locked_until !== null) {
-    localStorage.removeItem(attempts_key(account_id));
+    if (state.lockout_count > 0) {
+      localStorage.setItem(attempts_key(account_id), JSON.stringify({ count: 0, locked_until: null, lockout_count: state.lockout_count }));
+    } else {
+      localStorage.removeItem(attempts_key(account_id));
+    }
   }
   return { locked: false, remaining_ms: 0 };
 }
@@ -89,10 +93,11 @@ function reset_attempts(account_id: string): void {
   }
 }
 
+const HASH_HEX_LEN = 64;
+
 function constant_time_equal(a: string, b: string): boolean {
-  const len = Math.max(a.length, b.length);
   let diff = a.length ^ b.length;
-  for (let i = 0; i < len; i++) {
+  for (let i = 0; i < HASH_HEX_LEN; i++) {
     diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
   }
   return diff === 0;
@@ -119,6 +124,7 @@ export function clear_app_lock_config(account_id: string): void {
   localStorage.removeItem(lock_key(account_id));
   localStorage.removeItem(hint_key(account_id));
   localStorage.removeItem(attempts_key(account_id));
+  sessionStorage.removeItem(attempts_key(account_id));
 }
 
 export function get_lock_hint(account_id: string): boolean {
@@ -226,12 +232,15 @@ export async function attempt_pin_unlock(account_id: string, pin: string): Promi
   if (!salt_pairs) return { outcome: "failed", locked: false, attempts_remaining: MAX_ATTEMPTS };
   const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
 
-  const has_duress = !!(config.duress_pin_hash && config.duress_pin_salt);
   let duress_hash_promise: Promise<string> = Promise.resolve("");
-  if (has_duress) {
-    const duress_pairs = config.duress_pin_salt!.match(/.{2}/g)!;
-    const duress_salt = Uint8Array.from(duress_pairs.map((h) => parseInt(h, 16)));
-    duress_hash_promise = hash_pin(pin, duress_salt);
+  let duress_active = false;
+  if (config.duress_pin_hash && config.duress_pin_salt) {
+    const duress_pairs = config.duress_pin_salt.match(/.{2}/g);
+    if (duress_pairs) {
+      const duress_salt = Uint8Array.from(duress_pairs.map((h) => parseInt(h, 16)));
+      duress_hash_promise = hash_pin(pin, duress_salt);
+      duress_active = true;
+    }
   }
 
   const [computed, duress_computed] = await Promise.all([
@@ -239,7 +248,7 @@ export async function attempt_pin_unlock(account_id: string, pin: string): Promi
     duress_hash_promise,
   ]);
 
-  const duress_match = has_duress && constant_time_equal(duress_computed, config.duress_pin_hash!);
+  const duress_match = duress_active && constant_time_equal(duress_computed, config.duress_pin_hash!);
   const regular_match = constant_time_equal(computed, config.pin_hash);
 
   if (duress_match) return { outcome: "duress" };

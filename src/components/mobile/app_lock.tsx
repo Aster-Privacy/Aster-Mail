@@ -186,7 +186,6 @@ function WebPinOverlay({
     try {
       const result = await attempt_pin_unlock(account_id, value);
       if (result.outcome === "unlocked") {
-        mark_session_unlocked(account_id);
         verifying_ref.current = false;
         set_verifying(false);
         on_unlock();
@@ -217,6 +216,7 @@ function WebPinOverlay({
       set_message(t("common.wrong_pin"));
       setTimeout(() => set_message(null), 2000);
     }
+    await new Promise<void>(resolve => setTimeout(resolve, 600));
     verifying_ref.current = false;
     set_verifying(false);
   }, [account_id, on_unlock, t]);

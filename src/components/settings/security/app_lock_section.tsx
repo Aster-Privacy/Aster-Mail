@@ -133,6 +133,7 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
   const pin_type = config?.pin_type ?? "numeric";
   const digits = pin_type === "numeric" ? (config?.digits ?? 4) : 0;
   const text_input_ref = useRef<HTMLInputElement>(null);
+  const verifying_ref = useRef(false);
   const [input, set_input] = useState("");
   const [shake_key, set_shake_key] = useState(0);
   const [error_msg, set_error_msg] = useState<string | null>(null);
@@ -143,6 +144,7 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
 
   useEffect(() => {
     if (!is_open) {
+      verifying_ref.current = false;
       set_input("");
       set_shake_key(0);
       set_error_msg(null);
@@ -178,10 +180,13 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
   }, [locked_out, account_id]);
 
   const attempt_verify = useCallback(async (value: string) => {
+    if (verifying_ref.current) return;
+    verifying_ref.current = true;
     set_verifying(true);
     const result = await verify_pin(account_id, value);
     if (result.ok) {
       set_input("");
+      verifying_ref.current = false;
       set_verifying(false);
       on_success();
       return;
@@ -201,17 +206,19 @@ function VerifyPinModal({ account_id, is_open, on_close, on_success, description
       set_error_msg(msg);
       setTimeout(() => set_error_msg(null), 2000);
     }
+    await new Promise<void>(resolve => setTimeout(resolve, 600));
+    verifying_ref.current = false;
     set_verifying(false);
   }, [account_id, on_success, t]);
 
   const handle_digit = useCallback(async (d: string) => {
-    if (verifying || locked_out) return;
+    if (verifying_ref.current || locked_out) return;
     const next = input + d;
     set_input(next);
     if (next.length === digits) {
       await attempt_verify(next);
     }
-  }, [account_id, input, digits, verifying, locked_out, attempt_verify]);
+  }, [input, digits, locked_out, attempt_verify]);
 
   const handle_backspace = useCallback(() => {
     if (locked_out || verifying) return;
@@ -341,7 +348,7 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
     else if (step === "set_pin") { set_step("choose_digits"); set_first_pin(""); }
     else if (step === "confirm_pin") { set_step("set_pin"); set_first_pin(""); set_confirm_input(""); set_error_msg(null); }
     else if (step === "set_text") { set_step("choose_mode"); set_text_input(""); set_first_text(""); }
-    else if (step === "confirm_text") { set_step("set_text"); set_text_input(""); set_first_text(""); set_error_msg(null); }
+    else if (step === "confirm_text") { set_step("set_text"); set_text_input(""); set_first_text(""); set_show_passphrase(false); set_error_msg(null); }
   }, [step]);
 
   const handle_mode_continue = useCallback(() => {

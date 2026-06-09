@@ -349,6 +349,9 @@ function SetupDuressPinModal({ account_id, is_open, on_close, on_success }: {
                   set_first_pin("");
                   set_text_input("");
                   set_first_text("");
+                  set_show_passphrase(false);
+                  set_show_password(false);
+                  set_creds_error(null);
                 } else if (step === "confirm_pin") {
                   set_step("set_pin");
                   set_first_pin("");
@@ -358,6 +361,7 @@ function SetupDuressPinModal({ account_id, is_open, on_close, on_success }: {
                   set_step("set_text");
                   set_text_input("");
                   set_first_text("");
+                  set_show_passphrase(false);
                   set_error_msg(null);
                 } else if (step === "confirm_setup") {
                   set_step(pin_type === "numeric" ? "set_pin" : "set_text");
@@ -366,6 +370,7 @@ function SetupDuressPinModal({ account_id, is_open, on_close, on_success }: {
                   set_first_pin("");
                   set_text_input("");
                   set_first_text("");
+                  set_show_passphrase(false);
                   set_error_msg(null);
                 }
               }}
@@ -543,6 +548,8 @@ function SetupDuressPinModal({ account_id, is_open, on_close, on_success }: {
   );
 }
 
+const REMOVE_MAX_ATTEMPTS = 5;
+
 function RemoveDuressPinModal({ account_id, is_open, on_close, on_success }: {
   account_id: string;
   is_open: boolean;
@@ -554,21 +561,23 @@ function RemoveDuressPinModal({ account_id, is_open, on_close, on_success }: {
   const pin_type = config?.pin_type ?? "numeric";
   const digits = pin_type === "numeric" ? (config?.digits ?? 4) : 0;
 
-  const REMOVE_MAX_ATTEMPTS = 5;
   const [input, set_input] = useState("");
   const [shake_key, set_shake_key] = useState(0);
   const [error_msg, set_error_msg] = useState<string | null>(null);
   const [verifying, set_verifying] = useState(false);
   const [show_passphrase, set_show_passphrase] = useState(false);
   const [attempts_remaining, set_attempts_remaining] = useState(REMOVE_MAX_ATTEMPTS);
+  const verifying_ref = useRef(false);
   const text_ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!is_open) {
+      verifying_ref.current = false;
       set_input("");
       set_shake_key(0);
       set_error_msg(null);
       set_verifying(false);
+      set_show_passphrase(false);
       set_attempts_remaining(REMOVE_MAX_ATTEMPTS);
       return;
     }
@@ -576,32 +585,37 @@ function RemoveDuressPinModal({ account_id, is_open, on_close, on_success }: {
   }, [is_open, pin_type]);
 
   const attempt = useCallback(async (value: string) => {
+    if (verifying_ref.current) return;
+    verifying_ref.current = true;
     set_verifying(true);
     const correct = await duress_pin_correct(account_id, value);
     if (correct) {
+      verifying_ref.current = false;
       set_verifying(false);
       on_success();
-    } else {
-      const remaining = attempts_remaining - 1;
-      set_attempts_remaining(remaining);
-      if (remaining <= 0) {
-        on_close();
-        return;
-      }
-      set_shake_key((k) => k + 1);
-      set_input("");
-      set_error_msg(t("settings.app_lock_attempts_remaining", { n: remaining }));
-      setTimeout(() => set_error_msg(null), 2000);
-      set_verifying(false);
+      return;
     }
+    const remaining = attempts_remaining - 1;
+    set_attempts_remaining(remaining);
+    if (remaining <= 0) {
+      on_close();
+      return;
+    }
+    set_shake_key((k) => k + 1);
+    set_input("");
+    set_error_msg(t("settings.app_lock_attempts_remaining", { n: remaining }));
+    setTimeout(() => set_error_msg(null), 2000);
+    await new Promise<void>(resolve => setTimeout(resolve, 600));
+    verifying_ref.current = false;
+    set_verifying(false);
   }, [account_id, attempts_remaining, on_success, on_close, t]);
 
   const handle_digit = useCallback(async (d: string) => {
-    if (verifying) return;
+    if (verifying_ref.current) return;
     const next = input + d;
     set_input(next);
     if (next.length === digits) await attempt(next);
-  }, [input, digits, verifying, attempt]);
+  }, [input, digits, attempt]);
 
   const handle_text_submit = useCallback(async () => {
     if (verifying || input.length < 1) return;
