@@ -137,7 +137,7 @@ export function use_external_accounts_test(
 
       return true;
     },
-    [],
+    [t],
   );
 
   const validate_form = useCallback((): boolean => {
@@ -231,6 +231,7 @@ export function use_external_accounts_test(
     fields.form_smtp_password,
     fields.form_label_color,
     fields.form_connection_timeout,
+    t,
   ]);
 
   const handle_test_connection = useCallback(async () => {
@@ -299,6 +300,7 @@ export function use_external_accounts_test(
     fields.form_protocol,
     build_credentials,
     validate_hostname_fn,
+    t,
   ]);
 
   const handle_test_smtp = useCallback(async () => {
@@ -363,6 +365,7 @@ export function use_external_accounts_test(
     smtp_effective.get_effective_smtp_port,
     smtp_effective.get_effective_smtp_use_tls,
     validate_hostname_fn,
+    t,
   ]);
 
   const handle_fetch_folders = useCallback(async () => {
@@ -422,6 +425,7 @@ export function use_external_accounts_test(
     fields.form_password,
     fields.form_protocol,
     fields.form_use_tls,
+    t,
   ]);
 
   const handle_folder_toggle = useCallback((folder_path: string) => {
