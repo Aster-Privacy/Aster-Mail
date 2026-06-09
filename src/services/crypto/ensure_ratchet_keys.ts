@@ -24,7 +24,11 @@ import {
   store_vault_in_memory,
   get_passphrase_from_memory,
 } from "./memory_key_store";
-import { generate_ratchet_keys, upload_prekey_bundle } from "./ratchet_manager";
+import {
+  generate_ratchet_keys,
+  generate_pq_identity_keys,
+  upload_prekey_bundle,
+} from "./ratchet_manager";
 import { get_current_account } from "../account_manager";
 import { api_client } from "../api/client";
 
@@ -124,12 +128,16 @@ async function run(): Promise<boolean> {
 
     if (!vault) return false;
 
-    if (
-      vault.ratchet_identity_key &&
-      vault.ratchet_identity_public &&
-      vault.ratchet_signed_prekey &&
-      vault.ratchet_signed_prekey_public
-    ) {
+    const has_ecdh =
+      !!vault.ratchet_identity_key &&
+      !!vault.ratchet_identity_public &&
+      !!vault.ratchet_signed_prekey &&
+      !!vault.ratchet_signed_prekey_public;
+
+    const has_pq =
+      !!vault.ratchet_pq_identity_key && !!vault.ratchet_pq_identity_public;
+
+    if (has_ecdh && has_pq) {
       upload_prekey_bundle(vault).catch(() => {});
 
       return true;
@@ -152,14 +160,23 @@ async function run(): Promise<boolean> {
 
     if (!passphrase_ok) return false;
 
-    const ratchet_keys = await generate_ratchet_keys();
+    if (has_ecdh && !has_pq) {
+      const pq_keys = await generate_pq_identity_keys();
 
-    if (!ratchet_keys) return false;
+      vault.ratchet_pq_identity_key = pq_keys.pq_identity_secret;
+      vault.ratchet_pq_identity_public = pq_keys.pq_identity_public;
+    } else {
+      const ratchet_keys = await generate_ratchet_keys();
 
-    vault.ratchet_identity_key = ratchet_keys.identity_jwk;
-    vault.ratchet_identity_public = ratchet_keys.identity_public;
-    vault.ratchet_signed_prekey = ratchet_keys.signed_prekey_jwk;
-    vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
+      if (!ratchet_keys) return false;
+
+      vault.ratchet_identity_key = ratchet_keys.identity_jwk;
+      vault.ratchet_identity_public = ratchet_keys.identity_public;
+      vault.ratchet_signed_prekey = ratchet_keys.signed_prekey_jwk;
+      vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
+      vault.ratchet_pq_identity_key = ratchet_keys.pq_identity_secret;
+      vault.ratchet_pq_identity_public = ratchet_keys.pq_identity_public;
+    }
 
     await store_vault_in_memory(vault, passphrase);
 
