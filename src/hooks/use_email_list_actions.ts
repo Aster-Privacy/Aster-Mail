@@ -298,10 +298,6 @@ export function use_email_list_actions({
       }
       adjust_stats_archived(all_ids.length);
       invalidate_mail_cache();
-      emit_mail_item_updated({
-        id,
-        is_archived: true,
-      } as MailItemUpdatedEventDetail);
       const result = await api_batch_archive({ ids: all_ids, tier: "hot" });
 
       if (!result.data?.success) {
@@ -323,6 +319,12 @@ export function use_email_list_actions({
             total_messages: prev.total_messages + 1,
           }));
         }
+        emit_mail_changed();
+      } else {
+        emit_mail_item_updated({
+          id,
+          is_archived: true,
+        } as MailItemUpdatedEventDetail);
       }
     },
     [state.emails, remove_email, set_state],
