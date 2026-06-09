@@ -32,6 +32,8 @@ import {
 
 interface DecryptedAttachmentInfo {
   id: string;
+  mail_item_id: string;
+  seq_num: number;
   filename: string;
   content_type: string;
   size_bytes: number;
@@ -100,6 +102,8 @@ export function PdfPreviewModal({
           att.encrypted_data,
           att.data_nonce,
           meta.session_key,
+          att.mail_item_id,
+          att.seq_num,
         );
 
         if (cancelled) return;
@@ -186,6 +190,8 @@ export function PdfPreviewModal({
         att.encrypted_data,
         att.data_nonce,
         meta.session_key,
+        att.mail_item_id,
+        att.seq_num,
       );
 
       download_decrypted_attachment(data, meta.filename, meta.content_type);

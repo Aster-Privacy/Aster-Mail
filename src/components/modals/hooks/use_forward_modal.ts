@@ -377,6 +377,8 @@ export function use_forward_modal({
               att.encrypted_data,
               att.data_nonce,
               meta.session_key,
+              att.mail_item_id,
+              att.seq_num,
             );
 
             if (

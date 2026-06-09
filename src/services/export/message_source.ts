@@ -60,6 +60,8 @@ async function build_attachments(mail_id: string): Promise<ExportAttachment[]> {
         att.encrypted_data,
         att.data_nonce,
         meta.session_key,
+        att.mail_item_id,
+        att.seq_num,
       );
       const bytes = new Uint8Array(data_buf);
       result.push({

@@ -20,6 +20,7 @@
 //
 import type { Attachment } from "@/components/compose/compose_shared";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { get_attachment_key } from "@/services/crypto/inbound_attachment_keys";
 
 import {
   encrypt_envelope_with_bytes,
@@ -237,16 +238,21 @@ export async function decrypt_attachment_data(
   encrypted_data_b64: string,
   data_nonce_b64: string,
   session_key_b64: string,
+  mail_item_id?: string,
+  seq_num?: number,
 ): Promise<ArrayBuffer> {
-  if (!session_key_b64 || session_key_b64.length === 0) {
+  const resolved_key =
+    session_key_b64 && session_key_b64.length > 0
+      ? session_key_b64
+      : mail_item_id !== undefined && seq_num !== undefined
+        ? get_attachment_key(mail_item_id, seq_num)
+        : "";
+
+  if (!resolved_key || resolved_key.length === 0) {
     return base64_to_array(encrypted_data_b64).buffer;
   }
 
-  const key_bytes = base64_to_array(session_key_b64);
-
-  if (key_bytes.length === 0) {
-    return base64_to_array(encrypted_data_b64).buffer;
-  }
+  const key_bytes = base64_to_array(resolved_key);
 
   const encrypted_data = base64_to_array(encrypted_data_b64);
   const nonce = base64_to_array(data_nonce_b64);

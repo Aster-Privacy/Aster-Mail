@@ -415,6 +415,7 @@ export async function preload_email_detail(
       const envelope = await decrypt_mail_envelope(
         item.encrypted_envelope,
         item.envelope_nonce,
+        item.id,
       );
 
       if (!envelope) return;

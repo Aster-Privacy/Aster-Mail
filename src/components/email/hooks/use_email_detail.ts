@@ -592,6 +592,7 @@ export function use_email_detail() {
           ? await decrypt_mail_envelope(
               response.data.encrypted_envelope,
               response.data.envelope_nonce,
+              response.data.id,
             )
           : null;
 

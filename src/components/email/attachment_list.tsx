@@ -45,6 +45,8 @@ import { PdfPreviewModal } from "@/components/email/pdf_preview_modal";
 
 interface DecryptedAttachmentInfo {
   id: string;
+  mail_item_id: string;
+  seq_num: number;
   filename: string;
   content_type: string;
   size_bytes: number;
@@ -355,6 +357,8 @@ export function AttachmentList({
 
           const info: DecryptedAttachmentInfo = {
             id: att.id,
+            mail_item_id: att.mail_item_id,
+            seq_num: att.seq_num,
             filename: meta.filename,
             content_type: meta.content_type,
             size_bytes: att.size_bytes,
@@ -370,6 +374,8 @@ export function AttachmentList({
                 att.encrypted_data,
                 att.data_nonce,
                 meta.session_key,
+                att.mail_item_id,
+                att.seq_num,
               );
               const blob = new Blob([data], { type: meta.content_type });
 
@@ -450,6 +456,8 @@ export function AttachmentList({
             att.encrypted_data,
             att.data_nonce,
             meta.session_key,
+            att.mail_item_id,
+            att.seq_num,
           );
 
           const thumbnail_promise = render_pdf_thumbnail(data, 400, 280);
@@ -499,6 +507,8 @@ export function AttachmentList({
           att.encrypted_data,
           att.data_nonce,
           meta.session_key,
+          att.mail_item_id,
+          att.seq_num,
         );
 
         download_decrypted_attachment(data, meta.filename, meta.content_type);

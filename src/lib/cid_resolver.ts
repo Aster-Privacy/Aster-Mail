@@ -126,6 +126,8 @@ export async function resolve_cid_references(
         att.encrypted_data,
         att.data_nonce,
         meta.session_key,
+        att.mail_item_id,
+        att.seq_num,
       );
       const blob = new Blob([data], { type: meta.content_type });
       const blob_url = URL.createObjectURL(blob);
