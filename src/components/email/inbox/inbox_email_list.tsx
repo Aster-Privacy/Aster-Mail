@@ -216,6 +216,15 @@ export function EmailList({
     return Array.from(tokens);
   }, [all_emails]);
 
+  const hover_archive = show_hover_actions ? on_archive : undefined;
+  const hover_delete = show_hover_actions ? on_delete : undefined;
+  const hover_mark_not_spam = show_hover_actions ? on_mark_not_spam : undefined;
+  const hover_move_to_inbox = show_hover_actions ? on_move_to_inbox : undefined;
+  const hover_restore = show_hover_actions ? on_restore : undefined;
+  const hover_spam = show_hover_actions ? on_spam : undefined;
+  const hover_toggle_read = show_hover_actions ? on_toggle_read : undefined;
+  const hover_toggle_star = show_hover_actions ? on_toggle_star : undefined;
+
   const render_email_item = (email: InboxEmail) => (
     <InboxEmailListItem
       attachment_previews={attachment_previews.get(email.id)}
@@ -224,24 +233,16 @@ export function EmailList({
       email={email}
       is_active={email.id === selected_email_id}
       is_focused={email.id === focused_email_id}
-      on_archive={show_hover_actions ? () => on_archive(email) : undefined}
-      on_delete={show_hover_actions ? () => on_delete(email) : undefined}
+      on_archive={hover_archive}
+      on_delete={hover_delete}
       on_email_click={on_email_click}
-      on_mark_not_spam={
-        show_hover_actions ? () => on_mark_not_spam(email) : undefined
-      }
-      on_move_to_inbox={
-        show_hover_actions ? () => on_move_to_inbox(email) : undefined
-      }
-      on_restore={show_hover_actions ? () => on_restore(email) : undefined}
-      on_spam={show_hover_actions ? () => on_spam(email) : undefined}
-      on_toggle_read={
-        show_hover_actions ? () => on_toggle_read(email) : undefined
-      }
+      on_mark_not_spam={hover_mark_not_spam}
+      on_move_to_inbox={hover_move_to_inbox}
+      on_restore={hover_restore}
+      on_spam={hover_spam}
+      on_toggle_read={hover_toggle_read}
       on_toggle_select={on_toggle_select}
-      on_toggle_star={
-        show_hover_actions ? () => on_toggle_star(email) : undefined
-      }
+      on_toggle_star={hover_toggle_star}
       selected_folder_tokens={selected_folder_tokens}
       selected_ids={selected_ids}
       selected_tag_tokens={selected_tag_tokens}
@@ -264,9 +265,7 @@ export function EmailList({
                   className="border-b border-edge-secondary"
                   style={{
                     contentVisibility: "auto",
-                    containIntrinsicSize: email.has_attachment
-                      ? "auto 88px"
-                      : "auto 52px",
+                    containIntrinsicSize: `auto ${density === "Compact" ? (email.has_attachment ? 72 : 44) : density === "Spacious" ? (email.has_attachment ? 84 : 56) : (email.has_attachment ? 76 : 48)}px`,
                   }}
                   onContextMenu={() => set_menu_email(email)}
                   onMouseEnter={() => handle_hover_preload(email.id)}
@@ -285,9 +284,7 @@ export function EmailList({
                   className="border-b border-edge-secondary"
                   style={{
                     contentVisibility: "auto",
-                    containIntrinsicSize: email.has_attachment
-                      ? "auto 88px"
-                      : "auto 52px",
+                    containIntrinsicSize: `auto ${density === "Compact" ? (email.has_attachment ? 72 : 44) : density === "Spacious" ? (email.has_attachment ? 84 : 56) : (email.has_attachment ? 76 : 48)}px`,
                   }}
                   onContextMenu={() => set_menu_email(email)}
                   onMouseEnter={() => handle_hover_preload(email.id)}

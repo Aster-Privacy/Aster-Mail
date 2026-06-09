@@ -574,6 +574,13 @@ class ApiClient {
       return this.refresh_promise;
     }
 
+    if (
+      this.last_refresh_timestamp &&
+      Date.now() - this.last_refresh_timestamp < 5000
+    ) {
+      return;
+    }
+
     this.refresh_promise = this.refresh_session_impl().finally(() => {
       this.refresh_promise = null;
     });
@@ -1255,7 +1262,11 @@ class ApiClient {
             } catch {}
           }
 
-          if (response.status >= 500 && attempt < retry) {
+          if (
+            response.status >= 500 &&
+            attempt < retry &&
+            !is_state_changing_method(method)
+          ) {
             await this.delay(retry_delay * (attempt + 1));
             continue;
           }

@@ -119,9 +119,23 @@ export function use_category_inbox(
     const handle_item_update = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       mark_preload_stale(detail.id);
-      set_state(prev => ({
+
+      if (detail.is_trashed || detail.is_archived || detail.is_spam) {
+        remove_ids([detail.id]);
+        set_state((prev) => ({
+          ...prev,
+          emails: prev.emails.filter((e) => e.id !== detail.id),
+          total_messages: Math.max(0, prev.total_messages - 1),
+        }));
+
+        return;
+      }
+
+      set_state((prev) => ({
         ...prev,
-        emails: prev.emails.map(e => e.id === detail.id ? { ...e, ...detail } : e),
+        emails: prev.emails.map((e) =>
+          e.id === detail.id ? { ...e, ...detail } : e,
+        ),
       }));
     };
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_update);
@@ -137,6 +151,7 @@ export function use_category_inbox(
     if (!has_keys || !has_passphrase_in_memory()) return;
 
     page_cache.current.clear();
+    last_signature_ref.current = "";
     void init_category_index();
   }, [enabled, has_keys, user?.email]);
 
@@ -188,19 +203,20 @@ export function use_category_inbox(
         return;
       }
 
-      const cache_key = `${active_category}:${target_page}:${ids.join(",")}`;
-      const cached = page_cache.current.get(cache_key);
-
-      if (cached) {
-        set_state((prev) => build_list_state(prev, cached, total, has_more));
-
-        return;
-      }
-
       abort_ref.current?.abort();
       const controller = new AbortController();
 
       abort_ref.current = controller;
+
+      const cache_key = `${active_category}:${target_page}:${ids.join(",")}`;
+      const cached = page_cache.current.get(cache_key);
+
+      if (cached) {
+        abort_ref.current = null;
+        set_state((prev) => build_list_state(prev, cached, total, has_more));
+
+        return;
+      }
 
       set_state((prev) => ({ ...prev, is_loading: true }));
 
@@ -227,13 +243,11 @@ export function use_category_inbox(
 
         set_state((prev) => build_list_state(prev, grouped, total, has_more));
       } catch {
-        if (!controller.signal.aborted) {
-          set_state((prev) => ({
-            ...prev,
-            is_loading: false,
-            has_initial_load: true,
-          }));
-        }
+        set_state((prev) => ({
+          ...prev,
+          is_loading: false,
+          has_initial_load: true,
+        }));
       }
     },
     [
@@ -252,13 +266,21 @@ export function use_category_inbox(
     const signature = `${active_category}|${page}|${ids.join(",")}`;
 
     if (signature === last_signature_ref.current) return;
-    last_signature_ref.current = signature;
 
+    last_signature_ref.current = signature;
     void fetch_page(page, page_size);
   }, [enabled, active_category, page, page_size, index_version, fetch_page]);
 
   const update_email = useCallback(
     (id: string, updates: Partial<InboxEmail>): void => {
+      for (const key of page_cache.current.keys()) {
+        const ids_part = key.split(":").slice(2).join(":");
+
+        if (ids_part.split(",").includes(id)) {
+          page_cache.current.delete(key);
+        }
+      }
+
       set_state((prev) => ({
         ...prev,
         emails: prev.emails.map((e) =>
@@ -290,6 +312,7 @@ export function use_category_inbox(
   }, []);
 
   const refresh = useCallback(() => {
+    page_cache.current.clear();
     last_signature_ref.current = "";
     void fetch_page(page, page_size);
   }, [fetch_page, page, page_size]);

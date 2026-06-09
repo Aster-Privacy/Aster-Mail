@@ -773,7 +773,6 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
   const handle_per_message_report_phishing = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      emit_mail_items_removed({ ids: [msg.id] });
       const result = await update_item_metadata(
         msg.id,
         {
@@ -784,6 +783,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       );
 
       if (result.success) {
+        emit_mail_items_removed({ ids: [msg.id] });
         if (msg.sender_email) {
           report_spam_sender(msg.sender_email).catch(() => {});
         }
@@ -797,7 +797,6 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
   const handle_per_message_not_spam = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      emit_mail_items_removed({ ids: [msg.id] });
       const result = await update_item_metadata(
         msg.id,
         {

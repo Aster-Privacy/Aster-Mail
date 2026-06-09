@@ -200,7 +200,14 @@ export function use_email_list_actions({
         if (email.item_type === "received") {
           adjust_unread_count(new_read_state ? -1 : 1);
         }
-        await api_update(id, { is_read: new_read_state });
+
+        try {
+          await api_update(id, { is_read: new_read_state });
+        } catch {
+          if (email.item_type === "received") {
+            adjust_unread_count(new_read_state ? 1 : -1);
+          }
+        }
       }
     },
     [state.emails, api_update],
@@ -367,8 +374,8 @@ export function use_email_list_actions({
   const mark_spam = useCallback(
     async (id: string) => {
       const email = state.emails.find((e) => e.id === id);
-      const should_adjust_unread =
-        email?.item_type === "received" && !email?.is_read;
+      const is_received = email?.item_type === "received";
+      const should_adjust_unread = is_received && !email?.is_read;
       const all_ids =
         email?.grouped_email_ids && email.grouped_email_ids.length > 1
           ? email.grouped_email_ids
@@ -377,6 +384,9 @@ export function use_email_list_actions({
       remove_email(id);
       if (should_adjust_unread) {
         adjust_unread_count(-1);
+      }
+      if (is_received) {
+        adjust_inbox_count(-1);
       }
 
       const result = await bulk_update_metadata_by_ids(all_ids, {
@@ -391,6 +401,9 @@ export function use_email_list_actions({
       } else {
         if (should_adjust_unread) {
           adjust_unread_count(1);
+        }
+        if (is_received) {
+          adjust_inbox_count(1);
         }
         refresh();
       }

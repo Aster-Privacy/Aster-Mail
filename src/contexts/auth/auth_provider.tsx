@@ -79,6 +79,7 @@ import { load_preferred_sender_from_server } from "@/lib/preferred_sender";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
 import { clear_app_lock_config, clear_session_unlock } from "@/services/app_lock_store";
+import { clear_category_index } from "@/services/category_index";
 import { use_i18n } from "@/lib/i18n/context";
 
 function safe_log_error(err: unknown): void {
@@ -594,6 +595,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clear_aliases_cache();
         clear_plan_cache();
         await clear_all_ratchet_states();
+        await with_timeout(clear_category_index(), 2000);
         clear_stored_encrypted_vault(current_id);
         await with_timeout(clear_session_passphrase(current_id), 2000);
         clear_session_timeout_data(current_id);

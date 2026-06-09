@@ -43,6 +43,7 @@ import { CategoryEmptyState } from "@/components/email/inbox/category_empty_stat
 import {
   set_message_category,
   remove_ids as remove_category_index_ids,
+  is_fully_built as is_category_index_built,
 } from "@/services/category_index";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
@@ -721,7 +722,9 @@ export function EmailInbox({
   const effective_total_for_pages = is_client_filtered
     ? all_primary_emails.length
     : categories.enabled
-      ? (categories.counts[categories.active_category]?.total ?? 0)
+      ? (is_category_index_built()
+          ? (categories.counts[categories.active_category]?.total ?? 0)
+          : (stats_total_for_view || 0))
       : is_alias_view
         ? filtered_emails.length
         : Math.max(
@@ -735,9 +738,11 @@ export function EmailInbox({
     Math.ceil(effective_total_for_pages / page_size),
   );
 
-  if (current_page >= total_pages && total_pages > 0) {
-    set_current_page(total_pages - 1);
-  }
+  useEffect(() => {
+    if (current_page >= total_pages && total_pages > 0) {
+      set_current_page(total_pages - 1);
+    }
+  }, [current_page, total_pages, set_current_page]);
 
   const selection = use_inbox_selection({
     is_drafts_view,

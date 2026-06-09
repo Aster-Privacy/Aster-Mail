@@ -153,11 +153,13 @@ export function use_email_list_bulk({
           }
         }
 
-        const remaining = state.emails.filter((e) => !id_set.has(e.id));
+        set_state((prev) => {
+          if (prev.emails.length === 0 && prev.has_more) {
+            fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
+          }
 
-        if (remaining.length === 0 && state.has_more) {
-          fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
-        }
+          return prev;
+        });
       } catch {
         if (unread_received_count > 0) {
           adjust_unread_count(unread_received_count);
@@ -169,17 +171,25 @@ export function use_email_list_bulk({
           adjust_sent_count(sent_count);
         }
         adjust_trash_count(-estimated_trash_delta);
-        set_state((prev) => ({
-          ...prev,
-          emails: [...prev.emails, ...emails_to_restore].sort(
-            (a, b) =>
-              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-          ),
-          total_messages: prev.total_messages + emails_to_restore.length,
-        }));
+        set_state((prev) => {
+          const already_present = new Set(prev.emails.map((e) => e.id));
+          const fresh_restores = emails_to_restore.filter(
+            (e) => !already_present.has(e.id),
+          );
+
+          return {
+            ...prev,
+            emails: [...prev.emails, ...fresh_restores].sort(
+              (a, b) =>
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime(),
+            ),
+            total_messages: prev.total_messages + fresh_restores.length,
+          };
+        });
       }
     },
-    [state.emails, state.has_more, set_state, fetch_page_ref],
+    [state.emails, set_state, fetch_page_ref],
   );
 
   const bulk_archive = useCallback(
@@ -228,11 +238,13 @@ export function use_email_list_bulk({
       try {
         await api_batch_archive({ ids: expanded_ids, tier: "hot" });
 
-        const remaining = state.emails.filter((e) => !id_set.has(e.id));
+        set_state((prev) => {
+          if (prev.emails.length === 0 && prev.has_more) {
+            fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
+          }
 
-        if (remaining.length === 0 && state.has_more) {
-          fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
-        }
+          return prev;
+        });
       } catch {
         if (unread_received_count > 0) {
           adjust_unread_count(unread_received_count);
@@ -241,17 +253,25 @@ export function use_email_list_bulk({
           adjust_inbox_count(received_count);
         }
         adjust_stats_archived(-expanded_ids.length);
-        set_state((prev) => ({
-          ...prev,
-          emails: [...prev.emails, ...emails_to_restore].sort(
-            (a, b) =>
-              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-          ),
-          total_messages: prev.total_messages + emails_to_restore.length,
-        }));
+        set_state((prev) => {
+          const already_present = new Set(prev.emails.map((e) => e.id));
+          const fresh_restores = emails_to_restore.filter(
+            (e) => !already_present.has(e.id),
+          );
+
+          return {
+            ...prev,
+            emails: [...prev.emails, ...fresh_restores].sort(
+              (a, b) =>
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime(),
+            ),
+            total_messages: prev.total_messages + fresh_restores.length,
+          };
+        });
       }
     },
-    [state.emails, state.has_more, set_state, fetch_page_ref],
+    [state.emails, set_state, fetch_page_ref],
   );
 
   const bulk_unarchive = useCallback(

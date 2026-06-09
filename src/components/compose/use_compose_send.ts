@@ -276,12 +276,19 @@ export function use_compose_send({
     }
 
     try {
-      if (draft_context_id_ref.current) {
-        await draft_manager.await_pending_save(draft_context_id_ref.current);
-        await draft_manager.delete_draft(draft_context_id_ref.current);
-        draft_manager.clear_context(draft_context_id_ref.current);
-        draft_context_id_ref.current = null;
+      const pending_draft_id = draft_context_id_ref.current;
+
+      if (pending_draft_id) {
+        await draft_manager.await_pending_save(pending_draft_id);
       }
+
+      const confirm_draft_deleted = async () => {
+        if (pending_draft_id) {
+          await draft_manager.delete_draft(pending_draft_id);
+          draft_manager.clear_context(pending_draft_id);
+          draft_context_id_ref.current = null;
+        }
+      };
 
       let thread_id: string | undefined;
 
@@ -303,6 +310,10 @@ export function use_compose_send({
         subject,
         body: message,
         thread_id,
+        in_reply_to:
+          edit_draft?.draft_type === "reply"
+            ? edit_draft.reply_to_id
+            : undefined,
         sender_email:
           selected_sender?.type !== "primary"
             ? selected_sender?.email
@@ -356,6 +367,7 @@ export function use_compose_send({
 
       if (selected_sender?.type === "external") {
         await execute_external_account_email_send(ctx, email_data);
+        await confirm_draft_deleted();
 
         return;
       }
@@ -371,11 +383,13 @@ export function use_compose_send({
 
       if (has_external) {
         await execute_external_email_send(ctx, email_data, pgp_enabled);
+        await confirm_draft_deleted();
 
         return;
       }
 
       await execute_internal_send(ctx, email_data);
+      await confirm_draft_deleted();
     } catch (error) {
       show_toast(
         error instanceof Error

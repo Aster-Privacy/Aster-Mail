@@ -85,6 +85,8 @@ let loaded_for_account: string | null = null;
 let build_in_progress = false;
 let build_token = 0;
 let version = 0;
+let ensure_loaded_promise: Promise<boolean> | null = null;
+let ensure_loaded_account: string | null = null;
 let persist_timer: ReturnType<typeof setTimeout> | null = null;
 let notify_timer: ReturnType<typeof setTimeout> | null = null;
 let resync_timer: ReturnType<typeof setTimeout> | null = null;
@@ -252,17 +254,40 @@ async function ensure_loaded(): Promise<boolean> {
     return true;
   }
 
-  build_token += 1;
-  active_account_id = account_id;
-  entries_map = new Map();
-  fully_built = false;
-  last_build_ms = 0;
-  seen_ts = {};
-  await load_from_disk(account_id);
-  loaded_for_account = account_id;
-  notify();
+  // Deduplicate concurrent calls for the same account. Without this, two
+  // simultaneous callers (e.g. React StrictMode or rapid auth state changes)
+  // each increment build_token, which aborts the other caller's in-progress
+  // build and leaves the index stuck in an unbuilt state.
+  if (ensure_loaded_promise && ensure_loaded_account === account_id) {
+    return ensure_loaded_promise;
+  }
 
-  return true;
+  ensure_loaded_account = account_id;
+  ensure_loaded_promise = (async (): Promise<boolean> => {
+    try {
+      build_token += 1;
+      active_account_id = account_id;
+      entries_map = new Map();
+      fully_built = false;
+      last_build_ms = 0;
+      seen_ts = {};
+      await load_from_disk(account_id);
+
+      if (active_account_id !== account_id) return false;
+
+      loaded_for_account = account_id;
+      notify();
+
+      return true;
+    } finally {
+      if (ensure_loaded_account === account_id) {
+        ensure_loaded_promise = null;
+        ensure_loaded_account = null;
+      }
+    }
+  })();
+
+  return ensure_loaded_promise;
 }
 
 function apply_upsert(incoming: CategoryIndexEntry[]): boolean {
@@ -306,7 +331,7 @@ export function upsert_entries(incoming: CategoryIndexEntry[]): void {
   if (apply_upsert(incoming)) {
     enforce_cap();
     schedule_persist();
-    notify();
+    notify_soon();
   }
 }
 
@@ -425,7 +450,7 @@ export function mark_category_seen(category: EmailCategory): void {
 
   if ((seen_ts[category] ?? 0) >= stamp) return;
   seen_ts[category] = stamp;
-  schedule_persist();
+  void persist_now();
   notify();
 }
 
@@ -554,9 +579,7 @@ export async function build_index(options?: {
 
       if (token !== build_token) return;
 
-      if (apply_upsert(fresh)) {
-        notify_soon();
-      }
+      apply_upsert(fresh);
 
       processed += items.length;
       cursor = next_cursor;
@@ -581,7 +604,7 @@ export async function build_index(options?: {
       }
     }
 
-    fully_built = true;
+    fully_built = reached_end;
     last_build_ms = now_ms();
     schedule_persist();
     notify();
@@ -645,7 +668,7 @@ async function sync_recent(): Promise<void> {
         for (const [id, entry] of entries_map) {
           const ts = safe_ts(entry.message_ts);
 
-          if (ts >= window_start && !returned.has(id)) {
+          if (ts > window_start && !returned.has(id)) {
             entries_map.delete(id);
             changed = true;
           }
@@ -682,7 +705,11 @@ async function reclassify_id(id: string): Promise<void> {
     const response = await list_mail_items({ ids: [id] });
     const item = response.data?.items?.[0];
 
-    if (!item) return;
+    if (!item) {
+      if (entries_map.has(id)) remove_ids([id]);
+
+      return;
+    }
 
     const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
     const [envelope, metadata] = await Promise.all([
@@ -755,6 +782,8 @@ export function clear_category_index_memory(): void {
   last_build_ms = 0;
   loaded_for_account = null;
   active_account_id = null;
+  ensure_loaded_promise = null;
+  ensure_loaded_account = null;
   notify();
 }
 

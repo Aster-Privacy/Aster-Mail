@@ -484,6 +484,6 @@ export async function encrypt_for_external_recipients(
   try {
     return await encrypt_message_multi(body, public_keys);
   } catch {
-    return body;
+    throw new Error("pgp_encrypt_failed");
   }
 }
