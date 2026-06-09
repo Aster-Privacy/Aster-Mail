@@ -1735,6 +1735,8 @@ export interface SettingsTranslations {
   timeout_logout_description: string;
   login_alerts: string;
   login_alerts_description: string;
+  recent_sign_ins: string;
+  no_sign_in_history: string;
   external_link_warnings: string;
   external_link_warning_enabled: string;
   external_link_warning_disabled: string;
@@ -1779,6 +1781,7 @@ export interface SettingsTranslations {
   contact_reencrypt_failed: string;
   update_password: string;
   updating: string;
+  password_change_encrypted_data_warning: string;
   password_changed_signing_out: string;
   vault_recovery_title: string;
   vault_recovery_description: string;
@@ -5332,6 +5335,7 @@ export interface ErrorTranslations {
   alias_too_short: string;
   alias_too_long: string;
   alias_consecutive_dots: string;
+  alias_numeric_only: string;
   alias_not_available: string;
   domain_empty: string;
   domain_too_long: string;
@@ -5342,6 +5346,7 @@ export interface ErrorTranslations {
   address_too_short: string;
   address_too_long: string;
   address_consecutive_dots: string;
+  address_numeric_only: string;
   max_accounts: string;
   account_already_added: string;
   failed_encrypt_draft: string;

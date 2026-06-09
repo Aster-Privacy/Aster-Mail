@@ -160,7 +160,7 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
         plaintext,
       );
 
-      const full_address = `${local_part.toLowerCase()}@${alias.domain}`;
+      const full_address = `${local_part.toLowerCase().replace(/\./g, "")}@${alias.domain}`;
       const addr_sig = await crypto.subtle.sign(
         "HMAC",
         new_alias_hmac,
