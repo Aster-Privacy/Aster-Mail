@@ -23,7 +23,7 @@ import type { UseEditorReturn } from "@/hooks/use_editor";
 
 import { useEffect } from "react";
 
-import { sanitize_compose_paste } from "@/lib/html_sanitizer";
+import { sanitize_compose_paste, sanitize_html } from "@/lib/html_sanitizer";
 import { CloseIcon } from "@/components/common/icons";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
@@ -195,9 +195,9 @@ export function ForwardBody({
                 {is_forward_visible && (
                   <div
                     dangerouslySetInnerHTML={{
-                      __html: sanitize_compose_paste(
+                      __html: sanitize_html(
                         forward_content_ref.current ?? "",
-                      ),
+                      ).html,
                     }}
                     className="mt-2 py-3 px-4 rounded-md text-sm leading-relaxed overflow-y-auto max-h-[150px] bg-surf-tertiary text-txt-secondary"
                     style={{

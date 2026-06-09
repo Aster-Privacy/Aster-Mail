@@ -23,7 +23,7 @@ import type { UseEditorReturn } from "@/hooks/use_editor";
 
 import { useEffect } from "react";
 
-import { sanitize_compose_paste } from "@/lib/html_sanitizer";
+import { sanitize_compose_paste, sanitize_html } from "@/lib/html_sanitizer";
 import { CloseIcon } from "@/components/common/icons";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
@@ -221,7 +221,7 @@ export function ReplyBody({
           {show_quoted && (
             <div
               dangerouslySetInnerHTML={{
-                __html: sanitize_compose_paste(build_quoted_content(true)),
+                __html: sanitize_html(build_quoted_content(true)).html,
               }}
               className="mt-2 py-3 px-4 rounded-md text-sm leading-relaxed overflow-y-auto max-h-[150px] bg-surf-tertiary text-txt-secondary"
               style={{

@@ -77,7 +77,8 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
       "form-action 'none'",
       "base-uri 'none'",
     ].join("; ");
-    const height_script = `(function(){function m(){var h=document.body?Math.min(document.body.scrollHeight+8,20000):0;parent.postMessage({type:"aster_sv_height",value:h},"*");}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",m);}else{m();}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(m);}try{new ResizeObserver(m).observe(document.body);}catch(_){}document.querySelectorAll("img").forEach(function(img){if(!img.complete){img.addEventListener("load",m,{once:true});}});})();`;
+    const parent_origin = window.location.origin;
+    const height_script = `(function(){function m(){var h=document.body?Math.min(document.body.scrollHeight+8,20000):0;parent.postMessage({type:"aster_sv_height",value:h},${JSON.stringify(parent_origin)});}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",m);}else{m();}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(m);}try{new ResizeObserver(m).observe(document.body);}catch(_){}document.querySelectorAll("img").forEach(function(img){if(!img.complete){img.addEventListener("load",m,{once:true});}});})();`;
     return `<!DOCTYPE html><html><head><meta charset="utf-8">` +
       `<meta name="viewport" content="width=device-width, initial-scale=1">` +
       `<meta name="referrer" content="no-referrer">` +
