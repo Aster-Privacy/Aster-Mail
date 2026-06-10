@@ -41,7 +41,10 @@ import { use_email_list_bulk } from "./use_email_list_bulk";
 import { MAIL_EVENTS } from "./mail_events";
 import { mark_preload_stale } from "@/components/email/hooks/preload_cache";
 
-import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
+import {
+  has_passphrase_in_memory,
+  on_keys_ready,
+} from "@/services/crypto/memory_key_store";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
@@ -148,11 +151,16 @@ export function use_category_inbox(
 
   useEffect(() => {
     if (!enabled) return;
-    if (!has_keys || !has_passphrase_in_memory()) return;
+    if (!has_keys) return;
+    if (!user?.email) return;
 
-    page_cache.current.clear();
-    last_signature_ref.current = "";
-    void init_category_index();
+    const run = () => {
+      page_cache.current.clear();
+      last_signature_ref.current = "";
+      void init_category_index();
+    };
+
+    return on_keys_ready(run);
   }, [enabled, has_keys, user?.email]);
 
   useEffect(() => {
@@ -173,11 +181,7 @@ export function use_category_inbox(
     async (target_page: number, limit: number): Promise<void> => {
       if (!enabled) return;
       if (!has_passphrase_in_memory()) {
-        set_state((prev) => ({
-          ...prev,
-          is_loading: false,
-          has_initial_load: true,
-        }));
+        last_signature_ref.current = "";
 
         return;
       }
