@@ -64,6 +64,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const [checked, set_checked] = useState(() => !is_tauri());
+  const [device_paired, set_device_paired] = useState(false);
   const [_pubkeys, set_pubkeys] = useState<DevicePubkeys | null>(null);
   const [gate_state, set_gate_state] = useState<GateState>("loading");
   const [code, set_code] = useState<string | null>(null);
@@ -196,6 +197,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                         lr.encrypted_vault,
                         lr.vault_nonce,
                       );
+                      set_device_paired(true);
                       setTimeout(() => emit_auth_ready(), 50);
                       set_pubkeys(null);
                     } catch (inner_err) {
@@ -257,6 +259,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
           set_pubkeys(pk);
           start_code_flow(pk);
         } else {
+          set_device_paired(true);
           const pending = consume_pending_device_login();
 
           if (pending?.login_response && pending?.passphrase) {
@@ -301,6 +304,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                 lr.encrypted_vault,
                 lr.vault_nonce,
               );
+              set_device_paired(true);
               setTimeout(() => emit_auth_ready(), 50);
             } catch (pending_login_err) {
               if (import.meta.env.DEV) console.error(pending_login_err);
@@ -416,7 +420,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
 
   if (!checked) return null;
 
-  if (!is_tauri() || is_authenticated) {
+  if (!is_tauri() || is_authenticated || device_paired) {
     return <>{children}</>;
   }
 
