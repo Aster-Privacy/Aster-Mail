@@ -100,6 +100,10 @@ export async function process_envelope_body(
     safe_html = undefined;
   }
 
+  if (is_ratchet_envelope(resolved_text) && !is_ratchet_envelope(body_text) && safe_html === undefined) {
+    safe_html = body_text;
+  }
+
   const unsubscribe = detect_unsubscribe_info(resolved_html || "", body_text, {
     list_unsubscribe: envelope.list_unsubscribe,
     list_unsubscribe_post: envelope.list_unsubscribe_post,
