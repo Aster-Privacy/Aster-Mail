@@ -199,17 +199,28 @@ export function SandboxedEmailRenderer({
     null,
   );
   const internal_cid_blob_urls_ref = useRef<string[]>([]);
+  const stable_cid_html_ref = useRef<string | null>(null);
+  const pending_revoke_ref = useRef<string[]>([]);
+
+  useEffect(() => {
+    if (pending_revoke_ref.current.length > 0) {
+      revoke_cid_blob_urls(pending_revoke_ref.current);
+      pending_revoke_ref.current = [];
+    }
+  }, [internal_cid_html]);
 
   useEffect(() => {
     let cancelled = false;
 
     if (!email_id) {
       set_internal_cid_html(null);
+      stable_cid_html_ref.current = null;
 
       return;
     }
     if (extract_cid_references(sanitized_html).length === 0) {
       set_internal_cid_html(null);
+      stable_cid_html_ref.current = null;
 
       return;
     }
@@ -221,8 +232,9 @@ export function SandboxedEmailRenderer({
 
           return;
         }
-        revoke_cid_blob_urls(internal_cid_blob_urls_ref.current);
+        pending_revoke_ref.current = internal_cid_blob_urls_ref.current;
         internal_cid_blob_urls_ref.current = result.blob_urls;
+        stable_cid_html_ref.current = result.html;
         set_internal_cid_html(result.html);
       })
       .catch(() => {});
@@ -235,7 +247,9 @@ export function SandboxedEmailRenderer({
   useEffect(() => {
     return () => {
       revoke_cid_blob_urls(internal_cid_blob_urls_ref.current);
+      revoke_cid_blob_urls(pending_revoke_ref.current);
       internal_cid_blob_urls_ref.current = [];
+      pending_revoke_ref.current = [];
     };
   }, []);
 
@@ -245,12 +259,14 @@ export function SandboxedEmailRenderer({
     extract_cid_references(sanitized_html).length > 0;
   const resolved_html =
     internal_cid_html ??
-    (has_pending_cids
-      ? sanitized_html.replace(
-          /src=["']cid:[^"']+["']/gi,
-          'src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-cid-pending="1"',
-        )
-      : sanitized_html);
+    (has_pending_cids && stable_cid_html_ref.current
+      ? stable_cid_html_ref.current
+      : has_pending_cids
+        ? sanitized_html.replace(
+            /src=["']cid:[^"']+["']/gi,
+            'src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-cid-pending="1"',
+          )
+        : sanitized_html);
 
   const { theme } = useTheme();
   const is_dark_theme = theme === "dark";
@@ -318,7 +334,7 @@ a, a * { color: #60a5fa !important; }`
   })();
   const tor_csp = is_tor_mode
     ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
-    : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: https: http:; style-src 'unsafe-inline'; font-src 'self' data: https: http:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; form-action 'none';">`;
+    : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: https: http:; style-src 'unsafe-inline'; font-src 'self' data: https: http:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri https: http:; form-action 'none';">`;
 
   const srcdoc_html = `<!DOCTYPE html>
 <html${html_el_style}>
