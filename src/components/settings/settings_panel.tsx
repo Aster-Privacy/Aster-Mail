@@ -37,7 +37,7 @@ import {
   BuildingOffice2Icon,
   SwatchIcon,
   EyeIcon,
-
+  EyeSlashIcon,
   ShieldCheckIcon,
   ArrowDownTrayIcon,
   BellIcon,
@@ -157,93 +157,42 @@ interface NavItem {
   icon: React.ElementType;
 }
 
+interface NavItems {
+  general: NavItem[];
+  mail: NavItem[];
+}
+
 function get_nav_items(
   t: (key: TranslationKey) => string,
   is_family_plan?: boolean,
-): {
-  general: NavItem[];
-  mail: NavItem[];
-} {
+): NavItems {
   const on_onion = is_onion_host();
-  const result: { general: NavItem[]; mail: NavItem[] } = {
+
+  return {
     general: [
       { id: "appearance", label: t("settings.appearance"), icon: SwatchIcon },
-      {
-        id: "account",
-        label: t("settings.account"),
-        icon: BuildingOffice2Icon,
-      },
-      {
-        id: "accessibility",
-        label: t("settings.accessibility"),
-        icon: EyeIcon,
-      },
+      { id: "account", label: t("settings.account"), icon: BuildingOffice2Icon },
+      { id: "accessibility", label: t("settings.accessibility"), icon: EyeIcon },
       { id: "security", label: t("settings.security"), icon: ShieldCheckIcon },
       { id: "encryption", label: t("settings.encryption"), icon: KeyIcon },
-      {
-        id: "trusted_devices",
-        label: t("settings.trusted_devices"),
-        icon: ComputerDesktopIcon,
-      },
-      {
-        id: "aliases",
-        label: t("settings.aliases_and_domains"),
-        icon: AtSymbolIcon,
-      },
-      { id: "billing", label: t("settings.billing"), icon: CreditCardIcon },
+      { id: "trusted_devices", label: t("settings.trusted_devices"), icon: ComputerDesktopIcon },
+      { id: "aliases", label: t("settings.aliases_and_domains"), icon: AtSymbolIcon },
+      { id: "ghost_aliases", label: t("settings.ghost_aliases"), icon: EyeSlashIcon },
+      ...(!on_onion ? [{ id: "billing" as Section, label: t("settings.billing"), icon: CreditCardIcon }] : []),
       ...(is_family_plan ? [{ id: "family" as Section, label: t("settings.plan_type_family"), icon: HomeModernIcon }] : []),
-      {
-        id: "referral",
-        label: t("settings.refer_a_friend"),
-        icon: UserGroupIcon,
-      },
+      { id: "referral", label: t("settings.refer_a_friend"), icon: UserGroupIcon },
     ],
     mail: [
-      { id: "import", label: t("common.import"), icon: ArrowDownTrayIcon },
-      {
-        id: "notifications",
-        label: t("settings.notifications"),
-        icon: BellIcon,
-      },
-      {
-        id: "signature",
-        label: t("settings.signature"),
-        icon: PencilSquareIcon,
-      },
-      {
-        id: "templates",
-        label: t("settings.templates"),
-        icon: DocumentTextIcon,
-      },
-      {
-        id: "behavior",
-        label: t("settings.behavior"),
-        icon: AdjustmentsHorizontalIcon,
-      },
-      {
-        id: "sender_filters",
-        label: t("settings.mail_management"),
-        icon: FunnelIcon,
-      },
-      {
-        id: "mail_rules",
-        label: t("mail_rules.title"),
-        icon: BoltIcon,
-      },
-      {
-        id: "feedback",
-        label: t("settings.feedback"),
-        icon: ChatBubbleBottomCenterTextIcon,
-      },
+      ...(!on_onion ? [{ id: "import" as Section, label: t("common.import"), icon: ArrowDownTrayIcon }] : []),
+      { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
+      { id: "signature", label: t("settings.signature"), icon: PencilSquareIcon },
+      { id: "templates", label: t("settings.templates"), icon: DocumentTextIcon },
+      { id: "behavior", label: t("settings.behavior"), icon: AdjustmentsHorizontalIcon },
+      { id: "sender_filters", label: t("settings.mail_management"), icon: FunnelIcon },
+      { id: "mail_rules", label: t("mail_rules.title"), icon: BoltIcon },
+      { id: "feedback", label: t("settings.feedback"), icon: ChatBubbleBottomCenterTextIcon },
     ],
   };
-
-  if (on_onion) {
-    result.general = result.general.filter((item) => item.id !== "billing");
-    result.mail = result.mail.filter((item) => item.id !== "import");
-  }
-
-  return result;
 }
 
 export function SettingsPanel(props: SettingsPanelProps) {
@@ -278,8 +227,6 @@ function SettingsPanelInner({
     () => localStorage.getItem("aster_is_family_plan") === "1",
   );
 
-  // Preload the Family tab (lazy chunk + group data) as soon as Settings opens
-  // for a family plan, so the tab is instant instead of loading on click.
   useEffect(() => {
     if (is_open && is_family_plan) {
       load_family_section();
@@ -287,7 +234,7 @@ function SettingsPanelInner({
     }
   }, [is_open, is_family_plan]);
 
-  const NAV_ITEMS = useMemo(() => get_nav_items(t, is_family_plan), [t, is_family_plan]);
+  const NAV_ITEMS_BASE = useMemo(() => get_nav_items(t, is_family_plan), [t, is_family_plan]);
   const [indicator_style, set_indicator_style] = useState<{
     top: number;
     height: number;
@@ -465,34 +412,20 @@ function SettingsPanelInner({
     content_container_ref.current?.scrollTo(0, 0);
   }, [section]);
 
-  const nav_items = useMemo(() => {
+  const nav_items = useMemo((): NavItems => {
+    const base = NAV_ITEMS_BASE;
     const general = has_devices
-      ? [...NAV_ITEMS.general]
-      : NAV_ITEMS.general.filter((item) => item.id !== "trusted_devices");
-
-    const items = {
-      general,
-      mail: [...NAV_ITEMS.mail],
-    };
-
+      ? base.general
+      : base.general.filter((item) => item.id !== "trusted_devices");
+    const mail = [...base.mail];
     if (is_desktop_runtime()) {
-      items.general.push({
-        id: "updates" as Section,
-        label: t("settings.updates"),
-        icon: ArrowDownTrayIcon,
-      });
+      mail.push({ id: "updates" as Section, label: t("settings.updates"), icon: ArrowDownTrayIcon });
     }
-
     if (dev_mode_enabled) {
-      items.mail.push({
-        id: "developer" as Section,
-        label: t("settings.developer"),
-        icon: CodeBracketIcon,
-      });
+      mail.push({ id: "developer" as Section, label: t("settings.developer"), icon: CodeBracketIcon });
     }
-
-    return items;
-  }, [NAV_ITEMS, dev_mode_enabled, has_devices, t]);
+    return { general, mail };
+  }, [NAV_ITEMS_BASE, dev_mode_enabled, has_devices, t]);
 
   useLayoutEffect(() => {
     if (!is_open) {
@@ -605,7 +538,7 @@ function SettingsPanelInner({
       default:
         return null;
     }
-  }, [section, handle_account_deleted, is_family_plan]);
+  }, [section, handle_account_deleted]);
 
   const handle_desktop_nav_click = useCallback((item_id: Section) => {
     set_section(item_id);
@@ -619,19 +552,12 @@ function SettingsPanelInner({
     return (
       <button
         key={item.id}
-        ref={(el) => {
-          nav_item_refs.current[item.id] = el;
-        }}
-        className="w-full flex items-center gap-2.5 px-2.5 h-8 rounded-[12px] text-[13px] transition-colors duration-150 relative z-[1]"
-        style={{
-          color: is_selected ? "var(--text-primary)" : "var(--text-secondary)",
-        }}
+        ref={(el) => { nav_item_refs.current[item.id] = el; }}
+        className="w-full flex items-center gap-2.5 px-2.5 h-8 rounded-[12px] text-[13px] transition-colors duration-150 relative z-[1] outline-none focus:outline-none"
+        style={{ color: is_selected ? "var(--text-primary)" : "var(--text-secondary)" }}
         onClick={() => handle_desktop_nav_click(item.id)}
       >
-        <item.icon
-          className="w-5 h-5 flex-shrink-0"
-          style={{ transform: "translateZ(0)" }}
-        />
+        <item.icon className="w-[17px] h-[17px] flex-shrink-0" style={{ transform: "translateZ(0)" }} />
         <span className="truncate">{item.label}</span>
       </button>
     );
@@ -655,7 +581,7 @@ function SettingsPanelInner({
   };
 
   const get_current_section_label = () => {
-    const all_items = [...NAV_ITEMS.general, ...NAV_ITEMS.mail];
+    const all_items = [...nav_items.general, ...nav_items.mail];
     const item = all_items.find((i) => i.id === section);
 
     return item?.label || t("settings.title");
@@ -697,7 +623,7 @@ function SettingsPanelInner({
             >
               <div ref={nav_container_ref} className="relative">
                 <div
-                  className="pointer-events-none absolute left-0 w-full rounded-md"
+                  className="pointer-events-none absolute left-0 w-full rounded-[10px]"
                   style={{
                     top: indicator_style.top,
                     height: indicator_style.height,
@@ -716,7 +642,6 @@ function SettingsPanelInner({
                 <div className="space-y-0.5 mb-4">
                   {nav_items.general.map(render_nav_item)}
                 </div>
-
                 <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
                   {t("common.mail")}
                 </div>

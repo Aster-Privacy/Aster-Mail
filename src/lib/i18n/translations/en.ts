@@ -3140,6 +3140,13 @@ export const en: Translations = {
     keyserver_custom_label: "Custom keyservers",
     keyserver_invalid_url: "Enter a valid HTTPS URL",
     keyserver_saved: "Keyserver list saved",
+    keyserver_publication_status: "Publication Status",
+    keyserver_status_published: "Published",
+    keyserver_status_not_published: "Not Published",
+    keyserver_publish_btn: "Publish Key",
+    keyserver_republish_btn: "Re-publish Key",
+    keyserver_permanent_warning: "Once published, keys cannot be fully removed from most keyservers.",
+    keyserver_add_custom_label: "Add Custom Keyserver",
     info_require_encryption_title: "Require Encryption",
     info_require_encryption_description:
       "Only send emails that can be encrypted end-to-end. If a recipient doesn't have a PGP key, the message won't send. Only turn this on if you never email people outside of PGP.",

@@ -2947,6 +2947,13 @@ export interface SettingsTranslations {
   keyserver_custom_label: string;
   keyserver_invalid_url: string;
   keyserver_saved: string;
+  keyserver_publication_status: string;
+  keyserver_status_published: string;
+  keyserver_status_not_published: string;
+  keyserver_publish_btn: string;
+  keyserver_republish_btn: string;
+  keyserver_permanent_warning: string;
+  keyserver_add_custom_label: string;
   info_require_encryption_title: string;
   info_require_encryption_description: string;
   info_storage_format_title: string;
