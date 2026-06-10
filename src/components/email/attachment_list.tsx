@@ -64,6 +64,37 @@ interface AttachmentListProps {
   inline_cids?: Set<string>;
   inline_filenames?: Set<string>;
   is_local?: boolean;
+  hint_attachment_count?: number;
+}
+
+function AttachmentCardSkeleton() {
+  return (
+    <div
+      className="w-[200px] rounded-lg overflow-hidden animate-pulse"
+      style={{ border: "1px solid var(--thread-card-border)" }}
+    >
+      <div
+        className="w-full h-[140px]"
+        style={{ backgroundColor: "var(--thread-card-border)" }}
+      />
+      <div
+        className="px-3 py-2 border-t"
+        style={{
+          backgroundColor: "var(--thread-content-bg)",
+          borderColor: "var(--thread-card-border)",
+        }}
+      >
+        <div
+          className="h-3 rounded w-3/4 mb-1.5"
+          style={{ backgroundColor: "var(--thread-card-border)" }}
+        />
+        <div
+          className="h-2.5 rounded w-1/3"
+          style={{ backgroundColor: "var(--thread-card-border)" }}
+        />
+      </div>
+    </div>
+  );
 }
 
 function DownloadIcon({ className }: { className?: string }) {
@@ -286,6 +317,7 @@ export function AttachmentList({
   inline_cids,
   inline_filenames,
   is_local = false,
+  hint_attachment_count = 0,
 }: AttachmentListProps): React.ReactElement | null {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -578,7 +610,30 @@ export function AttachmentList({
     );
   }
 
-  if (loading || attachments.length === 0) {
+  if (loading) {
+    if (!hint_attachment_count) return null;
+    return (
+      <div
+        className="border-t px-3 @md:px-4 py-3"
+        style={{
+          borderColor: "var(--thread-card-border)",
+          backgroundColor: "var(--thread-content-bg)",
+        }}
+      >
+        <div
+          className="h-3 w-20 rounded mb-2.5 animate-pulse"
+          style={{ backgroundColor: "var(--thread-card-border)" }}
+        />
+        <div className="flex flex-wrap gap-2.5">
+          {Array.from({ length: hint_attachment_count }, (_, i) => (
+            <AttachmentCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (attachments.length === 0) {
     return null;
   }
 
