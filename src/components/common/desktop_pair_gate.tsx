@@ -64,7 +64,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const [checked, set_checked] = useState(() => !is_tauri());
-  const [device_paired, set_device_paired] = useState(false);
+  const [init_key, set_init_key] = useState(0);
   const [_pubkeys, set_pubkeys] = useState<DevicePubkeys | null>(null);
   const [gate_state, set_gate_state] = useState<GateState>("loading");
   const [code, set_code] = useState<string | null>(null);
@@ -75,6 +75,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
   const countdown_ref = useRef<ReturnType<typeof setInterval> | null>(null);
   const poll_count_ref = useRef(0);
   const is_active_ref = useRef(true);
+  const prev_auth_ref = useRef(is_authenticated);
 
   const stop_polling = useCallback(() => {
     if (poll_ref.current) {
@@ -197,7 +198,6 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                         lr.encrypted_vault,
                         lr.vault_nonce,
                       );
-                      set_device_paired(true);
                       setTimeout(() => emit_auth_ready(), 50);
                       set_pubkeys(null);
                     } catch (inner_err) {
@@ -259,7 +259,6 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
           set_pubkeys(pk);
           start_code_flow(pk);
         } else {
-          set_device_paired(true);
           const pending = consume_pending_device_login();
 
           if (pending?.login_response && pending?.passphrase) {
@@ -304,7 +303,6 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                 lr.encrypted_vault,
                 lr.vault_nonce,
               );
-              set_device_paired(true);
               setTimeout(() => emit_auth_ready(), 50);
             } catch (pending_login_err) {
               if (import.meta.env.DEV) console.error(pending_login_err);
@@ -349,7 +347,18 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
       stop_polling();
       window.removeEventListener("astermail:device-paired", on_paired);
     };
-  }, [login, start_code_flow, stop_polling]);
+  }, [login, start_code_flow, stop_polling, init_key]);
+
+  useEffect(() => {
+    const was_auth = prev_auth_ref.current;
+    prev_auth_ref.current = is_authenticated;
+
+    if (was_auth && !is_authenticated && checked && is_tauri()) {
+      stop_polling();
+      set_gate_state("loading");
+      set_init_key((k) => k + 1);
+    }
+  }, [is_authenticated, checked, stop_polling]);
 
   useEffect(() => {
     return () => stop_polling();
@@ -420,7 +429,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
 
   if (!checked) return null;
 
-  if (!is_tauri() || is_authenticated || device_paired) {
+  if (!is_tauri() || is_authenticated) {
     return <>{children}</>;
   }
 
