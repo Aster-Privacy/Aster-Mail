@@ -5558,7 +5558,7 @@ export const en: Translations = {
   },
   passkeys: {
     section_title: "Passkeys & Security Keys",
-    section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys are physical hardware authenticators.",
+    section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
     add_passkey: "Add passkey",
     add_security_key: "Add security key",
     no_passkeys: "No passkeys or security keys registered",
@@ -5583,7 +5583,7 @@ export const en: Translations = {
     security_key_not_found: "Authentication cancelled or device authenticator not available.",
     saved_to_password_manager: "Passkey saved to your password manager. To use Windows Hello instead, dismiss the password manager dialog when it appears.",
     passkey_hint: "Uses Windows Hello, Face ID, or Touch ID. If your password manager opens, dismiss it and Windows Hello will appear.",
-    security_key_hint: "Uses your device authenticator - Windows Hello, Touch ID, or Face ID",
+    security_key_hint: "Uses your device authenticator - Windows Hello, Touch ID, or Face ID. If your password manager opens, dismiss it.",
   },
   errors: {
     generic: "That did not work. Another attempt should do it.",
