@@ -578,9 +578,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     let nav_target = other ? "/" : "/sign-in";
     const fallback_timer = window.setTimeout(() => {
       try {
-        if ("__TAURI_INTERNALS__" in window) {
-          sessionStorage.setItem("aster_tauri_logout", "1");
-        }
+        if ("__TAURI_INTERNALS__" in window) return;
         hard_redirect(nav_target);
       } catch {}
     }, 6000);
@@ -636,10 +634,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearTimeout(fallback_timer);
       logout_in_flight.current = false;
       try {
-        if ("__TAURI_INTERNALS__" in window) {
-          sessionStorage.setItem("aster_tauri_logout", "1");
+        if (!("__TAURI_INTERNALS__" in window)) {
+          hard_redirect(nav_target);
         }
-        hard_redirect(nav_target);
       } catch {}
     }
   }, [clear_local_auth_data, state.accounts, state.current_account_id]);
@@ -647,6 +644,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout_all_handler = useCallback(async () => {
     const fallback_timer = window.setTimeout(() => {
       try {
+        if ("__TAURI_INTERNALS__" in window) return;
         hard_redirect("/sign-in");
       } catch {}
     }, 6000);
@@ -670,10 +668,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       clearTimeout(fallback_timer);
       try {
-        if ("__TAURI_INTERNALS__" in window) {
-          sessionStorage.setItem("aster_tauri_logout", "1");
+        if (!("__TAURI_INTERNALS__" in window)) {
+          hard_redirect("/sign-in");
         }
-        hard_redirect("/sign-in");
       } catch {}
     }
   }, [clear_local_auth_data]);
