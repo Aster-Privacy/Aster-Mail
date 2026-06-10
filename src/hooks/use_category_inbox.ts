@@ -52,6 +52,7 @@ import {
   get_page_ids,
   get_category_total,
   is_fully_built,
+  is_build_in_progress,
   subscribe as subscribe_index,
   get_version as get_index_version,
   remove_ids,
@@ -191,9 +192,10 @@ export function use_category_inbox(
       const has_more = (target_page + 1) * limit < total;
 
       if (ids.length === 0) {
-        // Only show the empty state once the index is fully built; until then
-        // keep the skeleton so we never flash "No <tab>" before content loads.
-        const built = is_fully_built();
+        // Only show the empty state once the index is fully built and no build
+        // is in progress; keep the skeleton while building so we never flash
+        // "No <tab>" before content loads.
+        const built = is_fully_built() && !is_build_in_progress();
 
         set_state({
           emails: [],
