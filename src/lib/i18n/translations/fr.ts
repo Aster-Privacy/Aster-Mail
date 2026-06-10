@@ -3583,6 +3583,8 @@ export const fr = {
     senders_unsubscribed: "{{ count }} expéditeurs désabonnés",
     bulk_unsubscribe: "Désabonnement en masse",
     rotate_keys: "Renouveler les clés",
+    key_rotation_data_loss_warning:
+      "Une fois la rotation effectuée, votre ancienne clé est retirée. Les e-mails chiffrés exclusivement avec votre ancienne clé ne pourront plus être déchiffrés. Cette action est irréversible.",
     rotating: "Renouvellement...",
     rotate_keys_description_required: "Your encryption keys are due for rotation. Enter your password to generate new keys and maintain forward secrecy.",
     rotate_keys_description_manual: "Enter your password to rotate your encryption keys. Old emails will remain readable.",

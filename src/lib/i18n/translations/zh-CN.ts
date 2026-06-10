@@ -3637,6 +3637,8 @@ export const zh_CN = {
     current_key_age: "当前密钥使用时长",
     rotating: "轮换中...",
     rotate_keys: "轮换密钥",
+    key_rotation_data_loss_warning:
+      "轮换后，您的旧密钥将被停用。仅用旧密钥加密的邮件将无法再解密。此操作不可撤销。",
     bulk_unsubscribe: "批量退订",
     senders_unsubscribed: "已退订 {{ count }} 位发件人",
     opened_in_browser: "{{ count }} 个已在浏览器中打开以完成退订",

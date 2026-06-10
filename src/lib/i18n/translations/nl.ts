@@ -3644,6 +3644,8 @@ export const nl = {
     rotate_keys_description_required: "Je versleutelingssleutels zijn toe aan rotatie. Voer je wachtwoord in om nieuwe sleutels te genereren en forward secrecy te behouden.",
     rotating: "Roteren...",
     rotate_keys: "Sleutels roteren",
+    key_rotation_data_loss_warning:
+      "Na rotatie wordt je vorige sleutel ingetrokken. E-mails die uitsluitend met je oude sleutel zijn versleuteld, kunnen niet meer worden ontsleuteld. Dit kan niet ongedaan worden gemaakt.",
     bulk_unsubscribe: "Bulk uitschrijven",
     senders_unsubscribed: "{{ count }} afzenders uitgeschreven",
     opened_in_browser: "{{ count }} in browser geopend om te voltooien",

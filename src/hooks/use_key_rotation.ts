@@ -112,21 +112,19 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
   }, [is_authenticated, has_keys, preferences]);
 
   const perform_rotation = useCallback(
-    async (password: string): Promise<boolean> => {
+    async (password: string): Promise<string | null> => {
       if (!user || !preferences) {
-        return false;
+        return t("common.session_expired_login");
       }
 
       if (is_rotating_ref.current) {
-        return false;
+        return t("common.rotation_failed");
       }
 
       const current_vault = get_vault_from_memory();
 
       if (!current_vault) {
-        show_toast(t("common.session_expired_login"), "error");
-
-        return false;
+        return t("common.session_expired_login");
       }
 
       let server_public_key = state.current_public_key;
@@ -135,9 +133,7 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
         const status_result = await check_rotation_needed(preferences);
 
         if (!status_result.current_public_key) {
-          show_toast(t("common.failed_to_retrieve_key"), "error");
-
-          return false;
+          return t("common.failed_to_retrieve_key");
         }
         server_public_key = status_result.current_public_key;
       }
@@ -171,24 +167,16 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
           show_toast(t("common.encryption_keys_rotated"), "success");
           is_rotating_ref.current = false;
 
-          return true;
+          return null;
         } else {
-          show_toast(
-            result.error ?? t("common.failed_to_rotate_keys"),
-            "error",
-          );
           is_rotating_ref.current = false;
 
-          return false;
+          return result.error ?? t("common.failed_to_rotate_keys");
         }
       } catch (error) {
-        show_toast(
-          error instanceof Error ? error.message : t("common.rotation_failed"),
-          "error",
-        );
         is_rotating_ref.current = false;
 
-        return false;
+        return error instanceof Error ? error.message : t("common.rotation_failed");
       }
     },
     [user, preferences, state.current_public_key, t],

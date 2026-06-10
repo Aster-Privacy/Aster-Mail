@@ -3641,6 +3641,8 @@ export const de = {
     senders_unsubscribed: "{{ count }} Absender abgemeldet",
     bulk_unsubscribe: "Massenabmeldung",
     rotate_keys: "Schlüssel rotieren",
+    key_rotation_data_loss_warning:
+      "Nach der Rotation wird dein vorheriger Schlüssel eingestellt. E-Mails, die ausschließlich mit deinem alten Schlüssel verschlüsselt wurden, können nicht mehr entschlüsselt werden. Dies kann nicht rückgängig gemacht werden.",
     rotating: "Wird rotiert...",
     rotate_keys_description_required: "Ihre Verschlüsselungsschlüssel müssen rotiert werden. Geben Sie Ihr Passwort ein, um neue Schlüssel zu generieren und Forward Secrecy aufrechtzuerhalten.",
     rotate_keys_description_manual: "Geben Sie Ihr Passwort ein, um Ihre Verschlüsselungsschlüssel zu rotieren. Alte E-Mails bleiben lesbar.",

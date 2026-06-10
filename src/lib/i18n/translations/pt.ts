@@ -3639,6 +3639,8 @@ export const pt = {
     current_key_age: "Idade da Chave Atual",
     rotating: "Rotacionando...",
     rotate_keys: "Rotacionar Chaves",
+    key_rotation_data_loss_warning:
+      "Após a rotação, sua chave anterior é desativada. E-mails criptografados exclusivamente com sua chave antiga não poderão mais ser descriptografados. Esta ação é irreversível.",
     bulk_unsubscribe: "Cancelamento em Massa",
     senders_unsubscribed: "{{ count }} remetentes com inscrição cancelada",
     opened_in_browser: "{{ count }} abertos no navegador para concluir",
