@@ -31,6 +31,7 @@ import { is_onion_host } from "@/lib/onion_host";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
+import { sync_recent } from "@/services/category_index";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -164,10 +165,14 @@ class SyncClient {
         this.handle_message(data);
 
         if (data.type === "auth_success") {
+          const is_reconnect = this.reconnect_attempt > 0;
           this.authenticated = true;
           this.auth_error_count = 0;
           this.last_auth_error = false;
           this.reconnect_attempt = 0;
+          if (is_reconnect) {
+            void sync_recent();
+          }
           resolve();
         } else if (data.type === "auth_error") {
           this.last_auth_error = true;
