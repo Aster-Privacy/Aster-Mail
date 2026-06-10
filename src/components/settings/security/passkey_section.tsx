@@ -213,6 +213,8 @@ export function PasskeySection() {
           show_toast(t("passkeys.register_success"), "success");
         }
         await load_keys();
+      } else if (resp.error === "no_platform_authenticator") {
+        show_toast(t("passkeys.no_platform_authenticator"), "error");
       } else if (resp.error === "passkey_cancelled") {
         show_toast(t("passkeys.passkey_setup_cancelled"), "info");
       } else if (resp.error) {
@@ -230,8 +232,10 @@ export function PasskeySection() {
       if (resp.data?.success) {
         show_toast(t("passkeys.register_success"), "success");
         await load_keys();
+      } else if (resp.error === "no_platform_authenticator") {
+        show_toast(t("passkeys.no_platform_authenticator"), "error");
       } else if (resp.error === "passkey_cancelled") {
-        show_toast(t("passkeys.security_key_not_found"), "error");
+        show_toast(t("passkeys.security_key_not_found"), "info");
       } else if (resp.error) {
         show_toast(resp.error, "error");
       }

@@ -5085,9 +5085,10 @@ export const zh_CN = {
   passkeys: {
     passkey_setup_cancelled: "Passkey 设置已取消。",
     security_key_not_found: "认证已取消或设备验证器不可用。",
+    no_platform_authenticator: "此设备未设置 Windows Hello。请前往 Windows 设置 > 账户 > 登录选项，添加 PIN、指纹或面部识别。",
     saved_to_password_manager: "Passkey 已保存到你的密码管理器。如需改用 Windows Hello，请在密码管理器对话框出现时将其关闭。",
-    passkey_hint: "使用 Windows Hello、Face ID 或 Touch ID。如果你的密码管理器打开了，请将其关闭，Windows Hello 就会出现。",
-    security_key_hint: "使用设备验证器 - Windows Hello、Touch ID 或 Face ID。如果密码管理器弹出，请关闭它。",
+    passkey_hint: "使用 Windows Hello、Face ID 或 Touch ID。如果密码管理器弹出，你可以将其保存在那里，或暂停扩展以直接使用 Windows Hello。",
+    security_key_hint: "通过 Windows Hello、YubiKey 或密码管理器添加第二验证因素。",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
     add_passkey: "Add passkey",

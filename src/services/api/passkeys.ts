@@ -238,7 +238,7 @@ export async function register_platform_passkey(
     if (err instanceof DOMException && err.name === "NotAllowedError") {
       return { data: undefined, error: "passkey_cancelled" };
     }
-    return { data: undefined, error: "Registration failed." };
+    return { data: undefined, error: "passkey_cancelled" };
   }
 
   if (!credential) {
@@ -325,11 +325,11 @@ export async function register_security_key(
     timeout: options.timeout,
     attestation: options.attestation as AttestationConveyancePreference,
     authenticatorSelection: {
-      authenticatorAttachment: "platform",
-      residentKey: "preferred",
-      userVerification: "required",
+      authenticatorAttachment: "cross-platform",
+      residentKey: "discouraged",
+      userVerification: "preferred",
     },
-    ...({ hints: ["client-device"] } as object),
+    ...({ hints: ["security-key"] } as object),
   };
 
   let credential: PublicKeyCredential | null;
@@ -341,7 +341,8 @@ export async function register_security_key(
     if (err instanceof DOMException && err.name === "NotAllowedError") {
       return { data: undefined, error: "passkey_cancelled" };
     }
-    return { data: undefined, error: "Registration failed." };
+    const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    return { data: undefined, error: detail };
   }
 
   if (!credential) {

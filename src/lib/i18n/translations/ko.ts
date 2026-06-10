@@ -5085,9 +5085,10 @@ export const ko = {
   passkeys: {
     passkey_setup_cancelled: "패스키 설정이 취소되었습니다.",
     security_key_not_found: "인증이 취소되었거나 기기 인증 수단을 사용할 수 없습니다.",
+    no_platform_authenticator: "이 장치에 Windows Hello가 설정되어 있지 않습니다. Windows 설정 > 계정 > 로그인 옵션으로 이동하여 PIN, 지문 또는 얼굴 인식을 추가하세요.",
     saved_to_password_manager: "패스키가 비밀번호 관리자에 저장되었습니다. 대신 Windows Hello를 사용하려면 비밀번호 관리자 대화 상자가 나타날 때 닫으세요.",
-    passkey_hint: "Windows Hello, Face ID 또는 Touch ID를 사용합니다. 비밀번호 관리자가 열리면 닫으면 Windows Hello가 나타납니다.",
-    security_key_hint: "기기 인증 수단을 사용합니다 - Windows Hello, Touch ID 또는 Face ID. 비밀번호 관리자가 열리면 닫아주세요.",
+    passkey_hint: "Windows Hello, Face ID 또는 Touch ID를 사용합니다. 비밀번호 관리자가 열리면 거기에 저장하거나 확장 프로그램을 일시 중지하여 Windows Hello를 직접 사용할 수 있습니다.",
+    security_key_hint: "Windows Hello, YubiKey 또는 비밀번호 관리자를 사용하여 두 번째 인증 요소를 추가합니다.",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
     add_passkey: "Add passkey",

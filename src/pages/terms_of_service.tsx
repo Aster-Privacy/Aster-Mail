@@ -42,7 +42,7 @@ const SECTIONS = [
   },
   {
     heading: "Account Registration and Security",
-    body: "You must provide a valid email address to create an account. You agree to provide accurate information and to keep your account credentials secure. You are solely responsible for all activity under your account.\n\nAster Mail operates on a zero-access encryption model. Your encryption keys are derived from your password and stored only on your devices in encrypted form. We do not have access to your password or private keys. If you lose your password and have not configured account recovery options, we cannot restore access to your encrypted data. This is a fundamental security property of the Service, not a limitation.",
+    body: "You must provide a valid email address to create an account. You agree to provide accurate information and to keep your account credentials secure. You are solely responsible for all activity under your account.\n\nAster Mail operates on a zero-access encryption model. Your encryption keys are derived from your password and stored only on your devices in encrypted form. We do not have access to your password or private keys. If you lose your password and have not configured account recovery options, we cannot restore access to your encrypted data. This is a fundamental security property of the Service, not a limitation.\n\nEach individual may register and maintain a maximum of one account. If we reasonably determine that a single person controls more than one account, we may suspend or terminate the excess accounts.",
   },
   {
     heading: "Acceptable Use",

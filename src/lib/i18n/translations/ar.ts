@@ -5085,9 +5085,10 @@ export const ar = {
   passkeys: {
     passkey_setup_cancelled: "تم إلغاء إعداد مفتاح المرور.",
     security_key_not_found: "تم إلغاء المصادقة أو أداة مصادقة الجهاز غير متاحة.",
+    no_platform_authenticator: "لم يتم إعداد Windows Hello على هذا الجهاز. انتقل إلى إعدادات Windows > الحسابات > خيارات تسجيل الدخول لإضافة رقم تعريف شخصي أو بصمة إصبع أو التعرف على الوجه.",
     saved_to_password_manager: "تم حفظ مفتاح المرور في مدير كلمات المرور الخاص بك. لاستخدام Windows Hello بدلًا من ذلك، أغلِق مربع حوار مدير كلمات المرور عند ظهوره.",
-    passkey_hint: "يستخدم Windows Hello أو Face ID أو Touch ID. إذا فُتح مدير كلمات المرور الخاص بك، أغلِقه وسيظهر Windows Hello.",
-    security_key_hint: "يستخدم أداة مصادقة الجهاز - Windows Hello أو Touch ID أو Face ID. إذا فتح مدير كلمات المرور، أغلقه.",
+    passkey_hint: "يستخدم Windows Hello أو Face ID أو Touch ID. إذا فُتح مدير كلمات المرور، يمكنك حفظه هناك أو إيقاف الإضافة مؤقتًا لاستخدام Windows Hello مباشرةً.",
+    security_key_hint: "يضيف عاملاً ثانياً باستخدام Windows Hello أو YubiKey أو مدير كلمات المرور.",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
     add_passkey: "Add passkey",
