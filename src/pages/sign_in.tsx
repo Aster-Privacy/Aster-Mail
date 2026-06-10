@@ -334,22 +334,8 @@ export default function SignInPage() {
   useEffect(() => {
     if (has_existing_session) {
       navigate(get_safe_next_path(), { replace: true });
-    } else if (
-      !auth_loading &&
-      !current_account_id &&
-      !is_adding_account &&
-      !is_checkout_login
-    ) {
-      api_client.clear_session_cookies();
     }
-  }, [
-    has_existing_session,
-    auth_loading,
-    current_account_id,
-    is_adding_account,
-    is_checkout_login,
-    navigate,
-  ]);
+  }, [has_existing_session, navigate]);
 
   useEffect(() => {
     if (auth_loading || checkout_started.current) return;

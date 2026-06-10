@@ -721,6 +721,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (path === "/sign-in") return;
 
       show_toast(t("common.session_expired_sign_in"), "info");
+      await api_client.clear_session_cookies().catch(() => {});
       hard_redirect("/sign-in");
     };
 
@@ -741,6 +742,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const handle_session_revoked = async () => {
       await clear_local_auth_data();
       show_toast(t("common.device_revoked"), "info");
+      await api_client.clear_session_cookies().catch(() => {});
       hard_redirect("/sign-in");
     };
 
