@@ -63,7 +63,7 @@ async function show_tauri_notification(
 
 function get_notification_sound(): HTMLAudioElement {
   if (!notification_sound) {
-    notification_sound = new Audio("/chime.mp3");
+    notification_sound = new Audio("/asterchime.mp3");
     notification_sound.volume = 0.5;
   }
 
