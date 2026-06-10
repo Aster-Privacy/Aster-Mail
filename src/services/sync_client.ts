@@ -29,6 +29,7 @@ import { TorUnavailableError } from "./routing/tor_unavailable_error";
 import { is_onion_host } from "@/lib/onion_host";
 
 import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
 
 const HASH_ALG = ["SHA", "256"].join("-");
@@ -242,6 +243,7 @@ class SyncClient {
     refresh_session_activity();
 
     if (data.type === "new_mail") {
+      mark_view_stale();
       window.dispatchEvent(
         new CustomEvent(MAIL_EVENTS.EMAIL_RECEIVED, {
           detail: { email_id: data.mail_item_id || "" },

@@ -547,6 +547,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           });
       } else {
         if (nothing_changed && already_has_data) {
+          const cached = view_cache.get(current_view);
+          if (cached?.is_stale) {
+            silent_fetch_ref.current?.();
+          }
           return () => abort_ref.current?.abort();
         }
         fetch_page_ref.current?.(0, page_size, true);
