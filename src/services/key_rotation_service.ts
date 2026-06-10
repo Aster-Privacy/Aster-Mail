@@ -241,6 +241,8 @@ export async function perform_key_rotation(
       ratchet_identity_public: new_ratchet_keys.identity_public,
       ratchet_signed_prekey: new_ratchet_keys.signed_prekey_jwk,
       ratchet_signed_prekey_public: new_ratchet_keys.signed_prekey_public,
+      ratchet_pq_identity_key: new_ratchet_keys.pq_identity_secret,
+      ratchet_pq_identity_public: new_ratchet_keys.pq_identity_public,
       ratchet_previous_keys: retain_previous_ratchet_keys(current_vault),
     };
 

@@ -45,6 +45,12 @@ vi.mock("./ratchet_manager", () => ({
     identity_public: "ratchet-identity-public",
     signed_prekey_jwk: "ratchet-signed-prekey-jwk",
     signed_prekey_public: "ratchet-signed-prekey-public",
+    pq_identity_secret: "pq-identity-secret",
+    pq_identity_public: "pq-identity-public",
+  }),
+  generate_pq_identity_keys: async () => ({
+    pq_identity_secret: "pq-identity-secret",
+    pq_identity_public: "pq-identity-public",
   }),
   upload_prekey_bundle: async () => {},
 }));
