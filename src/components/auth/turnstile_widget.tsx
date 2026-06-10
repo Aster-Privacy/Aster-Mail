@@ -28,13 +28,14 @@ import {
 
 import { useTheme } from "@/contexts/theme_context";
 import { is_onion_host } from "@/lib/onion_host";
+import { is_tauri } from "@/native/desktop_device_auth";
 
-// Onion users are exempt. Otherwise the widget shows whenever a site key is
-// configured - including in dev if VITE_TURNSTILE_SITE_KEY is set (e.g. a
-// Cloudflare test key), so captcha gating can be exercised locally. Prod is
-// unchanged (it always sets VITE_TURNSTILE_SITE_KEY).
+// Onion and Tauri desktop users are exempt. The Cloudflare challenge iframe
+// cannot load inside Tauri's WebView2 (tauri.localhost origin is blocked).
+// The backend already exempts tauri-desktop from the captcha requirement
+// server-side via the client_platform header. Prod web is unchanged.
 export const TURNSTILE_SITE_KEY =
-  typeof window !== "undefined" && is_onion_host()
+  typeof window !== "undefined" && (is_onion_host() || is_tauri())
     ? ""
     : (import.meta.env.VITE_TURNSTILE_SITE_KEY || "");
 const SCRIPT_URL =

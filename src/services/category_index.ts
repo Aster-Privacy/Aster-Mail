@@ -649,9 +649,10 @@ async function sync_recent(): Promise<void> {
     // Prune removals within the freshest window: any indexed entry newer than
     // the oldest item this page returned, but absent from the page, has left the
     // inbox (snoozed / archived / moved / bulk action). Bounded to one page, so
-    // it stays O(page) even on huge mailboxes. Skip when the page is empty to
-    // avoid wiping the index on a transient empty response.
-    if (items.length > 0) {
+    // it stays O(page) even on huge mailboxes. Skip when the page is empty or
+    // when decryption failed for all returned items - mass decrypt failure means
+    // we cannot reliably distinguish "removed" from "failed to decrypt".
+    if (items.length > 0 && fresh.length > 0) {
       const returned = new Set(items.map((i) => i.id));
       let window_start = Infinity;
 
