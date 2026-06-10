@@ -324,11 +324,11 @@ export async function register_security_key(
     timeout: 30000,
     attestation: options.attestation as AttestationConveyancePreference,
     authenticatorSelection: {
-      authenticatorAttachment: "cross-platform",
+      authenticatorAttachment: "platform",
       residentKey: "preferred",
-      userVerification: "preferred",
+      userVerification: "required",
     },
-    ...({ hints: ["security-key"] } as object),
+    ...({ hints: ["client-device"] } as object),
   };
 
   let credential: PublicKeyCredential | null;
