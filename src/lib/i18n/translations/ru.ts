@@ -5085,9 +5085,10 @@ export const ru = {
   passkeys: {
     passkey_setup_cancelled: "Настройка passkey отменена.",
     security_key_not_found: "Аутентификация отменена или аутентификатор устройства недоступен.",
+    no_platform_authenticator: "Windows Hello не настроен на этом устройстве. Перейдите в Параметры Windows > Учетные записи > Параметры входа, чтобы добавить PIN-код, отпечаток пальца или распознавание лица.",
     saved_to_password_manager: "Passkey сохранён в вашем менеджере паролей. Чтобы вместо этого использовать Windows Hello, закройте диалог менеджера паролей, когда он появится.",
-    passkey_hint: "Использует Windows Hello, Face ID или Touch ID. Если откроется менеджер паролей, закройте его, и появится Windows Hello.",
-    security_key_hint: "Использует аутентификатор устройства - Windows Hello, Touch ID или Face ID. Если откроется менеджер паролей, закройте его.",
+    passkey_hint: "Использует Windows Hello, Face ID или Touch ID. Если откроется менеджер паролей, можно сохранить его там или приостановить расширение, чтобы использовать Windows Hello напрямую.",
+    security_key_hint: "Добавляет второй фактор с помощью Windows Hello, YubiKey или менеджера паролей.",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
     add_passkey: "Add passkey",

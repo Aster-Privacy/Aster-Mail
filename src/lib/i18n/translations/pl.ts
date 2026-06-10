@@ -5085,9 +5085,10 @@ export const pl = {
   passkeys: {
     passkey_setup_cancelled: "Konfiguracja klucza dostępu anulowana.",
     security_key_not_found: "Uwierzytelnianie anulowane lub uwierzytelnianie urządzenia niedostępne.",
+    no_platform_authenticator: "Windows Hello nie jest skonfigurowane na tym urządzeniu. Przejdź do Ustawień systemu Windows > Konta > Opcje logowania, aby dodać PIN, odcisk palca lub rozpoznawanie twarzy.",
     saved_to_password_manager: "Klucz dostępu zapisany w Twoim menedżerze haseł. Aby zamiast tego użyć Windows Hello, zamknij okno menedżera haseł, gdy się pojawi.",
-    passkey_hint: "Używa Windows Hello, Face ID lub Touch ID. Jeśli otworzy się Twój menedżer haseł, zamknij go, a pojawi się Windows Hello.",
-    security_key_hint: "Używa uwierzytelniania urządzenia - Windows Hello, Touch ID lub Face ID. Jeśli otworzy się menedżer haseł, zamknij go.",
+    passkey_hint: "Używa Windows Hello, Face ID lub Touch ID. Jeśli otworzy się Twój menedżer haseł, możesz tam zapisać klucz lub wstrzymać rozszerzenie, aby użyć Windows Hello bezpośrednio.",
+    security_key_hint: "Dodaje drugi składnik uwierzytelnienia za pomocą Windows Hello, YubiKey lub menedżera haseł.",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
     add_passkey: "Add passkey",

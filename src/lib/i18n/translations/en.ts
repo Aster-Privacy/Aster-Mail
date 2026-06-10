@@ -5583,9 +5583,10 @@ export const en: Translations = {
     unnamed_security_key: "Security Key",
     passkey_setup_cancelled: "Passkey setup cancelled.",
     security_key_not_found: "Authentication cancelled or device authenticator not available.",
+    no_platform_authenticator: "Windows Hello is not set up on this device. Go to Windows Settings > Accounts > Sign-in options to add a PIN, fingerprint, or face recognition.",
     saved_to_password_manager: "Passkey saved to your password manager. To use Windows Hello instead, dismiss the password manager dialog when it appears.",
-    passkey_hint: "Uses Windows Hello, Face ID, or Touch ID. If your password manager opens, dismiss it and Windows Hello will appear.",
-    security_key_hint: "Uses your device authenticator - Windows Hello, Touch ID, or Face ID. If your password manager opens, dismiss it.",
+    passkey_hint: "Uses Windows Hello, Face ID, or Touch ID. If your password manager opens, you can save it there or pause the extension to use Windows Hello directly.",
+    security_key_hint: "Adds a second factor using Windows Hello, a YubiKey, or your password manager.",
   },
   errors: {
     generic: "That did not work. Another attempt should do it.",

@@ -164,7 +164,7 @@ export default defineConfig({
     __BUILD_HASH__: JSON.stringify(build_hash),
   },
   server: {
-    host: "app.localhost",
+    host: "localhost",
     port: 5173,
     allowedHosts: true,
     proxy: {
@@ -177,9 +177,6 @@ export default defineConfig({
         target: api_target,
         changeOrigin: true,
         secure: true,
-        headers: {
-          origin: api_target,
-        },
       },
     },
   },

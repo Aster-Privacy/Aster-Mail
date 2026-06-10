@@ -81,6 +81,7 @@ export interface PasskeysTranslations {
   unnamed_security_key: string;
   passkey_setup_cancelled: string;
   security_key_not_found: string;
+  no_platform_authenticator: string;
   saved_to_password_manager: string;
   passkey_hint: string;
   security_key_hint: string;

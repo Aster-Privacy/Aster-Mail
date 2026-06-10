@@ -5085,9 +5085,10 @@ export const nl = {
   passkeys: {
     passkey_setup_cancelled: "Instellen van passkey geannuleerd.",
     security_key_not_found: "Authenticatie geannuleerd of apparaatauthenticator niet beschikbaar.",
+    no_platform_authenticator: "Windows Hello is niet ingesteld op dit apparaat. Ga naar Windows-instellingen > Accounts > Aanmeldingsopties om een pincode, vingerafdruk of gezichtsherkenning toe te voegen.",
     saved_to_password_manager: "Passkey opgeslagen in je wachtwoordmanager. Om in plaats daarvan Windows Hello te gebruiken, sluit je het dialoogvenster van de wachtwoordmanager wanneer het verschijnt.",
-    passkey_hint: "Gebruikt Windows Hello, Face ID of Touch ID. Als je wachtwoordmanager opent, sluit deze dan en verschijnt Windows Hello.",
-    security_key_hint: "Gebruikt je apparaatauthenticator - Windows Hello, Touch ID of Face ID. Als je wachtwoordbeheerder opent, sluit hem dan.",
+    passkey_hint: "Gebruikt Windows Hello, Face ID of Touch ID. Als je wachtwoordmanager opent, kun je hem daar opslaan of de extensie pauzeren om Windows Hello direct te gebruiken.",
+    security_key_hint: "Voegt een tweede factor toe via Windows Hello, een YubiKey of je wachtwoordmanager.",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
     add_passkey: "Add passkey",

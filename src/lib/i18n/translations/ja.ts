@@ -5085,9 +5085,10 @@ export const ja = {
   passkeys: {
     passkey_setup_cancelled: "パスキーの設定をキャンセルしました。",
     security_key_not_found: "認証がキャンセルされたか、デバイスの認証機能が利用できません。",
+    no_platform_authenticator: "このデバイスでは Windows Hello が設定されていません。Windowsの設定 > アカウント > サインインオプション に移動して、PIN、指紋認証、または顔認証を追加してください。",
     saved_to_password_manager: "パスキーをパスワードマネージャーに保存しました。代わりにWindows Helloを使用するには、パスワードマネージャーのダイアログが表示されたら閉じてください。",
-    passkey_hint: "Windows Hello、Face ID、またはTouch IDを使用します。パスワードマネージャーが開いた場合は閉じると、Windows Helloが表示されます。",
-    security_key_hint: "デバイスの認証機能を使用します - Windows Hello、Touch ID、または Face ID。パスワードマネージャーが開いた場合は閉じてください。",
+    passkey_hint: "Windows Hello、Face ID、またはTouch IDを使用します。パスワードマネージャーが開いた場合は、そこに保存するか、拡張機能を一時停止してWindows Helloを直接使用できます。",
+    security_key_hint: "Windows Hello、YubiKey、またはパスワードマネージャーを使用して第2要素を追加します。",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
     add_passkey: "Add passkey",

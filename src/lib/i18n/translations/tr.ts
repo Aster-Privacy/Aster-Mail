@@ -5085,9 +5085,10 @@ export const tr = {
   passkeys: {
     passkey_setup_cancelled: "Passkey kurulumu iptal edildi.",
     security_key_not_found: "Kimlik doğrulama iptal edildi veya cihaz doğrulayıcısı kullanılamıyor.",
+    no_platform_authenticator: "Bu cihazda Windows Hello ayarlanmamış. PIN, parmak izi veya yüz tanıma eklemek için Windows Ayarları > Hesaplar > Oturum açma seçenekleri bölümüne gidin.",
     saved_to_password_manager: "Passkey, parola yöneticinize kaydedildi. Bunun yerine Windows Hello kullanmak için, göründüğünde parola yöneticisi iletişim kutusunu kapatın.",
-    passkey_hint: "Windows Hello, Face ID veya Touch ID kullanır. Parola yöneticiniz açılırsa kapatın; Windows Hello görünecektir.",
-    security_key_hint: "Cihaz doğrulayıcınızı kullanır - Windows Hello, Touch ID veya Face ID. Parola yöneticiniz açılırsa kapatın.",
+    passkey_hint: "Windows Hello, Face ID veya Touch ID kullanır. Parola yöneticiniz açılırsa oraya kaydedebilir ya da Windows Hello'yu doğrudan kullanmak için uzantıyı duraklatabilirsiniz.",
+    security_key_hint: "Windows Hello, YubiKey veya parola yöneticinizi kullanarak ikinci bir faktör ekler.",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
     add_passkey: "Add passkey",

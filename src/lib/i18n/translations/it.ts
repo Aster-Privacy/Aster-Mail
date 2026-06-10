@@ -5086,9 +5086,10 @@ export const it = {
   passkeys: {
     passkey_setup_cancelled: "Configurazione della passkey annullata.",
     security_key_not_found: "Autenticazione annullata o autenticatore del dispositivo non disponibile.",
+    no_platform_authenticator: "Windows Hello non è configurato su questo dispositivo. Vai a Impostazioni Windows > Account > Opzioni di accesso per aggiungere un PIN, un'impronta digitale o il riconoscimento facciale.",
     saved_to_password_manager: "Passkey salvata nel tuo gestore di password. Per usare invece Windows Hello, chiudi la finestra del gestore di password quando appare.",
-    passkey_hint: "Usa Windows Hello, Face ID o Touch ID. Se si apre il tuo gestore di password, chiudilo e apparirà Windows Hello.",
-    security_key_hint: "Utilizza l'autenticatore del dispositivo - Windows Hello, Touch ID o Face ID. Se si apre il gestore delle password, chiudilo.",
+    passkey_hint: "Usa Windows Hello, Face ID o Touch ID. Se si apre il tuo gestore di password, puoi salvarla lì oppure mettere in pausa l'estensione per usare Windows Hello direttamente.",
+    security_key_hint: "Aggiunge un secondo fattore tramite Windows Hello, un YubiKey o il tuo gestore di password.",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
     add_passkey: "Add passkey",
