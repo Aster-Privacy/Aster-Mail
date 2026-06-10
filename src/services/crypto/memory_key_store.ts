@@ -155,6 +155,11 @@ export async function store_vault_in_memory(
     ratchet_identity_public: vault.ratchet_identity_public,
     ratchet_signed_prekey: vault.ratchet_signed_prekey,
     ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public,
+    ratchet_pq_identity_key: vault.ratchet_pq_identity_key,
+    ratchet_pq_identity_public: vault.ratchet_pq_identity_public,
+    ratchet_previous_keys: vault.ratchet_previous_keys
+      ? vault.ratchet_previous_keys.map((k) => ({ ...k }))
+      : undefined,
     legacy_keks: vault.legacy_keks ? [...vault.legacy_keks] : undefined,
     data_kek: vault.data_kek,
   };
