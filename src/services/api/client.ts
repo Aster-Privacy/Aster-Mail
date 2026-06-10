@@ -459,10 +459,13 @@ class ApiClient {
     refresh_token?: string | null,
   ): void {
     if (this.suspend_account_persist_flag) return;
+    if (this.intentional_logout) return;
     import("@/services/account_manager")
       .then(async ({ get_current_account_id, update_account_tokens }) => {
+        if (this.intentional_logout) return;
         const id = await get_current_account_id();
         if (!id) return;
+        if (this.intentional_logout) return;
         await update_account_tokens(
           id,
           access_token,
@@ -730,6 +733,7 @@ class ApiClient {
 
   begin_intentional_logout(): void {
     this.intentional_logout = true;
+    this.suspend_account_persist_flag = true;
     this.session_expired_dispatched = true;
     if (this.refresh_timeout) {
       clearTimeout(this.refresh_timeout);
@@ -755,6 +759,7 @@ class ApiClient {
     if (authenticated) {
       this.has_ever_authenticated = true;
       this.intentional_logout = false;
+      this.suspend_account_persist_flag = false;
       this.session_expired_dispatched = false;
       this.initial_auth_verified = true;
       if (!this.last_refresh_timestamp) {
