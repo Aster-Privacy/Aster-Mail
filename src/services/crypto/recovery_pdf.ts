@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { jsPDF } from "jspdf";
-
 import { is_native_platform } from "@/native/capacitor_bridge";
 
 export async function generate_recovery_pdf(
@@ -39,6 +37,7 @@ export async function generate_recovery_pdf(
     return;
   }
 
+  const { jsPDF } = await import("jspdf");
   const doc = new jsPDF();
   const page_width = doc.internal.pageSize.getWidth();
 

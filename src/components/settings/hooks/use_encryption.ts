@@ -35,6 +35,7 @@ import {
   publish_key_to_wkd,
   unpublish_key_from_wkd,
   publish_key_to_keyserver,
+  get_keyserver_publication_status,
 } from "@/services/api/keys";
 
 export interface PgpKeyInfo {
@@ -85,6 +86,8 @@ export function use_encryption() {
   const [keyserver_urls, set_keyserver_urls] = useState<string[]>([]);
   const [keyserver_input, set_keyserver_input] = useState("");
   const [is_saving_keyservers, set_is_saving_keyservers] = useState(false);
+  const [keyserver_published, set_keyserver_published] = useState<boolean | null>(null);
+  const [is_publishing_keyserver, set_is_publishing_keyserver] = useState(false);
   const [recovery_info, set_recovery_info] = useState<RecoveryCodesInfo | null>(
     null,
   );
@@ -116,7 +119,7 @@ export function use_encryption() {
 
   const load_encryption_data = async () => {
     try {
-      const [key_response, recovery_response, user_response, enc_response] =
+      const [key_response, recovery_response, user_response, enc_response, keyserver_status] =
         await Promise.all([
           api_client
             .get<PgpKeyInfo>("/crypto/v1/encryption/pgp-key")
@@ -131,6 +134,8 @@ export function use_encryption() {
               encrypt_by_default: boolean;
               keyserver_urls: string[];
             }>("/settings/v1/encryption")
+            .catch(() => ({ data: null, error: null })),
+          get_keyserver_publication_status()
             .catch(() => ({ data: null, error: null })),
         ]);
 
@@ -154,6 +159,10 @@ export function use_encryption() {
         if (enc_response.data.keyserver_urls) {
           set_keyserver_urls(enc_response.data.keyserver_urls);
         }
+      }
+
+      if (keyserver_status.data) {
+        set_keyserver_published(keyserver_status.data.published);
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -568,6 +577,22 @@ export function use_encryption() {
     }
   };
 
+  const handle_publish_to_keyservers = async () => {
+    set_is_publishing_keyserver(true);
+
+    const result = await publish_key_to_keyserver();
+
+    if (result.error) {
+      show_toast(t("settings.failed_publish_keyserver"), "error");
+    } else {
+      set_keyserver_published(true);
+      update_preference("publish_to_keyservers", true, true);
+      show_toast(t("settings.key_published_keyserver"), "success");
+    }
+
+    set_is_publishing_keyserver(false);
+  };
+
   const save_keyserver_urls = async (urls: string[]) => {
     set_is_saving_keyservers(true);
     try {
@@ -700,5 +725,8 @@ export function use_encryption() {
     is_saving_keyservers,
     handle_add_keyserver,
     handle_remove_keyserver,
+    keyserver_published,
+    is_publishing_keyserver,
+    handle_publish_to_keyservers,
   };
 }

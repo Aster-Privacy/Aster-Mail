@@ -86,12 +86,14 @@ export function EncryptionSection() {
       <EncryptionSettingsForm
         handle_auto_discover_keys_toggle={encryption.handle_auto_discover_keys_toggle}
         handle_encrypt_emails_toggle={encryption.handle_encrypt_emails_toggle}
-        handle_keyserver_toggle={encryption.handle_keyserver_toggle}
         handle_wkd_toggle={encryption.handle_wkd_toggle}
         handle_add_keyserver={encryption.handle_add_keyserver}
         handle_remove_keyserver={encryption.handle_remove_keyserver}
+        handle_publish_to_keyservers={encryption.handle_publish_to_keyservers}
         is_saving_keyservers={encryption.is_saving_keyservers}
+        is_publishing_keyserver={encryption.is_publishing_keyserver}
         keyserver_input={encryption.keyserver_input}
+        keyserver_published={encryption.keyserver_published}
         keyserver_urls={encryption.keyserver_urls}
         preferences={encryption.preferences}
         set_keyserver_input={encryption.set_keyserver_input}
