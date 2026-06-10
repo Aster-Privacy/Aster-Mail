@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -5082,10 +5082,10 @@ export const ar = {
   },
   passkeys: {
     passkey_setup_cancelled: "تم إلغاء إعداد مفتاح المرور.",
-    security_key_not_found: "لم يُكتشف أي مفتاح أمان. أدخِل مفتاح USB والمسه عند المطالبة.",
+    security_key_not_found: "تم إلغاء المصادقة أو أداة مصادقة الجهاز غير متاحة.",
     saved_to_password_manager: "تم حفظ مفتاح المرور في مدير كلمات المرور الخاص بك. لاستخدام Windows Hello بدلًا من ذلك، أغلِق مربع حوار مدير كلمات المرور عند ظهوره.",
     passkey_hint: "يستخدم Windows Hello أو Face ID أو Touch ID. إذا فُتح مدير كلمات المرور الخاص بك، أغلِقه وسيظهر Windows Hello.",
-    security_key_hint: "يتطلّب مفتاح USB أو NFC ماديًا مثل YubiKey",
+    security_key_hint: "يستخدم أداة مصادقة الجهاز - Windows Hello أو Touch ID أو Face ID",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys are physical hardware authenticators.",
     add_passkey: "Add passkey",

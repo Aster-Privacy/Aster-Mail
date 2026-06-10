@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -5082,10 +5082,10 @@ export const ko = {
   },
   passkeys: {
     passkey_setup_cancelled: "패스키 설정이 취소되었습니다.",
-    security_key_not_found: "보안 키가 감지되지 않았습니다. USB 키를 삽입하고 메시지가 표시되면 터치하세요.",
+    security_key_not_found: "인증이 취소되었거나 기기 인증 수단을 사용할 수 없습니다.",
     saved_to_password_manager: "패스키가 비밀번호 관리자에 저장되었습니다. 대신 Windows Hello를 사용하려면 비밀번호 관리자 대화 상자가 나타날 때 닫으세요.",
     passkey_hint: "Windows Hello, Face ID 또는 Touch ID를 사용합니다. 비밀번호 관리자가 열리면 닫으면 Windows Hello가 나타납니다.",
-    security_key_hint: "YubiKey와 같은 물리적 USB 또는 NFC 키가 필요합니다",
+    security_key_hint: "기기 인증 수단을 사용합니다 - Windows Hello, Touch ID 또는 Face ID",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys are physical hardware authenticators.",
     add_passkey: "Add passkey",

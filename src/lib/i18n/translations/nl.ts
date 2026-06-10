@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -5082,10 +5082,10 @@ export const nl = {
   },
   passkeys: {
     passkey_setup_cancelled: "Instellen van passkey geannuleerd.",
-    security_key_not_found: "Geen beveiligingssleutel gedetecteerd. Steek je USB-sleutel in en raak hem aan wanneer daarom wordt gevraagd.",
+    security_key_not_found: "Authenticatie geannuleerd of apparaatauthenticator niet beschikbaar.",
     saved_to_password_manager: "Passkey opgeslagen in je wachtwoordmanager. Om in plaats daarvan Windows Hello te gebruiken, sluit je het dialoogvenster van de wachtwoordmanager wanneer het verschijnt.",
     passkey_hint: "Gebruikt Windows Hello, Face ID of Touch ID. Als je wachtwoordmanager opent, sluit deze dan en verschijnt Windows Hello.",
-    security_key_hint: "Vereist een fysieke USB- of NFC-sleutel zoals een YubiKey",
+    security_key_hint: "Gebruikt je apparaatauthenticator - Windows Hello, Touch ID of Face ID",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys are physical hardware authenticators.",
     add_passkey: "Add passkey",

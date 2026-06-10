@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -5082,10 +5082,10 @@ export const zh_CN = {
   },
   passkeys: {
     passkey_setup_cancelled: "Passkey 设置已取消。",
-    security_key_not_found: "未检测到安全密钥。请插入你的 USB 密钥并在提示时触摸它。",
+    security_key_not_found: "认证已取消或设备验证器不可用。",
     saved_to_password_manager: "Passkey 已保存到你的密码管理器。如需改用 Windows Hello，请在密码管理器对话框出现时将其关闭。",
     passkey_hint: "使用 Windows Hello、Face ID 或 Touch ID。如果你的密码管理器打开了，请将其关闭，Windows Hello 就会出现。",
-    security_key_hint: "需要 YubiKey 等物理 USB 或 NFC 密钥",
+    security_key_hint: "使用设备验证器 - Windows Hello、Touch ID 或 Face ID",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys are physical hardware authenticators.",
     add_passkey: "Add passkey",

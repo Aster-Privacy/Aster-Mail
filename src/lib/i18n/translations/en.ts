@@ -5580,10 +5580,10 @@ export const en: Translations = {
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
     passkey_setup_cancelled: "Passkey setup cancelled.",
-    security_key_not_found: "No security key detected. Insert your USB key and touch it when prompted.",
+    security_key_not_found: "Authentication cancelled or device authenticator not available.",
     saved_to_password_manager: "Passkey saved to your password manager. To use Windows Hello instead, dismiss the password manager dialog when it appears.",
     passkey_hint: "Uses Windows Hello, Face ID, or Touch ID. If your password manager opens, dismiss it and Windows Hello will appear.",
-    security_key_hint: "Requires a physical USB or NFC key such as a YubiKey",
+    security_key_hint: "Uses your device authenticator - Windows Hello, Touch ID, or Face ID",
   },
   errors: {
     generic: "That did not work. Another attempt should do it.",

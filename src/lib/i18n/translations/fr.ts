@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -5082,10 +5082,10 @@ export const fr = {
   },
   passkeys: {
     passkey_setup_cancelled: "Configuration de la clé d'accès annulée.",
-    security_key_not_found: "Aucune clé de sécurité détectée. Insérez votre clé USB et touchez-la lorsque vous y êtes invité.",
+    security_key_not_found: "Authentification annulée ou authentificateur de l'appareil non disponible.",
     saved_to_password_manager: "Clé d'accès enregistrée dans votre gestionnaire de mots de passe. Pour utiliser Windows Hello à la place, fermez la boîte de dialogue du gestionnaire de mots de passe lorsqu'elle apparaît.",
     passkey_hint: "Utilise Windows Hello, Face ID ou Touch ID. Si votre gestionnaire de mots de passe s'ouvre, fermez-le et Windows Hello apparaîtra.",
-    security_key_hint: "Nécessite une clé physique USB ou NFC telle qu'une YubiKey",
+    security_key_hint: "Utilise l'authentificateur de votre appareil - Windows Hello, Touch ID ou Face ID",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys are physical hardware authenticators.",
     add_passkey: "Add passkey",

@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -5082,10 +5082,10 @@ export const tr = {
   },
   passkeys: {
     passkey_setup_cancelled: "Passkey kurulumu iptal edildi.",
-    security_key_not_found: "Güvenlik anahtarı algılanmadı. USB anahtarınızı takın ve istendiğinde dokunun.",
+    security_key_not_found: "Kimlik doğrulama iptal edildi veya cihaz doğrulayıcısı kullanılamıyor.",
     saved_to_password_manager: "Passkey, parola yöneticinize kaydedildi. Bunun yerine Windows Hello kullanmak için, göründüğünde parola yöneticisi iletişim kutusunu kapatın.",
     passkey_hint: "Windows Hello, Face ID veya Touch ID kullanır. Parola yöneticiniz açılırsa kapatın; Windows Hello görünecektir.",
-    security_key_hint: "YubiKey gibi fiziksel bir USB veya NFC anahtarı gerektirir",
+    security_key_hint: "Cihaz doğrulayıcınızı kullanır - Windows Hello, Touch ID veya Face ID",
     section_title: "Passkeys & Security Keys",
     section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys are physical hardware authenticators.",
     add_passkey: "Add passkey",
