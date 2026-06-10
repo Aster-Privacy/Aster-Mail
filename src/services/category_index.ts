@@ -622,7 +622,7 @@ export async function build_index(options?: {
 // Cheap incremental sync: only the newest page, never the whole mailbox.
 // This is what runs on routine mail changes, so it stays O(page) even with
 // a million messages. Deletions are handled by the event listeners.
-async function sync_recent(): Promise<void> {
+export async function sync_recent(): Promise<void> {
   if (build_in_progress) return;
   if (!has_vault_in_memory()) return;
 
