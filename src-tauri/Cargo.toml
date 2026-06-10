@@ -1,6 +1,6 @@
 [package]
 name = "aster-mail-desktop"
-version = "1.4.12"
+version = "1.4.13"
 edition = "2021"
 license = "AGPL-3.0-or-later"
 

@@ -862,7 +862,7 @@ export async function init_category_index(): Promise<void> {
 
   if (!ok) return;
   start_event_listeners();
-  void build_index();
+  void build_index({ force: fully_built && entries_map.size === 0 });
 }
 
 export async function set_message_category(
