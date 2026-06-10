@@ -710,6 +710,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (path === "/sign-in") return;
 
       show_toast(t("common.session_expired_sign_in"), "info");
+      hard_redirect("/sign-in");
     };
 
     const handle_session_timeout = async () => {
@@ -723,11 +724,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       await clear_local_auth_data();
       show_toast(t("common.signed_out_inactivity"), "info");
+      hard_redirect("/sign-in");
     };
 
     const handle_session_revoked = async () => {
       await clear_local_auth_data();
       show_toast(t("common.device_revoked"), "info");
+      hard_redirect("/sign-in");
     };
 
     window.addEventListener(

@@ -712,7 +712,11 @@ export default function SignInPage() {
   );
 
   if (auth_loading || has_existing_session) {
-    return null;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-surf-primary">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   if (is_checkout_login) {
