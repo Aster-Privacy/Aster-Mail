@@ -474,6 +474,10 @@ export function is_fully_built(): boolean {
   return fully_built;
 }
 
+export function is_build_in_progress(): boolean {
+  return build_in_progress;
+}
+
 export function get_version(): number {
   return version;
 }
@@ -915,6 +919,8 @@ export async function clear_category_index(): Promise<void> {
   seen_ts = {};
   loaded_for_account = null;
   active_account_id = null;
+  ensure_loaded_promise = null;
+  ensure_loaded_account = null;
   notify();
 
   try {
