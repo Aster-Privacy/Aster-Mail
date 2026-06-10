@@ -476,6 +476,18 @@ export function use_security() {
         serialize_kek_for_vault(old_folder_hash),
       );
 
+      const old_tag_material = new TextEncoder().encode(
+        old_identity_key + "astermail-tags-v1",
+      );
+      const old_tag_hash = new Uint8Array(
+        await crypto.subtle.digest("SHA-256", old_tag_material),
+      );
+
+      vault.legacy_keks = prepend_kek_to_list(
+        vault.legacy_keks,
+        serialize_kek_for_vault(old_tag_hash),
+      );
+
       const {
         encrypted_vault: new_encrypted_vault,
         vault_nonce: new_vault_nonce,
