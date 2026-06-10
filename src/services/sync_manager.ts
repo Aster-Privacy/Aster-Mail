@@ -38,6 +38,7 @@ const MAX_CONSECUTIVE_ERRORS = 3;
 const polling_intervals = new Map<string, ReturnType<typeof setTimeout>>();
 const progress_state = new Map<string, SyncProgressState>();
 const account_token_map = new Map<string, string>();
+const max_seen_total = new Map<string, number>();
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -76,6 +77,7 @@ export function start_sync_polling(
   if (existing) clearTimeout(existing);
 
   account_token_map.set(account_id, account_token);
+  max_seen_total.delete(account_id);
   notify_listeners();
 
   const started_at = Date.now();
@@ -144,10 +146,13 @@ export function start_sync_polling(
         }
 
         consecutive_errors = 0;
+        const prev_max = max_seen_total.get(account_id) ?? 0;
+        const stable_total = Math.max(result.data.total_messages, prev_max);
+        max_seen_total.set(account_id, stable_total);
         progress_state.set(account_id, {
           status: result.data.status,
           processed: result.data.processed_messages,
-          total: result.data.total_messages,
+          total: stable_total,
           current_folder: result.data.current_folder,
         });
         notify_listeners();
@@ -185,6 +190,7 @@ export function stop_sync_polling(account_id: string): void {
     polling_intervals.delete(account_id);
     account_token_map.delete(account_id);
     progress_state.delete(account_id);
+    max_seen_total.delete(account_id);
     notify_listeners();
   }
 }
@@ -194,5 +200,6 @@ export function stop_all_sync_polling(): void {
   polling_intervals.clear();
   account_token_map.clear();
   progress_state.clear();
+  max_seen_total.clear();
   notify_listeners();
 }
