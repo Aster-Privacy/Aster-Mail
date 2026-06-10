@@ -36,6 +36,7 @@ import { decrypt_vault_with_lock } from "./vault_decryption";
 import { purge_all_local_data } from "./purge_local_data";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
+import { init_desktop_device_auth } from "@/native/desktop_device_auth";
 
 import { api_client } from "@/services/api/client";
 import { request_cache } from "@/services/api/request_cache";
@@ -134,6 +135,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         await api_client.load_tokens_for_account(current.id);
+
+        if ("__TAURI_INTERNALS__" in window) {
+          await init_desktop_device_auth();
+        }
 
         const is_auth_valid = await verify_auth_status();
 

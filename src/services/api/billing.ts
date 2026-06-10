@@ -191,7 +191,7 @@ export async function start_hosted_checkout(
     return { ok: false, error: response.error || "no_checkout_url" };
   }
 
-  window.location.assign(url);
+  await open_payment_url(url);
 
   return { ok: true };
 }
@@ -208,9 +208,20 @@ export async function open_billing_portal(): Promise<{
     return { ok: false, error: response.error || "no_portal_url" };
   }
 
-  window.location.assign(url);
+  await open_payment_url(url);
 
   return { ok: true };
+}
+
+async function open_payment_url(url: string): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const core = await import("@tauri-apps/api/core");
+      await core.invoke("open_external_url", { url });
+      return;
+    } catch {}
+  }
+  window.location.assign(url);
 }
 
 export interface PlanChangePreviewResponse {

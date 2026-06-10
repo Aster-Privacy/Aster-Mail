@@ -484,7 +484,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                 </pre>
               )}
               <button
-                className="w-full mt-6 h-12 rounded-xl bg-surf-secondary border border-edge-secondary text-sm font-medium text-txt-primary transition-colors hover:opacity-80"
+                className="aster_btn aster_btn_depth aster_btn_xl w-full mt-6"
                 onClick={() => {
                   set_error_detail(null);
                   handle_new_code();
@@ -513,7 +513,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                 {t("auth.device_code_expired_description")}
               </p>
               <button
-                className="w-full mt-6 h-12 rounded-xl bg-surf-secondary border border-edge-secondary text-sm font-medium text-txt-primary transition-colors hover:opacity-80"
+                className="aster_btn aster_btn_depth aster_btn_xl w-full mt-6"
                 onClick={handle_new_code}
               >
                 {t("auth.device_code_get_new")}
@@ -601,7 +601,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
 
               <div className="flex items-center gap-3 w-full mt-6">
                 <button
-                  className="flex-1 h-12 rounded-xl border border-edge-secondary bg-surf-tertiary text-sm font-medium text-txt-primary transition-colors hover:opacity-80"
+                  className="aster_btn aster_btn_secondary aster_btn_xl flex-1"
                   onClick={handle_copy_code}
                 >
                   {copied
@@ -609,7 +609,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                     : t("auth.device_code_copy")}
                 </button>
                 <button
-                  className="flex-1 h-12 rounded-xl bg-surf-secondary border border-edge-secondary text-sm font-medium text-txt-primary transition-colors hover:opacity-80"
+                  className="aster_btn aster_btn_depth aster_btn_xl flex-1"
                   onClick={handle_open_browser}
                 >
                   {t("auth.device_code_open_browser")}
