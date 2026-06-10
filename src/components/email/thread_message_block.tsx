@@ -1060,6 +1060,7 @@ export function ThreadMessageBlock({
         <div className={is_plain_text || html_blocked ? "" : "pl-[52px]"} onClick={(e) => e.stopPropagation()}>
           <AttachmentList
             has_recipient_key={message.has_recipient_key}
+            hint_attachment_count={message.attachments?.length ?? 0}
             inline_cids={inline_cids}
             inline_filenames={inline_filenames}
             is_external={message.is_external}
