@@ -3949,6 +3949,7 @@ export interface SettingsTranslations {
   rotate_keys_description_required: string;
   rotating: string;
   rotate_keys: string;
+  key_rotation_data_loss_warning: string;
   bulk_unsubscribe: string;
   senders_unsubscribed: string;
   opened_in_browser: string;

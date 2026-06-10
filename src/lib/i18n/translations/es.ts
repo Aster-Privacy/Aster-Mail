@@ -3589,6 +3589,8 @@ export const es = {
     rotate_keys_description_required: "Your encryption keys are due for rotation. Enter your password to generate new keys and maintain forward secrecy.",
     rotating: "Rotando...",
     rotate_keys: "Rotar claves",
+    key_rotation_data_loss_warning:
+      "Una vez rotadas, tu clave anterior queda retirada. Los correos cifrados exclusivamente con tu clave anterior ya no serán descifrables. Esto no se puede deshacer.",
     bulk_unsubscribe: "Cancelación masiva",
     senders_unsubscribed: "{{ count }} remitentes cancelados",
     opened_in_browser: "{{ count }} abiertos en el navegador para completar",

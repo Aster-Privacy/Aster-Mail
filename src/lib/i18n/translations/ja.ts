@@ -3642,6 +3642,8 @@ export const ja = {
     rotate_keys_description_required: "暗号化鍵のローテーション時期です。パスワードを入力して新しい鍵を生成し、前方秘匿性を維持してください。",
     rotating: "ローテーション中...",
     rotate_keys: "鍵をローテーション",
+    key_rotation_data_loss_warning:
+      "ローテーション後、以前の鍵は無効になります。古い鍵のみで暗号化されたメールは復号できなくなります。この操作は元に戻せません。",
     bulk_unsubscribe: "一括配信停止",
     senders_unsubscribed: "{{ count }} 件の送信者の配信を停止しました",
     opened_in_browser: "完了させるためにブラウザで開いたもの: {{ count }} 件",

@@ -3642,6 +3642,8 @@ export const pl = {
     rotate_keys_description_required: "Twoje klucze szyfrowania wymagają rotacji. Wprowadź hasło, aby wygenerować nowe klucze i zachować forward secrecy.",
     rotating: "Rotowanie...",
     rotate_keys: "Rotuj klucze",
+    key_rotation_data_loss_warning:
+      "Po rotacji poprzedni klucz zostaje wycofany. Wiadomości zaszyfrowane wyłącznie starym kluczem nie będą już możliwe do odszyfrowania. Tej operacji nie można cofnąć.",
     bulk_unsubscribe: "Masowa rezygnacja",
     senders_unsubscribed: "Zrezygnowano z {{ count }} nadawców",
     opened_in_browser: "{{ count }} otwarto w przeglądarce do dokończenia",

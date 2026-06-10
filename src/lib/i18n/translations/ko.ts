@@ -3661,6 +3661,8 @@ export const ko = {
     rotate_keys_description_required: "암호화 키 교체 시기가 되었습니다. 새 키를 생성하고 순방향 비밀성을 유지하려면 비밀번호를 입력하세요.",
     rotating: "교체 중...",
     rotate_keys: "키 교체",
+    key_rotation_data_loss_warning:
+      "교체 후 이전 키는 폐기됩니다. 이전 키로만 암호화된 이메일은 더 이상 복호화할 수 없습니다. 이 작업은 되돌릴 수 없습니다.",
     bulk_unsubscribe: "일괄 구독 해제",
     senders_unsubscribed: "발신자 {{ count }}명 구독 해제됨",
     opened_in_browser: "{{ count }}개는 완료를 위해 브라우저에서 열렸습니다",

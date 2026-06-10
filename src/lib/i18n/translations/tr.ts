@@ -3589,6 +3589,8 @@ export const tr = {
     rotate_keys_description_required: "Your encryption keys are due for rotation. Enter your password to generate new keys and maintain forward secrecy.",
     rotating: "Döndürülüyor...",
     rotate_keys: "Anahtarları döndür",
+    key_rotation_data_loss_warning:
+      "Döndürme işleminin ardından önceki anahtarınız kullanımdan kaldırılır. Yalnızca eski anahtarınızla şifrelenmiş e-postalar artık şifresi çözülemez. Bu işlem geri alınamaz.",
     bulk_unsubscribe: "Toplu abonelikten çıkma",
     senders_unsubscribed: "{{ count }} gönderenden abonelik iptal edildi",
     opened_in_browser: "{{ count }} tamamlamak için tarayıcıda açıldı",

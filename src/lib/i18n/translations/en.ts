@@ -4068,6 +4068,8 @@ export const en: Translations = {
       "Your encryption keys are due for rotation. Enter your password to generate new keys and maintain forward secrecy.",
     rotating: "Rotating...",
     rotate_keys: "Rotate Keys",
+    key_rotation_data_loss_warning:
+      "Once rotated, your previous key is retired. Any emails that were encrypted exclusively to your old key will no longer be decryptable. This cannot be undone.",
     bulk_unsubscribe: "Bulk Unsubscribe",
     senders_unsubscribed: "{{ count }} senders unsubscribed",
     opened_in_browser: "{{ count }} opened in browser to complete",

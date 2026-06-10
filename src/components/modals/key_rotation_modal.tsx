@@ -27,6 +27,7 @@ import {
   XMarkIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -38,7 +39,7 @@ import { use_i18n } from "@/lib/i18n/context";
 interface KeyRotationModalProps {
   is_open: boolean;
   on_close: () => void;
-  on_rotate: (password: string) => Promise<boolean>;
+  on_rotate: (password: string) => Promise<string | null>;
   key_age_hours: number | null;
   key_fingerprint: string | null;
   is_manual?: boolean;
@@ -94,16 +95,16 @@ export function KeyRotationModal({
     set_password("");
 
     try {
-      const success = await on_rotate(password_copy);
+      const rotation_error = await on_rotate(password_copy);
 
-      if (success) {
+      if (rotation_error === null) {
         set_state("success");
         setTimeout(() => {
           on_close();
         }, 1500);
       } else {
         set_state("error");
-        set_error(t("common.rotation_failed"));
+        set_error(rotation_error);
       }
     } catch (err) {
       set_state("error");
@@ -264,6 +265,16 @@ export function KeyRotationModal({
                       ? t("settings.rotate_keys_description_manual")
                       : t("settings.rotate_keys_description_required")}
                   </p>
+
+                  <div
+                    className="flex items-start gap-2 mb-4 p-3 rounded-lg"
+                    style={{ backgroundColor: "rgba(234, 179, 8, 0.1)" }}
+                  >
+                    <ExclamationTriangleIcon className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-[13px] text-yellow-600 dark:text-yellow-400">
+                      {t("settings.key_rotation_data_loss_warning")}
+                    </p>
+                  </div>
 
                   <div>
                     <label

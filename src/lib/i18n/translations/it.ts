@@ -2887,6 +2887,8 @@ export const it = {
     rotate_keys_description_required: "Le tue chiavi di crittografia devono essere ruotate. Inserisci la tua password per generare nuove chiavi e mantenere la forward secrecy.",
     rotating: "Rotazione in corso...",
     rotate_keys: "Ruota chiavi",
+    key_rotation_data_loss_warning:
+      "Una volta ruotata, la tua chiave precedente viene ritirata. Le email cifrate esclusivamente con la vecchia chiave non potranno più essere decifrate. Questa azione è irreversibile.",
     bulk_unsubscribe: "Annullamento iscrizione in blocco",
     senders_unsubscribed: "{{ count }} mittenti disiscritti",
     opened_in_browser: "{{ count }} aperti nel browser per completare",
