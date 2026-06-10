@@ -125,6 +125,7 @@ export async function complete_hardware_key_registration(request: {
   type: string;
   name_encrypted: string | null;
   challenge_token: string;
+  is_passkey: boolean;
 }): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
   return api_client.post<HardwareKeyRegistrationCompleteResponse>(
     "/core/v1/auth/hardware-keys/register/complete",
@@ -246,6 +247,7 @@ export async function perform_webauthn_registration(
     type: credential.type,
     name_encrypted: friendly_name,
     challenge_token: options.challenge_token,
+    is_passkey: false,
   });
 }
 

@@ -276,6 +276,7 @@ export async function register_platform_passkey(
     type: credential.type,
     name_encrypted: actual_name,
     challenge_token: options.challenge_token,
+    is_passkey: true,
   });
 
   if (reg_result.data) {
@@ -321,7 +322,7 @@ export async function register_security_key(
       type: p.type as PublicKeyCredentialType,
       alg: p.alg,
     })),
-    timeout: 30000,
+    timeout: options.timeout,
     attestation: options.attestation as AttestationConveyancePreference,
     authenticatorSelection: {
       authenticatorAttachment: "platform",
@@ -370,6 +371,7 @@ export async function register_security_key(
     type: credential.type,
     name_encrypted: resolved_name,
     challenge_token: options.challenge_token,
+    is_passkey: false,
   });
 }
 
