@@ -667,7 +667,7 @@ export function ThreadMessageBlock({
                 {t("mail.unsubscribe")}
               </button>
             )}
-            {unsub_state === "manual" && unsubscribe_url && (
+            {unsub_state === "manual" && unsubscribe_url && !lockdown_active && (
               <button
                 className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
                 onClick={(e) => {

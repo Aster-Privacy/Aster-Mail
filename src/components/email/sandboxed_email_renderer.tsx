@@ -34,6 +34,7 @@ import { get_image_proxy_url } from "@/lib/image_proxy";
 import { api_client } from "@/services/api/client";
 import { routed_fetch } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 const IMAGE_PROXY_URL = get_image_proxy_url();
 
@@ -335,7 +336,8 @@ a, a * { color: #60a5fa !important; }`
 
     return m === "tor" || m === "tor_snowflake";
   })();
-  const tor_csp = is_tor_mode
+  const is_lockdown_mode = is_any_lockdown_active();
+  const tor_csp = (is_tor_mode || is_lockdown_mode)
     ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
     : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: https: http:; style-src 'unsafe-inline'; font-src 'self' data: https: http:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri https: http:; form-action 'none';">`;
 

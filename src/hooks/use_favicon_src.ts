@@ -27,6 +27,7 @@ import {
   get_favicon_object_url,
   cache_favicon_blob,
 } from "@/lib/favicon_cache_db";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 export function use_favicon_src(domain: string): string {
   const api_url = get_favicon_url(domain);
@@ -36,6 +37,8 @@ export function use_favicon_src(domain: string): string {
     set_src(get_favicon_url(domain));
 
     if (!domain || !is_valid_favicon_domain(domain)) return;
+
+    if (is_any_lockdown_active()) return;
 
     const method = connection_store.get_method();
     if (method === "tor" || method === "tor_snowflake") return;
@@ -71,6 +74,8 @@ export function store_favicon_if_api_url(
   loaded_src: string,
 ): void {
   if (!loaded_src.includes("/api/images/v1/favicon/")) return;
+
+  if (is_any_lockdown_active()) return;
 
   const method = connection_store.get_method();
   if (method === "tor" || method === "tor_snowflake") return;

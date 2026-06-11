@@ -21,6 +21,7 @@
 import { Capacitor } from "@capacitor/core";
 
 import { connection_store } from "@/services/routing/connection_store";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 const NATIVE_BASE = "https://app.astermail.org/api/images/v1/favicon";
 const WEB_BASE = "/api/images/v1/favicon";
@@ -41,6 +42,10 @@ export function get_favicon_url(domain: string): string {
   const trimmed = (domain ?? "").trim().toLowerCase();
 
   if (!is_valid_favicon_domain(trimmed)) {
+    return EMPTY_FAVICON;
+  }
+
+  if (is_any_lockdown_active()) {
     return EMPTY_FAVICON;
   }
 
