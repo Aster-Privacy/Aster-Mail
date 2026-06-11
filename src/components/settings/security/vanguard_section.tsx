@@ -21,6 +21,7 @@
 import { useState, useEffect } from "react";
 import { Badge, Button, Switch, UpgradeBtn } from "@aster/ui";
 
+import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -171,32 +172,31 @@ function LockdownSection({ account_id }: { account_id: string }) {
         </ModalHeader>
         <ModalBody>
           <div className="space-y-3">
-            <div>
-              <input
-                type="password"
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
-                placeholder={t("settings.current_password")}
-                value={password}
-                onChange={(e) => set_password(e.target.value)}
-                autoComplete="current-password"
-              />
-            </div>
+            <Input
+              type="password"
+              placeholder={t("settings.current_password")}
+              value={password}
+              onChange={(e) => set_password(e.target.value)}
+              autoComplete="current-password"
+              disabled={disabling}
+            />
             {totp_required && (
-              <div>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
-                  placeholder={t("common.two_fa_code_placeholder")}
-                  value={totp_code}
-                  onChange={(e) => set_totp_code(e.target.value)}
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                />
-              </div>
+              <Input
+                type="text"
+                inputMode="numeric"
+                placeholder={t("common.two_fa_code_placeholder")}
+                value={totp_code}
+                onChange={(e) => set_totp_code(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                autoComplete="one-time-code"
+                maxLength={6}
+                disabled={disabling}
+              />
             )}
             {creds_error && (
               <p className="text-xs text-red-500">{creds_error}</p>
+            )}
+            {disabling && (
+              <p className="text-xs text-txt-muted">{t("settings.verifying_credentials")}</p>
             )}
           </div>
         </ModalBody>
@@ -209,15 +209,16 @@ function LockdownSection({ account_id }: { account_id: string }) {
               set_totp_code("");
               set_creds_error(null);
             }}
+            disabled={disabling}
           >
             {t("common.cancel")}
           </Button>
           <Button
             variant="destructive"
             onClick={confirm_disable}
-            disabled={disabling || !password}
+            disabled={disabling || !password || (totp_required && totp_code.length !== 6)}
           >
-            {t("settings.lockdown_disable")}
+            {disabling ? t("settings.verifying_credentials") : t("settings.lockdown_disable")}
           </Button>
         </ModalFooter>
       </Modal>
@@ -231,7 +232,7 @@ export function VanguardSection() {
   const auth = use_auth_safe();
   const account_id = auth?.current_account_id ?? "";
 
-  const is_nova_plus = ["nova", "supernova", "duo", "family"].includes(limits?.plan_code ?? "");
+  const is_nova_plus = ["nova", "supernova", "duo", "family", "family_duo", "family_full"].includes(limits?.plan_code ?? "");
 
   const [enabled, set_enabled] = useState(false);
   const [show_disable_confirm, set_show_disable_confirm] = useState(false);
