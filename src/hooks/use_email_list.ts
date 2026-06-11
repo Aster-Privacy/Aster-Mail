@@ -133,6 +133,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   committed_view_ref.current = current_view;
   const has_data_ref = useRef(false);
   has_data_ref.current = state.emails.length > 0 && !state.is_loading;
+  const main_effect_fetched_ref = useRef(false);
 
   const is_mail_view = useMemo(() => current_view !== "drafts", [current_view]);
 
@@ -553,6 +554,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           }
           return () => abort_ref.current?.abort();
         }
+        main_effect_fetched_ref.current = true;
         fetch_page_ref.current?.(0, page_size, true);
       }
     } else if (!is_online && Capacitor.isNativePlatform() && has_keys) {
@@ -637,7 +639,16 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   useEffect(() => {
     if (!is_mail_view || !has_keys) return;
 
+    let triggered = false;
+
     return on_keys_ready(() => {
+      if (main_effect_fetched_ref.current) {
+        main_effect_fetched_ref.current = false;
+        triggered = true;
+        return;
+      }
+      if (triggered) return;
+      triggered = true;
       fetch_page_ref.current?.(0, page_size, true);
     });
   }, [has_keys, is_mail_view, page_size]);

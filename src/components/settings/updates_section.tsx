@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { ArrowPathIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { Switch, Button } from "@aster/ui";
 
@@ -57,6 +57,7 @@ export function UpdatesSection() {
     get_last_check_iso(),
   );
   const [checking, set_checking] = useState(false);
+  const is_checking_ref = useRef(false);
   const [installing, set_installing] = useState(false);
   const [progress, set_progress] = useState<number | null>(null);
   const [available, set_available] = useState<DesktopUpdateInfo | null>(null);
@@ -68,7 +69,8 @@ export function UpdatesSection() {
   };
 
   const handle_check = useCallback(async () => {
-    if (!supported || checking) return;
+    if (!supported || is_checking_ref.current) return;
+    is_checking_ref.current = true;
     set_checking(true);
     set_status_msg(null);
     try {
@@ -83,9 +85,10 @@ export function UpdatesSection() {
     } catch (err) {
       set_status_msg(String((err as Error)?.message ?? err));
     } finally {
+      is_checking_ref.current = false;
       set_checking(false);
     }
-  }, [supported, checking, t]);
+  }, [supported, t]);
 
   const handle_install = useCallback(async () => {
     if (!supported || installing) return;

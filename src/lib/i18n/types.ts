@@ -2107,6 +2107,8 @@ export interface SettingsTranslations {
   redirect_payment_description: string;
   plan_not_available: string;
   failed_checkout: string;
+  checkout_desktop_hint: string;
+  checkout_open_in_browser: string;
   checkout_welcome: string;
   crypto_pay_button: string;
   crypto_modal_title: string;

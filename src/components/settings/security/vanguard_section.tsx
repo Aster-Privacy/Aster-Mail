@@ -57,7 +57,7 @@ export function VanguardSection() {
   const auth = use_auth_safe();
   const account_id = auth?.current_account_id ?? "";
 
-  const is_nova_plus = ["nova", "supernova"].includes(limits?.plan_code ?? "");
+  const is_nova_plus = ["nova", "supernova", "duo", "family"].includes(limits?.plan_code ?? "");
 
   const [enabled, set_enabled] = useState(false);
   const [show_disable_confirm, set_show_disable_confirm] = useState(false);

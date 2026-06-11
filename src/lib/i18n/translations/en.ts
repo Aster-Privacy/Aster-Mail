@@ -1970,6 +1970,8 @@ export const en: Translations = {
       "You will be redirected to our secure payment provider to complete your purchase.",
     plan_not_available: "This plan is not available for purchase right now. Another plan, or checking back later, will work.",
     failed_checkout: "We could not open checkout just now. Another attempt should do it. Your billing is unchanged.",
+    checkout_desktop_hint: "Payment forms don't work in the desktop app yet. Open the billing page in your browser to complete the purchase, then come back.",
+    checkout_open_in_browser: "Open in Browser",
     checkout_welcome: "Welcome to Aster! Your subscription is active.",
     crypto_pay_button: "Pay with crypto",
     crypto_modal_title: "Pay with crypto",
