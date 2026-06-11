@@ -84,7 +84,24 @@ export function strip_css_urls(css: string): string {
       const trimmed = (url_content || "").trim().toLowerCase();
 
       if (trimmed.startsWith("data:")) {
-        return _match;
+        const safe_css_data_types = [
+          "data:image/png",
+          "data:image/jpeg",
+          "data:image/jpg",
+          "data:image/gif",
+          "data:image/webp",
+          "data:image/avif",
+          "data:image/bmp",
+          "data:image/tiff",
+          "data:image/heic",
+          "data:image/heif",
+          "data:image/x-icon",
+          "data:image/vnd.microsoft.icon",
+        ];
+        if (safe_css_data_types.some((t) => trimmed.startsWith(t))) {
+          return _match;
+        }
+        return "none";
       }
 
       return "none";

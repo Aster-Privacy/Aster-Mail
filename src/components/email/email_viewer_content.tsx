@@ -362,7 +362,7 @@ export function EmailViewerContent({
               email_id={email.id}
               is_literal_plain_text={is_literal_plain_text}
               is_plain_text={is_plain_text}
-              load_remote_content={force_load_content}
+              load_remote_content={!lockdown_active && force_load_content}
               sanitized_html={effective_html}
             />
           )}
