@@ -197,6 +197,20 @@ export async function account_exists(user_id: string): Promise<boolean> {
   return data.accounts.some((a) => a.id === user_id);
 }
 
+function merge_user(base: User, updates: Partial<User>): User {
+  const result: User = { ...base };
+  const key = <K extends keyof User>(k: K, v: User[K]) => {
+    if (v !== undefined) result[k] = v;
+  };
+  if (updates.id !== undefined) key("id", updates.id);
+  if (updates.username !== undefined) key("username", updates.username);
+  if (updates.email !== undefined) key("email", updates.email);
+  if (updates.display_name !== undefined) key("display_name", updates.display_name);
+  if (updates.profile_color !== undefined) key("profile_color", updates.profile_color);
+  if (updates.profile_picture !== undefined) key("profile_picture", updates.profile_picture);
+  return result;
+}
+
 export async function add_account(
   user: User,
 ): Promise<{ success: boolean; error?: string }> {
@@ -205,7 +219,7 @@ export async function add_account(
   const existing = data.accounts.find((a) => a.id === user.id);
 
   if (existing) {
-    existing.user = { ...existing.user, ...user };
+    existing.user = merge_user(existing.user, user);
     data.current_account_id = user.id;
     await save_accounts_data(data);
 
@@ -324,7 +338,7 @@ export async function update_account_user(
 
   if (!account) return false;
 
-  account.user = { ...account.user, ...updated_user };
+  account.user = merge_user(account.user, updated_user);
   await save_accounts_data(data);
 
   return true;

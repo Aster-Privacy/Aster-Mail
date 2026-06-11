@@ -168,6 +168,7 @@ export function use_category_inbox(
     if (!state.is_loading) return;
 
     const safety = setTimeout(() => {
+      if (is_build_in_progress()) return;
       set_state((prev) =>
         prev.is_loading
           ? { ...prev, is_loading: false, has_initial_load: true }
