@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ImportJob, ImportSource } from "@/services/api/email_import";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import {
@@ -293,7 +294,7 @@ export function ImportSection({
                   <span
                     className={`text-[12px] font-medium capitalize ${status_color(job.status)}`}
                   >
-                    {t(`settings.import_status_${job.status}` as any)}
+                    {t(`settings.import_status_${job.status}` as TranslationKey)}
                   </span>
                   {job.status !== "processing" && job.status !== "pending" && (
                     <button

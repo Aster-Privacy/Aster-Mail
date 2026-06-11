@@ -521,10 +521,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         let quota_exceeded = false;
 
         for (let i = 0; i < emails_to_import.length; i += BATCH_SIZE) {
-          if (cancel_ref.current || quota_exceeded) {
-            failed_count += Math.min(BATCH_SIZE, emails_to_import.length - i);
-            continue;
-          }
+          // Remaining emails were never attempted, so they are not failures.
+          if (cancel_ref.current || quota_exceeded) break;
 
           const batch = emails_to_import.slice(i, i + BATCH_SIZE);
           const encrypted_batch: EncryptedImportEmail[] = [];

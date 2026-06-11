@@ -32,7 +32,9 @@ export interface SyncProgressState {
 }
 
 const POLL_INTERVAL_MS = 1500;
-const MAX_POLL_DURATION_MS = 20 * 60 * 1000;
+// Large first-time imports legitimately run for hours; this is only a
+// backstop against an account stuck reporting 'syncing' forever.
+const MAX_POLL_DURATION_MS = 4 * 60 * 60 * 1000;
 const MAX_CONSECUTIVE_ERRORS = 3;
 
 const polling_intervals = new Map<string, ReturnType<typeof setTimeout>>();

@@ -141,7 +141,7 @@ function get_status_icon(status: ImportStatus) {
       );
     case "processing":
     case "pending":
-      return <Spinner className="text-brand" size="md" />;
+      return <Spinner className="text-brand" size="sm" />;
     case "failed":
     case "cancelled":
       return (
@@ -307,6 +307,17 @@ function ConnectedAccountCard({
     account.last_sync_status === "syncing" ||
     account.last_sync_status === "pending";
 
+  // Callbacks go through refs so the polling effect only restarts when the
+  // sync state actually changes, not on every parent re-render (which reset
+  // the tick counters and re-issued the first poll each time).
+  const on_refresh_ref = useRef(on_refresh);
+  const on_sync_finished_ref = useRef(on_sync_finished);
+
+  useEffect(() => {
+    on_refresh_ref.current = on_refresh;
+    on_sync_finished_ref.current = on_sync_finished;
+  }, [on_refresh, on_sync_finished]);
+
   useEffect(() => {
     if (!should_poll) {
       set_progress(null);
@@ -315,53 +326,76 @@ function ConnectedAccountCard({
     }
 
     let cancelled = false;
-    let empty_ticks = 0;
     let finalized = false;
-    let preparing_ticks = 0;
+    let empty_ticks = 0;
+    let total_ticks = 0;
+    let saw_activity = false;
+    let max_total = 0;
     const MAX_EMPTY_TICKS = 30;
-    const MAX_PREPARING_TICKS = 40;
+    // ~4h at 1.5s per tick; a backstop, not an expected sync duration.
+    const MAX_TOTAL_TICKS = 9600;
+    const STALE_GRACE_TICKS = 8;
+    const started_with_server_sync =
+      account.last_sync_status === "syncing" ||
+      account.last_sync_status === "pending";
 
-    const finalize = () => {
+    const finalize = (notify: boolean) => {
+      if (finalized) return;
       finalized = true;
       set_progress(null);
-      on_sync_finished?.(account.account_token);
-      on_refresh();
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-      window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
-      window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
+      on_sync_finished_ref.current?.(account.account_token);
+      on_refresh_ref.current();
+      if (notify) {
+        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
+        window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
+      }
     };
 
     const poll = async () => {
-      if (finalized) return;
+      if (finalized || cancelled) return;
+      total_ticks += 1;
+      if (total_ticks > MAX_TOTAL_TICKS) {
+        finalize(saw_activity);
+
+        return;
+      }
+
       const result = await get_sync_progress(account.account_token);
 
-      if (cancelled) return;
+      if (cancelled || finalized) return;
 
       if (!result.data) {
         empty_ticks += 1;
         if (empty_ticks >= MAX_EMPTY_TICKS) {
-          finalize();
+          finalize(saw_activity);
         }
 
         return;
       }
 
       empty_ticks = 0;
-      set_progress(result.data);
+      const data = result.data;
 
-      if (result.data.status === "complete") {
-        finalize();
-      } else if (result.data.status === "error") {
-        finalize();
-      } else if (
-        result.data.total_messages === 0 &&
-        result.data.processed_messages === 0
-      ) {
-        preparing_ticks += 1;
-        if (preparing_ticks >= MAX_PREPARING_TICKS) {
-          finalize();
+      if (data.status === "complete" || data.status === "error") {
+        // Right after a manual trigger the backend can briefly report the
+        // previous sync's final status. Hold off finalizing until the new
+        // sync becomes visible, bounded by a short grace window.
+        const stale_window =
+          !started_with_server_sync &&
+          !saw_activity &&
+          total_ticks <= STALE_GRACE_TICKS;
+
+        if (!stale_window) {
+          finalize(saw_activity || data.processed_messages > 0);
         }
+
+        return;
       }
+
+      saw_activity = true;
+      max_total = Math.max(max_total, data.total_messages);
+      set_progress({ ...data, total_messages: max_total });
     };
 
     poll();
@@ -371,7 +405,8 @@ function ConnectedAccountCard({
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [should_poll, account.account_token, on_refresh, on_sync_finished]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [should_poll, account.account_token]);
 
   const total = progress?.total_messages ?? 0;
   const processed = progress?.processed_messages ?? 0;
@@ -541,7 +576,14 @@ function ConnectedAccountCard({
         <div className="px-4 pb-3">
           <div className="flex items-center gap-2 text-xs text-txt-muted">
             <Spinner className="text-brand flex-shrink-0" size="sm" />
-            <span className="flex-1">{t("settings.connected_accounts_syncing")}</span>
+            <span className="flex-1">
+              {t("settings.connected_accounts_syncing")}
+              {processed > 0
+                ? ` · ${t("settings.connected_accounts_emails", {
+                    count: processed.toLocaleString(),
+                  })}`
+                : ""}
+            </span>
           </div>
           <div className="mt-1.5 h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
             <div className="h-full rounded-full bg-brand animate-pulse" style={{ width: "60%" }} />
@@ -559,7 +601,6 @@ export function ImportSection() {
     useState<ImportSource | null>(null);
   const [recent_jobs, set_recent_jobs] = useState<ImportJob[]>([]);
   const [is_loading_jobs, set_is_loading_jobs] = useState(true);
-  const [has_error, set_has_error] = useState(false);
   const [oauth_loading, set_oauth_loading] = useState<string | null>(null);
   const [connect_provider, set_connect_provider] =
     useState<ConnectProvider | null>(null);
@@ -579,14 +620,12 @@ export function ImportSection() {
   const [delete_messages_on_disconnect, set_delete_messages_on_disconnect] =
     useState(false);
   const setup_account_tokens_ref = useRef<Set<string>>(new Set());
-  const syncing_accounts_ref = useRef<Set<string>>(syncing_accounts);
   const oauth_cancelled_ref = useRef(false);
   const [oauth_setup_token, set_oauth_setup_token] = useState<string | null>(
     null,
   );
 
-  const load_jobs = async (silent = false) => {
-    if (has_error) return;
+  const load_jobs = useCallback(async (silent = false) => {
     if (!silent) set_is_loading_jobs(true);
 
     try {
@@ -594,16 +633,13 @@ export function ImportSection() {
 
       if (response.data) {
         set_recent_jobs(response.data.jobs.slice(0, 5));
-      } else if (response.error) {
-        set_has_error(true);
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      set_has_error(true);
     }
 
     if (!silent) set_is_loading_jobs(false);
-  };
+  }, []);
 
   const handle_delete_recent_job = useCallback(async (id: string) => {
     set_recent_jobs((prev) => prev.filter((j) => j.id !== id));
@@ -830,7 +866,15 @@ export function ImportSection() {
         (a) => a.account_token === account_token,
       );
 
-      if (syncing_accounts.has(account_token)) {
+      // The button shows "Stop" whenever the card is in an active sync state,
+      // which includes the server-reported status. Match that here, otherwise
+      // pressing the button during a server-side sync would start another one.
+      const sync_active =
+        syncing_accounts.has(account_token) ||
+        account?.last_sync_status === "syncing" ||
+        account?.last_sync_status === "pending";
+
+      if (sync_active) {
         await stop_sync(account_token);
         return;
       }
@@ -975,15 +1019,13 @@ export function ImportSection() {
 
   const handle_modal_close = () => {
     set_selected_provider(null);
-    if (!has_error) {
-      load_jobs();
-    }
+    load_jobs();
   };
 
   useEffect(() => {
     load_jobs();
     load_connected_accounts();
-  }, [load_connected_accounts]);
+  }, [load_jobs, load_connected_accounts]);
 
   const has_active_job = recent_jobs.some(
     (job) => job.status === "processing" || job.status === "pending",
@@ -995,42 +1037,18 @@ export function ImportSection() {
       load_jobs(true);
     }, 3000);
     return () => window.clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [has_active_job]);
+  }, [has_active_job, load_jobs]);
 
+  // The backend cron planner re-syncs verified accounts on its own schedule;
+  // triggering syncs from here every 90 seconds duplicated that work and made
+  // progress strips appear and disappear constantly. Just refresh the account
+  // list so server-driven syncs become visible.
   useEffect(() => {
-    syncing_accounts_ref.current = syncing_accounts;
-  }, [syncing_accounts]);
-
-  useEffect(() => {
-    if (connected_accounts.length === 0) return;
-    const interval = window.setInterval(
-      () => {
-        for (const account of connected_accounts) {
-          if (syncing_accounts_ref.current.has(account.account_token)) continue;
-          if (account.last_sync_status === "syncing") continue;
-          if (account.last_sync_status === "pending") continue;
-          // Skip OAuth accounts whose folder setup hasn't run yet this session,
-          // but only if they've never synced. An account with a prior sync is
-          // already established (mapping saved server-side) and is safe to
-          // auto-sync after a reload, when the setup ref is empty.
-          if (
-            account.protocol === "oauth_imap" &&
-            !setup_account_tokens_ref.current.has(account.account_token) &&
-            !account.last_sync_at
-          ) {
-            continue;
-          }
-          set_syncing_accounts((prev) =>
-            new Set(prev).add(account.account_token),
-          );
-          trigger_sync(account.account_token).catch(() => {});
-        }
-      },
-      90 * 1000,
-    );
-    return () => window.clearInterval(interval);
-  }, [connected_accounts]);
+    const id = window.setInterval(() => {
+      load_connected_accounts();
+    }, 60 * 1000);
+    return () => window.clearInterval(id);
+  }, [load_connected_accounts]);
 
   const trigger_post_oauth_setup = useCallback(() => {
     const snapshot_tokens = new Set(
@@ -1069,6 +1087,7 @@ export function ImportSection() {
       let kicked = false;
       for (const a of oauth_accounts) {
         if (snapshot_error_tokens.has(a.account_token)) {
+          set_syncing_accounts((prev) => new Set(prev).add(a.account_token));
           trigger_sync(a.account_token).catch(() => {});
           kicked = true;
         }
