@@ -205,6 +205,7 @@ export interface CachedUserInfo {
   display_name: string | null;
   profile_color: string | null;
   profile_picture: string | null;
+  lockdown_mode_enabled?: boolean;
 }
 
 class ApiClient {

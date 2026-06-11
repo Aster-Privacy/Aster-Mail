@@ -65,6 +65,7 @@ import { SidebarAccountSwitcher } from "@/components/layout/sidebar/sidebar_acco
 import { use_sidebar_aliases } from "@/hooks/use_sidebar_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
 import { cache_sidebar_state } from "@/services/api/preferences";
+import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 
 let mail_logo_cached = false;
 let text_logo_cached = false;
@@ -122,6 +123,7 @@ export const Sidebar = ({
   const location = useLocation();
   const { user } = use_auth();
   const [is_workspace_open, set_is_workspace_open] = useState(false);
+  const [lockdown_active, set_lockdown_active] = useState(() => is_lockdown_enabled(user?.id ?? ""));
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { stats, has_initialized } = use_mail_stats();
@@ -132,6 +134,19 @@ export const Sidebar = ({
 
   const [is_mobile, set_is_mobile] = useState(false);
   const [is_tablet, set_is_tablet] = useState(false);
+
+  useEffect(() => {
+    const update = () => set_lockdown_active(is_lockdown_enabled(user?.id ?? ""));
+    const on_storage = (e: StorageEvent) => {
+      if (e.key?.startsWith("aster:lockdown:")) update();
+    };
+    window.addEventListener("storage", on_storage);
+    window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
+    return () => {
+      window.removeEventListener("storage", on_storage);
+      window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     const check_breakpoints = () => {
@@ -834,6 +849,16 @@ export const Sidebar = ({
           />
         </div>
       </div>
+
+      {lockdown_active && !is_collapsed && (
+        <button
+          className="mx-3 mb-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 text-xs font-medium hover:bg-red-500/15 transition-colors"
+          type="button"
+          onClick={() => on_settings_click("security")}
+        >
+          <span>{t("settings.lockdown_badge")}</span>
+        </button>
+      )}
 
       <SidebarAccountSwitcher
         is_collapsed={is_collapsed}

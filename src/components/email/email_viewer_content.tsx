@@ -45,6 +45,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { is_lockdown_enabled } from "@/services/lockdown_store";
+import { use_auth_safe } from "@/contexts/auth_context";
 import { EmailTag } from "@/components/ui/email_tag";
 import {
   extract_cid_references,
@@ -67,8 +69,10 @@ export function EmailViewerContent({
 }: EmailViewerContentProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
+  const auth = use_auth_safe();
   const [force_load_content, set_force_load_content] = useState(false);
   const [banner_dismissed, set_banner_dismissed] = useState(false);
+  const lockdown_active = is_lockdown_enabled(auth?.current_account_id ?? "");
 
   useEffect(() => {
     set_force_load_content(false);
@@ -127,7 +131,7 @@ export function EmailViewerContent({
       };
     }
 
-    if (preloaded_sanitized && effective_content_mode !== "always") {
+    if (preloaded_sanitized && effective_content_mode !== "always" && !lockdown_active) {
       return {
         html: preloaded_sanitized.html,
         external_content: preloaded_sanitized.external_content,
@@ -152,9 +156,10 @@ export function EmailViewerContent({
     }
 
     return sanitize_html(raw_content, {
-      external_content_mode: effective_content_mode,
+      external_content_mode: lockdown_active ? "never" : effective_content_mode,
       image_proxy_url: get_image_proxy_url(),
       sandbox_mode: true,
+      lockdown_mode: lockdown_active,
       content_blocking:
         !is_system && preferences.block_external_content
           ? {
@@ -170,6 +175,7 @@ export function EmailViewerContent({
     preloaded_sanitized,
     raw_content,
     effective_content_mode,
+    lockdown_active,
     preferences.block_external_content,
     preferences.block_remote_images,
     preferences.block_remote_fonts,
@@ -327,6 +333,7 @@ export function EmailViewerContent({
           {show_banner && (
             <ExternalContentBanner
               blocked_content={sanitize_result.external_content}
+              lockdown_active={lockdown_active}
               on_dismiss={handle_dismiss_banner}
               on_load={handle_load_remote}
             />

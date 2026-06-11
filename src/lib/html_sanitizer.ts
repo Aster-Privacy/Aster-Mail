@@ -83,6 +83,7 @@ export interface SanitizeOptions {
   image_proxy_url?: string;
   sandbox_mode?: boolean;
   content_blocking?: ContentBlockingSettings;
+  lockdown_mode?: boolean;
 }
 
 export function sanitize_html(
@@ -108,17 +109,23 @@ export function sanitize_html(
     image_proxy_url,
     sandbox_mode = false,
     content_blocking,
+    lockdown_mode = false,
   } = options;
 
-  const block_images =
-    content_blocking?.block_remote_images ?? external_content_mode !== "always";
-  const block_fonts =
-    content_blocking?.block_remote_fonts ?? external_content_mode !== "always";
-  const block_css =
-    content_blocking?.block_remote_css ?? external_content_mode !== "always";
-  const block_pixels =
-    content_blocking?.block_tracking_pixels ??
-    external_content_mode !== "always";
+  const effective_proxy = lockdown_mode ? undefined : image_proxy_url;
+
+  const block_images = lockdown_mode
+    ? true
+    : (content_blocking?.block_remote_images ?? external_content_mode !== "always");
+  const block_fonts = lockdown_mode
+    ? true
+    : (content_blocking?.block_remote_fonts ?? external_content_mode !== "always");
+  const block_css = lockdown_mode
+    ? true
+    : (content_blocking?.block_remote_css ?? external_content_mode !== "always");
+  const block_pixels = lockdown_mode
+    ? true
+    : (content_blocking?.block_tracking_pixels ?? external_content_mode !== "always");
 
   const external_content: ExternalContentReport = {
     has_remote_images: false,
@@ -527,10 +534,10 @@ export function sanitize_html(
             "data-tracking-pixel",
             is_pixel ? "true" : "false",
           );
-          if (image_proxy_url) {
+          if (effective_proxy) {
             new_element.setAttribute(
               "data-proxy-src",
-              `${image_proxy_url}?url=${encodeURIComponent(src)}`,
+              `${effective_proxy}?url=${encodeURIComponent(src)}`,
             );
           }
           new_element.removeAttribute("src");
@@ -541,10 +548,10 @@ export function sanitize_html(
           new_element.className = (
             new_element.className + " blocked-remote-image"
           ).trim();
-        } else if (image_proxy_url) {
+        } else if (effective_proxy) {
           new_element.setAttribute(
             "src",
-            `${image_proxy_url}?url=${encodeURIComponent(src)}`,
+            `${effective_proxy}?url=${encodeURIComponent(src)}`,
           );
         }
       }

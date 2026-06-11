@@ -29,6 +29,7 @@ import {
 } from "@/services/notification_service";
 import { subscribe_to_push } from "@/services/push_subscription";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 function is_tauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -77,6 +78,7 @@ export function EmailNotificationManager() {
           data: email_id ? { email_id } : undefined,
         },
         preferences,
+        is_any_lockdown_active(),
       );
     };
 
