@@ -90,6 +90,7 @@ import {
   revoke_cid_blob_urls,
 } from "@/lib/cid_resolver";
 import { RATCHET_UNDECRYPTABLE_SENTINEL, is_ratchet_envelope } from "@/utils/email_crypto";
+import { is_any_lockdown_active, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 
 interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;
@@ -230,6 +231,18 @@ export function ThreadMessageBlock({
     return plain.length > 120 ? plain.substring(0, 120) + "..." : plain;
   }, [clean_body, t]);
 
+  const [lockdown_active, set_lockdown_active] = useState(() => is_any_lockdown_active());
+
+  useEffect(() => {
+    const update = () => set_lockdown_active(is_any_lockdown_active());
+    window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
+    window.addEventListener("storage", update);
+    return () => {
+      window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
+      window.removeEventListener("storage", update);
+    };
+  }, []);
+
   const is_system = is_system_email(message.sender_email);
   const is_ghost_sender = is_ghost_email(message.sender_email);
   const show_sender_name = message.display_sender_name ?? message.sender_name;
@@ -246,7 +259,7 @@ export function ThreadMessageBlock({
       ? ("always" as ImageLoadMode)
       : preferences.load_remote_images;
 
-  const load_remote_content = external_content_mode === "always";
+  const load_remote_content = !lockdown_active && external_content_mode === "always";
 
   const has_loaded_types = loaded_content_types && loaded_content_types.size > 0;
 
@@ -286,16 +299,17 @@ export function ThreadMessageBlock({
       : preferences.block_tracking_pixels;
 
     const result = sanitize_html(clean_body, {
-      external_content_mode: base_image_mode,
+      external_content_mode: lockdown_active ? "never" : base_image_mode,
       image_proxy_url: get_image_proxy_url(),
       sandbox_mode: true,
+      lockdown_mode: lockdown_active,
       content_blocking:
-        !is_system && preferences.block_external_content
+        !is_system && (lockdown_active || preferences.block_external_content)
           ? {
-              block_remote_images: block_images,
-              block_remote_fonts: block_fonts,
-              block_remote_css: block_css,
-              block_tracking_pixels: block_pixels,
+              block_remote_images: lockdown_active || block_images,
+              block_remote_fonts: lockdown_active || block_fonts,
+              block_remote_css: lockdown_active || block_css,
+              block_tracking_pixels: lockdown_active || block_pixels,
             }
           : undefined,
     });
@@ -316,6 +330,7 @@ export function ThreadMessageBlock({
     base_image_mode,
     has_loaded_types,
     loaded_content_types,
+    lockdown_active,
     preferences.block_external_content,
     preferences.block_remote_images,
     preferences.block_remote_fonts,
