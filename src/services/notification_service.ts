@@ -20,6 +20,7 @@
 //
 import type { UserPreferences } from "@/services/api/preferences";
 import { en } from "@/lib/i18n/translations/en";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 export type NotificationType = "new_email" | "reply" | "mention";
 
@@ -125,17 +126,21 @@ export async function show_notification(
   type: NotificationType,
   options: NotificationOptions,
   preferences: UserPreferences,
+  lockdown_active: boolean = false,
 ): Promise<Notification | null> {
   if (!should_notify(type, preferences)) {
     return null;
   }
+
+  const display_title = lockdown_active ? en.settings.lockdown_notification_generic : options.title;
+  const display_body = lockdown_active ? "" : options.body;
 
   if (preferences.sound) {
     play_notification_sound();
   }
 
   if (is_tauri()) {
-    await show_tauri_notification(options.title, options.body);
+    await show_tauri_notification(display_title, display_body);
 
     return null;
   }
@@ -148,8 +153,8 @@ export async function show_notification(
     return null;
   }
 
-  const notification = new Notification(options.title, {
-    body: options.body,
+  const notification = new Notification(display_title, {
+    body: display_body,
     icon: options.icon || "/icons/icon-192x192.png",
     tag: options.tag,
     data: options.data,
@@ -263,6 +268,7 @@ export function notify_new_email(
       data: { email_id },
     },
     preferences,
+    is_any_lockdown_active(),
   );
 }
 
@@ -281,6 +287,7 @@ export function notify_reply(
       data: { email_id },
     },
     preferences,
+    is_any_lockdown_active(),
   );
 }
 
@@ -299,5 +306,6 @@ export function notify_mention(
       data: { email_id },
     },
     preferences,
+    is_any_lockdown_active(),
   );
 }

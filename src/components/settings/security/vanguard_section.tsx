@@ -41,6 +41,11 @@ import {
   init_vanguard_from_server,
 } from "@/services/vanguard_store";
 import {
+  is_lockdown_enabled,
+  set_lockdown_enabled,
+  init_lockdown_from_server,
+} from "@/services/lockdown_store";
+import {
   clear_app_lock_config,
   clear_session_unlock,
 } from "@/services/app_lock_store";
@@ -50,6 +55,175 @@ import {
   disable_vanguard,
   get_vanguard_status,
 } from "@/services/api/vanguard";
+import {
+  enable_lockdown,
+  disable_lockdown,
+} from "@/services/api/lockdown";
+import { get_user_salt } from "@/services/api/auth";
+import { hash_email, derive_password_hash } from "@/services/crypto/key_manager_pgp";
+import { base64_to_array } from "@/services/crypto/key_manager";
+import { get_totp_status } from "@/services/api/totp";
+
+function LockdownSection({ account_id }: { account_id: string }) {
+  const { t } = use_i18n();
+  const auth = use_auth_safe();
+
+  const [enabled, set_enabled] = useState(false);
+  const [show_disable_modal, set_show_disable_modal] = useState(false);
+  const [password, set_password] = useState("");
+  const [totp_code, set_totp_code] = useState("");
+  const [totp_required, set_totp_required] = useState(false);
+  const [creds_error, set_creds_error] = useState<string | null>(null);
+  const [disabling, set_disabling] = useState(false);
+
+  useEffect(() => {
+    if (!account_id) return;
+    set_enabled(is_lockdown_enabled(account_id));
+    init_lockdown_from_server(account_id).then(set_enabled);
+  }, [account_id]);
+
+  const handle_toggle = (checked: boolean) => {
+    if (checked) {
+      enable_lockdown().then((res) => {
+        if (res.error) {
+          show_toast(res.error, "error");
+        } else {
+          set_lockdown_enabled(account_id, true);
+          set_enabled(true);
+          show_toast(t("settings.lockdown_enabled_toast"), "success");
+        }
+      });
+    } else {
+      get_totp_status().then((res) => {
+        set_totp_required(res.data?.enabled ?? false);
+      });
+      set_show_disable_modal(true);
+    }
+  };
+
+  const confirm_disable = async () => {
+    set_disabling(true);
+    set_creds_error(null);
+    try {
+      const email = auth?.user?.email;
+      if (!email) throw new Error("no_email");
+      const user_hash = await hash_email(email);
+      const salt_res = await get_user_salt({ user_hash });
+      if (salt_res.error || !salt_res.data) throw new Error("salt");
+      const salt = base64_to_array(salt_res.data.salt);
+      const { hash: password_hash } = await derive_password_hash(password, salt);
+      const res = await disable_lockdown({ password_hash, totp_code: totp_required ? totp_code : undefined });
+      if (res.error) {
+        set_creds_error(t("settings.duress_pin_invalid_credentials"));
+        set_disabling(false);
+        return;
+      }
+      set_lockdown_enabled(account_id, false);
+      set_enabled(false);
+      set_show_disable_modal(false);
+      set_password("");
+      set_totp_code("");
+      show_toast(t("settings.lockdown_disabled_toast"), "success");
+    } catch {
+      set_creds_error(t("settings.duress_pin_invalid_credentials"));
+    }
+    set_disabling(false);
+  };
+
+  return (
+    <>
+      <div className="py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 pr-4">
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-medium text-txt-primary">
+                {t("settings.lockdown_enable")}
+              </p>
+              <InfoPopover
+                description={t("settings.lockdown_info")}
+                title={t("settings.lockdown_title")}
+              />
+              {enabled && (
+                <Badge color="red">{t("settings.lockdown_active")}</Badge>
+              )}
+            </div>
+            <p className="text-xs mt-0.5 text-txt-muted">
+              {t("settings.lockdown_description")}
+            </p>
+          </div>
+          <Switch checked={enabled} onCheckedChange={handle_toggle} />
+        </div>
+      </div>
+
+      <Modal
+        is_open={show_disable_modal}
+        on_close={() => {
+          set_show_disable_modal(false);
+          set_password("");
+          set_totp_code("");
+          set_creds_error(null);
+        }}
+        size="sm"
+      >
+        <ModalHeader>
+          <ModalTitle>{t("settings.lockdown_confirm_disable_title")}</ModalTitle>
+          <ModalDescription>{t("settings.lockdown_confirm_disable_desc")}</ModalDescription>
+        </ModalHeader>
+        <ModalBody>
+          <div className="space-y-3">
+            <div>
+              <input
+                type="password"
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                placeholder={t("settings.current_password")}
+                value={password}
+                onChange={(e) => set_password(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+            {totp_required && (
+              <div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                  placeholder={t("common.two_fa_code_placeholder")}
+                  value={totp_code}
+                  onChange={(e) => set_totp_code(e.target.value)}
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                />
+              </div>
+            )}
+            {creds_error && (
+              <p className="text-xs text-red-500">{creds_error}</p>
+            )}
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            variant="outline"
+            onClick={() => {
+              set_show_disable_modal(false);
+              set_password("");
+              set_totp_code("");
+              set_creds_error(null);
+            }}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={confirm_disable}
+            disabled={disabling || !password}
+          >
+            {t("settings.lockdown_disable")}
+          </Button>
+        </ModalFooter>
+      </Modal>
+    </>
+  );
+}
 
 export function VanguardSection() {
   const { t } = use_i18n();
@@ -73,6 +247,7 @@ export function VanguardSection() {
   useEffect(() => {
     if (!is_loading && !is_nova_plus && enabled && account_id) {
       set_vanguard_enabled(account_id, false);
+      set_lockdown_enabled(account_id, false);
       clear_app_lock_config(account_id);
       clear_session_unlock(account_id);
       set_enabled(false);
@@ -100,6 +275,7 @@ export function VanguardSection() {
   const confirm_disable = () => {
     set_enabled(false);
     set_vanguard_enabled(account_id, false);
+    set_lockdown_enabled(account_id, false);
     clear_app_lock_config(account_id);
     clear_session_unlock(account_id);
     set_show_disable_confirm(false);
@@ -156,6 +332,7 @@ export function VanguardSection() {
         {enabled && (
           <div className="mt-4 border-l-2 border-primary/25 pl-4 space-y-0">
             <AppLockSection />
+            <LockdownSection account_id={account_id} />
           </div>
         )}
       </div>

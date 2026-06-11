@@ -39,6 +39,7 @@ interface ExternalLinkWarningModalProps {
   on_close: () => void;
   on_confirm: () => void;
   on_dismiss_permanently: () => void;
+  lockdown_active?: boolean;
 }
 
 const ANIMATION_DURATION = 150;
@@ -49,6 +50,7 @@ export function ExternalLinkWarningModal({
   on_close,
   on_confirm,
   on_dismiss_permanently,
+  lockdown_active = false,
 }: ExternalLinkWarningModalProps) {
   const { t } = use_i18n();
   const [dont_show_again, set_dont_show_again] = useState(false);
@@ -142,24 +144,26 @@ export function ExternalLinkWarningModal({
               </p>
             </div>
 
-            <label
-              className="inline-flex items-center gap-2 cursor-pointer select-none mt-5"
-              htmlFor="external-link-dont-show-checkbox"
-            >
-              <Checkbox
-                checked={dont_show_again}
-                id="external-link-dont-show-checkbox"
-                onCheckedChange={(checked) =>
-                  set_dont_show_again(checked === true)
-                }
-              />
-              <span
-                className="text-[13px]"
-                style={{ color: "var(--text-muted)" }}
+            {!lockdown_active && (
+              <label
+                className="inline-flex items-center gap-2 cursor-pointer select-none mt-5"
+                htmlFor="external-link-dont-show-checkbox"
               >
-                {t("common.dont_show_warning_again")}
-              </span>
-            </label>
+                <Checkbox
+                  checked={dont_show_again}
+                  id="external-link-dont-show-checkbox"
+                  onCheckedChange={(checked) =>
+                    set_dont_show_again(checked === true)
+                  }
+                />
+                <span
+                  className="text-[13px]"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {t("common.dont_show_warning_again")}
+                </span>
+              </label>
+            )}
           </div>
 
           <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end max-sm:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]">

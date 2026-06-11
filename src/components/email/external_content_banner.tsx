@@ -33,6 +33,7 @@ interface ExternalContentBannerProps {
   blocked_content: ExternalContentReport;
   on_load: () => void;
   on_dismiss: () => void;
+  lockdown_active?: boolean;
 }
 
 type TFunc = (
@@ -112,6 +113,7 @@ export function ExternalContentBanner({
   blocked_content,
   on_load,
   on_dismiss,
+  lockdown_active = false,
 }: ExternalContentBannerProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -270,13 +272,19 @@ export function ExternalContentBanner({
             </span>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
-              type="button"
-              onClick={on_load}
-            >
-              {t("common.load_content")}
-            </button>
+            {lockdown_active ? (
+              <span className="text-xs text-txt-muted px-1">
+                {t("settings.lockdown_active")}
+              </span>
+            ) : (
+              <button
+                className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
+                type="button"
+                onClick={on_load}
+              >
+                {t("common.load_content")}
+              </button>
+            )}
             <button
               className="p-1 rounded-[14px] transition-colors text-txt-muted"
               title={t("common.dismiss")}

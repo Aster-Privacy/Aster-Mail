@@ -27,6 +27,7 @@ import { refresh_session_activity } from "./session_timeout_service";
 import { connection_store } from "./routing/connection_store";
 import { TorUnavailableError } from "./routing/tor_unavailable_error";
 import { is_onion_host } from "@/lib/onion_host";
+import { is_any_lockdown_active, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { mark_view_stale } from "@/hooks/email_list_cache";
@@ -93,6 +94,11 @@ class SyncClient {
         "tor_not_running",
         "WebSocket sync is disabled on onion sites",
       );
+    }
+
+    if (is_any_lockdown_active()) {
+      this.should_reconnect = false;
+      throw new Error("WebSocket sync is disabled in Lockdown Mode");
     }
 
     this.should_reconnect = true;
@@ -483,6 +489,12 @@ export const sync_client = new SyncClient();
 if (typeof window !== "undefined") {
   window.addEventListener("beforeunload", () => {
     sync_client.disconnect();
+  });
+  window.addEventListener(LOCKDOWN_CHANGED_EVENT, (e) => {
+    const detail = (e as CustomEvent).detail;
+    if (detail?.enabled && sync_client.is_connected()) {
+      sync_client.disconnect();
+    }
   });
 }
 

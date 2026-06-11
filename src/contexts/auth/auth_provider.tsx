@@ -42,6 +42,7 @@ import { init_desktop_device_auth } from "@/native/desktop_device_auth";
 import { api_client } from "@/services/api/client";
 import { request_cache } from "@/services/api/request_cache";
 import { verify_auth_status, get_user_info } from "@/services/api/auth";
+import { set_lockdown_enabled } from "@/services/lockdown_store";
 import {
   store_vault_in_memory,
   get_vault_from_memory,
@@ -248,6 +249,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
             await update_account_user(current.id, synced_user);
           }
 
+          if (cached_info?.lockdown_mode_enabled !== undefined) {
+            set_lockdown_enabled(current.id, cached_info.lockdown_mode_enabled);
+          }
+
           set_state({
             user: synced_user,
             is_loading: false,
@@ -294,6 +299,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const info = response?.data;
 
       if (!info) return;
+
+      if (info.lockdown_mode_enabled !== undefined) {
+        set_lockdown_enabled(logged_in_user.id, info.lockdown_mode_enabled);
+      }
 
       const merged: User = {
         ...logged_in_user,
