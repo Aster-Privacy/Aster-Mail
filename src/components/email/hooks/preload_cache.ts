@@ -62,6 +62,11 @@ import { get_current_account } from "@/services/account_manager";
 import { set_cached_iframe_height } from "@/components/email/sandboxed_email_renderer";
 import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
+import {
+  extract_cid_references,
+  resolve_cid_references,
+  revoke_cid_blob_urls,
+} from "@/lib/cid_resolver";
 
 export interface PreloadedSanitizedContent {
   html: string;
@@ -78,6 +83,8 @@ export interface PreloadedEmail {
   current_user_email: string;
   current_user_name: string;
   thread_sanitized: Map<string, PreloadedSanitizedContent>;
+  cid_resolved?: { html: string; blob_urls: string[] };
+  thread_cid_resolved: Map<string, { html: string; blob_urls: string[] }>;
   time: number;
   is_stale: boolean;
   conversation_grouping: boolean;
@@ -151,12 +158,19 @@ function evict_stale_cache_entries(): void {
     const to_remove = entries.length - MAX_PRELOAD_CACHE_SIZE;
 
     for (let i = 0; i < to_remove; i++) {
+      const evicted = entries[i][1];
+      if (evicted.cid_resolved) revoke_cid_blob_urls(evicted.cid_resolved.blob_urls);
+      for (const r of evicted.thread_cid_resolved.values()) revoke_cid_blob_urls(r.blob_urls);
       preload_cache.delete(entries[i][0]);
     }
   }
 }
 
 export function clear_preload_cache(): void {
+  for (const entry of preload_cache.values()) {
+    if (entry.cid_resolved) revoke_cid_blob_urls(entry.cid_resolved.blob_urls);
+    for (const r of entry.thread_cid_resolved.values()) revoke_cid_blob_urls(r.blob_urls);
+  }
   preload_cache.clear();
 }
 
@@ -175,7 +189,33 @@ export function mark_preload_stale(email_id?: string): void {
 }
 
 export function delete_preloaded_email(email_id: string): void {
+  const entry = preload_cache.get(email_id);
+  if (entry?.cid_resolved) revoke_cid_blob_urls(entry.cid_resolved.blob_urls);
+  if (entry) for (const r of entry.thread_cid_resolved.values()) revoke_cid_blob_urls(r.blob_urls);
   preload_cache.delete(email_id);
+}
+
+export function pop_preloaded_cid(
+  email_id: string,
+): { html: string; blob_urls: string[] } | null {
+  const entry = preload_cache.get(email_id);
+  if (!entry?.cid_resolved) return null;
+  const result = entry.cid_resolved;
+  preload_cache.set(email_id, { ...entry, cid_resolved: undefined });
+  return result;
+}
+
+export function pop_preloaded_thread_cid(
+  message_id: string,
+): { html: string; blob_urls: string[] } | null {
+  for (const entry of preload_cache.values()) {
+    const result = entry.thread_cid_resolved.get(message_id);
+    if (result) {
+      entry.thread_cid_resolved.delete(message_id);
+      return result;
+    }
+  }
+  return null;
 }
 
 export function get_preload_cache(): Map<string, PreloadedEmail> {
@@ -607,6 +647,26 @@ export async function preload_email_detail(
         main_sanitized.body_background,
       );
 
+      let cid_resolved: { html: string; blob_urls: string[] } | undefined;
+      const thread_cid_resolved = new Map<string, { html: string; blob_urls: string[] }>();
+
+      await Promise.allSettled(
+        thread_messages.map(async (msg) => {
+          const sanitized = thread_sanitized.get(msg.id);
+          if (!sanitized) return;
+          if (extract_cid_references(sanitized.html).length === 0) return;
+          try {
+            const result = await resolve_cid_references(sanitized.html, msg.id);
+            if (result.blob_urls.length > 0) {
+              thread_cid_resolved.set(msg.id, { html: result.html, blob_urls: result.blob_urls });
+              if (msg.id === target_id) {
+                cid_resolved = { html: result.html, blob_urls: result.blob_urls };
+              }
+            }
+          } catch {}
+        }),
+      );
+
       let current_user_name = "";
 
       try {
@@ -616,6 +676,9 @@ export async function preload_email_detail(
           current_user_name = account.user.display_name || account.user.email;
         }
       } catch {}
+
+      const old_entry = preload_cache.get(target_id);
+      if (old_entry?.cid_resolved) revoke_cid_blob_urls(old_entry.cid_resolved.blob_urls);
 
       evict_stale_cache_entries();
 
@@ -631,6 +694,8 @@ export async function preload_email_detail(
         current_user_email: user_email || "",
         current_user_name,
         thread_sanitized,
+        cid_resolved,
+        thread_cid_resolved,
         time: Date.now(),
         is_stale: false,
         conversation_grouping: conversation_grouping !== false,
