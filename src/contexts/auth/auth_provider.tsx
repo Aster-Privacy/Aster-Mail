@@ -22,6 +22,7 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { AuthState, AuthProviderProps } from "./auth_types";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { AuthContext } from "./use_auth_hook";
 import {
@@ -93,6 +94,7 @@ function safe_log_error(err: unknown): void {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const { t } = use_i18n();
+  const navigate = useNavigate();
   const [state, set_state] = useState<AuthState>({
     user: null,
     is_loading: true,
@@ -223,7 +225,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               ? window.location.hash.slice(1).split("?")[0] || "/"
               : window.location.pathname;
             if (path !== "/sign-in" && path !== "/register") {
-              hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
+              navigate(`/sign-in?u=${encodeURIComponent(local)}`);
             }
 
             return;
@@ -436,7 +438,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         ensure_ratchet_keys().catch(() => {});
         ensure_default_labels(vault, t).catch(console.error);
         start_session_timeout(user.id);
-        hard_redirect("/");
+        navigate("/");
       }
 
       return result;
@@ -483,7 +485,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const local = survivor.user.email.split("@")[0] ?? "";
 
           set_is_adding_account(true);
-          hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
+          navigate(`/sign-in?u=${encodeURIComponent(local)}`);
 
           return;
         }
@@ -540,12 +542,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         await storage_switch_account(target.id);
 
         set_is_adding_account(true);
-        hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
+        navigate(`/sign-in?u=${encodeURIComponent(local)}`);
       } finally {
         switch_in_flight.current = false;
       }
     },
-    [state.current_account_id, set_is_adding_account],
+    [navigate, state.current_account_id, set_is_adding_account],
   );
 
   const clear_local_auth_data = useCallback(async () => {
@@ -636,11 +638,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       logout_in_flight.current = false;
       try {
         if (!("__TAURI_INTERNALS__" in window)) {
-          hard_redirect(nav_target);
+          navigate(nav_target);
         }
       } catch {}
     }
-  }, [clear_local_auth_data, state.accounts, state.current_account_id]);
+  }, [clear_local_auth_data, navigate, state.accounts, state.current_account_id]);
 
   const logout_all_handler = useCallback(async () => {
     const fallback_timer = window.setTimeout(() => {
@@ -670,11 +672,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearTimeout(fallback_timer);
       try {
         if (!("__TAURI_INTERNALS__" in window)) {
-          hard_redirect("/sign-in");
+          navigate("/sign-in");
         }
       } catch {}
     }
-  }, [clear_local_auth_data]);
+  }, [clear_local_auth_data, navigate]);
 
   useEffect(() => {
     const handle_session_expired = async () => {
@@ -713,7 +715,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const local = target.user.email.split("@")[0] ?? "";
 
         show_toast(t("common.session_expired_sign_in"), "info");
-        hard_redirect(`/sign-in?u=${encodeURIComponent(local)}`);
+        navigate(`/sign-in?u=${encodeURIComponent(local)}`);
 
         return;
       }
@@ -724,7 +726,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       show_toast(t("common.session_expired_sign_in"), "info");
       await api_client.clear_session_cookies().catch(() => {});
-      hard_redirect("/sign-in");
+      navigate("/sign-in");
     };
 
     const handle_session_timeout = async () => {
@@ -738,14 +740,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       await clear_local_auth_data();
       show_toast(t("common.signed_out_inactivity"), "info");
-      hard_redirect("/sign-in");
+      navigate("/sign-in");
     };
 
     const handle_session_revoked = async () => {
       await clear_local_auth_data();
       show_toast(t("common.device_revoked"), "info");
       await api_client.clear_session_cookies().catch(() => {});
-      hard_redirect("/sign-in");
+      navigate("/sign-in");
     };
 
     window.addEventListener(

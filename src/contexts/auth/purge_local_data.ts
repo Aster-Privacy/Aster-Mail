@@ -41,12 +41,15 @@ import { clear_recovery_email_cache } from "@/services/api/recovery_email";
 import { clear_search_index } from "@/hooks/use_search";
 import { clear_all_app_lock_data } from "@/services/app_lock_store";
 import { clear_category_index } from "@/services/category_index";
+import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
+import { clear_all_ratchet_states } from "@/services/crypto/double_ratchet";
 
 export async function purge_all_local_data(): Promise<void> {
   const errors: Error[] = [];
 
   stop_session_timeout();
   sync_client.disconnect();
+  clear_vault_from_memory();
 
   api_client.begin_intentional_logout();
   try {
@@ -76,6 +79,12 @@ export async function purge_all_local_data(): Promise<void> {
 
   try {
     await clear_category_index();
+  } catch (e) {
+    errors.push(e instanceof Error ? e : new Error(String(e)));
+  }
+
+  try {
+    await clear_all_ratchet_states();
   } catch (e) {
     errors.push(e instanceof Error ? e : new Error(String(e)));
   }
