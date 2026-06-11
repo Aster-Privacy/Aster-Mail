@@ -260,6 +260,29 @@ export async function encrypt_for_recipients(
       }
     }
 
+    if (all_ratchet_ok) {
+      const sender_lower = sender_email.toLowerCase();
+
+      if (!internal_recipients.some((r) => r.toLowerCase() === sender_lower)) {
+        const sender_username =
+          await resolve_username_for_key_lookup(sender_email);
+
+        if (sender_username) {
+          const self_result = await encrypt_for_ratchet_recipient(
+            sender_email,
+            sender_email,
+            sender_username,
+            body,
+            vault,
+          );
+
+          if (self_result) {
+            ratchet_results[sender_lower] = self_result;
+          }
+        }
+      }
+    }
+
     if (all_ratchet_ok && Object.keys(ratchet_results).length > 0) {
       const envelope = build_ratchet_envelope(
         vault.ratchet_identity_public,
