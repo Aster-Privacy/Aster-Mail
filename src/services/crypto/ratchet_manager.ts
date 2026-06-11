@@ -197,8 +197,11 @@ export async function encrypt_for_ratchet_recipient(
     let pq_key_id_value: number | undefined;
     let did_bootstrap = false;
 
-    if (ratchet && !ratchet.get_bootstrap()) {
-      ratchet = null;
+    if (ratchet) {
+      const bootstrap = ratchet.get_bootstrap();
+      if (!bootstrap || bootstrap.sender_identity_key !== vault.ratchet_identity_public) {
+        ratchet = null;
+      }
     }
 
     if (!ratchet) {
@@ -243,6 +246,7 @@ export async function encrypt_for_ratchet_recipient(
           ephemeral_key: ephemeral_key_base64,
           pq_ciphertext: pq_ciphertext_base64,
           pq_key_id: pq_key_id_value,
+          sender_identity_key: vault.ratchet_identity_public,
         });
       } finally {
         x3dh_result.shared_secret.fill(0);
@@ -506,12 +510,19 @@ async function decrypt_ratchet_for_recipient(
     let last_error: unknown = null;
 
     for (const keys of key_sets) {
-      const candidate = await init_receiver_from_bootstrap(
-        data,
-        sender_identity_key,
-        keys,
-        conversation_id,
-      );
+      let candidate: DoubleRatchet | null = null;
+
+      try {
+        candidate = await init_receiver_from_bootstrap(
+          data,
+          sender_identity_key,
+          keys,
+          conversation_id,
+        );
+      } catch (err) {
+        last_error = err;
+        continue;
+      }
 
       if (!candidate) {
         continue;
