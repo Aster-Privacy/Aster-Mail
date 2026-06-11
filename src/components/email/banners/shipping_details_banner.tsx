@@ -38,6 +38,7 @@ import {
 import { open_external } from "@/utils/open_link";
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 interface ShippingDetailsBannerProps {
   details: ExtractedShippingDetails;
@@ -122,7 +123,7 @@ export function ShippingDetailsBanner({
 
   const handle_track_click = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (details.tracking_url) {
+    if (details.tracking_url && !is_any_lockdown_active()) {
       open_external(details.tracking_url);
     }
   };

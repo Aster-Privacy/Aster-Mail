@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EnvelopeIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { show_action_toast } from "@/components/toast/action_toast";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import {
   get_unsubscribe_display_text,
   get_sender_domain,
@@ -123,15 +124,18 @@ export function UnsubscribeBanner({
           on_unsubscribed?.();
         } else {
           const url = unsubscribe_info.unsubscribe_link || unsubscribe_info.unsubscribe_mailto;
+          const lockdown = is_any_lockdown_active();
           show_action_toast({
             message: t("mail.unsubscribe_manual_required"),
             action_type: "not_spam",
             email_ids: [],
             duration_ms: 15000,
-            action_label: t("mail.open_unsubscribe_page"),
-            on_undo: async () => {
-              if (url) window.open(url, "_blank", "noopener,noreferrer");
-            },
+            ...(!lockdown && {
+              action_label: t("mail.open_unsubscribe_page"),
+              on_undo: async () => {
+                if (url) window.open(url, "_blank", "noopener,noreferrer");
+              },
+            }),
           });
         }
       } catch {
