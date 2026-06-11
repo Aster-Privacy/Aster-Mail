@@ -79,9 +79,23 @@ export function strip_css_urls(css: string): string {
   );
 }
 
-export const block_remote_fonts = (css: string): string => {
-  return css.replace(/@font-face\s*\{[^}]*\}/gi, "");
-};
+export function block_remote_fonts(css: string): string {
+  let result = css;
+  const pattern = /@font-face\s*\{/gi;
+  let match;
+  while ((match = pattern.exec(result)) !== null) {
+    let depth = 1;
+    let i = match.index + match[0].length;
+    while (i < result.length && depth > 0) {
+      if (result[i] === "{") depth++;
+      else if (result[i] === "}") depth--;
+      i++;
+    }
+    result = result.slice(0, match.index) + result.slice(i);
+    pattern.lastIndex = match.index;
+  }
+  return result;
+}
 
 export function sanitize_style(style: string, sandbox_mode: boolean): string {
   const decoded = decode_css_entities(style);

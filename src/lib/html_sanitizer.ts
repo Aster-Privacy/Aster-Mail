@@ -388,9 +388,7 @@ export function sanitize_html(
             type: "css",
           });
         }
-        if (!sandbox_mode || lockdown_mode) {
-          sanitized_css = strip_css_urls(sanitized_css);
-        }
+        sanitized_css = strip_css_urls(sanitized_css);
       }
 
       if (!sanitized_css.trim()) {
