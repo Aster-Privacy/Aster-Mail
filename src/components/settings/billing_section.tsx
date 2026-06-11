@@ -353,21 +353,16 @@ export function BillingSection() {
     if (is_tauri) {
       set_is_action_loading(true);
       try {
-        const result = await change_plan(
+        const result = await start_hosted_checkout(
           plan_code,
           interval,
-          "https://app.astermail.org/?plan_change=success",
-          "https://app.astermail.org/?plan_change=cancelled",
+          preferred_currency,
+          credit_balance?.balance_cents,
         );
         if (!result.ok) {
           show_toast(t("settings.failed_checkout"), "error");
-        } else if (result.requires_checkout) {
-          pending_tauri_checkout_ref.current = true;
         } else {
-          request_cache.invalidate("/payments/v1");
-          invalidate_mail_stats();
-          load_data();
-          show_toast(t("settings.payment_success"), "success");
+          pending_tauri_checkout_ref.current = true;
         }
       } catch {
         show_toast(t("settings.failed_checkout"), "error");
@@ -415,35 +410,9 @@ export function BillingSection() {
       subscription.payment_provider !== "stripe_crypto" &&
       subscription.has_stripe_subscription !== false;
 
-    if (has_card_sub) {
-      if (is_tauri) {
-        set_is_action_loading(true);
-        try {
-          const result = await change_plan(
-            plan.code,
-            checkout_interval,
-            "https://app.astermail.org/?plan_change=success",
-            "https://app.astermail.org/?plan_change=cancelled",
-          );
-          if (!result.ok) {
-            show_toast(t("settings.failed_checkout"), "error");
-          } else if (result.requires_checkout) {
-            pending_tauri_checkout_ref.current = true;
-          } else {
-            request_cache.invalidate("/payments/v1");
-            invalidate_mail_stats();
-            load_data();
-            show_toast(t("settings.payment_success"), "success");
-          }
-        } catch {
-          show_toast(t("settings.failed_checkout"), "error");
-        } finally {
-          set_is_action_loading(false);
-        }
-      } else {
-        set_plan_change_confirm_target({ plan, interval: checkout_interval });
-        set_show_plan_change_confirm(true);
-      }
+    if (has_card_sub && !is_tauri) {
+      set_plan_change_confirm_target({ plan, interval: checkout_interval });
+      set_show_plan_change_confirm(true);
       return;
     }
 
