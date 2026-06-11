@@ -657,6 +657,9 @@ export function BillingSection() {
             <CryptoTermModal
               is_open={show_crypto_modal}
               monthly_price_cents={monthly_cents}
+              on_checkout_opened={() => {
+                pending_tauri_checkout_ref.current = true;
+              }}
               on_close={() => {
                 set_show_crypto_modal(false);
                 set_crypto_plan(null);
@@ -728,6 +731,9 @@ export function BillingSection() {
           addon_id={crypto_addon.id}
           addon_name={crypto_addon.name}
           is_open={show_crypto_addon_modal}
+          on_checkout_opened={() => {
+            pending_tauri_checkout_ref.current = true;
+          }}
           on_close={() => {
             set_show_crypto_addon_modal(false);
             set_crypto_addon(null);

@@ -42,6 +42,7 @@ type TermMonths = 1 | 3 | 6 | 12 | 24;
 interface CryptoTermModalProps {
   is_open: boolean;
   on_close: () => void;
+  on_checkout_opened?: () => void;
   plan_code: string;
   plan_name: string;
   monthly_price_cents: number;
@@ -54,6 +55,7 @@ const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12, 24];
 export function crypto_term_modal({
   is_open,
   on_close,
+  on_checkout_opened,
   plan_code,
   plan_name,
   monthly_price_cents,
@@ -83,7 +85,8 @@ export function crypto_term_modal({
   const handle_confirm = async () => {
     set_is_loading(true);
     try {
-      const origin = window.location.origin;
+      const is_tauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+      const origin = is_tauri ? "https://app.astermail.org" : window.location.origin;
       const response = await create_crypto_checkout_session(
         plan_code,
         selected_term,
@@ -92,8 +95,14 @@ export function crypto_term_modal({
       );
 
       if (response.data?.url) {
-        window.location.href = response.data.url;
-
+        if (is_tauri) {
+          const core = await import("@tauri-apps/api/core");
+          await core.invoke("open_external_url", { url: response.data.url });
+          on_checkout_opened?.();
+          on_close();
+        } else {
+          window.location.href = response.data.url;
+        }
         return;
       }
       show_toast(t("settings.failed_checkout"), "error");
