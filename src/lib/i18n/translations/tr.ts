@@ -3893,6 +3893,9 @@ export const tr = {
     domain_pending_hint: "DNS kayıtlarınızı yapılandırmak ve alan adınızı doğrulamak için Kuruluma Devam Et'e tıklayın.",
     failed_to_load_allowlist: "İzin listeniz yüklenmedi. Bir kez daha denemek genellikle yeterli olur.",
     failed_to_load_blocklist: "Engelleme listeniz yüklenmedi. Bir kez daha denemek genellikle yeterli olur.",
+    show_signature_separator: "İmza ayırıcı",
+    show_signature_separator_description:
+      "Giden e-postalarda imzanın üstüne '--' ayırıcı satır ekle.",
     show_aster_branding: "Aster Mail filigranı",
     show_aster_branding_description: "Giden e-postaların alt kısmında 'Aster Mail ile güvende' göster.",
     show_aster_branding_free_note: "Filigranı kaldırmak için ücretli bir plana yükseltin.",

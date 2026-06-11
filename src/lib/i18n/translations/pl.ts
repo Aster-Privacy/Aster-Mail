@@ -3892,6 +3892,9 @@ export const pl = {
     domain_pending_hint: "Kliknij Kontynuuj konfigurację, aby skonfigurować rekordy DNS i zweryfikować domenę.",
     failed_to_load_allowlist: "Lista dozwolonych nie załadowała się. Spróbuj jeszcze raz.",
     failed_to_load_blocklist: "Lista zablokowanych nie załadowała się. Spróbuj jeszcze raz.",
+    show_signature_separator: "Separator podpisu",
+    show_signature_separator_description:
+      "Dodaj linię separatora '--' nad podpisem w wychodzących wiadomościach.",
     show_aster_branding: "Znak wodny Aster Mail",
     show_aster_branding_description: "Wyświetlaj \"Zabezpieczono przez Aster Mail\" na dole wychodzących wiadomości.",
     show_aster_branding_free_note: "Uaktualnij do płatnego planu, aby usunąć znak wodny.",

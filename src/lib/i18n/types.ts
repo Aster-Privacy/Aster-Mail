@@ -3511,6 +3511,8 @@ export interface SettingsTranslations {
   email_signature_description: string;
   show_badges_in_signature: string;
   show_badges_in_signature_description: string;
+  show_signature_separator: string;
+  show_signature_separator_description: string;
   show_aster_branding: string;
   show_aster_branding_description: string;
   show_aster_branding_free_note: string;

@@ -3887,6 +3887,9 @@ export const ar = {
     domain_pending_hint: "انقر على متابعة الإعداد لتهيئة سجلات DNS والتحقق من نطاقك.",
     failed_to_load_allowlist: "قائمة السماح لم تُحمَّل. محاولة أخرى ينبغي أن تنجح.",
     failed_to_load_blocklist: "قائمة الحظر لم تُحمَّل. محاولة أخرى ينبغي أن تنجح.",
+    show_signature_separator: "فاصل التوقيع",
+    show_signature_separator_description:
+      "اضافة سطر فاصل '--' فوق التوقيع في الرسائل الصادرة.",
     show_aster_branding: "علامة Aster Mail المائية",
     show_aster_branding_description: "عرض 'مؤمَّن بواسطة Aster Mail' في أسفل الرسائل الصادرة.",
     show_aster_branding_free_note: "قم بالترقية إلى خطة مدفوعة لإزالة العلامة المائية.",

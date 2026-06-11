@@ -4038,6 +4038,9 @@ export const de = {
     security_keys_description: "Hardware-Sicherheitsschlüssel oder Passkeys für die Anmeldung verwenden",
     select_color: "Farbe {{name}} auswählen",
     send_referral_to_contacts: "Alle Kontakte per E-Mail einladen",
+    show_signature_separator: "Signatur-Trennzeichen",
+    show_signature_separator_description:
+      "Fuegt eine '--'-Trennzeile ueber der Signatur in ausgehenden E-Mails ein.",
     show_aster_branding: "Aster-Mail-Wasserzeichen",
     show_aster_branding_description: "\"Gesichert durch Aster Mail\" am Ende ausgehender E-Mails anzeigen.",
     show_aster_branding_free_note: "Upgraden Sie auf einen kostenpflichtigen Tarif, um das Wasserzeichen zu entfernen.",

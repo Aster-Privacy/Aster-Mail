@@ -3889,6 +3889,9 @@ export const it = {
     domain_pending_hint: "Clicca Continua configurazione per configurare i tuoi record DNS e verificare il dominio.",
     failed_to_load_allowlist: "La tua lista consentiti non si è caricata. Un altro tentativo dovrebbe bastare.",
     failed_to_load_blocklist: "La tua lista bloccati non si è caricata. Un altro tentativo dovrebbe bastare.",
+    show_signature_separator: "Separatore firma",
+    show_signature_separator_description:
+      "Aggiunge una riga separatrice '--' sopra la firma nelle email in uscita.",
     show_aster_branding: "Filigrana Aster Mail",
     show_aster_branding_description: "Mostra 'Protetto da Aster Mail' in fondo alle email in uscita.",
     show_aster_branding_free_note: "Passa a un piano a pagamento per rimuovere la filigrana.",

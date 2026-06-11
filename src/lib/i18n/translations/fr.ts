@@ -4033,6 +4033,9 @@ export const fr = {
     security_keys_description: "Utilisez une clé physique pour sécuriser votre compte.",
     select_color: "Selectionner la couleur {{name}}",
     send_referral_to_contacts: "Envoyer à des contacts",
+    show_signature_separator: "Separateur de signature",
+    show_signature_separator_description:
+      "Ajouter une ligne de separation '--' au-dessus de votre signature dans les emails sortants.",
     show_aster_branding: "Afficher la marque Aster",
     show_aster_branding_description: "Afficher le logo Aster dans votre signature.",
     show_aster_branding_free_note: "La marque Aster est requise avec le forfait gratuit.",

@@ -939,6 +939,43 @@ export function SignatureSection() {
       <div className="pt-2">
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary">
+            {t("settings.show_signature_separator")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <p className="text-sm text-txt-muted">
+              {t("settings.show_signature_separator_description")}
+            </p>
+          </div>
+          <button
+            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+              preferences.show_signature_separator !== false ? "bg-blue-500" : "bg-zinc-600"
+            }`}
+            type="button"
+            onClick={() =>
+              update_preference(
+                "show_signature_separator",
+                preferences.show_signature_separator === false,
+                true,
+              )
+            }
+          >
+            <span
+              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                preferences.show_signature_separator !== false
+                  ? "translate-x-4"
+                  : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+
+      <div className="pt-2">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary">
             {t("settings.show_aster_branding")}
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />

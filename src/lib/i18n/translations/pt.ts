@@ -3893,6 +3893,9 @@ export const pt = {
     domain_pending_hint: "Os registros DNS podem levar até 48 horas para se propagar.",
     failed_to_load_allowlist: "Sua lista de permitidos não carregou. Outra tentativa deve funcionar.",
     failed_to_load_blocklist: "Sua lista de bloqueados não carregou. Outra tentativa deve funcionar.",
+    show_signature_separator: "Separador de assinatura",
+    show_signature_separator_description:
+      "Adicionar uma linha separadora '--' acima da assinatura nos e-mails enviados.",
     show_aster_branding: "Mostrar marca Aster",
     show_aster_branding_description: "Exibir 'Enviado com segurança pelo Aster Mail' no rodapé dos e-mails.",
     show_aster_branding_free_note: "A marca Aster é sempre exibida no plano gratuito.",

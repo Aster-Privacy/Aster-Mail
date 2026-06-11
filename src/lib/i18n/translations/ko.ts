@@ -3893,6 +3893,9 @@ export const ko = {
     domain_pending_hint: "설정 계속을 클릭하여 DNS 레코드를 구성하고 도메인을 확인하세요.",
     failed_to_load_allowlist: "허용 목록을 불러오지 못했습니다. 다시 시도하면 됩니다.",
     failed_to_load_blocklist: "차단 목록을 불러오지 못했습니다. 다시 시도하면 됩니다.",
+    show_signature_separator: "서명 구분선",
+    show_signature_separator_description:
+      "발신 이메일의 서명 위에 '--' 구분선을 추가합니다.",
     show_aster_branding: "Aster 브랜딩 표시",
     show_aster_branding_description: "발신 이메일에 'Secured by Aster Mail' 서명을 포함합니다",
     show_aster_branding_free_note: "무료 플랜에서는 항상 표시됩니다",
