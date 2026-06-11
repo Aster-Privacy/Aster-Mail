@@ -46,6 +46,7 @@ import {
   get_vault_from_memory,
   clear_vault_from_memory,
   has_vault_in_memory,
+  re_trigger_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import {
   type User,
@@ -238,9 +239,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
               id: cached_info.user_id,
               username: cached_info.username ?? current.user.username,
               email: cached_info.email ?? current.user.email,
-              display_name: cached_info.display_name || undefined,
-              profile_color: cached_info.profile_color || undefined,
-              profile_picture: cached_info.profile_picture || undefined,
+              display_name: cached_info.display_name || current.user.display_name || undefined,
+              profile_color: cached_info.profile_color || current.user.profile_color || undefined,
+              profile_picture: cached_info.profile_picture || current.user.profile_picture || undefined,
             };
             await update_account_user(current.id, synced_user);
           }
@@ -681,6 +682,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const still_valid = await api_client.check_auth_status();
       if (still_valid) {
         api_client.set_authenticated(true);
+        re_trigger_keys_ready();
         return;
       }
 

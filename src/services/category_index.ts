@@ -584,7 +584,9 @@ export async function build_index(options?: {
 
       if (token !== build_token) return;
 
-      apply_upsert(fresh);
+      if (apply_upsert(fresh)) {
+        notify_soon();
+      }
 
       processed += items.length;
       cursor = next_cursor;

@@ -350,6 +350,12 @@ function notify_keys_ready(): void {
   });
 }
 
+export function re_trigger_keys_ready(): void {
+  if (derived_encryption_key !== null && has_passphrase_in_memory()) {
+    notify_keys_ready();
+  }
+}
+
 export function extend_passphrase_timeout(): void {
   if (secure_passphrase) {
     secure_passphrase.extend_timeout();
