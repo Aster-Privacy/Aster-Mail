@@ -38,7 +38,7 @@ import { use_email_list_actions } from "./use_email_list_actions";
 import { use_email_list_bulk } from "./use_email_list_bulk";
 import { use_email_list_events } from "./use_email_list_events";
 
-import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
+import { has_passphrase_in_memory, on_keys_ready } from "@/services/crypto/memory_key_store";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
@@ -633,6 +633,14 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     return () => clearTimeout(safety_timeout);
   }, [state.is_loading]);
+
+  useEffect(() => {
+    if (!is_mail_view || !has_keys) return;
+
+    return on_keys_ready(() => {
+      fetch_page_ref.current?.(0, page_size, true);
+    });
+  }, [has_keys, is_mail_view, page_size]);
 
   const update_email = useCallback(
     (id: string, updates: Partial<InboxEmail>): void => {
