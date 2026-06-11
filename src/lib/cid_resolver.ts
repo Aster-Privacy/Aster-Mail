@@ -100,19 +100,15 @@ export async function resolve_cid_references(
   const blob_urls: string[] = [];
   let resolved_html = html;
 
-  const decrypted_attachments: { att: typeof response.data.attachments[number]; meta: AttachmentMeta }[] = [];
+  const meta_results = await Promise.allSettled(
+    response.data.attachments.map((att) =>
+      decrypt_attachment_meta(att.encrypted_meta, att.meta_nonce).then((meta) => ({ att, meta })),
+    ),
+  );
 
-  for (const att of response.data.attachments) {
-    try {
-      const meta = await decrypt_attachment_meta(att.encrypted_meta, att.meta_nonce);
-
-      if (ALLOWED_IMAGE_TYPES.has(meta.content_type.toLowerCase())) {
-        decrypted_attachments.push({ att, meta });
-      }
-    } catch {
-      continue;
-    }
-  }
+  const decrypted_attachments = meta_results
+    .flatMap((r) => (r.status === "fulfilled" ? [r.value] : []))
+    .filter(({ meta }) => ALLOWED_IMAGE_TYPES.has(meta.content_type.toLowerCase()));
 
   const match_strategies: ((meta: AttachmentMeta) => string | undefined)[] = [
     (meta) => meta.content_id ? normalize(meta.content_id) : undefined,
@@ -120,32 +116,9 @@ export async function resolve_cid_references(
     (meta) => meta.filename ? normalize(strip_ext(meta.filename)) : undefined,
   ];
 
-  const substitute = async (att: typeof response.data.attachments[number], meta: AttachmentMeta, original_cid: string): Promise<boolean> => {
-    try {
-      const data = await decrypt_attachment_data(
-        att.encrypted_data,
-        att.data_nonce,
-        meta.session_key,
-        att.mail_item_id,
-        att.seq_num,
-      );
-      const blob = new Blob([data], { type: meta.content_type });
-      const blob_url = URL.createObjectURL(blob);
-
-      blob_urls.push(blob_url);
-
-      const escaped_cid = original_cid.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const replace_regex = new RegExp(`src=["']cid:${escaped_cid}["']`, "gi");
-
-      resolved_html = resolved_html.replace(replace_regex, `src="${blob_url}"`);
-
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const consumed = new Set<typeof decrypted_attachments[number]>();
+  type DecryptedEntry = typeof decrypted_attachments[number];
+  const to_fetch: (DecryptedEntry & { original_cid: string })[] = [];
+  const consumed = new Set<DecryptedEntry>();
 
   for (const strategy of match_strategies) {
     if (unresolved_cids.size === 0) break;
@@ -161,10 +134,9 @@ export async function resolve_cid_references(
 
       if (!original_cid) continue;
 
-      if (await substitute(entry.att, entry.meta, original_cid)) {
-        unresolved_cids.delete(key);
-        consumed.add(entry);
-      }
+      to_fetch.push({ ...entry, original_cid });
+      unresolved_cids.delete(key);
+      consumed.add(entry);
     }
   }
 
@@ -174,13 +146,40 @@ export async function resolve_cid_references(
 
     if (remaining_attachments.length === remaining_refs.length) {
       for (let i = 0; i < remaining_refs.length; i++) {
-        await substitute(
-          remaining_attachments[i].att,
-          remaining_attachments[i].meta,
-          remaining_refs[i],
-        );
+        to_fetch.push({ ...remaining_attachments[i], original_cid: remaining_refs[i] });
       }
     }
+  }
+
+  const data_results = await Promise.allSettled(
+    to_fetch.map(async ({ att, meta, original_cid }) => {
+      const data = await decrypt_attachment_data(
+        att.encrypted_data,
+        att.data_nonce,
+        meta.session_key,
+        att.mail_item_id,
+        att.seq_num,
+      );
+      const blob = new Blob([data], { type: meta.content_type });
+      const blob_url = URL.createObjectURL(blob);
+
+      return { original_cid, blob_url };
+    }),
+  );
+
+  for (const result of data_results) {
+    if (result.status !== "fulfilled") continue;
+
+    const { original_cid, blob_url } = result.value;
+
+    blob_urls.push(blob_url);
+
+    const escaped_cid = original_cid.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    resolved_html = resolved_html.replace(
+      new RegExp(`src=["']cid:${escaped_cid}["']`, "gi"),
+      `src="${blob_url}"`,
+    );
   }
 
   resolved_html = resolved_html.replace(

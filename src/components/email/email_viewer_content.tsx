@@ -22,6 +22,8 @@ import type { Email } from "@/types/email";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload_cache";
 
+import { pop_preloaded_cid } from "@/components/email/hooks/preload_cache";
+
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -195,19 +197,42 @@ export function EmailViewerContent({
     }
   }, [sanitize_result.external_content, on_external_content_detected]);
 
-  const [cid_resolved_html, set_cid_resolved_html] = useState<string | null>(
-    null,
-  );
   const cid_blob_urls_ref = useRef<string[]>([]);
+  const cid_preload_consumed_ref = useRef(false);
+
+  const [cid_resolved_html, set_cid_resolved_html] = useState<string | null>(() => {
+    if (effective_content_mode === "always") return null;
+    const preloaded = pop_preloaded_cid(email.id);
+    if (preloaded) {
+      cid_blob_urls_ref.current = preloaded.blob_urls;
+      cid_preload_consumed_ref.current = true;
+      return preloaded.html;
+    }
+    return null;
+  });
 
   useEffect(() => {
+    if (cid_preload_consumed_ref.current) {
+      cid_preload_consumed_ref.current = false;
+      return;
+    }
+
     let cancelled = false;
 
     const has_cid = extract_cid_references(sanitize_result.html).length > 0;
 
     if (!has_cid || preferences.low_network_mode) {
+      revoke_cid_blob_urls(cid_blob_urls_ref.current);
+      cid_blob_urls_ref.current = [];
       set_cid_resolved_html(null);
+      return;
+    }
 
+    const preloaded = effective_content_mode !== "always" ? pop_preloaded_cid(email.id) : null;
+    if (preloaded) {
+      revoke_cid_blob_urls(cid_blob_urls_ref.current);
+      cid_blob_urls_ref.current = preloaded.blob_urls;
+      set_cid_resolved_html(preloaded.html);
       return;
     }
 
@@ -215,7 +240,6 @@ export function EmailViewerContent({
       .then((result) => {
         if (cancelled) {
           revoke_cid_blob_urls(result.blob_urls);
-
           return;
         }
         revoke_cid_blob_urls(cid_blob_urls_ref.current);
