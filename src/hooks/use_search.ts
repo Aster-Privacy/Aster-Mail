@@ -1267,7 +1267,12 @@ export function use_search() {
   }, []);
 
   const set_query = useCallback((query: string) => {
-    set_state((prev) => ({ ...prev, query }));
+    set_state((prev) => ({
+      ...prev,
+      query,
+      is_searching: query.length >= 2 && query !== prev.query ? true : prev.is_searching,
+      results: query !== prev.query ? [] : prev.results,
+    }));
   }, []);
 
   const start_index_build = useCallback(

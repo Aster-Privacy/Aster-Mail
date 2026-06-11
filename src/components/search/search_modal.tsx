@@ -315,7 +315,7 @@ export function SearchModal({
         )}
 
         {state.query &&
-          state.is_loading &&
+          (state.is_loading || state.is_searching) &&
           filtered_results.length === 0 &&
           filtered_folders.length === 0 && (
             <div className="p-2">

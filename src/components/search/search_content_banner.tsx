@@ -124,9 +124,6 @@ export function SearchContentBanner({
           {help_button}
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
-          {is_indexing && (
-            <span className="text-xs text-txt-muted">{progress_count}</span>
-          )}
           <button
             className="px-3 py-1 text-xs font-medium rounded-[14px] border border-edge-primary text-fg hover:bg-surf-hover transition-colors"
             onClick={on_enable}
@@ -136,7 +133,6 @@ export function SearchContentBanner({
           </button>
         </div>
       </div>
-      {progress_bar}
       {help_body}
     </div>
   );
