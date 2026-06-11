@@ -132,16 +132,15 @@ self.addEventListener("push", (event: PushEvent) => {
       }
 
       const safe_url = sanitize_notification_path(data.url);
-      const title = data.title || "AsterMail";
       const options: NotificationOptions = {
-        body: data.body || "You have a new notification",
+        body: "You have a new message",
         icon: "/pwa-192x192.png",
         badge: "/favicon-32x32.png",
         tag: data.type || "default",
         data: { url: safe_url },
       };
 
-      await self.registration.showNotification(title, options);
+      await self.registration.showNotification("AsterMail", options);
     })(),
   );
 });
