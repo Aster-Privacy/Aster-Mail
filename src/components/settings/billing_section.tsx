@@ -411,6 +411,9 @@ export function BillingSection() {
     if (!plan_change_confirm_target) return;
     const { plan, interval } = plan_change_confirm_target;
 
+    const is_tauri =
+      typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
     set_is_action_loading(true);
     const result = await change_plan(plan.code, interval);
 
@@ -420,6 +423,17 @@ export function BillingSection() {
       set_plan_change_confirm_target(null);
       show_toast(t("settings.payment_failed"), "error");
       set_show_payment_methods(true);
+
+      return;
+    }
+
+    if (result.requires_checkout) {
+      if (is_tauri) {
+        pending_tauri_checkout_ref.current = true;
+      }
+      set_show_plan_change_confirm(false);
+      set_plan_change_confirm_target(null);
+      set_is_action_loading(false);
 
       return;
     }

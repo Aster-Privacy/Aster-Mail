@@ -242,17 +242,23 @@ export async function preview_plan_change(
 export async function change_plan(
   plan_code: string,
   billing_interval: string = "month",
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; requires_checkout: boolean; error?: string }> {
   const response = await api_client.post<{
-    plan_code: string;
-    billing_interval: string;
+    plan_code?: string;
+    billing_interval?: string;
+    checkout_url?: string;
   }>("/payments/v1/change-plan", { plan_code, billing_interval });
 
   if (response.error || !response.data) {
-    return { ok: false, error: response.error || "change_failed" };
+    return { ok: false, requires_checkout: false, error: response.error || "change_failed" };
   }
 
-  return { ok: true };
+  if (response.data.checkout_url) {
+    await open_payment_url(response.data.checkout_url);
+    return { ok: true, requires_checkout: true };
+  }
+
+  return { ok: true, requires_checkout: false };
 }
 
 export async function create_crypto_checkout_session(
