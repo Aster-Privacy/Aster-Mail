@@ -55,12 +55,14 @@ import {
 import {
   invalidate_mail_stats,
   adjust_stats_spam,
+  adjust_stats_unread,
 } from "@/hooks/use_mail_stats";
 import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import {
   compute_trash_deltas,
   compute_archive_deltas,
   compute_unarchive_deltas,
+  compute_untrash_deltas,
   apply_stat_deltas,
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
@@ -252,6 +254,7 @@ export function use_single_actions(
   const toggle_read = useCallback(
     async (email: InboxEmail): Promise<boolean> => {
       const new_read = !email.is_read;
+      const is_received = email.item_type === "received";
 
       const offline_result = await try_enqueue_offline_action(
         new_read ? "read" : "unread",
@@ -262,16 +265,23 @@ export function use_single_actions(
 
       if (offline_result.queued) {
         config.on_optimistic_update?.(email.id, { is_read: new_read });
+        if (is_received) adjust_stats_unread(new_read ? -1 : 1);
 
         return true;
       }
 
-      return execute_single_action(
+      if (is_received) adjust_stats_unread(new_read ? -1 : 1);
+
+      const success = await execute_single_action(
         email,
         new_read ? "read" : "unread",
         { is_read: new_read },
         () => update_with_metadata(email, { is_read: new_read }),
       );
+
+      if (!success && is_received) adjust_stats_unread(new_read ? 1 : -1);
+
+      return success;
     },
     [
       execute_single_action,
@@ -285,6 +295,8 @@ export function use_single_actions(
     async (email: InboxEmail): Promise<boolean> => {
       if (email.is_read) return true;
 
+      const is_received = email.item_type === "received";
+
       const offline_result = await try_enqueue_offline_action(
         "read",
         [email.id],
@@ -294,13 +306,23 @@ export function use_single_actions(
 
       if (offline_result.queued) {
         config.on_optimistic_update?.(email.id, { is_read: true });
+        if (is_received) adjust_stats_unread(-1);
 
         return true;
       }
 
-      return execute_single_action(email, "read", { is_read: true }, () =>
-        update_with_metadata(email, { is_read: true }),
+      if (is_received) adjust_stats_unread(-1);
+
+      const success = await execute_single_action(
+        email,
+        "read",
+        { is_read: true },
+        () => update_with_metadata(email, { is_read: true }),
       );
+
+      if (!success && is_received) adjust_stats_unread(1);
+
+      return success;
     },
     [
       execute_single_action,
@@ -314,6 +336,8 @@ export function use_single_actions(
     async (email: InboxEmail): Promise<boolean> => {
       if (!email.is_read) return true;
 
+      const is_received = email.item_type === "received";
+
       const offline_result = await try_enqueue_offline_action(
         "unread",
         [email.id],
@@ -323,13 +347,23 @@ export function use_single_actions(
 
       if (offline_result.queued) {
         config.on_optimistic_update?.(email.id, { is_read: false });
+        if (is_received) adjust_stats_unread(1);
 
         return true;
       }
 
-      return execute_single_action(email, "unread", { is_read: false }, () =>
-        update_with_metadata(email, { is_read: false }),
+      if (is_received) adjust_stats_unread(1);
+
+      const success = await execute_single_action(
+        email,
+        "unread",
+        { is_read: false },
+        () => update_with_metadata(email, { is_read: false }),
       );
+
+      if (!success && is_received) adjust_stats_unread(-1);
+
+      return success;
     },
     [
       execute_single_action,
@@ -496,11 +530,12 @@ export function use_single_actions(
 
   const mark_as_spam = useCallback(
     async (email: InboxEmail): Promise<boolean> => {
-      const is_unread_received =
-        email.item_type === "received" && !email.is_read;
+      const is_received = email.item_type === "received";
+      const is_unread = !email.is_read;
 
-      if (is_unread_received) {
+      if (is_received) {
         adjust_stats_spam(1);
+        if (is_unread) adjust_stats_unread(-1);
       }
 
       const spam_update = { is_spam: true, is_trashed: false };
@@ -524,16 +559,18 @@ export function use_single_actions(
           action_type: "spam",
           email_ids: [email.id],
           on_undo: async () => {
-            if (is_unread_received) {
+            if (is_received) {
               adjust_stats_spam(-1);
+              if (is_unread) adjust_stats_unread(1);
             }
             await update_with_metadata(email, original_state);
             remove_spam_sender(email.sender_email).catch(() => {});
             emit_mail_soft_refresh();
           },
         });
-      } else if (is_unread_received) {
+      } else if (is_received) {
         adjust_stats_spam(-1);
+        if (is_unread) adjust_stats_unread(1);
       }
 
       return success;
@@ -721,6 +758,17 @@ export function use_single_actions(
       email: InboxEmail,
       restore_to: "inbox" | "archive" = "inbox",
     ): Promise<boolean> => {
+      const base_deltas = compute_untrash_deltas(email);
+      const deltas =
+        restore_to === "archive"
+          ? {
+              ...base_deltas,
+              inbox: 0,
+              archived: email.item_type === "received" ? 1 : 0,
+            }
+          : base_deltas;
+      apply_stat_deltas(deltas);
+
       const success = await execute_single_action(
         email,
         "restore",
@@ -730,7 +778,6 @@ export function use_single_actions(
       );
 
       if (success) {
-        adjust_trash_count(-1);
         invalidate_mail_cache();
         emit_mail_changed();
         setTimeout(() => {
@@ -742,12 +789,14 @@ export function use_single_actions(
           action_type: "restore",
           email_ids: [email.id],
           on_undo: async () => {
-            adjust_trash_count(1);
+            revert_stat_deltas(deltas);
             await update_with_metadata(email, { is_trashed: true });
             invalidate_mail_cache();
             emit_mail_soft_refresh();
           },
         });
+      } else {
+        revert_stat_deltas(deltas);
       }
 
       return success;

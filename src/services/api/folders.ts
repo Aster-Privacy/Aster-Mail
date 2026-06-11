@@ -313,7 +313,7 @@ export async function get_folder_counts(): Promise<
 > {
   const response = await api_client.get<{
     counts: { label_token: string; count: number }[];
-  }>("/mail/v1/labels/counts", { cache_ttl: 60_000 });
+  }>("/mail/v1/labels/counts", { skip_cache: true });
 
   if (response.data) {
     return {

@@ -935,6 +935,9 @@ export function use_folders(): UseFoldersReturn {
     };
 
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, counts_handler);
+    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);
+    window.addEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
+    window.addEventListener(MAIL_EVENTS.MAIL_ACTION, counts_handler);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
     document.addEventListener("visibilitychange", visibility_handler);
@@ -943,6 +946,9 @@ export function use_folders(): UseFoldersReturn {
     return () => {
       if (counts_debounce) clearTimeout(counts_debounce);
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, counts_handler);
+      window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);
+      window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
+      window.removeEventListener(MAIL_EVENTS.MAIL_ACTION, counts_handler);
       window.removeEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
       document.removeEventListener("visibilitychange", visibility_handler);

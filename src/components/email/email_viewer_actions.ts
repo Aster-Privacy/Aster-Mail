@@ -51,6 +51,16 @@ import { print_email } from "@/utils/print_email";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
+import {
+  adjust_stats_spam,
+  adjust_stats_unread,
+} from "@/hooks/use_mail_stats";
+import {
+  compute_archive_deltas,
+  compute_trash_deltas,
+  apply_stat_deltas,
+  revert_stat_deltas,
+} from "@/hooks/use_stat_helpers";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { add_alias_pin } from "@/services/api/alias_pins";
@@ -378,6 +388,15 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
   const handle_archive = useCallback(async () => {
     if (!deps.email_id || deps.is_archive_loading) return;
     deps.set_is_archive_loading(true);
+
+    const deltas = deps.mail_item
+      ? compute_archive_deltas({
+          item_type: deps.mail_item.item_type,
+          is_read: deps.is_read,
+        })
+      : null;
+    if (deltas) apply_stat_deltas(deltas);
+
     const result = await batch_archive({ ids: [deps.email_id], tier: "hot" });
 
     deps.set_is_archive_loading(false);
@@ -389,18 +408,29 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         action_type: "archive",
         email_ids: [deps.email_id],
         on_undo: async () => {
+          if (deltas) revert_stat_deltas(deltas);
           await batch_unarchive({ ids: [deps.email_id] });
           window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
         },
       });
       deps.on_dismiss();
+    } else if (deltas) {
+      revert_stat_deltas(deltas);
     }
-  }, [deps.email_id, deps.is_archive_loading, deps.on_dismiss, deps.t]);
+  }, [deps.email_id, deps.is_archive_loading, deps.on_dismiss, deps.t, deps.mail_item, deps.is_read]);
 
   const handle_spam = useCallback(async () => {
     if (!deps.email_id || deps.is_spam_loading || !deps.mail_item) return;
     deps.set_is_spam_loading(true);
     const prev_is_trashed = deps.mail_item.is_trashed ?? false;
+    const is_received = deps.mail_item.item_type === "received";
+    const is_unread = !deps.is_read;
+
+    if (is_received) {
+      adjust_stats_spam(1);
+      if (is_unread) adjust_stats_unread(-1);
+    }
+
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -425,6 +455,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         action_type: "spam",
         email_ids: [deps.email_id],
         on_undo: async () => {
+          if (is_received) {
+            adjust_stats_spam(-1);
+            if (is_unread) adjust_stats_unread(1);
+          }
           await update_item_metadata(
             deps.email_id,
             {
@@ -440,6 +474,11 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         },
       });
       deps.on_dismiss();
+    } else {
+      if (is_received) {
+        adjust_stats_spam(-1);
+        if (is_unread) adjust_stats_unread(1);
+      }
     }
   }, [
     deps.email_id,
@@ -447,6 +486,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     deps.is_spam_loading,
     deps.on_dismiss,
     deps.mail_item,
+    deps.is_read,
     deps.t,
   ]);
 
@@ -487,6 +527,13 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
   const handle_trash = useCallback(async () => {
     if (!deps.email_id || deps.is_trash_loading || !deps.mail_item) return;
     deps.set_is_trash_loading(true);
+
+    const deltas = compute_trash_deltas({
+      item_type: deps.mail_item.item_type,
+      is_read: deps.is_read,
+    });
+    apply_stat_deltas(deltas);
+
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -506,6 +553,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         action_type: "trash",
         email_ids: [deps.email_id],
         on_undo: async () => {
+          revert_stat_deltas(deltas);
           await update_item_metadata(
             deps.email_id,
             {
@@ -518,12 +566,15 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         },
       });
       deps.on_dismiss();
+    } else {
+      revert_stat_deltas(deltas);
     }
   }, [
     deps.email_id,
     deps.is_trash_loading,
     deps.on_dismiss,
     deps.mail_item,
+    deps.is_read,
     deps.t,
   ]);
 
