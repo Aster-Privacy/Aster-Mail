@@ -346,7 +346,39 @@ export function BillingSection() {
     set_show_method_modal(true);
   };
 
-  const handle_family_plan_change = (plan_code: string, interval: "month" | "year") => {
+  const handle_family_plan_change = async (plan_code: string, interval: "month" | "year") => {
+    const is_tauri =
+      typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
+    if (is_tauri) {
+      set_is_action_loading(true);
+      try {
+        const result = await change_plan(
+          plan_code,
+          interval,
+          "https://app.astermail.org/?plan_change=success",
+          "https://app.astermail.org/?plan_change=cancelled",
+        );
+        if (!result.ok) {
+          show_toast(t("settings.failed_checkout"), "error");
+        } else if (result.requires_checkout) {
+          pending_tauri_checkout_ref.current = true;
+        } else {
+          request_cache.invalidate("/payments/v1");
+          invalidate_mail_stats();
+          const sub_response = await get_subscription();
+          if (sub_response.data) set_subscription(sub_response.data);
+          await load_data();
+          show_toast(t("settings.payment_success"), "success");
+        }
+      } catch {
+        show_toast(t("settings.failed_checkout"), "error");
+      } finally {
+        set_is_action_loading(false);
+      }
+      return;
+    }
+
     const plan = plans.find((p) => p.code === plan_code) ?? ({
       id: plan_code,
       code: plan_code,
@@ -382,12 +414,40 @@ export function BillingSection() {
     const has_card_sub =
       !!subscription &&
       subscription.plan.code !== "free" &&
-      subscription.payment_provider !== "stripe_crypto";
+      subscription.payment_provider !== "stripe_crypto" &&
+      subscription.has_stripe_subscription !== false;
 
     if (has_card_sub) {
-      set_plan_change_confirm_target({ plan, interval: checkout_interval });
-      set_show_plan_change_confirm(true);
-
+      if (is_tauri) {
+        set_is_action_loading(true);
+        try {
+          const result = await change_plan(
+            plan.code,
+            checkout_interval,
+            "https://app.astermail.org/?plan_change=success",
+            "https://app.astermail.org/?plan_change=cancelled",
+          );
+          if (!result.ok) {
+            show_toast(t("settings.failed_checkout"), "error");
+          } else if (result.requires_checkout) {
+            pending_tauri_checkout_ref.current = true;
+          } else {
+            request_cache.invalidate("/payments/v1");
+            invalidate_mail_stats();
+            const sub_response = await get_subscription();
+            if (sub_response.data) set_subscription(sub_response.data);
+            await load_data();
+            show_toast(t("settings.payment_success"), "success");
+          }
+        } catch {
+          show_toast(t("settings.failed_checkout"), "error");
+        } finally {
+          set_is_action_loading(false);
+        }
+      } else {
+        set_plan_change_confirm_target({ plan, interval: checkout_interval });
+        set_show_plan_change_confirm(true);
+      }
       return;
     }
 
@@ -415,39 +475,40 @@ export function BillingSection() {
       typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
     set_is_action_loading(true);
-    const result = await change_plan(plan.code, interval);
+    try {
+      const result = is_tauri
+        ? await change_plan(
+            plan.code,
+            interval,
+            "https://app.astermail.org/?plan_change=success",
+            "https://app.astermail.org/?plan_change=cancelled",
+          )
+        : await change_plan(plan.code, interval);
 
-    if (!result.ok) {
-      set_is_action_loading(false);
-      set_show_plan_change_confirm(false);
-      set_plan_change_confirm_target(null);
-      show_toast(t("settings.payment_failed"), "error");
-      set_show_payment_methods(true);
-
-      return;
-    }
-
-    if (result.requires_checkout) {
-      if (is_tauri) {
-        pending_tauri_checkout_ref.current = true;
+      if (!result.ok) {
+        show_toast(t("settings.payment_failed"), "error");
+        set_show_payment_methods(true);
+        return;
       }
+
+      if (result.requires_checkout) {
+        if (is_tauri) pending_tauri_checkout_ref.current = true;
+        return;
+      }
+
+      request_cache.invalidate("/payments/v1");
+      invalidate_mail_stats();
+      const sub_response = await get_subscription();
+      if (sub_response.data) set_subscription(sub_response.data);
+      await load_data();
+      show_toast(t("settings.payment_success"), "success");
+    } catch {
+      show_toast(t("settings.payment_failed"), "error");
+    } finally {
       set_show_plan_change_confirm(false);
       set_plan_change_confirm_target(null);
       set_is_action_loading(false);
-
-      return;
     }
-
-    set_show_plan_change_confirm(false);
-    set_plan_change_confirm_target(null);
-    request_cache.invalidate("/payments/v1");
-    invalidate_mail_stats();
-    const sub_response = await get_subscription();
-
-    if (sub_response.data) set_subscription(sub_response.data);
-    await load_data();
-    set_is_action_loading(false);
-    show_toast(t("settings.payment_success"), "success");
   };
 
   const handle_pay_with_crypto = (plan: AvailablePlan) => {

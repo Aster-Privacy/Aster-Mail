@@ -52,6 +52,7 @@ export interface SubscriptionResponse {
   grace_period_end: string | null;
   payment_provider?: string | null;
   paid_until?: string | null;
+  has_stripe_subscription?: boolean;
 }
 
 export interface AvailablePlan {
@@ -242,12 +243,19 @@ export async function preview_plan_change(
 export async function change_plan(
   plan_code: string,
   billing_interval: string = "month",
+  success_url?: string,
+  cancel_url?: string,
 ): Promise<{ ok: boolean; requires_checkout: boolean; error?: string }> {
   const response = await api_client.post<{
     plan_code?: string;
     billing_interval?: string;
     checkout_url?: string;
-  }>("/payments/v1/change-plan", { plan_code, billing_interval });
+  }>("/payments/v1/change-plan", {
+    plan_code,
+    billing_interval,
+    ...(success_url ? { success_url } : {}),
+    ...(cancel_url ? { cancel_url } : {}),
+  });
 
   if (response.error || !response.data) {
     return { ok: false, requires_checkout: false, error: response.error || "change_failed" };

@@ -90,7 +90,8 @@ export function AvailablePlansSection({
     const has_existing_sub =
       !!subscription &&
       subscription.plan.code !== "free" &&
-      subscription.payment_provider !== "stripe_crypto";
+      subscription.payment_provider !== "stripe_crypto" &&
+      subscription.has_stripe_subscription !== false;
 
     if (has_existing_sub && on_family_plan_change) {
       on_family_plan_change(tier.id, card_interval);

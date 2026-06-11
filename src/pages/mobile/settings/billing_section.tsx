@@ -61,6 +61,7 @@ import {
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
+import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -181,6 +182,9 @@ export function BillingSection({
   const [crypto_addon, set_crypto_addon] = useState<StorageAddonItem | null>(
     null,
   );
+  const [show_plan_change_confirm, set_show_plan_change_confirm] = useState(false);
+  const [plan_change_confirm_target, set_plan_change_confirm_target] =
+    useState<{ plan: AvailablePlan; interval: string } | null>(null);
   const [preferred_currency] = useState(detect_currency_from_locale);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
@@ -516,31 +520,20 @@ export function BillingSection({
           ? "biennial"
           : "month";
 
-    set_is_action_loading(true);
-
     const has_card_sub =
       !!subscription &&
       subscription.plan.code !== "free" &&
-      subscription.payment_provider !== "stripe_crypto";
+      subscription.payment_provider !== "stripe_crypto" &&
+      subscription.has_stripe_subscription !== false;
 
     if (has_card_sub) {
-      const result = await change_plan(plan.code, checkout_interval);
-
-      if (!result.ok) {
-        set_is_action_loading(false);
-        show_toast(t("settings.payment_failed"), "error");
-        set_show_payment_methods(true);
-
-        return;
-      }
-      request_cache.invalidate("/payments/v1");
-      invalidate_mail_stats();
-      await load_data();
-      set_is_action_loading(false);
-      show_toast(t("settings.payment_success"), "success");
+      set_plan_change_confirm_target({ plan, interval: checkout_interval });
+      set_show_plan_change_confirm(true);
 
       return;
     }
+
+    set_is_action_loading(true);
 
     const result = await start_hosted_checkout(plan.code, checkout_interval);
 
@@ -548,6 +541,32 @@ export function BillingSection({
       set_is_action_loading(false);
       show_toast(t("settings.failed_checkout"), "error");
     }
+  };
+
+  const handle_confirm_plan_change = async () => {
+    if (!plan_change_confirm_target) return;
+    const { plan, interval } = plan_change_confirm_target;
+
+    set_is_action_loading(true);
+    const result = await change_plan(plan.code, interval);
+
+    if (!result.ok) {
+      set_is_action_loading(false);
+      set_show_plan_change_confirm(false);
+      set_plan_change_confirm_target(null);
+      show_toast(t("settings.payment_failed"), "error");
+      set_show_payment_methods(true);
+
+      return;
+    }
+
+    set_show_plan_change_confirm(false);
+    set_plan_change_confirm_target(null);
+    request_cache.invalidate("/payments/v1");
+    invalidate_mail_stats();
+    await load_data();
+    set_is_action_loading(false);
+    show_toast(t("settings.payment_success"), "success");
   };
 
   const handle_pay_with_crypto = (plan: AvailablePlan) => {
@@ -1390,6 +1409,21 @@ export function BillingSection({
           }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}
+        />
+      )}
+
+      {plan_change_confirm_target && (
+        <PlanChangeConfirmModal
+          billing_interval={plan_change_confirm_target.interval}
+          is_confirming={is_action_loading}
+          open={show_plan_change_confirm}
+          plan_code={plan_change_confirm_target.plan.code}
+          plan_name={plan_change_confirm_target.plan.name}
+          on_close={() => {
+            set_show_plan_change_confirm(false);
+            set_plan_change_confirm_target(null);
+          }}
+          on_confirm={handle_confirm_plan_change}
         />
       )}
 

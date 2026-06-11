@@ -58,6 +58,7 @@ export function PlanChangeConfirmModal({
   const { t } = use_i18n();
   const [preview, set_preview] = useState<PlanChangePreviewResponse | null>(null);
   const [loading, set_loading] = useState(false);
+  const [preview_failed, set_preview_failed] = useState(false);
   const fetch_gen = useRef(0);
 
   useEffect(() => {
@@ -65,14 +66,20 @@ export function PlanChangeConfirmModal({
       const gen = ++fetch_gen.current;
       set_loading(true);
       set_preview(null);
+      set_preview_failed(false);
       preview_plan_change(plan_code, billing_interval).then((res) => {
         if (fetch_gen.current !== gen) return;
-        if (res.data) set_preview(res.data);
+        if (res.data) {
+          set_preview(res.data);
+        } else {
+          set_preview_failed(true);
+        }
         set_loading(false);
       });
     } else {
       fetch_gen.current++;
       set_preview(null);
+      set_preview_failed(false);
       set_loading(false);
     }
   }, [open, plan_code, billing_interval]);
@@ -98,6 +105,10 @@ export function PlanChangeConfirmModal({
           <div className="flex justify-center py-6">
             <div className="w-5 h-5 rounded-full animate-spin border-2 border-edge-secondary border-t-txt-muted" />
           </div>
+        ) : preview_failed ? (
+          <p className="text-sm text-txt-secondary py-2">
+            {t("settings.plan_change_preview_failed")}
+          </p>
         ) : (
           <div className="flex flex-col gap-3">
             {preview && preview.credit_cents > 0 && (
@@ -132,7 +143,7 @@ export function PlanChangeConfirmModal({
           {t("common.cancel")}
         </Button>
         <Button
-          disabled={loading || is_confirming}
+          disabled={loading || is_confirming || !preview}
           variant="primary"
           onClick={on_confirm}
         >
