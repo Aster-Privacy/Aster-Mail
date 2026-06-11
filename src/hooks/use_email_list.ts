@@ -151,11 +151,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     async (page: number, limit: number, force?: boolean): Promise<void> => {
       if (!is_mail_view) return;
       if (!has_passphrase_in_memory()) {
-        set_state((prev) => ({
-          ...prev,
-          is_loading: false,
-          has_initial_load: true,
-        }));
+        main_effect_fetched_ref.current = false;
         return;
       }
 
