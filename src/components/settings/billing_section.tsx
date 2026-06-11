@@ -341,12 +341,15 @@ export function BillingSection() {
           ? "biennial"
           : "month";
 
+    const is_tauri =
+      typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
     const has_card_sub =
       !!subscription &&
       subscription.plan.code !== "free" &&
       subscription.payment_provider !== "stripe_crypto";
 
-    if (has_card_sub) {
+    if (has_card_sub && !is_tauri) {
       set_plan_change_confirm_target({ plan, interval: checkout_interval });
       set_show_plan_change_confirm(true);
 
@@ -362,9 +365,9 @@ export function BillingSection() {
     );
 
     if (!result.ok) {
-      set_is_action_loading(false);
       show_toast(t("settings.failed_checkout"), "error");
     }
+    set_is_action_loading(false);
   };
 
   const handle_confirm_plan_change = async () => {
