@@ -98,6 +98,15 @@ export function TotpVerification({
   const handle_code_input = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
 
+    if (value.length > 1) {
+      const updated_code = (code.slice(0, index) + value).slice(0, 6);
+
+      set_code(updated_code);
+      input_refs.current[Math.min(updated_code.length, 5)]?.focus();
+
+      return;
+    }
+
     const new_code = code.split("");
 
     new_code[index] = value.slice(-1);
@@ -154,10 +163,10 @@ export function TotpVerification({
               ref={(el) => {
                 input_refs.current[index] = el;
               }}
+              autoComplete={index === 0 ? "one-time-code" : "off"}
               className="w-11 h-14 text-center text-xl font-semibold"
               disabled={is_loading}
               inputMode="numeric"
-              maxLength={1}
               status={error ? "error" : "default"}
               type="text"
               value={code[index] || ""}
