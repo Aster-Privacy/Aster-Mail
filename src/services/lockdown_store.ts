@@ -54,5 +54,10 @@ export async function init_lockdown_from_server(account_id: string): Promise<boo
     set_lockdown_enabled(account_id, response.data.enabled);
     return response.data.enabled;
   }
-  return is_lockdown_enabled(account_id);
+  const cached = localStorage.getItem(`aster:lockdown:${account_id}`);
+  if (cached === null) {
+    setTimeout(() => init_lockdown_from_server(account_id), 5000);
+    return false;
+  }
+  return cached === "1";
 }
