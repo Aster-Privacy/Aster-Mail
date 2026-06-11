@@ -216,11 +216,9 @@ export async function open_billing_portal(): Promise<{
 
 async function open_payment_url(url: string): Promise<void> {
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
-    try {
-      const core = await import("@tauri-apps/api/core");
-      await core.invoke("open_external_url", { url });
-      return;
-    } catch {}
+    const core = await import("@tauri-apps/api/core");
+    await core.invoke("open_external_url", { url });
+    return;
   }
   window.location.assign(url);
 }
