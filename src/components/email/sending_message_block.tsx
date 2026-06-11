@@ -34,6 +34,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 interface SendingMessageBlockProps {
   message: DecryptedThreadMessage;
@@ -74,6 +75,7 @@ export function SendingMessageBlock({
   }, [message.body, message.html_content]);
   const display_name =
     current_user_name || message.sender_name || t("common.me");
+  const lockdown = is_any_lockdown_active();
 
   return (
     <div
@@ -116,9 +118,10 @@ export function SendingMessageBlock({
             sanitized_html={
               is_html_content(clean_body)
                 ? sanitize_html(clean_body, {
-                    external_content_mode: preferences.load_remote_images,
-                    image_proxy_url: get_image_proxy_url(),
+                    external_content_mode: lockdown ? "never" : preferences.load_remote_images,
+                    image_proxy_url: lockdown ? undefined : get_image_proxy_url(),
                     sandbox_mode: true,
+                    lockdown_mode: lockdown,
                   }).html
                 : plain_text_to_html(clean_body)
             }

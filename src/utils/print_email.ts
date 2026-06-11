@@ -25,6 +25,7 @@ import {
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_native_platform } from "@/native/capacitor_bridge";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 interface PrintEmailData {
   subject: string;
@@ -89,10 +90,12 @@ function expand_collapsed_sections(root: HTMLElement): void {
 
 function format_body(body: string): string {
   if (is_html_content(body)) {
+    const lockdown = is_any_lockdown_active();
     const sanitized = sanitize_html(body, {
-      external_content_mode: "always",
-      image_proxy_url: get_image_proxy_url(),
+      external_content_mode: lockdown ? "never" : "always",
+      image_proxy_url: lockdown ? undefined : get_image_proxy_url(),
       sandbox_mode: true,
+      lockdown_mode: lockdown,
     }).html;
 
     return strip_style_blocks(sanitized);

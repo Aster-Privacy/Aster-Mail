@@ -60,12 +60,16 @@ import { block_sender } from "@/services/api/blocked_senders";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import { use_auth_safe } from "@/contexts/auth_context";
 
 let swipe_nav_direction: "left" | "right" | null = null;
 
 function MobileMailDetail() {
   const navigate = useNavigate();
   const detail = use_email_detail();
+  const auth = use_auth_safe();
+  const account_id = auth?.current_account_id ?? "";
   const email_actions = use_email_actions();
   const { format_email_detail } = use_date_format();
   const reduce_motion = use_should_reduce_motion();
@@ -86,6 +90,17 @@ function MobileMailDetail() {
     useState<ExternalContentReport | null>(null);
   const [external_content_loaded, set_external_content_loaded] =
     useState(false);
+  const [lockdown_active, set_lockdown_active] = useState(() => is_lockdown_enabled(account_id));
+
+  useEffect(() => {
+    const update = () => set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
+    window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
+    window.addEventListener("storage", update);
+    return () => {
+      window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
+      window.removeEventListener("storage", update);
+    };
+  }, [auth?.current_account_id]);
   const [show_toolbar_customizer, set_show_toolbar_customizer] =
     useState(false);
   const [subject_expanded, set_subject_expanded] = useState(false);
@@ -847,7 +862,7 @@ function MobileMailDetail() {
           <MobileUnsubscribeBanner email={email} t={detail.t} />
         )}
 
-        {external_content_report && !external_content_loaded && (
+        {external_content_report && !external_content_loaded && !lockdown_active && (
           <MobileExternalContentBanner
             on_load={handle_load_external_content}
             report={external_content_report}

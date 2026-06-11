@@ -140,6 +140,7 @@ const VerifyRecoveryEmailPage = lazy_with_retry(
 );
 const SecureViewPage = lazy_with_retry(() => import("@/pages/secure_view"));
 const JoinFamilyPage = lazy_with_retry(() => import("@/pages/join_family"));
+const LinkDevicePage = lazy_with_retry(() => import("@/pages/link_device"));
 const ExternalRedirect = ({ url }: { url: string }) => {
   window.location.href = url;
 
@@ -735,6 +736,14 @@ function MobileApp() {
               />
               <Route element={<SecureViewPage />} path="/view/:token" />
               <Route element={<JoinFamilyPage />} path="/join/family" />
+              <Route
+                element={
+                  <MobileProtectedRoute>
+                    <LinkDevicePage />
+                  </MobileProtectedRoute>
+                }
+                path="/link-device"
+              />
               <Route
                 element={<ExternalRedirect url="https://astermail.org/terms" />}
                 path="/terms"

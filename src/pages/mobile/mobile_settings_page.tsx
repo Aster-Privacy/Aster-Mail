@@ -44,6 +44,9 @@ import {
   UserGroupIcon,
   BoltIcon,
   CodeBracketIcon,
+  HomeModernIcon,
+  SignalIcon,
+  FolderIcon,
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -88,6 +91,9 @@ import { GhostAliasesSection } from "./settings/ghost_aliases_section";
 import { ReferralSection } from "./settings/referral_section";
 import { MailRulesSection } from "./settings/mail_rules_section";
 import { DeveloperSection } from "./settings/developer_section";
+import { FamilySection } from "./settings/family_section";
+import { ConnectionSection } from "./settings/connection_section";
+import { AliasDirectoriesSection } from "./settings/alias_directories_section";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { format_bytes } from "@/lib/utils";
@@ -100,6 +106,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { list_devices } from "@/services/api/devices";
 import { get_dev_mode } from "@/services/api/preferences";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import { get_family_group } from "@/services/api/family";
 
 function MobileSettingsPage() {
   const navigate = useNavigate();
@@ -113,6 +120,9 @@ function MobileSettingsPage() {
   const [show_logout_confirm, set_show_logout_confirm] = useState(false);
   const [has_devices, set_has_devices] = useState(false);
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
+  const [is_family_plan, set_is_family_plan] = useState(
+    () => localStorage.getItem("aster_is_family_plan") === "1",
+  );
   const section_ref = useRef<SettingsSection | null>(null);
 
   useEffect(() => {
@@ -128,6 +138,12 @@ function MobileSettingsPage() {
     };
 
     load_dev_mode();
+
+    get_family_group().then((res) => {
+      const is_fam = !!res.data;
+      set_is_family_plan(is_fam);
+      localStorage.setItem("aster_is_family_plan", is_fam ? "1" : "0");
+    });
   }, []);
 
   useEffect(() => {
@@ -288,6 +304,15 @@ function MobileSettingsPage() {
     ),
     sender_filters: (
       <SenderFiltersSection on_back={close_section} on_close={handle_back} />
+    ),
+    family: (
+      <FamilySection on_back={close_section} on_close={handle_back} />
+    ),
+    connection: (
+      <ConnectionSection on_back={close_section} on_close={handle_back} />
+    ),
+    alias_directories: (
+      <AliasDirectoriesSection on_back={close_section} on_close={handle_back} />
     ),
     feedback: (
       <FeedbackSection on_back={close_section} on_close={handle_back} />
@@ -467,6 +492,17 @@ function MobileSettingsPage() {
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
                   type="button"
+                  onClick={() => open_section("alias_directories")}
+                >
+                  <FolderIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("settings.alias_directories_title")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                </button>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  type="button"
                   onClick={() => open_section("billing")}
                 >
                   <CreditCardIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
@@ -486,6 +522,19 @@ function MobileSettingsPage() {
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
                 </button>
+                {is_family_plan && (
+                  <button
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                    type="button"
+                    onClick={() => open_section("family")}
+                  >
+                    <HomeModernIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                    <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                      {t("settings.family_plan_title")}
+                    </span>
+                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  </button>
+                )}
               </SettingsGroup>
 
               <SettingsGroup title={t("settings.mail_section")}>
@@ -574,6 +623,17 @@ function MobileSettingsPage() {
                   <BoltIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("mail_rules.title")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                </button>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  type="button"
+                  onClick={() => open_section("connection")}
+                >
+                  <SignalIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("settings.connection.title" as Parameters<typeof t>[0])}
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
                 </button>

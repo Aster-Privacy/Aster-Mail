@@ -138,9 +138,12 @@ async function silent_device_login(device_id: string): Promise<void> {
   }
 
   const raw_b64 = await invoke<string | null>("device_get_stored_passphrase");
-  const passphrase = raw_b64
-    ? new TextDecoder().decode(base64url_decode_to_bytes(raw_b64))
-    : null;
+
+  if (!raw_b64) {
+    throw new Error("passphrase_null");
+  }
+
+  const passphrase = new TextDecoder().decode(base64url_decode_to_bytes(raw_b64));
 
   pending_device_login = { login_response, passphrase };
 

@@ -147,11 +147,14 @@ function base64_to_bytes(b64: string): Uint8Array {
   return bytes;
 }
 
-function keypairs_consistent(jwk_string: string, public_b64: string): boolean {
+async function keypairs_consistent(
+  jwk_string: string,
+  public_b64: string,
+): Promise<boolean> {
   try {
     const jwk: JsonWebKey = JSON.parse(jwk_string);
 
-    if (!jwk.x || !jwk.y) return false;
+    if (!jwk.x || !jwk.y || !jwk.d) return false;
 
     const x = base64url_to_bytes(jwk.x);
     const y = base64url_to_bytes(jwk.y);
@@ -172,11 +175,55 @@ function keypairs_consistent(jwk_string: string, public_b64: string): boolean {
       if (derived[i] !== stored[i]) return false;
     }
 
+    const stored_public = await crypto.subtle.importKey(
+      "raw",
+      stored,
+      { name: "ECDH", namedCurve: "P-256" },
+      false,
+      [],
+    );
+
+    const jwk_private = await crypto.subtle.importKey(
+      "jwk",
+      jwk,
+      { name: "ECDH", namedCurve: "P-256" },
+      false,
+      ["deriveBits"],
+    );
+
+    const temp = await crypto.subtle.generateKey(
+      { name: "ECDH", namedCurve: "P-256" },
+      false,
+      ["deriveBits"],
+    );
+
+    const [dh_a, dh_b] = await Promise.all([
+      crypto.subtle.deriveBits(
+        { name: "ECDH", public: stored_public },
+        temp.privateKey,
+        256,
+      ),
+      crypto.subtle.deriveBits(
+        { name: "ECDH", public: temp.publicKey },
+        jwk_private,
+        256,
+      ),
+    ]);
+
+    const a = new Uint8Array(dh_a);
+    const b = new Uint8Array(dh_b);
+
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+
     return true;
   } catch {
     return false;
   }
 }
+
+const FORCED_REGEN_KEY = "astermail_ratchet_regen_v4";
 
 async function run(): Promise<boolean> {
   try {
@@ -193,10 +240,19 @@ async function run(): Promise<boolean> {
     const has_pq =
       !!vault.ratchet_pq_identity_key && !!vault.ratchet_pq_identity_public;
 
+    const need_forced_regen = !localStorage.getItem(FORCED_REGEN_KEY);
+
     const ecdh_consistent =
+      !need_forced_regen &&
       has_ecdh &&
-      keypairs_consistent(vault.ratchet_identity_key!, vault.ratchet_identity_public!) &&
-      keypairs_consistent(vault.ratchet_signed_prekey!, vault.ratchet_signed_prekey_public!);
+      (await keypairs_consistent(
+        vault.ratchet_identity_key!,
+        vault.ratchet_identity_public!,
+      )) &&
+      (await keypairs_consistent(
+        vault.ratchet_signed_prekey!,
+        vault.ratchet_signed_prekey_public!,
+      ));
 
     if (has_ecdh && has_pq && ecdh_consistent) {
       upload_prekey_bundle(vault).catch(() => {});
@@ -230,6 +286,17 @@ async function run(): Promise<boolean> {
       const ratchet_keys = await generate_ratchet_keys();
 
       if (!ratchet_keys) return false;
+
+      if (has_ecdh) {
+        const old_set = {
+          ratchet_identity_key: vault.ratchet_identity_key!,
+          ratchet_identity_public: vault.ratchet_identity_public!,
+          ratchet_signed_prekey: vault.ratchet_signed_prekey!,
+          ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public!,
+        };
+        const previous = vault.ratchet_previous_keys ?? [];
+        vault.ratchet_previous_keys = [old_set, ...previous].slice(0, 3);
+      }
 
       vault.ratchet_identity_key = ratchet_keys.identity_jwk;
       vault.ratchet_identity_public = ratchet_keys.identity_public;
@@ -272,6 +339,10 @@ async function run(): Promise<boolean> {
     localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
 
     await upload_prekey_bundle(vault);
+
+    try {
+      localStorage.setItem(FORCED_REGEN_KEY, "1");
+    } catch {}
 
     return true;
   } catch {

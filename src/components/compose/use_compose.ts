@@ -57,6 +57,7 @@ import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { is_internal_email } from "@/services/api/keys";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { sanitize_html } from "@/lib/html_sanitizer";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   type Attachment,
@@ -493,7 +494,8 @@ export function use_compose({
         if (message_textarea_ref.current && edit_draft.message) {
           draft_hook.just_loaded_draft_ref.current = true;
           const sanitized_result = sanitize_html(edit_draft.message, {
-            external_content_mode: "always",
+            external_content_mode: is_any_lockdown_active() ? "never" : "always",
+            lockdown_mode: is_any_lockdown_active(),
           });
           message_textarea_ref.current.innerHTML = sanitized_result.html;
           set_message(message_textarea_ref.current.innerHTML);
@@ -564,7 +566,8 @@ export function use_compose({
       }
 
       const sanitized_result = sanitize_html(content, {
-        external_content_mode: "always",
+        external_content_mode: is_any_lockdown_active() ? "never" : "always",
+        lockdown_mode: is_any_lockdown_active(),
       });
 
       message_textarea_ref.current.innerHTML = sanitized_result.html;
@@ -605,7 +608,7 @@ export function use_compose({
       "[data-aster-signature='1']",
     );
     const raw_html = get_formatted_signature(target);
-    const sanitized = sanitize_html(raw_html, { external_content_mode: "always" });
+    const sanitized = sanitize_html(raw_html, { external_content_mode: is_any_lockdown_active() ? "never" : "always", lockdown_mode: is_any_lockdown_active() });
     const wrapper = document.createElement("div");
     wrapper.innerHTML = sanitized.html;
     const new_node = wrapper.firstElementChild;

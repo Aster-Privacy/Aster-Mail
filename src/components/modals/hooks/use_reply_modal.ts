@@ -77,6 +77,7 @@ import {
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { fetch_my_badges } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
@@ -473,7 +474,8 @@ export function use_reply_modal({
         if (!message_editor_ref.current) return;
 
         const sanitized_result = sanitize_html(matching_draft.content.message, {
-          external_content_mode: "always",
+          external_content_mode: is_any_lockdown_active() ? "never" : "always",
+          lockdown_mode: is_any_lockdown_active(),
         });
 
         message_editor_ref.current.innerHTML = sanitized_result.html;
@@ -507,7 +509,8 @@ export function use_reply_modal({
       }
 
       const sanitized_result = sanitize_html(content, {
-        external_content_mode: "always",
+        external_content_mode: is_any_lockdown_active() ? "never" : "always",
+        lockdown_mode: is_any_lockdown_active(),
       });
 
       message_editor_ref.current.innerHTML = sanitized_result.html;
