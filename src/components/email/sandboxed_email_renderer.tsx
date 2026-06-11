@@ -1089,8 +1089,8 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
       const shadow = el.attachShadow({ mode: "open" });
 
       const body_style = is_html_email
-        ? `margin:0;background-color:${html_bg};padding:8px 16px 16px 16px`
-        : `margin:0;background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
+        ? `margin:0;background-color:${html_bg};padding:8px 16px 16px 16px;zoom:${email_zoom}`
+        : `margin:0;background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word;zoom:${email_zoom}`;
 
       shadow.innerHTML =
         `<style>${EMAIL_BODY_CSS}` +
@@ -1107,6 +1107,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
       plain_text_color,
       dark_mode_css,
       literal_plain_text,
+      email_zoom,
     ],
   );
 

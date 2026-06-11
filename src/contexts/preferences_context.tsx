@@ -138,6 +138,12 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   const [preferences, set_preferences] = useState<UserPreferences>(() => {
     const cached = get_cached_preferences();
     const base = normalize_preferences(cached ?? DEFAULT_PREFERENCES);
+    const scale = normalize_font_size_scale(base.font_size_scale);
+    document.documentElement.style.setProperty(
+      "--font-scale",
+      String(scale / FONT_SIZE_DEFAULT),
+    );
+    set_preload_email_font_px(Math.round(14 * (scale / FONT_SIZE_DEFAULT)));
 
     return {
       ...base,
