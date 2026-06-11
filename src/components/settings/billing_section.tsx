@@ -346,6 +346,26 @@ export function BillingSection() {
     set_show_method_modal(true);
   };
 
+  const handle_family_plan_change = (plan_code: string, interval: "month" | "year") => {
+    const plan = plans.find((p) => p.code === plan_code) ?? ({
+      id: plan_code,
+      code: plan_code,
+      name: plan_code,
+      description: null,
+      storage_limit_bytes: 0,
+      max_attachment_size_bytes: 0,
+      max_email_aliases: 0,
+      max_custom_domains: 0,
+      price_cents: 0,
+      billing_period: interval,
+      stripe_price_id: null,
+      is_current: false,
+    } as AvailablePlan);
+
+    set_plan_change_confirm_target({ plan, interval });
+    set_show_plan_change_confirm(true);
+  };
+
   const handle_pay_with_card = async (plan: AvailablePlan) => {
     if (is_action_loading) return;
 
@@ -603,6 +623,8 @@ export function BillingSection() {
         current_billing_interval={current_billing_interval}
         handle_currency_change={handle_currency_change}
         is_action_loading={is_action_loading}
+        on_family_plan_change={handle_family_plan_change}
+        on_tauri_checkout_opened={() => { pending_tauri_checkout_ref.current = true; }}
         on_upgrade={handle_select_plan}
         plan_features={plan_features}
         plans={plans}

@@ -52,6 +52,8 @@ interface AvailablePlansSectionProps {
   plan_features: Record<string, { label: string; on: boolean }[]>;
   is_action_loading: boolean;
   on_upgrade: (plan: AvailablePlan) => void;
+  on_family_plan_change?: (plan_code: string, interval: "month" | "year") => void;
+  on_tauri_checkout_opened?: () => void;
   current_billing_interval: "month" | "year";
 }
 
@@ -65,6 +67,8 @@ export function AvailablePlansSection({
   plan_features,
   is_action_loading,
   on_upgrade,
+  on_family_plan_change,
+  on_tauri_checkout_opened,
   current_billing_interval,
 }: AvailablePlansSectionProps) {
   const { t } = use_i18n();
@@ -73,8 +77,6 @@ export function AvailablePlansSection({
   const [pending_family_tier, set_pending_family_tier] = useState<FamilyPlanTier | null>(null);
   const [crypto_family_tier, set_crypto_family_tier] = useState<FamilyPlanTier | null>(null);
 
-  const billing_interval: "month" | "year" = billing_period === "yearly" ? "year" : "month";
-
   const handle_family_select = (tier: FamilyPlanTier) => {
     set_pending_family_tier(tier);
   };
@@ -82,14 +84,39 @@ export function AvailablePlansSection({
   const handle_family_card = async () => {
     if (!pending_family_tier) return;
     const tier = pending_family_tier;
+    const card_interval: "month" | "year" = billing_period === "yearly" ? "year" : "month";
     set_pending_family_tier(null);
+
+    const has_existing_sub =
+      !!subscription &&
+      subscription.plan.code !== "free" &&
+      subscription.payment_provider !== "stripe_crypto";
+
+    if (has_existing_sub && on_family_plan_change) {
+      on_family_plan_change(tier.id, card_interval);
+      return;
+    }
+
     set_family_loading(true);
     try {
-      const res = await create_family_group(tier.id, billing_interval);
+      const is_tauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+      const origin = is_tauri ? "https://app.astermail.org" : window.location.origin;
+      const res = await create_family_group(
+        tier.id,
+        card_interval,
+        `${origin}/?family=success`,
+        `${origin}/?family=cancelled`,
+      );
       if (res.data?.checkout_url) {
         const parsed = new URL(res.data.checkout_url);
         if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
-        window.location.href = parsed.toString();
+        if (is_tauri) {
+          const core = await import("@tauri-apps/api/core");
+          await core.invoke("open_external_url", { url: parsed.toString() });
+          on_tauri_checkout_opened?.();
+        } else {
+          window.location.href = parsed.toString();
+        }
       } else {
         show_toast(t("settings.failed_checkout"), "error");
       }
@@ -269,6 +296,7 @@ export function AvailablePlansSection({
         <CryptoTermModal
           is_open={!!crypto_family_tier}
           monthly_price_cents={crypto_family_tier.monthly_cents}
+          on_checkout_opened={on_tauri_checkout_opened}
           on_close={() => set_crypto_family_tier(null)}
           plan_code={crypto_family_tier.id}
           plan_name={crypto_family_tier.name}
