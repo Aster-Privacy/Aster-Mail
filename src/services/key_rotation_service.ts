@@ -25,7 +25,9 @@ import {
   generate_identity_keypair,
   generate_signed_prekey,
   encrypt_vault,
+  decrypt_vault,
 } from "@/services/crypto/key_manager";
+import { get_stored_encrypted_vault } from "@/contexts/auth/session_passphrase";
 import { retain_previous_ratchet_keys } from "@/services/crypto/key_manager_core";
 import {
   parse_ratchet_envelope,
@@ -65,7 +67,45 @@ export interface RotationResult {
   encrypted_vault?: string;
   vault_nonce?: string;
   new_fingerprint?: string;
+  bundle_published?: boolean;
   error?: string;
+}
+
+/*
+ * Rotation re-encrypts the vault with whatever password is supplied, so a
+ * typo here would lock the user out at their next login. The stored
+ * encrypted vault (refreshed at every login) is the authoritative check;
+ * the identity key passphrase is the fallback when no local copy exists.
+ */
+export async function verify_vault_password(
+  user_id: string,
+  vault: EncryptedVault,
+  password: string,
+): Promise<boolean> {
+  const stored = get_stored_encrypted_vault(user_id);
+
+  if (stored) {
+    try {
+      await decrypt_vault(stored.encrypted_vault, stored.vault_nonce, password);
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  try {
+    await openpgp.decryptKey({
+      ["privateKey" as const]: await openpgp.readPrivateKey({
+        armoredKey: vault.identity_key,
+      }),
+      passphrase: password,
+    });
+
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function array_to_base64(arr: Uint8Array): string {
@@ -278,22 +318,32 @@ export async function perform_key_rotation(
       return { success: false, error: response.error ?? "Rotation failed" };
     }
 
-    const bundle_uploaded = await upload_prekey_bundle(new_vault);
+    /*
+     * The server has committed the new key and vault at this point, so the
+     * rotation must be reported as successful even if the bundle publish
+     * fails - failing here used to strand the client on the old vault while
+     * the server held the new one, making every retry fail proof
+     * verification. ensure_ratchet_keys republishes the bundle on the next
+     * app start, so a miss self-heals.
+     */
+    let bundle_published = false;
 
-    if (!bundle_uploaded) {
-      return {
-        success: false,
-        error: "Failed to publish new ratchet bundle",
-      };
-    }
+    try {
+      bundle_published = await upload_prekey_bundle(new_vault);
 
-    await clear_all_ratchet_states();
+      if (!bundle_published) {
+        bundle_published = await upload_prekey_bundle(new_vault);
+      }
+    } catch {}
+
+    await clear_all_ratchet_states().catch(() => {});
 
     return {
       success: true,
       new_vault,
       encrypted_vault,
       vault_nonce,
+      bundle_published,
       new_fingerprint: response.data.new_key_fingerprint ?? undefined,
     };
   } catch (error) {

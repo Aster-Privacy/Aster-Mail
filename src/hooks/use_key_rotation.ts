@@ -26,8 +26,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import {
   check_rotation_needed,
   perform_key_rotation,
+  verify_vault_password,
   type RotationCheckResult,
 } from "@/services/key_rotation_service";
+import { get_identity_key_status } from "@/services/api/key_rotation";
 import {
   store_vault_in_memory,
   get_vault_from_memory,
@@ -121,26 +123,38 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
         return t("common.rotation_failed");
       }
 
-      const current_vault = get_vault_from_memory();
-
-      if (!current_vault) {
-        return t("common.session_expired_login");
-      }
-
-      let server_public_key = state.current_public_key;
-
-      if (!server_public_key) {
-        const status_result = await check_rotation_needed(preferences);
-
-        if (!status_result.current_public_key) {
-          return t("common.failed_to_retrieve_key");
-        }
-        server_public_key = status_result.current_public_key;
-      }
-
       is_rotating_ref.current = true;
 
       try {
+        const current_vault = get_vault_from_memory();
+
+        if (!current_vault) {
+          return t("common.session_expired_login");
+        }
+
+        // Rotation re-encrypts the vault with this password; an unverified
+        // typo would lock the account out at the next login.
+        const password_ok = await verify_vault_password(
+          user.id,
+          current_vault,
+          password,
+        );
+
+        if (!password_ok) {
+          return t("common.incorrect_password");
+        }
+
+        // Always fetch the key the server currently holds. The cached value
+        // goes stale when a previous attempt rotated the key server side but
+        // failed afterwards, which made every retry fail proof verification.
+        const status = await get_identity_key_status();
+        const server_public_key =
+          status.data?.current_public_key ?? state.current_public_key;
+
+        if (!server_public_key) {
+          return t("common.failed_to_retrieve_key");
+        }
+
         const result = await perform_key_rotation(
           current_vault,
           password,
@@ -165,18 +179,15 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
           }));
 
           show_toast(t("common.encryption_keys_rotated"), "success");
-          is_rotating_ref.current = false;
 
           return null;
-        } else {
-          is_rotating_ref.current = false;
-
-          return result.error ?? t("common.failed_to_rotate_keys");
         }
-      } catch (error) {
-        is_rotating_ref.current = false;
 
+        return result.error ?? t("common.failed_to_rotate_keys");
+      } catch (error) {
         return error instanceof Error ? error.message : t("common.rotation_failed");
+      } finally {
+        is_rotating_ref.current = false;
       }
     },
     [user, preferences, state.current_public_key, t],

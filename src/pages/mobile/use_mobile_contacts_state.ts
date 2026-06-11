@@ -592,26 +592,32 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
       } else {
         const result = await create_contact_encrypted(saved_form);
 
-        if (result.data?.success && result.data.id) {
-          const new_contact: DecryptedContact = {
-            id: result.data.id,
-            first_name: saved_form.first_name,
-            last_name: saved_form.last_name,
-            emails: saved_form.emails,
-            phone: saved_form.phone || undefined,
-            company: saved_form.company || undefined,
-            job_title: saved_form.job_title || undefined,
-            birthday: saved_form.birthday || undefined,
-            notes: saved_form.notes || undefined,
-            address: saved_form.address,
-            social_links: saved_form.social_links,
-            is_favorite: saved_form.is_favorite ?? false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-
-          set_contacts((prev) => [new_contact, ...prev]);
+        if (result.error || !result.data?.id) {
+          show_toast(t("common.failed_to_create_contact"), "error");
+          return;
         }
+
+        const new_contact: DecryptedContact = {
+          id: result.data.id,
+          first_name: saved_form.first_name,
+          last_name: saved_form.last_name,
+          emails: saved_form.emails,
+          phone: saved_form.phone || undefined,
+          company: saved_form.company || undefined,
+          job_title: saved_form.job_title || undefined,
+          birthday: saved_form.birthday || undefined,
+          notes: saved_form.notes || undefined,
+          address: saved_form.address,
+          social_links: saved_form.social_links,
+          is_favorite: saved_form.is_favorite ?? false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        set_contacts((prev) => [new_contact, ...prev]);
+        set_show_create(false);
+        set_selected_contact(new_contact);
+        return;
       }
       set_show_create(false);
       set_selected_contact(null);

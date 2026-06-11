@@ -115,7 +115,7 @@ export function KeyRotationModal({
   };
 
   const handle_key_down = (e: React.KeyboardEvent) => {
-    if (e["key"] === "Enter" && password && state === "idle") {
+    if (e["key"] === "Enter" && password && state !== "rotating") {
       handle_submit();
     }
   };
