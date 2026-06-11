@@ -61,6 +61,7 @@ import {
 import { configure_session_timeout } from "@/services/session_timeout_service";
 import { set_low_network_mode } from "@/services/low_network_state";
 import { stop_version_check } from "@/lib/version_check";
+import { set_preload_email_font_px } from "@/components/email/hooks/preload_cache";
 
 const LANGUAGE_OPTIONS = get_supported_languages().map((lang) => ({
   code: lang.code,
@@ -106,7 +107,7 @@ const LEGACY_FONT_SIZE_MAP: Record<string, number> = {
   extra_large: 19,
 };
 
-function normalize_font_size_scale(value: unknown): number {
+export function normalize_font_size_scale(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) {
     return Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, Math.round(value)));
   }
@@ -497,12 +498,12 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     root.classList.toggle("reduce-motion", prefs.reduce_motion ?? false);
     root.classList.toggle("compact-mode", prefs.compact_mode ?? false);
 
+    const email_scale = normalize_font_size_scale(prefs.font_size_scale);
     root.style.setProperty(
       "--font-scale",
-      String(
-        normalize_font_size_scale(prefs.font_size_scale) / FONT_SIZE_DEFAULT,
-      ),
+      String(email_scale / FONT_SIZE_DEFAULT),
     );
+    set_preload_email_font_px(Math.round(14 * (email_scale / FONT_SIZE_DEFAULT)));
 
     root.classList.toggle("high-contrast", prefs.high_contrast ?? false);
     root.classList.toggle(
