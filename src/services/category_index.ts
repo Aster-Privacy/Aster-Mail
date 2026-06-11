@@ -134,7 +134,7 @@ function notify(): void {
 }
 
 function notify_soon(): void {
-  if (notify_timer) return;
+  if (notify_timer) clearTimeout(notify_timer);
 
   notify_timer = setTimeout(() => {
     notify_timer = null;
@@ -689,12 +689,14 @@ export async function sync_recent(): Promise<void> {
     }
     last_build_ms = now_ms();
   } catch {
+    last_build_ms = 0;
+    schedule_resync();
     return;
   }
 }
 
 function schedule_resync(): void {
-  if (resync_timer) return;
+  if (resync_timer) clearTimeout(resync_timer);
 
   resync_timer = setTimeout(() => {
     resync_timer = null;
@@ -818,6 +820,13 @@ export function start_event_listeners(): void {
 
   on_mail_event(MAIL_EVENTS.MAIL_CHANGED, () => {
     schedule_resync();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      last_build_ms = 0;
+      schedule_resync();
+    }
   });
 
   on_mail_event(MAIL_EVENTS.MAIL_ITEM_UPDATED, (detail) => {

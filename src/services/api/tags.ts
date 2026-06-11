@@ -145,7 +145,7 @@ export async function get_tag_counts(): Promise<
   ApiResponse<TagCountsResponse>
 > {
   return api_client.get<TagCountsResponse>("/mail/v1/tags/counts", {
-    cache_ttl: 60_000,
+    skip_cache: true,
   });
 }
 

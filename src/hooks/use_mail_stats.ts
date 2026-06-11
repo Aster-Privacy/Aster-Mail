@@ -288,6 +288,7 @@ class MailStatsStore {
   }
 
   fetch_debounced(): void {
+    this.invalidate();
     if (this.debounce_timer) {
       clearTimeout(this.debounce_timer);
     }
@@ -461,6 +462,13 @@ export function use_mail_stats(): UseMailStatsReturn {
       stats_store.fetch(true);
     };
 
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible" && has_passphrase_in_memory()) {
+        stats_store.invalidate();
+        stats_store.fetch(false);
+      }
+    };
+
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_change);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
@@ -473,6 +481,7 @@ export function use_mail_stats(): UseMailStatsReturn {
     window.addEventListener(MAIL_EVENTS.PROTECTED_FOLDERS_READY, handle_change);
     window.addEventListener("astermail:folder-locked", handle_change);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
+    document.addEventListener("visibilitychange", handle_visibility);
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
@@ -490,6 +499,7 @@ export function use_mail_stats(): UseMailStatsReturn {
       );
       window.removeEventListener("astermail:folder-locked", handle_change);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
+      document.removeEventListener("visibilitychange", handle_visibility);
     };
   }, []);
 

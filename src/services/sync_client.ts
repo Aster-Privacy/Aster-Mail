@@ -172,6 +172,7 @@ class SyncClient {
           this.reconnect_attempt = 0;
           if (is_reconnect) {
             void sync_recent();
+            window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
           }
           resolve();
         } else if (data.type === "auth_error") {

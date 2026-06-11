@@ -53,6 +53,12 @@ import {
   adjust_trash_count,
 } from "@/hooks/use_mail_counts";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import {
+  compute_archive_deltas,
+  compute_trash_deltas,
+  apply_stat_deltas,
+  revert_stat_deltas,
+} from "@/hooks/use_stat_helpers";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { set_forward_mail_id } from "@/services/forward_store";
 
@@ -158,6 +164,15 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
     deps.set_is_archive_loading(true);
     deps.set_is_archive_confirm_open(false);
 
+    const is_read = deps.mail_item?.metadata?.is_read !== false;
+    const deltas = deps.mail_item
+      ? compute_archive_deltas({
+          item_type: deps.mail_item.item_type,
+          is_read,
+        })
+      : null;
+    if (deltas) apply_stat_deltas(deltas);
+
     const result = await batch_archive({ ids: [deps.email_id], tier: "hot" });
 
     deps.set_is_archive_loading(false);
@@ -169,17 +184,21 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         action_type: "archive",
         email_ids: [deps.email_id],
         on_undo: async () => {
+          if (deltas) revert_stat_deltas(deltas);
           await batch_unarchive({ ids: [deps.email_id!] });
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
       deps.navigate(deps.get_next_email_destination());
+    } else if (deltas) {
+      revert_stat_deltas(deltas);
     }
   }, [
     deps.email_id,
     deps.is_archive_loading,
     deps.get_next_email_destination,
     deps.navigate,
+    deps.mail_item,
   ]);
 
   const handle_trash = useCallback(async () => {
@@ -206,6 +225,13 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         deps.navigate(deps.get_next_email_destination());
       }
     } else {
+      const is_read = deps.mail_item.metadata?.is_read !== false;
+      const deltas = compute_trash_deltas({
+        item_type: deps.mail_item.item_type,
+        is_read,
+      });
+      apply_stat_deltas(deltas);
+
       const result = await update_item_metadata(
         deps.email_id,
         {
@@ -226,6 +252,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           action_type: "trash",
           email_ids: [deps.email_id],
           on_undo: async () => {
+            revert_stat_deltas(deltas);
             await update_item_metadata(
               deps.email_id!,
               {
@@ -240,6 +267,8 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           },
         });
         deps.navigate(deps.get_next_email_destination());
+      } else {
+        revert_stat_deltas(deltas);
       }
     }
   }, [

@@ -48,6 +48,7 @@ import {
 } from "@/components/toast/action_toast";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { adjust_starred_count } from "@/hooks/use_mail_counts";
+import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { use_i18n } from "@/lib/i18n/context";
 
 export interface BulkActions {
@@ -405,6 +406,12 @@ export function use_bulk_actions(
   const bulk_mark_read = useCallback(
     async (emails: InboxEmail[], is_read: boolean): Promise<boolean> => {
       const action_type: ActionType = is_read ? "read" : "unread";
+      const changing = emails.filter(
+        (e) => e.item_type === "received" && e.is_read !== is_read,
+      );
+      const unread_delta = is_read ? -changing.length : changing.length;
+
+      if (unread_delta !== 0) adjust_stats_unread(unread_delta);
 
       return execute_bulk_action(emails, {
         action_type,
@@ -416,6 +423,20 @@ export function use_bulk_actions(
         error_message: is_read
           ? t("common.failed_to_mark_as_read")
           : t("common.failed_to_mark_as_unread"),
+        on_partial_failure: (failed_ids) => {
+          const failed_changing = emails.filter(
+            (e) =>
+              failed_ids.includes(e.id) &&
+              e.item_type === "received" &&
+              e.is_read !== is_read,
+          ).length;
+          const revert_delta = is_read ? failed_changing : -failed_changing;
+
+          if (revert_delta !== 0) adjust_stats_unread(revert_delta);
+        },
+        on_full_rollback: () => {
+          if (unread_delta !== 0) adjust_stats_unread(-unread_delta);
+        },
       });
     },
     [execute_bulk_action, t],
