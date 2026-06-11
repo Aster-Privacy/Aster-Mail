@@ -232,7 +232,6 @@ export const ALLOWED_DATA_URL_TYPES = new Set([
   "data:image/avif",
   "data:image/bmp",
   "data:image/tiff",
-  "data:image/svg+xml",
   "data:image/heic",
   "data:image/heif",
   "data:image/x-icon",

@@ -58,7 +58,7 @@ import {
   plain_text_to_html,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
-import { LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import { LOCKDOWN_CHANGED_EVENT, is_any_lockdown_active } from "@/services/lockdown_store";
 import { get_current_account } from "@/services/account_manager";
 import { set_cached_iframe_height } from "@/components/email/sandboxed_email_renderer";
 import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
@@ -362,6 +362,7 @@ function presanitize(
     external_content_mode: is_system ? "always" : "ask",
     image_proxy_url: get_image_proxy_url(),
     sandbox_mode: true,
+    lockdown_mode: is_any_lockdown_active(),
   });
 
   return {
