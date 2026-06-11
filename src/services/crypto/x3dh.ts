@@ -255,6 +255,9 @@ export async function perform_x3dh_receiver(
       dh1.fill(0);
       dh2.fill(0);
       dh3.fill(0);
+      import("./pq_secret_reconciler")
+        .then((m) => m.handle_missing_pq_secret())
+        .catch(() => {});
       throw new Error("Missing PQ prekey secret for the supplied key id");
     }
 

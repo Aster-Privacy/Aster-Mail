@@ -88,22 +88,60 @@ async function get_storage_key(): Promise<CryptoKey> {
   return crypto_key;
 }
 
-function record_key(key_id: number): string {
+async function current_account_uid(): Promise<string | null> {
+  try {
+    const { get_current_account_id } = await import(
+      "@/services/account_manager"
+    );
+
+    return await get_current_account_id();
+  } catch {
+    return null;
+  }
+}
+
+function legacy_record_key(key_id: number): string {
   return `${PQ_PREKEY_STORAGE_PREFIX}${key_id}`;
+}
+
+function record_key(uid: string | null, key_id: number): string {
+  if (!uid) return legacy_record_key(key_id);
+
+  return `${PQ_PREKEY_STORAGE_PREFIX}${uid}_${key_id}`;
+}
+
+function index_key(uid: string | null): string {
+  if (!uid) return PQ_PREKEY_INDEX_KEY;
+
+  return `${PQ_PREKEY_INDEX_KEY}_${uid}`;
+}
+
+async function read_index(
+  storage_key: CryptoKey,
+  uid: string | null,
+): Promise<number[]> {
+  const namespaced =
+    (await encrypted_get<number[]>(index_key(uid), storage_key)) || [];
+
+  if (namespaced.length > 0 || !uid) return namespaced;
+
+  return (
+    (await encrypted_get<number[]>(PQ_PREKEY_INDEX_KEY, storage_key)) || []
+  );
 }
 
 async function update_index(
   storage_key: CryptoKey,
+  uid: string | null,
   mutate: (current: number[]) => number[],
 ): Promise<void> {
-  const current =
-    (await encrypted_get<number[]>(PQ_PREKEY_INDEX_KEY, storage_key)) || [];
+  const current = await read_index(storage_key, uid);
   const next = mutate(current);
 
   if (next.length === 0) {
-    await encrypted_delete(PQ_PREKEY_INDEX_KEY);
+    await encrypted_delete(index_key(uid));
   } else {
-    await encrypted_set(PQ_PREKEY_INDEX_KEY, next, storage_key);
+    await encrypted_set(index_key(uid), next, storage_key);
   }
 }
 
@@ -215,14 +253,15 @@ export async function save_pq_secret(
   secret: Uint8Array,
 ): Promise<void> {
   const storage_key = await get_storage_key();
+  const uid = await current_account_uid();
   const record: StoredPqSecret = {
     key_id,
     secret_key_b64: array_to_base64(secret),
   };
 
-  await encrypted_set(record_key(key_id), record, storage_key);
+  await encrypted_set(record_key(uid, key_id), record, storage_key);
 
-  await update_index(storage_key, (current) => {
+  await update_index(storage_key, uid, (current) => {
     if (current.includes(key_id)) {
       return current;
     }
@@ -238,13 +277,34 @@ export async function load_pq_secret(
 ): Promise<Uint8Array | null> {
   try {
     const storage_key = await get_storage_key();
+    const uid = await current_account_uid();
     const record = await encrypted_get<StoredPqSecret>(
-      record_key(key_id),
+      record_key(uid, key_id),
       storage_key,
     );
 
     if (record) {
       return base64_to_array(record.secret_key_b64);
+    }
+
+    if (uid) {
+      const legacy = await encrypted_get<StoredPqSecret>(
+        legacy_record_key(key_id),
+        storage_key,
+      );
+
+      if (legacy) {
+        try {
+          await encrypted_set(record_key(uid, key_id), legacy, storage_key);
+          await update_index(storage_key, uid, (current) =>
+            current.includes(key_id) ? current : [...current, key_id],
+          );
+        } catch {
+          /* best-effort migration */
+        }
+
+        return base64_to_array(legacy.secret_key_b64);
+      }
     }
   } catch {
     /* fall through */
@@ -255,13 +315,14 @@ export async function load_pq_secret(
   if (remote) {
     try {
       const storage_key = await get_storage_key();
+      const uid = await current_account_uid();
       const record: StoredPqSecret = {
         key_id,
         secret_key_b64: array_to_base64(remote),
       };
 
-      await encrypted_set(record_key(key_id), record, storage_key);
-      await update_index(storage_key, (current) =>
+      await encrypted_set(record_key(uid, key_id), record, storage_key);
+      await update_index(storage_key, uid, (current) =>
         current.includes(key_id) ? current : [...current, key_id],
       );
     } catch {
@@ -275,10 +336,14 @@ export async function load_pq_secret(
 export async function delete_pq_secret(key_id: number): Promise<void> {
   try {
     const storage_key = await get_storage_key();
+    const uid = await current_account_uid();
 
-    await encrypted_delete(record_key(key_id));
+    await encrypted_delete(record_key(uid, key_id));
+    if (uid) {
+      await encrypted_delete(legacy_record_key(key_id));
+    }
 
-    await update_index(storage_key, (current) =>
+    await update_index(storage_key, uid, (current) =>
       current.filter((id) => id !== key_id),
     );
   } catch {
@@ -291,14 +356,21 @@ export async function delete_pq_secret(key_id: number): Promise<void> {
 export async function backfill_pq_secrets_to_server(): Promise<void> {
   try {
     const storage_key = await get_storage_key();
-    const ids =
-      (await encrypted_get<number[]>(PQ_PREKEY_INDEX_KEY, storage_key)) || [];
+    const uid = await current_account_uid();
+    const ids = await read_index(storage_key, uid);
 
     for (const key_id of ids) {
-      const record = await encrypted_get<StoredPqSecret>(
-        record_key(key_id),
+      let record = await encrypted_get<StoredPqSecret>(
+        record_key(uid, key_id),
         storage_key,
       );
+
+      if (!record && uid) {
+        record = await encrypted_get<StoredPqSecret>(
+          legacy_record_key(key_id),
+          storage_key,
+        );
+      }
 
       if (!record) continue;
 
@@ -315,12 +387,9 @@ export async function backfill_pq_secrets_to_server(): Promise<void> {
 export async function list_pq_secret_ids(): Promise<number[]> {
   try {
     const storage_key = await get_storage_key();
-    const index = await encrypted_get<number[]>(
-      PQ_PREKEY_INDEX_KEY,
-      storage_key,
-    );
+    const uid = await current_account_uid();
 
-    return index || [];
+    return await read_index(storage_key, uid);
   } catch {
     return [];
   }

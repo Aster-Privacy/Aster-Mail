@@ -363,19 +363,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
         ]);
       } catch {}
 
-      if (encrypted_vault && vault_nonce) {
-        store_encrypted_vault(user.id, encrypted_vault, vault_nonce);
+      try {
+        if (encrypted_vault && vault_nonce) {
+          store_encrypted_vault(user.id, encrypted_vault, vault_nonce);
+        }
+      } catch (e) {
+        safe_log_error(e);
       }
 
-      await storage_add_account(user);
+      const add_result = await with_timeout(storage_add_account(user), 5000);
+      const persisted = add_result?.success === true;
 
-      const active_token = api_client.get_access_token();
-      if (active_token) {
-        await update_account_tokens(
-          user.id,
-          active_token,
-          api_client.get_active_refresh_token(),
-        );
+      if (persisted) {
+        const active_token = api_client.get_access_token();
+        if (active_token) {
+          await with_timeout(
+            update_account_tokens(
+              user.id,
+              active_token,
+              api_client.get_active_refresh_token(),
+            ),
+            3000,
+          );
+        }
       }
 
       api_client.set_authenticated(true);
@@ -390,7 +400,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       start_session_timeout(user.id);
 
-      const accounts = await get_all_accounts();
+      let accounts = (await with_timeout(get_all_accounts(), 3000)) ?? [];
+
+      if (!accounts.some((a) => a.id === user.id)) {
+        accounts = [...accounts, { id: user.id, user, added_at: Date.now() }];
+      }
 
       set_state({
         user,

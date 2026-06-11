@@ -19,13 +19,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client } from "@/services/api/client";
-import { generate_and_upload_prekeys } from "@/services/crypto/prekey_service";
-import { list_pq_secret_ids } from "@/services/crypto/pq_prekey_store";
+import {
+  generate_and_upload_prekeys,
+  wipe_published_pq_prekeys,
+} from "@/services/crypto/prekey_service";
+import {
+  list_pq_secret_ids,
+  backfill_pq_secrets_to_server,
+} from "@/services/crypto/pq_prekey_store";
+import { has_vault_in_memory } from "@/services/crypto/memory_key_store";
 
-const RECONCILER_ENABLED_FLAG = "astermail_pq_reconciler_enabled";
-const RECONCILER_RAN_FLAG = "astermail_pq_reconciler_v1";
+const RECONCILER_DISABLED_FLAG = "astermail_pq_reconciler_disabled";
+const RECONCILER_RAN_AT_PREFIX = "astermail_pq_reconciler_at_";
 const RECONCILER_LOCK_FLAG = "astermail_pq_reconciler_lock";
+const SELF_HEAL_AT_PREFIX = "astermail_pq_self_heal_at_";
 const LOCK_TIMEOUT_MS = 30000;
+const RECONCILE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const SELF_HEAL_INTERVAL_MS = 10 * 60 * 1000;
+
+let self_heal_in_progress = false;
 
 function is_dev(): boolean {
   try {
@@ -39,23 +51,43 @@ function is_dev(): boolean {
 
 function is_enabled(): boolean {
   try {
-    return localStorage.getItem(RECONCILER_ENABLED_FLAG) === "1";
+    return localStorage.getItem(RECONCILER_DISABLED_FLAG) !== "1";
   } catch {
     return false;
   }
 }
 
-function already_ran(): boolean {
+async function current_uid(): Promise<string | null> {
   try {
-    return localStorage.getItem(RECONCILER_RAN_FLAG) === "1";
+    const { get_current_account_id } = await import(
+      "@/services/account_manager"
+    );
+
+    return await get_current_account_id();
+  } catch {
+    return null;
+  }
+}
+
+function ran_recently(uid: string | null): boolean {
+  try {
+    const raw = localStorage.getItem(RECONCILER_RAN_AT_PREFIX + (uid ?? ""));
+
+    if (!raw) return false;
+    const ts = parseInt(raw, 10);
+
+    return !Number.isNaN(ts) && Date.now() - ts < RECONCILE_INTERVAL_MS;
   } catch {
     return true;
   }
 }
 
-function mark_ran(): void {
+function mark_ran(uid: string | null): void {
   try {
-    localStorage.setItem(RECONCILER_RAN_FLAG, "1");
+    localStorage.setItem(
+      RECONCILER_RAN_AT_PREFIX + (uid ?? ""),
+      String(Date.now()),
+    );
   } catch {
     /* best-effort */
   }
@@ -115,12 +147,28 @@ async function count_local_pq_secrets(): Promise<number> {
   }
 }
 
+async function rotate_pq_pool(): Promise<boolean> {
+  const wiped = await wipe_published_pq_prekeys();
+
+  if (is_dev()) {
+    console.info("[pq_reconciler] wipe published pq prekeys: %s", wiped);
+  }
+
+  return generate_and_upload_prekeys(true);
+}
+
 export async function reconcile_pq_secrets_with_server(): Promise<void> {
   if (!is_enabled()) return;
-  if (already_ran()) return;
+  if (!has_vault_in_memory()) return;
+
+  const uid = await current_uid();
+
+  if (ran_recently(uid)) return;
   if (!try_acquire_lock()) return;
 
   try {
+    backfill_pq_secrets_to_server().catch(() => {});
+
     const server_count = await fetch_server_pq_count();
 
     if (server_count === null) return;
@@ -128,7 +176,7 @@ export async function reconcile_pq_secrets_with_server(): Promise<void> {
     const local_count = await count_local_pq_secrets();
 
     if (server_count <= local_count) {
-      mark_ran();
+      mark_ran(uid);
 
       return;
     }
@@ -142,7 +190,7 @@ export async function reconcile_pq_secrets_with_server(): Promise<void> {
       );
     }
 
-    const ok = await generate_and_upload_prekeys(true);
+    const ok = await rotate_pq_pool();
 
     if (!ok) {
       if (is_dev()) {
@@ -152,7 +200,7 @@ export async function reconcile_pq_secrets_with_server(): Promise<void> {
       return;
     }
 
-    mark_ran();
+    mark_ran(uid);
 
     if (is_dev()) {
       console.info("[pq_reconciler] complete: fresh pq prekeys uploaded");
@@ -163,5 +211,44 @@ export async function reconcile_pq_secrets_with_server(): Promise<void> {
     }
   } finally {
     release_lock();
+  }
+}
+
+export async function handle_missing_pq_secret(): Promise<void> {
+  if (!is_enabled()) return;
+  if (self_heal_in_progress) return;
+  if (!has_vault_in_memory()) return;
+
+  const uid = await current_uid();
+
+  try {
+    const raw = localStorage.getItem(SELF_HEAL_AT_PREFIX + (uid ?? ""));
+
+    if (raw) {
+      const ts = parseInt(raw, 10);
+
+      if (!Number.isNaN(ts) && Date.now() - ts < SELF_HEAL_INTERVAL_MS) {
+        return;
+      }
+    }
+    localStorage.setItem(SELF_HEAL_AT_PREFIX + (uid ?? ""), String(Date.now()));
+  } catch {
+    return;
+  }
+
+  self_heal_in_progress = true;
+
+  try {
+    const ok = await rotate_pq_pool();
+
+    if (is_dev()) {
+      console.info("[pq_reconciler] self-heal after missing secret: %s", ok);
+    }
+  } catch (error) {
+    if (is_dev()) {
+      console.info("[pq_reconciler] self-heal failed", error);
+    }
+  } finally {
+    self_heal_in_progress = false;
   }
 }
