@@ -3934,6 +3934,9 @@ export const zh_CN = {
     usage_filters: "过滤器",
     time_format_12h: "12小时制",
     time_format_24h: "24小时制",
+    show_signature_separator: "签名分隔符",
+    show_signature_separator_description:
+      "在发出邮件的签名上方添加 '--' 分隔线。",
     show_aster_branding: "显示 Aster 品牌",
     show_aster_branding_description: "在您的邮件签名中显示「使用 Aster 发送」",
     show_aster_branding_free_note: "在免费套餐中无法隐藏",

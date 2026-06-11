@@ -4038,6 +4038,9 @@ export const ru = {
     security_keys_description: "Использовать аппаратные ключи безопасности или пароли для входа",
     select_color: "Выбрать цвет {{name}}",
     send_referral_to_contacts: "Пригласить всех контактов по email",
+    show_signature_separator: "Разделитель подписи",
+    show_signature_separator_description:
+      "Добавить строку-разделитель '--' над подписью в исходящих письмах.",
     show_aster_branding: "Водяной знак Aster Mail",
     show_aster_branding_description: "Показывать «Защищено Aster Mail» в конце исходящих писем.",
     show_aster_branding_free_note: "Перейдите на платный тариф, чтобы убрать водяной знак.",

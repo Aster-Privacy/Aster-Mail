@@ -656,6 +656,21 @@ export function SignaturesSection({
 
         <SettingsGroup>
           <SettingsRow
+            description={t("settings.show_signature_separator_description")}
+            label={t("settings.show_signature_separator")}
+            trailing={
+              <Switch
+                checked={preferences.show_signature_separator !== false}
+                onCheckedChange={(v) =>
+                  update_preference("show_signature_separator", v, true)
+                }
+              />
+            }
+          />
+        </SettingsGroup>
+
+        <SettingsGroup>
+          <SettingsRow
             label={t("settings.show_aster_branding")}
             trailing={
               is_paid_plan ? (

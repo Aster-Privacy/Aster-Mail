@@ -28,6 +28,7 @@ import {
 } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
+import { use_preferences } from "@/contexts/preferences_context";
 import {
   list_signatures,
   get_default_signature,
@@ -53,6 +54,7 @@ interface SignaturesProviderProps {
 
 export function SignaturesProvider({ children }: SignaturesProviderProps) {
   const { vault, is_authenticated, is_completing_registration } = use_auth();
+  const { preferences } = use_preferences();
   const [signatures, set_signatures] = useState<DecryptedSignature[]>([]);
   const [default_signature, set_default_signature] =
     useState<DecryptedSignature | null>(null);
@@ -116,9 +118,11 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
             .replace(/"/g, "&quot;")
             .replace(/\n/g, "<br>");
 
-      return `<div data-aster-signature="1" data-aster-signature-id="${signature.id}"><br><br>--<br>${content}</div>`;
+      const separator = preferences.show_signature_separator !== false ? "--<br>" : "";
+
+      return `<div data-aster-signature="1" data-aster-signature-id="${signature.id}"><br><br>${separator}${content}</div>`;
     },
-    [],
+    [preferences.show_signature_separator],
   );
 
   const resolve_signature = useCallback(

@@ -3799,6 +3799,9 @@ export const en: Translations = {
     show_badges_in_signature: "Show badges in emails",
     show_badges_in_signature_description:
       "Display your badges in the signature area of outgoing emails.",
+    show_signature_separator: "Signature separator",
+    show_signature_separator_description:
+      "Add a '--' separator line above your signature in outgoing emails.",
     show_aster_branding: "Aster Mail watermark",
     show_aster_branding_description:
       "Show 'Secured by Aster Mail' at the bottom of outgoing emails.",

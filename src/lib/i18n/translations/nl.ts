@@ -4039,6 +4039,9 @@ export const nl = {
     security_keys_description: "Gebruik een fysieke beveiligingssleutel als tweede factor",
     select_color: "Kleur {{name}} selecteren",
     send_referral_to_contacts: "Doorverwijzing naar contacten sturen",
+    show_signature_separator: "Handtekeningscheider",
+    show_signature_separator_description:
+      "Voeg een '--' scheidingslijn toe boven uw handtekening in uitgaande e-mails.",
     show_aster_branding: "Aster-branding tonen",
     show_aster_branding_description: "Toon Verzonden met Aster Mail in uw e-mails",
     show_aster_branding_free_note: "Aster-branding is vereist voor gratis accounts",

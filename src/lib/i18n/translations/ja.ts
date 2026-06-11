@@ -3986,6 +3986,9 @@ export const ja = {
     security_keys_description: "ログインにハードウェアセキュリティキーまたはパスキーを使用します",
     select_color: "色{{name}}を選択",
     send_referral_to_contacts: "すべての連絡先にメールを送る",
+    show_signature_separator: "署名セパレーター",
+    show_signature_separator_description:
+      "送信メールの署名の上に「--」区切り線を追加します。",
     show_aster_branding: "Aster Mailのウォーターマーク",
     show_aster_branding_description: "送信メールの下部に「Aster Mailで保護」を表示します。",
     show_aster_branding_free_note: "ウォーターマークを削除するには有料プランにアップグレードしてください。",
