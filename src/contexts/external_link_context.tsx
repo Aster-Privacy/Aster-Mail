@@ -104,12 +104,12 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
   );
 
   const handle_confirm = useCallback(() => {
-    if (pending_url) {
+    if (pending_url && !lockdown_active && !is_any_lockdown_active()) {
       open_url(pending_url);
     }
     set_is_modal_open(false);
     set_pending_url("");
-  }, [pending_url, open_url]);
+  }, [pending_url, lockdown_active, open_url]);
 
   const handle_cancel = useCallback(() => {
     set_is_modal_open(false);

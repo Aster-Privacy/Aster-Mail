@@ -36,6 +36,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { EmailTag } from "@/components/ui/email_tag";
 import { use_subscriptions } from "@/hooks/use_subscriptions";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_external_link } from "@/contexts/external_link_context";
 import {
   CATEGORY_TAG_VARIANT,
   get_category_label,
@@ -71,6 +72,7 @@ export function SubscriptionsContent({
   on_sender_search,
 }: SubscriptionsContentProps) {
   const { t } = use_i18n();
+  const { handle_external_link } = use_external_link();
   const {
     subscriptions,
     is_loading,
@@ -223,10 +225,10 @@ export function SubscriptionsContent({
       const link = sub.unsubscribe_link || sub.list_unsubscribe_header;
 
       if (link) {
-        window.open(link, "_blank", "noopener,noreferrer");
+        handle_external_link(link);
       }
     },
-    [],
+    [handle_external_link],
   );
 
   const handle_reactivate = useCallback(

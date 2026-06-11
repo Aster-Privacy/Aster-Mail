@@ -40,6 +40,7 @@ import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { use_external_link } from "@/contexts/external_link_context";
 
 function DetailCard({ children }: { children: React.ReactNode }) {
   return (
@@ -135,6 +136,7 @@ export function ContactDetailView({
   reduce_motion: boolean;
 }) {
   const { t } = use_i18n();
+  const { handle_external_link } = use_external_link();
   const display_name =
     [contact.first_name, contact.last_name].filter(Boolean).join(" ") ||
     contact.emails[0] ||
@@ -375,11 +377,7 @@ export function ContactDetailView({
                   }
                   label={contact.social_links.website}
                   on_action={() =>
-                    window.open(
-                      contact.social_links!.website!,
-                      "_blank",
-                      "noopener,noreferrer",
-                    )
+                    handle_external_link(contact.social_links!.website!)
                   }
                   on_copy={() => on_copy(contact.social_links!.website!)}
                   sublabel={t("common.website")}

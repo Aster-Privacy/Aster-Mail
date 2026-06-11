@@ -175,14 +175,16 @@ export function ExternalLinkWarningModal({
             >
               {t("common.cancel")}
             </Button>
-            <Button
-              className="max-sm:flex-1"
-              size="xl"
-              variant="depth"
-              onClick={handle_confirm}
-            >
-              {t("common.open_link")}
-            </Button>
+            {!lockdown_active && (
+              <Button
+                className="max-sm:flex-1"
+                size="xl"
+                variant="depth"
+                onClick={handle_confirm}
+              >
+                {t("common.open_link")}
+              </Button>
+            )}
           </AlertDialogFooter>
         </div>
       </AlertDialogContent>
