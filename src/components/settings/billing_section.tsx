@@ -364,7 +364,7 @@ export function BillingSection() {
       subscription.plan.code !== "free" &&
       subscription.payment_provider !== "stripe_crypto";
 
-    if (has_card_sub && !is_tauri) {
+    if (has_card_sub) {
       set_plan_change_confirm_target({ plan, interval: checkout_interval });
       set_show_plan_change_confirm(true);
 
