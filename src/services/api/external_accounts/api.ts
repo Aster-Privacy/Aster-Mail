@@ -868,6 +868,7 @@ export async function list_oauth_folders(
     const response = await api_client.post<{ folders: OAuthFolderInfo[] }>(
       "/mail/v1/external_accounts/oauth/folders",
       { account_token },
+      { timeout: 90000, retry: 1 },
     );
 
     if (response.error || !response.data) {
