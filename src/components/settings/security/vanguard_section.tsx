@@ -247,12 +247,13 @@ export function VanguardSection() {
 
   useEffect(() => {
     if (!is_loading && !is_nova_plus && enabled && account_id) {
-      set_vanguard_enabled(account_id, false);
-      set_lockdown_enabled(account_id, false);
-      clear_app_lock_config(account_id);
-      clear_session_unlock(account_id);
-      set_enabled(false);
-      disable_vanguard();
+      disable_vanguard().then(() => {
+        set_vanguard_enabled(account_id, false);
+        set_lockdown_enabled(account_id, false);
+        clear_app_lock_config(account_id);
+        clear_session_unlock(account_id);
+        set_enabled(false);
+      });
     }
   }, [is_loading, is_nova_plus, enabled, account_id]);
 

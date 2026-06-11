@@ -24,6 +24,18 @@ import {
   COMPOSE_ALLOWED_CSS_PROPERTIES,
 } from "./html_sanitizer_constants";
 
+function decode_css_escapes(css: string): string {
+  return css
+    .replace(/\\([0-9a-fA-F]{1,6})\s?/g, (_, hex) => {
+      const cp = parseInt(hex, 16);
+      if (cp === 0 || (cp >= 0xd800 && cp <= 0xdfff) || cp > 0x10ffff) {
+        return "�";
+      }
+      return String.fromCodePoint(cp);
+    })
+    .replace(/\\(.)/g, "$1");
+}
+
 export function decode_css_entities(raw: string): string {
   let decoded = raw;
 
@@ -65,7 +77,8 @@ export function cap_css_dimension(value: string): string {
 }
 
 export function strip_css_urls(css: string): string {
-  return css.replace(
+  const decoded = decode_css_escapes(css);
+  return decoded.replace(
     /url\s*\(\s*["']?(.*?)["']?\s*\)/gi,
     (_match, url_content) => {
       const trimmed = (url_content || "").trim().toLowerCase();
@@ -98,7 +111,7 @@ export function block_remote_fonts(css: string): string {
 }
 
 export function sanitize_style(style: string, sandbox_mode: boolean): string {
-  const decoded = decode_css_entities(style);
+  const decoded = decode_css_escapes(decode_css_entities(style));
 
   for (const pattern of DANGEROUS_CSS_PATTERNS) {
     if (pattern.test(decoded)) {
@@ -156,7 +169,7 @@ export function strip_dark_mode_media(css: string): string {
 }
 
 export function sanitize_css_block(css: string, _sandbox_mode = false): string {
-  let decoded = decode_css_entities(css);
+  let decoded = decode_css_escapes(decode_css_entities(css));
 
   decoded = decoded.replace(/@import[^;]*;?/gi, "");
   decoded = decoded.replace(/@charset[^;]*;?/gi, "");
