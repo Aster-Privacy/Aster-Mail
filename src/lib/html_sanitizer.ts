@@ -219,8 +219,11 @@ export function sanitize_html(
     let style_match;
 
     while ((style_match = style_regex.exec(head_match[0])) !== null) {
-      const sanitized_css = sanitize_css_block(style_match[1], sandbox_mode);
+      let sanitized_css = sanitize_css_block(style_match[1], sandbox_mode);
 
+      if (lockdown_mode) {
+        sanitized_css = strip_css_urls(sanitized_css);
+      }
       if (sanitized_css.trim()) {
         head_styles.push(sanitized_css);
       }
@@ -457,6 +460,10 @@ export function sanitize_html(
           });
         }
       }
+    }
+
+    if (lockdown_mode && tag_name === "source") {
+      return null;
     }
 
     if (tag_name === "img") {
