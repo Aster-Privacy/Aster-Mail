@@ -291,7 +291,7 @@ export async function remove_account(
 export async function update_account_tokens(
   account_id: string,
   access_token: string | null,
-  refresh_token: string | null,
+  refresh_token: string | null | undefined,
 ): Promise<boolean> {
   const data = await get_accounts_data_async();
   const account = data.accounts.find((a) => a.id === account_id);

@@ -271,6 +271,12 @@ export function cache_preferences_locally(prefs: UserPreferences): void {
   } catch {}
 }
 
+export function clear_preferences_cache(): void {
+  try {
+    localStorage.removeItem(PREFS_CACHE_KEY);
+  } catch {}
+}
+
 export function get_cached_preferences(): UserPreferences | null {
   try {
     const cached = localStorage.getItem(PREFS_CACHE_KEY);

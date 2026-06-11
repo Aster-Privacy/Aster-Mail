@@ -467,11 +467,7 @@ class ApiClient {
         const id = await get_current_account_id();
         if (!id) return;
         if (this.intentional_logout) return;
-        await update_account_tokens(
-          id,
-          access_token,
-          refresh_token === undefined ? null : refresh_token,
-        );
+        await update_account_tokens(id, access_token, refresh_token);
       })
       .catch(() => {});
   }

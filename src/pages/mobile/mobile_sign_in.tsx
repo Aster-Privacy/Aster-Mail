@@ -60,6 +60,7 @@ import {
 } from "@/services/api/totp";
 import { is_webauthn_supported } from "@/services/api/webauthn";
 import { emit_auth_ready } from "@/hooks/mail_events";
+import { get_current_account_id } from "@/services/account_manager";
 import {
   stagger_container,
   fade_up_item,
@@ -209,7 +210,7 @@ export default function MobileSignInPage() {
           ]);
 
         if (is_adding_account) {
-          await login_timeout(
+          const add_result = await login_timeout(
             add_account(
               user_data,
               vault,
@@ -218,6 +219,13 @@ export default function MobileSignInPage() {
               totp_response.vault_nonce,
             ),
           );
+
+          if (!add_result.success) {
+            set_error(add_result.error || t("errors.login_failed"));
+            set_is_loading(false);
+
+            return;
+          }
         } else {
           await login_timeout(
             login(
@@ -318,10 +326,10 @@ export default function MobileSignInPage() {
 
     if (is_adding_account) {
       const normalized = email.toLowerCase();
-      const already = accounts.some(
+      const existing = accounts.find(
         (a) => a.user.email.toLowerCase() === normalized,
       );
-      if (already) {
+      if (existing && existing.id !== (await get_current_account_id())) {
         await timing_safe_delay();
         set_error(t("errors.account_already_added"));
         return;
@@ -486,7 +494,7 @@ export default function MobileSignInPage() {
         ]);
 
       if (is_adding_account) {
-        await login_timeout(
+        const add_result = await login_timeout(
           add_account(
             login_user_data,
             vault,
@@ -495,6 +503,13 @@ export default function MobileSignInPage() {
             response.data.vault_nonce,
           ),
         );
+
+        if (!add_result.success) {
+          set_error(add_result.error || t("errors.login_failed"));
+          set_is_loading(false);
+
+          return;
+        }
       } else {
         await login_timeout(
           login(
