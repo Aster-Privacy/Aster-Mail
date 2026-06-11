@@ -84,6 +84,7 @@ import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { use_signatures } from "@/contexts/signatures_context";
 import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 interface UseForwardModalProps {
   is_open: boolean;
@@ -324,7 +325,8 @@ export function use_forward_modal({
       }
 
       const sanitized = sanitize_html(content, {
-        external_content_mode: "always",
+        external_content_mode: is_any_lockdown_active() ? "never" : "always",
+        lockdown_mode: is_any_lockdown_active(),
       });
 
       message_editor_ref.current.innerHTML = sanitized.html;

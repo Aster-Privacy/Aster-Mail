@@ -36,6 +36,7 @@ import {
 import { track_subscription } from "@/services/api/subscriptions";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { show_action_toast } from "@/components/toast/action_toast";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_preferences } from "@/contexts/preferences_context";
 
 export function MobileUnsubscribeBanner({
@@ -117,15 +118,18 @@ export function MobileUnsubscribeBanner({
         }
         if (result !== "api") {
           const url = info.unsubscribe_link || info.unsubscribe_mailto;
+          const lockdown = is_any_lockdown_active();
           show_action_toast({
             message: t("mail.unsubscribe_manual_required"),
             action_type: "not_spam",
             email_ids: [],
             duration_ms: 15000,
-            action_label: t("mail.open_unsubscribe_page"),
-            on_undo: async () => {
-              if (url) window.open(url, "_blank", "noopener,noreferrer");
-            },
+            ...(!lockdown && {
+              action_label: t("mail.open_unsubscribe_page"),
+              on_undo: async () => {
+                if (url) window.open(url, "_blank", "noopener,noreferrer");
+              },
+            }),
           });
         }
       } catch {

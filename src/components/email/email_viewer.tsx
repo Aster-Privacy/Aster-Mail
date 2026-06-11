@@ -24,6 +24,7 @@ import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 
 import { open_external } from "@/utils/open_link";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { EmailViewerHeader } from "@/components/email/email_viewer_header";
 import { EmailViewerContent } from "@/components/email/email_viewer_content";
 import {
@@ -78,7 +79,9 @@ export function EmailViewer({
         if (url.protocol !== "https:" && url.protocol !== "http:") {
           return;
         }
-        open_external(unsubscribe_info.unsubscribe_link);
+        if (!is_any_lockdown_active()) {
+          open_external(unsubscribe_info.unsubscribe_link);
+        }
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
 
