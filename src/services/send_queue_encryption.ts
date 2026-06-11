@@ -216,11 +216,7 @@ export async function encrypt_for_recipients(
 
   let vault = get_vault_from_memory();
 
-  if (
-    sender_email &&
-    vault &&
-    !(vault.ratchet_identity_key && vault.ratchet_identity_public)
-  ) {
+  if (sender_email && vault) {
     await ensure_ratchet_keys();
     vault = get_vault_from_memory();
   }

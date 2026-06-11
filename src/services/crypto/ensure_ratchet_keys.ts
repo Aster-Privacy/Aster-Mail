@@ -29,6 +29,7 @@ import {
   generate_pq_identity_keys,
   upload_prekey_bundle,
 } from "./ratchet_manager";
+import { clear_all_ratchet_states } from "./double_ratchet";
 import { get_current_account } from "../account_manager";
 import { api_client } from "../api/client";
 
@@ -122,6 +123,61 @@ export async function ensure_ratchet_keys(): Promise<boolean> {
   return in_flight;
 }
 
+function base64url_to_bytes(b64url: string): Uint8Array {
+  const b64 = b64url.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
+}
+
+function base64_to_bytes(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
+}
+
+function keypairs_consistent(jwk_string: string, public_b64: string): boolean {
+  try {
+    const jwk: JsonWebKey = JSON.parse(jwk_string);
+
+    if (!jwk.x || !jwk.y) return false;
+
+    const x = base64url_to_bytes(jwk.x);
+    const y = base64url_to_bytes(jwk.y);
+
+    if (x.length !== 32 || y.length !== 32) return false;
+
+    const derived = new Uint8Array(65);
+
+    derived[0] = 0x04;
+    derived.set(x, 1);
+    derived.set(y, 33);
+
+    const stored = base64_to_bytes(public_b64);
+
+    if (stored.length !== 65) return false;
+
+    for (let i = 0; i < 65; i++) {
+      if (derived[i] !== stored[i]) return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function run(): Promise<boolean> {
   try {
     const vault = get_vault_from_memory();
@@ -137,7 +193,12 @@ async function run(): Promise<boolean> {
     const has_pq =
       !!vault.ratchet_pq_identity_key && !!vault.ratchet_pq_identity_public;
 
-    if (has_ecdh && has_pq) {
+    const ecdh_consistent =
+      has_ecdh &&
+      keypairs_consistent(vault.ratchet_identity_key!, vault.ratchet_identity_public!) &&
+      keypairs_consistent(vault.ratchet_signed_prekey!, vault.ratchet_signed_prekey_public!);
+
+    if (has_ecdh && has_pq && ecdh_consistent) {
       upload_prekey_bundle(vault).catch(() => {});
 
       return true;
@@ -160,7 +221,7 @@ async function run(): Promise<boolean> {
 
     if (!passphrase_ok) return false;
 
-    if (has_ecdh && !has_pq) {
+    if (has_ecdh && ecdh_consistent && !has_pq) {
       const pq_keys = await generate_pq_identity_keys();
 
       vault.ratchet_pq_identity_key = pq_keys.pq_identity_secret;
@@ -176,6 +237,8 @@ async function run(): Promise<boolean> {
       vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
       vault.ratchet_pq_identity_key = ratchet_keys.pq_identity_secret;
       vault.ratchet_pq_identity_public = ratchet_keys.pq_identity_public;
+
+      await clear_all_ratchet_states();
     }
 
     await store_vault_in_memory(vault, passphrase);
