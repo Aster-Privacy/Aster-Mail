@@ -63,6 +63,7 @@ import {
 } from "@/native/desktop_device_auth";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect, get_app_query_param } from "@/lib/hard_redirect";
+import { get_current_account_id } from "@/services/account_manager";
 
 const page_variants = {
   initial: { opacity: 0, y: 8 },
@@ -642,7 +643,7 @@ export default function SignInPage() {
           ]);
 
         if (is_adding_account) {
-          await login_timeout(
+          const add_result = await login_timeout(
             add_account(
               user_data,
               vault,
@@ -651,6 +652,13 @@ export default function SignInPage() {
               totp_response.vault_nonce,
             ),
           );
+
+          if (!add_result.success) {
+            set_error(add_result.error || t("errors.login_failed"));
+            set_is_loading(false);
+
+            return;
+          }
         } else {
           await login_timeout(
             login(
@@ -697,6 +705,35 @@ export default function SignInPage() {
     [password, is_adding_account, add_account, login, t, navigate],
   );
 
+  const start_resend_cooldown = useCallback(() => {
+    if (resend_cooldown_ref.current) {
+      clearInterval(resend_cooldown_ref.current);
+    }
+    set_resend_cooldown(60);
+    resend_cooldown_ref.current = setInterval(() => {
+      set_resend_cooldown((prev) => {
+        if (prev <= 1) {
+          if (resend_cooldown_ref.current) {
+            clearInterval(resend_cooldown_ref.current);
+            resend_cooldown_ref.current = null;
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  const handle_resend_pending = useCallback(async () => {
+    if (!pending_verification_hash || resend_cooldown > 0 || is_resending) return;
+    set_is_resending(true);
+    const result = await resend_pending_verification(pending_verification_hash);
+    set_is_resending(false);
+    if (result.data.success) {
+      start_resend_cooldown();
+    }
+  }, [pending_verification_hash, resend_cooldown, is_resending, start_resend_cooldown]);
+
   if (auth_loading || has_existing_session) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-surf-primary">
@@ -731,35 +768,6 @@ export default function SignInPage() {
       </div>
     );
   }
-
-  const start_resend_cooldown = useCallback(() => {
-    if (resend_cooldown_ref.current) {
-      clearInterval(resend_cooldown_ref.current);
-    }
-    set_resend_cooldown(60);
-    resend_cooldown_ref.current = setInterval(() => {
-      set_resend_cooldown((prev) => {
-        if (prev <= 1) {
-          if (resend_cooldown_ref.current) {
-            clearInterval(resend_cooldown_ref.current);
-            resend_cooldown_ref.current = null;
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, []);
-
-  const handle_resend_pending = useCallback(async () => {
-    if (!pending_verification_hash || resend_cooldown > 0 || is_resending) return;
-    set_is_resending(true);
-    const result = await resend_pending_verification(pending_verification_hash);
-    set_is_resending(false);
-    if (result.data.success) {
-      start_resend_cooldown();
-    }
-  }, [pending_verification_hash, resend_cooldown, is_resending, start_resend_cooldown]);
 
   const handle_cancel_add_account = () => {
     set_is_adding_account(false);
@@ -819,10 +827,10 @@ export default function SignInPage() {
 
     if (is_adding_account) {
       const normalized = email.toLowerCase();
-      const already = accounts.some(
+      const existing = accounts.find(
         (a) => a.user.email.toLowerCase() === normalized,
       );
-      if (already) {
+      if (existing && existing.id !== (await get_current_account_id())) {
         await timing_safe_delay();
         set_error(t("errors.account_already_added"));
         return;
@@ -990,7 +998,7 @@ export default function SignInPage() {
         ]);
 
       if (is_adding_account) {
-        await login_timeout(
+        const add_result = await login_timeout(
           add_account(
             login_user_data,
             vault,
@@ -999,6 +1007,13 @@ export default function SignInPage() {
             response.data.vault_nonce,
           ),
         );
+
+        if (!add_result.success) {
+          set_error(add_result.error || t("errors.login_failed"));
+          set_is_loading(false);
+
+          return;
+        }
       } else {
         await login_timeout(
           login(

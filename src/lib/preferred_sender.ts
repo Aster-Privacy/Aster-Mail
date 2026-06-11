@@ -68,6 +68,13 @@ export function set_preferred_sender_id(id: string | null): void {
   sync_preferred_sender_to_server(id).catch(() => {});
 }
 
+export function clear_preferred_sender_local(): void {
+  const current = read_local();
+
+  write_local(null);
+  if (current !== null) notify(null);
+}
+
 export function subscribe_preferred_sender(listener: Listener): () => void {
   listeners.add(listener);
 

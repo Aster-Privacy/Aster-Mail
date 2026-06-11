@@ -106,7 +106,6 @@ export function WorkspaceSwitcher({
   );
 
   const handle_add_account = useCallback(() => {
-    if (max_allowed === null) return;
     if (at_limit) {
       show_toast(
         t("auth.account_limit_for_plan", { max: String(max_allowed) }),
