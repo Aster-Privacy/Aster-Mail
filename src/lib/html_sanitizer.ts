@@ -417,7 +417,7 @@ export function sanitize_html(
     const new_element = document.createElement(tag_name);
 
     for (const attr of Array.from(element.attributes)) {
-      const sanitized_value = sanitize_attribute(
+      let sanitized_value = sanitize_attribute(
         tag_name,
         attr.name,
         attr.value,
@@ -425,6 +425,9 @@ export function sanitize_html(
       );
 
       if (sanitized_value !== null) {
+        if (lockdown_mode && attr.name.toLowerCase() === "style") {
+          sanitized_value = strip_css_urls(sanitized_value);
+        }
         new_element.setAttribute(attr.name, sanitized_value);
       }
     }

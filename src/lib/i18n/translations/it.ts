@@ -3717,6 +3717,7 @@ export const it = {
     lockdown_link_warning_body: "This will reveal your IP address to:",
     lockdown_info: "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
     lockdown_badge: "Lockdown",
+    lockdown_must_disable_first: "Disable Lockdown Mode before disabling Vanguard.",
     security_key_registered: "Chiave di sicurezza registrata con successo",
     security_key_removed: "Chiave di sicurezza rimossa",
     name_your_key: "Assegna un nome alla chiave di sicurezza",

@@ -3924,6 +3924,7 @@ export const ja = {
     lockdown_link_warning_body: "This will reveal your IP address to:",
     lockdown_info: "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
     lockdown_badge: "Lockdown",
+    lockdown_must_disable_first: "Disable Lockdown Mode before disabling Vanguard.",
     oauth_folders_error: "フォルダの設定が完了しませんでした。もう一度試すと通ることが多いです。",
     oauth_folders_partial: "{{count}}件のフォルダの設定が完了しませんでした。残りは使用できます。",
     oauth_folders_ready: "フォルダの同期に成功しました",

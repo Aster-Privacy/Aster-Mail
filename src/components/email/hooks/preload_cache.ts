@@ -58,6 +58,7 @@ import {
   plain_text_to_html,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 import { get_current_account } from "@/services/account_manager";
 import { set_cached_iframe_height } from "@/components/email/sandboxed_email_renderer";
 import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
@@ -103,6 +104,10 @@ const EMPTY_EXTERNAL_CONTENT: ExternalContentReport = {
 const preload_cache = new Map<string, PreloadedEmail>();
 const preload_in_flight = new Map<string, Promise<void>>();
 const MAX_PRELOAD_CACHE_SIZE = 100;
+
+if (typeof window !== "undefined") {
+  window.addEventListener(LOCKDOWN_CHANGED_EVENT, () => clear_preload_cache());
+}
 
 export function get_preloaded_email(email_id: string): PreloadedEmail | null {
   const in_flight = preload_in_flight.get(email_id);
@@ -367,6 +372,12 @@ function presanitize(
   };
 }
 
+let _email_font_px = 14;
+
+export function set_preload_email_font_px(px: number): void {
+  _email_font_px = px;
+}
+
 let measure_container: HTMLDivElement | null = null;
 
 function premeasure_height(
@@ -394,7 +405,7 @@ function premeasure_height(
   wrapper.style.cssText = `width:${viewer_width}px;position:absolute;left:0;top:0`;
 
   const body_style = is_plain_text
-    ? "margin:0;padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word"
+    ? `margin:0;padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:${_email_font_px}px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word`
     : `margin:0;padding:8px 16px 16px 16px;background-color:${body_background || "transparent"}`;
 
   shadow.innerHTML =

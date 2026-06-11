@@ -1732,6 +1732,7 @@ export interface SettingsTranslations {
   lockdown_link_warning_body: string;
   lockdown_info: string;
   lockdown_badge: string;
+  lockdown_must_disable_first: string;
   encryption_keys: string;
   encryption_keys_description: string;
   no_encryption_key: string;

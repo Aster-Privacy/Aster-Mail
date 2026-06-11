@@ -3723,6 +3723,7 @@ export const tr = {
     lockdown_link_warning_body: "This will reveal your IP address to:",
     lockdown_info: "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
     lockdown_badge: "Lockdown",
+    lockdown_must_disable_first: "Disable Lockdown Mode before disabling Vanguard.",
     security_key_registered: "Güvenlik anahtarı başarıyla kaydedildi",
     security_key_removed: "Güvenlik anahtarı kaldırıldı",
     name_your_key: "Güvenlik anahtarınıza ad verin",

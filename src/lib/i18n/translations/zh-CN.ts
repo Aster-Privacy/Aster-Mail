@@ -3722,6 +3722,7 @@ export const zh_CN = {
     lockdown_link_warning_body: "This will reveal your IP address to:",
     lockdown_info: "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
     lockdown_badge: "Lockdown",
+    lockdown_must_disable_first: "Disable Lockdown Mode before disabling Vanguard.",
     remove_key: "移除",
     confirm_remove_key: "确定要移除此安全密钥吗？",
     name_your_key: "为您的密钥取名",
