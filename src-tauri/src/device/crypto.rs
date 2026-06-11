@@ -481,7 +481,7 @@ fn is_device_header_allowed(name: &str) -> bool {
             | "if-none-match"
             | "if-modified-since"
             | "user-agent"
-    ) || n.starts_with("x-aster-")
+    ) || (n.starts_with("x-aster-") && n != "x-aster-client")
 }
 
 #[tauri::command]
@@ -541,6 +541,7 @@ pub async fn device_http_request(
     };
 
     req = req.header("user-agent", DESKTOP_USER_AGENT);
+    req = req.header("x-aster-client", "tauri-desktop");
 
     let path = parsed_url.path();
     let needs_origin = path == "/core/v1/auth/device/challenge"
