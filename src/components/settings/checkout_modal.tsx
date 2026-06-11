@@ -51,8 +51,7 @@ export type checkout_phase =
   | "ready"
   | "processing"
   | "success"
-  | "error"
-  | "desktop_redirect";
+  | "error";
 
 export interface theme_colors {
   text_primary: string;
@@ -185,12 +184,6 @@ export function CheckoutModal({
       return;
     }
 
-    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
-      set_phase("desktop_redirect");
-
-      return;
-    }
-
     try {
       const config_response = await get_stripe_config();
 
@@ -288,33 +281,7 @@ export function CheckoutModal({
     [stripe_tokens],
   );
 
-  const open_in_browser = async () => {
-    try {
-      const core = await import("@tauri-apps/api/core");
-      await core.invoke("open_external_url", { url: "https://app.astermail.org" });
-    } catch {}
-    on_close();
-  };
-
   const render_content = () => {
-    if (phase === "desktop_redirect") {
-      return (
-        <div className="flex flex-col items-center justify-center py-8 gap-4 text-center">
-          <p className="text-sm" style={{ color: colors.text_secondary }}>
-            {t("settings.checkout_desktop_hint")}
-          </p>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handle_close}>
-              {t("common.cancel")}
-            </Button>
-            <Button variant="primary" onClick={open_in_browser}>
-              {t("settings.checkout_open_in_browser")}
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
     if (phase === "success") {
       return (
         <div className="flex flex-col items-center justify-center py-10 gap-4">

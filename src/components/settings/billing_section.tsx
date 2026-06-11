@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
 import {
@@ -133,6 +133,7 @@ export function BillingSection() {
   const [show_plan_change_confirm, set_show_plan_change_confirm] = useState(false);
   const [plan_change_confirm_target, set_plan_change_confirm_target] =
     useState<{ plan: AvailablePlan; interval: string } | null>(null);
+  const pending_tauri_checkout_ref = useRef(false);
 
   const handle_currency_change = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -281,6 +282,20 @@ export function BillingSection() {
   }, []);
 
   useEffect(() => {
+    const handle_focus = () => {
+      if (pending_tauri_checkout_ref.current) {
+        pending_tauri_checkout_ref.current = false;
+        request_cache.invalidate("/payments/v1");
+        request_cache.invalidate("/sync/v1");
+        invalidate_mail_stats();
+        load_data();
+      }
+    };
+    window.addEventListener("focus", handle_focus);
+    return () => window.removeEventListener("focus", handle_focus);
+  }, [load_data]);
+
+  useEffect(() => {
     load_data();
 
     const params = new URLSearchParams(window.location.search);
@@ -366,6 +381,8 @@ export function BillingSection() {
 
     if (!result.ok) {
       show_toast(t("settings.failed_checkout"), "error");
+    } else if (is_tauri) {
+      pending_tauri_checkout_ref.current = true;
     }
     set_is_action_loading(false);
   };
@@ -413,7 +430,16 @@ export function BillingSection() {
       const url = response.data?.url;
 
       if (url) {
-        window.location.assign(url);
+        const is_tauri =
+          typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+        if (is_tauri) {
+          const core = await import("@tauri-apps/api/core");
+          await core.invoke("open_external_url", { url });
+          pending_tauri_checkout_ref.current = true;
+          set_is_action_loading(false);
+        } else {
+          window.location.assign(url);
+        }
       } else {
         show_toast(t("settings.addon_purchase_failed"), "error");
         set_is_action_loading(false);

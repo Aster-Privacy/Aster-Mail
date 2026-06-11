@@ -157,7 +157,7 @@ export function CreditCheckoutModal({
   const [stripe_promise, set_stripe_promise] = useState<Promise<Stripe | null> | null>(null);
   const [client_secret, set_client_secret] = useState<string | null>(null);
   const [payment_intent_id, set_payment_intent_id] = useState<string | null>(null);
-  const [phase, set_phase] = useState<"loading" | "ready" | "success" | "error" | "desktop_redirect">("loading");
+  const [phase, set_phase] = useState<"loading" | "ready" | "success" | "error">("loading");
   const [error_msg, set_error_msg] = useState("");
   const [price_display, set_price_display] = useState("");
   const initialized = useRef(false);
@@ -188,11 +188,6 @@ export function CreditCheckoutModal({
     if (!package_item) return;
     set_phase("loading");
     set_error_msg("");
-
-    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
-      set_phase("desktop_redirect");
-      return;
-    }
 
     try {
       const config_res = await get_stripe_config();
@@ -241,29 +236,7 @@ export function CreditCheckoutModal({
     on_close();
   }, [phase, on_close]);
 
-  const open_in_browser = async () => {
-    try {
-      const core = await import("@tauri-apps/api/core");
-      await core.invoke("open_external_url", { url: "https://app.astermail.org" });
-    } catch {}
-    on_close();
-  };
-
   const render_body = () => {
-    if (phase === "desktop_redirect") {
-      return (
-        <div className="flex flex-col items-center gap-4 py-8 text-center">
-          <p className="text-sm text-txt-muted">
-            {t("settings.checkout_desktop_hint")}
-          </p>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handle_close}>{t("common.cancel")}</Button>
-            <Button variant="primary" onClick={open_in_browser}>{t("settings.checkout_open_in_browser")}</Button>
-          </div>
-        </div>
-      );
-    }
-
     if (phase === "success") {
       return (
         <div className="flex flex-col items-center gap-4 py-8">
