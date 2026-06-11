@@ -132,6 +132,14 @@ import("@/pages/mobile/mobile_welcome").catch(() => {});
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/mobile/mobile_forgot_password"),
 );
+const ResetPasswordPage = lazy_with_retry(
+  () => import("@/pages/reset_password"),
+);
+const VerifyRecoveryEmailPage = lazy_with_retry(
+  () => import("@/pages/verify_recovery_email"),
+);
+const SecureViewPage = lazy_with_retry(() => import("@/pages/secure_view"));
+const JoinFamilyPage = lazy_with_retry(() => import("@/pages/join_family"));
 const ExternalRedirect = ({ url }: { url: string }) => {
   window.location.href = url;
 
@@ -183,9 +191,13 @@ const AUTH_PREFIXES = [
   "/register",
   "/signup",
   "/forgot-password",
+  "/reset-password",
+  "/verify-recovery-email",
   "/browser-login",
   "/terms",
   "/privacy",
+  "/view/",
+  "/join/",
 ];
 
 const LIST_PATHS = [
@@ -716,6 +728,13 @@ function MobileApp() {
               <Route element={<RegisterPage />} path="/register" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
+              <Route element={<ResetPasswordPage />} path="/reset-password" />
+              <Route
+                element={<VerifyRecoveryEmailPage />}
+                path="/verify-recovery-email"
+              />
+              <Route element={<SecureViewPage />} path="/view/:token" />
+              <Route element={<JoinFamilyPage />} path="/join/family" />
               <Route
                 element={<ExternalRedirect url="https://astermail.org/terms" />}
                 path="/terms"
