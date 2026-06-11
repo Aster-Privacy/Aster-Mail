@@ -366,9 +366,7 @@ export function BillingSection() {
         } else {
           request_cache.invalidate("/payments/v1");
           invalidate_mail_stats();
-          const sub_response = await get_subscription();
-          if (sub_response.data) set_subscription(sub_response.data);
-          await load_data();
+          load_data();
           show_toast(t("settings.payment_success"), "success");
         }
       } catch {
@@ -434,9 +432,7 @@ export function BillingSection() {
           } else {
             request_cache.invalidate("/payments/v1");
             invalidate_mail_stats();
-            const sub_response = await get_subscription();
-            if (sub_response.data) set_subscription(sub_response.data);
-            await load_data();
+            load_data();
             show_toast(t("settings.payment_success"), "success");
           }
         } catch {
@@ -452,19 +448,23 @@ export function BillingSection() {
     }
 
     set_is_action_loading(true);
-    const result = await start_hosted_checkout(
-      plan.code,
-      checkout_interval,
-      preferred_currency,
-      credit_balance?.balance_cents,
-    );
-
-    if (!result.ok) {
+    try {
+      const result = await start_hosted_checkout(
+        plan.code,
+        checkout_interval,
+        preferred_currency,
+        credit_balance?.balance_cents,
+      );
+      if (!result.ok) {
+        show_toast(t("settings.failed_checkout"), "error");
+      } else if (is_tauri) {
+        pending_tauri_checkout_ref.current = true;
+      }
+    } catch {
       show_toast(t("settings.failed_checkout"), "error");
-    } else if (is_tauri) {
-      pending_tauri_checkout_ref.current = true;
+    } finally {
+      set_is_action_loading(false);
     }
-    set_is_action_loading(false);
   };
 
   const handle_confirm_plan_change = async () => {
