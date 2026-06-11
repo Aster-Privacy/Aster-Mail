@@ -208,6 +208,9 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                       set_gate_state("error");
                     }
                   } else {
+                    if (!result.error) {
+                      set_error_detail("passphrase_null");
+                    }
                     set_gate_state("error");
                   }
                 } catch (err) {

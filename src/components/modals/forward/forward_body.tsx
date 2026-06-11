@@ -24,6 +24,7 @@ import type { UseEditorReturn } from "@/hooks/use_editor";
 import { useEffect } from "react";
 
 import { sanitize_compose_paste, sanitize_html } from "@/lib/html_sanitizer";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { CloseIcon } from "@/components/common/icons";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
@@ -197,6 +198,10 @@ export function ForwardBody({
                     dangerouslySetInnerHTML={{
                       __html: sanitize_html(
                         forward_content_ref.current ?? "",
+                        {
+                          external_content_mode: is_any_lockdown_active() ? "never" : "always",
+                          lockdown_mode: is_any_lockdown_active(),
+                        },
                       ).html,
                     }}
                     className="mt-2 py-3 px-4 rounded-md text-sm leading-relaxed overflow-y-auto max-h-[150px] bg-surf-tertiary text-txt-secondary"

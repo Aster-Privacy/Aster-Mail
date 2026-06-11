@@ -90,7 +90,8 @@ import {
   revoke_cid_blob_urls,
 } from "@/lib/cid_resolver";
 import { RATCHET_UNDECRYPTABLE_SENTINEL, is_ratchet_envelope } from "@/utils/email_crypto";
-import { is_any_lockdown_active, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import { use_auth_safe } from "@/contexts/auth_context";
 
 interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;
@@ -208,6 +209,8 @@ export function ThreadMessageBlock({
 }: ThreadMessageBlockProps): React.ReactElement {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
+  const auth = use_auth_safe();
+  const account_id = auth?.current_account_id ?? "";
   const { format_email_detail } = use_date_format();
   const [viewing_source, set_viewing_source] = useState(false);
   const [wrap_source, set_wrap_source] = useState(false);
@@ -231,17 +234,17 @@ export function ThreadMessageBlock({
     return plain.length > 120 ? plain.substring(0, 120) + "..." : plain;
   }, [clean_body, t]);
 
-  const [lockdown_active, set_lockdown_active] = useState(() => is_any_lockdown_active());
+  const [lockdown_active, set_lockdown_active] = useState(() => is_lockdown_enabled(account_id));
 
   useEffect(() => {
-    const update = () => set_lockdown_active(is_any_lockdown_active());
+    const update = () => set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
     window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
     window.addEventListener("storage", update);
     return () => {
       window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
       window.removeEventListener("storage", update);
     };
-  }, []);
+  }, [auth?.current_account_id]);
 
   const is_system = is_system_email(message.sender_email);
   const is_ghost_sender = is_ghost_email(message.sender_email);

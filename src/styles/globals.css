@@ -252,6 +252,11 @@ button *:not(.animate-spin),
   background-color: var(--bg-hover) !important;
 }
 
+.dark .aster_skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08) 25%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.08) 75%);
+  background-size: 200% 100%;
+}
+
 .attachment_close_btn {
   color: var(--text-muted);
 }

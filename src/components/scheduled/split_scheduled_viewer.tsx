@@ -50,6 +50,7 @@ import {
   plain_text_to_html,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { get_email_username } from "@/lib/utils";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
 
@@ -314,8 +315,10 @@ export function SplitScheduledViewer({
             sanitized_html={
               is_html_content(scheduled_data.body)
                 ? sanitize_html(scheduled_data.body, {
-                    image_proxy_url: get_image_proxy_url(),
+                    image_proxy_url: is_any_lockdown_active() ? undefined : get_image_proxy_url(),
                     sandbox_mode: true,
+                    lockdown_mode: is_any_lockdown_active(),
+                    external_content_mode: is_any_lockdown_active() ? "never" : undefined,
                   }).html
                 : plain_text_to_html(scheduled_data.body)
             }

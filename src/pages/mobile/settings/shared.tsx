@@ -38,11 +38,14 @@ export type SettingsSection =
   | "encryption"
   | "trusted_devices"
   | "aliases"
+  | "alias_directories"
   | "ghost_aliases"
+  | "family"
   | "billing"
   | "referral"
   | "notifications"
   | "behavior"
+  | "connection"
   | "signatures"
   | "templates"
   | "import"
@@ -86,6 +89,7 @@ export function SettingsRow({
   on_press,
   trailing,
   destructive,
+  description: _description,
 }: {
   icon?: ReactNode;
   label: string;
@@ -93,6 +97,7 @@ export function SettingsRow({
   on_press?: () => void;
   trailing?: ReactNode;
   destructive?: boolean;
+  description?: string;
 }) {
   const row_ref = useRef<HTMLDivElement>(null);
 

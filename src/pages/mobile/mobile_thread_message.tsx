@@ -21,7 +21,7 @@
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { TranslationKey } from "@/lib/i18n";
 
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import {
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
@@ -43,6 +43,8 @@ import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_preferences } from "@/contexts/preferences_context";
 import { RATCHET_UNDECRYPTABLE_SENTINEL } from "@/utils/email_crypto";
+import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import { use_auth_safe } from "@/contexts/auth_context";
 
 
 export function format_safe_date(
@@ -95,6 +97,19 @@ export function MobileThreadMessage({
   force_dark_mode?: boolean;
 }) {
   const { preferences } = use_preferences();
+  const auth = use_auth_safe();
+  const account_id = auth?.current_account_id ?? "";
+  const [lockdown_active, set_lockdown_active] = useState(() => is_lockdown_enabled(account_id));
+
+  useEffect(() => {
+    const update = () => set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
+    window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
+    window.addEventListener("storage", update);
+    return () => {
+      window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
+      window.removeEventListener("storage", update);
+    };
+  }, [auth?.current_account_id]);
 
   const clean_body = useMemo(() => {
     if (message.html_content) {
@@ -139,22 +154,32 @@ export function MobileThreadMessage({
     }
 
     return sanitize_html(clean_body, {
-      external_content_mode: is_system
-        ? "always"
-        : preferences.load_remote_images,
+      external_content_mode: lockdown_active
+        ? "never"
+        : is_system
+          ? "always"
+          : preferences.load_remote_images,
       image_proxy_url: get_image_proxy_url(),
       sandbox_mode: true,
+      lockdown_mode: lockdown_active,
       content_blocking:
         !is_system && preferences.block_external_content
           ? {
-              block_remote_images: preferences.block_remote_images,
-              block_remote_fonts: preferences.block_remote_fonts,
-              block_remote_css: preferences.block_remote_css,
-              block_tracking_pixels: preferences.block_tracking_pixels,
+              block_remote_images: lockdown_active || preferences.block_remote_images,
+              block_remote_fonts: lockdown_active || preferences.block_remote_fonts,
+              block_remote_css: lockdown_active || preferences.block_remote_css,
+              block_tracking_pixels: lockdown_active || preferences.block_tracking_pixels,
             }
-          : undefined,
+          : lockdown_active
+            ? {
+                block_remote_images: true,
+                block_remote_fonts: true,
+                block_remote_css: true,
+                block_tracking_pixels: true,
+              }
+            : undefined,
     });
-  }, [clean_body, is_system, preferences]);
+  }, [clean_body, is_system, preferences, lockdown_active]);
 
   const sanitized_html = sanitize_result.html;
 
@@ -333,7 +358,7 @@ export function MobileThreadMessage({
             email_id={message.id}
             force_dark_mode={force_dark_mode}
             is_plain_text={!has_rich_html(clean_body)}
-            load_remote_content={load_remote_content}
+            load_remote_content={!lockdown_active && load_remote_content}
             sanitized_html={sanitized_html}
             variant="mobile"
           />

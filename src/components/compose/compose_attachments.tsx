@@ -25,6 +25,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 
 import { CloseIcon } from "@/components/common/icons";
 import { sanitize_html } from "@/lib/html_sanitizer";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_file_icon_color } from "@/components/compose/compose_shared";
 
@@ -585,7 +586,7 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
     const el = compose.message_textarea_ref.current;
 
     if (el && compose.message && !el.innerHTML) {
-      const safe = sanitize_html(compose.message, { external_content_mode: "always" });
+      const safe = sanitize_html(compose.message, { external_content_mode: is_any_lockdown_active() ? "never" : "always", lockdown_mode: is_any_lockdown_active() });
       el.innerHTML = safe.html;
     }
   });
