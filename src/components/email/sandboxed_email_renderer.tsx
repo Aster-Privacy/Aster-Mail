@@ -164,7 +164,7 @@ export function SandboxedEmailRenderer({
 }: SandboxedEmailRendererProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
-  const email_font_px = Math.round(14 * (normalize_font_size_scale(preferences.font_size_scale) / FONT_SIZE_DEFAULT));
+  const email_zoom = (normalize_font_size_scale(preferences.font_size_scale) / FONT_SIZE_DEFAULT).toFixed(3);
   const [zoomed_image, set_zoomed_image] = useState<string | null>(null);
   const zoom_fn_ref = useRef<((src: string | null) => void) | null>(null);
   zoom_fn_ref.current = set_zoomed_image;
@@ -319,9 +319,9 @@ a, a * { color: #60a5fa !important; }`
 
   const simple_html = is_html_email && !has_table_layout;
   const html_body_style = simple_html
-    ? `background-color:${html_bg};color:${html_text_color};padding:16px 20px;font-family:${base_font};font-size:${email_font_px}px;line-height:1.6;word-wrap:break-word`
+    ? `background-color:${html_bg};color:${html_text_color};padding:16px 20px;font-family:${base_font};font-size:14px;line-height:1.6;word-wrap:break-word`
     : `background-color:${html_bg}`;
-  const plain_body_style = `background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:${base_font};font-size:${email_font_px}px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
+  const plain_body_style = `background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:${base_font};font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
 
   const iframe_css = EMAIL_BODY_CSS;
 
@@ -362,7 +362,7 @@ ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
       : window.location.origin;
   })()}/">
 <style>${iframe_css}</style>
-<style>html{font-size:${email_font_px}px}body{font-size:${email_font_px}px}.aster-quoted-content{font-size:${email_font_px}px;line-height:1.4}</style>
+<style>body{zoom:${email_zoom}}</style>
 ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important; }</style>` : ""}
 <style>${quote_toggle_css}</style>
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
@@ -1090,7 +1090,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
       const body_style = is_html_email
         ? `margin:0;background-color:${html_bg};padding:8px 16px 16px 16px`
-        : `margin:0;background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:${email_font_px}px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
+        : `margin:0;background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
 
       shadow.innerHTML =
         `<style>${EMAIL_BODY_CSS}` +

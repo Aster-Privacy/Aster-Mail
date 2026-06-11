@@ -372,10 +372,10 @@ function presanitize(
   };
 }
 
-let _email_font_px = 14;
+let _email_zoom = "1.000";
 
 export function set_preload_email_font_px(px: number): void {
-  _email_font_px = px;
+  _email_zoom = (px / 14).toFixed(3);
 }
 
 let measure_container: HTMLDivElement | null = null;
@@ -405,8 +405,8 @@ function premeasure_height(
   wrapper.style.cssText = `width:${viewer_width}px;position:absolute;left:0;top:0`;
 
   const body_style = is_plain_text
-    ? `margin:0;padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:${_email_font_px}px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word`
-    : `margin:0;padding:8px 16px 16px 16px;background-color:${body_background || "transparent"}`;
+    ? `margin:0;padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;zoom:${_email_zoom}`
+    : `margin:0;padding:8px 16px 16px 16px;background-color:${body_background || "transparent"};zoom:${_email_zoom}`;
 
   shadow.innerHTML =
     `<style>${EMAIL_BODY_CSS}</style>` +
