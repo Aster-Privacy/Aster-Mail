@@ -385,7 +385,7 @@ export function sanitize_html(
             type: "css",
           });
         }
-        if (!sandbox_mode) {
+        if (!sandbox_mode || lockdown_mode) {
           sanitized_css = strip_css_urls(sanitized_css);
         }
       }
@@ -425,8 +425,13 @@ export function sanitize_html(
       );
 
       if (sanitized_value !== null) {
-        if (lockdown_mode && attr.name.toLowerCase() === "style") {
-          sanitized_value = strip_css_urls(sanitized_value);
+        const attr_lower = attr.name.toLowerCase();
+        if (lockdown_mode) {
+          if (attr_lower === "style") {
+            sanitized_value = strip_css_urls(sanitized_value);
+          } else if (attr_lower === "background" || attr_lower === "srcset") {
+            continue;
+          }
         }
         new_element.setAttribute(attr.name, sanitized_value);
       }
