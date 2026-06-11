@@ -2498,6 +2498,7 @@ export const it = {
     plan_change_confirm_description: "Passa a {{plan}}. Il tempo rimanente del tuo piano attuale viene accreditato sul nuovo piano.",
     plan_change_credit: "Credito dal piano attuale",
     plan_change_due_today: "Da pagare oggi",
+    plan_change_preview_failed: "Impossibile caricare il dettaglio del prezzo. Riprova.",
     plan_change_confirm_button: "Conferma e paga",
     plan_change_confirming: "Elaborazione...",    billing_switched: "Ciclo di fatturazione cambiato con successo",
     failed_switch_billing: "Il suo ciclo di fatturazione non è cambiato. Un altro tentativo dovrebbe bastare. Il suo ciclo attuale è ancora attivo.",

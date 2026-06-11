@@ -3328,6 +3328,7 @@ export const pl = {
     plan_change_confirm_description: "Ulepszenie do {{plan}}. Pozostaly czas biezacego planu zostanie zaliczony jako kredyt.",
     plan_change_credit: "Kredyt z biezacego planu",
     plan_change_due_today: "Do zaplaty dzis",
+    plan_change_preview_failed: "Nie udalo sie zaladowac podzialu ceny. Sprobuj ponownie.",
     plan_change_confirm_button: "Potwierdz i zaplac",
     plan_change_confirming: "Przetwarzanie...",    billing_switched: "Cykl rozliczeniowy zmieniony pomyślnie",
     failed_switch_billing: "Cykl rozliczeniowy nie został zmieniony. Kolejna próba powinna to załatwić. Obecny cykl pozostaje aktywny.",

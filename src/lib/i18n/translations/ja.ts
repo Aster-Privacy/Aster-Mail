@@ -3332,6 +3332,7 @@ export const ja = {
     plan_change_confirm_description: "{{plan}}にアップグレードします。現在のプランの残り期間がクレジットとして適用されます。",
     plan_change_credit: "現在のプランからのクレジット",
     plan_change_due_today: "本日のお支払い",
+    plan_change_preview_failed: "料金の内訳を読み込めませんでした。もう一度お試しください。",
     plan_change_confirm_button: "確認して支払う",
     plan_change_confirming: "処理中...",    switch_billing_confirm: "請求サイクルを切り替え",
     billing_switched: "請求サイクルを切り替えました",

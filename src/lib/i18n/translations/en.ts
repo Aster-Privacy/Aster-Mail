@@ -2025,6 +2025,8 @@ export const en: Translations = {
     plan_change_confirm_description: "Upgrade to {{plan}}. Your unused plan time is credited toward your new plan.",
     plan_change_credit: "Credit from current plan",
     plan_change_due_today: "Due today",
+    plan_change_preview_failed:
+      "We could not load the price breakdown. Please try again.",
     plan_change_confirm_button: "Confirm and Pay",
     plan_change_confirming: "Processing...",
     family_plan_title: "Family Plan",

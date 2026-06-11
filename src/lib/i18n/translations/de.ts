@@ -3292,6 +3292,7 @@ export const de = {
     plan_change_confirm_description: "Upgrade auf {{plan}}. Ihre verbleibende Planzeit wird als Guthaben angerechnet.",
     plan_change_credit: "Guthaben aus aktuellem Plan",
     plan_change_due_today: "Heute fallig",
+    plan_change_preview_failed: "Die Preisaufstellung konnte nicht geladen werden. Bitte erneut versuchen.",
     plan_change_confirm_button: "Bestatigen und bezahlen",
     plan_change_confirming: "Wird verarbeitet...",    billing_switched: "Abrechnungszeitraum erfolgreich gewechselt",
     failed_switch_billing: "Ihr Abrechnungszyklus wurde nicht geändert. Ein erneuter Versuch genügt meist. Ihr aktueller Zyklus läuft weiter.",

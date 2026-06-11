@@ -3617,6 +3617,7 @@ export const ru = {
     plan_change_confirm_description: "Переход на {{plan}}. Оставшееся время текущего тарифа будет зачтено в новый план.",
     plan_change_credit: "Кредит с текущего тарифа",
     plan_change_due_today: "К оплате сегодня",
+    plan_change_preview_failed: "Не удалось загрузить расчет стоимости. Попробуйте еще раз.",
     plan_change_confirm_button: "Подтвердить и оплатить",
     plan_change_confirming: "Обработка...",    billing_banner_subtitle: "Повысьте тариф или приобретите дополнительное хранилище для защиты вашей конфиденциальности.",
     storage_addons_description: "Нужно больше места? Приобретите дополнительное зашифрованное хранилище для вашего аккаунта.",

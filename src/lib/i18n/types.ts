@@ -2158,6 +2158,7 @@ export interface SettingsTranslations {
   plan_change_confirm_description: string;
   plan_change_credit: string;
   plan_change_due_today: string;
+  plan_change_preview_failed: string;
   plan_change_confirm_button: string;
   plan_change_confirming: string;
   family_plan_title: string;

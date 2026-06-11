@@ -3305,6 +3305,7 @@ export const nl = {
     plan_change_confirm_description: "Upgrade naar {{plan}}. De resterende tijd van je huidige plan wordt als tegoed verrekend.",
     plan_change_credit: "Tegoed van huidig plan",
     plan_change_due_today: "Vandaag te betalen",
+    plan_change_preview_failed: "Het prijsoverzicht kon niet worden geladen. Probeer het opnieuw.",
     plan_change_confirm_button: "Bevestigen en betalen",
     plan_change_confirming: "Verwerken...",    billing_switched: "Factureringscyclus succesvol gewijzigd",
     failed_switch_billing: "Uw factureringscyclus is niet gewijzigd. Een nieuwe poging zou werken. Uw huidige cyclus is nog steeds actief.",

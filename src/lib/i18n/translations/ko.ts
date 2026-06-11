@@ -3346,6 +3346,7 @@ export const ko = {
     plan_change_confirm_description: "{{plan}}으로 업그레이드합니다. 현재 플랜의 남은 기간이 새 플랜에 크레딧으로 적용됩니다.",
     plan_change_credit: "현재 플랜 크레딧",
     plan_change_due_today: "오늘 결제 금액",
+    plan_change_preview_failed: "요금 내역을 불러오지 못했습니다. 다시 시도해 주세요.",
     plan_change_confirm_button: "확인 및 결제",
     plan_change_confirming: "처리 중...",    billing_switched: "결제 주기가 성공적으로 전환되었습니다",
     failed_switch_billing: "결제 주기가 변경되지 않았습니다. 다시 시도하면 됩니다. 현재 주기는 그대로 활성 상태입니다.",

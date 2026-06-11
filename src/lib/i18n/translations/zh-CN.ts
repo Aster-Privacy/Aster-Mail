@@ -3324,6 +3324,7 @@ export const zh_CN = {
     plan_change_confirm_description: "升级到{{plan}}。当前套餐的剩余时间将作为抵扣计入新套餐。",
     plan_change_credit: "当前套餐抵扣",
     plan_change_due_today: "今日应付",
+    plan_change_preview_failed: "无法加载价格明细。请重试。",
     plan_change_confirm_button: "确认并支付",
     plan_change_confirming: "处理中...",    billing_switched: "计费周期切换成功",
     failed_switch_billing: "您的计费周期未能更改，再试一次应该可以。当前周期仍然有效。",

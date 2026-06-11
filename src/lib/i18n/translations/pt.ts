@@ -3595,6 +3595,7 @@ export const pt = {
     plan_change_confirm_description: "Upgrade para {{plan}}. O tempo restante do seu plano atual sera creditado no novo plano.",
     plan_change_credit: "Credito do plano atual",
     plan_change_due_today: "A pagar hoje",
+    plan_change_preview_failed: "Nao foi possivel carregar o detalhamento do preco. Tente novamente.",
     plan_change_confirm_button: "Confirmar e pagar",
     plan_change_confirming: "Processando...",    billing_banner_subtitle: "Faça upgrade do seu plano ou compre armazenamento adicional para manter sua privacidade protegida.",
     storage_addons_description: "Precisa de mais espaço? Compre armazenamento criptografado adicional parsua conta.",

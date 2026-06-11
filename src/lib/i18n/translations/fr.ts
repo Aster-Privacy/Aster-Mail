@@ -3613,6 +3613,7 @@ export const fr = {
     plan_change_confirm_description: "Passage a {{plan}}. Le temps restant de votre plan actuel est credite vers le nouveau plan.",
     plan_change_credit: "Credit du plan actuel",
     plan_change_due_today: "A payer aujourd'hui",
+    plan_change_preview_failed: "Impossible de charger le detail du prix. Veuillez reessayer.",
     plan_change_confirm_button: "Confirmer et payer",
     plan_change_confirming: "Traitement en cours...",    billing_banner_subtitle: "Passez à une offre supérieure ou achetez du stockage supplémentaire pour protéger votre vie privée.",
     storage_addons_description: "Besoin de plus d'espace ? Achetez du stockage chiffré supplémentaire pour votre compte.",

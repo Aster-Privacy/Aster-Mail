@@ -3340,6 +3340,7 @@ export const ar = {
     plan_change_confirm_description: "الترقية الى {{plan}}. سيتم احتساب الوقت المتبقي من خطتك الحالية كرصيد للخطة الجديدة.",
     plan_change_credit: "رصيد من الخطة الحالية",
     plan_change_due_today: "المستحق اليوم",
+    plan_change_preview_failed: "تعذر تحميل تفاصيل السعر. يرجى المحاولة مرة اخرى.",
     plan_change_confirm_button: "تاكيد والدفع",
     plan_change_confirming: "جاري المعالجة...",    billing_switched: "تم تبديل دورة الفوترة بنجاح",
     failed_switch_billing: "دورة الفوترة لم تتغير. محاولة أخرى ينبغي أن تنجح. دورتك الحالية لا تزال نشطة.",

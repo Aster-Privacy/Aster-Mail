@@ -3618,6 +3618,7 @@ export const es = {
     plan_change_confirm_description: "Mejora a {{plan}}. El tiempo restante de tu plan actual se acredita al nuevo plan.",
     plan_change_credit: "Credito del plan actual",
     plan_change_due_today: "Total hoy",
+    plan_change_preview_failed: "No se pudo cargar el desglose del precio. Intentalo de nuevo.",
     plan_change_confirm_button: "Confirmar y pagar",
     plan_change_confirming: "Procesando...",    billing_banner_subtitle: "Mejora tu plan o compra almacenamiento adicional para mantener tu privacidad protegida.",
     storage_addons_description: "¿Necesitas más espacio? Compra almacenamiento cifrado adicional para tu cuenta.",
