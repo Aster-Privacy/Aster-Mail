@@ -492,7 +492,7 @@ if (typeof window !== "undefined") {
   });
   window.addEventListener(LOCKDOWN_CHANGED_EVENT, (e) => {
     const detail = (e as CustomEvent).detail;
-    if (detail?.enabled && sync_client.is_connected()) {
+    if (detail?.enabled) {
       sync_client.disconnect();
     }
   });

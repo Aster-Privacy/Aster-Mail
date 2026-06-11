@@ -273,6 +273,11 @@ export function VanguardSection() {
   };
 
   const confirm_disable = () => {
+    if (is_lockdown_enabled(account_id)) {
+      set_show_disable_confirm(false);
+      show_toast(t("settings.lockdown_must_disable_first"), "error");
+      return;
+    }
     set_enabled(false);
     set_vanguard_enabled(account_id, false);
     set_lockdown_enabled(account_id, false);

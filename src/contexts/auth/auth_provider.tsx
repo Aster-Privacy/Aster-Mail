@@ -264,6 +264,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
           emit_auth_ready();
 
+          backfill_user_profile(synced_user);
           ensure_default_labels(get_vault_from_memory(), t).catch(console.error);
         } else {
           api_client.clear_auth_data();

@@ -45,7 +45,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
-import { is_lockdown_enabled } from "@/services/lockdown_store";
+import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { EmailTag } from "@/components/ui/email_tag";
 import {
@@ -72,7 +72,18 @@ export function EmailViewerContent({
   const auth = use_auth_safe();
   const [force_load_content, set_force_load_content] = useState(false);
   const [banner_dismissed, set_banner_dismissed] = useState(false);
-  const lockdown_active = is_lockdown_enabled(auth?.current_account_id ?? "");
+  const account_id = auth?.current_account_id ?? "";
+  const [lockdown_active, set_lockdown_active] = useState(() => is_lockdown_enabled(account_id));
+
+  useEffect(() => {
+    const update = () => set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
+    window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
+    window.addEventListener("storage", update);
+    return () => {
+      window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
+      window.removeEventListener("storage", update);
+    };
+  }, [auth?.current_account_id]);
 
   useEffect(() => {
     set_force_load_content(false);

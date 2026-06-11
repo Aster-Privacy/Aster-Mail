@@ -90,7 +90,8 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
 
   const handle_external_link = useCallback(
     (url: string) => {
-      if (!lockdown_active && preferences.external_link_warning_dismissed) {
+      const currently_locked = lockdown_active || is_any_lockdown_active();
+      if (!currently_locked && preferences.external_link_warning_dismissed) {
         open_url(url);
 
         return;

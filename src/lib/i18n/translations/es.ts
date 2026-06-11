@@ -3977,6 +3977,7 @@ export const es = {
     lockdown_link_warning_body: "This will reveal your IP address to:",
     lockdown_info: "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
     lockdown_badge: "Lockdown",
+    lockdown_must_disable_first: "Disable Lockdown Mode before disabling Vanguard.",
     oauth_folders_error: "Error al configurar las carpetas",
     oauth_folders_partial: "{{count}} carpetas no terminaron de configurarse; el resto está listo para usar.",
     oauth_folders_ready: "Carpetas listas",

@@ -23,6 +23,7 @@ import { get_lockdown_status } from "@/services/api/lockdown";
 const KEY = (account_id: string) => `aster:lockdown:${account_id}`;
 
 export function is_lockdown_enabled(account_id: string): boolean {
+  if (!account_id) return false;
   return localStorage.getItem(KEY(account_id)) === "1";
 }
 

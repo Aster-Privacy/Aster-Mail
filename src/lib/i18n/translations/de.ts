@@ -3977,6 +3977,7 @@ export const de = {
     lockdown_link_warning_body: "This will reveal your IP address to:",
     lockdown_info: "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
     lockdown_badge: "Lockdown",
+    lockdown_must_disable_first: "Disable Lockdown Mode before disabling Vanguard.",
     oauth_folders_error: "Ihre Ordner wurden nicht vollständig eingerichtet. Ein erneuter Versuch sollte es beheben.",
     oauth_folders_partial: "{{count}} Ordner wurden nicht vollständig eingerichtet, der Rest ist bereit.",
     oauth_folders_ready: "Ordner erfolgreich synchronisiert",

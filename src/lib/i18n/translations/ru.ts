@@ -3977,6 +3977,7 @@ export const ru = {
     lockdown_link_warning_body: "This will reveal your IP address to:",
     lockdown_info: "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
     lockdown_badge: "Lockdown",
+    lockdown_must_disable_first: "Disable Lockdown Mode before disabling Vanguard.",
     oauth_folders_error: "Папки не удалось настроить. Попробуйте ещё раз.",
     oauth_folders_partial: "{{count}} папок не удалось настроить, остальные готовы к использованию.",
     oauth_folders_ready: "Папки синхронизированы успешно",

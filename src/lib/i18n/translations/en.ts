@@ -1541,6 +1541,7 @@ export const en: Translations = {
     lockdown_link_warning_body: "This will reveal your IP address to:",
     lockdown_info: "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass. Push notifications show no content. WebSocket sync is disabled. Every external link requires confirmation before opening.",
     lockdown_badge: "Lockdown",
+    lockdown_must_disable_first: "Disable Lockdown Mode before disabling Vanguard.",
     encryption_keys: "Encryption Keys",
     encryption_keys_description:
       "Your encryption keys are stored securely in memory",

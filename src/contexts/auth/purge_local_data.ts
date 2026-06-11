@@ -69,6 +69,9 @@ export async function purge_all_local_data(): Promise<void> {
   }
 
   clear_all_app_lock_data();
+  for (const key of Object.keys(localStorage)) {
+    if (key.startsWith("aster:lockdown:")) localStorage.removeItem(key);
+  }
   clear_cache();
   clear_mail_stats();
   clear_mail_cache();
