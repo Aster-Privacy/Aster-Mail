@@ -749,6 +749,7 @@ export function use_contacts_state() {
           };
 
           set_contacts((prev) => [...prev, new_contact]);
+          set_selected_contact(new_contact);
         }
 
         set_is_form_open(false);
