@@ -35,6 +35,7 @@ import { build_reply_from_address } from "@/components/email/build_reply_from_ad
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   MAIL_EVENTS,
@@ -455,15 +456,18 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           }
         } else {
           const url = unsubscribe_info.unsubscribe_link || unsubscribe_info.unsubscribe_mailto;
+          const lockdown = is_any_lockdown_active();
           show_action_toast({
             message: deps.t("mail.unsubscribe_manual_required"),
             action_type: "not_spam",
             email_ids: [],
             duration_ms: 15000,
-            action_label: deps.t("mail.open_unsubscribe_page"),
-            on_undo: async () => {
-              if (url) window.open(url, "_blank", "noopener,noreferrer");
-            },
+            ...(!lockdown && {
+              action_label: deps.t("mail.open_unsubscribe_page"),
+              on_undo: async () => {
+                if (url) window.open(url, "_blank", "noopener,noreferrer");
+              },
+            }),
           });
           if (deps.email) {
             persist_unsubscribe(deps.email.sender_email, deps.email.sender || "", {

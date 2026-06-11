@@ -24,6 +24,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { proxy_unsubscribe } from "@/services/api/subscriptions";
 import { open_external } from "@/utils/open_link";
 import { confirm_unsubscribe } from "@/components/modals/unsubscribe_confirmation_modal";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 export type UnsubscribeErrorCode =
   | "no_method"
@@ -372,7 +373,9 @@ export async function perform_unsubscribe(
       }
     }
 
-    open_external(unsub_info.unsubscribe_link);
+    if (!is_any_lockdown_active()) {
+      open_external(unsub_info.unsubscribe_link);
+    }
 
     return "link";
   }
