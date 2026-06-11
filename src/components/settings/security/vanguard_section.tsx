@@ -252,6 +252,7 @@ export function VanguardSection() {
       clear_app_lock_config(account_id);
       clear_session_unlock(account_id);
       set_enabled(false);
+      disable_vanguard();
     }
   }, [is_loading, is_nova_plus, enabled, account_id]);
 

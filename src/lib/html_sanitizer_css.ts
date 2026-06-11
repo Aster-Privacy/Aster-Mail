@@ -141,12 +141,10 @@ export function strip_dark_mode_media(css: string): string {
   return result;
 }
 
-export function sanitize_css_block(css: string, sandbox_mode = false): string {
+export function sanitize_css_block(css: string, _sandbox_mode = false): string {
   let decoded = decode_css_entities(css);
 
-  if (!sandbox_mode) {
-    decoded = decoded.replace(/@import[^;]*;?/gi, "");
-  }
+  decoded = decoded.replace(/@import[^;]*;?/gi, "");
   decoded = decoded.replace(/@charset[^;]*;?/gi, "");
   decoded = decoded.replace(/expression\s*\([^)]*\)/gi, "");
   decoded = decoded.replace(/javascript\s*:[^;]*/gi, "");
