@@ -542,15 +542,8 @@ pub async fn device_http_request(
 
     req = req.header("user-agent", DESKTOP_USER_AGENT);
     req = req.header("x-aster-client", "tauri-desktop");
-
-    let path = parsed_url.path();
-    let needs_origin = path == "/core/v1/auth/device/challenge"
-        || path == "/core/v1/auth/device/login";
-
-    if needs_origin {
-        req = req.header("origin", "https://tauri.localhost");
-        req = req.header("referer", "https://tauri.localhost/");
-    }
+    req = req.header("origin", "https://tauri.localhost");
+    req = req.header("referer", "https://tauri.localhost/");
 
     const MAX_CALLER_HEADERS: usize = 32;
     if let Some(h) = headers {
