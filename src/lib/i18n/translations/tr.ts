@@ -3688,6 +3688,7 @@ export const tr = {
     bridge_revoke_title: "Kurulum iptal edilsin mi?",
     bridge_revoke_message: "Bu, {{ name }} ve onu kullanan tüm posta istemcilerinin bağlantısını keser. Bridge'i yeniden eşleştirerek yeniden bağlanabilirsiniz.",
     bridge_revoke_all_message: "Bu, tüm Bridge kurulumlarının ve bunları kullanan posta istemcilerinin bağlantısını keser.",
+    bridge_active_now: "Şu an aktif",
     bridge_support_title: "Yardıma mı ihtiyacınız var?",
     bridge_support_description: "Posta istemcinizle Aster Bridge kurulumu için yardım alın.",
     bridge_support_help: "Yardım merkezi",

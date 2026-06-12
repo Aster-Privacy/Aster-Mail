@@ -2187,6 +2187,7 @@ export const ko = {
     bridge_revoke_title: "설치를 취소하시겠습니까?",
     bridge_revoke_message: "{{ name }}와 이를 사용하는 모든 메일 클라이언트가 연결 해제됩니다. Bridge를 다시 연결하면 재연결할 수 있습니다.",
     bridge_revoke_all_message: "모든 Bridge 설치와 이를 사용하는 메일 클라이언트가 연결 해제됩니다.",
+    bridge_active_now: "현재 활성 중",
     bridge_support_title: "도움이 필요하신가요?",
     bridge_support_description: "메일 클라이언트로 Aster Bridge를 설정하는 데 도움을 받으세요.",
     bridge_support_help: "도움말 센터",

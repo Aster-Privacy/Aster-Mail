@@ -3687,6 +3687,7 @@ export const pl = {
     bridge_revoke_title: "Cofnąć instalację?",
     bridge_revoke_message: "Spowoduje to rozłączenie {{ name }} i wszystkich klientów poczty, które go używają. Możesz ponownie połączyć się, parując Bridge.",
     bridge_revoke_all_message: "Spowoduje to rozłączenie wszystkich instalacji Bridge i klientów poczty, które ich używają.",
+    bridge_active_now: "Aktywny teraz",
     bridge_support_title: "Potrzebujesz pomocy?",
     bridge_support_description: "Uzyskaj pomoc przy konfiguracji Aster Bridge z klientem poczty.",
     bridge_support_help: "Centrum pomocy",

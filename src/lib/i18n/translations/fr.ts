@@ -3787,6 +3787,7 @@ export const fr = {
     bridge_revoke_title: "Révoquer l'installation ?",
     bridge_revoke_message: "Cela déconnectera {{ name }} et tous les clients de messagerie qui l'utilisent. Vous pouvez vous reconnecter en associant Bridge à nouveau.",
     bridge_revoke_all_message: "Cela déconnectera toutes les installations Bridge et tous les clients de messagerie qui les utilisent.",
+    bridge_active_now: "Actuellement actif",
     bridge_support_title: "Besoin d'aide ?",
     bridge_support_description: "Obtenez de l'aide pour configurer Aster Bridge avec votre client de messagerie.",
     bridge_support_help: "Centre d'aide",

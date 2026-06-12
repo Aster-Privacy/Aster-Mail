@@ -3794,6 +3794,7 @@ export const nl = {
     bridge_revoke_title: "Installatie intrekken?",
     bridge_revoke_message: "Dit verbreekt {{ name }} en alle e-mailclients die het gebruiken. U kunt opnieuw verbinding maken door Bridge opnieuw te koppelen.",
     bridge_revoke_all_message: "Dit verbreekt alle Bridge-installaties en alle e-mailclients die ze gebruiken.",
+    bridge_active_now: "Nu actief",
     bridge_support_title: "Hulp nodig?",
     bridge_support_description: "Krijg hulp bij het instellen van Aster Bridge met uw e-mailclient.",
     bridge_support_help: "Helpcentrum",

@@ -82,11 +82,11 @@ function format_date_short(iso: string): string {
   });
 }
 
-function format_last_seen(iso: string | null, never_label: string): string {
+function format_last_seen(iso: string | null, never_label: string, active_now_label: string): string {
   if (!iso) return never_label;
   const diff_ms = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff_ms / 60000);
-  if (mins < 5) return "Active now";
+  if (mins < 5) return active_now_label;
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(diff_ms / 3600000);
   if (hours < 24) return `${hours}h ago`;
@@ -108,9 +108,12 @@ export function BridgeSection() {
 
   const load_devices = useCallback(async () => {
     set_devices_loading(true);
-    const res = await list_devices();
-    set_devices(res.data?.devices ?? []);
-    set_devices_loading(false);
+    try {
+      const res = await list_devices();
+      set_devices(res.data?.devices ?? []);
+    } finally {
+      set_devices_loading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -127,17 +130,23 @@ export function BridgeSection() {
   const handle_revoke = async (id: string) => {
     set_confirm_revoke_id(null);
     set_revoking_id(id);
-    await revoke_device(id);
-    set_revoking_id(null);
-    load_devices();
+    try {
+      await revoke_device(id);
+      load_devices();
+    } finally {
+      set_revoking_id(null);
+    }
   };
 
   const handle_revoke_all = async () => {
     set_confirm_revoke_all(false);
     set_revoking_all(true);
-    await revoke_all_devices();
-    set_revoking_all(false);
-    load_devices();
+    try {
+      await revoke_all_devices();
+      load_devices();
+    } finally {
+      set_revoking_all(false);
+    }
   };
 
   const confirm_device = devices.find((d) => d.id === confirm_revoke_id);
@@ -295,7 +304,7 @@ export function BridgeSection() {
             </h3>
             {devices.length > 1 && (
               <Button
-                disabled={revoking_all}
+                disabled={revoking_all || revoking_id !== null}
                 size="sm"
                 variant="destructive"
                 onClick={() => set_confirm_revoke_all(true)}
@@ -345,13 +354,13 @@ export function BridgeSection() {
                     <p className="text-xs text-txt-muted mt-0.5">
                       {t("settings.trusted_devices_created")} {format_date_short(device.created_at)}
                       {" · "}
-                      {t("settings.trusted_devices_last_seen")} {format_last_seen(device.last_seen_at, t("settings.trusted_devices_never"))}
+                      {t("settings.trusted_devices_last_seen")} {format_last_seen(device.last_seen_at, t("settings.trusted_devices_never"), t("settings.bridge_active_now"))}
                     </p>
                   </div>
                 </div>
                 <Button
                   className="flex-shrink-0 ml-3"
-                  disabled={revoking_id === device.id}
+                  disabled={revoking_id === device.id || revoking_all}
                   size="sm"
                   variant="destructive"
                   onClick={() => set_confirm_revoke_id(device.id)}

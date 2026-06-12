@@ -3792,6 +3792,7 @@ export const de = {
     bridge_revoke_title: "Installation widerrufen?",
     bridge_revoke_message: "Dadurch wird {{ name }} und alle Mail-Clients, die es verwenden, getrennt. Sie können die Verbindung wiederherstellen, indem Sie Bridge erneut koppeln.",
     bridge_revoke_all_message: "Dadurch werden alle Bridge-Installationen und alle Mail-Clients, die sie verwenden, getrennt.",
+    bridge_active_now: "Gerade aktiv",
     bridge_support_title: "Brauchen Sie Hilfe?",
     bridge_support_description: "Holen Sie sich Hilfe beim Einrichten von Aster Bridge mit Ihrem Mail-Client.",
     bridge_support_help: "Hilfezentrum",

@@ -3791,6 +3791,7 @@ export const ja = {
     bridge_revoke_title: "インストールを失効させますか？",
     bridge_revoke_message: "{{ name }}とそれを使用するすべてのメールクライアントが切断されます。Bridgeを再ペアリングすることで再接続できます。",
     bridge_revoke_all_message: "すべてのBridgeインストールとそれを使用するメールクライアントが切断されます。",
+    bridge_active_now: "現在アクティブ",
     bridge_support_title: "お困りですか？",
     bridge_support_description: "メールクライアントでのAster Bridge設定についてサポートを受けてください。",
     bridge_support_help: "ヘルプセンター",
