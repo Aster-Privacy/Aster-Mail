@@ -3699,7 +3699,7 @@ export const tr = {
     plan_change_due_today: "Bugun odenecek",
     plan_change_preview_failed: "Fiyat dokumu yuklenemedi. Lutfen tekrar deneyin.",
     plan_change_confirm_button: "Onayla ve ode",
-    plan_change_confirming: "Isleniyor...",    usage_overview_description: "Plan özelliklerindeki mevcut kullanımınızı takip edin.",
+    plan_change_confirming: "Isleniyor...",
     use_credits_for_renewals_description: "Kredi bakiyenizi plan ve eklenti yenilemelerinize otomatik uygulayın. Bakiyeniz tam tutarı karşılamazsa, kalan tutar ödeme yönteminizden tahsil edilir.",
     vacation_reply_locked: "Tatil yanıtları, uzaktayken otomatik yanıt göndermenizi sağlar",
     trusted_devices: "Güvenilen Cihazlar",
