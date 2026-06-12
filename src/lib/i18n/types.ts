@@ -1590,6 +1590,7 @@ export interface SettingsTranslations {
   trusted_devices_revoke_all: string;
   trusted_devices_revoke_all_confirm: string;
   bridge: string;
+  bridge_app_name: string;
   bridge_description: string;
   bridge_download_windows: string;
   bridge_download_msi: string;
@@ -1597,10 +1598,12 @@ export interface SettingsTranslations {
   bridge_windows_desc: string;
   bridge_linux_name: string;
   bridge_linux_desc: string;
+  bridge_linux_cta: string;
   bridge_linux_deb_link: string;
   bridge_linux_rpm_link: string;
   bridge_macos_name: string;
   bridge_macos_desc: string;
+  bridge_macos_cta: string;
   bridge_coming_soon: string;
   bridge_info_link: string;
   desktop_bridge_title: string;

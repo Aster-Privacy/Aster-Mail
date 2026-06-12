@@ -21,7 +21,6 @@
 import { useState, useEffect } from "react";
 import {
   ArrowDownTrayIcon,
-  ArrowsRightLeftIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 
@@ -37,7 +36,6 @@ interface PlatformCard {
   desc_key: string;
   cta_key: string;
   platform: string;
-  available: boolean;
   sub_links?: { label_key: string; platform: string }[];
   icon: React.ReactNode;
 }
@@ -50,7 +48,7 @@ const windows_icon = (
 
 const linux_icon = (
   <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 0 0-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.105-.188-.15.037-.527.076-1.267.137-1.752.075-.968.082-2.01-.07-2.87-.074-.663-.364-1.206-.853-1.515-2.312-1.373-2.727-4.06-2.564-6.142l.003-.003c.077-1.349.108-2.692-.236-3.78C15.823.596 14.248.001 12.504 0z" />
+    <path d="M19.682 14.908c-.186-.309-.55-.607-.955-.852l.016-.014-1.988-2.355c-.316-1.29-.572-2.59-.562-3.898C16.213 4.373 14.205 2 11.945 2c-2.252 0-4.267 2.384-4.25 5.8.01 1.305-.248 2.604-.566 3.891L5.14 14.047l.012.01c-.405.245-.766.543-.952.852C3.2 16.64 4.11 19.5 7.68 20.09c1.06.175 2.157.25 3.236.261.188.002.374.002.56 0 1.076-.011 2.174-.086 3.237-.262 3.566-.588 4.48-3.45 2.969-5.181zm-11.9-2.375c.156-.624.333-1.244.485-1.869.28-1.138.504-2.29.499-3.473-.015-2.81 1.463-4.629 3.18-4.629s3.19 1.82 3.178 4.625c-.005 1.183.218 2.336.498 3.473.152.625.33 1.245.485 1.87H7.782v.003zm4.162 6.42c-.37.003-.742.003-1.112 0-1.005-.011-2.03-.082-3.018-.245-2.568-.424-3.162-2.21-2.28-3.285.406-.5 1.268-.958 2.136-1.096.122-.02.247-.033.373-.04h7.693c.127.007.252.02.374.04.868.138 1.73.596 2.137 1.096.882 1.075.287 2.86-2.28 3.285-.99.163-2.015.233-3.023.245z" />
   </svg>
 );
 
@@ -82,7 +80,6 @@ export function BridgeSection() {
       desc_key: "settings.bridge_windows_desc",
       cta_key: "settings.bridge_download_windows",
       platform: "windows-exe",
-      available: true,
       sub_links: [
         { label_key: "settings.bridge_download_msi", platform: "windows-msi" },
       ],
@@ -92,9 +89,8 @@ export function BridgeSection() {
       id: "linux",
       name_key: "settings.bridge_linux_name",
       desc_key: "settings.bridge_linux_desc",
-      cta_key: "settings.bridge_coming_soon",
+      cta_key: "settings.bridge_linux_cta",
       platform: "linux-appimage",
-      available: false,
       sub_links: [
         { label_key: "settings.bridge_linux_deb_link", platform: "linux-deb" },
         { label_key: "settings.bridge_linux_rpm_link", platform: "linux-rpm" },
@@ -105,9 +101,8 @@ export function BridgeSection() {
       id: "macos",
       name_key: "settings.bridge_macos_name",
       desc_key: "settings.bridge_macos_desc",
-      cta_key: "settings.bridge_coming_soon",
+      cta_key: "settings.bridge_macos_cta",
       platform: "macos-dmg",
-      available: false,
       icon: apple_icon,
     },
   ];
@@ -126,16 +121,14 @@ export function BridgeSection() {
         <div>
           <div className="mb-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                <ArrowsRightLeftIcon className="w-[18px] h-[18px] flex-shrink-0" />
-                {t("settings.desktop_bridge_title")}
+              <h3 className="text-base font-semibold text-txt-primary">
+                {t("settings.bridge_app_name")}
               </h3>
               <a
                 href="https://astermail.org/bridge"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs text-txt-muted hover:text-txt-secondary transition-colors"
-                title={t("settings.bridge_info_link")}
               >
                 <InformationCircleIcon className="w-4 h-4" />
                 <span>{t("settings.bridge_info_link")}</span>
@@ -152,11 +145,7 @@ export function BridgeSection() {
           {platform_cards.map((card) => (
             <div
               key={card.id}
-              className={`rounded-xl border p-4 flex flex-col gap-3 ${
-                card.available
-                  ? "border-edge-secondary bg-surf-primary"
-                  : "border-edge-primary bg-surf-secondary opacity-60"
-              }`}
+              className="rounded-xl border border-edge-secondary bg-surf-primary p-4 flex flex-col gap-3"
             >
               <div className="flex items-center gap-2">
                 <span className="text-txt-secondary">{card.icon}</span>
@@ -164,20 +153,14 @@ export function BridgeSection() {
               </div>
               <p className="text-xs text-txt-muted leading-relaxed flex-1">{t(card.desc_key)}</p>
               <div className="flex flex-col gap-1.5">
-                {card.available ? (
-                  <a
-                    href={`${DL}/${card.platform}`}
-                    className="aster_btn aster_btn_depth aster_btn_sm flex items-center justify-center gap-1.5 w-full"
-                  >
-                    <ArrowDownTrayIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                    {t(card.cta_key)}
-                  </a>
-                ) : (
-                  <span className="aster_btn aster_btn_outline aster_btn_sm flex items-center justify-center w-full opacity-50 cursor-default pointer-events-none">
-                    {t(card.cta_key)}
-                  </span>
-                )}
-                {card.sub_links && card.available && (
+                <a
+                  href={`${DL}/${card.platform}`}
+                  className="aster_btn aster_btn_depth aster_btn_sm flex items-center justify-center gap-1.5 w-full"
+                >
+                  <ArrowDownTrayIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                  {t(card.cta_key)}
+                </a>
+                {card.sub_links && (
                   <div className="flex flex-wrap gap-x-3 gap-y-0.5 justify-center">
                     {card.sub_links.map((link) => (
                       <a
