@@ -35,6 +35,8 @@ import {
 } from "@/lib/version_check";
 import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { connection_store } from "@/services/routing/connection_store";
+import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import "@/styles/fonts.css";
 import "@/styles/globals.css";
 import "@/styles/mobile.css";
@@ -84,6 +86,10 @@ connection_store.initialize().catch(() => {});
 
 const is_tauri_runtime =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
+if (is_tauri_runtime) {
+  void apply_desktop_content_protection(is_any_lockdown_active());
+}
 
 if (is_tauri_runtime && "serviceWorker" in navigator) {
   (async () => {

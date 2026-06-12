@@ -64,10 +64,10 @@ import {
 import {
   list_external_accounts,
   trigger_sync,
+  cancel_sync,
   delete_external_account,
   get_sync_progress,
   purge_external_account_mail,
-  toggle_external_account,
   type DecryptedExternalAccount,
   type SyncProgressEvent,
 } from "@/services/api/external_accounts";
@@ -284,6 +284,7 @@ function ConnectedAccountCard({
   on_refresh,
   on_reconnect,
   is_syncing,
+  is_purging,
   on_sync_finished,
   is_setting_up_folders,
   on_cancel_setup,
@@ -294,6 +295,7 @@ function ConnectedAccountCard({
   on_refresh: () => void;
   on_reconnect: (provider: string) => void;
   is_syncing: boolean;
+  is_purging: boolean;
   on_sync_finished?: (token: string) => void;
   is_setting_up_folders: boolean;
   on_cancel_setup: () => void;
@@ -304,19 +306,23 @@ function ConnectedAccountCard({
   const [progress, set_progress] = useState<SyncProgressEvent | null>(null);
   const should_poll =
     is_syncing ||
+    is_purging ||
     account.last_sync_status === "syncing" ||
-    account.last_sync_status === "pending";
+    account.last_sync_status === "pending" ||
+    account.last_sync_status === "purging";
 
   // Callbacks go through refs so the polling effect only restarts when the
   // sync state actually changes, not on every parent re-render (which reset
   // the tick counters and re-issued the first poll each time).
   const on_refresh_ref = useRef(on_refresh);
   const on_sync_finished_ref = useRef(on_sync_finished);
+  const t_ref = useRef(t);
 
   useEffect(() => {
     on_refresh_ref.current = on_refresh;
     on_sync_finished_ref.current = on_sync_finished;
-  }, [on_refresh, on_sync_finished]);
+    t_ref.current = t;
+  }, [on_refresh, on_sync_finished, t]);
 
   useEffect(() => {
     if (!should_poll) {
@@ -337,9 +343,11 @@ function ConnectedAccountCard({
     const STALE_GRACE_TICKS = 8;
     const started_with_server_sync =
       account.last_sync_status === "syncing" ||
-      account.last_sync_status === "pending";
+      account.last_sync_status === "pending" ||
+      account.last_sync_status === "purging";
+    const user_triggered = is_syncing;
 
-    const finalize = (notify: boolean) => {
+    const finalize = (notify: boolean, final?: SyncProgressEvent) => {
       if (finalized) return;
       finalized = true;
       set_progress(null);
@@ -349,6 +357,24 @@ function ConnectedAccountCard({
         window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
         window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
+      }
+      // Outcome toast only for a sync the user started from this card, so
+      // background cron syncs observed in an open settings tab stay silent.
+      if (user_triggered && final?.status === "complete" && !final.error_message) {
+        const imported = final.imported_messages ?? 0;
+        if (imported > 0) {
+          show_toast(
+            t_ref.current("settings.sync_result_imported", {
+              count: imported.toLocaleString(),
+            }),
+            "success",
+          );
+        } else {
+          show_toast(
+            t_ref.current("settings.sync_result_up_to_date"),
+            "success",
+          );
+        }
       }
     };
 
@@ -387,13 +413,18 @@ function ConnectedAccountCard({
           total_ticks <= STALE_GRACE_TICKS;
 
         if (!stale_window) {
-          finalize(saw_activity || data.processed_messages > 0);
+          finalize(saw_activity || data.processed_messages > 0, data);
         }
 
         return;
       }
 
       saw_activity = true;
+      if (data.status === "purging") {
+        set_progress(data);
+
+        return;
+      }
       max_total = Math.max(max_total, data.total_messages);
       set_progress({ ...data, total_messages: max_total });
     };
@@ -410,11 +441,14 @@ function ConnectedAccountCard({
 
   const total = progress?.total_messages ?? 0;
   const processed = progress?.processed_messages ?? 0;
+  const purging_active = is_purging || progress?.status === "purging";
   const show_progress =
     should_poll &&
     progress !== null &&
     progress.status !== "complete" &&
     progress.status !== "error" &&
+    progress.status !== "purging" &&
+    !purging_active &&
     total > 0;
   const percent =
     total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
@@ -426,7 +460,7 @@ function ConnectedAccountCard({
       ? account.email
       : account.display_name;
 
-  const sync_active = is_syncing || should_poll;
+  const sync_active = (is_syncing || should_poll) && !purging_active;
 
   return (
     <div
@@ -503,7 +537,7 @@ function ConnectedAccountCard({
             <Button size="sm" variant="outline" onClick={on_cancel_setup}>
               {t("settings.import_stage_cancel")}
             </Button>
-          ) : (
+          ) : purging_active ? null : (
             <Button
               size="sm"
               variant="outline"
@@ -527,7 +561,7 @@ function ConnectedAccountCard({
             size="sm"
             variant="outline"
             aria-label={t("settings.connected_accounts_disconnect")}
-            disabled={is_setting_up_folders && !needs_reauth}
+            disabled={(is_setting_up_folders && !needs_reauth) || purging_active}
             onClick={() => on_disconnect(account.account_token)}
           >
             <TrashIcon className="w-4 h-4" />
@@ -572,12 +606,52 @@ function ConnectedAccountCard({
           </div>
         </div>
       )}
-      {!is_setting_up_folders && sync_active && !show_progress && (
+      {!is_setting_up_folders && purging_active && (
+        <div className="px-4 pb-3">
+          <div className="flex items-center gap-2 mb-1.5 text-xs text-txt-secondary">
+            <Spinner className="text-brand flex-shrink-0" size="sm" />
+            <span className="flex-1 truncate">
+              {progress?.status === "purging" && total > 0
+                ? t("settings.purging_progress", {
+                    current: processed.toLocaleString(),
+                    total: total.toLocaleString(),
+                  })
+                : t("settings.purging_simple")}
+            </span>
+            {progress?.status === "purging" && total > 0 && (
+              <span className="font-medium text-txt-primary tabular-nums flex-shrink-0">
+                {percent}%
+              </span>
+            )}
+          </div>
+          <div className="h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
+            {progress?.status === "purging" && total > 0 ? (
+              <div
+                className="h-full rounded-full transition-[width] duration-700 ease-out"
+                style={{
+                  width: `${Math.max(4, percent)}%`,
+                  background: "var(--color-brand)",
+                }}
+              />
+            ) : (
+              <div
+                className="h-full rounded-full bg-brand animate-[sync_bar_indeterminate_1.5s_ease-in-out_infinite]"
+                style={{ width: "40%" }}
+              />
+            )}
+          </div>
+        </div>
+      )}
+      {!is_setting_up_folders && !purging_active && sync_active && !show_progress && (
         <div className="px-4 pb-3">
           <div className="flex items-center gap-2 text-xs text-txt-muted">
             <Spinner className="text-brand flex-shrink-0" size="sm" />
             <span className="flex-1">
-              {t("settings.connected_accounts_syncing")}
+              {progress?.status === "checking"
+                ? t("settings.sync_checking_new")
+                : progress === null || progress.status === "fetching"
+                  ? t("settings.sync_progress_preparing")
+                  : t("settings.connected_accounts_syncing")}
               {processed > 0
                 ? ` · ${t("settings.connected_accounts_emails", {
                     count: processed.toLocaleString(),
@@ -586,7 +660,10 @@ function ConnectedAccountCard({
             </span>
           </div>
           <div className="mt-1.5 h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
-            <div className="h-full rounded-full bg-brand animate-pulse" style={{ width: "60%" }} />
+            <div
+              className="h-full rounded-full bg-brand animate-[sync_bar_indeterminate_1.5s_ease-in-out_infinite]"
+              style={{ width: "40%" }}
+            />
           </div>
         </div>
       )}
@@ -619,6 +696,9 @@ export function ImportSection() {
   );
   const [delete_messages_on_disconnect, set_delete_messages_on_disconnect] =
     useState(false);
+  const [purging_tokens, set_purging_tokens] = useState<Set<string>>(
+    new Set(),
+  );
   const setup_account_tokens_ref = useRef<Set<string>>(new Set());
   const oauth_cancelled_ref = useRef(false);
   const [oauth_setup_token, set_oauth_setup_token] = useState<string | null>(
@@ -851,14 +931,15 @@ export function ImportSection() {
       return next;
     });
     try {
-      await toggle_external_account(account_token, false);
-      // Brief pause lets the backend notice the disable before we re-enable.
-      window.setTimeout(() => {
-        toggle_external_account(account_token, true).catch(() => {});
-        load_connected_accounts();
-      }, 2000);
+      const result = await cancel_sync(account_token);
+      if (result.error) {
+        show_toast(result.error, "error");
+      } else {
+        show_toast(t("settings.sync_stopped"), "success");
+      }
     } catch {}
-  }, [load_connected_accounts]);
+    load_connected_accounts();
+  }, [load_connected_accounts, t]);
 
   const handle_sync = useCallback(
     async (account_token: string) => {
@@ -869,6 +950,13 @@ export function ImportSection() {
       // The button shows "Stop" whenever the card is in an active sync state,
       // which includes the server-reported status. Match that here, otherwise
       // pressing the button during a server-side sync would start another one.
+      if (
+        account?.last_sync_status === "purging" ||
+        purging_tokens.has(account_token)
+      ) {
+        return;
+      }
+
       const sync_active =
         syncing_accounts.has(account_token) ||
         account?.last_sync_status === "syncing" ||
@@ -921,6 +1009,7 @@ export function ImportSection() {
       connected_accounts,
       setup_oauth_folders,
       syncing_accounts,
+      purging_tokens,
       stop_sync,
     ],
   );
@@ -951,6 +1040,8 @@ export function ImportSection() {
       return next;
     });
 
+    let purged_count = 0;
+
     try {
       if (should_delete_messages) {
         const purge_result = await purge_external_account_mail(token);
@@ -958,6 +1049,30 @@ export function ImportSection() {
         if (purge_result.error) {
           show_toast(purge_result.error, "error");
         } else {
+          purged_count = purge_result.data?.deleted_count ?? 0;
+
+          if (purged_count > 0) {
+            set_purging_tokens((prev) => new Set(prev).add(token));
+
+            // The purge runs server-side in batches; wait for it to finish
+            // before deleting the account so the imported mail keeps its
+            // job lineage until every message is gone. The card shows live
+            // progress from the same polling endpoint meanwhile.
+            let poll_errors = 0;
+            for (let i = 0; i < 2400; i++) {
+              await new Promise((resolve) => setTimeout(resolve, 1500));
+              const prog = await get_sync_progress(token);
+
+              if (prog.data) {
+                poll_errors = 0;
+                if (prog.data.status !== "purging") break;
+              } else {
+                poll_errors += 1;
+                if (poll_errors >= 5) break;
+              }
+            }
+          }
+
           window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
           window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
           window.dispatchEvent(
@@ -976,10 +1091,25 @@ export function ImportSection() {
         );
         // Clear from setup tracker so reconnecting the same account runs folder setup again
         setup_account_tokens_ref.current.delete(token);
-        show_toast(t("settings.disconnect_success"), "success");
+        if (should_delete_messages && purged_count > 0) {
+          show_toast(
+            t("settings.disconnect_deleted_success", {
+              count: purged_count.toLocaleString(),
+            }),
+            "success",
+          );
+        } else {
+          show_toast(t("settings.disconnect_success"), "success");
+        }
       }
     } catch {
       show_toast(t("settings.connected_accounts_error"), "error");
+    } finally {
+      set_purging_tokens((prev) => {
+        const next = new Set(prev);
+        next.delete(token);
+        return next;
+      });
     }
 
     load_connected_accounts();
@@ -1149,6 +1279,10 @@ export function ImportSection() {
                 is_setting_up_folders={
                   folder_setup_status === "setting_up" &&
                   oauth_setup_token === account.account_token
+                }
+                is_purging={
+                  purging_tokens.has(account.account_token) ||
+                  account.last_sync_status === "purging"
                 }
                 is_syncing={syncing_accounts.has(account.account_token)}
                 on_cancel_setup={handle_cancel_oauth_setup}
@@ -1334,7 +1468,17 @@ export function ImportSection() {
                 }
               />
               <span className="text-[13px] leading-none text-txt-secondary">
-                {t("settings.disconnect_delete_messages_label")}
+                {(() => {
+                  const target = connected_accounts.find(
+                    (a) => a.account_token === disconnect_token,
+                  );
+
+                  return target && target.email_count > 0
+                    ? t("settings.disconnect_delete_messages_label_count", {
+                        count: target.email_count.toLocaleString(),
+                      })
+                    : t("settings.disconnect_delete_messages_label");
+                })()}
               </span>
             </label>
           </div>

@@ -49,6 +49,13 @@ fn set_tray_tooltip(state: State<TrayState>, tooltip: String) {
 }
 
 #[tauri::command]
+fn set_content_protection(window: tauri::WebviewWindow, enabled: bool) -> std::result::Result<(), String> {
+    window
+        .set_content_protected(enabled)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn open_external_url(url: String) -> std::result::Result<(), String> {
     let host_part = url
         .strip_prefix("https://")
@@ -172,6 +179,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             set_tray_visible,
             set_tray_tooltip,
+            set_content_protection,
             open_external_url,
             device::crypto::device_get_pubkeys,
             device::crypto::device_set_id,

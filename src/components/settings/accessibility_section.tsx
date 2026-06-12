@@ -84,6 +84,10 @@ export function AccessibilitySection() {
     update_preference("font_size_scale", v, true);
   };
 
+  const commit_font_size_unclamped = (n: number) => {
+    update_preference("font_size_scale", Math.round(n), true);
+  };
+
   const color_vision_options = useMemo(
     (): { id: ColorVisionMode; label: string; swatches: string[] }[] => [
       {
@@ -164,7 +168,7 @@ export function AccessibilitySection() {
 
                   return;
                 }
-                commit_font_size(parsed);
+                commit_font_size_unclamped(parsed);
               }}
               onChange={(e) => set_font_size_input(e.target.value)}
               onKeyDown={(e) => {

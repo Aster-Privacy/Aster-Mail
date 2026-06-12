@@ -109,7 +109,7 @@ const LEGACY_FONT_SIZE_MAP: Record<string, number> = {
 
 export function normalize_font_size_scale(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, Math.round(value)));
+    return Math.max(1, Math.round(value));
   }
   if (typeof value === "string" && value in LEGACY_FONT_SIZE_MAP) {
     return LEGACY_FONT_SIZE_MAP[value];

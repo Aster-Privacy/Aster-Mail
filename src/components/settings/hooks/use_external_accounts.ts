@@ -32,6 +32,7 @@ import {
   purge_external_account_mail,
   delete_external_account,
   trigger_sync,
+  get_sync_progress,
   type DecryptedExternalAccount,
 } from "@/services/api/external_accounts";
 import {
@@ -323,22 +324,45 @@ export function use_external_accounts() {
     const target = purge_target;
     const also_delete = purge_also_delete_messages;
 
+    let purged_count = 0;
+
     try {
       if (also_delete) {
         const purge_result = await purge_external_account_mail(
           target.account_token,
         );
 
-        if (!form.is_mounted_ref.current) return;
-
         if (purge_result.error) {
-          show_toast(
-            sanitize_display_text(
-              purge_result.error || t("settings.failed_delete_emails_external"),
-            ),
-            "error",
-          );
+          if (form.is_mounted_ref.current) {
+            show_toast(
+              sanitize_display_text(
+                purge_result.error || t("settings.failed_delete_emails_external"),
+              ),
+              "error",
+            );
+          }
         } else {
+          purged_count = purge_result.data?.deleted_count ?? 0;
+
+          // The purge runs server-side in batches; wait for it to drain
+          // before deleting the account so the imported mail keeps its job
+          // lineage until every message is gone.
+          if (purged_count > 0) {
+            let poll_errors = 0;
+            for (let i = 0; i < 2400; i++) {
+              await new Promise((resolve) => setTimeout(resolve, 1500));
+              const prog = await get_sync_progress(target.account_token);
+
+              if (prog.data) {
+                poll_errors = 0;
+                if (prog.data.status !== "purging") break;
+              } else {
+                poll_errors += 1;
+                if (poll_errors >= 5) break;
+              }
+            }
+          }
+
           window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
           window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
           window.dispatchEvent(
@@ -358,7 +382,16 @@ export function use_external_accounts() {
         );
       } else {
         set_accounts((prev) => prev.filter((a) => a.id !== target.id));
-        show_toast(t("settings.disconnect_success"), "success");
+        if (also_delete && purged_count > 0) {
+          show_toast(
+            t("settings.disconnect_deleted_success", {
+              count: purged_count.toLocaleString(),
+            }),
+            "success",
+          );
+        } else {
+          show_toast(t("settings.disconnect_success"), "success");
+        }
         invalidate_mail_stats();
       }
     } catch (error) {
