@@ -165,6 +165,25 @@ async function decrypt_inbound_pq_hybrid(
 const HASH_ALG = ["SHA", "256"].join("-");
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 
+function register_envelope_attachment_keys(
+  mail_item_id: string | undefined,
+  parsed_obj: unknown,
+): void {
+  if (!mail_item_id || typeof parsed_obj !== "object" || parsed_obj === null) {
+    return;
+  }
+
+  const keys = (parsed_obj as { attachment_keys?: unknown }).attachment_keys;
+
+  if (!Array.isArray(keys)) return;
+
+  for (const k of keys) {
+    if (typeof k?.seq === "number" && typeof k?.key === "string") {
+      register_attachment_key(mail_item_id, k.seq, k.key);
+    }
+  }
+}
+
 export async function decrypt_mail_envelope<
   T extends { from: { name: string; email: string } } = DecryptedEnvelope,
 >(encrypted_envelope: string, envelope_nonce: string, mail_item_id?: string): Promise<T | null> {
@@ -178,7 +197,11 @@ export async function decrypt_mail_envelope<
       const text = new TextDecoder().decode(encrypted_bytes);
 
       if (!text.startsWith("-----BEGIN PGP")) {
-        return normalize_parsed_envelope(JSON.parse(text)) as T;
+        const parsed_obj = JSON.parse(text);
+
+        register_envelope_attachment_keys(mail_item_id, parsed_obj);
+
+        return normalize_parsed_envelope(parsed_obj) as T;
       }
 
       const vault = get_vault_from_memory();
@@ -296,13 +319,9 @@ export async function decrypt_mail_envelope<
 
         if (plain) {
           const parsed_obj = JSON.parse(new TextDecoder().decode(plain));
-          if (mail_item_id && Array.isArray(parsed_obj.attachment_keys)) {
-            for (const k of parsed_obj.attachment_keys) {
-              if (typeof k.seq === "number" && typeof k.key === "string") {
-                register_attachment_key(mail_item_id, k.seq, k.key);
-              }
-            }
-          }
+
+          register_envelope_attachment_keys(mail_item_id, parsed_obj);
+
           return normalize_parsed_envelope(parsed_obj) as T;
         }
       }
@@ -324,6 +343,8 @@ export async function decrypt_mail_envelope<
         const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
 
         const parsed = JSON.parse(new TextDecoder().decode(decrypted));
+
+        register_envelope_attachment_keys(mail_item_id, parsed);
 
         return normalize_parsed_envelope(parsed) as T;
       } catch {
@@ -349,6 +370,8 @@ export async function decrypt_mail_envelope<
             const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
 
             const parsed = JSON.parse(new TextDecoder().decode(decrypted));
+
+            register_envelope_attachment_keys(mail_item_id, parsed);
 
             return normalize_parsed_envelope(parsed) as T;
           } catch {
