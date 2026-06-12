@@ -156,6 +156,7 @@ function schedule_persist(): void {
 
 async function persist_now(): Promise<void> {
   if (!active_account_id) return;
+  if (loaded_for_account !== active_account_id) return;
 
   const account_key = active_account_id;
 
@@ -271,12 +272,26 @@ async function ensure_loaded(): Promise<boolean> {
       entries_map = new Map();
       fully_built = false;
       last_build_ms = 0;
+
+      // Stamps recorded before hydration (the boot-time mark_category_seen)
+      // must survive the disk load, or already-viewed tabs flash "new" again.
+      const pre_load_seen = seen_ts;
+
       seen_ts = {};
       await load_from_disk(account_id);
 
       if (active_account_id !== account_id) return false;
 
+      for (const tab of CATEGORY_TABS) {
+        const pending = pre_load_seen[tab];
+
+        if (typeof pending === "number" && pending > (seen_ts[tab] ?? 0)) {
+          seen_ts[tab] = pending;
+        }
+      }
+
       loaded_for_account = account_id;
+      schedule_persist();
       notify();
 
       return true;

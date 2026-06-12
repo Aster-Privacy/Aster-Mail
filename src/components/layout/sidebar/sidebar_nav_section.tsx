@@ -130,6 +130,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           handle_nav_click(() => {
             set_selected_item("inbox");
             navigate("/");
+            window.dispatchEvent(new CustomEvent("astermail:inbox-home"));
           })
         }
       >
