@@ -118,6 +118,18 @@ export function use_inbox_categories(
     void secure_store(ACTIVE_CATEGORY_KEY, category).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const handle_inbox_home = () => {
+      set_active_category("primary");
+    };
+
+    window.addEventListener("astermail:inbox-home", handle_inbox_home);
+
+    return () => {
+      window.removeEventListener("astermail:inbox-home", handle_inbox_home);
+    };
+  }, [set_active_category]);
+
   return {
     enabled,
     active_category,
