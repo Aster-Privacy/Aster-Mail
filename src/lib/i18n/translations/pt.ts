@@ -1710,6 +1710,7 @@ export const pt = {
     alias_feature_locked_view_plans: "Ver planos",
     alias_feature_locked_upgrade_plan: "Fazer upgrade do plano",
     alias_feature_locked_upgrade_cta: "Fazer upgrade",
+    feature_requires_upgrade: "Esta funcionalidade requer um plano superior.",
     alias_rule_cancel: "Cancelar",
     alias_rule_close: "Fechar construtor de regras",
     alias_rule_field_label: "Campo",

@@ -1711,6 +1711,7 @@ export const it = {
     alias_feature_locked_view_plans: "Visualizza i piani",
     alias_feature_locked_upgrade_plan: "Aggiorna piano",
     alias_feature_locked_upgrade_cta: "Aggiorna",
+    feature_requires_upgrade: "Questa funzione richiede un piano superiore.",
     alias_rule_cancel: "Annulla",
     alias_rule_close: "Chiudi il generatore di regole",
     alias_rule_field_label: "Campo",

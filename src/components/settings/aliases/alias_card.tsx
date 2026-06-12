@@ -184,7 +184,7 @@ function AliasAvatar({
             className="p-1 rounded-full bg-surf-card border border-edge-secondary cursor-pointer hover:border-blue-500/30 transition-colors"
             title={t("common.alias_avatars_locked" as TranslationKey)}
             type="button"
-            onClick={() => prompt_upgrade("Custom avatars & display names")}
+            onClick={() => prompt_upgrade(t("settings.feature_requires_upgrade"))}
           >
             <LockClosedIcon className="w-2.5 h-2.5 text-txt-muted" />
           </button>
@@ -533,7 +533,7 @@ export function AliasItem({
             variant="ghost"
             onClick={() => {
               if (is_feature_locked("has_advanced_aliases")) {
-                prompt_upgrade("Alias pinning");
+                prompt_upgrade(t("settings.feature_requires_upgrade"));
                 return;
               }
               on_pin_toggle(alias.id);

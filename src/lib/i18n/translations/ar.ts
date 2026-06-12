@@ -1710,6 +1710,7 @@ export const ar = {
     alias_feature_locked_view_plans: "عرض الخطط",
     alias_feature_locked_upgrade_plan: "ترقية الخطة",
     alias_feature_locked_upgrade_cta: "ترقية",
+    feature_requires_upgrade: "تتطلب هذه الميزة خطة محدّثة.",
     alias_rule_cancel: "إلغاء",
     alias_rule_close: "إغلاق منشئ القواعد",
     alias_rule_field_label: "الحقل",

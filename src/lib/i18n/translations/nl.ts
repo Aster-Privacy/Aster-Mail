@@ -1710,6 +1710,7 @@ export const nl = {
     alias_feature_locked_view_plans: "Abonnementen bekijken",
     alias_feature_locked_upgrade_plan: "Abonnement upgraden",
     alias_feature_locked_upgrade_cta: "Upgraden",
+    feature_requires_upgrade: "Deze functie vereist een betaald abonnement.",
     alias_rule_cancel: "Annuleren",
     alias_rule_close: "Regelbouwer sluiten",
     alias_rule_field_label: "Veld",

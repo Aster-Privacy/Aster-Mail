@@ -1710,6 +1710,7 @@ export const pl = {
     alias_feature_locked_view_plans: "Zobacz plany",
     alias_feature_locked_upgrade_plan: "Zmień plan na wyższy",
     alias_feature_locked_upgrade_cta: "Ulepsz",
+    feature_requires_upgrade: "Ta funkcja wymaga wyższego planu.",
     alias_rule_cancel: "Anuluj",
     alias_rule_close: "Zamknij kreator reguł",
     alias_rule_field_label: "Pole",

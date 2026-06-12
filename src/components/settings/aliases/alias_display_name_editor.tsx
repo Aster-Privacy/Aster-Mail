@@ -72,7 +72,7 @@ export function AliasDisplayNameEditor({
   const enter_edit = () => {
     if (saving) return;
     if (is_locked) {
-      prompt_upgrade("Custom display names");
+      prompt_upgrade(t("settings.feature_requires_upgrade"));
       return;
     }
     commit_lock.current = false;

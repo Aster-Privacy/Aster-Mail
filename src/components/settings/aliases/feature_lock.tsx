@@ -29,10 +29,7 @@ export function go_to_billing() {
   );
 }
 
-export function prompt_upgrade(feature_name?: string) {
-  const msg = feature_name
-    ? `${feature_name} is a paid feature. Upgrade your plan to unlock it.`
-    : "This feature requires a paid plan. Upgrade to unlock it.";
+export function prompt_upgrade(msg: string) {
   show_toast(msg, "info", 5000);
   go_to_billing();
 }

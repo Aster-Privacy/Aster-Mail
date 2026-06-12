@@ -4397,6 +4397,7 @@ export const en: Translations = {
     alias_feature_locked_view_plans: "View plans",
     alias_feature_locked_upgrade_plan: "Upgrade plan",
     alias_feature_locked_upgrade_cta: "Upgrade",
+    feature_requires_upgrade: "This feature requires an upgraded plan.",
     alias_rule_cancel: "Cancel",
     alias_rule_close: "Close rule builder",
     alias_rule_field_label: "Field",

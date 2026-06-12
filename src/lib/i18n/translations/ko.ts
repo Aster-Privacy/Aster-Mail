@@ -1710,6 +1710,7 @@ export const ko = {
     alias_feature_locked_view_plans: "요금제 보기",
     alias_feature_locked_upgrade_plan: "요금제 업그레이드",
     alias_feature_locked_upgrade_cta: "업그레이드",
+    feature_requires_upgrade: "이 기능을 사용하려면 플랜을 업그레이드해야 합니다.",
     alias_rule_cancel: "취소",
     alias_rule_close: "규칙 작성기 닫기",
     alias_rule_field_label: "필드",

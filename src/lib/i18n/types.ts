@@ -4228,6 +4228,7 @@ export interface SettingsTranslations {
   alias_feature_locked_sender_pinning: string;
   alias_feature_locked_upgrade_plan: string;
   alias_feature_locked_upgrade_cta: string;
+  feature_requires_upgrade: string;
   alias_feature_locked_view_plans: string;
   alias_rule_cancel: string;
   alias_rule_close: string;
