@@ -98,7 +98,8 @@ function format_last_seen(iso: string | null, never_label: string, active_now_la
 export function BridgeSection() {
   const { t } = use_i18n();
   const { limits, is_loading: plan_loading } = use_plan_limits();
-  const is_locked = plan_loading ? false : (limits?.plan_code === "free" || !limits);
+  if (plan_loading && !limits) return null;
+  const is_locked = !limits || limits.plan_code === "free";
   const [devices, set_devices] = useState<Device[]>([]);
   const [devices_loading, set_devices_loading] = useState(true);
   const [revoking_id, set_revoking_id] = useState<string | null>(null);
