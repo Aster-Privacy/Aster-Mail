@@ -190,3 +190,12 @@
     return origDigest(algorithm, data);
   };
 })();
+(function () {
+  if (!window.__TAURI_INTERNALS__) return;
+  if (!navigator.plugins || navigator.plugins.length === 0) {
+    try { Object.defineProperty(navigator, "plugins", { value: { length: 0 }, configurable: true }); } catch {}
+  }
+  if (!navigator.mimeTypes || navigator.mimeTypes.length === 0) {
+    try { Object.defineProperty(navigator, "mimeTypes", { value: { length: 0 }, configurable: true }); } catch {}
+  }
+})();
