@@ -164,6 +164,7 @@ export function BillingSection() {
         { label: t("settings.plan_feat_folder_lock"), on: false },
         { label: t("settings.plan_feat_smart_folders"), on: false },
         { label: t("settings.plan_feat_vanguard"), on: false },
+        { label: t("settings.lockdown_title"), on: false },
         { label: t("settings.plan_feat_read_receipts"), on: false },
       ],
       nova: [
@@ -183,6 +184,7 @@ export function BillingSection() {
         { label: t("settings.plan_feat_folder_lock"), on: true },
         { label: t("settings.plan_feat_smart_folders"), on: true },
         { label: t("settings.plan_feat_vanguard"), on: true },
+        { label: t("settings.lockdown_title"), on: true },
         { label: t("settings.plan_feat_read_receipts"), on: false },
       ],
       supernova: [
@@ -202,6 +204,7 @@ export function BillingSection() {
         { label: t("settings.plan_feat_folder_lock"), on: true },
         { label: t("settings.plan_feat_smart_folders"), on: true },
         { label: t("settings.plan_feat_vanguard"), on: true },
+        { label: t("settings.lockdown_title"), on: true },
         { label: t("settings.plan_feat_read_receipts"), on: true },
       ],
     }),

@@ -361,6 +361,13 @@ function get_features(
       nova: true,
       supernova: true,
     },
+    {
+      name: t("settings.lockdown_title"),
+      free: false,
+      star: false,
+      nova: true,
+      supernova: true,
+    },
 
     {
       category: t("settings.category_privacy"),

@@ -126,6 +126,7 @@ function feature_list_for_tier(
       { on: true, text: t("settings.plan_f_imap_smtp_bridge") },
       { on: false, text: t("settings.f_folder_lock") },
       { on: false, text: t("settings.plan_f_smart_folders") },
+      { on: false, text: t("settings.lockdown_title") },
       { on: false, text: t("settings.plan_f_read_receipts") },
     ];
   }
@@ -146,6 +147,7 @@ function feature_list_for_tier(
       { on: true, text: t("settings.plan_f_imap_smtp_bridge") },
       { on: true, text: t("settings.f_folder_lock") },
       { on: true, text: t("settings.plan_f_smart_folders") },
+      { on: true, text: t("settings.lockdown_title") },
       { on: false, text: t("settings.plan_f_read_receipts") },
     ];
   }
@@ -166,6 +168,7 @@ function feature_list_for_tier(
     { on: true, text: t("settings.plan_f_imap_smtp_bridge") },
     { on: true, text: t("settings.f_folder_lock") },
     { on: true, text: t("settings.plan_f_smart_folders") },
+    { on: true, text: t("settings.lockdown_title") },
     { on: true, text: t("settings.plan_f_read_receipts") },
   ];
 }
