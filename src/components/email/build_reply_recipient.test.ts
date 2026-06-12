@@ -20,7 +20,10 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { build_reply_recipient } from "./build_reply_recipient";
+import {
+  build_reply_recipient,
+  build_reply_recipient_for_message,
+} from "./build_reply_recipient";
 
 import { extract_reply_to } from "@/utils/reply_to";
 
@@ -162,5 +165,73 @@ describe("build_reply_recipient", () => {
     );
 
     expect(result.recipient_email).toBe("them@example.com");
+  });
+});
+
+describe("build_reply_recipient_for_message", () => {
+  it("issue #13: inline thread reply targets Reply-To, not From", () => {
+    const result = build_reply_recipient_for_message({
+      item_type: "received",
+      sender_name: "Info",
+      sender_email: "info@company.example",
+      to_recipients: [{ name: "", email: "inbox@example.net" }],
+      raw_headers: [
+        { name: "From", value: "Info <info@company.example>" },
+        { name: "To", value: "inbox@example.net" },
+        { name: "Reply-To", value: "dummy@external.example" },
+      ],
+    });
+
+    expect(result.recipient_email).toBe("dummy@external.example");
+  });
+
+  it("falls back to sender when the message has no Reply-To header", () => {
+    const result = build_reply_recipient_for_message({
+      item_type: "received",
+      sender_name: "Info",
+      sender_email: "info@company.example",
+      raw_headers: [{ name: "From", value: "Info <info@company.example>" }],
+    });
+
+    expect(result.recipient_email).toBe("info@company.example");
+    expect(result.recipient_name).toBe("Info");
+  });
+
+  it("falls back to sender when raw_headers are missing entirely", () => {
+    const result = build_reply_recipient_for_message({
+      item_type: "received",
+      sender_name: "Info",
+      sender_email: "info@company.example",
+    });
+
+    expect(result.recipient_email).toBe("info@company.example");
+  });
+
+  it("replies to the original recipient on own sent messages", () => {
+    const result = build_reply_recipient_for_message({
+      item_type: "sent",
+      sender_name: "Me",
+      sender_email: "me@astermail.org",
+      to_recipients: [{ name: "Them", email: "them@example.com" }],
+      raw_headers: [
+        { name: "Reply-To", value: "spoofed@bad.example" },
+      ],
+    });
+
+    expect(result.recipient_email).toBe("them@example.com");
+  });
+
+  it("keeps the reverse alias over Reply-To for forwarded-alias mail", () => {
+    const result = build_reply_recipient_for_message({
+      item_type: "received",
+      sender_name: "Hi Example",
+      sender_email: "reverse_alias_x@simplelogin.co",
+      display_sender_email: "hi@example.com",
+      raw_headers: [
+        { name: "Reply-To", value: "hi@example.com" },
+      ],
+    });
+
+    expect(result.recipient_email).toBe("reverse_alias_x@simplelogin.co");
   });
 });

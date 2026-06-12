@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { get_email_username } from "@/lib/utils";
+import { extract_reply_to } from "@/utils/reply_to";
 
 export interface ReplyRecipientSource {
   sender_name: string;
@@ -75,4 +76,36 @@ export function build_reply_recipient(
     recipient_name: source.sender_name,
     recipient_email: source.sender_email,
   };
+}
+
+export interface ReplyRecipientMessage {
+  item_type: string;
+  sender_name: string;
+  sender_email: string;
+  display_sender_email?: string;
+  to_recipients?: { name: string; email: string }[];
+  raw_headers?: { name: string; value: string }[];
+}
+
+export function build_reply_recipient_for_message(
+  message: ReplyRecipientMessage,
+): ReplyRecipient {
+  const is_own_message = message.item_type === "sent";
+  const is_forwarded = !is_own_message && !!message.display_sender_email;
+  const parsed_reply_to = extract_reply_to(message.raw_headers);
+
+  return build_reply_recipient(
+    {
+      sender_name: message.sender_name,
+      sender_email: message.sender_email,
+      first_to: message.to_recipients?.[0],
+      reply_to: parsed_reply_to
+        ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
+        : undefined,
+      reply_alias: is_forwarded
+        ? { name: message.sender_name, email: message.sender_email }
+        : undefined,
+    },
+    is_own_message,
+  );
 }

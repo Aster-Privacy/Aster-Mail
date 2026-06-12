@@ -79,6 +79,7 @@ import { use_date_format } from "@/hooks/use_date_format";
 import { show_toast } from "@/components/toast/simple_toast";
 import { AttachmentList } from "@/components/email/attachment_list";
 import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
+import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
 import { ThreadMessageBody } from "@/components/email/thread_message_body";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
@@ -1129,16 +1130,10 @@ export function ThreadMessageBlock({
         on_close_inline_reply &&
         (() => {
           const is_own_msg = message.item_type === "sent";
-          const first_to_recipient = message.to_recipients?.[0];
-          const inline_recipient_email =
-            is_own_msg && first_to_recipient
-              ? first_to_recipient.email
-              : message.sender_email;
-          const inline_recipient_name =
-            is_own_msg && first_to_recipient
-              ? first_to_recipient.name ||
-                first_to_recipient.email?.split("@")[0] || ""
-              : message.sender_name;
+          const {
+            recipient_name: inline_recipient_name,
+            recipient_email: inline_recipient_email,
+          } = build_reply_recipient_for_message(message);
 
           const original_cc_emails =
             message.to_recipients

@@ -42,6 +42,7 @@ import {
 } from "./mobile_detail_sheets";
 
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
+import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { remove_email_from_view_cache } from "@/hooks/use_email_list";
 import { MobileHeader } from "@/components/mobile/mobile_header";
@@ -456,7 +457,8 @@ function MobileMailDetail() {
           }),
         );
       } else {
-        const to = [msg.sender_email];
+        const { recipient_email } = build_reply_recipient_for_message(msg);
+        const to = [recipient_email];
         const cc: string[] = [];
 
         if (mode === "reply_all") {
@@ -466,7 +468,8 @@ function MobileMailDetail() {
             if (
               r.email &&
               r.email !== my_email &&
-              r.email !== msg.sender_email
+              r.email !== msg.sender_email &&
+              r.email !== recipient_email
             ) {
               to.push(r.email);
             }
