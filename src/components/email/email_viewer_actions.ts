@@ -965,7 +965,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     if (!routing_token || !sender || is_own_message) return;
 
     if (deps.is_sender_pinning_locked) {
-      prompt_upgrade("Block sender on alias");
+      prompt_upgrade(deps.t("settings.feature_requires_upgrade"));
       return;
     }
 

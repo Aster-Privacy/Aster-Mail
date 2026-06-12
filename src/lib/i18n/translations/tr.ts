@@ -1710,6 +1710,7 @@ export const tr = {
     alias_feature_locked_view_plans: "Planları görüntüle",
     alias_feature_locked_upgrade_plan: "Planı yükselt",
     alias_feature_locked_upgrade_cta: "Yükselt",
+    feature_requires_upgrade: "Bu özellik yükseltilmiş bir plan gerektiriyor.",
     alias_rule_cancel: "İptal",
     alias_rule_close: "Kural oluşturucuyu kapat",
     alias_rule_field_label: "Alan",

@@ -213,13 +213,13 @@ export function AliasesSection() {
                         : (hook.alias_counts.max ?? 0)}
                     </span>
                   )}
-                  <Button size="sm" variant="ghost" onClick={alias_csv_locked ? () => prompt_upgrade("Alias CSV export") : handle_export_csv}>
+                  <Button size="sm" variant="ghost" onClick={alias_csv_locked ? () => prompt_upgrade(t("settings.feature_requires_upgrade")) : handle_export_csv}>
                     {t("settings.alias_export_csv")}
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={alias_csv_locked ? () => prompt_upgrade("Alias CSV import") : () => set_show_import_modal(true)}
+                    onClick={alias_csv_locked ? () => prompt_upgrade(t("settings.feature_requires_upgrade")) : () => set_show_import_modal(true)}
                   >
                     {t("settings.alias_import_csv")}
                   </Button>

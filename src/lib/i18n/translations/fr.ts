@@ -1710,6 +1710,7 @@ export const fr = {
     alias_feature_locked_view_plans: "Voir les forfaits",
     alias_feature_locked_upgrade_plan: "Améliorer le forfait",
     alias_feature_locked_upgrade_cta: "Améliorer",
+    feature_requires_upgrade: "Cette fonctionnalité nécessite un abonnement supérieur.",
     alias_rule_cancel: "Annuler",
     alias_rule_close: "Fermer le générateur de règles",
     alias_rule_field_label: "Champ",

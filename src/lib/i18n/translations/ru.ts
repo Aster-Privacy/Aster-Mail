@@ -1710,6 +1710,7 @@ export const ru = {
     alias_feature_locked_view_plans: "Посмотреть планы",
     alias_feature_locked_upgrade_plan: "Улучшить план",
     alias_feature_locked_upgrade_cta: "Улучшить",
+    feature_requires_upgrade: "Эта функция требует расширенного тарифного плана.",
     alias_rule_cancel: "Отмена",
     alias_rule_close: "Закрыть конструктор правил",
     alias_rule_field_label: "Поле",
