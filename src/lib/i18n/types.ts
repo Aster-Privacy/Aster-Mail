@@ -1589,6 +1589,10 @@ export interface SettingsTranslations {
   trusted_devices_revoke_confirm: string;
   trusted_devices_revoke_all: string;
   trusted_devices_revoke_all_confirm: string;
+  bridge: string;
+  bridge_description: string;
+  bridge_download_windows: string;
+  bridge_download_msi: string;
   desktop_bridge_title: string;
   desktop_bridge_description: string;
   desktop_bridge_set_up: string;

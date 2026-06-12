@@ -49,6 +49,7 @@ import {
   CodeBracketIcon,
   DocumentTextIcon,
   ArrowUturnLeftIcon,
+  ArrowsRightLeftIcon,
   FunnelIcon,
   BoltIcon,
   ChatBubbleBottomCenterTextIcon,
@@ -102,6 +103,7 @@ import { MailRulesSection } from "@/components/settings/mail_rules_section";
 import { FeedbackSection } from "@/components/settings/feedback_section";
 import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section";
 import { ReferralTab } from "@/components/settings/referral_tab";
+import { BridgeSection } from "@/components/settings/bridge_section";
 import { TrustedDevicesPanel } from "@/components/settings/trusted_devices_panel";
 import { SettingsSaveIndicator } from "@/components/settings/settings_save_indicator";
 import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_prefetch";
@@ -131,7 +133,8 @@ export type SettingsSection =
   | "mail_rules"
   | "feedback"
   | "updates"
-  | "developer";
+  | "developer"
+  | "bridge";
 
 type Section = SettingsSection;
 
@@ -184,6 +187,7 @@ function get_nav_items(
     ],
     mail: [
       ...(!on_onion ? [{ id: "import" as Section, label: t("common.import"), icon: ArrowDownTrayIcon }] : []),
+      { id: "bridge" as Section, label: t("settings.bridge"), icon: ArrowsRightLeftIcon },
       { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
       { id: "signature", label: t("settings.signature"), icon: PencilSquareIcon },
       { id: "templates", label: t("settings.templates"), icon: DocumentTextIcon },
@@ -535,6 +539,8 @@ function SettingsPanelInner({
         return <DeveloperSection />;
       case "updates":
         return <UpdatesSection />;
+      case "bridge":
+        return <BridgeSection />;
       default:
         return null;
     }

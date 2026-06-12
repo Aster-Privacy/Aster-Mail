@@ -1392,6 +1392,10 @@ export const en: Translations = {
     trusted_devices_revoke_all: "Revoke all",
     trusted_devices_revoke_all_confirm:
       "Are you sure you want to revoke all devices?",
+    bridge: "Bridge",
+    bridge_description: "Connect Aster to any IMAP or SMTP mail client",
+    bridge_download_windows: "Download for Windows",
+    bridge_download_msi: "Download MSI",
     desktop_bridge_title: "Desktop Mail Client",
     desktop_bridge_description:
       "Use Aster with Thunderbird, Apple Mail, Outlook, or any IMAP/JMAP client. Aster Bridge runs locally and re-serves your decrypted mailbox to your favorite client.",
