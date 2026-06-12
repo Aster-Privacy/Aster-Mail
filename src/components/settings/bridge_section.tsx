@@ -98,8 +98,6 @@ function format_last_seen(iso: string | null, never_label: string, active_now_la
 export function BridgeSection() {
   const { t } = use_i18n();
   const { limits, is_loading: plan_loading } = use_plan_limits();
-  if (plan_loading && !limits) return null;
-  const is_locked = !limits || limits.plan_code === "free";
   const [devices, set_devices] = useState<Device[]>([]);
   const [devices_loading, set_devices_loading] = useState(true);
   const [revoking_id, set_revoking_id] = useState<string | null>(null);
@@ -120,6 +118,9 @@ export function BridgeSection() {
   useEffect(() => {
     load_devices();
   }, [load_devices]);
+
+  if (plan_loading && !limits) return null;
+  const is_locked = !limits || limits.plan_code === "free";
 
   const handle_revoke = async (id: string) => {
     set_confirm_revoke_id(null);
