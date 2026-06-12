@@ -183,6 +183,7 @@ export interface InboxEmail {
   expiry_type?: "sender" | "recipient";
   grouped_email_ids?: string[];
   recipient_addresses?: string[];
+  reply_to?: { name?: string; email: string };
   send_status?: string;
   size_bytes?: number;
   phishing_level?: "safe" | "suspicious" | "dangerous";

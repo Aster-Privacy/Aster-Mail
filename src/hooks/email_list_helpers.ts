@@ -29,6 +29,7 @@ import { strip_html_tags } from "@/lib/html_sanitizer";
 import { classify } from "@/services/mail_categorizer";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
+import { extract_reply_to } from "@/utils/reply_to";
 import {
   list_mail_items,
   type ListMailItemsParams,
@@ -354,6 +355,7 @@ export function mail_to_email(
     expires_at: item.expires_at,
     expiry_type: item.expiry_type,
     recipient_addresses,
+    reply_to: extract_reply_to(envelope.raw_headers),
     send_status: effective_metadata.send_status,
     size_bytes:
       effective_metadata.size_bytes ||
