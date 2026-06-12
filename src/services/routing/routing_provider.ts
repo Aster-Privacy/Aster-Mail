@@ -25,6 +25,7 @@ import {
   tor_fetch,
 } from "./tor_transport";
 import { cdn_relay_fetch } from "./cdn_relay_transport";
+import { is_tauri_env, tauri_proxy_fetch } from "./tauri_proxy_transport";
 import { TorUnavailableError } from "./tor_unavailable_error";
 import {
   CANONICAL_API_ONION,
@@ -39,61 +40,6 @@ import {
 import { is_low_network } from "@/services/low_network_state";
 
 const LOW_NETWORK_TIMEOUT = 45000;
-
-function is_tauri_env(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-}
-
-interface ProxyResponse {
-  status: number;
-  body: string;
-  headers: Record<string, string>;
-}
-
-async function tauri_proxy_fetch(
-  url: string,
-  options: RequestInit,
-): Promise<Response> {
-  const { invoke } = await import("@tauri-apps/api/core");
-
-  const headers_map: Record<string, string> = {};
-
-  if (options.headers) {
-    const h = new Headers(options.headers);
-    h.forEach((v, k) => {
-      headers_map[k] = v;
-    });
-  }
-
-  const body = (() => {
-    const b = options.body;
-    if (b == null) return null;
-    if (typeof b === "string") return b;
-    if (b instanceof URLSearchParams) return b.toString();
-    return String(b);
-  })();
-
-  const result = await invoke<ProxyResponse>("device_http_request", {
-    url,
-    method: options.method || "GET",
-    body,
-    headers: Object.keys(headers_map).length > 0 ? headers_map : null,
-  });
-
-  let bytes: Uint8Array;
-  try {
-    bytes = result.body
-      ? Uint8Array.from(atob(result.body), (c) => c.charCodeAt(0))
-      : new Uint8Array(0);
-  } catch {
-    return new Response(null, { status: 500 });
-  }
-
-  return new Response(bytes, {
-    status: result.status,
-    headers: result.headers,
-  });
-}
 
 function is_tor_method(method: ConnectionMethod): boolean {
   return method === "tor" || method === "tor_snowflake";

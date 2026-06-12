@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { connection_store } from "./connection_store";
+import { is_tauri_env, tauri_proxy_fetch } from "./tauri_proxy_transport";
 
 export async function cdn_relay_fetch(
   url: string,
@@ -27,11 +28,15 @@ export async function cdn_relay_fetch(
   const relay_url = connection_store.get_cdn_relay_url();
 
   if (!relay_url) {
-    return fetch(url, options);
+    return is_tauri_env()
+      ? tauri_proxy_fetch(url, options)
+      : fetch(url, options);
   }
 
   const original = new URL(url);
   const relayed = `${relay_url}${original.pathname}${original.search}`;
 
-  return fetch(relayed, options);
+  return is_tauri_env()
+    ? tauri_proxy_fetch(relayed, options)
+    : fetch(relayed, options);
 }
