@@ -50,6 +50,7 @@ export {
   purge_external_account_mail,
   test_external_connection,
   trigger_sync,
+  cancel_sync,
   send_via_external_account,
   list_account_folders,
   update_sync_settings,

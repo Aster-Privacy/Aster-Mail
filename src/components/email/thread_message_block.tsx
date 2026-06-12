@@ -681,7 +681,7 @@ export function ThreadMessageBlock({
                 {t("mail.open_unsubscribe_page")}
               </button>
             )}
-            {sanitized_content.report && sanitized_content.report.blocked_count > 0 && on_load_external_content && (() => {
+            {!lockdown_active && sanitized_content.report && sanitized_content.report.blocked_count > 0 && on_load_external_content && (() => {
               const report = sanitized_content.report!;
               const image_count = report.blocked_items.filter((i) => i.type === "image").length;
               const tracker_count = report.blocked_items.filter((i) => i.type === "tracking_pixel").length;

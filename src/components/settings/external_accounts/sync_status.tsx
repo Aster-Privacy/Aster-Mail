@@ -99,6 +99,8 @@ export function SyncStatusIndicator({
           processed: String(progress.processed),
           total: String(progress.total),
         });
+      } else if (progress.status === "checking") {
+        label = t("settings.sync_checking_new");
       } else if (
         progress.status === "fetching" ||
         progress.status === "started"

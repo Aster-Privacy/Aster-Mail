@@ -119,12 +119,15 @@ export interface SyncProgressEvent {
   status:
     | "started"
     | "fetching"
+    | "checking"
     | "processing"
     | "encrypting"
+    | "purging"
     | "complete"
     | "error";
   total_messages: number;
   processed_messages: number;
+  imported_messages?: number;
   current_folder: string;
   error_message: string | null;
 }

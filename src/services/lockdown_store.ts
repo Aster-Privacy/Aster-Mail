@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { get_lockdown_status } from "@/services/api/lockdown";
+import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
 
 const LS_KEY = (account_id: string) => `aster:lockdown:${account_id}`;
 
@@ -40,6 +41,7 @@ export function set_lockdown_enabled(account_id: string, enabled: boolean): void
     localStorage.removeItem(LS_KEY(account_id));
   }
   window.dispatchEvent(new CustomEvent(LOCKDOWN_CHANGED_EVENT, { detail: { account_id, enabled } }));
+  void apply_desktop_content_protection(is_any_lockdown_active());
 }
 
 export function is_any_lockdown_active(): boolean {

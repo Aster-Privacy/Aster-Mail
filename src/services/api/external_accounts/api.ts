@@ -455,6 +455,33 @@ export async function trigger_sync(
   }
 }
 
+export async function cancel_sync(
+  account_token: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  const token_error = validate_account_token(account_token);
+
+  if (token_error) {
+    return { error: token_error };
+  }
+
+  try {
+    const response = await api_client.post<{ success: boolean }>(
+      "/mail/v1/external_accounts/sync/cancel",
+      { account_token },
+    );
+
+    if (response.error || !response.data) {
+      return { error: response.error || "Failed to cancel sync" };
+    }
+
+    return { data: response.data };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Failed to cancel sync",
+    };
+  }
+}
+
 export async function send_via_external_account(
   account_token: string,
   to: string[],
