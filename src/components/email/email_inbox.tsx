@@ -26,6 +26,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { EmailListHeader } from "@/components/email/email_list_header";
+import { build_reply_recipient } from "@/components/email/build_reply_recipient";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
@@ -414,17 +415,28 @@ export function EmailInbox({
     (mode: "reply" | "forward", email: InboxEmail) => {
       if (mode === "reply" && on_reply) {
         const is_own_message = email.item_type === "sent";
+        const is_forwarded = !is_own_message && !!email.display_sender_email;
         const first_recipient = email.recipient_addresses?.[0];
+        const { recipient_name, recipient_email } = build_reply_recipient(
+          {
+            sender_name: email.sender_name,
+            sender_email: email.sender_email,
+            first_to: first_recipient
+              ? { name: "", email: first_recipient }
+              : undefined,
+            reply_to: email.reply_to
+              ? { name: email.reply_to.name ?? "", email: email.reply_to.email }
+              : undefined,
+            reply_alias: is_forwarded
+              ? { name: email.sender_name, email: email.sender_email }
+              : undefined,
+          },
+          is_own_message,
+        );
 
         on_reply({
-          recipient_name:
-            is_own_message && first_recipient
-              ? first_recipient.split("@")[0]
-              : email.sender_name,
-          recipient_email:
-            is_own_message && first_recipient
-              ? first_recipient
-              : email.sender_email,
+          recipient_name,
+          recipient_email,
           recipient_avatar: email.avatar_url,
           original_subject: email.subject,
           original_body: email.body_html || email.preview,
