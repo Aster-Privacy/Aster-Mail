@@ -188,33 +188,61 @@ async function fetch_drafts_from_api(
       if (signal.aborted) throw new Error("aborted");
       const detail = await get_draft(draft.id, vault);
 
-      return detail.data
-        ? transform_draft(
-            detail.data,
-            format_options,
-            no_recipients_text,
-            no_subject_text,
-            draft_category_text,
-          )
-        : null;
+      if (detail.data) {
+        return transform_draft(
+          detail.data,
+          format_options,
+          no_recipients_text,
+          no_subject_text,
+          draft_category_text,
+        );
+      }
+
+      return {
+        id: draft.id,
+        item_type: "draft" as MailItemType,
+        sender_name: no_recipients_text,
+        sender_email: "",
+        subject: no_subject_text,
+        preview: "",
+        timestamp: format_email_list_timestamp(
+          new Date(draft.updated_at),
+          format_options,
+        ),
+        is_pinned: false,
+        is_starred: false,
+        is_selected: false,
+        is_read: true,
+        is_trashed: false,
+        is_archived: false,
+        is_spam: false,
+        has_attachment: false,
+        category: draft_category_text,
+        category_color: DRAFT_CATEGORY_STYLE,
+        avatar_url: "",
+        is_encrypted: true,
+        version: draft.version,
+        draft_type: draft.draft_type,
+        reply_to_id: draft.reply_to_id,
+        forward_from_id: draft.forward_from_id,
+        to_recipients: [],
+        cc_recipients: [],
+        bcc_recipients: [],
+        full_message: "",
+        updated_at: draft.updated_at,
+        draft_attachments: undefined,
+      } as DraftListItem;
     }),
   );
 
   if (signal.aborted) return null;
 
-  const rejected = results.filter(
-    (r): r is PromiseRejectedResult => r.status === "rejected",
-  );
-
-  void rejected.length;
-
   const drafts = results
     .filter(
-      (r): r is PromiseFulfilledResult<DraftListItem | null> =>
+      (r): r is PromiseFulfilledResult<DraftListItem> =>
         r.status === "fulfilled",
     )
-    .map((r) => r.value)
-    .filter((d): d is DraftListItem => d !== null);
+    .map((r) => r.value);
 
   return { drafts, has_more: response.data.has_more };
 }
