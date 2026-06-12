@@ -270,6 +270,7 @@ function SettingsPanelInner({
     feedback: null,
     developer: null,
     updates: null,
+    bridge: null,
   });
 
   const handle_account_deleted = useCallback(() => {
