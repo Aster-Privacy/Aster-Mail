@@ -32,7 +32,7 @@ import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n";
-import { get_subscription } from "@/services/api/billing";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   list_devices,
   revoke_device,
@@ -97,8 +97,8 @@ function format_last_seen(iso: string | null, never_label: string, active_now_la
 
 export function BridgeSection() {
   const { t } = use_i18n();
-  const [is_locked, set_is_locked] = useState(true);
-  const [loaded, set_loaded] = useState(false);
+  const { limits, is_loading: plan_loading } = use_plan_limits();
+  const is_locked = plan_loading ? false : (limits?.plan_code === "free" || !limits);
   const [devices, set_devices] = useState<Device[]>([]);
   const [devices_loading, set_devices_loading] = useState(true);
   const [revoking_id, set_revoking_id] = useState<string | null>(null);
@@ -117,13 +117,6 @@ export function BridgeSection() {
   }, []);
 
   useEffect(() => {
-    get_subscription().then((res) => {
-      const code = res.data?.plan?.code?.toLowerCase() ?? "free";
-      set_is_locked(code === "free");
-      set_loaded(true);
-    }).catch(() => {
-      set_loaded(true);
-    });
     load_devices();
   }, [load_devices]);
 
@@ -184,8 +177,6 @@ export function BridgeSection() {
       icon: apple_icon,
     },
   ];
-
-  if (!loaded) return null;
 
   return (
     <div className="space-y-5">
