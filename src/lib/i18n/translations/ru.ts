@@ -3792,6 +3792,7 @@ export const ru = {
     bridge_revoke_title: "Отозвать установку?",
     bridge_revoke_message: "Это отключит {{ name }} и все почтовые клиенты, использующие её. Можно восстановить подключение, повторно связав Bridge.",
     bridge_revoke_all_message: "Это отключит все установки Bridge и все почтовые клиенты, использующие их.",
+    bridge_active_now: "Активен сейчас",
     bridge_support_title: "Нужна помощь?",
     bridge_support_description: "Получите помощь в настройке Aster Bridge с вашим почтовым клиентом.",
     bridge_support_help: "Центр помощи",

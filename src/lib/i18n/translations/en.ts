@@ -1430,6 +1430,7 @@ export const en: Translations = {
       "This will disconnect {{ name }} and all mail clients using it. You can reconnect by pairing Bridge again.",
     bridge_revoke_all_message:
       "This will disconnect all Bridge installations and any mail clients using them.",
+    bridge_active_now: "Active now",
     bridge_support_title: "Need help?",
     bridge_support_description: "Get help setting up Aster Bridge with your mail client.",
     bridge_support_help: "Help center",

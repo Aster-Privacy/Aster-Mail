@@ -2187,6 +2187,7 @@ export const ar = {
     bridge_revoke_title: "إلغاء التثبيت؟",
     bridge_revoke_message: "سيؤدي هذا إلى قطع اتصال {{ name }} وجميع عملاء البريد الذين يستخدمونه. يمكنك إعادة الاتصال عن طريق إقران Bridge مرة أخرى.",
     bridge_revoke_all_message: "سيؤدي هذا إلى قطع اتصال جميع تثبيتات Bridge وجميع عملاء البريد الذين يستخدمونها.",
+    bridge_active_now: "نشط الآن",
     bridge_support_title: "تحتاج مساعدة؟",
     bridge_support_description: "احصل على مساعدة في إعداد Aster Bridge مع عميل البريد الخاص بك.",
     bridge_support_help: "مركز المساعدة",

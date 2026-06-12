@@ -1613,6 +1613,7 @@ export interface SettingsTranslations {
   bridge_revoke_title: string;
   bridge_revoke_message: string;
   bridge_revoke_all_message: string;
+  bridge_active_now: string;
   bridge_support_title: string;
   bridge_support_description: string;
   bridge_support_help: string;

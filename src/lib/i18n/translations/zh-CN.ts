@@ -3757,6 +3757,7 @@ export const zh_CN = {
     bridge_revoke_title: "撤销安装？",
     bridge_revoke_message: "这将断开{{ name }}和所有使用它的邮件客户端。您可以通过重新配对Bridge来重新连接。",
     bridge_revoke_all_message: "这将断开所有Bridge安装和使用它们的邮件客户端。",
+    bridge_active_now: "当前活跃",
     bridge_support_title: "需要帮助？",
     bridge_support_description: "获取使用邮件客户端设置Aster Bridge的帮助。",
     bridge_support_help: "帮助中心",

@@ -3682,6 +3682,7 @@ export const it = {
     bridge_revoke_title: "Revocare l'installazione?",
     bridge_revoke_message: "Questo disconnetterà {{ name }} e tutti i client di posta che lo usano. Puoi riconnetterti abbinando nuovamente Bridge.",
     bridge_revoke_all_message: "Questo disconnetterà tutte le installazioni Bridge e i client di posta che le usano.",
+    bridge_active_now: "Attivo ora",
     bridge_support_title: "Hai bisogno di aiuto?",
     bridge_support_description: "Ottieni aiuto per configurare Aster Bridge con il tuo client di posta.",
     bridge_support_help: "Centro assistenza",
