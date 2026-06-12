@@ -1593,6 +1593,16 @@ export interface SettingsTranslations {
   bridge_description: string;
   bridge_download_windows: string;
   bridge_download_msi: string;
+  bridge_windows_name: string;
+  bridge_windows_desc: string;
+  bridge_linux_name: string;
+  bridge_linux_desc: string;
+  bridge_linux_deb_link: string;
+  bridge_linux_rpm_link: string;
+  bridge_macos_name: string;
+  bridge_macos_desc: string;
+  bridge_coming_soon: string;
+  bridge_info_link: string;
   desktop_bridge_title: string;
   desktop_bridge_description: string;
   desktop_bridge_set_up: string;
