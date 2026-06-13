@@ -167,12 +167,14 @@ async function re_encrypt_field(
 async function re_encrypt_signatures(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
-): Promise<void> {
+): Promise<boolean> {
   const resp = await api_client.get<{ signatures: Signature[]; total: number }>(
     "/mail/v1/signatures",
   );
 
-  if (resp.error || !resp.data) return;
+  if (resp.error || !resp.data) return false;
+
+  let ok = true;
 
   for (const sig of resp.data.signatures) {
     try {
@@ -193,20 +195,25 @@ async function re_encrypt_signatures(
         content_nonce: content.nonce,
       });
     } catch {
+      ok = false;
       continue;
     }
   }
+
+  return ok;
 }
 
 async function re_encrypt_templates(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
-): Promise<void> {
+): Promise<boolean> {
   const resp = await api_client.get<{ templates: Template[]; total: number }>(
     "/mail/v1/templates",
   );
 
-  if (resp.error || !resp.data) return;
+  if (resp.error || !resp.data) return false;
+
+  let ok = true;
 
   for (const t of resp.data.templates) {
     try {
@@ -235,19 +242,25 @@ async function re_encrypt_templates(
         content_nonce: content.nonce,
       });
     } catch {
+      ok = false;
       continue;
     }
   }
+
+  return ok;
 }
 
-async function re_encrypt_blocked_senders(old_aes: CryptoKey): Promise<void> {
+async function re_encrypt_blocked_senders(
+  old_aes: CryptoKey,
+): Promise<boolean> {
   const resp = await api_client.get<{
     blocked_senders: BlockedSenderResponse[];
     total: number;
   }>("/contacts/v1/blocked_senders");
 
-  if (resp.error || !resp.data || resp.data.blocked_senders.length === 0)
-    return;
+  if (resp.error || !resp.data) return false;
+
+  if (resp.data.blocked_senders.length === 0) return true;
 
   const decrypted: Array<{
     email: string;
@@ -255,6 +268,8 @@ async function re_encrypt_blocked_senders(old_aes: CryptoKey): Promise<void> {
     action: string;
     is_domain: boolean;
   }> = [];
+
+  let ok = true;
 
   for (const item of resp.data.blocked_senders) {
     try {
@@ -274,15 +289,18 @@ async function re_encrypt_blocked_senders(old_aes: CryptoKey): Promise<void> {
         is_domain: item.is_domain,
       });
     } catch {
+      ok = false;
       continue;
     }
   }
 
-  if (decrypted.length === 0) return;
+  if (decrypted.length === 0) return ok;
 
   const old_tokens = resp.data.blocked_senders.map((b) => b.sender_token);
 
-  await bulk_unblock_senders_by_tokens(old_tokens).catch(() => {});
+  await bulk_unblock_senders_by_tokens(old_tokens).catch(() => {
+    ok = false;
+  });
 
   for (const item of decrypted) {
     await block_sender(
@@ -290,24 +308,33 @@ async function re_encrypt_blocked_senders(old_aes: CryptoKey): Promise<void> {
       item.name,
       item.action as "spam" | "delete",
       item.is_domain,
-    ).catch(() => {});
+    ).catch(() => {
+      ok = false;
+    });
   }
+
+  return ok;
 }
 
-async function re_encrypt_allowed_senders(old_aes: CryptoKey): Promise<void> {
+async function re_encrypt_allowed_senders(
+  old_aes: CryptoKey,
+): Promise<boolean> {
   const resp = await api_client.get<{
     allowed_senders: AllowedSenderResponse[];
     total: number;
   }>("/contacts/v1/allowed_senders?limit=500&offset=0");
 
-  if (resp.error || !resp.data || resp.data.allowed_senders.length === 0)
-    return;
+  if (resp.error || !resp.data) return false;
+
+  if (resp.data.allowed_senders.length === 0) return true;
 
   const decrypted: Array<{
     email: string;
     name?: string;
     is_domain: boolean;
   }> = [];
+
+  let ok = true;
 
   for (const item of resp.data.allowed_senders) {
     try {
@@ -326,29 +353,40 @@ async function re_encrypt_allowed_senders(old_aes: CryptoKey): Promise<void> {
         is_domain: item.is_domain,
       });
     } catch {
+      ok = false;
       continue;
     }
   }
 
-  if (decrypted.length === 0) return;
+  if (decrypted.length === 0) return ok;
 
   const old_tokens = resp.data.allowed_senders.map((a) => a.sender_token);
 
-  await bulk_remove_allowed_senders_by_tokens(old_tokens).catch(() => {});
+  await bulk_remove_allowed_senders_by_tokens(old_tokens).catch(() => {
+    ok = false;
+  });
 
   for (const item of decrypted) {
-    await allow_sender(item.email, item.name, item.is_domain).catch(() => {});
+    await allow_sender(item.email, item.name, item.is_domain).catch(() => {
+      ok = false;
+    });
   }
+
+  return ok;
 }
 
 async function re_encrypt_recent_recipients(
   old_aes: CryptoKey,
-): Promise<void> {
+): Promise<boolean> {
   const resp = await list_recent_recipients();
 
-  if (resp.error || !resp.data || resp.data.items.length === 0) return;
+  if (resp.error || !resp.data) return false;
+
+  if (resp.data.items.length === 0) return true;
 
   const emails: string[] = [];
+
+  let ok = true;
 
   for (const r of resp.data.items) {
     try {
@@ -362,14 +400,21 @@ async function re_encrypt_recent_recipients(
 
       emails.push(new TextDecoder().decode(pt));
     } catch {
+      ok = false;
       continue;
     }
   }
 
-  if (emails.length === 0) return;
+  if (emails.length === 0) return ok;
 
-  await delete_all_recent_recipients().catch(() => {});
-  await save_recent_recipients(emails).catch(() => {});
+  await delete_all_recent_recipients().catch(() => {
+    ok = false;
+  });
+  await save_recent_recipients(emails).catch(() => {
+    ok = false;
+  });
+
+  return ok;
 }
 
 interface ReEncryptedAlias {
@@ -805,8 +850,8 @@ async function derive_folder_aes_key(
 async function re_encrypt_folders(
   old_identity_key: string,
   new_identity_key: string,
-): Promise<void> {
-  if (old_identity_key === new_identity_key) return;
+): Promise<boolean> {
+  if (old_identity_key === new_identity_key) return true;
 
   const [old_key, new_key] = await Promise.all([
     derive_folder_aes_key(old_identity_key, ["decrypt"]),
@@ -814,6 +859,7 @@ async function re_encrypt_folders(
   ]);
 
   let offset = 0;
+  let ok = true;
 
   while (true) {
     const resp = await api_client.get<{
@@ -830,7 +876,10 @@ async function re_encrypt_folders(
       has_more: boolean;
     }>(`/mail/v1/labels?limit=100&offset=${offset}`);
 
-    if (resp.error || !resp.data) break;
+    if (resp.error || !resp.data) {
+      ok = false;
+      break;
+    }
 
     for (const folder of resp.data.labels) {
       try {
@@ -871,6 +920,7 @@ async function re_encrypt_folders(
 
         await api_client.put(`/mail/v1/labels/${folder.id}`, updates);
       } catch {
+        ok = false;
         continue;
       }
     }
@@ -879,6 +929,8 @@ async function re_encrypt_folders(
 
     offset += resp.data.labels.length;
   }
+
+  return ok;
 }
 
 async function re_encrypt_preferences(
@@ -1096,7 +1148,7 @@ async function re_encrypt_external_accounts(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
   new_raw: Uint8Array,
-): Promise<void> {
+): Promise<boolean> {
   const resp = await api_client.get<{
     accounts: Array<{
       account_token: string;
@@ -1106,9 +1158,13 @@ async function re_encrypt_external_accounts(
     total: number;
   }>("/mail/v1/external_accounts");
 
-  if (resp.error || !resp.data || resp.data.accounts.length === 0) return;
+  if (resp.error || !resp.data) return false;
+
+  if (resp.data.accounts.length === 0) return true;
 
   const new_hmac = await derive_hmac_key(new_raw, "external-accounts-hmac-v1");
+
+  let ok = true;
 
   for (const account of resp.data.accounts) {
     try {
@@ -1131,23 +1187,27 @@ async function re_encrypt_external_accounts(
         integrity_hash: array_to_b64(new Uint8Array(hash_buf)),
       });
     } catch {
+      ok = false;
       continue;
     }
   }
+
+  return ok;
 }
 
 async function re_encrypt_contact_field_values(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
-): Promise<void> {
+): Promise<boolean> {
   let cursor: string | undefined;
+  let ok = true;
 
   while (true) {
     const contacts_resp = await list_contacts(
       cursor ? { limit: 100, cursor } : { limit: 100 },
     );
 
-    if (contacts_resp.error || !contacts_resp.data) break;
+    if (contacts_resp.error || !contacts_resp.data) return false;
 
     for (const contact of contacts_resp.data.items) {
       try {
@@ -1160,7 +1220,10 @@ async function re_encrypt_contact_field_values(
           }>;
         }>(`/contacts/v1/${contact.id}/fields`);
 
-        if (fv_resp.error || !fv_resp.data) continue;
+        if (fv_resp.error || !fv_resp.data) {
+          ok = false;
+          continue;
+        }
 
         for (const fv of fv_resp.data.items) {
           try {
@@ -1175,10 +1238,12 @@ async function re_encrypt_contact_field_values(
               { encrypted_value: encrypted, value_nonce: nonce },
             );
           } catch {
+            ok = false;
             continue;
           }
         }
       } catch {
+        ok = false;
         continue;
       }
     }
@@ -1187,20 +1252,23 @@ async function re_encrypt_contact_field_values(
 
     cursor = contacts_resp.data.next_cursor;
   }
+
+  return ok;
 }
 
 async function re_encrypt_contact_photos(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
-): Promise<void> {
+): Promise<boolean> {
   let cursor: string | undefined;
+  let ok = true;
 
   while (true) {
     const contacts_resp = await list_contacts(
       cursor ? { limit: 100, cursor } : { limit: 100 },
     );
 
-    if (contacts_resp.error || !contacts_resp.data) break;
+    if (contacts_resp.error || !contacts_resp.data) return false;
 
     for (const contact of contacts_resp.data.items) {
       try {
@@ -1230,6 +1298,7 @@ async function re_encrypt_contact_photos(
           size_bytes: photo.size_bytes,
         });
       } catch {
+        ok = false;
         continue;
       }
     }
@@ -1238,20 +1307,23 @@ async function re_encrypt_contact_photos(
 
     cursor = contacts_resp.data.next_cursor;
   }
+
+  return ok;
 }
 
 async function re_encrypt_contact_attachments(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
-): Promise<void> {
+): Promise<boolean> {
   let cursor: string | undefined;
+  let ok = true;
 
   while (true) {
     const contacts_resp = await list_contacts(
       cursor ? { limit: 100, cursor } : { limit: 100 },
     );
 
-    if (contacts_resp.error || !contacts_resp.data) break;
+    if (contacts_resp.error || !contacts_resp.data) return false;
 
     for (const contact of contacts_resp.data.items) {
       try {
@@ -1273,7 +1345,10 @@ async function re_encrypt_contact_attachments(
               size_bytes: number;
             }>(`/contacts/v1/${contact.id}/attachments/${att_stub.id}`);
 
-            if (att_resp.error || !att_resp.data) continue;
+            if (att_resp.error || !att_resp.data) {
+              ok = false;
+              continue;
+            }
 
             const att = att_resp.data;
             const [data_result, meta_result] = await Promise.all([
@@ -1290,10 +1365,12 @@ async function re_encrypt_contact_attachments(
               size_bytes: att.size_bytes,
             });
           } catch {
+            ok = false;
             continue;
           }
         }
       } catch {
+        ok = false;
         continue;
       }
     }
@@ -1302,12 +1379,14 @@ async function re_encrypt_contact_attachments(
 
     cursor = contacts_resp.data.next_cursor;
   }
+
+  return ok;
 }
 
 async function re_encrypt_contact_sync_sources(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
-): Promise<void> {
+): Promise<boolean> {
   const resp = await api_client.get<{
     items: Array<{
       id: string;
@@ -1317,9 +1396,13 @@ async function re_encrypt_contact_sync_sources(
     }>;
   }>("/contacts/v1/sync/sources");
 
-  if (resp.error || !resp.data || resp.data.items.length === 0) return;
+  if (resp.error || !resp.data) return false;
+
+  if (resp.data.items.length === 0) return true;
 
   const decrypted: Array<{ source_type: string; config_pt: ArrayBuffer }> = [];
+
+  let ok = true;
 
   for (const source of resp.data.items) {
     try {
@@ -1328,14 +1411,17 @@ async function re_encrypt_contact_sync_sources(
       const config_pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, old_aes, ct);
       decrypted.push({ source_type: source.source_type, config_pt });
     } catch {
+      ok = false;
       continue;
     }
   }
 
-  if (decrypted.length === 0) return;
+  if (decrypted.length === 0) return ok;
 
   for (const source of resp.data.items) {
-    await api_client.delete(`/contacts/v1/sync/sources/${source.id}`).catch(() => {});
+    await api_client.delete(`/contacts/v1/sync/sources/${source.id}`).catch(() => {
+      ok = false;
+    });
   }
 
   for (const item of decrypted) {
@@ -1352,9 +1438,12 @@ async function re_encrypt_contact_sync_sources(
         config_nonce: array_to_b64(new_iv),
       });
     } catch {
+      ok = false;
       continue;
     }
   }
+
+  return ok;
 }
 
 async function re_encrypt_drafts(
@@ -1426,14 +1515,22 @@ async function re_encrypt_drafts(
   }
 }
 
+export interface ReencryptResult {
+  complete: boolean;
+  retired_old_kek: Uint8Array | null;
+}
+
 export async function reencrypt_settings_password_change(
   current_password: string,
   new_password: string,
   old_identity_key: string,
   new_identity_key: string,
-): Promise<void> {
+): Promise<ReencryptResult> {
   let old_raw: Uint8Array | null = null;
   let new_raw: Uint8Array | null = null;
+  let complete = false;
+  let retired_old_kek: Uint8Array | null = null;
+  let old_data_kek_b64: string | null = null;
 
   try {
     const old_bytes = new TextEncoder().encode(current_password);
@@ -1447,41 +1544,62 @@ export async function reencrypt_settings_password_change(
     zero_uint8_array(old_bytes);
     zero_uint8_array(new_bytes);
 
+    old_data_kek_b64 = array_to_b64(old_raw);
+
     const old_aes = await import_aes_key(old_raw, ["decrypt"]);
     const new_aes = await import_aes_key(new_raw, ["encrypt"]);
 
-    await re_encrypt_signatures(old_aes, new_aes);
-    await re_encrypt_templates(old_aes, new_aes);
-    await re_encrypt_blocked_senders(old_aes);
-    await re_encrypt_allowed_senders(old_aes);
-    await re_encrypt_recent_recipients(old_aes);
-    await re_encrypt_tags(old_identity_key, new_identity_key);
-    await re_encrypt_folders(old_identity_key, new_identity_key);
-    await re_encrypt_mail_metadata(old_raw!, new_raw!);
-    await re_encrypt_profile_notes(old_raw!, new_raw!);
-    await re_encrypt_external_accounts(old_aes, new_aes, new_raw!);
-    await re_encrypt_contact_field_values(old_aes, new_aes);
-    await re_encrypt_contact_photos(old_aes, new_aes);
-    await re_encrypt_contact_attachments(old_aes, new_aes);
-    await re_encrypt_contact_sync_sources(old_aes, new_aes);
+    const results = [
+      await re_encrypt_signatures(old_aes, new_aes),
+      await re_encrypt_templates(old_aes, new_aes),
+      await re_encrypt_blocked_senders(old_aes),
+      await re_encrypt_allowed_senders(old_aes),
+      await re_encrypt_recent_recipients(old_aes),
+      await re_encrypt_tags(old_identity_key, new_identity_key),
+      await re_encrypt_folders(old_identity_key, new_identity_key),
+      await re_encrypt_mail_metadata(old_raw, new_raw),
+      await re_encrypt_profile_notes(old_raw, new_raw),
+      await re_encrypt_external_accounts(old_aes, new_aes, new_raw),
+      await re_encrypt_contact_field_values(old_aes, new_aes),
+      await re_encrypt_contact_photos(old_aes, new_aes),
+      await re_encrypt_contact_attachments(old_aes, new_aes),
+      await re_encrypt_contact_sync_sources(old_aes, new_aes),
+    ];
+
+    complete = results.every((result) => result);
+
+    if (complete) {
+      retired_old_kek = old_raw.slice();
+    }
   } catch {
-    /* silently fail - legacy_keks fallback keeps data readable */
+    complete = false;
   } finally {
     if (old_raw) zero_uint8_array(old_raw);
     if (new_raw) zero_uint8_array(new_raw);
   }
+
+  if (!complete && old_data_kek_b64) {
+    await store_pending_reencryption({
+      old_identity_key,
+      old_data_kek: old_data_kek_b64,
+    });
+  }
+
+  return { complete, retired_old_kek };
 }
 
 async function re_encrypt_mail_metadata(
   old_master_key: Uint8Array,
   new_master_key: Uint8Array,
-): Promise<void> {
+): Promise<boolean> {
   const METADATA_CONTEXT = "mail-item-metadata";
 
   const [old_key, new_key] = await Promise.all([
     derive_metadata_key(old_master_key, METADATA_CONTEXT),
     derive_metadata_key(new_master_key, METADATA_CONTEXT),
   ]);
+
+  let ok = true;
 
   for (const item_type of ["sent", "draft"] as const) {
     let cursor: string | undefined;
@@ -1493,7 +1611,10 @@ async function re_encrypt_mail_metadata(
         cursor,
       });
 
-      if (resp.error || !resp.data) break;
+      if (resp.error || !resp.data) {
+        ok = false;
+        break;
+      }
 
       for (const item of resp.data.items) {
         if (!item.encrypted_metadata || !item.metadata_nonce) continue;
@@ -1518,6 +1639,7 @@ async function re_encrypt_mail_metadata(
             metadata_nonce: array_to_b64(new_iv),
           });
         } catch {
+          ok = false;
           continue;
         }
       }
@@ -1527,6 +1649,8 @@ async function re_encrypt_mail_metadata(
       if (!resp.data.has_more || !cursor) break;
     }
   }
+
+  return ok;
 }
 
 async function derive_tag_aes_key(
@@ -1548,8 +1672,8 @@ async function derive_tag_aes_key(
 async function re_encrypt_tags(
   old_identity_key: string,
   new_identity_key: string,
-): Promise<void> {
-  if (old_identity_key === new_identity_key) return;
+): Promise<boolean> {
+  if (old_identity_key === new_identity_key) return true;
 
   const [old_key, new_key] = await Promise.all([
     derive_tag_aes_key(old_identity_key, ["decrypt"]),
@@ -1557,11 +1681,15 @@ async function re_encrypt_tags(
   ]);
 
   let offset = 0;
+  let ok = true;
 
   while (true) {
     const resp = await list_tags({ limit: 100, offset });
 
-    if (resp.error || !resp.data) break;
+    if (resp.error || !resp.data) {
+      ok = false;
+      break;
+    }
 
     for (const tag of resp.data.tags) {
       try {
@@ -1602,6 +1730,7 @@ async function re_encrypt_tags(
 
         await update_tag(tag.id, updates);
       } catch {
+        ok = false;
         continue;
       }
     }
@@ -1610,6 +1739,8 @@ async function re_encrypt_tags(
 
     offset += resp.data.tags.length;
   }
+
+  return ok;
 }
 
 async function derive_profile_notes_hmac_key(
@@ -1635,7 +1766,7 @@ async function derive_profile_notes_hmac_key(
 async function re_encrypt_profile_notes(
   old_raw: Uint8Array,
   new_raw: Uint8Array,
-): Promise<void> {
+): Promise<boolean> {
   const resp = await api_client.get<{
     notes: Array<{
       id: string;
@@ -1647,11 +1778,15 @@ async function re_encrypt_profile_notes(
     total: number;
   }>("/settings/v1/profile_notes/all");
 
-  if (resp.error || !resp.data || resp.data.notes.length === 0) return;
+  if (resp.error || !resp.data) return false;
+
+  if (resp.data.notes.length === 0) return true;
 
   const old_aes = await import_aes_key(old_raw, ["decrypt"]);
   const new_aes = await import_aes_key(new_raw, ["encrypt"]);
   const new_hmac = await derive_profile_notes_hmac_key(new_raw);
+
+  let ok = true;
 
   for (const note of resp.data.notes) {
     try {
@@ -1686,9 +1821,12 @@ async function re_encrypt_profile_notes(
         integrity_hash: new_integrity_hash,
       });
     } catch {
+      ok = false;
       continue;
     }
   }
+
+  return ok;
 }
 
 export async function check_and_run_recovery_reencryption(
@@ -1743,6 +1881,7 @@ export async function check_and_run_recovery_reencryption(
 
   let old_raw: Uint8Array | null = null;
   let new_raw: Uint8Array | null = null;
+  let complete = false;
 
   try {
     old_raw = b64_to_array(pending.old_data_kek);
@@ -1754,24 +1893,36 @@ export async function check_and_run_recovery_reencryption(
     const old_aes = await import_aes_key(old_raw, ["decrypt"]);
     const new_aes = await import_aes_key(new_raw, ["encrypt"]);
 
-    await re_encrypt_signatures(old_aes, new_aes);
-    await re_encrypt_templates(old_aes, new_aes);
+    const results = [
+      await re_encrypt_signatures(old_aes, new_aes),
+      await re_encrypt_templates(old_aes, new_aes),
+      await re_encrypt_blocked_senders(old_aes),
+      await re_encrypt_allowed_senders(old_aes),
+      await re_encrypt_recent_recipients(old_aes),
+      await re_encrypt_mail_metadata(old_raw, new_raw),
+      await re_encrypt_profile_notes(old_raw, new_raw),
+      await re_encrypt_external_accounts(old_aes, new_aes, new_raw),
+      await re_encrypt_contact_field_values(old_aes, new_aes),
+      await re_encrypt_contact_photos(old_aes, new_aes),
+      await re_encrypt_contact_attachments(old_aes, new_aes),
+      await re_encrypt_contact_sync_sources(old_aes, new_aes),
+    ];
+
     await re_encrypt_aliases_contacts(old_raw, new_raw);
-    await re_encrypt_blocked_senders(old_aes);
-    await re_encrypt_allowed_senders(old_aes);
-    await re_encrypt_recent_recipients(old_aes);
-    await re_encrypt_mail_metadata(old_raw, new_raw);
-    await re_encrypt_profile_notes(old_raw, new_raw);
-    await re_encrypt_external_accounts(old_aes, new_aes, new_raw);
-    await re_encrypt_contact_field_values(old_aes, new_aes);
-    await re_encrypt_contact_photos(old_aes, new_aes);
-    await re_encrypt_contact_attachments(old_aes, new_aes);
-    await re_encrypt_contact_sync_sources(old_aes, new_aes);
     await re_encrypt_alias_sub_items_recovery(old_raw, new_raw);
+
+    complete = results.every((result) => result);
   } catch {
-    /* silently fail - data will need to be re-entered */
+    complete = false;
   } finally {
     if (old_raw) zero_uint8_array(old_raw);
     if (new_raw) zero_uint8_array(new_raw);
+  }
+
+  if (!complete) {
+    await store_pending_reencryption({
+      old_identity_key: pending.old_identity_key,
+      old_data_kek: pending.old_data_kek,
+    });
   }
 }
