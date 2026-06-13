@@ -63,7 +63,6 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_dev_mode } from "@/services/api/preferences";
 import {
-  get_subscription,
   get_available_plans,
   get_billing_history,
   get_plan_limits,
@@ -109,7 +108,7 @@ import { SettingsSaveIndicator } from "@/components/settings/settings_save_indic
 import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_prefetch";
 import { SettingsCacheProvider } from "@/contexts/settings_cache_context";
 import { list_devices } from "@/services/api/devices";
-import { prefetch_family_group } from "@/services/api/family";
+import { prefetch_family_group, get_family_group } from "@/services/api/family";
 import { is_onion_host } from "@/lib/onion_host";
 
 export type SettingsSection =
@@ -289,9 +288,8 @@ function SettingsPanelInner({
       set_show_mobile_nav(true);
       animation_complete_ref.current = false;
 
-      get_subscription().then((res) => {
-        const code = res.data?.plan?.code ?? "";
-        const is_fam = code === "duo" || code === "family";
+      get_family_group().then((res) => {
+        const is_fam = !!res.data;
         set_is_family_plan(is_fam);
         localStorage.setItem("aster_is_family_plan", is_fam ? "1" : "0");
       }).catch(() => {});
@@ -377,9 +375,10 @@ function SettingsPanelInner({
     };
 
     const handle_plan_changed = () => {
-      get_subscription().then((res) => {
-        const code = res.data?.plan?.code ?? "";
-        set_is_family_plan(code === "duo" || code === "family");
+      get_family_group().then((res) => {
+        const is_fam = !!res.data;
+        set_is_family_plan(is_fam);
+        localStorage.setItem("aster_is_family_plan", is_fam ? "1" : "0");
       }).catch(() => {});
     };
 
