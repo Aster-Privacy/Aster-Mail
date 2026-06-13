@@ -22,6 +22,7 @@ import {
   device_store,
   device_retrieve,
 } from "@/services/crypto/secure_storage";
+import { api_client } from "@/services/api/client";
 import { en } from "@/lib/i18n/translations/en";
 
 const ACCOUNTS_KEY = "astermail_accounts_v6";
@@ -298,13 +299,15 @@ export async function update_account_tokens(
 
   if (!account) return false;
 
-  if (access_token === null) {
+  const persist_tokens = api_client.can_persist_session();
+
+  if (access_token === null || !persist_tokens) {
     delete account.access_token;
   } else {
     account.access_token = access_token;
   }
 
-  if (refresh_token === null) {
+  if (refresh_token === null || !persist_tokens) {
     delete account.refresh_token;
   } else if (refresh_token !== undefined) {
     account.refresh_token = refresh_token;
