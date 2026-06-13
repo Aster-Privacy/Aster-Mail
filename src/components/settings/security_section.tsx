@@ -56,31 +56,47 @@ interface SecuritySectionProps {
   on_account_deleted?: () => void;
 }
 
-function scroll_to_id(id: string) {
-  const el = document.getElementById(id);
-
-  if (!el) return;
-
+function find_scroll_container(el: HTMLElement): HTMLElement | null {
   let container: HTMLElement | null = el.parentElement;
 
   while (container && container !== document.body) {
     const { overflowY } = window.getComputedStyle(container);
 
     if (overflowY === "auto" || overflowY === "scroll") {
-      const offset =
-        el.getBoundingClientRect().top -
-        container.getBoundingClientRect().top -
-        24;
-
-      container.scrollBy({ top: offset, behavior: "smooth" });
-
-      return;
+      return container;
     }
 
     container = container.parentElement;
   }
 
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  return null;
+}
+
+function scroll_to_id(id: string) {
+  const run = () => {
+    const el = document.getElementById(id);
+
+    if (!el) return;
+
+    const container = find_scroll_container(el);
+
+    if (!container) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      return;
+    }
+
+    const target =
+      container.scrollTop +
+      (el.getBoundingClientRect().top - container.getBoundingClientRect().top) -
+      24;
+    const max_top = container.scrollHeight - container.clientHeight;
+    const clamped = Math.max(0, Math.min(target, max_top));
+
+    container.scrollTo({ top: clamped, behavior: "smooth" });
+  };
+
+  requestAnimationFrame(() => requestAnimationFrame(run));
 }
 
 export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
