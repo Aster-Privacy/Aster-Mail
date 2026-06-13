@@ -342,7 +342,7 @@ export function extract_subject_bundle(decrypted: string): SubjectBundle {
       return { subject: parsed.s, body: parsed.b };
     }
   } catch {
-    // pass through to fallback
+    // non-JSON payload: fall back to returning the raw decrypted body
   }
   return { subject: null, body: decrypted };
 }
@@ -365,9 +365,7 @@ export async function decrypt_body_text(
   if (/^content-type\s*:/im.test(result)) {
     try {
       result = extract_mime_body(result);
-    } catch {
-      // pass
-    }
+    } catch {}
   }
 
   return result;

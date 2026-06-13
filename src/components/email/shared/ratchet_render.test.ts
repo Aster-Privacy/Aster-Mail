@@ -215,8 +215,8 @@ describe("internal ratchet mail rendering", () => {
 
     expect(result.body_text).toBe("a short reply");
 
-    // The flood we are fixing: a fresh bootstrap is reconstructed from the
-    // message itself every time, so persisting it server-side is pure churn.
+    // A fresh bootstrap is reconstructed from the message itself on every
+    // decrypt, so the receive path must not persist ratchet state server-side.
     expect((api_client.put as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(
       0,
     );
