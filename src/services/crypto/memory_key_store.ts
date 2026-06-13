@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { sha256 } from "@noble/hashes/sha256";
+
 import type { EncryptedVault } from "./key_manager";
 import { array_to_base64 } from "./key_manager_core";
 import { en } from "@/lib/i18n/translations/en";
@@ -396,23 +398,19 @@ function validate_passphrase(entered: string): string | null {
 
   if (!stored_bytes) return en.errors.session_expired_login;
 
-  const max_len = Math.max(entered_bytes.length, stored_bytes.length);
-  const padded_entered = new Uint8Array(max_len);
-  const padded_stored = new Uint8Array(max_len);
+  const entered_hash = sha256(entered_bytes);
+  const stored_hash = sha256(stored_bytes);
 
-  padded_entered.set(entered_bytes);
-  padded_stored.set(stored_bytes);
+  let result = 0;
 
-  let result = entered_bytes.length ^ stored_bytes.length;
-
-  for (let i = 0; i < max_len; i++) {
-    result |= padded_entered[i] ^ padded_stored[i];
+  for (let i = 0; i < 32; i++) {
+    result |= entered_hash[i] ^ stored_hash[i];
   }
 
   zero_uint8_array(entered_bytes);
   zero_uint8_array(stored_bytes);
-  zero_uint8_array(padded_entered);
-  zero_uint8_array(padded_stored);
+  zero_uint8_array(entered_hash);
+  zero_uint8_array(stored_hash);
 
   if (result !== 0) return en.errors.incorrect_password;
   if (!vault_in_memory) return en.errors.no_keys_available;
