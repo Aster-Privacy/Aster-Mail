@@ -56,6 +56,69 @@ interface UseEmailListEventsParams {
   } | null>;
 }
 
+export function compute_should_remove_from_view(
+  detail: MailItemUpdatedEventDetail,
+  current_view: string,
+): boolean {
+  const is_non_trash_spam_view =
+    current_view !== "trash" && current_view !== "spam";
+
+  if (is_non_trash_spam_view) {
+    if (detail.is_trashed === true || detail.is_spam === true) {
+      return true;
+    }
+  }
+
+  const is_folder_like_view =
+    current_view.startsWith("folder-") ||
+    current_view.startsWith("tag-") ||
+    current_view.startsWith("alias-");
+
+  if (
+    current_view !== "archive" &&
+    !is_folder_like_view &&
+    detail.is_archived === true
+  ) {
+    return true;
+  }
+
+  switch (current_view) {
+    case "starred":
+      return detail.is_starred === false;
+    case "trash":
+      return detail.is_trashed === false;
+    case "archive":
+      return detail.is_archived === false;
+    case "spam":
+      return detail.is_spam === false;
+    default:
+      if (
+        (current_view === "inbox" || current_view === "") &&
+        detail.folders !== undefined &&
+        detail.folders.length > 0
+      ) {
+        return true;
+      }
+
+      if (
+        current_view.startsWith("folder-") &&
+        detail.folders !== undefined
+      ) {
+        const folder_token = current_view.replace("folder-", "");
+
+        return !detail.folders.some((f) => f.folder_token === folder_token);
+      }
+
+      if (current_view.startsWith("tag-") && detail.tags !== undefined) {
+        const tag_token = current_view.replace("tag-", "");
+
+        return !detail.tags.some((t) => t.id === tag_token);
+      }
+
+      return false;
+  }
+}
+
 export function use_email_list_events({
   current_view,
   is_mail_view,
@@ -257,60 +320,12 @@ export function use_email_list_events({
   }, [has_keys, is_mail_view, silent_fetch_ref, last_fetch_ref]);
 
   useEffect(() => {
-    const is_non_trash_spam_view =
-      current_view !== "trash" && current_view !== "spam";
-
-    const should_remove_from_view = (
-      detail: MailItemUpdatedEventDetail,
-    ): boolean => {
-      if (is_non_trash_spam_view) {
-        if (detail.is_trashed === true || detail.is_spam === true) {
-          return true;
-        }
-      }
-
-      if (
-        current_view !== "archive" &&
-        detail.is_archived === true
-      ) {
-        return true;
-      }
-
-      switch (current_view) {
-        case "starred":
-          return detail.is_starred === false;
-        case "trash":
-          return detail.is_trashed === false;
-        case "archive":
-          return detail.is_archived === false;
-        case "spam":
-          return detail.is_spam === false;
-        default:
-          if (
-            current_view.startsWith("folder-") &&
-            detail.folders !== undefined
-          ) {
-            const folder_token = current_view.replace("folder-", "");
-
-            return !detail.folders.some((f) => f.folder_token === folder_token);
-          }
-
-          if (current_view.startsWith("tag-") && detail.tags !== undefined) {
-            const tag_token = current_view.replace("tag-", "");
-
-            return !detail.tags.some((t) => t.id === tag_token);
-          }
-
-          return false;
-      }
-    };
-
     const handle_item_update = (event: Event) => {
       const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
 
       mark_preload_stale(detail.id);
 
-      if (should_remove_from_view(detail)) {
+      if (compute_should_remove_from_view(detail, current_view)) {
         set_state((prev) => {
           const had_email = prev.emails.some((e) => e.id === detail.id);
 
