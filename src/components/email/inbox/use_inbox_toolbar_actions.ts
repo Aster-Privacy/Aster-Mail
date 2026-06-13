@@ -51,7 +51,9 @@ import {
   report_spam_sender,
   remove_spam_sender,
   trash_thread,
+  mark_thread_read,
 } from "@/services/api/mail";
+import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
 
 interface UseInboxToolbarActionsOptions {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -389,6 +391,29 @@ export function use_inbox_toolbar_actions({
         });
       }
     });
+
+    if (new_state) {
+      const thread_tokens = new Set<string>();
+
+      selected.forEach((email, index) => {
+        if (
+          results[index]?.success &&
+          email.item_type === "received" &&
+          email.thread_token &&
+          (email.grouped_email_ids?.length ?? 0) > 1
+        ) {
+          thread_tokens.add(email.thread_token);
+        }
+      });
+
+      if (thread_tokens.size > 0) {
+        void Promise.all(
+          Array.from(thread_tokens).map((token) =>
+            mark_thread_read(token).catch(() => {}),
+          ),
+        ).then(() => emit_mail_soft_refresh());
+      }
+    }
     show_action_toast({
       message: new_state
         ? t("common.conversations_marked_as_read_bulk", {
