@@ -373,6 +373,32 @@ export function parse_ratchet_envelope(body: string): RatchetEnvelope | null {
   }
 }
 
+function resolve_recipient_data(
+  our_email: string,
+  envelope: RatchetEnvelope,
+): RatchetRecipientData | null {
+  const direct = envelope.recipients[our_email.toLowerCase()];
+
+  if (direct) return direct;
+
+  for (const key of Object.keys(envelope.recipients)) {
+    if (key.toLowerCase() === our_email.toLowerCase()) {
+      return envelope.recipients[key];
+    }
+  }
+
+  return null;
+}
+
+function build_dedupe_key(
+  message_id: string,
+  data: RatchetRecipientData | null,
+): string {
+  if (!data) return message_id;
+
+  return `${message_id}:${data.header.dh_public}:${data.header.message_number}`;
+}
+
 export async function decrypt_ratchet_message(
   our_email: string,
   sender_email: string,
@@ -380,30 +406,20 @@ export async function decrypt_ratchet_message(
   vault: EncryptedVault,
   message_id?: string,
 ): Promise<string | null> {
-  if (message_id) {
-    const cached = await get_cached_ratchet_plaintext(message_id);
+  const our_data = resolve_recipient_data(our_email, envelope);
+  const dedupe_key = message_id
+    ? build_dedupe_key(message_id, our_data)
+    : undefined;
+
+  if (dedupe_key) {
+    const cached = await get_cached_ratchet_plaintext(dedupe_key);
 
     if (cached !== null) return cached;
   }
 
-  const our_data = envelope.recipients[our_email.toLowerCase()];
-
   let plaintext: string | null = null;
 
-  if (!our_data) {
-    for (const key of Object.keys(envelope.recipients)) {
-      if (key.toLowerCase() === our_email.toLowerCase()) {
-        plaintext = await decrypt_ratchet_for_recipient(
-          our_email,
-          sender_email,
-          envelope.recipients[key],
-          envelope.sender_identity_key,
-          vault,
-        );
-        break;
-      }
-    }
-  } else {
+  if (our_data) {
     plaintext = await decrypt_ratchet_for_recipient(
       our_email,
       sender_email,
@@ -413,8 +429,15 @@ export async function decrypt_ratchet_message(
     );
   }
 
-  if (plaintext !== null && message_id) {
-    await set_cached_ratchet_plaintext(message_id, plaintext);
+  if (plaintext !== null) {
+    void detect_identity_pin_drift(
+      sender_email.toLowerCase(),
+      envelope.sender_identity_key,
+    );
+
+    if (dedupe_key) {
+      await set_cached_ratchet_plaintext(dedupe_key, plaintext);
+    }
   }
 
   return plaintext;
