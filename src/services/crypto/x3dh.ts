@@ -53,6 +53,7 @@ interface PrekeyBundle {
   signed_prekey_signature: string;
   one_time_prekey?: string | null;
   pq_prekey?: PqPrekey | null;
+  pq_kem_public_key?: string | null;
 }
 
 interface PqReceiverInput {
@@ -177,6 +178,14 @@ export async function perform_x3dh_sender(
   let shared_secret: Uint8Array;
   let pq_ciphertext: Uint8Array | undefined;
   let pq_key_id: number | undefined;
+
+  if (!recipient_bundle.pq_prekey && recipient_bundle.pq_kem_public_key) {
+    if (import.meta.env.DEV) {
+      console.warn(
+        "x3dh sender: PQ-capable peer has no available pq_prekey, falling back to classical bootstrap",
+      );
+    }
+  }
 
   if (recipient_bundle.pq_prekey) {
     const pq_pub = base64_to_array(recipient_bundle.pq_prekey.public_key);
