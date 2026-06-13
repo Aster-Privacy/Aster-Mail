@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   ChevronRightIcon,
@@ -40,6 +40,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_aliases } from "@/components/settings/hooks/use_aliases";
+import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { CreateAliasModal } from "@/components/settings/aliases/alias_form";
 import { DomainSetupWizard } from "@/components/settings/aliases_section";
 import {
@@ -49,6 +50,8 @@ import {
   type DnsRecord,
   type DnsRecordsResponse,
 } from "@/services/api/domains";
+
+const ALIASES_PER_PAGE = 50;
 
 export function AliasesSection({
   on_back,
@@ -60,6 +63,33 @@ export function AliasesSection({
   const { t } = use_i18n();
   const hook = use_aliases();
   const [expanded_domain, set_expanded_domain] = useState<string | null>(null);
+  const [current_page, set_current_page] = useState(0);
+  const scroll_ref = useRef<HTMLDivElement>(null);
+
+  const total_pages = Math.max(
+    1,
+    Math.ceil(hook.aliases.length / ALIASES_PER_PAGE),
+  );
+
+  useEffect(() => {
+    if (current_page > total_pages - 1) {
+      set_current_page(total_pages - 1);
+    }
+  }, [current_page, total_pages]);
+
+  const page_aliases = useMemo(
+    () =>
+      hook.aliases.slice(
+        current_page * ALIASES_PER_PAGE,
+        current_page * ALIASES_PER_PAGE + ALIASES_PER_PAGE,
+      ),
+    [hook.aliases, current_page],
+  );
+
+  const handle_page_change = (page: number) => {
+    set_current_page(page);
+    scroll_ref.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const [domain_dns_records, set_domain_dns_records] = useState<
     Record<string, DnsRecord[]>
   >({});
@@ -108,7 +138,7 @@ export function AliasesSection({
         on_close={on_close}
         title={t("settings.aliases_and_domains")}
       />
-      <div className="flex-1 overflow-y-auto pb-8">
+      <div ref={scroll_ref} className="flex-1 overflow-y-auto pb-8">
         <div className="px-4 pt-4">
           <div
             className="relative overflow-hidden rounded-2xl p-5"
@@ -208,7 +238,7 @@ export function AliasesSection({
           </div>
         ) : (
           <div className="px-4 pt-3 space-y-2">
-            {hook.aliases.map((alias) => (
+            {page_aliases.map((alias) => (
               <div
                 key={alias.id}
                 className="rounded-xl bg-[var(--mobile-bg-card)] p-4"
@@ -259,6 +289,11 @@ export function AliasesSection({
                 </div>
               </div>
             ))}
+            <BottomPagination
+              current_page={current_page}
+              on_page_change={handle_page_change}
+              total_pages={total_pages}
+            />
             {hook.domain_addresses.map((addr) => (
               <div
                 key={addr.id}
