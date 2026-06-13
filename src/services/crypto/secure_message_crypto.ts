@@ -198,13 +198,24 @@ async function compute_auth_proof(auth_verifier: Uint8Array): Promise<string> {
   return array_to_base64(new Uint8Array(digest));
 }
 
+function field_aad(name: string): Uint8Array {
+  return new TextEncoder().encode(`aster-secure-send-v2|field=${name}`);
+}
+
+function attachment_aad(seq: number, part: string): Uint8Array {
+  return new TextEncoder().encode(
+    `aster-attachment-v2|att=${seq}|part=${part}`,
+  );
+}
+
 async function encrypt_field(
   key: CryptoKey,
   data: Uint8Array,
+  additional_data: Uint8Array,
 ): Promise<EncryptedField> {
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
   const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: nonce },
+    { name: "AES-GCM", iv: nonce, additionalData: additional_data },
     key,
     data,
   );
@@ -218,16 +229,28 @@ async function encrypt_field(
 async function decrypt_field(
   key: CryptoKey,
   field: EncryptedField,
+  additional_data: Uint8Array,
 ): Promise<Uint8Array> {
   const nonce = base64_to_array(field.nonce);
   const ciphertext = base64_to_array(field.ciphertext);
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    key,
-    ciphertext,
-  );
 
-  return new Uint8Array(decrypted);
+  try {
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce, additionalData: additional_data },
+      key,
+      ciphertext,
+    );
+
+    return new Uint8Array(decrypted);
+  } catch {
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce },
+      key,
+      ciphertext,
+    );
+
+    return new Uint8Array(decrypted);
+  }
 }
 
 export async function encrypt_secure_message(
@@ -276,10 +299,12 @@ export async function encrypt_secure_message(
     const encrypted_subject = await encrypt_field(
       content_key,
       encoder.encode(plaintext.subject),
+      field_aad("subject"),
     );
     const encrypted_body = await encrypt_field(
       content_key,
       encoder.encode(plaintext.body),
+      field_aad("body"),
     );
 
     let encrypted_attachments_bundle: string | null = null;
@@ -287,11 +312,18 @@ export async function encrypt_secure_message(
     if (attachments.length > 0) {
       const entries: AttachmentEntry[] = [];
 
+      let seq = 0;
+
       for (const att of attachments) {
-        const data_field = await encrypt_field(content_key, att.data);
+        const data_field = await encrypt_field(
+          content_key,
+          att.data,
+          attachment_aad(seq, "data"),
+        );
         const filename_field = await encrypt_field(
           content_key,
           encoder.encode(att.filename),
+          attachment_aad(seq, "filename"),
         );
         const meta_bytes = encoder.encode(
           JSON.stringify({
@@ -299,7 +331,13 @@ export async function encrypt_secure_message(
             size_bytes: att.data.byteLength,
           }),
         );
-        const meta_field = await encrypt_field(content_key, meta_bytes);
+        const meta_field = await encrypt_field(
+          content_key,
+          meta_bytes,
+          attachment_aad(seq, "meta"),
+        );
+
+        seq += 1;
 
         entries.push({
           ciphertext: data_field.ciphertext,
@@ -312,7 +350,11 @@ export async function encrypt_secure_message(
       }
 
       const bundle_json = new TextEncoder().encode(JSON.stringify(entries));
-      const bundle_field = await encrypt_field(content_key, bundle_json);
+      const bundle_field = await encrypt_field(
+        content_key,
+        bundle_json,
+        field_aad("attachments_bundle"),
+      );
       encrypted_attachments_bundle = array_to_base64(
         new TextEncoder().encode(JSON.stringify(bundle_field)),
       );
@@ -421,29 +463,49 @@ export async function decrypt_secure_message(
   zero_uint8_array(material.kdf_key_bytes);
   zero_uint8_array(material.auth_verifier);
 
-  const subject_bytes = await decrypt_field(content_key, bundle.encrypted_subject);
-  const body_bytes = await decrypt_field(content_key, bundle.encrypted_body);
+  const subject_bytes = await decrypt_field(
+    content_key,
+    bundle.encrypted_subject,
+    field_aad("subject"),
+  );
+  const body_bytes = await decrypt_field(
+    content_key,
+    bundle.encrypted_body,
+    field_aad("body"),
+  );
   const result_attachments: DecryptedSecureAttachment[] = [];
 
   if (bundle.encrypted_attachments_bundle) {
     const envelope_bytes = base64_to_array(bundle.encrypted_attachments_bundle);
     const bundle_field: EncryptedField = JSON.parse(decoder.decode(envelope_bytes));
-    const bundle_json = await decrypt_field(content_key, bundle_field);
+    const bundle_json = await decrypt_field(
+      content_key,
+      bundle_field,
+      field_aad("attachments_bundle"),
+    );
     const entries: AttachmentEntry[] = JSON.parse(decoder.decode(bundle_json));
 
+    let seq = 0;
+
     for (const entry of entries) {
-      const data = await decrypt_field(content_key, {
-        ciphertext: entry.ciphertext,
-        nonce: entry.nonce,
-      });
-      const filename_bytes = await decrypt_field(content_key, {
-        ciphertext: entry.encrypted_filename,
-        nonce: entry.filename_nonce,
-      });
-      const meta_bytes = await decrypt_field(content_key, {
-        ciphertext: entry.encrypted_meta,
-        nonce: entry.meta_nonce,
-      });
+      const data = await decrypt_field(
+        content_key,
+        { ciphertext: entry.ciphertext, nonce: entry.nonce },
+        attachment_aad(seq, "data"),
+      );
+      const filename_bytes = await decrypt_field(
+        content_key,
+        { ciphertext: entry.encrypted_filename, nonce: entry.filename_nonce },
+        attachment_aad(seq, "filename"),
+      );
+      const meta_bytes = await decrypt_field(
+        content_key,
+        { ciphertext: entry.encrypted_meta, nonce: entry.meta_nonce },
+        attachment_aad(seq, "meta"),
+      );
+
+      seq += 1;
+
       const meta = JSON.parse(decoder.decode(meta_bytes)) as {
         content_type: string;
         size_bytes: number;
@@ -457,15 +519,21 @@ export async function decrypt_secure_message(
       });
     }
   } else if (bundle.encrypted_attachments) {
+    let seq = 0;
+
     for (const att of bundle.encrypted_attachments) {
-      const data = await decrypt_field(content_key, {
-        ciphertext: att.ciphertext,
-        nonce: att.nonce,
-      });
-      const filename_bytes = await decrypt_field(content_key, {
-        ciphertext: att.encrypted_filename,
-        nonce: att.filename_nonce,
-      });
+      const data = await decrypt_field(
+        content_key,
+        { ciphertext: att.ciphertext, nonce: att.nonce },
+        attachment_aad(seq, "data"),
+      );
+      const filename_bytes = await decrypt_field(
+        content_key,
+        { ciphertext: att.encrypted_filename, nonce: att.filename_nonce },
+        attachment_aad(seq, "filename"),
+      );
+
+      seq += 1;
 
       result_attachments.push({
         filename: decoder.decode(filename_bytes),

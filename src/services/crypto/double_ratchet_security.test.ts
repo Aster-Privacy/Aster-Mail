@@ -107,11 +107,11 @@ describe("DoubleRatchet round-trip", () => {
     expect(await bob.decrypt(m2)).toBe("second");
   });
 
-  it("currently emits v=1 headers (compat mode)", async () => {
+  it("emits v=2 headers with authenticated associated data", async () => {
     const { alice } = await make_pair();
     const enc = await alice.encrypt("test");
 
-    expect(enc.header.v).toBeUndefined();
+    expect(enc.header.v).toBe(2);
   });
 });
 
