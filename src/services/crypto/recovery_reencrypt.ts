@@ -23,6 +23,7 @@ import { hash_recovery_email } from "./key_manager";
 import { derive_encryption_key_from_passphrase } from "./memory_key_store";
 import { zero_uint8_array } from "./secure_memory";
 import { append_legacy_key_raw_bytes } from "./legacy_keks";
+import { device_store, device_retrieve } from "./secure_storage";
 import { api_client } from "@/services/api/client";
 import type { Signature } from "@/services/api/signatures";
 import type { Template } from "@/services/api/templates";
@@ -85,11 +86,11 @@ function b64_to_array(b64: string): Uint8Array {
   return a;
 }
 
-export function store_pending_reencryption(
+export async function store_pending_reencryption(
   data: PendingReencryptData,
-): void {
+): Promise<void> {
   try {
-    localStorage.setItem(PENDING_KEY, JSON.stringify(data));
+    await device_store(PENDING_KEY, data);
   } catch {}
 }
 
@@ -99,13 +100,9 @@ export function clear_pending_reencryption(): void {
   } catch {}
 }
 
-function get_pending(): PendingReencryptData | null {
+async function get_pending(): Promise<PendingReencryptData | null> {
   try {
-    const raw = localStorage.getItem(PENDING_KEY);
-
-    if (!raw) return null;
-
-    return JSON.parse(raw) as PendingReencryptData;
+    return await device_retrieve<PendingReencryptData>(PENDING_KEY);
   } catch {
     return null;
   }
@@ -1698,7 +1695,7 @@ export async function check_and_run_recovery_reencryption(
   vault: EncryptedVault,
   passphrase: string,
 ): Promise<void> {
-  const pending = get_pending();
+  const pending = await get_pending();
 
   if (!pending) return;
 
