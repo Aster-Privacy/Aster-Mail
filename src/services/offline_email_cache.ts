@@ -24,6 +24,7 @@ import {
   device_encrypt,
   device_decrypt,
 } from "@/services/crypto/secure_storage";
+import { get_current_account_id } from "@/services/account_manager";
 
 const DB_NAME = "astermail_offline_cache";
 const STORE_NAME = "email_lists";
@@ -33,6 +34,12 @@ const MAX_EMAILS_PER_VIEW = 200;
 interface CacheEntry {
   emails: InboxEmail[];
   cached_at: number;
+}
+
+async function build_cache_key(view: string): Promise<string> {
+  const account_id = await get_current_account_id();
+
+  return `${account_id ?? "unknown"}:${view}`;
 }
 
 function open_db(): Promise<IDBDatabase> {
@@ -63,13 +70,14 @@ export async function cache_email_list(
     };
     const serialized = JSON.stringify(entry);
     const encrypted = await device_encrypt(serialized);
+    const cache_key = await build_cache_key(view);
     const db = await open_db();
 
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, "readwrite");
       const store = tx.objectStore(STORE_NAME);
 
-      store.put(encrypted, view);
+      store.put(encrypted, cache_key);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
@@ -84,13 +92,14 @@ export async function get_cached_email_list(
   view: string,
 ): Promise<InboxEmail[] | null> {
   try {
+    const cache_key = await build_cache_key(view);
     const db = await open_db();
 
     const encrypted = await new Promise<string | undefined>(
       (resolve, reject) => {
         const tx = db.transaction(STORE_NAME, "readonly");
         const store = tx.objectStore(STORE_NAME);
-        const request = store.get(view);
+        const request = store.get(cache_key);
 
         request.onsuccess = () => resolve(request.result as string | undefined);
         request.onerror = () => reject(request.error);
@@ -133,18 +142,33 @@ export async function clear_email_cache(): Promise<void> {
 
 export async function clear_view_cache(view: string): Promise<void> {
   try {
+    const cache_key = await build_cache_key(view);
     const db = await open_db();
 
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, "readwrite");
       const store = tx.objectStore(STORE_NAME);
 
-      store.delete(view);
+      store.delete(cache_key);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
 
     db.close();
+  } catch {
+    return;
+  }
+}
+
+export async function delete_email_cache_db(): Promise<void> {
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.deleteDatabase(DB_NAME);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+      request.onblocked = () => resolve();
+    });
   } catch {
     return;
   }

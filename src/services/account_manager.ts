@@ -25,6 +25,18 @@ import {
 import { api_client } from "@/services/api/client";
 import { en } from "@/lib/i18n/translations/en";
 
+async function clear_offline_email_cache(): Promise<void> {
+  try {
+    const { clear_email_cache } = await import(
+      "@/services/offline_email_cache"
+    );
+
+    await clear_email_cache();
+  } catch {
+    return;
+  }
+}
+
 const ACCOUNTS_KEY = "astermail_accounts_v6";
 const LEGACY_ACCOUNTS_KEY = "astermail_accounts_v5";
 const SWITCH_TOKEN_KEY_PREFIX = "astermail_switch_token_";
@@ -257,6 +269,7 @@ export async function switch_account(
 
   data.current_account_id = account_id;
   await save_accounts_data(data);
+  await clear_offline_email_cache();
 
   return account;
 }
@@ -285,6 +298,7 @@ export async function remove_account(
   }
 
   await save_accounts_data(data);
+  await clear_offline_email_cache();
 
   return { removed: true, switched_to };
 }
