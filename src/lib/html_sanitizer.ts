@@ -212,7 +212,9 @@ export function sanitize_html(
   }
 
   const head_styles: string[] = [];
-  const head_match = html.match(/<head[\s>][\s\S]*?<\/head\s*>/i);
+  const head_match = sandbox_mode
+    ? html.match(/<head[\s>][\s\S]*?<\/head\s*>/i)
+    : null;
 
   if (head_match) {
     const style_regex = /<style[^>]*>([\s\S]*?)<\/style\s*>/gi;
