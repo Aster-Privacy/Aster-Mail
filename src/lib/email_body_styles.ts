@@ -69,8 +69,8 @@ body {
   line-height: 1.6;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 
