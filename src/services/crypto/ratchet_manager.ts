@@ -48,8 +48,48 @@ import {
   get_cached_ratchet_plaintext,
   set_cached_ratchet_plaintext,
 } from "./ratchet_plaintext_cache";
+import {
+  base64_to_array as core_base64_to_array,
+  compute_hash,
+  pin_fingerprint,
+  verify_pinned_fingerprint,
+  PINNED_FINGERPRINTS,
+} from "./key_manager_core";
 
 const HASH_ALG = ["SHA", "256"].join("-");
+
+async function detect_identity_pin_drift(
+  pin_id: string,
+  kem_identity_key: string,
+): Promise<void> {
+  try {
+    if (!pin_id || !kem_identity_key) {
+      return;
+    }
+
+    const fingerprint = await compute_hash(
+      core_base64_to_array(kem_identity_key),
+    );
+
+    const namespaced_pin_id = `ratchet_identity:${pin_id}`;
+
+    if (!PINNED_FINGERPRINTS.has(namespaced_pin_id)) {
+      pin_fingerprint(namespaced_pin_id, fingerprint, "identity");
+
+      return;
+    }
+
+    const matches = await verify_pinned_fingerprint(namespaced_pin_id, fingerprint);
+
+    if (!matches && import.meta.env.DEV) {
+      console.warn(
+        `ratchet identity pin drift detected for ${pin_id} (fp ${fingerprint.slice(0, 8)})`,
+      );
+    }
+  } catch {
+    /* best-effort detection only */
+  }
+}
 
 interface RatchetRecipientData {
   ephemeral_key: string;
@@ -212,6 +252,11 @@ export async function encrypt_for_ratchet_recipient(
       if (!bundle) {
         return null;
       }
+
+      await detect_identity_pin_drift(
+        (recipient_email ?? recipient_username).toLowerCase(),
+        bundle.kem_identity_key,
+      );
 
       const sender_identity_jwk: JsonWebKey = JSON.parse(
         vault.ratchet_identity_key,
