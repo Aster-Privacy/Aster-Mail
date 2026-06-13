@@ -20,6 +20,16 @@
 //
 import * as openpgp from "openpgp";
 
+const VAULT_SCHEME_VERSION = 1;
+const VAULT_AAD_PREFIX = "aster-vault-v";
+const VAULT_AAD_WRITE_ENABLED = false;
+
+function build_vault_aad(version: number): Uint8Array {
+  const encoder = new TextEncoder();
+
+  return encoder.encode(`${VAULT_AAD_PREFIX}${version}`);
+}
+
 import {
   HASH_ALG,
   KEY_DERIVATION_ITERATIONS,
@@ -463,11 +473,15 @@ export async function encrypt_vault(
     ["encrypt"],
   );
 
-  const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: nonce },
-    key,
-    vault_data,
-  );
+  const algorithm: AesGcmParams = VAULT_AAD_WRITE_ENABLED
+    ? {
+        name: "AES-GCM",
+        iv: nonce,
+        additionalData: build_vault_aad(VAULT_SCHEME_VERSION),
+      }
+    : { name: "AES-GCM", iv: nonce };
+
+  const encrypted = await crypto.subtle.encrypt(algorithm, key, vault_data);
 
   const combined = new Uint8Array(salt.length + encrypted.byteLength);
 
@@ -633,11 +647,25 @@ export async function decrypt_vault(
     ["decrypt"],
   );
 
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    key,
-    ciphertext,
-  );
+  let decrypted: ArrayBuffer;
+
+  try {
+    decrypted = await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: nonce,
+        additionalData: build_vault_aad(VAULT_SCHEME_VERSION),
+      },
+      key,
+      ciphertext,
+    );
+  } catch {
+    decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce },
+      key,
+      ciphertext,
+    );
+  }
 
   const decoder = new TextDecoder();
   const vault_json = decoder.decode(decrypted);

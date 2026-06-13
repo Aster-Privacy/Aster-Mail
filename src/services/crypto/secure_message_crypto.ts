@@ -48,6 +48,8 @@ import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 // cannot recover kem_ss without also breaking ML-KEM-768's lattice problem.
 //
 
+const AEAD_BINDING_WRITE_ENABLED = false;
+
 const PBKDF2_ITERATIONS = 310000;
 const HASH_ALG = ["SHA", "256"].join("-");
 const SALT_LENGTH = 16;
@@ -208,6 +210,10 @@ function attachment_aad(seq: number, part: string): Uint8Array {
   );
 }
 
+function write_aad(aad: Uint8Array): Uint8Array {
+  return AEAD_BINDING_WRITE_ENABLED ? aad : new Uint8Array(0);
+}
+
 async function encrypt_field(
   key: CryptoKey,
   data: Uint8Array,
@@ -299,12 +305,12 @@ export async function encrypt_secure_message(
     const encrypted_subject = await encrypt_field(
       content_key,
       encoder.encode(plaintext.subject),
-      field_aad("subject"),
+      write_aad(field_aad("subject")),
     );
     const encrypted_body = await encrypt_field(
       content_key,
       encoder.encode(plaintext.body),
-      field_aad("body"),
+      write_aad(field_aad("body")),
     );
 
     let encrypted_attachments_bundle: string | null = null;
@@ -318,12 +324,12 @@ export async function encrypt_secure_message(
         const data_field = await encrypt_field(
           content_key,
           att.data,
-          attachment_aad(seq, "data"),
+          write_aad(attachment_aad(seq, "data")),
         );
         const filename_field = await encrypt_field(
           content_key,
           encoder.encode(att.filename),
-          attachment_aad(seq, "filename"),
+          write_aad(attachment_aad(seq, "filename")),
         );
         const meta_bytes = encoder.encode(
           JSON.stringify({
@@ -334,7 +340,7 @@ export async function encrypt_secure_message(
         const meta_field = await encrypt_field(
           content_key,
           meta_bytes,
-          attachment_aad(seq, "meta"),
+          write_aad(attachment_aad(seq, "meta")),
         );
 
         seq += 1;
@@ -353,7 +359,7 @@ export async function encrypt_secure_message(
       const bundle_field = await encrypt_field(
         content_key,
         bundle_json,
-        field_aad("attachments_bundle"),
+        write_aad(field_aad("attachments_bundle")),
       );
       encrypted_attachments_bundle = array_to_base64(
         new TextEncoder().encode(JSON.stringify(bundle_field)),
