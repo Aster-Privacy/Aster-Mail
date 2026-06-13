@@ -360,6 +360,47 @@ export async function list_aliases(params?: {
   return api_client.get<AliasListResponse>(endpoint);
 }
 
+const ALIAS_FETCH_PAGE_SIZE = 100;
+const ALIAS_FETCH_MAX_PAGES = 100;
+
+export async function list_all_aliases(): Promise<{
+  aliases: EmailAlias[];
+  max_aliases: number;
+  total: number;
+  error?: string;
+}> {
+  const aliases: EmailAlias[] = [];
+  let offset = 0;
+  let max_aliases = 0;
+  let total = 0;
+  let received_any = false;
+
+  for (let page = 0; page < ALIAS_FETCH_MAX_PAGES; page++) {
+    const response = await list_aliases({
+      limit: ALIAS_FETCH_PAGE_SIZE,
+      offset,
+    });
+
+    if (!response.data) {
+      if (received_any) break;
+
+      return { aliases, max_aliases, total, error: response.error };
+    }
+
+    const data = response.data;
+
+    received_any = true;
+    max_aliases = data.max_aliases;
+    total = data.total;
+    aliases.push(...data.aliases);
+
+    if (!data.has_more || data.aliases.length === 0) break;
+    offset += ALIAS_FETCH_PAGE_SIZE;
+  }
+
+  return { aliases, max_aliases, total };
+}
+
 export async function get_alias(
   alias_id: string,
 ): Promise<ApiResponse<EmailAlias>> {
@@ -601,11 +642,11 @@ export function validate_local_part(local_part: string): {
 }
 
 export async function reencrypt_all_aliases(): Promise<void> {
-  const response = await list_aliases({ limit: 500 });
+  const { aliases, error } = await list_all_aliases();
 
-  if (!response.data?.aliases) return;
+  if (error) return;
 
-  for (const alias of response.data.aliases) {
+  for (const alias of aliases) {
     if (alias.is_random) continue;
 
     try {

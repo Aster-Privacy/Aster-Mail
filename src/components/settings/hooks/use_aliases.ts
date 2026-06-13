@@ -24,13 +24,12 @@ import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
-  list_aliases,
+  list_all_aliases,
   update_alias,
   delete_alias,
   decrypt_aliases,
   get_alias_counts,
   type DecryptedEmailAlias,
-  type AliasListResponse,
   type AliasCountsResponse,
 } from "@/services/api/aliases";
 import {
@@ -183,15 +182,13 @@ export function use_aliases() {
     }
 
     try {
-      const response = await list_aliases();
+      const { aliases: raw, max_aliases, error } = await list_all_aliases();
 
-      if (response.data) {
-        const data = response.data as AliasListResponse;
+      if (!error) {
+        set_max_aliases(max_aliases);
+        aliases_cache.max_aliases = max_aliases;
 
-        set_max_aliases(data.max_aliases);
-        aliases_cache.max_aliases = data.max_aliases;
-
-        const decrypted = await decrypt_aliases(data.aliases);
+        const decrypted = await decrypt_aliases(raw);
 
         set_aliases(decrypted);
         aliases_cache.aliases = decrypted;
@@ -199,8 +196,8 @@ export function use_aliases() {
 
         const derived_counts: AliasCountsResponse = {
           count: decrypted.length,
-          max: data.max_aliases,
-          can_create: decrypted.length < data.max_aliases,
+          max: max_aliases,
+          can_create: max_aliases === -1 || decrypted.length < max_aliases,
         };
 
         set_alias_counts(derived_counts);
