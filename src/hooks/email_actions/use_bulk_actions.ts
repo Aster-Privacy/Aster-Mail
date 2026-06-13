@@ -36,7 +36,7 @@ import {
   emit_mail_action,
 } from "../email_action_types";
 
-import { report_spam_sender } from "@/services/api/mail";
+import { report_spam_sender, mark_thread_read } from "@/services/api/mail";
 import {
   batched_bulk_add_folder,
   batched_bulk_remove_folder,
@@ -413,7 +413,7 @@ export function use_bulk_actions(
 
       if (unread_delta !== 0) adjust_stats_unread(unread_delta);
 
-      return execute_bulk_action(emails, {
+      const success = await execute_bulk_action(emails, {
         action_type,
         optimistic_update: { is_read },
         original_state_extractor: (email) => ({
@@ -438,6 +438,30 @@ export function use_bulk_actions(
           if (unread_delta !== 0) adjust_stats_unread(-unread_delta);
         },
       });
+
+      if (success && is_read) {
+        const thread_tokens = new Set<string>();
+
+        for (const email of emails) {
+          if (
+            email.item_type === "received" &&
+            email.thread_token &&
+            (email.grouped_email_ids?.length ?? 0) > 1
+          ) {
+            thread_tokens.add(email.thread_token);
+          }
+        }
+
+        if (thread_tokens.size > 0) {
+          void Promise.all(
+            Array.from(thread_tokens).map((token) =>
+              mark_thread_read(token).catch(() => {}),
+            ),
+          ).then(() => emit_mail_soft_refresh());
+        }
+      }
+
+      return success;
     },
     [execute_bulk_action, t],
   );

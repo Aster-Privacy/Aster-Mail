@@ -57,6 +57,7 @@ import {
   adjust_stats_spam,
   adjust_stats_unread,
 } from "@/hooks/use_mail_stats";
+import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import {
   compute_trash_deltas,
@@ -281,6 +282,13 @@ export function use_single_actions(
 
       if (!success && is_received) adjust_stats_unread(new_read ? 1 : -1);
 
+      if (success && is_received && new_read) {
+        mark_conversation_read({
+          thread_token: email.thread_token,
+          grouped_count: email.grouped_email_ids?.length,
+        });
+      }
+
       return success;
     },
     [
@@ -321,6 +329,13 @@ export function use_single_actions(
       );
 
       if (!success && is_received) adjust_stats_unread(1);
+
+      if (success && is_received) {
+        mark_conversation_read({
+          thread_token: email.thread_token,
+          grouped_count: email.grouped_email_ids?.length,
+        });
+      }
 
       return success;
     },

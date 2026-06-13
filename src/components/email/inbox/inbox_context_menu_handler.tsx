@@ -45,6 +45,7 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { emit_mail_changed } from "@/hooks/email_action_types";
 import {
@@ -387,6 +388,12 @@ export function use_context_menu_actions({
           encrypted_metadata: result.encrypted?.encrypted_metadata,
           metadata_nonce: result.encrypted?.metadata_nonce,
         });
+        if (new_state && is_received) {
+          mark_conversation_read({
+            thread_token: email.thread_token,
+            grouped_count: email.grouped_email_ids?.length,
+          });
+        }
         show_action_toast({
           message: new_state
             ? t("common.marked_as_read_toast")
