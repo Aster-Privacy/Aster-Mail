@@ -433,12 +433,15 @@ export class DoubleRatchet {
       dh_public: this.state.dh_keypair.public_key,
       previous_chain_length: this.state.previous_chain_length,
       message_number: this.state.send_message_number,
+      v: 2,
     };
+
+    const ad = serialize_header_for_ad(header);
 
     const { ciphertext, nonce } = await encrypt_with_key(
       plaintext_bytes,
       message_key,
-      null,
+      ad,
     );
 
     this.state.chain_key_send = array_to_base64(new_chain_key);

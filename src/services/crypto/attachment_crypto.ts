@@ -62,14 +62,19 @@ export interface AttachmentMeta {
   is_inline?: boolean;
 }
 
+function attachment_data_aad(seq: number): Uint8Array {
+  return new TextEncoder().encode(`aster-attachment-v2|att=${seq}|part=data`);
+}
+
 async function encrypt_data_with_session_key(
   data: ArrayBuffer,
   session_key: CryptoKey,
+  seq: number,
 ): Promise<{ encrypted: ArrayBuffer; nonce: Uint8Array }> {
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
 
   const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: nonce },
+    { name: "AES-GCM", iv: nonce, additionalData: attachment_data_aad(seq) },
     session_key,
     data,
   );
@@ -90,6 +95,8 @@ export async function encrypt_attachments_for_send(
   const results: EncryptedAttachmentForSend[] = [];
 
   try {
+    let seq = 0;
+
     for (const attachment of attachments) {
       const raw_key = crypto.getRandomValues(new Uint8Array(32));
 
@@ -104,6 +111,7 @@ export async function encrypt_attachments_for_send(
       const { encrypted, nonce } = await encrypt_data_with_session_key(
         attachment.data,
         session_key,
+        seq,
       );
 
       const meta: AttachmentMeta = {
@@ -151,6 +159,8 @@ export async function encrypt_attachments_for_send(
         recipient_encrypted_meta,
         size_bytes: attachment.size_bytes,
       });
+
+      seq += 1;
     }
 
     return results;
@@ -266,6 +276,22 @@ export async function decrypt_attachment_data(
   );
 
   zero_uint8_array(key_bytes);
+
+  if (seq_num !== undefined) {
+    try {
+      return await crypto.subtle.decrypt(
+        {
+          name: "AES-GCM",
+          iv: nonce,
+          additionalData: attachment_data_aad(seq_num),
+        },
+        session_key,
+        encrypted_data,
+      );
+    } catch {
+      /* legacy ciphertext authored without aad, fall through */
+    }
+  }
 
   return decrypt_aes_gcm_with_fallback(session_key, encrypted_data, nonce);
 }
