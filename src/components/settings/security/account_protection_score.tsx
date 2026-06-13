@@ -242,7 +242,7 @@ export function AccountProtectionScore({
                       onClick={() => {
                         if (!click_handler) return;
                         set_popover_open(false);
-                        requestAnimationFrame(click_handler);
+                        click_handler();
                       }}
                     >
                       {criteria_met[i] ? (
