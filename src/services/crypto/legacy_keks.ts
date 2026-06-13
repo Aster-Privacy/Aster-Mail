@@ -181,6 +181,19 @@ export async function append_legacy_key_raw_bytes(
   } catch {}
 }
 
+export function retire_kek_from_list(
+  existing: LegacyDerivedKek[] | undefined,
+  raw_key: Uint8Array,
+): LegacyDerivedKek[] {
+  if (!existing || existing.length === 0) {
+    return [];
+  }
+
+  const target = to_base64(raw_key);
+
+  return existing.filter((entry) => entry.k !== target);
+}
+
 export async function decrypt_aes_gcm_with_fallback(
   primary_key: CryptoKey,
   ciphertext: BufferSource,
