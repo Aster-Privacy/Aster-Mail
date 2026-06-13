@@ -537,6 +537,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     encrypted_attachments = await encrypt_attachments_for_send(
       all_attachments,
       recipient_public_keys.length > 0 ? recipient_public_keys : undefined,
+      is_encrypted,
     );
   }
 

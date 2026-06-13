@@ -95,7 +95,18 @@ async function encrypt_data_with_session_key(
 export async function encrypt_attachments_for_send(
   attachments: Attachment[],
   recipient_public_keys?: string[],
+  require_recipient_encryption = false,
 ): Promise<EncryptedAttachmentForSend[]> {
+  const has_recipient_keys = !!(
+    recipient_public_keys && recipient_public_keys.length > 0
+  );
+
+  if (require_recipient_encryption && !has_recipient_keys) {
+    throw new Error(
+      "recipient encryption keys unavailable for encrypted attachment",
+    );
+  }
+
   const passphrase_bytes = get_passphrase_bytes();
 
   if (!passphrase_bytes) {
