@@ -19,11 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 /**
- * @deprecated This hook is deprecated. Use `use_mail_stats` instead.
- * This file will be removed in a future version.
+ * @deprecated Use `use_mail_stats` instead.
  *
- * This hook now acts as a thin wrapper around use_mail_stats for backwards
- * compatibility. All counting is now done client-side by decrypting metadata.
+ * Thin wrapper around use_mail_stats kept for backwards compatibility. All
+ * counting is done client-side by decrypting metadata.
  */
 
 import type { InboxEmail } from "@/types/email";

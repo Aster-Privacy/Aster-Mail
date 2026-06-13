@@ -110,7 +110,6 @@ export function FamilyWelcomeModal({
   return (
     <Modal is_open={is_open} on_close={handle_close} size="lg" show_close_button={false} close_on_overlay={false}>
       <div className="relative flex flex-col overflow-hidden">
-        {/* Close */}
         <button
           onClick={handle_close}
           className="absolute right-4 top-4 z-20 w-7 h-7 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-secondary"
@@ -129,7 +128,6 @@ export function FamilyWelcomeModal({
             transition={{ duration: reduce_motion ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="px-8 pt-8 pb-6"
           >
-            {/* Plan pill (stacked: plan on top, details below) */}
             <div className="flex flex-col items-center gap-1 mb-6 w-full">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
                 {plan_name}
@@ -137,18 +135,15 @@ export function FamilyWelcomeModal({
               <span className="text-xs text-txt-muted">{max_members} members · {format_bytes(storage_pool_bytes)}</span>
             </div>
 
-            {/* Icon (no background, blue) */}
             <div className="flex justify-center mb-5 w-full">
               <Icon className="w-12 h-12 text-accent-blue" strokeWidth={1.5} />
             </div>
 
-            {/* Text */}
             <div className="text-center mb-6">
               <h2 className="text-lg font-semibold text-txt-primary mb-2">{current.title}</h2>
               <p className="text-sm text-txt-muted leading-relaxed max-w-xs mx-auto">{current.description}</p>
             </div>
 
-            {/* Points */}
             <ul className="space-y-3 bg-surf-secondary rounded-xl p-4 border border-edge-secondary">
               {current.points.map((point, i) => (
                 <li key={i} className="flex items-start gap-2.5">
@@ -160,7 +155,6 @@ export function FamilyWelcomeModal({
           </motion.div>
         </AnimatePresence>
 
-        {/* Progress dots */}
         <div className="flex items-center justify-center gap-2 pb-2">
           {STEPS.map((s, i) => (
             <button
@@ -178,7 +172,6 @@ export function FamilyWelcomeModal({
           ))}
         </div>
 
-        {/* Footer */}
         <div className="px-6 pb-6 pt-3 flex items-center justify-between border-t border-edge-secondary mt-2">
           <button
             onClick={handle_close}

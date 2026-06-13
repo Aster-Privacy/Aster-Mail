@@ -258,7 +258,7 @@ export async function sync_ratchet_to_server(
       try {
         await pending;
       } catch {
-        /* ignore prior failure, we'll try fresh */
+        /* ignore prior failure and retry with a fresh sync */
       }
     }
 
