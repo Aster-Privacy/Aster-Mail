@@ -62,8 +62,14 @@ export interface AttachmentMeta {
   is_inline?: boolean;
 }
 
+const AEAD_BINDING_WRITE_ENABLED = false;
+
 function attachment_data_aad(seq: number): Uint8Array {
   return new TextEncoder().encode(`aster-attachment-v2|att=${seq}|part=data`);
+}
+
+function write_aad(aad: Uint8Array): Uint8Array {
+  return AEAD_BINDING_WRITE_ENABLED ? aad : new Uint8Array(0);
 }
 
 async function encrypt_data_with_session_key(
@@ -74,7 +80,11 @@ async function encrypt_data_with_session_key(
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
 
   const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: nonce, additionalData: attachment_data_aad(seq) },
+    {
+      name: "AES-GCM",
+      iv: nonce,
+      additionalData: write_aad(attachment_data_aad(seq)),
+    },
     session_key,
     data,
   );
