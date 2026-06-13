@@ -603,6 +603,18 @@ export async function wipe_all_storage(): Promise<void> {
     if (import.meta.env.DEV) console.error(error);
   }
 
+  try {
+    await new Promise<void>((resolve) => {
+      const request = indexedDB.deleteDatabase("astermail_offline_cache");
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
+      request.onblocked = () => resolve();
+    });
+  } catch (error) {
+    if (import.meta.env.DEV) console.error(error);
+  }
+
   secure_clear_session_storage();
 
   secure_clear_local_storage();
