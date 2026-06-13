@@ -19,18 +19,34 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 export function open_external(url: string, features?: string): Window | null {
+  let normalized: string;
+
   try {
     const parsed = new URL(url, window.location.origin);
 
     if (!["http:", "https:", "mailto:"].includes(parsed.protocol)) {
       return null;
     }
+    normalized = parsed.href;
   } catch {
+    return null;
+  }
+
+  const is_desktop =
+    typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
+  if (is_desktop) {
+    void import("@tauri-apps/plugin-shell")
+      .then(({ open }) => open(normalized))
+      .catch(() => {
+        window.open(normalized, "_blank", "noopener,noreferrer");
+      });
+
     return null;
   }
 
   const base = "noopener,noreferrer";
   const combined = features ? `${base},${features}` : base;
 
-  return window.open(url, "_blank", combined);
+  return window.open(normalized, "_blank", combined);
 }
