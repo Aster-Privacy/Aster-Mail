@@ -56,6 +56,7 @@ import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { use_folders } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
+import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { use_document_title } from "@/hooks/use_document_title";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -382,6 +383,14 @@ export function use_email_detail() {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
                 metadata_nonce: result.encrypted?.metadata_nonce,
               });
+              if (is_received) {
+                mark_conversation_read({
+                  thread_token: item.thread_token,
+                  thread_message_count: item.thread_message_count,
+                  grouped_count: stored_grouped_email_ids?.length,
+                  conversation_grouping: preferences.conversation_grouping,
+                });
+              }
             } else if (is_received) {
               adjust_unread_count(1);
             }
@@ -571,6 +580,14 @@ export function use_email_detail() {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
                 metadata_nonce: result.encrypted?.metadata_nonce,
               });
+              if (is_received) {
+                mark_conversation_read({
+                  thread_token: mail_data.thread_token,
+                  thread_message_count: mail_data.thread_message_count,
+                  grouped_count: stored_grouped_email_ids?.length,
+                  conversation_grouping: preferences.conversation_grouping,
+                });
+              }
             } else if (is_received) {
               adjust_unread_count(1);
             }
