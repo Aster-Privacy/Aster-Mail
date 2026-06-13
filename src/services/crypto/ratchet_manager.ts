@@ -439,6 +439,14 @@ async function init_receiver_from_bootstrap(
         }
       : null;
 
+  if (!pq_input && keys.ratchet_pq_identity_public) {
+    if (import.meta.env.DEV) {
+      console.warn(
+        "ratchet receiver: PQ-capable identity received a non-PQ bootstrap, proceeding classically",
+      );
+    }
+  }
+
   const shared_secret = await perform_x3dh_receiver(
     receiver_identity_jwk,
     receiver_signed_prekey_jwk,
