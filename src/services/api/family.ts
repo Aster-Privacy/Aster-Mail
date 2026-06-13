@@ -156,6 +156,7 @@ export interface InvitePreview {
   plan_name: string | null;
   allocated_storage_bytes: number | null;
   require_2fa: boolean;
+  inviter_name: string | null;
   valid: boolean;
 }
 
