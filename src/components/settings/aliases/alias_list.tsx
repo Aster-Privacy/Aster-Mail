@@ -21,7 +21,7 @@
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { DecryptedDomainAddress } from "@/services/api/domains";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   AtSymbolIcon,
   ExclamationTriangleIcon,
@@ -46,11 +46,14 @@ import {
   DomainAddressItem,
 } from "@/components/settings/aliases/alias_card";
 import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/recently_deleted_aliases_section";
+import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { update_alias, delete_alias, toggle_alias_pin, get_alias_preferences } from "@/services/api/aliases";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
 type FilterMode = "all" | "enabled" | "disabled";
+
+const ALIASES_PER_PAGE = 50;
 
 interface AliasListProps {
   aliases: DecryptedEmailAlias[];
@@ -174,6 +177,38 @@ export function AliasList({
     }
     return result;
   }, [aliases, search_query, filter_mode]);
+
+  const [current_page, set_current_page] = useState(0);
+  const list_top_ref = useRef<HTMLDivElement>(null);
+
+  const total_pages = Math.max(
+    1,
+    Math.ceil(filtered_aliases.length / ALIASES_PER_PAGE),
+  );
+
+  useEffect(() => {
+    set_current_page(0);
+  }, [search_query, filter_mode]);
+
+  useEffect(() => {
+    if (current_page > total_pages - 1) {
+      set_current_page(total_pages - 1);
+    }
+  }, [current_page, total_pages]);
+
+  const page_aliases = useMemo(
+    () =>
+      filtered_aliases.slice(
+        current_page * ALIASES_PER_PAGE,
+        current_page * ALIASES_PER_PAGE + ALIASES_PER_PAGE,
+      ),
+    [filtered_aliases, current_page],
+  );
+
+  const handle_page_change = (page: number) => {
+    set_current_page(page);
+    list_top_ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const handle_select = (alias_id: string, selected: boolean) => {
     set_selected_ids((prev) => {
@@ -353,8 +388,8 @@ export function AliasList({
         </div>
       )}
 
-      <div className="space-y-2">
-        {filtered_aliases.map((alias) =>
+      <div ref={list_top_ref} className="space-y-2">
+        {page_aliases.map((alias) =>
           alias.decryption_failed ? (
             <UndecryptableAliasCard
               key={alias.id}
@@ -382,6 +417,11 @@ export function AliasList({
           ),
         )}
       </div>
+      <BottomPagination
+        current_page={current_page}
+        on_page_change={handle_page_change}
+        total_pages={total_pages}
+      />
       {domain_addresses.map((addr) => (
         <DomainAddressItem
           key={`da-${addr.id}`}
