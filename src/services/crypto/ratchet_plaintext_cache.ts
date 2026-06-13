@@ -22,6 +22,7 @@ import {
   encrypted_get,
   encrypted_set,
   encrypted_delete,
+  encrypted_list_keys,
 } from "./encrypted_storage";
 import {
   get_derived_encryption_key,
@@ -29,7 +30,7 @@ import {
 } from "./memory_key_store";
 
 const CACHE_KEY_PREFIX = "ratchet_plaintext_";
-const TTL_MS = 60 * 24 * 60 * 60 * 1000;
+const TTL_MS = 6 * 60 * 60 * 1000;
 
 interface CachedPlaintext {
   plaintext: string;
@@ -39,6 +40,19 @@ interface CachedPlaintext {
 function secure_zero_memory(buffer: Uint8Array): void {
   crypto.getRandomValues(buffer);
   buffer.fill(0);
+}
+
+async function namespaced_cache_id(message_id: string): Promise<string> {
+  try {
+    const { get_current_account_id } = await import(
+      "@/services/account_manager"
+    );
+    const uid = await get_current_account_id();
+
+    return `${CACHE_KEY_PREFIX}${uid ?? ""}_${message_id}`;
+  } catch {
+    return `${CACHE_KEY_PREFIX}${message_id}`;
+  }
 }
 
 async function get_cache_key(): Promise<CryptoKey | null> {
@@ -70,15 +84,13 @@ export async function get_cached_ratchet_plaintext(
 
     if (!key) return null;
 
-    const entry = await encrypted_get<CachedPlaintext>(
-      `${CACHE_KEY_PREFIX}${message_id}`,
-      key,
-    );
+    const cache_id = await namespaced_cache_id(message_id);
+    const entry = await encrypted_get<CachedPlaintext>(cache_id, key);
 
     if (!entry) return null;
 
     if (Date.now() - entry.stored_at > TTL_MS) {
-      await encrypted_delete(`${CACHE_KEY_PREFIX}${message_id}`);
+      await encrypted_delete(cache_id);
 
       return null;
     }
@@ -104,7 +116,9 @@ export async function set_cached_ratchet_plaintext(
       stored_at: Date.now(),
     };
 
-    await encrypted_set(`${CACHE_KEY_PREFIX}${message_id}`, entry, key);
+    const cache_id = await namespaced_cache_id(message_id);
+
+    await encrypted_set(cache_id, entry, key);
   } catch {
     /* best-effort */
   }
@@ -115,7 +129,21 @@ export async function delete_cached_ratchet_plaintext(
 ): Promise<void> {
   if (!message_id) return;
   try {
-    await encrypted_delete(`${CACHE_KEY_PREFIX}${message_id}`);
+    await encrypted_delete(await namespaced_cache_id(message_id));
+  } catch {
+    /* best-effort */
+  }
+}
+
+export async function clear_plaintext_cache(): Promise<void> {
+  try {
+    const keys = await encrypted_list_keys();
+
+    for (const key of keys) {
+      if (key.startsWith(CACHE_KEY_PREFIX)) {
+        await encrypted_delete(key);
+      }
+    }
   } catch {
     /* best-effort */
   }

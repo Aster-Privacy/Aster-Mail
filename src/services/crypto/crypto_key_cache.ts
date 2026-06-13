@@ -42,7 +42,7 @@ interface CacheConfig {
 }
 
 const DEFAULT_CONFIG: CacheConfig = {
-  session_timeout_ms: 24 * 60 * 60 * 1000,
+  session_timeout_ms: 2 * 60 * 60 * 1000,
   max_entries: 100,
   cleanup_interval_ms: 60 * 1000,
 };
