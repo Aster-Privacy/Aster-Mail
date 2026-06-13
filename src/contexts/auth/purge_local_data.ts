@@ -43,6 +43,8 @@ import { clear_all_app_lock_data } from "@/services/app_lock_store";
 import { clear_category_index } from "@/services/category_index";
 import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { clear_all_ratchet_states } from "@/services/crypto/double_ratchet";
+import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
+import { clear_plaintext_cache } from "@/services/crypto/ratchet_plaintext_cache";
 
 export async function purge_all_local_data(): Promise<void> {
   const errors: Error[] = [];
@@ -79,6 +81,7 @@ export async function purge_all_local_data(): Promise<void> {
   clear_search_index();
   clear_session();
   clear_all_switch_tokens();
+  clear_attachment_keys();
 
   try {
     await clear_category_index();
@@ -88,6 +91,12 @@ export async function purge_all_local_data(): Promise<void> {
 
   try {
     await clear_all_ratchet_states();
+  } catch (e) {
+    errors.push(e instanceof Error ? e : new Error(String(e)));
+  }
+
+  try {
+    await clear_plaintext_cache();
   } catch (e) {
     errors.push(e instanceof Error ? e : new Error(String(e)));
   }
