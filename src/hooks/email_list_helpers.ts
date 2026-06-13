@@ -113,6 +113,39 @@ function should_exclude_trashed_spam(view: string): boolean {
   );
 }
 
+export function should_keep_email_in_view(
+  flags: {
+    is_trashed?: boolean;
+    is_spam?: boolean;
+    is_archived?: boolean;
+    item_type?: string;
+  },
+  view: string,
+): boolean {
+  if (
+    (view === "inbox" || view === "") &&
+    flags.item_type !== undefined &&
+    flags.item_type !== "received"
+  ) {
+    return false;
+  }
+
+  if (!should_exclude_trashed_spam(view)) return true;
+
+  if (flags.is_trashed || flags.is_spam) return false;
+
+  const is_folder_like_view =
+    view.startsWith("folder-") ||
+    view.startsWith("tag-") ||
+    view.startsWith("alias-");
+
+  if (!(view === "archive" || is_folder_like_view || !flags.is_archived)) {
+    return false;
+  }
+
+  return true;
+}
+
 function format_timestamp(date: Date, options: FormatOptions): string {
   return format_email_list_timestamp(date, options);
 }
@@ -624,12 +657,17 @@ export async function fetch_mail_from_api(
     }
   }
 
-  if (should_exclude_trashed_spam(view)) {
-    emails = emails.filter(
-      (e) =>
-        !e.is_trashed && !e.is_spam && (view === "archive" || !e.is_archived),
-    );
-  }
+  emails = emails.filter((e) =>
+    should_keep_email_in_view(
+      {
+        is_trashed: e.is_trashed,
+        is_spam: e.is_spam,
+        is_archived: e.is_archived,
+        item_type: e.item_type,
+      },
+      view,
+    ),
+  );
 
   const sorted_emails = emails.sort((a, b) => {
     const ts_a = a.raw_timestamp || a.timestamp;
