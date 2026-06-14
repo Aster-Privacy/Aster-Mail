@@ -134,6 +134,52 @@ export function flatten_visible_tree(
   return result;
 }
 
+export function partition_folders_by_parent(
+  folders: DecryptedFolder[],
+  parent_token: string | undefined,
+): { pinned: DecryptedFolder[]; rest: DecryptedFolder[] } {
+  if (!parent_token) {
+    return { pinned: [], rest: folders };
+  }
+
+  const pinned_tokens = new Set<string>();
+  const queue: string[] = [];
+
+  for (const folder of folders) {
+    if (folder.parent_token === parent_token) {
+      pinned_tokens.add(folder.folder_token);
+      queue.push(folder.folder_token);
+    }
+  }
+
+  while (queue.length > 0) {
+    const token = queue.shift()!;
+
+    for (const folder of folders) {
+      if (
+        folder.parent_token === token &&
+        !pinned_tokens.has(folder.folder_token)
+      ) {
+        pinned_tokens.add(folder.folder_token);
+        queue.push(folder.folder_token);
+      }
+    }
+  }
+
+  const pinned: DecryptedFolder[] = [];
+  const rest: DecryptedFolder[] = [];
+
+  for (const folder of folders) {
+    if (pinned_tokens.has(folder.folder_token)) {
+      pinned.push(folder);
+    } else {
+      rest.push(folder);
+    }
+  }
+
+  return { pinned, rest };
+}
+
 const cached_folders: { data: DecryptedFolder[]; total: number } = {
   data: [],
   total: 0,

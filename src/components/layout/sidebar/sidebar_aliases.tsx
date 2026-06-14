@@ -33,6 +33,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { CountBadge } from "@/components/common/count_badge";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
 
 function get_alias_color(address: string): string {
@@ -95,6 +96,7 @@ interface SidebarAliasesProps {
   alias_refs: MutableRefObject<Record<string, HTMLButtonElement | null>>;
   section_collapsed?: boolean;
   on_toggle_section?: () => void;
+  unread_counts?: Record<string, number>;
 }
 
 export const SidebarAliases = memo(function SidebarAliases({
@@ -112,6 +114,7 @@ export const SidebarAliases = memo(function SidebarAliases({
   alias_refs,
   section_collapsed = false,
   on_toggle_section,
+  unread_counts = {},
 }: SidebarAliasesProps) {
   const { t } = use_i18n();
 
@@ -166,6 +169,9 @@ export const SidebarAliases = memo(function SidebarAliases({
         {!section_collapsed &&
           visible_aliases.map((alias) => {
             const alias_item_id = `alias-${alias.full_address}`;
+            const unread_count = alias.alias_address_hash
+              ? (unread_counts[alias.alias_address_hash] ?? 0)
+              : 0;
 
             return (
               <button
@@ -201,9 +207,15 @@ export const SidebarAliases = memo(function SidebarAliases({
                   size={is_collapsed ? 24 : 20}
                 />
                 {!is_collapsed && (
-                  <span className="flex-1 text-left truncate leading-4">
-                    {alias.full_address}
-                  </span>
+                  <>
+                    <span className="flex-1 text-left truncate leading-4">
+                      {alias.full_address}
+                    </span>
+                    <CountBadge
+                      count={unread_count}
+                      is_active={effective_selected === alias_item_id}
+                    />
+                  </>
                 )}
               </button>
             );
