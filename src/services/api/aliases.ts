@@ -103,6 +103,7 @@ export interface UpdateAliasRequest {
   local_part_nonce?: string;
   encrypted_note?: string | null;
   note_nonce?: string | null;
+  routing_address_hash?: string;
 }
 
 export interface AliasLimitResponse {
@@ -510,6 +511,51 @@ export async function reencrypt_alias_local_part(
       local_part_nonce: nonce,
     },
   );
+}
+
+let routing_hash_backfill_done = false;
+
+// Heals legacy aliases that were stored without a routing_address_hash and so silently
+// drop all inbound mail. We recompute the hash locally (we can decrypt the address) and
+// PATCH it. The server only fills a NULL and never overwrites, so this is idempotent and
+// safe to run alongside the server-side backfill. Runs at most once per session.
+export async function backfill_missing_routing_hashes(): Promise<void> {
+  if (routing_hash_backfill_done) return;
+  routing_hash_backfill_done = true;
+
+  try {
+    const { aliases, error } = await list_all_aliases();
+
+    if (error) {
+      routing_hash_backfill_done = false;
+
+      return;
+    }
+
+    for (const alias of aliases) {
+      if (alias.routing_address_hash) continue;
+
+      try {
+        const decrypted = await decrypt_alias(alias);
+
+        if (decrypted.decryption_failed || !decrypted.local_part) continue;
+
+        const routing_address_hash = await compute_routing_hash(
+          decrypted.local_part,
+          alias.domain,
+        );
+
+        await api_client.patch<{ success: boolean }>(
+          `/addresses/v1/aliases/${alias.id}`,
+          { routing_address_hash },
+        );
+      } catch {
+        continue;
+      }
+    }
+  } catch {
+    routing_hash_backfill_done = false;
+  }
 }
 
 export async function delete_alias(

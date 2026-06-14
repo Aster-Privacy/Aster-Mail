@@ -26,6 +26,7 @@ import {
   get_alias_counts,
   reencrypt_alias_local_part,
   compute_routing_hash,
+  backfill_missing_routing_hashes,
   type DecryptedEmailAlias,
   type EmailAlias,
   type AliasCountsResponse,
@@ -261,6 +262,8 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       cached_aliases.data = merged;
       set_aliases(merged);
       notify_alias_subscribers();
+
+      void backfill_missing_routing_hashes();
 
       if (counts_response.data) {
         const counts = counts_response.data as AliasCountsResponse;
