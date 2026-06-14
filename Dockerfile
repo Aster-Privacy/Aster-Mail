@@ -15,6 +15,8 @@ RUN mkdir -p /etc/nginx/secret && \
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY dist /usr/share/nginx/html
 
+RUN find /usr/share/nginx/html -name '*.map' -type f -delete
+
 RUN chown -R appuser:appgroup /usr/share/nginx/html
 
 USER appuser
