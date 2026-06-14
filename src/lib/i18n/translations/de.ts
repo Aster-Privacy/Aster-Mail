@@ -577,6 +577,7 @@ export const de = {
     upload_failed: "Der Upload wurde nicht abgeschlossen. Ein erneuter Versuch genügt meist.",
     delete_failed: "Dieses Element wurde nicht entfernt. Ein erneuter Versuch genügt meist.",
     download_failed: "Dieser Download wurde nicht abgeschlossen. Ein erneuter Versuch genügt meist.",
+    scheduled_no_attachments: "Geplante E-Mails können noch keine Anhänge enthalten. Sende jetzt oder entferne die Dateien, um zu planen.",
     failed_to_merge_contacts: "Das Zusammenführen wurde nicht abgeschlossen. Ein erneuter Versuch genügt meist. Ihre ursprünglichen Kontakte bleiben unverändert.",
     merge_failed: "Das Zusammenführen wurde nicht abgeschlossen. Ein erneuter Versuch genügt meist. Ihre ursprünglichen Kontakte bleiben unverändert.",
     failed_to_load_history: "Der Verlauf wurde nicht geladen. Ein erneuter Versuch genügt meist.",

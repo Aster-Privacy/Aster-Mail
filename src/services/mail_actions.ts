@@ -55,6 +55,7 @@ export interface ReplyParams {
   sender_email?: string;
   sender_alias_hash?: string;
   in_reply_to?: string;
+  attachments?: import("@/components/compose/compose_shared").Attachment[];
 }
 
 export interface ForwardParams {
@@ -176,6 +177,7 @@ export async function send_reply(
         expires_at: params.expires_at,
         sender_email: params.sender_email,
         sender_alias_hash: params.sender_alias_hash,
+        attachments: params.attachments,
       },
       delay_seconds,
       {
@@ -212,6 +214,7 @@ export async function send_reply(
       expires_at: params.expires_at,
       sender_email: params.sender_email,
       sender_alias_hash: params.sender_alias_hash,
+      attachments: params.attachments,
       on_complete: callbacks.on_complete,
       on_cancel: callbacks.on_cancel,
       on_error: callbacks.on_error,

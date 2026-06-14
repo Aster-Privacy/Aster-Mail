@@ -589,6 +589,7 @@ export const fr = {
     upload_failed: "Le téléversement ne s'est pas terminé. Un autre essai devrait suffire.",
     delete_failed: "Cet élément n'a pas été retiré. Un autre essai devrait suffire.",
     download_failed: "Ce téléchargement ne s'est pas terminé. Un autre essai devrait suffire.",
+    scheduled_no_attachments: "Les e-mails programmés ne peuvent pas encore inclure de pièces jointes. Envoyez maintenant, ou retirez les fichiers pour programmer.",
     failed_to_merge_contacts: "La fusion ne s'est pas terminée. Un autre essai devrait suffire. Vos contacts d'origine sont inchangés.",
     merge_failed: "La fusion ne s'est pas terminée. Un autre essai devrait suffire. Vos contacts d'origine sont inchangés.",
     failed_to_load_history: "L'historique ne s'est pas chargé. Un autre essai devrait suffire.",

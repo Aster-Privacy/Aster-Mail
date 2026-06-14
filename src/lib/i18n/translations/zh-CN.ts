@@ -508,6 +508,7 @@ export const zh_CN = {
     upload_failed: "上传未能完成，再试一次应该可以。",
     delete_failed: "这个条目未能移除，再试一次应该可以。",
     download_failed: "这次下载未能完成，再试一次应该可以。",
+    scheduled_no_attachments: "定时邮件暂时无法包含附件。请立即发送，或移除文件后再定时。",
     failed_to_merge_contacts: "合并未能完成，再试一次应该可以。您原来的联系人没有变化。",
     merge_failed: "合并未能完成，再试一次应该可以。您原来的联系人没有变化。",
     failed_to_load_history: "历史记录未能加载，再试一次应该可以。",

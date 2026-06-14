@@ -590,6 +590,7 @@ export const ko = {
     upload_failed: "업로드가 완료되지 않았습니다. 다시 시도하면 됩니다.",
     delete_failed: "이 항목이 제거되지 않았습니다. 다시 시도하면 됩니다.",
     download_failed: "이 다운로드가 완료되지 않았습니다. 다시 시도하면 됩니다.",
+    scheduled_no_attachments: "예약 메일에는 아직 첨부 파일을 포함할 수 없습니다. 지금 보내거나 파일을 제거한 후 예약하세요.",
     failed_to_merge_contacts: "병합이 완료되지 않았습니다. 다시 시도하면 됩니다. 원래 연락처는 그대로입니다.",
     merge_failed: "병합이 완료되지 않았습니다. 다시 시도하면 됩니다. 원래 연락처는 그대로입니다.",
     failed_to_load_history: "기록이 불러와지지 않았습니다. 다시 시도하면 됩니다.",

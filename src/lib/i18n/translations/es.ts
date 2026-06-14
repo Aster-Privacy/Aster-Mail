@@ -590,6 +590,7 @@ export const es = {
     upload_failed: "La subida no se completó. Otro intento debería resolverlo.",
     delete_failed: "Este elemento no se eliminó. Otro intento debería resolverlo.",
     download_failed: "Esta descarga no se completó. Otro intento debería resolverlo.",
+    scheduled_no_attachments: "Los correos programados aún no pueden incluir archivos adjuntos. Envíalo ahora o quita los archivos para programarlo.",
     failed_to_merge_contacts: "La fusión no se completó. Otro intento debería resolverlo. Tus contactos originales no han cambiado.",
     merge_failed: "La fusión no se completó. Otro intento debería resolverlo. Tus contactos originales no han cambiado.",
     failed_to_load_history: "El historial no se cargó. Otro intento debería resolverlo.",
