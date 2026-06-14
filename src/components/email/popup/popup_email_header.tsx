@@ -45,6 +45,8 @@ import {
 } from "@/components/ui/email_tag";
 import { use_tags } from "@/hooks/use_tags";
 import { is_system_email } from "@/lib/utils";
+
+import { OfficialBadge } from "@/components/email/official_badge";
 import { get_label_hints } from "@/stores/label_hints_store";
 
 interface PopupEmailHeaderProps {
@@ -174,6 +176,10 @@ export function PopupEmailHeader({
               <span className="font-medium text-sm text-txt-primary">
                 {show_sender_name}
               </span>
+              <OfficialBadge
+                email={email.sender_email}
+                is_external={mail_item?.is_external}
+              />
               {snoozed_until && (
                 <SnoozeBadge
                   className="flex-shrink-0"

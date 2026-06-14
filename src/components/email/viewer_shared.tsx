@@ -73,6 +73,8 @@ import {
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { is_system_email } from "@/lib/utils";
+
+import { OfficialBadge } from "@/components/email/official_badge";
 import {
   EmailTag,
   hex_to_variant,
@@ -718,6 +720,11 @@ export function ViewerEmailHeader({
               >
                 <span className="text-txt-primary">{display_sender}</span>
               </EmailProfileTrigger>
+              <OfficialBadge
+                email={email.sender_email}
+                is_external={is_external}
+                size="md"
+              />
               {show_sender_badge && peer_badge && (
                 <BadgeChip
                   badge={peer_badge}

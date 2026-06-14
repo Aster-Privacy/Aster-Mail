@@ -5013,6 +5013,8 @@ export interface MailTranslations {
   verification_verified: string;
   verification_invalid: string;
   verification_no_keys: string;
+  official_sender: string;
+  official_sender_desc: string;
   copy_message_id: string;
   message_details: string;
   message_headers: string;

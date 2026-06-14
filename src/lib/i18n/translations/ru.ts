@@ -4888,6 +4888,8 @@ export const ru = {
     url_label: "URL",
     verification_invalid: "Подпись отправителя не совпала",
     verification_no_keys: "Не удалось проверить личность отправителя",
+    official_sender: "Официальный адрес Aster",
+    official_sender_desc: "Это сообщение отправлено с официального адреса Aster. Aster никогда не запрашивает пароль или фразу восстановления по электронной почте.",
     verification_verified: "Отправитель подтверждён",
     zero_access_encrypted: "Сквозное шифрование",
   },

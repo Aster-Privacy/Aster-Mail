@@ -169,6 +169,7 @@ export interface InboxEmail {
   mail_category?: EmailCategory;
   avatar_url: string;
   is_encrypted?: boolean;
+  is_external?: boolean;
   labels?: InboxEmailLabel[];
   folders?: InboxEmailFolder[];
   tags?: InboxEmailTag[];

@@ -159,6 +159,11 @@ export function get_cached_folders(): DecryptedFolder[] {
   return cached_folders.data;
 }
 
+export function clear_folders_cache(): void {
+  cached_folders.data = [];
+  cached_folders.total = 0;
+}
+
 export function get_protected_folder_tokens(): Set<string> {
   const tokens = new Set<string>();
 

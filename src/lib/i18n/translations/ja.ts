@@ -4762,6 +4762,8 @@ export const ja = {
     verification_verified: "送信者確認済み",
     verification_invalid: "送信者の署名が一致しませんでした",
     verification_no_keys: "この送信者の身元を確認できませんでした",
+    official_sender: "Aster公式アドレス",
+    official_sender_desc: "このメッセージはAsterの公式アドレスから送信されています。Asterがメールでパスワードやリカバリーフレーズを尋ねることはありません。",
     message_details: "メッセージの詳細",
     message_headers: "メッセージヘッダー",
     message_id_label: "メッセージ ID：",

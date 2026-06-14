@@ -4888,6 +4888,8 @@ export const de = {
     url_label: "URL",
     verification_invalid: "Absendersignatur stimmte nicht überein",
     verification_no_keys: "Wir konnten die Identität dieses Absenders nicht prüfen",
+    official_sender: "Offizielle Aster-Adresse",
+    official_sender_desc: "Diese Nachricht stammt von einer offiziellen Aster-Adresse. Aster fragt dich niemals per E-Mail nach deinem Passwort oder deiner Wiederherstellungsphrase.",
     verification_verified: "Verifizierter Absender",
     zero_access_encrypted: "Ende-zu-Ende-verschlüsselt",
   },

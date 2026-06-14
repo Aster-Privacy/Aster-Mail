@@ -4835,6 +4835,8 @@ export const pl = {
     verification_verified: "Zweryfikowany nadawca",
     verification_invalid: "Podpis nadawcy nie pasuje",
     verification_no_keys: "Nie udało się zweryfikować tożsamości nadawcy",
+    official_sender: "Oficjalny adres Aster",
+    official_sender_desc: "Ta wiadomość pochodzi z oficjalnego adresu Aster. Aster nigdy nie poprosi Cię e-mailem o hasło ani frazę odzyskiwania.",
     message_details: "Szczegóły wiadomości",
     message_headers: "Nagłówki wiadomości",
     message_id_label: "ID wiadomości:",

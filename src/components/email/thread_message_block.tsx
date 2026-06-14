@@ -72,6 +72,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { is_system_email } from "@/lib/utils";
+
+import { OfficialBadge } from "@/components/email/official_badge";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -640,6 +642,13 @@ export function ThreadMessageBlock({
               >
                 {name}
               </SenderProfileTrigger>
+            )}
+            {!is_own_message && (
+              <OfficialBadge
+                className="flex-shrink-0"
+                email={message.sender_email}
+                is_external={message.is_external}
+              />
             )}
             <span className="text-xs text-txt-muted truncate hidden sm:inline max-w-full">
               &lt;{show_sender_email}&gt;

@@ -4816,6 +4816,8 @@ export const zh_CN = {
     verification_verified: "已验证发件人",
     verification_invalid: "发件人签名不匹配",
     verification_no_keys: "我们无法验证此发件人的身份",
+    official_sender: "Aster 官方地址",
+    official_sender_desc: "此邮件来自 Aster 官方地址。Aster 绝不会通过电子邮件向您索要密码或恢复短语。",
     search_scope_label: "搜索",
     search_scope_all: "所有邮件",
     search_from_placeholder: "name@example.com",

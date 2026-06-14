@@ -4888,6 +4888,8 @@ export const es = {
     url_label: "URL",
     verification_invalid: "Firma inválida",
     verification_no_keys: "No hay claves disponibles",
+    official_sender: "Dirección oficial de Aster",
+    official_sender_desc: "Este mensaje proviene de una dirección oficial de Aster. Aster nunca te pedirá tu contraseña ni tu frase de recuperación por correo.",
     verification_verified: "Verificado",
     zero_access_encrypted: "Cifrado sin acceso",
   },
