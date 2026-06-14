@@ -886,6 +886,7 @@ export interface CommonTranslations {
   upload_failed: string;
   delete_failed: string;
   download_failed: string;
+  scheduled_no_attachments: string;
   failed_to_merge_contacts: string;
   merge_failed: string;
   failed_to_load_history: string;

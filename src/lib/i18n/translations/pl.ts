@@ -588,6 +588,7 @@ export const pl = {
     upload_failed: "Przesyłanie nie zostało zakończone. Kolejna próba powinna to załatwić.",
     delete_failed: "Ten element nie został usunięty. Kolejna próba powinna to załatwić.",
     download_failed: "Pobieranie nie zostało zakończone. Kolejna próba powinna to załatwić.",
+    scheduled_no_attachments: "Zaplanowane wiadomości nie mogą jeszcze zawierać załączników. Wyślij teraz lub usuń pliki, aby zaplanować.",
     failed_to_merge_contacts: "Łączenie nie zostało zakończone. Kolejna próba powinna to załatwić. Oryginalne kontakty pozostają bez zmian.",
     merge_failed: "Łączenie nie zostało zakończone. Kolejna próba powinna to załatwić. Oryginalne kontakty pozostają bez zmian.",
     failed_to_load_history: "Historia się nie załadowała. Kolejna próba powinna to załatwić.",

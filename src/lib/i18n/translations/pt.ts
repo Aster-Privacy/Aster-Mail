@@ -508,6 +508,7 @@ export const pt = {
     upload_failed: "O envio não terminou. Outra tentativa deve funcionar.",
     delete_failed: "Este item não foi removido. Outra tentativa deve funcionar.",
     download_failed: "Este download não terminou. Outra tentativa deve funcionar.",
+    scheduled_no_attachments: "E-mails agendados ainda não podem incluir anexos. Envie agora ou remova os arquivos para agendar.",
     failed_to_merge_contacts: "A mesclagem não foi concluída. Outra tentativa deve funcionar. Seus contatos originais permanecem inalterados.",
     merge_failed: "A mesclagem não foi concluída. Outra tentativa deve funcionar. Seus contatos originais permanecem inalterados.",
     failed_to_load_history: "O histórico não carregou. Outra tentativa deve funcionar.",

@@ -590,6 +590,7 @@ export const tr = {
     upload_failed: "Yükleme tamamlanmadı. Bir kez daha denemek genellikle yeterli olur.",
     delete_failed: "Bu öğe kaldırılmadı. Bir kez daha denemek genellikle yeterli olur.",
     download_failed: "Bu indirme tamamlanmadı. Bir kez daha denemek genellikle yeterli olur.",
+    scheduled_no_attachments: "Zamanlanmış e-postalar henüz ek içeremez. Şimdi gönderin veya zamanlamak için dosyaları kaldırın.",
     failed_to_merge_contacts: "Birleştirme tamamlanmadı. Bir kez daha denemek genellikle yeterli olur. Orijinal kişileriniz olduğu gibi.",
     merge_failed: "Birleştirme tamamlanmadı. Bir kez daha denemek genellikle yeterli olur. Orijinal kişileriniz olduğu gibi.",
     failed_to_load_history: "Geçmiş yüklenmedi. Bir kez daha denemek genellikle yeterli olur.",
