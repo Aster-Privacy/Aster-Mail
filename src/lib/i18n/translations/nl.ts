@@ -583,6 +583,7 @@ export const nl = {
     upload_failed: "De upload is niet voltooid. Een nieuwe poging zou werken.",
     delete_failed: "Dit item is niet verwijderd. Een nieuwe poging zou werken.",
     download_failed: "Deze download is niet voltooid. Een nieuwe poging zou werken.",
+    scheduled_no_attachments: "Geplande e-mails kunnen nog geen bijlagen bevatten. Verstuur nu of verwijder de bestanden om te plannen.",
     failed_to_merge_contacts: "Het samenvoegen is niet voltooid. Een nieuwe poging zou werken. Uw oorspronkelijke contacten zijn ongewijzigd.",
     merge_failed: "Het samenvoegen is niet voltooid. Een nieuwe poging zou werken. Uw oorspronkelijke contacten zijn ongewijzigd.",
     failed_to_load_history: "De geschiedenis is niet geladen. Een nieuwe poging zou werken.",

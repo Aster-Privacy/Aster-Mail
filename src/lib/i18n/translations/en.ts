@@ -669,6 +669,7 @@ export const en: Translations = {
     upload_failed: "The upload did not finish. Another attempt should do it.",
     delete_failed: "This item was not removed. Another attempt should do it.",
     download_failed: "This download did not finish. Another attempt should do it.",
+    scheduled_no_attachments: "Scheduled emails can't include attachments yet. Send now, or remove the files to schedule it.",
     failed_to_merge_contacts: "The merge did not complete. Another attempt should do it. Your original contacts are unchanged.",
     merge_failed: "The merge did not complete. Another attempt should do it. Your original contacts are unchanged.",
     failed_to_load_history: "The history did not load. Another attempt should do it.",

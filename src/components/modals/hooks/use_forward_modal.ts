@@ -672,6 +672,12 @@ export function use_forward_modal({
     if (recipients.to.length === 0 || !user || !vault || !scheduled_time)
       return;
 
+    if (attachments.length > 0) {
+      set_error_message(t("common.scheduled_no_attachments"));
+
+      return;
+    }
+
     is_sending_ref.current = true;
     set_is_scheduling(true);
     set_error_message(null);
@@ -724,6 +730,7 @@ export function use_forward_modal({
     email_subject,
     forward_message,
     on_close,
+    attachments,
   ]);
 
   const handle_close = useCallback(() => {

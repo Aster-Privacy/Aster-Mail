@@ -26,6 +26,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { use_preferences } from "@/contexts/preferences_context";
 
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 import { list_attachments } from "@/services/api/attachments";
@@ -381,6 +382,7 @@ export function AttachmentList({
             inline_cids.has(meta.content_id.toLowerCase());
           const is_filename_match =
             !meta.content_id &&
+            meta.content_type.startsWith("image/") &&
             inline_filenames &&
             inline_filenames.size > 0 &&
             inline_filenames.has(meta.filename.toLowerCase());
@@ -548,11 +550,12 @@ export function AttachmentList({
         download_decrypted_attachment(data, meta.filename, meta.content_type);
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
+        show_toast(t("common.download_failed"), "error");
       } finally {
         set_downloading(null);
       }
     },
-    [],
+    [t],
   );
 
   const handle_click = useCallback(

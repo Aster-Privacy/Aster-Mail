@@ -594,6 +594,7 @@ export const it = {
     upload_failed: "Il caricamento non si è completato. Un altro tentativo dovrebbe bastare.",
     delete_failed: "Questo elemento non è stato rimosso. Un altro tentativo dovrebbe bastare.",
     download_failed: "Questo download non si è completato. Un altro tentativo dovrebbe bastare.",
+    scheduled_no_attachments: "Le email programmate non possono ancora includere allegati. Invia ora oppure rimuovi i file per programmarla.",
     failed_to_merge_contacts: "L'unione non si è completata. Un altro tentativo dovrebbe bastare. I suoi contatti originali sono invariati.",
     merge_failed: "L'unione non si è completata. Un altro tentativo dovrebbe bastare. I suoi contatti originali sono invariati.",
     failed_to_load_history: "La cronologia non si è caricata. Un altro tentativo dovrebbe bastare.",

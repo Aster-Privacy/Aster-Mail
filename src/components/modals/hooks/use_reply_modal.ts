@@ -823,6 +823,7 @@ export function use_reply_modal({
         sender_email: sender_email_value,
         sender_alias_hash: sender_alias_hash_value,
         in_reply_to: original_rfc_message_id,
+        attachments: attachments.length > 0 ? attachments : undefined,
       },
       {
         on_complete: () => {
@@ -961,10 +962,17 @@ export function use_reply_modal({
     build_quoted_content,
     user,
     is_plain_text_mode,
+    attachments,
   ]);
 
   const handle_scheduled_send = useCallback(async () => {
     if (!reply_message.trim() || !user || !vault || !scheduled_time) return;
+
+    if (attachments.length > 0) {
+      set_error_message(t("common.scheduled_no_attachments"));
+
+      return;
+    }
 
     if (save_draft_timeout.current) {
       clearTimeout(save_draft_timeout.current);
@@ -1039,6 +1047,7 @@ export function use_reply_modal({
     on_close,
     draft_id,
     is_plain_text_mode,
+    attachments,
   ]);
 
   const handle_close = useCallback(() => {

@@ -429,6 +429,12 @@ export function use_compose_send({
     if (recipients.to.length === 0 || !user || !vault || !scheduled_time)
       return;
 
+    if (attachments.length > 0) {
+      show_toast(t("common.scheduled_no_attachments"), "error");
+
+      return;
+    }
+
     is_sending_ref.current = true;
     set_is_scheduling(true);
 
@@ -494,6 +500,7 @@ export function use_compose_send({
     scheduled_time,
     vault,
     user,
+    attachments,
     clear_all_errors,
     reset_form,
     on_close,
