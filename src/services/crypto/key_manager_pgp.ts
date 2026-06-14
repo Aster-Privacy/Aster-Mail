@@ -526,11 +526,25 @@ export async function decrypt_vault_to_handles(
     ["decrypt"],
   );
 
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    key,
-    ciphertext,
-  );
+  let decrypted: ArrayBuffer;
+
+  try {
+    decrypted = await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: nonce,
+        additionalData: build_vault_aad(VAULT_SCHEME_VERSION),
+      },
+      key,
+      ciphertext,
+    );
+  } catch {
+    decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce },
+      key,
+      ciphertext,
+    );
+  }
 
   const decoder = new TextDecoder();
   const vault_json = decoder.decode(decrypted);
