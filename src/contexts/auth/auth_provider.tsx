@@ -73,6 +73,7 @@ import { clear_plan_limits_cache } from "@/hooks/use_plan_limits";
 import { clear_aliases_cache } from "@/components/settings/hooks/use_aliases";
 import { clear_plan_cache } from "@/services/plan_limits";
 import { clear_mail_cache } from "@/hooks/use_email_list";
+import { clear_folders_cache } from "@/hooks/use_folders";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
 import { clear_all_ratchet_states } from "@/services/crypto/double_ratchet";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
@@ -98,6 +99,7 @@ import { use_i18n } from "@/lib/i18n/context";
 async function clear_account_scoped_caches(): Promise<void> {
   clear_mail_stats();
   clear_mail_cache();
+  clear_folders_cache();
   clear_preload_cache();
   clear_plan_limits_cache();
   clear_aliases_cache();

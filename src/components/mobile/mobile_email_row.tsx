@@ -34,6 +34,7 @@ import {
   type SwipeAction,
 } from "@/components/mobile/swipe_actions";
 import { get_swipe_action } from "@/components/mobile/swipe_action_registry";
+import { OfficialBadge } from "@/components/email/official_badge";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import { use_i18n } from "@/lib/i18n/context";
@@ -254,6 +255,12 @@ export const MobileEmailRow = memo(function MobileEmailRow(
           >
             {show_sender_name}
           </span>
+
+          <OfficialBadge
+            className="shrink-0"
+            email={email.sender_email}
+            is_external={email.is_external}
+          />
 
           {thread_count > 1 && (
             <span className="shrink-0 rounded border border-[var(--border-primary)] px-1 text-[11px] tabular-nums text-[var(--text-muted)]">

@@ -4861,6 +4861,8 @@ export const it = {
     verification_verified: "Mittente verificato",
     verification_invalid: "La firma del mittente non corrispondeva",
     verification_no_keys: "Non siamo riusciti a verificare l'identità di questo mittente",
+    official_sender: "Indirizzo ufficiale Aster",
+    official_sender_desc: "Questo messaggio proviene da un indirizzo ufficiale Aster. Aster non ti chiederà mai la password o la frase di recupero via email.",
     older_messages: "{{count}} messaggi più vecchi",
     older_message: "1 messaggio più vecchio",
     filter_not_prefix: "Non ",

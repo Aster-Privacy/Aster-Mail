@@ -4838,6 +4838,8 @@ export const pt = {
     verification_verified: "Remetente verificado",
     verification_invalid: "A assinatura do remetente não correspondeu",
     verification_no_keys: "Não conseguimos verificar a identidade deste remetente",
+    official_sender: "Endereço oficial da Aster",
+    official_sender_desc: "Esta mensagem é de um endereço oficial da Aster. A Aster nunca solicitará sua senha ou frase de recuperação por e-mail.",
     older_messages: "{{count}} mensagens mais antigas",
     older_message: "1 mensagem mais antiga",
     important: "Importante",

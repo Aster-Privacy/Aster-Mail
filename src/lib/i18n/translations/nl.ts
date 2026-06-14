@@ -4762,6 +4762,8 @@ export const nl = {
     verification_verified: "Geverifieerde afzender",
     verification_invalid: "Handtekening afzender kwam niet overeen",
     verification_no_keys: "We konden de identiteit van deze afzender niet controleren",
+    official_sender: "Officieel Aster-adres",
+    official_sender_desc: "Dit bericht komt van een officieel Aster-adres. Aster vraagt je nooit per e-mail om je wachtwoord of herstelzin.",
     message_details: "Berichtdetails",
     message_headers: "Berichtkoppen",
     message_id_label: "Bericht-ID:",

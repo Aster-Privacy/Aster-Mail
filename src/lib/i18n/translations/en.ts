@@ -5209,6 +5209,9 @@ export const en: Translations = {
     verification_verified: "Verified sender",
     verification_invalid: "Sender signature did not match",
     verification_no_keys: "We could not check this sender's identity",
+    official_sender: "Official Aster address",
+    official_sender_desc:
+      "This message is from an official Aster address. Aster will never ask for your password or recovery phrase by email.",
     copy_message_id: "Copy message ID",
     message_details: "Message details",
     message_headers: "Message headers",

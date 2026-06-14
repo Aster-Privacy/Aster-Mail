@@ -4835,6 +4835,8 @@ export const ko = {
     verification_verified: "인증됨",
     verification_invalid: "유효하지 않음",
     verification_no_keys: "키 없음",
+    official_sender: "Aster 공식 주소",
+    official_sender_desc: "이 메시지는 Aster 공식 주소에서 발송되었습니다. Aster는 이메일로 비밀번호나 복구 문구를 요청하지 않습니다.",
     message_details: "메시지 세부 정보",
     message_headers: "메시지 헤더",
     message_id_label: "메시지 ID",

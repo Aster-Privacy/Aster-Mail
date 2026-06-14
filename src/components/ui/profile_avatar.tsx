@@ -32,7 +32,7 @@ import {
   store_favicon_if_api_url,
 } from "@/hooks/use_favicon_src";
 import { get_avatar_color, get_contrast_text } from "@/lib/avatar_color";
-import { get_root_domain } from "@/lib/utils";
+import { get_root_domain, is_official_sender } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
@@ -153,7 +153,9 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const normalized_email = (email || "").trim().toLowerCase();
   const is_aster_mail =
     ASTER_SYSTEM_EMAILS.has(normalized_email) ||
-    SYSTEM_LOCAL_PARTS.has(normalized_email.split("@")[0]);
+    (SYSTEM_LOCAL_PARTS.has(normalized_email.split("@")[0]) &&
+      ASTER_DOMAINS.has(domain)) ||
+    is_official_sender(normalized_email);
 
   if (email !== prev_email || resolved_image_url !== prev_image_url) {
     set_prev_email(email);

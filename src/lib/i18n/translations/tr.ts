@@ -4835,6 +4835,8 @@ export const tr = {
     verification_verified: "Doğrulanmış gönderici",
     verification_invalid: "Gönderen imzası eşleşmedi",
     verification_no_keys: "Bu gönderenin kimliğini doğrulayamadık",
+    official_sender: "Resmi Aster adresi",
+    official_sender_desc: "Bu mesaj resmi bir Aster adresinden gönderildi. Aster parolanızı veya kurtarma ifadenizi asla e-posta ile istemez.",
     message_details: "Mesaj ayrıntıları",
     message_headers: "Mesaj başlıkları",
     message_id_label: "Mesaj Kimliği:",
