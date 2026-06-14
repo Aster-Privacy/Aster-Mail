@@ -81,6 +81,7 @@ interface SidebarFoldersProps {
   ) => void;
   section_collapsed?: boolean;
   on_toggle_section?: () => void;
+  variant?: "section" | "pinned";
 }
 
 export const SidebarFolders = memo(function SidebarFolders({
@@ -103,8 +104,10 @@ export const SidebarFolders = memo(function SidebarFolders({
   on_drop_emails,
   section_collapsed = false,
   on_toggle_section,
+  variant = "section",
 }: SidebarFoldersProps) {
   const { t } = use_i18n();
+  const is_pinned = variant === "pinned";
 
   const [drag_over_token, set_drag_over_token] = useState<string | null>(null);
   const [expanded_folders, set_expanded_folders] = useState<Set<string>>(
@@ -136,11 +139,15 @@ export const SidebarFolders = memo(function SidebarFolders({
       return tree.map((node) => ({ ...node, children: [] }));
     }
 
+    if (is_pinned) {
+      return flatten_visible_tree(tree, expanded_folders);
+    }
+
     const max_visible = 5;
     const root_nodes = folders_expanded ? tree : tree.slice(0, max_visible);
 
     return flatten_visible_tree(root_nodes, expanded_folders);
-  }, [tree, folders_expanded, expanded_folders, is_collapsed]);
+  }, [tree, folders_expanded, expanded_folders, is_collapsed, is_pinned]);
 
   const root_count = tree.length;
   const max_visible = is_collapsed ? 3 : 5;
@@ -163,7 +170,7 @@ export const SidebarFolders = memo(function SidebarFolders({
 
   return (
     <>
-      {!is_collapsed && (
+      {!is_collapsed && !is_pinned && (
         <div className="mt-5 mb-1 px-2.5" data-onboarding="folders-section">
           <div className="w-full flex items-center justify-between">
             <button
@@ -189,7 +196,7 @@ export const SidebarFolders = memo(function SidebarFolders({
         </div>
       )}
 
-      {is_collapsed && (
+      {is_collapsed && !is_pinned && (
         <div className="mt-3 flex justify-center">
           <button
             className="p-1.5 rounded  hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-txt-muted"
@@ -202,7 +209,7 @@ export const SidebarFolders = memo(function SidebarFolders({
       )}
 
       <div>
-        {!section_collapsed &&
+        {(!section_collapsed || is_pinned) &&
           visible_nodes.map((node) => {
             const folder = node.folder;
             const folder_item_id = `folder-${folder.folder_token}`;
@@ -384,7 +391,7 @@ export const SidebarFolders = memo(function SidebarFolders({
               </FolderContextMenu>
             );
           })}
-        {has_more && !is_collapsed && !section_collapsed && (
+        {has_more && !is_collapsed && !section_collapsed && !is_pinned && (
           <button
             className="w-full flex items-center gap-2 px-2.5 h-7 text-[12px]  rounded-[12px] hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-txt-muted"
             onClick={() => set_folders_expanded(!folders_expanded)}
@@ -401,7 +408,7 @@ export const SidebarFolders = memo(function SidebarFolders({
             </span>
           </button>
         )}
-        {root_count === 0 && !is_collapsed && !section_collapsed && (
+        {root_count === 0 && !is_collapsed && !section_collapsed && !is_pinned && (
           <p className="text-[11px] px-2.5 py-2 text-txt-muted">
             {t("common.no_folders_yet")}
           </p>

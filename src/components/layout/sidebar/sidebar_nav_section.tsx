@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 
 import { memo } from "react";
 import {
@@ -74,6 +74,7 @@ interface SidebarNavSectionProps {
   trash_ref: RefObject<HTMLButtonElement>;
   contacts_ref: RefObject<HTMLButtonElement>;
   subscriptions_ref: RefObject<HTMLButtonElement>;
+  inbox_children_slot?: ReactNode;
 }
 
 export const SidebarNavSection = memo(function SidebarNavSection({
@@ -98,6 +99,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
   trash_ref,
   contacts_ref,
   subscriptions_ref,
+  inbox_children_slot,
 }: SidebarNavSectionProps) {
   const { t } = use_i18n();
 
@@ -154,6 +156,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           </>
         )}
       </button>
+
+      {inbox_children_slot}
 
       <button
         ref={sent_ref}

@@ -24,6 +24,7 @@ import {
   list_aliases,
   decrypt_aliases,
   get_alias_counts,
+  get_alias_unread_counts,
   reencrypt_alias_local_part,
   compute_routing_hash,
   type DecryptedEmailAlias,
@@ -135,6 +136,7 @@ interface UseSidebarAliasesReturn {
   aliases: DecryptedEmailAlias[];
   is_loading: boolean;
   can_create: boolean;
+  unread_counts: Record<string, number>;
 }
 
 export function use_sidebar_aliases(): UseSidebarAliasesReturn {
@@ -147,8 +149,36 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     cached_aliases.data.length === 0,
   );
   const [can_create, set_can_create] = useState(false);
+  const [unread_counts, set_unread_counts] = useState<Record<string, number>>(
+    {},
+  );
   const prev_user_id_ref = useRef<string | null>(null);
   const fetch_ref = useRef<(() => Promise<void>) | null>(null);
+  const fetch_unread_ref = useRef<(() => Promise<void>) | null>(null);
+
+  const fetch_unread_counts = useCallback(async () => {
+    if (!has_passphrase_in_memory() || !get_derived_encryption_key()) {
+      return;
+    }
+
+    try {
+      const response = await get_alias_unread_counts();
+
+      if (response.data) {
+        const next: Record<string, number> = {};
+
+        for (const item of response.data.counts) {
+          next[item.alias_address_hash] = item.count;
+        }
+
+        set_unread_counts(next);
+      }
+    } catch {
+      return;
+    }
+  }, []);
+
+  fetch_unread_ref.current = fetch_unread_counts;
 
   const fetch_aliases = useCallback(async () => {
     if (!has_passphrase_in_memory()) {
@@ -262,6 +292,8 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       set_aliases(merged);
       notify_alias_subscribers();
 
+      void fetch_unread_ref.current?.();
+
       if (counts_response.data) {
         const counts = counts_response.data as AliasCountsResponse;
 
@@ -311,11 +343,19 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       fetch_ref.current?.();
     };
 
+    const handle_mail_changed = () => {
+      fetch_unread_ref.current?.();
+    };
+
     window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
     window.addEventListener(
       MAIL_EVENTS.ALIASES_CHANGED,
       handle_aliases_changed,
     );
+    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_mail_changed);
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_mail_changed);
+    window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_mail_changed);
+    window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_mail_changed);
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
@@ -323,6 +363,19 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
         MAIL_EVENTS.ALIASES_CHANGED,
         handle_aliases_changed,
       );
+      window.removeEventListener(
+        MAIL_EVENTS.EMAIL_RECEIVED,
+        handle_mail_changed,
+      );
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEM_UPDATED,
+        handle_mail_changed,
+      );
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_SOFT_REFRESH,
+        handle_mail_changed,
+      );
+      window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_mail_changed);
     };
   }, []);
 
@@ -330,5 +383,6 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     aliases,
     is_loading,
     can_create,
+    unread_counts,
   };
 }
