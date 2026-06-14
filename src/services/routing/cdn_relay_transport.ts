@@ -21,13 +21,32 @@
 import { connection_store } from "./connection_store";
 import { is_tauri_env, tauri_proxy_fetch } from "./tauri_proxy_transport";
 
+const RELAY_ALLOWED_SUFFIXES = [".astermail.org", ".astermail.com"];
+const RELAY_ALLOWED_EXACT = ["astermail.org", "astermail.com"];
+
+function is_relay_host_allowed(relay_url: string): boolean {
+  try {
+    const parsed = new URL(relay_url);
+    if (parsed.protocol !== "https:") {
+      return false;
+    }
+    const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
+    return (
+      RELAY_ALLOWED_EXACT.includes(host) ||
+      RELAY_ALLOWED_SUFFIXES.some((suffix) => host.endsWith(suffix))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function cdn_relay_fetch(
   url: string,
   options: RequestInit,
 ): Promise<Response> {
   const relay_url = connection_store.get_cdn_relay_url();
 
-  if (!relay_url) {
+  if (!relay_url || !is_relay_host_allowed(relay_url)) {
     return is_tauri_env()
       ? tauri_proxy_fetch(url, options)
       : fetch(url, options);

@@ -115,6 +115,7 @@ interface UserInfoResponse {
   profile_picture: string | null;
   created_at: string;
   identity_key: string | null;
+  lockdown_mode_enabled?: boolean;
 }
 
 interface ReEncryptedAlias {

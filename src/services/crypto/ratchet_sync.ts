@@ -44,7 +44,11 @@ interface EncryptedStatePayload {
 }
 
 function array_to_base64(array: Uint8Array): string {
-  return btoa(String.fromCharCode(...array));
+  let binary = "";
+  for (let i = 0; i < array.length; i++) {
+    binary += String.fromCharCode(array[i]);
+  }
+  return btoa(binary);
 }
 
 function base64_to_array(base64: string): Uint8Array {
