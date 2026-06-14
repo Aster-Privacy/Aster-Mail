@@ -95,3 +95,15 @@ updates/UPLOAD.md
 
 # temp build dirs
 .tmp_*/
+
+# local scratch / e2e / verification harnesses and screenshots
+/e2e_*.mjs
+/e2e_*.cjs
+/test_*.mjs
+/test_*.cjs
+/test_*.png
+/verify_*.mjs
+/verify_*.cjs
+/_test_*
+/_screenshot_*.png
+/*_tmp.mjs
