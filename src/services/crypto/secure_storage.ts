@@ -75,7 +75,11 @@ let cached_keys: DerivedKeys | null = null;
 let cached_key_fingerprint: string | null = null;
 
 function array_to_base64(array: Uint8Array): string {
-  return btoa(String.fromCharCode(...array));
+  let binary = "";
+  for (let i = 0; i < array.length; i++) {
+    binary += String.fromCharCode(array[i]);
+  }
+  return btoa(binary);
 }
 
 function base64_to_array(base64: string): Uint8Array {
@@ -395,7 +399,11 @@ export async function secure_decrypt(encrypted_data: string): Promise<string> {
     const decoder = new TextDecoder();
 
     return decoder.decode(plaintext_buffer);
-  } catch {
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      const name = error instanceof Error ? error.name : "unknown";
+      console.error("secure_decrypt: AES-GCM decrypt failed", { name });
+    }
     throw new SecureStorageError("wrong_password");
   }
 }
