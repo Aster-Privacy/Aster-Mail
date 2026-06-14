@@ -622,7 +622,8 @@ export function use_context_menu_actions({
 
       const tag_data = tags_lookup.get(tag_token);
       const tag_name = tag_data?.name || t("common.label_fallback");
-      const previous_tags = email.tags || [];
+      const live_email = emails.find((e) => e.id === email.id) ?? email;
+      const previous_tags = live_email.tags || [];
       const is_already_assigned = previous_tags.some((t) => t.id === tag_token);
       const all_ids =
         email.grouped_email_ids && email.grouped_email_ids.length > 1

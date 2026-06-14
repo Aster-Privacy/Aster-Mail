@@ -129,6 +129,21 @@ export function EmailList({
   const on_folder_toggle_ref = useRef(on_folder_toggle);
   on_folder_toggle_ref.current = on_folder_toggle;
 
+  const all_emails = useMemo(
+    () => [...pinned_emails, ...primary_emails],
+    [pinned_emails, primary_emails],
+  );
+
+  const live_menu_email = useMemo(
+    () =>
+      menu_email
+        ? (all_emails.find((e) => e.id === menu_email.id) ?? menu_email)
+        : null,
+    [all_emails, menu_email],
+  );
+
+  menu_email_ref.current = live_menu_email;
+
   const stable_on_tag_toggle = useCallback((tag_token: string) => {
     if (menu_email_ref.current) {
       on_tag_toggle_ref.current(menu_email_ref.current, tag_token);
@@ -143,14 +158,15 @@ export function EmailList({
 
   const menu_tags = useMemo(
     () =>
-      menu_email
+      live_menu_email
         ? tags.map((t) => ({
             ...t,
             is_assigned:
-              menu_email.tags?.some((et) => et.id === t.tag_token) || false,
+              live_menu_email.tags?.some((et) => et.id === t.tag_token) ||
+              false,
           }))
         : [],
-    [tags, menu_email],
+    [tags, live_menu_email],
   );
 
   const handle_menu_open_change = useCallback((open: boolean) => {
@@ -165,11 +181,6 @@ export function EmailList({
       e.stopPropagation();
     }
   }, []);
-
-  const all_emails = useMemo(
-    () => [...pinned_emails, ...primary_emails],
-    [pinned_emails, primary_emails],
-  );
   const attachment_previews = use_attachment_previews(
     all_emails,
     !preferences.low_network_mode,
@@ -332,32 +343,32 @@ export function EmailList({
         </div>
       </ContextMenuTrigger>
 
-      {menu_email && (
+      {live_menu_email && (
         <EmailContextMenuContent
           categories_enabled={categories_enabled}
           current_view={current_view}
-          email={menu_email}
+          email={live_menu_email}
           folders={folders}
-          on_archive={() => on_archive(menu_email)}
+          on_archive={() => on_archive(live_menu_email)}
           on_category_change={
             on_category_change
-              ? (category) => on_category_change(menu_email, category)
+              ? (category) => on_category_change(live_menu_email, category)
               : undefined
           }
-          on_custom_snooze={() => on_custom_snooze(menu_email)}
-          on_delete={() => on_delete(menu_email)}
+          on_custom_snooze={() => on_custom_snooze(live_menu_email)}
+          on_delete={() => on_delete(live_menu_email)}
           on_folder_toggle={stable_on_folder_toggle}
-          on_forward={() => on_forward(menu_email)}
-          on_mark_not_spam={() => on_mark_not_spam(menu_email)}
-          on_move_to_inbox={() => on_move_to_inbox(menu_email)}
-          on_reply={() => on_reply(menu_email)}
-          on_restore={() => on_restore(menu_email)}
-          on_snooze={(snooze_until) => on_snooze(menu_email, snooze_until)}
-          on_spam={() => on_spam(menu_email)}
+          on_forward={() => on_forward(live_menu_email)}
+          on_mark_not_spam={() => on_mark_not_spam(live_menu_email)}
+          on_move_to_inbox={() => on_move_to_inbox(live_menu_email)}
+          on_reply={() => on_reply(live_menu_email)}
+          on_restore={() => on_restore(live_menu_email)}
+          on_snooze={(snooze_until) => on_snooze(live_menu_email, snooze_until)}
+          on_spam={() => on_spam(live_menu_email)}
           on_tag_toggle={stable_on_tag_toggle}
-          on_toggle_pin={() => on_toggle_pin(menu_email)}
-          on_toggle_read={() => on_toggle_read(menu_email)}
-          on_unsnooze={() => on_unsnooze(menu_email)}
+          on_toggle_pin={() => on_toggle_pin(live_menu_email)}
+          on_toggle_read={() => on_toggle_read(live_menu_email)}
+          on_unsnooze={() => on_unsnooze(live_menu_email)}
           tags={menu_tags}
         />
       )}
