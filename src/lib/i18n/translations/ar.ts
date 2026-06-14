@@ -4830,6 +4830,8 @@ export const ar = {
     verification_verified: "مرسل موثَّق",
     verification_invalid: "توقيع المرسل غير مطابق",
     verification_no_keys: "تعذّر التحقق من هوية هذا المرسل",
+    official_sender: "عنوان Aster الرسمي",
+    official_sender_desc: "هذه الرسالة من عنوان Aster رسمي. لن يطلب منك Aster كلمة المرور أو عبارة الاسترداد عبر البريد الإلكتروني أبدًا.",
     message_details: "تفاصيل الرسالة",
     message_headers: "ترويسات الرسالة",
     message_id_label: "معرف الرسالة:",

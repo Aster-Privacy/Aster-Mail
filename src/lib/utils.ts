@@ -92,6 +92,42 @@ export function is_system_email(email?: string | null): boolean {
   );
 }
 
+// Every role here MUST also be a reserved username and reserved alias in the
+// backend (RESERVED_USERNAMES, RESERVED_ALIAS_NAMES); otherwise a user could
+// register the address and earn the official badge.
+const OFFICIAL_SENDER_ROLES = new Set([
+  "hello",
+  "support",
+  "security",
+  "privacy",
+  "billing",
+  "abuse",
+  "legal",
+  "press",
+  "team",
+  "noreply",
+  "no-reply",
+  "updates",
+]);
+
+const OFFICIAL_SENDER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
+
+export function is_official_sender(email?: string | null): boolean {
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  const parts = normalized.split("@");
+
+  if (parts.length !== 2) return false;
+
+  const [local_part, domain] = parts;
+
+  if (!local_part || !domain) return false;
+
+  return (
+    OFFICIAL_SENDER_DOMAINS.has(domain) && OFFICIAL_SENDER_ROLES.has(local_part)
+  );
+}
+
 export function get_email_username(email: string): string {
   return email.split("@")[0] || "";
 }

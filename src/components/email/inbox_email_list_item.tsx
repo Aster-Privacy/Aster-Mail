@@ -41,6 +41,7 @@ import { Tooltip } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { AvatarRing } from "@/components/ui/avatar_ring";
+import { OfficialBadge } from "@/components/email/official_badge";
 import { BadgeChip } from "@/components/ui/badge_chip";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import {
@@ -501,6 +502,12 @@ export const InboxEmailListItem = memo(
                   ? email.thread_participant_names.join(", ")
                   : (peer_profile?.display_name ?? show_sender_name)}
               </span>
+
+              <OfficialBadge
+                className="hidden sm:inline"
+                email={email.sender_email}
+                is_external={email.is_external}
+              />
 
               {show_thread_count &&
                 email.thread_message_count != null &&
