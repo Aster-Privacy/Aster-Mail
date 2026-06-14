@@ -52,6 +52,9 @@ a { color: #93c5fd !important; }
 .aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix { display: block !important; }
 `;
 
+const HEIGHT_REPORT_SCRIPT =
+  `(function(){function m(){var h=document.body?Math.min(document.body.scrollHeight+8,20000):0;parent.postMessage({type:"aster_sv_height",value:h},"*");}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",m);}else{m();}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(m);}try{new ResizeObserver(m).observe(document.body);}catch(_){}document.querySelectorAll("img").forEach(function(img){if(!img.complete){img.addEventListener("load",m,{once:true});}});})();`;
+
 function SecureMessageBody({ html, title }: { html: string; title: string }) {
   const frame_ref = useRef<HTMLIFrameElement | null>(null);
   const [height, set_height] = useState(0);
@@ -77,23 +80,22 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
       "form-action 'none'",
       "base-uri 'none'",
     ].join("; ");
-    const parent_origin = window.location.origin;
-    const height_script = `(function(){function m(){var h=document.body?Math.min(document.body.scrollHeight+8,20000):0;parent.postMessage({type:"aster_sv_height",value:h},${JSON.stringify(parent_origin)});}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",m);}else{m();}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(m);}try{new ResizeObserver(m).observe(document.body);}catch(_){}document.querySelectorAll("img").forEach(function(img){if(!img.complete){img.addEventListener("load",m,{once:true});}});})();`;
     return `<!DOCTYPE html><html><head><meta charset="utf-8">` +
       `<meta name="viewport" content="width=device-width, initial-scale=1">` +
       `<meta name="referrer" content="no-referrer">` +
       `<meta http-equiv="Content-Security-Policy" content="${csp}">` +
       `<base target="_blank">` +
       `<style>${SECURE_BODY_CSS}</style>` +
-      `<script nonce="${nonce}">${height_script}</script>` +
+      `<script nonce="${nonce}">${HEIGHT_REPORT_SCRIPT}</script>` +
       `</head><body>${html}</body></html>`;
   }, [html, nonce]);
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
-      // The body renders in a sandbox without allow-same-origin, so its
-      // messages always carry the opaque "null" origin. Reject anything else,
-      // verify it came from this exact frame, and clamp the height so a forged
+      // The body renders in a sandbox without allow-same-origin, so it has the
+      // opaque "null" origin and broadcasts its height with targetOrigin "*".
+      // The parent is the trust boundary: reject any non-"null" origin, verify
+      // the message came from this exact frame, and clamp the height so a forged
       // value cannot blow out the layout.
       if (e.origin !== "null") return;
       if (e.source !== frame_ref.current?.contentWindow) return;
