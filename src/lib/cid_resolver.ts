@@ -32,7 +32,6 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpg",
   "image/gif",
   "image/webp",
-  "image/svg+xml",
   "image/bmp",
   "image/tiff",
   "image/heic",
