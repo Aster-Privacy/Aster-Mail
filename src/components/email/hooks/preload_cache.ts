@@ -381,6 +381,18 @@ export function set_preload_email_font_px(px: number): void {
 
 let measure_container: HTMLDivElement | null = null;
 
+// The height pre-measurement renders sanitized email markup into a top-origin
+// shadow DOM (not the script-disabled iframe used for display). Remote CSS
+// fetches there would beacon from the trusted origin even while the visible
+// render blocks them, so strip remote url()/@import for measurement only.
+// Background images and @import fonts do not affect block height, so the
+// measured height is unchanged.
+function strip_remote_css_fetches(html: string): string {
+  return html
+    .replace(/url\(\s*(['"]?)https?:\/\/[^)]*\1\s*\)/gi, "url()")
+    .replace(/@import[^;]*;/gi, "");
+}
+
 function premeasure_height(
   email_id: string,
   sanitized_html: string,
@@ -411,7 +423,7 @@ function premeasure_height(
 
   shadow.innerHTML =
     `<style>${EMAIL_BODY_CSS}</style>` +
-    `<div style="${body_style}">${sanitized_html}</div>`;
+    `<div style="${body_style}">${strip_remote_css_fetches(sanitized_html)}</div>`;
 
   measure_container.appendChild(wrapper);
 

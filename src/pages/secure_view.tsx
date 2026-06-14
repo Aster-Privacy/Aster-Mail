@@ -91,9 +91,14 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
+      // The body renders in a sandbox without allow-same-origin, so its
+      // messages always carry the opaque "null" origin. Reject anything else,
+      // verify it came from this exact frame, and clamp the height so a forged
+      // value cannot blow out the layout.
+      if (e.origin !== "null") return;
       if (e.source !== frame_ref.current?.contentWindow) return;
       if (e.data?.type === "aster_sv_height" && typeof e.data.value === "number") {
-        set_height(e.data.value);
+        set_height(Math.max(0, Math.min(e.data.value, 20000)));
       }
     };
     window.addEventListener("message", handler);

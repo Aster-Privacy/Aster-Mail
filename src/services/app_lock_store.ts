@@ -22,6 +22,72 @@ const MAX_ATTEMPTS = 5;
 const BASE_LOCKOUT_MS = 5 * 60 * 1000;
 const MAX_LOCKOUT_MS = 60 * 60 * 1000;
 
+// Device-bound pepper, stored in IndexedDB (not localStorage). Mixing it into
+// the PIN hash means an attacker who only exfiltrates localStorage cannot
+// offline brute-force the (small) PIN keyspace. Versioned: configs without
+// kdf_version are legacy and verify exactly as before (no pepper), so existing
+// users are never affected. Pepper reads are fail-safe.
+const PEPPER_DB = "aster_app_lock";
+const PEPPER_STORE = "pepper";
+export const KDF_VERSION_PEPPER = 2;
+
+function open_pepper_db(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(PEPPER_DB, 1);
+    req.onupgradeneeded = () => {
+      if (!req.result.objectStoreNames.contains(PEPPER_STORE)) {
+        req.result.createObjectStore(PEPPER_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function read_pepper(account_id: string): Promise<Uint8Array | null> {
+  try {
+    const db = await open_pepper_db();
+    return await new Promise<Uint8Array | null>((resolve) => {
+      const tx = db.transaction(PEPPER_STORE, "readonly");
+      const req = tx.objectStore(PEPPER_STORE).get(account_id);
+      req.onsuccess = () => {
+        const val = req.result;
+        resolve(val instanceof Uint8Array ? val : null);
+      };
+      req.onerror = () => resolve(null);
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function ensure_pepper(account_id: string): Promise<Uint8Array | null> {
+  const existing = await read_pepper(account_id);
+  if (existing) return existing;
+  try {
+    const pepper = new Uint8Array(32);
+    crypto.getRandomValues(pepper);
+    const db = await open_pepper_db();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(PEPPER_STORE, "readwrite");
+      tx.objectStore(PEPPER_STORE).put(pepper, account_id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    return pepper;
+  } catch {
+    return null;
+  }
+}
+
+async function pepper_for_config(
+  account_id: string,
+  config: AppLockConfig,
+): Promise<Uint8Array | undefined> {
+  if (config.kdf_version !== KDF_VERSION_PEPPER) return undefined;
+  return (await read_pepper(account_id)) ?? undefined;
+}
+
 const lock_key = (id: string) => `aster:app_lock:${id}`;
 const session_key = (id: string) => `aster:app_unlocked:${id}`;
 const attempts_key = (id: string) => `aster:app_lock_attempts:${id}`;
@@ -34,6 +100,7 @@ export interface AppLockConfig {
   pin_salt: string;
   duress_pin_hash?: string;
   duress_pin_salt?: string;
+  kdf_version?: number;
 }
 
 interface AttemptState {
@@ -138,10 +205,21 @@ export function generate_pin_salt(): Uint8Array {
   return salt;
 }
 
-export async function hash_pin(pin: string, salt: Uint8Array): Promise<string> {
+export async function hash_pin(
+  pin: string,
+  salt: Uint8Array,
+  pepper?: Uint8Array,
+): Promise<string> {
+  const pin_bytes = new TextEncoder().encode(pin);
+  let key_input: Uint8Array = pin_bytes;
+  if (pepper && pepper.length > 0) {
+    key_input = new Uint8Array(pepper.length + pin_bytes.length);
+    key_input.set(pepper, 0);
+    key_input.set(pin_bytes, pepper.length);
+  }
   const key_material = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(pin),
+    key_input,
     "PBKDF2",
     false,
     ["deriveBits"],
@@ -171,7 +249,8 @@ export async function verify_pin(
   const salt_pairs = config.pin_salt.match(/.{2}/g);
   if (!salt_pairs) return { ok: false, locked: false, attempts_remaining: MAX_ATTEMPTS };
   const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
-  const computed = await hash_pin(pin, salt_bytes);
+  const pepper = await pepper_for_config(account_id, config);
+  const computed = await hash_pin(pin, salt_bytes, pepper);
   const ok = constant_time_equal(computed, config.pin_hash);
 
   if (ok) {
@@ -231,6 +310,7 @@ export async function attempt_pin_unlock(account_id: string, pin: string): Promi
   const salt_pairs = config.pin_salt.match(/.{2}/g);
   if (!salt_pairs) return { outcome: "failed", locked: false, attempts_remaining: MAX_ATTEMPTS };
   const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
+  const pepper = await pepper_for_config(account_id, config);
 
   let duress_hash_promise: Promise<string> = Promise.resolve("");
   let duress_active = false;
@@ -238,13 +318,13 @@ export async function attempt_pin_unlock(account_id: string, pin: string): Promi
     const duress_pairs = config.duress_pin_salt.match(/.{2}/g);
     if (duress_pairs) {
       const duress_salt = Uint8Array.from(duress_pairs.map((h) => parseInt(h, 16)));
-      duress_hash_promise = hash_pin(pin, duress_salt);
+      duress_hash_promise = hash_pin(pin, duress_salt, pepper);
       duress_active = true;
     }
   }
 
   const [computed, duress_computed] = await Promise.all([
-    hash_pin(pin, salt_bytes),
+    hash_pin(pin, salt_bytes, pepper),
     duress_hash_promise,
   ]);
 
@@ -268,7 +348,8 @@ export async function pin_matches_regular(account_id: string, raw_pin: string): 
   const salt_pairs = config.pin_salt.match(/.{2}/g);
   if (!salt_pairs) return false;
   const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
-  const computed = await hash_pin(raw_pin, salt_bytes);
+  const pepper = await pepper_for_config(account_id, config);
+  const computed = await hash_pin(raw_pin, salt_bytes, pepper);
   return constant_time_equal(computed, config.pin_hash);
 }
 
@@ -278,7 +359,8 @@ export async function duress_pin_correct(account_id: string, raw_pin: string): P
   const salt_pairs = config.duress_pin_salt.match(/.{2}/g);
   if (!salt_pairs) return false;
   const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
-  const computed = await hash_pin(raw_pin, salt_bytes);
+  const pepper = await pepper_for_config(account_id, config);
+  const computed = await hash_pin(raw_pin, salt_bytes, pepper);
   return constant_time_equal(computed, config.duress_pin_hash);
 }
 

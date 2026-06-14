@@ -574,6 +574,10 @@ pub async fn device_http_request(
     let resp_headers: HashMap<String, String> = resp
         .headers()
         .iter()
+        .filter(|(k, _)| {
+            let name = k.as_str().to_ascii_lowercase();
+            name != "set-cookie" && name != "set-cookie2"
+        })
         .filter_map(|(k, v)| v.to_str().ok().map(|val| (k.to_string(), val.to_string())))
         .collect();
     let resp_bytes = resp.bytes().await.map_err(|e| e.to_string())?;

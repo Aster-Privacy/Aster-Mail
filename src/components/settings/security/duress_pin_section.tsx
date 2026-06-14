@@ -47,6 +47,8 @@ import {
   hash_pin,
   pin_matches_regular,
   duress_pin_correct,
+  ensure_pepper,
+  KDF_VERSION_PEPPER,
 } from "@/services/app_lock_store";
 
 function PinDots({ digits, filled, shake_key }: { digits: number; filled: number; shake_key: number }) {
@@ -317,7 +319,12 @@ function SetupDuressPinModal({ account_id, is_open, on_close, on_success }: {
     set_saving(true);
     try {
       const salt = generate_pin_salt();
-      const pin_hash = await hash_pin(pending_pin, salt);
+      const existing = get_app_lock_config(account_id);
+      const pepper =
+        existing?.kdf_version === KDF_VERSION_PEPPER
+          ? (await ensure_pepper(account_id)) ?? undefined
+          : undefined;
+      const pin_hash = await hash_pin(pending_pin, salt, pepper);
       const pin_salt = Array.from(salt).map((b) => b.toString(16).padStart(2, "0")).join("");
       save_duress_pin(account_id, pin_hash, pin_salt);
       on_success();

@@ -57,13 +57,18 @@ fn set_content_protection(window: tauri::WebviewWindow, enabled: bool) -> std::r
 
 #[tauri::command]
 fn open_external_url(url: String) -> std::result::Result<(), String> {
-    let host_part = url
-        .strip_prefix("https://")
-        .ok_or_else(|| "only https urls allowed".to_string())?;
-    let host = host_part.split('/').next().unwrap_or("");
-    if host.is_empty() {
+    if url.chars().any(|c| c.is_control() || c.is_whitespace()) {
+        return Err("url contains invalid characters".into());
+    }
+
+    let parsed = reqwest::Url::parse(&url).map_err(|_| "invalid url".to_string())?;
+    if parsed.scheme() != "https" {
+        return Err("only https urls allowed".into());
+    }
+    if parsed.host_str().map(|h| h.is_empty()).unwrap_or(true) {
         return Err("url must have a host".into());
     }
+
     std::thread::spawn(move || {
         #[cfg(windows)]
         {
