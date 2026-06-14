@@ -94,7 +94,7 @@ function format_body(body: string): string {
     const sanitized = sanitize_html(body, {
       external_content_mode: lockdown ? "never" : "always",
       image_proxy_url: lockdown ? undefined : get_image_proxy_url(),
-      sandbox_mode: true,
+      sandbox_mode: false,
       lockdown_mode: lockdown,
     }).html;
 
