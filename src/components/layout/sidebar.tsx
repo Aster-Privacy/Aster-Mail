@@ -53,7 +53,7 @@ import { ContactsModal } from "@/components/modals/contacts_modal";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_folders } from "@/hooks/use_folders";
+import { use_folders, partition_folders_by_parent } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { Skeleton } from "@/components/ui/skeleton";
 import { use_should_reduce_motion } from "@/provider";
@@ -166,8 +166,24 @@ export const Sidebar = ({
   const { stats, has_initialized } = use_mail_stats();
   const { state: folders_state, counts: folder_counts } = use_folders();
   const { state: tags_state, counts: tag_counts } = use_tags();
-  const { aliases, is_loading: aliases_loading } = use_sidebar_aliases();
+  const {
+    aliases,
+    is_loading: aliases_loading,
+    unread_counts: alias_unread_counts,
+  } = use_sidebar_aliases();
   const { preferences, update_preference } = use_preferences();
+
+  const inbox_token = useMemo(
+    () =>
+      folders_state.folders.find((f) => f.folder_type === "inbox")
+        ?.folder_token,
+    [folders_state.folders],
+  );
+
+  const { pinned: inbox_pinned_folders, rest: sidebar_folders } = useMemo(
+    () => partition_folders_by_parent(folders_state.folders, inbox_token),
+    [folders_state.folders, inbox_token],
+  );
 
   const [is_mobile, set_is_mobile] = useState(false);
   const [is_tablet, set_is_tablet] = useState(false);
@@ -790,6 +806,30 @@ export const Sidebar = ({
             drafts_ref={drafts_ref}
             effective_selected={effective_selected}
             handle_nav_click={handle_nav_click}
+            inbox_children_slot={
+              inbox_pinned_folders.length > 0 ? (
+                <SidebarFolders
+                  effective_selected={effective_selected}
+                  folder_counts={folder_counts}
+                  folder_refs={folder_refs}
+                  folders={inbox_pinned_folders}
+                  folders_expanded
+                  handle_folder_lock={handle_folder_lock}
+                  handle_folder_modal={handle_folder_modal}
+                  handle_nav_click={handle_nav_click}
+                  is_collapsed={is_collapsed}
+                  is_loading={folders_state.is_loading}
+                  navigate={navigate}
+                  on_drop_emails={on_drop_to_folder}
+                  set_create_folder_parent_token={set_create_folder_parent_token}
+                  set_folders_expanded={set_folders_expanded}
+                  set_is_create_folder_open={set_is_create_folder_open}
+                  set_password_modal_folder={set_password_modal_folder}
+                  set_selected_item={set_selected_item}
+                  variant="pinned"
+                />
+              ) : undefined
+            }
             inbox_ref={inbox_ref}
             is_collapsed={is_collapsed}
             navigate={navigate}
@@ -811,7 +851,7 @@ export const Sidebar = ({
             effective_selected={effective_selected}
             folder_counts={folder_counts}
             folder_refs={folder_refs}
-            folders={folders_state.folders}
+            folders={sidebar_folders}
             folders_expanded={folders_expanded}
             handle_folder_lock={handle_folder_lock}
             handle_folder_modal={handle_folder_modal}
@@ -870,6 +910,7 @@ export const Sidebar = ({
             section_collapsed={preferences.sidebar_aliases_collapsed}
             set_aliases_expanded={set_aliases_expanded}
             set_selected_item={set_selected_item}
+            unread_counts={alias_unread_counts}
           />
         </div>
       </div>

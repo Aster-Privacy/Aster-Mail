@@ -23,6 +23,7 @@ import {
   LockClosedIcon,
   PencilIcon,
   FolderIcon,
+  InboxIcon,
   TrashIcon,
   ExclamationTriangleIcon,
   ShieldCheckIcon,
@@ -122,6 +123,13 @@ export function FolderManagementModal({
       (f) => !f.is_system && !descendants.has(f.folder_token),
     );
   }, [folder_id, folders_state.folders]);
+
+  const inbox_token = useMemo(
+    () =>
+      folders_state.folders.find((f) => f.folder_type === "inbox")
+        ?.folder_token,
+    [folders_state.folders],
+  );
 
   useEffect(() => {
     set_new_name(folder_name);
@@ -547,6 +555,15 @@ export function FolderManagementModal({
                   <FolderIcon className="w-4 h-4 flex-shrink-0" />
                   {t("common.top_level_no_parent")}
                 </button>
+                {inbox_token && (
+                  <button
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-left transition-colors ${selected_parent_token === inbox_token ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
+                    onClick={() => set_selected_parent_token(inbox_token)}
+                  >
+                    <InboxIcon className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{t("mail.inbox")}</span>
+                  </button>
+                )}
                 {movable_folders.map((f) => (
                   <button
                     key={f.id}

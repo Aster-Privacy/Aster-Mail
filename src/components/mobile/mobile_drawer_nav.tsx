@@ -104,6 +104,7 @@ interface SidebarAlias {
   id: string;
   full_address: string;
   is_random: boolean;
+  alias_address_hash?: string;
 }
 
 interface DrawerNavContentProps {
@@ -114,6 +115,7 @@ interface DrawerNavContentProps {
   tags: DecryptedTag[];
   tag_counts: Record<string, number>;
   aliases: SidebarAlias[];
+  alias_unread_counts?: Record<string, number>;
   stats: {
     inbox: number;
     scheduled: number;
@@ -150,6 +152,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   tags,
   tag_counts,
   aliases,
+  alias_unread_counts = {},
   stats,
   on_open_create_folder,
   on_open_create_label,
@@ -468,11 +471,15 @@ export const DrawerNavContent = memo(function DrawerNavContent({
       )}
       {aliases.map((alias) => {
         const path = `/alias/${encodeURIComponent(alias.full_address)}`;
+        const unread_count = alias.alias_address_hash
+          ? (alias_unread_counts[alias.alias_address_hash] ?? 0)
+          : 0;
 
         return (
           <SidebarNavButton
             key={alias.id}
             active={is_active(path)}
+            count={unread_count}
             icon={
               <MobileAliasIcon
                 address={alias.full_address}

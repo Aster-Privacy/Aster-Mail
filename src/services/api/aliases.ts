@@ -706,6 +706,24 @@ export async function get_alias_counts(): Promise<
   return response as unknown as ApiResponse<AliasCountsResponse>;
 }
 
+export interface AliasUnreadCount {
+  alias_address_hash: string;
+  count: number;
+}
+
+export interface AliasUnreadCountsResponse {
+  counts: AliasUnreadCount[];
+}
+
+export async function get_alias_unread_counts(): Promise<
+  ApiResponse<AliasUnreadCountsResponse>
+> {
+  return api_client.get<AliasUnreadCountsResponse>(
+    "/addresses/v1/aliases/unread-counts",
+    { skip_cache: true },
+  );
+}
+
 export interface DeletedAlias {
   id: string;
   original_alias_id: string;

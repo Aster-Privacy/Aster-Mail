@@ -103,7 +103,7 @@ export const MobileDrawer = memo(function MobileDrawer({
     update_existing_tag,
     delete_existing_tag,
   } = use_tags();
-  const { aliases } = use_sidebar_aliases();
+  const { aliases, unread_counts: alias_unread_counts } = use_sidebar_aliases();
   const { stats } = use_mail_stats();
 
   const [show_account_menu, set_show_account_menu] = useState(false);
@@ -592,6 +592,7 @@ export const MobileDrawer = memo(function MobileDrawer({
           <div ref={bounce_content_ref}>
             <DrawerNavContent
               active_path={active_path}
+              alias_unread_counts={alias_unread_counts}
               aliases={aliases}
               folder_counts={folder_counts}
               folders={folders}
