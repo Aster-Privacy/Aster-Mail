@@ -297,14 +297,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
           api_client.clear_auth_data();
           api_client.set_authenticated(false);
           sync_client.disconnect();
+
+          try {
+            await storage_remove_account(current.id);
+            clear_stored_encrypted_vault(current.id);
+            await clear_session_passphrase(current.id);
+            clear_session_timeout_data(current.id);
+          } catch (e) {
+            safe_log_error(e);
+          }
+
+          const remaining = await get_all_accounts();
+          const local = current.user.email.split("@")[0] ?? "";
+
           set_state({
             user: null,
             is_loading: false,
             is_authenticated: false,
             has_keys: false,
-            accounts: data.accounts,
-            current_account_id: data.current_account_id,
+            accounts: remaining,
+            current_account_id: remaining[0]?.id ?? null,
           });
+
+          const uses_hash = "__TAURI_INTERNALS__" in window;
+          const path = uses_hash
+            ? window.location.hash.slice(1).split("?")[0] || "/"
+            : window.location.pathname;
+          if (path !== "/sign-in" && path !== "/register") {
+            navigate(`/sign-in?u=${encodeURIComponent(local)}`);
+          }
         }
       } catch (e) {
         safe_log_error(e);

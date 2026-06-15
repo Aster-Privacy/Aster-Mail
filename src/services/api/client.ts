@@ -405,17 +405,9 @@ class ApiClient {
       this.schedule_token_refresh();
     } else {
       this.is_authenticated_flag = false;
-      this.dev_access_token = null;
       clear_csrf_cache();
-      if ((Capacitor.isNativePlatform() || is_tauri_env()) && has_stored_token) {
-        this.clear_native_token();
-        if (is_tauri_env()) {
-          try {
-            localStorage.removeItem(TAURI_TOKEN_KEY);
-            localStorage.removeItem(TAURI_CSRF_KEY);
-          } catch {}
-        }
-      } else {
+      this.clear_dev_token();
+      if (!Capacitor.isNativePlatform() && !is_tauri_env()) {
         try {
           await this.clear_session_cookies();
         } catch {}
@@ -682,6 +674,7 @@ class ApiClient {
             me_response.code === "UNAUTHORIZED" ||
             me_response.code === "FORBIDDEN"
           ) {
+            this.is_authenticated_flag = false;
             this.dispatch_session_expired();
 
             return;
