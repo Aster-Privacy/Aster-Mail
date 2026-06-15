@@ -147,7 +147,7 @@ export function EncryptionSection({
 
         return;
       }
-      enc.update_preference("storage_format", format, true);
+      void enc.handle_storage_format_change(format);
     },
     [enc],
   );
@@ -944,7 +944,7 @@ export function EncryptionSection({
         message={t("settings.storage_format_ipfs_confirm_description")}
         on_cancel={() => set_show_ipfs_confirm(false)}
         on_confirm={() => {
-          enc.update_preference("storage_format", "ipfs", true);
+          void enc.handle_storage_format_change("ipfs");
           set_show_ipfs_confirm(false);
         }}
         title={t("settings.storage_format_ipfs_confirm_title")}

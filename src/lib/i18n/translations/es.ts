@@ -188,6 +188,8 @@ export const es = {
     open_menu: "Abrir menú",
     close_menu: "Cerrar menú",
     keyboard_shortcuts: "Atajos de teclado",
+    skip_to_content: "Saltar al contenido principal",
+    main_navigation: "Navegación principal",
     enable_shortcuts: "Habilitar atajos",
     shortcuts_disabled_message: "Los atajos de teclado están actualmente deshabilitados. Habilítalos en Configuración > Accesibilidad para usar atajos.",
     navigation: "Navegación",

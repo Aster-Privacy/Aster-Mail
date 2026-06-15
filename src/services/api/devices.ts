@@ -20,9 +20,12 @@
 //
 import { api_client, ApiResponse } from "./client";
 
+export type DeviceType = "desktop" | "mobile" | "bridge";
+
 export interface Device {
   id: string;
   name: string;
+  device_type: DeviceType;
   created_at: string;
   last_seen_at: string | null;
 }
@@ -61,10 +64,6 @@ export async function revoke_device(
   device_id: string,
 ): Promise<ApiResponse<void>> {
   return api_client.delete<void>(`/core/v1/devices/${device_id}`);
-}
-
-export async function revoke_all_devices(): Promise<ApiResponse<void>> {
-  return api_client.post<void>("/core/v1/devices/revoke-all", {});
 }
 
 export interface DeviceCodeVerifyResponse {

@@ -235,6 +235,8 @@ export const en: Translations = {
     open_menu: "Open menu",
     close_menu: "Close menu",
     keyboard_shortcuts: "Keyboard Shortcuts",
+    skip_to_content: "Skip to main content",
+    main_navigation: "Main navigation",
     enable_shortcuts: "Enable shortcuts",
     shortcuts_disabled_message:
       "Keyboard shortcuts are currently disabled. Enable them in Settings > Accessibility to use shortcuts.",

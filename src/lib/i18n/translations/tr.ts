@@ -188,6 +188,8 @@ export const tr = {
     open_menu: "Menüyü aç",
     close_menu: "Menüyü kapat",
     keyboard_shortcuts: "Klavye Kısayolları",
+    skip_to_content: "Ana içeriğe geç",
+    main_navigation: "Ana gezinme",
     enable_shortcuts: "Kısayolları etkinleştir",
     shortcuts_disabled_message: "Klavye kısayolları şu anda devre dışı. Kısayolları kullanmak için Ayarlar > Erişilebilirlik bölümünden etkinleştirin.",
     navigation: "Gezinme",

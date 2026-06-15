@@ -462,6 +462,8 @@ export interface CommonTranslations {
   open_menu: string;
   close_menu: string;
   keyboard_shortcuts: string;
+  skip_to_content: string;
+  main_navigation: string;
   enable_shortcuts: string;
   shortcuts_disabled_message: string;
   navigation: string;

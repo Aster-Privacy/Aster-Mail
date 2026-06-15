@@ -186,6 +186,8 @@ export const de = {
     open_menu: "Menü öffnen",
     close_menu: "Menü schließen",
     keyboard_shortcuts: "Tastenkürzel",
+    skip_to_content: "Zum Hauptinhalt springen",
+    main_navigation: "Hauptnavigation",
     enable_shortcuts: "Tastenkürzel aktivieren",
     shortcuts_disabled_message: "Tastenkürzel sind derzeit deaktiviert. Aktivieren Sie sie unter Einstellungen > Barrierefreiheit, um Tastenkürzel zu verwenden.",
     navigation: "Navigation",

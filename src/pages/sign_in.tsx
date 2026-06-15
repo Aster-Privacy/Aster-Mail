@@ -1323,7 +1323,12 @@ export default function SignInPage() {
                     }
                   />
                   <button
-                    className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center focus:outline-none"
+                    aria-label={
+                      is_password_visible
+                        ? t("settings.hide_password_toggle")
+                        : t("settings.show_password_toggle")
+                    }
+                    className="absolute right-2 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded"
                     type="button"
                     onClick={() =>
                       set_is_password_visible(!is_password_visible)

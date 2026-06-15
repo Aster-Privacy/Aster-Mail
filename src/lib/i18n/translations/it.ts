@@ -191,6 +191,8 @@ export const it = {
     open_menu: "Apri menu",
     close_menu: "Chiudi menu",
     keyboard_shortcuts: "Scorciatoie da tastiera",
+    skip_to_content: "Vai al contenuto principale",
+    main_navigation: "Navigazione principale",
     enable_shortcuts: "Attiva scorciatoie",
     shortcuts_disabled_message: "Le scorciatoie da tastiera sono attualmente disattivate. Attivale in Impostazioni > Accessibilità per usare le scorciatoie.",
     navigation: "Navigazione",

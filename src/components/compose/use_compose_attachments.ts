@@ -22,6 +22,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { format_bytes } from "@/lib/utils";
 import { strip_image_metadata } from "@/lib/strip_image_metadata";
 import {
@@ -144,12 +145,16 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         const file = files[i];
 
         if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(t("common.file_exceeds_max_size", { name: file.name }));
+          const message = t("common.file_exceeds_max_size", { name: file.name });
+          set_attachment_error(message);
+          show_toast(message, "error");
           continue;
         }
 
         if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          set_attachment_error(t("common.total_attachments_exceed_limit"));
+          const message = t("common.total_attachments_exceed_limit");
+          set_attachment_error(message);
+          show_toast(message, "error");
           continue;
         }
 
@@ -182,7 +187,9 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           running_total += data.byteLength;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
+          const message = t("common.failed_to_read_named_file", { name: file.name });
+          set_attachment_error(message);
+          show_toast(message, "error");
         }
       }
 
@@ -206,12 +213,16 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
       for (const file of files) {
         if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(t("common.file_exceeds_max_size", { name: file.name }));
+          const message = t("common.file_exceeds_max_size", { name: file.name });
+          set_attachment_error(message);
+          show_toast(message, "error");
           continue;
         }
 
         if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          set_attachment_error(t("common.total_attachments_exceed_limit"));
+          const message = t("common.total_attachments_exceed_limit");
+          set_attachment_error(message);
+          show_toast(message, "error");
           continue;
         }
 
@@ -244,7 +255,9 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           running_total += data.byteLength;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
+          const message = t("common.failed_to_read_named_file", { name: file.name });
+          set_attachment_error(message);
+          show_toast(message, "error");
         }
       }
 

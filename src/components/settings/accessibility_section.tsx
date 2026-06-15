@@ -18,15 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { UserPreferences } from "@/services/api/preferences";
-
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Switch } from "@aster/ui";
 import { InfoPopover } from "@/components/ui/info_popover";
 import {
   AdjustmentsHorizontalIcon,
   EyeIcon,
-  SwatchIcon,
   DocumentTextIcon,
   Square2StackIcon,
   CommandLineIcon,
@@ -41,8 +38,6 @@ import {
   FONT_SIZE_DEFAULT,
 } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
-
-type ColorVisionMode = UserPreferences["color_vision_mode"];
 
 interface SettingRowProps {
   label: string;
@@ -87,37 +82,6 @@ export function AccessibilitySection() {
   const commit_font_size_unclamped = (n: number) => {
     update_preference("font_size_scale", Math.round(n), true);
   };
-
-  const color_vision_options = useMemo(
-    (): { id: ColorVisionMode; label: string; swatches: string[] }[] => [
-      {
-        id: "none",
-        label: t("settings.colorblind_none"),
-        swatches: ["#ef4444", "#22c55e", "#3b82f6"],
-      },
-      {
-        id: "protanopia",
-        label: t("settings.colorblind_protanopia"),
-        swatches: ["#886622", "#aa9944", "#3b82f6"],
-      },
-      {
-        id: "deuteranopia",
-        label: t("settings.colorblind_deuteranopia"),
-        swatches: ["#aa8833", "#886622", "#3b82f6"],
-      },
-      {
-        id: "tritanopia",
-        label: t("settings.colorblind_tritanopia"),
-        swatches: ["#ef4444", "#22c55e", "#cc6666"],
-      },
-      {
-        id: "achromatopsia",
-        label: t("settings.colorblind_achromatopsia"),
-        swatches: ["#888888", "#aaaaaa", "#777777"],
-      },
-    ],
-    [t],
-  );
 
   const [shortcuts_modal_open, set_shortcuts_modal_open] = useState(false);
 
@@ -235,63 +199,6 @@ export function AccessibilitySection() {
             onCheckedChange={(v) => update_preference("link_underlines", v, true)}
           />
         </SettingRow>
-      </div>
-
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <SwatchIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.color_vision")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-        <p className="text-sm mb-3 text-txt-muted">
-          {t("settings.color_vision_description")}
-        </p>
-        <div className="grid grid-cols-5 gap-2">
-          {color_vision_options.map((option) => {
-            const is_selected = preferences.color_vision_mode === option.id;
-
-            return (
-              <button
-                key={option.id}
-                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-[16px] border-2 transition-colors"
-                style={{
-                  borderColor: is_selected
-                    ? "var(--accent-color)"
-                    : "var(--border-secondary)",
-                  backgroundColor: is_selected
-                    ? "var(--bg-selected)"
-                    : "transparent",
-                }}
-                type="button"
-                onClick={() =>
-                  update_preference("color_vision_mode", option.id, true)
-                }
-              >
-                <div className="flex gap-0.5">
-                  {option.swatches.map((color, i) => (
-                    <div
-                      key={i}
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <span
-                  className="text-xs font-medium"
-                  style={{
-                    color: is_selected
-                      ? "var(--text-primary)"
-                      : "var(--text-muted)",
-                  }}
-                >
-                  {option.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       <div className="pt-3">

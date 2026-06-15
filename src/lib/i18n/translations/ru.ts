@@ -188,6 +188,8 @@ export const ru = {
     open_menu: "Открыть меню",
     close_menu: "Закрыть меню",
     keyboard_shortcuts: "Сочетания клавиш",
+    skip_to_content: "Перейти к основному содержимому",
+    main_navigation: "Основная навигация",
     enable_shortcuts: "Включить сочетания клавиш",
     shortcuts_disabled_message: "Сочетания клавиш отключены. Включите их в Настройки > Доступность, чтобы использовать горячие клавиши.",
     navigation: "Навигация",

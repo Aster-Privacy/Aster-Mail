@@ -188,6 +188,8 @@ export const ar = {
     open_menu: "فتح القائمة",
     close_menu: "إغلاق القائمة",
     keyboard_shortcuts: "اختصارات لوحة المفاتيح",
+    skip_to_content: "تخطي إلى المحتوى الرئيسي",
+    main_navigation: "التنقل الرئيسي",
     enable_shortcuts: "تفعيل الاختصارات",
     shortcuts_disabled_message: "اختصارات لوحة المفاتيح معطلة حاليًا. قم بتفعيلها في الإعدادات > إمكانية الوصول لاستخدام الاختصارات.",
     navigation: "التنقل",

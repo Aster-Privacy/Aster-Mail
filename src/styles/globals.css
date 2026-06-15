@@ -28,7 +28,7 @@
   --text-primary: #111827;
   --text-secondary: #374151;
   --text-tertiary: #4b5563;
-  --text-muted: #6b7280;
+  --text-muted: #5f6470;
   --accent-color: #3b82f6;
   --accent-color-hover: #2563eb;
   --accent-blue: #3b82f6;
@@ -195,6 +195,24 @@ button:focus:not(:focus-visible),
 .aster_btn:focus:not(:focus-visible) {
   outline: none;
   box-shadow: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+[contenteditable="true"]:focus,
+[contenteditable="true"]:focus-visible,
+.aster_input:focus-visible {
+  outline: none;
+  outline-offset: 0;
 }
 
 button,

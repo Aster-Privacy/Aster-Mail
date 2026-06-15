@@ -188,6 +188,8 @@ export const ko = {
     open_menu: "메뉴 열기",
     close_menu: "메뉴 닫기",
     keyboard_shortcuts: "키보드 단축키",
+    skip_to_content: "본문으로 건너뛰기",
+    main_navigation: "기본 탐색",
     enable_shortcuts: "단축키 활성화",
     shortcuts_disabled_message: "키보드 단축키가 현재 비활성화되어 있습니다. 설정 > 접근성에서 활성화하여 단축키를 사용하세요.",
     navigation: "탐색",

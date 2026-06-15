@@ -322,7 +322,11 @@ export function use_compose_send({
           selected_sender?.type !== "primary"
             ? selected_sender?.address_hash
             : undefined,
-        sender_display_name: selected_sender?.display_name,
+        sender_display_name:
+          selected_sender?.display_name ||
+          (selected_sender?.type === "external"
+            ? undefined
+            : user?.display_name || undefined),
         expires_at: expires_at?.toISOString(),
         expiry_password:
           has_external_recipients && expiry_password

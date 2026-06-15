@@ -613,9 +613,11 @@ export const Sidebar = ({
 
   const sidebar_content = (
     <aside
+      aria-label={t("common.main_navigation")}
       className={`flex h-full flex-col flex-shrink-0 transition-all duration-150 bg-sidebar-bg-custom ${
         is_collapsed ? "w-16 min-w-16 max-w-16" : ""
       }`}
+      role="navigation"
       style={
         is_collapsed
           ? undefined

@@ -232,7 +232,7 @@ export function GhostAliasesSection() {
                         {t("settings.ghost_alias_extend")}
                       </Button>
                       <button
-                        className="px-3 py-1.5 text-xs font-medium rounded-[14px] text-white transition-all hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="inline-flex items-center justify-center h-7 px-3 text-xs font-medium rounded-[12px] text-white cursor-pointer transition-all hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
                         disabled={action_loading === alias.id}
                         style={{
                           background:

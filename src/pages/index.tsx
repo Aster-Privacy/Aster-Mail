@@ -106,6 +106,12 @@ export default function IndexPage() {
 
   return (
     <>
+      <a
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[var(--accent-color)] focus:text-white focus:shadow-lg"
+        href="#main-content"
+      >
+        {t("common.skip_to_content")}
+      </a>
       <div
         className="h-dvh w-full flex flex-col overflow-hidden"
         style={{ backgroundColor: "var(--bg-secondary)" }}
@@ -175,10 +181,13 @@ export default function IndexPage() {
             </div>
             <div
               className="flex-1 w-full rounded-lg md:rounded-xl border overflow-hidden transition-colors duration-200"
+              id="main-content"
+              role="main"
               style={{
                 backgroundColor: "var(--bg-primary)",
                 borderColor: "var(--border-primary)",
               }}
+              tabIndex={-1}
             >
               {state.location.pathname === "/subscriptions" ? (
                 <UpgradeGate

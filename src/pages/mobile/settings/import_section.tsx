@@ -71,7 +71,7 @@ export function ImportSection({
     null,
   );
 
-  const OAUTH_PROVIDERS = new Set<ImportSource>(["gmail", "outlook", "yahoo"]);
+  const OAUTH_PROVIDERS = new Set<ImportSource>(["gmail", "outlook"]);
 
   const mobile_providers: {
     id: ImportSource;
@@ -198,7 +198,6 @@ export function ImportSection({
                         const PROVIDER_MAP: Record<string, ConnectProvider> = {
                           gmail: "google",
                           outlook: "microsoft",
-                          yahoo: "yahoo",
                         };
                         const mapped = PROVIDER_MAP[provider.id];
                         if (mapped) set_connect_provider(mapped);

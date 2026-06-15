@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { UserPreferences } from "@/services/api/preferences";
-
 import { useState } from "react";
 import { CircleStackIcon } from "@heroicons/react/24/outline";
 import { Button, Radio } from "@aster/ui";
@@ -36,16 +34,12 @@ import {
 
 interface StorageFormatPickerProps {
   storage_format: "aster" | "ipfs";
-  update_preference: <K extends keyof UserPreferences>(
-    key: K,
-    value: UserPreferences[K],
-    immediate?: boolean,
-  ) => void;
+  on_change: (format: "aster" | "ipfs") => void;
 }
 
 export function StorageFormatPicker({
   storage_format,
-  update_preference,
+  on_change,
 }: StorageFormatPickerProps) {
   const { t } = use_i18n();
   const [show_ipfs_confirm, set_show_ipfs_confirm] = useState(false);
@@ -59,11 +53,11 @@ export function StorageFormatPicker({
       return;
     }
 
-    update_preference("storage_format", format, true);
+    on_change(format);
   };
 
   const handle_confirm_ipfs = () => {
-    update_preference("storage_format", "ipfs", true);
+    on_change("ipfs");
     set_show_ipfs_confirm(false);
   };
 

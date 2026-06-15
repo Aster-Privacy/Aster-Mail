@@ -25,7 +25,6 @@ import {
   SettingsGroup,
   SettingsHeader,
   SettingsRow,
-  OptionList,
 } from "./shared";
 
 import {
@@ -64,22 +63,6 @@ export function AccessibilitySection({
   };
 
   const [shortcuts_modal_open, set_shortcuts_modal_open] = useState(false);
-
-  const color_vision_options: {
-    value:
-      | "none"
-      | "protanopia"
-      | "deuteranopia"
-      | "tritanopia"
-      | "achromatopsia";
-    label: string;
-  }[] = [
-    { value: "none", label: t("settings.colorblind_none") },
-    { value: "protanopia", label: t("settings.colorblind_protanopia") },
-    { value: "deuteranopia", label: t("settings.colorblind_deuteranopia") },
-    { value: "tritanopia", label: t("settings.colorblind_tritanopia") },
-    { value: "achromatopsia", label: t("settings.colorblind_achromatopsia") },
-  ];
 
   return (
     <div className="flex h-full flex-col">
@@ -175,14 +158,6 @@ export function AccessibilitySection({
                 onCheckedChange={(v) => update_preference("link_underlines", v, true)}
               />
             }
-          />
-        </SettingsGroup>
-
-        <SettingsGroup title={t("settings.color_vision")}>
-          <OptionList
-            on_change={(v) => update_preference("color_vision_mode", v, true)}
-            options={color_vision_options}
-            value={preferences.color_vision_mode}
           />
         </SettingsGroup>
 
