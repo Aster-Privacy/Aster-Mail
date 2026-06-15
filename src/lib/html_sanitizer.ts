@@ -473,7 +473,17 @@ export function sanitize_html(
       const is_data_url = lower_src.startsWith("data:");
       const is_pixel = is_tracking_pixel(new_element as HTMLImageElement);
 
-      if (is_remote && src.startsWith("http://")) {
+      let is_first_party = false;
+
+      if (is_remote && typeof window !== "undefined") {
+        try {
+          is_first_party = new URL(src).origin === window.location.origin;
+        } catch {
+          is_first_party = false;
+        }
+      }
+
+      if (is_remote && !is_first_party && src.startsWith("http://")) {
         src = "https://" + src.slice(7);
         new_element.setAttribute("src", src);
       }
@@ -493,7 +503,7 @@ export function sanitize_html(
         }
       }
 
-      if (is_remote) {
+      if (is_remote && !is_first_party) {
         external_content.has_remote_images = true;
         if (is_pixel) {
           external_content.has_tracking_pixels = true;
