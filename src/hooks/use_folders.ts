@@ -86,6 +86,19 @@ export interface FolderTreeNode {
   depth: number;
 }
 
+const SYSTEM_FOLDER_TYPES = new Set([
+  "inbox",
+  "sent",
+  "drafts",
+  "trash",
+  "spam",
+  "archive",
+]);
+
+export function is_system_folder_type(folder_type: string | undefined): boolean {
+  return folder_type !== undefined && SYSTEM_FOLDER_TYPES.has(folder_type);
+}
+
 export function build_folder_tree(
   folders: DecryptedFolder[],
 ): FolderTreeNode[] {
@@ -411,7 +424,8 @@ async function decrypt_folder(
     name,
     color,
     icon,
-    is_system: folder.is_system,
+    is_system:
+      folder.is_system || is_system_folder_type(folder.folder_type ?? "custom"),
     is_locked: folder.is_locked ?? false,
     folder_type: folder.folder_type ?? "custom",
     is_password_protected: folder.is_password_protected ?? false,
