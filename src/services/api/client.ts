@@ -31,6 +31,7 @@ import { request_cache } from "./request_cache";
 
 import { refresh_session_activity } from "@/services/session_timeout_service";
 import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
+import { get_device_id } from "@/services/device_id";
 import {
   routed_fetch,
   get_effective_base_url,
@@ -990,6 +991,12 @@ class ApiClient {
       "X-Aster-Client": CLIENT_PLATFORM_HEADER,
       ...((options.headers as Record<string, string>) || {}),
     };
+
+    const device_id = get_device_id();
+
+    if (device_id) {
+      headers["X-Aster-Device-Id"] = device_id;
+    }
 
     if (this.dev_access_token) {
       headers["Authorization"] = `Bearer ${this.dev_access_token}`;

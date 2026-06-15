@@ -212,6 +212,12 @@ export function MobileThreadMessage({
         role="button"
         tabIndex={0}
         onClick={on_toggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            on_toggle();
+          }
+        }}
       >
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="shrink-0">
@@ -268,6 +274,12 @@ export function MobileThreadMessage({
         role="button"
         tabIndex={0}
         onClick={on_toggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            on_toggle();
+          }
+        }}
       >
         <div className="shrink-0">
           <ProfileAvatar

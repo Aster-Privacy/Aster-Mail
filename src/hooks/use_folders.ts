@@ -418,16 +418,17 @@ async function decrypt_folder(
     }
   }
 
+  const folder_type = folder.folder_type ?? "custom";
+
   return {
     id: folder.id,
     folder_token: folder.folder_token,
     name,
     color,
     icon,
-    is_system:
-      folder.is_system || is_system_folder_type(folder.folder_type ?? "custom"),
+    is_system: folder.is_system || is_system_folder_type(folder_type),
     is_locked: folder.is_locked ?? false,
-    folder_type: folder.folder_type ?? "custom",
+    folder_type,
     is_password_protected: folder.is_password_protected ?? false,
     password_set: folder.password_set ?? false,
     sort_order: folder.sort_order,

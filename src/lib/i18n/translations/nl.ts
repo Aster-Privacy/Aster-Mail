@@ -185,6 +185,8 @@ export const nl = {
     open_menu: "Menu openen",
     close_menu: "Menu sluiten",
     keyboard_shortcuts: "Sneltoetsen",
+    skip_to_content: "Naar hoofdinhoud gaan",
+    main_navigation: "Hoofdnavigatie",
     enable_shortcuts: "Sneltoetsen inschakelen",
     shortcuts_disabled_message: "Sneltoetsen zijn momenteel uitgeschakeld. Schakel ze in via Instellingen > Toegankelijkheid om sneltoetsen te gebruiken.",
     navigation: "Navigatie",

@@ -144,6 +144,8 @@ export const pt = {
     open_menu: "Abrir menu",
     close_menu: "Fechar menu",
     keyboard_shortcuts: "Atalhos de Teclado",
+    skip_to_content: "Ir para o conteúdo principal",
+    main_navigation: "Navegação principal",
     enable_shortcuts: "Ativar atalhos",
     shortcuts_disabled_message: "Os atalhos de teclado estão desativados. Ative-os em Configurações > Acessibilidade para usar atalhos.",
     navigation: "Navegação",

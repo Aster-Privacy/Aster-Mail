@@ -31,7 +31,6 @@ import { ExternalLinkProvider } from "@/contexts/external_link_context";
 import { SignaturesProvider } from "@/contexts/signatures_context";
 import { TemplatesProvider } from "@/contexts/templates_context";
 import { I18nProvider } from "@/lib/i18n/context";
-import { ColorVisionFilters } from "@/components/ui/color_vision_filters";
 
 const ReducedMotionContext = createContext(false);
 
@@ -89,7 +88,6 @@ export function Provider({ children }: { children: React.ReactNode }) {
           <PreferencesProvider>
             <ExternalLinkProvider>
               <MotionWrapper>
-                <ColorVisionFilters />
                 <SignaturesProvider>
                   <TemplatesProvider>{children}</TemplatesProvider>
                 </SignaturesProvider>

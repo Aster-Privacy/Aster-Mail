@@ -28,7 +28,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import {
   revoke_device,
-  revoke_all_devices,
   type Device,
   type ListDevicesResponse,
 } from "@/services/api/devices";
@@ -67,7 +66,9 @@ export function TrustedDevicesPanel() {
     "trusted_devices",
   );
 
-  const devices: Device[] = cached?.data?.devices ?? [];
+  const devices: Device[] = (cached?.data?.devices ?? []).filter(
+    (d) => d.device_type !== "bridge",
+  );
 
   const [revoking_id, set_revoking_id] = useState<string | null>(null);
   const [pending_revoke, set_pending_revoke] = useState<Device | null>(null);
@@ -102,10 +103,13 @@ export function TrustedDevicesPanel() {
 
   const handle_revoke_all = async () => {
     set_is_revoking_all(true);
-    const response = await revoke_all_devices();
+    const responses = await Promise.all(
+      devices.map((device) => revoke_device(device.id)),
+    );
 
-    if (response.error) {
-      show_toast(response.error, "error");
+    const failed = responses.find((r) => r.error);
+    if (failed?.error) {
+      show_toast(failed.error, "error");
     } else {
       await revalidate();
     }

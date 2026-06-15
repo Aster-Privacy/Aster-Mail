@@ -28,7 +28,6 @@ import { Spinner } from "@/components/ui/spinner";
 import {
   list_devices,
   revoke_device,
-  revoke_all_devices,
   type Device,
 } from "@/services/api/devices";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -63,7 +62,11 @@ export function TrustedDevicesSection({
     try {
       const response = await list_devices();
 
-      set_devices(response.data?.devices ?? []);
+      set_devices(
+        (response.data?.devices ?? []).filter(
+          (d) => d.device_type !== "bridge",
+        ),
+      );
     } catch {
       set_devices([]);
     } finally {
@@ -93,16 +96,19 @@ export function TrustedDevicesSection({
 
   const handle_revoke_all = useCallback(async () => {
     set_is_revoking_all(true);
-    const response = await revoke_all_devices();
+    const responses = await Promise.all(
+      devices.map((device) => revoke_device(device.id)),
+    );
 
-    if (response.error) {
-      show_toast(response.error, "error");
+    const failed = responses.find((r) => r.error);
+    if (failed?.error) {
+      show_toast(failed.error, "error");
     } else {
       await load_devices();
     }
     set_is_revoking_all(false);
     set_pending_revoke_all(false);
-  }, [load_devices]);
+  }, [devices, load_devices]);
 
   return (
     <div className="flex h-full flex-col">

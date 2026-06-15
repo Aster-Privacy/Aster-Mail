@@ -138,7 +138,10 @@ export function SimpleToast({ position = "bottom" }: SimpleToastProps) {
 
   return (
     <div
+      aria-atomic="false"
+      aria-live="polite"
       className={`fixed left-1/2 -translate-x-1/2 z-[100] flex ${is_top ? "flex-col" : "flex-col-reverse"} gap-2 pointer-events-none`}
+      role="status"
       style={
         is_top
           ? { top: `calc(env(safe-area-inset-top, 0px) + 12px)` }

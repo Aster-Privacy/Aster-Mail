@@ -188,6 +188,8 @@ export const fr = {
     open_menu: "Ouvrir le menu",
     close_menu: "Fermer le menu",
     keyboard_shortcuts: "Raccourcis clavier",
+    skip_to_content: "Aller au contenu principal",
+    main_navigation: "Navigation principale",
     enable_shortcuts: "Activer les raccourcis",
     shortcuts_disabled_message: "Les raccourcis clavier sont actuellement désactivés. Activez-les dans Paramètres > Accessibilité pour utiliser les raccourcis.",
     navigation: "Navigation",

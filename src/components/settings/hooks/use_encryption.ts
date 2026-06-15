@@ -132,6 +132,7 @@ export function use_encryption() {
             .get<{
               auto_discover_keys: boolean;
               encrypt_by_default: boolean;
+              ipfs_storage_enabled: boolean;
               keyserver_urls: string[];
             }>("/settings/v1/encryption")
             .catch(() => ({ data: null, error: null })),
@@ -158,6 +159,12 @@ export function use_encryption() {
         }
         if (enc_response.data.keyserver_urls) {
           set_keyserver_urls(enc_response.data.keyserver_urls);
+        }
+        const server_storage_format = enc_response.data.ipfs_storage_enabled
+          ? "ipfs"
+          : "aster";
+        if (server_storage_format !== preferences.storage_format) {
+          update_preference("storage_format", server_storage_format, true);
         }
       }
 
@@ -517,6 +524,30 @@ export function use_encryption() {
     }
   };
 
+  const handle_storage_format_change = async (format: "aster" | "ipfs") => {
+    const previous = preferences.storage_format;
+
+    if (format === previous) return;
+
+    update_preference("storage_format", format, true);
+
+    try {
+      const response = await api_client.put<{ success: boolean }>(
+        "/settings/v1/encryption",
+        { ipfs_storage_enabled: format === "ipfs" },
+      );
+
+      if (response.error || response.data?.success !== true) {
+        update_preference("storage_format", previous, true);
+        show_toast(t("settings.failed_save_setting"), "error");
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+      update_preference("storage_format", previous, true);
+      show_toast(t("settings.failed_save_setting"), "error");
+    }
+  };
+
   const handle_encrypt_emails_toggle = async () => {
     const new_value = !preferences.encrypt_emails;
 
@@ -715,6 +746,7 @@ export function use_encryption() {
     handle_keyserver_toggle,
     handle_auto_discover_keys_toggle,
     handle_encrypt_emails_toggle,
+    handle_storage_format_change,
     close_export_prompt,
     open_export_prompt,
     close_regenerate_confirm,

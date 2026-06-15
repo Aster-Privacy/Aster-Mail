@@ -87,12 +87,11 @@ import { ensure_default_labels } from "@/services/labels/ensure_defaults";
 
 type OAuthProvider = "google" | "microsoft" | "yahoo";
 
-const OAUTH_PROVIDERS: Set<string> = new Set(["gmail", "outlook", "yahoo"]);
+const OAUTH_PROVIDERS: Set<string> = new Set(["gmail", "outlook"]);
 
 const PROVIDER_TO_OAUTH: Record<string, OAuthProvider> = {
   gmail: "google",
   outlook: "microsoft",
-  yahoo: "yahoo",
 };
 
 interface ProviderRow {

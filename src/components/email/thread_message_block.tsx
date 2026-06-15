@@ -468,7 +468,12 @@ export function ThreadMessageBlock({
         role="button"
         tabIndex={0}
         onClick={on_toggle}
-        onKeyDown={(e) => e["key"] === "Enter" && on_toggle()}
+        onKeyDown={(e) => {
+          if (e["key"] === "Enter" || e["key"] === " ") {
+            e.preventDefault();
+            on_toggle();
+          }
+        }}
       >
         <ProfileAvatar
           use_domain_logo
@@ -604,7 +609,16 @@ export function ThreadMessageBlock({
         role={can_collapse ? "button" : undefined}
         tabIndex={can_collapse ? 0 : undefined}
         onClick={can_collapse ? on_toggle : undefined}
-        onKeyDown={can_collapse ? (e) => e["key"] === "Enter" && on_toggle() : undefined}
+        onKeyDown={
+          can_collapse
+            ? (e) => {
+                if (e["key"] === "Enter" || e["key"] === " ") {
+                  e.preventDefault();
+                  on_toggle();
+                }
+              }
+            : undefined
+        }
       >
         {is_own_message ? (
           <ProfileAvatar

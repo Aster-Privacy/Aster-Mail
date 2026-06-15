@@ -186,6 +186,8 @@ export const ja = {
     open_menu: "メニューを開く",
     close_menu: "メニューを閉じる",
     keyboard_shortcuts: "キーボードショートカット",
+    skip_to_content: "メインコンテンツにスキップ",
+    main_navigation: "メインナビゲーション",
     enable_shortcuts: "ショートカットを有効にする",
     shortcuts_disabled_message: "キーボードショートカットは現在無効です。設定 > アクセシビリティでショートカットを有効にしてください。",
     navigation: "ナビゲーション",

@@ -132,7 +132,10 @@ export const SidebarFolders = memo(function SidebarFolders({
     return () => window.removeEventListener("astermail:folder-locked", handler);
   }, []);
 
-  const tree = useMemo(() => build_folder_tree(folders), [folders]);
+  const tree = useMemo(
+    () => build_folder_tree(folders),
+    [folders],
+  );
 
   const visible_nodes = useMemo(() => {
     if (is_collapsed) {
@@ -343,12 +346,22 @@ export const SidebarFolders = memo(function SidebarFolders({
                 >
                   {!is_collapsed && hasChildren && (
                     <span
+                      aria-expanded={is_expanded}
+                      aria-label={folder.name}
                       className="absolute top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
                       role="button"
                       style={{ left: `${indent}px` }}
+                      tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggle_expanded(folder.folder_token);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggle_expanded(folder.folder_token);
+                        }
                       }}
                     >
                       {is_expanded ? (

@@ -221,6 +221,12 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       role="button"
       tabIndex={0}
       onClick={handle_click}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).click();
+        }
+      }}
       onTouchEnd={handle_touch_end}
       onTouchMove={handle_touch_move}
       onTouchStart={handle_touch_start}

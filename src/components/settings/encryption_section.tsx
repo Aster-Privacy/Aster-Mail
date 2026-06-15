@@ -80,7 +80,7 @@ export function EncryptionSection() {
 
       <StorageFormatPicker
         storage_format={encryption.preferences.storage_format}
-        update_preference={encryption.update_preference}
+        on_change={encryption.handle_storage_format_change}
       />
 
       <EncryptionSettingsForm

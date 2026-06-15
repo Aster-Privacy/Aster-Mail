@@ -186,6 +186,8 @@ export const pl = {
     open_menu: "Otwórz menu",
     close_menu: "Zamknij menu",
     keyboard_shortcuts: "Skróty klawiszowe",
+    skip_to_content: "Przejdź do treści głównej",
+    main_navigation: "Nawigacja główna",
     enable_shortcuts: "Włącz skróty",
     shortcuts_disabled_message: "Skróty klawiszowe są obecnie wyłączone. Włącz je w Ustawienia > Dostępność, aby korzystać ze skrótów.",
     navigation: "Nawigacja",

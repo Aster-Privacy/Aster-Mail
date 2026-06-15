@@ -144,6 +144,8 @@ export const zh_CN = {
     open_menu: "打开菜单",
     close_menu: "关闭菜单",
     keyboard_shortcuts: "键盘快捷键",
+    skip_to_content: "跳到主要内容",
+    main_navigation: "主导航",
     enable_shortcuts: "启用快捷键",
     shortcuts_disabled_message: "键盘快捷键当前已禁用。请在设置 > 辅助功能中启用以使用快捷键。",
     navigation: "导航",
