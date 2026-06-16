@@ -1441,6 +1441,52 @@ export const en: Translations = {
     bridge_support_x: "Follow on X",
     bridge_support_github: "GitHub",
     bridge_support_reddit: "Reddit",
+    smtp_tokens: "SMTP tokens",
+    smtp_tokens_description:
+      "Create send-only SMTP credentials so external apps and scripts can send mail from your verified custom-domain addresses.",
+    smtp_tokens_popover_description:
+      "An SMTP token is a send-only password bound to one of your verified custom-domain addresses. Use it to send mail from automated systems, scripts, or third-party services over standard SMTP.",
+    smtp_tokens_empty: "No SMTP tokens yet.",
+    smtp_tokens_upgrade_title: "Send from your own apps",
+    smtp_tokens_upgrade_description:
+      "Generate send-only SMTP credentials for your verified custom domains. Available on Star and above.",
+    smtp_tokens_upgrade_cta: "Upgrade to Star",
+    smtp_tokens_no_domain_title: "Add a verified custom domain first",
+    smtp_tokens_no_domain_description:
+      "SMTP tokens can only be bound to a verified custom-domain address. Add and verify a custom domain to get started.",
+    smtp_tokens_add_domain_cta: "Add a custom domain",
+    smtp_token_generate: "Generate token",
+    smtp_token_create_title: "Generate SMTP token",
+    smtp_token_create_description:
+      "Name this token and choose the verified address it can send mail from.",
+    smtp_token_name_label: "Name",
+    smtp_token_name_placeholder: "e.g. Newsletter sender",
+    smtp_token_address_label: "Send from",
+    smtp_token_address_hint:
+      "Mail sent with this token will appear to come from this address.",
+    smtp_token_create_failed: "Could not create the token. Please try again.",
+    smtp_token_error_forbidden:
+      "SMTP tokens require a paid plan, or you have reached your token limit. Upgrade or revoke an existing token to continue.",
+    smtp_token_error_conflict:
+      "An active token already exists for this address. Revoke it first to generate a new one.",
+    smtp_token_ready_title: "Token created",
+    smtp_token_ready_description:
+      "Copy these settings into your mail client or app now. The password is shown only once and cannot be retrieved again.",
+    smtp_token_host: "Host",
+    smtp_token_port: "Port",
+    smtp_token_security: "Security",
+    smtp_token_username: "Username",
+    smtp_token_password: "Password",
+    smtp_token_copy_all: "Copy all",
+    smtp_token_last_used: "Last used",
+    smtp_token_never_used: "Never",
+    smtp_token_revoke_title: "Revoke token?",
+    smtp_token_revoke_message:
+      "This will permanently revoke {{ name }}. Any app using it will no longer be able to send mail.",
+    smtp_token_not_e2e_title:
+      "Messages sent with SMTP tokens are not end-to-end encrypted",
+    smtp_token_not_e2e_body:
+      "Email sent through an SMTP token is protected by TLS while in transit and stored with zero-access encryption on our servers, but it is not end-to-end encrypted. Aster cannot apply end-to-end encryption to mail that originates outside the Aster apps. Only use SMTP tokens for automated or transactional mail where end-to-end encryption is not required.",
     security_description: "Privacy and security preferences",
     notifications: "Notifications",
     preferences: "Preferences",
