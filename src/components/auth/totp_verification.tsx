@@ -18,12 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button, Checkbox } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
 import { verify_totp_login, TotpVerifyResponse } from "@/services/api/totp";
+
+const TOTP_CODE_LENGTH = 6;
 
 interface TotpVerificationProps {
   pending_login_token: string;
@@ -47,18 +49,18 @@ export function TotpVerification({
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
   const [trust_device, set_trust_device] = useState(false);
-  const input_refs = useRef<(HTMLInputElement | null)[]>([]);
+  const input_ref = useRef<HTMLInputElement>(null);
+  const verifying_ref = useRef(false);
 
-  const handle_verify_ref = useRef<((c: string) => Promise<void>) | null>(null);
+  const handle_verify = async () => {
+    if (code.length !== TOTP_CODE_LENGTH || verifying_ref.current) return;
 
-  const handle_verify = useCallback(async (current_code: string) => {
-    if (current_code.length !== 6) return;
-
+    verifying_ref.current = true;
     set_is_loading(true);
     set_error("");
 
     const response = await verify_totp_login({
-      code: current_code,
+      code,
       pending_login_token,
       trust_device,
       remember_me,
@@ -66,76 +68,37 @@ export function TotpVerification({
 
     if (response.error) {
       set_error(response.error);
-      set_code("");
-      input_refs.current[0]?.focus();
+      verifying_ref.current = false;
       set_is_loading(false);
+      input_ref.current?.focus();
+      input_ref.current?.select();
 
       return;
     }
 
     if (response.data) {
+      verifying_ref.current = false;
       set_is_loading(false);
       on_success(response.data);
 
       return;
     }
 
+    verifying_ref.current = false;
     set_is_loading(false);
-  }, [pending_login_token, on_success, trust_device, remember_me]);
-
-  handle_verify_ref.current = handle_verify;
+  };
 
   useEffect(() => {
-    if (code.length === 6) {
-      handle_verify_ref.current?.(code);
-    }
-  }, [code]);
-
-  useEffect(() => {
-    input_refs.current[0]?.focus();
+    input_ref.current?.focus();
   }, []);
 
-  const handle_code_input = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-
-    if (value.length > 1) {
-      const updated_code = (code.slice(0, index) + value).slice(0, 6);
-
-      set_code(updated_code);
-      input_refs.current[Math.min(updated_code.length, 5)]?.focus();
-
-      return;
-    }
-
-    const new_code = code.split("");
-
-    new_code[index] = value.slice(-1);
-    const updated_code = new_code.join("").slice(0, 6);
-
-    set_code(updated_code);
-
-    if (value && index < 5) {
-      input_refs.current[index + 1]?.focus();
-    }
+  const handle_change = (value: string) => {
+    set_code(value.replace(/\D/g, "").slice(0, TOTP_CODE_LENGTH));
+    if (error) set_error("");
   };
 
-  const handle_key_down = (index: number, e: React.KeyboardEvent) => {
-    if (e["key"] === "Backspace" && !code[index] && index > 0) {
-      input_refs.current[index - 1]?.focus();
-    }
-  };
-
-  const handle_paste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, 6);
-
-    set_code(pasted);
-    const focus_index = Math.min(pasted.length, 5);
-
-    input_refs.current[focus_index]?.focus();
+  const handle_key_down = (e: React.KeyboardEvent) => {
+    if (e["key"] === "Enter") handle_verify();
   };
 
   return (
@@ -156,43 +119,42 @@ export function TotpVerification({
       </div>
 
       <div className="space-y-4">
-        <div className="flex justify-center gap-2">
-          {[0, 1, 2, 3, 4, 5].map((index) => (
-            <Input
-              key={index}
-              ref={(el) => {
-                input_refs.current[index] = el;
-              }}
-              autoComplete={index === 0 ? "one-time-code" : "off"}
-              className="w-11 h-14 text-center text-xl font-semibold"
-              disabled={is_loading}
-              inputMode="numeric"
-              status={error ? "error" : "default"}
-              type="text"
-              value={code[index] || ""}
-              onChange={(e) => handle_code_input(index, e.target.value)}
-              onKeyDown={(e) => handle_key_down(index, e)}
-              onPaste={handle_paste}
-            />
-          ))}
-        </div>
+        <Input
+          ref={input_ref}
+          autoComplete="one-time-code"
+          className="text-center text-2xl font-semibold tracking-[0.5em]"
+          disabled={is_loading}
+          inputMode="numeric"
+          maxLength={TOTP_CODE_LENGTH}
+          placeholder="000000"
+          status={error ? "error" : "default"}
+          type="text"
+          value={code}
+          onChange={(e) => handle_change(e.target.value)}
+          onKeyDown={handle_key_down}
+        />
 
         <label className="flex items-center justify-center gap-2 text-sm text-txt-muted cursor-pointer select-none">
           <Checkbox
             checked={trust_device}
             disabled={is_loading}
-            onChange={(e) => set_trust_device(e.target.checked)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              set_trust_device(e.target.checked)
+            }
           />
           {t("auth.trust_this_device_30_days")}
         </label>
 
         {error && <p className="text-sm text-center text-red-500">{error}</p>}
 
-        {is_loading && (
-          <div className="flex justify-center">
-            <div className="w-6 h-6 border-2 rounded-full animate-spin border-edge-secondary border-t-brand" />
-          </div>
-        )}
+        <Button
+          className="w-full"
+          disabled={is_loading || code.length !== TOTP_CODE_LENGTH}
+          variant="depth"
+          onClick={handle_verify}
+        >
+          {is_loading ? t("common.verifying") : t("common.continue")}
+        </Button>
 
         <Button className="w-full" variant="outline" onClick={on_cancel}>
           {t("common.cancel")}

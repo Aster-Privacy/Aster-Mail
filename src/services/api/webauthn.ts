@@ -216,7 +216,14 @@ export async function perform_webauthn_registration(
     credential = (await navigator.credentials.create({
       publicKey: public_key,
     })) as PublicKeyCredential | null;
-  } catch {
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      (err.name === "NotAllowedError" || err.name === "AbortError")
+    ) {
+      return { data: undefined, error: en.errors.registration_cancelled };
+    }
+
     return { data: undefined, error: en.errors.registration_failed };
   }
 
@@ -274,7 +281,14 @@ export async function perform_webauthn_assertion(
       publicKey: public_key,
       mediation: "required" as CredentialMediationRequirement,
     })) as PublicKeyCredential | null;
-  } catch {
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      (err.name === "NotAllowedError" || err.name === "AbortError")
+    ) {
+      return { data: undefined, error: en.errors.authentication_cancelled };
+    }
+
     return { data: undefined, error: en.errors.authentication_failed_webauthn };
   }
 

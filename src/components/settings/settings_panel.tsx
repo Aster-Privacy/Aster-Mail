@@ -189,6 +189,7 @@ function get_nav_items(
     mail: [
       ...(!on_onion ? [{ id: "import" as Section, label: t("common.import"), icon: ArrowDownTrayIcon }] : []),
       { id: "bridge" as Section, label: t("settings.bridge"), icon: ArrowsRightLeftIcon },
+      { id: "smtp_tokens" as Section, label: t("settings.smtp_tokens"), icon: KeyIcon },
       { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
       { id: "signature", label: t("settings.signature"), icon: PencilSquareIcon },
       { id: "templates", label: t("settings.templates"), icon: DocumentTextIcon },

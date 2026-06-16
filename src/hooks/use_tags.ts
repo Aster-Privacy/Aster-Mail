@@ -38,6 +38,7 @@ import {
   get_vault_from_memory,
   has_passphrase_in_memory,
 } from "@/services/crypto/memory_key_store";
+import type { MailItemUpdatedEventDetail } from "@/hooks/mail_events";
 import { emit_tags_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -702,11 +703,27 @@ export function use_tags(): UseTagsReturn {
       }
     };
 
+    const item_updated_handler = (event: Event) => {
+      const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
+
+      if (
+        detail &&
+        (detail.is_trashed !== undefined ||
+          detail.is_archived !== undefined ||
+          detail.is_spam !== undefined ||
+          detail.tags !== undefined)
+      ) {
+        counts_handler();
+      }
+    };
+
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, counts_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, counts_handler);
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_ACTION, counts_handler);
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, item_updated_handler);
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, counts_handler);
     window.addEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
     document.addEventListener("visibilitychange", visibility_handler);
@@ -718,6 +735,11 @@ export function use_tags(): UseTagsReturn {
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
       window.removeEventListener(MAIL_EVENTS.MAIL_ACTION, counts_handler);
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEM_UPDATED,
+        item_updated_handler,
+      );
+      window.removeEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, counts_handler);
       window.removeEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
       document.removeEventListener("visibilitychange", visibility_handler);

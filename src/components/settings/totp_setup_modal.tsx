@@ -69,7 +69,8 @@ export function TotpSetupModal({
   const [backup_codes, set_backup_codes] = useState<string[]>([]);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
-  const input_refs = useRef<(HTMLInputElement | null)[]>([]);
+  const input_ref = useRef<HTMLInputElement>(null);
+  const verifying_ref = useRef(false);
 
   const reset_state = useCallback(() => {
     set_step("qr_code");
@@ -88,6 +89,12 @@ export function TotpSetupModal({
       reset_state();
     }
   }, [is_open, setup_data, reset_state]);
+
+  useEffect(() => {
+    if (step === "verify") {
+      input_ref.current?.focus();
+    }
+  }, [step]);
 
   const initiate_setup = async () => {
     set_is_loading(true);
@@ -110,8 +117,10 @@ export function TotpSetupModal({
   };
 
   const handle_verify = async () => {
-    if (!setup_data || verification_code.length !== 6) return;
+    if (!setup_data || verification_code.length !== 6 || verifying_ref.current)
+      return;
 
+    verifying_ref.current = true;
     set_is_loading(true);
     set_error("");
 
@@ -122,7 +131,10 @@ export function TotpSetupModal({
 
     if (response.error) {
       set_error(response.error);
+      verifying_ref.current = false;
       set_is_loading(false);
+      input_ref.current?.focus();
+      input_ref.current?.select();
 
       return;
     }
@@ -132,53 +144,17 @@ export function TotpSetupModal({
       set_step("backup_codes");
     }
 
+    verifying_ref.current = false;
     set_is_loading(false);
   };
 
-  const handle_code_input = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-
-    if (value.length > 1) {
-      const updated_code = (verification_code.slice(0, index) + value).slice(
-        0,
-        6,
-      );
-
-      set_verification_code(updated_code);
-      input_refs.current[Math.min(updated_code.length, 5)]?.focus();
-
-      return;
-    }
-
-    const new_code = verification_code.split("");
-
-    new_code[index] = value.slice(-1);
-    const updated_code = new_code.join("").slice(0, 6);
-
-    set_verification_code(updated_code);
-
-    if (value && index < 5) {
-      input_refs.current[index + 1]?.focus();
-    }
+  const handle_code_change = (value: string) => {
+    set_verification_code(value.replace(/\D/g, "").slice(0, 6));
+    if (error) set_error("");
   };
 
-  const handle_key_down = (index: number, e: React.KeyboardEvent) => {
-    if (e["key"] === "Backspace" && !verification_code[index] && index > 0) {
-      input_refs.current[index - 1]?.focus();
-    }
-  };
-
-  const handle_paste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, 6);
-
-    set_verification_code(pasted);
-    const focus_index = Math.min(pasted.length, 5);
-
-    input_refs.current[focus_index]?.focus();
+  const handle_key_down = (e: React.KeyboardEvent) => {
+    if (e["key"] === "Enter") handle_verify();
   };
 
   const copy_secret = async () => {
@@ -290,25 +266,20 @@ export function TotpSetupModal({
       </ModalHeader>
       <ModalBody>
         <div className="space-y-4">
-          <div className="flex justify-center gap-2">
-            {[0, 1, 2, 3, 4, 5].map((index) => (
-              <Input
-                key={index}
-                ref={(el) => {
-                  input_refs.current[index] = el;
-                }}
-                autoComplete={index === 0 ? "one-time-code" : "off"}
-                className="w-11 h-14 text-center text-xl font-semibold"
-                inputMode="numeric"
-                status={error ? "error" : "default"}
-                type="text"
-                value={verification_code[index] || ""}
-                onChange={(e) => handle_code_input(index, e.target.value)}
-                onKeyDown={(e) => handle_key_down(index, e)}
-                onPaste={handle_paste}
-              />
-            ))}
-          </div>
+          <Input
+            ref={input_ref}
+            autoComplete="one-time-code"
+            className="text-center text-2xl font-semibold tracking-[0.5em]"
+            disabled={is_loading}
+            inputMode="numeric"
+            maxLength={6}
+            placeholder="000000"
+            status={error ? "error" : "default"}
+            type="text"
+            value={verification_code}
+            onChange={(e) => handle_code_change(e.target.value)}
+            onKeyDown={handle_key_down}
+          />
           {error && <p className="text-sm text-center text-red-500">{error}</p>}
         </div>
       </ModalBody>
