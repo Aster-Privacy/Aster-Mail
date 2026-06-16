@@ -103,6 +103,7 @@ import { FeedbackSection } from "@/components/settings/feedback_section";
 import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section";
 import { ReferralTab } from "@/components/settings/referral_tab";
 import { BridgeSection } from "@/components/settings/bridge_section";
+import { SmtpTokensSection } from "@/components/settings/smtp_tokens_section";
 import { TrustedDevicesPanel } from "@/components/settings/trusted_devices_panel";
 import { SettingsSaveIndicator } from "@/components/settings/settings_save_indicator";
 import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_prefetch";
@@ -133,7 +134,8 @@ export type SettingsSection =
   | "feedback"
   | "updates"
   | "developer"
-  | "bridge";
+  | "bridge"
+  | "smtp_tokens";
 
 type Section = SettingsSection;
 
@@ -270,6 +272,7 @@ function SettingsPanelInner({
     developer: null,
     updates: null,
     bridge: null,
+    smtp_tokens: null,
   });
 
   const handle_account_deleted = useCallback(() => {
@@ -282,7 +285,7 @@ function SettingsPanelInner({
     void import("@/components/settings/billing_section").catch(() => {});
   }, [is_open]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (is_open && !was_open_ref.current) {
       set_section(initial_section || get_persisted_section() || "appearance");
       set_show_mobile_nav(true);
@@ -541,6 +544,8 @@ function SettingsPanelInner({
         return <UpdatesSection />;
       case "bridge":
         return <BridgeSection />;
+      case "smtp_tokens":
+        return <SmtpTokensSection />;
       default:
         return null;
     }

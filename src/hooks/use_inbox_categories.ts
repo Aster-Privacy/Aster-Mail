@@ -42,8 +42,14 @@ import {
   secure_store,
   secure_retrieve,
 } from "@/services/crypto/secure_storage";
+import { on_keys_ready } from "@/services/crypto/memory_key_store";
 
 const ACTIVE_CATEGORY_KEY = "astermail_active_category";
+
+// Holds the last-resolved tab for the lifetime of the page session so remounts
+// (navigating away and back) initialize synchronously with the correct tab
+// instead of flashing "primary" before the vault-encrypted value loads.
+let session_active_category: EmailCategory | null = null;
 
 function is_tab(value: unknown): value is EmailCategory {
   return (
@@ -57,6 +63,7 @@ export interface UseInboxCategoriesReturn {
   active_category: EmailCategory;
   set_active_category: (category: EmailCategory) => void;
   counts: CategoryCounts;
+  restored: boolean;
 }
 
 export function use_inbox_categories(
@@ -68,10 +75,15 @@ export function use_inbox_categories(
     preferences.inbox_categories_enabled !== false &&
     (current_view === "inbox" || current_view === "");
 
-  const [active_category, set_active_category_state] =
-    useState<EmailCategory>("primary");
+  const [active_category, set_active_category_state] = useState<EmailCategory>(
+    () => session_active_category ?? "primary",
+  );
 
-  const stored_tab_loaded_ref = useRef(false);
+  const [restored, set_restored] = useState<boolean>(
+    () => session_active_category !== null,
+  );
+
+  const stored_tab_loaded_ref = useRef(session_active_category !== null);
 
   const index_version = useSyncExternalStore(
     subscribe_index,
@@ -82,28 +94,45 @@ export function use_inbox_categories(
   const counts = useMemo(() => get_counts(), [index_version]);
 
   // The last-viewed tab is persisted vault-encrypted (AES-256-GCM + HMAC), not
-  // as plaintext, so it leaves no readable behavioral signal on disk.
+  // as plaintext, so it leaves no readable behavioral signal on disk. Because
+  // decryption needs the in-memory keys, wait for on_keys_ready (fires
+  // immediately when keys are already present) before reading, so a not-yet-
+  // ready vault is never mistaken for "no stored tab".
   useEffect(() => {
+    if (stored_tab_loaded_ref.current) {
+      mark_category_seen(session_active_category ?? "primary");
+
+      return;
+    }
+
     let cancelled = false;
 
-    secure_retrieve<EmailCategory>(ACTIVE_CATEGORY_KEY)
-      .then((stored) => {
-        if (cancelled) return;
-        stored_tab_loaded_ref.current = true;
-        if (is_tab(stored)) {
-          set_active_category_state(stored);
-          mark_category_seen(stored);
-        } else {
+    const unsubscribe = on_keys_ready(() => {
+      if (cancelled || stored_tab_loaded_ref.current) return;
+
+      secure_retrieve<EmailCategory>(ACTIVE_CATEGORY_KEY)
+        .then((stored) => {
+          if (cancelled) return;
+          const resolved: EmailCategory = is_tab(stored) ? stored : "primary";
+
+          stored_tab_loaded_ref.current = true;
+          session_active_category = resolved;
+          set_active_category_state(resolved);
+          mark_category_seen(resolved);
+          set_restored(true);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          stored_tab_loaded_ref.current = true;
+          session_active_category = "primary";
           mark_category_seen("primary");
-        }
-      })
-      .catch(() => {
-        stored_tab_loaded_ref.current = true;
-        mark_category_seen("primary");
-      });
+          set_restored(true);
+        });
+    });
 
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, []);
 
@@ -114,6 +143,7 @@ export function use_inbox_categories(
   }, [enabled, active_category]);
 
   const set_active_category = useCallback((category: EmailCategory) => {
+    session_active_category = category;
     set_active_category_state(category);
     void secure_store(ACTIVE_CATEGORY_KEY, category).catch(() => {});
   }, []);
@@ -135,5 +165,6 @@ export function use_inbox_categories(
     active_category,
     set_active_category,
     counts,
+    restored,
   };
 }

@@ -248,7 +248,7 @@ export function EmailInbox({
   const category_list = use_category_inbox(
     categories.active_category,
     current_page,
-    categories.enabled,
+    categories.enabled && categories.restored,
   );
 
   const prev_categories_enabled_ref = useRef(categories.enabled);
@@ -1280,13 +1280,15 @@ export function EmailInbox({
           )}
         />
 
-        {categories.enabled && !show_full_email_viewer && (
-          <CategoryTabs
-            active_category={categories.active_category}
-            counts={categories.counts}
-            on_change={categories.set_active_category}
-          />
-        )}
+        {categories.enabled &&
+          categories.restored &&
+          !show_full_email_viewer && (
+            <CategoryTabs
+              active_category={categories.active_category}
+              counts={categories.counts}
+              on_change={categories.set_active_category}
+            />
+          )}
 
         <StorageBanner
           on_settings_click={on_settings_click}
