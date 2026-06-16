@@ -48,12 +48,15 @@ export function BackupCodeInput({
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
   const input_ref = useRef<HTMLInputElement>(null);
+  const verifying_ref = useRef(false);
 
   useEffect(() => {
     input_ref.current?.focus();
   }, []);
 
   const handle_verify = async () => {
+    if (verifying_ref.current) return;
+
     const normalized = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
     if (normalized.length !== 12) {
@@ -62,6 +65,7 @@ export function BackupCodeInput({
       return;
     }
 
+    verifying_ref.current = true;
     set_is_loading(true);
     set_error("");
 
@@ -75,18 +79,22 @@ export function BackupCodeInput({
 
     if (response.error) {
       set_error(response.error);
+      verifying_ref.current = false;
       set_is_loading(false);
+      input_ref.current?.focus();
 
       return;
     }
 
     if (response.data) {
+      verifying_ref.current = false;
       set_is_loading(false);
       on_success(response.data);
 
       return;
     }
 
+    verifying_ref.current = false;
     set_is_loading(false);
   };
 
