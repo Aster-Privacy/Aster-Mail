@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@aster/ui";
 
+import type { TranslationKey } from "@/lib/i18n";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -36,11 +37,13 @@ import {
 import { get_passphrase_from_memory } from "@/services/crypto/memory_key_store";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
+import { PlanUpgradeSelection } from "@/components/settings/billing/plan_upgrade_selection";
 
 type PageState =
   | "input"
   | "confirming_device"
   | "sealing"
+  | "upgrade_required"
   | "success"
   | "error";
 
@@ -49,6 +52,44 @@ interface DeviceInfo {
   ed25519_pk: string;
   mlkem_pk: string;
   x25519_pk: string;
+}
+
+// Maps a backend device-code error to a clear, user-facing message and whether
+// the user should start over (the code is gone) vs retry the same step.
+function classify_link_error(response: {
+  error?: string;
+  code?: string;
+  resets_at?: string;
+}): { key: TranslationKey; restart: boolean } {
+  const raw = (response.error || "").toLowerCase();
+  const code = (response.code || "").toUpperCase();
+  if (
+    raw.includes("already enrolled") ||
+    raw.includes("already linked") ||
+    code === "CONFLICT"
+  ) {
+    return { key: "auth.link_device_already_linked", restart: false };
+  }
+  if (
+    code === "RATE_LIMITED" ||
+    Boolean(response.resets_at) ||
+    raw.includes("rate limit") ||
+    raw.includes("too many")
+  ) {
+    return { key: "auth.link_device_rate_limited", restart: false };
+  }
+  if (raw.includes("suspend")) {
+    return { key: "auth.link_device_account_suspended", restart: false };
+  }
+  if (
+    raw.includes("expired") ||
+    raw.includes("not found") ||
+    raw.includes("no longer") ||
+    raw.includes("invalid or expired")
+  ) {
+    return { key: "auth.link_device_expired_code", restart: true };
+  }
+  return { key: "auth.link_device_failed", restart: false };
 }
 
 export default function LinkDevice() {
@@ -111,7 +152,9 @@ export default function LinkDevice() {
       const response = await verify_device_code(normalized);
 
       if (response.error || !response.data) {
-        set_error(t("auth.link_device_expired_code"));
+        const info = classify_link_error(response);
+        set_error(t(info.key));
+        show_toast(t(info.key), "error");
         set_is_verifying(false);
 
         return;
@@ -152,8 +195,25 @@ export default function LinkDevice() {
 
       const response = await confirm_device_code(normalized, envelope_b64);
 
+      if (response.error === "plan_upgrade_required") {
+        set_error(null);
+        set_page_state("upgrade_required");
+        show_toast(t("auth.link_device_upgrade_required_toast"), "info", 15000);
+        return;
+      }
+
       if (response.error) {
-        throw new Error(response.error);
+        const info = classify_link_error(response);
+        set_error(t(info.key));
+        show_toast(t(info.key), "error");
+        if (info.restart) {
+          set_device_info(null);
+          set_code_input("");
+          set_page_state("input");
+        } else {
+          set_page_state("confirming_device");
+        }
+        return;
       }
 
       set_page_state("success");
@@ -206,6 +266,17 @@ export default function LinkDevice() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (page_state === "upgrade_required") {
+    return (
+      <PlanUpgradeSelection
+        back_label={t("auth.link_device_cancel")}
+        heading={t("auth.link_device_upgrade_title")}
+        on_back={handle_cancel}
+        subheading={t("auth.link_device_upgrade_description")}
+      />
     );
   }
 
