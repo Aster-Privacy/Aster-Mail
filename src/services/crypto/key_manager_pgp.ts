@@ -357,6 +357,100 @@ export async function verify_key_binding(
   };
 }
 
+const RATCHET_PREKEY_SIG_PREFIX = "aster-ratchet-prekey-v1:";
+const PGP_CLEARTEXT_HEADER = "-----BEGIN PGP SIGNED MESSAGE-----";
+
+function build_ratchet_prekey_canonical(
+  kem_identity_key: string,
+  signed_prekey: string,
+): string {
+  return `${RATCHET_PREKEY_SIG_PREFIX}${kem_identity_key}.${signed_prekey}`;
+}
+
+/*
+ * Produce a real OpenPGP cleartext signature binding the ratchet identity key
+ * and signed prekey to the user's long-term PGP identity key. The armored
+ * signature is base64-wrapped so it survives the prekey-bundle endpoint, which
+ * stores the field as opaque bytes. Throws on failure; the caller falls back to
+ * the legacy hash binding so prekey upload never breaks.
+ */
+export async function sign_ratchet_prekey_bundle(
+  identity_secret_key: string,
+  passphrase: string,
+  kem_identity_key: string,
+  signed_prekey: string,
+): Promise<string> {
+  const identity_key = await openpgp.decryptKey({
+    ["privateKey" as const]: await openpgp.readPrivateKey({
+      armoredKey: identity_secret_key,
+    }),
+    passphrase,
+  });
+
+  const text = build_ratchet_prekey_canonical(kem_identity_key, signed_prekey);
+  const message = await openpgp.createCleartextMessage({ text });
+  const signed = await openpgp.sign({
+    message,
+    signingKeys: identity_key,
+    format: "armored",
+  });
+
+  const armored = String(signed);
+
+  return array_to_base64(new TextEncoder().encode(armored));
+}
+
+export type RatchetPrekeyVerdict =
+  | "verified"
+  | "tampered"
+  | "legacy"
+  | "unknown";
+
+/*
+ * Verify a fetched ratchet prekey bundle's signature against the bundle owner's
+ * PGP identity public key. Returns "tampered" ONLY when the field is a genuine
+ * PGP signature that fails to verify for the supplied keys - the single case in
+ * which the caller refuses the ratchet bootstrap. Every other outcome (a legacy
+ * hash, an unreadable field, a missing owner key, or any error) returns a
+ * non-rejecting verdict so legitimate mail is never blocked.
+ */
+export async function verify_ratchet_prekey_bundle(
+  signature_field: string,
+  kem_identity_key: string,
+  signed_prekey: string,
+  owner_pgp_public_key: string | null,
+): Promise<RatchetPrekeyVerdict> {
+  let armored: string;
+
+  try {
+    armored = new TextDecoder().decode(base64_to_array(signature_field));
+  } catch {
+    return "unknown";
+  }
+
+  if (!armored.startsWith(PGP_CLEARTEXT_HEADER)) {
+    return "legacy";
+  }
+
+  if (!owner_pgp_public_key) {
+    return "unknown";
+  }
+
+  const text = build_ratchet_prekey_canonical(kem_identity_key, signed_prekey);
+
+  try {
+    const ok = await verify_prekey_signature(
+      text,
+      armored,
+      owner_pgp_public_key,
+    );
+
+    return ok ? "verified" : "tampered";
+  } catch {
+    return "unknown";
+  }
+}
+
 export function generate_recovery_codes(count: number = 6): string[] {
   const codes: string[] = [];
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

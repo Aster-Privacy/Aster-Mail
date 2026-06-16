@@ -26,6 +26,7 @@ const _KE = ["EC", "DH"].join("");
 const _KC = ["P", "256"].join("-");
 
 import { api_client } from "../api/client";
+import { get_recipient_public_key } from "../api/keys";
 
 import {
   DoubleRatchet,
@@ -43,7 +44,14 @@ import {
   sync_ratchet_to_server,
   derive_ratchet_encryption_key,
 } from "./ratchet_sync";
-import { get_derived_encryption_key } from "./memory_key_store";
+import {
+  get_derived_encryption_key,
+  get_passphrase_from_memory,
+} from "./memory_key_store";
+import {
+  sign_ratchet_prekey_bundle,
+  verify_ratchet_prekey_bundle,
+} from "./key_manager_pgp";
 import {
   get_cached_ratchet_plaintext,
   set_cached_ratchet_plaintext,
@@ -177,6 +185,18 @@ async function fetch_prekey_bundle(
   return response.data;
 }
 
+async function legacy_prekey_signature(
+  identity_public: string,
+  signed_prekey_public: string,
+): Promise<string> {
+  const signature_input = new TextEncoder().encode(
+    identity_public + signed_prekey_public,
+  );
+  const signature_hash = await crypto.subtle.digest(HASH_ALG, signature_input);
+
+  return array_to_base64(new Uint8Array(signature_hash));
+}
+
 export async function upload_prekey_bundle(
   vault: EncryptedVault,
 ): Promise<boolean> {
@@ -184,11 +204,29 @@ export async function upload_prekey_bundle(
     return false;
   }
 
-  const signature_input = new TextEncoder().encode(
-    vault.ratchet_identity_public + vault.ratchet_signed_prekey_public,
-  );
-  const signature_hash = await crypto.subtle.digest(HASH_ALG, signature_input);
-  const signature = array_to_base64(new Uint8Array(signature_hash));
+  const passphrase = get_passphrase_from_memory();
+  let signature: string;
+
+  if (vault.identity_key && passphrase) {
+    try {
+      signature = await sign_ratchet_prekey_bundle(
+        vault.identity_key,
+        passphrase,
+        vault.ratchet_identity_public,
+        vault.ratchet_signed_prekey_public,
+      );
+    } catch {
+      signature = await legacy_prekey_signature(
+        vault.ratchet_identity_public,
+        vault.ratchet_signed_prekey_public,
+      );
+    }
+  } else {
+    signature = await legacy_prekey_signature(
+      vault.ratchet_identity_public,
+      vault.ratchet_signed_prekey_public,
+    );
+  }
 
   const response = await api_client.put("/crypto/v1/ratchet/prekey-bundle", {
     kem_identity_key: vault.ratchet_identity_public,
@@ -257,6 +295,27 @@ export async function encrypt_for_ratchet_recipient(
         (recipient_email ?? recipient_username).toLowerCase(),
         bundle.kem_identity_key,
       );
+
+      const owner_key = await get_recipient_public_key(
+        recipient_username,
+        recipient_email,
+      );
+      const bundle_verdict = await verify_ratchet_prekey_bundle(
+        bundle.signed_prekey_signature,
+        bundle.kem_identity_key,
+        bundle.signed_prekey,
+        owner_key.data?.public_key ?? null,
+      );
+
+      if (bundle_verdict === "tampered") {
+        if (import.meta.env.DEV) {
+          console.warn(
+            "ratchet prekey bundle signature failed verification; routing via PGP",
+          );
+        }
+
+        return null;
+      }
 
       const sender_identity_jwk: JsonWebKey = JSON.parse(
         vault.ratchet_identity_key,
