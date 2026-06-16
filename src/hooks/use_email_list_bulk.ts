@@ -160,6 +160,10 @@ export function use_email_list_bulk({
 
           return prev;
         });
+
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+        }, 300);
       } catch {
         if (unread_received_count > 0) {
           adjust_unread_count(unread_received_count);
