@@ -64,63 +64,33 @@ export function TotpDisableModal({
   const [show_password, set_show_password] = useState(false);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
-  const input_refs = useRef<(HTMLInputElement | null)[]>([]);
+  const input_ref = useRef<HTMLInputElement>(null);
+  const verifying_ref = useRef(false);
 
   useEffect(() => {
     if (is_open) {
       set_code("");
       set_password("");
       set_error("");
-      setTimeout(() => input_refs.current[0]?.focus(), 100);
+      setTimeout(() => input_ref.current?.focus(), 100);
     }
   }, [is_open]);
 
-  const handle_code_input = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-
-    if (value.length > 1) {
-      const updated_code = (code.slice(0, index) + value).slice(0, 6);
-
-      set_code(updated_code);
-      input_refs.current[Math.min(updated_code.length, 5)]?.focus();
-
-      return;
-    }
-
-    const new_code = code.split("");
-
-    new_code[index] = value.slice(-1);
-    const updated_code = new_code.join("").slice(0, 6);
-
-    set_code(updated_code);
-
-    if (value && index < 5) {
-      input_refs.current[index + 1]?.focus();
-    }
-  };
-
-  const handle_key_down = (index: number, e: React.KeyboardEvent) => {
-    if (e["key"] === "Backspace" && !code[index] && index > 0) {
-      input_refs.current[index - 1]?.focus();
-    }
-  };
-
-  const handle_paste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, 6);
-
-    set_code(pasted);
-    const focus_index = Math.min(pasted.length, 5);
-
-    input_refs.current[focus_index]?.focus();
+  const handle_code_change = (value: string) => {
+    set_code(value.replace(/\D/g, "").slice(0, 6));
+    if (error) set_error("");
   };
 
   const handle_disable = async () => {
-    if (code.length !== 6 || !password || !user?.email) return;
+    if (
+      code.length !== 6 ||
+      !password ||
+      !user?.email ||
+      verifying_ref.current
+    )
+      return;
 
+    verifying_ref.current = true;
     set_is_loading(true);
     set_error("");
 
@@ -161,6 +131,7 @@ export function TotpDisableModal({
       set_error(t("common.failed_to_disable_2fa"));
       show_toast(t("common.failed_to_disable_2fa"), "error");
     } finally {
+      verifying_ref.current = false;
       set_is_loading(false);
     }
   };
@@ -185,27 +156,21 @@ export function TotpDisableModal({
             >
               {t("settings.authenticator_code")}
             </label>
-            <div className="flex justify-center gap-2">
-              {[0, 1, 2, 3, 4, 5].map((index) => (
-                <Input
-                  key={index}
-                  ref={(el) => {
-                    input_refs.current[index] = el;
-                  }}
-                  autoComplete={index === 0 ? "one-time-code" : "off"}
-                  className="w-11 h-14 text-center text-xl font-semibold"
-                  disabled={is_loading}
-                  id={index === 0 ? "totp-code-0" : undefined}
-                  inputMode="numeric"
-                  status={error ? "error" : "default"}
-                  type="text"
-                  value={code[index] || ""}
-                  onChange={(e) => handle_code_input(index, e.target.value)}
-                  onKeyDown={(e) => handle_key_down(index, e)}
-                  onPaste={handle_paste}
-                />
-              ))}
-            </div>
+            <Input
+              ref={input_ref}
+              autoComplete="one-time-code"
+              className="text-center text-2xl font-semibold tracking-[0.5em]"
+              disabled={is_loading}
+              id="totp-code-0"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="000000"
+              status={error ? "error" : "default"}
+              type="text"
+              value={code}
+              onChange={(e) => handle_code_change(e.target.value)}
+              onKeyDown={(e) => e["key"] === "Enter" && handle_disable()}
+            />
           </div>
 
           <div>

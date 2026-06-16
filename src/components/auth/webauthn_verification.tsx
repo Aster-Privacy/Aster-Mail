@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -46,6 +46,7 @@ export function WebauthnVerification({
   const { t } = use_i18n();
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
+  const has_started = useRef(false);
 
   const start_assertion = useCallback(async () => {
     set_is_loading(true);
@@ -85,6 +86,8 @@ export function WebauthnVerification({
   }, [pending_login_token, on_success, remember_me, t]);
 
   useEffect(() => {
+    if (has_started.current) return;
+    has_started.current = true;
     start_assertion();
   }, [start_assertion]);
 
