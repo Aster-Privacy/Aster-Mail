@@ -5199,6 +5199,14 @@ export interface AuthTranslations {
   link_device_expired_code: string;
   link_device_failed: string;
   link_device_try_again: string;
+  link_device_upgrade_required_toast: string;
+  link_device_upgrade_title: string;
+  link_device_upgrade_description: string;
+  link_device_upgrade_cta: string;
+  link_device_upgrade_failed: string;
+  link_device_already_linked: string;
+  link_device_rate_limited: string;
+  link_device_account_suspended: string;
   keep_signed_in: string;
   secure_devices_only: string;
   back_to_inbox: string;
