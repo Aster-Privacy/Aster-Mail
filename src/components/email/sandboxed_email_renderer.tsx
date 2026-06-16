@@ -38,6 +38,19 @@ import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 const IMAGE_PROXY_URL = get_image_proxy_url();
 
+/*
+ * Mirror of strip_remote_css_fetches in hooks/preload_cache.ts. The live
+ * preview renders sandbox-mode HTML (which keeps <style> blocks and remote
+ * url()/@import) into a top-origin shadow root, so neutralize remote CSS
+ * fetches to stop tracking beacons. The real render happens in the sandboxed
+ * iframe, which honors the remote-content setting, so display is unaffected.
+ */
+function strip_remote_css_fetches(html: string): string {
+  return html
+    .replace(/url\(\s*(['"]?)https?:\/\/[^)]*\1\s*\)/gi, "url()")
+    .replace(/@import[^;]*;/gi, "");
+}
+
 function sniff_image_type(bytes: Uint8Array): string | null {
   if (bytes.length >= 4) {
     if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47)
@@ -1098,7 +1111,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         `<style>${EMAIL_BODY_CSS}` +
         (dark_mode_css ? dark_mode_css : "") +
         `a{pointer-events:none}</style>` +
-        `<div style="${body_style}">${resolved_html}</div>`;
+        `<div style="${body_style}">${strip_remote_css_fetches(resolved_html)}</div>`;
     },
     [
       resolved_html,
