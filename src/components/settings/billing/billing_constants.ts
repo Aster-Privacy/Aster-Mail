@@ -193,7 +193,7 @@ export interface FamilyPlanFeature {
 
 export const FAMILY_PLAN_DUO_FEATURES: FamilyPlanFeature[] = [
   { label: "2 members, separate accounts", on: true },
-  { label: "1 TB - allocated per member, not shared", on: true },
+  { label: "1 TB shared pool, privately allocated per member", on: true },
   { label: "End-to-end encryption", on: true },
   { label: "Zero-access architecture", on: true },
   { label: "Shared family aliases", on: true },
@@ -215,7 +215,7 @@ export const FAMILY_PLAN_DUO_FEATURES: FamilyPlanFeature[] = [
 
 export const FAMILY_PLAN_FAMILY_FEATURES: FamilyPlanFeature[] = [
   { label: "Up to 6 members, separate accounts", on: true },
-  { label: "3 TB - allocated per member, not shared", on: true },
+  { label: "3 TB shared pool, privately allocated per member", on: true },
   { label: "End-to-end encryption", on: true },
   { label: "Zero-access architecture", on: true },
   { label: "Shared family aliases", on: true },
