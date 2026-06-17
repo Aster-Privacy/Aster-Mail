@@ -1156,7 +1156,10 @@ export function ThreadMessageBlock({
           const {
             recipient_name: inline_recipient_name,
             recipient_email: inline_recipient_email,
-          } = build_reply_recipient_for_message(message);
+          } = build_reply_recipient_for_message(
+            message,
+            auth?.user?.email ? [auth.user.email] : undefined,
+          );
 
           const original_cc_emails =
             message.to_recipients

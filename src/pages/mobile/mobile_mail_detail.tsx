@@ -457,7 +457,10 @@ function MobileMailDetail() {
           }),
         );
       } else {
-        const { recipient_email } = build_reply_recipient_for_message(msg);
+        const { recipient_email } = build_reply_recipient_for_message(
+          msg,
+          detail.current_user_email ? [detail.current_user_email] : undefined,
+        );
         const to = [recipient_email];
         const cc: string[] = [];
 
