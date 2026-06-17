@@ -181,3 +181,40 @@ jobs:
             -e "s|Aster\.Mail_${V}_universal\.app\.tar\.gz|Aster-Mail-universal.app.tar.gz|g" \
             "$TMP/latest.json"
           gh release upload "$TAG" "$TMP/latest.json" --clobber
+
+  ensure_canonical_assets:
+    needs: build
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Carry forward any missing canonical installers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # The marketing site links to releases/latest/download/<canonical name>.
+          # If a platform build leg fails (e.g. macOS notarization), its installer
+          # is absent and that link 404s. Restore any missing installer from the
+          # most recent prior release that has it so the download never breaks.
+          V=$(node -p "require('./package.json').version")
+          TAG="v${V}"
+          ASSETS="Aster-Mail-x64-setup.exe Aster-Mail-x64.msi Aster-Mail-x64.AppImage Aster-Mail-amd64.deb Aster-Mail-x86_64.rpm Aster-Mail-universal.dmg"
+          assets_of() { gh release view "$1" --json assets --jq '.assets[].name' 2>/dev/null; }
+          current=$(assets_of "$TAG")
+          prior_tags=$(gh release list --limit 40 --json tagName --jq '.[].tagName' | grep -vx "$TAG")
+          for a in $ASSETS; do
+            if printf '%s\n' "$current" | grep -qx "$a"; then
+              continue
+            fi
+            echo "::warning::$a missing on $TAG; carrying forward from a prior release"
+            for pt in $prior_tags; do
+              if assets_of "$pt" | grep -qx "$a"; then
+                TMP=$(mktemp -d)
+                if gh release download "$pt" --pattern "$a" --dir "$TMP" --clobber 2>/dev/null; then
+                  gh release upload "$TAG" "$TMP/$a" --clobber
+                  echo "Carried forward $a from $pt"
+                  break
+                fi
+              fi
+            done
+          done
