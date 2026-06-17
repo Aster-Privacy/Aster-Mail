@@ -42,6 +42,7 @@ import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import { SmtpTokensSection } from "@/components/settings/smtp_tokens_section";
 
 const DL = "/api/bridge/v1/download";
 
@@ -390,6 +391,8 @@ export function BridgeSection() {
         title={t("settings.bridge_revoke_title")}
         variant="danger"
       />
+
+      {!is_locked && <SmtpTokensSection />}
 
       <div>
         <div className="mb-4">
