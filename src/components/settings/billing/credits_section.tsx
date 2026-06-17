@@ -70,6 +70,17 @@ export function CreditsSection({
     }
   }, [show_picker, packages.length]);
 
+  useEffect(() => {
+    const handle_page_show = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        set_buying(false);
+      }
+    };
+
+    window.addEventListener("pageshow", handle_page_show);
+    return () => window.removeEventListener("pageshow", handle_page_show);
+  }, []);
+
   const handle_buy = async () => {
     if (!selected_package || buying) return;
     set_buying(true);
