@@ -33,6 +33,51 @@ import { derive_ratchet_encryption_key } from "./ratchet_sync";
 const PQ_PREKEY_STORAGE_PREFIX = "pq_prekey_secret_";
 const PQ_PREKEY_INDEX_KEY = "pq_prekey_secret_index";
 
+const PQ_NEGCACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const PQ_NEGCACHE_LS_KEY = "pq_secret_negcache_v1";
+const pq_secret_negcache = new Map<string, number>();
+let pq_negcache_hydrated = false;
+
+function negcache_key(uid: string | null, key_id: number): string {
+  return `${uid ?? ""}:${key_id}`;
+}
+
+function hydrate_pq_negcache(): void {
+  if (pq_negcache_hydrated) return;
+  pq_negcache_hydrated = true;
+
+  try {
+    const raw = localStorage.getItem(PQ_NEGCACHE_LS_KEY);
+
+    if (!raw) return;
+
+    const now = Date.now();
+    const parsed = JSON.parse(raw) as Record<string, number>;
+
+    for (const [k, ts] of Object.entries(parsed)) {
+      if (now - ts < PQ_NEGCACHE_TTL_MS) {
+        pq_secret_negcache.set(k, ts);
+      }
+    }
+  } catch {
+    /* best-effort */
+  }
+}
+
+function persist_pq_negcache(): void {
+  try {
+    const obj: Record<string, number> = {};
+
+    for (const [k, ts] of pq_secret_negcache) {
+      obj[k] = ts;
+    }
+
+    localStorage.setItem(PQ_NEGCACHE_LS_KEY, JSON.stringify(obj));
+  } catch {
+    /* best-effort */
+  }
+}
+
 interface StoredPqSecret {
   key_id: number;
   secret_key_b64: string;
@@ -310,9 +355,22 @@ export async function load_pq_secret(
     /* fall through */
   }
 
+  hydrate_pq_negcache();
+
+  const neg_uid = await current_account_uid();
+  const nkey = negcache_key(neg_uid, key_id);
+  const neg_ts = pq_secret_negcache.get(nkey);
+
+  if (neg_ts !== undefined && Date.now() - neg_ts < PQ_NEGCACHE_TTL_MS) {
+    return null;
+  }
+
   const remote = await fetch_pq_secret_from_server(key_id);
 
   if (remote) {
+    pq_secret_negcache.delete(nkey);
+    persist_pq_negcache();
+
     try {
       const storage_key = await get_storage_key();
       const uid = await current_account_uid();
@@ -328,6 +386,9 @@ export async function load_pq_secret(
     } catch {
       /* best-effort cache */
     }
+  } else {
+    pq_secret_negcache.set(nkey, Date.now());
+    persist_pq_negcache();
   }
 
   return remote;
