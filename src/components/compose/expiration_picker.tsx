@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   format,
   addHours,
@@ -112,6 +112,17 @@ export function ExpirationPicker({
   );
   const [password_input, set_password_input] = useState(password || "");
   const [show_password, set_show_password] = useState(false);
+  const [, set_relative_tick] = useState(0);
+
+  useEffect(() => {
+    if (!expires_at) return;
+
+    const interval = setInterval(() => {
+      set_relative_tick((tick) => tick + 1);
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [expires_at]);
 
   const quick_options: QuickOption[] = useMemo(
     () => [

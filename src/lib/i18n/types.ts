@@ -1666,6 +1666,7 @@ export interface SettingsTranslations {
   desktop_bridge_upgrade_description: string;
   desktop_bridge_upgrade_cta: string;
   notifications: string;
+  notifications_denied_help: string;
   preferences: string;
   compose: string;
   templates: string;

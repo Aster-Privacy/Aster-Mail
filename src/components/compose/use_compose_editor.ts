@@ -119,7 +119,17 @@ export function use_compose_editor({
 
   const handle_template_select = useCallback(
     (content: string) => {
-      editor.insert_text(content);
+      const substituted = content.replace(
+        /\[Date\]/g,
+        new Date().toLocaleDateString(),
+      );
+      const escaped = substituted
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      const html = `<div>${escaped.replace(/\n/g, "<br>")}</div>`;
+
+      editor.insert_html(html);
     },
     [editor],
   );

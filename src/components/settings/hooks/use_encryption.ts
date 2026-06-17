@@ -694,7 +694,7 @@ export function use_encryption() {
 
   const codes_remaining = recovery_info?.available_codes ?? 0;
   const codes_total = recovery_info?.total_codes ?? 6;
-  const codes_used = codes_total - codes_remaining;
+  const codes_used = recovery_info ? codes_total - codes_remaining : 0;
 
   return {
     is_initial_load,

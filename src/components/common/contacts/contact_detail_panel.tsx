@@ -66,6 +66,7 @@ import { Button } from "@aster/ui";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
 import { show_toast } from "@/components/toast/simple_toast";
+import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
 import {
   Select,
   SelectContent,
@@ -404,7 +405,7 @@ export function ContactDetailPanel({
     if (!file) return;
 
     const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
-    const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+    const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
     if (!ALLOWED_TYPES.includes(file.type)) {
       show_toast(t("common.unsupported_image_type"), "error");
@@ -419,8 +420,9 @@ export function ContactDetailPanel({
 
     const reader = new FileReader();
 
-    reader.onload = () => {
-      const url = reader.result as string;
+    reader.onload = async () => {
+      const raw_url = reader.result as string;
+      const url = await strip_image_metadata_data_url(raw_url);
 
       set_draft((d) => (d ? { ...d, avatar_url: url } : d));
       if (!is_editing) set_is_editing(true);

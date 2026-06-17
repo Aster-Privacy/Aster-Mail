@@ -136,6 +136,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
               </div>
             </div>
 
+            {storage_total_bytes > 0 ? (
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-medium tracking-wide text-txt-muted">
@@ -172,7 +173,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
               <div className="flex items-center justify-between mt-1.5">
                 <p className="text-[9px] text-txt-muted">
                   {format_bytes(storage_used_bytes)} {t("common.of")}{" "}
-                  {format_bytes(storage_total_bytes || 1073741824)}
+                  {format_bytes(storage_total_bytes)}
                 </p>
                 <Button
                   className="text-[10px] font-medium px-2 py-1 hover:-translate-y-[1px]"
@@ -214,6 +215,11 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
                 </Button>
               </div>
             </div>
+            ) : (
+              <div className="mb-3">
+                <Skeleton className="h-1.5 w-full rounded-full" />
+              </div>
+            )}
           </>
         )}
 
