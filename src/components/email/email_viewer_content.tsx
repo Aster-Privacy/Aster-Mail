@@ -31,7 +31,6 @@ import { Separator } from "@/components/ui/separator";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
 import { ExternalContentBanner } from "@/components/email/external_content_banner";
 import { ExpirationBanner } from "@/components/email/expiration_countdown";
-import { LockIcon } from "@/components/common/icons";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import {
   sanitize_html,
@@ -312,9 +311,6 @@ export function EmailViewerContent({
           />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-blue-500 cursor-default">
-                <LockIcon size={20} />
-              </span>
               <h2 className="text-2xl font-semibold break-words text-txt-primary">
                 {email.subject}
               </h2>

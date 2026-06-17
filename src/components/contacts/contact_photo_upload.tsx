@@ -32,6 +32,7 @@ import { Button } from "@aster/ui";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { strip_image_metadata } from "@/lib/strip_image_metadata";
 import { cn } from "@/lib/utils";
 import {
   upload_contact_photo,
@@ -47,7 +48,7 @@ interface ContactPhotoUploadProps {
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export function ContactPhotoUpload({
   contact_id,
@@ -82,7 +83,15 @@ export function ContactPhotoUpload({
       set_is_uploading(true);
 
       try {
-        const response = await upload_contact_photo(contact_id, file);
+        const raw_buffer = await file.arrayBuffer();
+        const stripped_buffer = await strip_image_metadata(
+          raw_buffer,
+          file.type,
+        );
+        const stripped_file = new File([stripped_buffer], file.name, {
+          type: file.type,
+        });
+        const response = await upload_contact_photo(contact_id, stripped_file);
 
         if (response.error || !response.data) {
           set_error(response.error || t("common.failed_to_upload_photo"));
@@ -90,13 +99,13 @@ export function ContactPhotoUpload({
           return;
         }
 
-        const blob = new Blob([file], { type: file.type });
+        const blob = new Blob([stripped_buffer], { type: file.type });
         const blob_url = URL.createObjectURL(blob);
 
         on_photo_change({
           id: response.data.id,
           contact_id: response.data.contact_id,
-          data: new Uint8Array(await file.arrayBuffer()),
+          data: new Uint8Array(stripped_buffer),
           meta: {
             filename: file.name,
             mime_type: file.type,

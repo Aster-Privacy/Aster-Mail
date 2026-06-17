@@ -67,6 +67,8 @@ import {
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
+import { UpgradeGate } from "@/components/common/upgrade_gate";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 
 interface ToggleSettingProps {
   title: string;
@@ -184,6 +186,7 @@ export function BehaviorSection() {
   const { preferences, update_preference, update_preferences } =
     use_preferences();
   const { t } = use_i18n();
+  const { is_feature_locked } = use_plan_limits();
   const [undo_input_value, set_undo_input_value] = useState<string | null>(
     null,
   );
@@ -577,36 +580,43 @@ export function BehaviorSection() {
         />
       </div>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <LockClosedIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.protected_folders")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
+      <UpgradeGate
+        description={t("settings.protected_folders_description")}
+        feature_name={t("settings.feature_password_protected_folders")}
+        is_locked={is_feature_locked("has_password_protected_folders")}
+        min_plan="Nova"
+      >
+        <div>
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+              <LockClosedIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+              {t("settings.protected_folders")}
+            </h3>
+            <div className="mt-2 h-px bg-edge-secondary" />
+          </div>
 
-        <SelectSetting
-          description={t("settings.folder_lock_mode_description")}
-          info={{
-            title: t("settings.info_folder_lock_mode_title"),
-            description: t("settings.info_folder_lock_mode_description"),
-          }}
-          on_change={(v) =>
-            update_preference(
-              "protected_folder_lock_mode",
-              v as "session" | "on_leave",
-              true,
-            )
-          }
-          options={[
-            { value: "session", label: t("settings.lock_mode_session") },
-            { value: "on_leave", label: t("settings.lock_mode_on_leave") },
-          ]}
-          title={t("settings.folder_lock_mode")}
-          value={preferences.protected_folder_lock_mode ?? "session"}
-        />
-      </div>
+          <SelectSetting
+            description={t("settings.folder_lock_mode_description")}
+            info={{
+              title: t("settings.info_folder_lock_mode_title"),
+              description: t("settings.info_folder_lock_mode_description"),
+            }}
+            on_change={(v) =>
+              update_preference(
+                "protected_folder_lock_mode",
+                v as "session" | "on_leave",
+                true,
+              )
+            }
+            options={[
+              { value: "session", label: t("settings.lock_mode_session") },
+              { value: "on_leave", label: t("settings.lock_mode_on_leave") },
+            ]}
+            title={t("settings.folder_lock_mode")}
+            value={preferences.protected_folder_lock_mode ?? "session"}
+          />
+        </div>
+      </UpgradeGate>
 
       <div>
         <div className="mb-4">
