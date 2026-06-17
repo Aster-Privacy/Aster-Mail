@@ -81,6 +81,17 @@ const LOW_NETWORK_TTL_MS = 20 * 60 * 1000;
 const NORMAL_TTL_MS = 120_000;
 const DEBOUNCE_MS = 500;
 
+//
+// Most read paths (auto-read on open, mark-as-read) only emit item-level
+// events, none of which trigger a stats refetch, so a lone optimistic +/- is
+// otherwise never reconciled until the TTL lapses or an unrelated event fires.
+// Reading messages one at a time then leaves the badge running on accumulated
+// guesses. After any adjustment we therefore force a debounced reconcile
+// against the server (the source of truth for the thread-collapsed count). The
+// timer resets on each edit, so a burst settles into a single fetch.
+//
+const RECONCILE_DELAY_MS = 1_500;
+
 const INITIAL_STATS_DELAY_MS = 1_000;
 const STORAGE_KEY_PREFIX = "aster_mail_stats_";
 const STORAGE_SCHEMA_VERSION = 3;
@@ -113,6 +124,7 @@ class MailStatsStore {
   private subscribers = new Set<SubscriberCallback>();
   private active_request: Promise<MailStats | null> | null = null;
   private debounce_timer: ReturnType<typeof setTimeout> | null = null;
+  private reconcile_timer: ReturnType<typeof setTimeout> | null = null;
   private user_id: string | null = null;
   private refetch_queued = false;
 
@@ -314,6 +326,11 @@ class MailStatsStore {
       this.debounce_timer = null;
     }
 
+    if (this.reconcile_timer) {
+      clearTimeout(this.reconcile_timer);
+      this.reconcile_timer = null;
+    }
+
     const key = this.get_storage_key();
 
     if (key) {
@@ -347,7 +364,19 @@ class MailStatsStore {
       this.save_to_storage();
       this.notify();
       this.sync_external_surfaces();
+      this.schedule_reconcile();
     }
+  }
+
+  private schedule_reconcile(): void {
+    if (this.reconcile_timer) {
+      clearTimeout(this.reconcile_timer);
+    }
+
+    this.reconcile_timer = setTimeout(() => {
+      this.reconcile_timer = null;
+      void this.fetch(true);
+    }, RECONCILE_DELAY_MS);
   }
 
   set_storage_total(bytes: number): void {
