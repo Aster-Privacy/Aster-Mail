@@ -225,6 +225,8 @@ async function keypairs_consistent(
 
 const FORCED_REGEN_KEY = "astermail_ratchet_regen_v4";
 
+const RATCHET_PREVIOUS_KEY_RETENTION = 32;
+
 async function run(): Promise<boolean> {
   try {
     const vault = get_vault_from_memory();
@@ -295,7 +297,15 @@ async function run(): Promise<boolean> {
           ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public!,
         };
         const previous = vault.ratchet_previous_keys ?? [];
-        vault.ratchet_previous_keys = [old_set, ...previous].slice(0, 3);
+        const merged = [old_set, ...previous];
+        const seen = new Set<string>();
+        vault.ratchet_previous_keys = merged
+          .filter((set) => {
+            if (seen.has(set.ratchet_identity_public)) return false;
+            seen.add(set.ratchet_identity_public);
+            return true;
+          })
+          .slice(0, RATCHET_PREVIOUS_KEY_RETENTION);
       }
 
       vault.ratchet_identity_key = ratchet_keys.identity_jwk;
