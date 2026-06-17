@@ -54,6 +54,7 @@ interface BootstrapData {
   pq_ciphertext?: string;
   pq_key_id?: number;
   sender_identity_key?: string;
+  recipient_identity_key?: string;
 }
 
 interface RatchetState {

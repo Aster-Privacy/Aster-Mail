@@ -275,9 +275,26 @@ export async function encrypt_for_ratchet_recipient(
     let pq_key_id_value: number | undefined;
     let did_bootstrap = false;
 
+    let bundle: PrekeyBundle | null = null;
+
     if (ratchet) {
       const bootstrap = ratchet.get_bootstrap();
-      if (!bootstrap || bootstrap.sender_identity_key !== vault.ratchet_identity_public) {
+
+      const sender_changed =
+        !bootstrap ||
+        bootstrap.sender_identity_key !== vault.ratchet_identity_public;
+
+      let recipient_changed = false;
+
+      if (!sender_changed) {
+        bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
+
+        if (bundle && bootstrap?.recipient_identity_key !== bundle.kem_identity_key) {
+          recipient_changed = true;
+        }
+      }
+
+      if (sender_changed || recipient_changed) {
         ratchet = null;
       }
     }
@@ -285,7 +302,9 @@ export async function encrypt_for_ratchet_recipient(
     if (!ratchet) {
       did_bootstrap = true;
 
-      const bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
+      if (!bundle) {
+        bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
+      }
 
       if (!bundle) {
         return null;
@@ -351,6 +370,7 @@ export async function encrypt_for_ratchet_recipient(
           pq_ciphertext: pq_ciphertext_base64,
           pq_key_id: pq_key_id_value,
           sender_identity_key: vault.ratchet_identity_public,
+          recipient_identity_key: bundle.kem_identity_key,
         });
       } finally {
         x3dh_result.shared_secret.fill(0);
