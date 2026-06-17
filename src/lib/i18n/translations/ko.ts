@@ -196,6 +196,7 @@ export const ko = {
     actions: "작업",
     global: "전역",
     search_emojis: "이모지 검색...",
+    skin_tone: "피부톤",
     wrap: "줄바꿈",
     unwrap: "줄바꿈 해제",
     source_copied_to_clipboard: "소스가 클립보드에 복사됨",

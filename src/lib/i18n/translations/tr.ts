@@ -196,6 +196,7 @@ export const tr = {
     actions: "Eylemler",
     global: "Genel",
     search_emojis: "Emoji ara...",
+    skin_tone: "Ten rengi",
     wrap: "Kaydır",
     unwrap: "Kaydırmayı kaldır",
     source_copied_to_clipboard: "Kaynak panoya kopyalandı",

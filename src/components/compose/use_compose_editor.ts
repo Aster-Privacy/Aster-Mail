@@ -28,6 +28,7 @@ export interface UseComposeEditorOptions {
   message_textarea_ref: React.RefObject<HTMLDivElement | null>;
   set_message: (val: string) => void;
   on_files_drop: (files: File[]) => void;
+  get_recipient_name?: () => string;
 }
 
 export interface UseComposeEditorReturn {
@@ -48,6 +49,7 @@ export function use_compose_editor({
   message_textarea_ref,
   set_message,
   on_files_drop,
+  get_recipient_name,
 }: UseComposeEditorOptions): UseComposeEditorReturn {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -119,10 +121,10 @@ export function use_compose_editor({
 
   const handle_template_select = useCallback(
     (content: string) => {
-      const substituted = content.replace(
-        /\[Date\]/g,
-        new Date().toLocaleDateString(),
-      );
+      const recipient_name = get_recipient_name?.() ?? "";
+      const substituted = content
+        .replace(/\[Date\]/g, new Date().toLocaleDateString())
+        .replace(/\[Name\]/g, recipient_name);
       const escaped = substituted
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -131,7 +133,7 @@ export function use_compose_editor({
 
       editor.insert_html(html);
     },
-    [editor],
+    [editor, get_recipient_name],
   );
 
   const exec_format_command = useCallback(

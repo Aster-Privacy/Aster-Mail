@@ -152,6 +152,7 @@ export const zh_CN = {
     actions: "操作",
     global: "全局",
     search_emojis: "搜索表情...",
+    skin_tone: "肤色",
     wrap: "换行",
     unwrap: "取消换行",
     source_copied_to_clipboard: "源代码已复制到剪贴板",

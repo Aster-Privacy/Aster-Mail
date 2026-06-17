@@ -196,6 +196,7 @@ export const fr = {
     actions: "Actions",
     global: "Mondial",
     search_emojis: "Rechercher des émojis...",
+    skin_tone: "Teinte de peau",
     wrap: "Renvoyer à la ligne",
     unwrap: "Ne pas renvoyer à la ligne",
     source_copied_to_clipboard: "Source copiée dans le presse-papiers",

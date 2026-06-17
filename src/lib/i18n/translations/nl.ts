@@ -193,6 +193,7 @@ export const nl = {
     actions: "Acties",
     global: "Globaal",
     search_emojis: "Emoji's zoeken...",
+    skin_tone: "Huidskleur",
     wrap: "Omwikkelen",
     unwrap: "Uitvouwen",
     source_copied_to_clipboard: "Bron naar klembord gekopieerd",
