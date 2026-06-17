@@ -122,7 +122,7 @@ export function BridgeSection() {
   }, [load_devices]);
 
   if (plan_loading && !limits) return null;
-  const is_locked = !limits || limits.plan_code === "free";
+  const is_locked = !!limits && limits.plan_code === "free";
 
   const handle_revoke = async (id: string) => {
     set_confirm_revoke_id(null);
