@@ -41,11 +41,14 @@ export function CountBadge({
     );
   }
 
-  if (count === 0 && !show_zero) {
+  const safe_count =
+    Number.isFinite(count) && count > 0 ? Math.floor(count) : 0;
+
+  if (safe_count === 0 && !show_zero) {
     return null;
   }
 
-  const display_value = count.toLocaleString();
+  const display_value = safe_count.toLocaleString();
 
   return (
     <span
