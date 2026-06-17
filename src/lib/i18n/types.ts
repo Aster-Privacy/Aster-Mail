@@ -1711,6 +1711,8 @@ export interface SettingsTranslations {
   security_keys_description: string;
   add_security_key: string;
   no_security_keys: string;
+  security_keys_desktop_note: string;
+  passkeys_desktop_note: string;
   security_key_registered: string;
   security_key_removed: string;
   name_your_key: string;
@@ -1809,6 +1811,9 @@ export interface SettingsTranslations {
   end_to_end_encryption: string;
   always_on: string;
   key_fingerprint: string;
+  copy_fingerprint: string;
+  copy_public_key: string;
+  failed_download_codes: string;
   export_keys: string;
   recovery_codes: string;
   changes_saved_automatically: string;

@@ -173,6 +173,15 @@ export function SessionSection({
           <div className="space-y-1">
             {visible_sessions.map((session) => {
               const Icon = get_device_icon(session.device_type);
+              const browser_label =
+                session.browser?.trim() || t("common.unknown");
+              const os_label = session.os?.trim();
+              const device_label = os_label
+                ? t("settings.browser_on_os", {
+                    browser: browser_label,
+                    os: os_label,
+                  })
+                : browser_label;
 
               return (
                 <div
@@ -183,9 +192,7 @@ export function SessionSection({
                     <Icon className="w-5 h-5 text-txt-muted flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-txt-primary flex items-center gap-2 flex-wrap">
-                        <span className="truncate">
-                          {t("settings.browser_on_os", { browser: session.browser, os: session.os })}
-                        </span>
+                        <span className="truncate">{device_label}</span>
                         {session.is_current && (
                           <Badge color="blue">
                             {t("settings.this_device")}
