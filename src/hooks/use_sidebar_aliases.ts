@@ -156,14 +156,19 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
   const prev_user_id_ref = useRef<string | null>(null);
   const fetch_ref = useRef<(() => Promise<void>) | null>(null);
   const fetch_unread_ref = useRef<(() => Promise<void>) | null>(null);
+  const unread_generation_ref = useRef(0);
 
   const fetch_unread_counts = useCallback(async () => {
     if (!has_passphrase_in_memory() || !get_derived_encryption_key()) {
       return;
     }
 
+    const this_generation = ++unread_generation_ref.current;
+
     try {
       const response = await get_alias_unread_counts();
+
+      if (this_generation !== unread_generation_ref.current) return;
 
       if (response.data) {
         const next: Record<string, number> = {};
@@ -337,6 +342,8 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
   }, [fetch_aliases]);
 
   useEffect(() => {
+    let unread_debounce: ReturnType<typeof setTimeout> | null = null;
+
     const handle_auth_ready = () => {
       fetch_ref.current?.();
     };
@@ -346,7 +353,10 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     };
 
     const handle_mail_changed = () => {
-      fetch_unread_ref.current?.();
+      if (unread_debounce) clearTimeout(unread_debounce);
+      unread_debounce = setTimeout(() => {
+        fetch_unread_ref.current?.();
+      }, 500);
     };
 
     window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
@@ -360,6 +370,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_mail_changed);
 
     return () => {
+      if (unread_debounce) clearTimeout(unread_debounce);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
       window.removeEventListener(
         MAIL_EVENTS.ALIASES_CHANGED,

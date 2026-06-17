@@ -244,6 +244,7 @@ export function use_tags(): UseTagsReturn {
   const [counts, set_counts] = useState<TagCounts>({});
   const abort_ref = useRef<AbortController | null>(null);
   const prev_user_id_ref = useRef<string | null>(null);
+  const counts_generation_ref = useRef(0);
 
   const fetch_tags = useCallback(
     async (params: ListTagsParams = {}): Promise<void> => {
@@ -329,8 +330,12 @@ export function use_tags(): UseTagsReturn {
   );
 
   const fetch_counts = useCallback(async (): Promise<void> => {
+    const this_generation = ++counts_generation_ref.current;
+
     try {
       const response = await get_tag_counts();
+
+      if (this_generation !== counts_generation_ref.current) return;
 
       if (response.data) {
         const new_counts: TagCounts = {};

@@ -453,6 +453,7 @@ export function use_folders(): UseFoldersReturn {
   const abort_ref = useRef<AbortController | null>(null);
   const prev_user_id_ref = useRef<string | null>(null);
   const fetch_generation_ref = useRef(0);
+  const counts_generation_ref = useRef(0);
 
   const fetch_folders = useCallback(
     async (params: ListFoldersParams = {}): Promise<void> => {
@@ -555,8 +556,12 @@ export function use_folders(): UseFoldersReturn {
   );
 
   const fetch_counts = useCallback(async (): Promise<void> => {
+    const this_generation = ++counts_generation_ref.current;
+
     try {
       const response = await get_folder_counts();
+
+      if (this_generation !== counts_generation_ref.current) return;
 
       if (response.data) {
         const new_counts: FolderCounts = {};

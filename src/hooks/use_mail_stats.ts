@@ -24,7 +24,7 @@ import { MAIL_EVENTS } from "./mail_events";
 import { is_low_network } from "@/services/low_network_state";
 
 import { get_contacts_count } from "@/services/api/contacts";
-import { list_snoozed_emails, type SnoozedItem } from "@/services/api/snooze";
+import { list_snoozed_emails } from "@/services/api/snooze";
 import { get_mail_stats } from "@/services/api/mail";
 import { use_auth } from "@/contexts/auth_context";
 import {
@@ -114,6 +114,7 @@ class MailStatsStore {
   private active_request: Promise<MailStats | null> | null = null;
   private debounce_timer: ReturnType<typeof setTimeout> | null = null;
   private user_id: string | null = null;
+  private refetch_queued = false;
 
   get_cache(): StatsCache {
     return this.cache;
@@ -212,6 +213,8 @@ class MailStatsStore {
     }
 
     if (this.cache.fetching && this.active_request) {
+      this.refetch_queued = true;
+
       return this.active_request;
     }
 
@@ -242,15 +245,15 @@ class MailStatsStore {
       }
 
       const contacts_count =
-        contacts_response.status === "fulfilled"
-          ? (contacts_response.value.data?.count ?? 0)
-          : 0;
+        contacts_response.status === "fulfilled" &&
+        !contacts_response.value.error
+          ? (contacts_response.value.data?.count ?? this.cache.data.contacts)
+          : this.cache.data.contacts;
 
-      const snoozed_items: SnoozedItem[] =
+      const snoozed_count =
         snoozed_response.status === "fulfilled" && !snoozed_response.value.error
-          ? (snoozed_response.value.data ?? [])
-          : [];
-      const snoozed_count = snoozed_items.length;
+          ? (snoozed_response.value.data ?? []).length
+          : this.cache.data.snoozed;
 
       this.cache.data = {
         total_items: server_stats.total_items,
@@ -280,6 +283,12 @@ class MailStatsStore {
       this.cache.fetching = false;
       this.active_request = null;
       this.notify();
+
+      if (this.refetch_queued) {
+        this.refetch_queued = false;
+        this.cache.timestamp = 0;
+        this.fetch(true);
+      }
     }
   }
 
@@ -295,7 +304,7 @@ class MailStatsStore {
 
     this.debounce_timer = setTimeout(() => {
       this.debounce_timer = null;
-      this.fetch(false);
+      this.fetch(true);
     }, DEBOUNCE_MS);
   }
 
@@ -317,6 +326,7 @@ class MailStatsStore {
 
     this.subscribers.clear();
     this.active_request = null;
+    this.refetch_queued = false;
     this.user_id = null;
     this.cache = {
       data: DEFAULT_STATS,
@@ -334,7 +344,6 @@ class MailStatsStore {
         ...this.cache.data,
         [field]: Math.max(0, current + delta),
       };
-      this.cache.timestamp = Date.now();
       this.save_to_storage();
       this.notify();
       this.sync_external_surfaces();
