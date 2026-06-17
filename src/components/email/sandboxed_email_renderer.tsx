@@ -867,7 +867,10 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
       const prev_iframe_h = iframe.style.height;
       iframe.style.height = "0px";
-      const measured = body.scrollHeight;
+      const measured = Math.max(
+        body.scrollHeight,
+        Math.ceil(body.getBoundingClientRect().height),
+      );
       iframe.style.height = prev_iframe_h;
 
       const height = Math.min(measured + 8, MAX_IFRAME_HEIGHT);
@@ -888,7 +891,10 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
       raf_ref.current = requestAnimationFrame(() => measure_and_apply());
     };
 
-    const immediate_height = iframe.contentDocument.body.scrollHeight;
+    const immediate_height = Math.max(
+      iframe.contentDocument.body.scrollHeight,
+      Math.ceil(iframe.contentDocument.body.getBoundingClientRect().height),
+    );
 
     if (immediate_height > 0) {
       const clamped = Math.min(immediate_height + 24, MAX_IFRAME_HEIGHT);
