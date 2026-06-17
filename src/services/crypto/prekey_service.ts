@@ -189,15 +189,6 @@ export async function generate_and_upload_prekeys(
 
     const success = await upload_prekeys(otp.prekeys, pq.prekeys);
 
-    if (!success) {
-      for (const id of persisted_otp_ids) {
-        await delete_pq_secret(id);
-      }
-      for (const id of persisted_pq_ids) {
-        await delete_pq_secret(id);
-      }
-    }
-
     return success;
   } finally {
     replenishment_in_progress = false;

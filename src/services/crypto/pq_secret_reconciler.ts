@@ -19,10 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client } from "@/services/api/client";
-import {
-  generate_and_upload_prekeys,
-  wipe_published_pq_prekeys,
-} from "@/services/crypto/prekey_service";
+import { generate_and_upload_prekeys } from "@/services/crypto/prekey_service";
 import {
   list_pq_secret_ids,
   backfill_pq_secrets_to_server,
@@ -148,12 +145,6 @@ async function count_local_pq_secrets(): Promise<number> {
 }
 
 async function rotate_pq_pool(): Promise<boolean> {
-  const wiped = await wipe_published_pq_prekeys();
-
-  if (is_dev()) {
-    console.info("[pq_reconciler] wipe published pq prekeys: %s", wiped);
-  }
-
   return generate_and_upload_prekeys(true);
 }
 

@@ -552,7 +552,7 @@ describe("X3DH Key Exchange Protocol", () => {
       expect(classical.shared_secret).not.toEqual(hybrid.shared_secret);
     });
 
-    it("receiver deletes the PQ secret after successful decapsulation", async () => {
+    it("receiver retains the PQ secret after decapsulation so the message stays decryptable on re-render", async () => {
       const alice_identity = await generate_exportable_ke_keypair();
       const bob_identity = await generate_exportable_ke_keypair();
       const bob_signed_prekey = await generate_exportable_ke_keypair();
@@ -588,7 +588,7 @@ describe("X3DH Key Exchange Protocol", () => {
         },
       );
 
-      expect(pq_secret_table.has(pq_key_id)).toBe(false);
+      expect(pq_secret_table.has(pq_key_id)).toBe(true);
     });
   });
 
