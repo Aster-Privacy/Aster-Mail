@@ -242,8 +242,8 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
 }
 
 img {
-  max-width: 100% !important;
-  height: auto !important;
+  max-width: 100%;
+  height: auto;
 }
 
 @media print {
