@@ -196,6 +196,7 @@ export const ru = {
     actions: "Действия",
     global: "Глобальные",
     search_emojis: "Поиск эмодзи...",
+    skin_tone: "Тон кожи",
     wrap: "Свернуть",
     unwrap: "Развернуть",
     source_copied_to_clipboard: "Исходный код скопирован в буфер обмена",

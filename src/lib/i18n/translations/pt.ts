@@ -152,6 +152,7 @@ export const pt = {
     actions: "Ações",
     global: "Global",
     search_emojis: "Pesquisar emojis...",
+    skin_tone: "Tom de pele",
     wrap: "Quebrar linha",
     unwrap: "Desfazer quebra",
     source_copied_to_clipboard: "Código-fonte copiado para a área de transferência",

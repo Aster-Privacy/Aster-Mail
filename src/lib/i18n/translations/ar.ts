@@ -196,6 +196,7 @@ export const ar = {
     actions: "الإجراءات",
     global: "عام",
     search_emojis: "بحث عن رموز تعبيرية...",
+    skin_tone: "لون البشرة",
     wrap: "التفاف",
     unwrap: "إلغاء الالتفاف",
     source_copied_to_clipboard: "تم نسخ المصدر إلى الحافظة",

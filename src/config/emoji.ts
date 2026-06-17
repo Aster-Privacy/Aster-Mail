@@ -1344,3 +1344,161 @@ export function search_emojis(query: string): EmojiEntry[] {
       entry.keywords.some((kw) => kw.includes(lower)),
   );
 }
+
+export type SkinTone =
+  | "default"
+  | "light"
+  | "medium_light"
+  | "medium"
+  | "medium_dark"
+  | "dark";
+
+export const skin_tones: SkinTone[] = [
+  "default",
+  "light",
+  "medium_light",
+  "medium",
+  "medium_dark",
+  "dark",
+];
+
+export const skin_tone_modifiers: Record<SkinTone, string> = {
+  default: "",
+  light: "\u{1F3FB}",
+  medium_light: "\u{1F3FC}",
+  medium: "\u{1F3FD}",
+  medium_dark: "\u{1F3FE}",
+  dark: "\u{1F3FF}",
+};
+
+export const skin_tone_swatches: Record<SkinTone, string> = {
+  default: "✋",
+  light: "✋\u{1F3FB}",
+  medium_light: "✋\u{1F3FC}",
+  medium: "✋\u{1F3FD}",
+  medium_dark: "✋\u{1F3FE}",
+  dark: "✋\u{1F3FF}",
+};
+
+export const tone_capable_emoji: ReadonlySet<string> = new Set([
+  "👋",
+  "🤚",
+  "🖐️",
+  "✋",
+  "🖖",
+  "🫱",
+  "🫲",
+  "🫳",
+  "🫴",
+  "🫷",
+  "🫸",
+  "👌",
+  "🤌",
+  "🤏",
+  "✌️",
+  "🤞",
+  "🫰",
+  "🤟",
+  "🤘",
+  "🤙",
+  "👈",
+  "👉",
+  "👆",
+  "🖕",
+  "👇",
+  "☝️",
+  "🫵",
+  "👍",
+  "👎",
+  "✊",
+  "👊",
+  "🤛",
+  "🤜",
+  "👏",
+  "🙌",
+  "🫶",
+  "👐",
+  "🤲",
+  "🙏",
+  "✍️",
+  "💅",
+  "🤳",
+  "💪",
+  "👂",
+  "🦻",
+  "👃",
+  "👶",
+  "🧒",
+  "👦",
+  "👧",
+  "🧑",
+  "👱",
+  "👨",
+  "🧔",
+  "👩",
+  "🧓",
+  "👴",
+  "👵",
+  "🙍",
+  "🙎",
+  "🙅",
+  "🙆",
+  "💁",
+  "🙋",
+  "🧏",
+  "🙇",
+  "🤦",
+  "🤷",
+  "👮",
+  "🕵️",
+  "💂",
+  "🥷",
+  "👷",
+  "🫅",
+  "🤴",
+  "👸",
+  "🧙",
+  "🧚",
+  "🧛",
+  "🧜",
+  "🧝",
+  "💆",
+  "💇",
+  "🚶",
+  "🧍",
+  "🧎",
+  "🏃",
+  "💃",
+  "🕺",
+  "🧖",
+  "🧗",
+  "🤸",
+  "🏌️",
+  "🏋️",
+  "🤽",
+  "🤾",
+  "🤺",
+  "⛹️",
+  "🏊",
+  "🚣",
+  "🧘",
+  "🛀",
+  "🛌",
+]);
+
+export function is_tone_capable(emoji: string): boolean {
+  return tone_capable_emoji.has(emoji);
+}
+
+export function apply_skin_tone(emoji: string, tone: SkinTone): string {
+  if (tone === "default" || !is_tone_capable(emoji)) return emoji;
+
+  const modifier = skin_tone_modifiers[tone];
+  const variation_selector = "️";
+
+  if (emoji.endsWith(variation_selector)) {
+    return emoji.slice(0, -variation_selector.length) + modifier;
+  }
+
+  return emoji + modifier;
+}

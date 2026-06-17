@@ -244,6 +244,7 @@ export const en: Translations = {
     actions: "Actions",
     global: "Global",
     search_emojis: "Search emojis...",
+    skin_tone: "Skin tone",
     wrap: "Wrap",
     unwrap: "Unwrap",
     source_copied_to_clipboard: "Source copied to clipboard",

@@ -196,6 +196,7 @@ export const es = {
     actions: "Acciones",
     global: "Global",
     search_emojis: "Buscar emojis...",
+    skin_tone: "Tono de piel",
     wrap: "Ajustar",
     unwrap: "Desajustar",
     source_copied_to_clipboard: "Fuente copiada al portapapeles",

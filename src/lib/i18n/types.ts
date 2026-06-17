@@ -470,6 +470,7 @@ export interface CommonTranslations {
   actions: string;
   global: string;
   search_emojis: string;
+  skin_tone: string;
   wrap: string;
   unwrap: string;
   source_copied_to_clipboard: string;

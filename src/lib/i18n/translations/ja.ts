@@ -194,6 +194,7 @@ export const ja = {
     actions: "アクション",
     global: "グローバル",
     search_emojis: "絵文字を検索...",
+    skin_tone: "肌の色",
     wrap: "折り返す",
     unwrap: "折り返しを解除",
     source_copied_to_clipboard: "ソースをクリップボードにコピーしました",
