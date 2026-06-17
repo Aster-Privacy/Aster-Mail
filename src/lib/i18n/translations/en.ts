@@ -1441,9 +1441,9 @@ export const en: Translations = {
     bridge_support_x: "Follow on X",
     bridge_support_github: "GitHub",
     bridge_support_reddit: "Reddit",
-    smtp_tokens: "SMTP tokens",
+    smtp_tokens: "SMTP, IMAP, POP3 & JMAP",
     smtp_tokens_description:
-      "Create send-only SMTP credentials so external apps and scripts can send mail from your verified custom-domain addresses.",
+      "Connect any mail client or app. Use the Aster Bridge app above for full IMAP, POP3, SMTP and JMAP access (your mail is decrypted on your device), or generate a send-only SMTP credential below for apps and scripts that only need to send from your verified custom-domain addresses.",
     smtp_tokens_popover_description:
       "An SMTP token is a send-only password bound to one of your verified custom-domain addresses. Use it to send mail from automated systems, scripts, or third-party services over standard SMTP.",
     smtp_tokens_empty: "No SMTP tokens yet.",
@@ -5412,7 +5412,7 @@ export const en: Translations = {
     link_device_expired_code: "This code expired or did not match. Your desktop app has the current one.",
     link_device_failed: "Linking did not finish. Starting over usually does it. Your account is unchanged.",
     link_device_try_again: "That did not work. Starting over usually does it.",
-    link_device_upgrade_required_toast: "Linking a Bridge device needs Asterstar or higher. Upgrade to continue.",
+    link_device_upgrade_required_toast: "Linking a Bridge device needs a Star plan or higher. Upgrade to continue.",
     link_device_upgrade_title: "Upgrade to link this device",
     link_device_upgrade_description:
       "Connecting a desktop Bridge to your account needs a Star plan or higher. Pick a plan below and your device links right after checkout.",
