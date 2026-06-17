@@ -30,12 +30,13 @@ import {
   AlertDialogDescription,
 } from "@/components/ui/alert_dialog";
 
-export type UnsubscribeConfirmKind = "url" | "mailto" | "one_click";
+export type UnsubscribeConfirmKind = "url" | "mailto" | "one_click" | "bulk";
 
 interface UnsubscribeConfirmRequest {
   kind: UnsubscribeConfirmKind;
   destination: string;
   sender_name?: string;
+  bulk_count?: number;
   resolve: (confirmed: boolean) => void;
 }
 
@@ -58,6 +59,21 @@ export function confirm_unsubscribe(
       current_request.resolve(false);
     }
     current_request = { kind, destination, sender_name, resolve };
+    notify();
+  });
+}
+
+export function confirm_unsubscribe_bulk(count: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (current_request) {
+      current_request.resolve(false);
+    }
+    current_request = {
+      kind: "bulk",
+      destination: "",
+      bulk_count: count,
+      resolve,
+    };
     notify();
   });
 }
@@ -108,8 +124,13 @@ export function UnsubscribeConfirmationModal() {
   const handle_confirm = () => close_with_animation(true);
   const handle_cancel = () => close_with_animation(false);
 
+  const is_bulk = request?.kind === "bulk";
+
   const get_display_host = () => {
     if (!request) return "";
+    if (request.kind === "bulk") {
+      return `${request.bulk_count ?? 0} ${t("common.selected")}`;
+    }
     if (request.kind === "mailto") {
       return request.destination;
     }
@@ -163,14 +184,16 @@ export function UnsubscribeConfirmationModal() {
               >
                 {get_display_host()}
               </p>
-              <p
-                className="text-[12px] break-all mt-1.5 max-h-[30vh] overflow-y-auto"
-                style={{ color: "var(--color-info)" }}
-              >
-                {request?.kind === "mailto"
-                  ? `mailto:${request.destination}`
-                  : (request?.destination ?? "")}
-              </p>
+              {!is_bulk && (
+                <p
+                  className="text-[12px] break-all mt-1.5 max-h-[30vh] overflow-y-auto"
+                  style={{ color: "var(--color-info)" }}
+                >
+                  {request?.kind === "mailto"
+                    ? `mailto:${request.destination}`
+                    : (request?.destination ?? "")}
+                </p>
+              )}
             </div>
           </div>
 

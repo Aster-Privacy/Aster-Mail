@@ -203,8 +203,11 @@ export function SubscriptionsContent({
   const handle_bulk_unsubscribe = useCallback(async () => {
     const emails = Array.from(selected_ids);
 
-    set_selected_ids(new Set());
-    await bulk_unsubscribe(emails);
+    const did_unsubscribe = await bulk_unsubscribe(emails);
+
+    if (did_unsubscribe) {
+      set_selected_ids(new Set());
+    }
   }, [selected_ids, bulk_unsubscribe]);
 
   const handle_unsubscribe = useCallback(

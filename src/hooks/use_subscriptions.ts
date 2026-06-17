@@ -31,6 +31,7 @@ import {
   SUBSCRIPTION_CACHE_VERSION,
 } from "@/services/subscription_cache";
 import { perform_unsubscribe, UnsubscribeError } from "@/utils/unsubscribe_detector";
+import { confirm_unsubscribe_bulk } from "@/components/modals/unsubscribe_confirmation_modal";
 import { UNSUBSCRIBE_EVENT } from "@/hooks/use_unsubscribed_senders";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -210,7 +211,13 @@ export function use_subscriptions() {
   );
 
   const bulk_unsubscribe = useCallback(
-    async (sender_emails: string[]) => {
+    async (sender_emails: string[]): Promise<boolean> => {
+      if (sender_emails.length === 0) return false;
+
+      const confirmed = await confirm_unsubscribe_bulk(sender_emails.length);
+
+      if (!confirmed) return false;
+
       mutating_ref.current++;
       const current_subs = cache_ref.current?.subscriptions || subscriptions;
       const batch_size = 5;
@@ -244,17 +251,22 @@ export function use_subscriptions() {
             if (!sub) return;
 
             try {
-              await perform_unsubscribe(sub.sender_email, sub.sender_name, {
-                has_unsubscribe: true,
-                method: sub.has_one_click
-                  ? "one-click"
-                  : sub.unsubscribe_link
-                    ? "link"
-                    : "none",
-                unsubscribe_link: sub.unsubscribe_link,
-                list_unsubscribe_header: sub.list_unsubscribe_header,
-                list_unsubscribe_post: sub.list_unsubscribe_post,
-              });
+              await perform_unsubscribe(
+                sub.sender_email,
+                sub.sender_name,
+                {
+                  has_unsubscribe: true,
+                  method: sub.has_one_click
+                    ? "one-click"
+                    : sub.unsubscribe_link
+                      ? "link"
+                      : "none",
+                  unsubscribe_link: sub.unsubscribe_link,
+                  list_unsubscribe_header: sub.list_unsubscribe_header,
+                  list_unsubscribe_post: sub.list_unsubscribe_post,
+                },
+                { skip_confirm: true },
+              );
             } catch {}
           }),
         );
@@ -262,6 +274,8 @@ export function use_subscriptions() {
 
       await save_subscription_cache(cache_ref.current, vault!);
       mutating_ref.current--;
+
+      return true;
     },
     [subscriptions, vault],
   );
