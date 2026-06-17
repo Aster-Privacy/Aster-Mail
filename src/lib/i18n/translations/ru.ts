@@ -2288,6 +2288,9 @@ export const ru = {
     end_to_end_encryption: "Сквозное шифрование",
     always_on: "Всегда включено",
     key_fingerprint: "Отпечаток ключа",
+    copy_fingerprint: "Копировать отпечаток",
+    copy_public_key: "Копировать открытый ключ",
+    failed_download_codes: "Не удалось загрузить коды восстановления. Попробуйте снова.",
     export_keys: "Экспортировать ключи и коды восстановления",
     recovery_codes: "Коды восстановления",
     changes_saved_automatically: "Изменения сохраняются автоматически",
@@ -4071,6 +4074,10 @@ export const ru = {
     never_used: "Никогда не использовался",
     newest_first: "Сначала новые",
     no_security_keys: "Ключи безопасности не зарегистрированы",
+    security_keys_desktop_note:
+      "Security keys can be added in the Aster web app at app.astermail.org. You can still view and remove existing keys here.",
+    passkeys_desktop_note:
+      "Passkeys can be added in the Aster web app at app.astermail.org. You can still view and remove existing passkeys here.",
     app_lock_pin: "Блокировка PIN-кодом",
     app_lock_pin_description: "Требует PIN-код для открытия Aster Mail в браузере",
     app_lock_choose_digits: "Выберите длину PIN-кода",
@@ -5417,7 +5424,7 @@ export const ru = {
     unexpected_error: "Что-то пошло не так. Попробуйте ещё раз.",
     unexpected_health_check_error: "При диагностике возникла ошибка. Попробуйте ещё раз.",
     unknown_error: "Что-то пошло не так. Попробуйте ещё раз. Причину установить не удалось.",
-    unrecognized_format: "Не удалось распознать формат {{name}}. Aster поддерживает MBOX, EML, CSV и PST - сохраните файл в одном из этих форматов.",
+    unrecognized_format: "Aster не может прочитать {{name}}. Поддерживаемые форматы: MBOX, EML, CSV и PST. Сохраните файл в одном из них и попробуйте снова.",
     version_conflict: "Это уже изменил кто-то или что-то другое. Обновление покажет актуальную версию.",
   },
   mail_rules: {

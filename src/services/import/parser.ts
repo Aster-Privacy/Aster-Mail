@@ -40,6 +40,7 @@ import { parse_csv_file } from "./csv_parser";
 import { parse_pst_file } from "./pst_parser";
 import { extract_email_address } from "./mime_utils";
 import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -208,7 +209,10 @@ export async function parse_import_file(
     return {
       emails: [],
       errors: [
-        en.errors.unrecognized_format.replace("{{name}}", file.name),
+        get_active_translations().errors.unrecognized_format.replace(
+          "{{name}}",
+          file.name,
+        ),
       ],
       warnings: [],
     };
@@ -235,7 +239,10 @@ export async function parse_import_file(
       return {
         emails: [],
         errors: [
-          en.errors.unrecognized_format.replace("{{name}}", file.name),
+          get_active_translations().errors.unrecognized_format.replace(
+            "{{name}}",
+            file.name,
+          ),
         ],
         warnings: [],
       };

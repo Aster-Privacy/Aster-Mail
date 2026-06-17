@@ -56,6 +56,14 @@ function open_billing_settings() {
   );
 }
 
+function open_storage_addons_settings() {
+  window.dispatchEvent(
+    new CustomEvent("navigate-settings", {
+      detail: { section: "billing", anchor: "additional_storage_section" },
+    }),
+  );
+}
+
 export function UpgradeModal() {
   const { t } = use_i18n();
   const state = use_upgrade_state();
@@ -129,7 +137,7 @@ export function UpgradeModal() {
 
   const handle_buy_storage = () => {
     close_upgrade_modal();
-    requestAnimationFrame(open_billing_settings);
+    requestAnimationFrame(open_storage_addons_settings);
   };
 
   const storage = limits?.storage ?? null;

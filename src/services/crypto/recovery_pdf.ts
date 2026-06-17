@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { is_native_platform } from "@/native/capacitor_bridge";
+import { trigger_download } from "@/services/export/destination";
 
 export async function generate_recovery_pdf(
   email: string,
@@ -126,7 +127,9 @@ export async function generate_recovery_pdf(
   });
   doc.text("https://astermail.org", page_width / 2, 263, { align: "center" });
 
-  doc.save(`astermail-recovery-codes-${Date.now()}.pdf`);
+  const blob = doc.output("blob");
+
+  trigger_download(blob, `astermail-recovery-codes-${Date.now()}.pdf`);
 }
 
 function build_recovery_text(email: string, recovery_codes: string[]): string {

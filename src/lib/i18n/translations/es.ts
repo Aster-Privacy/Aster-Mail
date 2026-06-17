@@ -2288,6 +2288,9 @@ export const es = {
     end_to_end_encryption: "Cifrado de extremo a extremo",
     always_on: "Siempre activo",
     key_fingerprint: "Huella digital de la clave",
+    copy_fingerprint: "Copiar huella digital",
+    copy_public_key: "Copiar clave pública",
+    failed_download_codes: "No se pudieron descargar los códigos de recuperación. Inténtalo de nuevo.",
     export_keys: "Exportar claves y códigos de recuperación",
     recovery_codes: "Códigos de recuperación",
     changes_saved_automatically: "Los cambios se guardan automáticamente",
@@ -4071,6 +4074,10 @@ export const es = {
     never_used: "Nunca usada",
     newest_first: "Más recientes primero",
     no_security_keys: "No hay claves de seguridad registradas.",
+    security_keys_desktop_note:
+      "Las claves de seguridad se pueden agregar en la aplicación web de Aster en app.astermail.org. Aún puedes ver y eliminar las claves existentes aquí.",
+    passkeys_desktop_note:
+      "Las llaves de acceso se pueden agregar en la aplicación web de Aster en app.astermail.org. Aún puedes ver y eliminar las llaves de acceso existentes aquí.",
     app_lock_pin: "Bloqueo por PIN",
     app_lock_pin_description: "Requiere un PIN para abrir Aster Mail en tu navegador",
     app_lock_choose_digits: "Elegir longitud del PIN",
@@ -5417,7 +5424,7 @@ export const es = {
     unexpected_error: "Error inesperado",
     unexpected_health_check_error: "Error inesperado en la verificación de estado",
     unknown_error: "Error desconocido",
-    unrecognized_format: "No pudimos reconocer el formato de {{name}}. Aster admite MBOX, EML, CSV y PST; guardar el archivo en uno de esos formatos permitirá ejecutar la importación.",
+    unrecognized_format: "Aster no puede leer {{name}}. Los formatos admitidos son MBOX, EML, CSV y PST. Guarda el archivo en uno de estos e inténtalo de nuevo.",
     version_conflict: "Conflicto de versión",
   },
   mail_rules: {

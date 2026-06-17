@@ -189,7 +189,6 @@ function get_nav_items(
     mail: [
       ...(!on_onion ? [{ id: "import" as Section, label: t("common.import"), icon: ArrowDownTrayIcon }] : []),
       { id: "bridge" as Section, label: t("settings.bridge"), icon: ArrowsRightLeftIcon },
-      { id: "smtp_tokens" as Section, label: t("settings.smtp_tokens"), icon: KeyIcon },
       { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
       { id: "signature", label: t("settings.signature"), icon: PencilSquareIcon },
       { id: "templates", label: t("settings.templates"), icon: DocumentTextIcon },
@@ -372,10 +371,26 @@ function SettingsPanelInner({
     };
 
     const handle_navigate_section = (e: Event) => {
-      const value = (e as CustomEvent<string>).detail as Section;
+      const detail = (
+        e as CustomEvent<string | { section: string; anchor?: string }>
+      ).detail;
+      const value = (
+        typeof detail === "string" ? detail : detail?.section
+      ) as Section;
+      const anchor = typeof detail === "string" ? undefined : detail?.anchor;
+
+      if (!value) return;
 
       set_section(value);
       set_persisted_section(value);
+
+      if (anchor) {
+        requestAnimationFrame(() =>
+          document
+            .getElementById(anchor)
+            ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        );
+      }
     };
 
     const handle_plan_changed = () => {

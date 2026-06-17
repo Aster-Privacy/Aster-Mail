@@ -2288,6 +2288,9 @@ export const pt = {
     end_to_end_encryption: "Criptografia de Ponta a Ponta",
     always_on: "Sempre Ativo",
     key_fingerprint: "Impressão Digital da Chave",
+    copy_fingerprint: "Copiar impressão digital",
+    copy_public_key: "Copiar chave pública",
+    failed_download_codes: "Não foi possível baixar os códigos de recuperação. Tente novamente.",
     export_keys: "Exportar Chaves e Códigos de Recuperação",
     recovery_codes: "Códigos de Recuperação",
     changes_saved_automatically: "As alterações são salvas automaticamente",
@@ -3813,6 +3816,10 @@ export const pt = {
     security_keys_description: "Use chaves de segurança físicas ou passkeys para login",
     add_security_key: "Adicionar chave de segurança",
     no_security_keys: "Nenhuma chave de segurança registrada",
+    security_keys_desktop_note:
+      "As chaves de segurança podem ser adicionadas no aplicativo web da Aster em app.astermail.org. Você ainda pode visualizar e remover as chaves existentes aqui.",
+    passkeys_desktop_note:
+      "As chaves de acesso podem ser adicionadas no aplicativo web da Aster em app.astermail.org. Você ainda pode visualizar e remover as chaves de acesso existentes aqui.",
     app_lock_pin: "Bloqueio por PIN",
     app_lock_pin_description: "Requer um PIN para abrir o Aster Mail no navegador",
     app_lock_choose_digits: "Escolher comprimento do PIN",
@@ -5417,7 +5424,7 @@ export const pt = {
     unexpected_error: "Algo não funcionou como esperado. Outra tentativa deve funcionar.",
     unexpected_health_check_error: "O diagnóstico teve um problema. Outra tentativa deve funcionar.",
     unknown_error: "Algo não funcionou como esperado. Outra tentativa deve funcionar. Não foi possível identificar a causa.",
-    unrecognized_format: "Não foi possível reconhecer o formato de {{name}}. O Aster suporta MBOX, EML, CSV e PST, e salvar o arquivo em um desses formatos vai permitir a importação.",
+    unrecognized_format: "O Aster não consegue ler {{name}}. Os formatos suportados são MBOX, EML, CSV e PST. Salve o arquivo em um desses formatos e tente novamente.",
     version_conflict: "Algo ou alguém alterou isso primeiro. Uma atualização vai mostrar a versão mais recente.",
   },
   mail_rules: {

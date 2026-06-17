@@ -30,6 +30,7 @@ import {
   base64_to_array,
 } from "@/services/crypto/key_manager";
 import { generate_recovery_pdf } from "@/services/crypto/recovery_pdf";
+import { trigger_download } from "@/services/export/destination";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
   publish_key_to_wkd,
@@ -198,15 +199,8 @@ export function use_encryption() {
       const blob = new Blob([pgp_key.public_key_armored], {
         type: "application/pgp-keys",
       });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
 
-      a.href = url;
-      a.download = `aster-public-key-${pgp_key.key_id}.asc`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      trigger_download(blob, `aster-public-key-${pgp_key.key_id}.asc`);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
 
@@ -341,15 +335,8 @@ export function use_encryption() {
       const blob = new Blob([armored_key], {
         type: "application/pgp-keys",
       });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
 
-      a.href = url;
-      a.download = `aster-private-key-${pgp_key.key_id}.asc`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      trigger_download(blob, `aster-private-key-${pgp_key.key_id}.asc`);
 
       set_show_export_prompt(false);
       set_export_password("");
@@ -378,10 +365,16 @@ export function use_encryption() {
 
   const handle_download_codes = async () => {
     if (!recovery_codes || recovery_codes.length === 0) return;
-    await generate_recovery_pdf(
-      user_email || "your-account@astermail.org",
-      recovery_codes,
-    );
+
+    try {
+      await generate_recovery_pdf(
+        user_email || "your-account@astermail.org",
+        recovery_codes,
+      );
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+      show_toast(t("settings.failed_download_codes"), "error");
+    }
   };
 
   const handle_copy_all_codes = async () => {

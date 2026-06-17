@@ -2293,6 +2293,9 @@ export const it = {
     no_encryption_key_description: "La tua chiave di crittografia verrà generata automaticamente",
     always_on: "Sempre attiva",
     key_fingerprint: "Impronta digitale della chiave",
+    copy_fingerprint: "Copia impronta digitale",
+    copy_public_key: "Copia chiave pubblica",
+    failed_download_codes: "Impossibile scaricare i codici di recupero. Riprova.",
     export_keys: "Esporta chiavi e codici di recupero",
     recovery_codes: "Codici di recupero",
     changes_saved_automatically: "Le modifiche vengono salvate automaticamente",
@@ -3809,6 +3812,10 @@ export const it = {
     security_keys_description: "Usa chiavi di sicurezza hardware o passkey per accedere",
     add_security_key: "Aggiungi chiave di sicurezza",
     no_security_keys: "Nessuna chiave di sicurezza registrata",
+    security_keys_desktop_note:
+      "Le chiavi di sicurezza possono essere aggiunte nell'app web di Aster su app.astermail.org. Puoi comunque visualizzare e rimuovere le chiavi esistenti qui.",
+    passkeys_desktop_note:
+      "Le passkey possono essere aggiunte nell'app web di Aster su app.astermail.org. Puoi comunque visualizzare e rimuovere le passkey esistenti qui.",
     app_lock_pin: "Blocco PIN",
     app_lock_pin_description: "Richiede un PIN per aprire Aster Mail nel browser",
     app_lock_choose_digits: "Scegli la lunghezza del PIN",
@@ -5418,7 +5425,7 @@ export const it = {
     unexpected_error: "Qualcosa non ha funzionato come previsto. Un altro tentativo dovrebbe bastare.",
     unexpected_health_check_error: "La diagnostica ha avuto un intoppo. Un altro tentativo dovrebbe bastare.",
     unknown_error: "Qualcosa non ha funzionato come previsto. Un altro tentativo dovrebbe bastare. Non siamo riusciti a individuarne la causa.",
-    unrecognized_format: "Non siamo riusciti a riconoscere il formato di {{name}}. Aster supporta MBOX, EML, CSV e PST, e salvare il file in uno di questi formati permetterà l'importazione.",
+    unrecognized_format: "Aster non può leggere {{name}}. I formati supportati sono MBOX, EML, CSV e PST. Salva il file in uno di questi formati e riprova.",
     version_conflict: "Qualcuno o qualcos'altro ha apportato modifiche prima. Un aggiornamento mostrerà la versione più recente.",
   },
   mail_rules: {
