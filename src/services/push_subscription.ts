@@ -75,19 +75,27 @@ export async function subscribe_to_push(): Promise<boolean> {
     if (!vapid_key) return false;
 
     const registration = await navigator.serviceWorker.ready;
+    const app_server_key = url_base64_to_uint8_array(vapid_key);
 
-    const existing = await registration.pushManager.getSubscription();
+    let subscription: PushSubscription | null = null;
 
-    if (existing) {
-      await send_subscription_to_server(existing);
-
-      return true;
+    try {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: app_server_key,
+      });
+    } catch {
+      const existing = await registration.pushManager.getSubscription();
+      if (existing) {
+        await existing.unsubscribe();
+      }
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: app_server_key,
+      });
     }
 
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: url_base64_to_uint8_array(vapid_key),
-    });
+    if (!subscription) return false;
 
     await send_subscription_to_server(subscription);
 
