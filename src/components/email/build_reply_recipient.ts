@@ -27,6 +27,7 @@ export interface ReplyRecipientSource {
   first_to?: { name: string; email: string };
   reply_to?: { name: string; email: string };
   reply_alias?: { name?: string; email: string };
+  own_addresses?: string[];
 }
 
 export interface ReplyRecipient {
@@ -38,6 +39,14 @@ export function build_reply_recipient(
   source: ReplyRecipientSource,
   is_own_message: boolean,
 ): ReplyRecipient {
+  const own_set = new Set(
+    (source.own_addresses ?? [])
+      .filter(Boolean)
+      .map((addr) => addr.toLowerCase().trim()),
+  );
+  const is_own_address = (email: string): boolean =>
+    own_set.has(email.toLowerCase().trim());
+
   if (is_own_message) {
     if (source.first_to) {
       const t = source.first_to;
@@ -63,7 +72,11 @@ export function build_reply_recipient(
     };
   }
 
-  if (source.reply_to && source.reply_to.email) {
+  if (
+    source.reply_to &&
+    source.reply_to.email &&
+    !is_own_address(source.reply_to.email)
+  ) {
     const r = source.reply_to;
 
     return {
@@ -89,6 +102,7 @@ export interface ReplyRecipientMessage {
 
 export function build_reply_recipient_for_message(
   message: ReplyRecipientMessage,
+  own_addresses?: string[],
 ): ReplyRecipient {
   const is_own_message = message.item_type === "sent";
   const is_forwarded = !is_own_message && !!message.display_sender_email;
@@ -105,6 +119,7 @@ export function build_reply_recipient_for_message(
       reply_alias: is_forwarded
         ? { name: message.sender_name, email: message.sender_email }
         : undefined,
+      own_addresses,
     },
     is_own_message,
   );
