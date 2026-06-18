@@ -218,3 +218,36 @@ jobs:
               fi
             done
           done
+
+  publish_winget:
+    needs: [build, ensure_canonical_assets]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Skip prereleases and drafts
+        id: gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          status=$(gh release view "${GITHUB_REF_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --json isPrerelease,isDraft \
+            --jq 'if (.isPrerelease or .isDraft) then "skip" else "publish" end')
+          echo "decision=$status" >> "$GITHUB_OUTPUT"
+          echo "Release ${GITHUB_REF_NAME} -> $status"
+
+      - name: Compute package version
+        id: ver
+        if: steps.gate.outputs.decision == 'publish'
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish manifest to winget-pkgs
+        if: steps.gate.outputs.decision == 'publish'
+        uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
+        with:
+          identifier: AsterPrivacy.AsterMail
+          version: ${{ steps.ver.outputs.version }}
+          release-tag: ${{ github.ref_name }}
+          installers-regex: '^Aster-Mail-x64-setup\.exe$'
+          fork-user: findleyl
+          token: ${{ secrets.WINGET_TOKEN }}
