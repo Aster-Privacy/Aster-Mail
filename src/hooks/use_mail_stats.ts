@@ -334,10 +334,10 @@ class MailStatsStore {
         ...this.cache.data,
         [field]: Math.max(0, current + delta),
       };
-      this.cache.timestamp = Date.now();
       this.save_to_storage();
       this.notify();
       this.sync_external_surfaces();
+      this.fetch_debounced();
     }
   }
 

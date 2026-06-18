@@ -70,6 +70,10 @@ export interface PasskeysTranslations {
   remove: string;
   confirm_remove: string;
   removed: string;
+  rename: string;
+  rename_placeholder: string;
+  rename_saved: string;
+  rename_failed: string;
   register_success: string;
   register_failed: string;
   registering: string;
@@ -1973,6 +1977,8 @@ export interface SettingsTranslations {
   desktop: string;
   show_desktop_notifications: string;
   blocked_by_browser: string;
+  blocked_by_os: string;
+  open_system_notification_settings: string;
   sound_new_notifications: string;
   push: string;
   push_notifications_description: string;
@@ -2068,9 +2074,11 @@ export interface SettingsTranslations {
   account_protection_hint_strong: string;
   protection_breakdown_title: string;
   criterion_two_factor: string;
+  criterion_passkey: string;
   criterion_recovery_email: string;
   criterion_auto_lock: string;
   criterion_login_alerts: string;
+  criterion_read_receipts_off: string;
   criterion_forward_secrecy: string;
   enable_undo_send: string;
   undo_send_delay_description: string;

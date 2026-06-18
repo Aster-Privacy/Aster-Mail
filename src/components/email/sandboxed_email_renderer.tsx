@@ -381,7 +381,7 @@ ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
   })()}/">
 <style>${iframe_css}</style>
 <style>body{zoom:${email_zoom}}</style>
-${preferences.dyslexia_font ? `<style>body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
+${preferences.dyslexia_font ? `<style>@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/OpenDyslexic-Regular.woff2') format('woff2');}@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/OpenDyslexic-Bold.woff2') format('woff2');}body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
 ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important; }</style>` : ""}
 <style>${quote_toggle_css}</style>
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}

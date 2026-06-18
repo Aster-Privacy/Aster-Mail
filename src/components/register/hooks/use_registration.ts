@@ -737,6 +737,7 @@ export function use_registration() {
   };
 
   const handle_advance_from_recovery_key = async () => {
+    set_recovery_codes([]);
     if (recovery_email_required && recovery_email.trim()) {
       await handle_recovery_email_continue();
     } else {

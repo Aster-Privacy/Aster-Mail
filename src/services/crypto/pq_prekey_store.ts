@@ -130,6 +130,9 @@ function mark_pq_secret_missing(rk: string): void {
 
 const pq_inflight = new Map<string, Promise<Uint8Array | null>>();
 
+const PQ_TRANSIENT_ERROR_TTL_MS = 60_000;
+const pq_transient_errors = new Map<string, number>();
+
 const PQ_UPLOAD_RATE_LIMIT_COOLDOWN_MS = 60000;
 let pq_upload_rate_limited_until = 0;
 
@@ -479,6 +482,11 @@ export async function load_pq_secret(
     return null;
   }
 
+  const transient_until = pq_transient_errors.get(rk);
+  if (transient_until !== undefined && Date.now() < transient_until) {
+    return null;
+  }
+
   const existing = pq_inflight.get(rk);
 
   if (existing) return existing;
@@ -507,6 +515,8 @@ export async function load_pq_secret(
       }
     } else if (not_found) {
       mark_pq_secret_missing(rk);
+    } else {
+      pq_transient_errors.set(rk, Date.now() + PQ_TRANSIENT_ERROR_TTL_MS);
     }
 
     return remote;

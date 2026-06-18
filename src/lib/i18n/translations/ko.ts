@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2465,6 +2465,8 @@ export const ko = {
     desktop: "데스크톱",
     show_desktop_notifications: "데스크톱 알림 표시",
     blocked_by_browser: "브라우저에 의해 차단됨",
+    blocked_by_os: "Enable in system notification settings",
+    open_system_notification_settings: "Open Settings",
     sound_new_notifications: "새 알림에 대해 소리 재생",
     push: "푸시",
     push_notifications_description: "모바일에서 푸시 알림을 받습니다",

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BellIcon, BellAlertIcon, MoonIcon } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
@@ -162,18 +162,44 @@ function get_permission_state(): PermissionState {
   return Notification.permission;
 }
 
+const is_tauri = "__TAURI_INTERNALS__" in window;
+
+async function open_system_notification_settings_os(): Promise<void> {
+  try {
+    const { open } = await import("@tauri-apps/plugin-shell");
+
+    await open("ms-settings:notifications");
+  } catch {
+    /* ignore - macOS / Linux have no ms-settings: equivalent */
+  }
+}
+
 export function NotificationsSection() {
   const { preferences, update_preference } = use_preferences();
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
   const [permission_state, set_permission_state] =
-    useState<PermissionState>(get_permission_state);
+    useState<PermissionState>(() =>
+      is_tauri ? "default" : get_permission_state(),
+    );
+
+  useEffect(() => {
+    if (!is_tauri) return;
+
+    import("@tauri-apps/plugin-notification")
+      .then(({ isPermissionGranted }) =>
+        isPermissionGranted().then((granted) => {
+          set_permission_state(granted ? "granted" : "denied");
+        }),
+      )
+      .catch(() => {});
+  }, []);
 
   const handle_desktop_toggle = async () => {
     const new_value = !preferences.desktop_notifications;
 
     if (new_value) {
-      if ("__TAURI_INTERNALS__" in window) {
+      if (is_tauri) {
         try {
           const { isPermissionGranted, requestPermission } = await import(
             "@tauri-apps/plugin-notification"
@@ -193,6 +219,7 @@ export function NotificationsSection() {
             subscribe_to_push();
           } else {
             set_permission_state("denied");
+            await open_system_notification_settings_os();
           }
         } catch {
           set_permission_state("denied");
@@ -244,7 +271,9 @@ export function NotificationsSection() {
 
   const desktop_description =
     permission_state === "denied"
-      ? t("settings.blocked_by_browser")
+      ? is_tauri
+        ? t("settings.blocked_by_os")
+        : t("settings.blocked_by_browser")
       : permission_state === "unsupported"
         ? t("settings.notifications_not_supported")
         : t("settings.show_desktop_notifications");
@@ -263,6 +292,17 @@ export function NotificationsSection() {
         </div>
 
         <ToggleSetting
+          action={
+            is_tauri && permission_state === "denied" ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={open_system_notification_settings_os}
+              >
+                {t("settings.open_system_notification_settings")}
+              </Button>
+            ) : undefined
+          }
           description={desktop_description}
           enabled={
             preferences.desktop_notifications && permission_state === "granted"

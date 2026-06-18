@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2416,6 +2416,8 @@ export const tr = {
     desktop: "Masaüstü",
     show_desktop_notifications: "Masaüstü bildirimlerini göster",
     blocked_by_browser: "Tarayıcı tarafından engellendi",
+    blocked_by_os: "Enable in system notification settings",
+    open_system_notification_settings: "Open Settings",
     sound_new_notifications: "Yeni bildirimler için ses çal",
     push: "Anlık",
     push_notifications_description: "Mobilde anlık bildirimler al",

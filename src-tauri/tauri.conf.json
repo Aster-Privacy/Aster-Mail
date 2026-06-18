@@ -21,7 +21,8 @@
         "minHeight": 600,
         "center": true,
         "theme": "Dark",
-        "backgroundColor": "#0a0a0a"
+        "backgroundColor": "#0a0a0a",
+        "additionalBrowserArgs": "--disable-logging --disable-crash-reporter --no-first-run"
       }
     ],
     "security": {

@@ -24,6 +24,7 @@ import {
   get_plan_limits,
   type PlanLimitsResponse,
 } from "@/services/api/billing";
+import { api_client } from "@/services/api/client";
 
 let cached_limits: PlanLimitsResponse | null = null;
 let cache_timestamp = 0;
@@ -41,6 +42,12 @@ export function use_plan_limits() {
   const [is_loading, set_is_loading] = useState(!cached_limits);
 
   const fetch_limits = useCallback(async () => {
+    if (!api_client.is_authenticated()) {
+      set_is_loading(false);
+
+      return;
+    }
+
     const now = Date.now();
 
     if (cached_limits && now - cache_timestamp < CACHE_TTL) {

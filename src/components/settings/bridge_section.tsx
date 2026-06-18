@@ -42,6 +42,7 @@ import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import { SmtpTokensSection } from "@/components/settings/smtp_tokens_section";
 
 const DL = "/api/bridge/v1/download";
 
@@ -121,7 +122,7 @@ export function BridgeSection() {
   }, [load_devices]);
 
   if (plan_loading && !limits) return null;
-  const is_locked = !limits || limits.plan_code === "free";
+  const is_locked = !!limits && limits.plan_code === "free";
 
   const handle_revoke = async (id: string) => {
     set_confirm_revoke_id(null);
@@ -259,7 +260,7 @@ export function BridgeSection() {
               <span className="text-sm font-semibold text-txt-primary">{t(card.name_key)}</span>
             </div>
             <p className="text-sm text-txt-muted leading-relaxed flex-1">{t(card.desc_key)}</p>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
               <a
                 href={is_locked ? undefined : `${DL}/${card.platform}`}
                 aria-disabled={is_locked}
@@ -390,6 +391,8 @@ export function BridgeSection() {
         title={t("settings.bridge_revoke_title")}
         variant="danger"
       />
+
+      {!is_locked && <SmtpTokensSection />}
 
       <div>
         <div className="mb-4">

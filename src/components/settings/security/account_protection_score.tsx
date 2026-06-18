@@ -38,28 +38,26 @@ import { use_i18n } from "@/lib/i18n/context";
 
 interface AccountProtectionScoreProps {
   totp_enabled: boolean;
+  passkey_registered: boolean;
   recovery_email_verified: boolean;
   login_alerts_enabled: boolean;
-  block_external_content: boolean;
   block_tracking_pixels: boolean;
   block_remote_images: boolean;
-  block_remote_fonts: boolean;
-  block_remote_css: boolean;
   strip_exif_on_compose: boolean;
-  forward_secrecy_enabled: boolean;
+  read_receipts_off: boolean;
   security_loaded?: boolean;
   on_criterion_click?: Array<(() => void) | undefined>;
 }
 
-const WEIGHTS = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1] as const;
-const MAX_SCORE = 10;
+const WEIGHTS = [1, 1, 1, 1, 1, 1, 1, 1] as const;
+const MAX_SCORE = 8;
 
 type Status = "weak" | "fair" | "partial" | "strong";
 
 function get_status(score: number): Status {
-  if (score >= 9) return "strong";
-  if (score >= 7) return "partial";
-  if (score >= 4) return "fair";
+  if (score >= MAX_SCORE) return "strong";
+  if (score >= 6) return "partial";
+  if (score >= 3) return "fair";
 
   return "weak";
 }
@@ -74,15 +72,13 @@ const BG_COLOR: Record<Status, string> = {
 
 export function AccountProtectionScore({
   totp_enabled,
+  passkey_registered,
   recovery_email_verified,
   login_alerts_enabled,
-  block_external_content,
   block_tracking_pixels,
   block_remote_images,
-  block_remote_fonts,
-  block_remote_css,
   strip_exif_on_compose,
-  forward_secrecy_enabled,
+  read_receipts_off,
   security_loaded = true,
   on_criterion_click,
 }: AccountProtectionScoreProps) {
@@ -91,28 +87,24 @@ export function AccountProtectionScore({
 
   const criteria_met = [
     totp_enabled,
+    passkey_registered,
     recovery_email_verified,
     login_alerts_enabled,
-    block_external_content,
     block_tracking_pixels,
     block_remote_images,
-    block_remote_fonts,
-    block_remote_css,
     strip_exif_on_compose,
-    forward_secrecy_enabled,
+    read_receipts_off,
   ];
 
   const criteria_labels = [
     t("settings.criterion_two_factor"),
+    t("settings.criterion_passkey"),
     t("settings.criterion_recovery_email"),
     t("settings.criterion_login_alerts"),
-    t("settings.tracking_protection_enabled"),
     t("settings.block_spy_pixels"),
     t("settings.block_remote_images_label"),
-    t("settings.block_remote_fonts_label"),
-    t("settings.block_remote_css_label"),
     t("settings.strip_exif_on_compose_label"),
-    t("settings.criterion_forward_secrecy"),
+    t("settings.criterion_read_receipts_off"),
   ];
 
   const score = criteria_met.reduce(
@@ -219,7 +211,7 @@ export function AccountProtectionScore({
               {criteria_labels.map((label, i) => {
                 const click_handler = on_criterion_click?.[i];
                 const is_clickable = !!click_handler;
-                const is_async_row = i < 3;
+                const is_async_row = i < 4;
                 const show_skeleton = is_async_row && !security_loaded;
 
                 if (show_skeleton) {

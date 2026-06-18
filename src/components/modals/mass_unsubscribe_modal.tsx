@@ -64,6 +64,7 @@ import {
   detect_unsubscribe_info,
   perform_unsubscribe,
 } from "@/utils/unsubscribe_detector";
+import { confirm_unsubscribe_bulk } from "@/components/modals/unsubscribe_confirmation_modal";
 
 interface Subscription {
   id: string;
@@ -314,6 +315,10 @@ export function MassUnsubscribeModal({
   const handle_unsubscribe = async () => {
     if (selected_ids.size === 0) return;
 
+    const confirmed = await confirm_unsubscribe_bulk(selected_ids.size);
+
+    if (!confirmed) return;
+
     set_is_unsubscribing(true);
     const total = selected_ids.size;
 
@@ -338,6 +343,7 @@ export function MassUnsubscribeModal({
               sub.sender_email,
               sub.sender_name,
               sub.unsub_info,
+              { skip_confirm: true },
             ),
           ),
         );
