@@ -163,3 +163,89 @@ export interface InvitePreview {
 export function preview_invite(token: string): Promise<ApiResponse<InvitePreview>> {
   return api_client.get<InvitePreview>(`/payments/v1/family/invites/${encodeURIComponent(token)}/preview`);
 }
+
+export interface ReservedAddress {
+  id: string;
+  username: string;
+  email_domain: string;
+  label?: string;
+  label_nonce?: string;
+  allocated_storage_bytes: number;
+  status: "reserved" | "claimed" | "released";
+  is_minor: boolean;
+  claim_url?: string;
+  claimed_user_id?: string | null;
+  claimed_at?: string | null;
+  created_at: string;
+}
+
+export interface ListReservationsResponse {
+  reservations: ReservedAddress[];
+  max_members: number;
+  seats_used: number;
+}
+
+export interface CreateReservationRequest {
+  username: string;
+  email_domain: string;
+  label?: string;
+  label_nonce?: string;
+  allocated_storage_bytes: number;
+  consent_attested: boolean;
+  captcha_token?: string;
+}
+
+export interface CheckAvailabilityResponse {
+  available: boolean;
+  reason?: "taken" | "reserved" | "invalid";
+}
+
+export interface RegenerateClaimLinkResponse {
+  id: string;
+  claim_url: string;
+}
+
+export interface PreviewClaimResponse {
+  username: string;
+  email_domain: string;
+  allocated_storage_bytes: number;
+}
+
+export function list_reservations(): Promise<ApiResponse<ListReservationsResponse>> {
+  return api_client.get<ListReservationsResponse>("/payments/v1/family/reservations");
+}
+
+export function create_reservation(
+  request: CreateReservationRequest
+): Promise<ApiResponse<ReservedAddress>> {
+  return api_client.post<ReservedAddress>("/payments/v1/family/reservations", request);
+}
+
+export function check_address_availability(
+  username: string,
+  email_domain: string
+): Promise<ApiResponse<CheckAvailabilityResponse>> {
+  const params = new URLSearchParams({ username, email_domain });
+  return api_client.get<CheckAvailabilityResponse>(
+    `/payments/v1/family/reservation-availability?${params.toString()}`
+  );
+}
+
+export function release_reservation(id: string): Promise<ApiResponse<unknown>> {
+  return api_client.delete<unknown>(`/payments/v1/family/reservations/${id}`);
+}
+
+export function regenerate_claim_link(
+  id: string
+): Promise<ApiResponse<RegenerateClaimLinkResponse>> {
+  return api_client.post<RegenerateClaimLinkResponse>(
+    `/payments/v1/family/reservations/${id}/claim-link`,
+    {}
+  );
+}
+
+export function preview_claim(token: string): Promise<ApiResponse<PreviewClaimResponse>> {
+  return api_client.get<PreviewClaimResponse>(
+    `/public/v1/family/reservations/claim/${encodeURIComponent(token)}`
+  );
+}
