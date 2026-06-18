@@ -66,6 +66,7 @@ interface RegisterRequest {
   referral_code?: string;
   client_platform?: string;
   recovery_email?: string;
+  reservation_claim_token?: string;
 }
 
 interface RegisterResponse {
