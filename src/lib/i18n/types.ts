@@ -1033,6 +1033,8 @@ export interface CommonTranslations {
   hide_permanently: string;
   step: string;
   protected_in_transit: string;
+  recipient_key_outdated?: string;
+  recipient_key_outdated_desc?: string;
   end_to_end_encrypted_label: string;
   encrypted_in_transit_stored: string;
   only_you_and_sender: string;
