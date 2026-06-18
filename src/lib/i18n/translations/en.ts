@@ -824,6 +824,9 @@ export const en: Translations = {
     hide_permanently: "Hide this checklist",
     step: "Step",
     protected_in_transit: "Protected in Transit",
+    recipient_key_outdated: "Recipient's key is outdated",
+    recipient_key_outdated_desc:
+      "This recipient's published key is expired or invalid, so the message cannot be end-to-end encrypted. It will be sent protected in transit only.",
     end_to_end_encrypted_label: "End-to-End Encrypted",
     encrypted_in_transit_stored: "Encrypted in transit and stored encrypted.",
     only_you_and_sender: "Only you and the sender can read this.",
