@@ -18,6 +18,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "postinstall": "npx --yes patch-package@8.0.1",
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint --fix",
