@@ -1,0 +1,94 @@
+name: Verify Release Download Assets
+
+# The marketing site (astermail.org/download) links to FIXED, version-less
+# asset names under releases/latest/download/. Tauri produces VERSIONED names,
+# so a release cut outside release.yml (or with a failed macOS leg) leaves the
+# whole download page 404ing. This guard runs on every publish/promotion,
+# self-heals the desktop assets from their versioned counterparts, carries the
+# dmg over from a prior release when a macOS build is missing, and fails loudly
+# if any required website asset (e.g. the Android APK) is still absent.
+
+on:
+  release:
+    types: [released, published]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    if: github.event.release.draft == false && github.event.release.prerelease == false
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Ensure website download assets exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          V="${TAG#v}"
+          TMP="$(mktemp -d)"
+
+          REQUIRED=(
+            Aster-Mail-x64-setup.exe
+            Aster-Mail-x64.msi
+            Aster-Mail-x64.AppImage
+            Aster-Mail-amd64.deb
+            Aster-Mail-x86_64.rpm
+            Aster-Mail-universal.dmg
+            Aster-Mail.apk
+          )
+
+          declare -A SRC=(
+            [Aster-Mail-x64-setup.exe]="Aster.Mail_${V}_x64-setup.exe"
+            [Aster-Mail-x64.msi]="Aster.Mail_${V}_x64_en-US.msi"
+            [Aster-Mail-x64.AppImage]="Aster.Mail_${V}_amd64.AppImage"
+            [Aster-Mail-amd64.deb]="Aster.Mail_${V}_amd64.deb"
+            [Aster-Mail-x86_64.rpm]="Aster.Mail-${V}-1.x86_64.rpm"
+            [Aster-Mail-universal.dmg]="Aster.Mail_${V}_universal.dmg"
+          )
+
+          assets() { gh release view "$TAG" --repo "$REPO" --json assets -q '.assets[].name'; }
+          has() { assets | grep -qxF "$1"; }
+
+          for name in "${REQUIRED[@]}"; do
+            if has "$name"; then echo "ok: $name"; continue; fi
+
+            src="${SRC[$name]:-}"
+            if [ -n "$src" ] && has "$src"; then
+              echo "::notice::self-healing $name from $src on $TAG"
+              gh release download "$TAG" --repo "$REPO" --pattern "$src" --dir "$TMP" --clobber
+              mv "$TMP/$src" "$TMP/$name"
+              gh release upload "$TAG" "$TMP/$name" --repo "$REPO" --clobber
+              continue
+            fi
+
+            if [ "$name" = "Aster-Mail-universal.dmg" ]; then
+              echo "::warning::no macOS build on $TAG; carrying over the dmg from the most recent release that has one"
+              for prev in $(gh release list --repo "$REPO" --limit 40 --json tagName,isDraft -q '.[] | select(.isDraft==false) | .tagName'); do
+                [ "$prev" = "$TAG" ] && continue
+                if gh release view "$prev" --repo "$REPO" --json assets -q '.assets[].name' | grep -qxF "Aster-Mail-universal.dmg"; then
+                  gh release download "$prev" --repo "$REPO" --pattern "Aster-Mail-universal.dmg" --dir "$TMP" --clobber
+                  gh release upload "$TAG" "$TMP/Aster-Mail-universal.dmg" --repo "$REPO" --clobber
+                  echo "::warning::carried over Aster-Mail-universal.dmg from $prev - cut a fresh macOS build to replace it"
+                  break
+                fi
+              done
+              continue
+            fi
+          done
+
+          MISSING=()
+          for name in "${REQUIRED[@]}"; do
+            has "$name" || MISSING+=("$name")
+          done
+
+          if [ ${#MISSING[@]} -ne 0 ]; then
+            echo "::error::Latest release $TAG is missing website download assets: ${MISSING[*]}"
+            echo "astermail.org/download links for these will 404. The Android APK (Aster-Mail.apk) is built in Aster-Android and must be uploaded to this release. See Aster-Mail/CLAUDE.md 'Website Download Assets'."
+            exit 1
+          fi
+
+          echo "All 7 website download assets present on $TAG."
