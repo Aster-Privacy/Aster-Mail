@@ -253,7 +253,7 @@ export function BridgeSection() {
         {platform_cards.map((card) => (
           <div
             key={card.id}
-            className="rounded-xl border border-edge-secondary bg-surf-primary px-5 py-5 flex items-center gap-5"
+            className="rounded-xl border border-edge-secondary bg-surf-primary px-5 py-5 flex flex-wrap items-center gap-4"
           >
             <div className="flex items-center gap-3 w-32 shrink-0">
               <span className="text-txt-secondary">{card.icon}</span>

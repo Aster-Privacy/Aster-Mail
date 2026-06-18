@@ -254,7 +254,7 @@ class SyncClient {
   private handle_message(data: ServerMessage): void {
     refresh_session_activity();
 
-    if (data.type === "new_mail") {
+    if (data.type === "new_mail" && !is_low_network()) {
       mark_view_stale();
       window.dispatchEvent(
         new CustomEvent(MAIL_EVENTS.EMAIL_RECEIVED, {
