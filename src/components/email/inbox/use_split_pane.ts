@@ -139,19 +139,28 @@ export function use_split_pane({
 
   useEffect(() => {
     if (!is_split_view) return;
-    const handle_resize = () => {
-      const viewport_width = window.innerWidth;
+    let timeout_id: ReturnType<typeof setTimeout> | null = null;
 
-      if (viewport_width < 900 && on_split_close) {
-        on_split_close();
-      } else if (viewport_width < 900 && on_split_scheduled_close) {
-        on_split_scheduled_close();
-      }
+    const handle_resize = () => {
+      if (timeout_id !== null) clearTimeout(timeout_id);
+      timeout_id = setTimeout(() => {
+        timeout_id = null;
+        const viewport_width = window.innerWidth;
+
+        if (viewport_width < 900 && on_split_close) {
+          on_split_close();
+        } else if (viewport_width < 900 && on_split_scheduled_close) {
+          on_split_scheduled_close();
+        }
+      }, 300);
     };
 
     window.addEventListener("resize", handle_resize);
 
-    return () => window.removeEventListener("resize", handle_resize);
+    return () => {
+      window.removeEventListener("resize", handle_resize);
+      if (timeout_id !== null) clearTimeout(timeout_id);
+    };
   }, [is_split_view, on_split_close, on_split_scheduled_close]);
 
   const handle_drag_start = useCallback(
