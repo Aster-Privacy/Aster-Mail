@@ -104,6 +104,7 @@ const SecureViewPage = lazy_with_retry(() => import("@/pages/secure_view"));
 const NotFoundPage = lazy_with_retry(() => import("@/pages/not_found"));
 const LinkDevicePage = lazy_with_retry(() => import("@/pages/link_device"));
 const JoinFamilyPage = lazy_with_retry(() => import("@/pages/join_family"));
+const FamilyClaimPage = lazy_with_retry(() => import("@/pages/family_claim"));
 const ExternalRedirect = ({ url }: { url: string }) => {
   window.location.href = url;
 
@@ -368,6 +369,7 @@ function App() {
               />
               <Route element={<LinkDevicePage />} path="/link-device" />
               <Route element={<JoinFamilyPage />} path="/join/family" />
+              <Route element={<FamilyClaimPage />} path="/family/claim/:token" />
               <Route element={<SecureViewPage />} path="/view/:token" />
               <Route element={<NotFoundPage />} path="*" />
             </Routes>

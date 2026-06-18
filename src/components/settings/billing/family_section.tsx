@@ -42,6 +42,7 @@ import {
   FunnelIcon,
   ChartBarIcon,
   ArrowsRightLeftIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -77,6 +78,7 @@ import {
   type FamilyGroupResponse,
   type FamilyMemberInfo,
 } from "@/services/api/family";
+import { KidsContent } from "./family_kids_addresses";
 import { show_toast } from "@/components/toast/simple_toast";
 import { check_alias_availability } from "@/services/api/aliases";
 import { use_i18n } from "@/lib/i18n/context";
@@ -100,7 +102,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert_dialog";
 
-type FamilyTab = "overview" | "members" | "groups" | "activity" | "filters" | "domains" | "security" | "retention";
+type FamilyTab = "overview" | "members" | "kids" | "groups" | "activity" | "filters" | "domains" | "security" | "retention";
 
 type TFn = (key: TranslationKey, params?: Record<string, string | number>) => string;
 
@@ -2079,6 +2081,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const owner_tabs: OwnTab[] = is_owner ? [
     { id: "overview", label: t("settings.fam_org_tab_overview"), Icon: Squares2X2Icon },
     { id: "members", label: t("settings.fam_org_tab_members"), Icon: UserPlusIcon },
+    { id: "kids", label: t("settings.fam_kids_tab"), Icon: SparklesIcon },
     { id: "groups", label: t("settings.fam_org_tab_groups"), Icon: UserGroupIcon },
     { id: "activity", label: t("settings.fam_org_tab_activity"), Icon: ChartBarIcon },
     { id: "filters", label: t("settings.fam_org_tab_filters"), Icon: FunnelIcon },
@@ -2510,6 +2513,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         </>
       )}
 
+      {tab === "kids"      && is_owner && <KidsContent group={group} />}
       {tab === "groups"    && is_owner && <GroupsContent members={active_members} />}
       {tab === "activity"  && is_owner && <ActivityContent members={active_members} />}
       {tab === "filters"   && is_owner && <FiltersContent other_member_count={active_members.length - 1} initial_filters={preloaded_filters} />}

@@ -68,7 +68,14 @@ import { EMAIL_REGEX } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { prefetch_plans } from "@/components/register/register_step_plan_selection";
 
-export function use_registration() {
+export interface RegistrationClaimOptions {
+  claim_token?: string;
+  claim_username?: string;
+  claim_domain?: "astermail.org" | "aster.cx";
+}
+
+export function use_registration(options?: RegistrationClaimOptions) {
+  const is_claim = !!options?.claim_token;
   const { t } = use_i18n();
   const navigate = useNavigate();
   const location = useLocation();
@@ -99,16 +106,18 @@ export function use_registration() {
     prefetch_plans();
   }, []);
 
-  const [step, set_step] = useState<RegistrationStep>("welcome");
+  const [step, set_step] = useState<RegistrationStep>(
+    is_claim ? "password" : "welcome",
+  );
   const [is_password_visible, set_is_password_visible] = useState(false);
   const [is_confirm_password_visible, set_is_confirm_password_visible] =
     useState(false);
   const [is_key_visible, set_is_key_visible] = useState(false);
-  const [username, set_username] = useState("");
+  const [username, set_username] = useState(options?.claim_username ?? "");
   const [display_name, set_display_name] = useState("");
   const [email_domain, set_email_domain] = useState<
     "astermail.org" | "aster.cx"
-  >("astermail.org");
+  >(options?.claim_domain ?? "astermail.org");
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
   const [recovery_email, set_recovery_email] = useState("");
@@ -379,6 +388,7 @@ export function use_registration() {
         client_platform: import.meta.env.DEV ? "desktop" : undefined,
         referral_code:
           new URLSearchParams(window.location.search).get("ref") || undefined,
+        reservation_claim_token: options?.claim_token || undefined,
       };
       pending_register_params_ref.current = base_params;
       pending_vault_data_ref.current = vault_data;
@@ -505,6 +515,10 @@ export function use_registration() {
   };
 
   const complete_registration = async () => {
+    if (is_claim) {
+      await finalize_registration();
+      return;
+    }
     set_step("plan_selection");
   };
 
@@ -818,6 +832,11 @@ export function use_registration() {
 
     complete_registration,
     finalize_registration,
+
+    is_claim,
+    claim_address: is_claim
+      ? `${options?.claim_username ?? username}@${options?.claim_domain ?? email_domain}`
+      : null,
   };
 }
 
