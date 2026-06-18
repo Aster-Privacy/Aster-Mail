@@ -280,7 +280,9 @@ export async function decrypt_attachment_data(
         : "";
 
   if (!resolved_key || resolved_key.length === 0) {
-    return base64_to_array(encrypted_data_b64).buffer;
+    throw new Error(
+      "attachment decryption key unavailable; refusing to return ciphertext",
+    );
   }
 
   const key_bytes = base64_to_array(resolved_key);
