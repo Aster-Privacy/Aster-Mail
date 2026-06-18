@@ -2352,6 +2352,8 @@ export interface SettingsTranslations {
   fam_kids_empty: string;
   fam_kids_username_label: string;
   fam_kids_username_ph: string;
+  fam_kids_info_title: string;
+  fam_kids_info_desc: string;
   fam_kids_nickname_label: string;
   fam_kids_nickname_ph: string;
   fam_kids_storage_label: string;
