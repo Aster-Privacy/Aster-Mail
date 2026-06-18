@@ -221,6 +221,18 @@ export function RecipientField({
   const retry_count_ref = useRef<Map<string, number>>(new Map());
   const [discovery_tick, set_discovery_tick] = useState(0);
 
+  const display_status = (
+    email: string,
+    status: EncryptionStatus | undefined,
+  ): EncryptionStatus | undefined => {
+    if (status === undefined) return undefined;
+    if (is_internal_email(email)) return status;
+    if (!preferences.encrypt_emails && status === "encrypted") {
+      return "transit";
+    }
+    return status;
+  };
+
   const show_locks = preferences.show_encryption_indicators;
 
   useEffect(() => {
@@ -518,7 +530,9 @@ export function RecipientField({
               key={email}
               email={email}
               encryption_status={
-                show_locks ? encryption_map.get(email) : undefined
+                show_locks
+                  ? display_status(email, encryption_map.get(email))
+                  : undefined
               }
               image_url={contact_avatar_map.get(email.toLowerCase())}
               on_remove={() => on_remove_recipient(email)}
