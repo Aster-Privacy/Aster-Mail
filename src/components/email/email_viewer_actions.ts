@@ -162,6 +162,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         reply_alias: is_forwarded
           ? { name: deps.email.sender, email: deps.email.sender_email }
           : undefined,
+        own_addresses: deps.current_user_email
+          ? [deps.current_user_email]
+          : undefined,
       },
       is_own_message,
     );
@@ -653,6 +656,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             : undefined,
           reply_alias: is_forwarded
             ? { name: msg.sender_name, email: msg.sender_email }
+            : undefined,
+          own_addresses: deps.current_user_email
+            ? [deps.current_user_email]
             : undefined,
         },
         is_own_message,

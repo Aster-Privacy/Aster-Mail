@@ -221,6 +221,25 @@ describe("build_reply_recipient_for_message", () => {
     expect(result.recipient_email).toBe("them@example.com");
   });
 
+  it("ignores a Reply-To pointing at the user's own address and uses the sender", () => {
+    const result = build_reply_recipient_for_message(
+      {
+        item_type: "received",
+        sender_name: "Nus Eon",
+        sender_email: "nuseon@atomicmail.io",
+        to_recipients: [{ name: "Nous Aeon", email: "eon@astermail.org" }],
+        raw_headers: [
+          { name: "From", value: "Nus Eon <nuseon@atomicmail.io>" },
+          { name: "Reply-To", value: "eon@astermail.org" },
+        ],
+      },
+      ["eon@astermail.org"],
+    );
+
+    expect(result.recipient_email).toBe("nuseon@atomicmail.io");
+    expect(result.recipient_email).not.toBe("eon@astermail.org");
+  });
+
   it("keeps the reverse alias over Reply-To for forwarded-alias mail", () => {
     const result = build_reply_recipient_for_message({
       item_type: "received",
