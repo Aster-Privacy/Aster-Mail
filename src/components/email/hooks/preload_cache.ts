@@ -245,6 +245,7 @@ function invalidate_thread_in_preload_cache(
   }
 }
 
+if (typeof window !== "undefined") {
 window.addEventListener(MAIL_EVENTS.THREAD_REPLY_SENT, ((
   event: CustomEvent<ThreadReplySentEventDetail>,
 ) => {
@@ -340,6 +341,7 @@ window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, ((
     },
   });
 }) as EventListener);
+}
 
 function presanitize(
   html_content: string | undefined,

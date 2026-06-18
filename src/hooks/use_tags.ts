@@ -665,12 +665,13 @@ export function use_tags(): UseTagsReturn {
   useEffect(() => {
     if (has_passphrase_in_memory()) {
       refresh();
+      fetch_counts();
     }
 
     return () => {
       abort_ref.current?.abort();
     };
-  }, [refresh]);
+  }, [refresh, fetch_counts]);
 
   useEffect(() => {
     let counts_debounce: ReturnType<typeof setTimeout> | null = null;

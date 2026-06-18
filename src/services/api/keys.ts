@@ -177,7 +177,16 @@ export async function discover_external_keys_batch(
 }
 
 export function has_pgp_key(key_info: ExternalKeyInfo | null): boolean {
-  return key_info !== null && key_info.found && key_info.public_key !== null;
+  if (key_info === null || !key_info.found || key_info.public_key === null) {
+    return false;
+  }
+  if (key_info.expires_at !== null) {
+    const expires_ms = Date.parse(key_info.expires_at);
+    if (!Number.isNaN(expires_ms) && expires_ms <= Date.now()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function format_fingerprint(fingerprint: string | null): string {

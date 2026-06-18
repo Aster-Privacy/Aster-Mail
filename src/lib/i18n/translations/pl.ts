@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2416,6 +2416,8 @@ export const pl = {
     desktop: "Pulpit",
     show_desktop_notifications: "Pokaż powiadomienia na pulpicie",
     blocked_by_browser: "Zablokowane przez przeglądarkę",
+    blocked_by_os: "Enable in system notification settings",
+    open_system_notification_settings: "Open Settings",
     sound_new_notifications: "Odtwarzaj dźwięk dla nowych powiadomień",
     push: "Powiadomienia push",
     push_notifications_description: "Otrzymuj powiadomienia push na urządzeniu mobilnym",

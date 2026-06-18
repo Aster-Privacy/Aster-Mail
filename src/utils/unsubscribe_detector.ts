@@ -325,6 +325,7 @@ export async function perform_unsubscribe(
   _sender_email: string,
   sender_name: string,
   unsub_info: UnsubscribeInfo,
+  options?: { skip_confirm?: boolean },
 ): Promise<UnsubscribeResult> {
   const confirm_kind =
     unsub_info.method === "one-click"
@@ -339,14 +340,16 @@ export async function perform_unsubscribe(
     throw new UnsubscribeError("no_method");
   }
 
-  const confirmed = await confirm_unsubscribe(
-    confirm_kind,
-    confirm_destination,
-    sender_name,
-  );
+  if (!options?.skip_confirm) {
+    const confirmed = await confirm_unsubscribe(
+      confirm_kind,
+      confirm_destination,
+      sender_name,
+    );
 
-  if (!confirmed) {
-    throw new UnsubscribeError("cancelled");
+    if (!confirmed) {
+      throw new UnsubscribeError("cancelled");
+    }
   }
 
   if (unsub_info.method === "one-click" && unsub_info.unsubscribe_link) {

@@ -150,7 +150,6 @@ export function use_split_pane({
     };
 
     window.addEventListener("resize", handle_resize);
-    handle_resize();
 
     return () => window.removeEventListener("resize", handle_resize);
   }, [is_split_view, on_split_close, on_split_scheduled_close]);

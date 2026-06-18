@@ -955,12 +955,13 @@ export function use_folders(): UseFoldersReturn {
   useEffect(() => {
     if (has_passphrase_in_memory()) {
       refresh();
+      fetch_counts();
     }
 
     return () => {
       abort_ref.current?.abort();
     };
-  }, [refresh]);
+  }, [refresh, fetch_counts]);
 
   useEffect(() => {
     let counts_debounce: ReturnType<typeof setTimeout> | null = null;
@@ -990,6 +991,7 @@ export function use_folders(): UseFoldersReturn {
     const visibility_handler = () => {
       if (document.visibilityState === "visible" && has_passphrase_in_memory()) {
         fetch_folders();
+        fetch_counts();
       }
     };
 

@@ -389,7 +389,11 @@ export const SidebarFolders = memo(function SidebarFolders({
                         {folder.name}
                       </span>
                       <CountBadge
-                        count={folder_counts[folder.folder_token] ?? 0}
+                        count={
+                          folder_counts[folder.folder_token] ??
+                          folder.item_count ??
+                          0
+                        }
                         is_active={effective_selected === folder_item_id}
                       />
                       {(folder.is_locked ||
