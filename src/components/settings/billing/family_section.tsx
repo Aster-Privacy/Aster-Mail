@@ -42,7 +42,7 @@ import {
   FunnelIcon,
   ChartBarIcon,
   ArrowsRightLeftIcon,
-  SparklesIcon,
+  UserIcon,
 } from "@heroicons/react/24/outline";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -2081,7 +2081,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const owner_tabs: OwnTab[] = is_owner ? [
     { id: "overview", label: t("settings.fam_org_tab_overview"), Icon: Squares2X2Icon },
     { id: "members", label: t("settings.fam_org_tab_members"), Icon: UserPlusIcon },
-    { id: "kids", label: t("settings.fam_kids_tab"), Icon: SparklesIcon },
+    { id: "kids", label: t("settings.fam_kids_tab"), Icon: UserIcon },
     { id: "groups", label: t("settings.fam_org_tab_groups"), Icon: UserGroupIcon },
     { id: "activity", label: t("settings.fam_org_tab_activity"), Icon: ChartBarIcon },
     { id: "filters", label: t("settings.fam_org_tab_filters"), Icon: FunnelIcon },
