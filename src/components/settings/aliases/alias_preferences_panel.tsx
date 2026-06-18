@@ -121,11 +121,18 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
                   label={t("settings.alias_pref_default_domain")}
                 >
                   <Select
-                    value={prefs.alias_default_domain ?? available_domains[0] ?? ""}
+                    value={
+                      prefs.alias_default_domain &&
+                      available_domains.includes(prefs.alias_default_domain)
+                        ? prefs.alias_default_domain
+                        : available_domains[0] ?? ""
+                    }
                     onValueChange={(v) => save_pref({ alias_default_domain: v })}
                   >
                     <SelectTrigger className="h-9 w-44 shrink-0 bg-transparent">
-                      <SelectValue />
+                      <SelectValue
+                        placeholder={t("settings.alias_pref_default_domain")}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {available_domains.map((d) => (

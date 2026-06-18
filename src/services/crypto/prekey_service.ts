@@ -21,7 +21,11 @@
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 import { api_client } from "../api/client";
-import { save_pq_secret, delete_pq_secret } from "./pq_prekey_store";
+import {
+  save_pq_secrets_bulk,
+  delete_pq_secret,
+  is_pq_upload_rate_limited,
+} from "./pq_prekey_store";
 
 const ONE_TIME_PREKEY_BATCH_SIZE = 50;
 const PQ_PREKEY_BATCH_SIZE = 20;
@@ -126,6 +130,10 @@ export async function upload_prekeys(
 export async function generate_and_upload_prekeys(
   force: boolean = false,
 ): Promise<boolean> {
+  if (is_pq_upload_rate_limited()) {
+    return false;
+  }
+
   if (force) {
     const deadline = Date.now() + 30000;
 
@@ -154,40 +162,53 @@ export async function generate_and_upload_prekeys(
 
     let persistence_ok = true;
 
-    for (let i = 0; i < otp.prekeys.length; i++) {
-      try {
-        await save_pq_secret(otp.prekeys[i].key_id, otp.secret_keys[i]);
-        persisted_otp_ids.push(otp.prekeys[i].key_id);
-      } catch {
-        persistence_ok = false;
-        break;
+    try {
+      await save_pq_secrets_bulk(
+        otp.prekeys.map((p, i) => ({
+          key_id: p.key_id,
+          secret: otp.secret_keys[i],
+        })),
+      );
+      for (const p of otp.prekeys) {
+        persisted_otp_ids.push(p.key_id);
       }
-    }
 
-    if (persistence_ok) {
-      for (let i = 0; i < pq.prekeys.length; i++) {
-        try {
-          await save_pq_secret(pq.prekeys[i].key_id, pq.secret_keys[i]);
-          persisted_pq_ids.push(pq.prekeys[i].key_id);
-        } catch {
-          persistence_ok = false;
-          break;
-        }
+      await save_pq_secrets_bulk(
+        pq.prekeys.map((p, i) => ({
+          key_id: p.key_id,
+          secret: pq.secret_keys[i],
+        })),
+      );
+      for (const p of pq.prekeys) {
+        persisted_pq_ids.push(p.key_id);
       }
+    } catch {
+      persistence_ok = false;
     }
 
     if (!persistence_ok) {
-      for (const id of persisted_otp_ids) {
-        await delete_pq_secret(id);
-      }
-      for (const id of persisted_pq_ids) {
-        await delete_pq_secret(id);
+      if (!is_pq_upload_rate_limited()) {
+        for (const id of persisted_otp_ids) {
+          await delete_pq_secret(id);
+        }
+        for (const id of persisted_pq_ids) {
+          await delete_pq_secret(id);
+        }
       }
 
       return false;
     }
 
     const success = await upload_prekeys(otp.prekeys, pq.prekeys);
+
+    if (!success && !is_pq_upload_rate_limited()) {
+      for (const id of persisted_otp_ids) {
+        await delete_pq_secret(id);
+      }
+      for (const id of persisted_pq_ids) {
+        await delete_pq_secret(id);
+      }
+    }
 
     return success;
   } finally {

@@ -582,6 +582,8 @@ export function AttachmentList({
   );
 
   if (preferences.low_network_mode && !user_expanded) {
+    if (!hint_attachment_count) return null;
+
     return (
       <div
         className="border-t px-3 @md:px-4 py-2.5"

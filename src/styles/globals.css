@@ -215,6 +215,11 @@ select:focus-visible,
   outline-offset: 0;
 }
 
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
 button,
 [role="button"],
 [data-pressed="true"],
@@ -564,7 +569,7 @@ html {
   -webkit-backdrop-filter: none !important;
 }
 
-:root .reduce-transparency {
+.reduce-transparency {
   --modal-overlay: rgba(0, 0, 0, 0.75);
 }
 

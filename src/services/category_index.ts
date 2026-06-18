@@ -737,6 +737,12 @@ async function reclassify_id(id: string): Promise<void> {
       return;
     }
 
+    if (item.item_type !== "received") {
+      if (entries_map.has(id)) remove_ids([id]);
+
+      return;
+    }
+
     const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
     const [envelope, metadata] = await Promise.all([
       decrypt_envelope(item.encrypted_envelope, item.envelope_nonce),

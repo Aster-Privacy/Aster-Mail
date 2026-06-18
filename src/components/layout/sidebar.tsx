@@ -290,7 +290,7 @@ export const Sidebar = ({
   const workspace_switcher_ref = useRef<HTMLDivElement>(null);
 
   const storage_percentage = useMemo(() => {
-    const total = stats.storage_total_bytes || 1073741824;
+    const total = stats.storage_total_bytes;
 
     if (!Number.isFinite(total) || total <= 0) return 0;
     const used = stats.storage_used_bytes || 0;

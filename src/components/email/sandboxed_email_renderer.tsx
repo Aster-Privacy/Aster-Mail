@@ -313,8 +313,11 @@ export function SandboxedEmailRenderer({
   const html_bg = force_dark_mode || simple_dark_html
     ? "transparent"
     : body_background || "transparent";
-  const base_font =
-    "'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+  const dyslexia_font_stack =
+    "'OpenDyslexic','Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+  const base_font = preferences.dyslexia_font
+    ? dyslexia_font_stack
+    : "'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
 
   const quote_toggle_css = `.aster-quote-toggle { display: inline-block !important; padding: 0 3px !important; font-size: 6px !important; line-height: 12px !important; letter-spacing: 1px !important; background: rgba(128, 128, 128, 0.1) !important; border: 1px solid rgba(128, 128, 128, 0.15) !important; border-radius: 99px !important; color: rgba(100, 100, 100, 0.55) !important; cursor: pointer !important; vertical-align: middle !important; }
 .aster-quote-toggle:hover { background: rgba(128, 128, 128, 0.2) !important; border-color: rgba(128, 128, 128, 0.3) !important; }
@@ -378,6 +381,7 @@ ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
   })()}/">
 <style>${iframe_css}</style>
 <style>body{zoom:${email_zoom}}</style>
+${preferences.dyslexia_font ? `<style>body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
 ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important; }</style>` : ""}
 <style>${quote_toggle_css}</style>
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}

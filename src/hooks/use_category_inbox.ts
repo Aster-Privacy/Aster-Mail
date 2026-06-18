@@ -236,10 +236,22 @@ export function use_category_inbox(
 
         if (controller.signal.aborted) return;
 
+        const stale_non_received = fetched
+          .filter((email) => email.item_type !== "received")
+          .map((email) => email.id);
+
+        if (stale_non_received.length > 0) {
+          remove_ids(stale_non_received);
+        }
+
+        const received_only = fetched.filter(
+          (email) => email.item_type === "received",
+        );
+
         const grouped =
           preferences.conversation_grouping !== false
-            ? group_emails_by_thread(fetched)
-            : fetched;
+            ? group_emails_by_thread(received_only)
+            : received_only;
 
         page_cache.current.set(cache_key, grouped);
         if (page_cache.current.size > 24) {

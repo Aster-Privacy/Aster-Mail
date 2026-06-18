@@ -259,10 +259,24 @@ export function use_compose({
 
   const files_drop_ref = useRef<((files: File[]) => void) | null>(null);
 
+  const recipients_ref = useRef(recipients);
+  recipients_ref.current = recipients;
+
+  const get_recipient_name = useCallback(() => {
+    const primary = recipients_ref.current.to[0];
+
+    if (!primary) return "";
+
+    const local_part = primary.split("@")[0];
+
+    return local_part ?? "";
+  }, []);
+
   const editor_hook = use_compose_editor({
     message_textarea_ref,
     set_message,
     on_files_drop: (files: File[]) => files_drop_ref.current?.(files),
+    get_recipient_name,
   });
 
   const reset_form = useCallback(() => {

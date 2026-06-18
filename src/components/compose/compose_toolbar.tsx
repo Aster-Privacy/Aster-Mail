@@ -22,7 +22,13 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import type { TextAlignment, FontSizeLabel } from "@/hooks/use_editor";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+} from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@aster/ui";
@@ -271,8 +277,20 @@ function ColorPickerPopover({
     mode === "text" ? font_color || "#000000" : bg_color || "#ffff00";
 
   useEffect(() => {
+    if (!open) return;
     set_custom_hex(active_color);
-  }, [active_color, mode]);
+  }, [open, mode]);
+
+  useLayoutEffect(() => {
+    if (!open || !button_ref.current) return;
+
+    const rect = button_ref.current.getBoundingClientRect();
+
+    set_pos({
+      top: rect.top,
+      center_x: rect.left + rect.width / 2,
+    });
+  }, [open]);
 
   const handle_color_select = (color: string) => {
     set_custom_hex(color);
@@ -292,14 +310,8 @@ function ColorPickerPopover({
         title={t("mail.font_color")}
         type="button"
         onClick={() => {
-          if (!open && button_ref.current) {
+          if (!open) {
             on_before_open?.();
-            const rect = button_ref.current.getBoundingClientRect();
-
-            set_pos({
-              top: rect.top,
-              center_x: rect.left + rect.width / 2,
-            });
           }
           set_open(!open);
         }}

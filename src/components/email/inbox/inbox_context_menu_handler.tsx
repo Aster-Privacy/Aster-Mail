@@ -266,6 +266,10 @@ export function use_context_menu_actions({
       const result = await batch_archive({ ids: all_ids, tier: "hot" });
 
       if (result.data?.success) {
+        await bulk_update_metadata_by_ids(all_ids, { is_archived: true });
+        for (const eid of all_ids) {
+          emit_mail_item_updated({ id: eid, is_archived: true });
+        }
         invalidate_mail_cache();
         invalidate_mail_stats();
         show_action_toast({
@@ -471,6 +475,9 @@ export function use_context_menu_actions({
             });
           },
         });
+      } else {
+        update_email(email.id, { is_pinned: !new_state });
+        show_toast(t("common.failed_to_update"), "error");
       }
     };
 
@@ -524,6 +531,10 @@ export function use_context_menu_actions({
             });
           },
         });
+      } else {
+        update_email(email.id, { is_starred: !new_state });
+        adjust_starred_count(new_state ? -1 : 1);
+        show_toast(t("common.failed_to_update"), "error");
       }
     };
 

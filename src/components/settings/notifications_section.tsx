@@ -264,7 +264,9 @@ export function NotificationsSection() {
 
         <ToggleSetting
           description={desktop_description}
-          enabled={preferences.desktop_notifications}
+          enabled={
+            preferences.desktop_notifications && permission_state === "granted"
+          }
           on_toggle={handle_desktop_toggle}
           title={t("settings.desktop")}
         />

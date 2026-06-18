@@ -25,6 +25,7 @@ import { BellIcon } from "@heroicons/react/24/outline";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 
 const DISMISSED_CACHE_KEY = "aster_notification_banner_dismissed";
 
@@ -86,9 +87,21 @@ export function NotificationBanner() {
   const handle_allow = useCallback(async () => {
     if (!("Notification" in window)) return;
 
+    if (Notification.permission === "denied") {
+      show_toast(t("settings.notifications_denied_help"), "warning", 6000);
+
+      return;
+    }
+
     const result = await Notification.requestPermission();
 
     set_browser_permission(result);
+
+    if (result === "denied") {
+      show_toast(t("settings.notifications_denied_help"), "warning", 6000);
+
+      return;
+    }
 
     set_is_dismissed(true);
     cache_dismissed();
@@ -98,7 +111,7 @@ export function NotificationBanner() {
     }
 
     update_preference("notification_banner_dismissed", true, true);
-  }, [update_preference]);
+  }, [update_preference, t]);
 
   const handle_dismiss = useCallback(() => {
     set_is_dismissed(true);

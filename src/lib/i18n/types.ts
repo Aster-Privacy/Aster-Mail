@@ -470,6 +470,7 @@ export interface CommonTranslations {
   actions: string;
   global: string;
   search_emojis: string;
+  skin_tone: string;
   wrap: string;
   unwrap: string;
   source_copied_to_clipboard: string;
@@ -1032,6 +1033,8 @@ export interface CommonTranslations {
   hide_permanently: string;
   step: string;
   protected_in_transit: string;
+  recipient_key_outdated?: string;
+  recipient_key_outdated_desc?: string;
   end_to_end_encrypted_label: string;
   encrypted_in_transit_stored: string;
   only_you_and_sender: string;
@@ -1666,6 +1669,7 @@ export interface SettingsTranslations {
   desktop_bridge_upgrade_description: string;
   desktop_bridge_upgrade_cta: string;
   notifications: string;
+  notifications_denied_help: string;
   preferences: string;
   compose: string;
   templates: string;
@@ -1711,6 +1715,8 @@ export interface SettingsTranslations {
   security_keys_description: string;
   add_security_key: string;
   no_security_keys: string;
+  security_keys_desktop_note: string;
+  passkeys_desktop_note: string;
   security_key_registered: string;
   security_key_removed: string;
   name_your_key: string;
@@ -1809,6 +1815,9 @@ export interface SettingsTranslations {
   end_to_end_encryption: string;
   always_on: string;
   key_fingerprint: string;
+  copy_fingerprint: string;
+  copy_public_key: string;
+  failed_download_codes: string;
   export_keys: string;
   recovery_codes: string;
   changes_saved_automatically: string;

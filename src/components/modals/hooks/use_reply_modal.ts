@@ -27,6 +27,7 @@ import { use_editor } from "@/hooks/use_editor";
 import { undo_send_manager } from "@/hooks/use_undo_send";
 import { MODAL_SIZES } from "@/constants/modal";
 import { send_reply, type OriginalEmail } from "@/services/mail_actions";
+import { build_reply_subject } from "@/lib/reply_subject";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -557,9 +558,10 @@ export function use_reply_modal({
 
       set_draft_status("saving");
 
-      const subject = original_subject.startsWith(t("mail.reply_subject_prefix"))
-        ? original_subject
-        : `${t("mail.reply_subject_prefix")} ${original_subject}`;
+      const subject = build_reply_subject(
+        original_subject,
+        t("mail.reply_subject_prefix"),
+      );
 
       const content: DraftContent = {
         to_recipients: [recipient_email],
@@ -755,7 +757,10 @@ export function use_reply_modal({
     const message_with_signature = reply_body + quoted_content;
 
     if (selected_sender?.type === "external" && selected_sender.address_hash) {
-      const subject = `${t("mail.reply_subject_prefix")} ${original_subject.replace(/^Re:\s*/i, "")}`;
+      const subject = build_reply_subject(
+        original_subject,
+        t("mail.reply_subject_prefix"),
+      );
       const external_attachments =
         attachments.length > 0
           ? prepare_external_attachments(attachments)
@@ -900,7 +905,10 @@ export function use_reply_modal({
           optimistic_id: opt_id,
           sender_name,
           sender_email: sender_email_addr,
-          subject: `${t("mail.reply_subject_prefix")} ${original_subject.replace(/^Re:\s*/i, "")}`,
+          subject: build_reply_subject(
+            original_subject,
+            t("mail.reply_subject_prefix"),
+          ),
           body: message_with_signature,
           display_body: reply_body,
           to_recipients: [{ name: recipient_name, email: recipient_email }],
@@ -920,7 +928,10 @@ export function use_reply_modal({
         undo_send_manager.add({
           id: result.queued_id,
           to: [recipient_email],
-          subject: `${t("mail.reply_subject_prefix")} ${original_subject.replace(/^Re:\s*/i, "")}`,
+          subject: build_reply_subject(
+            original_subject,
+            t("mail.reply_subject_prefix"),
+          ),
           body: message_with_signature,
           scheduled_time: Date.now() + delay_ms,
           total_seconds: delay_seconds,
@@ -994,9 +1005,10 @@ export function use_reply_modal({
       to_recipients: [recipient_email],
       cc_recipients: [],
       bcc_recipients: [],
-      subject: original_subject.startsWith(t("mail.reply_subject_prefix"))
-        ? original_subject
-        : `${t("mail.reply_subject_prefix")} ${original_subject}`,
+      subject: build_reply_subject(
+        original_subject,
+        t("mail.reply_subject_prefix"),
+      ),
       body: message_with_signature,
       scheduled_at: scheduled_time.toISOString(),
     };
