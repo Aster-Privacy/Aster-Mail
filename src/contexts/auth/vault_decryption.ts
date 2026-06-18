@@ -35,14 +35,9 @@ import {
 } from "@/services/crypto/ratchet_sync";
 import { backfill_pq_secrets_to_server } from "@/services/crypto/pq_prekey_store";
 import { reconcile_pq_secrets_with_server } from "@/services/crypto/pq_secret_reconciler";
-import {
-  clear_all_ratchet_states,
-  list_ratchet_conversations,
-} from "@/services/crypto/double_ratchet";
 import { generate_and_upload_prekeys } from "@/services/crypto/prekey_service";
 import { api_client } from "@/services/api/client";
 
-const RATCHET_RESET_FLAG = "astermail_ratchet_reset_v6";
 const PQ_MIN_THRESHOLD = 5;
 
 async function fetch_pq_prekey_count(): Promise<number | null> {
@@ -87,47 +82,6 @@ async function ensure_pq_prekeys_available(): Promise<void> {
   }
 }
 
-async function reset_stuck_ratchets_once(): Promise<void> {
-  if (localStorage.getItem(RATCHET_RESET_FLAG) === "done") return;
-
-  try {
-    const local_ids = await list_ratchet_conversations();
-
-    await clear_all_ratchet_states();
-
-    for (const conversation_id of local_ids) {
-      try {
-        await api_client.delete(
-          `/crypto/v1/ratchet/state/${encodeURIComponent(conversation_id)}`,
-        );
-      } catch {
-        /* best-effort */
-      }
-    }
-
-    try {
-      const list = await api_client.get<
-        Array<{ conversation_id: string }>
-      >("/crypto/v1/ratchet/states");
-
-      if (list.data) {
-        for (const item of list.data) {
-          try {
-            await api_client.delete(
-              `/crypto/v1/ratchet/state/${encodeURIComponent(item.conversation_id)}`,
-            );
-          } catch {
-            /* best-effort */
-          }
-        }
-      }
-    } catch {
-      /* best-effort */
-    }
-  } finally {
-    localStorage.setItem(RATCHET_RESET_FLAG, "done");
-  }
-}
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 import { emit_aliases_changed, emit_contacts_changed } from "@/hooks/mail_events";
 
@@ -179,7 +133,6 @@ export async function decrypt_vault_with_lock(
     ensure_ratchet_keys()
       .then(async () => {
         await ensure_pq_prekeys_available();
-        await reset_stuck_ratchets_once();
 
         const master_key = get_derived_encryption_key();
 
