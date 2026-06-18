@@ -34,6 +34,7 @@ import { Switch } from "@aster/ui";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { TurnstileWidget, type TurnstileWidgetRef, TURNSTILE_SITE_KEY } from "@/components/auth/turnstile_widget";
 import { Spinner } from "@/components/ui/spinner";
+import { Modal, ModalHeader, ModalTitle, ModalDescription, ModalFooter } from "@/components/ui/modal";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
@@ -77,6 +78,8 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
   const [availability, set_availability] = useState<Availability>({ state: "idle" });
   const [captcha, set_captcha] = useState<string | null>(null);
   const [submitting, set_submitting] = useState(false);
+  const [release_target, set_release_target] = useState<{ id: string; address: string } | null>(null);
+  const [releasing, set_releasing] = useState(false);
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const check_timeout_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
@@ -178,19 +181,30 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
   const handle_regenerate = async (id: string) => {
     const r = await regenerate_claim_link(id);
     if (r.data) {
+      set_reservations(prev => prev.map(item => item.id === id ? { ...item, claim_url: r.data!.claim_url } : item));
       try { await navigator.clipboard.writeText(r.data.claim_url); } catch { /* clipboard blocked */ }
       show_toast(t("settings.fam_kids_regenerated"), "success");
-      void load();
     } else {
       show_toast(t("settings.fam_org_action_failed"), "error");
     }
   };
 
-  const handle_release = async (id: string) => {
-    if (!window.confirm(t("settings.fam_kids_release_confirm"))) return;
-    const r = await release_reservation(id);
-    if (!r.error) { show_toast(t("settings.fam_kids_released"), "success"); void load(); }
-    else show_toast(t("settings.fam_org_action_failed"), "error");
+  const handle_release = (id: string, address: string) => {
+    set_release_target({ id, address });
+  };
+
+  const confirm_release = async () => {
+    if (!release_target) return;
+    set_releasing(true);
+    const r = await release_reservation(release_target.id);
+    set_releasing(false);
+    if (!r.error) {
+      show_toast(t("settings.fam_kids_released"), "success");
+      set_release_target(null);
+      void load();
+    } else {
+      show_toast(t("settings.fam_org_action_failed"), "error");
+    }
   };
 
   const address_border =
@@ -352,7 +366,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
                     <button onClick={() => handle_regenerate(r.id)} className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1.5">
                       <ArrowPathIcon className="w-3.5 h-3.5" /> {t("settings.fam_kids_regenerate")}
                     </button>
-                    <button onClick={() => handle_release(r.id)} className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1.5 text-red-500">
+                    <button onClick={() => handle_release(r.id, `${r.username}@${r.email_domain}`)} className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1.5 text-red-500">
                       <TrashIcon className="w-3.5 h-3.5" /> {t("settings.fam_kids_release")}
                     </button>
                   </div>
@@ -362,6 +376,24 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
           })}
         </div>
       )}
+
+      <Modal is_open={!!release_target} on_close={() => { if (!releasing) set_release_target(null); }} size="sm" show_close_button={!releasing}>
+        <ModalHeader>
+          <ModalTitle>{t("settings.fam_kids_release_modal_title")}</ModalTitle>
+          <ModalDescription>
+            {t("settings.fam_kids_release_modal_body", { address: release_target?.address ?? "" })}
+          </ModalDescription>
+        </ModalHeader>
+        <ModalFooter>
+          <button onClick={() => set_release_target(null)} disabled={releasing} className="aster_btn aster_btn_ghost aster_btn_sm">
+            {t("settings.fam_kids_cancel")}
+          </button>
+          <button onClick={confirm_release} disabled={releasing} className="aster_btn aster_btn_destructive aster_btn_sm flex items-center gap-1.5 disabled:opacity-50">
+            {releasing ? <Spinner size="sm" /> : <TrashIcon className="w-4 h-4" />}
+            {t("settings.fam_kids_release_btn")}
+          </button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 }

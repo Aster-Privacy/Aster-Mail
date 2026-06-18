@@ -2386,6 +2386,11 @@ export interface SettingsTranslations {
   fam_kids_claim_intro: string;
   fam_kids_claim_invalid_title: string;
   fam_kids_claim_invalid_body: string;
+  fam_kids_claim_signed_in_title: string;
+  fam_kids_claim_signed_in_body: string;
+  fam_kids_release_modal_title: string;
+  fam_kids_release_modal_body: string;
+  fam_kids_release_btn: string;
   fam_org_tab_groups: string;
   fam_org_tab_activity: string;
   fam_org_tab_filters: string;
