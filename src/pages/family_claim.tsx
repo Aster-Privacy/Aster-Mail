@@ -20,7 +20,8 @@
 //
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { LinkIcon } from "@heroicons/react/24/outline";
 
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { Spinner } from "@/components/ui/spinner";
@@ -35,6 +36,8 @@ import {
 } from "@/components/register/register_step_recovery";
 import { preview_claim } from "@/services/api/family";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_auth_safe } from "@/contexts/auth_context";
+import { show_toast } from "@/components/toast/simple_toast";
 
 type Preview =
   | { state: "loading" }
@@ -80,9 +83,40 @@ function ClaimFlow({ token, username, domain }: { token: string; username: strin
   );
 }
 
+function SignedInPanel({ username, domain }: { username: string; domain: string }) {
+  const { t } = use_i18n();
+
+  const handle_copy = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      show_toast(t("settings.fam_kids_link_copied"), "success");
+    } catch {
+      /* clipboard blocked */
+    }
+  };
+
+  return (
+    <div className="max-w-sm w-full space-y-5 text-center">
+      <div className="rounded-xl border border-edge-secondary px-5 py-4">
+        <p className="text-sm font-semibold text-txt-primary">{username}@{domain}</p>
+        <p className="text-xs text-txt-muted mt-1">{t("settings.fam_kids_claim_intro")}</p>
+      </div>
+      <div>
+        <h2 className="text-base font-semibold text-txt-primary">{t("settings.fam_kids_claim_signed_in_title")}</h2>
+        <p className="text-sm text-txt-secondary mt-2 leading-relaxed">{t("settings.fam_kids_claim_signed_in_body")}</p>
+      </div>
+      <button onClick={handle_copy} className="aster_btn aster_btn_primary aster_btn_sm inline-flex items-center gap-2">
+        <LinkIcon className="w-4 h-4" /> {t("settings.fam_kids_copy_link")}
+      </button>
+    </div>
+  );
+}
+
 export default function FamilyClaimPage() {
   const { token } = useParams<{ token: string }>();
   const { t } = use_i18n();
+  const auth = use_auth_safe();
+  const is_signed_in = auth?.is_authenticated ?? false;
   const [preview, set_preview] = useState<Preview>({ state: "loading" });
 
   useEffect(() => {
@@ -109,19 +143,42 @@ export default function FamilyClaimPage() {
     };
   }, [token]);
 
+  const render_content = () => {
+    if (preview.state === "loading") {
+      return (
+        <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+          <Spinner />
+        </motion.div>
+      );
+    }
+    if (preview.state === "error") {
+      return (
+        <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="max-w-md text-center">
+          <h1 className="text-lg font-semibold text-txt-primary">{t("settings.fam_kids_claim_invalid_title")}</h1>
+          <p className="text-sm text-txt-muted mt-2">{t("settings.fam_kids_claim_invalid_body")}</p>
+        </motion.div>
+      );
+    }
+    if (is_signed_in) {
+      return (
+        <motion.div key="signed-in" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+          <SignedInPanel username={preview.username} domain={preview.domain} />
+        </motion.div>
+      );
+    }
+    return (
+      <motion.div key="claim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="w-full flex justify-center">
+        {token && <ClaimFlow token={token} username={preview.username} domain={preview.domain} />}
+      </motion.div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 overflow-y-auto transition-colors duration-200 bg-surf-primary">
       <div className="min-h-full flex items-start md:items-center justify-center py-8 md:py-4 px-4">
-        {preview.state === "loading" && <Spinner />}
-        {preview.state === "error" && (
-          <div className="max-w-md text-center">
-            <h1 className="text-lg font-semibold text-txt-primary">{t("settings.fam_kids_claim_invalid_title")}</h1>
-            <p className="text-sm text-txt-muted mt-2">{t("settings.fam_kids_claim_invalid_body")}</p>
-          </div>
-        )}
-        {preview.state === "ready" && token && (
-          <ClaimFlow token={token} username={preview.username} domain={preview.domain} />
-        )}
+        <AnimatePresence mode="wait">
+          {render_content()}
+        </AnimatePresence>
       </div>
     </div>
   );
