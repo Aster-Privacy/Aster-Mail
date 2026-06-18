@@ -117,7 +117,7 @@ jobs:
           tagName: v__VERSION__
           releaseName: Aster Mail __VERSION__
           releaseDraft: false
-          prerelease: false
+          prerelease: true
           updaterJsonPreferNsis: true
           args: ${{ matrix.args }}
           tauriScript: npm run tauri
@@ -198,7 +198,7 @@ jobs:
           # most recent prior release that has it so the download never breaks.
           V=$(node -p "require('./package.json').version")
           TAG="v${V}"
-          ASSETS="Aster-Mail-x64-setup.exe Aster-Mail-x64.msi Aster-Mail-x64.AppImage Aster-Mail-amd64.deb Aster-Mail-x86_64.rpm Aster-Mail-universal.dmg"
+          ASSETS="Aster-Mail-x64-setup.exe Aster-Mail-x64.msi Aster-Mail-x64.AppImage Aster-Mail-amd64.deb Aster-Mail-x86_64.rpm Aster-Mail-universal.dmg Aster-Mail.apk"
           assets_of() { gh release view "$1" --json assets --jq '.assets[].name' 2>/dev/null; }
           current=$(assets_of "$TAG")
           prior_tags=$(gh release list --limit 40 --json tagName --jq '.[].tagName' | grep -vx "$TAG")
@@ -219,8 +219,38 @@ jobs:
             done
           done
 
+  promote_to_latest:
+    needs: [build, update_latest_json, ensure_canonical_assets]
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Promote to Latest only when every download asset is present
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # The release is published as a prerelease while it builds, so
+          # releases/latest keeps resolving to the last COMPLETE release and the
+          # marketing-site download links never 404 mid-build. Only flip it to
+          # Latest once every canonical download asset and latest.json exist.
+          V=$(node -p "require('./package.json').version")
+          TAG="v${V}"
+          REQUIRED="Aster-Mail-x64-setup.exe Aster-Mail-x64.msi Aster-Mail-x64.AppImage Aster-Mail-amd64.deb Aster-Mail-x86_64.rpm Aster-Mail-universal.dmg Aster-Mail.apk latest.json"
+          have=$(gh release view "$TAG" --json assets --jq '.assets[].name' 2>/dev/null)
+          missing=""
+          for a in $REQUIRED; do
+            printf '%s\n' "$have" | grep -qx "$a" || missing="$missing $a"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Refusing to promote $TAG to Latest. Missing:$missing"
+            echo "Release stays as prerelease; releases/latest keeps pointing at the last complete release."
+            exit 1
+          fi
+          echo "All required assets present. Promoting $TAG to Latest."
+          gh release edit "$TAG" --draft=false --prerelease=false --latest
+
   publish_winget:
-    needs: [build, ensure_canonical_assets]
+    needs: [build, ensure_canonical_assets, promote_to_latest]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-22.04
     steps:
