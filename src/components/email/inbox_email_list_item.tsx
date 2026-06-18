@@ -94,8 +94,8 @@ function format_email_size(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function get_density_classes(density: string): string {
-  if (density === "Compact") return "py-2";
+function get_density_classes(density: string, compact_mode: boolean): string {
+  if (compact_mode || density === "Compact") return "py-2";
   if (density === "Spacious") return "py-3.5";
 
   return "py-2.5";
@@ -359,7 +359,7 @@ export const InboxEmailListItem = memo(
           draggable
           className={cn(
             "group relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 cursor-pointer w-full",
-            get_density_classes(density),
+            get_density_classes(density, preferences.compact_mode ?? false),
             is_active
               ? "bg-surf-hover"
               : email.is_selected === true

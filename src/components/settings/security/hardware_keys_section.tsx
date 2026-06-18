@@ -33,6 +33,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_desktop } from "@/native/invoke_bridge";
 import {
   list_hardware_keys,
   initiate_hardware_key_registration,
@@ -156,7 +157,7 @@ export function HardwareKeysSection() {
               {t("settings.security_keys_description")}
             </p>
           </div>
-          {webauthn_supported && (
+          {webauthn_supported && !is_desktop() && (
             <Button
               disabled={is_registering}
               variant="secondary"
@@ -167,6 +168,12 @@ export function HardwareKeysSection() {
             </Button>
           )}
         </div>
+
+        {is_desktop() && (
+          <p className="text-xs mb-3 text-txt-muted">
+            {t("settings.security_keys_desktop_note")}
+          </p>
+        )}
 
         {is_loading ? (
           <div className="flex justify-center py-4">

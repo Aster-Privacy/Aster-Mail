@@ -61,6 +61,7 @@ import { block_sender } from "@/services/api/blocked_senders";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_i18n } from "@/lib/i18n/context";
+import { build_reply_subject } from "@/lib/reply_subject";
 import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
 
@@ -484,7 +485,10 @@ function MobileMailDetail() {
               to_recipients: to,
               cc_recipients: cc,
               bcc_recipients: [],
-              subject: subject.startsWith(t("mail.reply_subject_prefix")) ? subject : `${t("mail.reply_subject_prefix")} ${subject}`,
+              subject: build_reply_subject(
+                subject,
+                t("mail.reply_subject_prefix"),
+              ),
               message: message_with_footer,
               draft_type: "reply",
               reply_to_id: msg.id,

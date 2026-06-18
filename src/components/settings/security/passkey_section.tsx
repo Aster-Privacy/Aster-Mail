@@ -30,6 +30,7 @@ import {
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { is_desktop } from "@/native/invoke_bridge";
 import { show_toast } from "@/components/toast/simple_toast";
 import { cn } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
@@ -303,7 +304,13 @@ export function PasskeySection() {
         </AnimatePresence>
       )}
 
-      {webauthn_supported && (
+      {webauthn_supported && is_desktop() && (
+        <p className="text-sm text-txt-muted mt-2">
+          {t("settings.passkeys_desktop_note")}
+        </p>
+      )}
+
+      {webauthn_supported && !is_desktop() && (
         <div className="space-y-3 mt-2">
           <div>
             <Button

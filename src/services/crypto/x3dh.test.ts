@@ -588,6 +588,9 @@ describe("X3DH Key Exchange Protocol", () => {
         },
       );
 
+      // The prekey is single-use server-side (marked used on hand-out), but the
+      // recipient keeps its own secret so the same message can be decrypted
+      // again on re-render or another signed-in device.
       expect(pq_secret_table.has(pq_key_id)).toBe(true);
     });
   });

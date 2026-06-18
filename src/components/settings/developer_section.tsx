@@ -158,7 +158,11 @@ function get_indexed_db_info(
 }
 
 function get_screen_info(): string {
-  return `${window.screen.width}x${window.screen.height} @ ${window.devicePixelRatio}x`;
+  const w = window.screen.width;
+  const h = window.screen.height;
+  const dpr = window.devicePixelRatio;
+
+  return `${w}x${h} (${Math.round(w * dpr)}x${Math.round(h * dpr)} physical) @ ${dpr}x`;
 }
 
 function get_viewport_info(): string {

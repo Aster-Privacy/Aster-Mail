@@ -175,8 +175,9 @@ export function KeyRotationPanel({
                   {format_fingerprint(pgp_key.fingerprint)}
                 </code>
                 <Button
+                  aria-label={t("settings.copy_fingerprint")}
                   size="icon"
-                  title={t("common.copy")}
+                  title={t("settings.copy_fingerprint")}
                   variant="ghost"
                   onClick={handle_copy_fingerprint}
                 >
@@ -205,8 +206,9 @@ export function KeyRotationPanel({
                 {t("settings.export_private_key_label")}
               </Button>
               <Button
+                aria-label={t("settings.copy_public_key")}
                 size="icon"
-                title={t("common.copy")}
+                title={t("settings.copy_public_key")}
                 variant="ghost"
                 onClick={handle_copy_public_key}
               >

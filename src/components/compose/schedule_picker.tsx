@@ -165,7 +165,7 @@ export function SchedulePicker({
 
   const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i), []);
 
-  const minutes = useMemo(() => [0, 15, 30, 45], []);
+  const minutes = useMemo(() => Array.from({ length: 12 }, (_, i) => i * 5), []);
 
   const format_hour = (hour: number) => {
     const period = hour >= 12 ? t("common.pm") : t("common.am");
@@ -299,7 +299,7 @@ export function SchedulePicker({
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="h-8 w-20" size="md" variant="outline">
+                  <Button className="h-8 w-16" size="md" variant="outline">
                     {format_hour(selected_hour)}
                   </Button>
                 </DropdownMenuTrigger>
@@ -317,7 +317,7 @@ export function SchedulePicker({
               <span className="text-txt-muted">:</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="h-8 w-16" size="md" variant="outline">
+                  <Button className="h-8 w-14" size="md" variant="outline">
                     {selected_minute.toString().padStart(2, "0")}
                   </Button>
                 </DropdownMenuTrigger>

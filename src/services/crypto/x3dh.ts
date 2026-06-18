@@ -284,6 +284,12 @@ export async function perform_x3dh_receiver(
       pq_ss.fill(0);
     }
 
+    // The one-time prekey is already marked used server-side on hand-out, so it
+    // is never re-issued. We intentionally retain the recipient's own secret
+    // (local + encrypted server backup) so the message stays decryptable on
+    // re-render and on other signed-in devices instead of failing once the
+    // bootstrap secret would otherwise be destroyed. Stale secrets are pruned
+    // by retention, not eagerly here.
   } else {
     shared_secret = await kdf_x3dh([dh1, dh2, dh3], X3DH_INFO_CLASSICAL);
   }

@@ -32,6 +32,10 @@ import { get_or_create_thread_token } from "./thread_service";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { en } from "@/lib/i18n/translations/en";
+import {
+  build_reply_subject as build_reply_subject_value,
+  strip_reply_prefix,
+} from "@/lib/reply_subject";
 
 export type MailActionType = "reply" | "reply_all" | "forward";
 
@@ -87,13 +91,10 @@ export interface MailActionCallbacks {
 }
 
 function build_reply_subject(original_subject: string): string {
-  const trimmed = original_subject.trim();
-
-  if (/^re:/i.test(trimmed)) {
-    return trimmed;
-  }
-
-  return `${en.mail.reply_subject_prefix} ${trimmed}`;
+  return build_reply_subject_value(
+    original_subject,
+    en.mail.reply_subject_prefix,
+  );
 }
 
 function build_reply_recipients(
@@ -149,6 +150,10 @@ export async function send_reply(
   const current_user_email = current_account.user.email;
   const recipients = build_reply_recipients(params, current_user_email);
   const subject = build_reply_subject(params.original.subject);
+  const base_subject = strip_reply_prefix(
+    params.original.subject,
+    en.mail.reply_subject_prefix,
+  );
   const delay_ms = parse_undo_send_period(undo_send_period);
   const delay_seconds = delay_ms / 1000;
 
@@ -170,7 +175,7 @@ export async function send_reply(
       {
         to: recipients,
         subject,
-        envelope_subject: params.original.subject,
+        envelope_subject: base_subject,
         body: params.message,
         thread_id: thread_token,
         in_reply_to: params.in_reply_to,
@@ -207,7 +212,7 @@ export async function send_reply(
     {
       to: recipients,
       subject,
-      envelope_subject: params.original.subject,
+      envelope_subject: base_subject,
       body: params.message,
       thread_id: thread_token,
       in_reply_to: params.in_reply_to,

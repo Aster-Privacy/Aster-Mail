@@ -246,7 +246,8 @@ export function VanguardSection() {
   }, [account_id]);
 
   useEffect(() => {
-    if (!is_loading && !is_nova_plus && enabled && account_id) {
+    if (is_loading || !limits || !limits.plan_code) return;
+    if (!is_nova_plus && enabled && account_id) {
       disable_vanguard().then(() => {
         set_vanguard_enabled(account_id, false);
         set_lockdown_enabled(account_id, false);
@@ -255,7 +256,7 @@ export function VanguardSection() {
         set_enabled(false);
       });
     }
-  }, [is_loading, is_nova_plus, enabled, account_id]);
+  }, [is_loading, limits, is_nova_plus, enabled, account_id]);
 
   const handle_toggle = (checked: boolean) => {
     if (checked) {

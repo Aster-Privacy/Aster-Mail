@@ -106,7 +106,7 @@ export const DdgFavicon = memo(function DdgFavicon({
   );
 });
 
-type EncryptionStatus = "encrypted" | "transit" | "checking";
+type EncryptionStatus = "encrypted" | "transit" | "checking" | "key_invalid";
 
 interface RecipientBadgeProps {
   email: string;
@@ -122,28 +122,73 @@ export function RecipientBadge({
   encryption_status,
 }: RecipientBadgeProps) {
   const { t } = use_i18n();
+  const [info_open, set_info_open] = useState(false);
+
+  const lock_color =
+    encryption_status === "encrypted"
+      ? "rgb(59, 130, 246)"
+      : encryption_status === "key_invalid"
+        ? "rgb(245, 158, 11)"
+        : "var(--text-muted)";
+
+  const lock_label =
+    encryption_status === "encrypted"
+      ? t("common.end_to_end_encrypted_label")
+      : encryption_status === "key_invalid"
+        ? t("common.recipient_key_outdated")
+        : t("common.protected_in_transit");
+
+  const lock_desc =
+    encryption_status === "encrypted"
+      ? t("common.wkd_encrypted_description")
+      : encryption_status === "key_invalid"
+        ? t("common.recipient_key_outdated_desc")
+        : t("common.encrypted_in_transit_stored");
 
   return (
     <div className="flex items-center gap-1.5 bg-default-100 rounded-full px-2 py-1 border border-edge-secondary">
       {encryption_status && (
-        <span
-          className="flex-shrink-0 flex items-center"
-          style={{
-            color:
-              encryption_status === "encrypted"
-                ? "rgb(59, 130, 246)"
-                : "var(--text-muted)",
-            opacity: encryption_status === "checking" ? 0.4 : 1,
-          }}
-          title={
-            encryption_status === "encrypted"
-              ? t("common.end_to_end_encrypted_label")
-              : encryption_status === "transit"
-                ? t("common.protected_in_transit")
-                : undefined
-          }
-        >
-          <LockIcon size={12} />
+        <span className="relative flex-shrink-0 flex items-center">
+          <button
+            className="flex items-center transition-opacity hover:opacity-80"
+            style={{
+              color: lock_color,
+              opacity: encryption_status === "checking" ? 0.4 : 1,
+            }}
+            title={encryption_status === "checking" ? undefined : lock_label}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (encryption_status !== "checking") set_info_open((o) => !o);
+            }}
+          >
+            <LockIcon size={12} />
+          </button>
+          {info_open && encryption_status !== "checking" && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  set_info_open(false);
+                }}
+              />
+              <div
+                className="absolute left-0 top-full mt-1 z-50 w-60 rounded-lg border shadow-lg p-2.5 bg-surf-primary border-edge-secondary"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className="flex-shrink-0" style={{ color: lock_color }}>
+                    <LockIcon size={14} />
+                  </span>
+                  <p className="text-xs font-medium text-txt-primary">
+                    {lock_label}
+                  </p>
+                </div>
+                <p className="text-xs text-txt-muted mt-1 pl-5">{lock_desc}</p>
+              </div>
+            </>
+          )}
         </span>
       )}
       <ProfileAvatar
@@ -216,10 +261,6 @@ export function RecipientField({
   const [encryption_map, set_encryption_map] = useState<
     Map<string, EncryptionStatus>
   >(new Map());
-  const resolved_ref = useRef<Set<string>>(new Set());
-  const in_flight_ref = useRef<Set<string>>(new Set());
-  const retry_count_ref = useRef<Map<string, number>>(new Map());
-  const [discovery_tick, set_discovery_tick] = useState(0);
 
   const display_status = (
     email: string,
@@ -227,11 +268,18 @@ export function RecipientField({
   ): EncryptionStatus | undefined => {
     if (status === undefined) return undefined;
     if (is_internal_email(email)) return status;
-    if (!preferences.encrypt_emails && status === "encrypted") {
+    if (
+      !preferences.encrypt_emails &&
+      (status === "encrypted" || status === "key_invalid")
+    ) {
       return "transit";
     }
     return status;
   };
+  const resolved_ref = useRef<Set<string>>(new Set());
+  const in_flight_ref = useRef<Set<string>>(new Set());
+  const retry_count_ref = useRef<Map<string, number>>(new Map());
+  const [discovery_tick, set_discovery_tick] = useState(0);
 
   const show_locks = preferences.show_encryption_indicators;
 
@@ -302,11 +350,22 @@ export function RecipientField({
     if (to_discover.length > 0) {
       discover_external_keys_batch(to_discover)
         .then((result) => {
-          const key_map = new Map<string, boolean>();
+          const key_map = new Map<string, EncryptionStatus>();
 
           if (result.data) {
             for (const info of result.data) {
-              key_map.set(info.email.toLowerCase(), has_pgp_key(info));
+              const key_present =
+                info.found && info.public_key !== null;
+              const expired =
+                info.expires_at !== null &&
+                Date.parse(info.expires_at) <= Date.now();
+              const status: EncryptionStatus = has_pgp_key(info)
+                ? "encrypted"
+                : key_present && expired
+                  ? "key_invalid"
+                  : "transit";
+
+              key_map.set(info.email.toLowerCase(), status);
             }
           }
 
@@ -317,7 +376,7 @@ export function RecipientField({
               const found = key_map.get(email.toLowerCase());
 
               if (found !== undefined) {
-                next.set(email, found ? "encrypted" : "transit");
+                next.set(email, found);
                 resolved_ref.current.add(email);
                 in_flight_ref.current.delete(email);
               } else if (!result.data || result.data.length === 0) {

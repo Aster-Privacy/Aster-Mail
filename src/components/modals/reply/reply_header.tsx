@@ -24,6 +24,7 @@ import { CloseIcon } from "@/components/common/icons";
 import { RecipientBadge } from "@/components/compose/compose_shared";
 import { SenderSelector } from "@/components/compose/sender_selector";
 import { use_i18n } from "@/lib/i18n/context";
+import { build_reply_subject } from "@/lib/reply_subject";
 
 interface ReplyHeaderProps {
   handle_drag_start: (e: React.MouseEvent) => void;
@@ -181,7 +182,10 @@ export function ReplyHeader({
               {t("mail.subject")}
             </span>
             <span className="text-sm truncate text-txt-primary">
-              {t("mail.reply_subject_prefix")} {original_subject.replace(/^Re:\s*/i, "")}
+              {build_reply_subject(
+                original_subject,
+                t("mail.reply_subject_prefix"),
+              ) || t("mail.no_subject")}
             </span>
           </div>
         </div>

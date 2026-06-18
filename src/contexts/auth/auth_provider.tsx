@@ -419,6 +419,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         safe_log_error(e);
       }
 
+      api_client.set_authenticated(true);
+
       const add_result = await with_timeout(storage_add_account(user), 5000);
       const persisted = add_result?.success === true;
 
@@ -436,7 +438,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       }
 
-      api_client.set_authenticated(true);
       check_and_run_recovery_reencryption(vault, passphrase).catch(() => {});
       ensure_ratchet_keys().catch(() => {});
       ensure_default_labels(vault, t).catch(console.error);

@@ -371,10 +371,26 @@ function SettingsPanelInner({
     };
 
     const handle_navigate_section = (e: Event) => {
-      const value = (e as CustomEvent<string>).detail as Section;
+      const detail = (
+        e as CustomEvent<string | { section: string; anchor?: string }>
+      ).detail;
+      const value = (
+        typeof detail === "string" ? detail : detail?.section
+      ) as Section;
+      const anchor = typeof detail === "string" ? undefined : detail?.anchor;
+
+      if (!value) return;
 
       set_section(value);
       set_persisted_section(value);
+
+      if (anchor) {
+        requestAnimationFrame(() =>
+          document
+            .getElementById(anchor)
+            ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        );
+      }
     };
 
     const handle_plan_changed = () => {
