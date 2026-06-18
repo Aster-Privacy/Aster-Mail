@@ -169,7 +169,6 @@ export interface ReservedAddress {
   username: string;
   email_domain: string;
   label?: string;
-  label_nonce?: string;
   allocated_storage_bytes: number;
   status: "reserved" | "claimed" | "released";
   is_minor: boolean;
@@ -189,7 +188,6 @@ export interface CreateReservationRequest {
   username: string;
   email_domain: string;
   label?: string;
-  label_nonce?: string;
   allocated_storage_bytes: number;
   consent_attested: boolean;
   captcha_token?: string;
