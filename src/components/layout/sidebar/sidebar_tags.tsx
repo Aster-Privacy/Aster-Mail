@@ -263,7 +263,7 @@ export const SidebarTags = memo(function SidebarTags({
                         {tag.name}
                       </span>
                       <CountBadge
-                        count={tag_counts[tag.tag_token] ?? 0}
+                        count={tag_counts[tag.tag_token] ?? tag.item_count ?? 0}
                         is_active={effective_selected === tag_item_id}
                       />
                     </>
