@@ -25,6 +25,10 @@ import type {
 } from "@/types/email";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import {
+  RATCHET_UNDECRYPTABLE_SENTINEL,
+  is_ratchet_envelope,
+} from "@/utils/email_crypto";
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { classify } from "@/services/mail_categorizer";
 import { get_email_username } from "@/lib/utils";
@@ -343,6 +347,14 @@ export function mail_to_email(
 
   const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
   const resolved_html = envelope.body_html ?? envelope.html_body ?? "";
+  const is_undecryptable_body =
+    resolved_text === RATCHET_UNDECRYPTABLE_SENTINEL ||
+    resolved_html === RATCHET_UNDECRYPTABLE_SENTINEL ||
+    is_ratchet_envelope(resolved_text) ||
+    is_ratchet_envelope(resolved_html);
+  const preview_text = is_undecryptable_body
+    ? RATCHET_UNDECRYPTABLE_SENTINEL
+    : strip_html_tags(resolved_text || resolved_html).substring(0, 100);
   const raw_ts =
     envelope.sent_at ||
     (envelope as unknown as Record<string, string>).date ||
@@ -361,8 +373,10 @@ export function mail_to_email(
     sender_email: envelope.from.email,
     ...(forwarding ?? {}),
     subject: envelope.subject || "",
-    preview: strip_html_tags(resolved_text || resolved_html).substring(0, 100),
-    body_html: resolved_html || resolved_text,
+    preview: preview_text,
+    body_html: is_undecryptable_body
+      ? RATCHET_UNDECRYPTABLE_SENTINEL
+      : resolved_html || resolved_text,
     timestamp: format_timestamp(new Date(raw_ts), format_options),
     raw_timestamp: raw_ts,
     is_pinned: effective_metadata.is_pinned,
