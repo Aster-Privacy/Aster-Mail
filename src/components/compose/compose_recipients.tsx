@@ -38,6 +38,7 @@ import { EmailAutocomplete } from "@/components/common/email_autocomplete";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { get_email_username } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import {
   is_internal_email,
   discover_external_keys_batch,
@@ -252,6 +253,7 @@ export function RecipientField({
   auto_focus = false,
 }: RecipientFieldProps) {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const [is_expanded, set_is_expanded] = useState(false);
   const [overflow_count, set_overflow_count] = useState(0);
   const measure_ref = useRef<HTMLDivElement>(null);
