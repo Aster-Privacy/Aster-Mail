@@ -35,6 +35,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 
 interface KeyRotationModalProps {
   is_open: boolean;
@@ -297,7 +298,8 @@ export function KeyRotationModal({
                         status={error ? "error" : "default"}
                         type={show_password ? "text" : "password"}
                         value={password}
-                        onChange={(e) => set_password(e.target.value)}
+                        maxLength={128}
+                        onChange={(e) => set_password(clamp_password(e.target.value))}
                         onKeyDown={handle_key_down}
                       />
                       <button

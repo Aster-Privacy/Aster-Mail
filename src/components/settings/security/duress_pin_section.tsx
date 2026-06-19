@@ -31,6 +31,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { cn } from "@/lib/utils";
 import { get_user_salt } from "@/services/api/auth";
@@ -410,8 +411,9 @@ function SetupDuressPinModal({ account_id, is_open, on_close, on_success }: {
                   autoComplete="current-password"
                   className="w-full px-3 py-2.5 pr-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
                   value={password}
+                  maxLength={128}
                   disabled={verifying_creds}
-                  onChange={(e) => set_password(e.target.value)}
+                  onChange={(e) => set_password(clamp_password(e.target.value))}
                   onKeyDown={(e) => { if (e.key === "Enter") handle_verify_credentials(); }}
                 />
                 <button type="button" tabIndex={-1}

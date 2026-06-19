@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/modal";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 import { api_client } from "@/services/api/client";
 import { get_user_salt } from "@/services/api/auth";
 import { get_totp_status } from "@/services/api/totp";
@@ -184,7 +185,8 @@ export function DeleteAccountModal({
               size="lg"
               type="password"
               value={password}
-              onChange={(e) => set_password(e.target.value)}
+              maxLength={128}
+              onChange={(e) => set_password(clamp_password(e.target.value))}
             />
           </div>
 
