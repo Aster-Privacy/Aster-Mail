@@ -1383,6 +1383,7 @@ export const en: Translations = {
   },
   settings: {
     title: "Settings",
+    search_placeholder: "Search settings...",
     general: "General",
     account: "Account",
     appearance: "Appearance",

@@ -430,7 +430,10 @@ function premeasure_height(
   measure_container.appendChild(wrapper);
 
   const content = shadow.querySelector("div");
-  const height = content ? Math.min(content.scrollHeight + 2, 12000) : 0;
+  const rect = content ? content.getBoundingClientRect() : null;
+  const height = content
+    ? Math.min(Math.max(rect?.height ?? 0, content.scrollHeight) + 8, 12000)
+    : 0;
 
   measure_container.removeChild(wrapper);
 
