@@ -18,6 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+export const MAX_PASSWORD_LENGTH = 128;
+
+export function clamp_password(password: string): string {
+  if (password.length <= MAX_PASSWORD_LENGTH) return password;
+
+  return password.slice(0, MAX_PASSWORD_LENGTH);
+}
+
 export function sanitize_username(input: string): string {
   return input
     .toLowerCase()

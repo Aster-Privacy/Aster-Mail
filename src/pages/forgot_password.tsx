@@ -58,6 +58,7 @@ import {
   sanitize_username,
   validate_password_strength,
   timing_safe_delay,
+  clamp_password,
 } from "@/services/sanitize";
 import {
   EyeIcon,
@@ -755,7 +756,7 @@ export default function ForgotPasswordPage() {
                   status={error ? "error" : "default"}
                   type={is_password_visible ? "text" : "password"}
                   value={password}
-                  onChange={(e) => set_password(e.target.value)}
+                  onChange={(e) => set_password(clamp_password(e.target.value))}
                 />
                 <PasswordStrengthIndicator password={password} />
               </div>
@@ -776,7 +777,7 @@ export default function ForgotPasswordPage() {
                 status={error ? "error" : "default"}
                 type={is_confirm_visible ? "text" : "password"}
                 value={confirm_password}
-                onChange={(e) => set_confirm_password(e.target.value)}
+                onChange={(e) => set_confirm_password(clamp_password(e.target.value))}
                 onKeyDown={(e) =>
                   e["key"] === "Enter" && handle_password_submit()
                 }

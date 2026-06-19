@@ -41,6 +41,7 @@ import {
 } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -172,7 +173,8 @@ export function EncryptionSection({
               status={auth_error ? "error" : "default"}
               type="password"
               value={password}
-              onChange={(e) => set_password(e.target.value)}
+              maxLength={128}
+              onChange={(e) => set_password(clamp_password(e.target.value))}
               onKeyDown={(e) =>
                 e.key === "Enter" && !totp_required && handle_authenticate()
               }
@@ -755,7 +757,8 @@ export function EncryptionSection({
                 status={enc.export_error ? "error" : "default"}
                 type="password"
                 value={enc.export_password}
-                onChange={(e) => enc.set_export_password(e.target.value)}
+                maxLength={128}
+                onChange={(e) => enc.set_export_password(clamp_password(e.target.value))}
                 onKeyDown={(e) =>
                   e.key === "Enter" && enc.handle_export_secret_key()
                 }
@@ -863,7 +866,8 @@ export function EncryptionSection({
                 status={enc.regenerate_error ? "error" : "default"}
                 type="password"
                 value={enc.regenerate_password}
-                onChange={(e) => enc.set_regenerate_password(e.target.value)}
+                maxLength={128}
+                onChange={(e) => enc.set_regenerate_password(clamp_password(e.target.value))}
                 onKeyDown={(e) =>
                   e.key === "Enter" &&
                   enc.regenerate_confirm_text.toLowerCase() === "regenerate" &&
