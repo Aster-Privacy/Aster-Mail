@@ -39,6 +39,7 @@ import {
   page_transition,
 } from "@/components/register/register_types";
 import { Alert } from "@/components/register/register_shared";
+import { clamp_password } from "@/services/sanitize";
 
 interface RegisterStepPasswordProps {
   reg: UseRegistrationReturn;
@@ -91,7 +92,7 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
             type={reg.is_password_visible ? "text" : "password"}
             value={reg.password}
             onBlur={reg.handle_password_blur}
-            onChange={(e) => reg.set_password(e.target.value)}
+            onChange={(e) => reg.set_password(clamp_password(e.target.value))}
           />
           <PasswordStrengthIndicator password={reg.password} />
           {reg.password_breach_warning && (
@@ -125,7 +126,7 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
           status={reg.error ? "error" : "default"}
           type={reg.is_confirm_password_visible ? "text" : "password"}
           value={reg.confirm_password}
-          onChange={(e) => reg.set_confirm_password(e.target.value)}
+          onChange={(e) => reg.set_confirm_password(clamp_password(e.target.value))}
           onKeyDown={(e) => e["key"] === "Enter" && reg.handle_password_next()}
         />
       </div>

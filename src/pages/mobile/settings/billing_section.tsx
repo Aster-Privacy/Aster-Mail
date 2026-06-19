@@ -45,6 +45,7 @@ import {
 } from "@/components/settings/billing/billing_constants";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
@@ -1273,8 +1274,9 @@ export function BillingSection({
                 status={cancel_password_error ? "error" : "default"}
                 type={show_cancel_password ? "text" : "password"}
                 value={cancel_password}
+                maxLength={128}
                 onChange={(e) => {
-                  set_cancel_password(e.target.value);
+                  set_cancel_password(clamp_password(e.target.value));
                   set_cancel_password_error("");
                 }}
                 onKeyDown={(e) => {

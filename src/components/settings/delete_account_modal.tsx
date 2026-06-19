@@ -44,6 +44,7 @@ import {
   base64_to_array,
 } from "@/services/crypto/key_manager";
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 
 interface DeleteAccountModalProps {
   is_open: boolean;
@@ -196,7 +197,8 @@ export function DeleteAccountModal({
             placeholder={t("auth.password")}
             type={show_password ? "text" : "password"}
             value={password}
-            onChange={(e) => set_password(e.target.value)}
+            maxLength={128}
+            onChange={(e) => set_password(clamp_password(e.target.value))}
             onKeyDown={(e) =>
               e["key"] === "Enter" && is_confirmed && handle_delete()
             }

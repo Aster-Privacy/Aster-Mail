@@ -42,6 +42,7 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { api_client } from "@/services/api/client";
@@ -576,7 +577,8 @@ export function SecuritySection({
                   status={pw_error ? "error" : "default"}
                   type={show_current_pw ? "text" : "password"}
                   value={current_password}
-                  onChange={(e) => set_current_password(e.target.value)}
+                  maxLength={128}
+                  onChange={(e) => set_current_password(clamp_password(e.target.value))}
                 />
                 <button
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
@@ -604,8 +606,9 @@ export function SecuritySection({
                       set_pw_breach_warning(result.is_breached);
                     }
                   }}
+                  maxLength={128}
                   onChange={(e) => {
-                    set_new_password(e.target.value);
+                    set_new_password(clamp_password(e.target.value));
                     set_pw_breach_warning(false);
                   }}
                 />
@@ -635,7 +638,8 @@ export function SecuritySection({
                 status={pw_error ? "error" : "default"}
                 type="password"
                 value={confirm_password}
-                onChange={(e) => set_confirm_password(e.target.value)}
+                maxLength={128}
+                onChange={(e) => set_confirm_password(clamp_password(e.target.value))}
               />
               {pw_error && (
                 <p className="text-[13px] text-[var(--color-danger,#ef4444)]">

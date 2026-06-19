@@ -40,6 +40,7 @@ import { disable_totp } from "@/services/api/totp";
 import { get_user_salt } from "@/services/api/auth";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 import {
   hash_email,
   derive_password_hash,
@@ -189,7 +190,8 @@ export function TotpDisableModal({
                 status={error ? "error" : "default"}
                 type={show_password ? "text" : "password"}
                 value={password}
-                onChange={(e) => set_password(e.target.value)}
+                maxLength={128}
+                onChange={(e) => set_password(clamp_password(e.target.value))}
               />
               <button
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted"
