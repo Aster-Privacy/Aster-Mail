@@ -72,7 +72,7 @@ function secure_zero(buffer: Uint8Array): void {
 // becomes available can be retried, and are cleared the moment the secret is
 // saved locally.
 const PQ_MISSING_STORAGE_KEY = "pq_prekey_missing";
-const PQ_MISSING_TTL_MS = 24 * 60 * 60 * 1000;
+const PQ_MISSING_TTL_MS = 5 * 60 * 1000;
 let missing_cache: Record<string, number> | null = null;
 
 function load_missing_cache(): Record<string, number> {

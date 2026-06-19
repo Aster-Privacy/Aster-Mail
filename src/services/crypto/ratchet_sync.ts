@@ -393,6 +393,23 @@ export async function sync_all_ratchet_states(
           } catch {
             result.conflicts.push(conversation_id);
           }
+        } else if (server_info.version > local_ratchet.get_state_version()) {
+          try {
+            const loaded = await load_ratchet_from_server(
+              conversation_id,
+              encryption_key,
+            );
+
+            if (loaded) {
+              await save_ratchet_state(loaded.ratchet);
+              result.synced.push(conversation_id);
+            }
+          } catch (e) {
+            result.errors.push({
+              conversation_id,
+              error: e instanceof Error ? e.message : "Unknown error",
+            });
+          }
         }
 
         server_map.delete(conversation_id);
