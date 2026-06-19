@@ -62,7 +62,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   detect_unsubscribe_info,
-  perform_unsubscribe,
+  execute_unsubscribe,
 } from "@/utils/unsubscribe_detector";
 import { confirm_unsubscribe_bulk } from "@/components/modals/unsubscribe_confirmation_modal";
 
@@ -338,14 +338,7 @@ export function MassUnsubscribeModal({
       for (let i = 0; i < selected_subs.length; i += BATCH_SIZE) {
         const batch = selected_subs.slice(i, i + BATCH_SIZE);
         const results = await Promise.allSettled(
-          batch.map((sub) =>
-            perform_unsubscribe(
-              sub.sender_email,
-              sub.sender_name,
-              sub.unsub_info,
-              { skip_confirm: true },
-            ),
-          ),
+          batch.map((sub) => execute_unsubscribe(sub.unsub_info)),
         );
 
         for (const result of results) {
