@@ -351,6 +351,7 @@ export async function decrypt_body_text(
   body_text: string,
   user_email: string,
   sender_email: string,
+  message_id?: string,
 ): Promise<string> {
   if (!body_text) return body_text;
 
@@ -358,6 +359,7 @@ export async function decrypt_body_text(
     body_text,
     user_email,
     sender_email,
+    message_id,
   );
 
   result = await try_decrypt_pgp_body(result);
@@ -375,8 +377,14 @@ export async function decrypt_body_text_with_bundle(
   body_text: string,
   user_email: string,
   sender_email: string,
+  message_id?: string,
 ): Promise<SubjectBundle> {
-  const decrypted = await decrypt_body_text(body_text, user_email, sender_email);
+  const decrypted = await decrypt_body_text(
+    body_text,
+    user_email,
+    sender_email,
+    message_id,
+  );
   return extract_subject_bundle(decrypted);
 }
 
