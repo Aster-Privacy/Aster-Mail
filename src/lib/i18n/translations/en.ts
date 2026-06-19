@@ -1383,6 +1383,7 @@ export const en: Translations = {
   },
   settings: {
     title: "Settings",
+    search_placeholder: "Search settings...",
     general: "General",
     account: "Account",
     appearance: "Appearance",
@@ -4221,7 +4222,7 @@ export const en: Translations = {
       "Once rotated, your previous key is retired. Any emails that were encrypted exclusively to your old key will no longer be decryptable. This cannot be undone.",
     bulk_unsubscribe: "Bulk Unsubscribe",
     senders_unsubscribed: "{{ count }} senders unsubscribed",
-    opened_in_browser: "{{ count }} opened in browser to complete",
+    opened_in_browser: "{{ count }} archived - manual confirmation may be needed",
     could_not_unsubscribe: "{{ count }} could not be unsubscribed",
     unsubscribing: "Unsubscribing...",
     scanning: "Scanning...",
@@ -5749,6 +5750,8 @@ export const en: Translations = {
     saved_to_password_manager: "Passkey saved to your password manager. To use Windows Hello instead, dismiss the password manager dialog when it appears.",
     passkey_hint: "Uses Windows Hello, Face ID, or Touch ID. If your password manager opens, you can save it there or pause the extension to use Windows Hello directly.",
     security_key_hint: "Adds a second factor using Windows Hello, a YubiKey, or your password manager.",
+    rename: "Rename",
+    rename_saved: "Name updated",
   },
   errors: {
     generic: "That did not work. Another attempt should do it.",

@@ -2996,7 +2996,7 @@ export const it = {
       "Una volta ruotata, la tua chiave precedente viene ritirata. Le email cifrate esclusivamente con la vecchia chiave non potranno più essere decifrate. Questa azione è irreversibile.",
     bulk_unsubscribe: "Annullamento iscrizione in blocco",
     senders_unsubscribed: "{{ count }} mittenti disiscritti",
-    opened_in_browser: "{{ count }} aperti nel browser per completare",
+    opened_in_browser: "{{ count }} archiviati - potrebbe essere necessaria conferma manuale",
     could_not_unsubscribe: "{{ count }} non hanno potuto essere disiscritti",
     unsubscribing: "Annullamento iscrizione...",
     scanning: "Scansione in corso...",
@@ -5293,6 +5293,8 @@ export const it = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "Rinomina",
+    rename_saved: "Nome aggiornato",
   },
   errors: {
     pending_email_verification: "Controlla la tua email e fai clic sul link di verifica per attivare questo account.",

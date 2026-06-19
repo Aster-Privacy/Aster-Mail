@@ -3705,7 +3705,7 @@ export const es = {
       "Una vez rotadas, tu clave anterior queda retirada. Los correos cifrados exclusivamente con tu clave anterior ya no serán descifrables. Esto no se puede deshacer.",
     bulk_unsubscribe: "Cancelación masiva",
     senders_unsubscribed: "{{ count }} remitentes cancelados",
-    opened_in_browser: "{{ count }} abiertos en el navegador para completar",
+    opened_in_browser: "{{ count }} archivados - puede que se requiera confirmación manual",
     could_not_unsubscribe: "{{ count }} no se pudieron cancelar",
     unsubscribing: "Cancelando suscripción...",
     scanning: "Escaneando...",
@@ -5292,6 +5292,8 @@ export const es = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "Renombrar",
+    rename_saved: "Nombre actualizado",
   },
   errors: {
     pending_email_verification: "Revisa tu correo y haz clic en el enlace de verificación para activar esta cuenta.",

@@ -26,6 +26,7 @@ import {
   TrashIcon,
   PlusIcon,
   ExclamationTriangleIcon,
+  PencilIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -38,6 +39,7 @@ import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
 import {
   list_hardware_keys,
   remove_hardware_key,
+  rename_hardware_key,
   type HardwareKeyInfo,
 } from "@/services/api/webauthn";
 import {
@@ -60,93 +62,163 @@ function format_date(iso: string): string {
 }
 
 function key_display_type(key: HardwareKeyInfo): "passkey" | "security_key" {
-  const name = key.name_encrypted?.toLowerCase() ?? "";
-  if (name.startsWith("passkey")) {
-    return "passkey";
-  }
-  return "security_key";
+  return key.is_passkey ? "passkey" : "security_key";
 }
 
 interface KeyRowProps {
   key_info: HardwareKeyInfo;
   on_remove: (id: string) => void;
+  on_rename: (id: string, name: string | null) => void;
   removing: boolean;
 }
 
-function KeyRow({ key_info, on_remove, removing }: KeyRowProps) {
+function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
   const { t } = use_i18n();
   const [confirm, set_confirm] = useState(false);
+  const [editing, set_editing] = useState(false);
+  const [draft, set_draft] = useState("");
+  const [saving, set_saving] = useState(false);
   const display_type = key_display_type(key_info);
 
-  return (
-    <div className="flex items-center justify-between py-3 border-b border-edge-secondary last:border-0">
-      <div className="flex items-center gap-3 min-w-0">
-        {display_type === "passkey" ? (
-          <FingerPrintIcon className="w-5 h-5 text-primary flex-shrink-0" />
-        ) : (
-          <KeyIcon className="w-5 h-5 text-txt-muted flex-shrink-0" />
-        )}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-txt-primary truncate">
-              {key_info.name_encrypted ||
-                (display_type === "passkey"
-                  ? t("passkeys.unnamed_passkey")
-                  : t("passkeys.unnamed_security_key"))}
-            </span>
-            <span
-              className={cn(
-                "text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0",
-                display_type === "passkey"
-                  ? "bg-primary/10 text-primary"
-                  : "bg-surf-secondary text-txt-muted border border-edge-secondary",
-              )}
-            >
-              {display_type === "passkey"
-                ? t("passkeys.passkey_badge")
-                : t("passkeys.security_key_badge")}
-            </span>
-          </div>
-          <p className="text-xs text-txt-muted mt-0.5">
-            {t("passkeys.registered")}{" "}
-            {format_date(key_info.registered_at)}
-            {key_info.last_used
-              ? ` · ${t("passkeys.last_used")} ${format_date(key_info.last_used)}`
-              : ` · ${t("passkeys.never_used")}`}
-          </p>
-        </div>
-      </div>
+  const start_edit = () => {
+    set_draft(key_info.name_encrypted ?? "");
+    set_editing(true);
+    set_confirm(false);
+  };
 
-      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-        {confirm ? (
-          <div className="flex items-center gap-2">
-            <button
-              className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
-              onClick={() => set_confirm(false)}
-            >
-              {t("common.cancel")}
-            </button>
-            <button
-              className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors"
-              disabled={removing}
-              onClick={() => on_remove(key_info.id)}
-            >
-              {removing ? (
-                <span className="flex items-center gap-1">
-                  <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+  const cancel_edit = () => {
+    set_editing(false);
+    set_draft("");
+  };
+
+  const save_name = async () => {
+    const trimmed = draft.trim() || null;
+    set_saving(true);
+    const resp = await rename_hardware_key(key_info.id, trimmed);
+    set_saving(false);
+    if (resp.error) {
+      show_toast(resp.error, "error");
+    } else {
+      on_rename(key_info.id, trimmed);
+      set_editing(false);
+      show_toast(t("passkeys.rename_saved"), "success");
+    }
+  };
+
+  return (
+    <div className="py-3 border-b border-edge-secondary last:border-0">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 min-w-0">
+          {display_type === "passkey" ? (
+            <FingerPrintIcon className="w-5 h-5 text-primary flex-shrink-0" />
+          ) : (
+            <KeyIcon className="w-5 h-5 text-txt-muted flex-shrink-0" />
+          )}
+          <div className="min-w-0">
+            {editing ? (
+              <div className="flex items-center gap-2">
+                <input
+                  autoFocus
+                  className="text-sm font-medium bg-surf-secondary border border-edge-secondary rounded px-2 py-0.5 text-txt-primary outline-none focus:ring-1 focus:ring-primary w-40"
+                  maxLength={100}
+                  type="text"
+                  value={draft}
+                  onChange={(e) => set_draft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") save_name();
+                    if (e.key === "Escape") cancel_edit();
+                  }}
+                />
+                <button
+                  className="text-xs text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
+                  disabled={saving}
+                  onClick={save_name}
+                >
+                  {saving ? (
+                    <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    t("common.save")
+                  )}
+                </button>
+                <button
+                  className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
+                  onClick={cancel_edit}
+                >
+                  {t("common.cancel")}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-medium text-txt-primary truncate">
+                  {key_info.name_encrypted ||
+                    (display_type === "passkey"
+                      ? t("passkeys.unnamed_passkey")
+                      : t("passkeys.unnamed_security_key"))}
                 </span>
-              ) : (
-                t("passkeys.confirm_remove")
-              )}
-            </button>
+                <span
+                  className={cn(
+                    "text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0",
+                    display_type === "passkey"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-surf-secondary text-txt-muted border border-edge-secondary",
+                  )}
+                >
+                  {display_type === "passkey"
+                    ? t("passkeys.passkey_badge")
+                    : t("passkeys.security_key_badge")}
+                </span>
+              </div>
+            )}
+            {!editing && (
+              <p className="text-xs text-txt-muted mt-0.5">
+                {t("passkeys.registered")}{" "}
+                {format_date(key_info.registered_at)}
+                {key_info.last_used
+                  ? ` · ${t("passkeys.last_used")} ${format_date(key_info.last_used)}`
+                  : ` · ${t("passkeys.never_used")}`}
+              </p>
+            )}
           </div>
-        ) : (
-          <button
-            className="p-1.5 rounded-md text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
-            onClick={() => set_confirm(true)}
-          >
-            <TrashIcon className="w-4 h-4" />
-          </button>
+        </div>
+
+        {!editing && (
+          <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+            <button
+              className="p-1.5 rounded-md text-txt-muted hover:text-txt-primary hover:bg-surf-tertiary transition-colors"
+              title={t("passkeys.rename")}
+              onClick={start_edit}
+            >
+              <PencilIcon className="w-4 h-4" />
+            </button>
+            {confirm ? (
+              <div className="flex items-center gap-2 ml-1">
+                <button
+                  className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
+                  onClick={() => set_confirm(false)}
+                >
+                  {t("common.cancel")}
+                </button>
+                <button
+                  className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors"
+                  disabled={removing}
+                  onClick={() => on_remove(key_info.id)}
+                >
+                  {removing ? (
+                    <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    t("passkeys.confirm_remove")
+                  )}
+                </button>
+              </div>
+            ) : (
+              <button
+                className="p-1.5 rounded-md text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                onClick={() => set_confirm(true)}
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -197,6 +269,15 @@ export function PasskeySection() {
       }
     },
     [t],
+  );
+
+  const handle_rename = useCallback(
+    (key_id: string, name: string | null) => {
+      set_keys((prev) =>
+        prev.map((k) => (k.id === key_id ? { ...k, name_encrypted: name } : k)),
+      );
+    },
+    [],
   );
 
   const handle_add_passkey = useCallback(async () => {
@@ -296,7 +377,8 @@ export function PasskeySection() {
                   key={key.id}
                   key_info={key}
                   on_remove={handle_remove}
-                  removing={removing_id !== null}
+                  on_rename={handle_rename}
+                  removing={removing_id === key.id}
                 />
               ))}
             </motion.div>

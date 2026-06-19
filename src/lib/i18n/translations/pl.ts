@@ -3760,7 +3760,7 @@ export const pl = {
       "Po rotacji poprzedni klucz zostaje wycofany. Wiadomości zaszyfrowane wyłącznie starym kluczem nie będą już możliwe do odszyfrowania. Tej operacji nie można cofnąć.",
     bulk_unsubscribe: "Masowa rezygnacja",
     senders_unsubscribed: "Zrezygnowano z {{ count }} nadawców",
-    opened_in_browser: "{{ count }} otwarto w przeglądarce do dokończenia",
+    opened_in_browser: "{{ count }} zarchiwizowane - może być wymagane ręczne potwierdzenie",
     could_not_unsubscribe: "{{ count }} nie udało się zrezygnować",
     unsubscribing: "Rezygnowanie...",
     scanning: "Skanowanie...",
@@ -5292,6 +5292,8 @@ export const pl = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "Zmień nazwę",
+    rename_saved: "Nazwa zaktualizowana",
   },
   errors: {
     pending_email_verification: "Sprawdź swoją pocztę i kliknij link weryfikacyjny, aby aktywować to konto.",

@@ -3706,7 +3706,7 @@ export const tr = {
       "Döndürme işleminin ardından önceki anahtarınız kullanımdan kaldırılır. Yalnızca eski anahtarınızla şifrelenmiş e-postalar artık şifresi çözülemez. Bu işlem geri alınamaz.",
     bulk_unsubscribe: "Toplu abonelikten çıkma",
     senders_unsubscribed: "{{ count }} gönderenden abonelik iptal edildi",
-    opened_in_browser: "{{ count }} tamamlamak için tarayıcıda açıldı",
+    opened_in_browser: "{{ count }} arşivlendi - manuel onay gerekebilir",
     could_not_unsubscribe: "{{ count }} abonelikten çıkarılamadı",
     unsubscribing: "Abonelikten çıkılıyor...",
     scanning: "Taranıyor...",
@@ -5292,6 +5292,8 @@ export const tr = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "Yeniden adlandır",
+    rename_saved: "Ad güncellendi",
   },
   errors: {
     pending_email_verification: "Bu hesabı etkinleştirmek için e-postanızı kontrol edin ve doğrulama bağlantısına tıklayın.",
