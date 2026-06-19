@@ -220,7 +220,7 @@ export function ThreadMessageBlock({
   const [show_details_modal, set_show_details_modal] = useState(false);
   const [unsub_state, set_unsub_state] = useState<"idle" | "loading" | "manual" | "done">("idle");
   const clean_body = useMemo(() => {
-    if (message.html_content) {
+    if (message.html_content && !is_ratchet_envelope(message.html_content)) {
       return message.html_content;
     }
 
@@ -253,9 +253,15 @@ export function ThreadMessageBlock({
   const is_ghost_sender = is_ghost_email(message.sender_email);
   const show_sender_name = message.display_sender_name ?? message.sender_name;
   const show_sender_email = message.display_sender_email ?? message.sender_email;
+  const has_plaintext_body =
+    !!message.body &&
+    message.body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
+    !is_ratchet_envelope(message.body);
   const is_ratchet_undecryptable =
-    message.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
-    is_ratchet_envelope(message.html_content);
+    !has_plaintext_body &&
+    (message.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
+      is_ratchet_envelope(message.body) ||
+      is_ratchet_envelope(message.html_content));
   const rich_html_source = message.html_content || message.body;
   const is_plain_text = !rich_html_source || !has_rich_html(rich_html_source);
 
