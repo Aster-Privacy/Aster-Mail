@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback } from "react";
-import { KeyIcon, TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { KeyIcon, TrashIcon, PlusIcon, PencilIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { show_toast } from "@/components/toast/simple_toast";
@@ -39,6 +39,7 @@ import {
   initiate_hardware_key_registration,
   perform_webauthn_registration,
   remove_hardware_key,
+  rename_hardware_key,
   is_webauthn_supported,
   HardwareKeyInfo,
 } from "@/services/api/webauthn";
@@ -51,6 +52,9 @@ export function HardwareKeysSection() {
   const [show_add_modal, set_show_add_modal] = useState(false);
   const [key_name, set_key_name] = useState("");
   const [removing_key_id, set_removing_key_id] = useState<string | null>(null);
+  const [editing_key_id, set_editing_key_id] = useState<string | null>(null);
+  const [rename_draft, set_rename_draft] = useState("");
+  const [is_saving_rename, set_is_saving_rename] = useState(false);
 
   const fetch_keys = useCallback(async () => {
     set_is_loading(true);
@@ -128,6 +132,32 @@ export function HardwareKeysSection() {
     set_removing_key_id(null);
   };
 
+  const start_rename = (key: HardwareKeyInfo) => {
+    set_rename_draft(key.name_encrypted ?? "");
+    set_editing_key_id(key.id);
+  };
+
+  const cancel_rename = () => {
+    set_editing_key_id(null);
+    set_rename_draft("");
+  };
+
+  const save_rename = async (key_id: string) => {
+    const trimmed = rename_draft.trim() || null;
+    set_is_saving_rename(true);
+    const resp = await rename_hardware_key(key_id, trimmed);
+    set_is_saving_rename(false);
+    if (resp.error) {
+      show_toast(resp.error, "error");
+    } else {
+      set_keys((prev) =>
+        prev.map((k) => (k.id === key_id ? { ...k, name_encrypted: trimmed } : k)),
+      );
+      set_editing_key_id(null);
+      show_toast(t("passkeys.rename_saved"), "success");
+    }
+  };
+
   const handle_close_modal = () => {
     if (!is_registering) {
       set_show_add_modal(false);
@@ -192,33 +222,83 @@ export function HardwareKeysSection() {
                 key={key.id}
                 className="flex items-center justify-between p-3 rounded-lg bg-surf-secondary"
               >
-                <div className="flex items-center gap-3">
-                  <KeyIcon className="w-5 h-5 text-txt-muted" />
-                  <div>
-                    <p className="text-sm font-medium text-txt-primary">
-                      {key.name_encrypted || key.type}
-                    </p>
-                    <p className="text-xs text-txt-muted">
-                      {t("settings.registered")}:{" "}
-                      {format_date(key.registered_at)}
-                      {key.last_used
-                        ? ` · ${t("settings.last_used")}: ${format_date(key.last_used)}`
-                        : ` · ${t("settings.never_used")}`}
-                    </p>
+                <div className="flex items-center gap-3 min-w-0">
+                  <KeyIcon className="w-5 h-5 text-txt-muted flex-shrink-0" />
+                  <div className="min-w-0">
+                    {editing_key_id === key.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          autoFocus
+                          className="text-sm font-medium bg-surf-primary border border-edge-secondary rounded px-2 py-0.5 text-txt-primary outline-none focus:ring-1 focus:ring-primary w-40"
+                          maxLength={100}
+                          type="text"
+                          value={rename_draft}
+                          onChange={(e) => set_rename_draft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") save_rename(key.id);
+                            if (e.key === "Escape") cancel_rename();
+                          }}
+                        />
+                        <button
+                          className="text-xs text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
+                          disabled={is_saving_rename}
+                          type="button"
+                          onClick={() => save_rename(key.id)}
+                        >
+                          {is_saving_rename ? (
+                            <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            t("common.save")
+                          )}
+                        </button>
+                        <button
+                          className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
+                          type="button"
+                          onClick={cancel_rename}
+                        >
+                          {t("common.cancel")}
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-txt-primary">
+                        {key.name_encrypted || key.type}
+                      </p>
+                    )}
+                    {editing_key_id !== key.id && (
+                      <p className="text-xs text-txt-muted">
+                        {t("settings.registered")}:{" "}
+                        {format_date(key.registered_at)}
+                        {key.last_used
+                          ? ` · ${t("settings.last_used")}: ${format_date(key.last_used)}`
+                          : ` · ${t("settings.never_used")}`}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <button
-                  className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-tertiary"
-                  disabled={removing_key_id === key.id}
-                  type="button"
-                  onClick={() => {
-                    if (window.confirm(t("settings.confirm_remove_key"))) {
-                      handle_remove(key.id);
-                    }
-                  }}
-                >
-                  <TrashIcon className="w-4 h-4 text-red-500" />
-                </button>
+                {editing_key_id !== key.id && (
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-tertiary"
+                      title={t("passkeys.rename")}
+                      type="button"
+                      onClick={() => start_rename(key)}
+                    >
+                      <PencilIcon className="w-4 h-4 text-txt-muted" />
+                    </button>
+                    <button
+                      className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-tertiary"
+                      disabled={removing_key_id === key.id}
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm(t("settings.confirm_remove_key"))) {
+                          handle_remove(key.id);
+                        }
+                      }}
+                    >
+                      <TrashIcon className="w-4 h-4 text-red-500" />
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
 

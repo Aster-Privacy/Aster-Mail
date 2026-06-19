@@ -27,6 +27,7 @@ export interface HardwareKeyInfo {
   id: string;
   name_encrypted: string | null;
   type: string;
+  is_passkey: boolean;
   registered_at: string;
   last_used: string | null;
 }
@@ -138,6 +139,16 @@ export async function remove_hardware_key(
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
     `/core/v1/auth/hardware-keys/${key_id}`,
+  );
+}
+
+export async function rename_hardware_key(
+  key_id: string,
+  friendly_name: string | null,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.put<{ success: boolean }>(
+    `/core/v1/auth/hardware-keys/${key_id}`,
+    { friendly_name },
   );
 }
 

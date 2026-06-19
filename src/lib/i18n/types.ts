@@ -85,6 +85,8 @@ export interface PasskeysTranslations {
   saved_to_password_manager: string;
   passkey_hint: string;
   security_key_hint: string;
+  rename: string;
+  rename_saved: string;
 }
 
 export interface SecureViewTranslations {
@@ -1580,6 +1582,7 @@ export interface CommonTranslations {
 
 export interface SettingsTranslations {
   title: string;
+  search_placeholder: string;
   general: string;
   account: string;
   appearance: string;

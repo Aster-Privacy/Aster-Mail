@@ -3691,7 +3691,7 @@ export const fr = {
     scanning: "Analyse en cours...",
     unsubscribing: "Désabonnement en cours...",
     could_not_unsubscribe: "{{ count }} n'ont pas pu être désabonnés",
-    opened_in_browser: "{{ count }} ouvert(s) dans le navigateur pour finaliser",
+    opened_in_browser: "{{ count }} archivé(s) - confirmation manuelle peut être nécessaire",
     senders_unsubscribed: "{{ count }} expéditeurs désabonnés",
     bulk_unsubscribe: "Désabonnement en masse",
     rotate_keys: "Renouveler les clés",
@@ -5292,6 +5292,8 @@ export const fr = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "Renommer",
+    rename_saved: "Nom mis à jour",
   },
   errors: {
     pending_email_verification: "Consultez votre e-mail et cliquez sur le lien de vérification pour activer ce compte.",

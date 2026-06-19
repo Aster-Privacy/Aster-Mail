@@ -3755,7 +3755,7 @@ export const zh_CN = {
       "轮换后，您的旧密钥将被停用。仅用旧密钥加密的邮件将无法再解密。此操作不可撤销。",
     bulk_unsubscribe: "批量退订",
     senders_unsubscribed: "已退订 {{ count }} 位发件人",
-    opened_in_browser: "{{ count }} 个已在浏览器中打开以完成退订",
+    opened_in_browser: "{{ count }} 个已归档 - 可能需要手动确认",
     could_not_unsubscribe: "{{ count }} 个未能退订",
     unsubscribing: "退订中...",
     scanning: "扫描中...",
@@ -5292,6 +5292,8 @@ export const zh_CN = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "重命名",
+    rename_saved: "名称已更新",
   },
   errors: {
     pending_email_verification: "请查看你的邮件并点击验证链接以激活此账户。",

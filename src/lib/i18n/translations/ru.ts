@@ -3704,7 +3704,7 @@ export const ru = {
       "После ротации предыдущий ключ отзывается. Письма, зашифрованные исключительно старым ключом, больше не смогут быть расшифрованы. Это действие необратимо.",
     bulk_unsubscribe: "Массовая отписка",
     senders_unsubscribed: "Отписано отправителей: {{ count }}",
-    opened_in_browser: "{{ count }} открыто в браузере для завершения",
+    opened_in_browser: "{{ count }} архивировано - может потребоваться подтверждение вручную",
     could_not_unsubscribe: "{{ count }} не удалось отписать",
     unsubscribing: "Отписка...",
     scanning: "Сканирование...",
@@ -5292,6 +5292,8 @@ export const ru = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "Переименовать",
+    rename_saved: "Имя обновлено",
   },
   errors: {
     pending_email_verification: "Проверьте почту и перейдите по ссылке подтверждения, чтобы активировать этот аккаунт.",
