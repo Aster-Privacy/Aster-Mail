@@ -96,6 +96,8 @@ import {
 } from "@/services/category_index";
 import { use_i18n } from "@/lib/i18n/context";
 
+const AUTH_VERIFY_TIMEOUT_MS = 12000;
+
 async function clear_account_scoped_caches(): Promise<void> {
   clear_mail_stats();
   clear_mail_cache();
@@ -176,7 +178,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
 
-        const is_auth_valid = await verify_auth_status();
+        let verify_timed_out = false;
+        const is_auth_valid = await Promise.race([
+          verify_auth_status(),
+          new Promise<boolean>((resolve) =>
+            setTimeout(() => {
+              verify_timed_out = true;
+              resolve(false);
+            }, AUTH_VERIFY_TIMEOUT_MS),
+          ),
+        ]);
+
+        if (verify_timed_out) {
+          api_client.set_authenticated(false);
+          sync_client.disconnect();
+          set_state({
+            user: null,
+            is_loading: false,
+            is_authenticated: false,
+            has_keys: false,
+            accounts: data.accounts,
+            current_account_id: data.current_account_id,
+          });
+
+          const local = current.user.email.split("@")[0] ?? "";
+          const uses_hash = "__TAURI_INTERNALS__" in window;
+          const path = uses_hash
+            ? window.location.hash.slice(1).split("?")[0] || "/"
+            : window.location.pathname;
+          if (path !== "/sign-in" && path !== "/register") {
+            navigate(`/sign-in?u=${encodeURIComponent(local)}`);
+          }
+
+          return;
+        }
 
         if (is_auth_valid) {
           api_client.set_authenticated(true);

@@ -193,6 +193,7 @@ export interface RequestConfig extends RequestInit {
   cache_ttl?: number;
   skip_cache?: boolean;
   skip_session_refresh?: boolean;
+  skip_dedup?: boolean;
 }
 
 const DEFAULT_TIMEOUT = 30000;
@@ -642,7 +643,7 @@ class ApiClient {
           try {
             me_response = await this.get<{ user_id: string }>(
               "/core/v1/auth/me",
-              { skip_cache: true, skip_session_refresh: true },
+              { skip_cache: true, skip_session_refresh: true, skip_dedup: true },
             );
           } catch (e) {
             if (import.meta.env.DEV) console.error(e);
@@ -816,7 +817,7 @@ class ApiClient {
 
     const me_response = await this.get<{ user_id: string }>(
       "/core/v1/auth/me",
-      { skip_cache: true, skip_session_refresh: true },
+      { skip_cache: true, skip_session_refresh: true, skip_dedup: true },
     );
 
     if (!me_response.data?.user_id) {
@@ -1369,7 +1370,7 @@ class ApiClient {
     endpoint: string,
     config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
-    const { cache_ttl, skip_cache, ...fetch_config } = config ?? {};
+    const { cache_ttl, skip_cache, skip_dedup, ...fetch_config } = config ?? {};
     const cache_key = `GET:${endpoint}`;
 
     return request_cache.get_or_fetch<ApiResponse<T>>(
@@ -1377,6 +1378,7 @@ class ApiClient {
       () => this.request<T>(endpoint, { ...fetch_config, method: "GET" }),
       cache_ttl,
       skip_cache,
+      skip_dedup,
     );
   }
 

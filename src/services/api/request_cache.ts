@@ -37,6 +37,7 @@ export class RequestCache {
     fetcher: () => Promise<T>,
     ttl: number = DEFAULT_CACHE_TTL,
     skip_cache: boolean = false,
+    skip_dedup: boolean = false,
   ): Promise<T> {
     if (!skip_cache && ttl > 0) {
       const cached = this.response_cache.get(cache_key);
@@ -44,6 +45,16 @@ export class RequestCache {
       if (cached && Date.now() - cached.timestamp < cached.ttl) {
         return cached.response as T;
       }
+    }
+
+    if (skip_dedup) {
+      const result = await fetcher();
+
+      if (ttl > 0 && this.is_cacheable_response(result)) {
+        this.set_entry(cache_key, result, ttl);
+      }
+
+      return result;
     }
 
     const pending = this.in_flight.get(cache_key);
