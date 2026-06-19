@@ -30,7 +30,6 @@ import {
 } from "./memory_key_store";
 
 const CACHE_KEY_PREFIX = "ratchet_plaintext_";
-const TTL_MS = 90 * 24 * 60 * 60 * 1000;
 const REFRESH_AFTER_MS = 24 * 60 * 60 * 1000;
 
 interface CachedPlaintext {
@@ -91,12 +90,6 @@ export async function get_cached_ratchet_plaintext(
     if (!entry) return null;
 
     const age = Date.now() - entry.stored_at;
-
-    if (age > TTL_MS) {
-      await encrypted_delete(cache_id);
-
-      return null;
-    }
 
     if (age > REFRESH_AFTER_MS) {
       const refreshed: CachedPlaintext = {
