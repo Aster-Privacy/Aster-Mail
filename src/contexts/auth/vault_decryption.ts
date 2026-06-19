@@ -35,6 +35,7 @@ import {
 } from "@/services/crypto/ratchet_sync";
 import { backfill_pq_secrets_to_server } from "@/services/crypto/pq_prekey_store";
 import { reconcile_pq_secrets_with_server } from "@/services/crypto/pq_secret_reconciler";
+import { sync_escrow_to_cache } from "@/services/crypto/message_escrow";
 import { generate_and_upload_prekeys } from "@/services/crypto/prekey_service";
 import { api_client } from "@/services/api/client";
 
@@ -150,6 +151,7 @@ export async function decrypt_vault_with_lock(
 
         await backfill_pq_secrets_to_server();
         await reconcile_pq_secrets_with_server();
+        sync_escrow_to_cache().catch(() => {});
       })
       .catch(() => {});
 

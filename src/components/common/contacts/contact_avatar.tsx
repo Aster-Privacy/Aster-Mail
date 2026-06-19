@@ -70,15 +70,16 @@ export function ContactAvatar({
   const favicon_eligible =
     !!domain && !is_aster && is_valid_favicon_domain(domain);
 
-  const peer_profile = use_peer_profile(is_aster ? email : null);
-  const effective_avatar_url = avatar_url || (is_aster ? (peer_profile?.profile_picture ?? undefined) : undefined);
+  const { preferences } = use_preferences();
+  const low_network = preferences.low_network_mode;
+
+  const peer_profile = use_peer_profile(is_aster && !low_network ? email : null);
+  const effective_avatar_url = low_network ? undefined : (avatar_url || (is_aster ? (peer_profile?.profile_picture ?? undefined) : undefined));
 
   const [avatar_failed, set_avatar_failed] = useState(false);
   const [favicon_failed, set_favicon_failed] = useState<boolean>(
     domain ? is_icon_failed(domain) : false,
   );
-
-  const { preferences } = use_preferences();
 
   const cached_favicon_src = use_favicon_src(domain);
 
@@ -89,7 +90,7 @@ export function ContactAvatar({
     minHeight: size_px,
   } as const;
 
-  if (effective_avatar_url && !avatar_failed) {
+  if (!low_network && effective_avatar_url && !avatar_failed) {
     return (
       <div
         className={`${rounded} overflow-hidden flex items-center justify-center ${className}`}
@@ -106,7 +107,7 @@ export function ContactAvatar({
     );
   }
 
-  if (favicon_eligible && !favicon_failed) {
+  if (!low_network && favicon_eligible && !favicon_failed) {
     const pad = Math.max(2, Math.round(size_px * 0.14));
 
     return (

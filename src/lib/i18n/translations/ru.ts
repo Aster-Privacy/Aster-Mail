@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2416,6 +2416,8 @@ export const ru = {
     desktop: "Рабочий стол",
     show_desktop_notifications: "Показывать уведомления на рабочем столе",
     blocked_by_browser: "Заблокировано браузером",
+    blocked_by_os: "Enable in system notification settings",
+    open_system_notification_settings: "Open Settings",
     sound_new_notifications: "Воспроизводить звук для новых уведомлений",
     push: "Push-уведомления",
     push_notifications_description: "Получать push-уведомления на мобильных устройствах",

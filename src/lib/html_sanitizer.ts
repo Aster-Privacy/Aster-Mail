@@ -565,7 +565,10 @@ export function sanitize_html(
               `${effective_proxy}?url=${encodeURIComponent(src)}`,
             );
           }
-          new_element.removeAttribute("src");
+          new_element.setAttribute(
+            "src",
+            "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
+          );
           new_element.setAttribute(
             "alt",
             new_element.getAttribute("alt") || "[Click to load image]",

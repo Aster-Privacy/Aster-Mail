@@ -21,23 +21,14 @@
 import type { LanguageCode, Translations } from "../types";
 
 import { en } from "./en";
-import { es } from "./es";
-import { fr } from "./fr";
-import { de } from "./de";
-import { it } from "./it";
-import { pt } from "./pt";
-import { zh_CN } from "./zh-CN";
-import { ja } from "./ja";
-import { ko } from "./ko";
-import { ar } from "./ar";
-import { ru } from "./ru";
-import { nl } from "./nl";
-import { pl } from "./pl";
-import { tr } from "./tr";
 
 type PartialTranslations = {
   [K in keyof Translations]?: Partial<Translations[K]>;
 };
+
+const SUPPORTED_LOCALE_CODES = new Set<LanguageCode>([
+  "es", "fr", "de", "it", "pt", "pt-BR", "zh-CN", "ja", "ko", "ar", "ru", "nl", "pl", "tr",
+]);
 
 function deep_merge(
   base: Translations,
@@ -55,30 +46,36 @@ function deep_merge(
   return result as unknown as Translations;
 }
 
-const partial_map: Partial<Record<LanguageCode, PartialTranslations>> = {
-  es,
-  fr,
-  de,
-  it,
-  pt,
-  "pt-BR": pt,
-  "zh-CN": zh_CN,
-  ja,
-  ko,
-  ar,
-  ru,
-  nl,
-  pl,
-  tr,
-};
+async function load_partial(code: LanguageCode): Promise<PartialTranslations | null> {
+  switch (code) {
+    case "es": return (await import("./es")).es;
+    case "fr": return (await import("./fr")).fr;
+    case "de": return (await import("./de")).de;
+    case "it": return (await import("./it")).it;
+    case "pt":
+    case "pt-BR": return (await import("./pt")).pt;
+    case "zh-CN": return (await import("./zh-CN")).zh_CN;
+    case "ja": return (await import("./ja")).ja;
+    case "ko": return (await import("./ko")).ko;
+    case "ar": return (await import("./ar")).ar;
+    case "ru": return (await import("./ru")).ru;
+    case "nl": return (await import("./nl")).nl;
+    case "pl": return (await import("./pl")).pl;
+    case "tr": return (await import("./tr")).tr;
+    default: return null;
+  }
+}
 
 const translations_cache: Partial<Record<LanguageCode, Translations>> = { en };
 
-export function get_translations(code: LanguageCode): Translations {
-  if (translations_cache[code]) return translations_cache[code];
-  const partial = partial_map[code];
+export async function get_translations_async(code: LanguageCode): Promise<Translations> {
+  if (translations_cache[code]) return translations_cache[code]!;
+  if (code === "en") return en;
+
+  const partial = await load_partial(code);
 
   if (!partial) return en;
+
   const merged = deep_merge(en, partial);
 
   translations_cache[code] = merged;
@@ -86,14 +83,16 @@ export function get_translations(code: LanguageCode): Translations {
   return merged;
 }
 
+export function get_translations(code: LanguageCode): Translations {
+  return translations_cache[code] ?? en;
+}
+
 export function has_translations(code: LanguageCode): boolean {
-  return code in partial_map || code === "en";
+  return SUPPORTED_LOCALE_CODES.has(code) || code === "en";
 }
 
 const LANGUAGE_STORAGE_KEY = "astermail_language";
 
-// Resolve translations for the persisted locale outside of React (e.g. service
-// modules that emit toasts). Falls back to English when unavailable.
 export function get_active_translations(): Translations {
   if (typeof window === "undefined") return en;
 
@@ -106,4 +105,4 @@ export function get_active_translations(): Translations {
   return en;
 }
 
-export { en, es, fr, de, it, pt, zh_CN, ja, ko, ar, ru, nl, pl, tr };
+export { en };

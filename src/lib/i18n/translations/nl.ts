@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2410,6 +2410,8 @@ export const nl = {
     desktop: "Bureaublad",
     show_desktop_notifications: "Bureaubladmeldingen tonen",
     blocked_by_browser: "Geblokkeerd door browser",
+    blocked_by_os: "Enable in system notification settings",
+    open_system_notification_settings: "Open Settings",
     sound_new_notifications: "Geluid afspelen bij nieuwe meldingen",
     push: "Push",
     push_notifications_description: "Ontvang pushmeldingen op mobiel",

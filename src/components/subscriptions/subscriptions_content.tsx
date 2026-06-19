@@ -290,7 +290,7 @@ export function SubscriptionsContent({
           </button>
         </div>
         <div className="flex-1" />
-        <div className="relative">
+        <div className="relative w-48">
           <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
           <Input
             className="w-48 pl-8 pr-3 bg-transparent"

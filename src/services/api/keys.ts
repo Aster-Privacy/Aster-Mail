@@ -33,6 +33,7 @@ export interface ExternalKeyInfo {
   fingerprint: string | null;
   source: string | null;
   expires_at: string | null;
+  will_encrypt: boolean;
 }
 
 interface DiscoverKeyResponse {
@@ -42,6 +43,7 @@ interface DiscoverKeyResponse {
   fingerprint: string | null;
   source: string | null;
   expires_at: string | null;
+  will_encrypt: boolean;
 }
 
 interface DiscoverKeysResponse {
@@ -108,11 +110,10 @@ export async function discover_external_key(
       fingerprint: response.data.fingerprint,
       source: response.data.source,
       expires_at: response.data.expires_at,
+      will_encrypt: response.data.will_encrypt,
     };
 
-    if (key_info.found && key_info.public_key) {
-      set_cached_key(email, key_info);
-    }
+    set_cached_key(email, key_info);
 
     return { data: key_info };
   }
@@ -158,11 +159,10 @@ export async function discover_external_keys_batch(
         fingerprint: key_response.fingerprint,
         source: key_response.source,
         expires_at: key_response.expires_at,
+        will_encrypt: key_response.will_encrypt,
       };
 
-      if (key_response.found && key_response.public_key) {
-        set_cached_key(key_response.email, key_info);
-      }
+      set_cached_key(key_response.email, key_info);
 
       results.push(key_info);
     }

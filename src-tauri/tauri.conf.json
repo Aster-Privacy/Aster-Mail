@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Aster Mail",
-  "version": "1.4.38",
+  "version": "1.4.39",
   "identifier": "com.astermail.mail",
   "build": {
     "beforeDevCommand": "npx vite --host 127.0.0.1 --port 1420",
@@ -21,7 +21,8 @@
         "minHeight": 600,
         "center": true,
         "theme": "Dark",
-        "backgroundColor": "#0a0a0a"
+        "backgroundColor": "#0a0a0a",
+        "additionalBrowserArgs": "--disable-logging --disable-crash-reporter --no-first-run --disable-sync --disk-cache-size=0 --disable-background-networking --disable-default-browser-check"
       }
     ],
     "security": {

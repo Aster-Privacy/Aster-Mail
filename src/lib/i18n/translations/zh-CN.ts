@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2415,6 +2415,8 @@ export const zh_CN = {
     desktop: "桌面",
     show_desktop_notifications: "显示桌面通知",
     blocked_by_browser: "被浏览器阻止",
+    blocked_by_os: "Enable in system notification settings",
+    open_system_notification_settings: "Open Settings",
     sound_new_notifications: "新通知时播放提示音",
     push: "推送",
     push_notifications_description: "在移动设备上接收推送通知",

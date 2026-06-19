@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2416,6 +2416,8 @@ export const fr = {
     desktop: "Bureau",
     show_desktop_notifications: "Afficher les notifications de bureau",
     blocked_by_browser: "Bloqué par le navigateur",
+    blocked_by_os: "Enable in system notification settings",
+    open_system_notification_settings: "Open Settings",
     sound_new_notifications: "Jouer un son pour les nouvelles notifications",
     push: "Push",
     push_notifications_description: "Recevoir des notifications push sur mobile",

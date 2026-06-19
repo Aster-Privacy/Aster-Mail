@@ -107,7 +107,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     !!email &&
     !!user?.email &&
     email.trim().toLowerCase() === user.email.trim().toLowerCase();
-  const peer_profile = use_peer_profile(is_current_user ? null : email);
+  const peer_profile = use_peer_profile(is_current_user || low_network ? null : email);
   const resolved_image_url = low_network
     ? undefined
     : image_url ||
@@ -287,7 +287,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           width={pixel_size}
         >
           <text
-            dominantBaseline="middle"
+            dominantBaseline="central"
             fill={text_color}
             fontSize={font_size}
             fontWeight={600}

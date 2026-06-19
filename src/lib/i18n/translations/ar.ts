@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2465,6 +2465,8 @@ export const ar = {
     desktop: "سطح المكتب",
     show_desktop_notifications: "إظهار إشعارات سطح المكتب",
     blocked_by_browser: "محظور بواسطة المتصفح",
+    blocked_by_os: "Enable in system notification settings",
+    open_system_notification_settings: "Open Settings",
     sound_new_notifications: "تشغيل صوت للإشعارات الجديدة",
     push: "الدفع",
     push_notifications_description: "تلقي إشعارات الدفع على الجوال",

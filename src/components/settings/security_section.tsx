@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, Switch } from "@aster/ui";
 import { InfoPopover } from "@/components/ui/info_popover";
 import {
@@ -44,6 +44,7 @@ import { AccountProtectionScore } from "@/components/settings/security/account_p
 import { use_security } from "@/components/settings/hooks/use_security";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { list_hardware_keys } from "@/services/api/webauthn";
 import {
   Select,
   SelectContent,
@@ -105,29 +106,44 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
   const { preferences, update_preference, update_preferences } =
     use_preferences();
   const [show_delete_modal, set_show_delete_modal] = useState(false);
+  const [passkey_registered, set_passkey_registered] = useState(false);
+  const [passkey_loaded, set_passkey_loaded] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    list_hardware_keys()
+      .then((resp) => {
+        if (!active) return;
+        set_passkey_registered((resp.data?.keys?.length ?? 0) > 0);
+      })
+      .finally(() => {
+        if (active) set_passkey_loaded(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className="space-y-4">
       <AccountProtectionScore
-        block_external_content={preferences.block_external_content}
-        block_remote_css={preferences.block_remote_css}
-        block_remote_fonts={preferences.block_remote_fonts}
         block_remote_images={preferences.block_remote_images}
         block_tracking_pixels={preferences.block_tracking_pixels}
-        forward_secrecy_enabled={preferences.forward_secrecy_enabled}
         login_alerts_enabled={security.login_alerts_enabled}
-        security_loaded={security.security_score_loaded}
+        passkey_registered={passkey_registered}
+        read_receipts_off={!preferences.show_read_receipts}
+        security_loaded={security.security_score_loaded && passkey_loaded}
         on_criterion_click={[
           () => scroll_to_id("sec-2fa"),
+          () => scroll_to_id("sec-passkeys"),
           () => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "account" })),
           () => scroll_to_id("sec-2fa"),
           () => scroll_to_id("sec-tracking"),
-          () => scroll_to_id("sec-tracking"),
           () => scroll_to_id("sec-images"),
           () => scroll_to_id("sec-images"),
-          () => scroll_to_id("sec-images"),
-          () => scroll_to_id("sec-images"),
-          () => scroll_to_id("sec-2fa"),
+          undefined,
         ]}
         recovery_email_verified={security.recovery_email_verified}
         strip_exif_on_compose={preferences.strip_exif_on_compose}
