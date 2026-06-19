@@ -33,6 +33,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { AppLockSection } from "@/components/settings/security/app_lock_section";
@@ -176,7 +177,8 @@ function LockdownSection({ account_id }: { account_id: string }) {
               type="password"
               placeholder={t("settings.current_password")}
               value={password}
-              onChange={(e) => set_password(e.target.value)}
+              maxLength={128}
+              onChange={(e) => set_password(clamp_password(e.target.value))}
               autoComplete="current-password"
               disabled={disabling}
             />

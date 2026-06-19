@@ -20,6 +20,8 @@
 //
 import * as openpgp from "openpgp";
 
+import { clamp_password } from "@/services/sanitize";
+
 const VAULT_SCHEME_VERSION = 1;
 const VAULT_AAD_PREFIX = "aster-vault-v";
 const VAULT_AAD_WRITE_ENABLED = false;
@@ -148,7 +150,7 @@ export async function derive_password_hash(
   salt: Uint8Array,
 ): Promise<{ hash: string; salt: string }> {
   const encoder = new TextEncoder();
-  const password_data = encoder.encode(password);
+  const password_data = encoder.encode(clamp_password(password));
 
   const key_material = await crypto.subtle.importKey(
     "raw",

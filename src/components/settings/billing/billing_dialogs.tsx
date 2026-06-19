@@ -28,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Input } from "@/components/ui/input";
+import { clamp_password } from "@/services/sanitize";
 import {
   Modal,
   ModalHeader,
@@ -274,8 +275,9 @@ export function BillingDialogs({
                 status={cancel_password_error ? "error" : "default"}
                 type={show_cancel_password ? "text" : "password"}
                 value={cancel_password}
+                maxLength={128}
                 onChange={(e) => {
-                  set_cancel_password(e.target.value);
+                  set_cancel_password(clamp_password(e.target.value));
                   set_cancel_password_error("");
                 }}
                 onKeyDown={(e) => {
