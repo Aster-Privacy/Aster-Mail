@@ -1584,6 +1584,7 @@ export interface CommonTranslations {
 
 export interface SettingsTranslations {
   title: string;
+  search_placeholder: string;
   general: string;
   account: string;
   appearance: string;
