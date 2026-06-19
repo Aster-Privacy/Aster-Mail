@@ -33,7 +33,7 @@ function dismiss_loader() {
 }
 
 export function FullPageLoader() {
-  const [has_static] = useState(
+  const [static_present, set_static_present] = useState(
     () => !!document.getElementById("initial-loader"),
   );
 
@@ -50,7 +50,26 @@ export function FullPageLoader() {
     };
   }, []);
 
-  if (has_static) return null;
+  useEffect(() => {
+    if (!static_present) return;
+
+    if (!document.getElementById("initial-loader")) {
+      set_static_present(false);
+
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      if (!document.getElementById("initial-loader")) {
+        set_static_present(false);
+        window.clearInterval(interval);
+      }
+    }, 250);
+
+    return () => window.clearInterval(interval);
+  }, [static_present]);
+
+  if (static_present) return null;
 
   return (
     <div className="full-page-loader bg-surf-secondary">
