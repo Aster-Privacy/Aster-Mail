@@ -53,6 +53,7 @@ import {
   get_category_total,
   is_fully_built,
   is_build_in_progress,
+  is_build_stalled,
   subscribe as subscribe_index,
   get_version as get_index_version,
   remove_ids,
@@ -167,8 +168,10 @@ export function use_category_inbox(
   useEffect(() => {
     if (!state.is_loading) return;
 
-    const safety = setTimeout(() => {
-      if (is_build_in_progress()) return;
+    // Soft backstop: clear the skeleton once the index is idle (or has wedged).
+    // A healthy build still in progress keeps the skeleton up.
+    const soft = setTimeout(() => {
+      if (is_build_in_progress() && !is_build_stalled()) return;
       set_state((prev) =>
         prev.is_loading
           ? { ...prev, is_loading: false, has_initial_load: true }
@@ -176,7 +179,21 @@ export function use_category_inbox(
       );
     }, 10_000);
 
-    return () => clearTimeout(safety);
+    // Hard backstop: never leave the user on an infinite skeleton, even if a
+    // build cannot be recovered. The index recovers on tab focus; this just
+    // guarantees the UI always resolves to content or an empty state.
+    const hard = setTimeout(() => {
+      set_state((prev) =>
+        prev.is_loading
+          ? { ...prev, is_loading: false, has_initial_load: true }
+          : prev,
+      );
+    }, 30_000);
+
+    return () => {
+      clearTimeout(soft);
+      clearTimeout(hard);
+    };
   }, [state.is_loading]);
 
   const fetch_page = useCallback(

@@ -275,9 +275,21 @@ button *:not(.animate-spin),
   background-color: var(--bg-hover) !important;
 }
 
+.aster_skeleton {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.06) 25%, rgba(0, 0, 0, 0.11) 50%, rgba(0, 0, 0, 0.06) 75%);
+  background-size: 200% 100%;
+  animation: aster_skeleton_shimmer 1.4s ease-in-out infinite;
+}
+
 .dark .aster_skeleton {
   background: linear-gradient(90deg, rgba(255, 255, 255, 0.08) 25%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.08) 75%);
   background-size: 200% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aster_skeleton {
+    animation: none;
+  }
 }
 
 .attachment_close_btn {
@@ -291,6 +303,11 @@ button *:not(.animate-spin),
 .thread-card-collapsed {
   background-color: var(--thread-card-bg);
   border: 1px solid var(--thread-card-border);
+}
+
+@keyframes aster_skeleton_shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 @keyframes animated-blur-1 {
