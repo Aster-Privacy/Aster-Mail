@@ -36,7 +36,11 @@ import {
 } from "@/services/crypto/key_manager";
 import { login_user, get_user_salt, get_user_info } from "@/services/api/auth";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
-import { sanitize_username, timing_safe_delay } from "@/services/sanitize";
+import {
+  sanitize_username,
+  timing_safe_delay,
+  clamp_password,
+} from "@/services/sanitize";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -315,12 +319,6 @@ export default function MobileSignInPage() {
       return;
     }
 
-    if (password.length > 128) {
-      await timing_safe_delay();
-      set_error(t("errors.password_too_long"));
-
-      return;
-    }
 
     const email = `${clean_username}@${final_domain}`;
 
@@ -854,7 +852,7 @@ export default function MobileSignInPage() {
                   status={error ? "error" : "default"}
                   type={is_password_visible ? "text" : "password"}
                   value={password}
-                  onChange={(e) => set_password(e.target.value)}
+                  onChange={(e) => set_password(clamp_password(e.target.value))}
                   onKeyDown={(e) =>
                     e["key"] === "Enter" && !is_loading && handle_login()
                   }

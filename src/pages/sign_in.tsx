@@ -38,7 +38,11 @@ import {
 import { login_user, get_user_salt, get_user_info } from "@/services/api/auth";
 import { resend_pending_verification } from "@/services/api/recovery_email";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
-import { sanitize_username, timing_safe_delay } from "@/services/sanitize";
+import {
+  sanitize_username,
+  timing_safe_delay,
+  clamp_password,
+} from "@/services/sanitize";
 import { EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
 import {
   TurnstileWidget,
@@ -816,13 +820,6 @@ export default function SignInPage() {
       return;
     }
 
-    if (password.length > 128) {
-      await timing_safe_delay();
-      set_error(t("errors.password_too_long"));
-
-      return;
-    }
-
     const email = `${clean_username}@${final_domain}`;
 
     if (is_adding_account) {
@@ -1317,7 +1314,7 @@ export default function SignInPage() {
                     status={error ? "error" : "default"}
                     type={is_password_visible ? "text" : "password"}
                     value={password}
-                    onChange={(e) => set_password(e.target.value)}
+                    onChange={(e) => set_password(clamp_password(e.target.value))}
                     onKeyDown={(e) =>
                       e["key"] === "Enter" && !is_loading && handle_login()
                     }

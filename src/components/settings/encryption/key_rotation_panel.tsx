@@ -36,6 +36,7 @@ import {
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { use_should_reduce_motion } from "@/provider";
@@ -248,7 +249,8 @@ export function KeyRotationPanel({
                   placeholder={t("common.enter_password_prompt")}
                   type="password"
                   value={export_password}
-                  onChange={(e) => set_export_password(e.target.value)}
+                  maxLength={128}
+                  onChange={(e) => set_export_password(clamp_password(e.target.value))}
                   onKeyDown={(e) =>
                     e["key"] === "Enter" && handle_export_secret_key()
                   }
@@ -471,7 +473,8 @@ export function KeyRotationPanel({
                   placeholder={t("common.enter_password_prompt")}
                   type="password"
                   value={regenerate_password}
-                  onChange={(e) => set_regenerate_password(e.target.value)}
+                  maxLength={128}
+                  onChange={(e) => set_regenerate_password(clamp_password(e.target.value))}
                   onKeyDown={(e) =>
                     e["key"] === "Enter" &&
                     regenerate_confirm_text.toLowerCase() === "regenerate" &&
