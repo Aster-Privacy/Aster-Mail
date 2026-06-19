@@ -10,6 +10,8 @@
 
 Send your report to this email: security@astermail.org
 
+You can also submit reports through our vulnerability disclosure program on Bugcrowd: https://bugcrowd.com/engagements/aster-privacy-vdpc
+
 
 We will read your report within 48 hours and make sure to resolve critical vulnerabilities within seven days. We will make sure to keep you updated throughout the entire process. 
 
