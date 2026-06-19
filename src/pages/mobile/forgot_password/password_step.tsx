@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 import { Input } from "@/components/ui/input";
 import { EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
 import { PasswordStrengthIndicator } from "@/components/register/password_strength";
@@ -124,7 +125,7 @@ export function PasswordStep({
                 status={error ? "error" : "default"}
                 type={is_password_visible ? "text" : "password"}
                 value={password}
-                onChange={(e) => set_password(e.target.value)}
+                onChange={(e) => set_password(clamp_password(e.target.value))}
               />
               <button
                 className="flex min-h-[44px] min-w-[44px] items-center justify-center focus:outline-none"
@@ -148,7 +149,7 @@ export function PasswordStep({
                 status={error ? "error" : "default"}
                 type={is_confirm_visible ? "text" : "password"}
                 value={confirm_password}
-                onChange={(e) => set_confirm_password(e.target.value)}
+                onChange={(e) => set_confirm_password(clamp_password(e.target.value))}
                 onKeyDown={(e) => e["key"] === "Enter" && on_submit()}
               />
               <button

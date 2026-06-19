@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { use_registration } from "@/components/register/hooks/use_registration";
 import { Input } from "@/components/ui/input";
+import { clamp_password } from "@/services/sanitize";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -111,7 +112,7 @@ export function StepPassword({
                 type={reg.is_password_visible ? "text" : "password"}
                 value={reg.password}
                 onChange={(e) => {
-                  reg.set_password(e.target.value);
+                  reg.set_password(clamp_password(e.target.value));
                   reg.set_error("");
                 }}
               />
@@ -149,7 +150,7 @@ export function StepPassword({
                 type={reg.is_confirm_password_visible ? "text" : "password"}
                 value={reg.confirm_password}
                 onChange={(e) => {
-                  reg.set_confirm_password(e.target.value);
+                  reg.set_confirm_password(clamp_password(e.target.value));
                   reg.set_error("");
                 }}
                 onKeyDown={(e) =>

@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/modal";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { clamp_password } from "@/services/sanitize";
 
 interface PasswordSectionProps {
   show_password_section: boolean;
@@ -152,7 +153,8 @@ export function PasswordSection({
                   placeholder={t("settings.enter_current_password")}
                   type={show_current_password ? "text" : "password"}
                   value={current_password}
-                  onChange={(e) => set_current_password(e.target.value)}
+                  maxLength={128}
+                  onChange={(e) => set_current_password(clamp_password(e.target.value))}
                 />
                 <button
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted"
@@ -185,8 +187,9 @@ export function PasswordSection({
                   placeholder={t("settings.enter_new_password")}
                   type={show_new_password ? "text" : "password"}
                   value={new_password}
+                  maxLength={128}
                   onBlur={on_new_password_blur}
-                  onChange={(e) => set_new_password(e.target.value)}
+                  onChange={(e) => set_new_password(clamp_password(e.target.value))}
                 />
                 <button
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted"
@@ -223,7 +226,8 @@ export function PasswordSection({
                 placeholder={t("settings.confirm_new_password_placeholder")}
                 type="password"
                 value={confirm_password}
-                onChange={(e) => set_confirm_password(e.target.value)}
+                maxLength={128}
+                onChange={(e) => set_confirm_password(clamp_password(e.target.value))}
               />
             </div>
 
