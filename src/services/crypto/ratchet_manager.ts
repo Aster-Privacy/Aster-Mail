@@ -58,6 +58,10 @@ import {
   set_cached_ratchet_plaintext,
 } from "./ratchet_plaintext_cache";
 import {
+  upload_to_escrow,
+  fetch_from_escrow,
+} from "./message_escrow";
+import {
   base64_to_array as core_base64_to_array,
   compute_hash,
   pin_fingerprint,
@@ -492,10 +496,19 @@ export async function decrypt_ratchet_message(
 
     if (dedupe_key) {
       await set_cached_ratchet_plaintext(dedupe_key, plaintext);
+      void upload_to_escrow(dedupe_key, plaintext).catch(() => {});
     }
+
+    return plaintext;
   }
 
-  return plaintext;
+  if (dedupe_key) {
+    const escrowed = await fetch_from_escrow(dedupe_key).catch(() => null);
+
+    if (escrowed !== null) return escrowed;
+  }
+
+  return null;
 }
 
 function receiver_key_sets(vault: EncryptedVault): RatchetKeySet[] {
