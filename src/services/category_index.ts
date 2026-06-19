@@ -52,6 +52,11 @@ const PERSIST_DEBOUNCE_MS = 1500;
 const NOTIFY_THROTTLE_MS = 350;
 const RESYNC_DEBOUNCE_MS = 4000;
 const RESYNC_MIN_INTERVAL_MS = 20000;
+// A build that makes no forward progress for this long is considered wedged
+// (e.g. an in-flight request whose abort timer was frozen while the tab was
+// backgrounded and never settled). Recovery paths may then supersede it
+// instead of deferring forever to a dead `build_in_progress` latch.
+const BUILD_STALE_MS = 30000;
 
 export interface CategoryIndexEntry {
   id: string;
@@ -83,6 +88,7 @@ let last_build_ms = 0;
 let seen_ts: Record<string, number> = {};
 let loaded_for_account: string | null = null;
 let build_in_progress = false;
+let build_progress_ms = 0;
 let build_token = 0;
 let version = 0;
 let ensure_loaded_promise: Promise<boolean> | null = null;
@@ -493,6 +499,14 @@ export function is_build_in_progress(): boolean {
   return build_in_progress;
 }
 
+// True when a build claims to be running but has made no progress for longer
+// than BUILD_STALE_MS. Used to distinguish a healthy (slow) build from one that
+// has wedged behind a dead request, so callers can recover instead of waiting
+// on a latch that will never clear without a page reload.
+export function is_build_stalled(): boolean {
+  return build_in_progress && now_ms() - build_progress_ms > BUILD_STALE_MS;
+}
+
 export function get_version(): number {
   return version;
 }
@@ -561,12 +575,19 @@ export async function build_index(options?: {
   const ok = await ensure_loaded();
 
   if (!ok) return;
-  if (build_in_progress) return;
+  if (build_in_progress) {
+    // A healthy build is left alone; a wedged one is abandoned (bump the token
+    // so its loop bails on the next checkpoint) so this call can take over.
+    if (!is_build_stalled()) return;
+    build_token += 1;
+    build_in_progress = false;
+  }
   if (fully_built && !options?.force) return;
 
   const token = build_token;
 
   build_in_progress = true;
+  build_progress_ms = now_ms();
 
   try {
     let cursor: string | undefined;
@@ -603,6 +624,7 @@ export async function build_index(options?: {
         notify_soon();
       }
 
+      build_progress_ms = now_ms();
       processed += items.length;
       cursor = next_cursor;
 
@@ -846,8 +868,24 @@ export function start_event_listeners(): void {
   });
 
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
-      last_build_ms = 0;
+    if (document.visibilityState !== "visible") return;
+
+    last_build_ms = 0;
+
+    // Returning to a backgrounded tab: a build that stalled while the tab was
+    // frozen may never settle on some platforms, so supersede it rather than
+    // letting the inbox sit on skeletons until a manual reload.
+    if (is_build_stalled()) {
+      build_token += 1;
+      build_in_progress = false;
+    }
+
+    if (!fully_built) {
+      // The initial reconcile never finished (interrupted or wedged). Resume it
+      // instead of only running the cheap incremental sync, which bails while a
+      // build is in progress and would leave the index permanently incomplete.
+      void build_index();
+    } else {
       schedule_resync();
     }
   });
