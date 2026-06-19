@@ -346,12 +346,13 @@ export function mail_to_email(
   const recipient_addresses = envelope.to?.map((r) => r.email).filter(Boolean);
 
   const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
-  const resolved_html = envelope.body_html ?? envelope.html_body ?? "";
+  const raw_html = envelope.body_html ?? envelope.html_body ?? "";
+  const resolved_html = is_ratchet_envelope(raw_html) ? "" : raw_html;
   const is_undecryptable_body =
     resolved_text === RATCHET_UNDECRYPTABLE_SENTINEL ||
     resolved_html === RATCHET_UNDECRYPTABLE_SENTINEL ||
     is_ratchet_envelope(resolved_text) ||
-    is_ratchet_envelope(resolved_html);
+    (!resolved_text && is_ratchet_envelope(raw_html));
   const preview_text = is_undecryptable_body
     ? RATCHET_UNDECRYPTABLE_SENTINEL
     : strip_html_tags(resolved_text || resolved_html).substring(0, 100);
@@ -444,6 +445,7 @@ export async function fetch_mail_by_ids(
           envelope.body_text,
           user_email,
           envelope.from?.email || "",
+          item.id,
         );
 
         envelope.body_text = bundle.body;
@@ -617,6 +619,7 @@ export async function fetch_mail_from_api(
           envelope.body_text,
           user_email,
           envelope.from?.email || "",
+          item.id,
         );
 
         envelope.body_text = bundle.body;

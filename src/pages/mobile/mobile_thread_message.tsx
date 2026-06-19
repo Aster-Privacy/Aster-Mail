@@ -42,7 +42,10 @@ import { get_image_proxy_url } from "@/lib/image_proxy";
 import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_preferences } from "@/contexts/preferences_context";
-import { RATCHET_UNDECRYPTABLE_SENTINEL } from "@/utils/email_crypto";
+import {
+  RATCHET_UNDECRYPTABLE_SENTINEL,
+  is_ratchet_envelope,
+} from "@/utils/email_crypto";
 import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
 
@@ -112,15 +115,22 @@ export function MobileThreadMessage({
   }, [auth?.current_account_id]);
 
   const clean_body = useMemo(() => {
-    if (message.html_content) {
+    if (message.html_content && !is_ratchet_envelope(message.html_content)) {
       return message.html_content;
     }
 
     return strip_quotes(message.body);
   }, [message.body, message.html_content]);
 
+  const has_plaintext_body =
+    !!message.body &&
+    message.body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
+    !is_ratchet_envelope(message.body);
   const is_ratchet_undecryptable =
-    message.body === RATCHET_UNDECRYPTABLE_SENTINEL;
+    !has_plaintext_body &&
+    (message.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
+      is_ratchet_envelope(message.body) ||
+      is_ratchet_envelope(message.html_content));
 
   const collapsed_preview = useMemo(() => {
     if (clean_body === RATCHET_UNDECRYPTABLE_SENTINEL) {
