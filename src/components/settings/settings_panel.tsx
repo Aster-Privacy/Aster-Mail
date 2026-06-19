@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n";
+import { SETTINGS_SEARCH_REGISTRY } from "@/components/settings/search_registry";
 
 import {
   useState,
@@ -56,6 +57,7 @@ import {
   ComputerDesktopIcon,
   UserGroupIcon,
   HomeModernIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -159,6 +161,8 @@ interface NavItem {
   id: Section;
   label: string;
   icon: React.ElementType;
+  keywords: string[];
+  description: string;
 }
 
 interface NavItems {
@@ -174,31 +178,33 @@ function get_nav_items(
 
   return {
     general: [
-      { id: "appearance", label: t("settings.appearance"), icon: SwatchIcon },
-      { id: "account", label: t("settings.account"), icon: BuildingOffice2Icon },
-      { id: "accessibility", label: t("settings.accessibility"), icon: EyeIcon },
-      { id: "security", label: t("settings.security"), icon: ShieldCheckIcon },
-      { id: "encryption", label: t("settings.encryption"), icon: KeyIcon },
-      { id: "trusted_devices", label: t("settings.trusted_devices"), icon: ComputerDesktopIcon },
-      { id: "aliases", label: t("settings.aliases_and_domains"), icon: AtSymbolIcon },
-      { id: "ghost_aliases", label: t("settings.ghost_aliases"), icon: EyeSlashIcon },
-      ...(!on_onion ? [{ id: "billing" as Section, label: t("settings.billing"), icon: CreditCardIcon }] : []),
-      ...(is_family_plan ? [{ id: "family" as Section, label: t("settings.plan_type_family"), icon: HomeModernIcon }] : []),
-      { id: "referral", label: t("settings.refer_a_friend"), icon: UserGroupIcon },
+      { id: "appearance", label: t("settings.appearance"), icon: SwatchIcon, description: "Theme, color scheme, language, date format, and layout density", keywords: ["theme", "dark mode", "light mode", "system theme", "color", "layout", "compact", "density", "font", "language", "locale", "time format", "date format", "24 hour", "12 hour", "clock", "timezone"] },
+      { id: "account", label: t("settings.account"), icon: BuildingOffice2Icon, description: "Display name, profile photo, recovery email, and account deletion", keywords: ["profile", "display name", "username", "avatar", "photo", "profile picture", "change name", "recovery email", "inactivity timeout", "auto logout", "delete account", "close account", "deactivate"] },
+      { id: "accessibility", label: t("settings.accessibility"), icon: EyeIcon, description: "Font size, reduce motion, keyboard navigation, and screen reader support", keywords: ["font size", "text size", "reduce motion", "animations", "focus ring", "keyboard navigation", "screen reader", "high contrast", "dyslexia"] },
+      { id: "security", label: t("settings.security"), icon: ShieldCheckIcon, description: "Password, two-factor authentication, passkeys, hardware keys, and recovery codes", keywords: ["password", "change password", "2fa", "two factor", "two-factor authentication", "totp", "authenticator app", "google authenticator", "passkey", "hardware key", "yubikey", "fido", "webauthn", "biometric", "face id", "touch id", "backup codes", "recovery codes", "login history", "sign out all devices", "active sessions", "security checkup"] },
+      { id: "encryption", label: t("settings.encryption"), icon: KeyIcon, description: "End-to-end encryption keys, PGP certificates, and quantum-safe key rotation", keywords: ["e2e", "end to end", "pgp", "encryption key", "export key", "export public key", "export private key", "import key", "key rotation", "rotate key", "quantum", "pq", "post quantum", "zero knowledge", "encrypt", "decrypt", "vault", "recovery codes", "regenerate codes", "storage format", "key algorithm", "ecc", "curve25519"] },
+      { id: "trusted_devices", label: t("settings.trusted_devices"), icon: ComputerDesktopIcon, description: "Devices authorized to access your account - revoke or sign out remotely", keywords: ["trusted devices", "my devices", "desktop app", "mobile app", "paired device", "revoke access", "sign out device", "remove device", "active sessions"] },
+      { id: "aliases", label: t("settings.aliases_and_domains"), icon: AtSymbolIcon, description: "Custom email addresses and domains that route mail to your inbox", keywords: ["alias", "email alias", "custom domain", "add domain", "domain verification", "dns record", "mx record", "dkim", "spf", "dmarc", "custom email", "email address", "forwarding address", "create alias"] },
+      { id: "ghost_aliases", label: t("settings.ghost_aliases"), icon: EyeSlashIcon, description: "One-time anonymous addresses to protect your real email from sign-ups", keywords: ["ghost alias", "anonymous email", "private email", "disposable", "masked email", "hide email", "burn address", "one-time address", "privacy"] },
+      ...(!on_onion ? [{ id: "billing" as Section, label: t("settings.billing"), icon: CreditCardIcon, description: "Subscription plan, payment methods, invoices, storage add-ons, and upgrades", keywords: ["plan", "subscription", "upgrade plan", "downgrade plan", "payment method", "credit card", "invoice", "billing history", "storage", "storage addon", "add storage", "star plan", "supernova plan", "cancel subscription", "renew", "price"] }] : []),
+      ...(is_family_plan ? [{ id: "family" as Section, label: t("settings.plan_type_family"), icon: HomeModernIcon, description: "Manage family plan members, invites, and children's accounts", keywords: ["family plan", "family members", "invite member", "children accounts", "kids", "child account", "manage family", "family invite"] }] : []),
+      { id: "referral", label: t("settings.refer_a_friend"), icon: UserGroupIcon, description: "Invite friends to Aster Mail and earn account credits as rewards", keywords: ["referral", "refer a friend", "invite friend", "referral code", "bonus storage", "reward", "share invite"] },
     ],
     mail: [
-      ...(!on_onion ? [{ id: "import" as Section, label: t("common.import"), icon: ArrowDownTrayIcon }] : []),
-      { id: "bridge" as Section, label: t("settings.bridge"), icon: ArrowsRightLeftIcon },
-      { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
-      { id: "signature", label: t("settings.signature"), icon: PencilSquareIcon },
-      { id: "templates", label: t("settings.templates"), icon: DocumentTextIcon },
-      { id: "behavior", label: t("settings.behavior"), icon: AdjustmentsHorizontalIcon },
-      { id: "sender_filters", label: t("settings.mail_management"), icon: FunnelIcon },
-      { id: "mail_rules", label: t("mail_rules.title"), icon: BoltIcon },
-      { id: "feedback", label: t("settings.feedback"), icon: ChatBubbleBottomCenterTextIcon },
+      ...(!on_onion ? [{ id: "import" as Section, label: t("common.import"), icon: ArrowDownTrayIcon, description: "Migrate your email from Gmail, Outlook, Proton, or any IMAP provider", keywords: ["import email", "migrate email", "gmail import", "google import", "outlook import", "yahoo import", "proton import", "imap import", "pop3 import", "migrate from", "thunderbird", "transfer email"] }] : []),
+      { id: "bridge" as Section, label: t("settings.bridge"), icon: ArrowsRightLeftIcon, description: "Use Thunderbird, Apple Mail, or any IMAP/SMTP client with your Aster account", keywords: ["bridge", "aster bridge", "thunderbird", "apple mail", "smtp settings", "imap settings", "smtp port", "imap port", "mail client", "desktop client", "external client", "third party app", "connect app", "server settings"] },
+      { id: "notifications", label: t("settings.notifications"), icon: BellIcon, description: "Push alerts, notification sounds, badge counts, and email summaries", keywords: ["notifications", "push notifications", "desktop notifications", "notification sound", "badge count", "unread badge", "email alerts", "new mail notification", "notify me", "alert"] },
+      { id: "signature", label: t("settings.signature"), icon: PencilSquareIcon, description: "Create HTML or plain-text signatures appended to outgoing messages", keywords: ["signature", "email signature", "html signature", "plain text signature", "sign off", "closing", "footer text", "add signature"] },
+      { id: "templates", label: t("settings.templates"), icon: DocumentTextIcon, description: "Save reusable message templates for faster email composition", keywords: ["templates", "email templates", "canned responses", "quick reply", "saved replies", "draft template", "message template", "reusable email"] },
+      { id: "behavior", label: t("settings.behavior"), icon: AdjustmentsHorizontalIcon, description: "Reading pane, message threading, undo send, and compose behavior", keywords: ["reading pane", "preview pane", "thread view", "conversation view", "group by thread", "undo send", "delay send", "send delay", "auto archive", "mark as read", "read receipts", "swipe action", "keyboard shortcuts"] },
+      { id: "sender_filters", label: t("settings.mail_management"), icon: FunnelIcon, description: "Block senders, manage spam, allowlists, and forwarding rules", keywords: ["block sender", "blocked senders", "blocklist", "allowlist", "whitelist", "safe senders", "spam filter", "junk mail", "forward mail", "email forwarding", "ban sender", "unblock"] },
+      { id: "mail_rules", label: t("mail_rules.title"), icon: BoltIcon, description: "Automate inbox organization with conditions, labels, and folder actions", keywords: ["mail rules", "email rules", "filters", "auto label", "auto archive", "auto forward", "auto move", "inbox automation", "rule condition", "rule action", "organize mail", "sorting rules"] },
+      { id: "feedback", label: t("settings.feedback"), icon: ChatBubbleBottomCenterTextIcon, description: "Report bugs, request features, or get in touch with the Aster team", keywords: ["feedback", "report bug", "bug report", "feature request", "contact support", "help", "get help", "support ticket", "send feedback"] },
     ],
   };
 }
+
+
 
 export function SettingsPanel(props: SettingsPanelProps) {
   return (
@@ -231,6 +237,8 @@ function SettingsPanelInner({
   const [is_family_plan, set_is_family_plan] = useState(
     () => localStorage.getItem("aster_is_family_plan") === "1",
   );
+  const [search_query, set_search_query] = useState("");
+  const [scroll_target, set_scroll_target] = useState<string | null>(null);
 
   useEffect(() => {
     if (is_open && is_family_plan) {
@@ -306,6 +314,7 @@ function SettingsPanelInner({
       });
     } else if (!is_open) {
       animation_complete_ref.current = false;
+      set_search_query("");
     }
     was_open_ref.current = is_open;
   }, [is_open, initial_section]);
@@ -442,13 +451,67 @@ function SettingsPanelInner({
       : base.general.filter((item) => item.id !== "trusted_devices");
     const mail = [...base.mail];
     if (is_desktop_runtime()) {
-      mail.push({ id: "updates" as Section, label: t("settings.updates"), icon: ArrowDownTrayIcon });
+      mail.push({ id: "updates" as Section, label: t("settings.updates"), icon: ArrowDownTrayIcon, description: "Check for app updates and manage auto-update settings", keywords: ["update", "check for updates", "auto update", "automatic updates", "app version", "version history", "release notes", "update available"] });
     }
     if (dev_mode_enabled) {
-      mail.push({ id: "developer" as Section, label: t("settings.developer"), icon: CodeBracketIcon });
+      mail.push({ id: "developer" as Section, label: t("settings.developer"), icon: CodeBracketIcon, description: "API tokens, developer mode, request logs, and diagnostics", keywords: ["developer", "dev mode", "api token", "access token", "debug", "request logs", "diagnostics", "developer tools"] });
     }
     return { general, mail };
   }, [NAV_ITEMS_BASE, dev_mode_enabled, has_devices, t]);
+
+  const is_searching = search_query.trim().length > 0;
+
+  const search_results = useMemo(() => {
+    const q = search_query.trim().toLowerCase();
+    if (!q) return [] as NavItem[];
+    const match = (item: NavItem) =>
+      item.label.toLowerCase().includes(q) ||
+      item.description.toLowerCase().includes(q) ||
+      item.keywords.some((kw) => kw.includes(q));
+    return [...nav_items.general, ...nav_items.mail].filter(match);
+  }, [search_query, nav_items]);
+
+  const registry_results = useMemo(() => {
+    const q = search_query.trim().toLowerCase();
+    if (q.length < 2) return [];
+    const visible_sections = new Set([
+      ...nav_items.general.map((i) => i.id),
+      ...nav_items.mail.map((i) => i.id),
+    ]);
+    return SETTINGS_SEARCH_REGISTRY.filter((entry) => {
+      if (!visible_sections.has(entry.section)) return false;
+      return (
+        entry.label.toLowerCase().includes(q) ||
+        entry.breadcrumb.toLowerCase().includes(q) ||
+        entry.keywords?.some((kw) => kw.includes(q))
+      );
+    }).slice(0, 12);
+  }, [search_query, nav_items]);
+
+  useEffect(() => {
+    if (!scroll_target) return;
+    const container = content_container_ref.current;
+    if (!container) return;
+    const timer = setTimeout(() => {
+      const lower = scroll_target.toLowerCase();
+      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          const tag = node.parentElement?.tagName.toLowerCase();
+          if (tag && ["script", "style", "input", "textarea"].includes(tag)) return NodeFilter.FILTER_REJECT;
+          return node.textContent?.toLowerCase().includes(lower)
+            ? NodeFilter.FILTER_ACCEPT
+            : NodeFilter.FILTER_REJECT;
+        },
+      });
+      const found = walker.nextNode() as Text | null;
+      const target_el = found?.parentElement;
+      if (target_el) {
+        target_el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      set_scroll_target(null);
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [scroll_target, section]);
 
   useLayoutEffect(() => {
     if (!is_open) {
@@ -570,6 +633,7 @@ function SettingsPanelInner({
   const handle_desktop_nav_click = useCallback((item_id: Section) => {
     set_section(item_id);
     set_persisted_section(item_id);
+    set_search_query("");
     window.history.pushState({}, "", `/settings/${item_id}`);
   }, []);
 
@@ -598,6 +662,7 @@ function SettingsPanelInner({
         onClick={() => {
           set_section(item.id);
           set_persisted_section(item.id);
+          set_search_query("");
           set_show_mobile_nav(false);
         }}
       >
@@ -654,7 +719,7 @@ function SettingsPanelInner({
                   style={{
                     top: indicator_style.top,
                     height: indicator_style.height,
-                    opacity: indicator_style.opacity,
+                    opacity: is_searching ? 0 : indicator_style.opacity,
                     backgroundColor: "var(--indicator-bg)",
                     border: "1px solid var(--border-primary)",
                     zIndex: 0,
@@ -663,61 +728,146 @@ function SettingsPanelInner({
                       : "none",
                   }}
                 />
-                <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
-                  {t("settings.general")}
-                </div>
-                <div className="space-y-0.5 mb-4">
-                  {nav_items.general.map(render_nav_item)}
-                </div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
-                  {t("common.mail")}
-                </div>
-                <div className="space-y-0.5">
-                  {nav_items.mail.map(render_nav_item)}
-                </div>
+                {is_searching ? (
+                  <div className="space-y-0.5">
+                    {search_results.map(render_nav_item)}
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
+                      {t("settings.general")}
+                    </div>
+                    <div className="space-y-0.5 mb-4">
+                      {nav_items.general.map(render_nav_item)}
+                    </div>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
+                      {t("common.mail")}
+                    </div>
+                    <div className="space-y-0.5">
+                      {nav_items.mail.map(render_nav_item)}
+                    </div>
+                  </>
+                )}
               </div>
             </nav>
 
             <div className="flex-1 overflow-y-auto flex flex-col min-h-0 bg-surf-primary">
-              <div className="flex items-center justify-between px-4 md:px-6 py-4 flex-shrink-0 border-b border-b-edge-secondary">
-                <div className="flex items-center gap-3">
-                  {!show_mobile_nav && (
-                    <Button
-                      className="md:hidden -ml-1.5"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => set_show_mobile_nav(true)}
+              <div className="flex items-center gap-3 px-4 md:px-6 py-4 flex-shrink-0 border-b border-b-edge-secondary">
+                {!show_mobile_nav && (
+                  <Button
+                    className="md:hidden -ml-1.5"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => set_show_mobile_nav(true)}
+                  >
+                    <ArrowUturnLeftIcon className="w-5 h-5" />
+                  </Button>
+                )}
+                <h2 className="text-[17px] font-semibold text-txt-primary flex-shrink-0">
+                  <span className="hidden md:inline">{t("settings.title")}</span>
+                  <span className="md:hidden">
+                    {show_mobile_nav ? t("settings.title") : get_current_section_label()}
+                  </span>
+                </h2>
+                <SettingsSaveIndicator />
+                <div className="hidden md:flex relative flex-1 max-w-[320px]">
+                  <MagnifyingGlassIcon
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                    style={{ color: "var(--text-muted)" }}
+                  />
+                  <input
+                    autoComplete="off"
+                    className="w-full h-9 pl-9 pr-3 rounded-lg text-[14px] outline-none"
+                    placeholder={t("settings.search_placeholder")}
+                    spellCheck={false}
+                    style={{
+                      backgroundColor: "var(--input-bg, var(--bg-secondary))",
+                      border: "1px solid var(--border-primary)",
+                      color: "var(--text-primary)",
+                    }}
+                    type="search"
+                    value={search_query}
+                    onChange={(e) => set_search_query(e.target.value)}
+                  />
+                  {is_searching && search_query.trim().length >= 2 && (
+                    <div
+                      className="absolute top-[calc(100%+6px)] left-0 w-[380px] max-h-80 overflow-y-auto rounded-xl z-50 py-1"
+                      style={{
+                        backgroundColor: "var(--bg-primary)",
+                        border: "1px solid var(--border-secondary)",
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+                      }}
                     >
-                      <ArrowUturnLeftIcon className="w-5 h-5" />
-                    </Button>
+                      {registry_results.length === 0 ? (
+                        <div className="px-4 py-3 text-[13px]" style={{ color: "var(--text-secondary)" }}>
+                          {t("common.no_results")}
+                        </div>
+                      ) : (
+                        registry_results.map((entry, idx) => {
+                          const nav_item = [...nav_items.general, ...nav_items.mail].find((n) => n.id === entry.section);
+                          return (
+                            <button
+                              key={`${entry.section}-${idx}`}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors duration-100 cursor-pointer"
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = "var(--bg-secondary)"; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = ""; }}
+                              onClick={() => { handle_desktop_nav_click(entry.section); set_scroll_target(entry.label); }}
+                            >
+                              {nav_item && <nav_item.icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />}
+                              <div className="flex-1 min-w-0">
+                                <span className="text-[13px] font-medium" style={{ color: "var(--text-primary)" }}>{entry.label}</span>
+                              </div>
+                              <span className="text-[11px] flex-shrink-0 ml-2" style={{ color: "var(--text-muted)" }}>{entry.breadcrumb}</span>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
                   )}
-                  <h2 className="text-[17px] font-semibold text-txt-primary">
-                    <span className="hidden md:inline">
-                      {t("settings.title")}
-                    </span>
-                    <span className="md:hidden">
-                      {show_mobile_nav
-                        ? t("settings.title")
-                        : get_current_section_label()}
-                    </span>
-                  </h2>
-                  <SettingsSaveIndicator />
                 </div>
-                <Button size="icon" variant="ghost" onClick={on_close}>
+                <Button className="ml-auto" size="icon" variant="ghost" onClick={on_close}>
                   <XMarkIcon className="w-5 h-5" />
                 </Button>
               </div>
 
               {show_mobile_nav && (
                 <div className="md:hidden flex-1 overflow-y-auto">
-                  <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 text-txt-muted">
-                    {t("settings.general")}
+                  <div className="px-4 pt-3 pb-1">
+                    <div className="relative">
+                      <MagnifyingGlassIcon
+                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                        style={{ color: "var(--text-muted)" }}
+                      />
+                      <input
+                        autoComplete="off"
+                        className="w-full h-9 pl-9 pr-3 rounded-[10px] text-[14px] outline-none"
+                        placeholder={t("settings.search_placeholder")}
+                        spellCheck={false}
+                        style={{
+                          backgroundColor: "var(--input-bg, var(--bg-secondary))",
+                          border: "1px solid var(--border-primary)",
+                          color: "var(--text-primary)",
+                        }}
+                        type="search"
+                        value={search_query}
+                        onChange={(e) => set_search_query(e.target.value)}
+                      />
+                    </div>
                   </div>
-                  {nav_items.general.map(render_mobile_nav_item)}
-                  <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 mt-2 text-txt-muted">
-                    {t("common.mail")}
-                  </div>
-                  {nav_items.mail.map(render_mobile_nav_item)}
+                  {is_searching ? (
+                    search_results.map(render_mobile_nav_item)
+                  ) : (
+                    <>
+                      <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 text-txt-muted">
+                        {t("settings.general")}
+                      </div>
+                      {nav_items.general.map(render_mobile_nav_item)}
+                      <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 mt-2 text-txt-muted">
+                        {t("common.mail")}
+                      </div>
+                      {nav_items.mail.map(render_mobile_nav_item)}
+                    </>
+                  )}
                 </div>
               )}
 
@@ -762,11 +912,7 @@ function SettingsPanelInner({
                 )}
                 <div
                   key={section}
-                  style={
-                    is_suspended
-                      ? { opacity: 0.4, pointerEvents: "none" }
-                      : undefined
-                  }
+                  style={is_suspended ? { opacity: 0.4, pointerEvents: "none" } : undefined}
                 >
                   {active_section_element}
                   {is_family_plan && (
