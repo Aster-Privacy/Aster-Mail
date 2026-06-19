@@ -72,13 +72,14 @@ describe("pq prekey negative cache (404 flood fix)", () => {
     expect(store.size).toBe(0);
   });
 
-  it("does NOT cache transient/server errors as missing", async () => {
+  it("short-circuits repeated fetches for transient errors within the same session", async () => {
     get_mock.mockResolvedValue({ error: "boom", code: "SERVER_ERROR" });
 
     await load_pq_secret(424242);
     await load_pq_secret(424242);
 
-    // Transient errors must be retried, never negative-cached.
-    expect(get_mock).toHaveBeenCalledTimes(2);
+    // First call hits the network; the second is suppressed by the in-memory
+    // transient error cache (60s TTL, clears on page reload).
+    expect(get_mock).toHaveBeenCalledTimes(1);
   });
 });

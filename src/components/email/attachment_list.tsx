@@ -594,7 +594,7 @@ export function AttachmentList({
       >
         <button
           className="text-xs text-txt-muted hover:text-txt-primary transition-colors flex items-center gap-1.5"
-          onClick={() => set_user_expanded(true)}
+          onClick={() => { set_loading(true); set_user_expanded(true); }}
         >
           <svg
             className="w-3.5 h-3.5"

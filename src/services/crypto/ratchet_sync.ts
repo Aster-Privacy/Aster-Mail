@@ -29,6 +29,9 @@ import {
 const HASH_ALG = ["SHA", "256"].join("-");
 const API_BASE = "/crypto/v1/ratchet";
 
+const NOT_FOUND_TTL_MS = 5 * 60 * 1000;
+const not_found_cache = new Map<string, number>();
+
 interface RatchetStateResponse {
   id: string;
   conversation_id: string;
@@ -192,6 +195,7 @@ async function do_sync(
             conversation_id,
             response.data.state_version,
           );
+          not_found_cache.delete(conversation_id);
 
           return response.data.state_version;
         }
@@ -284,6 +288,12 @@ export async function load_ratchet_from_server(
   conversation_id: string,
   encryption_key: CryptoKey,
 ): Promise<{ ratchet: DoubleRatchet; version: number } | null> {
+  const now = Date.now();
+  const cached_not_found = not_found_cache.get(conversation_id);
+  if (cached_not_found !== undefined && now < cached_not_found) {
+    return null;
+  }
+
   const conversation_id_b64 = array_to_base64(
     new TextEncoder().encode(conversation_id),
   );
@@ -293,6 +303,7 @@ export async function load_ratchet_from_server(
   );
 
   if (response.code === "NOT_FOUND") {
+    not_found_cache.set(conversation_id, now + NOT_FOUND_TTL_MS);
     return null;
   }
 
@@ -392,6 +403,23 @@ export async function sync_all_ratchet_states(
             result.synced.push(conversation_id);
           } catch {
             result.conflicts.push(conversation_id);
+          }
+        } else if (server_info.version > local_ratchet.get_state_version()) {
+          try {
+            const loaded = await load_ratchet_from_server(
+              conversation_id,
+              encryption_key,
+            );
+
+            if (loaded) {
+              await save_ratchet_state(loaded.ratchet);
+              result.synced.push(conversation_id);
+            }
+          } catch (e) {
+            result.errors.push({
+              conversation_id,
+              error: e instanceof Error ? e.message : "Unknown error",
+            });
           }
         }
 

@@ -56,6 +56,7 @@ import {
   ComputerDesktopIcon,
   UserGroupIcon,
   HomeModernIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -159,6 +160,7 @@ interface NavItem {
   id: Section;
   label: string;
   icon: React.ElementType;
+  keywords: string[];
 }
 
 interface NavItems {
@@ -174,28 +176,28 @@ function get_nav_items(
 
   return {
     general: [
-      { id: "appearance", label: t("settings.appearance"), icon: SwatchIcon },
-      { id: "account", label: t("settings.account"), icon: BuildingOffice2Icon },
-      { id: "accessibility", label: t("settings.accessibility"), icon: EyeIcon },
-      { id: "security", label: t("settings.security"), icon: ShieldCheckIcon },
-      { id: "encryption", label: t("settings.encryption"), icon: KeyIcon },
-      { id: "trusted_devices", label: t("settings.trusted_devices"), icon: ComputerDesktopIcon },
-      { id: "aliases", label: t("settings.aliases_and_domains"), icon: AtSymbolIcon },
-      { id: "ghost_aliases", label: t("settings.ghost_aliases"), icon: EyeSlashIcon },
-      ...(!on_onion ? [{ id: "billing" as Section, label: t("settings.billing"), icon: CreditCardIcon }] : []),
-      ...(is_family_plan ? [{ id: "family" as Section, label: t("settings.plan_type_family"), icon: HomeModernIcon }] : []),
-      { id: "referral", label: t("settings.refer_a_friend"), icon: UserGroupIcon },
+      { id: "appearance", label: t("settings.appearance"), icon: SwatchIcon, keywords: ["theme", "dark", "light", "mode", "color", "layout", "compact", "view", "font", "language", "time", "date", "format"] },
+      { id: "account", label: t("settings.account"), icon: BuildingOffice2Icon, keywords: ["profile", "name", "avatar", "photo", "display name", "recovery email", "inactivity", "timeout", "delete account", "close account", "username"] },
+      { id: "accessibility", label: t("settings.accessibility"), icon: EyeIcon, keywords: ["font size", "reduce motion", "focus", "keyboard", "screen reader", "contrast", "animation"] },
+      { id: "security", label: t("settings.security"), icon: ShieldCheckIcon, keywords: ["password", "2fa", "two factor", "totp", "authenticator", "passkey", "hardware key", "biometric", "login", "sign in", "webauthn", "yubikey", "backup codes", "recovery codes"] },
+      { id: "encryption", label: t("settings.encryption"), icon: KeyIcon, keywords: ["e2e", "end to end", "pgp", "key", "rotate", "quantum", "pq", "zero knowledge", "encrypt", "decrypt", "vault"] },
+      { id: "trusted_devices", label: t("settings.trusted_devices"), icon: ComputerDesktopIcon, keywords: ["devices", "desktop", "mobile", "paired", "revoke", "sign out", "logout", "session"] },
+      { id: "aliases", label: t("settings.aliases_and_domains"), icon: AtSymbolIcon, keywords: ["alias", "domain", "custom domain", "forwarding", "create", "dns", "mx", "dkim", "spf", "email address"] },
+      { id: "ghost_aliases", label: t("settings.ghost_aliases"), icon: EyeSlashIcon, keywords: ["anonymous", "private", "ghost", "disposable", "burn", "hide email", "masked"] },
+      ...(!on_onion ? [{ id: "billing" as Section, label: t("settings.billing"), icon: CreditCardIcon, keywords: ["plan", "subscription", "payment", "invoice", "upgrade", "downgrade", "storage", "price", "card", "crypto", "addon", "star", "supernova"] }] : []),
+      ...(is_family_plan ? [{ id: "family" as Section, label: t("settings.plan_type_family"), icon: HomeModernIcon, keywords: ["family", "members", "invite", "children", "kids", "child", "manage"] }] : []),
+      { id: "referral", label: t("settings.refer_a_friend"), icon: UserGroupIcon, keywords: ["refer", "friend", "invite", "bonus", "reward", "share", "code"] },
     ],
     mail: [
-      ...(!on_onion ? [{ id: "import" as Section, label: t("common.import"), icon: ArrowDownTrayIcon }] : []),
-      { id: "bridge" as Section, label: t("settings.bridge"), icon: ArrowsRightLeftIcon },
-      { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
-      { id: "signature", label: t("settings.signature"), icon: PencilSquareIcon },
-      { id: "templates", label: t("settings.templates"), icon: DocumentTextIcon },
-      { id: "behavior", label: t("settings.behavior"), icon: AdjustmentsHorizontalIcon },
-      { id: "sender_filters", label: t("settings.mail_management"), icon: FunnelIcon },
-      { id: "mail_rules", label: t("mail_rules.title"), icon: BoltIcon },
-      { id: "feedback", label: t("settings.feedback"), icon: ChatBubbleBottomCenterTextIcon },
+      ...(!on_onion ? [{ id: "import" as Section, label: t("common.import"), icon: ArrowDownTrayIcon, keywords: ["gmail", "google", "yahoo", "imap", "pop3", "migrate", "migration", "outlook", "proton", "thunderbird"] }] : []),
+      { id: "bridge" as Section, label: t("settings.bridge"), icon: ArrowsRightLeftIcon, keywords: ["thunderbird", "apple mail", "smtp", "imap", "desktop client", "mail app", "external client"] },
+      { id: "notifications", label: t("settings.notifications"), icon: BellIcon, keywords: ["push", "alert", "sound", "notify", "badge", "banner", "email notification"] },
+      { id: "signature", label: t("settings.signature"), icon: PencilSquareIcon, keywords: ["signature", "footer", "html", "sign off", "closing"] },
+      { id: "templates", label: t("settings.templates"), icon: DocumentTextIcon, keywords: ["template", "draft", "canned", "reply", "quick response", "saved"] },
+      { id: "behavior", label: t("settings.behavior"), icon: AdjustmentsHorizontalIcon, keywords: ["auto archive", "read receipt", "thread", "undo send", "delay", "swipe", "mark read", "group"] },
+      { id: "sender_filters", label: t("settings.mail_management"), icon: FunnelIcon, keywords: ["block", "blocklist", "allowlist", "whitelist", "blacklist", "spam", "filter", "forward", "sender", "ban"] },
+      { id: "mail_rules", label: t("mail_rules.title"), icon: BoltIcon, keywords: ["rule", "automation", "condition", "action", "label", "folder", "auto", "move", "tag"] },
+      { id: "feedback", label: t("settings.feedback"), icon: ChatBubbleBottomCenterTextIcon, keywords: ["bug", "report", "feature request", "support", "help", "contact"] },
     ],
   };
 }
@@ -231,6 +233,7 @@ function SettingsPanelInner({
   const [is_family_plan, set_is_family_plan] = useState(
     () => localStorage.getItem("aster_is_family_plan") === "1",
   );
+  const [search_query, set_search_query] = useState("");
 
   useEffect(() => {
     if (is_open && is_family_plan) {
@@ -306,6 +309,7 @@ function SettingsPanelInner({
       });
     } else if (!is_open) {
       animation_complete_ref.current = false;
+      set_search_query("");
     }
     was_open_ref.current = is_open;
   }, [is_open, initial_section]);
@@ -442,13 +446,33 @@ function SettingsPanelInner({
       : base.general.filter((item) => item.id !== "trusted_devices");
     const mail = [...base.mail];
     if (is_desktop_runtime()) {
-      mail.push({ id: "updates" as Section, label: t("settings.updates"), icon: ArrowDownTrayIcon });
+      mail.push({ id: "updates" as Section, label: t("settings.updates"), icon: ArrowDownTrayIcon, keywords: ["update", "version", "auto update", "release", "app version"] });
     }
     if (dev_mode_enabled) {
-      mail.push({ id: "developer" as Section, label: t("settings.developer"), icon: CodeBracketIcon });
+      mail.push({ id: "developer" as Section, label: t("settings.developer"), icon: CodeBracketIcon, keywords: ["debug", "api", "token", "dev mode", "developer", "logs"] });
     }
     return { general, mail };
   }, [NAV_ITEMS_BASE, dev_mode_enabled, has_devices, t]);
+
+  const search_results = useMemo((): NavItem[] => {
+    const q = search_query.trim().toLowerCase();
+
+    if (!q) return [];
+
+    return [...nav_items.general, ...nav_items.mail].filter((item) =>
+      item.label.toLowerCase().includes(q) ||
+      item.keywords.some((kw) => kw.includes(q)),
+    );
+  }, [search_query, nav_items]);
+
+  const is_searching = search_query.trim().length > 0;
+
+  useEffect(() => {
+    if (search_results.length === 1) {
+      set_section(search_results[0].id);
+      set_persisted_section(search_results[0].id);
+    }
+  }, [search_results]);
 
   useLayoutEffect(() => {
     if (!is_open) {
@@ -570,6 +594,7 @@ function SettingsPanelInner({
   const handle_desktop_nav_click = useCallback((item_id: Section) => {
     set_section(item_id);
     set_persisted_section(item_id);
+    set_search_query("");
     window.history.pushState({}, "", `/settings/${item_id}`);
   }, []);
 
@@ -598,6 +623,7 @@ function SettingsPanelInner({
         onClick={() => {
           set_section(item.id);
           set_persisted_section(item.id);
+          set_search_query("");
           set_show_mobile_nav(false);
         }}
       >
@@ -654,7 +680,7 @@ function SettingsPanelInner({
                   style={{
                     top: indicator_style.top,
                     height: indicator_style.height,
-                    opacity: indicator_style.opacity,
+                    opacity: is_searching ? 0 : indicator_style.opacity,
                     backgroundColor: "var(--indicator-bg)",
                     border: "1px solid var(--border-primary)",
                     zIndex: 0,
@@ -663,61 +689,111 @@ function SettingsPanelInner({
                       : "none",
                   }}
                 />
-                <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
-                  {t("settings.general")}
-                </div>
-                <div className="space-y-0.5 mb-4">
-                  {nav_items.general.map(render_nav_item)}
-                </div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
-                  {t("common.mail")}
-                </div>
-                <div className="space-y-0.5">
-                  {nav_items.mail.map(render_nav_item)}
-                </div>
+                {is_searching ? (
+                  <div className="space-y-0.5">
+                    {search_results.map(render_nav_item)}
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
+                      {t("settings.general")}
+                    </div>
+                    <div className="space-y-0.5 mb-4">
+                      {nav_items.general.map(render_nav_item)}
+                    </div>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
+                      {t("common.mail")}
+                    </div>
+                    <div className="space-y-0.5">
+                      {nav_items.mail.map(render_nav_item)}
+                    </div>
+                  </>
+                )}
               </div>
             </nav>
 
             <div className="flex-1 overflow-y-auto flex flex-col min-h-0 bg-surf-primary">
-              <div className="flex items-center justify-between px-4 md:px-6 py-4 flex-shrink-0 border-b border-b-edge-secondary">
-                <div className="flex items-center gap-3">
-                  {!show_mobile_nav && (
-                    <Button
-                      className="md:hidden -ml-1.5"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => set_show_mobile_nav(true)}
-                    >
-                      <ArrowUturnLeftIcon className="w-5 h-5" />
-                    </Button>
-                  )}
-                  <h2 className="text-[17px] font-semibold text-txt-primary">
-                    <span className="hidden md:inline">
-                      {t("settings.title")}
-                    </span>
-                    <span className="md:hidden">
-                      {show_mobile_nav
-                        ? t("settings.title")
-                        : get_current_section_label()}
-                    </span>
-                  </h2>
-                  <SettingsSaveIndicator />
+              <div className="flex items-center gap-3 px-4 md:px-6 py-4 flex-shrink-0 border-b border-b-edge-secondary">
+                {!show_mobile_nav && (
+                  <Button
+                    className="md:hidden -ml-1.5"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => set_show_mobile_nav(true)}
+                  >
+                    <ArrowUturnLeftIcon className="w-5 h-5" />
+                  </Button>
+                )}
+                <h2 className="text-[17px] font-semibold text-txt-primary flex-shrink-0">
+                  <span className="hidden md:inline">{t("settings.title")}</span>
+                  <span className="md:hidden">
+                    {show_mobile_nav ? t("settings.title") : get_current_section_label()}
+                  </span>
+                </h2>
+                <SettingsSaveIndicator />
+                <div className="hidden md:flex flex-1 relative max-w-[220px]">
+                  <MagnifyingGlassIcon
+                    className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5"
+                    style={{ color: "var(--text-muted)" }}
+                  />
+                  <input
+                    autoComplete="off"
+                    className="w-full h-7 pl-8 pr-2.5 rounded-lg text-[13px] outline-none"
+                    placeholder={t("settings.search_placeholder")}
+                    spellCheck={false}
+                    style={{
+                      backgroundColor: "var(--input-bg, var(--bg-secondary))",
+                      border: "1px solid var(--border-primary)",
+                      color: "var(--text-primary)",
+                    }}
+                    type="search"
+                    value={search_query}
+                    onChange={(e) => set_search_query(e.target.value)}
+                  />
                 </div>
-                <Button size="icon" variant="ghost" onClick={on_close}>
+                <Button className="ml-auto" size="icon" variant="ghost" onClick={on_close}>
                   <XMarkIcon className="w-5 h-5" />
                 </Button>
               </div>
 
               {show_mobile_nav && (
                 <div className="md:hidden flex-1 overflow-y-auto">
-                  <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 text-txt-muted">
-                    {t("settings.general")}
+                  <div className="px-4 pt-3 pb-1">
+                    <div className="relative">
+                      <MagnifyingGlassIcon
+                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                        style={{ color: "var(--text-muted)" }}
+                      />
+                      <input
+                        autoComplete="off"
+                        className="w-full h-9 pl-9 pr-3 rounded-[10px] text-[14px] outline-none"
+                        placeholder={t("settings.search_placeholder")}
+                        spellCheck={false}
+                        style={{
+                          backgroundColor: "var(--input-bg, var(--bg-secondary))",
+                          border: "1px solid var(--border-primary)",
+                          color: "var(--text-primary)",
+                        }}
+                        type="search"
+                        value={search_query}
+                        onChange={(e) => set_search_query(e.target.value)}
+                      />
+                    </div>
                   </div>
-                  {nav_items.general.map(render_mobile_nav_item)}
-                  <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 mt-2 text-txt-muted">
-                    {t("common.mail")}
-                  </div>
-                  {nav_items.mail.map(render_mobile_nav_item)}
+                  {is_searching ? (
+                    search_results.map(render_mobile_nav_item)
+                  ) : (
+                    <>
+                      <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 text-txt-muted">
+                        {t("settings.general")}
+                      </div>
+                      {nav_items.general.map(render_mobile_nav_item)}
+                      <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 mt-2 text-txt-muted">
+                        {t("common.mail")}
+                      </div>
+                      {nav_items.mail.map(render_mobile_nav_item)}
+                    </>
+                  )}
                 </div>
               )}
 

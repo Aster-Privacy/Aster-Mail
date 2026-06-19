@@ -245,6 +245,7 @@ function invalidate_thread_in_preload_cache(
   }
 }
 
+if (typeof window !== "undefined") {
 window.addEventListener(MAIL_EVENTS.THREAD_REPLY_SENT, ((
   event: CustomEvent<ThreadReplySentEventDetail>,
 ) => {
@@ -340,6 +341,7 @@ window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, ((
     },
   });
 }) as EventListener);
+}
 
 function presanitize(
   html_content: string | undefined,
@@ -428,7 +430,10 @@ function premeasure_height(
   measure_container.appendChild(wrapper);
 
   const content = shadow.querySelector("div");
-  const height = content ? Math.min(content.scrollHeight + 2, 12000) : 0;
+  const rect = content ? content.getBoundingClientRect() : null;
+  const height = content
+    ? Math.min(Math.max(rect?.height ?? 0, content.scrollHeight) + 8, 12000)
+    : 0;
 
   measure_container.removeChild(wrapper);
 

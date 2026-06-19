@@ -381,13 +381,13 @@ ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
   })()}/">
 <style>${iframe_css}</style>
 <style>body{zoom:${email_zoom}}</style>
-${preferences.dyslexia_font ? `<style>body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
+${preferences.dyslexia_font ? `<style>@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/OpenDyslexic-Regular.woff2') format('woff2');}@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/OpenDyslexic-Bold.woff2') format('woff2');}body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
 ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important; }</style>` : ""}
 <style>${quote_toggle_css}</style>
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; }</style>
 </head>
-<body style="${is_html_email ? html_body_style : plain_body_style}">${resolved_html}</body>
+<body style="${is_html_email ? html_body_style : plain_body_style}">${resolved_html.replace(/src=["']cid:[^"']*["']/gi, 'src="data:,"')}</body>
 </html>`;
 
   const collapse_forwarded_content = useCallback(
@@ -866,16 +866,35 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
     const measure_and_apply = () => {
       const doc = iframe.contentDocument;
       const body = doc?.body;
+      const html = doc?.documentElement;
 
-      if (!body || !doc) return;
+      if (!body || !doc || !html) return;
 
-      const prev_iframe_h = iframe.style.height;
-      iframe.style.height = "0px";
-      const measured = Math.max(
-        body.scrollHeight,
-        Math.ceil(body.getBoundingClientRect().height),
-      );
-      iframe.style.height = prev_iframe_h;
+      const saved_html_h = html.style.getPropertyValue("height");
+      const saved_html_h_pri = html.style.getPropertyPriority("height");
+      const saved_html_minh = html.style.getPropertyValue("min-height");
+      const saved_html_minh_pri = html.style.getPropertyPriority("min-height");
+      const saved_body_h = body.style.getPropertyValue("height");
+      const saved_body_h_pri = body.style.getPropertyPriority("height");
+      const saved_body_minh = body.style.getPropertyValue("min-height");
+      const saved_body_minh_pri = body.style.getPropertyPriority("min-height");
+
+      html.style.setProperty("height", "auto", "important");
+      html.style.setProperty("min-height", "0px", "important");
+      body.style.setProperty("height", "auto", "important");
+      body.style.setProperty("min-height", "0px", "important");
+
+      const rect = body.getBoundingClientRect();
+      const measured = Math.max(rect.bottom, body.scrollHeight);
+
+      if (saved_html_h) html.style.setProperty("height", saved_html_h, saved_html_h_pri);
+      else html.style.removeProperty("height");
+      if (saved_html_minh) html.style.setProperty("min-height", saved_html_minh, saved_html_minh_pri);
+      else html.style.removeProperty("min-height");
+      if (saved_body_h) body.style.setProperty("height", saved_body_h, saved_body_h_pri);
+      else body.style.removeProperty("height");
+      if (saved_body_minh) body.style.setProperty("min-height", saved_body_minh, saved_body_minh_pri);
+      else body.style.removeProperty("min-height");
 
       const height = Math.min(measured + 8, MAX_IFRAME_HEIGHT);
 
@@ -895,14 +914,16 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
       raf_ref.current = requestAnimationFrame(() => measure_and_apply());
     };
 
+    const body_rect = iframe.contentDocument.body.getBoundingClientRect();
     const immediate_height = Math.max(
+      body_rect.bottom,
       iframe.contentDocument.body.scrollHeight,
-      Math.ceil(iframe.contentDocument.body.getBoundingClientRect().height),
     );
 
     if (immediate_height > 0) {
-      const clamped = Math.min(immediate_height + 24, MAX_IFRAME_HEIGHT);
+      const clamped = Math.min(immediate_height + 8, MAX_IFRAME_HEIGHT);
 
+      last_height = clamped;
       set_iframe_height(`${clamped}px`);
       set_height_ready(true);
       if (email_id) {
@@ -1145,8 +1166,10 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
   }
 
   const handle_load_with_swap = useCallback(() => {
-    set_iframe_loaded(true);
     handle_load();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => set_iframe_loaded(true));
+    });
   }, [handle_load]);
 
   const show_preview = height_ready && !iframe_loaded;
@@ -1275,6 +1298,10 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         <div
           ref={preview_ref}
           style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            zIndex: 1,
             width: "100%",
             height: iframe_height,
             maxHeight: "12000px",
@@ -1303,7 +1330,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
           height: height_ready ? iframe_height : "0px",
           maxHeight: "12000px",
           overflow: "hidden",
-          display: show_preview ? "none" : "block",
+          display: "block",
           opacity: height_ready ? 1 : 0,
           backgroundColor: effective_bg,
           touchAction: "pan-y",

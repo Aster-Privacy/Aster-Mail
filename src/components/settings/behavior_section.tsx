@@ -205,7 +205,7 @@ export function BehaviorSection() {
       return false;
     }
   });
-  const is_web = !Capacitor.isNativePlatform();
+  const is_web = !Capacitor.isNativePlatform() && !("__TAURI_INTERNALS__" in window);
 
   useEffect(() => {
     const vault = get_vault_from_memory();

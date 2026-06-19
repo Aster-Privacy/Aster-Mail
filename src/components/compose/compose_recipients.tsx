@@ -38,11 +38,9 @@ import { EmailAutocomplete } from "@/components/common/email_autocomplete";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { get_email_username } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_preferences } from "@/contexts/preferences_context";
 import {
   is_internal_email,
   discover_external_keys_batch,
-  has_pgp_key,
 } from "@/services/api/keys";
 import {
   get_domain_from_email,
@@ -254,7 +252,6 @@ export function RecipientField({
   auto_focus = false,
 }: RecipientFieldProps) {
   const { t } = use_i18n();
-  const { preferences } = use_preferences();
   const [is_expanded, set_is_expanded] = useState(false);
   const [overflow_count, set_overflow_count] = useState(0);
   const measure_ref = useRef<HTMLDivElement>(null);
@@ -262,20 +259,6 @@ export function RecipientField({
     Map<string, EncryptionStatus>
   >(new Map());
 
-  const display_status = (
-    email: string,
-    status: EncryptionStatus | undefined,
-  ): EncryptionStatus | undefined => {
-    if (status === undefined) return undefined;
-    if (is_internal_email(email)) return status;
-    if (
-      !preferences.encrypt_emails &&
-      (status === "encrypted" || status === "key_invalid")
-    ) {
-      return "transit";
-    }
-    return status;
-  };
   const resolved_ref = useRef<Set<string>>(new Set());
   const in_flight_ref = useRef<Set<string>>(new Set());
   const retry_count_ref = useRef<Map<string, number>>(new Map());
@@ -359,7 +342,7 @@ export function RecipientField({
               const expired =
                 info.expires_at !== null &&
                 Date.parse(info.expires_at) <= Date.now();
-              const status: EncryptionStatus = has_pgp_key(info)
+              const status: EncryptionStatus = info.will_encrypt
                 ? "encrypted"
                 : key_present && expired
                   ? "key_invalid"
@@ -590,7 +573,7 @@ export function RecipientField({
               email={email}
               encryption_status={
                 show_locks
-                  ? display_status(email, encryption_map.get(email))
+                  ? encryption_map.get(email)
                   : undefined
               }
               image_url={contact_avatar_map.get(email.toLowerCase())}

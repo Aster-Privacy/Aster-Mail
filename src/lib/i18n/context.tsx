@@ -39,7 +39,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { get_translations, has_translations } from "./translations";
+import { get_translations, get_translations_async, has_translations } from "./translations";
 import {
   detect_browser_language,
   is_rtl_language,
@@ -95,12 +95,32 @@ export function I18nProvider({
   default_language,
   on_language_change,
 }: I18nProviderProps) {
-  const [language, set_language_state] = useState<LanguageCode>(
-    default_language || get_initial_language(),
+  const initial_language = default_language || get_initial_language();
+  const [language, set_language_state] = useState<LanguageCode>(initial_language);
+  const [is_loading, set_is_loading] = useState(initial_language !== "en");
+  const [translations, set_translations] = useState<Translations>(
+    get_translations(initial_language),
   );
-  const [is_loading, set_is_loading] = useState(false);
 
-  const translations = useMemo(() => get_translations(language), [language]);
+  useEffect(() => {
+    if (language === "en") {
+      set_translations(get_translations("en"));
+      set_is_loading(false);
+      return;
+    }
+    let cancelled = false;
+
+    set_is_loading(true);
+    get_translations_async(language).then((loaded) => {
+      if (!cancelled) {
+        set_translations(loaded);
+        set_is_loading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [language]);
 
   const is_rtl = useMemo(() => is_rtl_language(language), [language]);
 
@@ -110,7 +130,6 @@ export function I18nProvider({
         code = "en";
       }
 
-      set_is_loading(true);
       set_language_state(code);
       localStorage.setItem(STORAGE_KEY, code);
 
@@ -118,10 +137,6 @@ export function I18nProvider({
       document.documentElement.dir = is_rtl_language(code) ? "rtl" : "ltr";
 
       on_language_change?.(code);
-
-      requestAnimationFrame(() => {
-        set_is_loading(false);
-      });
     },
     [on_language_change],
   );

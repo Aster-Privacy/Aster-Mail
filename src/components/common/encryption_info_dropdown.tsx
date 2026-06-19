@@ -75,7 +75,7 @@ export function EncryptionInfoDropdown({
     };
   }, [is_open]);
 
-  if (!preferences.show_encryption_indicators) {
+  if (preferences.show_encryption_indicators === false) {
     return null;
   }
 

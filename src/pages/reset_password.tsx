@@ -593,7 +593,10 @@ export default function ResetPasswordPage() {
 
             <button
               className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
-              onClick={() => set_step("success")}
+              onClick={() => {
+                set_new_recovery_codes([]);
+                set_step("success");
+              }}
             >
               {t("auth.continue_without_download")}
             </button>

@@ -37,6 +37,7 @@ import {
   unpublish_key_from_wkd,
   publish_key_to_keyserver,
   get_keyserver_publication_status,
+  clear_external_key_cache,
 } from "@/services/api/keys";
 
 export interface PgpKeyInfo {
@@ -514,6 +515,8 @@ export function use_encryption() {
     if (!ok) {
       update_preference("auto_discover_keys", !new_value, true);
       show_toast(t("settings.failed_save_setting"), "error");
+    } else {
+      clear_external_key_cache();
     }
   };
 
@@ -553,6 +556,8 @@ export function use_encryption() {
     if (!ok) {
       update_preference("encrypt_emails", !new_value, true);
       show_toast(t("settings.failed_save_setting"), "error");
+    } else {
+      clear_external_key_cache();
     }
   };
 

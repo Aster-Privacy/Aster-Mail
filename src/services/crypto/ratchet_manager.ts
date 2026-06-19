@@ -42,6 +42,7 @@ import {
 } from "./x3dh";
 import {
   sync_ratchet_to_server,
+  load_ratchet_from_server,
   derive_ratchet_encryption_key,
 } from "./ratchet_sync";
 import {
@@ -56,6 +57,10 @@ import {
   get_cached_ratchet_plaintext,
   set_cached_ratchet_plaintext,
 } from "./ratchet_plaintext_cache";
+import {
+  upload_to_escrow,
+  fetch_from_escrow,
+} from "./message_escrow";
 import {
   base64_to_array as core_base64_to_array,
   compute_hash,
@@ -273,7 +278,6 @@ export async function encrypt_for_ratchet_recipient(
     let ephemeral_key_base64 = "";
     let pq_ciphertext_base64: string | undefined;
     let pq_key_id_value: number | undefined;
-    let did_bootstrap = false;
 
     let bundle: PrekeyBundle | null = null;
 
@@ -300,8 +304,6 @@ export async function encrypt_for_ratchet_recipient(
     }
 
     if (!ratchet) {
-      did_bootstrap = true;
-
       if (!bundle) {
         bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
       }
@@ -389,15 +391,13 @@ export async function encrypt_for_ratchet_recipient(
 
     await save_ratchet_state(ratchet);
 
-    if (!did_bootstrap) {
-      const sync_key = await get_sync_encryption_key();
+    const sync_key_send = await get_sync_encryption_key();
 
-      if (sync_key) {
-        try {
-          await sync_ratchet_to_server(ratchet, sync_key);
-        } catch {
-          /* best-effort */
-        }
+    if (sync_key_send) {
+      try {
+        await sync_ratchet_to_server(ratchet, sync_key_send);
+      } catch {
+        /* best-effort */
       }
     }
 
@@ -516,10 +516,19 @@ export async function decrypt_ratchet_message(
 
     if (dedupe_key) {
       await set_cached_ratchet_plaintext(dedupe_key, plaintext);
+      void upload_to_escrow(dedupe_key, plaintext).catch(() => {});
     }
+
+    return plaintext;
   }
 
-  return plaintext;
+  if (dedupe_key) {
+    const escrowed = await fetch_from_escrow(dedupe_key).catch(() => null);
+
+    if (escrowed !== null) return escrowed;
+  }
+
+  return null;
 }
 
 function receiver_key_sets(vault: EncryptedVault): RatchetKeySet[] {
@@ -693,6 +702,30 @@ async function decrypt_ratchet_for_recipient(
     }
 
     if (plaintext === null || !ratchet) {
+      const server_sync_key = await get_sync_encryption_key();
+
+      if (server_sync_key) {
+        try {
+          const server_state = await load_ratchet_from_server(
+            conversation_id,
+            server_sync_key,
+          );
+
+          if (server_state) {
+            try {
+              plaintext = await server_state.ratchet.decrypt(message);
+              ratchet = server_state.ratchet;
+            } catch {
+              /* server state also cannot decrypt */
+            }
+          }
+        } catch {
+          /* best-effort */
+        }
+      }
+    }
+
+    if (plaintext === null || !ratchet) {
       if (last_error) {
         throw last_error;
       }
@@ -707,15 +740,13 @@ async function decrypt_ratchet_for_recipient(
 
   await save_ratchet_state(ratchet);
 
-  if (!is_fresh_bootstrap) {
-    const sync_key = await get_sync_encryption_key();
+  const sync_key_recv = await get_sync_encryption_key();
 
-    if (sync_key) {
-      try {
-        await sync_ratchet_to_server(ratchet, sync_key);
-      } catch {
-        /* best-effort */
-      }
+  if (sync_key_recv) {
+    try {
+      await sync_ratchet_to_server(ratchet, sync_key_recv);
+    } catch {
+      /* best-effort */
     }
   }
 

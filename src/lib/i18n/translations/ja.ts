@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2416,6 +2416,8 @@ export const ja = {
     desktop: "デスクトップ",
     show_desktop_notifications: "デスクトップ通知を表示",
     blocked_by_browser: "ブラウザによりブロックされています",
+    blocked_by_os: "Enable in system notification settings",
+    open_system_notification_settings: "Open Settings",
     sound_new_notifications: "新しい通知のサウンドを再生",
     push: "プッシュ",
     push_notifications_description: "モバイルでプッシュ通知を受信します",
