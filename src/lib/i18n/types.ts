@@ -3996,11 +3996,6 @@ export interface SettingsTranslations {
   credit_task_refer_cta: string;
   credit_task_ios_title: string;
   credit_task_ios_hint_coming: string;
-  credit_task_android_title: string;
-  credit_task_android_hint: string;
-  credit_task_desktop_title: string;
-  credit_task_desktop_hint: string;
-  credit_task_download_cta: string;
   credit_task_earned: string;
   top_up_credits: string;
   top_up_credits_description: string;
