@@ -46,6 +46,7 @@ import {
   clear_mail_stats,
   invalidate_mail_stats,
   prefetch_mail_stats,
+  should_reconcile_on_item_update,
 } from "./use_mail_stats";
 
 function make_server_stats(unread: number) {
@@ -146,6 +147,40 @@ describe("mail stats reliability", () => {
     expect(update_pwa_badge.mock.calls.at(-1)?.[0]).toBe(7);
   });
 
+  it("keeps an optimistic mark-read applied during an in-flight reconcile", async () => {
+    const initial = deferred<{ data: ReturnType<typeof make_server_stats> }>();
+
+    vi.mocked(get_mail_stats).mockReturnValueOnce(initial.promise as never);
+
+    prefetch_mail_stats();
+    await flush();
+    initial.resolve({ data: make_server_stats(5) });
+    await flush();
+    await flush();
+
+    expect(update_pwa_badge.mock.calls.at(-1)?.[0]).toBe(5);
+
+    const stale = deferred<{ data: ReturnType<typeof make_server_stats> }>();
+
+    vi.mocked(get_mail_stats).mockReturnValueOnce(stale.promise as never);
+
+    invalidate_mail_stats();
+    await flush();
+
+    const { adjust_stats_unread } = await import("./use_mail_stats");
+
+    adjust_stats_unread(-1);
+    await flush();
+
+    expect(update_pwa_badge.mock.calls.at(-1)?.[0]).toBe(4);
+
+    stale.resolve({ data: make_server_stats(5) });
+    await flush();
+    await flush();
+
+    expect(update_pwa_badge.mock.calls.at(-1)?.[0]).toBe(4);
+  });
+
   it("still reconciles unread when contacts/snoozed sub-requests reject", async () => {
     get_contacts_count.mockRejectedValue(new Error("network"));
     list_snoozed_emails.mockRejectedValue(new Error("network"));
@@ -161,5 +196,39 @@ describe("mail stats reliability", () => {
     await flush();
 
     expect(update_pwa_badge.mock.calls.at(-1)?.[0]).toBe(6);
+  });
+});
+
+describe("should_reconcile_on_item_update", () => {
+  it("reconciles when a read-state change is committed", () => {
+    expect(should_reconcile_on_item_update({ id: "1", is_read: true })).toBe(
+      true,
+    );
+  });
+
+  it("reconciles on archive, trash, spam and star changes", () => {
+    expect(should_reconcile_on_item_update({ id: "1", is_archived: true })).toBe(
+      true,
+    );
+    expect(should_reconcile_on_item_update({ id: "1", is_trashed: true })).toBe(
+      true,
+    );
+    expect(should_reconcile_on_item_update({ id: "1", is_spam: true })).toBe(
+      true,
+    );
+    expect(should_reconcile_on_item_update({ id: "1", is_starred: true })).toBe(
+      true,
+    );
+  });
+
+  it("ignores updates that do not affect any count", () => {
+    expect(should_reconcile_on_item_update({ id: "1", is_pinned: true })).toBe(
+      false,
+    );
+    expect(
+      should_reconcile_on_item_update({ id: "1", tags: [] }),
+    ).toBe(false);
+    expect(should_reconcile_on_item_update(null)).toBe(false);
+    expect(should_reconcile_on_item_update(undefined)).toBe(false);
   });
 });
