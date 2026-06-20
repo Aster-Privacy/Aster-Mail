@@ -62,9 +62,11 @@ import {
 } from "@/services/api/auth";
 import { TotpSetupModal } from "@/components/settings/totp_setup_modal";
 import { TotpDisableModal } from "@/components/settings/totp_disable_modal";
+import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
 import { check_password_breach } from "@/services/breach_check";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { useNavigate } from "react-router-dom";
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
@@ -88,6 +90,8 @@ export function SecuritySection({
   const { user } = use_auth();
   const { preferences, update_preference } = use_preferences();
   const { is_feature_locked } = use_plan_limits();
+  const navigate = useNavigate();
+  const [show_delete_modal, set_show_delete_modal] = useState(false);
 
   const [totp_status, set_totp_status] = useState<TotpStatusResponse | null>(
     null,
@@ -716,6 +720,26 @@ export function SecuritySection({
             )}
           </div>
         </SettingsGroup>
+
+        <SettingsGroup title={t("common.delete_account")}>
+          <div className="px-4 py-3">
+            <p className="mb-3 text-[13px] text-[var(--text-muted)]">
+              {t("common.erase_all_data")}
+            </p>
+            <motion.button
+              className="flex w-full items-center justify-center rounded-xl py-3 text-[15px] font-semibold text-white"
+              style={{
+                background: "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
+                boxShadow:
+                  "0 2px 4px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
+              }}
+              type="button"
+              onClick={() => set_show_delete_modal(true)}
+            >
+              {t("common.delete")}
+            </motion.button>
+          </div>
+        </SettingsGroup>
       </div>
 
       <TotpSetupModal
@@ -727,6 +751,11 @@ export function SecuritySection({
         is_open={show_totp_disable}
         on_close={() => set_show_totp_disable(false)}
         on_success={handle_totp_disable_success}
+      />
+      <DeleteAccountModal
+        is_open={show_delete_modal}
+        on_close={() => set_show_delete_modal(false)}
+        on_deleted={() => navigate("/sign-in")}
       />
     </div>
   );
