@@ -3759,7 +3759,7 @@ export const pt = {
       "Após a rotação, sua chave anterior é desativada. E-mails criptografados exclusivamente com sua chave antiga não poderão mais ser descriptografados. Esta ação é irreversível.",
     bulk_unsubscribe: "Cancelamento em Massa",
     senders_unsubscribed: "{{ count }} remetentes com inscrição cancelada",
-    opened_in_browser: "{{ count }} abertos no navegador para concluir",
+    opened_in_browser: "{{ count }} arquivados - confirmação manual pode ser necessária",
     could_not_unsubscribe: "{{ count }} não puderam ter a inscrição cancelada",
     unsubscribing: "Cancelando inscrição...",
     scanning: "Analisando...",
@@ -5294,6 +5294,8 @@ export const pt = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "Renomear",
+    rename_saved: "Nome atualizado",
   },
   errors: {
     pending_email_verification: "Verifique seu e-mail e clique no link de verificação para ativar esta conta.",

@@ -3764,7 +3764,7 @@ export const nl = {
       "Na rotatie wordt je vorige sleutel ingetrokken. E-mails die uitsluitend met je oude sleutel zijn versleuteld, kunnen niet meer worden ontsleuteld. Dit kan niet ongedaan worden gemaakt.",
     bulk_unsubscribe: "Bulk uitschrijven",
     senders_unsubscribed: "{{ count }} afzenders uitgeschreven",
-    opened_in_browser: "{{ count }} in browser geopend om te voltooien",
+    opened_in_browser: "{{ count }} gearchiveerd - handmatige bevestiging kan nodig zijn",
     could_not_unsubscribe: "{{ count }} konden niet worden uitgeschreven",
     unsubscribing: "Uitschrijven...",
     scanning: "Scannen...",
@@ -5294,6 +5294,8 @@ export const nl = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "Hernoemen",
+    rename_saved: "Naam bijgewerkt",
   },
   errors: {
     pending_email_verification: "Controleer je e-mail en klik op de verificatielink om dit account te activeren.",
