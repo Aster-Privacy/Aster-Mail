@@ -474,7 +474,7 @@ async function prepare_email_for_server_queue(
     encrypted_attachments = await encrypt_attachments_for_send(
       all_attachments,
       recipient_public_keys.length > 0 ? recipient_public_keys : undefined,
-      is_encrypted,
+      recipient_public_keys.length > 0,
     );
   }
 
