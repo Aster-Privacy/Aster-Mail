@@ -384,6 +384,8 @@ ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
 ${preferences.dyslexia_font ? `<style>@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/OpenDyslexic-Regular.woff2') format('woff2');}@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/OpenDyslexic-Bold.woff2') format('woff2');}body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
 ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important; }</style>` : ""}
 <style>${quote_toggle_css}</style>
+<style>::selection { background: rgba(96, 165, 250, 0.35); }
+.aster-quote-toggle, .aster-forwarded-collapse > summary, .remote-content-banner { -webkit-user-select: none !important; user-select: none !important; }</style>
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; }</style>
 </head>
@@ -870,6 +872,10 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
       if (!body || !doc || !html) return;
 
+      const active_selection = doc.getSelection();
+
+      if (active_selection && !active_selection.isCollapsed) return;
+
       const saved_html_h = html.style.getPropertyValue("height");
       const saved_html_h_pri = html.style.getPropertyPriority("height");
       const saved_html_minh = html.style.getPropertyValue("min-height");
@@ -1084,6 +1090,34 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
           }),
         );
       }
+    });
+
+    iframe.contentDocument.addEventListener("keydown", (e) => {
+      const is_select_all =
+        (e.ctrlKey || e.metaKey) &&
+        !e.altKey &&
+        (e.key === "a" || e.key === "A");
+
+      if (!is_select_all) return;
+
+      const doc = iframe.contentDocument;
+      const body = doc?.body;
+      const selection = doc?.getSelection();
+
+      if (!doc || !body || !selection) return;
+
+      e.preventDefault();
+      const range = doc.createRange();
+
+      range.selectNodeContents(body);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+
+    iframe.contentDocument.addEventListener("selectionchange", () => {
+      const selection = iframe.contentDocument?.getSelection();
+
+      if (selection && selection.isCollapsed) update_height();
     });
   }, [
     collapse_forwarded_content,
