@@ -20,7 +20,7 @@
 //
 import { useState, useEffect, useCallback, useRef } from "react";
 
-import { MAIL_EVENTS } from "./mail_events";
+import { MAIL_EVENTS, type MailItemUpdatedEventDetail } from "./mail_events";
 import { is_low_network } from "@/services/low_network_state";
 
 import { get_contacts_count } from "@/services/api/contacts";
@@ -127,6 +127,8 @@ class MailStatsStore {
   private reconcile_timer: ReturnType<typeof setTimeout> | null = null;
   private user_id: string | null = null;
   private refetch_queued = false;
+  private in_flight_deltas: Partial<Record<keyof MailStats, number>> | null =
+    null;
 
   get_cache(): StatsCache {
     return this.cache;
@@ -239,6 +241,8 @@ class MailStatsStore {
   }
 
   private async execute_fetch(): Promise<MailStats | null> {
+    this.in_flight_deltas = {};
+
     try {
       const [stats_response, contacts_response, snoozed_response] =
         await Promise.allSettled([
@@ -267,19 +271,23 @@ class MailStatsStore {
           ? (snoozed_response.value.data ?? []).length
           : this.cache.data.snoozed;
 
+      const deltas = this.in_flight_deltas ?? {};
+      const reconcile = (field: keyof MailStats, value: number): number =>
+        Math.max(0, value + (deltas[field] ?? 0));
+
       this.cache.data = {
-        total_items: server_stats.total_items,
-        inbox: server_stats.inbox,
-        sent: server_stats.sent,
-        drafts: server_stats.drafts,
-        scheduled: server_stats.scheduled,
-        snoozed: snoozed_count,
-        starred: server_stats.starred,
-        archived: server_stats.archived,
-        spam: server_stats.spam,
-        trash: server_stats.trash,
-        unread: server_stats.unread,
-        contacts: contacts_count,
+        total_items: reconcile("total_items", server_stats.total_items),
+        inbox: reconcile("inbox", server_stats.inbox),
+        sent: reconcile("sent", server_stats.sent),
+        drafts: reconcile("drafts", server_stats.drafts),
+        scheduled: reconcile("scheduled", server_stats.scheduled),
+        snoozed: reconcile("snoozed", snoozed_count),
+        starred: reconcile("starred", server_stats.starred),
+        archived: reconcile("archived", server_stats.archived),
+        spam: reconcile("spam", server_stats.spam),
+        trash: reconcile("trash", server_stats.trash),
+        unread: reconcile("unread", server_stats.unread),
+        contacts: reconcile("contacts", contacts_count),
         storage_used_bytes: server_stats.storage_used_bytes,
         storage_total_bytes: server_stats.storage_total_bytes,
       };
@@ -292,6 +300,7 @@ class MailStatsStore {
     } catch {
       return null;
     } finally {
+      this.in_flight_deltas = null;
       this.cache.fetching = false;
       this.active_request = null;
       this.notify();
@@ -361,6 +370,12 @@ class MailStatsStore {
         ...this.cache.data,
         [field]: Math.max(0, current + delta),
       };
+
+      if (this.in_flight_deltas) {
+        this.in_flight_deltas[field] =
+          (this.in_flight_deltas[field] ?? 0) + delta;
+      }
+
       this.save_to_storage();
       this.notify();
       this.sync_external_surfaces();
@@ -397,6 +412,20 @@ class MailStatsStore {
 }
 
 const stats_store = new MailStatsStore();
+
+export function should_reconcile_on_item_update(
+  detail: MailItemUpdatedEventDetail | null | undefined,
+): boolean {
+  if (!detail) return false;
+
+  return (
+    detail.is_read !== undefined ||
+    detail.is_starred !== undefined ||
+    detail.is_archived !== undefined ||
+    detail.is_trashed !== undefined ||
+    detail.is_spam !== undefined
+  );
+}
 
 export function use_mail_stats(): UseMailStatsReturn {
   const mounted_ref = useRef(false);
@@ -495,6 +524,14 @@ export function use_mail_stats(): UseMailStatsReturn {
       stats_store.fetch_debounced();
     };
 
+    const handle_item_update = (event: Event) => {
+      const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
+
+      if (should_reconcile_on_item_update(detail)) {
+        stats_store.fetch_debounced();
+      }
+    };
+
     const handle_auth_ready = () => {
       stats_store.invalidate();
       stats_store.fetch(true);
@@ -508,6 +545,7 @@ export function use_mail_stats(): UseMailStatsReturn {
     };
 
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_update);
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_change);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_change);
@@ -523,6 +561,10 @@ export function use_mail_stats(): UseMailStatsReturn {
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEM_UPDATED,
+        handle_item_update,
+      );
       window.removeEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_change);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_change);
