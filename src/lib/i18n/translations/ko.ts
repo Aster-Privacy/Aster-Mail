@@ -3813,7 +3813,7 @@ export const ko = {
       "교체 후 이전 키는 폐기됩니다. 이전 키로만 암호화된 이메일은 더 이상 복호화할 수 없습니다. 이 작업은 되돌릴 수 없습니다.",
     bulk_unsubscribe: "일괄 구독 해제",
     senders_unsubscribed: "발신자 {{ count }}명 구독 해제됨",
-    opened_in_browser: "{{ count }}개는 완료를 위해 브라우저에서 열렸습니다",
+    opened_in_browser: "{{ count }}개 보관됨 - 수동 확인이 필요할 수 있습니다",
     could_not_unsubscribe: "{{ count }}개는 구독 해제할 수 없었습니다",
     unsubscribing: "구독 해제 중...",
     scanning: "스캔 중...",
@@ -5294,6 +5294,8 @@ export const ko = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "이름 바꾸기",
+    rename_saved: "이름이 업데이트되었습니다",
   },
   errors: {
     pending_email_verification: "이메일을 확인하고 인증 링크를 클릭하여 이 계정을 활성화하세요.",

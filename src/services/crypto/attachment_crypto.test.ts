@@ -109,4 +109,37 @@ describe("encrypt_attachments_for_send recipient-key invariant", () => {
     expect(parsed.filename).toBe("secret.pdf");
     expect(typeof parsed.session_key).toBe("string");
   });
+
+  it("does not block an attachment send to an internal ratchet recipient with no PGP key", async () => {
+    const recipient_public_keys: string[] = [];
+
+    const result = await encrypt_attachments_for_send(
+      [make_attachment()],
+      recipient_public_keys.length > 0 ? recipient_public_keys : undefined,
+      recipient_public_keys.length > 0,
+    );
+
+    expect(result).toHaveLength(1);
+
+    const recipient_meta = decode_meta(result[0].recipient_encrypted_meta || "");
+    const parsed = JSON.parse(recipient_meta);
+
+    expect(parsed.filename).toBe("secret.pdf");
+    expect(typeof parsed.session_key).toBe("string");
+  });
+
+  it("seals attachment meta to the recipient when an internal recipient has a PGP key", async () => {
+    const recipient_public_keys = ["RECIPIENT_PUBLIC_KEY"];
+
+    const result = await encrypt_attachments_for_send(
+      [make_attachment()],
+      recipient_public_keys.length > 0 ? recipient_public_keys : undefined,
+      recipient_public_keys.length > 0,
+    );
+
+    const recipient_meta = decode_meta(result[0].recipient_encrypted_meta || "");
+
+    expect(recipient_meta).toBe("PGP_ENCRYPTED_META");
+    expect(recipient_meta).not.toContain("session_key");
+  });
 });

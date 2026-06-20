@@ -3753,7 +3753,7 @@ export const de = {
     scanning: "Wird gescannt...",
     unsubscribing: "Wird abgemeldet...",
     could_not_unsubscribe: "{{ count }} konnten nicht abgemeldet werden",
-    opened_in_browser: "{{ count }} im Browser zur Vervollständigung geöffnet",
+    opened_in_browser: "{{ count }} archiviert - manuelle Bestätigung kann erforderlich sein",
     senders_unsubscribed: "{{ count }} Absender abgemeldet",
     bulk_unsubscribe: "Massenabmeldung",
     rotate_keys: "Schlüssel rotieren",
@@ -5294,6 +5294,8 @@ export const de = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "Umbenennen",
+    rename_saved: "Name aktualisiert",
   },
   errors: {
     pending_email_verification: "Prüfe deine E-Mails und klicke auf den Bestätigungslink, um dieses Konto zu aktivieren.",

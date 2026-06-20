@@ -256,7 +256,7 @@ export function SubscriptionsContent({
         </h1>
       </div>
 
-      <div className="flex items-center gap-2 px-4 py-2 flex-shrink-0">
+      <div className="flex items-center gap-2 px-4 py-2 flex-shrink-0 border-b border-edge-primary">
         <div className="flex rounded-lg overflow-hidden border border-edge-primary">
           <button
             className={`px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -290,7 +290,7 @@ export function SubscriptionsContent({
           </button>
         </div>
         <div className="flex-1" />
-        <div className="relative w-48">
+        <div className="relative flex-shrink-0 w-48">
           <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
           <Input
             className="w-48 pl-8 pr-3 bg-transparent"

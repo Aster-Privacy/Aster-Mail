@@ -3762,7 +3762,7 @@ export const ja = {
       "ローテーション後、以前の鍵は無効になります。古い鍵のみで暗号化されたメールは復号できなくなります。この操作は元に戻せません。",
     bulk_unsubscribe: "一括配信停止",
     senders_unsubscribed: "{{ count }} 件の送信者の配信を停止しました",
-    opened_in_browser: "完了させるためにブラウザで開いたもの: {{ count }} 件",
+    opened_in_browser: "アーカイブ済み: {{ count }} 件 - 手動確認が必要な場合があります",
     could_not_unsubscribe: "配信停止できなかったもの: {{ count }} 件",
     unsubscribing: "配信停止中...",
     scanning: "スキャン中...",
@@ -5294,6 +5294,8 @@ export const ja = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "名前を変更",
+    rename_saved: "名前を更新しました",
   },
   errors: {
     pending_email_verification: "メールを確認し、認証リンクをクリックしてこのアカウントを有効化してください。",

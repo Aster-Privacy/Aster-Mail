@@ -89,6 +89,8 @@ export interface PasskeysTranslations {
   saved_to_password_manager: string;
   passkey_hint: string;
   security_key_hint: string;
+  rename: string;
+  rename_saved: string;
 }
 
 export interface SecureViewTranslations {

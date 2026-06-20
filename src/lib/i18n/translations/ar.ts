@@ -3807,7 +3807,7 @@ export const ar = {
       "بمجرد التدوير، يُسحب مفتاحك السابق. لن تتمكن من فك تشفير أي رسائل تم تشفيرها حصريًا بمفتاحك القديم. لا يمكن التراجع عن هذا الإجراء.",
     bulk_unsubscribe: "إلغاء الاشتراك الجماعي",
     senders_unsubscribed: "تم إلغاء اشتراك {{ count }} مرسل",
-    opened_in_browser: "تم فتح {{ count }} في المتصفح لإكمالها",
+    opened_in_browser: "تمت أرشفة {{ count }} - قد يلزم تأكيد يدوي",
     could_not_unsubscribe: "تعذّر إلغاء اشتراك {{ count }}",
     unsubscribing: "جارٍ إلغاء الاشتراك...",
     scanning: "جارٍ الفحص...",
@@ -5294,6 +5294,8 @@ export const ar = {
     vault_needs_password: "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
+    rename: "إعادة تسمية",
+    rename_saved: "تم تحديث الاسم",
   },
   errors: {
     pending_email_verification: "تحقّق من بريدك الإلكتروني وانقر على رابط التحقق لتفعيل هذا الحساب.",
