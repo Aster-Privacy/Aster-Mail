@@ -33,6 +33,8 @@ import {
   delete_external_account,
   trigger_sync,
   get_sync_progress,
+  update_sync_settings,
+  update_advanced_settings,
   type DecryptedExternalAccount,
 } from "@/services/api/external_accounts";
 import {
@@ -209,6 +211,23 @@ export function use_external_accounts() {
         if (result.data) {
           const account_token = result.data.account_token;
 
+          await Promise.allSettled([
+            update_sync_settings(account_token, {
+              sync_frequency: form.form_sync_frequency,
+              sync_folders: form.selected_folders,
+              max_messages_per_sync: 500,
+              sync_since_date: null,
+            }),
+            update_advanced_settings(account_token, {
+              tls_method: form.form_tls_method,
+              connection_timeout_seconds: form.form_connection_timeout,
+              idle_timeout_seconds: 300,
+              max_concurrent_connections: 1,
+              archive_sent_to_remote: form.form_archive_sent,
+              delete_after_fetch: form.form_delete_after_fetch,
+            }),
+          ]);
+
           show_toast(t("settings.account_added"), "success");
           await fetch_accounts();
           form.close_form();
@@ -252,6 +271,12 @@ export function use_external_accounts() {
     form.close_form,
     form.set_is_submitting,
     form.is_mounted_ref,
+    form.form_sync_frequency,
+    form.selected_folders,
+    form.form_tls_method,
+    form.form_connection_timeout,
+    form.form_archive_sent,
+    form.form_delete_after_fetch,
     create_new_tag,
     fetch_accounts,
     t,
