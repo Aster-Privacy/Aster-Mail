@@ -926,7 +926,10 @@ export function start_event_listeners(): void {
       typeof detail.is_read === "boolean" &&
       existing.is_read !== detail.is_read
     ) {
-      upsert_entries([{ ...existing, is_read: detail.is_read }]);
+      if (apply_upsert([{ ...existing, is_read: detail.is_read }])) {
+        schedule_persist();
+        notify();
+      }
     }
   });
 }

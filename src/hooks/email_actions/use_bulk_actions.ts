@@ -153,6 +153,15 @@ export function use_bulk_actions(
       set_action_loading(action_config.action_type, true);
       config.on_bulk_optimistic_update?.(ids, action_config.optimistic_update);
 
+      if (!action_config.emit_view_change) {
+        for (const email of emails) {
+          emit_mail_item_updated({
+            id: email.id,
+            ...action_config.optimistic_update,
+          } as MailItemUpdatedEventDetail);
+        }
+      }
+
       if (action_config.remove_from_list) {
         config.on_bulk_remove_from_list?.(ids);
       }
@@ -189,8 +198,20 @@ export function use_bulk_actions(
         if (show_progress) hide_action_toast();
 
         if (result.failed_ids.length > 0) {
+          const failed_set = new Set(result.failed_ids);
+
           for (const id of result.failed_ids) {
             rollback_action(id, action_config.action_type);
+          }
+          if (!action_config.emit_view_change) {
+            for (const email of emails) {
+              if (failed_set.has(email.id)) {
+                emit_mail_item_updated({
+                  id: email.id,
+                  ...action_config.original_state_extractor(email),
+                } as MailItemUpdatedEventDetail);
+              }
+            }
           }
           action_config.on_partial_failure?.(result.failed_ids);
         }
@@ -282,6 +303,14 @@ export function use_bulk_actions(
       } catch {
         for (const id of ids) {
           rollback_action(id, action_config.action_type);
+        }
+        if (!action_config.emit_view_change) {
+          for (const email of emails) {
+            emit_mail_item_updated({
+              id: email.id,
+              ...action_config.original_state_extractor(email),
+            } as MailItemUpdatedEventDetail);
+          }
         }
         action_config.on_full_rollback?.();
         set_action_error(

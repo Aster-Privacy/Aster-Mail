@@ -367,6 +367,7 @@ export function use_email_detail() {
           if (is_received) {
             adjust_unread_count(-1);
           }
+          emit_mail_item_updated({ id: email_id, is_read: true });
           update_item_metadata(
             email_id,
             {
@@ -391,8 +392,11 @@ export function use_email_detail() {
                   conversation_grouping: preferences.conversation_grouping,
                 });
               }
-            } else if (is_received) {
-              adjust_unread_count(1);
+            } else {
+              emit_mail_item_updated({ id: email_id, is_read: false });
+              if (is_received) {
+                adjust_unread_count(1);
+              }
             }
           });
         };
@@ -564,6 +568,7 @@ export function use_email_detail() {
           if (is_received) {
             adjust_unread_count(-1);
           }
+          emit_mail_item_updated({ id: email_id, is_read: true });
           update_item_metadata(
             email_id,
             {
@@ -588,8 +593,11 @@ export function use_email_detail() {
                   conversation_grouping: preferences.conversation_grouping,
                 });
               }
-            } else if (is_received) {
-              adjust_unread_count(1);
+            } else {
+              emit_mail_item_updated({ id: email_id, is_read: false });
+              if (is_received) {
+                adjust_unread_count(1);
+              }
             }
           });
         };
