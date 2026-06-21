@@ -266,12 +266,14 @@ export function use_single_actions(
 
       if (offline_result.queued) {
         config.on_optimistic_update?.(email.id, { is_read: new_read });
+        emit_mail_item_updated({ id: email.id, is_read: new_read });
         if (is_received) adjust_stats_unread(new_read ? -1 : 1);
 
         return true;
       }
 
       if (is_received) adjust_stats_unread(new_read ? -1 : 1);
+      emit_mail_item_updated({ id: email.id, is_read: new_read });
 
       const success = await execute_single_action(
         email,
@@ -280,7 +282,10 @@ export function use_single_actions(
         () => update_with_metadata(email, { is_read: new_read }),
       );
 
-      if (!success && is_received) adjust_stats_unread(new_read ? 1 : -1);
+      if (!success) {
+        emit_mail_item_updated({ id: email.id, is_read: !new_read });
+        if (is_received) adjust_stats_unread(new_read ? 1 : -1);
+      }
 
       if (success && is_received && new_read) {
         mark_conversation_read({
@@ -314,12 +319,14 @@ export function use_single_actions(
 
       if (offline_result.queued) {
         config.on_optimistic_update?.(email.id, { is_read: true });
+        emit_mail_item_updated({ id: email.id, is_read: true });
         if (is_received) adjust_stats_unread(-1);
 
         return true;
       }
 
       if (is_received) adjust_stats_unread(-1);
+      emit_mail_item_updated({ id: email.id, is_read: true });
 
       const success = await execute_single_action(
         email,
@@ -328,7 +335,10 @@ export function use_single_actions(
         () => update_with_metadata(email, { is_read: true }),
       );
 
-      if (!success && is_received) adjust_stats_unread(1);
+      if (!success) {
+        emit_mail_item_updated({ id: email.id, is_read: false });
+        if (is_received) adjust_stats_unread(1);
+      }
 
       if (success && is_received) {
         mark_conversation_read({
@@ -362,12 +372,14 @@ export function use_single_actions(
 
       if (offline_result.queued) {
         config.on_optimistic_update?.(email.id, { is_read: false });
+        emit_mail_item_updated({ id: email.id, is_read: false });
         if (is_received) adjust_stats_unread(1);
 
         return true;
       }
 
       if (is_received) adjust_stats_unread(1);
+      emit_mail_item_updated({ id: email.id, is_read: false });
 
       const success = await execute_single_action(
         email,
@@ -376,7 +388,10 @@ export function use_single_actions(
         () => update_with_metadata(email, { is_read: false }),
       );
 
-      if (!success && is_received) adjust_stats_unread(-1);
+      if (!success) {
+        emit_mail_item_updated({ id: email.id, is_read: true });
+        if (is_received) adjust_stats_unread(-1);
+      }
 
       return success;
     },
