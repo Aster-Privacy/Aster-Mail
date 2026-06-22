@@ -206,7 +206,7 @@ export async function parse_csv_file(
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{ size }}", (file.size / 1024 / 1024).toFixed(1)).replace("{{ limit }}", "500"),
+        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
       ],
       warnings: [],
     };
@@ -235,7 +235,7 @@ export async function parse_csv_file(
       if (email) {
         emails.push(email);
       } else {
-        warnings.push(en.errors.row_skipped.replace("{{ number }}", String(i + 2)));
+        warnings.push(en.errors.row_skipped.replace("{{number}}", String(i + 2)));
       }
 
       if (on_progress && i % 100 === 0) {
@@ -266,7 +266,7 @@ export async function parse_csv_file(
     return {
       emails: [],
       errors: [
-        en.errors.failed_parse_csv.replace("{{ error }}", error_msg),
+        en.errors.failed_parse_csv.replace("{{error}}", error_msg),
       ],
       warnings: [],
     };
