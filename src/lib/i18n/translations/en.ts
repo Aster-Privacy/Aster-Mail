@@ -6049,6 +6049,50 @@ export const en: Translations = {
       'from.address is "alice@example.com" and subject contains "receipt"',
     expression_parse_error: "This expression has a typo. Checking the syntax usually sorts it.",
     cannot_render_visual: "This rule has nested conditions that the visual editor cannot show. The Expression view is where it can be edited.",
+    templates_button: "Templates",
+    templates_title: "Rule templates",
+    templates_subtitle: "Start from a ready-made rule and customize it before saving.",
+    templates_search_placeholder: "Search templates",
+    templates_empty: "No templates match your search.",
+    templates_use: "Use template",
+    templates_customize: "Needs a detail from you",
+    templates_category_organize: "Organize",
+    templates_category_cleanup: "Clean up",
+    templates_category_priority: "Priority",
+    templates_category_security: "Security",
+    tpl_newsletters_name: "Sort newsletters",
+    tpl_newsletters_desc:
+      "When a message comes from a mailing list (it carries a List-Id header), file it under the Updates category.",
+    tpl_social_name: "Group social notifications",
+    tpl_social_desc:
+      "When the sender is Facebook, LinkedIn, X/Twitter, or Instagram, move the message to the Social category.",
+    tpl_promotions_name: "Catch promotions",
+    tpl_promotions_desc:
+      "When the subject mentions sale, discount, coupon, or '% off', move the message to the Promotions category.",
+    tpl_calendar_name: "Collect calendar invites",
+    tpl_calendar_desc:
+      "When a message contains a calendar invitation (.ics), file it under the Updates category.",
+    tpl_large_attachments_name: "Flag large attachments",
+    tpl_large_attachments_desc:
+      "When a message has an attachment larger than 10 MB, move it to a folder you choose. Pick the folder before saving.",
+    tpl_no_reply_name: "Tidy automated mail",
+    tpl_no_reply_desc:
+      "When a message is machine-generated (it carries an Auto-Submitted header, e.g. no-reply senders), file it under Updates.",
+    tpl_receipts_name: "Archive receipts",
+    tpl_receipts_desc:
+      "When the subject mentions receipt, invoice, or order confirmation, skip the inbox and file it under Updates.",
+    tpl_vip_sender_name: "Star a key sender",
+    tpl_vip_sender_desc:
+      "When mail arrives from a sender you choose, star it and send a notification. Enter the sender's address before saving.",
+    tpl_keyword_star_name: "Star by keyword",
+    tpl_keyword_star_desc:
+      "When the subject contains a word you choose, star the message. Enter the keyword before saving.",
+    tpl_auth_failures_name: "Hold suspicious mail",
+    tpl_auth_failures_desc:
+      "When a message fails its SPF, DKIM, or DMARC checks (a common sign of spoofing), keep it out of the inbox and mark it read.",
+    tpl_forward_copy_name: "Forward a copy",
+    tpl_forward_copy_desc:
+      "When mail arrives from a sender you choose, forward a copy to another address. Enter both addresses before saving.",
   },
   badges: {
     title: "Badges",

@@ -273,6 +273,39 @@ export interface MailRulesTranslations {
   expression_placeholder: string;
   expression_parse_error: string;
   cannot_render_visual: string;
+  templates_button: string;
+  templates_title: string;
+  templates_subtitle: string;
+  templates_search_placeholder: string;
+  templates_empty: string;
+  templates_use: string;
+  templates_customize: string;
+  templates_category_organize: string;
+  templates_category_cleanup: string;
+  templates_category_priority: string;
+  templates_category_security: string;
+  tpl_newsletters_name: string;
+  tpl_newsletters_desc: string;
+  tpl_social_name: string;
+  tpl_social_desc: string;
+  tpl_promotions_name: string;
+  tpl_promotions_desc: string;
+  tpl_calendar_name: string;
+  tpl_calendar_desc: string;
+  tpl_large_attachments_name: string;
+  tpl_large_attachments_desc: string;
+  tpl_no_reply_name: string;
+  tpl_no_reply_desc: string;
+  tpl_receipts_name: string;
+  tpl_receipts_desc: string;
+  tpl_vip_sender_name: string;
+  tpl_vip_sender_desc: string;
+  tpl_keyword_star_name: string;
+  tpl_keyword_star_desc: string;
+  tpl_auth_failures_name: string;
+  tpl_auth_failures_desc: string;
+  tpl_forward_copy_name: string;
+  tpl_forward_copy_desc: string;
 }
 
 export interface CommonTranslations {
