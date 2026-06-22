@@ -102,7 +102,7 @@ export async function parse_eml_file(file: File): Promise<ParseResult> {
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{ size }}", (file.size / 1024 / 1024).toFixed(1)).replace("{{ limit }}", "50"),
+        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "50"),
       ],
       warnings: [],
     };
@@ -118,7 +118,7 @@ export async function parse_eml_file(file: File): Promise<ParseResult> {
     return {
       emails: [],
       errors: [
-        en.errors.failed_parse_eml.replace("{{ error }}", err instanceof Error ? err.message : en.errors.unknown_error),
+        en.errors.failed_parse_eml.replace("{{error}}", err instanceof Error ? err.message : en.errors.unknown_error),
       ],
       warnings: [],
     };
