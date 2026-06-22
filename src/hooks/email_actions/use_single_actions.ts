@@ -68,6 +68,7 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 
 export interface SingleActions {
   toggle_star: (email: InboxEmail) => Promise<boolean>;
@@ -95,6 +96,7 @@ export function use_single_actions(
   metadata: MetadataHelpers,
 ): SingleActions {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const {
     set_action_loading,
     set_action_error,
@@ -290,7 +292,9 @@ export function use_single_actions(
       if (success && is_received && new_read) {
         mark_conversation_read({
           thread_token: email.thread_token,
+          thread_message_count: email.thread_message_count,
           grouped_count: email.grouped_email_ids?.length,
+          conversation_grouping: preferences.conversation_grouping,
         });
       }
 
@@ -300,6 +304,7 @@ export function use_single_actions(
       execute_single_action,
       update_with_metadata,
       config.on_optimistic_update,
+      preferences.conversation_grouping,
       t,
     ],
   );
@@ -343,7 +348,9 @@ export function use_single_actions(
       if (success && is_received) {
         mark_conversation_read({
           thread_token: email.thread_token,
+          thread_message_count: email.thread_message_count,
           grouped_count: email.grouped_email_ids?.length,
+          conversation_grouping: preferences.conversation_grouping,
         });
       }
 
@@ -353,6 +360,7 @@ export function use_single_actions(
       execute_single_action,
       update_with_metadata,
       config.on_optimistic_update,
+      preferences.conversation_grouping,
       t,
     ],
   );

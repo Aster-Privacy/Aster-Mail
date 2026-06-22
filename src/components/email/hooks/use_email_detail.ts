@@ -167,6 +167,7 @@ export function use_email_detail() {
   const [thread_messages, set_thread_messages] = useState<
     DecryptedThreadMessage[]
   >([]);
+  const swept_threads_ref = useRef<Set<string>>(new Set());
   const [thread_truncated, set_thread_truncated] = useState(false);
   const [thread_draft, set_thread_draft] = useState<DraftWithContent | null>(
     null,
@@ -324,6 +325,34 @@ export function use_email_detail() {
     t,
     preferences_default_reply_behavior: preferences.default_reply_behavior,
   });
+
+  useEffect(() => {
+    if (!mail_item || mail_item.item_type !== "received") return;
+    if (mark_as_read_delay_ref.current === "never") return;
+    if (preferences.conversation_grouping === false) return;
+
+    const thread_token = mail_item.thread_token;
+
+    if (!thread_token) return;
+    if (!email || !email.is_read) return;
+    if (!thread_messages.some((message) => !message.is_read)) return;
+    if (swept_threads_ref.current.has(thread_token)) return;
+
+    swept_threads_ref.current.add(thread_token);
+    adjust_unread_count(-1);
+    mark_conversation_read({
+      thread_token,
+      thread_message_count: mail_item.thread_message_count,
+      grouped_count: stored_grouped_email_ids?.length,
+      conversation_grouping: preferences.conversation_grouping,
+    });
+  }, [
+    mail_item,
+    email,
+    thread_messages,
+    preferences.conversation_grouping,
+    stored_grouped_email_ids,
+  ]);
 
   const fetch_email = useCallback(async () => {
     if (!email_id) {

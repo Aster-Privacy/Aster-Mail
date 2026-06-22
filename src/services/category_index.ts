@@ -376,6 +376,7 @@ interface DerivedData {
   version: number;
   counts: CategoryCounts;
   pages: Map<EmailCategory, string[]>;
+  unread_reps: Set<string>;
 }
 
 let derived: DerivedData | null = null;
@@ -421,6 +422,7 @@ function compute_derived(): DerivedData {
 
   const counts = empty_counts();
   const grouped = new Map<EmailCategory, { id: string; ts: number }[]>();
+  const unread_reps = new Set<string>();
 
   for (const tab of CATEGORY_TABS) {
     grouped.set(tab, []);
@@ -435,6 +437,7 @@ function compute_derived(): DerivedData {
     bucket.total += 1;
     if (rep.any_unread) {
       bucket.unread += 1;
+      unread_reps.add(rep.entry.id);
       if (rep.ts > (seen_ts[tab] ?? 0)) {
         bucket.new_count += 1;
       }
@@ -452,7 +455,7 @@ function compute_derived(): DerivedData {
     );
   }
 
-  return { version, counts, pages };
+  return { version, counts, pages, unread_reps };
 }
 
 function ensure_derived(): DerivedData {
@@ -489,6 +492,10 @@ export function get_page_ids(
 
 export function get_category_total(category: EmailCategory): number {
   return ensure_derived().counts[category]?.total ?? 0;
+}
+
+export function is_representative_unread(id: string): boolean {
+  return ensure_derived().unread_reps.has(id);
 }
 
 export function is_fully_built(): boolean {
