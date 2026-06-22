@@ -3867,6 +3867,7 @@ export const en: Translations = {
     drag_drop_files: "Drag and drop your files here",
     supported_import_formats: "Supports MBOX, EML, CSV, and PST files",
     browse_files: "Browse Files",
+    browse_folder: "Select Folder",
     importing_emails_progress: "Importing emails...",
     emails_of_total: "{{current}} of {{total}} emails",
     cancel_import: "Cancel Import",
