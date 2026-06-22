@@ -3612,6 +3612,7 @@ export interface SettingsTranslations {
   drag_drop_files: string;
   supported_import_formats: string;
   browse_files: string;
+  browse_folder: string;
   importing_emails_progress: string;
   import_folder_prep_status: string;
   emails_of_total: string;

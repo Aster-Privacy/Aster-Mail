@@ -54,6 +54,10 @@ import { thread_imported_emails } from "@/services/import/repair_threads";
 import { use_i18n } from "@/lib/i18n/context";
 import { extract_email_address } from "@/services/import/mime_utils";
 import {
+  collect_files_from_data_transfer,
+  filter_supported_files,
+} from "@/services/import/file_collection";
+import {
   list_aliases,
   decrypt_aliases,
 } from "@/services/api/aliases";
@@ -319,6 +323,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const [is_dragging, set_is_dragging] = useState(false);
   const [is_cancelling, set_is_cancelling] = useState(false);
   const file_input_ref = useRef<HTMLInputElement>(null);
+  const folder_input_ref = useRef<HTMLInputElement>(null);
   const cancel_ref = useRef(false);
 
   const reset_state = useCallback(() => {
@@ -662,8 +667,23 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   );
 
   const handle_file_select = useCallback(
-    async (files: FileList | null) => {
-      if (!files || files.length === 0) return;
+    async (input: FileList | File[] | null, from_folder = false) => {
+      if (!input) return;
+
+      let files = Array.from(input);
+
+      // A folder selection sweeps in unrelated files (.DS_Store, images, etc.);
+      // keep only the ones we can actually parse so a single folder of EMLs
+      // does not fail on the first junk entry.
+      if (from_folder) files = filter_supported_files(files);
+
+      if (files.length === 0) {
+        if (from_folder) {
+          set_error(t("settings.no_emails_in_file"));
+        }
+
+        return;
+      }
 
       set_is_processing(true);
       set_error(null);
@@ -673,15 +693,27 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         const all_errors: string[] = [];
         const all_warnings: string[] = [];
 
+        const multiple_files = files.length > 1;
+
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           const result = await parse_import_file(file, (progress) => {
-            set_progress(progress);
+            if (!multiple_files) set_progress(progress);
           });
 
           all_emails.push(...result.emails);
           all_errors.push(...result.errors);
           all_warnings.push(...result.warnings);
+
+          if (multiple_files) {
+            const current = i + 1;
+
+            set_progress({
+              current,
+              total: files.length,
+              percentage: Math.round((current / files.length) * 100),
+            });
+          }
         }
 
         if (all_emails.length === 0) {
@@ -732,7 +764,15 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
       e.preventDefault();
       set_is_dragging(false);
       if (is_processing) return;
-      handle_file_select(e.dataTransfer.files);
+
+      const data_transfer = e.dataTransfer;
+      const dropped_files = Array.from(data_transfer.files ?? []);
+
+      collect_files_from_data_transfer(data_transfer)
+        .then(({ files, from_directory }) =>
+          handle_file_select(files, from_directory),
+        )
+        .catch(() => handle_file_select(dropped_files));
     },
     [handle_file_select, is_processing],
   );
@@ -745,9 +785,22 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     [handle_file_select],
   );
 
+  const handle_folder_input_change = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      handle_file_select(e.target.files, true);
+      e.target.value = "";
+    },
+    [handle_file_select],
+  );
+
   const handle_browse_click = useCallback(() => {
     if (is_processing) return;
     file_input_ref.current?.click();
+  }, [is_processing]);
+
+  const handle_browse_folder_click = useCallback(() => {
+    if (is_processing) return;
+    folder_input_ref.current?.click();
   }, [is_processing]);
 
   const render_step_content = () => {
@@ -780,10 +833,22 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               <input
                 ref={file_input_ref}
                 multiple
-                accept=".mbox,.mbx,.eml,.csv,.pst,.ost,.txt"
+                accept=".mbox,.mbx,.eml,.csv,.tsv,.pst,.ost,.txt"
                 className="hidden"
                 type="file"
                 onChange={handle_file_input_change}
+              />
+
+              <input
+                ref={folder_input_ref}
+                multiple
+                className="hidden"
+                type="file"
+                {...({ webkitdirectory: "", directory: "" } as Record<
+                  string,
+                  string
+                >)}
+                onChange={handle_folder_input_change}
               />
 
               <DocumentArrowUpIcon className="w-12 h-12 mx-auto mb-3 text-txt-muted" />
@@ -797,24 +862,38 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 {t("settings.supported_import_formats")}
               </p>
 
-              <Button
-                disabled={is_processing}
-                size="md"
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handle_browse_click();
-                }}
-              >
-                {is_processing ? (
-                  <>
-                    <Spinner className="mr-2" size="md" />
-                    {t("common.processing")}
-                  </>
-                ) : (
-                  t("settings.browse_files")
-                )}
-              </Button>
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  disabled={is_processing}
+                  size="md"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handle_browse_click();
+                  }}
+                >
+                  {is_processing ? (
+                    <>
+                      <Spinner className="mr-2" size="md" />
+                      {t("common.processing")}
+                    </>
+                  ) : (
+                    t("settings.browse_files")
+                  )}
+                </Button>
+
+                <Button
+                  disabled={is_processing}
+                  size="md"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handle_browse_folder_click();
+                  }}
+                >
+                  {t("settings.browse_folder")}
+                </Button>
+              </div>
             </div>
 
             {is_processing && progress && (
