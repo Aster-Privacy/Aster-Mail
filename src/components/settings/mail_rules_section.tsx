@@ -19,7 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import * as React from "react";
-import { PlusIcon, Bars3Icon, BoltIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  Bars3Icon,
+  BoltIcon,
+  Squares2X2Icon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -42,6 +47,12 @@ import { ConditionChip } from "@/components/mail_rules/condition_chip";
 import { ActionChip } from "@/components/mail_rules/action_chip";
 import { AndOrPill } from "@/components/mail_rules/and_or_pill";
 import { RuleEditorModal } from "@/components/modals/rule_editor_modal";
+import { TemplateGalleryModal } from "@/components/mail_rules/template_gallery_modal";
+import {
+  template_to_seed,
+  type RuleEditorSeed,
+  type RuleTemplate,
+} from "@/components/mail_rules/rule_templates";
 import { show_toast } from "@/components/toast/simple_toast";
 import type { LeafCondition, Rule } from "@/services/api/mail_rules";
 
@@ -56,6 +67,8 @@ export function MailRulesSection() {
   const at_limit = rules_limit !== -1 && rules.length >= rules_limit;
   const [editor_open, set_editor_open] = React.useState(false);
   const [editing_rule, set_editing_rule] = React.useState<Rule | null>(null);
+  const [seed, set_seed] = React.useState<RuleEditorSeed | null>(null);
+  const [gallery_open, set_gallery_open] = React.useState(false);
   const [show_upgrade_modal, set_show_upgrade_modal] = React.useState(false);
   const [drag_index, set_drag_index] = React.useState<number | null>(null);
   const [drag_over_index, set_drag_over_index] = React.useState<number | null>(
@@ -77,11 +90,28 @@ export function MailRulesSection() {
 
   const open_new = () => {
     set_editing_rule(null);
+    set_seed(null);
     set_editor_open(true);
   };
 
   const open_edit = (rule: Rule) => {
     set_editing_rule(rule);
+    set_seed(null);
+    set_editor_open(true);
+  };
+
+  const open_templates = () => {
+    if (at_limit) {
+      set_show_upgrade_modal(true);
+      return;
+    }
+    set_gallery_open(true);
+  };
+
+  const handle_template_pick = (template: RuleTemplate) => {
+    set_gallery_open(false);
+    set_editing_rule(null);
+    set_seed(template_to_seed(template, t(template.name_key)));
     set_editor_open(true);
   };
 
@@ -121,15 +151,23 @@ export function MailRulesSection() {
                 {loading ? "..." : `${rules.length}/${rules_limit_label}`}
               </span>
             </h3>
-            <Button
-              size="md"
-              variant="depth"
-              onClick={at_limit ? () => set_show_upgrade_modal(true) : open_new}
-              title={at_limit ? t("mail_rules.at_limit_upgrade") : undefined}
-            >
-              <PlusIcon className="w-4 h-4" />
-              {t("mail_rules.new_rule")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="md" variant="outline" onClick={open_templates}>
+                <Squares2X2Icon className="w-4 h-4" />
+                {t("mail_rules.templates_button")}
+              </Button>
+              <Button
+                size="md"
+                variant="depth"
+                onClick={
+                  at_limit ? () => set_show_upgrade_modal(true) : open_new
+                }
+                title={at_limit ? t("mail_rules.at_limit_upgrade") : undefined}
+              >
+                <PlusIcon className="w-4 h-4" />
+                {t("mail_rules.new_rule")}
+              </Button>
+            </div>
           </div>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
@@ -185,6 +223,13 @@ export function MailRulesSection() {
         is_open={editor_open}
         on_close={() => set_editor_open(false)}
         rule={editing_rule}
+        seed={seed}
+      />
+
+      <TemplateGalleryModal
+        is_open={gallery_open}
+        on_close={() => set_gallery_open(false)}
+        on_select={handle_template_pick}
       />
 
       <Modal

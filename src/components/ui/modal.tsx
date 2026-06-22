@@ -94,6 +94,57 @@ export function Modal({
     return () => window.removeEventListener("keydown", handle_escape);
   }, [is_open, on_close]);
 
+  const content_ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!is_open) return;
+
+    const node = content_ref.current;
+
+    if (!node) return;
+
+    const opener = document.activeElement as HTMLElement | null;
+    const previously_focused = node.contains(opener) ? null : opener;
+
+    if (previously_focused) {
+      node.focus();
+    }
+
+    const handle_tab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+
+      const active = document.activeElement as HTMLElement | null;
+
+      if (!node.contains(active)) return;
+
+      const focusables = Array.from(
+        node.querySelectorAll<HTMLElement>(
+          'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])',
+        ),
+      );
+
+      if (focusables.length === 0) return;
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    node.addEventListener("keydown", handle_tab);
+
+    return () => {
+      node.removeEventListener("keydown", handle_tab);
+      previously_focused?.focus?.();
+    };
+  }, [is_open]);
+
   return (
     <AnimatePresence>
       {is_open && (
@@ -112,9 +163,13 @@ export function Modal({
           />
 
           <motion.div
+            ref={content_ref}
+            aria-modal="true"
+            role="dialog"
+            tabIndex={-1}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             className={cn(
-              "relative w-full mx-4 my-4 rounded-xl border flex flex-col max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain",
+              "relative w-full mx-4 my-4 rounded-xl border flex flex-col max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain outline-none focus:outline-none focus-visible:outline-none",
               SIZE_CLASSES[size],
             )}
             exit={{ opacity: 0, scale: 0.97, y: 4 }}
@@ -123,6 +178,7 @@ export function Modal({
               backgroundColor: "var(--modal-bg)",
               borderColor: "var(--border-primary)",
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
+              outline: "none",
             }}
             transition={{
               duration: reduce_motion ? 0 : 0.2,
