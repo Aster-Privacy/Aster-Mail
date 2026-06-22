@@ -125,7 +125,7 @@ export async function parse_pst_file(
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{ size }}", (file.size / 1024 / 1024).toFixed(1)).replace("{{ limit }}", "500"),
+        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
       ],
       warnings: [],
     };
@@ -159,7 +159,7 @@ export async function parse_pst_file(
             const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
 
             warnings.push(
-              en.errors.failed_parse_pst.replace("{{ error }}", error_msg),
+              en.errors.failed_parse_pst.replace("{{error}}", error_msg),
             );
           }
           processed++;
@@ -218,7 +218,7 @@ export async function parse_pst_file(
     return {
       emails: [],
       errors: [
-        en.errors.failed_parse_pst_file.replace("{{ error }}", error_message),
+        en.errors.failed_parse_pst_file.replace("{{error}}", error_message),
       ],
       warnings: [],
     };
