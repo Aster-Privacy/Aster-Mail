@@ -79,6 +79,7 @@ _tmp/
 .deploy_tag
 *.wip
 src/lib/device_context.ts
+src/lib/registration_guard.ts
 
 Aster-Authenticator/
 _emu_*.png
