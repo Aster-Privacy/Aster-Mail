@@ -146,10 +146,22 @@ export function ConnectProviderModal({
         return;
       }
 
-      // Tauri uses a different origin (tauri://localhost) so postMessage from the popup
-      // would be cross-origin and silently dropped. Use full-page redirect instead.
       if (is_tauri()) {
-        window.location.replace(parsed.toString());
+        try {
+          const core = await import("@tauri-apps/api/core");
+          await core.invoke("open_external_url", { url: parsed.toString() });
+        } catch {
+          show_toast(
+            t("settings.oauth_import_error", {
+              reason: t("settings.oauth_reason_unknown"),
+            }),
+            "error",
+          );
+          set_is_loading(false);
+          return;
+        }
+        on_oauth_success?.(provider);
+        on_close();
         return;
       }
 
