@@ -1235,7 +1235,7 @@ export function ImportSection() {
         if (found) { stopped = true; window.clearInterval(id); }
       }, 2000);
 
-      window.setTimeout(() => window.clearInterval(id), 60000);
+      window.setTimeout(() => window.clearInterval(id), 300000);
     });
   }, [connected_accounts, setup_oauth_folders]);
 
