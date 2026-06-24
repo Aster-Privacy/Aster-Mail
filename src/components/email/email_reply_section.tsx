@@ -139,8 +139,15 @@ export function EmailReplySection({
       timestamp: email.timestamp,
     };
 
+    const escape_reply_html = (value: string): string =>
+      value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\n/g, "<br>");
+
     const message_with_signature =
-      reply_text.trim() +
+      escape_reply_html(reply_text.trim()) +
       get_aster_footer(t, preferences.show_aster_branding) +
       get_signature();
 

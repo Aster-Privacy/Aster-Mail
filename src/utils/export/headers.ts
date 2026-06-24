@@ -103,9 +103,16 @@ function quote_string(s: string): string {
   return '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
 }
 
+function sanitize_addr_token(s: string): string {
+  return s
+    .replace(/[\r\n\t]/g, " ")
+    .replace(/[\x00-\x1f\x7f]/g, "")
+    .trim();
+}
+
 export function encode_address(addr: Address): string {
-  const email = addr.email.trim();
-  const name = (addr.name ?? "").trim();
+  const email = sanitize_addr_token(addr.email);
+  const name = sanitize_addr_token(addr.name ?? "");
   if (!name) return `<${email}>`;
   if (is_ascii_printable(name)) {
     if (needs_quoted_string(name)) return `${quote_string(name)} <${email}>`;

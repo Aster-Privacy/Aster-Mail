@@ -90,6 +90,35 @@ export function sanitize_html(
   html: string,
   options: SanitizeOptions = {},
 ): SanitizeResult {
+  try {
+    return sanitize_html_impl(html, options);
+  } catch {
+    const fallback_report: ExternalContentReport = {
+      has_remote_images: false,
+      has_remote_fonts: false,
+      has_remote_css: false,
+      has_tracking_pixels: false,
+      blocked_count: 0,
+      blocked_items: [],
+      cleaned_links: [],
+    };
+    const text =
+      typeof html === "string"
+        ? html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+        : "";
+    const escaped = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    return { html: escaped, external_content: fallback_report };
+  }
+}
+
+function sanitize_html_impl(
+  html: string,
+  options: SanitizeOptions = {},
+): SanitizeResult {
   const empty_report: ExternalContentReport = {
     has_remote_images: false,
     has_remote_fonts: false,
@@ -320,7 +349,14 @@ export function sanitize_html(
     return fragment;
   };
 
-  const sanitize_node = (node: Node): Node | null => {
+  const MAX_SANITIZE_DEPTH = 1000;
+  const sanitize_node = (node: Node, depth = 0): Node | null => {
+    if (depth > MAX_SANITIZE_DEPTH) {
+      const text = node.textContent || "";
+
+      return text ? document.createTextNode(text) : null;
+    }
+
     if (node.nodeType === Node.TEXT_NODE) {
       const parent = node.parentNode;
       const parent_tag =
@@ -358,7 +394,7 @@ export function sanitize_html(
       let sanitized_css = sanitize_css_block(raw_css, sandbox_mode);
 
       const has_fonts = /@font-face\s*\{/i.test(sanitized_css);
-      const has_urls = /url\s*\([^)]*https?:\/\//i.test(sanitized_css);
+      const has_urls = /url\s*\(\s*["']?\s*(?:https?:)?\/\//i.test(sanitized_css);
 
       if (has_fonts && block_fonts) {
         external_content.has_remote_fonts = true;
@@ -407,7 +443,7 @@ export function sanitize_html(
       const fragment = document.createDocumentFragment();
 
       for (const child of Array.from(element.childNodes)) {
-        const sanitized = sanitize_node(child);
+        const sanitized = sanitize_node(child, depth + 1);
 
         if (sanitized) {
           fragment.appendChild(sanitized);
@@ -429,12 +465,16 @@ export function sanitize_html(
 
       if (sanitized_value !== null) {
         const attr_lower = attr.name.toLowerCase();
-        if (lockdown_mode) {
-          if (attr_lower === "style") {
-            sanitized_value = strip_css_urls(sanitized_value);
-          } else if (attr_lower === "background" || attr_lower === "srcset") {
-            continue;
-          }
+        if (
+          attr_lower === "style" &&
+          (lockdown_mode || block_css || block_images)
+        ) {
+          sanitized_value = strip_css_urls(sanitized_value);
+        } else if (
+          lockdown_mode &&
+          (attr_lower === "background" || attr_lower === "srcset")
+        ) {
+          continue;
         }
         new_element.setAttribute(attr.name, sanitized_value);
       }
@@ -628,7 +668,7 @@ export function sanitize_html(
     }
 
     for (const child of Array.from(element.childNodes)) {
-      const sanitized = sanitize_node(child);
+      const sanitized = sanitize_node(child, depth + 1);
 
       if (sanitized) {
         new_element.appendChild(sanitized);

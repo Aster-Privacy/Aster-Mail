@@ -51,6 +51,7 @@ import { decrypt_mail_metadata } from "./crypto/mail_metadata";
 import {
   try_extract_mime_body,
   RATCHET_UNDECRYPTABLE_SENTINEL,
+  PGP_UNDECRYPTABLE_SENTINEL,
   extract_subject_bundle,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
@@ -250,7 +251,7 @@ export async function fetch_and_decrypt_thread_messages(
         item_type: msg.item_type as "received" | "sent" | "draft",
         sender_name: en.common.unknown_sender,
         sender_email: "",
-        subject: "(Could not decrypt)",
+        subject: en.common.unable_to_decrypt,
         body: "",
         html_content: undefined,
         timestamp: msg.created_at,
@@ -326,7 +327,10 @@ export async function fetch_and_decrypt_thread_messages(
           body_decrypted = true;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
+          body_content = PGP_UNDECRYPTABLE_SENTINEL;
         }
+      } else {
+        body_content = PGP_UNDECRYPTABLE_SENTINEL;
       }
     }
 
@@ -364,8 +368,9 @@ export async function fetch_and_decrypt_thread_messages(
     return {
       id: msg.id,
       item_type: msg.item_type as "received" | "sent" | "draft",
-      sender_name: envelope.from.name || envelope.from.email.split("@")[0],
-      sender_email: envelope.from.email,
+      sender_name:
+        envelope.from?.name || envelope.from?.email?.split("@")[0] || "",
+      sender_email: envelope.from?.email || "",
       ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ?? {}),
       subject: envelope.subject,
       body: body_content,
@@ -428,7 +433,7 @@ export async function fetch_and_decrypt_virtual_group(
         item_type: item.item_type as "received" | "sent" | "draft",
         sender_name: en.common.unknown_sender,
         sender_email: "",
-        subject: "(Could not decrypt)",
+        subject: en.common.unable_to_decrypt,
         body: "",
         html_content: undefined,
         timestamp: item.created_at,
@@ -501,7 +506,10 @@ export async function fetch_and_decrypt_virtual_group(
           body_decrypted = true;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
+          body_content = PGP_UNDECRYPTABLE_SENTINEL;
         }
+      } else {
+        body_content = PGP_UNDECRYPTABLE_SENTINEL;
       }
     }
 
@@ -539,8 +547,9 @@ export async function fetch_and_decrypt_virtual_group(
     return {
       id: item.id,
       item_type: item.item_type as "received" | "sent" | "draft",
-      sender_name: envelope.from.name || envelope.from.email.split("@")[0],
-      sender_email: envelope.from.email,
+      sender_name:
+        envelope.from?.name || envelope.from?.email?.split("@")[0] || "",
+      sender_email: envelope.from?.email || "",
       ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ?? {}),
       subject: envelope.subject,
       body: body_content,

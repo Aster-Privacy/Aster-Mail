@@ -79,7 +79,6 @@ function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
   const [draft, set_draft] = useState("");
   const [saving, set_saving] = useState(false);
   const display_type = key_display_type(key_info);
-  const current_name = key_info.name_encrypted ?? "";
 
   const start_edit = () => {
     set_draft(key_info.name_encrypted ?? "");
@@ -130,8 +129,9 @@ function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
                     if (e.key === "Escape") cancel_edit();
                   }}
                 />
-                <button
-                  className="text-xs text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
+                <Button
+                  variant="ghost"
+                  size="sm"
                   disabled={saving}
                   onClick={save_name}
                 >
@@ -140,13 +140,14 @@ function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
                   ) : (
                     t("common.save")
                   )}
-                </button>
-                <button
-                  className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={cancel_edit}
                 >
                   {t("common.cancel")}
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="flex items-center gap-2 flex-wrap">

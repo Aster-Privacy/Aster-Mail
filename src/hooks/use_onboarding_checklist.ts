@@ -27,6 +27,16 @@ import {
   type ChecklistState,
 } from "@/services/api/onboarding";
 
+function with_dismissal_guard(
+  raw: ChecklistState,
+  dismissed: boolean,
+): ChecklistState {
+  if (dismissed && !raw.dismissed_at) {
+    return { ...raw, dismissed_at: new Date().toISOString() };
+  }
+  return raw;
+}
+
 const INSTALL_APP_STORAGE_KEY = "aster_onboarding_install_app_done";
 const POLL_INTERVAL_MS = 20_000;
 
@@ -62,24 +72,33 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
   const [is_loading, set_is_loading] = useState(true);
   const cancelled_ref = useRef(false);
   const disabled_ref = useRef(false);
+  const dismissed_ref = useRef(false);
 
   const load = useCallback(async (): Promise<boolean> => {
     if (disabled_ref.current) return false;
     const result = await fetch_onboarding_checklist();
 
     if (cancelled_ref.current) return false;
-    if (!result) {
+    if (result.kind === "not_available") {
       disabled_ref.current = true;
       set_state(null);
       return false;
     }
-    set_state(apply_local_overrides(result));
+    if (result.kind === "transient") {
+      return true;
+    }
+    set_state(
+      apply_local_overrides(
+        with_dismissal_guard(result.state, dismissed_ref.current),
+      ),
+    );
     return true;
   }, []);
 
   useEffect(() => {
     cancelled_ref.current = false;
     disabled_ref.current = false;
+    dismissed_ref.current = false;
 
     if (!vault) {
       set_is_loading(false);
@@ -118,6 +137,7 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
   }, [vault, load]);
 
   const dismiss = useCallback(async () => {
+    dismissed_ref.current = true;
     set_state((prev) =>
       prev ? { ...prev, dismissed_at: new Date().toISOString() } : prev,
     );

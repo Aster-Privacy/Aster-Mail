@@ -1019,3 +1019,27 @@ export async function clear_category_index(): Promise<void> {
     return;
   }
 }
+
+export async function delete_category_index_for_account(
+  account_id: string,
+): Promise<void> {
+  clear_category_index_memory();
+
+  if (!account_id) return;
+
+  try {
+    const db = await open_db();
+
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+
+      tx.objectStore(STORE_NAME).delete(account_id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+
+    db.close();
+  } catch {
+    return;
+  }
+}

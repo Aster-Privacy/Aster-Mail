@@ -104,6 +104,7 @@ export function use_email_detail() {
   mark_as_read_delay_ref.current = preferences.mark_as_read_delay;
   const mark_as_read_timeout = useRef<number | null>(null);
   const has_loaded_once = useRef(false);
+  const load_seq_ref = useRef(0);
   const [mail_item, set_mail_item] = useState<
     import("@/services/api/mail").MailItem | null
   >(null);
@@ -361,6 +362,9 @@ export function use_email_detail() {
       return;
     }
 
+    const my_seq = ++load_seq_ref.current;
+    const is_stale = () => load_seq_ref.current !== my_seq;
+
     const preload_in_flight = get_preload_in_flight();
     const preload_cache = get_preload_cache();
     const in_flight = preload_in_flight.get(email_id);
@@ -373,6 +377,7 @@ export function use_email_detail() {
     const current_grouping = preferences.conversation_grouping !== false;
 
     if (cached && cached.conversation_grouping === current_grouping) {
+      if (is_stale()) return;
       set_mail_item(cached.mail_item);
       set_email(cached.email);
       set_thread_messages(cached.thread_messages);
@@ -485,11 +490,15 @@ export function use_email_detail() {
 
     const response = await get_mail_item(email_id);
 
+    if (is_stale()) return;
+
     if (response.error) {
       const current_vault = get_vault_from_memory();
 
       if (current_vault) {
         const draft_response = await get_draft(email_id, current_vault);
+
+        if (is_stale()) return;
 
         if (draft_response.data) {
           const recipients =
@@ -693,6 +702,7 @@ export function use_email_detail() {
             })(),
           };
 
+        if (is_stale()) return;
         set_email(decrypted);
 
         const single_message = build_single_thread_message(
@@ -717,6 +727,7 @@ export function use_email_detail() {
             },
           );
 
+          if (is_stale()) return;
           if (thread_result.messages.length > 0) {
             set_thread_messages(thread_result.messages);
             set_thread_truncated(thread_result.truncated);
@@ -736,6 +747,7 @@ export function use_email_detail() {
             user?.email,
           );
 
+          if (is_stale()) return;
           if (group_messages.length > 0) {
             set_thread_messages(group_messages);
           } else {

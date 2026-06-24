@@ -50,18 +50,21 @@ export function FilterChip({
   filter: ActiveFilter;
   on_remove: () => void;
 }) {
+  const { t } = use_i18n();
+
   return (
     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand text-white">
       <span>{filter.label}</span>
       {filter.removable && (
         <button
+          aria-label={t("common.remove")}
           className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-white/20"
           onClick={(e) => {
             e.stopPropagation();
             on_remove();
           }}
         >
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
           </svg>
         </button>
@@ -355,6 +358,7 @@ export function SearchHistorySection({
             {format_history_timestamp(entry.timestamp)}
           </span>
           <button
+            aria-label={t("common.delete")}
             className="p-1 rounded-full transition-colors opacity-0 hover:opacity-100 hover:bg-white/10 text-txt-muted"
             onClick={(e) => {
               e.stopPropagation();
@@ -362,6 +366,7 @@ export function SearchHistorySection({
             }}
           >
             <svg
+              aria-hidden="true"
               className="w-3.5 h-3.5"
               fill="currentColor"
               viewBox="0 0 24 24"
@@ -601,27 +606,21 @@ export function ClearDataMenu({
         {t("mail.clear_search_data")}
       </p>
       <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs cursor-pointer">
-          <Checkbox
-            checked={clear_history}
-            onChange={() => set_clear_history(!clear_history)}
-          />
-          <span className="text-txt-secondary">{t("mail.search_history")}</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs cursor-pointer">
-          <Checkbox
-            checked={clear_saved}
-            onChange={() => set_clear_saved(!clear_saved)}
-          />
-          <span className="text-txt-secondary">{t("mail.saved_searches")}</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs cursor-pointer">
-          <Checkbox
-            checked={clear_cache}
-            onChange={() => set_clear_cache(!clear_cache)}
-          />
-          <span className="text-txt-secondary">{t("mail.result_cache")}</span>
-        </div>
+        <Checkbox
+          checked={clear_history}
+          label={t("mail.search_history")}
+          onChange={() => set_clear_history(!clear_history)}
+        />
+        <Checkbox
+          checked={clear_saved}
+          label={t("mail.saved_searches")}
+          onChange={() => set_clear_saved(!clear_saved)}
+        />
+        <Checkbox
+          checked={clear_cache}
+          label={t("mail.result_cache")}
+          onChange={() => set_clear_cache(!clear_cache)}
+        />
       </div>
       <div className="flex justify-end gap-2 mt-3 pt-2 border-t border-edge-secondary">
         <button

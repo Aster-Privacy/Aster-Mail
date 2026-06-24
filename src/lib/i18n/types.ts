@@ -89,8 +89,6 @@ export interface PasskeysTranslations {
   saved_to_password_manager: string;
   passkey_hint: string;
   security_key_hint: string;
-  rename: string;
-  rename_saved: string;
 }
 
 export interface SecureViewTranslations {
@@ -362,6 +360,7 @@ export interface CommonTranslations {
   page: string;
   aster_mail: string;
   deck: string;
+  workspace_title: string;
   create_folder: string;
   create_label: string;
   more_folders: string;
@@ -1201,6 +1200,7 @@ export interface CommonTranslations {
   bcc_label: string;
   date_label: string;
   subject_label: string;
+  send_at_label: string;
   received: string;
   select_email_to_read: string;
   remove_from_contacts: string;
@@ -3811,6 +3811,7 @@ export interface SettingsTranslations {
   import_manual_button: string;
   import_oauth_coming_soon: string;
   connected_accounts_title: string;
+  connected_accounts_fallback_name: string;
   connected_accounts_none: string;
   connected_accounts_last_sync: string;
   connected_accounts_never_synced: string;
@@ -4552,23 +4553,29 @@ export interface SettingsTranslations {
   alias_pref_default_domain_desc: string;
   alias_pref_sender_format: string;
   alias_pref_sender_format_desc: string;
+  alias_pref_sender_format_info: string;
   alias_pref_sender_via: string;
   alias_pref_sender_at: string;
   alias_pref_readable_reverse: string;
   alias_pref_readable_reverse_desc: string;
+  alias_pref_readable_reverse_info: string;
   alias_pref_always_expand: string;
   alias_pref_always_expand_desc: string;
+  alias_pref_always_expand_info: string;
   alias_pref_unsubscribe_action: string;
   alias_pref_unsubscribe_action_desc: string;
+  alias_pref_unsubscribe_action_info: string;
   alias_pref_unsubscribe_preserve: string;
   alias_pref_unsubscribe_disable_alias: string;
   alias_pref_unsubscribe_block_contact: string;
   alias_pref_disabled_response: string;
   alias_pref_disabled_response_desc: string;
+  alias_pref_disabled_response_info: string;
   alias_pref_disabled_ignore: string;
   alias_pref_disabled_reject: string;
   alias_pref_delete_action: string;
   alias_pref_delete_action_desc: string;
+  alias_pref_delete_action_info: string;
   alias_pref_delete_trash: string;
   alias_pref_delete_immediate: string;
   alias_activity_title: string;

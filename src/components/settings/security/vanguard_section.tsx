@@ -75,6 +75,7 @@ function LockdownSection({ account_id }: { account_id: string }) {
   const [password, set_password] = useState("");
   const [totp_code, set_totp_code] = useState("");
   const [totp_required, set_totp_required] = useState(false);
+  const [totp_loading, set_totp_loading] = useState(false);
   const [creds_error, set_creds_error] = useState<string | null>(null);
   const [disabling, set_disabling] = useState(false);
 
@@ -96,8 +97,10 @@ function LockdownSection({ account_id }: { account_id: string }) {
         }
       });
     } else {
+      set_totp_loading(true);
       get_totp_status().then((res) => {
         set_totp_required(res.data?.enabled ?? false);
+        set_totp_loading(false);
       });
       set_show_disable_modal(true);
     }
@@ -218,7 +221,7 @@ function LockdownSection({ account_id }: { account_id: string }) {
           <Button
             variant="destructive"
             onClick={confirm_disable}
-            disabled={disabling || !password || (totp_required && totp_code.length !== 6)}
+            disabled={disabling || totp_loading || !password || (totp_required && totp_code.length !== 6)}
           >
             {disabling ? t("settings.verifying_credentials") : t("settings.lockdown_disable")}
           </Button>

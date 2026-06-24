@@ -261,7 +261,11 @@ export async function create_folder(
     };
   }
 
-  return { error: response.error, code: response.code };
+  return {
+    error: response.error,
+    code: response.code,
+    server_code: response.server_code,
+  };
 }
 
 export async function update_folder(

@@ -416,6 +416,7 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
               envelope.body_text,
               user?.email || "",
               envelope.from?.email || "",
+              item.id,
             );
             envelope.body_text = bundle.body;
             if (bundle.subject !== null && !envelope.subject) {

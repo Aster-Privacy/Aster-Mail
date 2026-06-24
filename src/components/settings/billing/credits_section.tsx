@@ -146,10 +146,8 @@ export function CreditsSection({
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
                 {packages.map((pkg) => {
                   const price = convert_cents(pkg.price_cents, preferred_currency);
-                  const total = convert_cents(pkg.amount_cents + pkg.bonus_cents, preferred_currency);
-                  const bonus = pkg.bonus_cents > 0
-                    ? convert_cents(pkg.bonus_cents, preferred_currency)
-                    : 0;
+                  const total = pkg.amount_cents + pkg.bonus_cents;
+                  const bonus = pkg.bonus_cents;
                   const is_selected = selected_package?.id === pkg.id;
                   return (
                     <button
@@ -168,13 +166,13 @@ export function CreditsSection({
                       {bonus > 0 && (
                         <p className="text-xs text-green-500 mt-0.5">
                           {t("settings.credit_package_bonus", {
-                            bonus: format_price(bonus, preferred_currency),
+                            bonus: format_price(bonus),
                           })}
                         </p>
                       )}
                       <p className="text-xs text-txt-muted mt-0.5">
                         {t("settings.credit_package_total", {
-                          total: format_price(total, preferred_currency),
+                          total: format_price(total),
                         })}
                       </p>
                     </button>

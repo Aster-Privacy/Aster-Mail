@@ -929,14 +929,27 @@ class ApiClient {
   ): Promise<Response> {
     const controller = new AbortController();
     const timeout_id = setTimeout(() => controller.abort(), timeout);
+    const aborted = new Promise<never>((_resolve, reject) => {
+      controller.signal.addEventListener(
+        "abort",
+        () => {
+          const err = new Error("Request timed out");
+
+          err.name = "AbortError";
+          reject(err);
+        },
+        { once: true },
+      );
+    });
 
     try {
-      const response = await routed_fetch(url, {
-        ...options,
-        signal: controller.signal,
-      });
-
-      return response;
+      return (await Promise.race([
+        routed_fetch(url, {
+          ...options,
+          signal: controller.signal,
+        }),
+        aborted,
+      ])) as Response;
     } finally {
       clearTimeout(timeout_id);
     }

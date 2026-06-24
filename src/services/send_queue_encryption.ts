@@ -571,7 +571,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
 
       throw create_error(
         "rate_limited",
-        en.errors.daily_limit_reached.replace("{{ time }}", time),
+        en.errors.daily_limit_reached.replace("{{time}}", time),
       );
     }
     throw create_error("send_failed", result.error || en.errors.failed_send_email);
@@ -684,7 +684,7 @@ export async function execute_external_send(
   let secure_message;
 
   if (is_secure_external && email.expiry_password) {
-    const secure_attachments = (email.attachments || []).map((a) => ({
+    const secure_attachments = smtp_attachments.map((a) => ({
       filename: a.name,
       content_type: a.mime_type,
       data: new Uint8Array(a.data),
@@ -799,7 +799,7 @@ export async function execute_external_send(
 
       throw create_error(
         "rate_limited",
-        en.errors.daily_limit_reached.replace("{{ time }}", time),
+        en.errors.daily_limit_reached.replace("{{time}}", time),
       );
     }
     throw create_error(

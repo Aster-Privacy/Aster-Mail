@@ -54,6 +54,7 @@ import {
   type RuleTemplate,
 } from "@/components/mail_rules/rule_templates";
 import { show_toast } from "@/components/toast/simple_toast";
+import { use_register_search_items } from "@/components/settings/search_context";
 import type { LeafCondition, Rule } from "@/services/api/mail_rules";
 
 export function MailRulesSection() {
@@ -74,6 +75,14 @@ export function MailRulesSection() {
   const [drag_over_index, set_drag_over_index] = React.useState<number | null>(
     null,
   );
+
+  use_register_search_items("mail_rules", [
+    {
+      label: t("mail_rules.templates_button"),
+      breadcrumb: "Mail Rules",
+      keywords: ["template", "starter rule", "preset", "example rule"],
+    },
+  ]);
 
   React.useEffect(() => {
     load_rules();

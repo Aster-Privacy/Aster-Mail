@@ -173,3 +173,79 @@ describe("DoubleRatchet end-to-end send/receive (resend readability)", () => {
     await expect(wrong_receiver.decrypt(msg)).rejects.toThrow();
   });
 });
+
+describe("DoubleRatchet sync-safety (dirty tracking)", () => {
+  async function setup() {
+    const shared_secret = crypto.getRandomValues(new Uint8Array(32));
+    const receiver_keypair = await generate_keypair();
+
+    return { shared_secret, receiver_keypair, conversation_id: "conv_dirty" };
+  }
+
+  it("a freshly bootstrapped sender becomes dirty after encrypting", async () => {
+    const { shared_secret, receiver_keypair, conversation_id } = await setup();
+    const sender = await DoubleRatchet.init_sender(
+      shared_secret,
+      receiver_keypair.public_key,
+      conversation_id,
+    );
+
+    expect(sender.is_dirty_since_sync()).toBe(false);
+    await sender.encrypt("advance the chain");
+    expect(sender.is_dirty_since_sync()).toBe(true);
+  });
+
+  it("a receiver becomes dirty after decrypting", async () => {
+    const { shared_secret, receiver_keypair, conversation_id } = await setup();
+    const sender = await DoubleRatchet.init_sender(
+      shared_secret,
+      receiver_keypair.public_key,
+      conversation_id,
+    );
+    const receiver = await DoubleRatchet.init_receiver(
+      shared_secret,
+      receiver_keypair,
+      conversation_id,
+    );
+
+    await receiver.decrypt(await sender.encrypt("hello"));
+    expect(receiver.is_dirty_since_sync()).toBe(true);
+  });
+
+  it("mark_synced clears the flag and survives a serialize round-trip", async () => {
+    const { shared_secret, receiver_keypair, conversation_id } = await setup();
+    const sender = await DoubleRatchet.init_sender(
+      shared_secret,
+      receiver_keypair.public_key,
+      conversation_id,
+    );
+
+    await sender.encrypt("one");
+    sender.mark_synced();
+    expect(sender.is_dirty_since_sync()).toBe(false);
+
+    const restored = DoubleRatchet.deserialize(await sender.serialize());
+
+    expect(restored.is_dirty_since_sync()).toBe(false);
+    await restored.encrypt("two");
+    expect(restored.is_dirty_since_sync()).toBe(true);
+  });
+
+  it("a legacy state without the flag deserializes as dirty so it is never clobbered", async () => {
+    const { shared_secret, receiver_keypair, conversation_id } = await setup();
+    const sender = await DoubleRatchet.init_sender(
+      shared_secret,
+      receiver_keypair.public_key,
+      conversation_id,
+    );
+
+    sender.mark_synced();
+    const serialized = await sender.serialize();
+
+    delete (serialized.state as { dirty_since_sync?: boolean }).dirty_since_sync;
+
+    expect(DoubleRatchet.deserialize(serialized).is_dirty_since_sync()).toBe(
+      true,
+    );
+  });
+});

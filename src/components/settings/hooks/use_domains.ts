@@ -20,6 +20,8 @@
 //
 import { useState, useEffect, useCallback } from "react";
 
+import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   list_domains,
   delete_domain,
@@ -33,6 +35,7 @@ import {
 } from "@/services/api/domains";
 
 export function use_domains() {
+  const { t } = use_i18n();
   const [domains, set_domains] = useState<CustomDomain[]>([]);
   const [loading, set_loading] = useState(true);
   const [max_domains, set_max_domains] = useState(0);
@@ -195,12 +198,20 @@ export function use_domains() {
   };
 
   const handle_toggle_catch_all = async (id: string, enabled: boolean) => {
-    const response = await update_domain(id, { catch_all_enabled: enabled });
+    try {
+      const response = await update_domain(id, { catch_all_enabled: enabled });
 
-    if (response.data) {
+      if (response.error || !response.data) {
+        show_toast(t("settings.failed_save_setting"), "error");
+
+        return;
+      }
       set_domains((prev) =>
         prev.map((d) => (d.id === id ? response.data! : d)),
       );
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+      show_toast(t("settings.failed_save_setting"), "error");
     }
   };
 

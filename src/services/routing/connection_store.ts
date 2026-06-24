@@ -34,6 +34,7 @@ import {
 } from "./tor_transport";
 
 import { api_client } from "@/services/api/client";
+import { is_relay_host_allowed } from "./cdn_relay_transport";
 
 const STORAGE_KEY = "aster_connection_method";
 const CDN_RELAY_URL_KEY = "aster_cdn_relay_url";
@@ -180,14 +181,17 @@ class ConnectionStore {
     mail_onion_url: string | null,
     cdn_relay_url: string | null,
   ): Promise<void> {
+    const safe_cdn_relay_url =
+      cdn_relay_url && is_relay_host_allowed(cdn_relay_url) ? cdn_relay_url : null;
+
     this.state.api_onion_url = api_onion_url;
     this.state.mail_onion_url = mail_onion_url;
-    this.state.cdn_relay_url = cdn_relay_url;
+    this.state.cdn_relay_url = safe_cdn_relay_url;
 
     await Promise.all([
       this.persist_value(ONION_API_KEY, api_onion_url || ""),
       this.persist_value(ONION_MAIL_KEY, mail_onion_url || ""),
-      this.persist_value(CDN_RELAY_URL_KEY, cdn_relay_url || ""),
+      this.persist_value(CDN_RELAY_URL_KEY, safe_cdn_relay_url || ""),
     ]);
 
     this.notify_listeners();

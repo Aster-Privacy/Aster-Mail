@@ -32,7 +32,7 @@ export async function parse_mbox_file(
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{ size }}", (file.size / 1024 / 1024).toFixed(1)).replace("{{ limit }}", "500"),
+        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
       ],
       warnings: [],
     };
@@ -80,7 +80,7 @@ export async function parse_mbox_file(
     const raw_email = raw_segment.replace(/^>From /gm, "From ");
 
     if (raw_email.length > MAX_SINGLE_EMAIL_SIZE) {
-      warnings.push(en.errors.email_skipped_size.replace("{{ number }}", String(i + 1)));
+      warnings.push(en.errors.email_skipped_size.replace("{{number}}", String(i + 1)));
       continue;
     }
 
@@ -93,7 +93,7 @@ export async function parse_mbox_file(
         const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
 
         errors.push(
-          en.errors.failed_parse_email.replace("{{ number }}", String(i + 1)).replace("{{ error }}", error_msg),
+          en.errors.failed_parse_email.replace("{{number}}", String(i + 1)).replace("{{error}}", error_msg),
         );
       }
     }

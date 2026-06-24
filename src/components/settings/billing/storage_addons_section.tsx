@@ -151,7 +151,7 @@ export function StorageAddonsSection({
                 {addon.name}
               </p>
               <p className="text-xs text-txt-muted mt-0.5">
-                {format_price(addon.price_cents, preferred_currency)}
+                {format_price(convert_cents(addon.price_cents, preferred_currency), preferred_currency)}
                 {t("settings.per_month_short")}
               </p>
             </button>

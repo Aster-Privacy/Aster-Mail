@@ -352,6 +352,9 @@ export async function clear_search_data(
   if (options.clear_saved_searches) {
     secure_remove(saved_search_storage_key(user_id));
   }
+  if (options.clear_cache) {
+    clear_search_index();
+  }
 }
 
 interface SearchState {
@@ -410,7 +413,11 @@ interface CachedIndex {
   items: MailItem[];
   decrypted: Map<
     string,
-    { envelope: DecryptedEnvelope | null; metadata: MailItemMetadata | null }
+    {
+      envelope: DecryptedEnvelope | null;
+      metadata: MailItemMetadata | null;
+      search_body_text: string;
+    }
   >;
   built_at: number;
   include_body: boolean;
@@ -620,7 +627,11 @@ async function do_build_search_index(
 
   const decrypted = new Map<
     string,
-    { envelope: DecryptedEnvelope | null; metadata: MailItemMetadata | null }
+    {
+      envelope: DecryptedEnvelope | null;
+      metadata: MailItemMetadata | null;
+      search_body_text: string;
+    }
   >();
 
   const batch_size = 20;
@@ -643,6 +654,7 @@ async function do_build_search_index(
               envelope.body_text,
               user_email,
               sender_email,
+              item.id,
             );
 
             if (bundle.subject !== null && !envelope.subject) {
@@ -677,6 +689,9 @@ async function do_build_search_index(
         decrypted.set(result.value.id, {
           envelope: result.value.envelope,
           metadata: result.value.metadata,
+          search_body_text: result.value.envelope?.body_text
+            ? strip_html_tags(result.value.envelope.body_text).toLowerCase()
+            : "",
         });
       }
     }
@@ -766,6 +781,18 @@ async function build_search_index(
   );
 
   return index_build_promise;
+}
+
+function date_boundary_local(value: string, end_of_day: boolean): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+
+  if (m && +m[2] >= 1 && +m[2] <= 12) {
+    return end_of_day
+      ? new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59, 999).getTime()
+      : new Date(+m[1], +m[2] - 1, +m[3], 0, 0, 0, 0).getTime();
+  }
+
+  return new Date(value).getTime();
 }
 
 function matches_operator(
@@ -860,13 +887,13 @@ function matches_operator(
     }
     case "before": {
       const ts = new Date(item.message_ts || item.created_at).getTime();
-      const target = new Date(op.value).getTime();
+      const target = date_boundary_local(op.value, false);
 
       return !isNaN(target) && ts < target;
     }
     case "after": {
       const ts = new Date(item.message_ts || item.created_at).getTime();
-      const target = new Date(op.value).getTime();
+      const target = date_boundary_local(op.value, false);
 
       return !isNaN(target) && ts > target;
     }
@@ -960,6 +987,7 @@ export function matches_query(
   label_name_to_tokens?: Map<string, string[]>,
   fields?: string[],
   search_body: boolean = true,
+  search_body_text?: string,
 ): boolean {
   if (!envelope) return false;
 
@@ -996,7 +1024,8 @@ export function matches_query(
     )
     .join(" ");
   const body = search_body
-    ? strip_html_tags(envelope.body_text || "").toLowerCase()
+    ? (search_body_text ??
+      strip_html_tags(envelope.body_text || "").toLowerCase())
     : "";
 
   return terms.every((term) => {
@@ -1165,7 +1194,7 @@ export function use_search() {
 
           if (!data) continue;
 
-          const { envelope, metadata } = data;
+          const { envelope, metadata, search_body_text } = data;
 
           if (
             !matches_query(
@@ -1177,6 +1206,7 @@ export function use_search() {
               options?.label_name_to_tokens,
               options?.fields,
               options?.search_body !== false,
+              search_body_text,
             )
           ) {
             continue;
@@ -1198,12 +1228,12 @@ export function use_search() {
             if (f.date_from) {
               const ts = new Date(item.message_ts || item.created_at).getTime();
 
-              if (ts < new Date(f.date_from).getTime()) continue;
+              if (ts < date_boundary_local(f.date_from, false)) continue;
             }
             if (f.date_to) {
               const ts = new Date(item.message_ts || item.created_at).getTime();
 
-              if (ts > new Date(f.date_to).getTime()) continue;
+              if (ts > date_boundary_local(f.date_to, true)) continue;
             }
           }
 

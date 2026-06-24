@@ -52,7 +52,7 @@ export type ViewMode = "list" | "compact";
 
 const BATCH_SIZE = 10;
 
-function contact_to_form_data(contact: DecryptedContact): ContactFormData {
+export function contact_to_form_data(contact: DecryptedContact): ContactFormData {
   const {
     id: _id,
     created_at: _created_at,

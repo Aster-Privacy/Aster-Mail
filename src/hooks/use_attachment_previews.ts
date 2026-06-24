@@ -50,6 +50,10 @@ const MAX_CACHE_SIZE = 500;
 
 const preview_cache = new Map<string, CacheEntry>();
 
+export function clear_attachment_preview_cache(): void {
+  preview_cache.clear();
+}
+
 function evict_stale_entries(): void {
   const now = Date.now();
 

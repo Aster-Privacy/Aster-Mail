@@ -32,6 +32,10 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_email_list } from "@/hooks/use_email_list";
+import {
+  RATCHET_UNDECRYPTABLE_SENTINEL,
+  PGP_UNDECRYPTABLE_SENTINEL,
+} from "@/utils/email_crypto";
 import { use_drafts_list } from "@/hooks/use_drafts_list";
 import { use_scheduled_emails } from "@/hooks/use_scheduled_emails";
 import { use_snoozed_emails } from "@/hooks/use_snoozed_emails";
@@ -413,6 +417,14 @@ export function EmailInbox({
 
   const handle_open_compose = useCallback(
     (mode: "reply" | "forward", email: InboxEmail) => {
+      const is_sentinel = (value: string | undefined): boolean =>
+        value === RATCHET_UNDECRYPTABLE_SENTINEL ||
+        value === PGP_UNDECRYPTABLE_SENTINEL;
+      const safe_body =
+        (is_sentinel(email.body_html) ? "" : email.body_html) ||
+        (is_sentinel(email.preview) ? "" : email.preview) ||
+        "";
+
       if (mode === "reply" && on_reply) {
         const is_own_message = email.item_type === "sent";
         const is_forwarded = !is_own_message && !!email.display_sender_email;
@@ -439,7 +451,7 @@ export function EmailInbox({
           recipient_email,
           recipient_avatar: email.avatar_url,
           original_subject: email.subject,
-          original_body: email.body_html || email.preview,
+          original_body: safe_body,
           original_timestamp: email.timestamp,
           thread_token: email.thread_token,
           original_email_id: email.id,
@@ -451,7 +463,7 @@ export function EmailInbox({
           sender_email: email.sender_email,
           sender_avatar: email.avatar_url || "/mail_logo.webp",
           email_subject: email.subject,
-          email_body: email.body_html || email.preview,
+          email_body: safe_body,
           email_timestamp: email.timestamp,
           original_mail_id: email.id,
         });

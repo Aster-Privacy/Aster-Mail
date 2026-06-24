@@ -92,7 +92,7 @@ import {
   resolve_cid_references,
   revoke_cid_blob_urls,
 } from "@/lib/cid_resolver";
-import { RATCHET_UNDECRYPTABLE_SENTINEL, is_ratchet_envelope } from "@/utils/email_crypto";
+import { RATCHET_UNDECRYPTABLE_SENTINEL, PGP_UNDECRYPTABLE_SENTINEL, is_ratchet_envelope } from "@/utils/email_crypto";
 import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
 
@@ -229,7 +229,7 @@ export function ThreadMessageBlock({
   const has_reported_external_content = useRef(false);
 
   const collapsed_preview = useMemo(() => {
-    if (clean_body === RATCHET_UNDECRYPTABLE_SENTINEL) {
+    if (clean_body === RATCHET_UNDECRYPTABLE_SENTINEL || clean_body === PGP_UNDECRYPTABLE_SENTINEL) {
       return t("mail.encrypted_message_unavailable");
     }
     const plain = strip_html_tags(clean_body).replace(/\s+/g, " ").trim();
@@ -256,10 +256,12 @@ export function ThreadMessageBlock({
   const has_plaintext_body =
     !!message.body &&
     message.body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
+    message.body !== PGP_UNDECRYPTABLE_SENTINEL &&
     !is_ratchet_envelope(message.body);
   const is_ratchet_undecryptable =
     !has_plaintext_body &&
     (message.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
+      message.body === PGP_UNDECRYPTABLE_SENTINEL ||
       is_ratchet_envelope(message.body) ||
       is_ratchet_envelope(message.html_content));
   const rich_html_source = message.html_content || message.body;

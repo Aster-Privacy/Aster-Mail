@@ -391,7 +391,7 @@ let measure_container: HTMLDivElement | null = null;
 // measured height is unchanged.
 function strip_remote_css_fetches(html: string): string {
   return html
-    .replace(/url\(\s*(['"]?)https?:\/\/[^)]*\1\s*\)/gi, "url()")
+    .replace(/url\(\s*(['"]?)(?:https?:)?\/\/[^)]*\1\s*\)/gi, "url()")
     .replace(/@import[^;]*;/gi, "");
 }
 
@@ -708,6 +708,12 @@ export async function preload_email_detail(
 
       const old_entry = preload_cache.get(target_id);
       if (old_entry?.cid_resolved) revoke_cid_blob_urls(old_entry.cid_resolved.blob_urls);
+      if (old_entry) {
+        for (const [msg_id, r] of old_entry.thread_cid_resolved) {
+          if (msg_id === target_id) continue;
+          revoke_cid_blob_urls(r.blob_urls);
+        }
+      }
 
       evict_stale_cache_entries();
 
