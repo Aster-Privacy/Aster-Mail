@@ -38,6 +38,7 @@ import {
   parse_vcard,
   parse_csv,
 } from "@/services/api/contact_sync";
+import { parse_csv_records } from "@/utils/contact_utils";
 
 interface ContactImportModalProps {
   on_close: () => void;
@@ -114,12 +115,10 @@ export function ContactImportModal({
           set_step("preview");
         } else {
           set_file_type("csv");
-          const lines = content.split(/\r?\n/).filter(Boolean);
+          const records = parse_csv_records(content);
 
-          if (lines.length > 0) {
-            const headers = lines[0]
-              .split(",")
-              .map((h) => h.trim().replace(/^"|"$/g, ""));
+          if (records.length > 0) {
+            const headers = records[0];
 
             set_csv_headers(headers);
 
@@ -135,7 +134,8 @@ export function ContactImportModal({
                 auto_mapping[header] = "last_name";
               else if (lower === "name" || lower === "full name")
                 auto_mapping[header] = "first_name";
-              else if (lower.includes("email")) auto_mapping[header] = "emails";
+              else if (lower.includes("email") || lower.includes("e-mail"))
+                auto_mapping[header] = "emails";
               else if (lower.includes("phone") || lower.includes("tel"))
                 auto_mapping[header] = "phone";
               else if (lower.includes("company") || lower.includes("org"))

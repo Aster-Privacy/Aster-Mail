@@ -35,6 +35,7 @@ import {
   generate_contact_token,
 } from "./contacts";
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
+import { parse_csv_records } from "@/utils/contact_utils";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -299,7 +300,17 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
   const vcards = vcard_data.split(/(?=BEGIN:VCARD)/i).filter(Boolean);
 
   for (const vcard of vcards) {
-    const lines = vcard.split(/\r?\n/);
+    const lines = vcard
+      .split(/\r?\n/)
+      .reduce<string[]>((unfolded, line) => {
+        if ((line.startsWith(" ") || line.startsWith("\t")) && unfolded.length) {
+          unfolded[unfolded.length - 1] += line.slice(1);
+        } else {
+          unfolded.push(line);
+        }
+
+        return unfolded;
+      }, []);
     const contact: ContactFormData = {
       first_name: "",
       last_name: "",
@@ -366,19 +377,15 @@ export function parse_csv(
   csv_data: string,
   field_mapping: Record<string, keyof ContactFormData | null>,
 ): ContactFormData[] {
-  const lines = csv_data.split(/\r?\n/).filter(Boolean);
+  const records = parse_csv_records(csv_data);
 
-  if (lines.length < 2) return [];
+  if (records.length < 2) return [];
 
-  const headers = lines[0]
-    .split(",")
-    .map((h) => h.trim().replace(/^"|"$/g, ""));
+  const headers = records[0];
   const contacts: ContactFormData[] = [];
 
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i]
-      .split(",")
-      .map((v) => v.trim().replace(/^"|"$/g, ""));
+  for (let i = 1; i < records.length; i++) {
+    const values = records[i];
     const contact: ContactFormData = {
       first_name: "",
       last_name: "",
