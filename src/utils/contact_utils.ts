@@ -46,8 +46,56 @@ export function parse_csv_line(line: string): string[] {
   return result;
 }
 
+export function parse_csv_records(text: string): string[][] {
+  const records: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let in_quotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    if (in_quotes) {
+      if (char === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          in_quotes = false;
+        }
+      } else {
+        field += char;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      in_quotes = true;
+    } else if (char === ",") {
+      row.push(field.trim());
+      field = "";
+    } else if (char === "\n" || char === "\r") {
+      if (char === "\r" && text[i + 1] === "\n") i++;
+      row.push(field.trim());
+      records.push(row);
+      row = [];
+      field = "";
+    } else {
+      field += char;
+    }
+  }
+
+  if (field.length > 0 || row.length > 0) {
+    row.push(field.trim());
+    records.push(row);
+  }
+
+  return records.filter((record) => record.some((value) => value !== ""));
+}
+
 export function get_days_until_birthday(birthday: string): number {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const birth_date = new Date(birthday);
   const this_year_birthday = new Date(
     today.getFullYear(),
@@ -61,5 +109,5 @@ export function get_days_until_birthday(birthday: string): number {
 
   const diff = this_year_birthday.getTime() - today.getTime();
 
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return Math.round(diff / (1000 * 60 * 60 * 24));
 }

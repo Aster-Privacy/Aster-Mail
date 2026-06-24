@@ -20,7 +20,7 @@
 //
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
 
-import { parse_csv_line } from "@/utils/contact_utils";
+import { parse_csv_records } from "@/utils/contact_utils";
 import { create_contact_encrypted } from "@/services/api/contacts";
 
 const BATCH_SIZE = 10;
@@ -30,16 +30,16 @@ export function parse_csv_contacts(text: string): {
   error?: string;
 } {
   const MAX_CSV_ROWS = 10000;
-  const lines = text.split(/\r?\n/).filter((line) => line.trim());
+  const records = parse_csv_records(text);
 
-  if (lines.length < 2) {
+  if (records.length < 2) {
     return { contacts: [], error: "csv_empty" };
   }
-  if (lines.length - 1 > MAX_CSV_ROWS) {
+  if (records.length - 1 > MAX_CSV_ROWS) {
     return { contacts: [], error: "csv_too_large" };
   }
 
-  const headers = parse_csv_line(lines[0]).map((h) => h.toLowerCase().trim());
+  const headers = records[0].map((h) => h.toLowerCase().trim());
   const first_name_idx = headers.findIndex(
     (h) => h.includes("first") && h.includes("name"),
   );
@@ -67,8 +67,8 @@ export function parse_csv_contacts(text: string): {
 
   const contacts: ContactFormData[] = [];
 
-  for (let i = 1; i < lines.length; i++) {
-    const values = parse_csv_line(lines[i]);
+  for (let i = 1; i < records.length; i++) {
+    const values = records[i];
 
     if (values.every((v) => !v)) continue;
 
