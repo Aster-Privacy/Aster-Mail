@@ -636,7 +636,7 @@ export function use_folders(): UseFoldersReturn {
           return {
             folder: null,
             error: response.error,
-            code: response.code,
+            code: response.server_code || response.code,
           };
         }
 

@@ -35,6 +35,7 @@ import {
   generate_contact_token,
 } from "./contacts";
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
+import { parse_csv_line } from "@/utils/contact_utils";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -370,15 +371,11 @@ export function parse_csv(
 
   if (lines.length < 2) return [];
 
-  const headers = lines[0]
-    .split(",")
-    .map((h) => h.trim().replace(/^"|"$/g, ""));
+  const headers = parse_csv_line(lines[0]);
   const contacts: ContactFormData[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i]
-      .split(",")
-      .map((v) => v.trim().replace(/^"|"$/g, ""));
+    const values = parse_csv_line(lines[i]);
     const contact: ContactFormData = {
       first_name: "",
       last_name: "",

@@ -371,6 +371,7 @@ export function use_encryption() {
       await generate_recovery_pdf(
         user_email || "your-account@astermail.org",
         recovery_codes,
+        t,
       );
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);

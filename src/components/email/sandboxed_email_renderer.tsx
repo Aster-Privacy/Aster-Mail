@@ -47,7 +47,7 @@ const IMAGE_PROXY_URL = get_image_proxy_url();
  */
 function strip_remote_css_fetches(html: string): string {
   return html
-    .replace(/url\(\s*(['"]?)https?:\/\/[^)]*\1\s*\)/gi, "url()")
+    .replace(/url\(\s*(['"]?)(?:https?:)?\/\/[^)]*\1\s*\)/gi, "url()")
     .replace(/@import[^;]*;/gi, "");
 }
 
@@ -109,6 +109,20 @@ async function resolve_native_images(doc: Document): Promise<void> {
       const url = src.startsWith("http")
         ? src
         : `https://app.astermail.org${src}`;
+
+      let parsed_url: URL;
+      try {
+        parsed_url = new URL(url);
+      } catch {
+        return;
+      }
+      const expected_proxy = new URL(IMAGE_PROXY_URL, "https://app.astermail.org");
+      if (
+        parsed_url.origin !== expected_proxy.origin ||
+        parsed_url.pathname !== expected_proxy.pathname
+      ) {
+        return;
+      }
 
       const response = await routed_fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -288,20 +302,24 @@ export function SandboxedEmailRenderer({
   const { theme } = useTheme();
   const is_dark_theme = theme === "dark";
   const is_html_email = !is_plain_text;
+  const layout_probe =
+    sanitized_html.length > 65536
+      ? sanitized_html.slice(0, 65536)
+      : sanitized_html;
   const has_block_html =
-    /<(div|p|table|tr|td|h[1-6]|ul|ol|li|blockquote)\b/i.test(sanitized_html);
+    /<(div|p|table|tr|td|h[1-6]|ul|ol|li|blockquote)\b/i.test(layout_probe);
   const literal_plain_text =
     (is_literal_plain_text ?? is_plain_text) && !has_block_html;
-  const has_table_layout = /<table\b/i.test(sanitized_html);
-  const has_designed_bg = /background(?:-color)?\s*:\s*(?:#[0-9a-f]|rgba?\(|hsla?\(|white\b|black\b|[a-z]+gr[ae]y\b)/i.test(sanitized_html);
-  const has_style_block = /<style\b[^>]*>[\s\S]*?background/i.test(sanitized_html);
-  const has_centered_card = /max-width\s*:\s*[3456789]\d{2}px[^;}"']*;[^"']*margin\s*:[^;}"']*auto/i.test(sanitized_html);
+  const has_table_layout = /<table\b/i.test(layout_probe);
+  const has_designed_bg = /background(?:-color)?\s*:\s*(?:#[0-9a-f]|rgba?\(|hsla?\(|white\b|black\b|[a-z]+gr[ae]y\b)/i.test(layout_probe);
+  const has_style_block = /<style\b[^>]*>[\s\S]*?background/i.test(layout_probe);
+  const has_centered_card = /max-width\s*:\s*[3456789]\d{2}px[^;}"']*;[^"']*margin\s*:[^;}"']*auto/i.test(layout_probe);
   const has_newsletter_layout = (has_table_layout && (
-    /style\s*=\s*["'][^"']*width\s*:\s*[456789]\d{2}px/i.test(sanitized_html) ||
-    /<table[^>]*(?:width|bgcolor|background)\s*=/i.test(sanitized_html) ||
-    (sanitized_html.match(/<table\b/gi)?.length ?? 0) > 2
+    /style\s*=\s*["'][^"']*width\s*:\s*[456789]\d{2}px/i.test(layout_probe) ||
+    /<table[^>]*(?:width|bgcolor|background)\s*=/i.test(layout_probe) ||
+    (layout_probe.match(/<table\b/gi)?.length ?? 0) > 2
   )) || has_designed_bg || has_style_block || has_centered_card;
-  const declares_light_scheme = /color-scheme\s*:\s*light\s+only/i.test(sanitized_html);
+  const declares_light_scheme = /color-scheme\s*:\s*light\s+only/i.test(layout_probe);
   const plain_bg = "transparent";
   const plain_text_color = force_dark_mode
     ? "#e5e5e5"
@@ -384,6 +402,8 @@ ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
 ${preferences.dyslexia_font ? `<style>@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/OpenDyslexic-Regular.woff2') format('woff2');}@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/OpenDyslexic-Bold.woff2') format('woff2');}body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
 ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important; }</style>` : ""}
 <style>${quote_toggle_css}</style>
+<style>::selection { background: rgba(96, 165, 250, 0.35); }
+.aster-quote-toggle, .aster-forwarded-collapse > summary, .remote-content-banner { -webkit-user-select: none !important; user-select: none !important; }</style>
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; }</style>
 </head>
@@ -734,9 +754,13 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
     if (m === "tor" || m === "tor_snowflake") return;
     doc.querySelectorAll("img[data-blocked='true']").forEach((el) => {
+      const proxy_src = el.getAttribute("data-proxy-src");
+      const original_src = el.getAttribute("data-original-src");
       const src =
-        el.getAttribute("data-proxy-src") ||
-        el.getAttribute("data-original-src");
+        proxy_src ||
+        (original_src && IMAGE_PROXY_URL
+          ? `${IMAGE_PROXY_URL}?url=${encodeURIComponent(original_src)}`
+          : null);
 
       if (src) {
         try {
@@ -1084,6 +1108,66 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
           }),
         );
       }
+    });
+
+    iframe.contentDocument.body.addEventListener("auxclick", (e) => {
+      if ((e as MouseEvent).button !== 1) return;
+
+      const target = e.target as HTMLElement;
+      const link = target.closest("a");
+
+      if (!link) return;
+      const href = link.getAttribute("href") || "";
+
+      if (!href || href.startsWith("#") || href.startsWith("mailto:")) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (href.startsWith("aster:")) {
+        const path = href.slice("aster:".length);
+        const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
+
+        if (ASTER_PATH_ALLOWLIST.test(path)) {
+          window.dispatchEvent(
+            new CustomEvent("aster-internal-link", { detail: { path } }),
+          );
+        }
+      } else {
+        window.dispatchEvent(
+          new CustomEvent("aster-external-link", {
+            detail: { url: href },
+          }),
+        );
+      }
+    });
+
+    iframe.contentDocument.addEventListener("keydown", (e) => {
+      const is_select_all =
+        (e.ctrlKey || e.metaKey) &&
+        !e.altKey &&
+        (e.key === "a" || e.key === "A");
+
+      if (!is_select_all) return;
+
+      const doc = iframe.contentDocument;
+      const body = doc?.body;
+      const selection = doc?.getSelection();
+
+      if (!doc || !body || !selection) return;
+
+      e.preventDefault();
+      const range = doc.createRange();
+
+      range.selectNodeContents(body);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+
+    iframe.contentDocument.addEventListener("selectionchange", () => {
+      const selection = iframe.contentDocument?.getSelection();
+
+      if (selection && selection.isCollapsed) update_height();
     });
   }, [
     collapse_forwarded_content,

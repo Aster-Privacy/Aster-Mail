@@ -435,8 +435,12 @@ function MobileInbox({
 
   const handle_toggle_read = useCallback(
     async (email: InboxEmail) => {
-      await actions.toggle_read(email);
       update_email(email.id, { is_read: !email.is_read });
+      const success = await actions.toggle_read(email);
+
+      if (!success) {
+        update_email(email.id, { is_read: email.is_read });
+      }
     },
     [actions, update_email],
   );

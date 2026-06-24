@@ -75,6 +75,8 @@ import { clear_plan_cache } from "@/services/plan_limits";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_folders_cache } from "@/hooks/use_folders";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
+import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
+import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { clear_all_ratchet_states } from "@/services/crypto/double_ratchet";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { emit_auth_ready } from "@/hooks/mail_events";
@@ -85,14 +87,17 @@ import {
   clear_preferred_sender_local,
 } from "@/lib/preferred_sender";
 import { clear_search_index } from "@/hooks/use_search";
+import { clear_undo_send_state } from "@/hooks/use_undo_send";
+import { clear_sender_aliases_cache } from "@/hooks/use_sender_aliases";
+import { clear_persisted_draft_deletes } from "@/hooks/use_drafts_list";
 import { clear_recovery_email_cache } from "@/services/api/recovery_email";
 import { clear_preferences_cache } from "@/services/api/preferences";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
 import { clear_app_lock_config, clear_session_unlock } from "@/services/app_lock_store";
 import {
-  clear_category_index,
   clear_category_index_memory,
+  delete_category_index_for_account,
 } from "@/services/category_index";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -111,6 +116,11 @@ async function clear_account_scoped_caches(): Promise<void> {
   clear_preferred_sender_local();
   clear_preferences_cache();
   clear_category_index_memory();
+  clear_undo_send_state();
+  clear_sender_aliases_cache();
+  clear_persisted_draft_deletes();
+  clear_attachment_preview_cache();
+  clear_attachment_keys();
   request_cache.clear();
   await clear_all_ratchet_states();
 }
@@ -224,7 +234,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
           let has_keys = has_vault_in_memory();
 
           if (!has_keys) {
-            const stored_passphrase = await get_session_passphrase(current.id);
+            let stored_passphrase: string | null = null;
+
+            try {
+              stored_passphrase = await get_session_passphrase(current.id);
+            } catch {
+              await clear_session_passphrase(current.id);
+            }
             const stored_vault = get_stored_encrypted_vault(current.id);
 
             if (stored_passphrase && stored_vault) {
@@ -533,6 +549,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const result = await storage_add_account(user);
 
+      if (!result.success) {
+        clear_vault_from_memory();
+        set_is_adding_account(false);
+
+        return result;
+      }
+
       if (result.success) {
         await clear_account_scoped_caches();
 
@@ -751,7 +774,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         stop_session_timeout();
         clear_vault_from_memory();
         await with_timeout(clear_account_scoped_caches(), 3000);
-        await with_timeout(clear_category_index(), 2000);
+        await with_timeout(delete_category_index_for_account(current_id), 2000);
         clear_stored_encrypted_vault(current_id);
         await with_timeout(clear_session_passphrase(current_id), 2000);
         clear_session_timeout_data(current_id);

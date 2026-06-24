@@ -239,7 +239,11 @@ export async function re_encrypt_user_data(
   while (true) {
     const response = await list_aliases({ limit: 100, offset: alias_offset });
 
-    if (response.error || !response.data) break;
+    if (response.error || !response.data) {
+      throw new Error(
+        `alias_reencrypt_failed:list:${response.error ?? "no_data"}`,
+      );
+    }
 
     for (const alias of response.data.aliases) {
       if (alias.is_random) continue;
@@ -406,7 +410,11 @@ export async function re_encrypt_user_data(
 
     const response = await list_contacts(params);
 
-    if (response.error || !response.data) break;
+    if (response.error || !response.data) {
+      throw new Error(
+        `contact_reencrypt_failed:list:${response.error ?? "no_data"}`,
+      );
+    }
 
     for (const contact of response.data.items) {
       try {

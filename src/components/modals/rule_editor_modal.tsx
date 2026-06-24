@@ -62,6 +62,7 @@ import type {
   MatchMode,
   Rule,
 } from "@/services/api/mail_rules";
+import type { RuleEditorSeed } from "@/components/mail_rules/rule_templates";
 import {
   parse as parse_expression,
   serialize as serialize_expression,
@@ -222,12 +223,14 @@ interface RuleEditorModalProps {
   is_open: boolean;
   on_close: () => void;
   rule?: Rule | null;
+  seed?: RuleEditorSeed | null;
 }
 
 export function RuleEditorModal({
   is_open,
   on_close,
   rule,
+  seed,
 }: RuleEditorModalProps) {
   const { t } = use_i18n();
   const { state: folders_state, fetch_folders } = use_folders();
@@ -292,6 +295,24 @@ export function RuleEditorModal({
           set_tab("visual");
         }
       }
+    } else if (seed) {
+      set_name(seed.name);
+      set_color(seed.color || RULE_COLORS[0]);
+      set_match_mode(seed.match_mode);
+      set_conditions(seed.conditions);
+      set_actions(seed.actions);
+      const nested = has_nested_logic(seed.conditions);
+      if (nested) {
+        const synthetic: Condition =
+          seed.match_mode === "any"
+            ? { type: "or", conditions: seed.conditions }
+            : { type: "and", conditions: seed.conditions };
+        set_expression_text(serialize_expression(synthetic));
+        set_tab("expression");
+      } else {
+        set_expression_text("");
+        set_tab("visual");
+      }
     } else {
       set_name("");
       set_color(RULE_COLORS[0]);
@@ -306,7 +327,7 @@ export function RuleEditorModal({
     set_auto_open_segment(null);
     set_new_indices(new Set());
     set_pending_blank_open(false);
-  }, [is_open, rule]);
+  }, [is_open, rule, seed]);
 
   const forward_action = actions.find((a) => a.type === "forward") as
     | Extract<Action, { type: "forward" }>

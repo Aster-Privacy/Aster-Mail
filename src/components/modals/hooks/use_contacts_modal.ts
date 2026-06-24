@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
+import { contact_to_form_data } from "@/components/common/hooks/use_contacts_state";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
@@ -542,20 +543,8 @@ export function use_contacts_modal({
         await Promise.allSettled(
           batch.map((contact) =>
             update_contact_encrypted(contact.id, {
-              first_name: contact.first_name,
-              last_name: contact.last_name,
-              emails: contact.emails,
-              phone: contact.phone,
-              company: contact.company,
-              job_title: contact.job_title,
-              address: contact.address,
-              birthday: contact.birthday,
-              social_links: contact.social_links,
-              relationship: contact.relationship,
-              notes: contact.notes,
-              avatar_url: contact.avatar_url,
+              ...contact_to_form_data(contact),
               is_favorite: new_favorite_state,
-              groups: contact.groups,
             }),
           ),
         );

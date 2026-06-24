@@ -89,6 +89,7 @@ import {
 } from "@/services/api/alias_contacts";
 import {
   get_alias_delivery_log,
+  get_domain_address_delivery_log,
   type DeliveryEvent,
 } from "@/services/api/aliases";
 
@@ -724,15 +725,23 @@ function delivery_reason_icon(reason: string): React.ReactNode {
   }
 }
 
-function format_relative_time(iso: string): string {
+function format_relative_time(
+  t: ReturnType<typeof use_i18n>["t"],
+  iso: string,
+): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  if (mins < 2) return "just now";
-  if (mins < 60) return `${mins} minutes ago`;
-  if (hours < 24) return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
-  return `${days} ${days === 1 ? "day" : "days"} ago`;
+  if (mins < 2) return t("settings.fam_org_time_just_now");
+  if (mins < 60) return t("settings.fam_org_time_minutes", { count: mins });
+  if (hours < 24)
+    return hours === 1
+      ? t("settings.fam_org_time_hour", { count: hours })
+      : t("settings.fam_org_time_hours", { count: hours });
+  return days === 1
+    ? t("settings.fam_org_time_yesterday")
+    : t("settings.fam_org_time_days", { count: days });
 }
 
 function DeliveryLogPanel({ alias_id, domain_address_id }: { alias_id?: string; domain_address_id?: string }) {
@@ -744,7 +753,9 @@ function DeliveryLogPanel({ alias_id, domain_address_id }: { alias_id?: string; 
   const load = useCallback(async () => {
     set_loading(true);
     try {
-      const response = await get_alias_delivery_log(domain_address_id ?? alias_id!);
+      const response = domain_address_id
+        ? await get_domain_address_delivery_log(domain_address_id)
+        : await get_alias_delivery_log(alias_id!);
 
       if (response.data) {
         set_events(response.data.events ?? []);
@@ -789,7 +800,7 @@ function DeliveryLogPanel({ alias_id, domain_address_id }: { alias_id?: string; 
                   {delivery_reason_label(t, ev.blocked_reason)}
                 </p>
                 <p className="text-xs text-txt-muted">
-                  {format_relative_time(ev.created_at)}
+                  {format_relative_time(t, ev.created_at)}
                 </p>
               </div>
             </div>
@@ -799,7 +810,9 @@ function DeliveryLogPanel({ alias_id, domain_address_id }: { alias_id?: string; 
               className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
               onClick={() => set_expanded((v) => !v)}
             >
-              {expanded ? `- show less` : `+ ${events.length - 3} more`}
+              {expanded
+                ? t("common.show_less")
+                : t("common.n_more", { count: events.length - 3 })}
             </button>
           )}
         </div>

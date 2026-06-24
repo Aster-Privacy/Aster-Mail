@@ -245,12 +245,22 @@ function extract_charset(content_type: string): string {
   return match ? match[1] : "utf-8";
 }
 
+function reinterpret_as_utf8(body: string): string {
+  const bytes = Uint8Array.from(body, (c) => c.charCodeAt(0) & 0xff);
+
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return body;
+  }
+}
+
 export function decode_body(
   body: string,
   encoding: string | undefined,
   charset?: string,
 ): string {
-  if (!encoding && !charset) return body;
+  if (!encoding && !charset) return reinterpret_as_utf8(body);
 
   let result = body;
   const enc = encoding?.toLowerCase();
@@ -280,7 +290,7 @@ export function decode_body(
     return decode_charset(bytes, charset);
   }
 
-  return result;
+  return reinterpret_as_utf8(result);
 }
 
 function estimate_decoded_size(

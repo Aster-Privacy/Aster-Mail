@@ -83,6 +83,7 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
   });
 
   const debounce_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pending_patch = useRef<Partial<AliasPreferences>>({});
 
   useEffect(() => {
     get_alias_preferences()
@@ -95,9 +96,13 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
 
   const save_pref = useCallback((patch: Partial<AliasPreferences>) => {
     set_prefs((prev) => ({ ...prev, ...patch }));
+    pending_patch.current = { ...pending_patch.current, ...patch };
     if (debounce_timer.current) clearTimeout(debounce_timer.current);
     debounce_timer.current = setTimeout(() => {
-      update_alias_preferences(patch).catch(() => {});
+      const merged = pending_patch.current;
+
+      pending_patch.current = {};
+      update_alias_preferences(merged).catch(() => {});
     }, 500);
   }, []);
 
@@ -147,7 +152,7 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
 
               <PrefRow
                 description={t("settings.alias_pref_sender_format_desc")}
-                info="How the sender's name appears in forwarded emails."
+                info={t("settings.alias_pref_sender_format_info")}
                 label={t("settings.alias_pref_sender_format")}
               >
                 <Select
@@ -172,7 +177,7 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
 
               <PrefRow
                 description={t("settings.alias_pref_readable_reverse_desc")}
-                info="When on, reverse alias addresses include the sender's email so you can tell who's writing at a glance."
+                info={t("settings.alias_pref_readable_reverse_info")}
                 label={t("settings.alias_pref_readable_reverse")}
               >
                 {readable_locked ? (
@@ -189,7 +194,7 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
 
               <PrefRow
                 description={t("settings.alias_pref_always_expand_desc")}
-                info="Show every alias's full settings panel automatically instead of hiding them behind the gear icon."
+                info={t("settings.alias_pref_always_expand_info")}
                 label={t("settings.alias_pref_always_expand")}
               >
                 <Switch
@@ -200,7 +205,7 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
 
               <PrefRow
                 description={t("settings.alias_pref_unsubscribe_action_desc")}
-                info="What happens when you click the unsubscribe button in a forwarded email."
+                info={t("settings.alias_pref_unsubscribe_action_info")}
                 label={t("settings.alias_pref_unsubscribe_action")}
               >
                 <Select
@@ -233,7 +238,7 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
 
               <PrefRow
                 description={t("settings.alias_pref_disabled_response_desc")}
-                info="What the sender sees when they email a disabled alias or a blocked contact."
+                info={t("settings.alias_pref_disabled_response_info")}
                 label={t("settings.alias_pref_disabled_response")}
               >
                 <Select
@@ -258,7 +263,7 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
 
               <PrefRow
                 description={t("settings.alias_pref_delete_action_desc")}
-                info="Move to trash keeps deleted aliases recoverable for 30 days. Delete immediately removes them permanently."
+                info={t("settings.alias_pref_delete_action_info")}
                 label={t("settings.alias_pref_delete_action")}
               >
                 <Select

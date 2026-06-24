@@ -25,6 +25,12 @@ import { use_folders, type DecryptedFolder } from "./use_folders";
 
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n/types";
+
+type TranslateFn = (
+  key: TranslationKey,
+  params?: Record<string, string | number>,
+) => string;
 
 type ViewType =
   | "inbox"
@@ -175,14 +181,14 @@ function truncate_subject(subject: string, max_length: number = 60): string {
   return subject.substring(0, max_length - 3) + "...";
 }
 
-function format_workspace_name(name: string): string {
+function format_workspace_name(name: string, t: TranslateFn): string {
   const trimmed = name.trim();
 
-  if (!trimmed) return "Aster Mail";
+  if (!trimmed) return t("common.aster_mail");
 
   const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 
-  return `${capitalized}'s Workspace | Aster Mail`;
+  return t("common.workspace_title", { name: capitalized });
 }
 
 function get_view_label(
@@ -261,7 +267,7 @@ export function use_document_title(options: DocumentTitleOptions = {}): void {
   };
 
   const user_name = user?.display_name || user?.username || "";
-  const workspace = format_workspace_name(user_name);
+  const workspace = format_workspace_name(user_name, t);
 
   let contribution: string;
 

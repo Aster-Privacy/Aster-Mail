@@ -239,10 +239,10 @@ export function HardwareKeysSection() {
                             if (e.key === "Escape") cancel_rename();
                           }}
                         />
-                        <button
-                          className="text-xs text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           disabled={is_saving_rename}
-                          type="button"
                           onClick={() => save_rename(key.id)}
                         >
                           {is_saving_rename ? (
@@ -250,14 +250,14 @@ export function HardwareKeysSection() {
                           ) : (
                             t("common.save")
                           )}
-                        </button>
-                        <button
-                          className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
-                          type="button"
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={cancel_rename}
                         >
                           {t("common.cancel")}
-                        </button>
+                        </Button>
                       </div>
                     ) : (
                       <p className="text-sm font-medium text-txt-primary">

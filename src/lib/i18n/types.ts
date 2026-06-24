@@ -89,8 +89,6 @@ export interface PasskeysTranslations {
   saved_to_password_manager: string;
   passkey_hint: string;
   security_key_hint: string;
-  rename: string;
-  rename_saved: string;
 }
 
 export interface SecureViewTranslations {
@@ -273,6 +271,39 @@ export interface MailRulesTranslations {
   expression_placeholder: string;
   expression_parse_error: string;
   cannot_render_visual: string;
+  templates_button: string;
+  templates_title: string;
+  templates_subtitle: string;
+  templates_search_placeholder: string;
+  templates_empty: string;
+  templates_use: string;
+  templates_customize: string;
+  templates_category_organize: string;
+  templates_category_cleanup: string;
+  templates_category_priority: string;
+  templates_category_security: string;
+  tpl_newsletters_name: string;
+  tpl_newsletters_desc: string;
+  tpl_social_name: string;
+  tpl_social_desc: string;
+  tpl_promotions_name: string;
+  tpl_promotions_desc: string;
+  tpl_calendar_name: string;
+  tpl_calendar_desc: string;
+  tpl_large_attachments_name: string;
+  tpl_large_attachments_desc: string;
+  tpl_no_reply_name: string;
+  tpl_no_reply_desc: string;
+  tpl_receipts_name: string;
+  tpl_receipts_desc: string;
+  tpl_vip_sender_name: string;
+  tpl_vip_sender_desc: string;
+  tpl_keyword_star_name: string;
+  tpl_keyword_star_desc: string;
+  tpl_auth_failures_name: string;
+  tpl_auth_failures_desc: string;
+  tpl_forward_copy_name: string;
+  tpl_forward_copy_desc: string;
 }
 
 export interface CommonTranslations {
@@ -329,6 +360,7 @@ export interface CommonTranslations {
   page: string;
   aster_mail: string;
   deck: string;
+  workspace_title: string;
   create_folder: string;
   create_label: string;
   more_folders: string;
@@ -1168,6 +1200,7 @@ export interface CommonTranslations {
   bcc_label: string;
   date_label: string;
   subject_label: string;
+  send_at_label: string;
   received: string;
   select_email_to_read: string;
   remove_from_contacts: string;
@@ -3579,6 +3612,7 @@ export interface SettingsTranslations {
   drag_drop_files: string;
   supported_import_formats: string;
   browse_files: string;
+  browse_folder: string;
   importing_emails_progress: string;
   import_folder_prep_status: string;
   emails_of_total: string;
@@ -3729,6 +3763,7 @@ export interface SettingsTranslations {
   import_manual_button: string;
   import_oauth_coming_soon: string;
   connected_accounts_title: string;
+  connected_accounts_fallback_name: string;
   connected_accounts_none: string;
   connected_accounts_last_sync: string;
   connected_accounts_never_synced: string;
@@ -3996,11 +4031,6 @@ export interface SettingsTranslations {
   credit_task_refer_cta: string;
   credit_task_ios_title: string;
   credit_task_ios_hint_coming: string;
-  credit_task_android_title: string;
-  credit_task_android_hint: string;
-  credit_task_desktop_title: string;
-  credit_task_desktop_hint: string;
-  credit_task_download_cta: string;
   credit_task_earned: string;
   top_up_credits: string;
   top_up_credits_description: string;
@@ -4475,23 +4505,29 @@ export interface SettingsTranslations {
   alias_pref_default_domain_desc: string;
   alias_pref_sender_format: string;
   alias_pref_sender_format_desc: string;
+  alias_pref_sender_format_info: string;
   alias_pref_sender_via: string;
   alias_pref_sender_at: string;
   alias_pref_readable_reverse: string;
   alias_pref_readable_reverse_desc: string;
+  alias_pref_readable_reverse_info: string;
   alias_pref_always_expand: string;
   alias_pref_always_expand_desc: string;
+  alias_pref_always_expand_info: string;
   alias_pref_unsubscribe_action: string;
   alias_pref_unsubscribe_action_desc: string;
+  alias_pref_unsubscribe_action_info: string;
   alias_pref_unsubscribe_preserve: string;
   alias_pref_unsubscribe_disable_alias: string;
   alias_pref_unsubscribe_block_contact: string;
   alias_pref_disabled_response: string;
   alias_pref_disabled_response_desc: string;
+  alias_pref_disabled_response_info: string;
   alias_pref_disabled_ignore: string;
   alias_pref_disabled_reject: string;
   alias_pref_delete_action: string;
   alias_pref_delete_action_desc: string;
+  alias_pref_delete_action_info: string;
   alias_pref_delete_trash: string;
   alias_pref_delete_immediate: string;
   alias_activity_title: string;

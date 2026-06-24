@@ -153,7 +153,7 @@ export function ContactsModal({
 
       <ConfirmationModal
         cancel_text={modal.t("common.cancel")}
-        confirm_text={`${modal.t("common.delete")} ${modal.selected_ids.size} contact${modal.selected_ids.size === 1 ? "" : "s"}`}
+        confirm_text={modal.t("common.delete_selected_contacts")}
         is_open={modal.is_bulk_deleting}
         message={modal.t("common.delete_contacts_confirm", {
           count: modal.selected_ids.size,

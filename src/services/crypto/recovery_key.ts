@@ -34,6 +34,16 @@ function array_to_base64(array: Uint8Array): string {
   return btoa(binary);
 }
 
+function canonicalize_recovery_code(code: string): string {
+  const stripped = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+  if (stripped.startsWith("ASTER") && stripped.length === 17) {
+    return `ASTER-${stripped.slice(5, 9)}-${stripped.slice(9, 13)}-${stripped.slice(13)}`;
+  }
+
+  return code.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+}
+
 export interface VaultBackup {
   encrypted_data: string;
   nonce: string;
@@ -144,7 +154,7 @@ export async function encrypt_recovery_key_with_code(
   recovery_key: Uint8Array,
   code: string,
 ): Promise<EncryptedRecoveryKey> {
-  const normalized_code = code.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  const normalized_code = canonicalize_recovery_code(code);
   const code_bytes = new TextEncoder().encode(normalized_code);
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
@@ -187,7 +197,7 @@ export async function decrypt_recovery_key_with_code(
   encrypted: EncryptedRecoveryKey,
   code: string,
 ): Promise<Uint8Array> {
-  const normalized_code = code.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  const normalized_code = canonicalize_recovery_code(code);
   const code_bytes = new TextEncoder().encode(normalized_code);
   const encrypted_key = base64_to_array(encrypted.encrypted_key);
   const nonce = base64_to_array(encrypted.nonce);
@@ -224,15 +234,7 @@ export async function decrypt_recovery_key_with_code(
 }
 
 export async function hash_recovery_code(code: string): Promise<string> {
-  const stripped = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
-  let normalized_code: string;
-
-  if (stripped.startsWith("ASTER") && stripped.length === 17) {
-    normalized_code = `ASTER-${stripped.slice(5, 9)}-${stripped.slice(9, 13)}-${stripped.slice(13)}`;
-  } else {
-    normalized_code = code.toUpperCase().replace(/[^A-Z0-9-]/g, "");
-  }
-
+  const normalized_code = canonicalize_recovery_code(code);
   const code_bytes = new TextEncoder().encode(normalized_code);
   const hash = await crypto.subtle.digest(HASH_ALG, code_bytes);
 

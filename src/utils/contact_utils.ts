@@ -48,6 +48,7 @@ export function parse_csv_line(line: string): string[] {
 
 export function get_days_until_birthday(birthday: string): number {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const birth_date = new Date(birthday);
   const this_year_birthday = new Date(
     today.getFullYear(),
@@ -61,5 +62,5 @@ export function get_days_until_birthday(birthday: string): number {
 
   const diff = this_year_birthday.getTime() - today.getTime();
 
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return Math.round(diff / (1000 * 60 * 60 * 24));
 }

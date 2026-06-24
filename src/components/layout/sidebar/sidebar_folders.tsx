@@ -190,10 +190,12 @@ export const SidebarFolders = memo(function SidebarFolders({
               </span>
             </button>
             <button
+              aria-label={t("common.create_folder")}
               className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-muted"
+              title={t("common.create_folder")}
               onClick={() => set_is_create_folder_open(true)}
             >
-              <PlusIcon className="w-4 h-4" />
+              <PlusIcon aria-hidden="true" className="w-4 h-4" />
             </button>
           </div>
         </div>

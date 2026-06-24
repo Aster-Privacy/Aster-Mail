@@ -29,6 +29,7 @@ import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n";
 import {
   SESSION_TIMEOUT_OPTIONS,
   KEY_ROTATION_OPTIONS,
@@ -37,15 +38,18 @@ import {
 import { InfoPopover } from "@/components/ui/info_popover";
 import type { LoginEventEntry } from "@/services/api/auth";
 
-function format_relative_time(iso: string): string {
+function format_relative_time(
+  iso: string,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): string {
   const diff = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return t("common.just_now");
+  if (minutes < 60) return t("common.minutes_ago_short", { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t("common.hours_ago_short", { count: hours });
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
+  if (days < 30) return t("common.days_ago_short", { count: days });
   return new Date(iso).toLocaleDateString();
 }
 
@@ -243,7 +247,7 @@ export function TwoFactorSection({
                   )}
                 </div>
                 <span className="text-xs text-txt-muted ml-4 shrink-0">
-                  {format_relative_time(event.created_at)}
+                  {format_relative_time(event.created_at, t)}
                 </span>
               </div>
             ))}

@@ -75,6 +75,9 @@ pub fn derive_key(
     salt: &[u8],
     key_len: usize,
 ) -> Result<Zeroizing<Vec<u8>>> {
+    if salt.len() < 16 {
+        return Err(CryptoError::KeyDerivation("salt too short".into()));
+    }
     let params = Params::new(
         ARGON2_MEMORY_COST,
         ARGON2_TIME_COST,

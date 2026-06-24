@@ -68,6 +68,7 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 
 export interface SingleActions {
   toggle_star: (email: InboxEmail) => Promise<boolean>;
@@ -95,6 +96,7 @@ export function use_single_actions(
   metadata: MetadataHelpers,
 ): SingleActions {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const {
     set_action_loading,
     set_action_error,
@@ -266,12 +268,14 @@ export function use_single_actions(
 
       if (offline_result.queued) {
         config.on_optimistic_update?.(email.id, { is_read: new_read });
+        emit_mail_item_updated({ id: email.id, is_read: new_read });
         if (is_received) adjust_stats_unread(new_read ? -1 : 1);
 
         return true;
       }
 
       if (is_received) adjust_stats_unread(new_read ? -1 : 1);
+      emit_mail_item_updated({ id: email.id, is_read: new_read });
 
       const success = await execute_single_action(
         email,
@@ -280,12 +284,17 @@ export function use_single_actions(
         () => update_with_metadata(email, { is_read: new_read }),
       );
 
-      if (!success && is_received) adjust_stats_unread(new_read ? 1 : -1);
+      if (!success) {
+        emit_mail_item_updated({ id: email.id, is_read: !new_read });
+        if (is_received) adjust_stats_unread(new_read ? 1 : -1);
+      }
 
       if (success && is_received && new_read) {
         mark_conversation_read({
           thread_token: email.thread_token,
+          thread_message_count: email.thread_message_count,
           grouped_count: email.grouped_email_ids?.length,
+          conversation_grouping: preferences.conversation_grouping,
         });
       }
 
@@ -295,6 +304,7 @@ export function use_single_actions(
       execute_single_action,
       update_with_metadata,
       config.on_optimistic_update,
+      preferences.conversation_grouping,
       t,
     ],
   );
@@ -314,12 +324,14 @@ export function use_single_actions(
 
       if (offline_result.queued) {
         config.on_optimistic_update?.(email.id, { is_read: true });
+        emit_mail_item_updated({ id: email.id, is_read: true });
         if (is_received) adjust_stats_unread(-1);
 
         return true;
       }
 
       if (is_received) adjust_stats_unread(-1);
+      emit_mail_item_updated({ id: email.id, is_read: true });
 
       const success = await execute_single_action(
         email,
@@ -328,12 +340,17 @@ export function use_single_actions(
         () => update_with_metadata(email, { is_read: true }),
       );
 
-      if (!success && is_received) adjust_stats_unread(1);
+      if (!success) {
+        emit_mail_item_updated({ id: email.id, is_read: false });
+        if (is_received) adjust_stats_unread(1);
+      }
 
       if (success && is_received) {
         mark_conversation_read({
           thread_token: email.thread_token,
+          thread_message_count: email.thread_message_count,
           grouped_count: email.grouped_email_ids?.length,
+          conversation_grouping: preferences.conversation_grouping,
         });
       }
 
@@ -343,6 +360,7 @@ export function use_single_actions(
       execute_single_action,
       update_with_metadata,
       config.on_optimistic_update,
+      preferences.conversation_grouping,
       t,
     ],
   );
@@ -362,12 +380,14 @@ export function use_single_actions(
 
       if (offline_result.queued) {
         config.on_optimistic_update?.(email.id, { is_read: false });
+        emit_mail_item_updated({ id: email.id, is_read: false });
         if (is_received) adjust_stats_unread(1);
 
         return true;
       }
 
       if (is_received) adjust_stats_unread(1);
+      emit_mail_item_updated({ id: email.id, is_read: false });
 
       const success = await execute_single_action(
         email,
@@ -376,7 +396,10 @@ export function use_single_actions(
         () => update_with_metadata(email, { is_read: false }),
       );
 
-      if (!success && is_received) adjust_stats_unread(-1);
+      if (!success) {
+        emit_mail_item_updated({ id: email.id, is_read: true });
+        if (is_received) adjust_stats_unread(-1);
+      }
 
       return success;
     },

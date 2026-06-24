@@ -57,6 +57,7 @@ import {
   subscribe as subscribe_index,
   get_version as get_index_version,
   remove_ids,
+  is_representative_unread,
 } from "@/services/category_index";
 
 const EMPTY_STATE: EmailListState = {
@@ -127,11 +128,17 @@ export function use_category_inbox(
 
       if (detail.is_trashed || detail.is_archived || detail.is_spam) {
         remove_ids([detail.id]);
-        set_state((prev) => ({
-          ...prev,
-          emails: prev.emails.filter((e) => e.id !== detail.id),
-          total_messages: Math.max(0, prev.total_messages - 1),
-        }));
+        set_state((prev) => {
+          const had_email = prev.emails.some((e) => e.id === detail.id);
+
+          return {
+            ...prev,
+            emails: prev.emails.filter((e) => e.id !== detail.id),
+            total_messages: had_email
+              ? Math.max(0, prev.total_messages - 1)
+              : prev.total_messages,
+          };
+        });
 
         return;
       }
@@ -261,9 +268,13 @@ export function use_category_inbox(
           remove_ids(stale_non_received);
         }
 
-        const received_only = fetched.filter(
-          (email) => email.item_type === "received",
-        );
+        const received_only = fetched
+          .filter((email) => email.item_type === "received")
+          .map((email) =>
+            email.is_read && is_representative_unread(email.id)
+              ? { ...email, is_read: false }
+              : email,
+          );
 
         const grouped =
           preferences.conversation_grouping !== false

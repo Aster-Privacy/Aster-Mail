@@ -71,6 +71,15 @@ let cached_external_options: SenderOption[] = [];
 let cached_user: User | null = null;
 let cache_populated = false;
 
+export function clear_sender_aliases_cache(): void {
+  cached_aliases = [];
+  cached_alias_hashes = new Map();
+  cached_domain_options = [];
+  cached_external_options = [];
+  cached_user = null;
+  cache_populated = false;
+}
+
 export function use_sender_aliases() {
   const [aliases, set_aliases] =
     useState<DecryptedEmailAlias[]>(cached_aliases);
