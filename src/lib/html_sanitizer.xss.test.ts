@@ -183,6 +183,36 @@ describe("sanitize_html adversarial / mutation-XSS", () => {
     expect_inert(sanitize_html(combined).html);
     expect_inert(sanitize_html(combined, { sandbox_mode: true }).html);
   });
+
+  it("entity-encoded </style> cannot break out of the style element on shadow re-parse", () => {
+    const input =
+      "<style>x{}&lt;/style&gt;&lt;img src=x onerror=alert(1)&gt;</style>";
+    const { html } = sanitize_html(input, { sandbox_mode: true });
+
+    const host = document.createElement("div");
+    host.innerHTML = html;
+
+    expect(host.querySelectorAll("img").length).toBe(0);
+    expect(host.querySelectorAll("[onerror]").length).toBe(0);
+  });
+
+  it("entity-encoded </style> with case/space variants stays contained on re-parse", () => {
+    const variants = [
+      "<style>a{}&lt;/STYLE &gt;&lt;img src=x onerror=alert(1)&gt;</style>",
+      "<style>b{}&lt;/style\t&gt;&lt;svg onload=alert(1)&gt;</style>",
+      "<style>c{}&#x3c;/style&#x3e;&lt;img src=x onerror=alert(1)&gt;</style>",
+    ];
+
+    for (const input of variants) {
+      const { html } = sanitize_html(input, { sandbox_mode: true });
+      const host = document.createElement("div");
+      host.innerHTML = html;
+
+      expect(host.querySelectorAll("img").length).toBe(0);
+      expect(host.querySelectorAll("svg").length).toBe(0);
+      expect(host.querySelectorAll("[onerror], [onload]").length).toBe(0);
+    }
+  });
 });
 
 describe("sanitize_html preserves legitimate content (no over-stripping)", () => {
