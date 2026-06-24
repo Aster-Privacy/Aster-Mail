@@ -39,6 +39,7 @@ import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_recovery_email_cache } from "@/services/api/recovery_email";
 import { clear_search_index } from "@/hooks/use_search";
+import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
 import { clear_all_app_lock_data } from "@/services/app_lock_store";
 import { clear_category_index } from "@/services/category_index";
 import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
@@ -89,6 +90,7 @@ export async function purge_all_local_data(): Promise<void> {
   clear_session();
   clear_all_switch_tokens();
   clear_attachment_keys();
+  clear_attachment_preview_cache();
 
   try {
     await clear_category_index();

@@ -22,7 +22,6 @@ import { Preferences } from "@capacitor/preferences";
 
 import { is_native_platform, get_network_status } from "./capacitor_bridge";
 import { haptic_notification } from "./haptic_feedback";
-import { api_client } from "@/services/api/client";
 
 export type OfflineActionType =
   | "send_email"
@@ -189,6 +188,13 @@ interface SendEmailPayload {
   bcc?: string[];
   subject: string;
   body: string;
+  in_reply_to?: string;
+  sender_email?: string;
+  sender_alias_hash?: string;
+  sender_display_name?: string;
+  expires_at?: string;
+  expiry_password?: string;
+  secure_external?: boolean;
   attachments?: { name: string; data: string; type: string }[];
 }
 
@@ -212,11 +218,42 @@ interface MovePayload {
 }
 
 async function process_send_email(payload: SendEmailPayload): Promise<void> {
-  const result = await api_client.post("/mail/v1/send", payload);
+  const { execute_send } = await import("@/services/send_queue_encryption");
+  const { base64_to_array } = await import("@/services/crypto/envelope");
 
-  if (result.error) {
-    throw new Error(`Failed to send email: ${result.error}`);
-  }
+  const attachments = (payload.attachments || []).map((a) => {
+    const bytes = base64_to_array(a.data);
+
+    return {
+      id: crypto.randomUUID(),
+      name: a.name,
+      size: String(bytes.byteLength),
+      size_bytes: bytes.byteLength,
+      mime_type: a.type,
+      data: bytes.slice().buffer,
+      is_inline: false,
+    };
+  });
+
+  await execute_send({
+    id: crypto.randomUUID(),
+    scheduled_time: Date.now(),
+    timeout_id: 0,
+    callbacks: { on_complete: () => {}, on_cancel: () => {} },
+    to: payload.to,
+    cc: payload.cc,
+    bcc: payload.bcc,
+    subject: payload.subject,
+    body: payload.body,
+    in_reply_to: payload.in_reply_to,
+    sender_email: payload.sender_email,
+    sender_alias_hash: payload.sender_alias_hash,
+    sender_display_name: payload.sender_display_name,
+    expires_at: payload.expires_at,
+    expiry_password: payload.expiry_password,
+    secure_external: payload.secure_external,
+    attachments: attachments.length > 0 ? attachments : undefined,
+  });
 }
 
 async function process_archive(payload: EmailActionPayload): Promise<void> {

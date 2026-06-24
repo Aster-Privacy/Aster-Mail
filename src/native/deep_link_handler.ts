@@ -24,6 +24,7 @@ type DeepLinkHandler = (params: Record<string, string>) => void;
 
 interface DeepLinkRoute {
   pattern: RegExp;
+  param_names: string[];
   handler: DeepLinkHandler;
 }
 
@@ -33,13 +34,19 @@ export function register_deep_link_route(
   pattern: string,
   handler: DeepLinkHandler,
 ): void {
+  const param_names: string[] = [];
   const regex_pattern = pattern
     .replace(/\\/g, "\\\\")
-    .replace(/:[a-zA-Z_]+/g, "([^/]+)")
+    .replace(/:[a-zA-Z_]+/g, (match) => {
+      param_names.push(match.slice(1));
+
+      return "([^/]+)";
+    })
     .replace(/\//g, "\\/");
 
   routes.push({
     pattern: new RegExp(`^${regex_pattern}$`),
+    param_names,
     handler,
   });
 }
@@ -54,6 +61,18 @@ export function handle_deep_link(url: string): boolean {
 
     if (match) {
       const params = { ...parsed.query_params };
+
+      route.param_names.forEach((name, i) => {
+        const value = match[i + 1];
+
+        if (value !== undefined) {
+          try {
+            params[name] = decodeURIComponent(value);
+          } catch {
+            params[name] = value;
+          }
+        }
+      });
 
       route.handler(params);
 

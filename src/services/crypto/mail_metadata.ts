@@ -337,6 +337,7 @@ export interface MetadataUpdateResult {
 type UpdateResult = { success: boolean; encrypted?: MetadataUpdateResult };
 
 const in_flight_requests = new Map<string, Promise<UpdateResult>>();
+const item_chains = new Map<string, Promise<UpdateResult>>();
 const recently_completed = new Map<
   string,
   { result: UpdateResult; timestamp: number }
@@ -386,16 +387,35 @@ export async function update_item_metadata(
     return in_flight;
   }
 
+  const prev_for_item = item_chains.get(item_id);
+
   const execute = async (): Promise<UpdateResult> => {
+    let base: MetadataUpdateOptions = current;
+
+    if (prev_for_item) {
+      try {
+        const prev = await prev_for_item;
+
+        if (prev.success && prev.encrypted) {
+          base = {
+            encrypted_metadata: prev.encrypted.encrypted_metadata,
+            metadata_nonce: prev.encrypted.metadata_nonce,
+          };
+        }
+      } catch {
+        /* previous write failed; fall back to the caller snapshot */
+      }
+    }
+
     const { patch_mail_item_metadata } = await import("@/services/api/mail");
 
     let current_metadata: MailItemMetadata | null = null;
 
-    if (current.encrypted_metadata && current.metadata_nonce) {
+    if (base.encrypted_metadata && base.metadata_nonce) {
       current_metadata = await decrypt_mail_metadata(
-        current.encrypted_metadata,
-        current.metadata_nonce,
-        current.metadata_version,
+        base.encrypted_metadata,
+        base.metadata_nonce,
+        base.metadata_version,
       );
     }
 
@@ -448,8 +468,10 @@ export async function update_item_metadata(
   };
 
   const promise = execute();
+  const chained = promise.catch(() => ({ success: false }) as UpdateResult);
 
   in_flight_requests.set(dedup_key, promise);
+  item_chains.set(item_id, chained);
 
   try {
     const result = await promise;
@@ -461,6 +483,9 @@ export async function update_item_metadata(
     return result;
   } finally {
     in_flight_requests.delete(dedup_key);
+    if (item_chains.get(item_id) === chained) {
+      item_chains.delete(item_id);
+    }
   }
 }
 

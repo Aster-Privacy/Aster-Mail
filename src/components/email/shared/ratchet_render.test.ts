@@ -196,7 +196,7 @@ describe("internal ratchet mail rendering", () => {
     expect(JSON.stringify(result)).not.toContain("double_ratchet_v2");
   });
 
-  it("does not push ratchet state to the server when decrypting a fresh-bootstrap message", async () => {
+  it("persists ratchet state to the server when decrypting a fresh-bootstrap message", async () => {
     const { envelope_json, receiver_vault } =
       await build_real_internal_envelope("a short reply");
 
@@ -215,17 +215,14 @@ describe("internal ratchet mail rendering", () => {
 
     expect(result.body_text).toBe("a short reply");
 
-    // A fresh bootstrap is reconstructed from the message itself on every
-    // decrypt, so the receive path must not persist ratchet state server-side.
-    expect((api_client.put as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(
-      0,
-    );
-    expect(
-      (api_client.post as ReturnType<typeof vi.fn>).mock.calls,
-    ).toHaveLength(0);
+    const receive_writes =
+      (api_client.put as ReturnType<typeof vi.fn>).mock.calls.length +
+      (api_client.post as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    expect(receive_writes).toBeGreaterThan(0);
   });
 
-  it("does not push ratchet state to the server when SENDING a fresh-bootstrap message", async () => {
+  it("persists ratchet state to the server when SENDING a fresh-bootstrap message", async () => {
     const sender_keys = (await generate_ratchet_keys())!;
     const receiver_keys = (await generate_ratchet_keys())!;
 
@@ -253,11 +250,11 @@ describe("internal ratchet mail rendering", () => {
 
     expect(recipient_data).not.toBeNull();
     expect(recipient_data!.header.message_number).toBe(0);
-    expect((api_client.put as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(
-      0,
-    );
-    expect(
-      (api_client.post as ReturnType<typeof vi.fn>).mock.calls,
-    ).toHaveLength(0);
+
+    const send_writes =
+      (api_client.put as ReturnType<typeof vi.fn>).mock.calls.length +
+      (api_client.post as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    expect(send_writes).toBeGreaterThan(0);
   });
 });

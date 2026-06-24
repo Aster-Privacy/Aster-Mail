@@ -44,6 +44,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
+  PGP_UNDECRYPTABLE_SENTINEL,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
@@ -125,15 +126,17 @@ export function MobileThreadMessage({
   const has_plaintext_body =
     !!message.body &&
     message.body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
+    message.body !== PGP_UNDECRYPTABLE_SENTINEL &&
     !is_ratchet_envelope(message.body);
   const is_ratchet_undecryptable =
     !has_plaintext_body &&
     (message.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
+      message.body === PGP_UNDECRYPTABLE_SENTINEL ||
       is_ratchet_envelope(message.body) ||
       is_ratchet_envelope(message.html_content));
 
   const collapsed_preview = useMemo(() => {
-    if (clean_body === RATCHET_UNDECRYPTABLE_SENTINEL) {
+    if (clean_body === RATCHET_UNDECRYPTABLE_SENTINEL || clean_body === PGP_UNDECRYPTABLE_SENTINEL) {
       return t("mail.encrypted_message_unavailable");
     }
     const plain = strip_html_tags(clean_body);

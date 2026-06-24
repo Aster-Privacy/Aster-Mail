@@ -52,7 +52,16 @@ const STORAGE_KEY = "astermail:pending_sends";
 function persist_to_storage(sends: PendingSend[]): void {
   try {
     const serializable = sends.map(
-      ({ timeout_id, on_send_immediately, ...rest }) => rest,
+      ({
+        timeout_id,
+        on_send_immediately,
+        subject,
+        body,
+        to,
+        cc,
+        bcc,
+        ...rest
+      }) => ({ ...rest, to: [], subject: "", body: "" }),
     );
 
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
@@ -164,6 +173,11 @@ class UndoSendManager {
 }
 
 export const undo_send_manager = new UndoSendManager();
+
+export function clear_undo_send_state(): void {
+  undo_send_manager.clear();
+  clear_storage();
+}
 
 export interface UndoSendEvent {
   id: string;

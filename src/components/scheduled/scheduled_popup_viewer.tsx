@@ -580,7 +580,7 @@ export function ScheduledPopupViewer({
                       </div>
                       <div className="flex">
                         <span className="w-14 flex-shrink-0 text-txt-muted">
-                          Send at:
+                          {t("common.send_at_label")}
                         </span>
                         <span className="text-txt-secondary">
                           {format_full_date(scheduled_data.scheduled_at)}

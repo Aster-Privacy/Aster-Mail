@@ -36,12 +36,26 @@ import type {
 
 const PAGE_SIZE = 50;
 
+function date_boundary_local(value: string, end_of_day: boolean): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+
+  if (m && +m[2] >= 1 && +m[2] <= 12) {
+    return end_of_day
+      ? new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59, 999).getTime()
+      : new Date(+m[1], +m[2] - 1, +m[3], 0, 0, 0, 0).getTime();
+  }
+
+  return new Date(value).getTime();
+}
+
 function in_date_range(iso: string, scope: ExportScope): boolean {
   if (!scope.date_from && !scope.date_to) return true;
   const t = new Date(iso).getTime();
   if (Number.isNaN(t)) return true;
-  if (scope.date_from && t < new Date(scope.date_from).getTime()) return false;
-  if (scope.date_to && t > new Date(scope.date_to).getTime()) return false;
+  if (scope.date_from && t < date_boundary_local(scope.date_from, false))
+    return false;
+  if (scope.date_to && t > date_boundary_local(scope.date_to, true))
+    return false;
   return true;
 }
 

@@ -376,6 +376,7 @@ interface DerivedData {
   version: number;
   counts: CategoryCounts;
   pages: Map<EmailCategory, string[]>;
+  unread_reps: Set<string>;
 }
 
 let derived: DerivedData | null = null;
@@ -421,6 +422,7 @@ function compute_derived(): DerivedData {
 
   const counts = empty_counts();
   const grouped = new Map<EmailCategory, { id: string; ts: number }[]>();
+  const unread_reps = new Set<string>();
 
   for (const tab of CATEGORY_TABS) {
     grouped.set(tab, []);
@@ -435,6 +437,7 @@ function compute_derived(): DerivedData {
     bucket.total += 1;
     if (rep.any_unread) {
       bucket.unread += 1;
+      unread_reps.add(rep.entry.id);
       if (rep.ts > (seen_ts[tab] ?? 0)) {
         bucket.new_count += 1;
       }
@@ -452,7 +455,7 @@ function compute_derived(): DerivedData {
     );
   }
 
-  return { version, counts, pages };
+  return { version, counts, pages, unread_reps };
 }
 
 function ensure_derived(): DerivedData {
@@ -489,6 +492,10 @@ export function get_page_ids(
 
 export function get_category_total(category: EmailCategory): number {
   return ensure_derived().counts[category]?.total ?? 0;
+}
+
+export function is_representative_unread(id: string): boolean {
+  return ensure_derived().unread_reps.has(id);
 }
 
 export function is_fully_built(): boolean {
@@ -926,7 +933,10 @@ export function start_event_listeners(): void {
       typeof detail.is_read === "boolean" &&
       existing.is_read !== detail.is_read
     ) {
-      upsert_entries([{ ...existing, is_read: detail.is_read }]);
+      if (apply_upsert([{ ...existing, is_read: detail.is_read }])) {
+        schedule_persist();
+        notify();
+      }
     }
   });
 }
@@ -1000,6 +1010,30 @@ export async function clear_category_index(): Promise<void> {
       const tx = db.transaction(STORE_NAME, "readwrite");
 
       tx.objectStore(STORE_NAME).clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+
+    db.close();
+  } catch {
+    return;
+  }
+}
+
+export async function delete_category_index_for_account(
+  account_id: string,
+): Promise<void> {
+  clear_category_index_memory();
+
+  if (!account_id) return;
+
+  try {
+    const db = await open_db();
+
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+
+      tx.objectStore(STORE_NAME).delete(account_id);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });

@@ -95,7 +95,9 @@ export function use_external_accounts() {
 
   const fetch_accounts = useCallback(async () => {
     try {
-      const result = await list_external_accounts();
+      const result = await list_external_accounts(
+        t("settings.connected_accounts_fallback_name"),
+      );
 
       if (result.data && form.is_mounted_ref.current) {
         set_accounts(result.data);
@@ -105,7 +107,7 @@ export function use_external_accounts() {
         set_is_loading(false);
       }
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetch_accounts();

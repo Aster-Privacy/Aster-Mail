@@ -94,6 +94,9 @@ function MobileComposePage({
       } else if (show_expiration_sheet) {
         e.preventDefault();
         set_show_expiration_sheet(false);
+      } else if (show_ghost_sheet) {
+        e.preventDefault();
+        set_show_ghost_sheet(false);
       } else {
         e.preventDefault();
         on_close();
@@ -104,7 +107,13 @@ function MobileComposePage({
 
     return () =>
       window.removeEventListener("capacitor:backbutton", handle_back);
-  }, [show_sender_sheet, show_schedule_sheet, show_expiration_sheet, on_close]);
+  }, [
+    show_sender_sheet,
+    show_schedule_sheet,
+    show_expiration_sheet,
+    show_ghost_sheet,
+    on_close,
+  ]);
 
   const compose = use_compose({
     on_close,

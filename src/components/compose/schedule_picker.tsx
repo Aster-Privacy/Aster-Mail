@@ -27,6 +27,7 @@ import {
   nextMonday,
   isBefore,
   startOfMinute,
+  startOfDay,
 } from "date-fns";
 import {
   ClockIcon,
@@ -287,7 +288,7 @@ export function SchedulePicker({
             </div>
             <Calendar
               initialFocus
-              disabled={(date) => isBefore(date, startOfMinute(new Date()))}
+              disabled={(date) => isBefore(date, startOfDay(new Date()))}
               mode="single"
               selected={selected_date}
               onSelect={set_selected_date}

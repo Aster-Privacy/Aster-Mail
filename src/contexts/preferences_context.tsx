@@ -250,15 +250,19 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     } else {
       set_save_status("error");
 
+      if (!latest_prefs_ref.current) {
+        latest_prefs_ref.current = prefs;
+      }
+
+      is_saving_ref.current = false;
+
       window.setTimeout(() => {
-        is_saving_ref.current = false;
+        if (is_saving_ref.current) return;
 
         if (latest_prefs_ref.current) {
           flush_save_ref.current();
         }
       }, 3000);
-
-      is_saving_ref.current = false;
 
       return;
     }
@@ -308,6 +312,50 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     schedule_save(prefs);
   }, [schedule_save]);
 
+  const save_immediately = useCallback((updated: UserPreferences) => {
+    latest_prefs_ref.current = updated;
+    beacon_payload_ref.current = null;
+
+    if (debounce_timer.current) {
+      clearTimeout(debounce_timer.current);
+      debounce_timer.current = null;
+    }
+
+    if (saved_indicator_timer.current) {
+      clearTimeout(saved_indicator_timer.current);
+      saved_indicator_timer.current = null;
+    }
+
+    const v = vault_ref.current;
+
+    if (v) {
+      prepare_preferences_payload(updated, v).then((payload) => {
+        if (latest_prefs_ref.current === updated) {
+          beacon_payload_ref.current = payload;
+        }
+      });
+    }
+
+    do_save(updated).then((ok) => {
+      if (ok) {
+        cache_preferences_locally(updated);
+
+        if (latest_prefs_ref.current === updated) {
+          latest_prefs_ref.current = null;
+          beacon_payload_ref.current = null;
+        }
+
+        set_save_status("saved");
+        saved_indicator_timer.current = window.setTimeout(() => {
+          set_save_status("idle");
+          saved_indicator_timer.current = null;
+        }, 2000);
+      } else {
+        set_save_status("error");
+      }
+    });
+  }, [do_save]);
+
   const update_preference = useCallback(
     <K extends keyof UserPreferences>(
       key: K,
@@ -340,22 +388,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         }
 
         if (immediate) {
-          latest_prefs_ref.current = updated;
-
-          if (debounce_timer.current) {
-            clearTimeout(debounce_timer.current);
-            debounce_timer.current = null;
-          }
-
-          do_save(updated).then((ok) => {
-            if (ok) {
-              cache_preferences_locally(updated);
-              set_save_status("saved");
-              window.setTimeout(() => set_save_status("idle"), 2000);
-            } else {
-              set_save_status("error");
-            }
-          });
+          save_immediately(updated);
         } else {
           trigger_save(updated);
         }
@@ -363,7 +396,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         return updated;
       });
     },
-    [trigger_save, do_save],
+    [trigger_save, save_immediately],
   );
 
   const update_preferences = useCallback(
@@ -372,22 +405,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         const updated = { ...prev, ...updates };
 
         if (immediate) {
-          latest_prefs_ref.current = updated;
-
-          if (debounce_timer.current) {
-            clearTimeout(debounce_timer.current);
-            debounce_timer.current = null;
-          }
-
-          do_save(updated).then((ok) => {
-            if (ok) {
-              cache_preferences_locally(updated);
-              set_save_status("saved");
-              window.setTimeout(() => set_save_status("idle"), 2000);
-            } else {
-              set_save_status("error");
-            }
-          });
+          save_immediately(updated);
         } else {
           trigger_save(updated);
         }
@@ -395,7 +413,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         return updated;
       });
     },
-    [trigger_save, do_save],
+    [trigger_save, save_immediately],
   );
 
   const reset_to_defaults = useCallback(() => {
@@ -563,6 +581,8 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         }
       }
 
+      has_loaded_ref.current = true;
+      cache_preferences_locally(merged);
       set_preferences(merged);
       set_low_network_mode(merged.low_network_mode);
       apply_visual_preferences(merged);

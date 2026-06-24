@@ -44,7 +44,7 @@ pub fn sign_message(message: &[u8], signer: &KeyPair) -> Result<Vec<u8>> {
     Ok(armored)
 }
 
-fn signed_public_key_can_sign(spk: &SignedPublicKey) -> bool {
+pub(crate) fn signed_public_key_can_sign(spk: &SignedPublicKey) -> bool {
     let primary_sigs = spk
         .details
         .users
@@ -84,7 +84,7 @@ fn signed_public_key_can_sign(spk: &SignedPublicKey) -> bool {
     false
 }
 
-fn signed_secret_key_can_sign(ssk: &SignedSecretKey) -> bool {
+pub(crate) fn signed_secret_key_can_sign(ssk: &SignedSecretKey) -> bool {
     let spk: SignedPublicKey = ssk.clone().into();
     signed_public_key_can_sign(&spk)
 }

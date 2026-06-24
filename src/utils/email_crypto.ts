@@ -288,17 +288,19 @@ export function try_extract_mime_body(text: string): string {
   }
 }
 
+export const PGP_UNDECRYPTABLE_SENTINEL = "\x00ASTER_PGP_UNDECRYPTABLE\x00";
+
 export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
   if (!body_text.includes(PGP_MESSAGE_BEGIN)) return body_text;
 
   const vault = get_vault_from_memory();
   const passphrase = get_passphrase_from_memory();
 
-  if (!vault || !passphrase) return body_text;
+  if (!vault || !passphrase) return PGP_UNDECRYPTABLE_SENTINEL;
 
   const secret_key = vault.identity_key;
 
-  if (!secret_key) return body_text;
+  if (!secret_key) return PGP_UNDECRYPTABLE_SENTINEL;
 
   try {
     let decrypted = await decrypt_message(body_text, secret_key, passphrase);
@@ -308,8 +310,9 @@ export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
     }
 
     return decrypted;
-  } catch {
-    return body_text;
+  } catch (e) {
+    if (import.meta.env.DEV) console.error("pgp_decrypt_failed", e);
+    return PGP_UNDECRYPTABLE_SENTINEL;
   }
 }
 

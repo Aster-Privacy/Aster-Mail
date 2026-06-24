@@ -274,6 +274,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     const controller = new AbortController();
     const { signal } = controller;
+    const active_page = page_ref.current;
+    const refresh_limit = (active_page + 1) * page_size;
 
     try {
       const result = await fetch_mail_from_api(
@@ -281,7 +283,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         signal,
         format_options,
         user?.email || "",
-        page_size,
+        refresh_limit,
         undefined,
         0,
         preferences.conversation_grouping ?? true,
@@ -291,10 +293,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
       last_fetch_ref.current = {
         view: current_view,
-        page: 0,
+        page: active_page,
         time: Date.now(),
       };
-      page_ref.current = 0;
+      page_ref.current = active_page;
       state_view_ref.current = current_view;
 
       set_state((prev) => {

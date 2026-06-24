@@ -512,11 +512,11 @@ export default function ForgotPasswordPage() {
   };
 
   const handle_download_pdf = async () => {
-    await generate_recovery_pdf(email, new_recovery_codes);
+    await generate_recovery_pdf(email, new_recovery_codes, t);
   };
 
   const handle_download_txt = async () => {
-    await download_recovery_text(email, new_recovery_codes);
+    await download_recovery_text(email, new_recovery_codes, t);
   };
 
   const render_step_content = () => {

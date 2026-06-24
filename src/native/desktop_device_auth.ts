@@ -147,11 +147,7 @@ async function silent_device_login(device_id: string): Promise<void> {
 
   pending_device_login = { login_response, passphrase };
 
-  window.dispatchEvent(
-    new CustomEvent("astermail:device-login-success", {
-      detail: { login_response, passphrase },
-    }),
-  );
+  window.dispatchEvent(new CustomEvent("astermail:device-login-success"));
 }
 
 export async function request_device_code(

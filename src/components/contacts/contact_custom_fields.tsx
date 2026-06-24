@@ -24,7 +24,7 @@ import type {
   CustomFieldType,
 } from "@/types/contacts";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   PlusIcon,
@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import {
   list_custom_field_definitions,
+  list_contact_custom_field_values,
   create_custom_field_definition,
   delete_custom_field_definition,
   set_contact_custom_field_value,
@@ -97,6 +98,25 @@ export function ContactCustomFields({
     string | null
   >(null);
   const [error, set_error] = useState<string | null>(null);
+  const [values, set_values] =
+    useState<DecryptedCustomFieldValue[]>(field_values);
+
+  const on_field_values_change_ref = useRef(on_field_values_change);
+
+  useEffect(() => {
+    on_field_values_change_ref.current = on_field_values_change;
+  }, [on_field_values_change]);
+
+  useEffect(() => {
+    if (field_values.length > 0) {
+      set_values(field_values);
+    }
+  }, [field_values]);
+
+  const update_values = useCallback((next: DecryptedCustomFieldValue[]) => {
+    set_values(next);
+    on_field_values_change_ref.current(next);
+  }, []);
 
   const load_definitions = useCallback(async () => {
     set_is_loading(true);
@@ -105,6 +125,15 @@ export function ContactCustomFields({
 
       if (response.data) {
         set_definitions(response.data);
+
+        const values_response = await list_contact_custom_field_values(
+          contact_id,
+          response.data,
+        );
+
+        if (values_response.data) {
+          update_values(values_response.data);
+        }
       }
     } catch (err) {
       set_error(
@@ -115,7 +144,7 @@ export function ContactCustomFields({
     } finally {
       set_is_loading(false);
     }
-  }, []);
+  }, [contact_id, update_values]);
 
   useEffect(() => {
     load_definitions();
@@ -166,8 +195,8 @@ export function ContactCustomFields({
         }
 
         set_definitions((prev) => prev.filter((d) => d.id !== definition_id));
-        on_field_values_change(
-          field_values.filter((v) => v.field_definition_id !== definition_id),
+        update_values(
+          values.filter((v) => v.field_definition_id !== definition_id),
         );
       } catch (err) {
         set_error(
@@ -179,19 +208,19 @@ export function ContactCustomFields({
         set_deleting_definition_id(null);
       }
     },
-    [field_values, on_field_values_change],
+    [values, update_values],
   );
 
   const handle_start_edit = useCallback(
     (definition: DecryptedCustomFieldDefinition) => {
-      const existing_value = field_values.find(
+      const existing_value = values.find(
         (v) => v.field_definition_id === definition.id,
       );
 
       set_editing_field_id(definition.id);
       set_editing_value(existing_value?.value || "");
     },
-    [field_values],
+    [values],
   );
 
   const handle_save_value = useCallback(async () => {
@@ -214,24 +243,24 @@ export function ContactCustomFields({
           return;
         }
 
-        const existing_index = field_values.findIndex(
+        const existing_index = values.findIndex(
           (v) => v.field_definition_id === editing_field_id,
         );
 
         if (existing_index >= 0) {
-          const updated = [...field_values];
+          const updated = [...values];
 
           updated[existing_index] = {
             ...updated[existing_index],
             value: editing_value.trim(),
           };
-          on_field_values_change(updated);
+          update_values(updated);
         } else {
           const definition = definitions.find((d) => d.id === editing_field_id);
 
           if (definition) {
-            on_field_values_change([
-              ...field_values,
+            update_values([
+              ...values,
               {
                 id: crypto.randomUUID(),
                 contact_id,
@@ -245,16 +274,14 @@ export function ContactCustomFields({
           }
         }
       } else {
-        const existing = field_values.find(
+        const existing = values.find(
           (v) => v.field_definition_id === editing_field_id,
         );
 
         if (existing) {
           await delete_contact_custom_field_value(contact_id, editing_field_id);
-          on_field_values_change(
-            field_values.filter(
-              (v) => v.field_definition_id !== editing_field_id,
-            ),
+          update_values(
+            values.filter((v) => v.field_definition_id !== editing_field_id),
           );
         }
       }
@@ -272,8 +299,9 @@ export function ContactCustomFields({
     contact_id,
     editing_field_id,
     editing_value,
-    field_values,
-    on_field_values_change,
+    values,
+    update_values,
+    definitions,
   ]);
 
   const handle_cancel_edit = useCallback(() => {
@@ -284,11 +312,10 @@ export function ContactCustomFields({
   const get_field_value = useCallback(
     (definition_id: string): string => {
       return (
-        field_values.find((v) => v.field_definition_id === definition_id)
-          ?.value || ""
+        values.find((v) => v.field_definition_id === definition_id)?.value || ""
       );
     },
-    [field_values],
+    [values],
   );
 
   if (is_loading) {

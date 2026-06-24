@@ -309,10 +309,12 @@ export default function SignInPage() {
       process_device_login(pending as DeviceLoginDetail);
     }
 
-    const handle_login_success = (event: Event) => {
-      const detail = (event as CustomEvent).detail as DeviceLoginDetail;
+    const handle_login_success = () => {
+      const pending = consume_pending_device_login();
 
-      process_device_login(detail);
+      if (pending) {
+        process_device_login(pending as DeviceLoginDetail);
+      }
     };
 
     window.addEventListener(

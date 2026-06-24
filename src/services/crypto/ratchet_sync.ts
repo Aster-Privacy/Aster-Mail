@@ -392,14 +392,18 @@ export async function sync_all_ratchet_states(
 
         if (!server_info) {
           await sync_ratchet_to_server(local_ratchet, encryption_key);
+          local_ratchet.mark_synced();
+          await save_ratchet_state(local_ratchet);
           result.synced.push(conversation_id);
-        } else if (local_ratchet.get_state_version() > server_info.version) {
+        } else if (local_ratchet.is_dirty_since_sync()) {
           try {
             await sync_ratchet_to_server(
               local_ratchet,
               encryption_key,
               server_info.version,
             );
+            local_ratchet.mark_synced();
+            await save_ratchet_state(local_ratchet);
             result.synced.push(conversation_id);
           } catch {
             result.conflicts.push(conversation_id);
@@ -412,6 +416,7 @@ export async function sync_all_ratchet_states(
             );
 
             if (loaded) {
+              loaded.ratchet.mark_synced();
               await save_ratchet_state(loaded.ratchet);
               result.synced.push(conversation_id);
             }
@@ -440,6 +445,7 @@ export async function sync_all_ratchet_states(
         );
 
         if (loaded) {
+          loaded.ratchet.mark_synced();
           await save_ratchet_state(loaded.ratchet);
           result.synced.push(conversation_id);
         }

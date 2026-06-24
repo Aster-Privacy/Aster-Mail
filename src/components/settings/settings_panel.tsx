@@ -20,6 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n";
 import { SETTINGS_SEARCH_REGISTRY } from "@/components/settings/search_registry";
+import { SearchRegistryProvider, use_search_registry } from "@/components/settings/search_context";
 
 import {
   useState,
@@ -208,9 +209,11 @@ function get_nav_items(
 
 export function SettingsPanel(props: SettingsPanelProps) {
   return (
-    <SettingsCacheProvider>
-      <SettingsPanelInner {...props} />
-    </SettingsCacheProvider>
+    <SearchRegistryProvider>
+      <SettingsCacheProvider>
+        <SettingsPanelInner {...props} />
+      </SettingsCacheProvider>
+    </SearchRegistryProvider>
   );
 }
 
@@ -471,6 +474,8 @@ function SettingsPanelInner({
     return [...nav_items.general, ...nav_items.mail].filter(match);
   }, [search_query, nav_items]);
 
+  const { dynamic_entries } = use_search_registry();
+
   const registry_results = useMemo(() => {
     const q = search_query.trim().toLowerCase();
     if (q.length < 2) return [];
@@ -478,15 +483,21 @@ function SettingsPanelInner({
       ...nav_items.general.map((i) => i.id),
       ...nav_items.mail.map((i) => i.id),
     ]);
-    return SETTINGS_SEARCH_REGISTRY.filter((entry) => {
+    const all = [...SETTINGS_SEARCH_REGISTRY, ...dynamic_entries];
+    const seen = new Set<string>();
+    return all.filter((entry) => {
       if (!visible_sections.has(entry.section)) return false;
-      return (
+      const matches =
         entry.label.toLowerCase().includes(q) ||
         entry.breadcrumb.toLowerCase().includes(q) ||
-        entry.keywords?.some((kw) => kw.includes(q))
-      );
+        entry.keywords?.some((kw) => kw.includes(q));
+      if (!matches) return false;
+      const key = `${entry.section}::${entry.label}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
     }).slice(0, 12);
-  }, [search_query, nav_items]);
+  }, [search_query, nav_items, dynamic_entries]);
 
   useEffect(() => {
     if (!scroll_target) return;

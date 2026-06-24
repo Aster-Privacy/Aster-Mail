@@ -142,6 +142,11 @@ export function sanitize_style(style: string, sandbox_mode: boolean): string {
   result = result.replace(/javascript\s*:[^;]*/gi, "");
   result = result.replace(/vbscript\s*:[^;]*/gi, "");
 
+  result = result.replace(
+    /position\s*:\s*(fixed|sticky)/gi,
+    "position: relative",
+  );
+
   if (!sandbox_mode) {
     result = strip_css_urls(result);
     result = result.replace(
@@ -202,6 +207,8 @@ export function sanitize_css_block(css: string, _sandbox_mode = false): string {
   decoded = decoded.replace(/-webkit-image-set\s*\([^)]*\)/gi, "none");
   decoded = decoded.replace(/cross-fade\s*\([^)]*\)/gi, "none");
   decoded = strip_dark_mode_media(decoded);
+
+  decoded = decoded.replace(/<\/(style|script)/gi, "<\\/$1");
 
   return decoded;
 }

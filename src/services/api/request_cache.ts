@@ -31,6 +31,7 @@ interface CacheEntry {
 export class RequestCache {
   private response_cache = new Map<string, CacheEntry>();
   private in_flight = new Map<string, Promise<unknown>>();
+  private generation = 0;
 
   async get_or_fetch<T>(
     cache_key: string,
@@ -39,6 +40,8 @@ export class RequestCache {
     skip_cache: boolean = false,
     skip_dedup: boolean = false,
   ): Promise<T> {
+    const generation = this.generation;
+
     if (!skip_cache && ttl > 0) {
       const cached = this.response_cache.get(cache_key);
 
@@ -50,7 +53,11 @@ export class RequestCache {
     if (skip_dedup) {
       const result = await fetcher();
 
-      if (ttl > 0 && this.is_cacheable_response(result)) {
+      if (
+        generation === this.generation &&
+        ttl > 0 &&
+        this.is_cacheable_response(result)
+      ) {
         this.set_entry(cache_key, result, ttl);
       }
 
@@ -67,7 +74,11 @@ export class RequestCache {
       .then((result) => {
         this.in_flight.delete(cache_key);
 
-        if (ttl > 0 && this.is_cacheable_response(result)) {
+        if (
+          generation === this.generation &&
+          ttl > 0 &&
+          this.is_cacheable_response(result)
+        ) {
           this.set_entry(cache_key, result, ttl);
         }
 
@@ -118,6 +129,7 @@ export class RequestCache {
   clear(): void {
     this.response_cache.clear();
     this.in_flight.clear();
+    this.generation++;
   }
 
   get size(): number {
@@ -153,7 +165,7 @@ export class RequestCache {
   }
 
   private extract_resource_base(endpoint: string): string | null {
-    const match = endpoint.match(/^(\/[^/?]+\/v\d+\/[^/?]+)/);
+    const match = endpoint.match(/^(\/[^/?]+\/v\d+(?:\/[^/?]+)?)/);
 
     return match ? match[1] : null;
   }

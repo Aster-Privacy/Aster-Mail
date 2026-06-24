@@ -357,13 +357,17 @@ export function ModalContactDetail({
                     {selected_contact.social_links.website && (
                       <a
                         className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
-                        href={
-                          selected_contact.social_links.website.startsWith(
-                            "http",
-                          )
-                            ? selected_contact.social_links.website
-                            : `https://${selected_contact.social_links.website}`
-                        }
+                        href={(() => {
+                          try {
+                            const raw = selected_contact.social_links.website;
+                            const u = new URL(
+                              raw.startsWith("http") ? raw : `https://${raw}`,
+                            );
+                            if (u.protocol === "http:" || u.protocol === "https:")
+                              return u.href;
+                          } catch {}
+                          return undefined;
+                        })()}
                         rel="noopener noreferrer"
                         target="_blank"
                       >
