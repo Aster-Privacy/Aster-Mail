@@ -105,6 +105,23 @@ function is_canonical_folder(name: string): boolean {
   return CANONICAL_FOLDER_TOKENS.has(leaf);
 }
 
+export function derive_manual_import_source(files: File[]): ImportSource {
+  let has_mbox = false;
+  let has_eml = false;
+
+  for (const file of files) {
+    const name = file.name.toLowerCase();
+
+    if (name.endsWith(".mbox") || name.endsWith(".mbx")) has_mbox = true;
+    else if (name.endsWith(".eml") || name.endsWith(".emlx")) has_eml = true;
+  }
+
+  if (has_mbox) return "mbox";
+  if (has_eml) return "eml";
+
+  return "mbox";
+}
+
 function extract_source_folders(emails: ParsedEmail[]): string[] {
   const out = new Set<string>();
 
@@ -729,7 +746,12 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           set_parse_warnings(all_warnings.slice(0, 10));
         }
 
-        await process_emails(all_emails, active_provider);
+        const effective_source: ImportSource =
+          active_provider === "mbox"
+            ? derive_manual_import_source(files)
+            : active_provider;
+
+        await process_emails(all_emails, effective_source);
       } catch (err) {
         set_error(
           err instanceof Error
