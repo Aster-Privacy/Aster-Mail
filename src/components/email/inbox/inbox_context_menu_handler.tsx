@@ -564,11 +564,15 @@ export function use_context_menu_actions({
           : [email.id];
 
       if (is_already_assigned) {
-        update_email(email.id, { folders: [] });
+        const remaining_folders = previous_folders.filter(
+          (f) => f.folder_token !== folder_token,
+        );
+
+        update_email(email.id, { folders: remaining_folders });
         const result = await bulk_remove_folder(all_ids, folder_token);
 
         if (!result.error) {
-          emit_mail_item_updated({ id: email.id, folders: [] });
+          emit_mail_item_updated({ id: email.id, folders: remaining_folders });
           show_action_toast({
             message: t("common.removed_from_folder", { folder: folder_name }),
             action_type: "folder",
@@ -592,7 +596,7 @@ export function use_context_menu_actions({
         name: folder_name,
         color: folder_data?.color,
       };
-      const new_folders = [new_folder];
+      const new_folders = [...previous_folders, new_folder];
       const is_inbox =
         current_view === "inbox" ||
         current_view === "" ||

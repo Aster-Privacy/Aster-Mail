@@ -161,17 +161,26 @@ export const DEFAULT_CHECKLIST_TASKS: ChecklistTasksState = {
   first_email: false,
 };
 
-export async function fetch_onboarding_checklist(): Promise<ChecklistState | null> {
+export type ChecklistFetchResult =
+  | { kind: "ok"; state: ChecklistState }
+  | { kind: "not_available" }
+  | { kind: "transient" };
+
+export async function fetch_onboarding_checklist(): Promise<ChecklistFetchResult> {
   try {
     const response = await api_client.get<ChecklistState>(
       "/core/v1/onboarding/checklist",
     );
 
-    if (response.error || !response.data) return null;
+    if (response.data && !response.error) {
+      return { kind: "ok", state: response.data };
+    }
 
-    return response.data;
+    if (response.code === "NOT_FOUND") return { kind: "not_available" };
+
+    return { kind: "transient" };
   } catch {
-    return null;
+    return { kind: "transient" };
   }
 }
 

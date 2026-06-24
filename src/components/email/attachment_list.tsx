@@ -497,15 +497,23 @@ export function AttachmentList({
           );
 
           const thumbnail_promise = render_pdf_thumbnail(data, 400, 280);
+          let timed_out = false;
           const timeout_promise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("timeout")), 8000),
+            setTimeout(() => {
+              timed_out = true;
+              reject(new Error("timeout"));
+            }, 8000),
           );
+
+          thumbnail_promise
+            .then((late_url) => {
+              if (timed_out || cancelled) URL.revokeObjectURL(late_url);
+            })
+            .catch(() => {});
 
           const url = await Promise.race([thumbnail_promise, timeout_promise]);
 
           if (cancelled) {
-            URL.revokeObjectURL(url);
-
             return;
           }
 

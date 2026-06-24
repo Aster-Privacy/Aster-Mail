@@ -27,6 +27,7 @@ import type {
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
+  PGP_UNDECRYPTABLE_SENTINEL,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { strip_html_tags } from "@/lib/html_sanitizer";
@@ -351,6 +352,8 @@ export function mail_to_email(
   const is_undecryptable_body =
     resolved_text === RATCHET_UNDECRYPTABLE_SENTINEL ||
     resolved_html === RATCHET_UNDECRYPTABLE_SENTINEL ||
+    resolved_text === PGP_UNDECRYPTABLE_SENTINEL ||
+    resolved_html === PGP_UNDECRYPTABLE_SENTINEL ||
     is_ratchet_envelope(resolved_text) ||
     (!resolved_text && is_ratchet_envelope(raw_html));
   const preview_text = is_undecryptable_body
@@ -361,7 +364,9 @@ export function mail_to_email(
     (envelope as unknown as Record<string, string>).date ||
     item.created_at;
 
-  const sender_profile = get_cached_profile(envelope.from.email);
+  const from_email = envelope.from?.email || "";
+  const from_name = envelope.from?.name || "";
+  const sender_profile = get_cached_profile(from_email);
   const forwarding = resolve_forwarding_display(
     envelope.from,
     envelope.raw_headers,
@@ -370,8 +375,8 @@ export function mail_to_email(
   return {
     id: item.id,
     item_type: effective_metadata.item_type as MailItem["item_type"],
-    sender_name: envelope.from.name || get_email_username(envelope.from.email),
-    sender_email: envelope.from.email,
+    sender_name: from_name || get_email_username(from_email),
+    sender_email: from_email,
     ...(forwarding ?? {}),
     subject: envelope.subject || "",
     preview: preview_text,

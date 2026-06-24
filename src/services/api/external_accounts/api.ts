@@ -46,9 +46,9 @@ import {
   validate_advanced_settings,
 } from "./validators";
 
-export async function list_external_accounts(): Promise<
-  ApiResponse<DecryptedExternalAccount[]>
-> {
+export async function list_external_accounts(
+  fallback_name = "Connected account",
+): Promise<ApiResponse<DecryptedExternalAccount[]>> {
   try {
     const response = await api_client.get<{
       accounts: ExternalAccountResponse[];
@@ -79,7 +79,7 @@ export async function list_external_accounts(): Promise<
             looks_like_placeholder && oauth_email_field
               ? oauth_email_field
               : looks_like_placeholder
-                ? data.display_name || "Connected account"
+                ? data.display_name || fallback_name
                 : data.email;
 
           const oauth_provider_field =
@@ -110,7 +110,7 @@ export async function list_external_accounts(): Promise<
           } as DecryptedExternalAccount;
         } catch {
           const fallback_email =
-            (item as { oauth_email?: string }).oauth_email || "Connected account";
+            (item as { oauth_email?: string }).oauth_email || fallback_name;
           const oauth_provider_field =
             (item as { oauth_provider?: string | null }).oauth_provider ?? null;
           const raw = item as {

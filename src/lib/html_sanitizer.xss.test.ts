@@ -250,3 +250,25 @@ describe("sanitize_html preserves legitimate content (no over-stripping)", () =>
     expect(html).toContain("H");
   });
 });
+
+describe("sanitize_html depth guard (DoS resistance)", () => {
+  it("does not throw or overflow on pathologically deep nesting", () => {
+    const deep = "<div>".repeat(60000) + "payload" + "</div>".repeat(60000);
+
+    expect(() => sanitize_html(deep)).not.toThrow();
+    const { html } = sanitize_html(deep);
+
+    expect(html).toContain("payload");
+  });
+
+  it("preserves normal nested structure", () => {
+    const input =
+      "<div><blockquote><p><b>hello</b> <i>world</i></p></blockquote></div>";
+    const { html } = sanitize_html(input);
+
+    expect(html.toLowerCase()).toContain("<blockquote");
+    expect(html.toLowerCase()).toContain("<b>");
+    expect(html).toContain("hello");
+    expect(html).toContain("world");
+  });
+});

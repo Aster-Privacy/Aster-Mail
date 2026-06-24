@@ -71,6 +71,7 @@ interface RatchetState {
   previous_chain_length: number;
   skipped_message_keys: SkippedMessageKey[];
   version: number;
+  dirty_since_sync: boolean;
   created_at: number;
   updated_at: number;
   bootstrap?: BootstrapData;
@@ -133,6 +134,7 @@ function clone_state(state: RatchetState): RatchetState {
     previous_chain_length: state.previous_chain_length,
     skipped_message_keys: state.skipped_message_keys.map((k) => ({ ...k })),
     version: state.version,
+    dirty_since_sync: state.dirty_since_sync,
     created_at: state.created_at,
     updated_at: state.updated_at,
     bootstrap: state.bootstrap ? { ...state.bootstrap } : undefined,
@@ -390,6 +392,7 @@ export class DoubleRatchet {
       previous_chain_length: 0,
       skipped_message_keys: [],
       version: 1,
+      dirty_since_sync: false,
       created_at: Date.now(),
       updated_at: Date.now(),
     };
@@ -416,6 +419,7 @@ export class DoubleRatchet {
       previous_chain_length: 0,
       skipped_message_keys: [],
       version: 1,
+      dirty_since_sync: false,
       created_at: Date.now(),
       updated_at: Date.now(),
     };
@@ -451,6 +455,7 @@ export class DoubleRatchet {
 
     this.state.chain_key_send = array_to_base64(new_chain_key);
     this.state.send_message_number++;
+    this.state.dirty_since_sync = true;
     this.state.updated_at = Date.now();
 
     secure_zero_memory(chain_key);
@@ -470,6 +475,7 @@ export class DoubleRatchet {
     );
 
     if (skipped_plaintext !== null) {
+      this.state.dirty_since_sync = true;
       this.state.updated_at = Date.now();
 
       return skipped_plaintext;
@@ -523,6 +529,7 @@ export class DoubleRatchet {
 
     work.chain_key_recv = array_to_base64(new_chain_key);
     work.recv_message_number++;
+    work.dirty_since_sync = true;
     work.updated_at = Date.now();
     this.state = work;
 
@@ -687,6 +694,14 @@ export class DoubleRatchet {
     return this.state.version;
   }
 
+  is_dirty_since_sync(): boolean {
+    return this.state.dirty_since_sync;
+  }
+
+  mark_synced(): void {
+    this.state.dirty_since_sync = false;
+  }
+
   get_bootstrap(): BootstrapData | null {
     return this.state.bootstrap ?? null;
   }
@@ -703,6 +718,10 @@ export class DoubleRatchet {
   }
 
   static deserialize(data: SerializedState): DoubleRatchet {
+    if (data.state.dirty_since_sync === undefined) {
+      data.state.dirty_since_sync = true;
+    }
+
     return new DoubleRatchet(data.state, data.conversation_id);
   }
 }

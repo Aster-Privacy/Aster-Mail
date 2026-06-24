@@ -383,11 +383,11 @@ export async function execute_external_account_email_send(
     sender_alias_hash?: string;
     attachments?: Attachment[];
   },
-) {
+): Promise<boolean> {
   if (!email_data.sender_alias_hash) {
     show_toast(ctx.t("common.external_account_token_missing"), "error");
 
-    return;
+    return false;
   }
 
   const { delay_ms, delay_seconds } = compute_delay(ctx);
@@ -484,7 +484,7 @@ export async function execute_external_account_email_send(
 
     save_and_close(ctx, email_id, email_data);
 
-    return;
+    return true;
   }
 
   try {
@@ -498,26 +498,32 @@ export async function execute_external_account_email_send(
       external_attachments,
     );
 
-    if (result.data?.success) {
-      show_toast(ctx.t("common.email_sent"), "success");
-      dispatch_email_sent();
-      log_activities_for_sent(ctx, email_data);
-    } else {
+    if (!result.data?.success) {
       show_toast(
         result.error || ctx.t("common.failed_to_send_email"),
         "error",
       );
+
+      return false;
     }
+
+    show_toast(ctx.t("common.email_sent"), "success");
+    dispatch_email_sent();
+    log_activities_for_sent(ctx, email_data);
 
     ctx.reset_form();
     ctx.on_close();
     if (ctx.edit_draft && ctx.on_draft_cleared) {
       ctx.on_draft_cleared();
     }
+
+    return true;
   } catch (err) {
     show_toast(
       (err as Error).message || ctx.t("common.failed_to_send_via_external"),
       "error",
     );
+
+    return false;
   }
 }

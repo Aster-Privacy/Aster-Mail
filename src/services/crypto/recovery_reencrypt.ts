@@ -1290,13 +1290,25 @@ async function re_encrypt_contact_photos(
         ]);
 
         await api_client.delete(`/contacts/v1/${contact.id}/photo`);
-        await api_client.post(`/contacts/v1/${contact.id}/photo`, {
-          encrypted_data: data_result.encrypted,
-          data_nonce: data_result.nonce,
-          encrypted_meta: meta_result.encrypted,
-          meta_nonce: meta_result.nonce,
-          size_bytes: photo.size_bytes,
-        });
+        try {
+          await api_client.post(`/contacts/v1/${contact.id}/photo`, {
+            encrypted_data: data_result.encrypted,
+            data_nonce: data_result.nonce,
+            encrypted_meta: meta_result.encrypted,
+            meta_nonce: meta_result.nonce,
+            size_bytes: photo.size_bytes,
+          });
+        } catch (post_err) {
+          await api_client.post(`/contacts/v1/${contact.id}/photo`, {
+            encrypted_data: photo.encrypted_data,
+            data_nonce: photo.data_nonce,
+            encrypted_meta: photo.encrypted_meta,
+            meta_nonce: photo.meta_nonce,
+            size_bytes: photo.size_bytes,
+          });
+
+          throw post_err;
+        }
       } catch {
         ok = false;
         continue;
@@ -1357,13 +1369,25 @@ async function re_encrypt_contact_attachments(
             ]);
 
             await api_client.delete(`/contacts/v1/${contact.id}/attachments/${att.id}`);
-            await api_client.post(`/contacts/v1/${contact.id}/attachments`, {
-              encrypted_data: data_result.encrypted,
-              data_nonce: data_result.nonce,
-              encrypted_meta: meta_result.encrypted,
-              meta_nonce: meta_result.nonce,
-              size_bytes: att.size_bytes,
-            });
+            try {
+              await api_client.post(`/contacts/v1/${contact.id}/attachments`, {
+                encrypted_data: data_result.encrypted,
+                data_nonce: data_result.nonce,
+                encrypted_meta: meta_result.encrypted,
+                meta_nonce: meta_result.nonce,
+                size_bytes: att.size_bytes,
+              });
+            } catch (post_err) {
+              await api_client.post(`/contacts/v1/${contact.id}/attachments`, {
+                encrypted_data: att.encrypted_data,
+                data_nonce: att.data_nonce,
+                encrypted_meta: att.encrypted_meta,
+                meta_nonce: att.meta_nonce,
+                size_bytes: att.size_bytes,
+              });
+
+              throw post_err;
+            }
           } catch {
             ok = false;
             continue;

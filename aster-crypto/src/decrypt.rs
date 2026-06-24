@@ -22,6 +22,7 @@ use pgp::composed::{Deserializable, Message};
 
 use crate::error::{CryptoError, Result};
 use crate::keys::{KeyPair, PublicKey, PublicKeyInner};
+use crate::sign::{signed_public_key_can_sign, signed_secret_key_can_sign};
 
 pub fn decrypt_message(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Vec<u8>> {
     if secret_keys.is_empty() {
@@ -35,12 +36,8 @@ pub fn decrypt_message(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Ve
         let decrypted = msg.decrypt(|| "".to_string(), &[keypair.secret_key()]);
 
         if let Ok((decrypted_msg, _key_ids)) = decrypted {
-            if let Some(literal) = decrypted_msg.get_literal() {
-                return Ok(literal.data().to_vec());
-            }
-
-            if let Message::Literal(lit) = decrypted_msg {
-                return Ok(lit.data().to_vec());
+            if let Ok(Some(data)) = decrypted_msg.get_content() {
+                return Ok(data);
             }
         }
     }
@@ -59,12 +56,8 @@ pub fn decrypt_message_binary(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Re
         let decrypted = msg.decrypt(|| "".to_string(), &[keypair.secret_key()]);
 
         if let Ok((decrypted_msg, _key_ids)) = decrypted {
-            if let Some(literal) = decrypted_msg.get_literal() {
-                return Ok(literal.data().to_vec());
-            }
-
-            if let Message::Literal(lit) = decrypted_msg {
-                return Ok(lit.data().to_vec());
+            if let Ok(Some(data)) = decrypted_msg.get_content() {
+                return Ok(data);
             }
         }
     }
@@ -75,8 +68,12 @@ pub fn decrypt_message_binary(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Re
 fn verify_with_sender_keys(msg: &Message, sender_keys: &[&PublicKey]) -> bool {
     for pk in sender_keys {
         let verified = match &pk.inner {
-            PublicKeyInner::Standalone(spk) => msg.verify(spk).is_ok(),
-            PublicKeyInner::FromSecret(ssk) => msg.verify(ssk).is_ok(),
+            PublicKeyInner::Standalone(spk) => {
+                signed_public_key_can_sign(spk) && msg.verify(spk).is_ok()
+            }
+            PublicKeyInner::FromSecret(ssk) => {
+                signed_secret_key_can_sign(ssk) && msg.verify(ssk).is_ok()
+            }
         };
         if verified {
             return true;
@@ -108,12 +105,8 @@ pub fn decrypt_and_verify(
                 return Err(CryptoError::DecryptionFailed);
             }
 
-            if let Some(literal) = decrypted_msg.get_literal() {
-                return Ok(literal.data().to_vec());
-            }
-
-            if let Message::Literal(lit) = decrypted_msg {
-                return Ok(lit.data().to_vec());
+            if let Ok(Some(data)) = decrypted_msg.get_content() {
+                return Ok(data);
             }
         }
     }
@@ -181,5 +174,63 @@ mod tests {
 
         let err = decrypt_message(&ciphertext, &[&bob]).unwrap_err();
         assert!(matches!(err, CryptoError::DecryptionFailed));
+    }
+
+    fn generate_non_signing_keypair(name: &str, email: &str) -> KeyPair {
+        use pgp::composed::{KeyType, SecretKeyParamsBuilder};
+        use pgp::crypto::hash::HashAlgorithm;
+        use rand::rngs::OsRng;
+        use smallvec::smallvec;
+
+        let user_id = format!("{} <{}>", name, email);
+        let rng = OsRng;
+        let key_params = SecretKeyParamsBuilder::default()
+            .key_type(KeyType::Rsa(2048))
+            .can_certify(false)
+            .can_sign(false)
+            .can_encrypt(true)
+            .primary_user_id(user_id)
+            .preferred_symmetric_algorithms(smallvec![
+                pgp::crypto::sym::SymmetricKeyAlgorithm::AES256,
+            ])
+            .preferred_hash_algorithms(smallvec![HashAlgorithm::SHA2_512])
+            .build()
+            .unwrap();
+        let secret_key = key_params.generate(rng).unwrap();
+        let signed_secret_key = secret_key.sign(rng, || "".to_string()).unwrap();
+        let armored = signed_secret_key.to_armored_string(None.into()).unwrap();
+        crate::keys::import_secret_key(&armored).unwrap()
+    }
+
+    #[test]
+    fn verified_path_accepts_signing_capable_key() {
+        use crate::encrypt::encrypt_and_sign;
+
+        let alice = generate_keypair("Alice", "alice@astermail.com").unwrap();
+        let bob = generate_keypair("Bob", "bob@astermail.com").unwrap();
+        let alice_pub = alice.public_key();
+        let bob_pub = bob.public_key();
+
+        let plaintext = b"signed and encrypted";
+        let ciphertext = encrypt_and_sign(plaintext, &[&bob_pub], &alice).unwrap();
+
+        let decrypted = decrypt_and_verify(&ciphertext, &[&bob], &[&alice_pub]).unwrap();
+        assert_eq!(plaintext.as_slice(), decrypted.as_slice());
+    }
+
+    #[test]
+    fn verified_path_rejects_non_signing_sender_key() {
+        use crate::encrypt::encrypt_and_sign;
+
+        let signer = generate_non_signing_keypair("NoSign", "nosign@astermail.com");
+        let bob = generate_keypair("Bob", "bob@astermail.com").unwrap();
+        let signer_pub = signer.public_key();
+        let bob_pub = bob.public_key();
+
+        let plaintext = b"forged-by-encryption-only-key";
+        let ciphertext = encrypt_and_sign(plaintext, &[&bob_pub], &signer).unwrap();
+
+        let result = decrypt_and_verify(&ciphertext, &[&bob], &[&signer_pub]);
+        assert!(result.is_err());
     }
 }

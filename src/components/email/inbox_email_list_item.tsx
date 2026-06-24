@@ -39,7 +39,7 @@ import { CheckIcon, StarIcon as StarIconSolid } from "@heroicons/react/24/solid"
 import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { RATCHET_UNDECRYPTABLE_SENTINEL } from "@/utils/email_crypto";
+import { RATCHET_UNDECRYPTABLE_SENTINEL, PGP_UNDECRYPTABLE_SENTINEL } from "@/utils/email_crypto";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { AvatarRing } from "@/components/ui/avatar_ring";
 import { OfficialBadge } from "@/components/email/official_badge";
@@ -740,7 +740,8 @@ export const InboxEmailListItem = memo(
                     <span className="text-txt-muted">
                       {" \u2014 "}
                       {search_preview_node ||
-                        (email.preview === RATCHET_UNDECRYPTABLE_SENTINEL
+                        (email.preview === RATCHET_UNDECRYPTABLE_SENTINEL ||
+                        email.preview === PGP_UNDECRYPTABLE_SENTINEL
                           ? t("mail.encrypted_message_unavailable")
                           : truncate_preview(
                               email.preview,

@@ -205,12 +205,22 @@ function uniform_random_index(modulus: number): number {
   }
 }
 
+const GHOST_TOKEN_ALPHABET = "abcdefghijklmnopqrstuvwxyz234567";
+const GHOST_TOKEN_LENGTH = 8;
+
+function generate_ghost_token(): string {
+  let token = "";
+  for (let i = 0; i < GHOST_TOKEN_LENGTH; i += 1) {
+    token += GHOST_TOKEN_ALPHABET[uniform_random_index(GHOST_TOKEN_ALPHABET.length)];
+  }
+  return token;
+}
+
 export function generate_ghost_local_part(): string {
   const first = FIRST_WORDS[uniform_random_index(FIRST_WORDS.length)];
   const second = SECOND_WORDS[uniform_random_index(SECOND_WORDS.length)];
-  const suffix = uniform_random_index(100).toString().padStart(2, "0");
 
-  return `${first}.${second}${suffix}`;
+  return `${first}.${second}${generate_ghost_token()}`;
 }
 
 export interface GhostAlias {

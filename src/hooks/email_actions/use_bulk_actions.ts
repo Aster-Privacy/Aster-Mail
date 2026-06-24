@@ -153,7 +153,13 @@ export function use_bulk_actions(
       set_action_loading(action_config.action_type, true);
       config.on_bulk_optimistic_update?.(ids, action_config.optimistic_update);
 
-      if (!action_config.emit_view_change) {
+      const optimistic_can_evict =
+        action_config.optimistic_update.is_starred === false ||
+        action_config.optimistic_update.is_trashed === true ||
+        action_config.optimistic_update.is_spam === true ||
+        action_config.optimistic_update.is_archived === true;
+
+      if (!action_config.emit_view_change && !optimistic_can_evict) {
         for (const email of emails) {
           emit_mail_item_updated({
             id: email.id,

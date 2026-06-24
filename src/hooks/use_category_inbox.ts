@@ -128,11 +128,17 @@ export function use_category_inbox(
 
       if (detail.is_trashed || detail.is_archived || detail.is_spam) {
         remove_ids([detail.id]);
-        set_state((prev) => ({
-          ...prev,
-          emails: prev.emails.filter((e) => e.id !== detail.id),
-          total_messages: Math.max(0, prev.total_messages - 1),
-        }));
+        set_state((prev) => {
+          const had_email = prev.emails.some((e) => e.id === detail.id);
+
+          return {
+            ...prev,
+            emails: prev.emails.filter((e) => e.id !== detail.id),
+            total_messages: had_email
+              ? Math.max(0, prev.total_messages - 1)
+              : prev.total_messages,
+          };
+        });
 
         return;
       }

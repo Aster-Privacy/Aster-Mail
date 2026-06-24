@@ -134,7 +134,7 @@ export function SnoozeBadge({
         window.clearInterval(interval_id);
       }
     };
-  }, [target_date]);
+  }, [target_date, t]);
 
   return (
     <EmailTag

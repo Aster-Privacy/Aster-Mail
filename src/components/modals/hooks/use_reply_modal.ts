@@ -716,9 +716,13 @@ export function use_reply_modal({
 
   const handle_template_select = useCallback(
     (content: string) => {
-      editor.insert_text(content);
+      const substituted = content
+        .replace(/\[Date\]/g, new Date().toLocaleDateString())
+        .replace(/\[Name\]/g, recipient_name ?? "");
+
+      editor.insert_text(substituted);
     },
-    [editor],
+    [editor, recipient_name],
   );
 
   const handle_send = useCallback(async () => {

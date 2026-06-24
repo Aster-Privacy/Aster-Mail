@@ -60,7 +60,11 @@ export function EmailNotificationManager() {
     return () => {
       cancelled = true;
     };
-  }, [is_authenticated, preferences.desktop_notifications]);
+  }, [
+    is_authenticated,
+    preferences.desktop_notifications,
+    preferences.low_network_mode,
+  ]);
 
   useEffect(() => {
     if (!is_authenticated) return;
@@ -87,7 +91,7 @@ export function EmailNotificationManager() {
     return () => {
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handler);
     };
-  }, [is_authenticated, preferences, t]);
+  }, [is_authenticated, preferences, t, current_account_id]);
 
   return null;
 }

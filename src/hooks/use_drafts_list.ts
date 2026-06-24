@@ -75,6 +75,12 @@ function write_persisted_deletes(entries: PersistedDelete[]) {
   } catch {}
 }
 
+export function clear_persisted_draft_deletes(): void {
+  try {
+    localStorage.removeItem(PENDING_DELETES_KEY);
+  } catch {}
+}
+
 function add_to_persisted_deletes(ids: string[], scheduled_at: number) {
   const existing = read_persisted_deletes().filter(
     (e) => !e.ids.some((id) => ids.includes(id)),

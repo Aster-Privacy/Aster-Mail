@@ -47,7 +47,7 @@ const IMAGE_PROXY_URL = get_image_proxy_url();
  */
 function strip_remote_css_fetches(html: string): string {
   return html
-    .replace(/url\(\s*(['"]?)https?:\/\/[^)]*\1\s*\)/gi, "url()")
+    .replace(/url\(\s*(['"]?)(?:https?:)?\/\/[^)]*\1\s*\)/gi, "url()")
     .replace(/@import[^;]*;/gi, "");
 }
 
@@ -109,6 +109,20 @@ async function resolve_native_images(doc: Document): Promise<void> {
       const url = src.startsWith("http")
         ? src
         : `https://app.astermail.org${src}`;
+
+      let parsed_url: URL;
+      try {
+        parsed_url = new URL(url);
+      } catch {
+        return;
+      }
+      const expected_proxy = new URL(IMAGE_PROXY_URL, "https://app.astermail.org");
+      if (
+        parsed_url.origin !== expected_proxy.origin ||
+        parsed_url.pathname !== expected_proxy.pathname
+      ) {
+        return;
+      }
 
       const response = await routed_fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -288,20 +302,24 @@ export function SandboxedEmailRenderer({
   const { theme } = useTheme();
   const is_dark_theme = theme === "dark";
   const is_html_email = !is_plain_text;
+  const layout_probe =
+    sanitized_html.length > 65536
+      ? sanitized_html.slice(0, 65536)
+      : sanitized_html;
   const has_block_html =
-    /<(div|p|table|tr|td|h[1-6]|ul|ol|li|blockquote)\b/i.test(sanitized_html);
+    /<(div|p|table|tr|td|h[1-6]|ul|ol|li|blockquote)\b/i.test(layout_probe);
   const literal_plain_text =
     (is_literal_plain_text ?? is_plain_text) && !has_block_html;
-  const has_table_layout = /<table\b/i.test(sanitized_html);
-  const has_designed_bg = /background(?:-color)?\s*:\s*(?:#[0-9a-f]|rgba?\(|hsla?\(|white\b|black\b|[a-z]+gr[ae]y\b)/i.test(sanitized_html);
-  const has_style_block = /<style\b[^>]*>[\s\S]*?background/i.test(sanitized_html);
-  const has_centered_card = /max-width\s*:\s*[3456789]\d{2}px[^;}"']*;[^"']*margin\s*:[^;}"']*auto/i.test(sanitized_html);
+  const has_table_layout = /<table\b/i.test(layout_probe);
+  const has_designed_bg = /background(?:-color)?\s*:\s*(?:#[0-9a-f]|rgba?\(|hsla?\(|white\b|black\b|[a-z]+gr[ae]y\b)/i.test(layout_probe);
+  const has_style_block = /<style\b[^>]*>[\s\S]*?background/i.test(layout_probe);
+  const has_centered_card = /max-width\s*:\s*[3456789]\d{2}px[^;}"']*;[^"']*margin\s*:[^;}"']*auto/i.test(layout_probe);
   const has_newsletter_layout = (has_table_layout && (
-    /style\s*=\s*["'][^"']*width\s*:\s*[456789]\d{2}px/i.test(sanitized_html) ||
-    /<table[^>]*(?:width|bgcolor|background)\s*=/i.test(sanitized_html) ||
-    (sanitized_html.match(/<table\b/gi)?.length ?? 0) > 2
+    /style\s*=\s*["'][^"']*width\s*:\s*[456789]\d{2}px/i.test(layout_probe) ||
+    /<table[^>]*(?:width|bgcolor|background)\s*=/i.test(layout_probe) ||
+    (layout_probe.match(/<table\b/gi)?.length ?? 0) > 2
   )) || has_designed_bg || has_style_block || has_centered_card;
-  const declares_light_scheme = /color-scheme\s*:\s*light\s+only/i.test(sanitized_html);
+  const declares_light_scheme = /color-scheme\s*:\s*light\s+only/i.test(layout_probe);
   const plain_bg = "transparent";
   const plain_text_color = force_dark_mode
     ? "#e5e5e5"
@@ -736,9 +754,13 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
     if (m === "tor" || m === "tor_snowflake") return;
     doc.querySelectorAll("img[data-blocked='true']").forEach((el) => {
+      const proxy_src = el.getAttribute("data-proxy-src");
+      const original_src = el.getAttribute("data-original-src");
       const src =
-        el.getAttribute("data-proxy-src") ||
-        el.getAttribute("data-original-src");
+        proxy_src ||
+        (original_src && IMAGE_PROXY_URL
+          ? `${IMAGE_PROXY_URL}?url=${encodeURIComponent(original_src)}`
+          : null);
 
       if (src) {
         try {
@@ -1064,6 +1086,38 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         }
       }
 
+      const link = target.closest("a");
+
+      if (!link) return;
+      const href = link.getAttribute("href") || "";
+
+      if (!href || href.startsWith("#") || href.startsWith("mailto:")) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (href.startsWith("aster:")) {
+        const path = href.slice("aster:".length);
+        const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
+
+        if (ASTER_PATH_ALLOWLIST.test(path)) {
+          window.dispatchEvent(
+            new CustomEvent("aster-internal-link", { detail: { path } }),
+          );
+        }
+      } else {
+        window.dispatchEvent(
+          new CustomEvent("aster-external-link", {
+            detail: { url: href },
+          }),
+        );
+      }
+    });
+
+    iframe.contentDocument.body.addEventListener("auxclick", (e) => {
+      if ((e as MouseEvent).button !== 1) return;
+
+      const target = e.target as HTMLElement;
       const link = target.closest("a");
 
       if (!link) return;

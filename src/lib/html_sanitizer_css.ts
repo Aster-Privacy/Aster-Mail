@@ -142,6 +142,11 @@ export function sanitize_style(style: string, sandbox_mode: boolean): string {
   result = result.replace(/javascript\s*:[^;]*/gi, "");
   result = result.replace(/vbscript\s*:[^;]*/gi, "");
 
+  result = result.replace(
+    /position\s*:\s*(fixed|sticky)/gi,
+    "position: relative",
+  );
+
   if (!sandbox_mode) {
     result = strip_css_urls(result);
     result = result.replace(

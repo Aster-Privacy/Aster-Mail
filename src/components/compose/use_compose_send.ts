@@ -198,7 +198,14 @@ export function use_compose_send({
       return (doc.body.textContent ?? "").replace(/\s+/g, " ").trim();
     })();
 
-    if (!stripped_body) {
+    const has_inline_image = /<img\b/i.test(message);
+
+    if (
+      !stripped_body &&
+      !subject.trim() &&
+      attachments.length === 0 &&
+      !has_inline_image
+    ) {
       show_toast(t("common.empty_body_error"), "error");
 
       return;
@@ -244,6 +251,32 @@ export function use_compose_send({
             bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
             subject,
             body: message,
+            in_reply_to:
+              edit_draft?.draft_type === "reply"
+                ? edit_draft.reply_to_id
+                : undefined,
+            sender_email:
+              selected_sender?.type !== "primary"
+                ? selected_sender?.email
+                : undefined,
+            sender_alias_hash:
+              selected_sender?.type !== "primary"
+                ? selected_sender?.address_hash
+                : undefined,
+            sender_display_name:
+              selected_sender?.display_name ||
+              (selected_sender?.type === "external"
+                ? undefined
+                : user?.display_name || undefined),
+            expires_at: expires_at?.toISOString(),
+            expiry_password:
+              has_external_recipients && expiry_password
+                ? expiry_password
+                : undefined,
+            secure_external:
+              has_external_recipients && Boolean(expiry_password)
+                ? true
+                : undefined,
             attachments: offline_attachments,
           });
 
@@ -372,8 +405,11 @@ export function use_compose_send({
       const ctx = build_send_context();
 
       if (selected_sender?.type === "external") {
-        await execute_external_account_email_send(ctx, email_data);
-        await confirm_draft_deleted();
+        const sent = await execute_external_account_email_send(ctx, email_data);
+
+        if (sent) {
+          await confirm_draft_deleted();
+        }
 
         return;
       }

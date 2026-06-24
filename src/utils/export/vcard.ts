@@ -63,6 +63,11 @@ function emit(lines: string[], key: string, value: string | undefined) {
   lines.push(fold_line(`${key}:${escape_value(value)}`));
 }
 
+function emit_uri(lines: string[], key: string, value: string | undefined) {
+  if (!value) return;
+  lines.push(fold_line(`${key}:${value.replace(/[\r\n]/g, "")}`));
+}
+
 export function serialize_vcard(contact: VCardContact): string {
   const lines: string[] = [];
   lines.push("BEGIN:VCARD");
@@ -97,11 +102,11 @@ export function serialize_vcard(contact: VCardContact): string {
   }
   emit(lines, "BDAY", contact.birthday);
   emit(lines, "NOTE", contact.notes);
-  emit(lines, "PHOTO", contact.avatar_url);
+  emit_uri(lines, "PHOTO", contact.avatar_url);
 
   if (contact.social_links) {
     for (const s of contact.social_links) {
-      if (s.url) lines.push(fold_line(`URL:${escape_value(s.url)}`));
+      if (s.url) emit_uri(lines, "URL", s.url);
     }
   }
 
