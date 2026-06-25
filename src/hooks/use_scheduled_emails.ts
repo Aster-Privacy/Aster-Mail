@@ -324,13 +324,16 @@ export function use_scheduled_emails(
       const results = await Promise.allSettled(
         ids.map((id) => cancel_scheduled_email(id)),
       );
-      const success = results.every(
-        (r) => r.status === "fulfilled" && r.value.data?.success,
-      );
+      const succeeded_ids = ids.filter((_id, i) => {
+        const r = results[i];
+
+        return r.status === "fulfilled" && r.value.data?.success === true;
+      });
+      const success = succeeded_ids.length === ids.length;
 
       invalidate_mail_stats();
 
-      ids.forEach((id) => {
+      succeeded_ids.forEach((id) => {
         emit_scheduled_cancelled({ email_id: id });
       });
       emit_scheduled_changed({ action: "cancelled" });
