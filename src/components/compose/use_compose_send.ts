@@ -232,7 +232,13 @@ export function use_compose_send({
     clear_all_errors();
 
     if (enable_offline_queue && is_native_platform()) {
-      const network_status = await get_network_status();
+      let network_status: { connected: boolean };
+
+      try {
+        network_status = await get_network_status();
+      } catch {
+        network_status = { connected: true };
+      }
 
       if (!network_status.connected) {
         try {
