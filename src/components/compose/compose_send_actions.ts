@@ -195,6 +195,7 @@ export async function execute_internal_send(
           ctx.set_queued_email_id(null);
         },
         on_error: (error: string) => {
+          ctx.set_queued_email_id(null);
           show_toast(error, "error");
         },
       },
