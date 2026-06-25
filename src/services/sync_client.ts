@@ -103,6 +103,11 @@ class SyncClient {
 
     this.should_reconnect = true;
 
+    if (this.reconnect_timeout) {
+      clearTimeout(this.reconnect_timeout);
+      this.reconnect_timeout = null;
+    }
+
     if (
       this.socket &&
       (this.socket.readyState === WebSocket.OPEN ||
