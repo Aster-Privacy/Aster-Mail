@@ -199,31 +199,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           ),
         ]);
 
-        if (verify_timed_out) {
-          api_client.set_authenticated(false);
-          sync_client.disconnect();
-          set_state({
-            user: null,
-            is_loading: false,
-            is_authenticated: false,
-            has_keys: false,
-            accounts: data.accounts,
-            current_account_id: data.current_account_id,
-          });
-
-          const local = current.user.email.split("@")[0] ?? "";
-          const uses_hash = "__TAURI_INTERNALS__" in window;
-          const path = uses_hash
-            ? window.location.hash.slice(1).split("?")[0] || "/"
-            : window.location.pathname;
-          if (path !== "/sign-in" && path !== "/register") {
-            navigate(`/sign-in?u=${encodeURIComponent(local)}`);
-          }
-
-          return;
-        }
-
-        if (is_auth_valid) {
+        if (is_auth_valid || verify_timed_out) {
           api_client.set_authenticated(true);
           connection_store.sync_from_server().catch(() => {});
           load_preferred_sender_from_server().catch(() => {});
