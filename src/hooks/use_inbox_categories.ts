@@ -45,11 +45,29 @@ import {
 import { on_keys_ready } from "@/services/crypto/memory_key_store";
 
 const ACTIVE_CATEGORY_KEY = "astermail_active_category";
+const CATEGORIES_ENABLED_FLAG = "astermail_inbox_categories_enabled";
 
 // Holds the last-resolved tab for the lifetime of the page session so remounts
 // (navigating away and back) initialize synchronously with the correct tab
 // instead of flashing "primary" before the vault-encrypted value loads.
 let session_active_category: EmailCategory | null = null;
+
+function read_categories_enabled_flag(): boolean | null {
+  try {
+    const value = localStorage.getItem(CATEGORIES_ENABLED_FLAG);
+
+    if (value === "1") return true;
+    if (value === "0") return false;
+  } catch {}
+
+  return null;
+}
+
+function write_categories_enabled_flag(enabled: boolean): void {
+  try {
+    localStorage.setItem(CATEGORIES_ENABLED_FLAG, enabled ? "1" : "0");
+  } catch {}
+}
 
 function is_tab(value: unknown): value is EmailCategory {
   return (
@@ -69,10 +87,25 @@ export interface UseInboxCategoriesReturn {
 export function use_inbox_categories(
   current_view: string,
 ): UseInboxCategoriesReturn {
-  const { preferences } = use_preferences();
+  const { preferences, has_loaded_from_server } = use_preferences();
+
+  const initial_disabled_flag_ref = useRef(read_categories_enabled_flag());
+
+  useEffect(() => {
+    write_categories_enabled_flag(
+      preferences.inbox_categories_enabled !== false,
+    );
+  }, [preferences.inbox_categories_enabled]);
+
+  const pref_enabled = preferences.inbox_categories_enabled !== false;
+
+  const resolved_enabled =
+    !has_loaded_from_server && initial_disabled_flag_ref.current === false
+      ? false
+      : pref_enabled;
 
   const enabled =
-    preferences.inbox_categories_enabled !== false &&
+    resolved_enabled &&
     (current_view === "inbox" || current_view === "");
 
   const [active_category, set_active_category_state] = useState<EmailCategory>(
