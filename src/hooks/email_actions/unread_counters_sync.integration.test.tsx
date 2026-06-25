@@ -129,6 +129,12 @@ vi.mock("@/contexts/auth_context", () => ({
   }),
 }));
 
+vi.mock("@/contexts/preferences_context", () => ({
+  use_preferences: () => ({
+    preferences: { conversation_grouping: true },
+  }),
+}));
+
 import { use_email_actions } from "@/hooks/email_actions";
 import { clear_mail_stats, prefetch_mail_stats } from "@/hooks/use_mail_stats";
 import {
