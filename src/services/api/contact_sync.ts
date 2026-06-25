@@ -324,14 +324,16 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
 
       if (!key || !value) continue;
 
-      const key_upper = key.toUpperCase().split(";")[0];
+      const key_upper = key.toUpperCase().split(";")[0].split(".").pop() || "";
 
       switch (key_upper) {
         case "FN": {
-          const parts = value.split(" ");
+          if (!contact.first_name && !contact.last_name) {
+            const parts = value.split(" ");
 
-          contact.first_name = parts[0] || "";
-          contact.last_name = parts.slice(1).join(" ") || "";
+            contact.first_name = parts[0] || "";
+            contact.last_name = parts.slice(1).join(" ") || "";
+          }
           break;
         }
         case "N": {
