@@ -32,7 +32,15 @@ import { useCallback } from "react";
 import { is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
-import { build_reply_from_address } from "@/components/email/build_reply_from_address";
+import {
+  build_reply_from_address,
+  resolve_received_on_alias,
+} from "@/components/email/build_reply_from_address";
+import { get_cached_aliases } from "@/components/settings/hooks/use_aliases";
+import {
+  get_cached_alias_for_routing_token,
+  get_cached_ghost_for_routing_token,
+} from "@/hooks/use_sender_aliases";
 import {
   permanent_delete_mail_item,
   report_spam_sender,
@@ -116,7 +124,16 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           ?.map((r) => r.email)
           .filter((e): e is string => !!e) ?? [];
       const reply_from_address = build_reply_from_address(
-        { sender_email: msg.sender_email },
+        {
+          sender_email: msg.sender_email,
+          received_on_alias:
+            resolve_received_on_alias(
+              deps.mail_item?.routing_token,
+              get_cached_aliases(),
+            ) ??
+            get_cached_alias_for_routing_token(deps.mail_item?.routing_token) ??
+            get_cached_ghost_for_routing_token(deps.mail_item?.routing_token),
+        },
         is_own_message,
       );
 
@@ -155,7 +172,11 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
       return data;
     },
-    [deps.mail_item?.thread_token, deps.thread_ghost_email],
+    [
+      deps.mail_item?.thread_token,
+      deps.mail_item?.routing_token,
+      deps.thread_ghost_email,
+    ],
   );
 
   const handle_archive = useCallback(async () => {
