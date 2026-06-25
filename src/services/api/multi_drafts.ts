@@ -389,6 +389,66 @@ export async function list_drafts(
   };
 }
 
+async function decrypt_list_item(
+  item: DraftApiResponse,
+  vault: EncryptedVault,
+): Promise<DraftWithContent> {
+  try {
+    const content = await decrypt_content(
+      item.encrypted_content,
+      item.content_nonce,
+      vault,
+    );
+
+    return { ...transform_api_response_to_draft(item), content };
+  } catch {
+    return {
+      ...transform_api_response_to_draft(item),
+      content: {
+        to_recipients: [],
+        cc_recipients: [],
+        bcc_recipients: [],
+        subject: "",
+        message: "",
+      },
+    };
+  }
+}
+
+export async function list_drafts_with_content(
+  limit: number = 20,
+  vault: EncryptedVault,
+  draft_type?: DraftType,
+): Promise<
+  ApiResponse<{
+    drafts: DraftWithContent[];
+    next_cursor?: string;
+    has_more: boolean;
+  }>
+> {
+  const params = build_list_drafts_params(limit, draft_type);
+
+  const response = await api_client.get<ListDraftsApiResponse>(
+    `/mail/v1/drafts?${params.toString()}`,
+  );
+
+  if (response.error || !response.data) {
+    return create_error_response(response.error, response.code);
+  }
+
+  const drafts = await Promise.all(
+    response.data.items.map((item) => decrypt_list_item(item, vault)),
+  );
+
+  return {
+    data: {
+      drafts,
+      next_cursor: response.data.next_cursor,
+      has_more: response.data.has_more,
+    },
+  };
+}
+
 export async function get_draft(
   draft_id: string,
   vault: EncryptedVault,

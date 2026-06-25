@@ -31,8 +31,7 @@ import {
 import { invalidate_mail_stats, adjust_stats_drafts } from "./use_mail_stats";
 
 import {
-  list_drafts,
-  get_draft,
+  list_drafts_with_content,
   delete_draft,
   type DraftWithContent,
   type DraftAttachmentData,
@@ -185,70 +184,19 @@ async function fetch_drafts_from_api(
 
   if (!vault) return null;
 
-  const response = await list_drafts(DRAFT_FETCH_LIMIT);
+  const response = await list_drafts_with_content(DRAFT_FETCH_LIMIT, vault);
 
   if (signal.aborted || !response.data) return null;
 
-  const results = await Promise.allSettled(
-    response.data.drafts.map(async (draft) => {
-      if (signal.aborted) throw new Error("aborted");
-      const detail = await get_draft(draft.id, vault);
-
-      if (detail.data) {
-        return transform_draft(
-          detail.data,
-          format_options,
-          no_recipients_text,
-          no_subject_text,
-          draft_category_text,
-        );
-      }
-
-      return {
-        id: draft.id,
-        item_type: "draft" as MailItemType,
-        sender_name: no_recipients_text,
-        sender_email: "",
-        subject: no_subject_text,
-        preview: "",
-        timestamp: format_email_list_timestamp(
-          new Date(draft.updated_at),
-          format_options,
-        ),
-        is_pinned: false,
-        is_starred: false,
-        is_selected: false,
-        is_read: true,
-        is_trashed: false,
-        is_archived: false,
-        is_spam: false,
-        has_attachment: false,
-        category: draft_category_text,
-        category_color: DRAFT_CATEGORY_STYLE,
-        avatar_url: "",
-        is_encrypted: true,
-        version: draft.version,
-        draft_type: draft.draft_type,
-        reply_to_id: draft.reply_to_id,
-        forward_from_id: draft.forward_from_id,
-        to_recipients: [],
-        cc_recipients: [],
-        bcc_recipients: [],
-        full_message: "",
-        updated_at: draft.updated_at,
-        draft_attachments: undefined,
-      } as DraftListItem;
-    }),
+  const drafts = response.data.drafts.map((draft) =>
+    transform_draft(
+      draft,
+      format_options,
+      no_recipients_text,
+      no_subject_text,
+      draft_category_text,
+    ),
   );
-
-  if (signal.aborted) return null;
-
-  const drafts = results
-    .filter(
-      (r): r is PromiseFulfilledResult<DraftListItem> =>
-        r.status === "fulfilled",
-    )
-    .map((r) => r.value);
 
   return { drafts, has_more: response.data.has_more };
 }
