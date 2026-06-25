@@ -259,13 +259,15 @@ class SyncClient {
   private handle_message(data: ServerMessage): void {
     refresh_session_activity();
 
-    if (data.type === "new_mail" && !is_low_network()) {
+    if (data.type === "new_mail") {
       mark_view_stale();
-      window.dispatchEvent(
-        new CustomEvent(MAIL_EVENTS.EMAIL_RECEIVED, {
-          detail: { email_id: data.mail_item_id || "" },
-        }),
-      );
+      if (!is_low_network()) {
+        window.dispatchEvent(
+          new CustomEvent(MAIL_EVENTS.EMAIL_RECEIVED, {
+            detail: { email_id: data.mail_item_id || "" },
+          }),
+        );
+      }
     }
 
     if (data.type === "session_revoked") {
