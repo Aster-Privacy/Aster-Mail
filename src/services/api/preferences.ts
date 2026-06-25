@@ -440,7 +440,11 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   compose_window_mode: "default",
 };
 
-type GetPreferencesViaHttpResult = UserPreferences | "not_found" | null;
+type GetPreferencesViaHttpResult =
+  | UserPreferences
+  | "not_found"
+  | "decrypt_failed"
+  | null;
 
 async function get_preferences_via_http(
   vault: EncryptedVault,
@@ -472,7 +476,7 @@ async function get_preferences_via_http(
       vault,
     );
   } catch {
-    return null;
+    return "decrypt_failed";
   }
 }
 
@@ -521,6 +525,33 @@ export async function get_preferences(
       }
 
       return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
+    }
+
+    if (result === "decrypt_failed") {
+      const cached = get_cached_preferences();
+      const recovered: UserPreferences = {
+        ...DEFAULT_PREFERENCES,
+        ...(cached ?? {}),
+        migration_haptic_v1_done: true,
+        migration_tracker_blocking_v2_done: true,
+      };
+
+      const saved = await save_preferences_via_http(recovered, vault).catch(
+        () => false,
+      );
+
+      if (saved) {
+        write_local_migration_flag("migration_haptic_v1_done");
+        write_local_migration_flag("migration_tracker_blocking_v2_done");
+        cache_preferences_locally(recovered);
+
+        return { data: recovered, loaded_from_server: true };
+      }
+
+      return {
+        data: cached ?? DEFAULT_PREFERENCES,
+        loaded_from_server: false,
+      };
     }
 
     if (!result) {
