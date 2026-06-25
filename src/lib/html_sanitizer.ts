@@ -115,6 +115,44 @@ export function sanitize_html(
   }
 }
 
+const PREVIEW_FORBIDDEN_ELEMENTS =
+  "style, script, noscript, template, link, meta, base, iframe, object, embed";
+
+const PREVIEW_FORBIDDEN_REGEX =
+  /<\/?(?:style|script|noscript|template|link|meta|base|iframe|object|embed)\b[^>]*>/gi;
+
+export function sanitize_preview_html(html: string): string {
+  if (!html || typeof html !== "string") return "";
+
+  let working = html.replace(/<style[\s\S]*?<\/style\s*>/gi, "");
+
+  if (typeof DOMParser === "undefined") {
+    return working.replace(PREVIEW_FORBIDDEN_REGEX, "");
+  }
+
+  try {
+    const doc = new DOMParser().parseFromString(working, "text/html");
+
+    doc
+      .querySelectorAll(PREVIEW_FORBIDDEN_ELEMENTS)
+      .forEach((el) => el.remove());
+
+    doc.querySelectorAll("*").forEach((el) => {
+      for (const attr of Array.from(el.attributes)) {
+        if (/^on/i.test(attr.name)) {
+          el.removeAttribute(attr.name);
+        }
+      }
+    });
+
+    return doc.body ? doc.body.innerHTML : "";
+  } catch {
+    return working
+      .replace(/<style[\s\S]*?<\/style\s*>/gi, "")
+      .replace(PREVIEW_FORBIDDEN_REGEX, "");
+  }
+}
+
 function sanitize_html_impl(
   html: string,
   options: SanitizeOptions = {},

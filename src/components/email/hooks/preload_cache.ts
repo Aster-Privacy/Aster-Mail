@@ -53,6 +53,7 @@ import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
   sanitize_html,
+  sanitize_preview_html,
   is_html_content,
   has_rich_html,
   plain_text_to_html,
@@ -425,7 +426,7 @@ function premeasure_height(
 
   shadow.innerHTML =
     `<style>${EMAIL_BODY_CSS}</style>` +
-    `<div style="${body_style}">${strip_remote_css_fetches(sanitized_html)}</div>`;
+    `<div style="${body_style}">${strip_remote_css_fetches(sanitize_preview_html(sanitized_html))}</div>`;
 
   measure_container.appendChild(wrapper);
 

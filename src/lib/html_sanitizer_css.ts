@@ -208,6 +208,11 @@ export function sanitize_css_block(css: string, _sandbox_mode = false): string {
   decoded = decoded.replace(/cross-fade\s*\([^)]*\)/gi, "none");
   decoded = strip_dark_mode_media(decoded);
 
+  decoded = decoded.replace(
+    /position\s*:\s*(fixed|sticky)/gi,
+    "position: relative",
+  );
+
   decoded = decoded.replace(/<\/(style|script)/gi, "<\\/$1");
 
   return decoded;
