@@ -23,12 +23,19 @@ import { createElement, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const mocks = vi.hoisted(() => ({
-  is_build_in_progress: vi.fn(() => true),
-  is_build_stalled: vi.fn(() => false),
+  fetch_mail_by_ids: vi.fn(async () => [
+    {
+      id: "id1",
+      item_type: "received",
+      is_read: true,
+      thread_token: "t1",
+    } as unknown,
+  ]),
+  sync_recent: vi.fn(async () => {}),
 }));
 
 vi.mock("@/hooks/email_list_helpers", () => ({
-  fetch_mail_by_ids: vi.fn(async () => []),
+  fetch_mail_by_ids: mocks.fetch_mail_by_ids,
   group_emails_by_thread: (x: unknown) => x,
   DEFAULT_PAGE_SIZE: 50,
 }));
@@ -85,23 +92,23 @@ vi.mock("@/contexts/preferences_context", () => ({
 
 vi.mock("@/services/category_index", () => ({
   init_category_index: vi.fn(async () => {}),
-  get_page_ids: () => [],
-  get_category_total: () => 0,
-  is_fully_built: () => false,
-  is_build_in_progress: mocks.is_build_in_progress,
-  is_build_stalled: mocks.is_build_stalled,
+  get_page_ids: () => ["id1"],
+  get_category_total: () => 1,
+  is_fully_built: () => true,
+  is_build_in_progress: () => false,
+  is_build_stalled: () => false,
   subscribe: () => () => {},
   get_version: () => 0,
   remove_ids: vi.fn(),
   is_representative_unread: () => false,
-  sync_recent: vi.fn(async () => {}),
+  sync_recent: mocks.sync_recent,
 }));
 
 import { use_category_inbox } from "@/hooks/use_category_inbox";
 
 interface SeenState {
   is_loading: boolean;
-  has_initial_load: boolean;
+  emails: number;
 }
 
 function render_hook(): { states: SeenState[]; root: Root } {
@@ -112,7 +119,7 @@ function render_hook(): { states: SeenState[]; root: Root } {
 
     states.push({
       is_loading: r.state.is_loading,
-      has_initial_load: r.state.has_initial_load,
+      emails: r.state.emails.length,
     });
 
     return null;
@@ -129,49 +136,49 @@ function render_hook(): { states: SeenState[]; root: Root } {
   return { states, root };
 }
 
-describe("use_category_inbox loading backstop", () => {
+async function flush(): Promise<void> {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await new Promise((r) => setTimeout(r, 0));
+    await Promise.resolve();
+  });
+}
+
+describe("use_category_inbox refresh", () => {
   beforeEach(() => {
-    (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-    vi.useFakeTimers();
-    mocks.is_build_in_progress.mockReturnValue(true);
-    mocks.is_build_stalled.mockReturnValue(false);
+    (
+      globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    mocks.fetch_mail_by_ids.mockClear();
+    mocks.sync_recent.mockClear();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
-  it("hard 30s backstop clears the skeleton even while a build claims to be in progress", () => {
+  it("re-syncs and re-fetches the visible page on REFRESH_REQUESTED", async () => {
     const { states, root } = render_hook();
 
-    expect(states.at(-1)!.is_loading).toBe(true);
+    await flush();
 
-    // Soft 10s backstop must NOT clear while a healthy build is still running.
+    const initial_fetches = mocks.fetch_mail_by_ids.mock.calls.length;
+
+    expect(initial_fetches).toBeGreaterThanOrEqual(1);
+
     act(() => {
-      vi.advanceTimersByTime(10_000);
+      window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
     });
-    expect(states.at(-1)!.is_loading).toBe(true);
-
-    // Hard 30s backstop clears regardless - no infinite skeleton.
-    act(() => {
-      vi.advanceTimersByTime(20_000);
-    });
-    expect(states.at(-1)!.is_loading).toBe(false);
-    expect(states.at(-1)!.has_initial_load).toBe(true);
-
-    act(() => root.unmount());
-  });
-
-  it("soft 10s backstop clears once the build is reported stalled", () => {
-    mocks.is_build_stalled.mockReturnValue(true);
-
-    const { states, root } = render_hook();
 
     expect(states.at(-1)!.is_loading).toBe(true);
 
-    act(() => {
-      vi.advanceTimersByTime(10_000);
-    });
+    await flush();
+
+    expect(mocks.sync_recent).toHaveBeenCalledTimes(1);
+    expect(mocks.fetch_mail_by_ids.mock.calls.length).toBeGreaterThan(
+      initial_fetches,
+    );
     expect(states.at(-1)!.is_loading).toBe(false);
 
     act(() => root.unmount());
