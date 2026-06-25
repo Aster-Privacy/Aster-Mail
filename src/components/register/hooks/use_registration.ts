@@ -474,12 +474,12 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const handle_download_key = async () => {
-    await generate_recovery_pdf(generated_email, recovery_codes);
+    await generate_recovery_pdf(generated_email, recovery_codes, t);
     set_is_pdf_downloaded(true);
   };
 
   const handle_download_txt = async () => {
-    await download_recovery_text(generated_email, recovery_codes);
+    await download_recovery_text(generated_email, recovery_codes, t);
     set_is_text_downloaded(true);
   };
 
