@@ -2306,7 +2306,7 @@ export const en: Translations = {
     fam_kids_username_label: "Address",
     fam_kids_username_ph: "their username",
     fam_kids_info_title: "Reserved kid addresses",
-    fam_kids_info_desc: "The address is held for your child and blocked from anyone else. Your child (or you) finishes setup later with a private password, creating a real zero-knowledge account auto-joined to your family.",
+    fam_kids_info_desc: "The address is held for your child and blocked from anyone else. Your child (or you) finishes setup later with a private password, creating a real zero-access account auto-joined to your family.",
     fam_kids_nickname_label: "Nickname (optional)",
     fam_kids_nickname_ph: "e.g. Johnny",
     fam_kids_storage_label: "Storage for this address",
