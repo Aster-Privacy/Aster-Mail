@@ -187,6 +187,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           undefined,
           offset,
           preferences.conversation_grouping ?? true,
+          preferences.inbox_sort_order ?? "newest_first",
         );
 
         if (signal.aborted) {
@@ -263,6 +264,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       format_options,
       user?.email,
       preferences.conversation_grouping,
+      preferences.inbox_sort_order,
     ],
   );
 
@@ -287,6 +289,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         undefined,
         0,
         preferences.conversation_grouping ?? true,
+        preferences.inbox_sort_order ?? "newest_first",
       );
 
       if (signal.aborted || !result || committed_view_ref.current !== current_view) return;
@@ -320,7 +323,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         };
       });
     } catch {}
-  }, [current_view, is_mail_view, format_options, user?.email, page_size, preferences.conversation_grouping]);
+  }, [current_view, is_mail_view, format_options, user?.email, page_size, preferences.conversation_grouping, preferences.inbox_sort_order]);
 
   silent_fetch_ref.current = silent_fetch;
 
@@ -345,6 +348,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         undefined,
         offset,
         preferences.conversation_grouping ?? true,
+        preferences.inbox_sort_order ?? "newest_first",
       );
 
       if (controller.signal.aborted) return;
@@ -375,6 +379,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     user?.email,
     page_size,
     preferences.conversation_grouping,
+    preferences.inbox_sort_order,
     state.has_more,
     state.is_loading_more,
   ]);
@@ -403,6 +408,17 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       refresh();
     }
   }, [preferences.conversation_grouping, refresh]);
+
+  const prev_sort_order_ref = useRef(preferences.inbox_sort_order);
+
+  useEffect(() => {
+    if (prev_sort_order_ref.current !== preferences.inbox_sort_order) {
+      prev_sort_order_ref.current = preferences.inbox_sort_order;
+      invalidate_mail_cache();
+      clear_preload_cache();
+      refresh();
+    }
+  }, [preferences.inbox_sort_order, refresh]);
 
   useEffect(() => {
     mounted_ref.current = true;

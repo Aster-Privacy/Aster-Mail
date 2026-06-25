@@ -4735,6 +4735,9 @@ export interface MailTranslations {
   read_only: string;
   with_attachments: string;
   filter: string;
+  sort_by: string;
+  newest_first: string;
+  oldest_first: string;
   views: string;
   quick_actions: string;
   archive_all_read_emails: string;

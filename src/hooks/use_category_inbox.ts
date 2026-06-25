@@ -59,6 +59,7 @@ import {
   remove_ids,
   is_representative_unread,
   sync_recent,
+  set_sort_order,
 } from "@/services/category_index";
 
 const EMPTY_STATE: EmailListState = {
@@ -111,6 +112,12 @@ export function use_category_inbox(
     get_index_version,
     get_index_version,
   );
+
+  useEffect(() => {
+    set_sort_order(
+      preferences.inbox_sort_order === "oldest_first" ? "asc" : "desc",
+    );
+  }, [preferences.inbox_sort_order]);
 
   const page_size = DEFAULT_PAGE_SIZE;
 

@@ -91,6 +91,7 @@ let build_in_progress = false;
 let build_progress_ms = 0;
 let build_token = 0;
 let version = 0;
+let sort_order: "asc" | "desc" = "desc";
 let ensure_loaded_promise: Promise<boolean> | null = null;
 let ensure_loaded_account: string | null = null;
 let persist_timer: ReturnType<typeof setTimeout> | null = null;
@@ -448,7 +449,7 @@ function compute_derived(): DerivedData {
   const pages = new Map<EmailCategory, string[]>();
 
   for (const [tab, list] of grouped) {
-    list.sort((a, b) => b.ts - a.ts);
+    list.sort((a, b) => (sort_order === "asc" ? a.ts - b.ts : b.ts - a.ts));
     pages.set(
       tab,
       list.map((item) => item.id),
@@ -516,6 +517,16 @@ export function is_build_stalled(): boolean {
 
 export function get_version(): number {
   return version;
+}
+
+export function set_sort_order(order: "asc" | "desc"): void {
+  if (order === sort_order) return;
+  sort_order = order;
+  notify();
+}
+
+export function get_sort_order(): "asc" | "desc" {
+  return sort_order;
 }
 
 export function subscribe(listener: () => void): () => void {
