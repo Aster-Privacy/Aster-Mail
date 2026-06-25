@@ -88,6 +88,7 @@ export interface ListMailItemsParams {
   tag_token?: string;
   routing_token?: string;
   group_by_thread?: boolean;
+  order?: "asc" | "desc";
 }
 
 export interface ListEncryptedMailItemsParams {
@@ -202,6 +203,7 @@ export async function list_mail_items(
     query_params.set("routing_token", params.routing_token);
   if (params.group_by_thread !== undefined)
     query_params.set("group_by_thread", params.group_by_thread.toString());
+  if (params.order) query_params.set("order", params.order);
 
   const query_string = query_params.toString();
   const endpoint = `/mail/v1/messages${query_string ? `?${query_string}` : ""}`;

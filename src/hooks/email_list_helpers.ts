@@ -476,6 +476,18 @@ export async function fetch_mail_by_ids(
     .filter((email): email is InboxEmail => email !== undefined);
 }
 
+export function sort_emails_by_timestamp(
+  emails: InboxEmail[],
+  order: "asc" | "desc",
+): InboxEmail[] {
+  return [...emails].sort((a, b) => {
+    const ts_a = new Date(a.raw_timestamp || a.timestamp).getTime();
+    const ts_b = new Date(b.raw_timestamp || b.timestamp).getTime();
+
+    return order === "asc" ? ts_a - ts_b : ts_b - ts_a;
+  });
+}
+
 export function group_emails_by_thread(emails: InboxEmail[]): InboxEmail[] {
   const thread_map = new Map<string, InboxEmail>();
   const result: InboxEmail[] = [];
@@ -559,6 +571,7 @@ export async function fetch_mail_from_api(
   cursor?: string,
   offset?: number,
   conversation_grouping = true,
+  sort_order: "newest_first" | "oldest_first" = "newest_first",
 ): Promise<{
   emails: InboxEmail[];
   total: number;
@@ -567,9 +580,11 @@ export async function fetch_mail_from_api(
 } | null> {
   const should_group =
     conversation_grouping && view !== "scheduled" && view !== "snoozed";
+  const order = sort_order === "oldest_first" ? "asc" : "desc";
 
   const params: ListMailItemsParams = {
     limit,
+    order,
     ...VIEW_PARAMS[view as MailView],
     ...(offset !== undefined ? { offset } : cursor ? { cursor } : {}),
     ...(offset !== undefined ? { group_by_thread: should_group } : {}),
@@ -693,12 +708,7 @@ export async function fetch_mail_from_api(
     ),
   );
 
-  const sorted_emails = emails.sort((a, b) => {
-    const ts_a = a.raw_timestamp || a.timestamp;
-    const ts_b = b.raw_timestamp || b.timestamp;
-
-    return new Date(ts_b).getTime() - new Date(ts_a).getTime();
-  });
+  const sorted_emails = sort_emails_by_timestamp(emails, order);
 
   const final_emails = should_group
     ? group_emails_by_thread(sorted_emails)

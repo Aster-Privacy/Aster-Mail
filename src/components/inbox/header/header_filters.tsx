@@ -29,8 +29,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 
 interface FilterDropdownProps {
   active_filter: InboxFilterType;
@@ -42,6 +44,8 @@ export function FilterDropdown({
   on_filter_change,
 }: FilterDropdownProps) {
   const { t } = use_i18n();
+  const { preferences, update_preference } = use_preferences();
+  const sort_order = preferences.inbox_sort_order ?? "newest_first";
 
   return (
     <DropdownMenu>
@@ -83,6 +87,28 @@ export function FilterDropdown({
             )}
           </span>
           {t("mail.with_attachments")}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>{t("mail.sort_by")}</DropdownMenuLabel>
+        <DropdownMenuItem
+          onClick={() =>
+            update_preference("inbox_sort_order", "newest_first", true)
+          }
+        >
+          <span className="w-4 mr-2">
+            {sort_order === "newest_first" && <CheckIcon className="w-4 h-4" />}
+          </span>
+          {t("mail.newest_first")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() =>
+            update_preference("inbox_sort_order", "oldest_first", true)
+          }
+        >
+          <span className="w-4 mr-2">
+            {sort_order === "oldest_first" && <CheckIcon className="w-4 h-4" />}
+          </span>
+          {t("mail.oldest_first")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
