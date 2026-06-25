@@ -68,6 +68,7 @@ let cached_aliases: DecryptedEmailAlias[] = [];
 let cached_alias_hashes: Map<string, string> = new Map();
 let cached_domain_options: SenderOption[] = [];
 let cached_external_options: SenderOption[] = [];
+let cached_ghost_options: SenderOption[] = [];
 let cached_user: User | null = null;
 let cache_populated = false;
 
@@ -76,6 +77,7 @@ export function clear_sender_aliases_cache(): void {
   cached_alias_hashes = new Map();
   cached_domain_options = [];
   cached_external_options = [];
+  cached_ghost_options = [];
   cached_user = null;
   cache_populated = false;
 }
@@ -90,6 +92,9 @@ export function use_sender_aliases() {
   );
   const [external_options, set_external_options] = useState<SenderOption[]>(
     cached_external_options,
+  );
+  const [ghost_options, set_ghost_options] = useState<SenderOption[]>(
+    cached_ghost_options,
   );
   const [loading, set_loading] = useState(!cache_populated);
   const [user, set_user] = useState<User | null>(cached_user);
@@ -178,6 +183,8 @@ export function use_sender_aliases() {
 
       const ghost_response = await list_ghost_aliases();
 
+      const ghost_sender_options: SenderOption[] = [];
+
       if (ghost_response.data?.aliases) {
         const decrypted_ghosts = await decrypt_ghost_aliases(
           ghost_response.data.aliases,
@@ -197,8 +204,15 @@ export function use_sender_aliases() {
           };
 
           register_ghost_email(g.full_address, ghost_sender);
+
+          if (g.is_enabled) {
+            ghost_sender_options.push(ghost_sender);
+          }
         }
       }
+
+      cached_ghost_options = ghost_sender_options;
+      set_ghost_options(ghost_sender_options);
 
       const external_response = await list_external_accounts();
 
@@ -230,6 +244,7 @@ export function use_sender_aliases() {
       set_alias_hashes(new Map());
       set_domain_options([]);
       set_external_options([]);
+      set_ghost_options([]);
     } finally {
       set_loading(false);
     }
@@ -271,6 +286,7 @@ export function use_sender_aliases() {
     })),
     ...domain_options,
     ...external_options,
+    ...ghost_options,
   ];
 
   return {
@@ -294,4 +310,16 @@ export function get_cached_alias_for_routing_token(
   }
 
   return undefined;
+}
+
+export function get_cached_ghost_for_routing_token(
+  routing_token: string | undefined,
+): string | undefined {
+  if (!routing_token) return undefined;
+
+  const match = cached_ghost_options.find(
+    (g) => g.address_hash === routing_token,
+  );
+
+  return match?.email;
 }
