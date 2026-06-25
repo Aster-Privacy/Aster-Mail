@@ -102,6 +102,7 @@ import { is_desktop_runtime } from "@/services/updates/updater";
 import { TemplatesSection } from "@/components/settings/templates_section";
 import { MailManagementSection } from "@/components/settings/mail_management_section";
 import { MailRulesSection } from "@/components/settings/mail_rules_section";
+import { FolderRetentionSection } from "@/components/settings/folder_retention_section";
 import { FeedbackSection } from "@/components/settings/feedback_section";
 import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section";
 import { ReferralTab } from "@/components/settings/referral_tab";
@@ -625,7 +626,12 @@ function SettingsPanelInner({
       case "sender_filters":
         return <MailManagementSection />;
       case "mail_rules":
-        return <MailRulesSection />;
+        return (
+          <div className="space-y-8">
+            <MailRulesSection />
+            <FolderRetentionSection />
+          </div>
+        );
       case "feedback":
         return <FeedbackSection />;
       case "developer":
