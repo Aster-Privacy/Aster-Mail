@@ -147,7 +147,7 @@ function save_button(): HTMLButtonElement | undefined {
 
 describe("applying a template into the rule editor", () => {
   it("pre-fills the name for every template", () => {
-    for (const tpl of RULE_TEMPLATES) {
+    for (const tpl of RULE_TEMPLATES.filter((t) => !t.opens_retention)) {
       const seed = template_to_seed(tpl, "Seed name");
       act(() => {
         root.render(
@@ -162,7 +162,7 @@ describe("applying a template into the rule editor", () => {
   });
 
   it("blocks save until customized exactly for needs_config templates", () => {
-    for (const tpl of RULE_TEMPLATES) {
+    for (const tpl of RULE_TEMPLATES.filter((t) => !t.opens_retention)) {
       const seed = template_to_seed(tpl, "Seed name");
       act(() => {
         root.render(

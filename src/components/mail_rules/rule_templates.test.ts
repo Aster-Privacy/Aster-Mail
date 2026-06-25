@@ -80,7 +80,7 @@ describe("rule templates catalog", () => {
   });
 
   it("ships at least one condition and one action per template", () => {
-    for (const tpl of RULE_TEMPLATES) {
+    for (const tpl of RULE_TEMPLATES.filter((t) => !t.opens_retention)) {
       expect(tpl.conditions.length, tpl.id).toBeGreaterThan(0);
       expect(tpl.actions.length, tpl.id).toBeGreaterThan(0);
     }

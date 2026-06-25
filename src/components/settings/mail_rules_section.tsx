@@ -24,6 +24,7 @@ import {
   Bars3Icon,
   BoltIcon,
   Squares2X2Icon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -55,6 +56,12 @@ import {
 } from "@/components/mail_rules/rule_templates";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_register_search_items } from "@/components/settings/search_context";
+import {
+  use_folder_retention,
+  RetentionPolicyCard,
+  RetentionEditorModal,
+  RetentionUpgradeModal,
+} from "@/components/settings/folder_retention_section";
 import type { LeafCondition, Rule } from "@/services/api/mail_rules";
 
 export function MailRulesSection() {
@@ -63,6 +70,7 @@ export function MailRulesSection() {
   const { state: folders_state, fetch_folders } = use_folders();
   const { state: tags_state, fetch_tags } = use_tags();
   const { limits } = use_plan_limits();
+  const retention = use_folder_retention();
   const rules_limit = limits?.limits["max_custom_filters"]?.limit ?? -1;
   const rules_limit_label = rules_limit === -1 ? "∞" : String(rules_limit);
   const at_limit = rules_limit !== -1 && rules.length >= rules_limit;
@@ -119,6 +127,10 @@ export function MailRulesSection() {
 
   const handle_template_pick = (template: RuleTemplate) => {
     set_gallery_open(false);
+    if (template.opens_retention) {
+      retention.open_new();
+      return;
+    }
     set_editing_rule(null);
     set_seed(template_to_seed(template, t(template.name_key)));
     set_editor_open(true);
@@ -164,6 +176,10 @@ export function MailRulesSection() {
               <Button size="md" variant="outline" onClick={open_templates}>
                 <Squares2X2Icon className="w-4 h-4" />
                 {t("mail_rules.templates_button")}
+              </Button>
+              <Button size="md" variant="outline" onClick={retention.open_new}>
+                <ClockIcon className="w-4 h-4" />
+                {t("folder_retention.add")}
               </Button>
               <Button
                 size="md"
@@ -228,6 +244,21 @@ export function MailRulesSection() {
         </div>
       )}
 
+      {retention.policies.length > 0 && (
+        <div className="space-y-2">
+          {retention.policies.map((policy) => (
+            <RetentionPolicyCard
+              key={policy.id}
+              policy={policy}
+              folder_name={retention.get_folder_name(policy.folder_token)}
+              on_edit={() => retention.open_edit(policy)}
+              on_toggle={() => retention.handle_toggle(policy)}
+              on_delete={() => retention.handle_delete(policy)}
+            />
+          ))}
+        </div>
+      )}
+
       <RuleEditorModal
         is_open={editor_open}
         on_close={() => set_editor_open(false)}
@@ -272,6 +303,21 @@ export function MailRulesSection() {
           </Button>
         </ModalFooter>
       </Modal>
+
+      {retention.editor_open && (
+        <RetentionEditorModal
+          is_open={retention.editor_open}
+          on_close={() => retention.set_editor_open(false)}
+          policy={retention.editing}
+          custom_folders={retention.custom_folders}
+          existing_tokens={retention.existing_tokens}
+          on_saved={retention.handle_saved}
+        />
+      )}
+      <RetentionUpgradeModal
+        is_open={retention.show_upgrade}
+        on_close={() => retention.set_show_upgrade(false)}
+      />
     </div>
   );
 }
