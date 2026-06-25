@@ -1340,7 +1340,7 @@ class ApiClient {
           }
         }
 
-        if (attempt < retry) {
+        if (attempt < retry && !is_state_changing_method(method)) {
           await this.delay(retry_delay * (attempt + 1));
           continue;
         }
