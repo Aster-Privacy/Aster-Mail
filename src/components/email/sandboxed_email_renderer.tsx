@@ -22,6 +22,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { Capacitor } from "@capacitor/core";
 
 import { EMAIL_BODY_CSS, FORCED_DARK_MODE_CSS } from "@/lib/email_body_styles";
+import { sanitize_preview_html } from "@/lib/html_sanitizer";
 import {
   extract_cid_references,
   resolve_cid_references,
@@ -1282,7 +1283,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
         `<style>${EMAIL_BODY_CSS}` +
         (dark_mode_css ? dark_mode_css : "") +
         `a{pointer-events:none}</style>` +
-        `<div style="${body_style}">${strip_remote_css_fetches(resolved_html)}</div>`;
+        `<div style="${body_style}">${strip_remote_css_fetches(sanitize_preview_html(resolved_html))}</div>`;
     },
     [
       resolved_html,
