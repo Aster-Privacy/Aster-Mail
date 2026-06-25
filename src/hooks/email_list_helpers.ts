@@ -118,6 +118,55 @@ function should_exclude_trashed_spam(view: string): boolean {
   );
 }
 
+const OUTGOING_VIEWS = new Set<string>(["sent", "drafts", "scheduled"]);
+
+export function is_outgoing_view(current_view: string | undefined): boolean {
+  return current_view != null && OUTGOING_VIEWS.has(current_view);
+}
+
+export function outgoing_recipient_names(
+  current_view: string | undefined,
+  recipient_names: string[] | undefined,
+): string[] | null {
+  return is_outgoing_view(current_view) &&
+    recipient_names &&
+    recipient_names.length > 0
+    ? recipient_names
+    : null;
+}
+
+export function outgoing_profile_email(
+  current_view: string | undefined,
+  recipient_addresses: string[] | undefined,
+  sender_email: string,
+): string {
+  const first_recipient = recipient_addresses?.[0];
+
+  return is_outgoing_view(current_view) && first_recipient
+    ? first_recipient
+    : sender_email;
+}
+
+export function resolve_list_display_name(params: {
+  outgoing_names: string[] | null;
+  thread_participant_names: string[] | undefined;
+  fallback_name: string;
+  to_prefix: string;
+}): string {
+  if (params.outgoing_names) {
+    return `${params.to_prefix}: ${params.outgoing_names.join(", ")}`;
+  }
+
+  if (
+    params.thread_participant_names &&
+    params.thread_participant_names.length > 0
+  ) {
+    return params.thread_participant_names.join(", ");
+  }
+
+  return params.fallback_name;
+}
+
 export function should_keep_email_in_view(
   flags: {
     is_trashed?: boolean;
@@ -345,6 +394,9 @@ export function mail_to_email(
   }
 
   const recipient_addresses = envelope.to?.map((r) => r.email).filter(Boolean);
+  const recipient_names = envelope.to
+    ?.map((r) => r.name || get_email_username(r.email))
+    .filter(Boolean);
 
   const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
   const raw_html = envelope.body_html ?? envelope.html_body ?? "";
@@ -410,6 +462,7 @@ export function mail_to_email(
     expires_at: item.expires_at,
     expiry_type: item.expiry_type,
     recipient_addresses,
+    recipient_names,
     reply_to: extract_reply_to(envelope.raw_headers),
     send_status: effective_metadata.send_status,
     size_bytes:

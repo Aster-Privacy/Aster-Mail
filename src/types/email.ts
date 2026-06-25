@@ -184,6 +184,7 @@ export interface InboxEmail {
   expiry_type?: "sender" | "recipient";
   grouped_email_ids?: string[];
   recipient_addresses?: string[];
+  recipient_names?: string[];
   reply_to?: { name?: string; email: string };
   send_status?: string;
   size_bytes?: number;
