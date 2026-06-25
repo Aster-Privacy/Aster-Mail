@@ -50,6 +50,7 @@ export interface TranslationNamespace {
   auth: AuthTranslations;
   errors: ErrorTranslations;
   mail_rules: MailRulesTranslations;
+  folder_retention: FolderRetentionTranslations;
   badges: BadgesTranslations;
   secure_view: SecureViewTranslations;
   compose: ComposeTranslations;
@@ -115,6 +116,44 @@ export interface ComposeTranslations {
   encrypt_external_label: string;
   encrypt_external_desc: string;
   encrypt_password_required: string;
+}
+
+export interface FolderRetentionTranslations {
+  title: string;
+  subtitle: string;
+  add: string;
+  empty_title: string;
+  empty_description: string;
+  edit_title: string;
+  folder: string;
+  select_folder: string;
+  no_folders: string;
+  retention_period: string;
+  days_suffix: string;
+  mode: string;
+  mode_trash: string;
+  mode_trash_hint: string;
+  mode_permanent: string;
+  mode_permanent_hint: string;
+  enabled: string;
+  preview_some: string;
+  preview_none: string;
+  keeps_note: string;
+  save: string;
+  cancel: string;
+  delete: string;
+  permanent_confirm: string;
+  summary_older_than: string;
+  summary_trash: string;
+  summary_permanent: string;
+  card_badge: string;
+  disabled_badge: string;
+  upgrade_title: string;
+  upgrade_body: string;
+  save_failed: string;
+  load_failed: string;
+  deleted_toast: string;
+  saved_toast: string;
 }
 
 export interface MailRulesTranslations {
@@ -282,6 +321,8 @@ export interface MailRulesTranslations {
   templates_category_cleanup: string;
   templates_category_priority: string;
   templates_category_security: string;
+  tpl_folder_auto_clean_name: string;
+  tpl_folder_auto_clean_desc: string;
   tpl_newsletters_name: string;
   tpl_newsletters_desc: string;
   tpl_social_name: string;
@@ -5753,6 +5794,7 @@ export type TranslationKey =
   | `auth.${keyof AuthTranslations}`
   | `errors.${keyof ErrorTranslations}`
   | `mail_rules.${keyof MailRulesTranslations}`
+  | `folder_retention.${keyof FolderRetentionTranslations}`
   | `badges.${keyof BadgesTranslations}`
   | `secure_view.${keyof SecureViewTranslations}`
   | `compose.${keyof ComposeTranslations}`

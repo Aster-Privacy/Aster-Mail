@@ -20,7 +20,8 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { sanitize_html } from "./html_sanitizer";
+import { sanitize_html, sanitize_preview_html } from "./html_sanitizer";
+import { sanitize_css_block, sanitize_style } from "./html_sanitizer_css";
 
 const has_event_handler = (html: string): boolean =>
   /\son[a-z]+\s*=/i.test(html);
@@ -248,6 +249,100 @@ describe("sanitize_html preserves legitimate content (no over-stripping)", () =>
     expect(html.toLowerCase()).toContain("<td");
     expect(html).toContain("cell");
     expect(html).toContain("H");
+  });
+});
+
+describe("sanitize_html neutralizes CSS overlay clickjacking", () => {
+  it("strips viewport-pinning position (fixed/sticky) from inline styles in both modes", () => {
+    for (const sandbox of [false, true]) {
+      expect(
+        sanitize_style("position:fixed;top:0;left:0;width:100vw;height:100vh", sandbox),
+      ).not.toMatch(/position\s*:\s*fixed/i);
+      expect(sanitize_style("position:sticky;top:0", sandbox)).not.toMatch(
+        /position\s*:\s*sticky/i,
+      );
+    }
+  });
+
+  it("strips viewport-pinning position (fixed/sticky) from style blocks", () => {
+    const out = sanitize_css_block(
+      "a{position:fixed;inset:0;z-index:99999} .y{position:sticky;top:0}",
+      true,
+    );
+    expect(out).not.toMatch(/position\s*:\s*fixed/i);
+    expect(out).not.toMatch(/position\s*:\s*sticky/i);
+  });
+
+  it("preserves position:absolute inside the sandboxed render (no legit-layout breakage)", () => {
+    expect(sanitize_style("position:absolute;top:4px", true)).toMatch(
+      /position\s*:\s*absolute/i,
+    );
+    expect(
+      sanitize_css_block("a{position:absolute;top:4px}", true),
+    ).toMatch(/position\s*:\s*absolute/i);
+  });
+
+  it("does not mangle legitimate CSS that merely resembles positioning", () => {
+    const out = sanitize_style(
+      "background-attachment:fixed;background-position:center;color:red",
+      true,
+    );
+    expect(out).toContain("background-attachment:fixed");
+    expect(out).toContain("background-position:center");
+    expect(out).toContain("color:red");
+  });
+
+  it("keeps relative/static positioning untouched", () => {
+    const out = sanitize_css_block("a{position:relative}.b{position:static}", true);
+    expect(out).toContain("position:relative");
+    expect(out).toContain("position:static");
+  });
+});
+
+describe("sanitize_preview_html (top-origin shadow sink)", () => {
+  it("removes style blocks and their CSS text so attacker CSS cannot reach the app origin", () => {
+    const preview = sanitize_preview_html(
+      "<style>body{position:fixed;inset:0}.x{color:red}</style><p>hi</p>",
+    );
+    expect(preview.toLowerCase()).not.toContain("<style");
+    expect(preview).not.toContain("position:fixed");
+    expect(preview).toContain("hi");
+  });
+
+  it("keeps benign content and links", () => {
+    const preview = sanitize_preview_html(
+      '<p>Hello <b>world</b></p><a href="https://example.com">link</a>',
+    );
+    expect(preview).toContain("Hello");
+    expect(preview.toLowerCase()).toContain("<b>");
+    expect(preview).toContain("https://example.com");
+  });
+
+  it("never emits script or event handlers", () => {
+    const preview = sanitize_preview_html(
+      '<img src=x onerror=alert(1)><script>alert(1)</script><p>ok</p>',
+    );
+    expect(has_event_handler(preview)).toBe(false);
+    expect(preview.toLowerCase()).not.toContain("<script");
+    expect(preview).toContain("ok");
+  });
+
+  it("strips style blocks regardless of attributes/casing", () => {
+    expect(
+      sanitize_preview_html('<STYLE type="text/css">*{position:fixed}</STYLE><p>a</p>')
+        .toLowerCase(),
+    ).not.toContain("position:fixed");
+    expect(
+      sanitize_preview_html('<style media="all">x{}</style><p>a</p>').toLowerCase(),
+    ).not.toContain("<style");
+  });
+
+  it("preserves inline data images and body content", () => {
+    const preview = sanitize_preview_html(
+      '<img src="data:image/png;base64,AAAA"><p>body</p>',
+    );
+    expect(preview.toLowerCase()).toContain("data:image/png");
+    expect(preview).toContain("body");
   });
 });
 

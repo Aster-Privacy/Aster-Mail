@@ -66,30 +66,45 @@ export function format_bytes(bytes: number): string {
   return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[i]}`;
 }
 
-export function is_astermail_sender(
-  sender_name?: string | null,
-  sender_email?: string | null,
-): boolean {
-  return (
-    sender_name === "Aster Mail" ||
-    sender_email?.endsWith("@astermail.org") === true ||
-    sender_email?.endsWith("@aster.cx") === true
-  );
+const OFFICIAL_SENDER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
+
+function official_sender_parts(
+  email?: string | null,
+): { local_part: string; domain: string } | null {
+  if (!email) return null;
+  const parts = email.trim().toLowerCase().split("@");
+
+  if (parts.length !== 2) return null;
+
+  const [local_part, domain] = parts;
+
+  if (!local_part || !domain) return null;
+  if (!OFFICIAL_SENDER_DOMAINS.has(domain)) return null;
+
+  return { local_part, domain };
 }
 
-export function is_system_email(email?: string | null): boolean {
-  if (!email) return false;
-  const normalized = email.trim().toLowerCase();
-  const local_part = normalized.split("@")[0];
+export function is_astermail_sender(
+  _sender_name?: string | null,
+  sender_email?: string | null,
+): boolean {
+  return official_sender_parts(sender_email) !== null;
+}
 
-  return (
-    normalized === "noreply@astermail.org" ||
-    normalized === "no-reply@astermail.org" ||
-    normalized === "updates@astermail.org" ||
-    normalized === "updates@aster.cx" ||
-    local_part === "mailer-daemon" ||
-    local_part === "postmaster"
-  );
+const SYSTEM_SENDER_ROLES = new Set([
+  "noreply",
+  "no-reply",
+  "updates",
+  "mailer-daemon",
+  "postmaster",
+]);
+
+export function is_system_email(email?: string | null): boolean {
+  const parts = official_sender_parts(email);
+
+  if (!parts) return false;
+
+  return SYSTEM_SENDER_ROLES.has(parts.local_part);
 }
 
 // Every role here MUST also be a reserved username and reserved alias in the
@@ -110,22 +125,12 @@ const OFFICIAL_SENDER_ROLES = new Set([
   "updates",
 ]);
 
-const OFFICIAL_SENDER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
-
 export function is_official_sender(email?: string | null): boolean {
-  if (!email) return false;
-  const normalized = email.trim().toLowerCase();
-  const parts = normalized.split("@");
+  const parts = official_sender_parts(email);
 
-  if (parts.length !== 2) return false;
+  if (!parts) return false;
 
-  const [local_part, domain] = parts;
-
-  if (!local_part || !domain) return false;
-
-  return (
-    OFFICIAL_SENDER_DOMAINS.has(domain) && OFFICIAL_SENDER_ROLES.has(local_part)
-  );
+  return OFFICIAL_SENDER_ROLES.has(parts.local_part);
 }
 
 export function get_email_username(email: string): string {
