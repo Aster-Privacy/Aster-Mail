@@ -660,6 +660,23 @@ export async function save_preferences(
   }
 }
 
+export function reconcile_preferences(
+  base: UserPreferences,
+  current: UserPreferences,
+  server: UserPreferences,
+): UserPreferences {
+  const reconciled = { ...server } as UserPreferences;
+
+  for (const key of Object.keys(current) as (keyof UserPreferences)[]) {
+    if (current[key] !== base[key]) {
+      (reconciled as unknown as Record<string, unknown>)[key] =
+        current[key] as unknown;
+    }
+  }
+
+  return reconciled;
+}
+
 export async function prepare_preferences_payload(
   preferences: UserPreferences,
   vault: EncryptedVault,
