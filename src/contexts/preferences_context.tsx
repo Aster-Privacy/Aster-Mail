@@ -42,6 +42,7 @@ import {
   cache_preferences_locally,
   get_cached_preferences,
   prepare_preferences_payload,
+  reconcile_preferences,
   DEFAULT_PREFERENCES,
   type UserPreferences,
 } from "@/services/api/preferences";
@@ -176,6 +177,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   set_language_ref.current = set_language;
 
   const has_loaded_ref = useRef(false);
+  const fallback_base_ref = useRef<UserPreferences | null>(null);
 
   const debounce_timer = useRef<number | null>(null);
   const saved_indicator_timer = useRef<number | null>(null);
@@ -186,33 +188,52 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     nonce: string;
   } | null>(null);
 
-  const do_save = useCallback(async (prefs: UserPreferences): Promise<boolean> => {
-    if (!has_loaded_ref.current) {
-      return false;
-    }
-
-    const v = vault_ref.current;
-
-    if (!v || !v.identity_key) {
-      return false;
-    }
-
-    try {
-      const result = await save_preferences(prefs, v);
-
-      if (!result.data.success) {
-        return false;
+  const do_save = useCallback(
+    async (prefs: UserPreferences): Promise<UserPreferences | null> => {
+      if (!has_loaded_ref.current) {
+        return null;
       }
 
-      return true;
-    } catch (err) {
-      if (import.meta.env.DEV) {
-        console.error("[prefs] do_save: exception during save_preferences:", err);
+      const v = vault_ref.current;
+
+      if (!v || !v.identity_key) {
+        return null;
       }
 
-      return false;
-    }
-  }, []);
+      let to_save = prefs;
+      const base = fallback_base_ref.current;
+
+      if (base) {
+        try {
+          const fresh = await get_preferences(v);
+
+          if (fresh.loaded_from_server && fresh.data) {
+            to_save = reconcile_preferences(base, prefs, fresh.data);
+            fallback_base_ref.current = null;
+          }
+        } catch {
+          fallback_base_ref.current = base;
+        }
+      }
+
+      try {
+        const result = await save_preferences(to_save, v);
+
+        if (!result.data.success) {
+          return null;
+        }
+
+        return to_save;
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.error("[prefs] do_save: exception during save_preferences:", err);
+        }
+
+        return null;
+      }
+    },
+    [],
+  );
 
   const flush_save = useCallback(async () => {
     if (is_saving_ref.current) return;
@@ -230,10 +251,15 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       saved_indicator_timer.current = null;
     }
 
-    const ok = await do_save(prefs);
+    const saved = await do_save(prefs);
 
-    if (ok) {
-      cache_preferences_locally(prefs);
+    if (saved) {
+      cache_preferences_locally(saved);
+
+      if (saved !== prefs) {
+        set_preferences(saved);
+      }
+
       beacon_payload_ref.current = null;
       set_save_status("saved");
 
@@ -336,9 +362,13 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       });
     }
 
-    do_save(updated).then((ok) => {
-      if (ok) {
-        cache_preferences_locally(updated);
+    do_save(updated).then((saved) => {
+      if (saved) {
+        cache_preferences_locally(saved);
+
+        if (saved !== updated) {
+          set_preferences(saved);
+        }
 
         if (latest_prefs_ref.current === updated) {
           latest_prefs_ref.current = null;
@@ -556,6 +586,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     }
 
     if (response.loaded_from_server && response.data) {
+      fallback_base_ref.current = null;
       let merged = normalize_preferences({ ...DEFAULT_PREFERENCES, ...response.data });
 
       const nav_conn = (navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
@@ -593,6 +624,8 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         set_preferences(cached);
         set_low_network_mode(cached.low_network_mode);
         apply_visual_preferences(cached);
+        has_loaded_ref.current = true;
+        fallback_base_ref.current = cached;
       }
     }
 
@@ -639,6 +672,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     }
     latest_prefs_ref.current = null;
     has_loaded_ref.current = false;
+    fallback_base_ref.current = null;
 
     (async () => {
       try {
@@ -663,11 +697,14 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
             response = { data: cached, loaded_from_server: false };
             set_preferences(cached);
             apply_visual_preferences(cached);
+            has_loaded_ref.current = true;
+            fallback_base_ref.current = cached;
           }
         }
 
         if (response.loaded_from_server && response.data) {
           has_loaded_ref.current = true;
+          fallback_base_ref.current = null;
           cache_preferences_locally(response.data);
           if (debounce_timer.current) {
             clearTimeout(debounce_timer.current);
