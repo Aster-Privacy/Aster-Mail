@@ -58,4 +58,28 @@ describe("parse_vcard (Gmail vCard import)", () => {
     expect(contacts[0].first_name).toBe("Jane");
     expect(contacts[0].last_name).toBe("Doe");
   });
+
+  it("captures grouped properties (item1.EMAIL) emitted by Apple/Google", () => {
+    const vcard =
+      "BEGIN:VCARD\nVERSION:3.0\nFN:Grace Hopper\nN:Hopper;Grace;;;\nitem1.EMAIL;type=INTERNET:grace@example.com\nitem2.EMAIL;type=INTERNET:grace.work@example.com\nEND:VCARD\n";
+
+    const contacts = parse_vcard(vcard);
+
+    expect(contacts).toHaveLength(1);
+    expect(contacts[0].emails).toEqual([
+      "grace@example.com",
+      "grace.work@example.com",
+    ]);
+  });
+
+  it("keeps the structured N name even when FN appears after it", () => {
+    const vcard =
+      "BEGIN:VCARD\nVERSION:3.0\nN:Van Helsing;Abraham;;;\nFN:Abraham Van Helsing\nEMAIL:a@example.com\nEND:VCARD\n";
+
+    const contacts = parse_vcard(vcard);
+
+    expect(contacts).toHaveLength(1);
+    expect(contacts[0].first_name).toBe("Abraham");
+    expect(contacts[0].last_name).toBe("Van Helsing");
+  });
 });
