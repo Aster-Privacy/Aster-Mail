@@ -176,6 +176,15 @@ describe("use_category_inbox refresh", () => {
     await flush();
 
     expect(mocks.sync_recent).toHaveBeenCalledTimes(1);
+
+    expect(states.at(-1)!.is_loading).toBe(true);
+    expect(mocks.fetch_mail_by_ids.mock.calls.length).toBe(initial_fetches);
+
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 700));
+    });
+    await flush();
+
     expect(mocks.fetch_mail_by_ids.mock.calls.length).toBeGreaterThan(
       initial_fetches,
     );
