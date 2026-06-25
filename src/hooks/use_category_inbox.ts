@@ -70,6 +70,8 @@ const EMPTY_STATE: EmailListState = {
   has_initial_load: false,
 };
 
+const MIN_REFRESH_SKELETON_MS = 550;
+
 function build_list_state(
   prev: EmailListState,
   emails: InboxEmail[],
@@ -330,11 +332,22 @@ export function use_category_inbox(
         prev.is_loading ? prev : { ...prev, is_loading: true },
       );
       void (async () => {
+        const started = Date.now();
+
         try {
           await sync_recent();
         } catch {
           void 0;
         }
+
+        const elapsed = Date.now() - started;
+
+        if (elapsed < MIN_REFRESH_SKELETON_MS) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, MIN_REFRESH_SKELETON_MS - elapsed),
+          );
+        }
+
         await fetch_page(page, page_size);
       })();
     };
