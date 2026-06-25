@@ -91,6 +91,21 @@ function collapse_forwarded_content(
     body.querySelector("div.gmail_quote");
 
   if (gmail_wrapper) {
+    const has_content_outside = (() => {
+      const text_walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+
+      while (text_walker.nextNode()) {
+        const node = text_walker.currentNode;
+
+        if (gmail_wrapper.contains(node)) continue;
+        if ((node.textContent || "").trim().length > 0) return true;
+      }
+
+      return false;
+    })();
+
+    if (!has_content_outside) return;
+
     const wrapper = doc.createElement("div");
 
     wrapper.className = "aster-quoted-wrapper";
@@ -153,6 +168,19 @@ function collapse_forwarded_content(
   }
   if (!marker_block) return;
 
+  const has_content_before_marker = (() => {
+    const before_walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+
+    while (before_walker.nextNode()) {
+      const node = before_walker.currentNode;
+
+      if (marker_block.contains(node)) return false;
+      if ((node.textContent || "").trim().length > 0) return true;
+    }
+
+    return false;
+  })();
+
   const to_collapse: Node[] = [marker_block];
   let sib = marker_block.nextSibling;
   const meta_re = /^\s*(From|Date|Subject|To|Cc|Bcc)\s*:/i;
@@ -171,6 +199,9 @@ function collapse_forwarded_content(
   const details = doc.createElement("details");
 
   details.className = "aster-forwarded-collapse";
+  if (!has_content_before_marker) {
+    details.setAttribute("open", "");
+  }
   const summary = doc.createElement("summary");
 
   summary.textContent = label;
@@ -274,6 +305,27 @@ function collapse_quoted_replies(
   }
 
   if (to_collapse.length === 0) return;
+
+  const collapse_contains = (node: Node): boolean =>
+    to_collapse.some(
+      (c) =>
+        c === node ||
+        (c.nodeType === Node.ELEMENT_NODE && (c as Element).contains(node)),
+    );
+  const has_visible_outside = (() => {
+    const outside_walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+
+    while (outside_walker.nextNode()) {
+      const node = outside_walker.currentNode;
+
+      if (collapse_contains(node)) continue;
+      if ((node.textContent || "").trim().length > 0) return true;
+    }
+
+    return false;
+  })();
+
+  if (!has_visible_outside) return;
 
   const wrapper = doc.createElement("div");
 
