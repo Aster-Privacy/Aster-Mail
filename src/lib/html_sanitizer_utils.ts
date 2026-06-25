@@ -170,6 +170,12 @@ export function strip_mso_conditionals(html: string): string {
   return result;
 }
 
+function strip_attribute_markup(value: string): string {
+  if (value.indexOf("<") === -1) return value;
+
+  return value.replace(/<[^>]*>?/g, "");
+}
+
 export function sanitize_attribute(
   tag_name: string,
   attr_name: string,
@@ -217,5 +223,5 @@ export function sanitize_attribute(
     return "_blank";
   }
 
-  return attr_value;
+  return strip_attribute_markup(attr_value);
 }
