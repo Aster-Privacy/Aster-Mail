@@ -39,6 +39,11 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_date_format } from "@/hooks/use_date_format";
+import {
+  outgoing_profile_email,
+  outgoing_recipient_names,
+  resolve_list_display_name,
+} from "@/hooks/email_list_helpers";
 import { haptic_long_press, haptic_impact } from "@/native/haptic_feedback";
 
 interface MobileEmailRowProps {
@@ -55,6 +60,7 @@ interface MobileEmailRowProps {
   swipe_right_action?: string;
   selection_mode?: boolean;
   is_selected?: boolean;
+  current_view?: string;
 }
 
 export const MobileEmailRow = memo(function MobileEmailRow(
@@ -74,6 +80,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
     swipe_right_action = "toggle_read",
     selection_mode = false,
     is_selected = false,
+    current_view,
   } = props;
   const { t } = use_i18n();
   const { format_email_list } = use_date_format();
@@ -209,8 +216,26 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
   const left_action = build_swipe_action(swipe_left_action);
   const right_action = build_swipe_action(swipe_right_action);
-  const show_sender_name = email.display_sender_name ?? email.sender_name;
-  const show_sender_email = email.display_sender_email ?? email.sender_email;
+  const outgoing_names = outgoing_recipient_names(
+    current_view,
+    email.recipient_names,
+  );
+  const show_sender_name = outgoing_names
+    ? outgoing_names[0]
+    : (email.display_sender_name ?? email.sender_name);
+  const display_name_label = resolve_list_display_name({
+    outgoing_names,
+    thread_participant_names: undefined,
+    fallback_name: show_sender_name,
+    to_prefix: t("mail.to"),
+  });
+  const show_sender_email = outgoing_names
+    ? outgoing_profile_email(
+        current_view,
+        email.recipient_addresses,
+        email.sender_email,
+      )
+    : (email.display_sender_email ?? email.sender_email);
 
   const row_content = (
     <div
@@ -259,7 +284,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
                 : "text-[var(--text-secondary)]"
             }`}
           >
-            {show_sender_name}
+            {display_name_label}
           </span>
 
           <OfficialBadge

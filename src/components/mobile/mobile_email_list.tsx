@@ -417,6 +417,7 @@ export const MobileEmailList = memo(function MobileEmailList({
             {pinned_emails.map((email) => (
               <MobileEmailRow
                 key={email.id}
+                current_view={current_view}
                 email={email}
                 is_selected={selected_ids?.has(email.id)}
                 on_archive={on_archive}
@@ -438,6 +439,7 @@ export const MobileEmailList = memo(function MobileEmailList({
         {emails.map((email) => (
           <MobileEmailRow
             key={email.id}
+            current_view={current_view}
             email={email}
             is_selected={selected_ids?.has(email.id)}
             on_archive={on_archive}

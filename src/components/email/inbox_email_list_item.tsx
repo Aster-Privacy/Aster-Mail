@@ -59,6 +59,11 @@ import {
   subscribe_aliases,
 } from "@/hooks/use_sidebar_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
+import {
+  outgoing_profile_email,
+  outgoing_recipient_names,
+  resolve_list_display_name,
+} from "@/hooks/email_list_helpers";
 
 interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
   email: InboxEmail;
@@ -200,19 +205,32 @@ export const InboxEmailListItem = memo(
     ) {
       const { t } = use_i18n();
       const { preferences } = use_preferences();
-      const peer_profile = use_peer_profile(
-        is_system_email(email.sender_email) ? null : email.sender_email,
+      const is_trash_view = current_view === "trash";
+      const is_spam_view = current_view === "spam";
+      const is_archive_view = current_view === "archive";
+      const outgoing_names = outgoing_recipient_names(
+        current_view,
+        email.recipient_names,
       );
-      const show_sender_email = email.display_sender_email ?? email.sender_email;
-      const show_sender_name = email.display_sender_name ?? email.sender_name;
+      const profile_target_email = outgoing_profile_email(
+        current_view,
+        email.recipient_addresses,
+        email.sender_email,
+      );
+      const peer_profile = use_peer_profile(
+        is_system_email(profile_target_email) ? null : profile_target_email,
+      );
+      const show_sender_email = outgoing_names
+        ? profile_target_email
+        : (email.display_sender_email ?? email.sender_email);
+      const show_sender_name = outgoing_names
+        ? outgoing_names[0]
+        : (email.display_sender_name ?? email.sender_name);
       const peer_badge = peer_profile?.active_badge ?? null;
       const show_sender_ring =
         (peer_profile?.show_badge_ring ?? false) && !!peer_badge;
       const show_sender_badge =
         (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
-      const is_trash_view = current_view === "trash";
-      const is_spam_view = current_view === "spam";
-      const is_archive_view = current_view === "archive";
       const show_hover_actions =
         on_archive ||
         on_spam ||
@@ -498,10 +516,12 @@ export const InboxEmailListItem = memo(
                     : "font-semibold text-txt-primary",
                 )}
               >
-                {email.thread_participant_names &&
-                email.thread_participant_names.length > 0
-                  ? email.thread_participant_names.join(", ")
-                  : (peer_profile?.display_name ?? show_sender_name)}
+                {resolve_list_display_name({
+                  outgoing_names,
+                  thread_participant_names: email.thread_participant_names,
+                  fallback_name: peer_profile?.display_name ?? show_sender_name,
+                  to_prefix: t("mail.to"),
+                })}
               </span>
 
               <OfficialBadge
