@@ -46,14 +46,21 @@ export function parse_eml(raw: string): ParsedEmail {
   const subject = headers["subject"] || "";
 
   let date: Date;
+  let date_inferred = false;
   const date_header = headers["date"];
 
   if (date_header) {
     const parsed_date = new Date(date_header);
 
-    date = isNaN(parsed_date.getTime()) ? new Date() : parsed_date;
+    if (isNaN(parsed_date.getTime())) {
+      date = new Date();
+      date_inferred = true;
+    } else {
+      date = parsed_date;
+    }
   } else {
     date = new Date();
+    date_inferred = true;
   }
 
   const content_type = headers["content-type"] || "text/plain";
@@ -90,6 +97,7 @@ export function parse_eml(raw: string): ParsedEmail {
     bcc,
     subject,
     date,
+    date_inferred,
     html_body,
     text_body,
     attachments,

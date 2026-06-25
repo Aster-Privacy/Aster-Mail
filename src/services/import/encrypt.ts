@@ -109,7 +109,7 @@ async function compute_content_hash(email: ParsedEmail): Promise<string> {
     email.from.trim().toLowerCase(),
     email.to.join(",").trim().toLowerCase(),
     email.subject.trim(),
-    email.date.toISOString(),
+    email.date_inferred ? "" : email.date.toISOString(),
     (email.text_body ?? "").trim(),
     (email.html_body ?? "").trim(),
   ].join("\n");
