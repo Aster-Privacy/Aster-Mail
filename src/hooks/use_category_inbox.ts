@@ -58,6 +58,7 @@ import {
   get_version as get_index_version,
   remove_ids,
   is_representative_unread,
+  sync_recent,
 } from "@/services/category_index";
 
 const EMPTY_STATE: EmailListState = {
@@ -317,6 +318,38 @@ export function use_category_inbox(
     last_signature_ref.current = signature;
     void fetch_page(page, page_size);
   }, [enabled, active_category, page, page_size, index_version, fetch_page]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const handle_refresh_requested = () => {
+      if (!has_passphrase_in_memory()) return;
+      page_cache.current.clear();
+      last_signature_ref.current = "";
+      set_state((prev) =>
+        prev.is_loading ? prev : { ...prev, is_loading: true },
+      );
+      void (async () => {
+        try {
+          await sync_recent();
+        } catch {
+          void 0;
+        }
+        await fetch_page(page, page_size);
+      })();
+    };
+
+    window.addEventListener(
+      MAIL_EVENTS.REFRESH_REQUESTED,
+      handle_refresh_requested,
+    );
+
+    return () =>
+      window.removeEventListener(
+        MAIL_EVENTS.REFRESH_REQUESTED,
+        handle_refresh_requested,
+      );
+  }, [enabled, page, page_size, fetch_page]);
 
   const update_email = useCallback(
     (id: string, updates: Partial<InboxEmail>): void => {
