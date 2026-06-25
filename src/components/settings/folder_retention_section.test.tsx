@@ -86,6 +86,40 @@ vi.mock("@/components/ui/modal", () => ({
   ModalFooter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+vi.mock("@/components/ui/select", () => ({
+  Select: ({
+    value,
+    onValueChange,
+    disabled,
+    children,
+  }: {
+    value: string;
+    onValueChange: (v: string) => void;
+    disabled?: boolean;
+    children: React.ReactNode;
+  }) => (
+    <select
+      value={value}
+      disabled={disabled}
+      onChange={(e) => onValueChange(e.currentTarget.value)}
+    >
+      {children}
+    </select>
+  ),
+  SelectTrigger: () => null,
+  SelectValue: () => null,
+  SelectContent: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+  SelectItem: ({
+    value,
+    children,
+  }: {
+    value: string;
+    children: React.ReactNode;
+  }) => <option value={value}>{children}</option>,
+}));
+
 vi.mock("@/components/toast/simple_toast", () => ({ show_toast: vi.fn() }));
 vi.mock("@/components/settings/search_context", () => ({
   use_register_search_items: () => {},
@@ -150,6 +184,20 @@ async function click_button_containing(text: string) {
   act(() => {});
 }
 
+async function set_select(value: string) {
+  const sel = container.querySelector("select") as HTMLSelectElement;
+  const setter = Object.getOwnPropertyDescriptor(
+    window.HTMLSelectElement.prototype,
+    "value",
+  )!.set!;
+  act(() => {
+    setter.call(sel, value);
+    sel.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await flush();
+  act(() => {});
+}
+
 describe("FolderRetentionSection", () => {
   it("lists existing policies and resolves the folder name", async () => {
     h.api.list_retention_policies.mockResolvedValue({
@@ -202,5 +250,88 @@ describe("FolderRetentionSection", () => {
     );
     expect(options).toContain("Newsletters");
     expect(options).not.toContain("Inbox");
+  });
+
+  it("creates a trash policy through the editor", async () => {
+    h.api.create_retention_policy.mockResolvedValue({
+      data: {
+        id: "new1",
+        folder_token: "AAEC",
+        retention_days: 30,
+        delete_mode: "trash",
+        enabled: true,
+        last_swept_at: null,
+        created_at: "",
+        updated_at: "",
+      },
+    });
+    await render();
+    await click_button_containing("folder_retention.add");
+    await set_select("AAEC");
+    await click_button_containing("folder_retention.save");
+    expect(h.api.create_retention_policy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        folder_token: "AAEC",
+        delete_mode: "trash",
+        retention_days: 30,
+      }),
+    );
+  });
+
+  it("requires confirmation before creating a permanent policy", async () => {
+    h.api.create_retention_policy.mockResolvedValue({
+      data: {
+        id: "new2",
+        folder_token: "AAEC",
+        retention_days: 30,
+        delete_mode: "permanent",
+        enabled: true,
+        last_swept_at: null,
+        created_at: "",
+        updated_at: "",
+      },
+    });
+    await render();
+    await click_button_containing("folder_retention.add");
+    await set_select("AAEC");
+    await click_button_containing("folder_retention.mode_permanent");
+    await click_button_containing("folder_retention.save");
+    expect(h.api.create_retention_policy).not.toHaveBeenCalled();
+    expect(container.textContent ?? "").toContain(
+      "folder_retention.permanent_confirm",
+    );
+    await click_button_containing("folder_retention.delete");
+    expect(h.api.create_retention_policy).toHaveBeenCalledWith(
+      expect.objectContaining({ delete_mode: "permanent" }),
+    );
+  });
+
+  it("toggles a policy's enabled state optimistically", async () => {
+    h.api.list_retention_policies.mockResolvedValue({
+      data: [
+        {
+          id: "p1",
+          folder_token: "AAEC",
+          retention_days: 30,
+          delete_mode: "trash",
+          enabled: true,
+          last_swept_at: null,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+    });
+    h.api.update_retention_policy.mockResolvedValue({ data: {} });
+    await render();
+    const checkbox = container.querySelector(
+      'input[type="checkbox"]',
+    ) as HTMLInputElement;
+    act(() => {
+      checkbox.click();
+    });
+    await flush();
+    expect(h.api.update_retention_policy).toHaveBeenCalledWith("p1", {
+      enabled: false,
+    });
   });
 });

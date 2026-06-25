@@ -5982,6 +5982,7 @@ export const en: Translations = {
     summary_older_than: "Older than {{days}} days",
     summary_trash: "to Trash",
     summary_permanent: "permanently",
+    card_badge: "Auto-clean",
     disabled_badge: "Off",
     upgrade_title: "Folder auto-clean is a paid feature",
     upgrade_body: "Upgrade to Star or higher to automatically clean folders.",
@@ -6158,6 +6159,9 @@ export const en: Translations = {
     templates_category_cleanup: "Clean up",
     templates_category_priority: "Priority",
     templates_category_security: "Security",
+    tpl_folder_auto_clean_name: "Folder auto-clean",
+    tpl_folder_auto_clean_desc:
+      "Automatically remove emails from a folder once they're older than a number of days you choose. Starred and pinned emails are always kept.",
     tpl_newsletters_name: "Sort newsletters",
     tpl_newsletters_desc:
       "When a message comes from a mailing list (it carries a List-Id header), file it under the Updates category.",
