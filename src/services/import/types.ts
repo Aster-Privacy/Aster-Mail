@@ -33,6 +33,7 @@ export interface ParsedEmail {
   bcc: string[];
   subject: string;
   date: Date;
+  date_inferred?: boolean;
   html_body: string | null;
   text_body: string | null;
   attachments: ParsedAttachment[];

@@ -151,13 +151,20 @@ function csv_row_to_email(row: CsvRow, index: number): ParsedEmail | null {
   }
 
   let date: Date;
+  let date_inferred = false;
 
   if (date_str) {
     const parsed = new Date(date_str);
 
-    date = isNaN(parsed.getTime()) ? new Date() : parsed;
+    if (isNaN(parsed.getTime())) {
+      date = new Date();
+      date_inferred = true;
+    } else {
+      date = parsed;
+    }
   } else {
     date = new Date();
+    date_inferred = true;
   }
 
   const to = to_raw
@@ -191,6 +198,7 @@ function csv_row_to_email(row: CsvRow, index: number): ParsedEmail | null {
     bcc,
     subject,
     date,
+    date_inferred,
     html_body: is_html ? body : null,
     text_body: is_html ? null : body,
     attachments: [],
