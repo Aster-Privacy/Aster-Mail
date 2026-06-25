@@ -146,6 +146,7 @@ export interface FolderRetentionTranslations {
   summary_older_than: string;
   summary_trash: string;
   summary_permanent: string;
+  card_badge: string;
   disabled_badge: string;
   upgrade_title: string;
   upgrade_body: string;
@@ -320,6 +321,8 @@ export interface MailRulesTranslations {
   templates_category_cleanup: string;
   templates_category_priority: string;
   templates_category_security: string;
+  tpl_folder_auto_clean_name: string;
+  tpl_folder_auto_clean_desc: string;
   tpl_newsletters_name: string;
   tpl_newsletters_desc: string;
   tpl_social_name: string;

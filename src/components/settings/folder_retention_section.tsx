@@ -30,6 +30,13 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_folders } from "@/hooks/use_folders";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -47,7 +54,27 @@ import {
 
 const DAY_PRESETS = [7, 30, 90, 180, 365];
 
-export function FolderRetentionSection() {
+export interface UseFolderRetention {
+  policies: RetentionPolicy[];
+  loading: boolean;
+  entitled: boolean;
+  plan_loading: boolean;
+  custom_folders: { folder_token: string; name: string }[];
+  existing_tokens: string[];
+  editor_open: boolean;
+  editing: RetentionPolicy | null;
+  show_upgrade: boolean;
+  set_show_upgrade: (v: boolean) => void;
+  set_editor_open: (v: boolean) => void;
+  open_new: () => void;
+  open_edit: (p: RetentionPolicy) => void;
+  get_folder_name: (token: string) => string;
+  handle_delete: (p: RetentionPolicy) => void;
+  handle_toggle: (p: RetentionPolicy) => void;
+  handle_saved: (p: RetentionPolicy) => void;
+}
+
+export function use_folder_retention(): UseFolderRetention {
   const { t } = use_i18n();
   const { state: folders_state, fetch_folders, get_folder_by_token } =
     use_folders();
@@ -59,14 +86,6 @@ export function FolderRetentionSection() {
   const [editor_open, set_editor_open] = React.useState(false);
   const [editing, set_editing] = React.useState<RetentionPolicy | null>(null);
   const [show_upgrade, set_show_upgrade] = React.useState(false);
-
-  use_register_search_items("mail_rules", [
-    {
-      label: t("folder_retention.title"),
-      breadcrumb: "Mail Rules > Folder auto-clean",
-      keywords: ["auto delete", "retention", "expire", "clean folder", "older than"],
-    },
-  ]);
 
   const load = React.useCallback(async () => {
     set_loading(true);
@@ -145,6 +164,147 @@ export function FolderRetentionSection() {
     set_editor_open(false);
   };
 
+  const get_folder_name = (token: string) =>
+    get_folder_by_token(token)?.name ?? "—";
+
+  return {
+    policies,
+    loading,
+    entitled,
+    plan_loading,
+    custom_folders,
+    existing_tokens: policies.map((p) => p.folder_token),
+    editor_open,
+    editing,
+    show_upgrade,
+    set_show_upgrade,
+    set_editor_open,
+    open_new,
+    open_edit,
+    get_folder_name,
+    handle_delete,
+    handle_toggle,
+    handle_saved,
+  };
+}
+
+export function RetentionPolicyCard({
+  policy,
+  folder_name,
+  on_edit,
+  on_toggle,
+  on_delete,
+}: {
+  policy: RetentionPolicy;
+  folder_name: string;
+  on_edit: () => void;
+  on_toggle: () => void;
+  on_delete: () => void;
+}) {
+  const { t } = use_i18n();
+  const summary = `${t("folder_retention.summary_older_than", {
+    days: policy.retention_days,
+  })} · ${
+    policy.delete_mode === "permanent"
+      ? t("folder_retention.summary_permanent")
+      : t("folder_retention.summary_trash")
+  }`;
+  return (
+    <div
+      className={`group relative rounded-xl border bg-surf-primary p-4 transition-colors border-neutral-200 dark:border-neutral-700 ${
+        policy.enabled ? "" : "opacity-60"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={on_edit}
+          className="flex-1 text-left min-w-0 cursor-pointer"
+        >
+          <div className="flex items-center gap-2 mb-0.5">
+            <ClockIcon className="w-4 h-4 text-txt-tertiary flex-shrink-0" />
+            <span className="text-[13px] font-medium text-txt-primary truncate">
+              {folder_name}
+            </span>
+            <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-surf-secondary text-txt-tertiary flex-shrink-0">
+              {t("folder_retention.card_badge")}
+            </span>
+            {!policy.enabled && (
+              <span className="text-[11px] px-1.5 py-0.5 rounded bg-neutral-200 dark:bg-neutral-700 text-txt-tertiary">
+                {t("folder_retention.disabled_badge")}
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-txt-muted">{summary}</div>
+        </button>
+        <label className="flex items-center cursor-pointer flex-shrink-0">
+          <input
+            type="checkbox"
+            className="sr-only peer"
+            checked={policy.enabled}
+            onChange={on_toggle}
+          />
+          <span className="relative w-9 h-5 rounded-full bg-neutral-300 dark:bg-neutral-600 peer-checked:bg-blue-500 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-4" />
+        </label>
+        <button
+          type="button"
+          onClick={on_delete}
+          className="p-1.5 rounded-lg text-txt-tertiary hover:text-red-500 hover:bg-surf-secondary transition-colors flex-shrink-0"
+          aria-label={t("folder_retention.delete")}
+        >
+          <TrashIcon className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function RetentionUpgradeModal({
+  is_open,
+  on_close,
+}: {
+  is_open: boolean;
+  on_close: () => void;
+}) {
+  const { t } = use_i18n();
+  return (
+    <Modal is_open={is_open} on_close={on_close} size="md">
+      <ModalHeader>
+        <ModalTitle>{t("folder_retention.upgrade_title")}</ModalTitle>
+        <ModalDescription>{t("folder_retention.upgrade_body")}</ModalDescription>
+      </ModalHeader>
+      <ModalFooter>
+        <Button variant="outline" onClick={on_close}>
+          {t("common.cancel")}
+        </Button>
+        <Button
+          variant="depth"
+          onClick={() => {
+            on_close();
+            window.dispatchEvent(
+              new CustomEvent("navigate-settings", { detail: "billing" }),
+            );
+          }}
+        >
+          {t("common.upgrade_plan")}
+        </Button>
+      </ModalFooter>
+    </Modal>
+  );
+}
+
+export function FolderRetentionSection() {
+  const { t } = use_i18n();
+  const r = use_folder_retention();
+
+  use_register_search_items("mail_rules", [
+    {
+      label: t("folder_retention.title"),
+      breadcrumb: "Mail Rules > Folder auto-clean",
+      keywords: ["auto delete", "retention", "expire", "clean folder", "older than"],
+    },
+  ]);
+
   return (
     <div className="space-y-4">
       <div>
@@ -154,7 +314,7 @@ export function FolderRetentionSection() {
               <ClockIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
               {t("folder_retention.title")}
             </h3>
-            <Button size="md" variant="depth" onClick={open_new}>
+            <Button size="md" variant="depth" onClick={r.open_new}>
               <PlusIcon className="w-4 h-4" />
               {t("folder_retention.add")}
             </Button>
@@ -166,7 +326,7 @@ export function FolderRetentionSection() {
         </p>
       </div>
 
-      {loading && policies.length === 0 && (
+      {r.loading && r.policies.length === 0 && (
         <div className="space-y-3">
           {[0, 1].map((i) => (
             <div
@@ -177,7 +337,7 @@ export function FolderRetentionSection() {
         </div>
       )}
 
-      {!loading && policies.length === 0 && (
+      {!r.loading && r.policies.length === 0 && (
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
           <ClockIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
           <p className="text-sm text-txt-muted mb-1">
@@ -189,106 +349,36 @@ export function FolderRetentionSection() {
         </div>
       )}
 
-      {policies.length > 0 && (
+      {r.policies.length > 0 && (
         <div className="space-y-2">
-          {policies.map((policy) => {
-            const folder = get_folder_by_token(policy.folder_token);
-            const folder_name = folder?.name ?? "—";
-            const summary = `${t("folder_retention.summary_older_than", {
-              days: policy.retention_days,
-            })} · ${
-              policy.delete_mode === "permanent"
-                ? t("folder_retention.summary_permanent")
-                : t("folder_retention.summary_trash")
-            }`;
-            return (
-              <div
-                key={policy.id}
-                className={`group relative rounded-xl border bg-surf-primary p-4 transition-colors border-neutral-200 dark:border-neutral-700 ${
-                  policy.enabled ? "" : "opacity-60"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => open_edit(policy)}
-                    className="flex-1 text-left min-w-0 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[13px] font-medium text-txt-primary truncate">
-                        {folder_name}
-                      </span>
-                      {!policy.enabled && (
-                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-neutral-200 dark:bg-neutral-700 text-txt-tertiary">
-                          {t("folder_retention.disabled_badge")}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-txt-muted">{summary}</div>
-                  </button>
-                  <label className="flex items-center cursor-pointer flex-shrink-0">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={policy.enabled}
-                      onChange={() => handle_toggle(policy)}
-                    />
-                    <span className="relative w-9 h-5 rounded-full bg-neutral-300 dark:bg-neutral-600 peer-checked:bg-blue-500 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-4" />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => handle_delete(policy)}
-                    className="p-1.5 rounded-lg text-txt-tertiary hover:text-red-500 hover:bg-surf-secondary transition-colors flex-shrink-0"
-                    aria-label={t("folder_retention.delete")}
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+          {r.policies.map((policy) => (
+            <RetentionPolicyCard
+              key={policy.id}
+              policy={policy}
+              folder_name={r.get_folder_name(policy.folder_token)}
+              on_edit={() => r.open_edit(policy)}
+              on_toggle={() => r.handle_toggle(policy)}
+              on_delete={() => r.handle_delete(policy)}
+            />
+          ))}
         </div>
       )}
 
-      {editor_open && (
+      {r.editor_open && (
         <RetentionEditorModal
-          is_open={editor_open}
-          on_close={() => set_editor_open(false)}
-          policy={editing}
-          custom_folders={custom_folders}
-          existing_tokens={policies.map((p) => p.folder_token)}
-          on_saved={handle_saved}
+          is_open={r.editor_open}
+          on_close={() => r.set_editor_open(false)}
+          policy={r.editing}
+          custom_folders={r.custom_folders}
+          existing_tokens={r.existing_tokens}
+          on_saved={r.handle_saved}
         />
       )}
 
-      <Modal
-        is_open={show_upgrade}
-        on_close={() => set_show_upgrade(false)}
-        size="md"
-      >
-        <ModalHeader>
-          <ModalTitle>{t("folder_retention.upgrade_title")}</ModalTitle>
-          <ModalDescription>
-            {t("folder_retention.upgrade_body")}
-          </ModalDescription>
-        </ModalHeader>
-        <ModalFooter>
-          <Button variant="outline" onClick={() => set_show_upgrade(false)}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            variant="depth"
-            onClick={() => {
-              set_show_upgrade(false);
-              window.dispatchEvent(
-                new CustomEvent("navigate-settings", { detail: "billing" }),
-              );
-            }}
-          >
-            {t("common.upgrade_plan")}
-          </Button>
-        </ModalFooter>
-      </Modal>
+      <RetentionUpgradeModal
+        is_open={r.show_upgrade}
+        on_close={() => r.set_show_upgrade(false)}
+      />
     </div>
   );
 }
@@ -302,7 +392,7 @@ interface RetentionEditorModalProps {
   on_saved: (policy: RetentionPolicy) => void;
 }
 
-function RetentionEditorModal({
+export function RetentionEditorModal({
   is_open,
   on_close,
   policy,
@@ -404,21 +494,24 @@ function RetentionEditorModal({
                 {t("folder_retention.no_folders")}
               </p>
             ) : (
-              <select
+              <Select
                 value={folder_token}
+                onValueChange={set_folder_token}
                 disabled={is_edit}
-                onChange={(e) => set_folder_token(e.target.value)}
-                className="w-full rounded-lg border border-edge-secondary bg-surf-primary px-3 py-2 text-sm text-txt-primary disabled:opacity-60"
               >
-                <option value="" disabled>
-                  {t("folder_retention.select_folder")}
-                </option>
-                {available_folders.map((f) => (
-                  <option key={f.folder_token} value={f.folder_token}>
-                    {f.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={t("folder_retention.select_folder")}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {available_folders.map((f) => (
+                    <SelectItem key={f.folder_token} value={f.folder_token}>
+                      {f.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </div>
 
@@ -434,7 +527,7 @@ function RetentionEditorModal({
                   onClick={() => set_days(preset)}
                   className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
                     days === preset
-                      ? "border-blue-500 bg-blue-500/10 text-txt-primary"
+                      ? "border-blue-600 bg-blue-600 text-white"
                       : "border-edge-secondary text-txt-muted hover:bg-surf-secondary"
                   }`}
                 >
@@ -539,13 +632,19 @@ function ModeOption({ active, title, hint, danger, on_click }: ModeOptionProps) 
       className={`w-full text-left rounded-lg border px-3 py-2.5 transition-colors ${
         active
           ? danger
-            ? "border-red-500 bg-red-500/10"
-            : "border-blue-500 bg-blue-500/10"
+            ? "border-red-600 bg-red-600"
+            : "border-blue-600 bg-blue-600"
           : "border-edge-secondary hover:bg-surf-secondary"
       }`}
     >
-      <div className="text-sm font-medium text-txt-primary">{title}</div>
-      <div className="text-xs text-txt-muted">{hint}</div>
+      <div
+        className={`text-sm font-medium ${active ? "text-white" : "text-txt-primary"}`}
+      >
+        {title}
+      </div>
+      <div className={`text-xs ${active ? "text-white/80" : "text-txt-muted"}`}>
+        {hint}
+      </div>
     </button>
   );
 }

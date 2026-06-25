@@ -37,6 +37,7 @@ export interface RuleTemplate {
   conditions: Condition[];
   actions: Action[];
   needs_config?: boolean;
+  opens_retention?: boolean;
 }
 
 const TEN_MEGABYTES = 10 * 1024 * 1024;
@@ -49,6 +50,17 @@ export const RULE_TEMPLATE_CATEGORIES: RuleTemplateCategory[] = [
 ];
 
 export const RULE_TEMPLATES: RuleTemplate[] = [
+  {
+    id: "folder_auto_clean",
+    category: "cleanup",
+    name_key: "mail_rules.tpl_folder_auto_clean_name",
+    description_key: "mail_rules.tpl_folder_auto_clean_desc",
+    color: "#0ea5e9",
+    match_mode: "all",
+    conditions: [],
+    actions: [],
+    opens_retention: true,
+  },
   {
     id: "newsletters",
     category: "organize",
