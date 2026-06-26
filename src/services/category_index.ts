@@ -562,7 +562,7 @@ async function item_to_entry(
     id: item.id,
     thread_token: item.thread_token,
     message_ts: item.message_ts || item.created_at,
-    is_read: metadata?.is_read ?? item.is_read ?? false,
+    is_read: item.is_read === true || (metadata?.is_read ?? false),
     category: classify(envelope, metadata),
   };
 }
@@ -808,7 +808,7 @@ async function reclassify_id(id: string): Promise<void> {
         id: item.id,
         thread_token: item.thread_token,
         message_ts: item.message_ts || item.created_at,
-        is_read: metadata?.is_read ?? item.is_read ?? false,
+        is_read: item.is_read === true || (metadata?.is_read ?? false),
         category: classify(envelope, metadata),
       },
     ]);
