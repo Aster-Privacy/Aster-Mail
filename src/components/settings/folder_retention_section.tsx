@@ -20,7 +20,7 @@
 //
 import * as React from "react";
 import { PlusIcon, TrashIcon, ClockIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Switch } from "@aster/ui";
 
 import {
   Modal,
@@ -226,26 +226,20 @@ export function RetentionPolicyCard({
             <span className="text-[13px] font-medium text-txt-primary truncate">
               {folder_name}
             </span>
-            <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-surf-secondary text-txt-tertiary flex-shrink-0">
+            <span className="aster_badge aster_badge_blue flex-shrink-0">
               {t("folder_retention.card_badge")}
             </span>
             {!policy.enabled && (
-              <span className="text-[11px] px-1.5 py-0.5 rounded bg-neutral-200 dark:bg-neutral-700 text-txt-tertiary">
+              <span className="aster_badge aster_badge_gray flex-shrink-0">
                 {t("folder_retention.disabled_badge")}
               </span>
             )}
           </div>
           <div className="text-xs text-txt-muted">{summary}</div>
         </button>
-        <label className="flex items-center cursor-pointer flex-shrink-0">
-          <input
-            type="checkbox"
-            className="sr-only peer"
-            checked={policy.enabled}
-            onChange={on_toggle}
-          />
-          <span className="relative w-9 h-5 rounded-full bg-neutral-300 dark:bg-neutral-600 peer-checked:bg-blue-500 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-4" />
-        </label>
+        <div className="flex-shrink-0">
+          <Switch checked={policy.enabled} onCheckedChange={on_toggle} />
+        </div>
         <button
           type="button"
           onClick={on_delete}
