@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import * as React from "react";
-import { PlusIcon, TrashIcon, ClockIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
 import {
@@ -237,17 +237,12 @@ export function RetentionPolicyCard({
           </div>
           <div className="text-xs text-txt-muted">{summary}</div>
         </button>
-        <div className="flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Switch checked={policy.enabled} onCheckedChange={on_toggle} />
+          <Button variant="ghost" size="sm" onClick={on_delete}>
+            {t("folder_retention.remove")}
+          </Button>
         </div>
-        <button
-          type="button"
-          onClick={on_delete}
-          className="p-1.5 rounded-lg text-txt-tertiary hover:text-red-500 hover:bg-surf-secondary transition-colors flex-shrink-0"
-          aria-label={t("folder_retention.delete")}
-        >
-          <TrashIcon className="w-4 h-4" />
-        </button>
       </div>
     </div>
   );
