@@ -69,6 +69,19 @@ vi.mock("@aster/ui", () => ({
       {children}
     </button>
   ),
+  Switch: ({
+    checked,
+    onCheckedChange,
+  }: {
+    checked: boolean;
+    onCheckedChange: (v: boolean) => void;
+  }) => (
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={(e) => onCheckedChange(e.currentTarget.checked)}
+    />
+  ),
 }));
 
 vi.mock("@/components/ui/modal", () => ({
