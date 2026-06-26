@@ -90,6 +90,18 @@ export function MailRulesSection() {
       breadcrumb: "Mail Rules",
       keywords: ["template", "starter rule", "preset", "example rule"],
     },
+    {
+      label: t("folder_retention.title"),
+      breadcrumb: "Mail Rules > Folder auto-clean",
+      keywords: [
+        "auto delete",
+        "auto-clean",
+        "retention",
+        "expire",
+        "clean folder",
+        "older than",
+      ],
+    },
   ]);
 
   React.useEffect(() => {
@@ -212,7 +224,7 @@ export function MailRulesSection() {
         </div>
       )}
 
-      {!loading && rules.length === 0 && (
+      {!loading && rules.length === 0 && retention.policies.length === 0 && (
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
           <BoltIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
           <p className="text-sm text-txt-muted mb-1">
