@@ -273,7 +273,7 @@ export function ComposeModal({
 
                   <div className="px-4 pb-1 min-h-0 overflow-y-auto">
                     <ComposeFormFields
-                      auto_focus_to={is_open && !edit_draft}
+                      auto_focus_to={!edit_draft}
                       compose={compose}
                     />
                   </div>
