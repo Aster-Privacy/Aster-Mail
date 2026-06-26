@@ -759,7 +759,7 @@ export function MobileMessageDetailsSheet({
                 {t("common.subject_label")}
               </span>
               <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-words">
-                {message.subject}
+                {message.subject || t("mail.no_subject")}
               </span>
             </div>
 

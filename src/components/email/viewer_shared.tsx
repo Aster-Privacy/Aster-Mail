@@ -670,7 +670,7 @@ export function ViewerEmailHeader({
             )}
           </div>
           <h1 className={`${subject_class} text-txt-primary`}>
-            {email.subject}
+            {email.subject || t("mail.no_subject")}
           </h1>
           {mail_item?.labels
             ?.filter((l) => l.name)
@@ -878,7 +878,7 @@ export function ViewerEmailHeader({
                   <span className="w-14 flex-shrink-0 font-medium text-txt-muted">
                     {t("common.subject_label")}
                   </span>
-                  <span className="text-txt-secondary">{email.subject}</span>
+                  <span className="text-txt-secondary">{email.subject || t("mail.no_subject")}</span>
                 </div>
               </PopoverContent>
             </Popover>

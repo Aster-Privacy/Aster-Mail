@@ -821,7 +821,7 @@ export function ThreadMessageBlock({
                   {t("common.subject_label")}
                 </span>
                 <span className="min-w-0 text-txt-secondary break-words">
-                  {message.subject}
+                  {message.subject || t("mail.no_subject")}
                 </span>
               </div>
             </PopoverContent>
