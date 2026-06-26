@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 
 import { sanitize_html, sanitize_preview_html } from "./html_sanitizer";
 import { sanitize_css_block, sanitize_style } from "./html_sanitizer_css";
@@ -343,6 +343,31 @@ describe("sanitize_preview_html (top-origin shadow sink)", () => {
     );
     expect(preview.toLowerCase()).toContain("data:image/png");
     expect(preview).toContain("body");
+  });
+});
+
+describe("sanitize_preview_html fixpoint fallback (no DOMParser)", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("removes a script tag reconstructed by a single strip pass", () => {
+    vi.stubGlobal("DOMParser", undefined);
+    const preview = sanitize_preview_html("<scr<script>ipt>alert(1)x");
+    expect(preview.toLowerCase()).not.toContain("<script");
+  });
+
+  it("removes a style tag reconstructed by a single strip pass", () => {
+    vi.stubGlobal("DOMParser", undefined);
+    const preview = sanitize_preview_html("<sty<style>le media=all>x");
+    expect(preview.toLowerCase()).not.toContain("<style");
+  });
+
+  it("keeps benign text untouched in the fallback", () => {
+    vi.stubGlobal("DOMParser", undefined);
+    const preview = sanitize_preview_html("hello <b>world</b>");
+    expect(preview).toContain("hello");
+    expect(preview.toLowerCase()).toContain("<b>");
   });
 });
 
