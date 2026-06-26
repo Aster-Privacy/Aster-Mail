@@ -202,13 +202,15 @@ export function RetentionPolicyCard({
   on_delete: () => void;
 }) {
   const { t } = use_i18n();
-  const summary = `${t("folder_retention.summary_older_than", {
-    days: policy.retention_days,
-  })} · ${
+  const mode_summary =
     policy.delete_mode === "permanent"
       ? t("folder_retention.summary_permanent")
-      : t("folder_retention.summary_trash")
-  }`;
+      : policy.delete_mode === "archive"
+        ? t("folder_retention.summary_archive")
+        : t("folder_retention.summary_trash");
+  const summary = `${t("folder_retention.summary_older_than", {
+    days: policy.retention_days,
+  })} · ${mode_summary}`;
   return (
     <div
       className={`group relative rounded-xl border bg-surf-primary p-4 transition-colors border-neutral-200 dark:border-neutral-700 ${
@@ -542,6 +544,12 @@ export function RetentionEditorModal({
               {t("folder_retention.mode")}
             </label>
             <div className="space-y-2">
+              <ModeOption
+                active={mode === "archive"}
+                title={t("folder_retention.mode_archive")}
+                hint={t("folder_retention.mode_archive_hint")}
+                on_click={() => set_mode("archive")}
+              />
               <ModeOption
                 active={mode === "trash"}
                 title={t("folder_retention.mode_trash")}
