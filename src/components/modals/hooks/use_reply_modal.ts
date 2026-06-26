@@ -311,7 +311,7 @@ export function use_reply_modal({
 
   useEffect(() => {
     return subscribe_preferred_sender((id) => set_preferred_sender_state(id));
-  }, [])
+  }, []);
 
   const handle_set_preferred = useCallback(
     (id: string | null) => {

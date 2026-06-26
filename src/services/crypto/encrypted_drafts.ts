@@ -67,6 +67,7 @@ interface DraftContext {
   reply_to_id?: string;
   forward_from_id?: string;
   pending_save: Promise<void> | null;
+  save_seq: number;
   last_content_hash: string | null;
   is_deleted: boolean;
 }
@@ -125,6 +126,7 @@ class DraftManager {
       reply_to_id,
       forward_from_id,
       pending_save: null,
+      save_seq: 0,
       last_content_hash: null,
       is_deleted: false,
     });
@@ -148,6 +150,7 @@ class DraftManager {
       reply_to_id,
       forward_from_id,
       pending_save: null,
+      save_seq: 0,
       last_content_hash: null,
       is_deleted: false,
     });
@@ -352,6 +355,7 @@ class DraftManager {
       }
     })();
 
+    const save_seq = ++context.save_seq;
     context.pending_save = save_promise;
 
     try {
@@ -368,7 +372,7 @@ class DraftManager {
         error: error instanceof Error ? error.message : "Failed to save draft",
       };
     } finally {
-      if (context.pending_save === save_promise) {
+      if (context.save_seq === save_seq) {
         context.pending_save = null;
       }
     }

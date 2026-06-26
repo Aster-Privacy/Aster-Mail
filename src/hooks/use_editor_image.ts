@@ -91,30 +91,26 @@ export function use_editor_image(
         let dy = move_e.clientY - start_y;
 
         let new_width = start_width;
-        let new_height = start_height;
 
         if (handle.includes("e")) {
           new_width = Math.max(
             min_width,
             Math.min(max_width, start_width + dx),
           );
-          new_height = new_width / aspect_ratio;
         } else if (handle.includes("w")) {
           new_width = Math.max(
             min_width,
             Math.min(max_width, start_width - dx),
           );
-          new_height = new_width / aspect_ratio;
         } else if (handle.includes("s")) {
-          new_height = Math.max(min_width / aspect_ratio, start_height + dy);
+          const new_height = Math.max(min_width / aspect_ratio, start_height + dy);
           new_width = new_height * aspect_ratio;
         } else if (handle.includes("n")) {
-          new_height = Math.max(min_width / aspect_ratio, start_height - dy);
+          const new_height = Math.max(min_width / aspect_ratio, start_height - dy);
           new_width = new_height * aspect_ratio;
         }
 
         new_width = Math.max(min_width, Math.min(max_width, new_width));
-        new_height = new_width / aspect_ratio;
 
         img.style.width = `${Math.round(new_width)}px`;
         img.style.height = "auto";

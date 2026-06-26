@@ -465,7 +465,6 @@ export function use_popup_viewer({
           preferences.conversation_grouping !== false &&
           grouped_email_ids &&
           grouped_email_ids.length > 1 &&
-          email_id &&
           grouped_email_ids.includes(email_id)
         ) {
           const group_messages = await fetch_and_decrypt_virtual_group(
