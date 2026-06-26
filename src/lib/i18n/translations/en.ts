@@ -5977,6 +5977,7 @@ export const en: Translations = {
     save: "Save",
     cancel: "Cancel",
     delete: "Delete",
+    remove: "Remove",
     permanent_confirm:
       "Permanently delete emails older than {{days}} days in this folder? This cannot be undone.",
     summary_older_than: "Older than {{days}} days",

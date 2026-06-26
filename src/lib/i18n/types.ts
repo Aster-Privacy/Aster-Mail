@@ -142,6 +142,7 @@ export interface FolderRetentionTranslations {
   save: string;
   cancel: string;
   delete: string;
+  remove: string;
   permanent_confirm: string;
   summary_older_than: string;
   summary_trash: string;
