@@ -20,7 +20,7 @@
 //
 import { api_client, type ApiResponse } from "./client";
 
-export type DeleteMode = "trash" | "permanent";
+export type DeleteMode = "trash" | "permanent" | "archive";
 
 export interface RetentionPolicy {
   id: string;
