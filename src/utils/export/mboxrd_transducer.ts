@@ -48,7 +48,7 @@ export async function* mboxrd_quote(
   };
 
   for await (const chunk of source) {
-    let buf = append(pending, chunk);
+    const buf = append(pending, chunk);
     pending = new Uint8Array(0);
     const out_parts: Uint8Array[] = [];
     let i = 0;
@@ -58,7 +58,6 @@ export async function* mboxrd_quote(
           out_parts.push(enc.encode(">"));
         } else if (buf.length - i < FROM_BYTES.length + 8 && buf[i] === GT) {
           pending = buf.subarray(i);
-          buf = new Uint8Array(0);
           break;
         }
         at_line_start = false;

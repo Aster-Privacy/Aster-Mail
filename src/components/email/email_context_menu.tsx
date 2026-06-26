@@ -449,7 +449,8 @@ function EmailContextMenuContentInner({
         !is_scheduled &&
         (is_trash ||
           is_spam ||
-          (!is_trash && !is_spam && (on_archive || on_spam)) ||
+          on_archive ||
+          on_spam ||
           on_delete) && <ContextMenuSeparator />}
 
       {is_trash && on_restore && (

@@ -2523,7 +2523,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       {tab === "retention" && is_owner && <RetentionContent other_member_count={active_members.length - 1} initial_retention={preloaded_retention} />}
 
 
-      {group && wizard_open && (
+      {wizard_open && (
         <Modal is_open={wizard_open} on_close={close_wizard} size="md" close_on_overlay={false}>
           {wizard_step === 1 && (
             <>

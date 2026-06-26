@@ -260,7 +260,7 @@ export function ConnectProviderModal({
   };
 
   return (
-    <Modal is_open={provider !== null} size="md" on_close={on_close}>
+    <Modal is_open={true} size="md" on_close={on_close}>
       <ModalBody className="p-0">
         <div className="flex flex-col items-center px-8 pt-10 pb-8">
           <div className="flex items-center justify-center gap-5 mb-8">
