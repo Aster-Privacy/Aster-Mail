@@ -454,7 +454,7 @@ export function FullEmailViewer({
                     />
                   )}
                 </span>
-                {email.subject}
+                {email.subject || t("mail.no_subject")}
               </h1>
               {label_chips.map((chip) => (
                 <EmailTag

@@ -130,7 +130,7 @@ export function PopupEmailHeader({
         </div>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 flex-1 min-w-0">
           <h1 className="text-lg font-semibold leading-snug break-words text-txt-primary">
-            {email.subject}
+            {email.subject || t("mail.no_subject")}
           </h1>
           {label_chips.map((chip) => (
             <EmailTag
@@ -313,7 +313,7 @@ export function PopupEmailHeader({
                   <span className="w-14 flex-shrink-0 font-medium text-txt-muted">
                     {t("common.subject_label")}
                   </span>
-                  <span className="text-txt-secondary">{email.subject}</span>
+                  <span className="text-txt-secondary">{email.subject || t("mail.no_subject")}</span>
                 </div>
                 {email.raw_headers && email.raw_headers.length > 0 && (
                   <>

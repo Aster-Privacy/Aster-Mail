@@ -186,7 +186,7 @@ export function EmailDetailBody({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 sm:mb-2">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-txt-primary break-words flex-1 min-w-0">
-                  {email.subject}
+                  {email.subject || t("mail.no_subject")}
                 </h1>
                 {mail_item?.expires_at && (
                   <ExpirationCountdown

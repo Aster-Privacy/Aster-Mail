@@ -312,7 +312,7 @@ export function EmailViewerContent({
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-2xl font-semibold break-words text-txt-primary">
-                {email.subject}
+                {email.subject || t("mail.no_subject")}
               </h2>
             </div>
             <div className="flex items-center gap-2">
