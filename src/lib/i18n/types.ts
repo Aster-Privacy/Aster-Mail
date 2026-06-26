@@ -135,6 +135,8 @@ export interface FolderRetentionTranslations {
   mode_trash_hint: string;
   mode_permanent: string;
   mode_permanent_hint: string;
+  mode_archive: string;
+  mode_archive_hint: string;
   enabled: string;
   preview_some: string;
   preview_none: string;
@@ -147,6 +149,7 @@ export interface FolderRetentionTranslations {
   summary_older_than: string;
   summary_trash: string;
   summary_permanent: string;
+  summary_archive: string;
   card_badge: string;
   disabled_badge: string;
   upgrade_title: string;
