@@ -739,7 +739,6 @@ export function use_email_detail() {
           preferences.conversation_grouping !== false &&
           stored_grouped_email_ids &&
           stored_grouped_email_ids.length > 1 &&
-          email_id &&
           stored_grouped_email_ids.includes(email_id)
         ) {
           const group_messages = await fetch_and_decrypt_virtual_group(

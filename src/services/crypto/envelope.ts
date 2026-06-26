@@ -33,7 +33,7 @@ export function normalize_envelope_from(
   from: unknown,
 ): { name: string; email: string } | null {
   if (!from) return null;
-  if (typeof from === "object" && from !== null && "email" in from) {
+  if (typeof from === "object" && "email" in from) {
     return from as { name: string; email: string };
   }
   if (typeof from === "string") {

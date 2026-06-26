@@ -101,6 +101,7 @@ async function decrypt_state_from_server(
 }
 
 const sync_locks = new Map<string, Promise<number>>();
+const sync_lock_owners = new Map<string, symbol>();
 const known_server_versions = new Map<string, number>();
 
 const MAX_SYNC_ATTEMPTS = 4;
@@ -273,13 +274,16 @@ export async function sync_ratchet_to_server(
     return do_sync(ratchet, encryption_key, server_version);
   })();
 
+  const lock_owner = Symbol();
   sync_locks.set(conversation_id, run);
+  sync_lock_owners.set(conversation_id, lock_owner);
 
   try {
     return await run;
   } finally {
-    if (sync_locks.get(conversation_id) === run) {
+    if (sync_lock_owners.get(conversation_id) === lock_owner) {
       sync_locks.delete(conversation_id);
+      sync_lock_owners.delete(conversation_id);
     }
   }
 }

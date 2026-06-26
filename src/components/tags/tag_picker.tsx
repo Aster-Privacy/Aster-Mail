@@ -85,7 +85,6 @@ export function TagPicker({
     <>
       <div className="fixed inset-0 z-40" onClick={on_close} />
       <AnimatePresence>
-        {is_open && (
           <motion.div
             animate={{ opacity: 1, y: 0 }}
             className="fixed z-50 w-64 rounded-lg border overflow-hidden bg-modal-bg border-edge-primary"
@@ -158,7 +157,6 @@ export function TagPicker({
               </button>
             </div>
           </motion.div>
-        )}
       </AnimatePresence>
 
       <CreateTagModal
