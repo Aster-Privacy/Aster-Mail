@@ -173,7 +173,15 @@ export function strip_mso_conditionals(html: string): string {
 function strip_attribute_markup(value: string): string {
   if (value.indexOf("<") === -1) return value;
 
-  return value.replace(/<[^>]*>?/g, "");
+  let previous: string;
+  let result = value;
+
+  do {
+    previous = result;
+    result = result.replace(/<[^>]*>?/g, "");
+  } while (result !== previous);
+
+  return result;
 }
 
 export function sanitize_attribute(

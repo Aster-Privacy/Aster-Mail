@@ -121,13 +121,27 @@ const PREVIEW_FORBIDDEN_ELEMENTS =
 const PREVIEW_FORBIDDEN_REGEX =
   /<\/?(?:style|script|noscript|template|link|meta|base|iframe|object|embed)\b[^>]*>/gi;
 
+const PREVIEW_STYLE_BLOCK_REGEX = /<style[\s\S]*?<\/style\s*>/gi;
+
+function strip_until_stable(input: string, pattern: RegExp): string {
+  let previous: string;
+  let current = input;
+
+  do {
+    previous = current;
+    current = current.replace(pattern, "");
+  } while (current !== previous);
+
+  return current;
+}
+
 export function sanitize_preview_html(html: string): string {
   if (!html || typeof html !== "string") return "";
 
-  let working = html.replace(/<style[\s\S]*?<\/style\s*>/gi, "");
+  const working = strip_until_stable(html, PREVIEW_STYLE_BLOCK_REGEX);
 
   if (typeof DOMParser === "undefined") {
-    return working.replace(PREVIEW_FORBIDDEN_REGEX, "");
+    return strip_until_stable(working, PREVIEW_FORBIDDEN_REGEX);
   }
 
   try {
@@ -147,9 +161,10 @@ export function sanitize_preview_html(html: string): string {
 
     return doc.body ? doc.body.innerHTML : "";
   } catch {
-    return working
-      .replace(/<style[\s\S]*?<\/style\s*>/gi, "")
-      .replace(PREVIEW_FORBIDDEN_REGEX, "");
+    return strip_until_stable(
+      strip_until_stable(working, PREVIEW_STYLE_BLOCK_REGEX),
+      PREVIEW_FORBIDDEN_REGEX,
+    );
   }
 }
 
