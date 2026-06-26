@@ -20,7 +20,6 @@
 //
 import type { MutableRefObject } from "react";
 import type { DecryptedFolder } from "@/hooks/use_folders";
-import type { FolderCounts } from "@/hooks/use_folders";
 
 import { memo, useState, useEffect, useMemo } from "react";
 import {
@@ -34,7 +33,6 @@ import {
 
 import { build_folder_tree, flatten_visible_tree } from "@/hooks/use_folders";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
-import { CountBadge } from "@/components/common/count_badge";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -51,7 +49,6 @@ interface SidebarFoldersProps {
   is_collapsed: boolean;
   effective_selected: string | null;
   folders: DecryptedFolder[];
-  folder_counts: FolderCounts;
   folders_expanded: boolean;
   set_folders_expanded: (expanded: boolean) => void;
   is_loading: boolean;
@@ -88,7 +85,6 @@ export const SidebarFolders = memo(function SidebarFolders({
   is_collapsed,
   effective_selected,
   folders,
-  folder_counts,
   folders_expanded,
   set_folders_expanded,
   is_loading: _is_loading,
@@ -390,14 +386,6 @@ export const SidebarFolders = memo(function SidebarFolders({
                       <span className="flex-1 text-left truncate">
                         {folder.name}
                       </span>
-                      <CountBadge
-                        count={
-                          folder_counts[folder.folder_token] ??
-                          folder.item_count ??
-                          0
-                        }
-                        is_active={effective_selected === folder_item_id}
-                      />
                       {(folder.is_locked ||
                         (folder.is_password_protected &&
                           (!folder.password_set ||

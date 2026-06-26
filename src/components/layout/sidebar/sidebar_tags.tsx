@@ -20,7 +20,6 @@
 //
 import type { MutableRefObject } from "react";
 import type { DecryptedTag } from "@/hooks/use_tags";
-import type { TagCounts } from "@/hooks/use_tags";
 
 import { memo, useState, useEffect } from "react";
 import {
@@ -33,7 +32,6 @@ import {
 
 import { TagContextMenu } from "@/components/tags/tag_context_menu";
 import { tag_icon_map } from "@/components/ui/email_tag";
-import { CountBadge } from "@/components/common/count_badge";
 import { use_i18n } from "@/lib/i18n/context";
 
 export interface TagModalData {
@@ -48,7 +46,6 @@ interface SidebarTagsProps {
   is_collapsed: boolean;
   effective_selected: string | null;
   tags: DecryptedTag[];
-  tag_counts: TagCounts;
   labels_expanded: boolean;
   set_labels_expanded: (expanded: boolean) => void;
   is_loading: boolean;
@@ -74,7 +71,6 @@ export const SidebarTags = memo(function SidebarTags({
   is_collapsed,
   effective_selected,
   tags,
-  tag_counts,
   labels_expanded,
   set_labels_expanded,
   is_loading,
@@ -258,15 +254,9 @@ export const SidebarTags = memo(function SidebarTags({
                     );
                   })()}
                   {!is_collapsed && (
-                    <>
-                      <span className="flex-1 text-left truncate leading-4">
-                        {tag.name}
-                      </span>
-                      <CountBadge
-                        count={tag_counts[tag.tag_token] ?? tag.item_count ?? 0}
-                        is_active={effective_selected === tag_item_id}
-                      />
-                    </>
+                    <span className="flex-1 text-left truncate leading-4">
+                      {tag.name}
+                    </span>
                   )}
                 </button>
               </TagContextMenu>

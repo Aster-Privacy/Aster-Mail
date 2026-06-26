@@ -164,8 +164,8 @@ export const Sidebar = ({
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { stats, has_initialized } = use_mail_stats();
-  const { state: folders_state, counts: folder_counts } = use_folders();
-  const { state: tags_state, counts: tag_counts } = use_tags();
+  const { state: folders_state } = use_folders();
+  const { state: tags_state } = use_tags();
   const {
     aliases,
     is_loading: aliases_loading,
@@ -812,7 +812,6 @@ export const Sidebar = ({
               inbox_pinned_folders.length > 0 ? (
                 <SidebarFolders
                   effective_selected={effective_selected}
-                  folder_counts={folder_counts}
                   folder_refs={folder_refs}
                   folders={inbox_pinned_folders}
                   folders_expanded
@@ -851,7 +850,6 @@ export const Sidebar = ({
 
           <SidebarFolders
             effective_selected={effective_selected}
-            folder_counts={folder_counts}
             folder_refs={folder_refs}
             folders={sidebar_folders}
             folders_expanded={folders_expanded}
@@ -885,7 +883,6 @@ export const Sidebar = ({
             set_is_create_tag_open={set_is_create_tag_open}
             set_labels_expanded={set_labels_expanded}
             set_selected_item={set_selected_item}
-            tag_counts={tag_counts}
             tag_refs={tag_refs}
             tags={tags_state.tags}
           />
