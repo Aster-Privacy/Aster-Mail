@@ -291,6 +291,36 @@ describe("FolderRetentionSection", () => {
     );
   });
 
+  it("creates an archive policy without a confirmation step", async () => {
+    h.api.create_retention_policy.mockResolvedValue({
+      data: {
+        id: "arc1",
+        folder_token: "AAEC",
+        retention_days: 30,
+        delete_mode: "archive",
+        enabled: true,
+        last_swept_at: null,
+        created_at: "",
+        updated_at: "",
+      },
+    });
+    await render();
+    await click_button_containing("folder_retention.add");
+    await set_select("AAEC");
+    await click_button_containing("folder_retention.mode_archive");
+    await click_button_containing("folder_retention.save");
+    expect(container.textContent ?? "").not.toContain(
+      "folder_retention.permanent_confirm",
+    );
+    expect(h.api.create_retention_policy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        folder_token: "AAEC",
+        delete_mode: "archive",
+        retention_days: 30,
+      }),
+    );
+  });
+
   it("requires confirmation before creating a permanent policy", async () => {
     h.api.create_retention_policy.mockResolvedValue({
       data: {
