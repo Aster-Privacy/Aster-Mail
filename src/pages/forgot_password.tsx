@@ -244,6 +244,7 @@ export default function ForgotPasswordPage() {
   const [new_recovery_codes, set_new_recovery_codes] = useState<string[]>([]);
   const [is_key_visible, set_is_key_visible] = useState(false);
   const [copy_success, set_copy_success] = useState(false);
+  const [codes_downloaded, set_codes_downloaded] = useState(false);
 
   const [recovery_token, set_recovery_token] = useState("");
   const [vault_backup, set_vault_backup] = useState<VaultBackup | null>(null);
@@ -513,10 +514,12 @@ export default function ForgotPasswordPage() {
 
   const handle_download_pdf = async () => {
     await generate_recovery_pdf(email, new_recovery_codes, t);
+    set_codes_downloaded(true);
   };
 
   const handle_download_txt = async () => {
     await download_recovery_text(email, new_recovery_codes, t);
+    set_codes_downloaded(true);
   };
 
   const render_step_content = () => {
@@ -673,7 +676,7 @@ export default function ForgotPasswordPage() {
                 autoFocus
                 autoComplete="off"
                 className="font-mono tracking-wider"
-                placeholder="ASTER-XXXX-XXXX-XXXX"
+                placeholder="ASTER-XXXX-XXXX-XXXX-XXXX"
                 status={error ? "error" : "default"}
                 type="text"
                 value={recovery_code}
@@ -887,14 +890,14 @@ export default function ForgotPasswordPage() {
                   </button>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {new_recovery_codes.map((code, index) => (
                   <div
                     key={index}
                     className="rounded-lg px-3 py-2.5 border text-center bg-surf-tertiary border-edge-secondary"
                   >
                     <span
-                      className="text-xs font-mono text-txt-primary"
+                      className="text-xs font-mono text-txt-primary break-all"
                       style={{
                         filter: is_key_visible ? "none" : "blur(4px)",
                         userSelect: is_key_visible ? "text" : "none",
@@ -932,7 +935,9 @@ export default function ForgotPasswordPage() {
                 set_step("success");
               }}
             >
-              {t("auth.continue_without_download")}
+              {codes_downloaded
+                ? t("common.continue")
+                : t("auth.continue_without_download")}
             </button>
           </motion.div>
         );

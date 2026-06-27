@@ -116,7 +116,7 @@ export function CodeStep({
             <Input
               autoComplete="off"
               className={INNER_INPUT_CLASS}
-              placeholder="ASTER-XXXX-XXXX-XXXX"
+              placeholder="ASTER-XXXX-XXXX-XXXX-XXXX"
               status={error ? "error" : "default"}
               style={{ fontFamily: "monospace", letterSpacing: "0.5px" }}
               type="text"
