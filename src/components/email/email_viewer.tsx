@@ -24,6 +24,7 @@ import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 
 import { open_external } from "@/utils/open_link";
+import { normalize_untrusted_url } from "@/lib/utils";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { EmailViewerHeader } from "@/components/email/email_viewer_header";
 import { EmailViewerContent } from "@/components/email/email_viewer_content";
@@ -68,19 +69,22 @@ export function EmailViewer({
 
   const handle_unsubscribe = useCallback(() => {
     if (unsubscribe_info.unsubscribe_link) {
-      const link = unsubscribe_info.unsubscribe_link.trim().toLowerCase();
+      const raw_link = normalize_untrusted_url(
+        unsubscribe_info.unsubscribe_link,
+      );
+      const link = raw_link.toLowerCase();
 
       if (!link.startsWith("https://") && !link.startsWith("http://")) {
         return;
       }
       try {
-        const url = new URL(unsubscribe_info.unsubscribe_link);
+        const url = new URL(raw_link);
 
         if (url.protocol !== "https:" && url.protocol !== "http:") {
           return;
         }
         if (!is_any_lockdown_active()) {
-          open_external(unsubscribe_info.unsubscribe_link);
+          open_external(raw_link);
         }
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
@@ -88,7 +92,9 @@ export function EmailViewer({
         return;
       }
     } else if (unsubscribe_info.unsubscribe_mailto) {
-      const mailto = unsubscribe_info.unsubscribe_mailto.trim();
+      const mailto = normalize_untrusted_url(
+        unsubscribe_info.unsubscribe_mailto,
+      );
 
       if (
         mailto.includes("<") ||
