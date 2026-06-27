@@ -641,6 +641,10 @@ export function MobileToolbarCustomizerSheet({
 }
 
 function build_message_headers(message: DecryptedThreadMessage): string {
+  if (message.raw_headers && message.raw_headers.length > 0) {
+    return message.raw_headers.map((h) => `${h.name}: ${h.value}`).join("\n");
+  }
+
   const lines: string[] = [];
 
   lines.push(`From: ${message.sender_name} <${message.sender_email}>`);
