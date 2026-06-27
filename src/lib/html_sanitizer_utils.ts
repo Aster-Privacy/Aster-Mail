@@ -105,7 +105,7 @@ const SAFE_URL_SCHEMES = new Set([
 ]);
 
 export function is_safe_url(url: string): boolean {
-  const trimmed = url.trim().toLowerCase();
+  const trimmed = [...url].filter((c) => c.charCodeAt(0) > 0x20 && c.charCodeAt(0) !== 0x7f).join("").toLowerCase();
 
   for (const scheme of DANGEROUS_URL_SCHEMES) {
     if (trimmed.startsWith(scheme)) {
