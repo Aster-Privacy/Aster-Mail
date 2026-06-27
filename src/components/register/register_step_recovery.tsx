@@ -83,7 +83,7 @@ export const RegisterStepRecoveryCodes = ({
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {reg.recovery_codes.map((code, index) => (
             <div
               key={index}
@@ -100,7 +100,7 @@ export const RegisterStepRecoveryCodes = ({
               }}
             >
               <span
-                className="text-xs font-mono text-txt-primary"
+                className="text-xs font-mono text-txt-primary break-all"
                 style={{
                   filter: reg.is_key_visible ? "none" : "blur(4px)",
                   transition: "filter 0.2s ease",

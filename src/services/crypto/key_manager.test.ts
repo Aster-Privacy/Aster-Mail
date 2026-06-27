@@ -179,7 +179,7 @@ describe("generate_recovery_codes", () => {
 
   it("should format codes correctly", () => {
     const codes = generate_recovery_codes();
-    const pattern = /^ASTER-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+    const pattern = /^ASTER-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
 
     for (const code of codes) {
       expect(code).toMatch(pattern);

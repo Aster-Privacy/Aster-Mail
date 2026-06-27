@@ -460,7 +460,7 @@ export function generate_recovery_codes(count: number = 6): string[] {
   for (let i = 0; i < count; i++) {
     const segments: string[] = [];
 
-    for (let s = 0; s < 3; s++) {
+    for (let s = 0; s < 4; s++) {
       let segment = "";
 
       for (let c = 0; c < 4; c++) {
