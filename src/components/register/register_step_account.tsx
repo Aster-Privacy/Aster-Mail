@@ -167,6 +167,7 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
             className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center select-none"
             style={{
               backgroundColor: reg.profile_color,
+              boxShadow: "0 0 0 2px var(--bg-primary), 0 0 0 3.5px var(--border-secondary)",
               transition: "background-color 0.3s ease",
             }}
           >
