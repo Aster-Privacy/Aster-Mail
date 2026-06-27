@@ -193,7 +193,14 @@ export function should_keep_email_in_view(
     view.startsWith("tag-") ||
     view.startsWith("alias-");
 
-  if (!(view === "archive" || is_folder_like_view || !flags.is_archived)) {
+  if (
+    !(
+      view === "archive" ||
+      view === "all" ||
+      is_folder_like_view ||
+      !flags.is_archived
+    )
+  ) {
     return false;
   }
 

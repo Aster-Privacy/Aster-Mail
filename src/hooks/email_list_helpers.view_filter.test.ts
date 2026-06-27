@@ -70,6 +70,20 @@ describe("should_keep_email_in_view", () => {
     ).toBe(true);
   });
 
+  it("keeps an archived item in the all-mail view", () => {
+    expect(
+      should_keep_email_in_view(
+        { is_archived: true, item_type: "received" },
+        "all",
+      ),
+    ).toBe(true);
+  });
+
+  it("still excludes trashed and spam items in the all-mail view", () => {
+    expect(should_keep_email_in_view({ is_trashed: true }, "all")).toBe(false);
+    expect(should_keep_email_in_view({ is_spam: true }, "all")).toBe(false);
+  });
+
   it("excludes trashed and spam items in inbox", () => {
     expect(
       should_keep_email_in_view(
