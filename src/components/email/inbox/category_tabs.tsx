@@ -66,7 +66,7 @@ export function CategoryTabs({
   const { t } = use_i18n();
 
   return (
-    <div className="relative flex items-stretch gap-1 overflow-x-auto border-b border-edge-primary bg-surf-primary px-2 sm:px-3">
+    <div className="scrollbar-hide relative flex items-stretch gap-1 overflow-x-auto border-b border-edge-primary bg-surf-primary px-2 sm:px-3">
       {TAB_CONFIG.map(({ key, label_key, Icon }) => {
         const is_active = key === active_category;
         const bucket = counts[key];
