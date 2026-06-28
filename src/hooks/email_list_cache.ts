@@ -71,16 +71,20 @@ export function remove_email_from_view_cache(email_id: string): void {
     const filtered = cached.state.emails.filter((e) => e.id !== email_id);
 
     if (filtered.length !== cached.state.emails.length) {
-      view_cache.set(view, {
-        state: {
-          ...cached.state,
-          emails: filtered,
-          total_messages: Math.max(0, cached.state.total_messages - 1),
-        },
-        time: cached.time,
-        is_stale: true,
-        conversation_grouping: cached.conversation_grouping,
-      });
+      if (filtered.length === 0) {
+        view_cache.delete(view);
+      } else {
+        view_cache.set(view, {
+          state: {
+            ...cached.state,
+            emails: filtered,
+            total_messages: Math.max(0, cached.state.total_messages - 1),
+          },
+          time: cached.time,
+          is_stale: true,
+          conversation_grouping: cached.conversation_grouping,
+        });
+      }
     }
   }
 }
