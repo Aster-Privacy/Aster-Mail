@@ -72,6 +72,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     if (
       cached &&
+      cached.state.emails.length > 0 &&
       cached.conversation_grouping ===
         (preferences.conversation_grouping ?? true)
     ) {
@@ -95,6 +96,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     if (
       cached &&
+      cached.state.emails.length > 0 &&
       cached.conversation_grouping ===
         (preferences.conversation_grouping ?? true)
     ) {
@@ -494,6 +496,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         !auth_changed &&
         !user_changed &&
         cached &&
+        cached.state.emails.length > 0 &&
         cached.conversation_grouping ===
           (preferences.conversation_grouping ?? true)
       ) {
