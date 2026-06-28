@@ -76,6 +76,7 @@ export function compute_should_remove_from_view(
 
   if (
     current_view !== "archive" &&
+    current_view !== "all" &&
     !is_folder_like_view &&
     detail.is_archived === true
   ) {
