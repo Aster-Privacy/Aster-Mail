@@ -97,6 +97,12 @@ describe("compute_should_remove_from_view", () => {
     ).toBe(true);
   });
 
+  it("does not evict an archived item from the all-mail view", () => {
+    expect(
+      compute_should_remove_from_view(detail({ is_archived: true }), "all"),
+    ).toBe(false);
+  });
+
   it("evicts archived items from inbox but not from the archive view", () => {
     expect(
       compute_should_remove_from_view(detail({ is_archived: true }), "inbox"),
