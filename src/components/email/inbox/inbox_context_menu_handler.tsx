@@ -596,7 +596,6 @@ export function use_context_menu_actions({
         name: folder_name,
         color: folder_data?.color,
       };
-      const new_folders = [...previous_folders, new_folder];
       const is_inbox =
         current_view === "inbox" ||
         current_view === "" ||
@@ -607,12 +606,12 @@ export function use_context_menu_actions({
       if (is_inbox) {
         emit_mail_items_removed({ ids: [email.id] });
       } else {
-        update_email(email.id, { folders: new_folders });
+        update_email(email.id, { folders: [new_folder] });
       }
       const result = await bulk_add_folder(all_ids, folder_token);
 
       if (!result.error) {
-        emit_mail_item_updated({ id: email.id, folders: new_folders });
+        emit_mail_item_updated({ id: email.id, folders: [new_folder] });
         show_action_toast({
           message: t("common.moved_to_folder", { folder: folder_name }),
           action_type: "folder",
