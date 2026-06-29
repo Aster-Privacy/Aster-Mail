@@ -176,6 +176,27 @@ export default function SecureViewPage() {
           return;
         }
 
+        if (!data.requires_password && !data.is_zero_knowledge) {
+          try {
+            const response = await verify_secure_view(token, null);
+
+            if (cancelled) return;
+
+            if (response.success && response.content?.subject && response.content.body) {
+              set_decrypted({
+                subject: response.content.subject,
+                body: response.content.body,
+                attachments: [],
+              });
+              set_view_state("unlocked");
+
+              return;
+            }
+          } catch {
+            // fall through to ready state
+          }
+        }
+
         set_view_state("ready");
       } catch {
         if (cancelled) return;
@@ -222,7 +243,7 @@ export default function SecureViewPage() {
   }, [decrypted]);
 
   const handle_unlock = async () => {
-    if (!token || !metadata || !metadata.kdf_salt) {
+    if (!token || !metadata) {
       set_error(sv("secure_view.decrypt_failed"));
 
       return;
@@ -234,8 +255,14 @@ export default function SecureViewPage() {
     set_is_unlocking(true);
 
     try {
-      const auth_proof = await derive_auth_proof(password, metadata.kdf_salt);
-      const response = await verify_secure_view(token, auth_proof);
+      const is_zk = metadata.is_zero_knowledge && !!metadata.kdf_salt;
+
+      const response = is_zk
+        ? await verify_secure_view(
+            token,
+            await derive_auth_proof(password, metadata.kdf_salt!),
+          )
+        : await verify_secure_view(token, null, password);
 
       if (!response.success || !response.content) {
         const code = response.error || "";
@@ -253,6 +280,19 @@ export default function SecureViewPage() {
 
       const content = response.content;
 
+      if (!is_zk) {
+        if (!content.subject || !content.body) {
+          set_error(sv("secure_view.decrypt_failed"));
+
+          return;
+        }
+
+        set_decrypted({ subject: content.subject, body: content.body, attachments: [] });
+        set_view_state("unlocked");
+
+        return;
+      }
+
       if (!content.encrypted_subject || !content.encrypted_body) {
         set_error(sv("secure_view.decrypt_failed"));
 
@@ -262,7 +302,7 @@ export default function SecureViewPage() {
       try {
         const result = await decrypt_secure_message(
           password,
-          content.kdf_salt ?? metadata.kdf_salt,
+          content.kdf_salt ?? metadata.kdf_salt!,
           {
             encrypted_subject: content.encrypted_subject,
             encrypted_body: content.encrypted_body,
