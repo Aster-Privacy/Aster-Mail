@@ -76,8 +76,14 @@ export async function get_secure_view_metadata(
 
 export async function verify_secure_view(
   token: string,
-  auth_proof: string,
+  auth_proof: string | null,
+  password?: string,
 ): Promise<SecureViewVerifyResponse> {
+  const body: Record<string, string> = {};
+
+  if (auth_proof !== null) body.auth_proof = auth_proof;
+  if (password !== undefined) body.password = password;
+
   const response = await fetch(
     `/api/view/${encodeURIComponent(token)}/verify`,
     {
@@ -86,7 +92,7 @@ export async function verify_secure_view(
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify({ auth_proof }),
+      body: JSON.stringify(body),
     },
   );
 
