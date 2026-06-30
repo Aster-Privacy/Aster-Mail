@@ -24,7 +24,7 @@ import {
   get_passphrase_from_memory,
   get_vault_from_memory,
 } from "./memory_key_store";
-import { decrypt_message_verified } from "./key_manager";
+import { decrypt_message_verified_with_any_key } from "./key_manager";
 import { resolve_sender_verification_keys } from "./sender_verification";
 
 const HASH_ALG = ["SHA", "256"].join("-");
@@ -263,9 +263,13 @@ export async function decrypt_mail_envelope<T>(
         const pass = get_passphrase_from_memory();
 
         if (vault?.identity_key && pass) {
-          const first_pass = await decrypt_message_verified(
-            text,
+          const envelope_keys = [
             vault.identity_key,
+            ...(vault.previous_keys ?? []),
+          ];
+          const first_pass = await decrypt_message_verified_with_any_key(
+            text,
+            envelope_keys,
             pass,
           );
           const parsed = normalize_parsed_envelope(
@@ -281,9 +285,9 @@ export async function decrypt_mail_envelope<T>(
             );
 
             if (sender_keys.length > 0) {
-              const verified_pass = await decrypt_message_verified(
+              const verified_pass = await decrypt_message_verified_with_any_key(
                 text,
-                vault.identity_key,
+                envelope_keys,
                 pass,
                 sender_keys,
               );
@@ -320,7 +324,23 @@ export async function decrypt_mail_envelope<T>(
 
     if (!identity_key) return null;
 
-    return await try_decrypt_with_key<T>(encrypted, nonce_bytes, identity_key);
+    const fallback_vault = get_vault_from_memory();
+    const binary_keys = [
+      identity_key,
+      ...(fallback_vault?.previous_keys ?? []),
+    ];
+
+    for (const key of binary_keys) {
+      const result = await try_decrypt_with_key<T>(
+        encrypted,
+        nonce_bytes,
+        key,
+      );
+
+      if (result) return result;
+    }
+
+    return null;
   } catch {
     return null;
   }

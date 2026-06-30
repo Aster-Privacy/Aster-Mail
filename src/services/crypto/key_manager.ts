@@ -72,6 +72,8 @@ export {
   encrypt_message_multi,
   decrypt_message,
   decrypt_message_verified,
+  decrypt_message_with_any_key,
+  decrypt_message_verified_with_any_key,
   decrypt_message_with_handle,
   decrypt_message_with_handle_verified,
   string_to_passphrase,

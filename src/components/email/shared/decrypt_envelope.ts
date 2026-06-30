@@ -29,7 +29,7 @@ import {
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
 import {
-  decrypt_message_verified,
+  decrypt_message_verified_with_any_key,
   import_ke_public_key,
   import_ke_private_key,
   compute_agreement_bits,
@@ -208,9 +208,13 @@ export async function decrypt_mail_envelope<
       const pass = get_passphrase_from_memory();
 
       if (vault?.identity_key && pass) {
-        const first_pass = await decrypt_message_verified(
-          text,
+        const envelope_keys = [
           vault.identity_key,
+          ...(vault.previous_keys ?? []),
+        ];
+        const first_pass = await decrypt_message_verified_with_any_key(
+          text,
+          envelope_keys,
           pass,
         );
         const parsed = normalize_parsed_envelope(
@@ -223,9 +227,9 @@ export async function decrypt_mail_envelope<
           );
 
           if (sender_keys.length > 0) {
-            const verified_pass = await decrypt_message_verified(
+            const verified_pass = await decrypt_message_verified_with_any_key(
               text,
-              vault.identity_key,
+              envelope_keys,
               pass,
               sender_keys,
             );

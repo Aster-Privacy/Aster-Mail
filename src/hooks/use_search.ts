@@ -41,7 +41,7 @@ import {
   get_passphrase_from_memory,
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
-import { decrypt_message } from "@/services/crypto/key_manager";
+import { decrypt_message_with_any_key } from "@/services/crypto/key_manager";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { get_email_username } from "@/lib/utils";
@@ -488,7 +488,11 @@ async function decrypt_envelope_for_search(
       const pass = get_passphrase_from_memory();
 
       if (vault?.identity_key && pass) {
-        const decrypted = await decrypt_message(text, vault.identity_key, pass);
+        const decrypted = await decrypt_message_with_any_key(
+          text,
+          [vault.identity_key, ...(vault.previous_keys ?? [])],
+          pass,
+        );
 
         return JSON.parse(decrypted) as DecryptedEnvelope;
       }

@@ -33,7 +33,10 @@ import {
   get_passphrase_bytes,
   get_vault_from_memory,
 } from "./memory_key_store";
-import { encrypt_message_multi, decrypt_message } from "./key_manager";
+import {
+  encrypt_message_multi,
+  decrypt_message_with_any_key,
+} from "./key_manager";
 import { zero_uint8_array } from "./secure_memory";
 
 export interface EncryptedAttachmentForSend {
@@ -235,9 +238,9 @@ export async function decrypt_attachment_meta(
 
     try {
       const passphrase_string = new TextDecoder().decode(passphrase_bytes);
-      const decrypted = await decrypt_message(
+      const decrypted = await decrypt_message_with_any_key(
         meta_text,
-        vault.identity_key,
+        [vault.identity_key, ...(vault.previous_keys ?? [])],
         passphrase_string,
       );
 

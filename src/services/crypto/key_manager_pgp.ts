@@ -970,6 +970,50 @@ export async function decrypt_message(
   return result.plaintext;
 }
 
+export async function decrypt_message_verified_with_any_key(
+  ciphertext: string,
+  secret_keys: (string | null | undefined)[],
+  passphrase: string,
+  verification_keys?: string[],
+): Promise<decrypted_message_result> {
+  const keys = secret_keys.filter((k): k is string => !!k);
+
+  if (keys.length === 0) {
+    throw new Error("no decryption key available");
+  }
+
+  let last_error: unknown;
+
+  for (const key of keys) {
+    try {
+      return await decrypt_message_verified(
+        ciphertext,
+        key,
+        passphrase,
+        verification_keys,
+      );
+    } catch (error) {
+      last_error = error;
+    }
+  }
+
+  throw last_error ?? new Error("no decryption key matched the message");
+}
+
+export async function decrypt_message_with_any_key(
+  ciphertext: string,
+  secret_keys: (string | null | undefined)[],
+  passphrase: string,
+): Promise<string> {
+  const result = await decrypt_message_verified_with_any_key(
+    ciphertext,
+    secret_keys,
+    passphrase,
+  );
+
+  return result.plaintext;
+}
+
 export async function decrypt_message_with_handle_verified(
   ciphertext: string,
   key_handle: EncryptedKeyHandle,
