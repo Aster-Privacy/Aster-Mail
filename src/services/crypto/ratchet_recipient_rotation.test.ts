@@ -123,19 +123,52 @@ async function receive(envelope_json: string, receiver_vault: EncryptedVault) {
   return decrypt_ratchet_message(RECIPIENT, SENDER, parsed, receiver_vault);
 }
 
-describe("sender re-bootstraps when the recipient rotates identity (incident repro)", () => {
+async function try_send(plaintext: string, sender_vault: EncryptedVault) {
+  h.vault = sender_vault;
+
+  return encrypt_for_ratchet_recipient(
+    SENDER,
+    RECIPIENT,
+    "recipient",
+    plaintext,
+    sender_vault,
+  );
+}
+
+describe("recipient identity pinning (server cannot silently swap ratchet keys)", () => {
   beforeEach(() => {
     h.vault = null;
     h.bundle = null;
     h.store.clear();
   });
 
-  it("delivers a readable message after the recipient rotated to a generation the sender never saw", async () => {
+  it("reuses the established session when the recipient bundle is unchanged", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const recipient = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for({
+      identity_jwk: recipient.ratchet_identity_key!,
+      identity_public: recipient.ratchet_identity_public!,
+      signed_prekey_jwk: recipient.ratchet_signed_prekey!,
+      signed_prekey_public: recipient.ratchet_signed_prekey_public!,
+    } as Keys);
+
+    const first = await send("first message", sender_vault);
+
+    expect(first.data.header.message_number).toBe(0);
+
+    const second = await send("second message", sender_vault);
+
+    expect(second.data.header.message_number).toBe(1);
+    expect(await receive(first.envelope, recipient)).toBe("first message");
+    expect(await receive(second.envelope, recipient)).toBe("second message");
+  });
+
+  it("refuses to ratchet-bootstrap onto a recipient identity that differs from the pinned one", async () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const recipient_gen1 = make_vault((await generate_ratchet_keys())!);
     const recipient_gen2 = make_vault((await generate_ratchet_keys())!);
 
-    // 1. Sender establishes a session against the recipient's gen-1 bundle.
     h.bundle = bundle_for({
       identity_jwk: recipient_gen1.ratchet_identity_key!,
       identity_public: recipient_gen1.ratchet_identity_public!,
@@ -147,9 +180,6 @@ describe("sender re-bootstraps when the recipient rotates identity (incident rep
 
     expect(await receive(first.envelope, recipient_gen1)).toBe("first message");
 
-    // 2. Recipient force-regenerates identity (the incident) and publishes a
-    //    new bundle. Their gen-1 keys are gone (aged out), modelling a recipient
-    //    that rotated more than the retained window.
     h.bundle = bundle_for({
       identity_jwk: recipient_gen2.ratchet_identity_key!,
       identity_public: recipient_gen2.ratchet_identity_public!,
@@ -157,14 +187,32 @@ describe("sender re-bootstraps when the recipient rotates identity (incident rep
       signed_prekey_public: recipient_gen2.ratchet_signed_prekey_public!,
     } as Keys);
 
-    // 3. Sender sends again. It must NOT reuse the gen-1 session; it must detect
-    //    the rotation and re-bootstrap to gen-2.
-    const second = await send("second message", sender_vault);
+    const second = await try_send("second message", sender_vault);
 
-    // A re-bootstrap is a fresh session: message number resets to 0.
-    expect(second.data.header.message_number).toBe(0);
+    expect(second).toBeNull();
+  });
 
-    // 4. The recipient on its current (gen-2) keys can read it.
-    expect(await receive(second.envelope, recipient_gen2)).toBe("second message");
+  it("pins on first contact so a swapped identity on the very next send is refused", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const honest = make_vault((await generate_ratchet_keys())!);
+    const attacker = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for({
+      identity_jwk: honest.ratchet_identity_key!,
+      identity_public: honest.ratchet_identity_public!,
+      signed_prekey_jwk: honest.ratchet_signed_prekey!,
+      signed_prekey_public: honest.ratchet_signed_prekey_public!,
+    } as Keys);
+
+    expect(await try_send("legit", sender_vault)).not.toBeNull();
+
+    h.bundle = bundle_for({
+      identity_jwk: attacker.ratchet_identity_key!,
+      identity_public: attacker.ratchet_identity_public!,
+      signed_prekey_jwk: attacker.ratchet_signed_prekey!,
+      signed_prekey_public: attacker.ratchet_signed_prekey_public!,
+    } as Keys);
+
+    expect(await try_send("intercept", sender_vault)).toBeNull();
   });
 });
