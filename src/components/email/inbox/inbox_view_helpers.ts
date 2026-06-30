@@ -22,6 +22,35 @@ import type { InboxEmail, InboxFilterType } from "@/types/email";
 import type { DecryptedFolder } from "@/hooks/use_folders";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+export const MAX_EMPTY_VIEW_RECOVERIES = 3;
+
+export interface EmptyViewRecoveryState {
+  categories_enabled: boolean;
+  is_client_filtered: boolean;
+  is_alias_view: boolean;
+  current_page: number;
+  has_initial_load: boolean;
+  is_loading: boolean;
+  skeleton_visible: boolean;
+  email_count: number;
+  effective_total: number;
+  attempts: number;
+}
+
+export function should_recover_empty_view(state: EmptyViewRecoveryState): boolean {
+  if (state.categories_enabled) return false;
+  if (state.is_client_filtered) return false;
+  if (state.is_alias_view) return false;
+  if (state.current_page !== 0) return false;
+  if (!state.has_initial_load) return false;
+  if (state.is_loading || state.skeleton_visible) return false;
+  if (state.email_count > 0) return false;
+  if (state.effective_total <= 0) return false;
+  if (state.attempts >= MAX_EMPTY_VIEW_RECOVERIES) return false;
+
+  return true;
+}
+
 export function get_view_title(
   current_view: string,
   folders: DecryptedFolder[],

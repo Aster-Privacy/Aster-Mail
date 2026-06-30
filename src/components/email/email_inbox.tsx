@@ -70,6 +70,7 @@ import {
   get_search_context,
   filter_emails_by_view,
   apply_active_filter,
+  should_recover_empty_view,
 } from "@/components/email/inbox/inbox_view_helpers";
 import { use_context_menu_actions } from "@/components/email/inbox/inbox_context_menu_handler";
 import { InboxDialogs } from "@/components/email/inbox/inbox_dialogs";
@@ -269,6 +270,7 @@ export function EmailInbox({
     bulk_delete,
     bulk_archive,
     bulk_unarchive,
+    refresh: refresh_active_list,
   } = active_list;
 
   const mail_state = useMemo(() => {
@@ -767,6 +769,49 @@ export function EmailInbox({
       set_current_page(total_pages - 1);
     }
   }, [current_page, total_pages, set_current_page]);
+
+  const empty_recovery_ref = useRef<{ view: string; attempts: number }>({
+    view: current_view,
+    attempts: 0,
+  });
+
+  useEffect(() => {
+    if (empty_recovery_ref.current.view !== current_view) {
+      empty_recovery_ref.current = { view: current_view, attempts: 0 };
+    }
+  }, [current_view]);
+
+  useEffect(() => {
+    const should_recover = should_recover_empty_view({
+      categories_enabled: categories.enabled,
+      is_client_filtered,
+      is_alias_view,
+      current_page,
+      has_initial_load: email_state.has_initial_load,
+      is_loading: email_state.is_loading,
+      skeleton_visible,
+      email_count: filtered_emails.length,
+      effective_total: effective_total_for_pages,
+      attempts: empty_recovery_ref.current.attempts,
+    });
+
+    if (!should_recover) return;
+
+    empty_recovery_ref.current.attempts += 1;
+    set_skeleton_visible(true);
+    refresh_active_list();
+  }, [
+    categories.enabled,
+    is_client_filtered,
+    is_alias_view,
+    current_page,
+    email_state.has_initial_load,
+    email_state.is_loading,
+    skeleton_visible,
+    filtered_emails.length,
+    effective_total_for_pages,
+    refresh_active_list,
+  ]);
 
   const selection = use_inbox_selection({
     is_drafts_view,
