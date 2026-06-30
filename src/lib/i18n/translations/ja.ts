@@ -1644,6 +1644,18 @@ export const ja = {
     restore_alias_action: "復元",
     alias_restored: "エイリアスを復元しました",
     failed_restore_alias: "このエイリアスを復元できませんでした。もう一度お試しください。",
+    recently_deleted_empty_trash: "ゴミ箱を空にする",
+    delete_alias_permanently_action: "完全に削除",
+    purge_alias_confirm_title: "エイリアスを完全に削除しますか？",
+    purge_alias_confirm_message:
+      "{{ address }} を完全に削除しますか？この操作は取り消せません。アドレスはあなたのアカウントに予約されたままになるため、他の誰も取得することはできません。",
+    alias_purged: "エイリアスを完全に削除しました",
+    failed_purge_alias: "このエイリアスは削除されませんでした。もう一度お試しください。",
+    empty_trash_confirm_title: "最近削除した項目を空にしますか？",
+    empty_trash_confirm_message:
+      "最近削除した項目にある {{ count }} 件のエイリアスをすべて完全に削除しますか？この操作は取り消せません。アドレスはあなたのアカウントに予約されたままになるため、他の誰も取得することはできません。",
+    trash_emptied: "最近削除した項目を空にしました",
+    failed_empty_trash: "最近削除した項目を空にできませんでした。もう一度お試しください。",
     alias_stats_received: "{{ count }}件受信",
     alias_stats_blocked: "{{ count }}件ブロック",
     alias_generate_random: "ランダムなエイリアスを生成",

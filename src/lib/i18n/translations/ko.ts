@@ -1644,6 +1644,18 @@ export const ko = {
     restore_alias_action: "복원",
     alias_restored: "별칭이 복원되었습니다",
     failed_restore_alias: "이 별칭이 복원되지 않았습니다. 다시 시도하면 해결될 수 있습니다.",
+    recently_deleted_empty_trash: "휴지통 비우기",
+    delete_alias_permanently_action: "영구 삭제",
+    purge_alias_confirm_title: "별칭을 영구적으로 삭제하시겠습니까?",
+    purge_alias_confirm_message:
+      "{{ address }}을(를) 영구적으로 삭제하시겠습니까? 이 작업은 취소할 수 없습니다. 주소는 계정에 예약된 상태로 유지되므로 다른 사람이 절대 사용할 수 없습니다.",
+    alias_purged: "별칭이 영구적으로 삭제되었습니다",
+    failed_purge_alias: "이 별칭이 삭제되지 않았습니다. 다시 시도해 주세요.",
+    empty_trash_confirm_title: "최근 삭제된 항목을 비우시겠습니까?",
+    empty_trash_confirm_message:
+      "최근 삭제됨에 있는 {{ count }}개의 별칭을 모두 영구적으로 삭제하시겠습니까? 이 작업은 취소할 수 없습니다. 주소는 계정에 예약된 상태로 유지되므로 다른 사람이 사용할 수 없습니다.",
+    trash_emptied: "최근 삭제된 항목을 비웠습니다",
+    failed_empty_trash: "최근 삭제됨을 비울 수 없습니다. 다시 시도해 주세요.",
     alias_stats_received: "{{ count }}건 수신",
     alias_stats_blocked: "{{ count }}건 차단",
     alias_generate_random: "무작위 별칭 생성",

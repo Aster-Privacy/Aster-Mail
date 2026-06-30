@@ -1644,6 +1644,18 @@ export const pl = {
     restore_alias_action: "Przywróć",
     alias_restored: "Alias przywrócony",
     failed_restore_alias: "Tego aliasu nie przywrócono. Spróbuj ponownie.",
+    recently_deleted_empty_trash: "Opróżnij kosz",
+    delete_alias_permanently_action: "Usuń trwale",
+    purge_alias_confirm_title: "Usunąć alias trwale?",
+    purge_alias_confirm_message:
+      "Trwale usunąć {{ address }}? Tej operacji nie można cofnąć. Adres pozostaje zarezerwowany dla Twojego konta, więc nikt inny nigdy nie będzie mógł go przejąć.",
+    alias_purged: "Alias usunięty trwale",
+    failed_purge_alias: "Tego aliasu nie usunięto. Spróbuj ponownie.",
+    empty_trash_confirm_title: "Opróżnić Ostatnio usunięte?",
+    empty_trash_confirm_message:
+      "Trwale usunąć wszystkie {{ count }} aliasów w Ostatnio usuniętych? Tej operacji nie można cofnąć. Adresy pozostają zarezerwowane dla Twojego konta, więc nikt inny nie będzie mógł ich przejąć.",
+    trash_emptied: "Ostatnio usunięte opróżnione",
+    failed_empty_trash: "Nie udało się opróżnić Ostatnio usuniętych. Spróbuj ponownie.",
     alias_stats_received: "Odebrano: {{ count }}",
     alias_stats_blocked: "Zablokowano: {{ count }}",
     alias_generate_random: "Wygeneruj losowy alias",

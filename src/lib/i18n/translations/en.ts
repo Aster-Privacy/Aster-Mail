@@ -4383,6 +4383,18 @@ export const en: Translations = {
     restore_alias_action: "Restore",
     alias_restored: "Alias restored",
     failed_restore_alias: "This alias was not restored. Another attempt should do it.",
+    recently_deleted_empty_trash: "Empty trash",
+    delete_alias_permanently_action: "Delete permanently",
+    purge_alias_confirm_title: "Delete alias permanently?",
+    purge_alias_confirm_message:
+      "Permanently delete {{ address }}? This cannot be undone. The address stays reserved to your account, so no one else can ever claim it.",
+    alias_purged: "Alias permanently deleted",
+    failed_purge_alias: "This alias was not deleted. Please try again.",
+    empty_trash_confirm_title: "Empty recently deleted?",
+    empty_trash_confirm_message:
+      "Permanently delete all {{ count }} aliases in Recently Deleted? This cannot be undone. The addresses stay reserved to your account, so no one else can claim them.",
+    trash_emptied: "Recently deleted emptied",
+    failed_empty_trash: "Could not empty Recently Deleted. Please try again.",
     alias_stats_received: "{{ count }} received",
     alias_stats_blocked: "{{ count }} blocked",
     alias_generate_random: "Generate random alias",

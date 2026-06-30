@@ -1644,6 +1644,18 @@ export const ar = {
     restore_alias_action: "استعادة",
     alias_restored: "تمت استعادة الاسم المستعار",
     failed_restore_alias: "لم تتم استعادة هذا الاسم المستعار. حاول مرة أخرى.",
+    recently_deleted_empty_trash: "إفراغ سلة المهملات",
+    delete_alias_permanently_action: "حذف نهائي",
+    purge_alias_confirm_title: "حذف الاسم المستعار نهائيًا؟",
+    purge_alias_confirm_message:
+      "هل تريد حذف {{ address }} نهائيًا؟ لا يمكن التراجع عن هذا الإجراء. يبقى العنوان محجوزًا لحسابك، لذا لا يمكن لأي شخص آخر المطالبة به أبدًا.",
+    alias_purged: "تم حذف الاسم المستعار نهائيًا",
+    failed_purge_alias: "لم يتم حذف هذا الاسم المستعار. يرجى المحاولة مرة أخرى.",
+    empty_trash_confirm_title: "إفراغ المحذوفة مؤخرًا؟",
+    empty_trash_confirm_message:
+      "هل تريد حذف جميع الأسماء المستعارة البالغ عددها {{ count }} في المحذوفة مؤخرًا نهائيًا؟ لا يمكن التراجع عن هذا الإجراء. تبقى العناوين محجوزة لحسابك، لذا لا يمكن لأي شخص آخر المطالبة بها.",
+    trash_emptied: "تم إفراغ المحذوفة مؤخرًا",
+    failed_empty_trash: "تعذّر إفراغ المحذوفة مؤخرًا. يرجى المحاولة مرة أخرى.",
     alias_stats_received: "{{ count }} مستلَمة",
     alias_stats_blocked: "{{ count }} محظورة",
     alias_generate_random: "توليد اسم مستعار عشوائي",

@@ -1644,6 +1644,18 @@ export const zh_CN = {
     restore_alias_action: "恢复",
     alias_restored: "别名已恢复",
     failed_restore_alias: "此别名未能恢复。请再试一次。",
+    recently_deleted_empty_trash: "清空回收站",
+    delete_alias_permanently_action: "永久删除",
+    purge_alias_confirm_title: "永久删除此别名？",
+    purge_alias_confirm_message:
+      "永久删除 {{ address }}？此操作无法撤销。该地址将继续为你的账户保留，因此其他任何人都无法占用它。",
+    alias_purged: "别名已永久删除",
+    failed_purge_alias: "此别名未能删除。请再试一次。",
+    empty_trash_confirm_title: "清空最近删除？",
+    empty_trash_confirm_message:
+      "永久删除“最近删除”中的全部 {{ count }} 个别名？此操作无法撤销。这些地址将继续为你的账户保留，因此其他任何人都无法占用它们。",
+    trash_emptied: "最近删除已清空",
+    failed_empty_trash: "无法清空“最近删除”。请再试一次。",
     alias_stats_received: "已接收 {{ count }} 封",
     alias_stats_blocked: "已屏蔽 {{ count }} 封",
     alias_generate_random: "生成随机别名",

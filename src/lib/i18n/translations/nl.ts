@@ -1644,6 +1644,18 @@ export const nl = {
     restore_alias_action: "Herstellen",
     alias_restored: "Alias hersteld",
     failed_restore_alias: "Deze alias is niet hersteld. Een nieuwe poging zou moeten lukken.",
+    recently_deleted_empty_trash: "Prullenbak legen",
+    delete_alias_permanently_action: "Permanent verwijderen",
+    purge_alias_confirm_title: "Alias permanent verwijderen?",
+    purge_alias_confirm_message:
+      "{{ address }} permanent verwijderen? Dit kan niet ongedaan worden gemaakt. Het adres blijft gereserveerd voor je account, zodat niemand anders het ooit kan claimen.",
+    alias_purged: "Alias permanent verwijderd",
+    failed_purge_alias: "Deze alias is niet verwijderd. Probeer het opnieuw.",
+    empty_trash_confirm_title: "Onlangs verwijderd legen?",
+    empty_trash_confirm_message:
+      "Alle {{ count }} aliassen in Onlangs verwijderd permanent verwijderen? Dit kan niet ongedaan worden gemaakt. De adressen blijven gereserveerd voor je account, zodat niemand anders ze kan claimen.",
+    trash_emptied: "Onlangs verwijderd geleegd",
+    failed_empty_trash: "Onlangs verwijderd kon niet worden geleegd. Probeer het opnieuw.",
     alias_stats_received: "{{ count }} ontvangen",
     alias_stats_blocked: "{{ count }} geblokkeerd",
     alias_generate_random: "Willekeurige alias genereren",

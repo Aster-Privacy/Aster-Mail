@@ -817,6 +817,22 @@ export async function restore_alias(
   );
 }
 
+export async function purge_deleted_alias(
+  deleted_id: string,
+): Promise<ApiResponse<{ status: string }>> {
+  return api_client.delete<{ status: string }>(
+    `/addresses/v1/aliases/deleted/${deleted_id}`,
+  );
+}
+
+export async function empty_deleted_aliases(): Promise<
+  ApiResponse<{ status: string; count: number }>
+> {
+  return api_client.delete<{ status: string; count: number }>(
+    `/addresses/v1/aliases/deleted`,
+  );
+}
+
 export async function get_alias_stats(
   alias_id: string,
 ): Promise<ApiResponse<AliasStats>> {
