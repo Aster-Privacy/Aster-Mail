@@ -523,11 +523,36 @@ function sanitize_html_impl(
           (lockdown_mode || block_css || block_images)
         ) {
           sanitized_value = strip_css_urls(sanitized_value);
-        } else if (
-          lockdown_mode &&
-          (attr_lower === "background" || attr_lower === "srcset")
-        ) {
+        } else if (attr_lower === "srcset") {
+          if (!lockdown_mode && /https?:\/\//i.test(sanitized_value)) {
+            external_content.has_remote_images = true;
+            if (block_images) {
+              external_content.blocked_count++;
+              external_content.blocked_items.push({
+                url: sanitized_value,
+                type: "image",
+              });
+            }
+          }
           continue;
+        } else if (attr_lower === "background") {
+          if (lockdown_mode) {
+            continue;
+          }
+          if (/https?:\/\//i.test(sanitized_value)) {
+            external_content.has_remote_images = true;
+            if (block_images) {
+              external_content.blocked_count++;
+              external_content.blocked_items.push({
+                url: sanitized_value,
+                type: "image",
+              });
+              continue;
+            }
+            if (effective_proxy) {
+              sanitized_value = `${effective_proxy}?url=${encodeURIComponent(sanitized_value)}`;
+            }
+          }
         }
         new_element.setAttribute(attr.name, sanitized_value);
       }

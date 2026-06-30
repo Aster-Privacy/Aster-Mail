@@ -382,6 +382,7 @@ a, a * { color: #60a5fa !important; }`
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
+<meta http-equiv="x-dns-prefetch-control" content="off">
 ${tor_csp}
 ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
 <base href="${(() => {

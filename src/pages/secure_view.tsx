@@ -83,6 +83,7 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
     return `<!DOCTYPE html><html><head><meta charset="utf-8">` +
       `<meta name="viewport" content="width=device-width, initial-scale=1">` +
       `<meta name="referrer" content="no-referrer">` +
+      `<meta http-equiv="x-dns-prefetch-control" content="off">` +
       `<meta http-equiv="Content-Security-Policy" content="${csp}">` +
       `<base target="_blank">` +
       `<style>${SECURE_BODY_CSS}</style>` +
