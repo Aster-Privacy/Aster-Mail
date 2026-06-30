@@ -45,7 +45,7 @@ import {
   decrypt_ratchet_message,
 } from "./crypto/ratchet_manager";
 import { zero_uint8_array } from "./crypto/secure_memory";
-import { decrypt_message } from "./crypto/key_manager";
+import { decrypt_message_with_any_key } from "./crypto/key_manager";
 import { decrypt_mail_metadata } from "./crypto/mail_metadata";
 
 import {
@@ -96,7 +96,11 @@ async function decrypt_message_envelope(
 
         if (!vault?.identity_key || !pass) return null;
 
-        const decrypted = await decrypt_message(text, vault.identity_key, pass);
+        const decrypted = await decrypt_message_with_any_key(
+          text,
+          [vault.identity_key, ...(vault.previous_keys ?? [])],
+          pass,
+        );
 
         parsed = JSON.parse(decrypted) as DecryptedEnvelope;
       }
@@ -319,9 +323,9 @@ export async function fetch_and_decrypt_thread_messages(
 
       if (vault?.identity_key && passphrase) {
         try {
-          body_content = await decrypt_message(
+          body_content = await decrypt_message_with_any_key(
             body_content,
-            vault.identity_key,
+            [vault.identity_key, ...(vault.previous_keys ?? [])],
             passphrase,
           );
           body_decrypted = true;
@@ -498,9 +502,9 @@ export async function fetch_and_decrypt_virtual_group(
 
       if (vault?.identity_key && passphrase) {
         try {
-          body_content = await decrypt_message(
+          body_content = await decrypt_message_with_any_key(
             body_content,
-            vault.identity_key,
+            [vault.identity_key, ...(vault.previous_keys ?? [])],
             passphrase,
           );
           body_decrypted = true;

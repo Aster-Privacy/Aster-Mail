@@ -38,6 +38,7 @@ import {
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
   decrypt_message,
+  decrypt_message_with_any_key,
   encrypt_message_multi,
 } from "@/services/crypto/key_manager";
 import {
@@ -66,7 +67,11 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       const pass = get_passphrase_from_memory();
 
       if (vault?.identity_key && pass) {
-        const decrypted = await decrypt_message(text, vault.identity_key, pass);
+        const decrypted = await decrypt_message_with_any_key(
+          text,
+          [vault.identity_key, ...(vault.previous_keys ?? [])],
+          pass,
+        );
 
         return JSON.parse(decrypted) as T;
       }

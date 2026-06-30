@@ -45,7 +45,7 @@ import {
   get_passphrase_from_memory,
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
-import { decrypt_message } from "@/services/crypto/key_manager";
+import { decrypt_message_with_any_key } from "@/services/crypto/key_manager";
 import {
   decrypt_envelope_with_bytes,
   base64_to_array,
@@ -272,7 +272,11 @@ export async function decrypt_envelope(
       const pass = get_passphrase_from_memory();
 
       if (vault?.identity_key && pass) {
-        const decrypted = await decrypt_message(text, vault.identity_key, pass);
+        const decrypted = await decrypt_message_with_any_key(
+          text,
+          [vault.identity_key, ...(vault.previous_keys ?? [])],
+          pass,
+        );
 
         return JSON.parse(decrypted) as DecryptedEnvelope;
       }
