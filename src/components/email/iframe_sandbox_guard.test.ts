@@ -49,4 +49,30 @@ describe("email iframe sandbox safety invariants", () => {
       expect(directive.includes("unsafe-eval")).toBe(false);
     }
   });
+
+  it("main renderer disables DNS prefetch of anchor hosts in the email frame", () => {
+    expect(
+      /http-equiv="x-dns-prefetch-control"\s+content="off"/i.test(
+        renderer_source,
+      ),
+    ).toBe(true);
+  });
+
+  it("secure view disables DNS prefetch of anchor hosts in the email frame", () => {
+    expect(
+      /http-equiv="x-dns-prefetch-control"\s+content="off"/i.test(
+        secure_view_source,
+      ),
+    ).toBe(true);
+  });
+
+  it("app document disables DNS prefetch for shadow-root previews and print", () => {
+    const index_source = readFileSync(
+      resolve(here, "../../../index.html"),
+      "utf8",
+    );
+    expect(
+      /http-equiv="x-dns-prefetch-control"\s+content="off"/i.test(index_source),
+    ).toBe(true);
+  });
 });
