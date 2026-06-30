@@ -34,9 +34,12 @@ import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { go_to_billing } from "@/components/settings/aliases/feature_lock";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   list_deleted_aliases,
   restore_alias,
+  purge_deleted_alias,
+  empty_deleted_aliases,
   decrypt_alias_field,
 } from "@/services/api/aliases";
 
@@ -67,6 +70,11 @@ export function RecentlyDeletedAliasesSection({
   const [load_error, set_load_error] = useState(false);
   const [expanded, set_expanded] = useState(false);
   const [restoring_id, set_restoring_id] = useState<string | null>(null);
+  const [purging_id, set_purging_id] = useState<string | null>(null);
+  const [emptying, set_emptying] = useState(false);
+  const [confirm_purge, set_confirm_purge] =
+    useState<DecryptedDeletedAlias | null>(null);
+  const [confirm_empty, set_confirm_empty] = useState(false);
 
   const load_deleted = useCallback(async () => {
     set_loading(true);
@@ -164,6 +172,54 @@ export function RecentlyDeletedAliasesSection({
     [t, on_restored, load_deleted],
   );
 
+  const do_purge = useCallback(
+    async (deleted_id: string) => {
+      set_purging_id(deleted_id);
+      try {
+        const response = await purge_deleted_alias(deleted_id);
+
+        if (response.error) {
+          show_toast(
+            t("settings.failed_purge_alias" as TranslationKey),
+            "error",
+          );
+          await load_deleted();
+        } else {
+          show_toast(t("settings.alias_purged" as TranslationKey), "success");
+          set_aliases((prev) => prev.filter((a) => a.id !== deleted_id));
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+        show_toast(t("settings.failed_purge_alias" as TranslationKey), "error");
+        await load_deleted();
+      } finally {
+        set_purging_id(null);
+      }
+    },
+    [t, load_deleted],
+  );
+
+  const do_empty = useCallback(async () => {
+    set_emptying(true);
+    try {
+      const response = await empty_deleted_aliases();
+
+      if (response.error) {
+        show_toast(t("settings.failed_empty_trash" as TranslationKey), "error");
+        await load_deleted();
+      } else {
+        show_toast(t("settings.trash_emptied" as TranslationKey), "success");
+        set_aliases([]);
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+      show_toast(t("settings.failed_empty_trash" as TranslationKey), "error");
+      await load_deleted();
+    } finally {
+      set_emptying(false);
+    }
+  }, [t, load_deleted]);
+
   const format_date = (iso: string) =>
     new Date(iso).toLocaleDateString(undefined, {
       month: "short",
@@ -213,11 +269,30 @@ export function RecentlyDeletedAliasesSection({
 
       {expanded && (
         <div className="space-y-2">
-          <p className="text-xs text-txt-muted">
-            {t(
-              "settings.recently_deleted_aliases_description" as TranslationKey,
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-txt-muted">
+              {t(
+                "settings.recently_deleted_aliases_description" as TranslationKey,
+              )}
+            </p>
+            {!restore_locked && (
+              <Button
+                disabled={emptying}
+                size="sm"
+                variant="ghost"
+                onClick={() => set_confirm_empty(true)}
+              >
+                {emptying ? (
+                  <Spinner size="xs" />
+                ) : (
+                  <>
+                    <TrashIcon aria-hidden="true" className="w-3.5 h-3.5" />
+                    {t("settings.recently_deleted_empty_trash" as TranslationKey)}
+                  </>
+                )}
+              </Button>
             )}
-          </p>
+          </div>
           {aliases.map((alias) => (
             <div
               key={alias.id}
@@ -247,29 +322,80 @@ export function RecentlyDeletedAliasesSection({
                   {t("settings.alias_feature_locked_upgrade_cta")}
                 </UpgradeBtn>
               ) : (
-                <Button
-                  disabled={restoring_id === alias.id}
-                  size="sm"
-                  variant="depth"
-                  onClick={() => handle_restore(alias.id)}
-                >
-                  {restoring_id === alias.id ? (
-                    <Spinner size="xs" />
-                  ) : (
-                    <>
-                      <ArrowUturnLeftIcon
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <Button
+                    disabled={restoring_id === alias.id}
+                    size="sm"
+                    variant="depth"
+                    onClick={() => handle_restore(alias.id)}
+                  >
+                    {restoring_id === alias.id ? (
+                      <Spinner size="xs" />
+                    ) : (
+                      <>
+                        <ArrowUturnLeftIcon
+                          aria-hidden="true"
+                          className="w-3.5 h-3.5"
+                        />
+                        {t("settings.restore_alias_action" as TranslationKey)}
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    aria-label={t(
+                      "settings.delete_alias_permanently_action" as TranslationKey,
+                    )}
+                    disabled={purging_id === alias.id}
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => set_confirm_purge(alias)}
+                  >
+                    {purging_id === alias.id ? (
+                      <Spinner size="xs" />
+                    ) : (
+                      <TrashIcon
                         aria-hidden="true"
-                        className="w-3.5 h-3.5"
+                        className="w-3.5 h-3.5 text-red-500"
                       />
-                      {t("settings.restore_alias_action" as TranslationKey)}
-                    </>
-                  )}
-                </Button>
+                    )}
+                  </Button>
+                </div>
               )}
             </div>
           ))}
         </div>
       )}
+
+      <ConfirmationModal
+        confirm_text={t("settings.delete_alias_permanently_action" as TranslationKey)}
+        is_open={confirm_purge !== null}
+        message={t("settings.purge_alias_confirm_message" as TranslationKey, {
+          address: confirm_purge?.full_address ?? "",
+        })}
+        title={t("settings.purge_alias_confirm_title" as TranslationKey)}
+        variant="danger"
+        on_cancel={() => set_confirm_purge(null)}
+        on_confirm={() => {
+          const target = confirm_purge;
+          set_confirm_purge(null);
+          if (target) do_purge(target.id);
+        }}
+      />
+
+      <ConfirmationModal
+        confirm_text={t("settings.recently_deleted_empty_trash" as TranslationKey)}
+        is_open={confirm_empty}
+        message={t("settings.empty_trash_confirm_message" as TranslationKey, {
+          count: aliases.length,
+        })}
+        title={t("settings.empty_trash_confirm_title" as TranslationKey)}
+        variant="danger"
+        on_cancel={() => set_confirm_empty(false)}
+        on_confirm={() => {
+          set_confirm_empty(false);
+          do_empty();
+        }}
+      />
     </div>
   );
 }

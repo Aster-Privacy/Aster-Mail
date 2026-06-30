@@ -4303,6 +4303,16 @@ export interface SettingsTranslations {
   restore_alias_action: string;
   alias_restored: string;
   failed_restore_alias: string;
+  recently_deleted_empty_trash: string;
+  delete_alias_permanently_action: string;
+  purge_alias_confirm_title: string;
+  purge_alias_confirm_message: string;
+  alias_purged: string;
+  failed_purge_alias: string;
+  empty_trash_confirm_title: string;
+  empty_trash_confirm_message: string;
+  trash_emptied: string;
+  failed_empty_trash: string;
   alias_stats_received: string;
   alias_stats_blocked: string;
   alias_generate_random: string;

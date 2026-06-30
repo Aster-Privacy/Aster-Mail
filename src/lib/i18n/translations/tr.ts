@@ -1644,6 +1644,18 @@ export const tr = {
     restore_alias_action: "Geri yükle",
     alias_restored: "Rumuz geri yüklendi",
     failed_restore_alias: "Bu rumuz geri yüklenemedi. Tekrar deneyin.",
+    recently_deleted_empty_trash: "Çöp kutusunu boşalt",
+    delete_alias_permanently_action: "Kalıcı olarak sil",
+    purge_alias_confirm_title: "Rumuz kalıcı olarak silinsin mi?",
+    purge_alias_confirm_message:
+      "{{ address }} kalıcı olarak silinsin mi? Bu işlem geri alınamaz. Adres hesabınıza ayrılmış olarak kalır, böylece başka hiç kimse onu asla talep edemez.",
+    alias_purged: "Rumuz kalıcı olarak silindi",
+    failed_purge_alias: "Bu rumuz silinemedi. Lütfen tekrar deneyin.",
+    empty_trash_confirm_title: "Son silinenler boşaltılsın mı?",
+    empty_trash_confirm_message:
+      "Son silinenlerdeki {{ count }} rumuzun tamamı kalıcı olarak silinsin mi? Bu işlem geri alınamaz. Adresler hesabınıza ayrılmış olarak kalır, böylece başka hiç kimse onları talep edemez.",
+    trash_emptied: "Son silinenler boşaltıldı",
+    failed_empty_trash: "Son silinenler boşaltılamadı. Lütfen tekrar deneyin.",
     alias_stats_received: "{{ count }} alındı",
     alias_stats_blocked: "{{ count }} engellendi",
     alias_generate_random: "Rastgele rumuz oluştur",
