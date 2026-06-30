@@ -42,6 +42,7 @@ import { init_desktop_device_auth } from "@/native/desktop_device_auth";
 import { api_client } from "@/services/api/client";
 import { request_cache } from "@/services/api/request_cache";
 import { verify_auth_status, get_user_info } from "@/services/api/auth";
+import { rekey_pgp_if_needed } from "@/services/pgp_rekey_service";
 import { set_lockdown_enabled } from "@/services/lockdown_store";
 import {
   store_vault_in_memory,
@@ -378,6 +379,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (info.lockdown_mode_enabled !== undefined) {
         set_lockdown_enabled(logged_in_user.id, info.lockdown_mode_enabled);
+      }
+
+      if ((info as { pgp_rekey_required?: boolean }).pgp_rekey_required) {
+        void rekey_pgp_if_needed(info.email, info.display_name);
       }
 
       const merged: User = {

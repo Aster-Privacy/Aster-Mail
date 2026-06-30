@@ -298,22 +298,28 @@ export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
 
   if (!vault || !passphrase) return PGP_UNDECRYPTABLE_SENTINEL;
 
-  const secret_key = vault.identity_key;
+  const keys_to_try = [
+    vault.identity_key,
+    ...(vault.previous_keys ?? []),
+  ].filter((k): k is string => !!k);
 
-  if (!secret_key) return PGP_UNDECRYPTABLE_SENTINEL;
+  if (keys_to_try.length === 0) return PGP_UNDECRYPTABLE_SENTINEL;
 
-  try {
-    let decrypted = await decrypt_message(body_text, secret_key, passphrase);
+  for (const secret_key of keys_to_try) {
+    try {
+      let decrypted = await decrypt_message(body_text, secret_key, passphrase);
 
-    if (/^content-type\s*:/im.test(decrypted)) {
-      decrypted = extract_mime_body(decrypted);
+      if (/^content-type\s*:/im.test(decrypted)) {
+        decrypted = extract_mime_body(decrypted);
+      }
+
+      return decrypted;
+    } catch (e) {
+      if (import.meta.env.DEV) console.error("pgp_decrypt_failed", e);
     }
-
-    return decrypted;
-  } catch (e) {
-    if (import.meta.env.DEV) console.error("pgp_decrypt_failed", e);
-    return PGP_UNDECRYPTABLE_SENTINEL;
   }
+
+  return PGP_UNDECRYPTABLE_SENTINEL;
 }
 
 export const ASTER_SUBJECT_BUNDLE_PREFIX = "ASTER_BUNDLE_V2";

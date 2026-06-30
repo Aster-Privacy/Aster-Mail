@@ -73,3 +73,39 @@ export async function rotate_identity_key(
 
   return { data: response.data ?? undefined };
 }
+
+export async function update_vault(
+  encrypted_vault: string,
+  vault_nonce: string,
+): Promise<{ success: boolean; error?: string }> {
+  const response = await api_client.put<{ success: boolean }>(
+    "/crypto/v1/keys/vault",
+    { encrypted_vault, vault_nonce },
+  );
+
+  if (response.error) {
+    return { success: false, error: response.error };
+  }
+
+  return { success: response.data?.success ?? false };
+}
+
+export interface RepublishPgpKeyResponse {
+  fingerprint: string;
+  success: boolean;
+}
+
+export async function republish_pgp_key(
+  pgp_key_data: Record<string, unknown>,
+): Promise<{ data?: RepublishPgpKeyResponse; error?: string }> {
+  const response = await api_client.post<RepublishPgpKeyResponse>(
+    "/crypto/v1/keys/pgp/republish",
+    pgp_key_data,
+  );
+
+  if (response.error) {
+    return { error: response.error };
+  }
+
+  return { data: response.data ?? undefined };
+}
