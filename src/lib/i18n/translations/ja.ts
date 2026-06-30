@@ -4499,6 +4499,7 @@ export const ja = {
     bullet_list: "箇条書きリスト",
     numbered_list: "番号付きリスト",
     insert_link: "リンクを挿入",
+    insert_image: "画像を挿入",
     attach_file: "ファイルを添付",
     more_formatting: "その他の書式設定",
     text_style: "テキストスタイル",

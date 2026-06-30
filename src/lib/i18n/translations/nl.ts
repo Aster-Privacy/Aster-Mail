@@ -4501,6 +4501,7 @@ export const nl = {
     bullet_list: "Opsommingslijst",
     numbered_list: "Genummerde lijst",
     insert_link: "Link invoegen",
+    insert_image: "Afbeelding invoegen",
     attach_file: "Bestand bijvoegen",
     more_formatting: "Meer opmaak",
     text_style: "Tekststijl",

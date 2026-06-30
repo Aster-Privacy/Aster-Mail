@@ -4499,6 +4499,7 @@ export const de = {
     bullet_list: "Aufzählung",
     numbered_list: "Nummerierte Liste",
     insert_link: "Link einfügen",
+    insert_image: "Bild einfügen",
     attach_file: "Datei anhängen",
     more_formatting: "Mehr Formatierung",
     text_style: "Textstil",

@@ -4502,6 +4502,7 @@ export const it = {
     bullet_list: "Elenco puntato",
     numbered_list: "Elenco numerato",
     insert_link: "Inserisci link",
+    insert_image: "Inserisci immagine",
     attach_file: "Allega file",
     more_formatting: "Altra formattazione",
     text_style: "Stile testo",

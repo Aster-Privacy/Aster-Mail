@@ -4497,6 +4497,7 @@ export const ko = {
     bullet_list: "글머리 기호 목록",
     numbered_list: "번호 매기기 목록",
     insert_link: "링크 삽입",
+    insert_image: "이미지 삽입",
     attach_file: "파일 첨부",
     more_formatting: "추가 서식",
     text_style: "텍스트 스타일",

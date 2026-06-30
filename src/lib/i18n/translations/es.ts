@@ -4497,6 +4497,7 @@ export const es = {
     bullet_list: "Lista con viñetas",
     numbered_list: "Lista numerada",
     insert_link: "Insertar enlace",
+    insert_image: "Insertar imagen",
     attach_file: "Adjuntar archivo",
     more_formatting: "Más formato",
     text_style: "Estilo de texto",

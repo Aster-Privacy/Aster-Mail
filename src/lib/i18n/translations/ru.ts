@@ -4497,6 +4497,7 @@ export const ru = {
     bullet_list: "Маркированный список",
     numbered_list: "Нумерованный список",
     insert_link: "Вставить ссылку",
+    insert_image: "Вставить изображение",
     attach_file: "Прикрепить файл",
     more_formatting: "Дополнительное форматирование",
     text_style: "Стиль текста",
