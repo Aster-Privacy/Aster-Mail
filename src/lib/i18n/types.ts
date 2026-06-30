@@ -4849,6 +4849,7 @@ export interface MailTranslations {
   bullet_list: string;
   numbered_list: string;
   insert_link: string;
+  insert_image: string;
   attach_file: string;
   more_formatting: string;
   text_style: string;

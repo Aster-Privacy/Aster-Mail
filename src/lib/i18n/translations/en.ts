@@ -4964,6 +4964,7 @@ export const en: Translations = {
     bullet_list: "Bullet list",
     numbered_list: "Numbered list",
     insert_link: "Insert link",
+    insert_image: "Insert image",
     attach_file: "Attach file",
     more_formatting: "More formatting",
     text_style: "Text style",

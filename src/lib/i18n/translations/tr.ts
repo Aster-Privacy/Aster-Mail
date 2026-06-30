@@ -4497,6 +4497,7 @@ export const tr = {
     bullet_list: "Madde işaretli liste",
     numbered_list: "Numaralı liste",
     insert_link: "Bağlantı ekle",
+    insert_image: "Resim ekle",
     attach_file: "Dosya ekle",
     more_formatting: "Daha fazla biçimlendirme",
     text_style: "Metin stili",

@@ -4497,6 +4497,7 @@ export const zh_CN = {
     bullet_list: "无序列表",
     numbered_list: "有序列表",
     insert_link: "插入链接",
+    insert_image: "插入图片",
     attach_file: "添加附件",
     more_formatting: "更多格式",
     text_style: "文本样式",

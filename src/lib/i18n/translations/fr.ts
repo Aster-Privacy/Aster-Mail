@@ -4497,6 +4497,7 @@ export const fr = {
     bullet_list: "Liste à puces",
     numbered_list: "Liste numérotée",
     insert_link: "Insérer un lien",
+    insert_image: "Insérer une image",
     attach_file: "Joindre un fichier",
     more_formatting: "Plus de mise en forme",
     text_style: "Style du texte",

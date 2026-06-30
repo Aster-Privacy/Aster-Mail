@@ -4497,6 +4497,7 @@ export const ar = {
     bullet_list: "قائمة نقطية",
     numbered_list: "قائمة مرقمة",
     insert_link: "إدراج رابط",
+    insert_image: "إدراج صورة",
     attach_file: "إرفاق ملف",
     more_formatting: "مزيد من التنسيق",
     text_style: "نمط النص",

@@ -4501,6 +4501,7 @@ export const pl = {
     bullet_list: "Lista punktowana",
     numbered_list: "Lista numerowana",
     insert_link: "Wstaw link",
+    insert_image: "Wstaw obraz",
     attach_file: "Załącz plik",
     more_formatting: "Więcej formatowania",
     text_style: "Styl tekstu",

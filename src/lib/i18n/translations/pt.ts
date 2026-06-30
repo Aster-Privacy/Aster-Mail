@@ -4497,6 +4497,7 @@ export const pt = {
     bullet_list: "Lista com marcadores",
     numbered_list: "Lista numerada",
     insert_link: "Inserir link",
+    insert_image: "Inserir imagem",
     attach_file: "Anexar arquivo",
     more_formatting: "Mais formatação",
     text_style: "Estilo de texto",
