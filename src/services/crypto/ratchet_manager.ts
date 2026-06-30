@@ -53,6 +53,7 @@ import {
   sign_ratchet_prekey_bundle,
   verify_ratchet_prekey_bundle,
 } from "./key_manager_pgp";
+import { check_and_pin_identity } from "./ratchet_identity_pin";
 import {
   get_cached_ratchet_plaintext,
   set_cached_ratchet_plaintext,
@@ -332,6 +333,22 @@ export async function encrypt_for_ratchet_recipient(
         if (import.meta.env.DEV) {
           console.warn(
             "ratchet prekey bundle signature failed verification; routing via PGP",
+          );
+        }
+
+        return null;
+      }
+
+      const identity_pin_status = await check_and_pin_identity(
+        (recipient_email ?? recipient_username).toLowerCase(),
+        bundle.kem_identity_key,
+        bundle_verdict === "verified",
+      );
+
+      if (identity_pin_status === "drift") {
+        if (import.meta.env.DEV) {
+          console.warn(
+            "ratchet recipient identity key differs from the pinned value; routing via PGP",
           );
         }
 
