@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { EyeSlashIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -34,9 +34,15 @@ import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 
 export function GhostAliasesSection() {
   const { t } = use_i18n();
+  const { limits } = use_plan_limits();
+  const is_free_plan = useMemo(
+    () => !!limits && limits.plan_code.toLowerCase() === "free",
+    [limits],
+  );
   const [aliases, set_aliases] = useState<DecryptedGhostAlias[]>([]);
   const [loading, set_loading] = useState(true);
   const [action_loading, set_action_loading] = useState<string | null>(null);
@@ -71,7 +77,7 @@ export function GhostAliasesSection() {
     async (alias_id: string) => {
       const alias = aliases.find((a) => a.id === alias_id);
 
-      if (alias) {
+      if (alias && is_free_plan) {
         const created = new Date(alias.created_at);
         const eligible = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -96,7 +102,7 @@ export function GhostAliasesSection() {
         set_action_loading(null);
       }
     },
-    [load_aliases, aliases],
+    [load_aliases, aliases, is_free_plan],
   );
 
   const handle_extend = useCallback(
