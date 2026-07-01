@@ -23,19 +23,8 @@ import { createElement, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const mocks = vi.hoisted(() => ({
-  fetch_mail_by_ids_reconciled: vi.fn(async () => ({
-    emails: [
-      {
-        id: "id1",
-        item_type: "received",
-        is_read: true,
-        thread_token: "t1",
-      } as unknown,
-    ],
-    missing_ids: [] as string[],
-    request_ok: true,
-  })),
-  sync_recent: vi.fn(async () => {}),
+  fetch_mail_by_ids_reconciled: vi.fn(),
+  remove_ids: vi.fn(),
 }));
 
 vi.mock("@/hooks/email_list_helpers", () => ({
@@ -96,36 +85,24 @@ vi.mock("@/contexts/preferences_context", () => ({
 
 vi.mock("@/services/category_index", () => ({
   init_category_index: vi.fn(async () => {}),
-  get_page_ids: () => ["id1"],
-  get_category_total: () => 1,
+  get_page_ids: () => ["gone1", "gone2"],
+  get_category_total: () => 2,
   is_fully_built: () => true,
   is_build_in_progress: () => false,
   is_build_stalled: () => false,
   subscribe: () => () => {},
   get_version: () => 0,
-  remove_ids: vi.fn(),
+  remove_ids: mocks.remove_ids,
   is_representative_unread: () => false,
-  sync_recent: mocks.sync_recent,
+  sync_recent: vi.fn(async () => {}),
   set_sort_order: vi.fn(),
 }));
 
 import { use_category_inbox } from "@/hooks/use_category_inbox";
 
-interface SeenState {
-  is_loading: boolean;
-  emails: number;
-}
-
-function render_hook(): { states: SeenState[]; root: Root } {
-  const states: SeenState[] = [];
-
+function render_hook(): Root {
   function Harness() {
-    const r = use_category_inbox("primary", 0, true);
-
-    states.push({
-      is_loading: r.state.is_loading,
-      emails: r.state.emails.length,
-    });
+    use_category_inbox("primary", 0, true);
 
     return null;
   }
@@ -138,7 +115,7 @@ function render_hook(): { states: SeenState[]; root: Root } {
     root.render(createElement(Harness));
   });
 
-  return { states, root };
+  return root;
 }
 
 async function flush(): Promise<void> {
@@ -150,51 +127,108 @@ async function flush(): Promise<void> {
   });
 }
 
-describe("use_category_inbox refresh", () => {
+describe("use_category_inbox ghost reconcile", () => {
   beforeEach(() => {
     (
       globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
-    mocks.fetch_mail_by_ids_reconciled.mockClear();
-    mocks.sync_recent.mockClear();
+    mocks.remove_ids.mockClear();
+    mocks.fetch_mail_by_ids_reconciled.mockReset();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("re-syncs and re-fetches the visible page on REFRESH_REQUESTED", async () => {
-    const { states, root } = render_hook();
-
-    await flush();
-
-    const initial_fetches = mocks.fetch_mail_by_ids_reconciled.mock.calls.length;
-
-    expect(initial_fetches).toBeGreaterThanOrEqual(1);
-
-    act(() => {
-      window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
+  it("prunes indexed ids the server no longer returns so the ghost count clears", async () => {
+    mocks.fetch_mail_by_ids_reconciled.mockResolvedValue({
+      emails: [],
+      missing_ids: ["gone1", "gone2"],
+      request_ok: true,
     });
 
-    expect(states.at(-1)!.is_loading).toBe(true);
+    const root = render_hook();
 
     await flush();
 
-    expect(mocks.sync_recent).toHaveBeenCalledTimes(1);
-
-    expect(states.at(-1)!.is_loading).toBe(true);
-    expect(mocks.fetch_mail_by_ids_reconciled.mock.calls.length).toBe(initial_fetches);
-
-    await act(async () => {
-      await new Promise((r) => setTimeout(r, 700));
-    });
-    await flush();
-
-    expect(mocks.fetch_mail_by_ids_reconciled.mock.calls.length).toBeGreaterThan(
-      initial_fetches,
-    );
-    expect(states.at(-1)!.is_loading).toBe(false);
+    expect(mocks.remove_ids).toHaveBeenCalledWith(["gone1", "gone2"]);
 
     act(() => root.unmount());
+  });
+
+  it("does not prune when the fetch request itself failed", async () => {
+    mocks.fetch_mail_by_ids_reconciled.mockResolvedValue({
+      emails: [],
+      missing_ids: [],
+      request_ok: false,
+    });
+
+    const root = render_hook();
+
+    await flush();
+
+    expect(mocks.remove_ids).not.toHaveBeenCalled();
+
+    act(() => root.unmount());
+  });
+
+  it("retries a transiently failed fetch until it succeeds", async () => {
+    vi.useFakeTimers();
+
+    let call = 0;
+
+    mocks.fetch_mail_by_ids_reconciled.mockImplementation(async () => {
+      call += 1;
+
+      if (call === 1) {
+        return { emails: [], missing_ids: [], request_ok: false };
+      }
+
+      return {
+        emails: [
+          {
+            id: "gone1",
+            item_type: "received",
+            is_read: true,
+            thread_token: "t",
+          } as unknown,
+        ],
+        missing_ids: [],
+        request_ok: true,
+      };
+    });
+
+    let root!: Root;
+
+    await act(async () => {
+      const container = document.createElement("div");
+
+      root = createRoot(container);
+      root.render(
+        createElement(function Harness() {
+          use_category_inbox("primary", 0, true);
+
+          return null;
+        }),
+      );
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    const after_first = call;
+
+    expect(after_first).toBeGreaterThanOrEqual(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000);
+    });
+
+    expect(call).toBeGreaterThan(after_first);
+    expect(mocks.remove_ids).not.toHaveBeenCalled();
+
+    act(() => root.unmount());
+    vi.useRealTimers();
   });
 });

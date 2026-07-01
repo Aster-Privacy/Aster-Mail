@@ -483,16 +483,29 @@ export function mail_to_email(
   };
 }
 
-export async function fetch_mail_by_ids(
+export interface FetchByIdsResult {
+  emails: InboxEmail[];
+  missing_ids: string[];
+  request_ok: boolean;
+}
+
+export async function fetch_mail_by_ids_reconciled(
   ids: string[],
   format_options: FormatOptions,
   user_email = "",
-): Promise<InboxEmail[]> {
-  if (ids.length === 0) return [];
+): Promise<FetchByIdsResult> {
+  if (ids.length === 0) {
+    return { emails: [], missing_ids: [], request_ok: true };
+  }
 
   const response = await list_mail_items({ ids });
 
-  if (!response.data) return [];
+  if (!response.data) {
+    return { emails: [], missing_ids: [], request_ok: false };
+  }
+
+  const server_ids = new Set(response.data.items.map((item) => item.id));
+  const missing_ids = ids.filter((id) => !server_ids.has(id));
 
   const results = await Promise.allSettled(
     response.data.items.map(async (item) => {
@@ -535,9 +548,11 @@ export async function fetch_mail_by_ids(
     }
   }
 
-  return ids
+  const emails = ids
     .map((id) => by_id.get(id))
     .filter((email): email is InboxEmail => email !== undefined);
+
+  return { emails, missing_ids, request_ok: true };
 }
 
 export function sort_emails_by_timestamp(

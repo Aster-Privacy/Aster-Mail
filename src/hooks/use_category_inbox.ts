@@ -32,7 +32,7 @@ import {
 } from "react";
 
 import {
-  fetch_mail_by_ids,
+  fetch_mail_by_ids_reconciled,
   group_emails_by_thread,
   DEFAULT_PAGE_SIZE,
 } from "./email_list_helpers";
@@ -72,6 +72,8 @@ const EMPTY_STATE: EmailListState = {
 };
 
 const MIN_REFRESH_SKELETON_MS = 550;
+const MAX_FETCH_RETRIES = 4;
+const FETCH_RETRY_DELAY_MS = 1500;
 
 function build_list_state(
   prev: EmailListState,
@@ -167,6 +169,25 @@ export function use_category_inbox(
   const last_signature_ref = useRef<string>("");
   const abort_ref = useRef<AbortController | null>(null);
   const page_cache = useRef<Map<string, InboxEmail[]>>(new Map());
+  const fetch_retry_ref = useRef<{ sig: string; attempts: number }>({
+    sig: "",
+    attempts: 0,
+  });
+  const fetch_retry_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const fetch_page_ref = useRef<
+    ((page: number, limit: number, force?: boolean) => Promise<void>) | null
+  >(null);
+
+  useEffect(() => {
+    return () => {
+      if (fetch_retry_timer_ref.current) {
+        clearTimeout(fetch_retry_timer_ref.current);
+        fetch_retry_timer_ref.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;
@@ -222,6 +243,25 @@ export function use_category_inbox(
         return;
       }
 
+      const schedule_retry = (): boolean => {
+        const retry_sig = `${active_category}|${target_page}`;
+        const prev = fetch_retry_ref.current;
+        const attempts = prev.sig === retry_sig ? prev.attempts : 0;
+
+        if (attempts >= MAX_FETCH_RETRIES) return false;
+
+        fetch_retry_ref.current = { sig: retry_sig, attempts: attempts + 1 };
+        if (fetch_retry_timer_ref.current) {
+          clearTimeout(fetch_retry_timer_ref.current);
+        }
+        fetch_retry_timer_ref.current = setTimeout(() => {
+          fetch_retry_timer_ref.current = null;
+          void fetch_page_ref.current?.(target_page, limit);
+        }, FETCH_RETRY_DELAY_MS);
+
+        return true;
+      };
+
       const ids = get_page_ids(active_category, target_page, limit);
       const total = get_category_total(active_category);
       const has_more = (target_page + 1) * limit < total;
@@ -262,13 +302,36 @@ export function use_category_inbox(
       set_state((prev) => ({ ...prev, is_loading: true }));
 
       try {
-        const fetched = await fetch_mail_by_ids(
-          ids,
-          format_options,
-          user?.email || "",
-        );
+        const { emails: fetched, missing_ids, request_ok } =
+          await fetch_mail_by_ids_reconciled(
+            ids,
+            format_options,
+            user?.email || "",
+          );
 
         if (controller.signal.aborted) return;
+
+        if (!request_ok) {
+          // The row fetch itself failed (network / edge / transient). Never
+          // prune the index on a failed request, and never flash an empty
+          // inbox that contradicts a positive count: retry with backoff, and
+          // only resolve to an empty state once retries are exhausted.
+          if (schedule_retry()) return;
+
+          set_state((prev) => ({
+            ...prev,
+            is_loading: false,
+            has_initial_load: true,
+          }));
+
+          return;
+        }
+
+        fetch_retry_ref.current = { sig: `${active_category}|${target_page}`, attempts: 0 };
+
+        if (missing_ids.length > 0) {
+          remove_ids(missing_ids);
+        }
 
         const stale_non_received = fetched
           .filter((email) => email.item_type !== "received")
@@ -298,8 +361,21 @@ export function use_category_inbox(
           if (oldest) page_cache.current.delete(oldest);
         }
 
-        set_state((prev) => build_list_state(prev, grouped, total, has_more));
+        const pruned =
+          missing_ids.length > 0 || stale_non_received.length > 0;
+        const effective_total = pruned
+          ? get_category_total(active_category)
+          : total;
+        const effective_has_more =
+          (target_page + 1) * limit < effective_total;
+
+        set_state((prev) =>
+          build_list_state(prev, grouped, effective_total, effective_has_more),
+        );
       } catch {
+        if (controller.signal.aborted) return;
+        if (schedule_retry()) return;
+
         set_state((prev) => ({
           ...prev,
           is_loading: false,
@@ -416,10 +492,6 @@ export function use_category_inbox(
     last_signature_ref.current = "";
     void fetch_page(page, page_size);
   }, [fetch_page, page, page_size]);
-
-  const fetch_page_ref = useRef<
-    ((page: number, limit: number, force?: boolean) => Promise<void>) | null
-  >(null);
 
   fetch_page_ref.current = fetch_page;
 
