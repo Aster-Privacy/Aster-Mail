@@ -64,6 +64,22 @@ export interface SenderOption {
   profile_picture?: string;
 }
 
+export const SIGNATURE_BINDABLE_SENDER_TYPES: SenderOptionType[] = [
+  "alias",
+  "domain",
+  "ghost",
+];
+
+export function is_signature_bindable_sender_type(
+  type: SenderOptionType,
+): boolean {
+  return SIGNATURE_BINDABLE_SENDER_TYPES.includes(type);
+}
+
+export function is_signature_bindable_sender(option: SenderOption): boolean {
+  return is_signature_bindable_sender_type(option.type) && option.is_enabled;
+}
+
 let cached_aliases: DecryptedEmailAlias[] = [];
 let cached_alias_hashes: Map<string, string> = new Map();
 let cached_domain_options: SenderOption[] = [];

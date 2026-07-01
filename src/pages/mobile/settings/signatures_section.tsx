@@ -58,7 +58,10 @@ import {
   set_default_signature,
 } from "@/services/api/signatures";
 import { use_signatures } from "@/contexts/signatures_context";
-import { use_sender_aliases } from "@/hooks/use_sender_aliases";
+import {
+  use_sender_aliases,
+  is_signature_bindable_sender,
+} from "@/hooks/use_sender_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { go_to_billing } from "@/components/settings/aliases/feature_lock";
@@ -122,9 +125,7 @@ export function SignaturesSection({
   const { preferences, update_preference } = use_preferences();
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
-  const sender_aliases = sender_options.filter(
-    (o) => o.type === "alias" && o.is_enabled,
-  );
+  const sender_aliases = sender_options.filter(is_signature_bindable_sender);
   const [has_badges, set_has_badges] = useState(false);
   const editor_div_ref = useRef<HTMLDivElement>(null);
   const image_input_ref = useRef<HTMLInputElement>(null);

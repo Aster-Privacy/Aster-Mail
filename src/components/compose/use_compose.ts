@@ -38,7 +38,10 @@ import {
   list_recent_recipients,
   decrypt_recent_recipients,
 } from "@/services/api/recent_recipients";
-import { use_sender_aliases } from "@/hooks/use_sender_aliases";
+import {
+  use_sender_aliases,
+  is_signature_bindable_sender_type,
+} from "@/hooks/use_sender_aliases";
 import {
   get_preferred_sender_id,
   set_preferred_sender_id,
@@ -561,7 +564,8 @@ export function use_compose({
       const badge_html = active_badge ? build_badge_html([active_badge]) : "";
 
       const initial_sender_alias_id =
-        selected_sender && selected_sender.type === "alias"
+        selected_sender &&
+        is_signature_bindable_sender_type(selected_sender.type)
           ? selected_sender.id
           : null;
       const initial_signature =
@@ -611,7 +615,8 @@ export function use_compose({
     if (!editor) return;
 
     const alias_id =
-      selected_sender && selected_sender.type === "alias"
+      selected_sender &&
+      is_signature_bindable_sender_type(selected_sender.type)
         ? selected_sender.id
         : null;
     const target = resolve_signature(alias_id) ?? default_signature;

@@ -74,7 +74,10 @@ import {
 } from "@/services/api/signatures";
 import { fetch_my_badges } from "@/services/api/user";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { use_sender_aliases } from "@/hooks/use_sender_aliases";
+import {
+  use_sender_aliases,
+  is_signature_bindable_sender,
+} from "@/hooks/use_sender_aliases";
 import { go_to_billing } from "@/components/settings/aliases/feature_lock";
 
 function escape_html(str: string): string {
@@ -161,9 +164,7 @@ export function SignatureSection() {
   const { preferences, update_preference } = use_preferences();
   const { reload_signatures: reload_context_signatures } = use_signatures();
   const { sender_options } = use_sender_aliases();
-  const sender_aliases = sender_options.filter(
-    (o) => o.type === "alias" && o.is_enabled,
-  );
+  const sender_aliases = sender_options.filter(is_signature_bindable_sender);
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
   const [signatures, set_signatures] = useState<DecryptedSignature[]>([]);
