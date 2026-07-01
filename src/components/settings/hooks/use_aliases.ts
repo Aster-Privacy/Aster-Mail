@@ -21,6 +21,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { show_toast } from "@/components/toast/simple_toast";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
@@ -90,6 +91,11 @@ export { DEFAULT_DOMAINS };
 
 export function use_aliases() {
   const { t } = use_i18n();
+  const { limits } = use_plan_limits();
+  const is_free_plan = useMemo(
+    () => !!limits && limits.plan_code.toLowerCase() === "free",
+    [limits],
+  );
   const [aliases, set_aliases] = useState<DecryptedEmailAlias[]>(
     aliases_cache.aliases,
   );
@@ -345,7 +351,7 @@ export function use_aliases() {
   const handle_alias_delete = (id: string) => {
     const alias = aliases.find((a) => a.id === id);
 
-    if (alias) {
+    if (alias && is_free_plan) {
       const created = new Date(alias.created_at);
       const eligible = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000);
 
