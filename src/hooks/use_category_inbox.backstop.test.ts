@@ -28,7 +28,11 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/hooks/email_list_helpers", () => ({
-  fetch_mail_by_ids: vi.fn(async () => []),
+  fetch_mail_by_ids_reconciled: vi.fn(async () => ({
+    emails: [],
+    missing_ids: [],
+    request_ok: true,
+  })),
   group_emails_by_thread: (x: unknown) => x,
   DEFAULT_PAGE_SIZE: 50,
 }));
