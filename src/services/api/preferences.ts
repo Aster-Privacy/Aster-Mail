@@ -497,6 +497,50 @@ async function save_preferences_via_http(
   return !response.error && response.data?.success === true;
 }
 
+export function build_merged_preferences(
+  server: Record<string, unknown>,
+  cached: UserPreferences | null,
+): UserPreferences {
+  const cleaned = Object.fromEntries(
+    Object.entries(server).filter(([, v]) => v !== undefined && v !== null),
+  );
+  const merged = {
+    ...DEFAULT_PREFERENCES,
+    ...(cached ?? {}),
+    ...cleaned,
+  } as UserPreferences;
+
+  if (merged.theme !== "light" && merged.theme !== "dark") {
+    merged.theme = "dark";
+  }
+
+  if (server.block_external_content === undefined) {
+    if (
+      server.load_remote_images !== undefined &&
+      merged.load_remote_images === "always" &&
+      server.block_tracking_pixels === undefined
+    ) {
+      merged.block_external_content = false;
+    } else {
+      merged.block_external_content = true;
+    }
+  }
+
+  if (server.external_content_blocking_mode === undefined) {
+    if (!merged.block_external_content) {
+      merged.external_content_blocking_mode = "trackers";
+    } else if (merged.block_remote_images && merged.block_tracking_pixels) {
+      merged.external_content_blocking_mode = "both";
+    } else if (merged.block_remote_images) {
+      merged.external_content_blocking_mode = "images";
+    } else {
+      merged.external_content_blocking_mode = "trackers";
+    }
+  }
+
+  return merged;
+}
+
 export async function get_preferences(
   vault: EncryptedVault | null,
 ): Promise<{ data: UserPreferences; loaded_from_server: boolean }> {
@@ -560,42 +604,10 @@ export async function get_preferences(
 
     const preferences = result;
 
-    const cleaned = Object.fromEntries(
-      Object.entries(preferences as unknown as Record<string, unknown>).filter(
-        ([, v]) => v !== undefined && v !== null,
-      ),
+    let merged = build_merged_preferences(
+      preferences as unknown as Record<string, unknown>,
+      get_cached_preferences(),
     );
-    let merged = { ...DEFAULT_PREFERENCES, ...cleaned } as UserPreferences;
-
-    if (merged.theme !== "light" && merged.theme !== "dark") {
-      merged.theme = "dark";
-    }
-
-    const raw = preferences as unknown as Record<string, unknown>;
-
-    if (raw.block_external_content === undefined) {
-      if (
-        raw.load_remote_images !== undefined &&
-        preferences.load_remote_images === "always" &&
-        raw.block_tracking_pixels === undefined
-      ) {
-        merged.block_external_content = false;
-      } else {
-        merged.block_external_content = true;
-      }
-    }
-
-    if (raw.external_content_blocking_mode === undefined) {
-      if (!merged.block_external_content) {
-        merged.external_content_blocking_mode = "trackers";
-      } else if (merged.block_remote_images && merged.block_tracking_pixels) {
-        merged.external_content_blocking_mode = "both";
-      } else if (merged.block_remote_images) {
-        merged.external_content_blocking_mode = "images";
-      } else {
-        merged.external_content_blocking_mode = "trackers";
-      }
-    }
 
     let needs_migration_save = false;
 
