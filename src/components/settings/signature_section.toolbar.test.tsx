@@ -213,6 +213,10 @@ vi.mock("@/hooks/use_plan_limits", () => ({
 }));
 vi.mock("@/hooks/use_sender_aliases", () => ({
   use_sender_aliases: () => ({ sender_options: [] }),
+  is_signature_bindable_sender: (o: { type: string; is_enabled: boolean }) =>
+    ["alias", "domain", "ghost"].includes(o.type) && o.is_enabled,
+  is_signature_bindable_sender_type: (t: string) =>
+    ["alias", "domain", "ghost"].includes(t),
 }));
 vi.mock("@/components/settings/aliases/feature_lock", () => ({
   go_to_billing: vi.fn(),
