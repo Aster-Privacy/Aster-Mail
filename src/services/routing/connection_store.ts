@@ -168,6 +168,10 @@ class ConnectionStore {
     this.state.error_message = null;
     await this.persist_value(STORAGE_KEY, method);
     this.notify_listeners();
+
+    if (method === "cdn_relay" && !this.state.cdn_relay_url) {
+      this.fetch_connection_info().catch(() => {});
+    }
   }
 
   set_status(status: ConnectionStatus, error_message?: string): void {
