@@ -1066,6 +1066,7 @@ export function use_email_detail() {
     can_go_older,
     handle_go_newer,
     handle_go_older,
+    get_next_email_destination,
     handle_archive: actions.handle_archive,
     handle_trash: actions.handle_trash,
     handle_print,
