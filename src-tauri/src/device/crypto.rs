@@ -90,6 +90,15 @@ fn passphrase_file_path() -> Result<std::path::PathBuf, String> {
     Ok(app_dir.join("device_passphrase.bin"))
 }
 
+fn wrap_key_file_path() -> Result<std::path::PathBuf, String> {
+    let data_dir = dirs::data_local_dir()
+        .ok_or_else(|| "cannot resolve local data directory".to_string())?;
+    let app_dir = data_dir.join("com.astermail.mail");
+
+    std::fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
+    Ok(app_dir.join("device_wrap.key"))
+}
+
 fn aead_seal(wrap_key: &[u8; 32], magic: &[u8; 8], plaintext: &[u8]) -> Result<Vec<u8>, String> {
     let mut nonce_bytes = [0u8; 24];
     OsRng.fill_bytes(&mut nonce_bytes);
@@ -117,7 +126,7 @@ fn aead_open(wrap_key: &[u8; 32], magic: &[u8; 8], data: &[u8]) -> Result<Vec<u8
         .map_err(|e| format!("aead open: {:?}", e))
 }
 
-fn wrap_key_load() -> Result<Option<[u8; 32]>, String> {
+fn keyring_wrap_key_load() -> Result<Option<[u8; 32]>, String> {
     let entry = Entry::new(KEYRING_SERVICE, KEYRING_WRAP_USER)
         .map_err(|e| format!("keyring init: {}", e))?;
     match entry.get_password() {
@@ -132,11 +141,51 @@ fn wrap_key_load() -> Result<Option<[u8; 32]>, String> {
             Ok(Some(key))
         }
         Err(keyring::Error::NoEntry) => Ok(None),
-        Err(_) => {
-            let _ = entry.delete_credential();
-            Ok(None)
-        }
+        Err(e) => Err(format!("keyring get wrap: {}", e)),
     }
+}
+
+fn keyring_wrap_key_store(key: &[u8; 32]) -> Result<(), String> {
+    let entry = Entry::new(KEYRING_SERVICE, KEYRING_WRAP_USER)
+        .map_err(|e| format!("keyring init: {}", e))?;
+    entry
+        .set_password(&URL_SAFE_NO_PAD.encode(key))
+        .map_err(|e| format!("keyring set wrap: {}", e))
+}
+
+fn wrap_key_file_load() -> Result<Option<[u8; 32]>, String> {
+    let path = wrap_key_file_path()?;
+
+    if !path.exists() {
+        return Ok(None);
+    }
+
+    let data = Zeroizing::new(std::fs::read(&path).map_err(|e| e.to_string())?);
+    let key: [u8; 32] = data
+        .as_slice()
+        .try_into()
+        .map_err(|_| "wrap key file wrong size".to_string())?;
+    Ok(Some(key))
+}
+
+fn wrap_key_file_store(key: &[u8; 32]) -> Result<(), String> {
+    let path = wrap_key_file_path()?;
+    atomic_write(&path, key)?;
+    set_file_permissions_restrictive(&path)?;
+    Ok(())
+}
+
+fn wrap_key_file_delete() {
+    if let Ok(path) = wrap_key_file_path() {
+        let _ = std::fs::remove_file(path);
+    }
+}
+
+fn wrap_key_load() -> Result<Option<[u8; 32]>, String> {
+    if let Ok(Some(key)) = keyring_wrap_key_load() {
+        return Ok(Some(key));
+    }
+    wrap_key_file_load()
 }
 
 fn wrap_key_load_or_create() -> Result<[u8; 32], String> {
@@ -145,17 +194,23 @@ fn wrap_key_load_or_create() -> Result<[u8; 32], String> {
     }
     let mut key = [0u8; 32];
     OsRng.fill_bytes(&mut key);
-    let entry = Entry::new(KEYRING_SERVICE, KEYRING_WRAP_USER)
-        .map_err(|e| format!("keyring init: {}", e))?;
-    entry
-        .set_password(&URL_SAFE_NO_PAD.encode(&key))
-        .map_err(|e| format!("keyring set wrap: {}", e))?;
+
+    if keyring_wrap_key_store(&key).is_ok() {
+        wrap_key_file_delete();
+        return Ok(key);
+    }
+
+    wrap_key_file_store(&key)?;
     Ok(key)
 }
 
 fn wrap_key_delete() -> Result<(), String> {
-    let entry = Entry::new(KEYRING_SERVICE, KEYRING_WRAP_USER)
-        .map_err(|e| format!("keyring init: {}", e))?;
+    wrap_key_file_delete();
+
+    let entry = match Entry::new(KEYRING_SERVICE, KEYRING_WRAP_USER) {
+        Ok(entry) => entry,
+        Err(_) => return Ok(()),
+    };
     match entry.delete_credential() {
         Ok(()) => Ok(()),
         Err(keyring::Error::NoEntry) => Ok(()),
