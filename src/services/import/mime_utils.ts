@@ -18,7 +18,29 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { unflow_format_flowed } from "@/lib/format_flowed";
+
 import type { ParsedAttachment } from "./types";
+
+export function is_format_flowed(content_type: string): boolean {
+  return /;\s*format\s*=\s*["']?flowed\b/i.test(content_type);
+}
+
+function is_delsp(content_type: string): boolean {
+  return /;\s*delsp\s*=\s*["']?yes\b/i.test(content_type);
+}
+
+export function decode_text_part(
+  part_body: string,
+  encoding: string | undefined,
+  content_type: string,
+): string {
+  const decoded = decode_body(part_body, encoding, extract_charset(content_type));
+
+  if (!is_format_flowed(content_type)) return decoded;
+
+  return unflow_format_flowed(decoded, { delsp: is_delsp(content_type) });
+}
 
 export function decode_quoted_printable(input: string): string {
   return input
@@ -369,7 +391,7 @@ export function parse_multipart(
     } else if (content_type.includes("text/html") && !html) {
       html = decode_body(part_body, encoding, extract_charset(content_type));
     } else if (content_type.includes("text/plain") && !text) {
-      text = decode_body(part_body, encoding, extract_charset(content_type));
+      text = decode_text_part(part_body, encoding, content_type);
     } else if (content_type.includes("multipart/")) {
       const nested_boundary = extract_boundary(content_type);
 

@@ -36,6 +36,7 @@ import {
   strip_mso_conditionals,
   sanitize_attribute,
 } from "./html_sanitizer_utils";
+import { looks_format_flowed, unflow_format_flowed } from "./format_flowed";
 
 export {
   sanitize_compose_paste,
@@ -842,7 +843,10 @@ export function plain_text_to_html(text: string): string {
 
   const url_regex = /(https?:\/\/[^\s<>"'{}|\\^`[\]]+)/g;
   const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-  const paragraphs = normalized.split(/\n\n+/);
+  const reflowed = looks_format_flowed(normalized)
+    ? unflow_format_flowed(normalized)
+    : normalized;
+  const paragraphs = reflowed.split(/\n\n+/);
 
   return paragraphs
     .map((para) => {
