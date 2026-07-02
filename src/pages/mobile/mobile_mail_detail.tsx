@@ -373,14 +373,25 @@ function MobileMailDetail() {
 
   const action_in_flight = useRef(false);
 
+  const advance_after_action = useCallback(() => {
+    const destination = detail.get_next_email_destination();
+
+    action_in_flight.current = false;
+    if (destination === "/") {
+      navigate(-1);
+    } else {
+      navigate(destination, { replace: true });
+    }
+  }, [detail, navigate]);
+
   const handle_archive = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
     action_in_flight.current = true;
     haptic_impact("light");
     await email_actions.archive_email(detail.email as never);
     remove_email_from_view_cache(detail.email.id);
-    navigate(-1);
-  }, [detail.email, email_actions, navigate]);
+    advance_after_action();
+  }, [detail.email, email_actions, advance_after_action]);
 
   const handle_delete = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
@@ -388,8 +399,8 @@ function MobileMailDetail() {
     haptic_impact("light");
     await email_actions.delete_email(detail.email as never);
     remove_email_from_view_cache(detail.email.id);
-    navigate(-1);
-  }, [detail.email, email_actions, navigate]);
+    advance_after_action();
+  }, [detail.email, email_actions, advance_after_action]);
 
   const handle_spam = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
