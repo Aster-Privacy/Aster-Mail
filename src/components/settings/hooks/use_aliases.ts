@@ -351,7 +351,7 @@ export function use_aliases() {
   const handle_alias_delete = (id: string) => {
     const alias = aliases.find((a) => a.id === id);
 
-    if (alias && is_free_plan) {
+    if (alias && is_free_plan && !alias.decryption_failed) {
       const created = new Date(alias.created_at);
       const eligible = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000);
 
