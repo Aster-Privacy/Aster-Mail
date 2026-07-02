@@ -1772,6 +1772,8 @@ export const it = {
     alias_directory_key_placeholder: "acquisti",
     alias_directory_create: "Crea directory",
     alias_directory_created: "Directory creata",
+    alias_directory_available: "Questa directory è disponibile.",
+    alias_directory_not_available: "Questa directory è già in uso.",
     alias_directory_removed: "Directory rimossa",
     alias_directory_create_failed: "Questa directory non è stata creata. Riprova.",
     alias_directory_auto_create: "Crea automaticamente gli alias",

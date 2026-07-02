@@ -78,6 +78,17 @@ export async function create_alias_directory(
   );
 }
 
+export async function check_directory_availability(
+  directory_key: string,
+): Promise<ApiResponse<{ available: boolean }>> {
+  const directory_hash = await sha256_base64(directory_key);
+
+  return api_client.post<{ available: boolean }>(
+    "/addresses/v1/aliases/directories/availability",
+    { directory_hash },
+  );
+}
+
 export async function update_alias_directory(
   directory_id: string,
   updates: { auto_create_enabled: boolean; color?: string },

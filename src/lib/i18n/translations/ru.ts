@@ -1771,6 +1771,8 @@ export const ru = {
     alias_directory_key_placeholder: "shopping",
     alias_directory_create: "Создать каталог",
     alias_directory_created: "Каталог создан",
+    alias_directory_available: "Этот каталог доступен.",
+    alias_directory_not_available: "Этот каталог уже занят.",
     alias_directory_removed: "Каталог удалён",
     alias_directory_create_failed: "Этот каталог не был создан. Попробуйте снова.",
     alias_directory_auto_create: "Автосоздание псевдонимов",

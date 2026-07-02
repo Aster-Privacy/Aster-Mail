@@ -1771,6 +1771,8 @@ export const ja = {
     alias_directory_key_placeholder: "shopping",
     alias_directory_create: "ディレクトリを作成",
     alias_directory_created: "ディレクトリを作成しました",
+    alias_directory_available: "このディレクトリは使用可能です。",
+    alias_directory_not_available: "このディレクトリは既に使用されています。",
     alias_directory_removed: "ディレクトリを削除しました",
     alias_directory_create_failed: "このディレクトリを作成できませんでした。もう一度お試しください。",
     alias_directory_auto_create: "エイリアスを自動作成",

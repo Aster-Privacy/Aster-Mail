@@ -1771,6 +1771,8 @@ export const de = {
     alias_directory_key_placeholder: "einkaufen",
     alias_directory_create: "Verzeichnis erstellen",
     alias_directory_created: "Verzeichnis erstellt",
+    alias_directory_available: "Dieses Verzeichnis ist verfügbar.",
+    alias_directory_not_available: "Dieses Verzeichnis ist bereits vergeben.",
     alias_directory_removed: "Verzeichnis entfernt",
     alias_directory_create_failed: "Dieses Verzeichnis wurde nicht erstellt. Versuche es erneut.",
     alias_directory_auto_create: "Aliase automatisch erstellen",

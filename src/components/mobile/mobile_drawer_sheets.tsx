@@ -678,6 +678,11 @@ export function CreateAliasSheet({
                 @{domain}
               </span>
             </div>
+            {alias_local.trim() && (
+              <p className="mb-3 break-all text-[13px] text-[var(--text-secondary)]">
+                {alias_local.trim().toLowerCase()}@{domain}
+              </p>
+            )}
             {alias_error && (
               <p className="mb-3 text-[13px] text-red-500">{alias_error}</p>
             )}

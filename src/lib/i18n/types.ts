@@ -4428,6 +4428,8 @@ export interface SettingsTranslations {
   alias_directory_key_placeholder: string;
   alias_directory_create: string;
   alias_directory_created: string;
+  alias_directory_available: string;
+  alias_directory_not_available: string;
   alias_directory_removed: string;
   alias_directory_create_failed: string;
   alias_directory_auto_create: string;

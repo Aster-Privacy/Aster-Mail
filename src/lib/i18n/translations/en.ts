@@ -4527,6 +4527,8 @@ export const en: Translations = {
     alias_directory_key_placeholder: "shopping",
     alias_directory_create: "Create directory",
     alias_directory_created: "Directory created",
+    alias_directory_available: "This directory is available.",
+    alias_directory_not_available: "This directory is already taken.",
     alias_directory_removed: "Directory removed",
     alias_directory_create_failed: "This directory was not created. Try again.",
     alias_directory_auto_create: "Auto-create aliases",

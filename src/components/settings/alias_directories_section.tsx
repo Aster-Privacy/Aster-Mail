@@ -36,6 +36,7 @@ import { Button, Switch } from "@aster/ui";
 import {
   list_alias_directories,
   create_alias_directory,
+  check_directory_availability,
   update_alias_directory,
   delete_alias_directory,
   decrypt_alias_directory,
@@ -68,6 +69,11 @@ export function AliasDirectoriesSection() {
   const [directory_key, set_directory_key] = useState("");
   const [separator, set_separator] = useState<"." | "/" | "+" | "#">(".") ;
   const [busy, set_busy] = useState(false);
+  const [checking_availability, set_checking_availability] = useState(false);
+  const [is_available, set_is_available] = useState<boolean | null>(null);
+  const availability_timeout_ref = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const [captcha_token, set_captcha_token] = useState<string | null>(null);
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
@@ -102,6 +108,44 @@ export function AliasDirectoriesSection() {
     load();
   }, [load, limits_loading, locked]);
 
+  useEffect(() => {
+    if (availability_timeout_ref.current) {
+      clearTimeout(availability_timeout_ref.current);
+    }
+
+    const key = directory_key.trim();
+
+    if (!key) {
+      set_is_available(null);
+      set_checking_availability(false);
+
+      return;
+    }
+
+    set_checking_availability(true);
+    availability_timeout_ref.current = setTimeout(async () => {
+      try {
+        const response = await check_directory_availability(key);
+
+        if (response.data) {
+          set_is_available(response.data.available);
+        } else {
+          set_is_available(null);
+        }
+      } catch {
+        set_is_available(null);
+      } finally {
+        set_checking_availability(false);
+      }
+    }, 500);
+
+    return () => {
+      if (availability_timeout_ref.current) {
+        clearTimeout(availability_timeout_ref.current);
+      }
+    };
+  }, [directory_key]);
+
   const handle_create = async () => {
     if (locked || !directory_key.trim()) return;
     if (turnstile_required && !captcha_token) return;
@@ -122,6 +166,7 @@ export function AliasDirectoriesSection() {
         show_toast(t("settings.alias_directory_create_failed"), "error");
       } else {
         set_directory_key("");
+        set_is_available(null);
         show_toast(t("settings.alias_directory_created"), "success");
         await load();
       }
@@ -222,7 +267,12 @@ export function AliasDirectoriesSection() {
             </SelectContent>
           </Select>
           <Button
-            disabled={busy || !directory_key.trim() || (turnstile_required && !captcha_token)}
+            disabled={
+              busy ||
+              !directory_key.trim() ||
+              is_available === false ||
+              (turnstile_required && !captcha_token)
+            }
             size="xl"
             variant="depth"
             onClick={handle_create}
@@ -234,6 +284,21 @@ export function AliasDirectoriesSection() {
         {directory_key.trim() && (
           <p className="text-xs text-txt-muted pl-5">
             anything{separator}{directory_key}@{DIRECTORY_DOMAIN}
+          </p>
+        )}
+        {directory_key.trim() && checking_availability && (
+          <p className="text-xs text-txt-muted pl-5">
+            {t("settings.checking_availability")}
+          </p>
+        )}
+        {directory_key.trim() && !checking_availability && is_available === true && (
+          <p className="text-xs text-green-500 pl-5">
+            {t("settings.alias_directory_available")}
+          </p>
+        )}
+        {directory_key.trim() && !checking_availability && is_available === false && (
+          <p className="text-xs text-red-500 pl-5">
+            {t("settings.alias_directory_not_available")}
           </p>
         )}
         {turnstile_required && directory_key.trim() && (

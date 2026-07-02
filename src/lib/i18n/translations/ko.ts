@@ -1771,6 +1771,8 @@ export const ko = {
     alias_directory_key_placeholder: "shopping",
     alias_directory_create: "디렉터리 만들기",
     alias_directory_created: "디렉터리가 생성되었습니다",
+    alias_directory_available: "이 디렉터리는 사용 가능합니다.",
+    alias_directory_not_available: "이 디렉터리는 이미 사용 중입니다.",
     alias_directory_removed: "디렉터리가 삭제되었습니다",
     alias_directory_create_failed: "이 디렉터리가 생성되지 않았습니다. 다시 시도하세요.",
     alias_directory_auto_create: "별칭 자동 생성",
