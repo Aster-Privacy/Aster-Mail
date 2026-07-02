@@ -45,7 +45,7 @@ export async function cdn_relay_fetch(
   url: string,
   options: RequestInit,
 ): Promise<Response> {
-  const relay_url = connection_store.get_cdn_relay_url();
+  let relay_url = connection_store.get_cdn_relay_url();
 
   if (!relay_url || !is_relay_host_allowed(relay_url)) {
     // The connection-info request is what discovers the relay URL, so it must
@@ -58,9 +58,14 @@ export async function cdn_relay_fetch(
         : fetch(url, options);
     }
 
-    throw new Error(
-      "CDN relay URL is not available yet; refusing to send request over clearnet",
-    );
+    await connection_store.fetch_connection_info().catch(() => {});
+    relay_url = connection_store.get_cdn_relay_url();
+
+    if (!relay_url || !is_relay_host_allowed(relay_url)) {
+      throw new Error(
+        "CDN relay URL is not available yet; refusing to send request over clearnet",
+      );
+    }
   }
 
   const original = new URL(url);
