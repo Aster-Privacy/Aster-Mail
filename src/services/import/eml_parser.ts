@@ -28,6 +28,7 @@ import {
   parse_address_list,
   extract_boundary,
   decode_body,
+  decode_text_part,
   parse_multipart,
   generate_message_id,
 } from "./mime_utils";
@@ -86,7 +87,7 @@ export function parse_eml(raw: string): ParsedEmail {
   } else if (content_type.includes("text/html")) {
     html_body = decode_body(body, encoding, charset);
   } else {
-    text_body = decode_body(body, encoding, charset);
+    text_body = decode_text_part(body, encoding, content_type);
   }
 
   return {
