@@ -61,11 +61,21 @@ describe("get_preferences recovery when the server blob cannot be decrypted", ()
     localStorage.clear();
   });
 
-  it("re-initializes under the current key and unblocks saving", async () => {
+  it("never autonomously overwrites the server blob when there is no cache", async () => {
+    const result = await get_preferences(vault);
+
+    expect(result.loaded_from_server).toBe(false);
+    expect(put_calls.length).toBe(0);
+  });
+
+  it("flags an undecryptable blob so saves rewrite it only on user action", async () => {
+    cache_preferences_locally({ ...DEFAULT_PREFERENCES, theme: "dark" });
+
     const result = await get_preferences(vault);
 
     expect(result.loaded_from_server).toBe(true);
-    expect(put_calls.length).toBeGreaterThan(0);
+    expect(result.server_blob_unusable).toBe(true);
+    expect(put_calls.length).toBe(0);
   });
 
   it("preserves the user's cached settings instead of resetting to defaults", async () => {
