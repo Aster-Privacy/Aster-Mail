@@ -1771,6 +1771,8 @@ export const ar = {
     alias_directory_key_placeholder: "shopping",
     alias_directory_create: "إنشاء دليل",
     alias_directory_created: "تم إنشاء الدليل",
+    alias_directory_available: "هذا الدليل متاح.",
+    alias_directory_not_available: "هذا الدليل مأخوذ بالفعل.",
     alias_directory_removed: "تمت إزالة الدليل",
     alias_directory_create_failed: "لم يتم إنشاء هذا الدليل. حاول مرة أخرى.",
     alias_directory_auto_create: "إنشاء أسماء مستعارة تلقائيًا",

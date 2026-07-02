@@ -1771,6 +1771,8 @@ export const pl = {
     alias_directory_key_placeholder: "zakupy",
     alias_directory_create: "Utwórz katalog",
     alias_directory_created: "Katalog utworzony",
+    alias_directory_available: "Ten katalog jest dostępny.",
+    alias_directory_not_available: "Ten katalog jest już zajęty.",
     alias_directory_removed: "Katalog usunięty",
     alias_directory_create_failed: "Tego katalogu nie utworzono. Spróbuj ponownie.",
     alias_directory_auto_create: "Automatyczne tworzenie aliasów",

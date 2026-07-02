@@ -157,6 +157,11 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
                       @{ALIAS_DOMAIN}
                     </span>
                   </div>
+                  {local_part.trim() && (
+                    <p className="mt-1.5 text-[13px] break-all text-txt-secondary">
+                      {local_part.trim().toLowerCase()}@{ALIAS_DOMAIN}
+                    </p>
+                  )}
                 </div>
 
                 {error && <p className="text-[13px] text-red-500">{error}</p>}

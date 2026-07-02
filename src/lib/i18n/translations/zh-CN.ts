@@ -1771,6 +1771,8 @@ export const zh_CN = {
     alias_directory_key_placeholder: "shopping",
     alias_directory_create: "创建目录",
     alias_directory_created: "目录已创建",
+    alias_directory_available: "此目录可用。",
+    alias_directory_not_available: "此目录已被占用。",
     alias_directory_removed: "目录已移除",
     alias_directory_create_failed: "此目录未能创建。请重试。",
     alias_directory_auto_create: "自动创建别名",

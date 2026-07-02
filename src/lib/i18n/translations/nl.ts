@@ -1771,6 +1771,8 @@ export const nl = {
     alias_directory_key_placeholder: "winkelen",
     alias_directory_create: "Directory aanmaken",
     alias_directory_created: "Directory aangemaakt",
+    alias_directory_available: "Deze directory is beschikbaar.",
+    alias_directory_not_available: "Deze directory is al in gebruik.",
     alias_directory_removed: "Directory verwijderd",
     alias_directory_create_failed: "Deze directory is niet aangemaakt. Probeer het opnieuw.",
     alias_directory_auto_create: "Aliassen automatisch aanmaken",

@@ -1771,6 +1771,8 @@ export const tr = {
     alias_directory_key_placeholder: "alisveris",
     alias_directory_create: "Dizin oluştur",
     alias_directory_created: "Dizin oluşturuldu",
+    alias_directory_available: "Bu dizin kullanılabilir.",
+    alias_directory_not_available: "Bu dizin zaten alınmış.",
     alias_directory_removed: "Dizin kaldırıldı",
     alias_directory_create_failed: "Bu dizin oluşturulmadı. Tekrar deneyin.",
     alias_directory_auto_create: "Rumuzları otomatik oluştur",

@@ -435,6 +435,11 @@ export function CreateAliasModal({
                   </SelectContent>
                 </Select>
               </div>
+              {local_part && (
+                <p className="text-xs mt-1.5 break-all text-txt-secondary">
+                  {local_part}@{domain}
+                </p>
+              )}
               {checking && (
                 <p className="text-xs mt-1.5 text-txt-muted">
                   {t("settings.checking_availability")}
