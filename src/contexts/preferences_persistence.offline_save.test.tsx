@@ -184,14 +184,23 @@ describe("preferences persistence when server load fails", () => {
     });
   };
 
-  it("still persists an immediate change after falling back to cached prefs", async () => {
+  it("holds an immediate change while the server is unreachable and persists once it recovers", async () => {
     await mount();
 
     await act(async () => {
       captured.update_preference("show_aster_branding", true, true);
     });
     await act(async () => {
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+
+    expect(server_writes.length).toBe(0);
+
+    server_state.loaded = true;
+    server_state.data = { ...DEFAULT_PREFERENCES };
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10000);
     });
 
     const branding_writes = server_writes.filter(
@@ -199,6 +208,26 @@ describe("preferences persistence when server load fails", () => {
     );
 
     expect(branding_writes.length).toBeGreaterThan(0);
+  });
+
+  it("does not clobber another device's change when saving while online", async () => {
+    server_state.loaded = true;
+    server_state.data = { ...DEFAULT_PREFERENCES };
+    await mount();
+
+    server_state.data = { ...DEFAULT_PREFERENCES, undo_send_seconds: 30 };
+
+    await act(async () => {
+      captured.update_preference("show_aster_branding", true, true);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+
+    const last = server_writes[server_writes.length - 1];
+
+    expect(last.show_aster_branding).toBe(true);
+    expect(last.undo_send_seconds).toBe(30);
   });
 
   it("rebases the local change onto fresh server state instead of clobbering it", async () => {

@@ -178,6 +178,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
   const has_loaded_ref = useRef(false);
   const fallback_base_ref = useRef<UserPreferences | null>(null);
+  const server_base_ref = useRef<UserPreferences | null>(null);
 
   const debounce_timer = useRef<number | null>(null);
   const saved_indicator_timer = useRef<number | null>(null);
@@ -201,18 +202,25 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       }
 
       let to_save = prefs;
-      const base = fallback_base_ref.current;
+      const base = fallback_base_ref.current ?? server_base_ref.current;
 
       if (base) {
-        try {
-          const fresh = await get_preferences(v);
+        let fresh = null;
 
-          if (fresh.loaded_from_server && fresh.data) {
-            to_save = reconcile_preferences(base, prefs, fresh.data);
-            fallback_base_ref.current = null;
-          }
+        try {
+          fresh = await get_preferences(v);
         } catch {
-          fallback_base_ref.current = base;
+          fresh = null;
+        }
+
+        if (fresh?.loaded_from_server && fresh.data) {
+          if (!fresh.server_blob_unusable) {
+            to_save = reconcile_preferences(base, prefs, fresh.data);
+          }
+
+          fallback_base_ref.current = null;
+        } else {
+          return null;
         }
       }
 
@@ -222,6 +230,8 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         if (!result.data.success) {
           return null;
         }
+
+        server_base_ref.current = to_save;
 
         return to_save;
       } catch (err) {
@@ -382,6 +392,14 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         }, 2000);
       } else {
         set_save_status("error");
+
+        window.setTimeout(() => {
+          if (is_saving_ref.current) return;
+
+          if (latest_prefs_ref.current) {
+            flush_save_ref.current();
+          }
+        }, 3000);
       }
     });
   }, [do_save]);
@@ -613,6 +631,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       }
 
       has_loaded_ref.current = true;
+      server_base_ref.current = merged;
       cache_preferences_locally(merged);
       set_preferences(merged);
       set_low_network_mode(merged.low_network_mode);
@@ -673,6 +692,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     latest_prefs_ref.current = null;
     has_loaded_ref.current = false;
     fallback_base_ref.current = null;
+    server_base_ref.current = null;
 
     (async () => {
       try {
@@ -705,6 +725,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         if (response.loaded_from_server && response.data) {
           has_loaded_ref.current = true;
           fallback_base_ref.current = null;
+          server_base_ref.current = response.data;
           cache_preferences_locally(response.data);
           if (debounce_timer.current) {
             clearTimeout(debounce_timer.current);

@@ -543,7 +543,11 @@ export function build_merged_preferences(
 
 export async function get_preferences(
   vault: EncryptedVault | null,
-): Promise<{ data: UserPreferences; loaded_from_server: boolean }> {
+): Promise<{
+  data: UserPreferences;
+  loaded_from_server: boolean;
+  server_blob_unusable?: boolean;
+}> {
   if (!vault) {
     return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
   }
@@ -557,45 +561,32 @@ export async function get_preferences(
         migration_haptic_v1_done: true,
         migration_tracker_blocking_v2_done: true,
       };
-      const saved = await save_preferences_via_http(initial, vault).catch(
-        () => false,
-      );
 
-      if (saved) {
-        write_local_migration_flag("migration_haptic_v1_done");
-        write_local_migration_flag("migration_tracker_blocking_v2_done");
+      write_local_migration_flag("migration_haptic_v1_done");
+      write_local_migration_flag("migration_tracker_blocking_v2_done");
 
-        return { data: initial, loaded_from_server: true };
-      }
-
-      return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
+      return { data: initial, loaded_from_server: true, server_blob_unusable: true };
     }
 
     if (result === "decrypt_failed") {
       const cached = get_cached_preferences();
-      const recovered: UserPreferences = {
-        ...DEFAULT_PREFERENCES,
-        ...(cached ?? {}),
-        migration_haptic_v1_done: true,
-        migration_tracker_blocking_v2_done: true,
-      };
 
-      const saved = await save_preferences_via_http(recovered, vault).catch(
-        () => false,
-      );
+      if (cached) {
+        const recovered: UserPreferences = {
+          ...DEFAULT_PREFERENCES,
+          ...cached,
+          migration_haptic_v1_done: true,
+          migration_tracker_blocking_v2_done: true,
+        };
 
-      if (saved) {
-        write_local_migration_flag("migration_haptic_v1_done");
-        write_local_migration_flag("migration_tracker_blocking_v2_done");
-        cache_preferences_locally(recovered);
-
-        return { data: recovered, loaded_from_server: true };
+        return {
+          data: recovered,
+          loaded_from_server: true,
+          server_blob_unusable: true,
+        };
       }
 
-      return {
-        data: cached ?? DEFAULT_PREFERENCES,
-        loaded_from_server: false,
-      };
+      return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
     }
 
     if (!result) {
