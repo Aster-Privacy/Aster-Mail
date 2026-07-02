@@ -426,14 +426,16 @@ export function SignatureSection() {
     set_signatures((prev) =>
       prev.map((sig) => ({ ...sig, is_default: sig.id === id })),
     );
-    reload_context_signatures();
 
     const response = await set_default_signature(id);
 
     if (response.error) {
       set_error(response.error);
       load_signatures();
+      return;
     }
+
+    reload_context_signatures();
   };
 
   if (is_initial_load && is_loading && signatures.length === 0) {

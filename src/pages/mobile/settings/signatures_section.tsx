@@ -344,8 +344,10 @@ export function SignaturesSection({
       set_signatures((prev) =>
         prev.map((s) => ({ ...s, is_default: s.id === id })),
       );
-      reload_context_signatures();
-      await set_default_signature(id);
+      const response = await set_default_signature(id);
+      if (!response.error) {
+        reload_context_signatures();
+      }
     },
     [reload_context_signatures],
   );
