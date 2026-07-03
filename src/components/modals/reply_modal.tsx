@@ -250,6 +250,8 @@ export function ReplyModal({
               set_expiry_password={modal.set_expiry_password}
               set_scheduled_time={modal.set_scheduled_time}
               set_show_delete_confirm={modal.set_show_delete_confirm}
+              include_quoted={modal.include_quoted}
+              set_include_quoted={modal.set_include_quoted}
               set_show_quoted={modal.set_show_quoted}
               show_delete_confirm={modal.show_delete_confirm}
               show_quoted={modal.show_quoted}
