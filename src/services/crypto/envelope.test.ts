@@ -37,6 +37,8 @@ import {
   encrypt_metadata,
   decrypt_metadata,
   is_encrypted_blob,
+  normalize_parsed_envelope,
+  normalize_envelope_from,
 } from "./envelope";
 
 describe("Base64 Encoding/Decoding", () => {
@@ -434,6 +436,54 @@ describe("Metadata Encryption", () => {
       );
 
       expect(decrypted).toBeNull();
+    });
+  });
+});
+
+describe("normalize_parsed_envelope", () => {
+  it("leaves non-envelope payloads without a from key untouched", () => {
+    const result = normalize_parsed_envelope({ subject: "Fwd: hi" }) as {
+      from?: unknown;
+      subject: string;
+    };
+
+    expect(result).toEqual({ subject: "Fwd: hi" });
+    expect("from" in result).toBe(false);
+  });
+
+  it("yields a from object when from is present but null", () => {
+    const result = normalize_parsed_envelope({ from: null }) as unknown as {
+      from: { name: string; email: string };
+    };
+
+    expect(result.from).toEqual({ name: "", email: "" });
+  });
+
+  it("preserves an unparseable string from as the display name", () => {
+    const result = normalize_parsed_envelope({
+      from: "Mailer Daemon",
+    }) as unknown as {
+      from: { name: string; email: string };
+    };
+
+    expect(result.from).toEqual({ name: "Mailer Daemon", email: "" });
+  });
+
+  it("keeps a valid from object intact", () => {
+    const result = normalize_parsed_envelope({
+      from: { name: "Real Sender", email: "real@example.com" },
+    }) as { from: { name: string; email: string } };
+
+    expect(result.from).toEqual({
+      name: "Real Sender",
+      email: "real@example.com",
+    });
+  });
+
+  it("parses a string from into name and email", () => {
+    expect(normalize_envelope_from("Real Sender <real@example.com>")).toEqual({
+      name: "Real Sender",
+      email: "real@example.com",
     });
   });
 });
