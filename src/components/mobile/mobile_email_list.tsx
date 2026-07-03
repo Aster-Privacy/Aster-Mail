@@ -20,7 +20,14 @@
 //
 import type { InboxEmail } from "@/types/email";
 
-import { memo, useRef, useEffect, useState, useCallback } from "react";
+import {
+  memo,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useCallback,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronUpIcon,
@@ -164,6 +171,8 @@ function get_empty_text(
   );
 }
 
+const list_scroll_positions = new Map<string, number>();
+
 export const MobileEmailList = memo(function MobileEmailList({
   emails,
   pinned_emails,
@@ -195,8 +204,32 @@ export const MobileEmailList = memo(function MobileEmailList({
 
   const handle_jump_to_top = useCallback(() => {
     haptic_impact("light");
+    list_scroll_positions.set(current_view, 0);
     scroll_ref.current?.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+  }, [current_view]);
+
+  useLayoutEffect(() => {
+    const el = scroll_ref.current;
+
+    if (!el) return;
+
+    const saved = list_scroll_positions.get(current_view);
+
+    if (saved && saved > 0) {
+      el.scrollTop = saved;
+    }
+
+    const save_position = () => {
+      list_scroll_positions.set(current_view, el.scrollTop);
+    };
+
+    el.addEventListener("scroll", save_position, { passive: true });
+
+    return () => {
+      list_scroll_positions.set(current_view, el.scrollTop);
+      el.removeEventListener("scroll", save_position);
+    };
+  }, [is_loading, current_view]);
 
   useEffect(() => {
     const el = scroll_ref.current;
