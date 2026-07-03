@@ -214,7 +214,7 @@ function SkeletonRows({ count = 3, has_icon = true }: { count?: number; has_icon
   );
 }
 
-function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on_remove, on_transfer, on_reload }: {
+export function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on_remove, on_transfer, on_reload }: {
   member: FamilyMemberInfo;
   is_owner_view: boolean;
   compliance?: MemberComplianceInfo;
