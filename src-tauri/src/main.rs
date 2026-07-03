@@ -103,27 +103,51 @@ fn ensure_system_wayland() {
         return;
     }
 
-    let search_paths = [
+    let system_lib = [
+        "/usr/lib64/libwayland-client.so.0",
         "/usr/lib64/libwayland-client.so",
+        "/usr/lib/x86_64-linux-gnu/libwayland-client.so.0",
         "/usr/lib/x86_64-linux-gnu/libwayland-client.so",
+        "/usr/lib/libwayland-client.so.0",
         "/usr/lib/libwayland-client.so",
-    ];
+    ].iter().find(|p| std::path::Path::new(p).exists()).map(|s| s.to_string());
 
-    let Some(system_lib) = search_paths
-        .iter()
-        .find(|p| std::path::Path::new(p).exists())
-    else {
-        return;
+    let system_lib = match system_lib {
+        Some(lib) => lib,
+        None => {
+            let lib_dirs = ["/usr/lib64", "/usr/lib", "/usr/lib/x86_64-linux-gnu"];
+            let mut found = None;
+            for dir in &lib_dirs {
+                if let Ok(entries) = std::fs::read_dir(dir) {
+                    for entry in entries.flatten() {
+                        let name = entry.file_name();
+                        if let Some(name_str) = name.to_str() {
+                            if name_str.starts_with("libwayland-client.so") {
+                                found = Some(format!("{dir}/{name_str}"));
+                                break;
+                            }
+                        }
+                    }
+                }
+                if found.is_some() {
+                    break;
+                }
+            }
+            match found {
+                Some(lib) => lib,
+                None => return,
+            }
+        }
     };
 
     let current_preload = std::env::var("LD_PRELOAD").unwrap_or_default();
     let new_preload = if current_preload.is_empty() {
-        system_lib.to_string()
+        system_lib
     } else {
         format!("{system_lib}:{current_preload}")
     };
 
-    std::env::set_var("LD_PRELOAD", new_preload);
+    std::env::set_var("LD_PRELOAD", &new_preload);
     std::env::set_var("_ASTER_REEXEC", "1");
 
     let Ok(exe) = std::env::current_exe() else {
