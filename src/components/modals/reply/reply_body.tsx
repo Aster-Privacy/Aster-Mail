@@ -55,6 +55,8 @@ interface ReplyBodyProps {
   original_body: string;
   show_quoted: boolean;
   set_show_quoted: (val: boolean) => void;
+  include_quoted: boolean;
+  set_include_quoted: (val: boolean) => void;
   build_quoted_content: (for_display?: boolean) => string;
   attachments: Attachment[];
   attachments_scroll_ref: React.RefObject<HTMLDivElement>;
@@ -103,6 +105,8 @@ export function ReplyBody({
   original_body,
   show_quoted,
   set_show_quoted,
+  include_quoted,
+  set_include_quoted,
   build_quoted_content,
   attachments,
   attachments_scroll_ref,
@@ -193,13 +197,16 @@ export function ReplyBody({
         </div>
       )}
 
-      {!is_minimized && original_body && (
-        <div className="px-4 pb-2">
+      {!is_minimized && original_body && !include_quoted && (
+        <div className="px-4 pb-2 flex items-center gap-2">
+          <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+            {t("mail.quoted_text_removed")}
+          </span>
           <button
-            className="flex items-center gap-1.5 text-xs transition-colors"
+            className="text-xs underline transition-colors"
             style={{ color: "var(--text-tertiary)" }}
             type="button"
-            onClick={() => set_show_quoted(!show_quoted)}
+            onClick={() => set_include_quoted(true)}
             onMouseEnter={(e) =>
               (e.currentTarget.style.color = "var(--text-secondary)")
             }
@@ -207,19 +214,60 @@ export function ReplyBody({
               (e.currentTarget.style.color = "var(--text-tertiary)")
             }
           >
-            <svg
-              className={`w-3 h-3 transition-transform ${show_quoted ? "rotate-90" : ""}`}
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M6 6L14 10L6 14V6Z" />
-            </svg>
-            <span>
-              {show_quoted
-                ? t("mail.hide_quoted_text")
-                : t("mail.show_quoted_text")}
-            </span>
+            {t("mail.restore_quoted_text")}
           </button>
+        </div>
+      )}
+
+      {!is_minimized && original_body && include_quoted && (
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-3">
+            <button
+              className="flex items-center gap-1.5 text-xs transition-colors"
+              style={{ color: "var(--text-tertiary)" }}
+              type="button"
+              onClick={() => set_show_quoted(!show_quoted)}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--text-secondary)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--text-tertiary)")
+              }
+            >
+              <svg
+                className={`w-3 h-3 transition-transform ${show_quoted ? "rotate-90" : ""}`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M6 6L14 10L6 14V6Z" />
+              </svg>
+              <span>
+                {show_quoted
+                  ? t("mail.hide_quoted_text")
+                  : t("mail.show_quoted_text")}
+              </span>
+            </button>
+            <button
+              aria-label={t("mail.remove_quoted_text")}
+              className="flex items-center gap-1 text-xs transition-colors"
+              style={{ color: "var(--text-tertiary)" }}
+              title={t("mail.remove_quoted_text")}
+              type="button"
+              onClick={() => {
+                set_include_quoted(false);
+                set_show_quoted(false);
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--text-secondary)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--text-tertiary)")
+              }
+            >
+              <CloseIcon className="w-3 h-3" />
+              <span>{t("mail.remove_quoted_text")}</span>
+            </button>
+          </div>
           {show_quoted && (
             <div
               dangerouslySetInnerHTML={{

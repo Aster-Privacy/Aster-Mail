@@ -203,6 +203,7 @@ export function use_reply_modal({
     null,
   );
   const [show_quoted, set_show_quoted] = useState(false);
+  const [include_quoted, set_include_quoted] = useState(true);
   const [draft_id, set_draft_id] = useState<string | null>(null);
   const [draft_version, set_draft_version] = useState<number>(1);
   const [expires_at, set_expires_at] = useState<Date | null>(null);
@@ -446,6 +447,7 @@ export function use_reply_modal({
     set_attachments([]);
     set_attachment_error(null);
     set_show_quoted(false);
+    set_include_quoted(true);
     set_draft_id(matching_draft?.id ?? null);
     set_draft_version(matching_draft?.version ?? 1);
     set_scheduled_time(null);
@@ -753,7 +755,7 @@ export function use_reply_modal({
       to: original_to,
     };
 
-    const quoted_content = build_quoted_content();
+    const quoted_content = include_quoted ? build_quoted_content() : "";
     const trimmed_reply = reply_message.trim();
     const reply_body = is_plain_text_mode
       ? trimmed_reply.replace(/\n/g, "<br>")
@@ -975,6 +977,7 @@ export function use_reply_modal({
     draft_id,
     expires_at,
     build_quoted_content,
+    include_quoted,
     user,
     is_plain_text_mode,
     attachments,
@@ -998,7 +1001,7 @@ export function use_reply_modal({
     set_is_scheduling(true);
     set_error_message(null);
 
-    const quoted_content = build_quoted_content();
+    const quoted_content = include_quoted ? build_quoted_content() : "";
     const sched_trimmed = reply_message.trim();
     const sched_reply_body = is_plain_text_mode
       ? sched_trimmed.replace(/\n/g, "<br>")
@@ -1060,6 +1063,7 @@ export function use_reply_modal({
     original_subject,
 
     build_quoted_content,
+    include_quoted,
     on_close,
     draft_id,
     is_plain_text_mode,
@@ -1242,6 +1246,8 @@ export function use_reply_modal({
     set_attachment_error,
     show_quoted,
     set_show_quoted,
+    include_quoted,
+    set_include_quoted,
     draft_id,
     expires_at,
     set_expires_at,
