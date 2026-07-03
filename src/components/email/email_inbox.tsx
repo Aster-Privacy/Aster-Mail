@@ -22,7 +22,14 @@ import type { InboxEmail, InboxFilterType, EmailCategory } from "@/types/email";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 import type { EmailInboxProps } from "@/components/email/inbox/inbox_types";
 
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+} from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { EmailListHeader } from "@/components/email/email_list_header";
@@ -1111,10 +1118,27 @@ export function EmailInbox({
     on_split_scheduled_close,
   });
 
+  const list_scroll_top_ref = useRef(0);
+  const handle_list_scroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>): void => {
+      list_scroll_top_ref.current = e.currentTarget.scrollTop;
+    },
+    [],
+  );
+
+  useLayoutEffect(() => {
+    if (show_full_email_viewer) return;
+    const container = split_pane.list_scroll_ref.current;
+    if (container && list_scroll_top_ref.current > 0) {
+      container.scrollTop = list_scroll_top_ref.current;
+    }
+  }, [show_full_email_viewer, split_pane.list_scroll_ref]);
+
   const handle_page_change = useCallback(
     (page: number): void => {
       set_skeleton_visible(true);
       set_current_page(page);
+      list_scroll_top_ref.current = 0;
       split_pane.list_panel_ref.current?.scrollTo(0, 0);
       split_pane.list_scroll_ref.current?.scrollTo(0, 0);
       fetch_page(page, page_size);
@@ -1467,6 +1491,7 @@ export function EmailInbox({
           <div
             ref={split_pane.list_scroll_ref}
             className="flex-1 overflow-y-auto relative"
+            onScroll={handle_list_scroll}
           >
             {email_list_content}
           </div>
