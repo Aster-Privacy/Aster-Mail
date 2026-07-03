@@ -300,17 +300,21 @@ function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on
         )}
         {!editing && <StorageBar used={member.storage_used_bytes} total={member.allocated_storage_bytes} />}
       </div>
-      {is_owner_view && member.role !== "owner" && !editing && (
+      {is_owner_view && !editing && (
         <div className="flex items-center gap-1 flex-shrink-0 self-center">
           <button onClick={() => set_editing(true)} className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 dark:hover:bg-white/10 hover:text-txt-primary" title={t("settings.family_storage_edit")} aria-label={t("settings.family_storage_edit")}>
             <PencilIcon className="w-4 h-4" />
           </button>
-          <button onClick={() => on_transfer(member)} className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 dark:hover:bg-white/10 hover:text-accent-blue" title={t("settings.family_transfer_admin")} aria-label={t("settings.family_transfer_admin")}>
-            <ArrowRightOnRectangleIcon className="w-4 h-4" />
-          </button>
-          <button onClick={() => on_remove(member)} className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 dark:hover:bg-white/10 hover:text-red-500" title={t("settings.family_remove_member")} aria-label={t("settings.family_remove_member")}>
-            <TrashIcon className="w-4 h-4" />
-          </button>
+          {member.role !== "owner" && (
+            <>
+              <button onClick={() => on_transfer(member)} className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 dark:hover:bg-white/10 hover:text-accent-blue" title={t("settings.family_transfer_admin")} aria-label={t("settings.family_transfer_admin")}>
+                <ArrowRightOnRectangleIcon className="w-4 h-4" />
+              </button>
+              <button onClick={() => on_remove(member)} className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 dark:hover:bg-white/10 hover:text-red-500" title={t("settings.family_remove_member")} aria-label={t("settings.family_remove_member")}>
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
