@@ -112,7 +112,7 @@ import { SettingsSaveIndicator } from "@/components/settings/settings_save_indic
 import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_prefetch";
 import { SettingsCacheProvider } from "@/contexts/settings_cache_context";
 import { list_devices } from "@/services/api/devices";
-import { prefetch_family_group, get_family_group } from "@/services/api/family";
+import { prefetch_family_group, refresh_family_plan_flag } from "@/services/api/family";
 import { is_onion_host } from "@/lib/onion_host";
 
 export type SettingsSection =
@@ -302,11 +302,7 @@ function SettingsPanelInner({
       set_show_mobile_nav(true);
       animation_complete_ref.current = false;
 
-      get_family_group().then((res) => {
-        const is_fam = !!res.data;
-        set_is_family_plan(is_fam);
-        localStorage.setItem("aster_is_family_plan", is_fam ? "1" : "0");
-      }).catch(() => {});
+      refresh_family_plan_flag(set_is_family_plan);
       get_available_plans();
       get_billing_history(1, 10);
       get_plan_limits();
@@ -406,11 +402,7 @@ function SettingsPanelInner({
     };
 
     const handle_plan_changed = () => {
-      get_family_group().then((res) => {
-        const is_fam = !!res.data;
-        set_is_family_plan(is_fam);
-        localStorage.setItem("aster_is_family_plan", is_fam ? "1" : "0");
-      }).catch(() => {});
+      refresh_family_plan_flag(set_is_family_plan);
     };
 
     window.addEventListener("dev-mode-changed", handle_dev_mode_change);
