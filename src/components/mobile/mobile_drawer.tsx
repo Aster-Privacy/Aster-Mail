@@ -499,7 +499,10 @@ export const MobileDrawer = memo(function MobileDrawer({
     update_preference("skip_logout_confirmation", true, true);
   }, [update_preference]);
 
-  const folders = folders_state.folders ?? [];
+  const folders = useMemo(
+    () => (folders_state.folders ?? []).filter((f) => !f.is_system),
+    [folders_state.folders],
+  );
   const tags = tags_state.tags ?? [];
 
   const storage_used = stats.storage_used_bytes;
