@@ -1166,7 +1166,7 @@ export function EmailInbox({
         !folders_loading_for_view &&
         filtered_emails.length === 0 &&
         email_state.has_initial_load ? (
-        categories.enabled ? (
+        categories.enabled && !email_state.has_load_error ? (
           <CategoryEmptyState category={categories.active_category} />
         ) : (
           <EmptyState

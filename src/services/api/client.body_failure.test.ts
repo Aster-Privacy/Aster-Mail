@@ -79,6 +79,28 @@ describe("api client body download failure", () => {
     expect(vi.mocked(routed_fetch)).toHaveBeenCalledTimes(3);
   });
 
+  it("returns a server error and retries when the body arrives truncated", async () => {
+    const truncated = {
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      text: () => Promise.resolve('{"items":[{"id":"abc'),
+    } as unknown as Response;
+
+    vi.mocked(routed_fetch)
+      .mockResolvedValueOnce(truncated)
+      .mockResolvedValueOnce(response_with_json({ items: [], total: 4 }));
+
+    const result = await api_client.get<{ items: unknown[]; total: number }>(
+      "/mail/v1/messages?case=truncated",
+      { skip_cache: true, retry: 2, retry_delay: 1 },
+    );
+
+    expect(result.error).toBeUndefined();
+    expect(result.data?.total).toBe(4);
+    expect(vi.mocked(routed_fetch)).toHaveBeenCalledTimes(2);
+  });
+
   it("recovers when a retry succeeds after an interrupted body", async () => {
     vi.mocked(routed_fetch)
       .mockResolvedValueOnce(response_with_failing_body())
