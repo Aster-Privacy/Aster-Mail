@@ -83,6 +83,30 @@ export function get_family_group(): Promise<ApiResponse<FamilyGroupResponse>> {
   return api_client.get<FamilyGroupResponse>("/payments/v1/family");
 }
 
+export async function resolve_is_family_plan(): Promise<boolean | null> {
+  try {
+    const res = await get_family_group();
+
+    if (res.data) return true;
+    if (res.code === "NOT_FOUND") return false;
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function refresh_family_plan_flag(
+  on_resolved: (is_family_plan: boolean) => void,
+): void {
+  void resolve_is_family_plan().then((is_family_plan) => {
+    if (is_family_plan === null) return;
+
+    localStorage.setItem("aster_is_family_plan", is_family_plan ? "1" : "0");
+    on_resolved(is_family_plan);
+  });
+}
+
 export function create_family_group(
   plan_code: string,
   billing_interval: string,

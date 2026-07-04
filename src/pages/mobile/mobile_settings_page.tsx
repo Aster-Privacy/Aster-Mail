@@ -106,7 +106,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { list_devices } from "@/services/api/devices";
 import { get_dev_mode } from "@/services/api/preferences";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
-import { get_family_group } from "@/services/api/family";
+import { refresh_family_plan_flag } from "@/services/api/family";
 
 function MobileSettingsPage() {
   const navigate = useNavigate();
@@ -139,11 +139,7 @@ function MobileSettingsPage() {
 
     load_dev_mode();
 
-    get_family_group().then((res) => {
-      const is_fam = !!res.data;
-      set_is_family_plan(is_fam);
-      localStorage.setItem("aster_is_family_plan", is_fam ? "1" : "0");
-    });
+    refresh_family_plan_flag(set_is_family_plan);
   }, []);
 
   useEffect(() => {
