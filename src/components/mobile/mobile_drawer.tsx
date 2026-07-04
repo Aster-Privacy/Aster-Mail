@@ -52,6 +52,10 @@ import {
 } from "@/services/api/aliases";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
+  type TurnstileWidgetRef,
+  TURNSTILE_SITE_KEY,
+} from "@/components/auth/turnstile_widget";
+import {
   AccountMenuSheet,
   CreateFolderSheet,
   CreateLabelSheet,
@@ -125,6 +129,9 @@ export const MobileDrawer = memo(function MobileDrawer({
   const [alias_error, set_alias_error] = useState("");
   const [creating_alias, set_creating_alias] = useState(false);
   const [can_create_alias, set_can_create_alias] = useState(true);
+  const [captcha_token, set_captcha_token] = useState<string | null>(null);
+  const turnstile_ref = useRef<TurnstileWidgetRef>(null);
+  const turnstile_required = !!TURNSTILE_SITE_KEY;
   const [password_modal_folder, set_password_modal_folder] = useState<{
     folder_id: string;
     folder_name: string;
@@ -240,6 +247,7 @@ export const MobileDrawer = memo(function MobileDrawer({
       set_show_create_alias(false);
       set_new_alias_local("");
       set_alias_error("");
+      set_captcha_token(null);
       set_editing_folder(null);
       set_editing_tag(null);
       set_password_modal_folder(null);
@@ -378,6 +386,12 @@ export const MobileDrawer = memo(function MobileDrawer({
       return;
     }
 
+    if (turnstile_required && !captcha_token) {
+      set_alias_error(t("settings.alias_captcha_required"));
+
+      return;
+    }
+
     set_creating_alias(true);
     set_alias_error("");
 
@@ -391,12 +405,18 @@ export const MobileDrawer = memo(function MobileDrawer({
         return;
       }
 
-      const result = await create_alias(trimmed, user_domain);
+      const result = await create_alias(
+        trimmed,
+        user_domain,
+        undefined,
+        captcha_token ?? undefined,
+      );
 
       if (result.data?.success) {
         emit_aliases_changed();
         set_new_alias_local("");
         set_alias_error("");
+        set_captcha_token(null);
         set_show_create_alias(false);
         get_alias_limit()
           .then((r) => {
@@ -405,13 +425,17 @@ export const MobileDrawer = memo(function MobileDrawer({
           .catch(() => {});
       } else {
         set_alias_error(result.error || t("settings.alias_create_failed"));
+        set_captcha_token(null);
+        turnstile_ref.current?.reset();
       }
     } catch {
       set_alias_error(t("settings.alias_create_failed"));
+      set_captcha_token(null);
+      turnstile_ref.current?.reset();
     }
 
     set_creating_alias(false);
-  }, [new_alias_local, user_domain]);
+  }, [new_alias_local, user_domain, captcha_token, turnstile_required]);
 
   const handle_open_edit_folder = useCallback((folder: DecryptedFolder) => {
     set_editing_folder(folder);
@@ -701,6 +725,7 @@ export const MobileDrawer = memo(function MobileDrawer({
         alias_error={alias_error}
         alias_local={new_alias_local}
         at_limit={!can_create_alias}
+        captcha_token={captcha_token}
         creating={creating_alias}
         domain={user_domain}
         handle_create={handle_create_alias}
@@ -709,9 +734,13 @@ export const MobileDrawer = memo(function MobileDrawer({
           set_show_create_alias(false);
           set_new_alias_local("");
           set_alias_error("");
+          set_captcha_token(null);
         }}
         set_alias_error={set_alias_error}
         set_alias_local={set_new_alias_local}
+        set_captcha_token={set_captcha_token}
+        turnstile_ref={turnstile_ref}
+        turnstile_required={turnstile_required}
       />
 
       <PasswordModalWrapper

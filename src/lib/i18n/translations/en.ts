@@ -3471,6 +3471,7 @@ export const en: Translations = {
     invalid_address: "This address is not valid. Checking the format usually sorts it.",
     alias_already_taken: "This alias is already in use. A different one should work.",
     alias_create_failed: "This alias did not save. Another attempt should do it. Your other aliases are unchanged.",
+    alias_captcha_required: "Please complete the captcha to create an alias.",
     alias_generate_failed: "We could not generate an alias just now. Another attempt should do it.",
     alias_invalid: "This alias is not valid. Letters, numbers, dots, underscores, and hyphens are the allowed characters.",
     domain_not_available: "This domain is not available right now. Another one should work.",

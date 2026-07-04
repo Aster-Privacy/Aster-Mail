@@ -3319,6 +3319,7 @@ export interface SettingsTranslations {
   invalid_address: string;
   alias_already_taken: string;
   alias_create_failed: string;
+  alias_captcha_required: string;
   alias_generate_failed: string;
   alias_invalid: string;
   domain_not_available: string;
