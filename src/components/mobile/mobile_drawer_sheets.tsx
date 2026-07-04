@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { RefObject } from "react";
 import type { DecryptedFolder } from "@/hooks/use_folders";
 import type { DecryptedTag } from "@/hooks/use_tags";
 import type { User } from "@/services/account_manager";
@@ -40,6 +41,10 @@ import {
   TAG_ICONS,
 } from "@/components/ui/email_tag";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
+import {
+  TurnstileWidget,
+  type TurnstileWidgetRef,
+} from "@/components/auth/turnstile_widget";
 
 interface AccountMenuSheetProps {
   is_open: boolean;
@@ -631,6 +636,10 @@ interface CreateAliasSheetProps {
   handle_create: () => void;
   domain: string;
   at_limit?: boolean;
+  captcha_token: string | null;
+  set_captcha_token: (v: string | null) => void;
+  turnstile_ref: RefObject<TurnstileWidgetRef>;
+  turnstile_required: boolean;
 }
 
 export function CreateAliasSheet({
@@ -644,6 +653,10 @@ export function CreateAliasSheet({
   handle_create,
   domain,
   at_limit = false,
+  captcha_token,
+  set_captcha_token,
+  turnstile_ref,
+  turnstile_required,
 }: CreateAliasSheetProps) {
   const { t } = use_i18n();
 
@@ -686,9 +699,23 @@ export function CreateAliasSheet({
             {alias_error && (
               <p className="mb-3 text-[13px] text-red-500">{alias_error}</p>
             )}
+            {turnstile_required && (
+              <div className="mb-3 flex justify-center">
+                <TurnstileWidget
+                  ref={turnstile_ref}
+                  class_name="flex justify-center"
+                  on_expire={() => set_captcha_token(null)}
+                  on_verify={set_captcha_token}
+                />
+              </div>
+            )}
             <Button
               className="w-full rounded-[16px] py-3 text-[15px] font-medium"
-              disabled={!alias_local.trim() || creating}
+              disabled={
+                !alias_local.trim() ||
+                creating ||
+                (turnstile_required && !captcha_token)
+              }
               type="button"
               variant="depth"
               onClick={handle_create}
