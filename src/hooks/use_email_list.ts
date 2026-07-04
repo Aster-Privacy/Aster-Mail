@@ -439,7 +439,12 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     const timer = setTimeout(() => {
       set_state((prev) =>
         prev.is_loading && !prev.has_initial_load
-          ? { ...prev, is_loading: false, has_initial_load: true }
+          ? {
+              ...prev,
+              is_loading: false,
+              has_initial_load: true,
+              has_load_error: prev.emails.length === 0,
+            }
           : prev,
       );
     }, 15000);
@@ -649,7 +654,14 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     if (!state.is_loading) return;
     const safety_timeout = setTimeout(() => {
       set_state((prev) =>
-        prev.is_loading ? { ...prev, is_loading: false, has_initial_load: true } : prev,
+        prev.is_loading
+          ? {
+              ...prev,
+              is_loading: false,
+              has_initial_load: true,
+              has_load_error: prev.emails.length === 0,
+            }
+          : prev,
       );
     }, 10_000);
 

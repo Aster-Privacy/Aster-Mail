@@ -322,6 +322,7 @@ export function use_category_inbox(
             ...prev,
             is_loading: false,
             has_initial_load: true,
+            has_load_error: prev.emails.length === 0,
           }));
 
           return;
@@ -380,6 +381,7 @@ export function use_category_inbox(
           ...prev,
           is_loading: false,
           has_initial_load: true,
+          has_load_error: prev.emails.length === 0,
         }));
       }
     },
