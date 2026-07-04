@@ -483,6 +483,23 @@ export function mail_to_email(
   };
 }
 
+export function mail_to_email_safe(
+  item: MailItem,
+  envelope: DecryptedEnvelope | null,
+  metadata: MailItemMetadata | null,
+  format_options: FormatOptions,
+): InboxEmail | null {
+  try {
+    return mail_to_email(item, envelope, metadata, format_options);
+  } catch {
+    try {
+      return mail_to_email(item, null, null, format_options);
+    } catch {
+      return null;
+    }
+  }
+}
+
 export interface FetchByIdsResult {
   emails: InboxEmail[];
   missing_ids: string[];
@@ -536,7 +553,11 @@ export async function fetch_mail_by_ids_reconciled(
         }
       }
 
-      return mail_to_email(item, envelope, metadata, format_options);
+      const email = mail_to_email_safe(item, envelope, metadata, format_options);
+
+      if (!email) throw new Error("unconvertible mail item");
+
+      return email;
     }),
   );
 
@@ -753,20 +774,30 @@ export async function fetch_mail_from_api(
     await resolve_sender_profiles(sender_emails);
   }
 
-  let emails = successful.map(({ item, envelope, metadata }) =>
-    mail_to_email(item, envelope, metadata, format_options),
-  );
+  let emails = successful
+    .map(({ item, envelope, metadata }) =>
+      mail_to_email_safe(item, envelope, metadata, format_options),
+    )
+    .filter((email): email is InboxEmail => email !== null);
 
   if (view === "inbox") {
     const index_entries = successful
       .filter(({ envelope }) => !!envelope)
-      .map(({ item, envelope, metadata }) => ({
-        id: item.id,
-        thread_token: item.thread_token,
-        message_ts: item.message_ts || item.created_at,
-        is_read: metadata?.is_read ?? item.is_read ?? false,
-        category: classify(envelope!, metadata),
-      }));
+      .flatMap(({ item, envelope, metadata }) => {
+        try {
+          return [
+            {
+              id: item.id,
+              thread_token: item.thread_token,
+              message_ts: item.message_ts || item.created_at,
+              is_read: metadata?.is_read ?? item.is_read ?? false,
+              category: classify(envelope!, metadata),
+            },
+          ];
+        } catch {
+          return [];
+        }
+      });
 
     if (index_entries.length > 0) {
       void import("@/services/category_index").then((m) =>
