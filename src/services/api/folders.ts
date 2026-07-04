@@ -38,6 +38,7 @@ export interface FolderDefinition {
   sort_order: number;
   parent_token?: string;
   item_count?: number;
+  unread_count?: number;
   created_at: string;
   updated_at: string;
 }
@@ -113,7 +114,7 @@ export interface FolderStatsResponse {
 }
 
 export interface FolderCountsResponse {
-  counts: { folder_token: string; count: number }[];
+  counts: { folder_token: string; count: number; unread_count: number }[];
 }
 
 interface ApiLabelResponse {
@@ -133,6 +134,7 @@ interface ApiLabelResponse {
   sort_order: number;
   parent_token?: string;
   item_count?: number;
+  unread_count?: number;
   created_at: string;
   updated_at: string;
 }
@@ -192,6 +194,7 @@ export async function list_folders(
           sort_order: label.sort_order,
           parent_token: label.parent_token,
           item_count: label.item_count,
+          unread_count: label.unread_count,
           created_at: label.created_at,
           updated_at: label.updated_at,
         })),
@@ -316,7 +319,7 @@ export async function get_folder_counts(): Promise<
   ApiResponse<FolderCountsResponse>
 > {
   const response = await api_client.get<{
-    counts: { label_token: string; count: number }[];
+    counts: { label_token: string; count: number; unread_count?: number }[];
   }>("/mail/v1/labels/counts", { skip_cache: true });
 
   if (response.data) {
@@ -326,6 +329,7 @@ export async function get_folder_counts(): Promise<
         counts: response.data.counts.map((item) => ({
           folder_token: item.label_token,
           count: item.count,
+          unread_count: item.unread_count ?? 0,
         })),
       },
     };

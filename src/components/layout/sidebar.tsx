@@ -164,7 +164,8 @@ export const Sidebar = ({
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { stats, has_initialized } = use_mail_stats();
-  const { state: folders_state } = use_folders();
+  const { state: folders_state, unread_counts: folder_unread_counts } =
+    use_folders();
   const { state: tags_state } = use_tags();
   const {
     aliases,
@@ -813,6 +814,7 @@ export const Sidebar = ({
                 <SidebarFolders
                   effective_selected={effective_selected}
                   folder_refs={folder_refs}
+                  folder_unread_counts={folder_unread_counts}
                   folders={inbox_pinned_folders}
                   folders_expanded
                   handle_folder_lock={handle_folder_lock}
@@ -851,6 +853,7 @@ export const Sidebar = ({
           <SidebarFolders
             effective_selected={effective_selected}
             folder_refs={folder_refs}
+            folder_unread_counts={folder_unread_counts}
             folders={sidebar_folders}
             folders_expanded={folders_expanded}
             handle_folder_lock={handle_folder_lock}
