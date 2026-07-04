@@ -209,6 +209,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
               ...prev,
               is_loading: false,
               has_initial_load: true,
+              has_load_error: prev.emails.length === 0,
             }));
           }
           return;
@@ -244,6 +245,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
             total_messages: result.total,
             has_more: result.has_more,
             has_initial_load: true,
+            has_load_error: false,
           };
         });
 
@@ -256,6 +258,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
             ...prev,
             is_loading: false,
             has_initial_load: true,
+            has_load_error: prev.emails.length === 0,
           }));
         }
       }

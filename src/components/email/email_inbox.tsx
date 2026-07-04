@@ -1169,7 +1169,12 @@ export function EmailInbox({
         categories.enabled ? (
           <CategoryEmptyState category={categories.active_category} />
         ) : (
-          <EmptyState current_view={current_view} user_email={user?.email} />
+          <EmptyState
+            current_view={current_view}
+            user_email={user?.email}
+            has_load_error={email_state.has_load_error}
+            on_retry={refresh_active_list}
+          />
         )
       ) : (
         <div className="relative min-h-full">

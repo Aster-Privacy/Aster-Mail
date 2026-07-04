@@ -57,6 +57,7 @@ interface MobileEmailListProps {
   is_loading: boolean;
   is_loading_more?: boolean;
   has_more?: boolean;
+  has_load_error?: boolean;
   current_view: string;
   on_email_press: (id: string) => void;
   on_long_press: (id: string) => void;
@@ -179,6 +180,7 @@ export const MobileEmailList = memo(function MobileEmailList({
   is_loading,
   is_loading_more,
   has_more,
+  has_load_error,
   current_view,
   on_email_press,
   on_long_press,
@@ -395,6 +397,31 @@ export const MobileEmailList = memo(function MobileEmailList({
 
   const all_emails_empty =
     emails.length === 0 && (!pinned_emails || pinned_emails.length === 0);
+
+  if (all_emails_empty && has_load_error) {
+    return (
+      <div className="relative flex flex-1 flex-col items-center justify-center gap-3 px-8">
+        <ShieldExclamationIcon
+          className="h-12 w-12 text-[var(--text-muted)]"
+          strokeWidth={1}
+        />
+        <div className="text-center">
+          <p className="text-[15px] font-medium text-[var(--text-primary)]">
+            {t("errors.connection_failed")}
+          </p>
+          {on_refresh && (
+            <button
+              type="button"
+              className="mt-3 rounded-lg border border-[var(--border-primary)] px-4 py-1.5 text-[13px] font-medium text-[var(--text-primary)]"
+              onClick={() => on_refresh()}
+            >
+              {t("common.retry")}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (all_emails_empty) {
     const { icon: EmptyIcon, color: icon_color } = get_empty_icon(current_view);

@@ -1298,7 +1298,20 @@ class ApiClient {
         ) {
           data = undefined as T;
         } else {
-          const raw = await response.text().catch(() => "");
+          const raw = await response.text().catch(() => null);
+          if (raw === null) {
+            last_error = {
+              error: this.get_generic_error_message("NETWORK_ERROR"),
+              code: "NETWORK_ERROR",
+            };
+
+            if (attempt < retry && !is_state_changing_method(method)) {
+              await this.delay(retry_delay * (attempt + 1));
+              continue;
+            }
+
+            return last_error;
+          }
           if (raw.trim() === "") {
             data = undefined as T;
           } else {

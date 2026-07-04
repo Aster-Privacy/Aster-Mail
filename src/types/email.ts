@@ -253,6 +253,7 @@ export interface EmailListState {
   total_messages: number;
   has_more: boolean;
   has_initial_load: boolean;
+  has_load_error?: boolean;
   next_cursor?: string;
 }
 

@@ -708,6 +708,7 @@ function MobileInbox({
             is_drafts_view ? drafts_state.is_loading : mail_state.is_loading
           }
           is_loading_more={is_drafts_view ? false : mail_state.is_loading_more}
+          has_load_error={is_drafts_view ? false : mail_state.has_load_error}
           is_refreshing={is_refreshing}
           on_archive={is_drafts_view ? undefined : handle_archive}
           on_delete={handle_delete}
