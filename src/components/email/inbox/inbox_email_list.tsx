@@ -445,14 +445,39 @@ function SkeletonEmailRow(): React.ReactElement {
 interface EmptyStateProps {
   current_view: string;
   user_email: string | undefined;
+  has_load_error?: boolean;
+  on_retry?: () => void;
 }
 
 export function EmptyState({
   current_view,
   user_email,
+  has_load_error,
+  on_retry,
 }: EmptyStateProps): React.ReactElement {
   const { t } = use_i18n();
   const is_inbox = current_view === "inbox" || current_view === "";
+
+  if (has_load_error) {
+    return (
+      <div className="relative flex flex-col items-center justify-center h-full px-4">
+        <ShieldExclamationIcon
+          className="w-12 h-12 sm:w-14 sm:h-14 mb-4 text-txt-muted"
+          strokeWidth={1}
+        />
+        <div className="text-center">
+          <p className="text-sm sm:text-base font-medium text-txt-primary mb-1">
+            {t("errors.connection_failed")}
+          </p>
+          {on_retry && (
+            <Button variant="outline" size="sm" className="mt-3" onClick={on_retry}>
+              {t("common.retry")}
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const get_empty_config = () => {
     if (current_view === "inbox" || current_view === "") {

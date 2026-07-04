@@ -208,7 +208,7 @@ export async function list_mail_items(
   const query_string = query_params.toString();
   const endpoint = `/mail/v1/messages${query_string ? `?${query_string}` : ""}`;
 
-  return api_client.get<MailItemsListResponse>(endpoint);
+  return api_client.get<MailItemsListResponse>(endpoint, { retry: 2 });
 }
 
 export async function list_encrypted_mail_items(
