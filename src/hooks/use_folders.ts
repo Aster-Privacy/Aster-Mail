@@ -65,6 +65,7 @@ export interface DecryptedFolder {
   sort_order: number;
   parent_token?: string;
   item_count?: number;
+  unread_count?: number;
   created_at: string;
   updated_at: string;
 }
@@ -264,6 +265,7 @@ export function has_protected_folder_label(
 interface UseFoldersReturn {
   state: FoldersState;
   counts: FolderCounts;
+  unread_counts: FolderCounts;
   fetch_folders: (params?: ListFoldersParams) => Promise<void>;
   fetch_counts: () => Promise<void>;
   create_new_folder: (
@@ -434,6 +436,7 @@ async function decrypt_folder(
     sort_order: folder.sort_order,
     parent_token: folder.parent_token,
     item_count: folder.item_count,
+    unread_count: folder.unread_count,
     created_at: folder.created_at,
     updated_at: folder.updated_at,
   };
@@ -450,6 +453,7 @@ export function use_folders(): UseFoldersReturn {
     total: cached_folders.total,
   });
   const [counts, set_counts] = useState<FolderCounts>({});
+  const [unread_counts, set_unread_counts] = useState<FolderCounts>({});
   const abort_ref = useRef<AbortController | null>(null);
   const prev_user_id_ref = useRef<string | null>(null);
   const fetch_generation_ref = useRef(0);
@@ -565,11 +569,14 @@ export function use_folders(): UseFoldersReturn {
 
       if (response.data) {
         const new_counts: FolderCounts = {};
+        const new_unread_counts: FolderCounts = {};
 
         for (const item of response.data.counts) {
           new_counts[item.folder_token] = item.count;
+          new_unread_counts[item.folder_token] = item.unread_count;
         }
         set_counts(new_counts);
+        set_unread_counts(new_unread_counts);
       }
     } catch {
       return;
@@ -950,6 +957,7 @@ export function use_folders(): UseFoldersReturn {
         total: 0,
       });
       set_counts({});
+      set_unread_counts({});
     }
 
     if (current_user_id !== null) {
@@ -1032,6 +1040,7 @@ export function use_folders(): UseFoldersReturn {
   return {
     state,
     counts,
+    unread_counts,
     fetch_folders,
     fetch_counts,
     create_new_folder,

@@ -111,7 +111,7 @@ interface DrawerNavContentProps {
   active_path: string;
   handle_nav: (path: string) => void;
   folders: DecryptedFolder[];
-  folder_counts: Record<string, number>;
+  folder_unread_counts: Record<string, number>;
   tags: DecryptedTag[];
   tag_counts: Record<string, number>;
   aliases: SidebarAlias[];
@@ -148,7 +148,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   active_path,
   handle_nav,
   folders,
-  folder_counts,
+  folder_unread_counts,
   tags,
   tag_counts,
   aliases,
@@ -340,7 +340,15 @@ export const DrawerNavContent = memo(function DrawerNavContent({
       )}
       {folders.map((folder) => {
         const path = `/folder/${encodeURIComponent(folder.folder_token)}`;
-        const count = folder_counts[folder.folder_token];
+        const is_locked_closed =
+          folder.is_locked ||
+          (folder.is_password_protected &&
+            (!folder.password_set || !is_folder_unlocked(folder.id)));
+        const count = is_locked_closed
+          ? undefined
+          : (folder_unread_counts[folder.folder_token] ??
+            folder.unread_count ??
+            0);
         const folder_color = folder.color || "#3b82f6";
 
         return (

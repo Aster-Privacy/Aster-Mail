@@ -94,7 +94,7 @@ export const MobileDrawer = memo(function MobileDrawer({
   const [show_logout_confirm, set_show_logout_confirm] = useState(false);
   const {
     state: folders_state,
-    counts: folder_counts,
+    unread_counts: folder_unread_counts,
     create_new_folder,
     update_existing_folder,
     delete_existing_folder,
@@ -621,7 +621,7 @@ export const MobileDrawer = memo(function MobileDrawer({
               active_path={active_path}
               alias_unread_counts={alias_unread_counts}
               aliases={aliases}
-              folder_counts={folder_counts}
+              folder_unread_counts={folder_unread_counts}
               folders={folders}
               handle_nav={handle_nav}
               indicator_style={indicator_style}

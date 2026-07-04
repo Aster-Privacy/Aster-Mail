@@ -32,6 +32,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { build_folder_tree, flatten_visible_tree } from "@/hooks/use_folders";
+import { CountBadge } from "@/components/common/count_badge";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_i18n } from "@/lib/i18n/context";
@@ -49,6 +50,7 @@ interface SidebarFoldersProps {
   is_collapsed: boolean;
   effective_selected: string | null;
   folders: DecryptedFolder[];
+  folder_unread_counts?: Record<string, number>;
   folders_expanded: boolean;
   set_folders_expanded: (expanded: boolean) => void;
   is_loading: boolean;
@@ -85,6 +87,7 @@ export const SidebarFolders = memo(function SidebarFolders({
   is_collapsed,
   effective_selected,
   folders,
+  folder_unread_counts,
   folders_expanded,
   set_folders_expanded,
   is_loading: _is_loading,
@@ -225,6 +228,10 @@ export const SidebarFolders = memo(function SidebarFolders({
             const hasChildren = node.children.length > 0;
             const is_expanded = expanded_folders.has(folder.folder_token);
             const indent = is_collapsed ? 0 : node.depth * 16;
+            const is_locked_closed =
+              folder.is_locked ||
+              (folder.is_password_protected &&
+                (!folder.password_set || !is_folder_unlocked(folder.id)));
 
             return (
               <FolderContextMenu
@@ -386,11 +393,18 @@ export const SidebarFolders = memo(function SidebarFolders({
                       <span className="flex-1 text-left truncate">
                         {folder.name}
                       </span>
-                      {(folder.is_locked ||
-                        (folder.is_password_protected &&
-                          (!folder.password_set ||
-                            !is_folder_unlocked(folder.id)))) && (
+                      {is_locked_closed && (
                         <LockClosedIcon className="w-3 h-3 ml-1 text-txt-muted" />
+                      )}
+                      {!is_locked_closed && (
+                        <CountBadge
+                          count={
+                            folder_unread_counts?.[folder.folder_token] ??
+                            folder.unread_count ??
+                            0
+                          }
+                          is_active={effective_selected === folder_item_id}
+                        />
                       )}
                     </>
                   )}
