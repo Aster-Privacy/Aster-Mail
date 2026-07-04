@@ -229,20 +229,27 @@ export function MemberRow({ member, is_owner_view, compliance, pool_remaining_by
     String(Math.round(member.allocated_storage_bytes / 1073741824))
   );
 
+  const min_gb = Math.max(1, Math.ceil(member.storage_used_bytes / 1073741824));
+  const max_gb = Math.max(
+    Math.round((member.allocated_storage_bytes + (pool_remaining_bytes ?? 0)) / 1073741824),
+    Math.round(member.allocated_storage_bytes / 1073741824) + 1
+  );
+
   const [saving_storage, set_saving_storage] = useState(false);
   const save_storage = useCallback(async () => {
     const gb = parseFloat(storage_input);
     if (isNaN(gb) || gb < 1) return;
+    const clamped = Math.min(max_gb, Math.max(min_gb, Math.round(gb)));
     set_saving_storage(true);
     try {
-      const r = await update_member_storage(member.user_id, Math.round(gb * 1073741824));
+      const r = await update_member_storage(member.user_id, Math.round(clamped * 1073741824));
       if (r.error) { show_toast(t("settings.fam_org_action_failed"), "error"); return; }
       show_toast(t("settings.fam_org_member_storage_updated"), "success");
       set_editing(false);
       await on_reload();
     } catch { show_toast(t("settings.failed_save_setting"), "error"); }
     finally { set_saving_storage(false); }
-  }, [storage_input, member.user_id, on_reload, t]);
+  }, [storage_input, member.user_id, on_reload, t, min_gb, max_gb]);
 
   const badge_class = member.role === "owner" ? "aster_badge aster_badge_blue"
     : member.status === "grace" ? "aster_badge aster_badge_amber"
@@ -272,16 +279,28 @@ export function MemberRow({ member, is_owner_view, compliance, pool_remaining_by
             <div className="flex items-center gap-2">
               <input
                 type="range"
-                min={String(Math.max(1, Math.ceil(member.storage_used_bytes / 1073741824)))}
-                max={String(Math.max(
-                    Math.round((member.allocated_storage_bytes + (pool_remaining_bytes ?? 0)) / 1073741824),
-                    Math.round(member.allocated_storage_bytes / 1073741824) + 1
-                  ))}
+                min={String(min_gb)}
+                max={String(max_gb)}
                 value={storage_input}
                 onChange={e => set_storage_input(e.target.value)}
                 className="flex-1 h-1.5 accent-blue-500"
               />
-              <span className="text-xs font-semibold text-txt-primary w-12 text-right">{storage_input} GB</span>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={min_gb}
+                  max={max_gb}
+                  value={storage_input}
+                  onChange={e => set_storage_input(e.target.value)}
+                  onBlur={e => {
+                    const gb = parseFloat(e.target.value);
+                    if (!isNaN(gb)) set_storage_input(String(Math.min(max_gb, Math.max(min_gb, Math.round(gb)))));
+                  }}
+                  className="w-16 text-xs font-semibold text-right text-txt-primary bg-transparent border border-edge-secondary rounded px-1.5 py-0.5 focus:outline-none focus:border-accent-blue"
+                />
+                <span className="text-xs font-semibold text-txt-muted">GB</span>
+              </div>
             </div>
             {pool_remaining_bytes !== undefined && (
               <p className="text-[10px] text-txt-muted">

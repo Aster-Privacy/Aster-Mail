@@ -232,4 +232,61 @@ describe("MemberRow owner self storage management", () => {
     expect(update_member_storage).toHaveBeenCalledWith("owner-1", 512 * GiB);
     expect(on_reload).toHaveBeenCalled();
   });
+
+  it("saves an exact typed allocation via the manual number input", async () => {
+    render(
+      <MemberRow
+        member={owner}
+        is_owner_view={true}
+        pool_remaining_bytes={0}
+        on_remove={() => {}}
+        on_transfer={() => {}}
+        on_reload={async () => {}}
+      />
+    );
+    act(() => {
+      (host.querySelector(EDIT) as HTMLButtonElement).click();
+    });
+    const box = host.querySelector('input[type="number"]') as HTMLInputElement;
+    expect(box).not.toBeNull();
+    set_range(box, "1000");
+
+    const save_btn = Array.from(host.querySelectorAll("button")).find(
+      (b) => b.textContent === "settings.fam_org_member_save"
+    ) as HTMLButtonElement;
+    await act(async () => {
+      save_btn.click();
+    });
+    await act(async () => {});
+
+    expect(update_member_storage).toHaveBeenCalledWith("owner-1", 1000 * GiB);
+  });
+
+  it("clamps a typed allocation above the pool ceiling on save", async () => {
+    render(
+      <MemberRow
+        member={owner}
+        is_owner_view={true}
+        pool_remaining_bytes={0}
+        on_remove={() => {}}
+        on_transfer={() => {}}
+        on_reload={async () => {}}
+      />
+    );
+    act(() => {
+      (host.querySelector(EDIT) as HTMLButtonElement).click();
+    });
+    const box = host.querySelector('input[type="number"]') as HTMLInputElement;
+    set_range(box, "999999");
+
+    const save_btn = Array.from(host.querySelectorAll("button")).find(
+      (b) => b.textContent === "settings.fam_org_member_save"
+    ) as HTMLButtonElement;
+    await act(async () => {
+      save_btn.click();
+    });
+    await act(async () => {});
+
+    expect(update_member_storage).toHaveBeenCalledWith("owner-1", 3073 * GiB);
+  });
 });
