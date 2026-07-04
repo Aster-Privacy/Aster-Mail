@@ -40,9 +40,10 @@ import {
   update_alias_directory,
   delete_alias_directory,
   decrypt_alias_directory,
-  DIRECTORY_DOMAIN,
+  DIRECTORY_DOMAINS,
   type DecryptedAliasDirectory,
 } from "@/services/api/alias_directories";
+import { list_domains } from "@/services/api/domains";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -67,6 +68,8 @@ export function AliasDirectoriesSection() {
   );
   const [loading, set_loading] = useState(true);
   const [directory_key, set_directory_key] = useState("");
+  const [domain, set_domain] = useState<string>(DIRECTORY_DOMAINS[0]);
+  const [custom_domains, set_custom_domains] = useState<string[]>([]);
   const [separator, set_separator] = useState<"." | "/" | "+" | "#">(".") ;
   const [busy, set_busy] = useState(false);
   const [checking_availability, set_checking_availability] = useState(false);
@@ -107,6 +110,25 @@ export function AliasDirectoriesSection() {
     }
     load();
   }, [load, limits_loading, locked]);
+
+  useEffect(() => {
+    if (limits_loading || locked) return;
+    (async () => {
+      try {
+        const response = await list_domains();
+
+        if (response.data) {
+          set_custom_domains(
+            response.data.domains
+              .filter((d) => d.status === "active")
+              .map((d) => d.domain_name),
+          );
+        }
+      } catch {
+        set_custom_domains([]);
+      }
+    })();
+  }, [limits_loading, locked]);
 
   useEffect(() => {
     if (availability_timeout_ref.current) {
@@ -153,7 +175,7 @@ export function AliasDirectoriesSection() {
     try {
       const response = await create_alias_directory(
         directory_key,
-        DIRECTORY_DOMAIN,
+        domain,
         true,
         undefined,
         captcha_token ?? undefined,
@@ -252,6 +274,18 @@ export function AliasDirectoriesSection() {
             }
             onKeyDown={(e) => e["key"] === "Enter" && handle_create()}
           />
+          <Select value={domain} onValueChange={set_domain}>
+            <SelectTrigger className="h-10 w-44 shrink-0 bg-transparent">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[...DIRECTORY_DOMAINS, ...custom_domains].map((d) => (
+                <SelectItem key={d} value={d}>
+                  @{d}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select
             value={separator}
             onValueChange={(v) => set_separator(v as "." | "/" | "+" | "#")}
@@ -283,7 +317,7 @@ export function AliasDirectoriesSection() {
         </div>
         {directory_key.trim() && (
           <p className="text-xs text-txt-muted pl-5">
-            anything{separator}{directory_key}@{DIRECTORY_DOMAIN}
+            anything{separator}{directory_key}@{domain}
           </p>
         )}
         {directory_key.trim() && checking_availability && (

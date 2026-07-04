@@ -86,16 +86,32 @@ vi.mock("@aster/ui", () => ({
 }));
 
 const check_directory_availability = vi.fn();
+const create_alias_directory = vi.fn();
+const list_domains = vi.fn(async () => ({
+  data: {
+    domains: [
+      { id: "d1", domain_name: "example.com", status: "active" },
+      { id: "d2", domain_name: "pending.com", status: "pending" },
+    ],
+    total: 2,
+    max_domains: 5,
+  },
+}));
 
 vi.mock("@/services/api/alias_directories", () => ({
-  DIRECTORY_DOMAIN: "astermail.org",
+  DIRECTORY_DOMAINS: ["astermail.org", "aster.cx"],
   list_alias_directories: vi.fn(async () => ({ data: { directories: [] } })),
   decrypt_alias_directory: vi.fn(),
-  create_alias_directory: vi.fn(),
+  create_alias_directory: (...args: unknown[]) =>
+    create_alias_directory(...args),
   update_alias_directory: vi.fn(),
   delete_alias_directory: vi.fn(),
   check_directory_availability: (key: string) =>
     check_directory_availability(key),
+}));
+
+vi.mock("@/services/api/domains", () => ({
+  list_domains: () => list_domains(),
 }));
 
 import { AliasDirectoriesSection } from "./alias_directories_section";
@@ -126,6 +142,7 @@ describe("AliasDirectoriesSection availability", () => {
 
   beforeEach(async () => {
     check_directory_availability.mockReset();
+    create_alias_directory.mockReset();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -198,5 +215,39 @@ describe("AliasDirectoriesSection availability", () => {
     await flush();
 
     expect(container.textContent).toContain("anything.shop@astermail.org");
+  });
+
+  it("offers default and active custom domains, not pending ones", async () => {
+    expect(container.textContent).toContain("@astermail.org");
+    expect(container.textContent).toContain("@aster.cx");
+    expect(container.textContent).toContain("@example.com");
+    expect(container.textContent).not.toContain("@pending.com");
+  });
+
+  it("creates with the selected domain", async () => {
+    check_directory_availability.mockResolvedValue({
+      data: { available: true },
+    });
+    create_alias_directory.mockResolvedValue({ data: { id: "1", success: true } });
+
+    await type_key("shopping");
+    await wait_debounce();
+
+    const create_button = Array.from(
+      container.querySelectorAll("button"),
+    ).find((b) => b.textContent?.includes("settings.alias_directory_create"));
+
+    await act(async () => {
+      create_button?.click();
+    });
+    await flush();
+
+    expect(create_alias_directory).toHaveBeenCalledWith(
+      "shopping",
+      "astermail.org",
+      true,
+      undefined,
+      undefined,
+    );
   });
 });

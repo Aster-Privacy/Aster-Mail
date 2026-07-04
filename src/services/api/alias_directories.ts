@@ -22,7 +22,7 @@ import { api_client, type ApiResponse } from "./client";
 import { encrypt_alias_field, decrypt_alias_field } from "./aliases";
 import { sha256_base64 } from "./alias_hash";
 
-export const DIRECTORY_DOMAIN = "astermail.org";
+export const DIRECTORY_DOMAINS = ["astermail.org", "aster.cx"];
 
 export interface AliasDirectory {
   id: string;
