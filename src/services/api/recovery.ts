@@ -211,12 +211,14 @@ export async function get_recovery_methods(): Promise<
 }
 
 export async function save_phrase_wrap(
+  current_password_hash: string,
   verifier_hash: string,
   wrapped_vault: string,
   wrap_nonce: string,
   wrap_salt: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.put<{ success: boolean }>("/core/v1/recovery/phrase", {
+    current_password_hash,
     verifier_hash,
     wrapped_vault,
     wrap_nonce,
@@ -224,10 +226,12 @@ export async function save_phrase_wrap(
   });
 }
 
-export async function delete_phrase_wrap(): Promise<
-  ApiResponse<{ success: boolean }>
-> {
-  return api_client.delete<{ success: boolean }>("/core/v1/recovery/phrase");
+export async function delete_phrase_wrap(
+  current_password_hash: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.delete<{ success: boolean }>("/core/v1/recovery/phrase", {
+    data: { current_password_hash },
+  });
 }
 
 export async function initiate_phrase_recovery(

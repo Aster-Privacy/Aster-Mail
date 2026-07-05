@@ -82,7 +82,7 @@ account = "5000/d"
 [security.webhook]
 enable = true
 url = "http://backend:3000/api/external/webhook/stalwart"
-events = ["delivery.delivered", "delivery.failed", "delivery.message-rejected", "delivery.dsn-perm-fail", "delivery.dsn-temp-fail", "queue.queue-message-authenticated"]
+events = ["delivery.delivered", "delivery.failed", "delivery.message-rejected", "delivery.dsn-perm-fail", "delivery.dsn-temp-fail", "queue.queue-message-authenticated", "message-ingest.ham", "message-ingest.spam"]
 format = "json"
 timeout = "30s"
 retry = 3

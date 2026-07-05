@@ -280,19 +280,21 @@ export function SecuritySection({
         const old_dev_mode_key_raw =
           await derive_dev_mode_key_raw(old_identity_key);
 
-        if (!vault.previous_keys) {
-          vault.previous_keys = [];
-        }
-        vault.previous_keys.unshift(vault.identity_key);
-        if (vault.previous_keys.length > 10) {
-          vault.previous_keys = vault.previous_keys.slice(0, 10);
-        }
-
-        vault.identity_key = await reprotect_pgp_key(
+        const reprotected_identity_key = await reprotect_pgp_key(
           vault.identity_key,
           current_password,
           new_password,
         );
+
+        if (!vault.previous_keys) {
+          vault.previous_keys = [];
+        }
+        vault.previous_keys.unshift(reprotected_identity_key);
+        if (vault.previous_keys.length > 10) {
+          vault.previous_keys = vault.previous_keys.slice(0, 10);
+        }
+
+        vault.identity_key = reprotected_identity_key;
 
         if (vault.signed_prekey_private) {
           vault.signed_prekey_private = await reprotect_pgp_key(

@@ -172,12 +172,17 @@ export default function MobileForgotPasswordPage() {
       const next = [...prev];
 
       if (parts.length > 1) {
+        const start_index =
+          parts.length >= RECOVERY_PHRASE_WORD_COUNT - index
+            ? Math.max(0, RECOVERY_PHRASE_WORD_COUNT - parts.length)
+            : index;
+
         for (
           let i = 0;
-          i < parts.length && index + i < RECOVERY_PHRASE_WORD_COUNT;
+          i < parts.length && start_index + i < RECOVERY_PHRASE_WORD_COUNT;
           i++
         ) {
-          next[index + i] = parts[i];
+          next[start_index + i] = parts[i];
         }
       } else {
         next[index] = value.replace(/\s/g, "").toLowerCase();

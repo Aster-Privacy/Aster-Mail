@@ -97,7 +97,7 @@ interface VerifyPasswordResponse {
 }
 
 type PasswordVerifyOutcome =
-  | { status: "verified" }
+  | { status: "verified"; password_hash: string }
   | { status: "totp_required" }
   | { status: "error"; message: string };
 
@@ -147,7 +147,7 @@ async function verify_account_password(
     };
   }
 
-  return { status: "verified" };
+  return { status: "verified", password_hash: hash };
 }
 
 export function AccountRecoveryPanel() {
@@ -164,6 +164,7 @@ export function AccountRecoveryPanel() {
   const [generated_phrase, set_generated_phrase] = useState<string | null>(
     null,
   );
+  const [verified_password_hash, set_verified_password_hash] = useState("");
   const [phrase_revealed, set_phrase_revealed] = useState(false);
   const [phrase_saved_checked, set_phrase_saved_checked] = useState(false);
 
@@ -195,6 +196,7 @@ export function AccountRecoveryPanel() {
     set_generated_phrase(null);
     set_phrase_revealed(false);
     set_phrase_saved_checked(false);
+    set_verified_password_hash("");
   };
 
   const open_phrase_modal = () => {
@@ -237,6 +239,7 @@ export function AccountRecoveryPanel() {
         return;
       }
 
+      set_verified_password_hash(outcome.password_hash);
       set_generated_phrase(generate_recovery_phrase());
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -253,6 +256,12 @@ export function AccountRecoveryPanel() {
     set_phrase_error("");
 
     try {
+      if (!verified_password_hash) {
+        set_phrase_error(t("settings.failed_verify_password"));
+
+        return;
+      }
+
       const vault = get_vault_from_memory();
 
       if (!is_master_key_vault(vault) || !vault?.data_kek) {
@@ -267,6 +276,7 @@ export function AccountRecoveryPanel() {
       );
 
       const response = await save_phrase_wrap(
+        verified_password_hash,
         wrap.verifier_hash,
         wrap.wrapped_vault,
         wrap.wrap_nonce,

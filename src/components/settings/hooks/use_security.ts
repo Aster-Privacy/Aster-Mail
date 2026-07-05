@@ -74,6 +74,10 @@ import {
   MASTER_KEY_VAULT_FORMAT,
 } from "@/services/crypto/memory_key_store";
 import {
+  store_encrypted_vault,
+  store_session_passphrase,
+} from "@/contexts/auth/session_passphrase";
+import {
   generate_ratchet_keys,
   upload_prekey_bundle,
 } from "@/services/crypto/ratchet_manager";
@@ -440,20 +444,22 @@ export function use_security() {
       const old_dev_mode_key_raw =
         await derive_dev_mode_key_raw(old_identity_key);
 
+      const reprotected_identity_key = await reprotect_pgp_key(
+        vault.identity_key,
+        current_password,
+        new_password,
+      );
+
       if (!vault.previous_keys) {
         vault.previous_keys = [];
       }
-      vault.previous_keys.unshift(vault.identity_key);
+      vault.previous_keys.unshift(reprotected_identity_key);
 
       if (vault.previous_keys.length > 10) {
         vault.previous_keys = vault.previous_keys.slice(0, 10);
       }
 
-      vault.identity_key = await reprotect_pgp_key(
-        vault.identity_key,
-        current_password,
-        new_password,
-      );
+      vault.identity_key = reprotected_identity_key;
 
       if (vault.signed_prekey_private) {
         vault.signed_prekey_private = await reprotect_pgp_key(
@@ -560,17 +566,14 @@ export function use_security() {
       }
 
       try {
-        localStorage.setItem(
-          `astermail_encrypted_vault_${user.id}`,
-          new_encrypted_vault,
-        );
-        localStorage.setItem(
-          `astermail_vault_nonce_${user.id}`,
-          new_vault_nonce,
-        );
+        store_encrypted_vault(user.id, new_encrypted_vault, new_vault_nonce);
       } catch {}
 
       await store_vault_in_memory(vault, new_password);
+
+      try {
+        await store_session_passphrase(user.id, new_password);
+      } catch {}
 
       if (response.data?.csrf_token) {
         api_client.set_csrf(response.data.csrf_token);
