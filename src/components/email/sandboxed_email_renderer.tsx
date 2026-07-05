@@ -472,7 +472,8 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 
       const gmail_wrapper =
         body.querySelector("div.aster_quote") ||
-        body.querySelector("div.gmail_quote");
+        body.querySelector("div.gmail_quote") ||
+        body.querySelector("div.yahoo_quoted");
 
       if (gmail_wrapper) {
         const has_content_outside = (() => {
@@ -488,7 +489,11 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
           return false;
         })();
 
-        if (!has_content_outside) return;
+        if (!has_content_outside) {
+          (gmail_wrapper as HTMLElement).style.display = "block";
+
+          return;
+        }
 
         const wrapper = doc.createElement("div");
 
@@ -748,7 +753,25 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
       return false;
     })();
 
-    if (!has_visible_outside) return;
+    const hidden_by_default_selector =
+      ".aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix";
+
+    if (!has_visible_outside) {
+      for (const node of to_collapse) {
+        if (node.nodeType !== Node.ELEMENT_NODE) continue;
+
+        const el = node as Element;
+
+        if (el.matches(hidden_by_default_selector)) {
+          (el as HTMLElement).style.display = "block";
+        }
+        el.querySelectorAll(hidden_by_default_selector).forEach((child) => {
+          (child as HTMLElement).style.display = "block";
+        });
+      }
+
+      return;
+    }
 
     const wrapper = doc.createElement("div");
 
