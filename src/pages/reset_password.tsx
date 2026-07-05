@@ -379,7 +379,7 @@ export default function ResetPasswordPage() {
         btoa(prekey_signature),
         pgp_key_data,
         MASTER_KEY_VAULT_FORMAT,
-        true,
+        consent_checked,
       );
 
       if (response.error || !response.data?.success) {

@@ -60,6 +60,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { reprotect_pgp_key } from "@/services/crypto/key_manager_pgp";
 import {
+  derive_kek_from_password,
   serialize_kek_for_vault,
   prepend_kek_to_list,
 } from "@/services/crypto/legacy_keks";
@@ -67,6 +68,7 @@ import {
   derive_preferences_key_raw,
   derive_dev_mode_key_raw,
 } from "@/services/api/preferences";
+import { re_encrypt_user_data } from "@/services/crypto/password_change_reencrypt";
 import { reencrypt_identity_scoped_password_change } from "@/services/crypto/recovery_reencrypt";
 import { reencrypt_all_sent_mail } from "@/services/send_queue_encryption";
 import { get_totp_status, type TotpStatusResponse } from "@/services/api/totp";
@@ -274,83 +276,120 @@ export function SecuritySection({
       const master_key_mode = is_master_key_vault(vault);
       const old_identity_key = vault.identity_key;
 
-      if (master_key_mode) {
-        const old_prefs_key_raw =
-          await derive_preferences_key_raw(old_identity_key);
-        const old_dev_mode_key_raw =
-          await derive_dev_mode_key_raw(old_identity_key);
+      const old_prefs_key_raw =
+        await derive_preferences_key_raw(old_identity_key);
+      const old_dev_mode_key_raw =
+        await derive_dev_mode_key_raw(old_identity_key);
 
-        const reprotected_identity_key = await reprotect_pgp_key(
-          vault.identity_key,
+      const reprotected_identity_key = await reprotect_pgp_key(
+        vault.identity_key,
+        current_password,
+        new_password,
+      );
+
+      if (!vault.previous_keys) {
+        vault.previous_keys = [];
+      }
+      vault.previous_keys.unshift(reprotected_identity_key);
+      if (vault.previous_keys.length > 10) {
+        vault.previous_keys = vault.previous_keys.slice(0, 10);
+      }
+
+      vault.identity_key = reprotected_identity_key;
+
+      if (vault.signed_prekey_private) {
+        vault.signed_prekey_private = await reprotect_pgp_key(
+          vault.signed_prekey_private,
           current_password,
           new_password,
         );
+      }
 
-        if (!vault.previous_keys) {
-          vault.previous_keys = [];
-        }
-        vault.previous_keys.unshift(reprotected_identity_key);
-        if (vault.previous_keys.length > 10) {
-          vault.previous_keys = vault.previous_keys.slice(0, 10);
-        }
-
-        vault.identity_key = reprotected_identity_key;
-
-        if (vault.signed_prekey_private) {
-          vault.signed_prekey_private = await reprotect_pgp_key(
-            vault.signed_prekey_private,
-            current_password,
-            new_password,
-          );
-        }
+      if (!master_key_mode) {
+        const old_kek_raw = await derive_kek_from_password(current_password);
 
         vault.legacy_keks = prepend_kek_to_list(
           vault.legacy_keks,
-          serialize_kek_for_vault(old_prefs_key_raw),
-        );
-        vault.legacy_keks = prepend_kek_to_list(
-          vault.legacy_keks,
-          serialize_kek_for_vault(old_dev_mode_key_raw),
-        );
-
-        const old_folder_material = new TextEncoder().encode(
-          old_identity_key + "astermail-labels-v1",
-        );
-        const old_folder_hash = new Uint8Array(
-          await crypto.subtle.digest("SHA-256", old_folder_material),
-        );
-
-        vault.legacy_keks = prepend_kek_to_list(
-          vault.legacy_keks,
-          serialize_kek_for_vault(old_folder_hash),
-        );
-
-        const old_tag_material = new TextEncoder().encode(
-          old_identity_key + "astermail-tags-v1",
-        );
-        const old_tag_hash = new Uint8Array(
-          await crypto.subtle.digest("SHA-256", old_tag_material),
-        );
-
-        vault.legacy_keks = prepend_kek_to_list(
-          vault.legacy_keks,
-          serialize_kek_for_vault(old_tag_hash),
+          serialize_kek_for_vault(old_kek_raw),
         );
       }
+
+      vault.legacy_keks = prepend_kek_to_list(
+        vault.legacy_keks,
+        serialize_kek_for_vault(old_prefs_key_raw),
+      );
+      vault.legacy_keks = prepend_kek_to_list(
+        vault.legacy_keks,
+        serialize_kek_for_vault(old_dev_mode_key_raw),
+      );
+
+      const old_folder_material = new TextEncoder().encode(
+        old_identity_key + "astermail-labels-v1",
+      );
+      const old_folder_hash = new Uint8Array(
+        await crypto.subtle.digest("SHA-256", old_folder_material),
+      );
+
+      vault.legacy_keks = prepend_kek_to_list(
+        vault.legacy_keks,
+        serialize_kek_for_vault(old_folder_hash),
+      );
+
+      const old_tag_material = new TextEncoder().encode(
+        old_identity_key + "astermail-tags-v1",
+      );
+      const old_tag_hash = new Uint8Array(
+        await crypto.subtle.digest("SHA-256", old_tag_material),
+      );
+
+      vault.legacy_keks = prepend_kek_to_list(
+        vault.legacy_keks,
+        serialize_kek_for_vault(old_tag_hash),
+      );
 
       const new_salt = crypto.getRandomValues(new Uint8Array(16));
       const { hash: new_pw_hash, salt: new_pw_salt } =
         await derive_password_hash(new_password, new_salt);
       const { encrypted_vault: new_enc_vault, vault_nonce: new_v_nonce } =
         await encrypt_vault(vault, new_password);
-      const res = await change_password({
-        current_password_hash: current_pw_hash,
-        new_password_hash: new_pw_hash,
-        new_password_salt: new_pw_salt,
-        new_encrypted_vault: new_enc_vault,
-        new_vault_nonce: new_v_nonce,
-        vault_format: master_key_mode ? MASTER_KEY_VAULT_FORMAT : undefined,
-      });
+
+      let res;
+
+      if (master_key_mode) {
+        res = await change_password({
+          current_password_hash: current_pw_hash,
+          new_password_hash: new_pw_hash,
+          new_password_salt: new_pw_salt,
+          new_encrypted_vault: new_enc_vault,
+          new_vault_nonce: new_v_nonce,
+          vault_format: MASTER_KEY_VAULT_FORMAT,
+        });
+      } else {
+        const {
+          re_encrypted_aliases,
+          re_encrypted_contacts,
+          re_encrypted_pins,
+          re_encrypted_alias_contacts,
+          re_encrypted_destinations,
+          re_encrypted_directories,
+          re_encrypted_domain_addresses,
+        } = await re_encrypt_user_data(current_password, new_password);
+
+        res = await change_password({
+          current_password_hash: current_pw_hash,
+          new_password_hash: new_pw_hash,
+          new_password_salt: new_pw_salt,
+          new_encrypted_vault: new_enc_vault,
+          new_vault_nonce: new_v_nonce,
+          re_encrypted_aliases,
+          re_encrypted_contacts,
+          re_encrypted_pins,
+          re_encrypted_alias_contacts,
+          re_encrypted_destinations,
+          re_encrypted_directories,
+          re_encrypted_domain_addresses,
+        });
+      }
 
       if (res.error) {
         set_pw_error(res.error);
