@@ -327,7 +327,7 @@ describe.runIf(RUN)("local stack recovery tiers e2e", () => {
     const { status, json } = await api(
       "/core/v1/recovery/phrase",
       "PUT",
-      wrap,
+      { ...wrap, current_password_hash: account.password_hash },
       session,
     );
 
@@ -888,7 +888,12 @@ describe.runIf(RUN)("destructive reset preservation e2e", () => {
         JSON.stringify(account.vault_data),
         phrase,
       );
-      const saved = await api("/core/v1/recovery/phrase", "PUT", wrap, session);
+      const saved = await api(
+        "/core/v1/recovery/phrase",
+        "PUT",
+        { ...wrap, current_password_hash: account.password_hash },
+        session,
+      );
 
       expect(saved.status).toBe(200);
 
@@ -994,6 +999,50 @@ describe.runIf(RUN)("destructive reset preservation e2e", () => {
       );
 
       expect(status, JSON.stringify(json)).toBe(400);
+    },
+  );
+
+  it(
+    "an email-issued token cannot be redeemed at /recovery/complete",
+    { timeout: 60000 },
+    async () => {
+      const raw_token = "e2e-test-email-issued-token-fixed-value-do-not-reuse";
+      const token_hash_hex =
+        "cd7d941780f90c858a0319172e53de8a84495d64cd854e2c734bcfa6e403326e";
+
+      psql(
+        `INSERT INTO recovery_emails (user_id, encrypted_email, email_nonce, verified) VALUES ('${user_id}', '\\x11', '\\x222222222222222222222222', TRUE);`,
+      );
+      const recovery_email_id = psql(
+        `SELECT id FROM recovery_emails WHERE user_id = '${user_id}';`,
+      );
+
+      psql(
+        `INSERT INTO password_reset_tokens (user_id, token_hash, expires_at, recovery_email_id) VALUES ('${user_id}', decode('${token_hash_hex}', 'hex'), NOW() + INTERVAL '1 hour', '${recovery_email_id}') ON CONFLICT (token_hash) DO UPDATE SET user_id = EXCLUDED.user_id, expires_at = EXCLUDED.expires_at, used_at = NULL, recovery_email_id = EXCLUDED.recovery_email_id;`,
+      );
+
+      const fresh = await build_account(username, password_v2);
+
+      const complete = await api("/core/v1/recovery/complete", "POST", {
+        recovery_token: raw_token,
+        new_password_hash: fresh.password_hash,
+        new_password_salt: fresh.password_salt,
+        new_encrypted_vault: fresh.encrypted_vault,
+        new_vault_nonce: fresh.vault_nonce,
+        new_recovery_shares: fresh.recovery_shares,
+        new_encrypted_vault_backup: fresh.vault_backup.encrypted_data,
+        new_vault_backup_nonce: fresh.vault_backup.nonce,
+        new_recovery_key_salt: fresh.vault_backup.salt,
+        vault_format: MASTER_KEY_VAULT_FORMAT,
+      });
+
+      expect(complete.status, JSON.stringify(complete.json)).toBe(401);
+
+      expect(
+        psql(
+          `SELECT used_at IS NULL FROM password_reset_tokens WHERE token_hash = decode('${token_hash_hex}', 'hex');`,
+        ),
+      ).toBe("t");
     },
   );
 });
