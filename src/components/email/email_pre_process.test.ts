@@ -39,6 +39,7 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
     expect(out).toContain("The actual forwarded text that must stay visible.");
     expect(out).not.toContain("aster-quote-toggle");
     expect(out).not.toContain("display:none");
+    expect(out).toMatch(/class="gmail_quote"[^>]*style="display:\s*block;?"/);
   });
 
   it("does not collapse when an aster_quote forward is the entire message", () => {
@@ -80,6 +81,15 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
     expect(out).not.toContain('style="display:none"');
   });
 
+  it("does not leave the moz-cite-prefix attribution hidden when it is the entire message", () => {
+    const html = `<div class="moz-cite-prefix">On 01/01/2026 9:00 AM, John wrote:<br></div><blockquote type="cite">Original Thunderbird message content.</blockquote>`;
+
+    const out = pre_process_email_html(html, options);
+
+    expect(out).toContain("Original Thunderbird message content.");
+    expect(out).toMatch(/class="moz-cite-prefix"[^>]*style="display:\s*block;?"/);
+  });
+
   it("still collapses quoted history when there is a real reply above it", () => {
     const html = `<div>Thanks, that works for me.</div><div>On Mon, Jan 1, 2026 at 9:00 AM Someone &lt;a@b.com&gt; wrote:</div><blockquote>Old thread content.</blockquote>`;
 
@@ -88,6 +98,16 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
     expect(out).toContain("Thanks, that works for me.");
     expect(out).toContain("aster-quote-toggle");
     expect(out).toContain('style="display:none"');
+  });
+
+  it("does not blank the body when a yahoo_quoted forward is the entire message", () => {
+    const html = `<div class="yahoo_quoted">On Wed, Jan 1, 2026, Someone &lt;a@yahoo.com&gt; wrote:<div>The Yahoo forwarded text that must stay visible.</div></div>`;
+
+    const out = pre_process_email_html(html, options);
+
+    expect(out).toContain("The Yahoo forwarded text that must stay visible.");
+    expect(out).not.toContain("aster-quote-toggle");
+    expect(out).toMatch(/class="yahoo_quoted"[^>]*style="[^"]*display:\s*block/);
   });
 
   it("still collapses the gmail_quote when the user added a note above it", () => {
