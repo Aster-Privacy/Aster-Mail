@@ -83,6 +83,7 @@ export async function complete_recovery(
   new_signed_prekey?: string,
   new_signed_prekey_signature?: string,
   new_pgp_key?: NewPgpKeyData,
+  vault_format?: number,
 ): Promise<ApiResponse<CompleteRecoveryResponse>> {
   return api_client.post<CompleteRecoveryResponse>(
     "/core/v1/recovery/complete",
@@ -100,6 +101,7 @@ export async function complete_recovery(
       new_signed_prekey,
       new_signed_prekey_signature,
       new_pgp_key,
+      vault_format,
     },
   );
 }
@@ -131,6 +133,8 @@ export async function reset_password_with_token(
   new_signed_prekey?: string,
   new_signed_prekey_signature?: string,
   new_pgp_key?: NewPgpKeyData,
+  vault_format?: number,
+  acknowledged_data_loss?: boolean,
 ): Promise<ApiResponse<ResetPasswordResponse>> {
   return api_client.post<ResetPasswordResponse>(
     "/core/v1/recovery/reset-password",
@@ -148,6 +152,8 @@ export async function reset_password_with_token(
       new_signed_prekey,
       new_signed_prekey_signature,
       new_pgp_key,
+      vault_format,
+      acknowledged_data_loss,
     },
   );
 }
@@ -166,5 +172,99 @@ export async function save_recovery_backup(
       recovery_key_salt,
       recovery_shares,
     },
+  );
+}
+
+export interface RecoveryMethods {
+  has_phrase: boolean;
+  has_codes: boolean;
+  codes_remaining: number;
+  recovery_email_set: boolean;
+  recovery_email_verified: boolean;
+  inactive_key_sets: number;
+}
+
+export interface InitiatePhraseRecoveryResponse {
+  wrapped_vault: string;
+  wrap_nonce: string;
+  wrap_salt: string;
+  recovery_token: string;
+}
+
+export interface InactiveKeySetInfo {
+  id: string;
+  vault_version: number;
+  retired_reason: string;
+  retired_at: string;
+}
+
+export interface FetchInactiveKeySetResponse {
+  encrypted_vault: string;
+  vault_nonce: string;
+  vault_version: number;
+}
+
+export async function get_recovery_methods(): Promise<
+  ApiResponse<RecoveryMethods>
+> {
+  return api_client.get<RecoveryMethods>("/core/v1/recovery/methods");
+}
+
+export async function save_phrase_wrap(
+  verifier_hash: string,
+  wrapped_vault: string,
+  wrap_nonce: string,
+  wrap_salt: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.put<{ success: boolean }>("/core/v1/recovery/phrase", {
+    verifier_hash,
+    wrapped_vault,
+    wrap_nonce,
+    wrap_salt,
+  });
+}
+
+export async function delete_phrase_wrap(): Promise<
+  ApiResponse<{ success: boolean }>
+> {
+  return api_client.delete<{ success: boolean }>("/core/v1/recovery/phrase");
+}
+
+export async function initiate_phrase_recovery(
+  email: string,
+  verifier_hash: string,
+): Promise<ApiResponse<InitiatePhraseRecoveryResponse>> {
+  return api_client.post<InitiatePhraseRecoveryResponse>(
+    "/core/v1/recovery/phrase/initiate",
+    {
+      email,
+      verifier_hash,
+    },
+  );
+}
+
+export async function list_inactive_key_sets(): Promise<
+  ApiResponse<{ inactive_key_sets: InactiveKeySetInfo[] }>
+> {
+  return api_client.get<{ inactive_key_sets: InactiveKeySetInfo[] }>(
+    "/core/v1/recovery/inactive",
+  );
+}
+
+export async function fetch_inactive_key_set(
+  inactive_vault_id: string,
+): Promise<ApiResponse<FetchInactiveKeySetResponse>> {
+  return api_client.post<FetchInactiveKeySetResponse>(
+    "/core/v1/recovery/inactive/fetch",
+    { inactive_vault_id },
+  );
+}
+
+export async function consume_inactive_key_set(
+  inactive_vault_id: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.post<{ success: boolean }>(
+    "/core/v1/recovery/inactive/consume",
+    { inactive_vault_id },
   );
 }

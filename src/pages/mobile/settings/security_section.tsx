@@ -52,7 +52,23 @@ import {
   encrypt_vault,
   decrypt_vault,
 } from "@/services/crypto/key_manager";
-import { store_vault_in_memory } from "@/services/crypto/memory_key_store";
+import {
+  store_vault_in_memory,
+  get_vault_from_memory,
+  is_master_key_vault,
+  MASTER_KEY_VAULT_FORMAT,
+} from "@/services/crypto/memory_key_store";
+import { reprotect_pgp_key } from "@/services/crypto/key_manager_pgp";
+import {
+  serialize_kek_for_vault,
+  prepend_kek_to_list,
+} from "@/services/crypto/legacy_keks";
+import {
+  derive_preferences_key_raw,
+  derive_dev_mode_key_raw,
+} from "@/services/api/preferences";
+import { reencrypt_identity_scoped_password_change } from "@/services/crypto/recovery_reencrypt";
+import { reencrypt_all_sent_mail } from "@/services/send_queue_encryption";
 import { get_totp_status, type TotpStatusResponse } from "@/services/api/totp";
 import {
   get_login_alerts_status,
@@ -244,6 +260,82 @@ export function SecuritySection({
 
         return;
       }
+      const memory_vault = get_vault_from_memory();
+
+      if (!is_master_key_vault(vault) && is_master_key_vault(memory_vault)) {
+        vault.data_kek = memory_vault?.data_kek;
+        vault.vault_format = memory_vault?.vault_format;
+        vault.mk_created_at = memory_vault?.mk_created_at;
+        vault.legacy_keks = memory_vault?.legacy_keks
+          ? [...memory_vault.legacy_keks]
+          : vault.legacy_keks;
+      }
+
+      const master_key_mode = is_master_key_vault(vault);
+      const old_identity_key = vault.identity_key;
+
+      if (master_key_mode) {
+        const old_prefs_key_raw =
+          await derive_preferences_key_raw(old_identity_key);
+        const old_dev_mode_key_raw =
+          await derive_dev_mode_key_raw(old_identity_key);
+
+        if (!vault.previous_keys) {
+          vault.previous_keys = [];
+        }
+        vault.previous_keys.unshift(vault.identity_key);
+        if (vault.previous_keys.length > 10) {
+          vault.previous_keys = vault.previous_keys.slice(0, 10);
+        }
+
+        vault.identity_key = await reprotect_pgp_key(
+          vault.identity_key,
+          current_password,
+          new_password,
+        );
+
+        if (vault.signed_prekey_private) {
+          vault.signed_prekey_private = await reprotect_pgp_key(
+            vault.signed_prekey_private,
+            current_password,
+            new_password,
+          );
+        }
+
+        vault.legacy_keks = prepend_kek_to_list(
+          vault.legacy_keks,
+          serialize_kek_for_vault(old_prefs_key_raw),
+        );
+        vault.legacy_keks = prepend_kek_to_list(
+          vault.legacy_keks,
+          serialize_kek_for_vault(old_dev_mode_key_raw),
+        );
+
+        const old_folder_material = new TextEncoder().encode(
+          old_identity_key + "astermail-labels-v1",
+        );
+        const old_folder_hash = new Uint8Array(
+          await crypto.subtle.digest("SHA-256", old_folder_material),
+        );
+
+        vault.legacy_keks = prepend_kek_to_list(
+          vault.legacy_keks,
+          serialize_kek_for_vault(old_folder_hash),
+        );
+
+        const old_tag_material = new TextEncoder().encode(
+          old_identity_key + "astermail-tags-v1",
+        );
+        const old_tag_hash = new Uint8Array(
+          await crypto.subtle.digest("SHA-256", old_tag_material),
+        );
+
+        vault.legacy_keks = prepend_kek_to_list(
+          vault.legacy_keks,
+          serialize_kek_for_vault(old_tag_hash),
+        );
+      }
+
       const new_salt = crypto.getRandomValues(new Uint8Array(16));
       const { hash: new_pw_hash, salt: new_pw_salt } =
         await derive_password_hash(new_password, new_salt);
@@ -255,6 +347,7 @@ export function SecuritySection({
         new_password_salt: new_pw_salt,
         new_encrypted_vault: new_enc_vault,
         new_vault_nonce: new_v_nonce,
+        vault_format: master_key_mode ? MASTER_KEY_VAULT_FORMAT : undefined,
       });
 
       if (res.error) {
@@ -282,6 +375,14 @@ export function SecuritySection({
       }
       if (res.data?.access_token) {
         api_client.set_dev_token(res.data.access_token);
+      }
+
+      if (master_key_mode) {
+        reencrypt_all_sent_mail(current_password, new_password).catch(() => {});
+        reencrypt_identity_scoped_password_change(
+          old_identity_key,
+          vault.identity_key,
+        ).catch(() => {});
       }
 
       set_pw_success(true);

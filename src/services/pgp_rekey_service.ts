@@ -32,7 +32,9 @@ import {
   get_vault_from_memory,
   get_passphrase_from_memory,
   store_vault_in_memory,
+  MASTER_KEY_VAULT_FORMAT,
 } from "@/services/crypto/memory_key_store";
+import { get_current_account } from "@/services/account_manager";
 
 const PREVIOUS_KEYS_LIMIT = 10;
 
@@ -97,7 +99,15 @@ export async function perform_pgp_rekey(
       password,
     );
 
-    const vault_saved = await update_vault(encrypted_vault, vault_nonce);
+    const current_account = await get_current_account();
+    const vault_saved = await update_vault(
+      encrypted_vault,
+      vault_nonce,
+      current_vault.data_kek
+        ? MASTER_KEY_VAULT_FORMAT
+        : new_vault.vault_format,
+      current_account?.user?.id,
+    );
 
     if (!vault_saved.success) {
       return {

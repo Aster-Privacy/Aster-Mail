@@ -29,6 +29,7 @@ import {
 } from "@/services/crypto/key_manager";
 import { get_stored_encrypted_vault } from "@/contexts/auth/session_passphrase";
 import { retain_previous_ratchet_keys } from "@/services/crypto/key_manager_core";
+import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import {
   parse_ratchet_envelope,
   decrypt_ratchet_message,
@@ -310,6 +311,9 @@ export async function perform_key_rotation(
       new_signed_prekey_signature: btoa(prekey_signature),
       encrypted_vault,
       vault_nonce,
+      vault_format: current_vault.data_kek
+        ? MASTER_KEY_VAULT_FORMAT
+        : (new_vault.vault_format ?? 1),
     };
 
     const response = await rotate_identity_key(request);

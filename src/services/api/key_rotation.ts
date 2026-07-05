@@ -35,6 +35,7 @@ export interface RotateIdentityKeyRequest {
   new_signed_prekey_signature?: string;
   encrypted_vault?: string;
   vault_nonce?: string;
+  vault_format?: number;
 }
 
 export interface RotateIdentityKeyResponse {
@@ -77,10 +78,17 @@ export async function rotate_identity_key(
 export async function update_vault(
   encrypted_vault: string,
   vault_nonce: string,
+  vault_format?: number,
+  expected_user_id?: string,
 ): Promise<{ success: boolean; error?: string }> {
   const response = await api_client.put<{ success: boolean }>(
     "/crypto/v1/keys/vault",
-    { encrypted_vault, vault_nonce },
+    {
+      encrypted_vault,
+      vault_nonce,
+      vault_format: vault_format ?? 1,
+      expected_user_id,
+    },
   );
 
   if (response.error) {

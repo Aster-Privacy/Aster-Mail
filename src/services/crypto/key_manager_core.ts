@@ -97,6 +97,8 @@ export interface EncryptedVault {
   ratchet_previous_keys?: RatchetKeySet[];
   legacy_keks?: LegacyDerivedKek[];
   data_kek?: string;
+  vault_format?: number;
+  mk_created_at?: string;
 }
 
 export interface VaultEncryptionResult {

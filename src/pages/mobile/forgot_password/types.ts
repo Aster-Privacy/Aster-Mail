@@ -21,11 +21,14 @@
 
 export type RecoveryStep =
   | "email"
+  | "method_choice"
+  | "phrase"
   | "code"
   | "password"
   | "processing"
   | "new_codes"
-  | "success";
+  | "success"
+  | "email_sent";
 
 export interface StepProps {
   error: string;
@@ -41,6 +44,23 @@ export interface EmailStepProps extends StepProps {
   email_domain: "astermail.org" | "aster.cx";
   set_email_domain: (domain: "astermail.org" | "aster.cx") => void;
   on_next: () => void;
+  on_navigate_sign_in: () => void;
+}
+
+export interface MethodChoiceStepProps extends StepProps {
+  on_select_phrase: () => void;
+  on_select_code: () => void;
+  on_select_email: () => void;
+}
+
+export interface PhraseStepProps extends StepProps {
+  phrase_words: string[];
+  update_phrase_word: (index: number, value: string) => void;
+  on_submit: () => void;
+}
+
+export interface EmailSentStepProps {
+  reduce_motion: boolean;
   on_navigate_sign_in: () => void;
 }
 

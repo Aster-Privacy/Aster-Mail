@@ -97,6 +97,7 @@ async function push_vault_to_server(
   encrypted_vault: string,
   vault_nonce: string,
   expected_user_id: string,
+  vault_format?: number,
 ): Promise<boolean> {
   const current_account = await get_current_account();
 
@@ -106,6 +107,7 @@ async function push_vault_to_server(
     encrypted_vault,
     vault_nonce,
     expected_user_id,
+    vault_format: vault_format ?? 1,
   });
 
   return !response.error;
@@ -338,6 +340,7 @@ async function run(): Promise<boolean> {
       encrypted_vault,
       vault_nonce,
       user_id,
+      vault.vault_format,
     );
 
     if (!pushed) return false;

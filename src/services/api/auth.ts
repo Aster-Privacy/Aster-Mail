@@ -56,6 +56,7 @@ interface RegisterRequest {
   signed_prekey_signature: string;
   encrypted_vault: string;
   vault_nonce: string;
+  vault_format?: number;
   remember_me?: boolean;
   encrypted_vault_backup?: string;
   vault_backup_nonce?: string;
@@ -192,6 +193,7 @@ interface ChangePasswordRequest {
   new_password_salt: string;
   new_encrypted_vault: string;
   new_vault_nonce: string;
+  vault_format?: number;
   re_encrypted_aliases?: ReEncryptedAlias[];
   re_encrypted_contacts?: ReEncryptedContact[];
   re_encrypted_pins?: ReEncryptedPin[];

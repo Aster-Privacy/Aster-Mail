@@ -27,6 +27,7 @@ import {
   has_vault_in_memory,
 } from "@/services/crypto/memory_key_store";
 import { auto_rekey_if_needed, reset_rekey_flag } from "@/services/crypto/auto_rekey";
+import { adopt_master_key_if_needed } from "@/services/crypto/mk_adoption";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import {
@@ -119,6 +120,10 @@ export async function decrypt_vault_with_lock(
 
     reset_rekey_flag();
     await store_vault_in_memory(vault, passphrase);
+
+    try {
+      await adopt_master_key_if_needed(vault, passphrase);
+    } catch {}
 
     auto_rekey_if_needed()
       .then((did_rekey) => {

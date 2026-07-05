@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { sha256 } from "@noble/hashes/sha256";
 
 import type { EncryptedVault } from "./key_manager";
-import { array_to_base64 } from "./key_manager_core";
-import { en } from "@/lib/i18n/translations/en";
 
+import { sha256 } from "@noble/hashes/sha256";
+
+import { array_to_base64 } from "./key_manager_core";
 import {
   SecureBuffer,
   zero_uint8_array,
@@ -42,9 +42,49 @@ import {
 import {
   load_legacy_keks_into_memory,
   clear_legacy_keks_from_memory,
+  append_legacy_key_raw_bytes,
 } from "./legacy_keks";
 
+import { en } from "@/lib/i18n/translations/en";
+
 const HASH_ALG = ["SHA", "256"].join("-");
+
+export const MASTER_KEY_VAULT_FORMAT = 2;
+
+export function is_master_key_vault(
+  vault: Pick<EncryptedVault, "vault_format" | "data_kek"> | null,
+): boolean {
+  return (
+    !!vault &&
+    (vault.vault_format ?? 1) >= MASTER_KEY_VAULT_FORMAT &&
+    !!vault.data_kek
+  );
+}
+
+function base64_to_array(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
+}
+
+function arrays_equal(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  let diff = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    diff |= a[i] ^ b[i];
+  }
+
+  return diff === 0;
+}
 
 interface HmrState {
   vault_in_memory: EncryptedVault | null;
@@ -164,6 +204,8 @@ export async function store_vault_in_memory(
       : undefined,
     legacy_keks: vault.legacy_keks ? [...vault.legacy_keks] : undefined,
     data_kek: vault.data_kek,
+    vault_format: vault.vault_format,
+    mk_created_at: vault.mk_created_at,
   };
 
   await load_legacy_keks_into_memory(vault.legacy_keks);
@@ -175,7 +217,21 @@ export async function store_vault_in_memory(
 
   const passphrase_bytes = secure_passphrase.get_bytes();
 
-  if (passphrase_bytes) {
+  const uses_master_key = is_master_key_vault(vault);
+
+  if (uses_master_key && vault.data_kek) {
+    derived_encryption_key = base64_to_array(vault.data_kek);
+    if (passphrase_bytes) {
+      const password_derived =
+        await derive_encryption_key_from_passphrase(passphrase_bytes);
+
+      zero_uint8_array(passphrase_bytes);
+      if (!arrays_equal(password_derived, derived_encryption_key)) {
+        await append_legacy_key_raw_bytes(password_derived);
+      }
+      zero_uint8_array(password_derived);
+    }
+  } else if (passphrase_bytes) {
     derived_encryption_key =
       await derive_encryption_key_from_passphrase(passphrase_bytes);
     zero_uint8_array(passphrase_bytes);
@@ -428,8 +484,10 @@ let active_export_token: { token: string; expires_at: number } | null = null;
 export function issue_export_token(): string | null {
   if (!has_vault_in_memory() || !has_passphrase_in_memory()) return null;
   const rand = new Uint8Array(32);
+
   crypto.getRandomValues(rand);
   let token = "";
+
   for (let i = 0; i < rand.length; i++) {
     token += rand[i].toString(16).padStart(2, "0");
   }
@@ -437,6 +495,7 @@ export function issue_export_token(): string | null {
     token,
     expires_at: Date.now() + EXPORT_TOKEN_TTL_MS,
   };
+
   return token;
 }
 
@@ -444,10 +503,12 @@ export function consume_export_token(token: string): boolean {
   if (!active_export_token) return false;
   if (active_export_token.expires_at < Date.now()) {
     active_export_token = null;
+
     return false;
   }
   if (active_export_token.token !== token) return false;
   active_export_token = null;
+
   return true;
 }
 
