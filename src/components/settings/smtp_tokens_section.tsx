@@ -40,6 +40,7 @@ import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import { show_toast } from "@/components/toast/simple_toast";
 
 function format_date_short(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -84,7 +85,15 @@ export function SmtpTokensSection() {
     set_confirm_revoke_id(null);
     set_revoking_id(id);
     try {
-      await revoke_smtp_token(id);
+      const res = await revoke_smtp_token(id);
+      if (res.error) {
+        show_toast(
+          res.error || t("settings.smtp_token_revoke_failed_toast"),
+          "error",
+        );
+        return;
+      }
+      show_toast(t("settings.smtp_token_revoked_toast"), "success");
       load_tokens();
     } finally {
       set_revoking_id(null);

@@ -1385,6 +1385,8 @@ export const pt = {
     smtp_token_never_used: "Nunca",
     smtp_token_revoke_title: "Revogar token?",
     smtp_token_revoke_message: "Isto revogará permanentemente {{ name }}. Qualquer aplicativo que o utilize não poderá mais enviar e-mails.",
+    smtp_token_revoked_toast: "Token SMTP revogado",
+    smtp_token_revoke_failed_toast: "Não foi possível revogar o token SMTP. Tente novamente.",
     smtp_token_not_e2e_title: "As mensagens enviadas com tokens SMTP não têm criptografia de ponta a ponta",
     smtp_token_not_e2e_body: "O e-mail enviado por meio de um token SMTP é protegido por TLS em trânsito e armazenado com criptografia de acesso zero em nossos servidores, mas não tem criptografia de ponta a ponta. O Aster não pode aplicar criptografia de ponta a ponta a e-mails originados fora dos aplicativos Aster. Use tokens SMTP apenas para e-mails automatizados ou transacionais em que a criptografia de ponta a ponta não seja necessária.",
     fam_org_sec_member_notice: "Estas regras de segurança são definidas pelo proprietário do plano e se aplicam à sua conta.",

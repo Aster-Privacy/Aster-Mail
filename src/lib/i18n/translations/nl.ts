@@ -1360,6 +1360,8 @@ export const nl = {
     smtp_token_never_used: "Nooit",
     smtp_token_revoke_title: "Token intrekken?",
     smtp_token_revoke_message: "Hiermee wordt {{ name }} permanent ingetrokken. Elke app die deze gebruikt, kan dan geen e-mail meer verzenden.",
+    smtp_token_revoked_toast: "SMTP-token ingetrokken",
+    smtp_token_revoke_failed_toast: "SMTP-token kon niet worden ingetrokken. Probeer het opnieuw.",
     smtp_token_not_e2e_title: "Berichten die met SMTP-tokens worden verzonden, zijn niet end-to-end versleuteld",
     smtp_token_not_e2e_body: "E-mail die via een SMTP-token wordt verzonden, wordt onderweg beschermd met TLS en op onze servers opgeslagen met zero-access-versleuteling, maar is niet end-to-end versleuteld. Aster kan geen end-to-end-versleuteling toepassen op e-mail die buiten de Aster-apps ontstaat. Gebruik SMTP-tokens alleen voor geautomatiseerde of transactionele e-mail waarbij end-to-end-versleuteling niet vereist is.",
     fam_org_sec_member_notice: "Deze beveiligingsregels worden ingesteld door de planeigenaar en zijn van toepassing op uw account.",

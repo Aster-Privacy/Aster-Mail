@@ -1769,6 +1769,8 @@ export interface SettingsTranslations {
   smtp_token_never_used: string;
   smtp_token_revoke_title: string;
   smtp_token_revoke_message: string;
+  smtp_token_revoked_toast: string;
+  smtp_token_revoke_failed_toast: string;
   smtp_token_not_e2e_title: string;
   smtp_token_not_e2e_body: string;
   desktop_bridge_title: string;

@@ -1526,6 +1526,9 @@ export const en: Translations = {
     smtp_token_revoke_title: "Revoke token?",
     smtp_token_revoke_message:
       "This will permanently revoke {{ name }}. Any app using it will no longer be able to send mail.",
+    smtp_token_revoked_toast: "SMTP token revoked",
+    smtp_token_revoke_failed_toast:
+      "Could not revoke SMTP token. Please try again.",
     smtp_token_not_e2e_title:
       "Messages sent with SMTP tokens are not end-to-end encrypted",
     smtp_token_not_e2e_body:

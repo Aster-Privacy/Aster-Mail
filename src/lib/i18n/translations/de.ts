@@ -1385,6 +1385,8 @@ export const de = {
     smtp_token_never_used: "Nie",
     smtp_token_revoke_title: "Token widerrufen?",
     smtp_token_revoke_message: "Dadurch wird {{ name }} dauerhaft widerrufen. Jede App, die ihn verwendet, kann dann keine E-Mails mehr senden.",
+    smtp_token_revoked_toast: "SMTP-Token widerrufen",
+    smtp_token_revoke_failed_toast: "SMTP-Token konnte nicht widerrufen werden. Bitte versuche es erneut.",
     smtp_token_not_e2e_title: "Mit SMTP-Token gesendete Nachrichten sind nicht Ende-zu-Ende-verschlüsselt",
     smtp_token_not_e2e_body: "E-Mails, die über einen SMTP-Token gesendet werden, sind während der Übertragung durch TLS geschützt und werden mit Zero-Access-Verschlüsselung auf unseren Servern gespeichert, sind jedoch nicht Ende-zu-Ende-verschlüsselt. Aster kann keine Ende-zu-Ende-Verschlüsselung auf E-Mails anwenden, die außerhalb der Aster-Apps entstehen. Verwenden Sie SMTP-Token nur für automatisierte oder transaktionale E-Mails, bei denen keine Ende-zu-Ende-Verschlüsselung erforderlich ist.",
     fam_org_sec_member_notice: "Diese Sicherheitsregeln werden vom Planinhaber festgelegt und gelten für Ihr Konto.",
