@@ -292,6 +292,7 @@ export function FamilySection({
   }
 
   const is_owner = group.viewer_role === "owner";
+  const active_members = group.members.filter((m) => m.status === "active");
   const pool_pct = storage_bar_pct(
     group.storage_used_bytes,
     group.storage_pool_bytes,
@@ -325,14 +326,14 @@ export function FamilySection({
               />
             </div>
             <p className="mt-2 text-[12px] text-[var(--mobile-text-secondary)]">
-              {group.plan_name} &middot; {group.members.length}/{group.max_members}{" "}
+              {group.plan_name} &middot; {active_members.length}/{group.max_members}{" "}
               {t("settings.family_members").toLowerCase()}
             </p>
           </div>
         </div>
 
         <SettingsGroup title={t("settings.family_members")}>
-          {group.members.map((member, i) => {
+          {active_members.map((member, i) => {
             const member_pct = storage_bar_pct(
               member.storage_used_bytes,
               member.allocated_storage_bytes,
