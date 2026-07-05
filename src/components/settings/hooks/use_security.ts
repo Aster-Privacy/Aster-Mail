@@ -62,11 +62,16 @@ import {
 } from "@/services/api/preferences";
 import { reencrypt_all_sent_mail } from "@/services/send_queue_encryption";
 import { re_encrypt_user_data } from "@/services/crypto/password_change_reencrypt";
-import { reencrypt_settings_password_change } from "@/services/crypto/recovery_reencrypt";
+import {
+  reencrypt_settings_password_change,
+  reencrypt_identity_scoped_password_change,
+} from "@/services/crypto/recovery_reencrypt";
 import {
   get_vault_from_memory,
   store_vault_in_memory,
   get_passphrase_from_memory,
+  is_master_key_vault,
+  MASTER_KEY_VAULT_FORMAT,
 } from "@/services/crypto/memory_key_store";
 import {
   generate_ratchet_keys,
@@ -415,6 +420,19 @@ export function use_security() {
         return;
       }
 
+      const memory_vault = get_vault_from_memory();
+
+      if (!is_master_key_vault(vault) && is_master_key_vault(memory_vault)) {
+        vault.data_kek = memory_vault?.data_kek;
+        vault.vault_format = memory_vault?.vault_format;
+        vault.mk_created_at = memory_vault?.mk_created_at;
+        vault.legacy_keks = memory_vault?.legacy_keks
+          ? [...memory_vault.legacy_keks]
+          : vault.legacy_keks;
+      }
+
+      const master_key_mode = is_master_key_vault(vault);
+
       const old_identity_key = vault.identity_key;
 
       const old_prefs_key_raw =
@@ -449,12 +467,15 @@ export function use_security() {
       const { hash: new_password_hash, salt: new_password_salt } =
         await derive_password_hash(new_password, new_salt);
 
-      const old_kek_raw = await derive_kek_from_password(current_password);
+      if (!master_key_mode) {
+        const old_kek_raw = await derive_kek_from_password(current_password);
 
-      vault.legacy_keks = prepend_kek_to_list(
-        vault.legacy_keks,
-        serialize_kek_for_vault(old_kek_raw),
-      );
+        vault.legacy_keks = prepend_kek_to_list(
+          vault.legacy_keks,
+          serialize_kek_for_vault(old_kek_raw),
+        );
+      }
+
       vault.legacy_keks = prepend_kek_to_list(
         vault.legacy_keks,
         serialize_kek_for_vault(old_prefs_key_raw),
@@ -493,30 +514,43 @@ export function use_security() {
         vault_nonce: new_vault_nonce,
       } = await encrypt_vault(vault, new_password);
 
-      const {
-        re_encrypted_aliases,
-        re_encrypted_contacts,
-        re_encrypted_pins,
-        re_encrypted_alias_contacts,
-        re_encrypted_destinations,
-        re_encrypted_directories,
-        re_encrypted_domain_addresses,
-      } = await re_encrypt_user_data(current_password, new_password);
+      let response;
 
-      const response = await change_password({
-        current_password_hash,
-        new_password_hash,
-        new_password_salt,
-        new_encrypted_vault,
-        new_vault_nonce,
-        re_encrypted_aliases,
-        re_encrypted_contacts,
-        re_encrypted_pins,
-        re_encrypted_alias_contacts,
-        re_encrypted_destinations,
-        re_encrypted_directories,
-        re_encrypted_domain_addresses,
-      });
+      if (master_key_mode) {
+        response = await change_password({
+          current_password_hash,
+          new_password_hash,
+          new_password_salt,
+          new_encrypted_vault,
+          new_vault_nonce,
+          vault_format: MASTER_KEY_VAULT_FORMAT,
+        });
+      } else {
+        const {
+          re_encrypted_aliases,
+          re_encrypted_contacts,
+          re_encrypted_pins,
+          re_encrypted_alias_contacts,
+          re_encrypted_destinations,
+          re_encrypted_directories,
+          re_encrypted_domain_addresses,
+        } = await re_encrypt_user_data(current_password, new_password);
+
+        response = await change_password({
+          current_password_hash,
+          new_password_hash,
+          new_password_salt,
+          new_encrypted_vault,
+          new_vault_nonce,
+          re_encrypted_aliases,
+          re_encrypted_contacts,
+          re_encrypted_pins,
+          re_encrypted_alias_contacts,
+          re_encrypted_destinations,
+          re_encrypted_directories,
+          re_encrypted_domain_addresses,
+        });
+      }
 
       if (response.error) {
         set_password_error(response.error);
@@ -562,12 +596,20 @@ export function use_security() {
       } catch {}
 
       reencrypt_all_sent_mail(current_password, new_password).catch(() => {});
-      reencrypt_settings_password_change(
-        current_password,
-        new_password,
-        old_identity_key,
-        vault.identity_key,
-      ).catch(() => {});
+
+      if (master_key_mode) {
+        reencrypt_identity_scoped_password_change(
+          old_identity_key,
+          vault.identity_key,
+        ).catch(() => {});
+      } else {
+        reencrypt_settings_password_change(
+          current_password,
+          new_password,
+          old_identity_key,
+          vault.identity_key,
+        ).catch(() => {});
+      }
 
       set_password_success(true);
       set_show_password_section(false);

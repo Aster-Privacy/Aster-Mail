@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { CodeStepProps } from "./types";
+import type { PhraseStepProps } from "./types";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
@@ -29,25 +29,23 @@ import {
   stagger_container,
   fade_up_item,
   button_tap,
-  DEPTH_INPUT_WRAPPER_CLASS,
   DEPTH_CTA_CLASS,
   DEPTH_CTA_STYLE,
   DEPTH_SECONDARY_CLASS,
   BACK_BUTTON_CLASS,
   BACK_BUTTON_STYLE,
-  INNER_INPUT_CLASS,
 } from "@/components/auth/mobile_auth_motion";
 
-export function CodeStep({
-  recovery_code,
-  set_recovery_code,
+export function PhraseStep({
+  phrase_words,
+  update_phrase_word,
   error,
   is_dark,
   reduce_motion,
   set_error,
   set_step,
   on_submit,
-}: CodeStepProps) {
+}: PhraseStepProps) {
   const { t } = use_i18n();
 
   return (
@@ -68,7 +66,7 @@ export function CodeStep({
 
       <motion.div
         animate="animate"
-        className="flex flex-1 flex-col items-center px-6 pt-6"
+        className="flex flex-1 flex-col items-center overflow-y-auto px-6 pt-6"
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
@@ -81,17 +79,17 @@ export function CodeStep({
         />
 
         <motion.h1
-          className="mt-6 text-xl font-semibold text-[var(--text-primary)]"
+          className="mt-6 text-center text-xl font-semibold text-[var(--text-primary)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          {t("auth.enter_recovery_code")}
+          {t("auth.phrase_entry_title")}
         </motion.h1>
 
         <motion.p
           className="mt-2 text-center text-sm leading-relaxed text-[var(--text-tertiary)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          {t("auth.enter_recovery_code_desc")}
+          {t("auth.phrase_entry_desc")}
         </motion.p>
 
         <AnimatePresence>
@@ -109,22 +107,22 @@ export function CodeStep({
         </AnimatePresence>
 
         <motion.div
-          className={`w-full ${error ? "mt-4" : "mt-6"}`}
+          className={`grid w-full grid-cols-3 gap-2 ${error ? "mt-4" : "mt-6"}`}
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          <div className={DEPTH_INPUT_WRAPPER_CLASS}>
+          {phrase_words.map((word, index) => (
             <Input
+              key={index}
               autoComplete="off"
-              className={INNER_INPUT_CLASS}
-              placeholder="ASTER-XXXX-XXXX-XXXX-XXXX"
+              className="!px-2 font-mono text-sm"
+              placeholder={`${index + 1}`}
               status={error ? "error" : "default"}
-              style={{ fontFamily: "monospace", letterSpacing: "0.5px" }}
               type="text"
-              value={recovery_code}
-              onChange={(e) => set_recovery_code(e.target.value.toUpperCase())}
+              value={word}
+              onChange={(e) => update_phrase_word(index, e.target.value)}
               onKeyDown={(e) => e["key"] === "Enter" && on_submit()}
             />
-          </div>
+          ))}
         </motion.div>
       </motion.div>
 
@@ -142,7 +140,7 @@ export function CodeStep({
           whileTap={button_tap}
           onClick={on_submit}
         >
-          {t("auth.verify_code")}
+          {t("common.continue")}
         </motion.button>
         <motion.button
           className={DEPTH_SECONDARY_CLASS}

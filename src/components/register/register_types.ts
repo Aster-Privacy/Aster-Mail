@@ -24,6 +24,8 @@ export type RegistrationStep =
   | "password"
   | "generating"
   | "recovery_key"
+  | "recovery_phrase"
+  | "phrase_confirm"
   | "recovery_email"
   | "recovery_email_verification"
   | "recovery_email_gate"

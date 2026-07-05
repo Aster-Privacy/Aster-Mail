@@ -25,11 +25,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { EmailStep } from "./forgot_password/email_step";
+import { MethodChoiceStep } from "./forgot_password/method_choice_step";
+import { PhraseStep } from "./forgot_password/phrase_step";
 import { CodeStep } from "./forgot_password/code_step";
 import { PasswordStep } from "./forgot_password/password_step";
 import { ProcessingStep } from "./forgot_password/processing_step";
 import { NewCodesStep } from "./forgot_password/new_codes_step";
 import { SuccessStep } from "./forgot_password/success_step";
+import { EmailSentStep } from "./forgot_password/email_sent_step";
 
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { useTheme } from "@/contexts/theme_context";
@@ -53,9 +56,22 @@ import {
   clear_recovery_key,
   VaultBackup,
 } from "@/services/crypto/recovery_key";
+import { EncryptedVault } from "@/services/crypto/key_manager_core";
+import {
+  MASTER_KEY_VAULT_FORMAT,
+  is_master_key_vault,
+} from "@/services/crypto/memory_key_store";
+import {
+  is_valid_recovery_phrase,
+  compute_phrase_verifier,
+  unwrap_vault_with_phrase,
+  RECOVERY_PHRASE_WORD_COUNT,
+} from "@/services/crypto/recovery_phrase";
 import {
   initiate_recovery,
   complete_recovery,
+  forgot_password_email,
+  initiate_phrase_recovery,
 } from "@/services/api/recovery";
 import { store_pending_reencryption } from "@/services/crypto/recovery_reencrypt";
 import {
@@ -98,6 +114,18 @@ export default function MobileForgotPasswordPage() {
   const [encrypted_recovery_key_data, set_encrypted_recovery_key_data] =
     useState<{ encrypted_key: string; nonce: string } | null>(null);
 
+  const [recovery_method, set_recovery_method] = useState<"code" | "phrase">(
+    "code",
+  );
+  const [phrase_words, set_phrase_words] = useState<string[]>(
+    Array(RECOVERY_PHRASE_WORD_COUNT).fill(""),
+  );
+  const [phrase_wrap, set_phrase_wrap] = useState<{
+    wrapped_vault: string;
+    wrap_nonce: string;
+    wrap_salt: string;
+  } | null>(null);
+
   const handle_email_next = () => {
     set_error("");
     const clean_username = sanitize_username(username.trim());
@@ -111,7 +139,250 @@ export default function MobileForgotPasswordPage() {
     const full_email = `${clean_username}@${email_domain}`;
 
     set_email(full_email);
-    set_step("code");
+    set_step("method_choice");
+  };
+
+  const handle_email_reset_link = async () => {
+    set_error("");
+    const clean_username = sanitize_username(username.trim());
+
+    if (!clean_username) {
+      set_error(t("errors.invalid_username"));
+      set_step("email");
+
+      return;
+    }
+
+    set_step("processing");
+    set_processing_status(t("auth.sending_reset_link"));
+
+    try {
+      await forgot_password_email(clean_username, email_domain);
+    } catch {}
+
+    await timing_safe_delay();
+
+    set_step("email_sent");
+  };
+
+  const update_phrase_word = (index: number, value: string) => {
+    const parts = value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+    set_phrase_words((prev) => {
+      const next = [...prev];
+
+      if (parts.length > 1) {
+        for (
+          let i = 0;
+          i < parts.length && index + i < RECOVERY_PHRASE_WORD_COUNT;
+          i++
+        ) {
+          next[index + i] = parts[i];
+        }
+      } else {
+        next[index] = value.replace(/\s/g, "").toLowerCase();
+      }
+
+      return next;
+    });
+  };
+
+  const handle_phrase_submit = async () => {
+    set_error("");
+
+    const phrase = phrase_words.map((word) => word.trim()).join(" ");
+
+    if (!is_valid_recovery_phrase(phrase)) {
+      set_error(t("auth.phrase_entry_invalid"));
+
+      return;
+    }
+
+    if (!email.trim()) {
+      set_error(t("auth.please_enter_email_address"));
+      set_step("email");
+
+      return;
+    }
+
+    set_step("processing");
+    set_processing_status(t("auth.recovering_account_data"));
+
+    try {
+      const verifier_hash = await compute_phrase_verifier(phrase);
+      const response = await initiate_phrase_recovery(
+        email.trim().toLowerCase(),
+        verifier_hash,
+      );
+
+      if (response.error || !response.data) {
+        await timing_safe_delay();
+        set_error(t("auth.phrase_recovery_failed"));
+        set_step("phrase");
+
+        return;
+      }
+
+      set_phrase_wrap({
+        wrapped_vault: response.data.wrapped_vault,
+        wrap_nonce: response.data.wrap_nonce,
+        wrap_salt: response.data.wrap_salt,
+      });
+      set_recovery_token(response.data.recovery_token);
+
+      set_step("password");
+    } catch {
+      await timing_safe_delay();
+      set_error(t("auth.phrase_recovery_failed"));
+      set_step("phrase");
+    }
+  };
+
+  const complete_phrase_recovery = async () => {
+    if (!phrase_wrap || !recovery_token) {
+      set_error(t("auth.recovery_session_expired"));
+      set_step("email");
+
+      return;
+    }
+
+    set_step("processing");
+    set_processing_status(t("auth.decrypting_vault"));
+
+    try {
+      const phrase = phrase_words.map((word) => word.trim()).join(" ");
+      const vault_json = await unwrap_vault_with_phrase(
+        phrase,
+        phrase_wrap.wrapped_vault,
+        phrase_wrap.wrap_nonce,
+        phrase_wrap.wrap_salt,
+      );
+
+      if (!vault_json) {
+        await timing_safe_delay();
+        set_error(t("auth.phrase_recovery_failed"));
+        set_step("phrase");
+
+        return;
+      }
+
+      let vault: EncryptedVault;
+
+      try {
+        vault = JSON.parse(vault_json) as EncryptedVault;
+      } catch {
+        await timing_safe_delay();
+        set_error(t("auth.phrase_recovery_failed"));
+        set_step("phrase");
+
+        return;
+      }
+
+      const vault_uses_master_key = is_master_key_vault(vault);
+      const old_data_kek = vault.data_kek ?? null;
+      const old_identity_key = vault.identity_key;
+
+      set_processing_status(t("auth.generating_new_encryption_keys"));
+      const salt = crypto.getRandomValues(new Uint8Array(32));
+      const { hash: password_hash, salt: password_salt } =
+        await derive_password_hash(password, salt);
+
+      const display_name = email.split("@")[0] || "User";
+
+      const new_identity_keypair = await generate_identity_keypair(
+        display_name,
+        email,
+        password,
+      );
+
+      const { keypair: new_prekey_keypair, signature: prekey_signature } =
+        await generate_signed_prekey(
+          display_name,
+          email,
+          password,
+          new_identity_keypair.secret_key,
+        );
+
+      const pgp_key_data = await prepare_pgp_key_data(
+        new_identity_keypair,
+        password,
+      );
+
+      if (!vault.previous_keys) {
+        vault.previous_keys = [];
+      }
+      if (
+        vault.identity_key &&
+        !vault.previous_keys.includes(vault.identity_key)
+      ) {
+        vault.previous_keys.unshift(vault.identity_key);
+      }
+      if (vault.previous_keys.length > 10) {
+        vault.previous_keys = vault.previous_keys.slice(0, 10);
+      }
+
+      vault.identity_key = new_identity_keypair.secret_key;
+      vault.signed_prekey = new_prekey_keypair.public_key;
+      vault.signed_prekey_private = new_prekey_keypair.secret_key;
+
+      set_processing_status(t("auth.creating_new_recovery_codes"));
+      const new_codes = generate_recovery_codes(6);
+
+      set_new_recovery_codes(new_codes);
+
+      vault.recovery_codes = new_codes;
+
+      set_processing_status(t("auth.encrypting_vault_new_password"));
+      const { encrypted_vault, vault_nonce } = await encrypt_vault(
+        vault,
+        password,
+      );
+
+      set_processing_status(t("auth.creating_new_recovery_backup"));
+      const new_recovery_key = generate_recovery_key();
+      const new_backup = await encrypt_vault_backup(vault, new_recovery_key);
+      const new_shares = await generate_all_recovery_shares(
+        new_codes,
+        new_recovery_key,
+      );
+
+      clear_recovery_key(new_recovery_key);
+
+      set_processing_status(t("auth.saving_new_credentials"));
+      const complete_response = await complete_recovery(
+        recovery_token,
+        password_hash,
+        password_salt,
+        encrypted_vault,
+        vault_nonce,
+        new_shares,
+        new_backup.encrypted_data,
+        new_backup.nonce,
+        new_backup.salt,
+        btoa(new_identity_keypair.public_key),
+        btoa(new_prekey_keypair.public_key),
+        btoa(prekey_signature),
+        pgp_key_data,
+        vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
+      );
+
+      if (complete_response.error || !complete_response.data?.success) {
+        throw new Error(complete_response.error || t("auth.recovery_failed"));
+      }
+
+      if (!vault_uses_master_key) {
+        store_pending_reencryption({
+          ...(old_data_kek ? { old_data_kek } : {}),
+          old_identity_key,
+        });
+      }
+
+      set_step("new_codes");
+    } catch (err) {
+      await timing_safe_delay();
+      set_error(err instanceof Error ? err.message : t("auth.recovery_failed"));
+      set_step("password");
+    }
   };
 
   const handle_code_submit = async () => {
@@ -198,6 +469,12 @@ export default function MobileForgotPasswordPage() {
       return;
     }
 
+    if (recovery_method === "phrase") {
+      await complete_phrase_recovery();
+
+      return;
+    }
+
     if (!vault_backup || !encrypted_recovery_key_data || !code_salt) {
       set_error(t("auth.recovery_session_expired"));
       set_step("email");
@@ -221,6 +498,7 @@ export default function MobileForgotPasswordPage() {
       set_processing_status(t("auth.recovering_account_data"));
       const vault = await decrypt_vault_backup(vault_backup, recovery_key);
 
+      const vault_uses_master_key = is_master_key_vault(vault);
       const old_data_kek = vault.data_kek ?? null;
       const old_identity_key = vault.identity_key;
 
@@ -304,16 +582,19 @@ export default function MobileForgotPasswordPage() {
         btoa(new_prekey_keypair.public_key),
         btoa(prekey_signature),
         pgp_key_data,
+        vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
       );
 
       if (complete_response.error || !complete_response.data?.success) {
         throw new Error(complete_response.error || t("auth.recovery_failed"));
       }
 
-      store_pending_reencryption({
-        ...(old_data_kek ? { old_data_kek } : {}),
-        old_identity_key,
-      });
+      if (!vault_uses_master_key) {
+        store_pending_reencryption({
+          ...(old_data_kek ? { old_data_kek } : {}),
+          old_identity_key,
+        });
+      }
 
       set_step("new_codes");
     } catch (err) {
@@ -362,6 +643,42 @@ export default function MobileForgotPasswordPage() {
           />
         );
 
+      case "method_choice":
+        return (
+          <MethodChoiceStep
+            error={error}
+            is_dark={is_dark}
+            reduce_motion={reduce_motion}
+            set_error={set_error}
+            set_step={set_step}
+            on_select_code={() => {
+              set_error("");
+              set_recovery_method("code");
+              set_step("code");
+            }}
+            on_select_email={handle_email_reset_link}
+            on_select_phrase={() => {
+              set_error("");
+              set_recovery_method("phrase");
+              set_step("phrase");
+            }}
+          />
+        );
+
+      case "phrase":
+        return (
+          <PhraseStep
+            error={error}
+            is_dark={is_dark}
+            phrase_words={phrase_words}
+            reduce_motion={reduce_motion}
+            set_error={set_error}
+            set_step={set_step}
+            update_phrase_word={update_phrase_word}
+            on_submit={handle_phrase_submit}
+          />
+        );
+
       case "code":
         return (
           <CodeStep
@@ -392,7 +709,13 @@ export default function MobileForgotPasswordPage() {
             set_is_confirm_visible={set_is_confirm_visible}
             set_is_password_visible={set_is_password_visible}
             set_password={set_password}
-            set_step={set_step}
+            set_step={(next) =>
+              set_step(
+                next === "code" && recovery_method === "phrase"
+                  ? "phrase"
+                  : next,
+              )
+            }
           />
         );
 
@@ -425,6 +748,14 @@ export default function MobileForgotPasswordPage() {
       case "success":
         return (
           <SuccessStep
+            on_navigate_sign_in={navigate_sign_in}
+            reduce_motion={reduce_motion}
+          />
+        );
+
+      case "email_sent":
+        return (
+          <EmailSentStep
             on_navigate_sign_in={navigate_sign_in}
             reduce_motion={reduce_motion}
           />

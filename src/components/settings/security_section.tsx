@@ -26,6 +26,7 @@ import {
   PhotoIcon,
   CodeBracketIcon,
   CpuChipIcon,
+  LifebuoyIcon,
 } from "@heroicons/react/24/outline";
 
 import { TotpSetupModal } from "./totp_setup_modal";
@@ -35,6 +36,7 @@ import { KeyRotationModal } from "@/components/modals/key_rotation_modal";
 import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
 import { ConnectionSection } from "@/components/settings/connection_section";
 import { PasskeySection } from "@/components/settings/security/passkey_section";
+import { AccountRecoveryPanel } from "@/components/settings/security/account_recovery_panel";
 import { TwoFactorSection } from "@/components/settings/security/two_factor_section";
 import { PasswordSection } from "@/components/settings/security/password_section";
 import { VanguardSection } from "@/components/settings/security/vanguard_section";
@@ -149,6 +151,20 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         strip_exif_on_compose={preferences.strip_exif_on_compose}
         totp_enabled={security.totp_status?.enabled ?? false}
       />
+
+      <div id="sec-recovery">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <LifebuoyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.account_recovery_title")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <p className="text-sm mb-4 text-txt-muted">
+          {t("settings.account_recovery_desc")}
+        </p>
+        <AccountRecoveryPanel />
+      </div>
 
       <div id="sec-vanguard">
         <div className="mb-4">

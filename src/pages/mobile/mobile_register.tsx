@@ -36,6 +36,8 @@ import { StepEmail } from "@/pages/mobile/mobile_register/step_email";
 import { StepPassword } from "@/pages/mobile/mobile_register/step_password";
 import { StepGenerating } from "@/pages/mobile/mobile_register/step_generating";
 import { StepRecoveryKey } from "@/pages/mobile/mobile_register/step_recovery_key";
+import { StepRecoveryPhrase } from "@/pages/mobile/mobile_register/step_recovery_phrase";
+import { StepPhraseConfirm } from "@/pages/mobile/mobile_register/step_phrase_confirm";
 import { StepRecoveryEmail } from "@/pages/mobile/mobile_register/step_recovery_email";
 import { StepRecoveryEmailVerification } from "@/pages/mobile/mobile_register/step_recovery_email_verification";
 import { RegisterStepPlanSelection } from "@/components/register/register_step_plan_selection";
@@ -46,6 +48,8 @@ const MOBILE_STEP_ORDER = [
   "password",
   "generating",
   "recovery_key",
+  "recovery_phrase",
+  "phrase_confirm",
   "recovery_email",
   "recovery_email_verification",
   "plan_selection",
@@ -63,7 +67,8 @@ function get_step_progress(step: string): number {
 
 const BACK_MAP: Record<string, RegistrationStep> = {
   password: "email",
-  recovery_email: "recovery_key",
+  phrase_confirm: "recovery_phrase",
+  recovery_email: "recovery_phrase",
   recovery_email_verification: "recovery_email",
 };
 
@@ -89,7 +94,7 @@ export default function MobileRegisterPage() {
   }
 
   const handle_back = () => {
-    if (reg.step === "recovery_key") {
+    if (reg.step === "recovery_key" || reg.step === "recovery_phrase") {
       set_show_leave_confirmation(true);
 
       return;
@@ -157,6 +162,20 @@ export default function MobileRegisterPage() {
             show_leave_confirmation={show_leave_confirmation}
           />
         );
+
+      case "recovery_phrase":
+        return (
+          <StepRecoveryPhrase
+            navigate={navigate}
+            reduce_motion={reduce_motion}
+            reg={reg}
+            set_show_leave_confirmation={set_show_leave_confirmation}
+            show_leave_confirmation={show_leave_confirmation}
+          />
+        );
+
+      case "phrase_confirm":
+        return <StepPhraseConfirm reduce_motion={reduce_motion} reg={reg} />;
 
       case "recovery_email":
         return <StepRecoveryEmail reduce_motion={reduce_motion} reg={reg} />;
@@ -270,9 +289,7 @@ export default function MobileRegisterPage() {
           className={`flex flex-1 min-h-0 flex-col ${effective_step === "plan_selection" ? "overflow-y-auto" : "overflow-hidden"}`}
           exit="exit"
           initial={
-            effective_step === "generating" || reduce_motion
-              ? false
-              : "initial"
+            effective_step === "generating" || reduce_motion ? false : "initial"
           }
           transition={reduce_motion ? { duration: 0 } : page_slide_transition}
           variants={reduce_motion ? undefined : get_slide_variants()}

@@ -20,6 +20,7 @@
 //
 import type { RegistrationStep } from "@/components/register/register_types";
 import type { RegisterRequest } from "@/services/api/auth";
+import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -43,6 +44,15 @@ import {
   generate_all_recovery_shares,
   clear_recovery_key,
 } from "@/services/crypto/recovery_key";
+import { array_to_base64 } from "@/services/crypto/key_manager_core";
+import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
+import {
+  generate_recovery_phrase,
+  wrap_vault_with_phrase,
+  get_phrase_wordlist,
+  RECOVERY_PHRASE_WORD_COUNT,
+} from "@/services/crypto/recovery_phrase";
+import { save_phrase_wrap } from "@/services/api/recovery";
 import { register_user } from "@/services/api/auth";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
 import {
@@ -57,6 +67,8 @@ import {
 import {
   generate_recovery_pdf,
   download_recovery_text,
+  generate_recovery_phrase_pdf,
+  download_recovery_phrase_text,
 } from "@/services/crypto/recovery_pdf";
 import {
   sanitize_username,
@@ -67,6 +79,27 @@ import { check_password_breach } from "@/services/breach_check";
 import { EMAIL_REGEX } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { prefetch_plans } from "@/components/register/register_step_plan_selection";
+
+function random_index(max: number): number {
+  return crypto.getRandomValues(new Uint32Array(1))[0] % max;
+}
+
+function shuffle_words(words: string[]): string[] {
+  const result = [...words];
+
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = random_index(i + 1);
+
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+
+  return result;
+}
+
+export interface PhraseConfirmChallenge {
+  word_index: number;
+  options: string[];
+}
 
 export interface RegistrationClaimOptions {
   claim_token?: string;
@@ -131,6 +164,16 @@ export function use_registration(options?: RegistrationClaimOptions) {
     useState(false);
   const [generation_status, set_generation_status] = useState("");
   const [recovery_codes, set_recovery_codes] = useState<string[]>([]);
+  const [recovery_phrase, set_recovery_phrase] = useState("");
+  const [is_phrase_visible, set_is_phrase_visible] = useState(false);
+  const [phrase_saved_checkbox, set_phrase_saved_checkbox] = useState(false);
+  const [phrase_confirm_challenges, set_phrase_confirm_challenges] = useState<
+    PhraseConfirmChallenge[]
+  >([]);
+  const [phrase_confirm_answers, set_phrase_confirm_answers] = useState<
+    (string | null)[]
+  >([]);
+  const [phrase_confirm_error, set_phrase_confirm_error] = useState(false);
   const [generated_email, set_generated_email] = useState("");
   const [is_pdf_downloaded, set_is_pdf_downloaded] = useState(false);
   const [is_text_downloaded, set_is_text_downloaded] = useState(false);
@@ -156,6 +199,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
   );
   const complete_registration_ref = useRef<() => Promise<void>>();
   const saving_recovery_email_ref = useRef(false);
+  const recovery_phrase_ref = useRef("");
+  const phrase_wrap_promise_ref = useRef<Promise<boolean> | null>(null);
+  const last_phrase_vault_ref = useRef<string>("");
+  const [phrase_wrap_error, set_phrase_wrap_error] = useState(false);
 
   useEffect(() => {
     if (has_existing_session) {
@@ -270,12 +317,16 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
   const registration_promise_ref = useRef<Promise<void> | null>(null);
   const registration_done_ref = useRef(false);
-  const pending_register_params_ref = useRef<Omit<RegisterRequest, "recovery_email"> | null>(null);
+  const pending_register_params_ref = useRef<Omit<
+    RegisterRequest,
+    "recovery_email"
+  > | null>(null);
   const pending_vault_data_ref = useRef<{
     identity_key: string;
     signed_prekey: string;
     signed_prekey_private: string;
     recovery_codes: string[];
+    data_kek: string;
   } | null>(null);
 
   const handle_password_next = async () => {
@@ -285,6 +336,67 @@ export function use_registration(options?: RegistrationClaimOptions) {
       registration_promise_ref.current = start_registration_background();
       set_step("generating");
     }
+  };
+
+  const upload_phrase_wrap = (vault_data: EncryptedVault): Promise<boolean> => {
+    const phrase = recovery_phrase_ref.current;
+
+    if (!phrase || !vault_data?.data_kek) return Promise.resolve(false);
+
+    last_phrase_vault_ref.current = JSON.stringify(vault_data);
+
+    const attempt = async (): Promise<boolean> => {
+      try {
+        const wrap = await wrap_vault_with_phrase(
+          last_phrase_vault_ref.current,
+          phrase,
+        );
+
+        for (let tries = 0; tries < 3; tries++) {
+          const response = await save_phrase_wrap(
+            wrap.verifier_hash,
+            wrap.wrapped_vault,
+            wrap.wrap_nonce,
+            wrap.wrap_salt,
+          );
+
+          if (!response.error) return true;
+          await new Promise((r) => setTimeout(r, 400 * (tries + 1)));
+        }
+
+        return false;
+      } catch {
+        return false;
+      }
+    };
+
+    phrase_wrap_promise_ref.current = attempt();
+
+    return phrase_wrap_promise_ref.current;
+  };
+
+  const ensure_phrase_wrap_saved = async (): Promise<boolean> => {
+    if (!recovery_phrase_ref.current) return true;
+
+    const in_flight = phrase_wrap_promise_ref.current;
+
+    if (in_flight && (await in_flight)) return true;
+
+    if (!last_phrase_vault_ref.current) return false;
+
+    const phrase = recovery_phrase_ref.current;
+    const wrap = await wrap_vault_with_phrase(
+      last_phrase_vault_ref.current,
+      phrase,
+    );
+    const response = await save_phrase_wrap(
+      wrap.verifier_hash,
+      wrap.wrapped_vault,
+      wrap.wrap_nonce,
+      wrap.wrap_salt,
+    );
+
+    return !response.error;
   };
 
   const yield_to_ui = () =>
@@ -330,14 +442,25 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
       set_recovery_codes(codes);
 
+      const phrase = generate_recovery_phrase();
+
+      recovery_phrase_ref.current = phrase;
+      set_recovery_phrase(phrase);
+
       set_generation_status(t("auth.encrypting_key_vault"));
       await yield_to_ui();
+      const master_key = crypto.getRandomValues(new Uint8Array(32));
       const vault_data = {
         identity_key: identity_keypair.secret_key,
         signed_prekey: signed_prekey.public_key,
         signed_prekey_private: signed_prekey.secret_key,
         recovery_codes: codes,
+        data_kek: array_to_base64(master_key),
+        vault_format: MASTER_KEY_VAULT_FORMAT,
+        mk_created_at: new Date().toISOString(),
       };
+
+      master_key.fill(0);
       const { encrypted_vault, vault_nonce } = await encrypt_vault(
         vault_data,
         password,
@@ -378,6 +501,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         signed_prekey_signature: btoa(signature),
         encrypted_vault,
         vault_nonce,
+        vault_format: MASTER_KEY_VAULT_FORMAT,
         remember_me,
         encrypted_vault_backup: vault_backup.encrypted_data,
         vault_backup_nonce: vault_backup.nonce,
@@ -390,6 +514,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
           new URLSearchParams(window.location.search).get("ref") || undefined,
         reservation_claim_token: options?.claim_token || undefined,
       };
+
       pending_register_params_ref.current = base_params;
       pending_vault_data_ref.current = vault_data;
       const response = await register_user(base_params);
@@ -406,11 +531,13 @@ export function use_registration(options?: RegistrationClaimOptions) {
           set_error(t("auth.username_in_use"));
           set_step("email");
           registration_promise_ref.current = null;
+
           return;
         }
         if (response.code === "RECOVERY_EMAIL_REQUIRED") {
           set_step("recovery_email_gate");
           registration_promise_ref.current = null;
+
           return;
         }
         set_error(response.error);
@@ -440,12 +567,13 @@ export function use_registration(options?: RegistrationClaimOptions) {
           vault_nonce,
         );
 
+        upload_phrase_wrap(vault_data);
         check_and_replenish_prekeys();
       }
 
       registration_done_ref.current = true;
       set_step((current) =>
-        current === "generating" ? "recovery_key" : current,
+        current === "generating" ? "recovery_phrase" : current,
       );
     } catch (err) {
       await timing_safe_delay();
@@ -483,6 +611,108 @@ export function use_registration(options?: RegistrationClaimOptions) {
     set_is_text_downloaded(true);
   };
 
+  const handle_copy_phrase = async () => {
+    try {
+      await navigator.clipboard.writeText(recovery_phrase);
+      show_toast(t("auth.recovery_phrase_copied"), "success");
+    } catch {}
+  };
+
+  const handle_download_phrase_pdf = async () => {
+    await generate_recovery_phrase_pdf(generated_email, recovery_phrase, t);
+    set_is_pdf_downloaded(true);
+  };
+
+  const handle_download_phrase_text = async () => {
+    await download_recovery_phrase_text(generated_email, recovery_phrase, t);
+    set_is_text_downloaded(true);
+  };
+
+  const advance_from_phrase = async () => {
+    set_recovery_codes([]);
+    if (recovery_email_required && recovery_email.trim()) {
+      await handle_recovery_email_continue();
+    } else {
+      set_step("recovery_email");
+    }
+  };
+
+  const handle_phrase_continue = () => {
+    const words = recovery_phrase.split(" ");
+    const dictionary = get_phrase_wordlist();
+    const word_indices: number[] = [];
+
+    while (word_indices.length < 3) {
+      const candidate = random_index(RECOVERY_PHRASE_WORD_COUNT);
+
+      if (!word_indices.includes(candidate)) word_indices.push(candidate);
+    }
+    word_indices.sort((a, b) => a - b);
+
+    const challenges = word_indices.map((word_index) => {
+      const options = new Set<string>([words[word_index]]);
+
+      while (options.size < 6) {
+        const decoy = dictionary[random_index(dictionary.length)];
+
+        if (!words.includes(decoy)) options.add(decoy);
+      }
+
+      return { word_index, options: shuffle_words([...options]) };
+    });
+
+    set_phrase_confirm_challenges(challenges);
+    set_phrase_confirm_answers(challenges.map(() => null));
+    set_phrase_confirm_error(false);
+    set_step("phrase_confirm");
+  };
+
+  const handle_phrase_confirm_select = (
+    challenge_index: number,
+    word: string,
+  ) => {
+    set_phrase_confirm_answers((prev) =>
+      prev.map((answer, index) => (index === challenge_index ? word : answer)),
+    );
+    set_phrase_confirm_error(false);
+  };
+
+  const handle_phrase_confirm_continue = async () => {
+    const words = recovery_phrase.split(" ");
+    const all_correct = phrase_confirm_challenges.every(
+      (challenge, index) =>
+        phrase_confirm_answers[index] === words[challenge.word_index],
+    );
+
+    if (!all_correct) {
+      set_phrase_confirm_error(true);
+
+      return;
+    }
+
+    set_phrase_wrap_error(false);
+
+    const saved = await ensure_phrase_wrap_saved();
+
+    if (!saved) {
+      set_phrase_wrap_error(true);
+
+      return;
+    }
+
+    await advance_from_phrase();
+  };
+
+  const handle_skip_phrase = () => {
+    set_show_skip_confirmation(true);
+  };
+
+  const handle_skip_confirm_check = async () => {
+    set_show_skip_confirmation(false);
+    await ensure_phrase_wrap_saved();
+    await advance_from_phrase();
+  };
+
   const validate_email = (email_value: string): boolean => {
     return EMAIL_REGEX.test(email_value);
   };
@@ -515,8 +745,13 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const complete_registration = async () => {
+    recovery_phrase_ref.current = "";
+    set_recovery_phrase("");
+    set_phrase_confirm_challenges([]);
+    set_phrase_confirm_answers([]);
     if (is_claim) {
       await finalize_registration();
+
       return;
     }
     set_step("plan_selection");
@@ -625,18 +860,21 @@ export function use_registration(options?: RegistrationClaimOptions) {
     if (!recovery_email.trim()) {
       set_recovery_email_error(t("auth.please_enter_recovery_email"));
       saving_recovery_email_ref.current = false;
+
       return;
     }
 
     if (!validate_email(recovery_email.trim())) {
       set_recovery_email_error(t("auth.please_enter_valid_email"));
       saving_recovery_email_ref.current = false;
+
       return;
     }
 
     if (!vault) {
       set_recovery_email_error(t("auth.failed_save_recovery_email"));
       saving_recovery_email_ref.current = false;
+
       return;
     }
 
@@ -649,6 +887,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         set_is_saving_recovery_email(false);
         saving_recovery_email_ref.current = false;
         set_step("recovery_email");
+
         return;
       }
 
@@ -656,12 +895,14 @@ export function use_registration(options?: RegistrationClaimOptions) {
         set_recovery_email_error(t("auth.failed_save_recovery_email"));
         set_is_saving_recovery_email(false);
         saving_recovery_email_ref.current = false;
+
         return;
       }
     } catch {
       set_recovery_email_error(t("auth.failed_save_recovery_email"));
       set_is_saving_recovery_email(false);
       saving_recovery_email_ref.current = false;
+
       return;
     }
     set_is_saving_recovery_email(false);
@@ -682,17 +923,21 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
     if (!recovery_email.trim()) {
       set_recovery_email_error(t("auth.please_enter_recovery_email"));
+
       return;
     }
     if (!validate_email(recovery_email.trim())) {
       set_recovery_email_error(t("auth.please_enter_valid_email"));
+
       return;
     }
 
     const saved_params = pending_register_params_ref.current;
+
     if (!saved_params) {
       set_error(t("auth.registration_failed"));
       set_step("email");
+
       return;
     }
 
@@ -701,6 +946,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
       ...saved_params,
       recovery_email: recovery_email.trim(),
     });
+
     set_is_saving_recovery_email(false);
 
     if (response.error) {
@@ -711,18 +957,22 @@ export function use_registration(options?: RegistrationClaimOptions) {
       ) {
         set_is_abuse_blocked(true);
         set_step("email");
+
         return;
       }
       if (response.code === "USERNAME_IN_USE") {
         set_error(t("auth.username_in_use"));
         set_step("email");
+
         return;
       }
       set_recovery_email_error(response.error);
+
       return;
     }
 
     const saved_vault = pending_vault_data_ref.current;
+
     pending_register_params_ref.current = null;
     pending_vault_data_ref.current = null;
 
@@ -730,6 +980,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
       set_recovery_email_required(true);
       set_is_completing_registration(true);
       const trimmed_display_name = display_name.trim();
+
       await login(
         {
           id: response.data.user_id,
@@ -743,11 +994,12 @@ export function use_registration(options?: RegistrationClaimOptions) {
         saved_params.encrypted_vault,
         saved_params.vault_nonce,
       );
+      upload_phrase_wrap(saved_vault);
       check_and_replenish_prekeys();
     }
 
     registration_done_ref.current = true;
-    set_step("recovery_key");
+    set_step("recovery_phrase");
   };
 
   const handle_advance_from_recovery_key = async () => {
@@ -801,6 +1053,15 @@ export function use_registration(options?: RegistrationClaimOptions) {
     handle_password_blur,
     generation_status,
     recovery_codes,
+    recovery_phrase,
+    is_phrase_visible,
+    set_is_phrase_visible,
+    phrase_saved_checkbox,
+    set_phrase_saved_checkbox,
+    phrase_confirm_challenges,
+    phrase_confirm_answers,
+    phrase_confirm_error,
+    phrase_wrap_error,
     generated_email,
     captcha_token,
     set_captcha_token,
@@ -823,6 +1084,14 @@ export function use_registration(options?: RegistrationClaimOptions) {
     handle_copy_single_code,
     handle_download_key,
     handle_download_txt,
+    handle_copy_phrase,
+    handle_download_phrase_pdf,
+    handle_download_phrase_text,
+    handle_phrase_continue,
+    handle_phrase_confirm_select,
+    handle_phrase_confirm_continue,
+    handle_skip_phrase,
+    handle_skip_confirm_check,
     handle_recovery_email_continue,
     handle_recovery_email_skip,
     handle_recovery_email_gate_submit,

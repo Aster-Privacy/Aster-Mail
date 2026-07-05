@@ -1544,6 +1544,22 @@ export interface ReencryptResult {
   retired_old_kek: Uint8Array | null;
 }
 
+export async function reencrypt_identity_scoped_password_change(
+  old_identity_key: string,
+  new_identity_key: string,
+): Promise<boolean> {
+  try {
+    const results = [
+      await re_encrypt_tags(old_identity_key, new_identity_key),
+      await re_encrypt_folders(old_identity_key, new_identity_key),
+    ];
+
+    return results.every((result) => result);
+  } catch {
+    return false;
+  }
+}
+
 export async function reencrypt_settings_password_change(
   current_password: string,
   new_password: string,

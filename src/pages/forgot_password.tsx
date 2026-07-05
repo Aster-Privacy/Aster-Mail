@@ -44,10 +44,22 @@ import {
   clear_recovery_key,
   VaultBackup,
 } from "@/services/crypto/recovery_key";
+import { EncryptedVault } from "@/services/crypto/key_manager_core";
+import {
+  MASTER_KEY_VAULT_FORMAT,
+  is_master_key_vault,
+} from "@/services/crypto/memory_key_store";
+import {
+  is_valid_recovery_phrase,
+  compute_phrase_verifier,
+  unwrap_vault_with_phrase,
+  RECOVERY_PHRASE_WORD_COUNT,
+} from "@/services/crypto/recovery_phrase";
 import {
   initiate_recovery,
   complete_recovery,
   forgot_password_email,
+  initiate_phrase_recovery,
 } from "@/services/api/recovery";
 import { store_pending_reencryption } from "@/services/crypto/recovery_reencrypt";
 import {
@@ -72,12 +84,16 @@ import { use_i18n } from "@/lib/i18n/context";
 
 type RecoveryStep =
   | "email"
+  | "method_choice"
+  | "phrase_entry"
   | "code"
   | "password"
   | "processing"
   | "new_codes"
   | "success"
   | "email_sent";
+
+type RecoveryMethod = "code" | "phrase";
 
 const page_variants = {
   initial: { opacity: 0, y: 12 },
@@ -115,6 +131,51 @@ const Alert = ({ message, is_dark }: AlertProps) => {
     </motion.div>
   );
 };
+
+interface MethodCardProps {
+  title: string;
+  description: string;
+  badge: string;
+  badge_tone: "green" | "amber";
+  on_click: () => void;
+}
+
+const MethodCard = ({
+  title,
+  description,
+  badge,
+  badge_tone,
+  on_click,
+}: MethodCardProps) => (
+  <button
+    className="w-full rounded-lg border p-4 text-left transition-opacity hover:opacity-85 bg-surf-tertiary border-edge-secondary"
+    type="button"
+    onClick={on_click}
+  >
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-sm font-medium text-txt-primary">{title}</span>
+      <span
+        className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium"
+        style={
+          badge_tone === "green"
+            ? {
+                color: "var(--color-success)",
+                backgroundColor: "rgba(34, 197, 94, 0.1)",
+              }
+            : {
+                color: "var(--color-warning)",
+                backgroundColor: "rgba(245, 158, 11, 0.1)",
+              }
+        }
+      >
+        {badge}
+      </span>
+    </div>
+    <p className="mt-1.5 text-xs leading-relaxed text-txt-tertiary">
+      {description}
+    </p>
+  </button>
+);
 
 const CopyIcon = () => (
   <svg
@@ -252,6 +313,17 @@ export default function ForgotPasswordPage() {
   const [encrypted_recovery_key_data, set_encrypted_recovery_key_data] =
     useState<{ encrypted_key: string; nonce: string } | null>(null);
 
+  const [recovery_method, set_recovery_method] =
+    useState<RecoveryMethod>("code");
+  const [phrase_words, set_phrase_words] = useState<string[]>(
+    Array(RECOVERY_PHRASE_WORD_COUNT).fill(""),
+  );
+  const [phrase_wrap, set_phrase_wrap] = useState<{
+    wrapped_vault: string;
+    wrap_nonce: string;
+    wrap_salt: string;
+  } | null>(null);
+
   const handle_email_next = () => {
     set_error("");
     const clean_username = sanitize_username(username.trim());
@@ -265,7 +337,80 @@ export default function ForgotPasswordPage() {
     const full_email = `${clean_username}@${email_domain}`;
 
     set_email(full_email);
-    set_step("code");
+    set_step("method_choice");
+  };
+
+  const update_phrase_word = (index: number, value: string) => {
+    const parts = value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+    set_phrase_words((prev) => {
+      const next = [...prev];
+
+      if (parts.length > 1) {
+        for (
+          let i = 0;
+          i < parts.length && index + i < RECOVERY_PHRASE_WORD_COUNT;
+          i++
+        ) {
+          next[index + i] = parts[i];
+        }
+      } else {
+        next[index] = value.replace(/\s/g, "").toLowerCase();
+      }
+
+      return next;
+    });
+  };
+
+  const handle_phrase_submit = async () => {
+    set_error("");
+
+    const phrase = phrase_words.map((word) => word.trim()).join(" ");
+
+    if (!is_valid_recovery_phrase(phrase)) {
+      set_error(t("auth.phrase_entry_invalid"));
+
+      return;
+    }
+
+    if (!email.trim()) {
+      set_error(t("auth.please_enter_email_address"));
+      set_step("email");
+
+      return;
+    }
+
+    set_step("processing");
+    set_processing_status(t("auth.recovering_account_data"));
+
+    try {
+      const verifier_hash = await compute_phrase_verifier(phrase);
+      const response = await initiate_phrase_recovery(
+        email.trim().toLowerCase(),
+        verifier_hash,
+      );
+
+      if (response.error || !response.data) {
+        await timing_safe_delay();
+        set_error(t("auth.phrase_recovery_failed"));
+        set_step("phrase_entry");
+
+        return;
+      }
+
+      set_phrase_wrap({
+        wrapped_vault: response.data.wrapped_vault,
+        wrap_nonce: response.data.wrap_nonce,
+        wrap_salt: response.data.wrap_salt,
+      });
+      set_recovery_token(response.data.recovery_token);
+
+      set_step("password");
+    } catch {
+      await timing_safe_delay();
+      set_error(t("auth.phrase_recovery_failed"));
+      set_step("phrase_entry");
+    }
   };
 
   const handle_email_reset_link = async () => {
@@ -351,6 +496,153 @@ export default function ForgotPasswordPage() {
     }
   };
 
+  const complete_phrase_recovery = async () => {
+    if (!phrase_wrap || !recovery_token) {
+      set_error(t("auth.recovery_session_expired"));
+      set_step("email");
+
+      return;
+    }
+
+    set_step("processing");
+    set_processing_status(t("auth.decrypting_vault"));
+
+    try {
+      const phrase = phrase_words.map((word) => word.trim()).join(" ");
+      const vault_json = await unwrap_vault_with_phrase(
+        phrase,
+        phrase_wrap.wrapped_vault,
+        phrase_wrap.wrap_nonce,
+        phrase_wrap.wrap_salt,
+      );
+
+      if (!vault_json) {
+        await timing_safe_delay();
+        set_error(t("auth.phrase_recovery_failed"));
+        set_step("phrase_entry");
+
+        return;
+      }
+
+      let vault: EncryptedVault;
+
+      try {
+        vault = JSON.parse(vault_json) as EncryptedVault;
+      } catch {
+        await timing_safe_delay();
+        set_error(t("auth.phrase_recovery_failed"));
+        set_step("phrase_entry");
+
+        return;
+      }
+
+      const vault_uses_master_key = is_master_key_vault(vault);
+      const old_data_kek = vault.data_kek ?? null;
+      const old_identity_key = vault.identity_key;
+
+      set_processing_status(t("auth.generating_new_encryption_keys"));
+      const salt = crypto.getRandomValues(new Uint8Array(32));
+      const { hash: password_hash, salt: password_salt } =
+        await derive_password_hash(password, salt);
+
+      const display_name = email.split("@")[0] || "User";
+
+      const new_identity_keypair = await generate_identity_keypair(
+        display_name,
+        email,
+        password,
+      );
+
+      const { keypair: new_prekey_keypair, signature: prekey_signature } =
+        await generate_signed_prekey(
+          display_name,
+          email,
+          password,
+          new_identity_keypair.secret_key,
+        );
+
+      const pgp_key_data = await prepare_pgp_key_data(
+        new_identity_keypair,
+        password,
+      );
+
+      if (!vault.previous_keys) {
+        vault.previous_keys = [];
+      }
+      if (
+        vault.identity_key &&
+        !vault.previous_keys.includes(vault.identity_key)
+      ) {
+        vault.previous_keys.unshift(vault.identity_key);
+      }
+      if (vault.previous_keys.length > 10) {
+        vault.previous_keys = vault.previous_keys.slice(0, 10);
+      }
+
+      vault.identity_key = new_identity_keypair.secret_key;
+      vault.signed_prekey = new_prekey_keypair.public_key;
+      vault.signed_prekey_private = new_prekey_keypair.secret_key;
+
+      set_processing_status(t("auth.creating_new_recovery_codes"));
+      const new_codes = generate_recovery_codes(6);
+
+      set_new_recovery_codes(new_codes);
+
+      vault.recovery_codes = new_codes;
+
+      set_processing_status(t("auth.encrypting_vault_new_password"));
+      const { encrypted_vault, vault_nonce } = await encrypt_vault(
+        vault,
+        password,
+      );
+
+      set_processing_status(t("auth.creating_new_recovery_backup"));
+      const new_recovery_key = generate_recovery_key();
+      const new_backup = await encrypt_vault_backup(vault, new_recovery_key);
+      const new_shares = await generate_all_recovery_shares(
+        new_codes,
+        new_recovery_key,
+      );
+
+      clear_recovery_key(new_recovery_key);
+
+      set_processing_status(t("auth.saving_new_credentials"));
+      const complete_response = await complete_recovery(
+        recovery_token,
+        password_hash,
+        password_salt,
+        encrypted_vault,
+        vault_nonce,
+        new_shares,
+        new_backup.encrypted_data,
+        new_backup.nonce,
+        new_backup.salt,
+        btoa(new_identity_keypair.public_key),
+        btoa(new_prekey_keypair.public_key),
+        btoa(prekey_signature),
+        pgp_key_data,
+        vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
+      );
+
+      if (complete_response.error || !complete_response.data?.success) {
+        throw new Error(complete_response.error || t("auth.recovery_failed"));
+      }
+
+      if (!vault_uses_master_key) {
+        store_pending_reencryption({
+          ...(old_data_kek ? { old_data_kek } : {}),
+          old_identity_key,
+        });
+      }
+
+      set_step("new_codes");
+    } catch (err) {
+      await timing_safe_delay();
+      set_error(err instanceof Error ? err.message : t("auth.recovery_failed"));
+      set_step("password");
+    }
+  };
+
   const handle_password_submit = async () => {
     set_error("");
 
@@ -370,6 +662,12 @@ export default function ForgotPasswordPage() {
 
     if (password !== confirm_password) {
       set_error(t("auth.passwords_do_not_match_register"));
+
+      return;
+    }
+
+    if (recovery_method === "phrase") {
+      await complete_phrase_recovery();
 
       return;
     }
@@ -397,6 +695,7 @@ export default function ForgotPasswordPage() {
       set_processing_status(t("auth.recovering_account_data"));
       const vault = await decrypt_vault_backup(vault_backup, recovery_key);
 
+      const vault_uses_master_key = is_master_key_vault(vault);
       const old_data_kek = vault.data_kek ?? null;
       const old_identity_key = vault.identity_key;
 
@@ -483,16 +782,19 @@ export default function ForgotPasswordPage() {
         btoa(new_prekey_keypair.public_key),
         btoa(prekey_signature),
         pgp_key_data,
+        vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
       );
 
       if (complete_response.error || !complete_response.data?.success) {
         throw new Error(complete_response.error || t("auth.recovery_failed"));
       }
 
-      store_pending_reencryption({
-        ...(old_data_kek ? { old_data_kek } : {}),
-        old_identity_key,
-      });
+      if (!vault_uses_master_key) {
+        store_pending_reencryption({
+          ...(old_data_kek ? { old_data_kek } : {}),
+          old_identity_key,
+        });
+      }
 
       set_step("new_codes");
     } catch (err) {
@@ -586,9 +888,7 @@ export default function ForgotPasswordPage() {
                     set_username(sanitize_username(raw));
                   }
                 }}
-                onKeyDown={(e) =>
-                  e["key"] === "Enter" && handle_email_reset_link()
-                }
+                onKeyDown={(e) => e["key"] === "Enter" && handle_email_next()}
               />
               <div className="relative flex mt-2 aster_input !p-1 !h-auto">
                 <div
@@ -620,18 +920,9 @@ export default function ForgotPasswordPage() {
               className="w-full mt-6"
               size="xl"
               variant="depth"
-              onClick={handle_email_reset_link}
-            >
-              {t("auth.email_me_reset_link")}
-            </Button>
-
-            <Button
-              className="w-full mt-3"
-              size="xl"
-              variant="secondary"
               onClick={handle_email_next}
             >
-              {t("auth.use_recovery_code")}
+              {t("common.continue")}
             </Button>
 
             <button
@@ -640,6 +931,149 @@ export default function ForgotPasswordPage() {
             >
               {t("auth.back_to_sign_in")}
             </button>
+          </motion.div>
+        );
+
+      case "method_choice":
+        return (
+          <motion.div
+            key="method_choice"
+            animate="animate"
+            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
+            exit="exit"
+            initial={reduce_motion ? false : "initial"}
+            transition={{
+              ...page_transition,
+              duration: reduce_motion ? 0 : page_transition.duration,
+            }}
+            variants={page_variants}
+          >
+            <Logo />
+
+            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
+              {t("auth.forgot_method_title")}
+            </h1>
+            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
+              {t("auth.forgot_method_desc")}
+            </p>
+
+            <AnimatePresence>
+              {error && <Alert is_dark={is_dark} message={error} />}
+            </AnimatePresence>
+
+            <div className={`w-full ${error ? "mt-4" : "mt-6"} space-y-3`}>
+              <MethodCard
+                badge={t("auth.forgot_method_full_restore")}
+                badge_tone="green"
+                description={t("auth.forgot_method_phrase_desc")}
+                title={t("auth.forgot_method_phrase_title")}
+                on_click={() => {
+                  set_error("");
+                  set_recovery_method("phrase");
+                  set_step("phrase_entry");
+                }}
+              />
+              <MethodCard
+                badge={t("auth.forgot_method_full_restore")}
+                badge_tone="green"
+                description={t("auth.forgot_method_code_desc")}
+                title={t("auth.forgot_method_code_title")}
+                on_click={() => {
+                  set_error("");
+                  set_recovery_method("code");
+                  set_step("code");
+                }}
+              />
+              <MethodCard
+                badge={t("auth.forgot_method_access_only")}
+                badge_tone="amber"
+                description={t("auth.forgot_method_email_desc")}
+                title={t("auth.forgot_method_email_title")}
+                on_click={handle_email_reset_link}
+              />
+            </div>
+
+            <Button
+              className="w-full mt-6"
+              size="xl"
+              variant="secondary"
+              onClick={() => {
+                set_error("");
+                set_step("email");
+              }}
+            >
+              {t("common.back")}
+            </Button>
+          </motion.div>
+        );
+
+      case "phrase_entry":
+        return (
+          <motion.div
+            key="phrase_entry"
+            animate="animate"
+            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
+            exit="exit"
+            initial={reduce_motion ? false : "initial"}
+            transition={{
+              ...page_transition,
+              duration: reduce_motion ? 0 : page_transition.duration,
+            }}
+            variants={page_variants}
+          >
+            <Logo />
+
+            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
+              {t("auth.phrase_entry_title")}
+            </h1>
+            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
+              {t("auth.phrase_entry_desc")}
+            </p>
+
+            <AnimatePresence>
+              {error && <Alert is_dark={is_dark} message={error} />}
+            </AnimatePresence>
+
+            <div
+              className={`w-full ${error ? "mt-4" : "mt-6"} grid grid-cols-3 gap-2`}
+            >
+              {phrase_words.map((word, index) => (
+                <Input
+                  key={index}
+                  autoComplete="off"
+                  className="font-mono !px-2 text-sm"
+                  placeholder={`${index + 1}`}
+                  status={error ? "error" : "default"}
+                  type="text"
+                  value={word}
+                  onChange={(e) => update_phrase_word(index, e.target.value)}
+                  onKeyDown={(e) =>
+                    e["key"] === "Enter" && handle_phrase_submit()
+                  }
+                />
+              ))}
+            </div>
+
+            <Button
+              className="w-full mt-6"
+              size="xl"
+              variant="depth"
+              onClick={handle_phrase_submit}
+            >
+              {t("common.continue")}
+            </Button>
+
+            <Button
+              className="w-full mt-3"
+              size="xl"
+              variant="secondary"
+              onClick={() => {
+                set_error("");
+                set_step("method_choice");
+              }}
+            >
+              {t("common.back")}
+            </Button>
           </motion.div>
         );
 
@@ -702,7 +1136,7 @@ export default function ForgotPasswordPage() {
               variant="secondary"
               onClick={() => {
                 set_error("");
-                set_step("email");
+                set_step("method_choice");
               }}
             >
               {t("common.back")}
@@ -802,7 +1236,9 @@ export default function ForgotPasswordPage() {
               variant="secondary"
               onClick={() => {
                 set_error("");
-                set_step("code");
+                set_step(
+                  recovery_method === "phrase" ? "phrase_entry" : "code",
+                );
               }}
             >
               {t("common.back")}

@@ -1386,6 +1386,42 @@ export const en: Translations = {
   settings: {
     title: "Settings",
     search_placeholder: "Search settings...",
+    account_recovery_title: "Account Recovery",
+    account_recovery_desc:
+      "Methods that get you back into your account and unlock your encrypted data if you forget your password.",
+    recovery_status_protected: "Full restore protected",
+    recovery_status_protected_desc:
+      "You have a data recovery method. Forgetting your password will not lose your encrypted mail.",
+    recovery_status_at_risk: "At risk: no offline recovery method",
+    recovery_status_at_risk_desc:
+      "Without a recovery phrase or codes, forgetting your password permanently locks your encrypted mail.",
+    recovery_phrase_row: "Recovery phrase",
+    recovery_phrase_row_desc:
+      "A 12-word phrase that restores your account and all encrypted data.",
+    recovery_phrase_generate: "Generate phrase",
+    recovery_phrase_regenerate: "Regenerate phrase",
+    recovery_phrase_regenerate_warning:
+      "Regenerating creates a new phrase and permanently invalidates the old one.",
+    recovery_phrase_active: "Active",
+    recovery_phrase_not_set: "Not set",
+    recovery_phrase_saved_confirm: "Save the new phrase before closing. It is shown only once.",
+    legacy_codes_row: "Recovery codes (legacy)",
+    legacy_codes_row_desc:
+      "Your existing ASTER recovery codes remain valid. New accounts use the recovery phrase instead.",
+    recovery_email_row_moved_hint: "Recovery email settings moved to Security > Account Recovery",
+    recover_older_data_title: "Recover older data",
+    recover_older_data_desc:
+      "This account was reset. If you remember the password you used before the reset, your older encrypted data can be unlocked and restored.",
+    recover_older_data_button: "Unlock older data",
+    resurrection_old_password: "Old password",
+    resurrection_old_password_prompt:
+      "Enter the password you used before the reset",
+    resurrection_success:
+      "Older data unlocked. Your mail and labels will finish re-encrypting in the background.",
+    resurrection_failed:
+      "That did not unlock the older data. Check the password or phrase and try again.",
+    phrase_wrap_save_failed:
+      "Your recovery phrase could not be saved to the server. Try again.",
     general: "General",
     account: "Account",
     appearance: "Appearance",
@@ -5594,6 +5630,52 @@ export const en: Translations = {
     please_enter_valid_email: "This does not look like a valid email. Something like name@example.com will work.",
     recovery_email_conflict: "This email is already a recovery address on another account. A different one should work.",
     failed_save_recovery_email: "Your recovery email did not save. Another attempt should do it. Your current recovery setup is unchanged.",
+    recovery_phrase_title: "Save your recovery phrase",
+    recovery_phrase_desc:
+      "These 12 words are the only way to fully restore your account and all encrypted mail if you ever forget your password. Write them down in order and store them somewhere safe and offline.",
+    recovery_phrase_copied: "Recovery phrase copied",
+    recovery_phrase_reveal: "Click the eye icon to reveal your phrase first",
+    recovery_phrase_saved_checkbox: "I have saved my recovery phrase somewhere safe",
+    recovery_phrase_skip_warning:
+      "Without your recovery phrase, forgetting your password means your encrypted mail and aliases are lost for good. Continue without saving it?",
+    recovery_phrase_confirm_title: "Confirm your recovery phrase",
+    recovery_phrase_confirm_desc:
+      "Select the correct words to confirm you saved your phrase.",
+    recovery_phrase_confirm_word_prompt: "Word #{n}",
+    recovery_phrase_confirm_error:
+      "One or more words do not match. Check your saved phrase and try again.",
+    recovery_phrase_skip_check: "I saved it, skip this check",
+    forgot_method_title: "How do you want to recover your account?",
+    forgot_method_desc:
+      "The method you choose decides whether your encrypted data can be restored.",
+    forgot_method_full_restore: "Full restore",
+    forgot_method_access_only: "Access only",
+    forgot_method_phrase_title: "Use my recovery phrase",
+    forgot_method_phrase_desc:
+      "Enter your 12-word phrase. All mail, aliases, and settings are restored.",
+    forgot_method_code_title: "Use a recovery code",
+    forgot_method_code_desc:
+      "Enter one of your ASTER recovery codes. All mail, aliases, and settings are restored.",
+    forgot_method_email_title: "Email me a reset link",
+    forgot_method_email_desc:
+      "Regain access to your account. Encrypted mail from before the reset cannot be read again unless you later find your phrase or a code.",
+    phrase_entry_title: "Enter your recovery phrase",
+    phrase_entry_desc: "Type or paste the 12 words in order.",
+    phrase_entry_invalid:
+      "This is not a valid recovery phrase. Check the words and their order.",
+    phrase_recovery_failed:
+      "This phrase does not match this account. Check the words and the email address.",
+    reset_consent_title: "This reset cannot decrypt your old data",
+    reset_consent_keeps: "You keep: your email address, all your aliases (mail keeps arriving), your subscription, and your account.",
+    reset_consent_loses: "You lose access to: all encrypted mail, contacts, alias labels, and settings from before the reset. They stay stored encrypted and can be unlocked later only if you remember your old password.",
+    reset_consent_last_chance:
+      "Do you have your recovery phrase or a recovery code? Either one restores everything.",
+    reset_consent_use_phrase_instead: "Use my phrase or code instead",
+    reset_consent_checkbox:
+      "I understand my encrypted data will be unreadable after this reset",
+    reset_consent_type_email: "Type your full email address to confirm",
+    reset_consent_email_mismatch: "The email address does not match this account.",
+    reset_consent_continue: "Reset password anyway",
     plan_starter_badge: "Starter",
     plan_personal_badge: "Personal",
     plan_pro_badge: "Pro",

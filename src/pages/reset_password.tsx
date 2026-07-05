@@ -40,7 +40,11 @@ import {
   generate_all_recovery_shares,
   clear_recovery_key,
 } from "@/services/crypto/recovery_key";
-import { EncryptedVault } from "@/services/crypto/key_manager_core";
+import {
+  EncryptedVault,
+  array_to_base64,
+} from "@/services/crypto/key_manager_core";
+import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import { reset_password_with_token } from "@/services/api/recovery";
 import {
   generate_recovery_pdf,
@@ -57,10 +61,12 @@ import {
   InputWithEndContent,
   Logo,
 } from "@/components/auth/auth_styles";
+import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 
 type ResetStep =
+  | "consent"
   | "password"
   | "processing"
   | "new_codes"
@@ -219,7 +225,17 @@ export default function ResetPasswordPage() {
     [search_params],
   );
 
-  const [step, set_step] = useState<ResetStep>(token ? "password" : "invalid");
+  const account_email = useMemo(
+    () =>
+      (search_params.get("email") || "")
+        .trim()
+        .toLowerCase(),
+    [search_params],
+  );
+
+  const [step, set_step] = useState<ResetStep>(token ? "consent" : "invalid");
+  const [consent_checked, set_consent_checked] = useState(false);
+  const [consent_email, set_consent_email] = useState("");
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
   const [is_password_visible, set_is_password_visible] = useState(false);
@@ -229,6 +245,24 @@ export default function ResetPasswordPage() {
   const [new_recovery_codes, set_new_recovery_codes] = useState<string[]>([]);
   const [is_key_visible, set_is_key_visible] = useState(false);
   const [copy_success, set_copy_success] = useState(false);
+
+  const handle_consent_continue = () => {
+    set_error("");
+
+    const typed_email = consent_email.trim().toLowerCase();
+
+    const matches = account_email
+      ? typed_email === account_email
+      : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(typed_email);
+
+    if (!matches) {
+      set_error(t("auth.reset_consent_email_mismatch"));
+
+      return;
+    }
+
+    set_step("password");
+  };
 
   const handle_submit = async () => {
     set_error("");
@@ -267,8 +301,9 @@ export default function ResetPasswordPage() {
       const { hash: password_hash, salt: password_salt } =
         await derive_password_hash(password, salt);
 
-      const placeholder_email = "user@local";
-      const display_name = "User";
+      const placeholder_email =
+        account_email || consent_email.trim().toLowerCase() || "user@local";
+      const display_name = placeholder_email.split("@")[0] || "User";
 
       const new_identity_keypair = await generate_identity_keypair(
         display_name,
@@ -294,13 +329,20 @@ export default function ResetPasswordPage() {
 
       set_new_recovery_codes(new_codes);
 
+      const master_key = crypto.getRandomValues(new Uint8Array(32));
+
       const fresh_vault: EncryptedVault = {
         identity_key: new_identity_keypair.secret_key,
         previous_keys: [],
         signed_prekey: new_prekey_keypair.public_key,
         signed_prekey_private: new_prekey_keypair.secret_key,
         recovery_codes: new_codes,
+        data_kek: array_to_base64(master_key),
+        vault_format: MASTER_KEY_VAULT_FORMAT,
+        mk_created_at: new Date().toISOString(),
       };
+
+      master_key.fill(0);
 
       set_processing_status(t("auth.encrypting_vault_new_password"));
       const { encrypted_vault, vault_nonce } = await encrypt_vault(
@@ -336,6 +378,8 @@ export default function ResetPasswordPage() {
         btoa(new_prekey_keypair.public_key),
         btoa(prekey_signature),
         pgp_key_data,
+        MASTER_KEY_VAULT_FORMAT,
+        true,
       );
 
       if (response.error || !response.data?.success) {
@@ -379,6 +423,128 @@ export default function ResetPasswordPage() {
 
   const render_step_content = () => {
     switch (step) {
+      case "consent":
+        return (
+          <motion.div
+            key="consent"
+            animate="animate"
+            className="flex flex-col items-center w-full max-w-md px-4 text-center"
+            exit="exit"
+            initial={reduce_motion ? false : "initial"}
+            transition={{
+              ...page_transition,
+              duration: reduce_motion ? 0 : page_transition.duration,
+            }}
+            variants={page_variants}
+          >
+            <Logo />
+
+            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
+              {t("auth.reset_consent_title")}
+            </h1>
+
+            <AnimatePresence>
+              {error && <Alert is_dark={is_dark} message={error} />}
+            </AnimatePresence>
+
+            <div
+              className={`w-full ${error ? "mt-4" : "mt-6"} space-y-3 text-left`}
+            >
+              <div
+                className="rounded-lg border p-3"
+                style={{
+                  borderColor: "rgba(34, 197, 94, 0.3)",
+                  backgroundColor: "rgba(34, 197, 94, 0.06)",
+                }}
+              >
+                <p className="text-xs leading-relaxed text-txt-secondary">
+                  {t("auth.reset_consent_keeps")}
+                </p>
+              </div>
+
+              <div
+                className="rounded-lg border p-3"
+                style={{
+                  borderColor: "rgba(239, 68, 68, 0.3)",
+                  backgroundColor: "rgba(239, 68, 68, 0.06)",
+                }}
+              >
+                <p className="text-xs leading-relaxed text-txt-secondary">
+                  {t("auth.reset_consent_loses")}
+                </p>
+              </div>
+
+              <div
+                className="rounded-lg border p-3"
+                style={{
+                  borderColor: "rgba(245, 158, 11, 0.3)",
+                  backgroundColor: "rgba(245, 158, 11, 0.06)",
+                }}
+              >
+                <p className="text-xs leading-relaxed text-txt-secondary">
+                  {t("auth.reset_consent_last_chance")}
+                </p>
+                <button
+                  className="mt-2 text-sm font-medium underline transition-colors hover:opacity-80 text-txt-primary"
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                >
+                  {t("auth.reset_consent_use_phrase_instead")}
+                </button>
+              </div>
+
+              <label className="flex items-start gap-2.5 cursor-pointer pt-1">
+                <input
+                  checked={consent_checked}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-current"
+                  type="checkbox"
+                  onChange={(e) => set_consent_checked(e.target.checked)}
+                />
+                <span className="text-sm leading-relaxed text-txt-secondary">
+                  {t("auth.reset_consent_checkbox")}
+                </span>
+              </label>
+
+              <div>
+                <p className="text-xs font-medium mb-1.5 text-txt-muted">
+                  {t("auth.reset_consent_type_email")}
+                </p>
+                <Input
+                  autoComplete="email"
+                  status={error ? "error" : "default"}
+                  type="email"
+                  value={consent_email}
+                  onChange={(e) => set_consent_email(e.target.value)}
+                  onKeyDown={(e) =>
+                    e["key"] === "Enter" &&
+                    consent_checked &&
+                    handle_consent_continue()
+                  }
+                />
+              </div>
+            </div>
+
+            <Button
+              className="w-full mt-6"
+              disabled={!consent_checked || !consent_email.trim()}
+              size="xl"
+              variant="depth"
+              onClick={handle_consent_continue}
+            >
+              {t("auth.reset_consent_continue")}
+            </Button>
+
+            <Button
+              className="w-full mt-3"
+              size="xl"
+              variant="secondary"
+              onClick={() => navigate("/sign-in")}
+            >
+              {t("auth.back_to_sign_in")}
+            </Button>
+          </motion.div>
+        );
+
       case "password":
         return (
           <motion.div
