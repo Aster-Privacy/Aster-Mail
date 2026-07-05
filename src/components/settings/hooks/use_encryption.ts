@@ -39,6 +39,15 @@ import {
   get_keyserver_publication_status,
   clear_external_key_cache,
 } from "@/services/api/keys";
+import { generate_recovery_codes } from "@/services/crypto/key_manager_pgp";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  generate_recovery_key,
+  encrypt_vault_backup,
+  generate_all_recovery_shares,
+  clear_recovery_key,
+} from "@/services/crypto/recovery_key";
+import { save_recovery_backup } from "@/services/api/recovery";
 
 export interface PgpKeyInfo {
   fingerprint: string;
@@ -66,11 +75,6 @@ interface SaltResponse {
 interface VerifyPasswordResponse {
   verified: boolean;
   totp_required: boolean;
-}
-
-interface RegenerateCodesResponse {
-  codes: string[];
-  info: RecoveryCodesInfo;
 }
 
 export function use_encryption() {
@@ -462,21 +466,54 @@ export function use_encryption() {
         return;
       }
 
-      const response = await api_client.post<RegenerateCodesResponse>(
-        "/crypto/v1/encryption/regenerate-recovery-codes",
-        {},
-      );
+      const vault = get_vault_from_memory();
 
-      if (response.data) {
+      if (!vault) {
+        set_regenerate_error(t("settings.failed_verify_password"));
+
+        return;
+      }
+
+      const new_codes = generate_recovery_codes(6);
+      const recovery_key = generate_recovery_key();
+
+      try {
+        const new_backup = await encrypt_vault_backup(vault, recovery_key);
+        const new_shares = await generate_all_recovery_shares(
+          new_codes,
+          recovery_key,
+        );
+
+        const backup_response = await save_recovery_backup(
+          new_backup.encrypted_data,
+          new_backup.nonce,
+          new_backup.salt,
+          new_shares,
+        );
+
+        if (backup_response.error || !backup_response.data?.success) {
+          set_regenerate_error(
+            backup_response.error || t("settings.failed_verify_password"),
+          );
+
+          return;
+        }
+
         set_codes_key((prev) => prev + 1);
-        set_recovery_codes(response.data.codes);
-        set_recovery_info(response.data.info);
+        set_recovery_codes(new_codes);
+        set_recovery_info({
+          total_codes: new_codes.length,
+          available_codes: new_codes.length,
+          created_at: new Date().toISOString(),
+        });
         set_show_recovery_codes(true);
         set_show_regenerate_confirm(false);
         set_regenerate_confirm_text("");
         set_regenerate_password("");
         set_regenerate_totp_code("");
         set_regenerate_error("");
+      } finally {
+        clear_recovery_key(recovery_key);
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
