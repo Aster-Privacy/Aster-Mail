@@ -21,7 +21,6 @@
 import { lazy, Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, HashRouter } from "react-router-dom";
-import { Capacitor } from "@capacitor/core";
 
 import App from "@/App";
 import { evict_stale_favicons } from "@/lib/favicon_cache_db";
@@ -37,26 +36,12 @@ import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { use_mobile_experience } from "@/hooks/use_mobile_experience";
 import "@/styles/fonts.css";
 import "@/styles/globals.css";
 import "@/styles/mobile.css";
 
 const MobileApp = lazy(() => import("@/mobile_app"));
-
-function is_mobile_experience(): boolean {
-  if (Capacitor.isNativePlatform()) return true;
-
-  const ua = navigator.userAgent.toLowerCase();
-  const is_mobile_ua = /android|iphone|ipad|ipod|mobile/i.test(ua);
-  const is_narrow = window.innerWidth < 768;
-
-  const params = new URLSearchParams(window.location.search);
-
-  if (params.get("mobile") === "true") return true;
-  if (params.get("mobile") === "false") return false;
-
-  return is_mobile_ua && is_narrow;
-}
 
 initialize_capacitor().catch((e) => {
   if (import.meta.env.DEV) console.error(e);
@@ -288,10 +273,27 @@ if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
   });
 }
 
-const use_mobile = is_mobile_experience();
 const browser_supported = typeof window.crypto?.subtle === "object";
 
 const Router = is_tauri_runtime ? HashRouter : BrowserRouter;
+
+function RootShell(): JSX.Element {
+  const use_mobile = use_mobile_experience();
+
+  if (!browser_supported) return <UnsupportedBrowserPage />;
+
+  if (use_mobile) {
+    return (
+      <Suspense
+        fallback={<div className="h-screen w-screen bg-[var(--bg-primary)]" />}
+      >
+        <MobileApp />
+      </Suspense>
+    );
+  }
+
+  return <App />;
+}
 
 const BOOT_VERSION_CHECK_MARKER = "aster:boot_version_checked_at";
 const BOOT_VERSION_CHECK_TTL_MS = 60_000;
@@ -317,19 +319,7 @@ function mount_app(): void {
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <Router>
       <Provider>
-        {!browser_supported ? (
-          <UnsupportedBrowserPage />
-        ) : use_mobile ? (
-          <Suspense
-            fallback={
-              <div className="h-screen w-screen bg-[var(--bg-primary)]" />
-            }
-          >
-            <MobileApp />
-          </Suspense>
-        ) : (
-          <App />
-        )}
+        <RootShell />
       </Provider>
     </Router>,
   );
