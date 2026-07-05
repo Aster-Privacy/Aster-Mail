@@ -42,6 +42,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_aliases } from "@/components/settings/hooks/use_aliases";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { CreateAliasModal } from "@/components/settings/aliases/alias_form";
+import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/recently_deleted_aliases_section";
 import { DomainSetupWizard } from "@/components/settings/aliases_section";
 import {
   get_dns_records,
@@ -335,6 +336,15 @@ export function AliasesSection({
             ))}
           </div>
         )}
+
+        <div className="px-4 pt-4">
+          <RecentlyDeletedAliasesSection
+            on_restored={() => {
+              hook.load_aliases();
+              hook.load_alias_counts();
+            }}
+          />
+        </div>
 
         <div className="px-4 pt-6">
           <div className="flex items-center justify-between mb-2">
