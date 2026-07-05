@@ -1385,6 +1385,8 @@ export const zh_CN = {
     smtp_token_never_used: "从未",
     smtp_token_revoke_title: "撤销令牌？",
     smtp_token_revoke_message: "此操作将永久撤销 {{ name }}。任何使用它的应用都将无法再发送邮件。",
+    smtp_token_revoked_toast: "SMTP 令牌已撤销",
+    smtp_token_revoke_failed_toast: "无法撤销 SMTP 令牌，请重试。",
     smtp_token_not_e2e_title: "使用 SMTP 令牌发送的邮件不是端到端加密的",
     smtp_token_not_e2e_body: "通过 SMTP 令牌发送的邮件在传输过程中受 TLS 保护，并以零访问加密的方式存储在我们的服务器上，但它不是端到端加密的。Aster 无法对源自 Aster 应用之外的邮件应用端到端加密。请仅在无需端到端加密的自动化或事务性邮件中使用 SMTP 令牌。",
     fam_org_sec_member_notice: "这些安全规则由计划所有者设置，适用于您的帐户。",

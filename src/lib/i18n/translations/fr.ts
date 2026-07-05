@@ -1385,6 +1385,8 @@ export const fr = {
     smtp_token_never_used: "Jamais",
     smtp_token_revoke_title: "Révoquer le jeton ?",
     smtp_token_revoke_message: "Cette action révoquera définitivement {{ name }}. Toute application l'utilisant ne pourra plus envoyer de messages.",
+    smtp_token_revoked_toast: "Jeton SMTP révoqué",
+    smtp_token_revoke_failed_toast: "Impossible de révoquer le jeton SMTP. Veuillez réessayer.",
     smtp_token_not_e2e_title: "Les messages envoyés avec des jetons SMTP ne sont pas chiffrés de bout en bout",
     smtp_token_not_e2e_body: "Les e-mails envoyés via un jeton SMTP sont protégés par TLS en transit et stockés avec un chiffrement à accès zéro sur nos serveurs, mais ils ne sont pas chiffrés de bout en bout. Aster ne peut pas appliquer le chiffrement de bout en bout aux messages provenant de l'extérieur des applications Aster. N'utilisez les jetons SMTP que pour des messages automatisés ou transactionnels où le chiffrement de bout en bout n'est pas requis.",
     fam_org_sec_member_notice: "Ces règles de sécurité sont définies par le propriétaire du plan et s'appliquent à votre compte.",

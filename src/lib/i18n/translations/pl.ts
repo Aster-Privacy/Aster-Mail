@@ -1385,6 +1385,8 @@ export const pl = {
     smtp_token_never_used: "Nigdy",
     smtp_token_revoke_title: "Unieważnić token?",
     smtp_token_revoke_message: "Spowoduje to trwałe unieważnienie {{ name }}. Każda aplikacja, która go używa, nie będzie już mogła wysyłać poczty.",
+    smtp_token_revoked_toast: "Token SMTP unieważniony",
+    smtp_token_revoke_failed_toast: "Nie udało się unieważnić tokenu SMTP. Spróbuj ponownie.",
     smtp_token_not_e2e_title: "Wiadomości wysyłane za pomocą tokenów SMTP nie są szyfrowane end-to-end",
     smtp_token_not_e2e_body: "Poczta wysłana przez token SMTP jest chroniona protokołem TLS podczas przesyłania i przechowywana z szyfrowaniem bez dostępu na naszych serwerach, ale nie jest szyfrowana end-to-end. Aster nie może zastosować szyfrowania end-to-end do poczty pochodzącej spoza aplikacji Aster. Używaj tokenów SMTP wyłącznie do poczty zautomatyzowanej lub transakcyjnej, gdzie szyfrowanie end-to-end nie jest wymagane.",
     fam_org_sec_member_notice: "Te zasady bezpieczeństwa są ustawiane przez właściciela planu i dotyczą Twojego konta.",

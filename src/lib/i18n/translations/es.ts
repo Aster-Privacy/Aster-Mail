@@ -1385,6 +1385,8 @@ export const es = {
     smtp_token_never_used: "Nunca",
     smtp_token_revoke_title: "¿Revocar token?",
     smtp_token_revoke_message: "Esto revocará permanentemente {{ name }}. Cualquier aplicación que lo use ya no podrá enviar correo.",
+    smtp_token_revoked_toast: "Token SMTP revocado",
+    smtp_token_revoke_failed_toast: "No se pudo revocar el token SMTP. Inténtalo de nuevo.",
     smtp_token_not_e2e_title: "Los mensajes enviados con tokens SMTP no están cifrados de extremo a extremo",
     smtp_token_not_e2e_body: "El correo enviado a través de un token SMTP está protegido por TLS mientras está en tránsito y se almacena con cifrado de acceso cero en nuestros servidores, pero no está cifrado de extremo a extremo. Aster no puede aplicar cifrado de extremo a extremo al correo que se origina fuera de las aplicaciones de Aster. Usa los tokens SMTP solo para correo automatizado o transaccional donde no se requiera el cifrado de extremo a extremo.",
     fam_org_sec_member_notice: "Estas reglas de seguridad las establece el propietario del plan y se aplican a tu cuenta.",

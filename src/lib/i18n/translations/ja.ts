@@ -1385,6 +1385,8 @@ export const ja = {
     smtp_token_never_used: "なし",
     smtp_token_revoke_title: "トークンを取り消しますか？",
     smtp_token_revoke_message: "これにより {{ name }} が完全に取り消されます。このトークンを使用しているアプリは、以後メールを送信できなくなります。",
+    smtp_token_revoked_toast: "SMTP トークンを取り消しました",
+    smtp_token_revoke_failed_toast: "SMTP トークンを取り消せませんでした。もう一度お試しください。",
     smtp_token_not_e2e_title: "SMTP トークンで送信したメッセージはエンドツーエンドで暗号化されません",
     smtp_token_not_e2e_body: "SMTP トークンを通じて送信したメールは、転送中は TLS によって保護され、当社のサーバー上ではゼロアクセス暗号化で保管されますが、エンドツーエンドで暗号化されるわけではありません。Aster は、Aster アプリの外部から発信されたメールにエンドツーエンド暗号化を適用することはできません。SMTP トークンは、エンドツーエンド暗号化が不要な自動メールやトランザクションメールにのみご利用ください。",
     fam_org_sec_member_notice: "これらのセキュリティルールはプランオーナーによって設定され、あなたのアカウントに適用されます。",

@@ -1360,6 +1360,8 @@ export const ko = {
     smtp_token_never_used: "없음",
     smtp_token_revoke_title: "토큰을 폐기하시겠습니까?",
     smtp_token_revoke_message: "{{ name }}이(가) 영구적으로 폐기됩니다. 이를 사용하는 모든 앱은 더 이상 메일을 보낼 수 없게 됩니다.",
+    smtp_token_revoked_toast: "SMTP 토큰이 폐기되었습니다",
+    smtp_token_revoke_failed_toast: "SMTP 토큰을 폐기할 수 없습니다. 다시 시도해 주세요.",
     smtp_token_not_e2e_title: "SMTP 토큰으로 보낸 메시지는 종단간 암호화되지 않습니다",
     smtp_token_not_e2e_body: "SMTP 토큰을 통해 보낸 이메일은 전송 중에는 TLS로 보호되고 당사 서버에는 무접근 암호화로 저장되지만, 종단간 암호화되지는 않습니다. Aster는 Aster 앱 외부에서 발신되는 메일에는 종단간 암호화를 적용할 수 없습니다. 종단간 암호화가 필요하지 않은 자동화 메일이나 거래 메일에만 SMTP 토큰을 사용하세요.",
     fam_org_sec_member_notice: "이 보안 규칙은 플랜 소유자가 설정하며 귀하의 계정에 적용됩니다.",

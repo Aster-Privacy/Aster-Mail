@@ -1386,6 +1386,8 @@ export const it = {
     smtp_token_never_used: "Mai",
     smtp_token_revoke_title: "Revocare il token?",
     smtp_token_revoke_message: "Questo revocherà definitivamente {{ name }}. Qualsiasi app che lo utilizza non potrà più inviare email.",
+    smtp_token_revoked_toast: "Token SMTP revocato",
+    smtp_token_revoke_failed_toast: "Impossibile revocare il token SMTP. Riprova.",
     smtp_token_not_e2e_title: "I messaggi inviati con token SMTP non sono crittografati end-to-end",
     smtp_token_not_e2e_body: "Le email inviate tramite un token SMTP sono protette da TLS durante il transito e archiviate con crittografia zero-access sui nostri server, ma non sono crittografate end-to-end. Aster non può applicare la crittografia end-to-end alle email che hanno origine al di fuori delle app Aster. Usa i token SMTP solo per email automatizzate o transazionali in cui la crittografia end-to-end non è richiesta.",
     fam_org_sec_member_notice: "Queste regole di sicurezza sono impostate dal proprietario del piano e si applicano al tuo account.",

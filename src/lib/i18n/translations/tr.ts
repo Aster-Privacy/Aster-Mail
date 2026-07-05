@@ -1385,6 +1385,8 @@ export const tr = {
     smtp_token_never_used: "Hiç",
     smtp_token_revoke_title: "Jeton iptal edilsin mi?",
     smtp_token_revoke_message: "Bu işlem {{ name }} jetonunu kalıcı olarak iptal eder. Bunu kullanan herhangi bir uygulama artık e-posta gönderemez.",
+    smtp_token_revoked_toast: "SMTP jetonu iptal edildi",
+    smtp_token_revoke_failed_toast: "SMTP jetonu iptal edilemedi. Lütfen tekrar deneyin.",
     smtp_token_not_e2e_title: "SMTP jetonlarıyla gönderilen mesajlar uçtan uca şifreli değildir",
     smtp_token_not_e2e_body: "Bir SMTP jetonu üzerinden gönderilen e-posta, aktarım sırasında TLS ile korunur ve sunucularımızda sıfır erişimli şifrelemeyle depolanır, ancak uçtan uca şifreli değildir. Aster, Aster uygulamalarının dışından gelen e-postalara uçtan uca şifreleme uygulayamaz. SMTP jetonlarını yalnızca uçtan uca şifrelemenin gerekmediği otomatik veya işlemsel e-postalar için kullanın.",
     fam_org_sec_member_notice: "Bu güvenlik kuralları plan sahibi tarafından belirlenir ve hesabınıza uygulanır.",
