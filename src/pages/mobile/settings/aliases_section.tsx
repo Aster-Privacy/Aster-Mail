@@ -23,6 +23,7 @@ import { motion } from "framer-motion";
 import {
   ChevronRightIcon,
   ChevronDownIcon,
+  MagnifyingGlassIcon,
   PlusIcon,
   ClipboardDocumentIcon,
   AtSymbolIcon,
@@ -65,12 +66,39 @@ export function AliasesSection({
   const hook = use_aliases();
   const [expanded_domain, set_expanded_domain] = useState<string | null>(null);
   const [current_page, set_current_page] = useState(0);
+  const [search_query, set_search_query] = useState("");
   const scroll_ref = useRef<HTMLDivElement>(null);
+
+  const normalized_query = search_query.trim().toLowerCase();
+
+  const filtered_aliases = useMemo(() => {
+    if (!normalized_query) return hook.aliases;
+
+    return hook.aliases.filter(
+      (a) =>
+        a.full_address.toLowerCase().includes(normalized_query) ||
+        (a.display_name ?? "").toLowerCase().includes(normalized_query),
+    );
+  }, [hook.aliases, normalized_query]);
+
+  const filtered_domain_addresses = useMemo(() => {
+    if (!normalized_query) return hook.domain_addresses;
+
+    return hook.domain_addresses.filter((addr) =>
+      `${addr.local_part}@${addr.domain_name}`
+        .toLowerCase()
+        .includes(normalized_query),
+    );
+  }, [hook.domain_addresses, normalized_query]);
 
   const total_pages = Math.max(
     1,
-    Math.ceil(hook.aliases.length / ALIASES_PER_PAGE),
+    Math.ceil(filtered_aliases.length / ALIASES_PER_PAGE),
   );
+
+  useEffect(() => {
+    set_current_page(0);
+  }, [normalized_query]);
 
   useEffect(() => {
     if (current_page > total_pages - 1) {
@@ -80,11 +108,11 @@ export function AliasesSection({
 
   const page_aliases = useMemo(
     () =>
-      hook.aliases.slice(
+      filtered_aliases.slice(
         current_page * ALIASES_PER_PAGE,
         current_page * ALIASES_PER_PAGE + ALIASES_PER_PAGE,
       ),
-    [hook.aliases, current_page],
+    [filtered_aliases, current_page],
   );
 
   const handle_page_change = (page: number) => {
@@ -226,6 +254,22 @@ export function AliasesSection({
           </motion.button>
         </div>
 
+        {!hook.aliases_loading &&
+          (hook.aliases.length > 0 || hook.domain_addresses.length > 0) && (
+            <div className="px-4 pt-3">
+              <div className="relative">
+                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--mobile-text-muted)]" />
+                <input
+                  className="w-full rounded-xl bg-[var(--mobile-bg-card)] py-2.5 pl-9 pr-3 text-[14px] text-[var(--mobile-text-primary)] outline-none placeholder:text-[var(--mobile-text-muted)]"
+                  placeholder={t("settings.alias_search_placeholder")}
+                  type="text"
+                  value={search_query}
+                  onChange={(e) => set_search_query(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
         {hook.aliases_loading ? (
           <div className="flex items-center justify-center py-12">
             <Spinner size="md" />
@@ -237,6 +281,11 @@ export function AliasesSection({
               {t("settings.no_aliases_yet")}
             </p>
           </div>
+        ) : filtered_aliases.length === 0 &&
+          filtered_domain_addresses.length === 0 ? (
+          <p className="px-4 pt-8 text-center text-[14px] text-[var(--mobile-text-muted)]">
+            {t("common.no_results")}
+          </p>
         ) : (
           <div className="px-4 pt-3 space-y-2">
             {page_aliases.map((alias) => (
@@ -295,7 +344,7 @@ export function AliasesSection({
               on_page_change={handle_page_change}
               total_pages={total_pages}
             />
-            {hook.domain_addresses.map((addr) => (
+            {filtered_domain_addresses.map((addr) => (
               <div
                 key={addr.id}
                 className="rounded-xl bg-[var(--mobile-bg-card)] p-4"
