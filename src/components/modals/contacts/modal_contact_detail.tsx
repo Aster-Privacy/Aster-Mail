@@ -47,6 +47,8 @@ import { RELATIONSHIP_LABELS } from "@/types/contacts";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
 import { use_should_reduce_motion } from "@/provider";
+import { use_external_link } from "@/contexts/external_link_context";
+import { build_contact_social_url } from "@/utils/contact_links";
 
 interface ModalContactDetailProps {
   selected_contact: DecryptedContact;
@@ -74,6 +76,7 @@ export function ModalContactDetail({
   on_copy,
 }: ModalContactDetailProps) {
   const reduce_motion = use_should_reduce_motion();
+  const { handle_external_link } = use_external_link();
 
   return (
     <motion.div
@@ -354,74 +357,42 @@ export function ModalContactDetail({
                     {t("common.social_links")}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {selected_contact.social_links.website && (
-                      <a
-                        className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
-                        href={(() => {
-                          try {
-                            const raw = selected_contact.social_links.website;
-                            const u = new URL(
-                              raw.startsWith("http") ? raw : `https://${raw}`,
-                            );
-                            if (u.protocol === "http:" || u.protocol === "https:")
-                              return u.href;
-                          } catch {}
-                          return undefined;
-                        })()}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        {t("common.website")}
-                      </a>
-                    )}
-                    {selected_contact.social_links.linkedin && (
-                      <a
-                        className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
-                        href={(() => {
-                          try {
-                            const u = new URL(selected_contact.social_links.linkedin);
-                            if (u.hostname === "linkedin.com" || u.hostname.endsWith(".linkedin.com")) return u.href;
-                          } catch {}
-                          return `https://linkedin.com/in/${selected_contact.social_links.linkedin}`;
-                        })()}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        {t("common.linkedin")}
-                      </a>
-                    )}
-                    {selected_contact.social_links.twitter && (
-                      <a
-                        className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
-                        href={(() => {
-                          try {
-                            const u = new URL(selected_contact.social_links.twitter);
-                            if (u.hostname === "twitter.com" || u.hostname.endsWith(".twitter.com") || u.hostname === "x.com" || u.hostname.endsWith(".x.com")) return u.href;
-                          } catch {}
-                          return `https://x.com/${selected_contact.social_links.twitter.replace("@", "")}`;
-                        })()}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        {t("common.twitter_x")}
-                      </a>
-                    )}
-                    {selected_contact.social_links.github && (
-                      <a
-                        className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-txt-secondary"
-                        href={(() => {
-                          try {
-                            const u = new URL(selected_contact.social_links.github);
-                            if (u.hostname === "github.com" || u.hostname.endsWith(".github.com")) return u.href;
-                          } catch {}
-                          return `https://github.com/${selected_contact.social_links.github}`;
-                        })()}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        {t("common.github")}
-                      </a>
-                    )}
+                    {(
+                      [
+                        ["website", "common.website"],
+                        ["linkedin", "common.linkedin"],
+                        ["twitter", "common.twitter_x"],
+                        ["github", "common.github"],
+                      ] as const
+                    ).map(([kind, label_key]) => {
+                      const value = selected_contact.social_links?.[kind];
+
+                      if (!value) return null;
+                      const url = build_contact_social_url(kind, value);
+
+                      if (!url) {
+                        return (
+                          <span
+                            key={kind}
+                            className="text-[13px] px-2.5 py-1 rounded-[12px] bg-surf-primary text-txt-secondary"
+                          >
+                            {t(label_key)}
+                          </span>
+                        );
+                      }
+
+                      return (
+                        <button
+                          key={kind}
+                          className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-[var(--accent-color,#3b82f6)] hover:bg-surf-tertiary"
+                          title={url}
+                          type="button"
+                          onClick={() => handle_external_link(url)}
+                        >
+                          {t(label_key)}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
