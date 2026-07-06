@@ -31,7 +31,6 @@ import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { connection_store } from "@/services/routing/connection_store";
-import { is_cdn_relay_supported } from "@/services/routing/tor_transport";
 import { InfoPopover } from "@/components/ui/info_popover";
 
 interface ConnectionOptionDef {
@@ -118,9 +117,7 @@ export function ConnectionSection() {
       </p>
 
       <div className="grid grid-cols-2 gap-3">
-        {CONNECTION_OPTIONS.filter(
-          (option) => option.value !== "cdn_relay" || is_cdn_relay_supported(),
-        ).map((option) => {
+        {CONNECTION_OPTIONS.map((option) => {
           const is_selected = state.method === option.value;
           const is_disabled = is_switching;
 

@@ -27,7 +27,6 @@ import { SettingsHeader } from "./shared";
 import { connection_store } from "@/services/routing/connection_store";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-import { is_cdn_relay_supported } from "@/services/routing/tor_transport";
 
 const OPTIONS: { value: ConnectionMethod; label_key: string; desc_key: string }[] = [
   {
@@ -96,9 +95,7 @@ export function ConnectionSection({
             {t("settings.connection.description" as Parameters<typeof t>[0])}
           </p>
           <div className="overflow-hidden rounded-2xl bg-[var(--mobile-bg-card)]">
-            {OPTIONS.filter(
-              (opt) => opt.value !== "cdn_relay" || is_cdn_relay_supported(),
-            ).map((opt, i) => {
+            {OPTIONS.map((opt, i) => {
               const is_selected = state.method === opt.value;
               return (
                 <button

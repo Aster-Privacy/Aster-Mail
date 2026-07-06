@@ -39,12 +39,21 @@ import {
   get_effective_retry_count,
   get_effective_retry_delay,
 } from "@/services/routing/routing_provider";
+import { connection_store } from "@/services/routing/connection_store";
+import {
+  ensure_relay_token,
+  refresh_relay_token,
+} from "@/services/routing/relay_token";
 
 const NATIVE_API_URL = "https://app.astermail.org/api";
 const API_BASE_URL =
   Capacitor.isNativePlatform() || is_tauri_env()
     ? NATIVE_API_URL
     : import.meta.env.VITE_API_URL || "/api";
+
+export function get_default_api_base(): string {
+  return API_BASE_URL;
+}
 
 const REFRESH_INTERVAL_MINUTES = 10;
 const PROACTIVE_REFRESH_THRESHOLD_MINUTES = 25;
@@ -1002,6 +1011,24 @@ class ApiClient {
       headers["Authorization"] = `Bearer ${this.dev_access_token}`;
     }
 
+    const is_relay_mode = connection_store.get_method() === "cdn_relay";
+    const is_relay_bootstrap =
+      endpoint.includes("/core/v1/connection-info") ||
+      endpoint.includes("/auth/relay-token");
+    const use_relay_bearer = is_relay_mode && !is_relay_bootstrap;
+
+    if (use_relay_bearer && !this.dev_access_token) {
+      const relay_token = await ensure_relay_token();
+
+      if (relay_token) {
+        headers["Authorization"] = `Bearer ${relay_token}`;
+      }
+    }
+
+    const request_credentials: RequestCredentials = use_relay_bearer
+      ? "omit"
+      : "include";
+
     const method = options.method || "GET";
 
     if (is_state_changing_method(method)) {
@@ -1018,16 +1045,33 @@ class ApiClient {
       code: "UNKNOWN_ERROR",
     };
     let has_attempted_refresh = false;
+    let has_attempted_relay_refresh = false;
 
     for (let attempt = 0; attempt <= retry; attempt++) {
       try {
         const response = await this.request_with_timeout(
           url,
-          { ...options, headers, credentials: "include" },
+          { ...options, headers, credentials: request_credentials },
           timeout,
         );
 
         if (!response.ok) {
+          if (
+            use_relay_bearer &&
+            !this.dev_access_token &&
+            (response.status === 401 || response.status === 403) &&
+            !has_attempted_relay_refresh
+          ) {
+            has_attempted_relay_refresh = true;
+            const refreshed = await refresh_relay_token();
+
+            if (refreshed) {
+              headers["Authorization"] = `Bearer ${refreshed}`;
+              attempt--;
+              continue;
+            }
+          }
+
           let error_data: {
             error?: string;
             code?: string;

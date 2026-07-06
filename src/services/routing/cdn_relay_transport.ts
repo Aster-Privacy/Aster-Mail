@@ -24,6 +24,11 @@ import { is_tauri_env, tauri_proxy_fetch } from "./tauri_proxy_transport";
 const RELAY_ALLOWED_SUFFIXES = [".astermail.org", ".astermail.com"];
 const RELAY_ALLOWED_EXACT = ["astermail.org", "astermail.com"];
 const CONNECTION_INFO_PATH = "/core/v1/connection-info";
+const RELAY_TOKEN_PATH = "/core/v1/auth/relay-token";
+
+function is_bootstrap_path(url: string): boolean {
+  return url.includes(CONNECTION_INFO_PATH) || url.includes(RELAY_TOKEN_PATH);
+}
 
 function is_relay_host_allowed(relay_url: string): boolean {
   try {
@@ -47,17 +52,23 @@ export async function cdn_relay_fetch(
 ): Promise<Response> {
   const relay_url = connection_store.get_cdn_relay_url();
 
-  if (!relay_url || !is_relay_host_allowed(relay_url)) {
-    // The connection-info request is what discovers the relay URL, so it must
-    // be allowed to reach the origin directly to bootstrap relay mode. Every
-    // other request fails closed: a missing or untrusted relay URL must never
-    // silently downgrade the user's traffic to clearnet behind their back.
-    if (url.includes(CONNECTION_INFO_PATH)) {
-      return is_tauri_env()
-        ? tauri_proxy_fetch(url, options)
-        : fetch(url, options);
-    }
+  // The connection-info and relay-token requests bootstrap relay mode and
+  // authenticate with the first-party cookie, so they must reach the origin
+  // directly with credentials. Every other request fails closed: a missing or
+  // untrusted relay URL must never silently downgrade the user's traffic to
+  // clearnet behind their back.
+  if (is_bootstrap_path(url)) {
+    const bootstrap_options: RequestInit = {
+      ...options,
+      credentials: "include",
+    };
 
+    return is_tauri_env()
+      ? tauri_proxy_fetch(url, bootstrap_options)
+      : fetch(url, bootstrap_options);
+  }
+
+  if (!relay_url || !is_relay_host_allowed(relay_url)) {
     throw new Error(
       "CDN relay URL is not available yet; refusing to send request over clearnet",
     );
@@ -65,8 +76,12 @@ export async function cdn_relay_fetch(
 
   const original = new URL(url);
   const relayed = `${relay_url}${original.pathname}${original.search}`;
+  const relayed_options: RequestInit = {
+    ...options,
+    credentials: "omit",
+  };
 
   return is_tauri_env()
-    ? tauri_proxy_fetch(relayed, options)
-    : fetch(relayed, options);
+    ? tauri_proxy_fetch(relayed, relayed_options)
+    : fetch(relayed, relayed_options);
 }
