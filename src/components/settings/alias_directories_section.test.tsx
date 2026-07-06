@@ -106,8 +106,8 @@ vi.mock("@/services/api/alias_directories", () => ({
     create_alias_directory(...args),
   update_alias_directory: vi.fn(),
   delete_alias_directory: vi.fn(),
-  check_directory_availability: (key: string) =>
-    check_directory_availability(key),
+  check_directory_availability: (key: string, domain: string) =>
+    check_directory_availability(key, domain),
 }));
 
 vi.mock("@/services/api/domains", () => ({
@@ -180,7 +180,10 @@ describe("AliasDirectoriesSection availability", () => {
     await type_key("shopping");
     await wait_debounce();
 
-    expect(check_directory_availability).toHaveBeenCalledWith("shopping");
+    expect(check_directory_availability).toHaveBeenCalledWith(
+      "shopping",
+      "astermail.org",
+    );
     expect(container.textContent).toContain("settings.alias_directory_available");
     expect(container.textContent).not.toContain(
       "settings.alias_directory_not_available",
