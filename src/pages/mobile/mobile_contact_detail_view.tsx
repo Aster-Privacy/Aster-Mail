@@ -41,6 +41,7 @@ import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_external_link } from "@/contexts/external_link_context";
+import { build_contact_social_url } from "@/utils/contact_links";
 
 function DetailCard({ children }: { children: React.ReactNode }) {
   return (
@@ -367,49 +368,38 @@ export function ContactDetailView({
                 icon={<GlobeAltIcon className="h-4 w-4" />}
                 label={t("common.social_section")}
               />
-              {contact.social_links?.website && (
-                <DetailRow
-                  action_icon={<LinkIcon className="h-4 w-4" />}
-                  is_last={
-                    !contact.social_links.linkedin &&
-                    !contact.social_links.twitter &&
-                    !contact.social_links.github
-                  }
-                  label={contact.social_links.website}
-                  on_action={() =>
-                    handle_external_link(contact.social_links!.website!)
-                  }
-                  on_copy={() => on_copy(contact.social_links!.website!)}
-                  sublabel={t("common.website")}
-                />
-              )}
-              {contact.social_links?.linkedin && (
-                <DetailRow
-                  is_last={
-                    !contact.social_links.twitter &&
-                    !contact.social_links.github
-                  }
-                  label={contact.social_links.linkedin}
-                  on_copy={() => on_copy(contact.social_links!.linkedin!)}
-                  sublabel={t("common.linkedin")}
-                />
-              )}
-              {contact.social_links?.twitter && (
-                <DetailRow
-                  is_last={!contact.social_links.github}
-                  label={contact.social_links.twitter}
-                  on_copy={() => on_copy(contact.social_links!.twitter!)}
-                  sublabel={t("common.twitter_x")}
-                />
-              )}
-              {contact.social_links?.github && (
-                <DetailRow
-                  is_last
-                  label={contact.social_links.github}
-                  on_copy={() => on_copy(contact.social_links!.github!)}
-                  sublabel={t("common.github")}
-                />
-              )}
+              {(
+                [
+                  ["website", "common.website"],
+                  ["linkedin", "common.linkedin"],
+                  ["twitter", "common.twitter_x"],
+                  ["github", "common.github"],
+                ] as const
+              ).map(([kind, label_key], index, kinds) => {
+                const value = contact.social_links?.[kind];
+
+                if (!value) return null;
+                const url = build_contact_social_url(kind, value);
+                const is_last = kinds
+                  .slice(index + 1)
+                  .every(([next_kind]) => !contact.social_links?.[next_kind]);
+
+                return (
+                  <DetailRow
+                    key={kind}
+                    action_icon={
+                      url ? <LinkIcon className="h-4 w-4" /> : undefined
+                    }
+                    is_last={is_last}
+                    label={value}
+                    on_action={
+                      url ? () => handle_external_link(url) : undefined
+                    }
+                    on_copy={() => on_copy(value)}
+                    sublabel={t(label_key)}
+                  />
+                );
+              })}
             </DetailCard>
           )}
 
