@@ -319,7 +319,6 @@ export default function MobileSignInPage() {
       return;
     }
 
-
     const email = `${clean_username}@${final_domain}`;
 
     if (is_adding_account) {
@@ -327,9 +326,11 @@ export default function MobileSignInPage() {
       const existing = accounts.find(
         (a) => a.user.email.toLowerCase() === normalized,
       );
+
       if (existing && existing.id !== (await get_current_account_id())) {
         await timing_safe_delay();
         set_error(t("errors.account_already_added"));
+
         return;
       }
     }
@@ -776,18 +777,23 @@ export default function MobileSignInPage() {
                       const domain_part = raw
                         .substring(at_index + 1)
                         .toLowerCase();
-
-                      set_username(local);
-                      if (
+                      const matched =
                         domain_part === "astermail.org" ||
                         domain_part.endsWith(".astermail.org")
-                      )
-                        set_email_domain("astermail.org");
-                      else if (
-                        domain_part === "aster.cx" ||
-                        domain_part.endsWith(".aster.cx")
-                      )
-                        set_email_domain("aster.cx");
+                          ? "astermail.org"
+                          : domain_part === "aster.cx" ||
+                              domain_part.endsWith(".aster.cx")
+                            ? "aster.cx"
+                            : null;
+
+                      if (matched) {
+                        set_email_domain(matched);
+                        set_username(local);
+                      } else {
+                        set_username(
+                          `${local}@${domain_part.replace(/[^a-z0-9.-]/g, "")}`,
+                        );
+                      }
                     } else {
                       set_username(sanitize_username(raw));
                     }
@@ -967,7 +973,6 @@ export default function MobileSignInPage() {
                 <ArrowRightIcon className="h-4 w-4" />
               </motion.button>
             </motion.div>
-
           </motion.div>
         </div>
       </div>

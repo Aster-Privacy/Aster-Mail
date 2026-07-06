@@ -22,8 +22,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button, Checkbox } from "@aster/ui";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { use_should_reduce_motion } from "@/provider";
 import { use_auth } from "@/contexts/auth_context";
 import { api_client } from "@/services/api/client";
@@ -84,11 +84,16 @@ function get_safe_next_path(): string {
   try {
     const params = new URLSearchParams(window.location.search);
     const raw = params.get("next");
+
     if (!raw) return "/";
     const decoded = decodeURIComponent(raw);
+
     if (!decoded.startsWith("/")) return "/";
-    if (decoded.length > 1 && (decoded[1] === "/" || decoded[1] === "\\")) return "/";
-    if (decoded.startsWith("/sign-in") || decoded.startsWith("/register")) return "/";
+    if (decoded.length > 1 && (decoded[1] === "/" || decoded[1] === "\\"))
+      return "/";
+    if (decoded.startsWith("/sign-in") || decoded.startsWith("/register"))
+      return "/";
+
     return decoded;
   } catch {
     return "/";
@@ -120,13 +125,18 @@ async function decrypt_with_prf(
       false,
       ["decrypt"],
     );
-    const enc_bytes = Uint8Array.from(atob(encrypted_b64), (c) => c.charCodeAt(0));
-    const nonce_bytes = Uint8Array.from(atob(nonce_b64), (c) => c.charCodeAt(0));
+    const enc_bytes = Uint8Array.from(atob(encrypted_b64), (c) =>
+      c.charCodeAt(0),
+    );
+    const nonce_bytes = Uint8Array.from(atob(nonce_b64), (c) =>
+      c.charCodeAt(0),
+    );
     const decrypted = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv: nonce_bytes },
       key,
       enc_bytes,
     );
+
     return new TextDecoder().decode(decrypted);
   } catch {
     return null;
@@ -526,9 +536,13 @@ export default function SignInPage() {
 
   const [captcha_token, set_captcha_token] = useState("");
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
-  const [pending_verification_hash, set_pending_verification_hash] = useState<string | null>(null);
+  const [pending_verification_hash, set_pending_verification_hash] = useState<
+    string | null
+  >(null);
   const [resend_cooldown, set_resend_cooldown] = useState(0);
-  const resend_cooldown_ref = useRef<ReturnType<typeof setInterval> | null>(null);
+  const resend_cooldown_ref = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
   const [is_resending, set_is_resending] = useState(false);
 
   const [totp_required, set_totp_required] = useState(false);
@@ -555,6 +569,7 @@ export default function SignInPage() {
         }
 
         let vault;
+
         try {
           vault = await decrypt_vault(
             totp_response.encrypted_vault,
@@ -566,7 +581,10 @@ export default function SignInPage() {
             throw vault_err;
           }
 
-          const stored = await get_session_passphrase(totp_response.user_id).catch(() => null);
+          const stored = await get_session_passphrase(
+            totp_response.user_id,
+          ).catch(() => null);
+
           if (stored) {
             try {
               vault = await decrypt_vault(
@@ -579,14 +597,22 @@ export default function SignInPage() {
             }
           }
 
-          if (!vault && totp_response.prf_encrypted_passphrase && totp_response.prf_nonce) {
-            const prf_out = (totp_response as any).prf_output as ArrayBuffer | undefined;
+          if (
+            !vault &&
+            totp_response.prf_encrypted_passphrase &&
+            totp_response.prf_nonce
+          ) {
+            const prf_out = (totp_response as any).prf_output as
+              | ArrayBuffer
+              | undefined;
+
             if (prf_out) {
               const prf_passphrase = await decrypt_with_prf(
                 prf_out,
                 totp_response.prf_encrypted_passphrase,
                 totp_response.prf_nonce,
               ).catch(() => null);
+
               if (prf_passphrase) {
                 try {
                   vault = await decrypt_vault(
@@ -604,6 +630,7 @@ export default function SignInPage() {
           if (!vault) {
             set_error(t("passkeys.vault_needs_password"));
             set_is_loading(false);
+
             return;
           }
         }
@@ -723,22 +750,31 @@ export default function SignInPage() {
             clearInterval(resend_cooldown_ref.current);
             resend_cooldown_ref.current = null;
           }
+
           return 0;
         }
+
         return prev - 1;
       });
     }, 1000);
   }, []);
 
   const handle_resend_pending = useCallback(async () => {
-    if (!pending_verification_hash || resend_cooldown > 0 || is_resending) return;
+    if (!pending_verification_hash || resend_cooldown > 0 || is_resending)
+      return;
     set_is_resending(true);
     const result = await resend_pending_verification(pending_verification_hash);
+
     set_is_resending(false);
     if (result.data.success) {
       start_resend_cooldown();
     }
-  }, [pending_verification_hash, resend_cooldown, is_resending, start_resend_cooldown]);
+  }, [
+    pending_verification_hash,
+    resend_cooldown,
+    is_resending,
+    start_resend_cooldown,
+  ]);
 
   if (auth_loading || has_existing_session) {
     return (
@@ -829,9 +865,11 @@ export default function SignInPage() {
       const existing = accounts.find(
         (a) => a.user.email.toLowerCase() === normalized,
       );
+
       if (existing && existing.id !== (await get_current_account_id())) {
         await timing_safe_delay();
         set_error(t("errors.account_already_added"));
+
         return;
       }
     }
@@ -1211,7 +1249,9 @@ export default function SignInPage() {
                     onClick={handle_resend_pending}
                   >
                     {resend_cooldown > 0
-                      ? t("auth.resend_in_seconds", { seconds: String(resend_cooldown) })
+                      ? t("auth.resend_in_seconds", {
+                          seconds: String(resend_cooldown),
+                        })
                       : is_resending
                         ? t("common.loading")
                         : t("auth.resend_verification_email")}
@@ -1246,18 +1286,23 @@ export default function SignInPage() {
                       const domain_part = raw
                         .substring(at_index + 1)
                         .toLowerCase();
-
-                      set_username(local);
-                      if (
+                      const matched =
                         domain_part === "astermail.org" ||
                         domain_part.endsWith(".astermail.org")
-                      )
-                        set_email_domain("astermail.org");
-                      else if (
-                        domain_part === "aster.cx" ||
-                        domain_part.endsWith(".aster.cx")
-                      )
-                        set_email_domain("aster.cx");
+                          ? "astermail.org"
+                          : domain_part === "aster.cx" ||
+                              domain_part.endsWith(".aster.cx")
+                            ? "aster.cx"
+                            : null;
+
+                      if (matched) {
+                        set_email_domain(matched);
+                        set_username(local);
+                      } else {
+                        set_username(
+                          `${local}@${domain_part.replace(/[^a-z0-9.-]/g, "")}`,
+                        );
+                      }
                     } else {
                       set_username(sanitize_username(raw));
                     }
@@ -1316,7 +1361,9 @@ export default function SignInPage() {
                     status={error ? "error" : "default"}
                     type={is_password_visible ? "text" : "password"}
                     value={password}
-                    onChange={(e) => set_password(clamp_password(e.target.value))}
+                    onChange={(e) =>
+                      set_password(clamp_password(e.target.value))
+                    }
                     onKeyDown={(e) =>
                       e["key"] === "Enter" && !is_loading && handle_login()
                     }
@@ -1377,7 +1424,6 @@ export default function SignInPage() {
             >
               {t("auth.create_account")}
             </Button>
-
           </motion.div>
         </AnimatePresence>
       </div>
