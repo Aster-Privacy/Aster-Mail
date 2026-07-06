@@ -147,7 +147,7 @@ export function AliasDirectoriesSection() {
     set_checking_availability(true);
     availability_timeout_ref.current = setTimeout(async () => {
       try {
-        const response = await check_directory_availability(key);
+        const response = await check_directory_availability(key, domain);
 
         if (response.data) {
           set_is_available(response.data.available);
@@ -166,7 +166,7 @@ export function AliasDirectoriesSection() {
         clearTimeout(availability_timeout_ref.current);
       }
     };
-  }, [directory_key]);
+  }, [directory_key, domain]);
 
   const handle_create = async () => {
     if (locked || !directory_key.trim()) return;

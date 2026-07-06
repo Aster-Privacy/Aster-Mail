@@ -59,18 +59,20 @@ export async function create_alias_directory(
   color?: string,
   captcha_token?: string,
 ): Promise<ApiResponse<{ id: string; success: boolean }>> {
-  const directory_hash = await sha256_base64(directory_key);
-  const { encrypted, nonce } = await encrypt_alias_field(
-    directory_key.trim(),
-  );
+  const key = directory_key.trim().toLowerCase();
+  const domain_lower = domain.trim().toLowerCase();
+  const directory_hash = await sha256_base64(`${key}@${domain_lower}`);
+  const legacy_hash = await sha256_base64(key);
+  const { encrypted, nonce } = await encrypt_alias_field(key);
 
   return api_client.post<{ id: string; success: boolean }>(
     "/addresses/v1/aliases/directories",
     {
       directory_hash,
+      legacy_hash,
       encrypted_label: encrypted,
       label_nonce: nonce,
-      domain,
+      domain: domain_lower,
       auto_create_enabled,
       color,
       captcha_token,
@@ -80,12 +82,16 @@ export async function create_alias_directory(
 
 export async function check_directory_availability(
   directory_key: string,
+  domain: string,
 ): Promise<ApiResponse<{ available: boolean }>> {
-  const directory_hash = await sha256_base64(directory_key);
+  const key = directory_key.trim().toLowerCase();
+  const domain_lower = domain.trim().toLowerCase();
+  const directory_hash = await sha256_base64(`${key}@${domain_lower}`);
+  const legacy_hash = await sha256_base64(key);
 
   return api_client.post<{ available: boolean }>(
     "/addresses/v1/aliases/directories/availability",
-    { directory_hash },
+    { directory_hash, legacy_hash, domain: domain_lower },
   );
 }
 
