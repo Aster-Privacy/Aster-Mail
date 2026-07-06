@@ -23,7 +23,6 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -31,6 +30,15 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const load_aliases = vi.fn();
 const load_alias_counts = vi.fn();
 let captured_on_restored: (() => void) | null = null;
+
+const mock_state = vi.hoisted(() => ({
+  aliases: [] as {
+    id: string;
+    full_address: string;
+    display_name?: string;
+    is_enabled: boolean;
+  }[],
+}));
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
@@ -79,7 +87,7 @@ vi.mock(
 
 vi.mock("@/components/settings/hooks/use_aliases", () => ({
   use_aliases: () => ({
-    aliases: [],
+    aliases: mock_state.aliases,
     aliases_loading: false,
     max_aliases: 10,
     show_create_alias_modal: false,
@@ -143,6 +151,7 @@ beforeEach(() => {
   load_aliases.mockClear();
   load_alias_counts.mockClear();
   captured_on_restored = null;
+  mock_state.aliases = [];
   host = document.createElement("div");
   document.body.appendChild(host);
   root = createRoot(host);
@@ -157,8 +166,9 @@ describe("mobile AliasesSection recently-deleted parity", () => {
   it("renders the RecentlyDeletedAliasesSection like desktop web does", () => {
     render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
 
-    expect(host.querySelector('[data-testid="recently-deleted-mock"]')).not
-      .toBeNull();
+    expect(
+      host.querySelector('[data-testid="recently-deleted-mock"]'),
+    ).not.toBeNull();
   });
 
   it("reloads aliases and counts when a deleted alias is restored", () => {
@@ -171,5 +181,67 @@ describe("mobile AliasesSection recently-deleted parity", () => {
 
     expect(load_aliases).toHaveBeenCalledTimes(1);
     expect(load_alias_counts).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("mobile AliasesSection alias search", () => {
+  const search_input = () =>
+    host.querySelector(
+      'input[placeholder="settings.alias_search_placeholder"]',
+    ) as HTMLInputElement | null;
+
+  const type_query = (value: string) => {
+    const input = search_input()!;
+    const setter = Object.getOwnPropertyDescriptor(
+      Object.getPrototypeOf(input),
+      "value",
+    )!.set!;
+
+    act(() => {
+      setter.call(input, value);
+      input.dispatchEvent(new window.InputEvent("input", { bubbles: true }));
+    });
+  };
+
+  const alias = (id: string, full_address: string, display_name?: string) => ({
+    id,
+    full_address,
+    display_name,
+    is_enabled: true,
+  });
+
+  it("hides the search box when there is nothing to search", () => {
+    render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
+
+    expect(search_input()).toBeNull();
+  });
+
+  it("filters aliases by address and display name, case-insensitively", () => {
+    mock_state.aliases = [
+      alias("1", "shopping@astermail.org"),
+      alias("2", "bank@astermail.org", "My Bank"),
+      alias("3", "news@aster.cx"),
+    ];
+    render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
+
+    expect(host.textContent).toContain("shopping@astermail.org");
+    expect(search_input()).not.toBeNull();
+
+    type_query("bank");
+    expect(host.textContent).toContain("bank@astermail.org");
+    expect(host.textContent).not.toContain("shopping@astermail.org");
+    expect(host.textContent).not.toContain("news@aster.cx");
+
+    type_query("my BANK");
+    expect(host.textContent).toContain("bank@astermail.org");
+    expect(host.textContent).not.toContain("news@aster.cx");
+
+    type_query("zzz");
+    expect(host.textContent).toContain("common.no_results");
+
+    type_query("");
+    expect(host.textContent).toContain("shopping@astermail.org");
+    expect(host.textContent).toContain("bank@astermail.org");
+    expect(host.textContent).toContain("news@aster.cx");
   });
 });
