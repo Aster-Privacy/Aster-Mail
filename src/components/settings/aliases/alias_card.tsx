@@ -53,6 +53,7 @@ import {
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
+import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
 import { AliasAdvancedPanel } from "@/components/settings/aliases/alias_advanced_panel";
 
 const AVATAR_MAX_SIZE = 256;
@@ -240,6 +241,7 @@ interface AliasItemProps {
   default_advanced_open?: boolean;
   on_avatar_changed?: () => void;
   on_display_name_saved?: (alias_id: string, name: string) => void;
+  on_note_saved?: (alias_id: string, note: string) => void;
   toggling: boolean;
   deleting: boolean;
   is_avatar_locked: boolean;
@@ -256,6 +258,7 @@ export function AliasItem({
   default_advanced_open,
   on_avatar_changed,
   on_display_name_saved,
+  on_note_saved,
   toggling,
   deleting,
   is_avatar_locked,
@@ -455,6 +458,14 @@ export function AliasItem({
           is_locked={is_avatar_locked}
           on_save={(name) => update_alias(alias.id, { display_name: name })}
           on_saved={(name) => on_display_name_saved?.(alias.id, name)}
+        />
+        <AliasNoteEditor
+          alias_address={alias.full_address}
+          note={alias.note}
+          on_save={(note_value) =>
+            update_alias(alias.id, { note: note_value || null })
+          }
+          on_saved={(note_value) => on_note_saved?.(alias.id, note_value)}
         />
         {!is_feature_locked("has_advanced_aliases") && stats && (
           <div className="mt-0.5 flex items-center gap-2">
