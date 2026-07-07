@@ -248,9 +248,33 @@ export async function decrypt_alias(
       base64_to_array(alias.encrypted_local_part),
     );
 
+    let display_name: string | undefined;
+
+    if (alias.encrypted_display_name && alias.display_name_nonce) {
+      try {
+        display_name = await decrypt_alias_field(
+          alias.encrypted_display_name,
+          alias.display_name_nonce,
+        );
+      } catch {}
+    }
+
+    let note: string | undefined;
+
+    if (alias.encrypted_note && alias.note_nonce) {
+      try {
+        note = await decrypt_alias_field(
+          alias.encrypted_note,
+          alias.note_nonce,
+        );
+      } catch {}
+    }
+
     return {
       id: alias.id,
       local_part,
+      display_name,
+      note,
       alias_address_hash: alias.alias_address_hash,
       domain: alias.domain,
       full_address: `${local_part}@${alias.domain}`,
