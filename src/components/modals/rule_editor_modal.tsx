@@ -578,7 +578,7 @@ export function RuleEditorModal({
           {is_edit ? t("mail_rules.edit_rule") : t("mail_rules.create_rule")}
         </ModalTitle>
         <ModalDescription>
-          Name your rule and tell it what to do.
+          {t("mail_rules.editor_description")}
         </ModalDescription>
       </ModalHeader>
 

@@ -432,7 +432,7 @@ function RuleCard({
             className="text-neutral-400 cursor-grab transition-opacity opacity-0 group-hover:opacity-100"
             onMouseDown={() => set_draggable_on(true)}
             onMouseUp={() => set_draggable_on(false)}
-            aria-label="drag handle"
+            aria-label={t("mail_rules.drag_handle")}
           >
             <Bars3Icon className="w-4 h-4" />
           </span>

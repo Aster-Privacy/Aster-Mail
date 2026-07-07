@@ -665,7 +665,7 @@ export const Sidebar = ({
                 ) : (
                   <img
                     ref={mail_logo_ref}
-                    alt="Mail"
+                    alt={t("common.mail")}
                     className={`w-full h-full select-none rounded-lg transition-opacity duration-150 ${mail_logo_loaded ? "opacity-100" : "opacity-0"}`}
                     decoding="async"
                     draggable={false}

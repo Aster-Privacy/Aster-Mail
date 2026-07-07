@@ -31,6 +31,7 @@ import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { Modal } from "@/components/ui/modal";
 import { format_bytes } from "@/lib/utils";
 import { use_should_reduce_motion } from "@/provider";
+import { use_translation } from "@/lib/i18n/context";
 
 interface FamilyWelcomeModalProps {
   is_open: boolean;
@@ -44,32 +45,32 @@ interface FamilyWelcomeModalProps {
 const STEPS = [
   {
     icon: UserGroupIcon,
-    title: "Welcome to your family plan",
-    description: "Everyone in your family gets their own private, encrypted inbox - completely separate from yours.",
+    title: "settings.fam_welcome_step1_title",
+    description: "settings.fam_welcome_step1_desc",
     points: [
-      "Each member gets their own @astermail.org address",
-      "Complete privacy - members can't see each other's emails",
-      "Quantum-safe encryption on every account",
+      "settings.fam_welcome_step1_point1",
+      "settings.fam_welcome_step1_point2",
+      "settings.fam_welcome_step1_point3",
     ],
   },
   {
     icon: CircleStackIcon,
-    title: "One storage pool, you control it",
-    description: "Your plan comes with a shared pool of storage. Decide how much each member gets and adjust any time.",
+    title: "settings.fam_welcome_step2_title",
+    description: "settings.fam_welcome_step2_desc",
     points: [
-      "Allocate storage to each member when you invite them",
-      "Move storage between members with a slider",
-      "Members only see their own usage - nothing else",
+      "settings.fam_welcome_step2_point1",
+      "settings.fam_welcome_step2_point2",
+      "settings.fam_welcome_step2_point3",
     ],
   },
   {
     icon: ShieldCheckIcon,
-    title: "Security for the whole family",
-    description: "Set policies that apply to every member - enforce 2FA, limit sessions, control access.",
+    title: "settings.fam_welcome_step3_title",
+    description: "settings.fam_welcome_step3_desc",
     points: [
-      "Require 2-factor authentication for all members",
-      "Set session timeouts and device limits org-wide",
-      "View activity logs and member compliance at a glance",
+      "settings.fam_welcome_step3_point1",
+      "settings.fam_welcome_step3_point2",
+      "settings.fam_welcome_step3_point3",
     ],
   },
 ] as const;
@@ -85,6 +86,7 @@ export function FamilyWelcomeModal({
   const [step, set_step] = useState(0);
   const [dir, set_dir] = useState(1);
   const reduce_motion = use_should_reduce_motion();
+  const { t } = use_translation();
   const current = STEPS[step];
   const Icon = current.icon;
   const is_last = step === STEPS.length - 1;
@@ -132,7 +134,7 @@ export function FamilyWelcomeModal({
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
                 {plan_name}
               </span>
-              <span className="text-xs text-txt-muted">{max_members} members · {format_bytes(storage_pool_bytes)}</span>
+              <span className="text-xs text-txt-muted">{t("settings.fam_welcome_summary", { count: max_members, storage: format_bytes(storage_pool_bytes) })}</span>
             </div>
 
             <div className="flex justify-center mb-5 w-full">
@@ -140,15 +142,15 @@ export function FamilyWelcomeModal({
             </div>
 
             <div className="text-center mb-6">
-              <h2 className="text-lg font-semibold text-txt-primary mb-2">{current.title}</h2>
-              <p className="text-sm text-txt-muted leading-relaxed max-w-xs mx-auto">{current.description}</p>
+              <h2 className="text-lg font-semibold text-txt-primary mb-2">{t(current.title)}</h2>
+              <p className="text-sm text-txt-muted leading-relaxed max-w-xs mx-auto">{t(current.description)}</p>
             </div>
 
             <ul className="space-y-3 bg-surf-secondary rounded-xl p-4 border border-edge-secondary">
               {current.points.map((point, i) => (
                 <li key={i} className="flex items-start gap-2.5">
                   <CheckCircleIcon className="w-4 h-4 flex-shrink-0 mt-0.5 text-green-500" />
-                  <span className="text-sm text-txt-primary">{point}</span>
+                  <span className="text-sm text-txt-primary">{t(point)}</span>
                 </li>
               ))}
             </ul>
@@ -167,7 +169,7 @@ export function FamilyWelcomeModal({
                   ? "w-1.5 h-2 bg-accent-blue opacity-40"
                   : "w-1.5 h-2 bg-edge-secondary"
               }`}
-              aria-label={`Step ${i + 1}: ${s.title}`}
+              aria-label={t("settings.fam_welcome_step_aria", { number: i + 1, title: t(s.title) })}
             />
           ))}
         </div>
@@ -177,7 +179,7 @@ export function FamilyWelcomeModal({
             onClick={handle_close}
             className="aster_btn aster_btn_ghost aster_btn_sm"
           >
-            Skip
+            {t("common.skip")}
           </button>
           <div className="flex items-center gap-3">
             {step > 0 && (
@@ -185,7 +187,7 @@ export function FamilyWelcomeModal({
                 onClick={() => go(step - 1)}
                 className="aster_btn aster_btn_depth aster_btn_sm"
               >
-                Back
+                {t("common.back")}
               </button>
             )}
             <button
@@ -194,11 +196,11 @@ export function FamilyWelcomeModal({
             >
               {is_last ? (
                 <>
-                  Set up family
+                  {t("settings.fam_welcome_setup")}
                   <ArrowRightIcon className="w-4 h-4" />
                 </>
               ) : (
-                "Next"
+                t("common.next")
               )}
             </button>
           </div>
