@@ -414,6 +414,7 @@ export interface CommonTranslations {
   profile: string;
   probation_message: string;
   sending_in_seconds: string;
+  sending_in_one_second: string;
   message_will_be_sent_shortly: string;
   saving: string;
   save_failed: string;

@@ -1252,6 +1252,7 @@ export const ko = {
     profile: "프로필",
     probation_message: "계정에 일시적인 발송 제한이 있습니다. 자동으로 해제됩니다.",
     sending_in_seconds: "{{seconds}}초 후에 전송됩니다...",
+    sending_in_one_second: "1초 후에 전송됩니다...",
     message_will_be_sent_shortly: "메시지가 곧 전송됩니다",
     remove_recovery_email: "복구 이메일 제거",
     remove_recovery_email_confirm: "복구 이메일을 제거하시겠습니까? 이 이메일로 더 이상 계정을 복구할 수 없습니다.",
