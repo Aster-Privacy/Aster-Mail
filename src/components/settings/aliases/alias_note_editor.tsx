@@ -54,8 +54,10 @@ export function AliasNoteEditor({
   const commit_lock = useRef(false);
 
   useEffect(() => {
-    set_value(note ?? "");
-  }, [note]);
+    if (!is_editing) {
+      set_value(note ?? "");
+    }
+  }, [note, is_editing]);
 
   useEffect(() => {
     if (is_editing) {
@@ -98,23 +100,29 @@ export function AliasNoteEditor({
     }
 
     set_saving(true);
+    let saved = false;
+
     try {
       const response = await on_save(cleaned);
 
       if (response.error) {
         show_toast(t("common.failed_update_alias_note"), "error");
-        set_value(note ?? "");
       } else {
+        saved = true;
         on_saved(cleaned);
         show_toast(t("common.alias_note_updated"), "success");
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       show_toast(t("common.failed_update_alias_note"), "error");
-      set_value(note ?? "");
     } finally {
       set_saving(false);
-      exit_edit();
+      if (saved) {
+        exit_edit();
+      } else {
+        commit_lock.current = false;
+        input_ref.current?.focus();
+      }
     }
   };
 

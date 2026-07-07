@@ -245,7 +245,7 @@ export function CreateAliasModal({
           domain,
           display_name.trim() || undefined,
           captcha_token ?? undefined,
-          note.trim() || undefined,
+          note.replace(/[\x00-\x08\x0b-\x1f\x7f]/g, "").trim() || undefined,
         );
 
         if (response.error) {
