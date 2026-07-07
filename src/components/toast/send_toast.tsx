@@ -90,10 +90,11 @@ export function SendToast({
               <div className="flex items-center gap-3">
                 <div>
                   <p className="text-sm font-medium text-txt-primary">
-                    {t("common.sending_in_seconds", {
-                      seconds: remaining_seconds,
-                      plural: remaining_seconds !== 1 ? "s" : "",
-                    })}
+                    {remaining_seconds === 1
+                      ? t("common.sending_in_one_second")
+                      : t("common.sending_in_seconds", {
+                          seconds: remaining_seconds,
+                        })}
                   </p>
                   <p className="text-xs text-txt-tertiary">
                     {t("common.message_will_be_sent_shortly")}

@@ -1159,6 +1159,7 @@ export const tr = {
     profile: "Profil",
     probation_message: "Hesabınız şu anda inceleme altında. Bazı özellikler kısıtlı olabilir.",
     sending_in_seconds: "{{seconds}} saniye içinde gönderiliyor...",
+    sending_in_one_second: "1 saniye içinde gönderiliyor...",
     message_will_be_sent_shortly: "Mesajınız kısa süre içinde gönderilecek",
     remove_recovery_email: "Kurtarma e-postasını kaldır",
     remove_recovery_email_confirm: "Kurtarma e-postanızı kaldırmak istediğinizden emin misiniz? Bu e-postayı kullanarak artık hesabınızı kurtaramazsınız.",

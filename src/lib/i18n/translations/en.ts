@@ -84,8 +84,8 @@ export const en: Translations = {
     profile: "Profile",
     probation_message:
       "Your account has temporary sending restrictions. These will be lifted automatically.",
-    sending_in_seconds:
-      "Sending in {{seconds}} second{{plural}}...",
+    sending_in_seconds: "Sending in {{seconds}} seconds...",
+    sending_in_one_second: "Sending in 1 second...",
     message_will_be_sent_shortly: "Your message will be sent shortly",
     saving: "Saving...",
     save_failed: "Your changes did not save. Checking your connection and trying again usually does it. The earlier version is still there.",

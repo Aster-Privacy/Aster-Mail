@@ -1157,6 +1157,7 @@ export const zh_CN = {
     profile: "个人资料",
     probation_message: "您的账户暂时有发送限制。这些限制将自动解除。",
     sending_in_seconds: "将在 {{seconds}} 秒后发送...",
+    sending_in_one_second: "将在 1 秒后发送...",
     message_will_be_sent_shortly: "您的邮件即将发送",
     not_now: "现在不",
     change_icon: "更改图标",

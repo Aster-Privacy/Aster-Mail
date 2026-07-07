@@ -1157,6 +1157,7 @@ export const pl = {
     profile: "Profil",
     probation_message: "Twoje konto jest aktualnie weryfikowane. Niektóre funkcje mogą być ograniczone.",
     sending_in_seconds: "Wysyłanie za {{seconds}} sekund(y)...",
+    sending_in_one_second: "Wysyłanie za 1 sekundę...",
     message_will_be_sent_shortly: "Twoja wiadomość zostanie wkrótce wysłana",
     remove_recovery_email: "Usuń e-mail odzyskiwania",
     remove_recovery_email_confirm: "Czy na pewno chcesz usunąć adres e-mail odzyskiwania? Nie będziesz już móc odzyskać konta przy użyciu tego adresu.",

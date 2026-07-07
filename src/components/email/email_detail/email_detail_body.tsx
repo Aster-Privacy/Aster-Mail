@@ -346,7 +346,7 @@ export function EmailDetailBody({
                 className="text-xs text-txt-muted hover:text-txt-primary underline underline-offset-2 transition-colors"
                 onClick={load_all_thread_messages}
               >
-                {t("settings.load_all_thread_messages" as TranslationKey)}
+                {t("mail.load_all_thread_messages")}
               </button>
             </div>
           )}
