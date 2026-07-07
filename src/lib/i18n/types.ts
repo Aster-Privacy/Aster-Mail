@@ -463,6 +463,11 @@ export interface CommonTranslations {
   display_name_too_long: string;
   add_display_name_placeholder: string;
   edit_display_name: string;
+  alias_note_updated: string;
+  failed_update_alias_note: string;
+  alias_note_too_long: string;
+  add_alias_note_placeholder: string;
+  edit_alias_note: string;
   toggle_alias: string;
   change_alias_avatar: string;
   remove_alias_avatar: string;

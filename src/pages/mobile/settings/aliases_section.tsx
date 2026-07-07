@@ -52,6 +52,8 @@ import {
   type DnsRecord,
   type DnsRecordsResponse,
 } from "@/services/api/domains";
+import { update_alias } from "@/services/api/aliases";
+import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
 
 const ALIASES_PER_PAGE = 50;
 
@@ -77,7 +79,8 @@ export function AliasesSection({
     return hook.aliases.filter(
       (a) =>
         a.full_address.toLowerCase().includes(normalized_query) ||
-        (a.display_name ?? "").toLowerCase().includes(normalized_query),
+        (a.display_name ?? "").toLowerCase().includes(normalized_query) ||
+        (a.note ?? "").toLowerCase().includes(normalized_query),
     );
   }, [hook.aliases, normalized_query]);
 
@@ -309,6 +312,17 @@ export function AliasesSection({
                     {alias.display_name}
                   </p>
                 )}
+                <AliasNoteEditor
+                  alias_address={alias.full_address}
+                  note={alias.note}
+                  variant="mobile"
+                  on_save={(note_value) =>
+                    update_alias(alias.id, { note: note_value || null })
+                  }
+                  on_saved={(note_value) =>
+                    hook.handle_note_saved(alias.id, note_value)
+                  }
+                />
                 <div className="mt-2 flex items-center gap-3">
                   <Switch
                     checked={alias.is_enabled}

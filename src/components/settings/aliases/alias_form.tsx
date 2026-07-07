@@ -99,6 +99,7 @@ export function CreateAliasModal({
   const display_name_locked = is_feature_locked("has_alias_avatars");
   const [local_part, set_local_part] = useState("");
   const [display_name, set_display_name] = useState("");
+  const [note, set_note] = useState("");
   const [alias_format, set_alias_format] = useState<"words" | "uuid">("words");
   const resolve_initial_domain = () => {
     if (initial_domain && available_domains.includes(initial_domain)) return initial_domain;
@@ -123,6 +124,7 @@ export function CreateAliasModal({
     if (is_open) {
       set_local_part("");
       set_display_name("");
+      set_note("");
       set_domain(resolve_initial_domain());
       set_error(null);
       set_is_available(null);
@@ -243,7 +245,7 @@ export function CreateAliasModal({
           domain,
           display_name.trim() || undefined,
           captcha_token ?? undefined,
-          undefined,
+          note.trim() || undefined,
         );
 
         if (response.error) {
@@ -501,6 +503,24 @@ export function CreateAliasModal({
                 />
               )}
             </div>
+            {!is_custom_domain && (
+              <div>
+                <label
+                  className="block mb-2 text-sm font-medium text-txt-primary"
+                  htmlFor="alias-note"
+                >
+                  {t("settings.create_alias_note_label")}
+                </label>
+                <input
+                  className="w-full h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
+                  id="alias-note"
+                  maxLength={500}
+                  placeholder={t("settings.create_alias_note_placeholder")}
+                  value={note}
+                  onChange={(e) => set_note(e.target.value)}
+                />
+              </div>
+            )}
             {turnstile_required && (
               <div className="flex justify-center">
                 <TurnstileWidget

@@ -276,6 +276,7 @@ export function AliasesSection() {
               on_aliases_changed={hook.load_aliases}
               on_avatar_changed={hook.load_aliases}
               on_display_name_saved={hook.handle_display_name_saved}
+              on_note_saved={hook.handle_note_saved}
               on_domain_addr_delete={hook.handle_domain_addr_delete}
               on_domain_address_display_name_saved={
                 hook.handle_domain_address_display_name_saved
