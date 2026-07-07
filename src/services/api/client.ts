@@ -48,6 +48,20 @@ const API_BASE_URL =
 
 const REFRESH_INTERVAL_MINUTES = 10;
 const PROACTIVE_REFRESH_THRESHOLD_MINUTES = 25;
+const WRITE_DEAD_REFRESH_DENIALS = 8;
+const WRITE_DEAD_MIN_ELAPSED_MS = 10 * 60 * 1000;
+
+export function is_write_dead_streak(
+  denial_count: number,
+  streak_started_at: number,
+  now: number,
+): boolean {
+  return (
+    denial_count >= WRITE_DEAD_REFRESH_DENIALS &&
+    streak_started_at > 0 &&
+    now - streak_started_at >= WRITE_DEAD_MIN_ELAPSED_MS
+  );
+}
 
 const DEV_TOKEN_KEY = "__aster_dev_token__";
 const NATIVE_TOKEN_KEY = "aster_access_token";
@@ -221,6 +235,8 @@ class ApiClient {
   private refresh_promise: Promise<void> | null = null;
   private _cached_user_info: CachedUserInfo | null = null;
   private last_refresh_timestamp: number = 0;
+  private refresh_denied_streak: number = 0;
+  private refresh_denied_streak_started_at: number = 0;
   private session_expired_dispatched: boolean = false;
   private intentional_logout: boolean = false;
   private has_ever_authenticated: boolean = false;
@@ -522,6 +538,8 @@ class ApiClient {
   clear_dev_token(): void {
     this.dev_access_token = null;
     this.active_refresh_token = null;
+    this.refresh_denied_streak = 0;
+    this.refresh_denied_streak_started_at = 0;
     if (import.meta.env.DEV) {
       sessionStorage.removeItem(DEV_TOKEN_KEY);
     }
@@ -615,6 +633,8 @@ class ApiClient {
         if (response.data?.csrf_token) {
           this.is_authenticated_flag = true;
           this.last_refresh_timestamp = Date.now();
+          this.refresh_denied_streak = 0;
+          this.refresh_denied_streak_started_at = 0;
           clear_csrf_cache();
           this.set_csrf(response.data.csrf_token);
           if (response.data.access_token) {
@@ -657,6 +677,22 @@ class ApiClient {
           }
 
           if (me_response.data?.user_id) {
+            this.refresh_denied_streak += 1;
+            if (!this.refresh_denied_streak_started_at) {
+              this.refresh_denied_streak_started_at = Date.now();
+            }
+            if (
+              is_write_dead_streak(
+                this.refresh_denied_streak,
+                this.refresh_denied_streak_started_at,
+                Date.now(),
+              )
+            ) {
+              this.is_authenticated_flag = false;
+              this.dispatch_session_expired();
+
+              return;
+            }
             this.schedule_token_refresh();
 
             return;
