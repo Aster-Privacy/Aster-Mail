@@ -3560,7 +3560,7 @@ export const en: Translations = {
       "If you already have an SPF record, add the include: directive to your existing record",
     dns_instruction_set_dkim: "Set the value to the DKIM key shown below",
     dns_instruction_set_dmarc_host:
-      "Set the host to _dmarc followed by your domain",
+      "Set the host to _dmarc (do not include your domain name)",
     dns_instruction_set_dmarc_value:
       "Set the value to the DMARC policy shown below",
     edit_external_account: "Edit external account",
@@ -3851,7 +3851,7 @@ export const en: Translations = {
     domain_without_www_note: "Enter your domain without www or https://",
     catch_all_label: "Catch-all",
     catch_all_description: "Receive emails sent to any address at this domain",
-    set_host_root: "Set the host to your domain (or @ for the root)",
+    set_host_root: "Set the host to @ (do not enter your domain name; your provider adds it automatically)",
     use_exact_host:
       "Use the exact host/name shown below (includes the selector prefix)",
     verification_description:
