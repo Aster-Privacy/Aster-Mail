@@ -161,6 +161,8 @@ export interface FolderRetentionTranslations {
 }
 
 export interface MailRulesTranslations {
+  editor_description: string;
+  drag_handle: string;
   title: string;
   subtitle: string;
   new_rule: string;
@@ -1669,6 +1671,24 @@ export interface CommonTranslations {
 }
 
 export interface SettingsTranslations {
+  fam_welcome_step1_title: string;
+  fam_welcome_step1_desc: string;
+  fam_welcome_step1_point1: string;
+  fam_welcome_step1_point2: string;
+  fam_welcome_step1_point3: string;
+  fam_welcome_step2_title: string;
+  fam_welcome_step2_desc: string;
+  fam_welcome_step2_point1: string;
+  fam_welcome_step2_point2: string;
+  fam_welcome_step2_point3: string;
+  fam_welcome_step3_title: string;
+  fam_welcome_step3_desc: string;
+  fam_welcome_step3_point1: string;
+  fam_welcome_step3_point2: string;
+  fam_welcome_step3_point3: string;
+  fam_welcome_summary: string;
+  fam_welcome_setup: string;
+  fam_welcome_step_aria: string;
   title: string;
   search_placeholder: string;
   account_recovery_title: string;
