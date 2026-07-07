@@ -338,6 +338,10 @@ export function SandboxedEmailRenderer({
     ? dyslexia_font_stack
     : "'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
 
+  const link_underline_css = preferences.link_underlines
+    ? "a, a * { text-decoration: underline !important; }"
+    : "";
+
   const quote_toggle_css = `.aster-quote-toggle { display: inline-block !important; padding: 0 3px !important; font-size: 6px !important; line-height: 12px !important; letter-spacing: 1px !important; background: rgba(128, 128, 128, 0.1) !important; border: 1px solid rgba(128, 128, 128, 0.15) !important; border-radius: 99px !important; color: rgba(100, 100, 100, 0.55) !important; cursor: pointer !important; vertical-align: middle !important; }
 .aster-quote-toggle:hover { background: rgba(128, 128, 128, 0.2) !important; border-color: rgba(128, 128, 128, 0.3) !important; }
 .aster-quoted-content { border-left-color: #60a5fa !important; }`;
@@ -407,6 +411,7 @@ ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important
 <style>::selection { background: rgba(96, 165, 250, 0.35); }
 .aster-quote-toggle, .aster-forwarded-collapse > summary, .remote-content-banner { -webkit-user-select: none !important; user-select: none !important; }</style>
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
+${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; }</style>
 </head>
 <body style="${is_html_email ? html_body_style : plain_body_style}">${resolved_html.replace(/src=["']cid:[^"']*["']/gi, 'src="data:,"')}</body>
@@ -1306,6 +1311,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
       shadow.innerHTML =
         `<style>${EMAIL_BODY_CSS}` +
         (dark_mode_css ? dark_mode_css : "") +
+        link_underline_css +
         `a{pointer-events:none}</style>` +
         `<div style="${body_style}">${strip_remote_css_fetches(sanitize_preview_html(resolved_html))}</div>`;
     },
@@ -1317,6 +1323,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
       plain_bg,
       plain_text_color,
       dark_mode_css,
+      link_underline_css,
       literal_plain_text,
       email_zoom,
     ],
