@@ -37,6 +37,7 @@ import { format_bytes } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { show_toast } from "@/components/toast/simple_toast";
+import { resolve_received_on_address } from "@/utils/delivered_to";
 
 interface MessageDetailsModalProps {
   is_open: boolean;
@@ -120,6 +121,24 @@ export function MessageDetailsModal({
             </span>
           </div>
         )}
+
+        {(() => {
+          const received_on =
+            message.item_type === "received"
+              ? resolve_received_on_address(message)
+              : undefined;
+
+          return received_on ? (
+            <div className="flex">
+              <span className="w-24 flex-shrink-0 font-medium text-txt-muted">
+                {t("common.received_on_label")}
+              </span>
+              <span className="min-w-0 text-txt-secondary break-words">
+                {received_on}
+              </span>
+            </div>
+          ) : null;
+        })()}
 
         <div className="flex">
           <span className="w-24 flex-shrink-0 font-medium text-txt-muted">

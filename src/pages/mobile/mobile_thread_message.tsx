@@ -49,6 +49,7 @@ import {
 } from "@/utils/email_crypto";
 import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
+import { resolve_received_on_address } from "@/utils/delivered_to";
 
 
 export function format_safe_date(
@@ -148,6 +149,13 @@ export function MobileThreadMessage({
   const show_sender_name = message.display_sender_name ?? message.sender_name;
   const show_sender_email =
     message.display_sender_email ?? message.sender_email;
+  const received_on_address = useMemo(
+    () =>
+      message.item_type === "received"
+        ? resolve_received_on_address(message)
+        : undefined,
+    [message],
+  );
 
   const sanitize_result = useMemo(() => {
     if (!is_html_content(clean_body)) {
@@ -362,6 +370,11 @@ export function MobileThreadMessage({
           ) : (
             <p className="-mt-0.5 text-[12px] leading-tight text-[var(--text-muted)]">
               {show_sender_email}
+            </p>
+          )}
+          {received_on_address && (
+            <p className="truncate text-[12px] leading-tight text-[var(--text-muted)]">
+              {t("mail.received_on_prefix", { address: received_on_address })}
             </p>
           )}
           <div className="flex items-center gap-1">

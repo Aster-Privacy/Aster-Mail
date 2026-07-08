@@ -1251,6 +1251,7 @@ export interface CommonTranslations {
   to_label: string;
   cc_label: string;
   bcc_label: string;
+  received_on_label: string;
   date_label: string;
   subject_label: string;
   send_at_label: string;
@@ -4801,6 +4802,7 @@ export interface MailTranslations {
   download_eml: string;
   download_file_named: string;
   to_recipients_prefix: string;
+  received_on_prefix: string;
   move_to_folder: string;
   apply_label: string;
   select: string;

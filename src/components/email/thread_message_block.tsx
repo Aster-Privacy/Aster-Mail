@@ -94,6 +94,7 @@ import {
 } from "@/lib/cid_resolver";
 import { RATCHET_UNDECRYPTABLE_SENTINEL, PGP_UNDECRYPTABLE_SENTINEL, is_ratchet_envelope } from "@/utils/email_crypto";
 import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import { resolve_received_on_address } from "@/utils/delivered_to";
 import { use_auth_safe } from "@/contexts/auth_context";
 
 interface ThreadMessageBlockProps {
@@ -253,6 +254,13 @@ export function ThreadMessageBlock({
   const is_ghost_sender = is_ghost_email(message.sender_email);
   const show_sender_name = message.display_sender_name ?? message.sender_name;
   const show_sender_email = message.display_sender_email ?? message.sender_email;
+  const received_on_address = useMemo(
+    () =>
+      message.item_type === "received"
+        ? resolve_received_on_address(message)
+        : undefined,
+    [message],
+  );
   const has_plaintext_body =
     !!message.body &&
     message.body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
@@ -782,6 +790,16 @@ export function ThreadMessageBlock({
                   {show_sender_name} &lt;{show_sender_email}&gt;
                 </span>
               </div>
+              {received_on_address && (
+                <div className="flex">
+                  <span className="w-14 flex-shrink-0 font-medium text-txt-muted">
+                    {t("common.received_on_label")}
+                  </span>
+                  <span className="min-w-0 text-txt-secondary break-words">
+                    {received_on_address}
+                  </span>
+                </div>
+              )}
               {message.to_recipients && message.to_recipients.length > 0 && (
                 <div className="flex items-start">
                   <span className="w-14 flex-shrink-0 font-medium pt-0.5 text-txt-muted">
@@ -826,6 +844,14 @@ export function ThreadMessageBlock({
               </div>
             </PopoverContent>
           </Popover>
+          {received_on_address && (
+            <span
+              className="block truncate max-w-full text-xs text-txt-muted mt-0.5"
+              title={received_on_address}
+            >
+              {t("mail.received_on_prefix", { address: received_on_address })}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-0.5 flex-shrink-0">
