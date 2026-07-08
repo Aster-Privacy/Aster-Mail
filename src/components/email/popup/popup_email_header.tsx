@@ -178,7 +178,6 @@ export function PopupEmailHeader({
               </span>
               <OfficialBadge
                 email={email.sender_email}
-                is_external={mail_item?.is_external}
               />
               {snoozed_until && (
                 <SnoozeBadge

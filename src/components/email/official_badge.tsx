@@ -30,20 +30,16 @@ import {
 
 interface OfficialBadgeProps {
   email?: string | null;
-  is_external?: boolean;
   size?: "sm" | "md";
   className?: string;
 }
 
 export function OfficialBadge({
   email,
-  is_external,
   size = "sm",
   className = "",
 }: OfficialBadgeProps) {
   const { t } = use_i18n();
-
-  if (is_external !== false) return null;
 
   if (!is_official_sender(email)) return null;
 

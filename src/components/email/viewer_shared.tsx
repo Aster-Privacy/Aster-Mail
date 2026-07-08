@@ -722,7 +722,6 @@ export function ViewerEmailHeader({
               </EmailProfileTrigger>
               <OfficialBadge
                 email={email.sender_email}
-                is_external={is_external}
                 size="md"
               />
               {show_sender_badge && peer_badge && (
