@@ -369,9 +369,8 @@ export function BillingSection() {
         }
       } catch {
         show_toast(t("settings.failed_checkout"), "error");
-      } finally {
-        set_is_action_loading(false);
       }
+      set_is_action_loading(false);
       return;
     }
 
@@ -429,12 +428,13 @@ export function BillingSection() {
       );
       if (!result.ok) {
         show_toast(t("settings.failed_checkout"), "error");
+        set_is_action_loading(false);
       } else if (is_tauri) {
         pending_tauri_checkout_ref.current = true;
+        set_is_action_loading(false);
       }
     } catch {
       show_toast(t("settings.failed_checkout"), "error");
-    } finally {
       set_is_action_loading(false);
     }
   };
@@ -746,6 +746,18 @@ export function BillingSection() {
           open={show_method_modal}
           plan_name={method_modal_plan.name}
           busy={is_action_loading}
+          credits_apply_to_card={
+            !(
+              !!subscription &&
+              subscription.plan.code !== "free" &&
+              subscription.payment_provider !== "stripe_crypto" &&
+              subscription.has_stripe_subscription !== false &&
+              !(
+                typeof window !== "undefined" &&
+                "__TAURI_INTERNALS__" in window
+              )
+            )
+          }
           credit_balance_cents={Math.min(
             credit_balance?.balance_cents ?? 0,
             (billing_period === "yearly"

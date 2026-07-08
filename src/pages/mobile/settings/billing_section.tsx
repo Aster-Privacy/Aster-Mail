@@ -536,7 +536,12 @@ export function BillingSection({
 
     set_is_action_loading(true);
 
-    const result = await start_hosted_checkout(plan.code, checkout_interval);
+    const result = await start_hosted_checkout(
+      plan.code,
+      checkout_interval,
+      undefined,
+      credit_balance?.balance_cents,
+    );
 
     if (!result.ok) {
       set_is_action_loading(false);
@@ -578,7 +583,10 @@ export function BillingSection({
   const handle_addon_pay_card = async (addon: StorageAddonItem) => {
     set_is_action_loading(true);
     try {
-      const response = await purchase_storage_addon(addon.id);
+      const response = await purchase_storage_addon(
+        addon.id,
+        credit_balance?.balance_cents,
+      );
       const url = response.data?.url;
 
       if (url) {

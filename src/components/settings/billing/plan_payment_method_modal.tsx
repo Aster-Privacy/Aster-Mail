@@ -34,6 +34,7 @@ interface plan_payment_method_modal_props {
   plan_name: string;
   busy?: boolean;
   credit_balance_cents?: number;
+  credits_apply_to_card?: boolean;
   on_close: () => void;
   on_choose_card: () => void;
   on_choose_crypto: () => void;
@@ -44,14 +45,16 @@ export function PlanPaymentMethodModal({
   plan_name,
   busy = false,
   credit_balance_cents,
+  credits_apply_to_card = true,
   on_close,
   on_choose_card,
   on_choose_crypto,
 }: plan_payment_method_modal_props) {
   const { t } = use_i18n();
-  const credit_dollars = credit_balance_cents && credit_balance_cents > 0
-    ? (credit_balance_cents / 100).toFixed(2)
-    : null;
+  const credit_dollars =
+    credits_apply_to_card && credit_balance_cents && credit_balance_cents > 0
+      ? (credit_balance_cents / 100).toFixed(2)
+      : null;
 
   return (
     <Modal show_close_button is_open={open} on_close={on_close} size="md">
@@ -60,14 +63,6 @@ export function PlanPaymentMethodModal({
         <ModalDescription>{t("settings.checkout_description")}</ModalDescription>
       </ModalHeader>
       <ModalBody>
-        {credit_dollars && (
-          <div
-            className="flex items-center gap-2.5 rounded-[14px] border px-3.5 py-2.5 mb-3 text-sm bg-emerald-500 border-emerald-600 text-white"
-          >
-            <SparklesIcon className="w-4 h-4 flex-shrink-0" />
-            <span>{t("settings.credits_will_be_applied", { amount: `$${credit_dollars}` })}</span>
-          </div>
-        )}
         <div className="space-y-2">
           <button
             className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-left transition-colors hover:opacity-80 disabled:opacity-50 disabled:pointer-events-none"
@@ -83,11 +78,23 @@ export function PlanPaymentMethodModal({
               className="w-5 h-5 flex-shrink-0"
               style={{ color: "var(--text-tertiary)" }}
             />
-            <div
-              className="text-sm font-medium"
-              style={{ color: "var(--text-primary)" }}
-            >
-              {t("settings.checkout_method_card")}
+            <div className="flex-1 min-w-0">
+              <div
+                className="text-sm font-medium"
+                style={{ color: "var(--text-primary)" }}
+              >
+                {t("settings.checkout_method_card")}
+              </div>
+              {credit_dollars && (
+                <div className="flex items-center gap-1.5 mt-1 text-xs text-emerald-500">
+                  <SparklesIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>
+                    {t("settings.credits_will_be_applied", {
+                      amount: `$${credit_dollars}`,
+                    })}
+                  </span>
+                </div>
+              )}
             </div>
           </button>
 
