@@ -677,7 +677,6 @@ export function ThreadMessageBlock({
               <OfficialBadge
                 className="flex-shrink-0"
                 email={message.sender_email}
-                is_external={message.is_external}
               />
             )}
             <span className="text-xs text-txt-muted truncate hidden sm:inline max-w-full">

@@ -290,7 +290,6 @@ export const MobileEmailRow = memo(function MobileEmailRow(
           <OfficialBadge
             className="shrink-0"
             email={email.sender_email}
-            is_external={email.is_external}
           />
 
           {thread_count > 1 && (
