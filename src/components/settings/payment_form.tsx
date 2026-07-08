@@ -177,16 +177,6 @@ export function PaymentForm({
         return { secret: null, error: sub_response.error };
       }
 
-      const applied = sub_response.data?.applied_credits_cents;
-
-      if (
-        credits_applied_cents > 0 &&
-        typeof applied === "number" &&
-        applied !== credits_applied_cents
-      ) {
-        return { secret: null, error: t("settings.failed_checkout") };
-      }
-
       return {
         secret: sub_response.data?.client_secret || null,
         error: sub_response.data?.client_secret
