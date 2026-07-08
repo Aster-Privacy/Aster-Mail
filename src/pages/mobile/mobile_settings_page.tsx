@@ -49,7 +49,7 @@ import {
   FolderIcon,
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   useState,
   useCallback,
@@ -154,6 +154,7 @@ function MobileSettingsPage() {
   }, []);
 
   const [search_params, set_search_params] = useSearchParams();
+  const { section: path_section } = useParams<{ section?: string }>();
 
   const open_section = useCallback((s: SettingsSection) => {
     section_ref.current = s;
@@ -162,10 +163,14 @@ function MobileSettingsPage() {
   }, []);
 
   useEffect(() => {
-    const initial_section = search_params.get("section");
+    const initial_section = path_section ?? search_params.get("section");
 
     if (initial_section) {
-      set_search_params({}, { replace: true });
+      if (path_section) {
+        navigate("/settings", { replace: true });
+      } else {
+        set_search_params({}, { replace: true });
+      }
       open_section(initial_section as SettingsSection);
     }
   }, []);

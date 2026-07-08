@@ -140,6 +140,7 @@ const VerifyRecoveryEmailPage = lazy_with_retry(
 );
 const SecureViewPage = lazy_with_retry(() => import("@/pages/secure_view"));
 const JoinFamilyPage = lazy_with_retry(() => import("@/pages/join_family"));
+const FamilyClaimPage = lazy_with_retry(() => import("@/pages/family_claim"));
 const LinkDevicePage = lazy_with_retry(() => import("@/pages/link_device"));
 const ExternalRedirect = ({ url }: { url: string }) => {
   window.location.href = url;
@@ -199,6 +200,7 @@ const AUTH_PREFIXES = [
   "/privacy",
   "/view/",
   "/join/",
+  "/family/claim/",
 ];
 
 const LIST_PATHS = [
@@ -722,7 +724,7 @@ function MobileApp() {
                     <MobileSettingsPage />
                   </MobileProtectedRoute>
                 }
-                path="/settings"
+                path="/settings/:section?"
               />
               <Route element={<MobileWelcomePage />} path="/welcome" />
               <Route element={<SignInPage />} path="/sign-in" />
@@ -736,6 +738,10 @@ function MobileApp() {
               />
               <Route element={<SecureViewPage />} path="/view/:token" />
               <Route element={<JoinFamilyPage />} path="/join/family" />
+              <Route
+                element={<FamilyClaimPage />}
+                path="/family/claim/:token"
+              />
               <Route
                 element={
                   <MobileProtectedRoute>
