@@ -65,6 +65,7 @@ interface payment_form_props {
   billing_interval: string;
   addon_id?: string;
   addon_client_secret: string | null;
+  credit_balance_cents?: number;
   colors: theme_colors;
   phase: checkout_phase;
   set_phase: (phase: checkout_phase) => void;
@@ -89,6 +90,7 @@ export function PaymentForm({
   billing_interval,
   addon_id,
   addon_client_secret,
+  credit_balance_cents,
   colors,
   phase,
   set_phase,
@@ -140,6 +142,18 @@ export function PaymentForm({
     [price_cents, promo_result],
   );
 
+  const credits_applied_cents = useMemo(() => {
+    if (addon_id) return 0;
+    const balance = credit_balance_cents ?? 0;
+
+    return Math.max(0, Math.min(balance, discounted_cents));
+  }, [addon_id, credit_balance_cents, discounted_cents]);
+
+  const total_after_credits_cents = Math.max(
+    0,
+    discounted_cents - credits_applied_cents,
+  );
+
   const discounted_display = format_price(discounted_cents, currency);
   const show_strikethrough =
     promo_result?.valid && discounted_cents !== price_cents;
@@ -156,6 +170,7 @@ export function PaymentForm({
         billing_interval,
         currency,
         promo_code.trim() || undefined,
+        credits_applied_cents > 0 ? credits_applied_cents : undefined,
       );
 
       if (sub_response.error) {
@@ -181,6 +196,7 @@ export function PaymentForm({
     billing_interval,
     currency,
     promo_code,
+    credits_applied_cents,
   ]);
 
   const finish_success = useCallback(() => {
@@ -203,7 +219,7 @@ export function PaymentForm({
 
     if (payment_request_ref.current) {
       payment_request_ref.current.update({
-        total: { label: plan_name, amount: discounted_cents },
+        total: { label: plan_name, amount: total_after_credits_cents },
       });
 
       return;
@@ -212,7 +228,7 @@ export function PaymentForm({
     const pr = stripe.paymentRequest({
       country: "US",
       currency: currency.toLowerCase(),
-      total: { label: plan_name, amount: discounted_cents },
+      total: { label: plan_name, amount: total_after_credits_cents },
       requestPayerName: true,
       requestPayerEmail: true,
     });
@@ -314,6 +330,7 @@ export function PaymentForm({
   }, [
     stripe,
     discounted_cents,
+    total_after_credits_cents,
     currency,
     plan_name,
     is_free,
@@ -660,6 +677,16 @@ export function PaymentForm({
         promo_result={promo_result}
         show_strikethrough={!!show_strikethrough}
       />
+
+      {credits_applied_cents > 0 && (
+        <div className="flex items-center gap-2.5 rounded-[14px] border px-3.5 py-2.5 text-sm bg-emerald-500 border-emerald-600 text-white">
+          <span>
+            {t("settings.credits_will_be_applied", {
+              amount: format_price(credits_applied_cents, currency),
+            })}
+          </span>
+        </div>
+      )}
 
       <div>
         <label

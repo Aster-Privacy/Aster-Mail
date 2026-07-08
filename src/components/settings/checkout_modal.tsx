@@ -36,6 +36,7 @@ import {
 import {
   get_stripe_config,
   create_addon_subscription,
+  get_credits,
   type PromoValidateResponse,
 } from "@/services/api/billing";
 import { connection_store } from "@/services/routing/connection_store";
@@ -162,6 +163,7 @@ export function CheckoutModal({
   const [promo_result, set_promo_result] =
     useState<PromoValidateResponse | null>(null);
   const [is_validating_promo, set_is_validating_promo] = useState(false);
+  const [credit_balance_cents, set_credit_balance_cents] = useState(0);
   const has_initialized = useRef(false);
 
   const colors = useMemo(() => get_theme_colors(theme === "dark"), [theme]);
@@ -201,6 +203,16 @@ export function CheckoutModal({
 
       set_stripe_promise(loadStripe(config_response.data.publishable_key));
 
+      if (!addon_id) {
+        try {
+          const credits_response = await get_credits();
+
+          set_credit_balance_cents(credits_response.data?.balance_cents ?? 0);
+        } catch {
+          set_credit_balance_cents(0);
+        }
+      }
+
       if (addon_id) {
         const addon_response = await create_addon_subscription(addon_id);
         const secret = addon_response.data?.client_secret;
@@ -229,6 +241,7 @@ export function CheckoutModal({
       set_promo_result(null);
       set_is_validating_promo(false);
       set_addon_client_secret(null);
+      set_credit_balance_cents(0);
       initialize();
     } else if (!open) {
       has_initialized.current = false;
@@ -375,6 +388,7 @@ export function CheckoutModal({
           addon_id={addon_id}
           billing_interval={billing_interval}
           colors={colors}
+          credit_balance_cents={credit_balance_cents}
           currency={currency}
           error_message={error_message}
           is_validating_promo={is_validating_promo}
