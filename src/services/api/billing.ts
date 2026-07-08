@@ -463,11 +463,15 @@ export async function create_subscription_intent(
   billing_interval: string,
   currency?: string,
   promo_code?: string,
+  apply_credits_cents?: number,
 ) {
-  const payload: Record<string, string> = { plan_code, billing_interval };
+  const payload: Record<string, string | number> = { plan_code, billing_interval };
 
   if (currency) payload.currency = currency;
   if (promo_code) payload.promo_code = promo_code;
+  if (apply_credits_cents && apply_credits_cents > 0) {
+    payload.apply_credits_cents = apply_credits_cents;
+  }
 
   return api_client.post<CreateSubscriptionResponse>(
     "/payments/v1/create-subscription",
