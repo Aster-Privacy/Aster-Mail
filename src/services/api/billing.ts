@@ -456,6 +456,7 @@ export async function apply_promo_code(code: string) {
 export interface CreateSubscriptionResponse {
   client_secret: string;
   subscription_id: string;
+  applied_credits_cents?: number;
 }
 
 export async function create_subscription_intent(

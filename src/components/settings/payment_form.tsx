@@ -177,6 +177,16 @@ export function PaymentForm({
         return { secret: null, error: sub_response.error };
       }
 
+      const applied = sub_response.data?.applied_credits_cents;
+
+      if (
+        credits_applied_cents > 0 &&
+        typeof applied === "number" &&
+        applied !== credits_applied_cents
+      ) {
+        return { secret: null, error: t("settings.failed_checkout") };
+      }
+
       return {
         secret: sub_response.data?.client_secret || null,
         error: sub_response.data?.client_secret
@@ -197,6 +207,7 @@ export function PaymentForm({
     currency,
     promo_code,
     credits_applied_cents,
+    t,
   ]);
 
   const finish_success = useCallback(() => {
@@ -678,11 +689,11 @@ export function PaymentForm({
         show_strikethrough={!!show_strikethrough}
       />
 
-      {credits_applied_cents > 0 && (
+      {credits_applied_cents > 0 && selected_method !== "crypto" && (
         <div className="flex items-center gap-2.5 rounded-[14px] border px-3.5 py-2.5 text-sm bg-emerald-500 border-emerald-600 text-white">
           <span>
             {t("settings.credits_will_be_applied", {
-              amount: format_price(credits_applied_cents, currency),
+              amount: format_price(credits_applied_cents, "usd"),
             })}
           </span>
         </div>
