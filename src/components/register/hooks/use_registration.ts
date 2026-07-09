@@ -47,7 +47,6 @@ import {
 import { array_to_base64 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import {
-  generate_recovery_phrase,
   wrap_vault_with_phrase,
   get_phrase_wordlist,
   RECOVERY_PHRASE_WORD_COUNT,
@@ -202,6 +201,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const recovery_phrase_ref = useRef("");
   const phrase_wrap_promise_ref = useRef<Promise<boolean> | null>(null);
   const last_phrase_vault_ref = useRef<string>("");
+  const registration_password_hash_ref = useRef<string>("");
   const [phrase_wrap_error, set_phrase_wrap_error] = useState(false);
 
   useEffect(() => {
@@ -354,6 +354,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
         for (let tries = 0; tries < 3; tries++) {
           const response = await save_phrase_wrap(
+            registration_password_hash_ref.current,
             wrap.verifier_hash,
             wrap.wrapped_vault,
             wrap.wrap_nonce,
@@ -390,6 +391,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
       phrase,
     );
     const response = await save_phrase_wrap(
+      registration_password_hash_ref.current,
       wrap.verifier_hash,
       wrap.wrapped_vault,
       wrap.wrap_nonce,
@@ -418,6 +420,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
       const { hash: password_hash, salt: password_salt } =
         await derive_password_hash(password, salt);
 
+      registration_password_hash_ref.current = password_hash;
+
       set_generation_status(t("auth.creating_identity_keypair"));
       await yield_to_ui();
       const identity_keypair = await generate_identity_keypair(
@@ -441,11 +445,6 @@ export function use_registration(options?: RegistrationClaimOptions) {
       const codes = generate_recovery_codes(6);
 
       set_recovery_codes(codes);
-
-      const phrase = generate_recovery_phrase();
-
-      recovery_phrase_ref.current = phrase;
-      set_recovery_phrase(phrase);
 
       set_generation_status(t("auth.encrypting_key_vault"));
       await yield_to_ui();
@@ -573,7 +572,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
       registration_done_ref.current = true;
       set_step((current) =>
-        current === "generating" ? "recovery_phrase" : current,
+        current === "generating" ? "recovery_key" : current,
       );
     } catch (err) {
       await timing_safe_delay();
@@ -745,6 +744,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const complete_registration = async () => {
+    set_recovery_codes([]);
     recovery_phrase_ref.current = "";
     set_recovery_phrase("");
     set_phrase_confirm_challenges([]);
@@ -999,11 +999,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
     }
 
     registration_done_ref.current = true;
-    set_step("recovery_phrase");
+    set_step("recovery_key");
   };
 
   const handle_advance_from_recovery_key = async () => {
-    set_recovery_codes([]);
     if (recovery_email_required && recovery_email.trim()) {
       await handle_recovery_email_continue();
     } else {
