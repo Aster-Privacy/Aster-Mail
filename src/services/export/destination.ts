@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { build_store_zip } from "@/utils/export/zip";
+import { sanitize_download_filename } from "@/lib/attachment_utils";
 
 interface ZipEntry {
   name: string;
@@ -186,7 +187,7 @@ export function trigger_download(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = filename;
+  a.download = sanitize_download_filename(filename);
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
