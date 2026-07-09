@@ -37,6 +37,7 @@ import {
   get_stripe_config,
   create_addon_subscription,
   get_credits,
+  validate_promo_code,
   type PromoValidateResponse,
 } from "@/services/api/billing";
 import { connection_store } from "@/services/routing/connection_store";
@@ -132,6 +133,7 @@ interface CheckoutModalProps {
   addon_id?: string;
   price_cents?: number;
   current_plan_price_cents?: number;
+  initial_promo_code?: string;
   on_close: () => void;
   on_success: () => void;
 }
@@ -146,6 +148,7 @@ export function CheckoutModal({
   addon_id,
   price_cents,
   current_plan_price_cents,
+  initial_promo_code,
   on_close,
   on_success,
 }: CheckoutModalProps) {
@@ -243,10 +246,19 @@ export function CheckoutModal({
       set_addon_client_secret(null);
       set_credit_balance_cents(0);
       initialize();
+      if (initial_promo_code && !addon_id) {
+        set_promo_code(initial_promo_code);
+        set_is_validating_promo(true);
+        validate_promo_code(initial_promo_code)
+          .then((res) => {
+            if (res.data?.valid) set_promo_result(res.data);
+          })
+          .finally(() => set_is_validating_promo(false));
+      }
     } else if (!open) {
       has_initialized.current = false;
     }
-  }, [open, initialize]);
+  }, [open, initialize, initial_promo_code, addon_id]);
 
   const handle_close = useCallback(() => {
     if (phase === "processing") return;

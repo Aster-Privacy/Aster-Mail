@@ -60,6 +60,15 @@ export default function IndexPage() {
   const { section } = useParams<{ section?: string }>();
 
   useEffect(() => {
+    if (section) {
+      const academic_result = new URLSearchParams(window.location.search).get(
+        "academic",
+      );
+
+      if (academic_result) {
+        sessionStorage.setItem("academic_discount_result", academic_result);
+      }
+    }
     if (section && !state.is_settings_open) {
       navigate("/", { replace: true });
       const timer = setTimeout(() => {
