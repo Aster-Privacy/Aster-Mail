@@ -87,6 +87,28 @@ export function is_previewable_pdf(content_type: string): boolean {
   return content_type === "application/pdf";
 }
 
+export function sanitize_download_filename(filename: string): string {
+  let cleaned = "";
+
+  for (const ch of filename) {
+    const code = ch.codePointAt(0) ?? 0;
+    const is_control = code <= 0x1f || (code >= 0x7f && code <= 0x9f);
+    const is_bidi =
+      code === 0x200e ||
+      code === 0x200f ||
+      (code >= 0x202a && code <= 0x202e) ||
+      (code >= 0x2066 && code <= 0x2069);
+
+    if (is_control || is_bidi) continue;
+
+    cleaned += code === 0x2f || code === 0x5c ? "_" : ch;
+  }
+
+  cleaned = cleaned.trim();
+
+  return cleaned || "download";
+}
+
 export function truncate_filename(
   filename: string,
   max_length: number = 20,
