@@ -156,8 +156,10 @@ export function sanitize_compose_paste(html: string): string {
       const size = el.getAttribute("size");
       const styles: string[] = [];
 
-      if (color) styles.push(`color: ${color}`);
-      if (face) styles.push(`font-family: ${face}`);
+      const css_value_is_safe = (value: string) => !/[;:(){}<>]/.test(value);
+
+      if (color && css_value_is_safe(color)) styles.push(`color: ${color}`);
+      if (face && css_value_is_safe(face)) styles.push(`font-family: ${face}`);
       if (size) {
         const size_map: Record<string, string> = {
           "1": "10px",
