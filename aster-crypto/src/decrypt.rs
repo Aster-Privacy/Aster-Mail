@@ -24,8 +24,21 @@ use crate::error::{CryptoError, Result};
 use crate::keys::{KeyPair, PublicKey, PublicKeyInner};
 use crate::sign::{signed_public_key_can_sign, signed_secret_key_can_sign};
 
+pub const MAX_CIPHERTEXT_BYTES: usize = 16 * 1024 * 1024;
+pub const MAX_PLAINTEXT_BYTES: usize = 64 * 1024 * 1024;
+
+fn capped_plaintext(data: Vec<u8>) -> Result<Vec<u8>> {
+    if data.len() > MAX_PLAINTEXT_BYTES {
+        return Err(CryptoError::DecryptionFailed);
+    }
+    Ok(data)
+}
+
 pub fn decrypt_message(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Vec<u8>> {
     if secret_keys.is_empty() {
+        return Err(CryptoError::DecryptionFailed);
+    }
+    if ciphertext.len() > MAX_CIPHERTEXT_BYTES {
         return Err(CryptoError::DecryptionFailed);
     }
 
@@ -37,7 +50,7 @@ pub fn decrypt_message(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Ve
 
         if let Ok((decrypted_msg, _key_ids)) = decrypted {
             if let Ok(Some(data)) = decrypted_msg.get_content() {
-                return Ok(data);
+                return capped_plaintext(data);
             }
         }
     }
@@ -49,6 +62,9 @@ pub fn decrypt_message_binary(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Re
     if secret_keys.is_empty() {
         return Err(CryptoError::DecryptionFailed);
     }
+    if ciphertext.len() > MAX_CIPHERTEXT_BYTES {
+        return Err(CryptoError::DecryptionFailed);
+    }
 
     let msg = Message::from_bytes(ciphertext).map_err(|_| CryptoError::DecryptionFailed)?;
 
@@ -57,7 +73,7 @@ pub fn decrypt_message_binary(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Re
 
         if let Ok((decrypted_msg, _key_ids)) = decrypted {
             if let Ok(Some(data)) = decrypted_msg.get_content() {
-                return Ok(data);
+                return capped_plaintext(data);
             }
         }
     }
@@ -93,6 +109,9 @@ pub fn decrypt_and_verify(
     if sender_keys.is_empty() {
         return Err(CryptoError::DecryptionFailed);
     }
+    if ciphertext.len() > MAX_CIPHERTEXT_BYTES {
+        return Err(CryptoError::DecryptionFailed);
+    }
 
     let (msg, _) =
         Message::from_armor_single(ciphertext).map_err(|_| CryptoError::DecryptionFailed)?;
@@ -106,7 +125,7 @@ pub fn decrypt_and_verify(
             }
 
             if let Ok(Some(data)) = decrypted_msg.get_content() {
-                return Ok(data);
+                return capped_plaintext(data);
             }
         }
     }
