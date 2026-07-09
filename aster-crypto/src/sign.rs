@@ -19,7 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 use chrono::{DateTime, Utc};
-use pgp::composed::{Deserializable, Message, SignedPublicKey, SignedSecretKey};
+use pgp::composed::{
+    Deserializable, Message, SignedPublicKey, SignedPublicSubKey, SignedSecretKey,
+};
 use pgp::crypto::hash::HashAlgorithm;
 use pgp::packet::SignatureType;
 use rand::rngs::OsRng;
@@ -36,6 +38,30 @@ fn primary_is_revoked(spk: &SignedPublicKey) -> bool {
 
 fn primary_is_expired(spk: &SignedPublicKey, now: DateTime<Utc>) -> bool {
     spk.expires_at().map(|e| e <= now).unwrap_or(false)
+}
+
+fn subkey_is_revoked(sub: &SignedPublicSubKey) -> bool {
+    sub.signatures
+        .iter()
+        .any(|s| matches!(s.typ(), SignatureType::SubkeyRevocation))
+}
+
+fn subkey_is_expired(sub: &SignedPublicSubKey, now: DateTime<Utc>) -> bool {
+    let created = *pgp::types::PublicKeyTrait::created_at(&sub.key);
+    match sub
+        .signatures
+        .iter()
+        .filter(|s| matches!(s.typ(), SignatureType::SubkeyBinding))
+        .filter_map(|s| s.key_expiration_time().copied())
+        .max()
+    {
+        Some(duration) => created + duration <= now,
+        None => false,
+    }
+}
+
+fn subkey_valid_for_signing(sub: &SignedPublicSubKey, now: DateTime<Utc>) -> bool {
+    !subkey_is_revoked(sub) && !subkey_is_expired(sub, now)
 }
 
 pub(crate) fn signing_identity_valid(spk: &SignedPublicKey, now: DateTime<Utc>) -> bool {
@@ -87,6 +113,7 @@ pub(crate) fn signed_public_key_can_sign(spk: &SignedPublicKey) -> bool {
     if !primary_has_flags || primary_can_sign {
         return true;
     }
+    let now = Utc::now();
     for sub in &spk.public_subkeys {
         let mut sub_has_flags = false;
         let mut sub_can_sign = false;
@@ -99,7 +126,7 @@ pub(crate) fn signed_public_key_can_sign(spk: &SignedPublicKey) -> bool {
                 sub_can_sign = true;
             }
         }
-        if !sub_has_flags || sub_can_sign {
+        if (!sub_has_flags || sub_can_sign) && subkey_valid_for_signing(sub, now) {
             return true;
         }
     }
