@@ -358,6 +358,24 @@ export function upsert_entries(incoming: CategoryIndexEntry[]): void {
   }
 }
 
+export function mark_thread_read_entries(thread_token: string): void {
+  if (!thread_token) return;
+
+  let changed = false;
+
+  for (const [id, entry] of entries_map) {
+    if (entry.thread_token === thread_token && !entry.is_read) {
+      entries_map.set(id, { ...entry, is_read: true });
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    schedule_persist();
+    notify();
+  }
+}
+
 export function remove_ids(ids: string[]): void {
   let changed = false;
 

@@ -138,6 +138,14 @@ export function use_category_inbox(
       const detail = (event as CustomEvent).detail;
       mark_preload_stale(detail.id);
 
+      for (const key of page_cache.current.keys()) {
+        const ids_part = key.split(":").slice(2).join(":");
+
+        if (ids_part.split(",").includes(detail.id)) {
+          page_cache.current.delete(key);
+        }
+      }
+
       if (detail.is_trashed || detail.is_archived || detail.is_spam) {
         remove_ids([detail.id]);
         set_state((prev) => {
