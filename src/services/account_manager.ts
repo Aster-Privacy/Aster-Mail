@@ -56,6 +56,7 @@ export interface StoredAccount {
   id: string;
   user: User;
   added_at: number;
+  kind?: "personal" | "shared";
   access_token?: string;
   refresh_token?: string;
 }
@@ -257,6 +258,51 @@ export async function add_account(
   await save_accounts_data(data);
 
   return { success: true };
+}
+
+export async function upsert_shared_account(user: User): Promise<void> {
+  const data = await get_accounts_data_async();
+  const existing = data.accounts.find((a) => a.id === user.id);
+
+  if (existing) {
+    existing.user = merge_user(existing.user, user);
+    existing.kind = "shared";
+  } else {
+    data.accounts.push({
+      id: user.id,
+      user,
+      added_at: Date.now(),
+      kind: "shared",
+    });
+  }
+
+  await save_accounts_data(data);
+}
+
+export async function remove_stale_shared_accounts(
+  granted_ids: string[],
+): Promise<string[]> {
+  const data = await get_accounts_data_async();
+  const granted = new Set(granted_ids);
+  const stale = data.accounts.filter(
+    (a) => a.kind === "shared" && !granted.has(a.id) && a.id !== data.current_account_id,
+  );
+
+  if (stale.length === 0) return [];
+
+  data.accounts = data.accounts.filter((a) => !stale.includes(a));
+  await save_accounts_data(data);
+
+  return stale.map((a) => a.id);
+}
+
+export async function get_account_kind(
+  account_id: string,
+): Promise<"personal" | "shared"> {
+  const data = await get_accounts_data_async();
+  const account = data.accounts.find((a) => a.id === account_id);
+
+  return account?.kind === "shared" ? "shared" : "personal";
 }
 
 export async function switch_account(

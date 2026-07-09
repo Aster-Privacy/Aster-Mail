@@ -55,6 +55,38 @@ export interface TranslationNamespace {
   secure_view: SecureViewTranslations;
   compose: ComposeTranslations;
   passkeys: PasskeysTranslations;
+  shared_mailboxes: SharedMailboxesTranslations;
+}
+
+export interface SharedMailboxesTranslations {
+  tab_label: string;
+  shared_tag: string;
+  create: string;
+  created: string;
+  create_failed: string;
+  create_hint: string;
+  limit_reached: string;
+  address_placeholder: string;
+  empty_title: string;
+  empty_desc: string;
+  frozen: string;
+  rotation_needed: string;
+  rotation_explainer: string;
+  rotate: string;
+  rotated: string;
+  open: string;
+  grant_added: string;
+  grant_revoked: string;
+  has_access: string;
+  give_access: string;
+  always_has_access: string;
+  members_heading: string;
+  storage_line: string;
+  deleted: string;
+  delete_confirm_button: string;
+  delete_confirm_message: string;
+  delete_confirm_title: string;
+  access_unavailable: string;
 }
 
 export interface PasskeysTranslations {
@@ -5929,6 +5961,7 @@ export type TranslationKey =
   | `badges.${keyof BadgesTranslations}`
   | `secure_view.${keyof SecureViewTranslations}`
   | `compose.${keyof ComposeTranslations}`
-  | `passkeys.${keyof PasskeysTranslations}`;
+  | `passkeys.${keyof PasskeysTranslations}`
+  | `shared_mailboxes.${keyof SharedMailboxesTranslations}`;
 
 export type Translations = TranslationNamespace;
