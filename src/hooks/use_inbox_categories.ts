@@ -35,6 +35,7 @@ import { CATEGORY_TABS } from "@/services/mail_categorizer";
 import {
   get_counts,
   mark_category_seen,
+  is_index_loaded,
   subscribe as subscribe_index,
   get_version as get_index_version,
 } from "@/services/category_index";
@@ -107,6 +108,9 @@ export function use_inbox_categories(
   const enabled =
     resolved_enabled &&
     (current_view === "inbox" || current_view === "");
+  const enabled_ref = useRef(enabled);
+
+  enabled_ref.current = enabled;
 
   const [active_category, set_active_category_state] = useState<EmailCategory>(
     () => session_active_category ?? "primary",
@@ -133,7 +137,9 @@ export function use_inbox_categories(
   // ready vault is never mistaken for "no stored tab".
   useEffect(() => {
     if (stored_tab_loaded_ref.current) {
-      mark_category_seen(session_active_category ?? "primary");
+      if (enabled_ref.current) {
+        mark_category_seen(session_active_category ?? "primary");
+      }
 
       return;
     }
@@ -151,14 +157,14 @@ export function use_inbox_categories(
           stored_tab_loaded_ref.current = true;
           session_active_category = resolved;
           set_active_category_state(resolved);
-          mark_category_seen(resolved);
+          if (enabled_ref.current) mark_category_seen(resolved);
           set_restored(true);
         })
         .catch(() => {
           if (cancelled) return;
           stored_tab_loaded_ref.current = true;
           session_active_category = "primary";
-          mark_category_seen("primary");
+          if (enabled_ref.current) mark_category_seen("primary");
           set_restored(true);
         });
     });
@@ -173,6 +179,12 @@ export function use_inbox_categories(
     if (!enabled) return;
     if (!stored_tab_loaded_ref.current) return;
     mark_category_seen(active_category);
+
+    return () => {
+      if (is_index_loaded()) {
+        mark_category_seen(active_category);
+      }
+    };
   }, [enabled, active_category]);
 
   const set_active_category = useCallback((category: EmailCategory) => {

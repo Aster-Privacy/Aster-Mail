@@ -55,8 +55,10 @@ import { CategoryEmptyState } from "@/components/email/inbox/category_empty_stat
 import {
   set_message_category,
   remove_ids as remove_category_index_ids,
+  reindex_ids as reindex_category_ids,
   is_fully_built as is_category_index_built,
 } from "@/services/category_index";
+import { category_for_tab } from "@/services/mail_categorizer";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
@@ -256,10 +258,16 @@ export function EmailInbox({
     return null;
   }, [current_folder, folder_unlock_key]);
 
+  const page_category_ref = useRef(categories.active_category);
+  const category_page =
+    page_category_ref.current === categories.active_category
+      ? current_page
+      : 0;
+
   const default_list = use_email_list(current_view);
   const category_list = use_category_inbox(
     categories.active_category,
-    current_page,
+    category_page,
     categories.enabled && categories.restored,
   );
 
@@ -348,6 +356,7 @@ export function EmailInbox({
           await unsnooze_mail(email_id);
           update_email(email_id, { snoozed_until: undefined });
         }
+        reindex_category_ids([email_id]);
         show_action_toast({
           message: t("common.email_unsnoozed"),
           action_type: "snooze",
@@ -363,7 +372,7 @@ export function EmailInbox({
 
   const handle_category_change = useCallback(
     async (email: InboxEmail, category: EmailCategory) => {
-      if (email.mail_category === category) return;
+      if (category_for_tab(email.mail_category) === category) return;
       const ok = await set_message_category(email, category);
 
       if (ok) {
@@ -611,6 +620,7 @@ export function EmailInbox({
       prev_category_ref.current = categories.active_category;
       set_current_page(0);
     }
+    page_category_ref.current = categories.active_category;
   }, [categories.active_category, set_current_page]);
 
   useEffect(() => {

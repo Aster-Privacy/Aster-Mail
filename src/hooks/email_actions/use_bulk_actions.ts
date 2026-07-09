@@ -48,12 +48,14 @@ import {
 } from "@/components/toast/action_toast";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { adjust_starred_count } from "@/hooks/use_mail_counts";
+import { mark_thread_read_entries } from "@/services/category_index";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { use_i18n } from "@/lib/i18n/context";
 
 export interface BulkActions {
   bulk_star: (emails: InboxEmail[], starred: boolean) => Promise<boolean>;
   bulk_archive: (emails: InboxEmail[]) => Promise<boolean>;
+  bulk_unarchive: (emails: InboxEmail[]) => Promise<boolean>;
   bulk_delete: (emails: InboxEmail[]) => Promise<boolean>;
   bulk_mark_read: (emails: InboxEmail[], is_read: boolean) => Promise<boolean>;
   bulk_mark_spam: (emails: InboxEmail[]) => Promise<boolean>;
@@ -416,6 +418,28 @@ export function use_bulk_actions(
     [execute_bulk_action, t],
   );
 
+  const bulk_unarchive = useCallback(
+    async (emails: InboxEmail[]): Promise<boolean> => {
+      return execute_bulk_action(emails, {
+        action_type: "restore",
+        optimistic_update: { is_archived: false },
+        original_state_extractor: (email) => ({
+          is_archived: email.is_archived,
+        }),
+        metadata_update: { is_archived: false },
+        remove_from_list: true,
+        emit_view_change: true,
+        error_message: t("common.failed_to_move_email"),
+        success_toast: {
+          message_key: "common.moved_to_inbox_toast",
+          toast_action_type: "restore",
+          undo_metadata: { is_archived: true },
+        },
+      });
+    },
+    [execute_bulk_action, t],
+  );
+
   const bulk_delete = useCallback(
     async (emails: InboxEmail[]): Promise<boolean> => {
       return execute_bulk_action(emails, {
@@ -490,7 +514,11 @@ export function use_bulk_actions(
         if (thread_tokens.size > 0) {
           void Promise.all(
             Array.from(thread_tokens).map((token) =>
-              mark_thread_read(token).catch(() => {}),
+              mark_thread_read(token)
+                .then((result) => {
+                  if (!result.error) mark_thread_read_entries(token);
+                })
+                .catch(() => {}),
             ),
           ).then(() => emit_mail_soft_refresh());
         }
@@ -668,6 +696,7 @@ export function use_bulk_actions(
   return {
     bulk_star,
     bulk_archive,
+    bulk_unarchive,
     bulk_delete,
     bulk_mark_read,
     bulk_mark_spam,

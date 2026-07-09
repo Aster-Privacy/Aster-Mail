@@ -35,7 +35,6 @@ import {
 import { mark_view_stale, invalidate_mail_cache, remove_email_from_view_cache } from "./email_list_cache";
 
 import {
-  update_mail_item,
   patch_mail_item_metadata,
   report_spam_sender,
 } from "@/services/api/mail";
@@ -55,6 +54,11 @@ import {
   encrypt_mail_metadata,
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
+import {
+  remove_ids as remove_index_ids,
+  reindex_ids,
+} from "@/services/category_index";
+import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 
 interface UseEmailListActionsParams {
   state: EmailListState;
@@ -152,22 +156,14 @@ export function use_email_list_actions({
               ...updates,
             } as MailItemUpdatedEventDetail);
           }
-        }
-      } else {
-        const result = await update_mail_item(id, {});
 
-        if (result.data) {
-          update_email(id, updates as Partial<InboxEmail>);
-          if (emit_full_refresh) {
-            emit_mail_changed();
-          } else {
-            emit_mail_item_updated({
-              id,
-              ...updates,
-            } as MailItemUpdatedEventDetail);
-          }
+          return true;
         }
+
+        return false;
       }
+
+      return false;
     },
     [update_email, state.emails],
   );
@@ -201,12 +197,27 @@ export function use_email_list_actions({
           adjust_unread_count(new_read_state ? -1 : 1);
         }
 
+        let success = false;
+
         try {
-          await api_update(id, { is_read: new_read_state });
+          success = await api_update(id, { is_read: new_read_state });
         } catch {
+          success = false;
+        }
+
+        if (!success) {
           if (email.item_type === "received") {
             adjust_unread_count(new_read_state ? 1 : -1);
           }
+
+          return;
+        }
+
+        if (new_read_state && email.item_type === "received") {
+          mark_conversation_read({
+            thread_token: email.thread_token,
+            grouped_count: email.grouped_email_ids?.length,
+          });
         }
       }
     },
@@ -226,6 +237,7 @@ export function use_email_list_actions({
           : [id];
 
       remove_email(id);
+      remove_index_ids(all_ids);
       for (const aid of all_ids) {
         remove_email_from_view_cache(aid);
       }
@@ -250,6 +262,7 @@ export function use_email_list_actions({
           is_trashed: true,
         } as MailItemUpdatedEventDetail);
       } else {
+        reindex_ids(all_ids);
         if (should_adjust_unread) {
           adjust_unread_count(1);
         }
@@ -287,6 +300,7 @@ export function use_email_list_actions({
           : [id];
 
       remove_email(id);
+      remove_index_ids(all_ids);
       for (const aid of all_ids) {
         remove_email_from_view_cache(aid);
       }
@@ -300,7 +314,14 @@ export function use_email_list_actions({
       invalidate_mail_cache();
       const result = await api_batch_archive({ ids: all_ids, tier: "hot" });
 
+      if (result.data?.success) {
+        void bulk_update_metadata_by_ids(all_ids, { is_archived: true }).catch(
+          () => {},
+        );
+      }
+
       if (!result.data?.success) {
+        reindex_ids(all_ids);
         if (should_adjust_unread) {
           adjust_unread_count(1);
         }
@@ -352,6 +373,12 @@ export function use_email_list_actions({
       const result = await api_batch_unarchive({ ids: [id] });
 
       if (result.data?.success) {
+        try {
+          await bulk_update_metadata_by_ids([id], { is_archived: false });
+        } catch {
+          void 0;
+        }
+        reindex_ids([id]);
         setTimeout(() => {
           window.dispatchEvent(
             new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
@@ -384,6 +411,7 @@ export function use_email_list_actions({
           : [id];
 
       remove_email(id);
+      remove_index_ids(all_ids);
       if (should_adjust_unread) {
         adjust_unread_count(-1);
       }
@@ -401,6 +429,7 @@ export function use_email_list_actions({
           report_spam_sender(email.sender_email).catch(() => {});
         }
       } else {
+        reindex_ids(all_ids);
         if (should_adjust_unread) {
           adjust_unread_count(1);
         }

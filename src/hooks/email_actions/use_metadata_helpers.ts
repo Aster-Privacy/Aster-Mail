@@ -26,6 +26,10 @@ import {
   update_item_metadata,
   bulk_update_items_metadata,
 } from "@/services/crypto/mail_metadata";
+import {
+  emit_mail_item_updated,
+  type MailItemUpdatedEventDetail,
+} from "@/hooks/mail_events";
 import { use_i18n } from "@/lib/i18n/context";
 
 export type MetadataFields = Partial<{
@@ -76,14 +80,23 @@ export function use_metadata_helpers(): MetadataHelpers {
         updates,
       );
 
-      return result.success
-        ? {
-            data: {
-              encrypted_metadata: result.encrypted?.encrypted_metadata,
-              metadata_nonce: result.encrypted?.metadata_nonce,
-            },
-          }
-        : { error: t("common.failed_to_update") };
+      if (!result.success) {
+        return { error: t("common.failed_to_update") };
+      }
+
+      emit_mail_item_updated({
+        id: email.id,
+        ...updates,
+        encrypted_metadata: result.encrypted?.encrypted_metadata,
+        metadata_nonce: result.encrypted?.metadata_nonce,
+      } as MailItemUpdatedEventDetail);
+
+      return {
+        data: {
+          encrypted_metadata: result.encrypted?.encrypted_metadata,
+          metadata_nonce: result.encrypted?.metadata_nonce,
+        },
+      };
     },
     [t],
   );

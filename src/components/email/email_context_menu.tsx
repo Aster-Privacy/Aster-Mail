@@ -46,6 +46,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { category_for_tab } from "@/services/mail_categorizer";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -424,7 +425,7 @@ function EmailContextMenuContentInner({
                     on_category_change(key);
                   }}
                 >
-                  {email.mail_category === key && (
+                  {category_for_tab(email.mail_category) === key && (
                     <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
                   )}
                   <Icon className="mr-2 h-4 w-4" />

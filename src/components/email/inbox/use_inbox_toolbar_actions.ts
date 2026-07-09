@@ -54,6 +54,12 @@ import {
   mark_thread_read,
 } from "@/services/api/mail";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
+import {
+  mark_thread_read_entries,
+  remove_ids as remove_index_ids,
+  remove_thread_entries,
+  reindex_ids,
+} from "@/services/category_index";
 
 interface UseInboxToolbarActionsOptions {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -238,12 +244,28 @@ export function use_inbox_toolbar_actions({
       apply_stat_deltas(d);
     }
 
+    remove_index_ids(combined_ids);
+
+    const removed_thread_ids = [email, ...same_sender_emails].flatMap((e) =>
+      e.thread_token ? remove_thread_entries(e.thread_token) : [],
+    );
+
     const result = await bulk_update_metadata_by_ids(combined_ids, {
       is_spam: true,
       is_trashed: false,
     });
 
     if (result.success) {
+      const uncovered_thread_ids = removed_thread_ids.filter(
+        (id) => !combined_ids.includes(id),
+      );
+
+      if (uncovered_thread_ids.length > 0) {
+        void bulk_update_metadata_by_ids(uncovered_thread_ids, {
+          is_spam: true,
+          is_trashed: false,
+        }).catch(() => {});
+      }
       if (sender) {
         report_spam_sender(sender).catch(() => {});
       }
@@ -256,7 +278,13 @@ export function use_inbox_toolbar_actions({
           for (const d of same_sender_deltas) {
             revert_stat_deltas(d);
           }
-          await bulk_update_metadata_by_ids(combined_ids, { is_spam: false });
+          await bulk_update_metadata_by_ids(
+            Array.from(new Set([...combined_ids, ...removed_thread_ids])),
+            { is_spam: false },
+          );
+          reindex_ids(
+            Array.from(new Set([...combined_ids, ...removed_thread_ids])),
+          );
           if (sender) {
             remove_spam_sender(sender).catch(() => {});
           }
@@ -268,6 +296,9 @@ export function use_inbox_toolbar_actions({
       for (const d of same_sender_deltas) {
         revert_stat_deltas(d);
       }
+      reindex_ids(
+        Array.from(new Set([...combined_ids, ...removed_thread_ids])),
+      );
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_CHANGED));
       show_toast(t("common.failed_to_mark_as_spam"), "error");
     }
@@ -409,7 +440,11 @@ export function use_inbox_toolbar_actions({
       if (thread_tokens.size > 0) {
         void Promise.all(
           Array.from(thread_tokens).map((token) =>
-            mark_thread_read(token).catch(() => {}),
+            mark_thread_read(token)
+              .then((result) => {
+                if (!result.error) mark_thread_read_entries(token);
+              })
+              .catch(() => {}),
           ),
         ).then(() => emit_mail_soft_refresh());
       }
@@ -578,12 +613,25 @@ export function use_inbox_toolbar_actions({
       ),
     );
 
-    const result = await bulk_update_metadata_by_ids(expanded_ids, {
+    remove_index_ids(expanded_ids);
+
+    const removed_thread_ids = selected.flatMap((e) =>
+      e.thread_token ? remove_thread_entries(e.thread_token) : [],
+    );
+    const all_spam_ids = Array.from(
+      new Set([...expanded_ids, ...removed_thread_ids]),
+    );
+
+    const result = await bulk_update_metadata_by_ids(all_spam_ids, {
       is_spam: true,
       is_trashed: false,
     });
 
-    if (!result.success) return;
+    if (!result.success) {
+      reindex_ids(all_spam_ids);
+
+      return;
+    }
     const unique_senders = new Set(
       selected.map((e) => e.sender_email).filter(Boolean),
     );
@@ -601,7 +649,8 @@ export function use_inbox_toolbar_actions({
       action_type: "spam",
       email_ids: expanded_ids,
       on_undo: async () => {
-        await bulk_update_metadata_by_ids(expanded_ids, { is_spam: false });
+        await bulk_update_metadata_by_ids(all_spam_ids, { is_spam: false });
+        reindex_ids(all_spam_ids);
         for (const sender of unique_senders) {
           remove_spam_sender(sender).catch(() => {});
         }
