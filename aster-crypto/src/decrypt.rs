@@ -20,9 +20,14 @@
 //
 use pgp::composed::{Deserializable, Message};
 
+use chrono::Utc;
+
 use crate::error::{CryptoError, Result};
 use crate::keys::{KeyPair, PublicKey, PublicKeyInner};
-use crate::sign::{signed_public_key_can_sign, signed_secret_key_can_sign};
+use crate::sign::{
+    signed_public_key_can_sign, signed_secret_key_can_sign, signed_secret_signing_identity_valid,
+    signing_identity_valid,
+};
 
 pub const MAX_CIPHERTEXT_BYTES: usize = 16 * 1024 * 1024;
 pub const MAX_PLAINTEXT_BYTES: usize = 64 * 1024 * 1024;
@@ -82,13 +87,18 @@ pub fn decrypt_message_binary(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Re
 }
 
 fn verify_with_sender_keys(msg: &Message, sender_keys: &[&PublicKey]) -> bool {
+    let now = Utc::now();
     for pk in sender_keys {
         let verified = match &pk.inner {
             PublicKeyInner::Standalone(spk) => {
-                signed_public_key_can_sign(spk) && msg.verify(spk).is_ok()
+                signing_identity_valid(spk, now)
+                    && signed_public_key_can_sign(spk)
+                    && msg.verify(spk).is_ok()
             }
             PublicKeyInner::FromSecret(ssk) => {
-                signed_secret_key_can_sign(ssk) && msg.verify(ssk).is_ok()
+                signed_secret_signing_identity_valid(ssk, now)
+                    && signed_secret_key_can_sign(ssk)
+                    && msg.verify(ssk).is_ok()
             }
         };
         if verified {
