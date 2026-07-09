@@ -48,8 +48,6 @@ const MOBILE_STEP_ORDER = [
   "password",
   "generating",
   "recovery_key",
-  "recovery_phrase",
-  "phrase_confirm",
   "recovery_email",
   "recovery_email_verification",
   "plan_selection",
@@ -67,8 +65,7 @@ function get_step_progress(step: string): number {
 
 const BACK_MAP: Record<string, RegistrationStep> = {
   password: "email",
-  phrase_confirm: "recovery_phrase",
-  recovery_email: "recovery_phrase",
+  recovery_email: "recovery_key",
   recovery_email_verification: "recovery_email",
 };
 
