@@ -40,6 +40,7 @@ import { report_spam_sender, mark_thread_read } from "@/services/api/mail";
 import {
   batched_bulk_add_folder,
   batched_bulk_remove_folder,
+  get_thread_messages,
 } from "@/services/api/mail";
 import {
   show_action_toast,
@@ -50,6 +51,7 @@ import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { adjust_starred_count } from "@/hooks/use_mail_counts";
 import { mark_thread_read_entries } from "@/services/category_index";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
+import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { use_i18n } from "@/lib/i18n/context";
 
 export interface BulkActions {
@@ -382,9 +384,54 @@ export function use_bulk_actions(
     [execute_bulk_action, t],
   );
 
+  const sync_grouped_siblings = useCallback(
+    (emails: InboxEmail[], is_archived: boolean): void => {
+      void (async () => {
+        try {
+          const base_ids = new Set(
+            emails.flatMap((email) => [
+              email.id,
+              ...(email.grouped_email_ids ?? []),
+            ]),
+          );
+          const sibling_ids = emails.flatMap((email) =>
+            email.grouped_email_ids && email.grouped_email_ids.length > 1
+              ? email.grouped_email_ids.filter((id) => id !== email.id)
+              : [],
+          );
+          const threaded = emails.filter(
+            (email) =>
+              email.thread_token && (email.thread_message_count ?? 1) > 1,
+          );
+
+          for (const email of threaded) {
+            const thread = await get_thread_messages(email.thread_token!);
+            const extra = (thread.data?.messages ?? [])
+              .filter(
+                (message) =>
+                  message.item_type === "received" &&
+                  !base_ids.has(message.id),
+              )
+              .map((message) => message.id);
+
+            sibling_ids.push(...extra);
+          }
+
+          const unique_ids = Array.from(new Set(sibling_ids));
+
+          if (unique_ids.length === 0) return;
+          await bulk_update_metadata_by_ids(unique_ids, { is_archived });
+        } catch {
+          void 0;
+        }
+      })();
+    },
+    [],
+  );
+
   const bulk_archive = useCallback(
     async (emails: InboxEmail[]): Promise<boolean> => {
-      return execute_bulk_action(emails, {
+      const ok = await execute_bulk_action(emails, {
         action_type: "archive",
         optimistic_update: {
           is_archived: true,
@@ -414,13 +461,17 @@ export function use_bulk_actions(
           }),
         },
       });
+
+      if (ok) sync_grouped_siblings(emails, true);
+
+      return ok;
     },
-    [execute_bulk_action, t],
+    [execute_bulk_action, sync_grouped_siblings, t],
   );
 
   const bulk_unarchive = useCallback(
     async (emails: InboxEmail[]): Promise<boolean> => {
-      return execute_bulk_action(emails, {
+      const ok = await execute_bulk_action(emails, {
         action_type: "restore",
         optimistic_update: { is_archived: false },
         original_state_extractor: (email) => ({
@@ -436,8 +487,12 @@ export function use_bulk_actions(
           undo_metadata: { is_archived: true },
         },
       });
+
+      if (ok) sync_grouped_siblings(emails, false);
+
+      return ok;
     },
-    [execute_bulk_action, t],
+    [execute_bulk_action, sync_grouped_siblings, t],
   );
 
   const bulk_delete = useCallback(

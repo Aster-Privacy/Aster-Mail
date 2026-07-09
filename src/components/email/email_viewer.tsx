@@ -32,7 +32,10 @@ import {
   ErrorBoundary,
   EmailErrorFallback,
 } from "@/components/ui/error_boundary";
-import { update_item_metadata } from "@/services/crypto/mail_metadata";
+import {
+  update_item_metadata,
+  bulk_update_metadata_by_ids,
+} from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -115,6 +118,7 @@ export function EmailViewer({
 
     set_is_archive_loading(false);
     if (result.data?.success) {
+      await bulk_update_metadata_by_ids([email.id], { is_archived: true });
       emit_mail_changed();
       show_action_toast({
         message: t("common.conversation_archived"),
@@ -126,6 +130,9 @@ export function EmailViewer({
           if (result.error) {
             throw new Error(result.error);
           }
+          await bulk_update_metadata_by_ids([email.id], {
+            is_archived: false,
+          });
           emit_mail_soft_refresh();
         },
       });

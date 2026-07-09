@@ -37,6 +37,7 @@ import {
   EllipsisHorizontalIcon,
   PrinterIcon,
   FolderIcon,
+  InboxIcon,
   MapPinIcon,
   ChevronDoubleUpIcon,
   ChevronDoubleDownIcon,
@@ -121,6 +122,8 @@ interface ViewerToolbarActionsProps {
   mail_item: MailItem | null;
   on_pin_toggle: () => void;
   on_archive: () => void;
+  is_archived?: boolean;
+  on_unarchive?: () => void;
   on_trash: () => void;
   on_read_toggle: () => void;
   on_spam: () => void;
@@ -161,6 +164,8 @@ export function ViewerToolbarActions({
   mail_item,
   on_pin_toggle,
   on_archive,
+  is_archived = false,
+  on_unarchive,
   on_trash,
   on_read_toggle,
   on_spam,
@@ -286,18 +291,35 @@ export function ViewerToolbarActions({
         </Button>
       </Tooltip>
 
-      <Tooltip tip={t("mail.archive")}>
-        <Button
-          className={btn_base}
-          disabled={is_archive_loading}
-          size="icon"
-          style={muted_style}
-          variant="ghost"
-          onClick={on_archive}
-        >
-          <ArchiveBoxIcon className={icon_size} />
-        </Button>
-      </Tooltip>
+      {is_archived && on_unarchive ? (
+        <Tooltip tip={t("mail.move_to_inbox")}>
+          <Button
+            aria-label={t("mail.move_to_inbox")}
+            className={btn_base}
+            disabled={is_archive_loading}
+            size="icon"
+            style={muted_style}
+            variant="ghost"
+            onClick={on_unarchive}
+          >
+            <InboxIcon className={icon_size} />
+          </Button>
+        </Tooltip>
+      ) : (
+        <Tooltip tip={t("mail.archive")}>
+          <Button
+            aria-label={t("mail.archive")}
+            className={btn_base}
+            disabled={is_archive_loading}
+            size="icon"
+            style={muted_style}
+            variant="ghost"
+            onClick={on_archive}
+          >
+            <ArchiveBoxIcon className={icon_size} />
+          </Button>
+        </Tooltip>
+      )}
 
       <Tooltip tip={t("mail.move_to_trash")}>
         <Button

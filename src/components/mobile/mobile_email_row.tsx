@@ -26,6 +26,7 @@ import {
   PaperClipIcon,
   StarIcon as StarOutlineIcon,
   CheckIcon,
+  InboxIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 
@@ -203,7 +204,10 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       const handler = handler_map[definition.id];
 
       if (!handler) return undefined;
-      const Icon = definition.icon;
+      const Icon =
+        definition.id === "archive" && email.is_archived
+          ? InboxIcon
+          : definition.icon;
 
       return {
         icon: <Icon className="h-6 w-6 text-white" />,
@@ -211,7 +215,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
         on_trigger: handler,
       };
     },
-    [handler_map],
+    [handler_map, email.is_archived],
   );
 
   const left_action = build_swipe_action(swipe_left_action);

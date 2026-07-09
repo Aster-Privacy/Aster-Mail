@@ -32,7 +32,10 @@ import { is_system_email, is_astermail_sender } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
 import { build_reply_from_address } from "@/components/email/build_reply_from_address";
-import { update_item_metadata } from "@/services/crypto/mail_metadata";
+import {
+  update_item_metadata,
+  bulk_update_metadata_by_ids,
+} from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
@@ -152,6 +155,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.set_is_archive_loading(false);
 
     if (result.data?.success) {
+      await bulk_update_metadata_by_ids([deps.email_id], {
+        is_archived: true,
+      });
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_action_toast({
         message: deps.t("common.conversation_archived"),
@@ -159,6 +165,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         email_ids: [deps.email_id],
         on_undo: async () => {
           await batch_unarchive({ ids: [deps.email_id!] });
+          await bulk_update_metadata_by_ids([deps.email_id!], {
+            is_archived: false,
+          });
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
@@ -590,6 +599,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       const result = await batch_archive({ ids: [msg.id], tier: "hot" });
 
       if (result.data?.success) {
+        await bulk_update_metadata_by_ids([msg.id], { is_archived: true });
         emit_mail_items_removed({ ids: [msg.id] });
         show_action_toast({
           message: deps.t("common.message_archived"),
@@ -597,6 +607,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           email_ids: [msg.id],
           on_undo: async () => {
             await batch_unarchive({ ids: [msg.id] });
+            await bulk_update_metadata_by_ids([msg.id], {
+              is_archived: false,
+            });
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
