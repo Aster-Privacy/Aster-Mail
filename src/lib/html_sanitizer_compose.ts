@@ -156,7 +156,7 @@ export function sanitize_compose_paste(html: string): string {
       const size = el.getAttribute("size");
       const styles: string[] = [];
 
-      const css_value_is_safe = (value: string) => !/[;:(){}<>]/.test(value);
+      const css_value_is_safe = (value: string) => !/[;:(){}<>\\]/.test(value);
 
       if (color && css_value_is_safe(color)) styles.push(`color: ${color}`);
       if (face && css_value_is_safe(face)) styles.push(`font-family: ${face}`);
