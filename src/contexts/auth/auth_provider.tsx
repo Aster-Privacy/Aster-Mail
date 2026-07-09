@@ -61,7 +61,13 @@ import {
   switch_account as storage_switch_account,
   update_account_user,
   update_account_tokens,
+  get_account_kind,
 } from "@/services/account_manager";
+import {
+  sync_shared_mailbox_grants,
+  perform_shared_mailbox_login,
+  clear_shared_mailbox_session,
+} from "@/services/shared_mailbox_session";
 import { get_account_limit } from "@/services/api/switch";
 import { sync_client } from "@/services/sync_client";
 import {
@@ -321,6 +327,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
           backfill_user_profile(synced_user);
           ensure_default_labels(get_vault_from_memory(), t).catch(console.error);
+
+          sync_shared_mailbox_grants()
+            .then(async () => {
+              const refreshed = await get_all_accounts();
+
+              set_state((prev) => ({ ...prev, accounts: refreshed }));
+            })
+            .catch(() => {});
         } else {
           api_client.clear_auth_data();
           api_client.set_authenticated(false);
@@ -498,6 +512,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       set_is_adding_account(false);
 
       backfill_user_profile(user);
+
+      sync_shared_mailbox_grants()
+        .then(async () => {
+          const refreshed = await get_all_accounts();
+
+          set_state((prev) =>
+            prev.current_account_id === user.id
+              ? { ...prev, accounts: refreshed }
+              : prev,
+          );
+        })
+        .catch(() => {});
     },
     [t, backfill_user_profile],
   );
@@ -670,6 +696,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (target.id === state.current_account_id) return;
 
         const local = target.user.email.split("@")[0] ?? "";
+        const target_kind = await get_account_kind(target.id);
 
         set_is_adding_account(true);
         sync_client.disconnect();
@@ -686,6 +713,60 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         await storage_switch_account(target.id);
 
+        if (target_kind === "shared") {
+          try {
+            const result = await perform_shared_mailbox_login(
+              target.id,
+              target.user.email,
+              target.user.username,
+            );
+
+            await login(
+              {
+                ...result.user,
+                display_name: target.user.display_name,
+                profile_color: target.user.profile_color,
+              },
+              result.vault,
+              result.login_secret,
+              result.encrypted_vault,
+              result.vault_nonce,
+            );
+            hard_redirect("/");
+
+            return;
+          } catch (e) {
+            safe_log_error(e);
+            await clear_shared_mailbox_session(target.id);
+            await storage_remove_account(target.id);
+
+            const remaining = await get_all_accounts();
+            const fallback = remaining.find((a) => a.kind !== "shared");
+
+            show_toast(t("shared_mailboxes.access_unavailable"), "error");
+            set_state((prev) => ({
+              ...prev,
+              user: null,
+              is_loading: false,
+              is_authenticated: false,
+              has_keys: false,
+              accounts: remaining,
+              current_account_id: fallback?.id ?? null,
+            }));
+
+            if (fallback) {
+              await storage_switch_account(fallback.id);
+              navigate(
+                `/sign-in?u=${encodeURIComponent(fallback.user.email.split("@")[0] ?? "")}`,
+              );
+            } else {
+              navigate("/sign-in");
+            }
+
+            return;
+          }
+        }
+
         set_state((prev) => ({
           ...prev,
           user: null,
@@ -699,7 +780,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         switch_in_flight.current = false;
       }
     },
-    [navigate, state.current_account_id, set_is_adding_account],
+    [navigate, state.current_account_id, set_is_adding_account, login, t],
   );
 
   const clear_local_auth_data = useCallback(async () => {
