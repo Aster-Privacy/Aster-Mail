@@ -25,6 +25,7 @@ import type { TranslationKey } from "@/lib/i18n";
 import {
   StarIcon,
   ArchiveBoxIcon,
+  InboxIcon,
   TrashIcon,
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
@@ -82,6 +83,7 @@ export function MobileActionMenuSheet({
   on_toggle_read,
   on_snooze,
   on_archive,
+  is_archived = false,
   on_spam,
   on_not_spam,
   is_spam,
@@ -114,6 +116,7 @@ export function MobileActionMenuSheet({
   on_toggle_read: () => void;
   on_snooze: () => void;
   on_archive: () => void;
+  is_archived?: boolean;
   on_spam: () => void;
   on_not_spam: () => void;
   is_spam: boolean;
@@ -254,9 +257,13 @@ export function MobileActionMenuSheet({
             type="button"
             onClick={on_archive}
           >
-            <ArchiveBoxIcon className="h-5 w-5 text-[var(--text-muted)]" />
+            {is_archived ? (
+              <InboxIcon className="h-5 w-5 text-[var(--text-muted)]" />
+            ) : (
+              <ArchiveBoxIcon className="h-5 w-5 text-[var(--text-muted)]" />
+            )}
             <span className="text-[14px] text-[var(--text-primary)]">
-              {t("mail.archive")}
+              {is_archived ? t("mail.move_to_inbox") : t("mail.archive")}
             </span>
           </button>
           {is_spam ? (

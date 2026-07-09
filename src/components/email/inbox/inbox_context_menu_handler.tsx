@@ -856,21 +856,30 @@ export function use_context_menu_actions({
 
     const handle_move_to_inbox = async (email: InboxEmail) => {
       const deltas = compute_restore_deltas(email);
+      const all_ids =
+        email.grouped_email_ids && email.grouped_email_ids.length > 1
+          ? email.grouped_email_ids
+          : [email.id];
 
       remove_email(email.id);
       apply_stat_deltas(deltas);
-      const result = await batch_unarchive({ ids: [email.id] });
+      const result = await batch_unarchive({ ids: all_ids });
 
       if (result.data?.success) {
+        await bulk_update_metadata_by_ids(all_ids, { is_archived: false });
+        for (const eid of all_ids) {
+          emit_mail_item_updated({ id: eid, is_archived: false });
+        }
         invalidate_mail_cache();
         invalidate_mail_stats();
         show_action_toast({
           message: t("common.moved_to_inbox_toast"),
           action_type: "restore",
-          email_ids: [email.id],
+          email_ids: all_ids,
           on_undo: async () => {
             revert_stat_deltas(deltas);
-            await batch_archive({ ids: [email.id], tier: "hot" });
+            await batch_archive({ ids: all_ids, tier: "hot" });
+            await bulk_update_metadata_by_ids(all_ids, { is_archived: true });
             invalidate_mail_cache();
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),

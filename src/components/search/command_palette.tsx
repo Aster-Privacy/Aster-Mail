@@ -63,6 +63,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import {
   decrypt_mail_metadata,
   bulk_update_items_metadata,
+  bulk_update_metadata_by_ids,
   create_default_metadata,
 } from "@/services/crypto/mail_metadata";
 
@@ -347,6 +348,7 @@ export function CommandPalette({
 
         const count = archive_result.data?.archived_count ?? ids.length;
 
+        await bulk_update_metadata_by_ids(ids, { is_archived: true });
         window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         show_action_toast({
           message: success_message(count),
@@ -354,6 +356,7 @@ export function CommandPalette({
           email_ids: ids,
           on_undo: async () => {
             await batch_unarchive({ ids });
+            await bulk_update_metadata_by_ids(ids, { is_archived: false });
             window.dispatchEvent(
               new CustomEvent("astermail:mail-soft-refresh"),
             );

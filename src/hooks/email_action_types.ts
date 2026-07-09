@@ -86,6 +86,7 @@ export interface UseEmailActionsReturn {
   permanently_delete: (email: InboxEmail) => Promise<boolean>;
   bulk_star: (emails: InboxEmail[], starred: boolean) => Promise<boolean>;
   bulk_archive: (emails: InboxEmail[]) => Promise<boolean>;
+  bulk_unarchive: (emails: InboxEmail[]) => Promise<boolean>;
   bulk_delete: (emails: InboxEmail[]) => Promise<boolean>;
   bulk_mark_read: (emails: InboxEmail[], is_read: boolean) => Promise<boolean>;
   bulk_mark_spam: (emails: InboxEmail[]) => Promise<boolean>;

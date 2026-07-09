@@ -22,7 +22,7 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
@@ -69,6 +69,9 @@ let swipe_nav_direction: "left" | "right" | null = null;
 
 function MobileMailDetail() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from_view = (location.state as { from_view?: string } | null)
+    ?.from_view;
   const detail = use_email_detail();
   const auth = use_auth_safe();
   const account_id = auth?.current_account_id ?? "";
@@ -384,14 +387,23 @@ function MobileMailDetail() {
     }
   }, [detail, navigate]);
 
+  const is_archived =
+    detail.mail_item?.is_archived === true ||
+    detail.mail_item?.metadata?.is_archived === true ||
+    from_view === "archive";
+
   const handle_archive = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
     action_in_flight.current = true;
     haptic_impact("light");
-    await email_actions.archive_email(detail.email as never);
+    if (is_archived) {
+      await email_actions.unarchive_email(detail.email as never);
+    } else {
+      await email_actions.archive_email(detail.email as never);
+    }
     remove_email_from_view_cache(detail.email.id);
     advance_after_action();
-  }, [detail.email, email_actions, advance_after_action]);
+  }, [detail.email, email_actions, advance_after_action, is_archived]);
 
   const handle_delete = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
@@ -930,6 +942,7 @@ function MobileMailDetail() {
 
       <MobileToolbar
         actions={preferences.mobile_toolbar_actions}
+        is_archived={is_archived}
         is_starred={starred}
         on_archive={handle_archive}
         on_delete={handle_delete}
@@ -960,12 +973,13 @@ function MobileMailDetail() {
           display_messages.length > 0 &&
           display_messages.every((m) => dark_mode_ids.has(m.id))
         }
+        is_archived={is_archived}
         is_spam={!!detail.mail_item?.is_spam}
         is_pinned={pinned}
         is_starred={starred}
         menu_message={menu_message}
         menu_source={menu_source}
-        on_archive={handle_menu_archive}
+        on_archive={is_archived ? handle_archive : handle_menu_archive}
         on_block={() => {
           if (menu_message) {
             set_block_target({

@@ -36,6 +36,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_metadata_migration } from "@/hooks/use_metadata_migration";
+import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { use_background_subscription_scan } from "@/hooks/use_background_subscription_scan";
 import { use_subscriptions } from "@/hooks/use_subscriptions";
 import { use_document_title } from "@/hooks/use_document_title";
@@ -707,6 +708,9 @@ export function use_index_page_state() {
 
         if (!archive_result.error && archive_result.data?.success) {
           archived = true;
+          void bulk_update_metadata_by_ids(email_ids, {
+            is_archived: true,
+          }).catch(() => {});
           adjust_inbox_count(-email_ids.length);
           adjust_stats_archived(email_ids.length);
           invalidate_mail_cache();
@@ -739,6 +743,9 @@ export function use_index_page_state() {
             });
 
             if (!unarchive_result.error && unarchive_result.data?.success) {
+              void bulk_update_metadata_by_ids(email_ids, {
+                is_archived: false,
+              }).catch(() => {});
               adjust_inbox_count(email_ids.length);
               adjust_stats_archived(-email_ids.length);
               invalidate_mail_cache();

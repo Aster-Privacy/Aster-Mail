@@ -21,6 +21,7 @@
 import {
   StarIcon,
   ArchiveBoxIcon,
+  InboxIcon,
   TrashIcon,
   EnvelopeOpenIcon,
   PrinterIcon,
@@ -78,8 +79,10 @@ export function MobileToolbar({
   on_print,
   on_more,
   is_starred,
+  is_archived = false,
 }: {
   actions?: string[];
+  is_archived?: boolean;
   on_archive: () => void;
   on_spam: () => void;
   on_delete: () => void;
@@ -112,7 +115,11 @@ export function MobileToolbar({
 
           if (!config) return null;
           const Icon =
-            action === "star" && is_starred ? StarSolidIcon : config.icon;
+            action === "star" && is_starred
+              ? StarSolidIcon
+              : action === "archive" && is_archived
+                ? InboxIcon
+                : config.icon;
           const color = config.is_danger
             ? "var(--color-danger,#ef4444)"
             : action === "star" && is_starred
@@ -122,7 +129,11 @@ export function MobileToolbar({
           return (
             <button
               key={action}
-              aria-label={action.replace(/_/g, " ")}
+              aria-label={
+                action === "archive" && is_archived
+                  ? t("mail.move_to_inbox")
+                  : action.replace(/_/g, " ")
+              }
               className="flex h-9 w-9 items-center justify-center rounded-full active:bg-[var(--bg-tertiary)]"
               style={{ color }}
               type="button"

@@ -28,6 +28,7 @@ import {
   Cog6ToothIcon,
   XMarkIcon,
   ArchiveBoxIcon,
+  InboxIcon,
   TrashIcon,
   StarIcon,
   EnvelopeOpenIcon,
@@ -350,17 +351,29 @@ function MobileInbox({
     return active_emails.filter((e) => selected_ids.has(e.id));
   }, [active_emails, selected_ids]);
 
+  const is_archive_view = current_view === "archive";
+
   const handle_bulk_archive = useCallback(async () => {
     const emails = get_selected_emails();
 
     if (emails.length === 0) return;
     haptic_impact("medium");
-    await actions.bulk_archive(emails);
+    if (is_archive_view) {
+      await actions.bulk_unarchive(emails);
+    } else {
+      await actions.bulk_archive(emails);
+    }
     for (const email of emails) {
       remove_email(email.id);
     }
     exit_selection_mode();
-  }, [get_selected_emails, actions, remove_email, exit_selection_mode]);
+  }, [
+    get_selected_emails,
+    actions,
+    remove_email,
+    exit_selection_mode,
+    is_archive_view,
+  ]);
 
   const handle_bulk_delete = useCallback(async () => {
     const emails = get_selected_emails();
@@ -402,7 +415,11 @@ function MobileInbox({
 
   const handle_archive = useCallback(
     async (email: InboxEmail) => {
-      await actions.archive_email(email);
+      if (email.is_archived) {
+        await actions.unarchive_email(email);
+      } else {
+        await actions.archive_email(email);
+      }
       remove_email(email.id);
     },
     [actions, remove_email],
@@ -744,8 +761,14 @@ function MobileInbox({
             type="button"
             onClick={handle_bulk_archive}
           >
-            <ArchiveBoxIcon className="h-5 w-5" />
-            <span className="text-[11px]">{t("mail.archive")}</span>
+            {is_archive_view ? (
+              <InboxIcon className="h-5 w-5" />
+            ) : (
+              <ArchiveBoxIcon className="h-5 w-5" />
+            )}
+            <span className="text-[11px]">
+              {is_archive_view ? t("mail.move_to_inbox") : t("mail.archive")}
+            </span>
           </button>
           <button
             className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"

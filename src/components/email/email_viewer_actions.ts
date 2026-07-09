@@ -42,8 +42,12 @@ import {
   get_cached_alias_for_routing_token,
   get_cached_ghost_for_routing_token,
 } from "@/hooks/use_sender_aliases";
-import { update_item_metadata } from "@/services/crypto/mail_metadata";
+import {
+  update_item_metadata,
+  bulk_update_metadata_by_ids,
+} from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
+import { invalidate_mail_cache } from "@/hooks/email_list_cache";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -58,9 +62,11 @@ import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import {
   adjust_stats_spam,
   adjust_stats_unread,
+  invalidate_mail_stats,
 } from "@/hooks/use_mail_stats";
 import {
   compute_archive_deltas,
+  compute_unarchive_deltas,
   compute_trash_deltas,
   apply_stat_deltas,
   revert_stat_deltas,
@@ -409,6 +415,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
     deps.set_is_archive_loading(false);
     if (result.data?.success) {
+      await bulk_update_metadata_by_ids([deps.email_id], { is_archived: true });
+      invalidate_mail_cache();
+      invalidate_mail_stats();
       emit_mail_items_removed({ ids: [deps.email_id] });
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
       show_action_toast({
@@ -418,6 +427,55 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         on_undo: async () => {
           if (deltas) revert_stat_deltas(deltas);
           await batch_unarchive({ ids: [deps.email_id] });
+          await bulk_update_metadata_by_ids([deps.email_id], {
+            is_archived: false,
+          });
+          invalidate_mail_cache();
+          invalidate_mail_stats();
+          window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
+        },
+      });
+      deps.on_dismiss();
+    } else if (deltas) {
+      revert_stat_deltas(deltas);
+    }
+  }, [deps.email_id, deps.is_archive_loading, deps.on_dismiss, deps.t, deps.mail_item, deps.is_read]);
+
+  const handle_unarchive = useCallback(async () => {
+    if (!deps.email_id || deps.is_archive_loading) return;
+    deps.set_is_archive_loading(true);
+
+    const deltas = deps.mail_item
+      ? compute_unarchive_deltas({
+          item_type: deps.mail_item.item_type,
+          is_read: deps.is_read,
+        })
+      : null;
+    if (deltas) apply_stat_deltas(deltas);
+
+    const result = await batch_unarchive({ ids: [deps.email_id] });
+
+    deps.set_is_archive_loading(false);
+    if (result.data?.success) {
+      await bulk_update_metadata_by_ids([deps.email_id], {
+        is_archived: false,
+      });
+      invalidate_mail_cache();
+      invalidate_mail_stats();
+      emit_mail_items_removed({ ids: [deps.email_id] });
+      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      show_action_toast({
+        message: deps.t("common.moved_to_inbox_toast"),
+        action_type: "restore",
+        email_ids: [deps.email_id],
+        on_undo: async () => {
+          if (deltas) revert_stat_deltas(deltas);
+          await batch_archive({ ids: [deps.email_id], tier: "hot" });
+          await bulk_update_metadata_by_ids([deps.email_id], {
+            is_archived: true,
+          });
+          invalidate_mail_cache();
+          invalidate_mail_stats();
           window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
         },
       });
@@ -1014,6 +1072,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     handle_read_toggle,
     handle_pin_toggle,
     handle_archive,
+    handle_unarchive,
     handle_spam,
     handle_not_spam,
     handle_trash,

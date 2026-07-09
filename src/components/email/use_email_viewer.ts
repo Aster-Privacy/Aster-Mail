@@ -1107,6 +1107,7 @@ export function use_email_viewer({
     handle_read_toggle: actions.handle_read_toggle,
     handle_pin_toggle: actions.handle_pin_toggle,
     handle_archive: actions.handle_archive,
+    handle_unarchive: actions.handle_unarchive,
     handle_spam: actions.handle_spam,
     handle_not_spam: actions.handle_not_spam,
     handle_trash: actions.handle_trash,

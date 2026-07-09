@@ -378,8 +378,10 @@ export function FullEmailViewer({
               is_spam={viewer.mail_item?.is_spam === true}
               is_spam_loading={viewer.is_spam_loading}
               is_trash_loading={viewer.is_trash_loading}
+              is_archived={email.is_archived === true}
               mail_item={viewer.mail_item}
               on_archive={viewer.handle_archive}
+              on_unarchive={viewer.handle_unarchive}
               on_folder_toggle={on_folder_toggle}
               on_navigate_next={on_navigate_next}
               on_navigate_prev={on_navigate_prev}
