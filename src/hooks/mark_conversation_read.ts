@@ -21,6 +21,7 @@
 import { emit_mail_soft_refresh } from "./email_action_types";
 
 import { mark_thread_read } from "@/services/api/mail";
+import { mark_thread_read_entries } from "@/services/category_index";
 
 //
 // Reading or marking a message read only ever touches the single message in
@@ -68,7 +69,10 @@ export function mark_conversation_read({
 
   void mark_thread_read(thread_token)
     .then((result) => {
-      if (!result.error) emit_mail_soft_refresh();
+      if (!result.error) {
+        mark_thread_read_entries(thread_token);
+        emit_mail_soft_refresh();
+      }
     })
     .catch(() => {});
 }
