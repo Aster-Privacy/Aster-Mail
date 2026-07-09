@@ -453,6 +453,36 @@ export async function apply_promo_code(code: string) {
   });
 }
 
+export interface AcademicDiscountStatusResponse {
+  status: "none" | "pending" | "verified";
+  promo_code: string | null;
+  code_expires_at: string | null;
+}
+
+export interface AcademicDiscountResponse {
+  success: boolean;
+}
+
+export async function request_academic_verification(academic_email: string) {
+  return api_client.post<AcademicDiscountResponse>(
+    "/payments/v1/discounts/academic/request",
+    { academic_email },
+  );
+}
+
+export async function resend_academic_verification() {
+  return api_client.post<AcademicDiscountResponse>(
+    "/payments/v1/discounts/academic/resend",
+    {},
+  );
+}
+
+export async function get_academic_discount_status() {
+  return api_client.get<AcademicDiscountStatusResponse>(
+    "/payments/v1/discounts/academic/status",
+  );
+}
+
 export interface CreateSubscriptionResponse {
   client_secret: string;
   subscription_id: string;

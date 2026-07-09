@@ -65,6 +65,7 @@ import { PLAN_TIERS, convert_cents } from "@/components/settings/billing/billing
 import { use_i18n } from "@/lib/i18n/context";
 
 interface BillingDialogsProps {
+  academic_promo_code: string | null;
   subscription: SubscriptionResponse | null;
   set_subscription: React.Dispatch<
     React.SetStateAction<SubscriptionResponse | null>
@@ -111,6 +112,7 @@ interface BillingDialogsProps {
 }
 
 export function BillingDialogs({
+  academic_promo_code,
   subscription,
   set_subscription,
   is_action_loading,
@@ -328,6 +330,7 @@ export function BillingDialogs({
 
       {selected_plan && (
         <CheckoutModal
+          initial_promo_code={academic_promo_code ?? undefined}
           billing_interval={
             billing_period === "yearly"
               ? "year"

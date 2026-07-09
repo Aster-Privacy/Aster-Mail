@@ -36,6 +36,7 @@ import {
   start_hosted_checkout,
   change_plan,
   format_price,
+  get_academic_discount_status,
   type SubscriptionResponse,
   type AvailablePlan,
   type BillingHistoryItem,
@@ -43,6 +44,7 @@ import {
   type StorageAddonItem,
   type UserActiveAddon,
   type CreditBalanceResponse,
+  type AcademicDiscountStatusResponse,
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { use_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -58,6 +60,7 @@ import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card
 import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
 import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
+import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
 import { BillingHistorySection } from "@/components/settings/billing/billing_history_section";
 import { BillingDialogs } from "@/components/settings/billing/billing_dialogs";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
@@ -117,6 +120,8 @@ export function BillingSection() {
   const [show_manage_plan, set_show_manage_plan] = useState(false);
   const [credit_balance, set_credit_balance] =
     useState<CreditBalanceResponse | null>(null);
+  const [academic_status, set_academic_status] =
+    useState<AcademicDiscountStatusResponse | null>(null);
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [show_crypto_modal, set_show_crypto_modal] = useState(false);
   const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
@@ -144,6 +149,16 @@ export function BillingSection() {
     },
     [],
   );
+
+  const refresh_academic_status = useCallback(async () => {
+    const res = await get_academic_discount_status();
+
+    if (res.data) set_academic_status(res.data);
+  }, []);
+
+  useEffect(() => {
+    refresh_academic_status();
+  }, [refresh_academic_status]);
 
   const plan_features: Record<string, { label: string; on: boolean }[]> = useMemo(
     () => ({
@@ -716,6 +731,11 @@ export function BillingSection() {
         preferred_currency={preferred_currency}
       />
 
+      <AcademicDiscountSection
+        academic_status={academic_status}
+        refresh_academic_status={refresh_academic_status}
+      />
+
       {crypto_plan &&
         (() => {
           const tier = PLAN_TIERS.find((p) => p.id === crypto_plan.code);
@@ -853,6 +873,7 @@ export function BillingSection() {
       )}
 
       <BillingDialogs
+        academic_promo_code={academic_status?.promo_code ?? null}
         addon_to_cancel={addon_to_cancel}
         billing_period={billing_period}
         cancel_password={cancel_password}
