@@ -5801,6 +5801,8 @@ export const it = {
     rotation_explainer: "Qualcuno ha perso l'accesso a questa casella. Rinnova le chiavi così i membri rimossi non potranno più aprire la nuova posta.",
     rotate: "Rinnova chiavi",
     rotated: "Chiavi della casella rinnovate",
+    rotate_conflict: "L'elenco dei membri è cambiato durante il rinnovo. È stato aggiornato: riprova.",
+    load_failed_retry: "Impossibile caricare le caselle condivise. Tocca per riprovare.",
     open: "Apri",
     grant_added: "Accesso concesso",
     grant_revoked: "Accesso rimosso",

@@ -74,6 +74,8 @@ export interface SharedMailboxesTranslations {
   rotation_explainer: string;
   rotate: string;
   rotated: string;
+  rotate_conflict: string;
+  load_failed_retry: string;
   open: string;
   grant_added: string;
   grant_revoked: string;

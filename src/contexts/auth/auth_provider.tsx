@@ -272,6 +272,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
           if (!has_keys) {
             sync_client.disconnect();
             api_client.set_authenticated(false);
+
+            const current_kind = await get_account_kind(current.id);
+            if (current_kind === "shared") {
+              await clear_shared_mailbox_session(current.id).catch(() => {});
+              const remaining = await get_all_accounts();
+              const fallback = remaining.find((a) => a.kind !== "shared");
+
+              if (fallback) {
+                await storage_switch_account(fallback.id);
+                set_state({
+                  user: null,
+                  is_loading: false,
+                  is_authenticated: false,
+                  has_keys: false,
+                  accounts: remaining,
+                  current_account_id: fallback.id,
+                });
+                navigate(
+                  `/sign-in?u=${encodeURIComponent(fallback.user.email.split("@")[0] ?? "")}`,
+                );
+              } else {
+                set_state({
+                  user: null,
+                  is_loading: false,
+                  is_authenticated: false,
+                  has_keys: false,
+                  accounts: remaining,
+                  current_account_id: null,
+                });
+                navigate("/sign-in");
+              }
+
+              return;
+            }
+
             set_state({
               user: null,
               is_loading: false,
@@ -350,7 +385,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
 
           const remaining = await get_all_accounts();
-          const local = current.user.email.split("@")[0] ?? "";
+          const fallback =
+            remaining.find((a) => a.kind !== "shared") ?? remaining[0];
+          const prefill_local = fallback?.user.email.split("@")[0] ?? "";
+
+          if (fallback) await storage_switch_account(fallback.id);
 
           set_state({
             user: null,
@@ -358,7 +397,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             is_authenticated: false,
             has_keys: false,
             accounts: remaining,
-            current_account_id: remaining[0]?.id ?? null,
+            current_account_id: fallback?.id ?? null,
           });
 
           const uses_hash = "__TAURI_INTERNALS__" in window;
@@ -366,7 +405,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             ? window.location.hash.slice(1).split("?")[0] || "/"
             : window.location.pathname;
           if (path !== "/sign-in" && path !== "/register") {
-            navigate(`/sign-in?u=${encodeURIComponent(local)}`);
+            navigate(`/sign-in?u=${encodeURIComponent(prefill_local)}`);
           }
         }
       } catch (e) {
@@ -737,13 +776,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
             return;
           } catch (e) {
             safe_log_error(e);
-            await clear_shared_mailbox_session(target.id);
-            await storage_remove_account(target.id);
+
+            const message = e instanceof Error ? e.message : "";
+            const access_gone = /unavailable|no longer|not found/i.test(message);
+
+            if (access_gone) {
+              await clear_shared_mailbox_session(target.id);
+              await storage_remove_account(target.id);
+            }
 
             const remaining = await get_all_accounts();
             const fallback = remaining.find((a) => a.kind !== "shared");
 
-            show_toast(t("shared_mailboxes.access_unavailable"), "error");
+            show_toast(
+              access_gone
+                ? t("shared_mailboxes.access_unavailable")
+                : t("settings.switch_failed"),
+              "error",
+            );
             set_state((prev) => ({
               ...prev,
               user: null,
@@ -1070,21 +1120,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 
   const can_add = useCallback(async () => {
+    const personal_count = (await get_all_accounts()).filter(
+      (a) => a.kind !== "shared",
+    ).length;
+
     try {
       const limit_response = await get_account_limit();
 
       if (limit_response.data) {
-        const count = (await get_all_accounts()).length;
-
-        return count < limit_response.data.max_accounts;
+        return personal_count < limit_response.data.max_accounts;
       }
     } catch (e) {
       safe_log_error(e);
     }
 
-    const count = (await get_all_accounts()).length;
-
-    return count < 3;
+    return personal_count < 3;
   }, []);
 
   const update_user = useCallback(

@@ -5800,6 +5800,8 @@ export const es = {
     rotation_explainer: "Alguien perdió el acceso a este buzón. Renueva sus claves para que los miembros eliminados ya no puedan abrir correo nuevo.",
     rotate: "Renovar claves",
     rotated: "Claves del buzón renovadas",
+    rotate_conflict: "La lista de miembros cambió durante la renovación. Se ha actualizado; inténtalo de nuevo.",
+    load_failed_retry: "No se pudieron cargar los buzones compartidos. Toca para reintentar.",
     open: "Abrir",
     grant_added: "Acceso concedido",
     grant_revoked: "Acceso eliminado",

@@ -5800,6 +5800,8 @@ export const ko = {
     rotation_explainer: "이 메일함에 대한 접근 권한을 잃은 구성원이 있습니다. 키를 갱신하여 제거된 구성원이 새 메일을 열 수 없도록 하세요.",
     rotate: "키 갱신",
     rotated: "메일함 키를 갱신했습니다",
+    rotate_conflict: "갱신하는 동안 구성원 목록이 변경되었습니다. 목록을 새로 고쳤으니 다시 시도하세요.",
+    load_failed_retry: "공유 메일함을 불러오지 못했습니다. 다시 시도하려면 누르세요.",
     open: "열기",
     grant_added: "접근 권한을 부여했습니다",
     grant_revoked: "접근 권한을 제거했습니다",

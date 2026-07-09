@@ -199,8 +199,14 @@ export async function get_account_count(): Promise<number> {
   return data.accounts.length;
 }
 
+export async function get_personal_account_count(): Promise<number> {
+  const data = await get_accounts_data_async();
+
+  return data.accounts.filter((a) => a.kind !== "shared").length;
+}
+
 export async function can_add_account(max_accounts?: number): Promise<boolean> {
-  const count = await get_account_count();
+  const count = await get_personal_account_count();
 
   return count < (max_accounts ?? DEFAULT_MAX_ACCOUNTS);
 }
@@ -240,7 +246,9 @@ export async function add_account(
     return { success: true };
   }
 
-  if (data.accounts.length >= DEFAULT_MAX_ACCOUNTS) {
+  const personal_count = data.accounts.filter((a) => a.kind !== "shared").length;
+
+  if (personal_count >= DEFAULT_MAX_ACCOUNTS) {
     return {
       success: false,
       error: en.errors.max_accounts.replace("{{ max }}", String(DEFAULT_MAX_ACCOUNTS)),
@@ -439,6 +447,11 @@ export async function get_other_accounts(): Promise<StoredAccount[]> {
 export function clear_cache(): void {
   cached_data = null;
   storage_initialized = false;
+}
+
+export async function reload_accounts_from_storage(): Promise<void> {
+  cached_data = null;
+  await get_accounts_data_async();
 }
 
 export function clear_all_switch_tokens(): void {

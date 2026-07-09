@@ -5800,6 +5800,8 @@ export const pt = {
     rotation_explainer: "Alguém perdeu o acesso a esta caixa. Renove as chaves para que membros removidos não possam mais abrir novos e-mails.",
     rotate: "Renovar chaves",
     rotated: "Chaves da caixa renovadas",
+    rotate_conflict: "A lista de membros mudou durante a renovação. Foi atualizada - tente novamente.",
+    load_failed_retry: "Não foi possível carregar as caixas compartilhadas. Toque para tentar novamente.",
     open: "Abrir",
     grant_added: "Acesso concedido",
     grant_revoked: "Acesso removido",

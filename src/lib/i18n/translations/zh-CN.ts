@@ -5800,6 +5800,8 @@ export const zh_CN = {
     rotation_explainer: "有成员失去了此邮箱的访问权限。请更新密钥，使被移除的成员无法再打开新邮件。",
     rotate: "更新密钥",
     rotated: "邮箱密钥已更新",
+    rotate_conflict: "更新期间成员列表发生了变化。已刷新，请重新更新密钥。",
+    load_failed_retry: "无法加载共享邮箱。点按重试。",
     open: "打开",
     grant_added: "已授予访问权限",
     grant_revoked: "已移除访问权限",

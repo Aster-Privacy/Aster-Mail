@@ -40,11 +40,15 @@ import {
   list_shared_mailboxes,
   type SharedMailboxInfo,
 } from "@/services/api/shared_mailboxes";
-import { unseal_grant } from "@/services/crypto/shared_mailbox";
+import {
+  unseal_grant,
+  fetch_member_public_key,
+} from "@/services/crypto/shared_mailbox";
 import {
   upsert_shared_account,
   remove_stale_shared_accounts,
   get_current_account,
+  reload_accounts_from_storage,
   type User,
 } from "@/services/account_manager";
 
@@ -66,6 +70,7 @@ export async function sync_shared_mailbox_grants(): Promise<
 
   if (!vault || !passphrase) return [];
 
+  await reload_accounts_from_storage();
   const current = await get_current_account();
 
   if (current?.kind === "shared") return [];
@@ -98,11 +103,21 @@ export async function sync_shared_mailbox_grants(): Promise<
 
     if (!cached_secret || !epoch_current) {
       try {
+        const granter_email = `${mailbox.my_grant.granted_by_username}@${mailbox.my_grant.granted_by_email_domain}`;
+        const granter_public_key = await fetch_member_public_key(
+          mailbox.my_grant.granted_by_username,
+          granter_email,
+        );
         const payload = await unseal_grant(
           mailbox.my_grant.wrapped_grant,
           vault.identity_key,
           passphrase,
+          granter_public_key,
         );
+
+        if (payload.mailbox_user_id !== mailbox.mailbox_user_id) {
+          continue;
+        }
 
         await store_session_passphrase(
           mailbox.mailbox_user_id,

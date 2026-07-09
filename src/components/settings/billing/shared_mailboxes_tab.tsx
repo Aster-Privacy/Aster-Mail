@@ -62,6 +62,7 @@ import {
   fetch_member_public_key,
   seal_grant,
   generate_rotated_credential,
+  get_current_signing_key,
   SHARED_MAILBOX_GRANT_VERSION,
 } from "@/services/crypto/shared_mailbox";
 import { decrypt_vault } from "@/services/crypto/key_manager_pgp";
@@ -86,7 +87,8 @@ export function SharedMailboxesTab({
   const { switch_to_account } = use_auth();
 
   const [mailboxes, set_mailboxes] = useState<SharedMailboxInfo[]>([]);
-  const [max_mailboxes, set_max_mailboxes] = useState(0);
+  const [max_mailboxes, set_max_mailboxes] = useState<number | null>(null);
+  const [load_failed, set_load_failed] = useState(false);
   const [loading, set_loading] = useState(true);
   const [creating, set_creating] = useState(false);
   const [expanded, set_expanded] = useState<string | null>(null);
@@ -103,14 +105,21 @@ export function SharedMailboxesTab({
   const active_members = group.members.filter((m) => m.status === "active");
   const me = active_members.find((m) => m.user_id === my_user_id);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (): Promise<SharedMailboxInfo[]> => {
     const response = await list_shared_mailboxes();
 
     if (response.data) {
       set_mailboxes(response.data.mailboxes);
       set_max_mailboxes(response.data.max_shared_mailboxes);
+      set_load_failed(false);
+      set_loading(false);
+
+      return response.data.mailboxes;
     }
+    set_load_failed(true);
     set_loading(false);
+
+    return [];
   }, []);
 
   useEffect(() => {
@@ -147,7 +156,9 @@ export function SharedMailboxesTab({
       group.members.reduce((s, m) => s + m.allocated_storage_bytes, 0),
   );
   const at_mailbox_limit =
-    max_mailboxes !== -1 && mailboxes.length >= max_mailboxes;
+    max_mailboxes !== null &&
+    max_mailboxes !== -1 &&
+    mailboxes.length >= max_mailboxes;
 
   const grant_to_member = useCallback(
     async (
@@ -174,6 +185,7 @@ export function SharedMailboxesTab({
           login_secret,
         },
         public_key,
+        get_current_signing_key(),
       );
 
       const response = await add_shared_mailbox_grant(
@@ -209,21 +221,22 @@ export function SharedMailboxesTab({
         me.username,
         my_email,
       );
+      const signing_key = get_current_signing_key();
 
-      const placeholder_payload = {
-        v: SHARED_MAILBOX_GRANT_VERSION,
-        mailbox_user_id: "",
-        email: material.email,
-        login_secret: material.login_secret,
-      };
-      const wrapped_grant = await seal_grant(
-        placeholder_payload,
+      const placeholder_grant = await seal_grant(
+        {
+          v: SHARED_MAILBOX_GRANT_VERSION,
+          mailbox_user_id: "pending",
+          email: material.email,
+          login_secret: material.login_secret,
+        },
         my_public_key,
+        signing_key,
       );
 
       const response = await create_shared_mailbox({
         ...material.params,
-        wrapped_grant,
+        wrapped_grant: placeholder_grant,
       });
 
       if (response.error || !response.data) {
@@ -234,6 +247,23 @@ export function SharedMailboxesTab({
 
         return;
       }
+
+      const owner_grant = await seal_grant(
+        {
+          v: SHARED_MAILBOX_GRANT_VERSION,
+          mailbox_user_id: response.data.mailbox_user_id,
+          email: material.email,
+          login_secret: material.login_secret,
+        },
+        my_public_key,
+        signing_key,
+      );
+      await add_shared_mailbox_grant(
+        response.data.id,
+        my_user_id,
+        owner_grant,
+        response.data.credential_epoch,
+      );
 
       await sync_shared_mailbox_grants().catch(() => {});
       set_new_prefix("");
@@ -249,58 +279,21 @@ export function SharedMailboxesTab({
     } finally {
       set_creating(false);
     }
-  }, [new_prefix, new_domain, creating, me, remaining_pool, t, load]);
-
-  const handle_toggle_member = useCallback(
-    async (
-      mailbox: SharedMailboxInfo,
-      member_user_id: string,
-      username: string,
-      email_domain: string,
-      has_grant: boolean,
-    ) => {
-      if (busy_mailbox) return;
-      set_busy_mailbox(mailbox.id);
-      try {
-        if (has_grant) {
-          const response = await revoke_shared_mailbox_grant(
-            mailbox.id,
-            member_user_id,
-          );
-
-          if (response.error) {
-            show_toast(response.error, "error");
-
-            return;
-          }
-          show_toast(t("shared_mailboxes.grant_revoked"), "success");
-        } else {
-          await grant_to_member(
-            mailbox,
-            member_user_id,
-            username,
-            email_domain,
-          );
-          show_toast(t("shared_mailboxes.grant_added"), "success");
-        }
-        await load();
-      } catch (e) {
-        show_toast(
-          e instanceof Error ? e.message : t("settings.fam_org_action_failed"),
-          "error",
-        );
-      } finally {
-        set_busy_mailbox(null);
-      }
-    },
-    [busy_mailbox, grant_to_member, t, load],
-  );
+  }, [new_prefix, new_domain, creating, me, my_user_id, remaining_pool, t, load]);
 
   const handle_rotate = useCallback(
-    async (mailbox: SharedMailboxInfo) => {
-      if (busy_mailbox || !mailbox.my_grant) return;
-      set_busy_mailbox(mailbox.id);
+    async (mailbox_id: string) => {
+      if (busy_mailbox) return;
+      set_busy_mailbox(mailbox_id);
       try {
+        const signing_key = get_current_signing_key();
+        const fresh = await load();
+        const mailbox = fresh.find((m) => m.id === mailbox_id);
+
+        if (!mailbox || !mailbox.my_grant) {
+          throw new Error(t("shared_mailboxes.access_unavailable"));
+        }
+
         const old_secret = await get_session_passphrase(
           mailbox.mailbox_user_id,
         );
@@ -333,6 +326,7 @@ export function SharedMailboxesTab({
               login_secret: rotated.login_secret,
             },
             public_key,
+            signing_key,
           );
 
           grants.push({
@@ -348,11 +342,17 @@ export function SharedMailboxesTab({
           encrypted_vault: rotated.encrypted_vault,
           vault_nonce: rotated.vault_nonce,
           vault_format: 2,
+          expected_vault_updated_at: mailbox.my_grant.vault_updated_at,
           grants,
         });
 
         if (response.error) {
-          show_toast(response.error, "error");
+          show_toast(
+            response.code === "CONFLICT"
+              ? t("shared_mailboxes.rotate_conflict")
+              : response.error,
+            "error",
+          );
 
           return;
         }
@@ -371,6 +371,55 @@ export function SharedMailboxesTab({
       }
     },
     [busy_mailbox, t, load],
+  );
+
+  const handle_toggle_member = useCallback(
+    async (
+      mailbox: SharedMailboxInfo,
+      member_user_id: string,
+      username: string,
+      email_domain: string,
+      has_grant: boolean,
+    ) => {
+      if (busy_mailbox) return;
+      set_busy_mailbox(mailbox.id);
+      try {
+        if (has_grant) {
+          const response = await revoke_shared_mailbox_grant(
+            mailbox.id,
+            member_user_id,
+          );
+
+          if (response.error) {
+            show_toast(response.error, "error");
+
+            return;
+          }
+          show_toast(t("shared_mailboxes.grant_revoked"), "success");
+          set_busy_mailbox(null);
+          await handle_rotate(mailbox.id);
+
+          return;
+        } else {
+          await grant_to_member(
+            mailbox,
+            member_user_id,
+            username,
+            email_domain,
+          );
+          show_toast(t("shared_mailboxes.grant_added"), "success");
+        }
+        await load();
+      } catch (e) {
+        show_toast(
+          e instanceof Error ? e.message : t("settings.fam_org_action_failed"),
+          "error",
+        );
+      } finally {
+        set_busy_mailbox(null);
+      }
+    },
+    [busy_mailbox, grant_to_member, handle_rotate, t, load],
   );
 
   const handle_delete = useCallback(async () => {
@@ -456,16 +505,28 @@ export function SharedMailboxesTab({
           {t("shared_mailboxes.create")}
         </Button>
       </div>
-      <p className="text-[11px] text-txt-muted">
-        {at_mailbox_limit
-          ? t("shared_mailboxes.limit_reached", {
-              max: String(max_mailboxes),
-            })
-          : t("shared_mailboxes.create_hint", {
-              count: String(mailboxes.length),
-              max: max_mailboxes === -1 ? "∞" : String(max_mailboxes),
-            })}
-      </p>
+      {load_failed ? (
+        <button
+          className="text-[11px] text-accent-blue hover:underline"
+          onClick={() => {
+            set_loading(true);
+            void load();
+          }}
+        >
+          {t("shared_mailboxes.load_failed_retry")}
+        </button>
+      ) : (
+        <p className="text-[11px] text-txt-muted">
+          {at_mailbox_limit
+            ? t("shared_mailboxes.limit_reached", {
+                max: String(max_mailboxes),
+              })
+            : t("shared_mailboxes.create_hint", {
+                count: String(mailboxes.length),
+                max: max_mailboxes === -1 ? "∞" : String(max_mailboxes ?? "…"),
+              })}
+        </p>
+      )}
 
       {loading ? (
         <div className="flex items-center gap-2 py-6 justify-center">
@@ -554,7 +615,7 @@ export function SharedMailboxesTab({
                           disabled={is_busy}
                           size="sm"
                           variant="outline"
-                          onClick={() => handle_rotate(mailbox)}
+                          onClick={() => handle_rotate(mailbox.id)}
                         >
                           {is_busy ? (
                             <Spinner size="sm" />

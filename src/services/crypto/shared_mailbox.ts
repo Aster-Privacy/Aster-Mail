@@ -27,10 +27,15 @@ import {
 } from "@/services/crypto/key_manager";
 import {
   encrypt_message,
-  decrypt_message,
+  decrypt_message_verified,
   reprotect_pgp_key,
+  type sender_signing_key,
 } from "@/services/crypto/key_manager_pgp";
 import { array_to_base64 } from "@/services/crypto/key_manager_core";
+import {
+  get_vault_from_memory,
+  get_passphrase_from_memory,
+} from "@/services/crypto/memory_key_store";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 import { get_recipient_public_key } from "@/services/api/keys";
@@ -127,6 +132,20 @@ export async function generate_shared_mailbox_material(
   };
 }
 
+export function get_current_signing_key(): sender_signing_key {
+  const vault = get_vault_from_memory();
+  const passphrase = get_passphrase_from_memory();
+
+  if (!vault || !passphrase) {
+    throw new Error("your account must be unlocked to manage shared mailboxes");
+  }
+
+  return {
+    armored_secret_key: vault.identity_key,
+    passphrase,
+  };
+}
+
 export async function fetch_member_public_key(
   username: string,
   email: string,
@@ -143,10 +162,12 @@ export async function fetch_member_public_key(
 export async function seal_grant(
   payload: SharedMailboxGrantPayload,
   recipient_public_key: string,
+  signing_key: sender_signing_key,
 ): Promise<string> {
   const armored = await encrypt_message(
     JSON.stringify(payload),
     recipient_public_key,
+    signing_key,
   );
 
   return btoa(armored);
@@ -156,15 +177,21 @@ export async function unseal_grant(
   wrapped_grant: string,
   identity_private_key: string,
   passphrase: string,
+  granter_public_key: string,
 ): Promise<SharedMailboxGrantPayload> {
   const armored = atob(wrapped_grant);
-  const plaintext = await decrypt_message(
+  const result = await decrypt_message_verified(
     armored,
     identity_private_key,
     passphrase,
+    [granter_public_key],
   );
 
-  const payload = JSON.parse(plaintext) as SharedMailboxGrantPayload;
+  if (result.verification !== "verified") {
+    throw new Error("shared mailbox grant signature could not be verified");
+  }
+
+  const payload = JSON.parse(result.plaintext) as SharedMailboxGrantPayload;
 
   if (
     payload.v !== SHARED_MAILBOX_GRANT_VERSION ||
