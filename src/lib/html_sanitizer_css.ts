@@ -76,6 +76,10 @@ export function cap_css_dimension(value: string): string {
   });
 }
 
+export function escape_style_terminator(css: string): string {
+  return css.replace(/<\/(style|script)/gi, "<\\/$1");
+}
+
 export function strip_css_urls(css: string): string {
   const decoded = decode_css_escapes(css);
   return decoded.replace(

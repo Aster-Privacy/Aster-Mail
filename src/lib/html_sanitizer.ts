@@ -29,6 +29,7 @@ import {
   sanitize_css_block,
   block_remote_fonts,
   strip_css_urls,
+  escape_style_terminator,
 } from "./html_sanitizer_css";
 import {
   is_tracking_pixel,
@@ -488,7 +489,7 @@ function sanitize_html_impl(
       }
       const new_style = document.createElement("style");
 
-      new_style.textContent = sanitized_css;
+      new_style.textContent = escape_style_terminator(sanitized_css);
 
       return new_style;
     }
@@ -788,7 +789,7 @@ function sanitize_html_impl(
     for (const css of head_styles) {
       const style_el = document.createElement("style");
 
-      style_el.textContent = css;
+      style_el.textContent = escape_style_terminator(css);
       container.appendChild(style_el);
     }
   }
