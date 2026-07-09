@@ -250,6 +250,18 @@ describe("sanitize_html preserves legitimate content (no over-stripping)", () =>
     expect(html).toContain("cell");
     expect(html).toContain("H");
   });
+
+  it("does not allow </style> breakout via escaped css url", () => {
+    const input =
+      "<style>a{x:url(https://example.com/)} \\3c\\2f style\\3e\\3cimg src=https://attacker.example/o.gif\\3e</style>";
+    const { html } = sanitize_html(input);
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const leaked = [...doc.querySelectorAll("img")].filter((i) =>
+      (i.getAttribute("src") || "").includes("attacker"),
+    );
+
+    expect(leaked.length).toBe(0);
+  });
 });
 
 describe("sanitize_html neutralizes CSS overlay clickjacking", () => {
