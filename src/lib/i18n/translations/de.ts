@@ -5800,6 +5800,8 @@ export const de = {
     rotation_explainer: "Jemand hat den Zugriff auf dieses Postfach verloren. Erneuere die Schlüssel, damit entfernte Mitglieder neue Mails nicht mehr öffnen können.",
     rotate: "Schlüssel erneuern",
     rotated: "Postfach-Schlüssel erneuert",
+    rotate_conflict: "Die Mitgliederliste hat sich während der Erneuerung geändert. Sie wurde aktualisiert - versuche es erneut.",
+    load_failed_retry: "Geteilte Postfächer konnten nicht geladen werden. Zum Wiederholen tippen.",
     open: "Öffnen",
     grant_added: "Zugriff gewährt",
     grant_revoked: "Zugriff entfernt",

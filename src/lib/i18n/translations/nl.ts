@@ -5800,6 +5800,8 @@ export const nl = {
     rotation_explainer: "Iemand heeft de toegang tot deze mailbox verloren. Vernieuw de sleutels zodat verwijderde leden nieuwe mail niet meer kunnen openen.",
     rotate: "Sleutels vernieuwen",
     rotated: "Mailboxsleutels vernieuwd",
+    rotate_conflict: "De ledenlijst is gewijzigd tijdens het vernieuwen. De lijst is bijgewerkt - probeer het opnieuw.",
+    load_failed_retry: "Kan gedeelde mailboxen niet laden. Tik om opnieuw te proberen.",
     open: "Openen",
     grant_added: "Toegang verleend",
     grant_revoked: "Toegang ingetrokken",

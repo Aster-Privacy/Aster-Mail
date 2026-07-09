@@ -5800,6 +5800,8 @@ export const pl = {
     rotation_explainer: "Ktoś stracił dostęp do tej skrzynki. Odnów jej klucze, aby usunięci członkowie nie mogli otwierać nowej poczty.",
     rotate: "Odnów klucze",
     rotated: "Klucze skrzynki odnowione",
+    rotate_conflict: "Lista członków zmieniła się podczas odnawiania. Została odświeżona - spróbuj ponownie.",
+    load_failed_retry: "Nie można załadować wspólnych skrzynek. Dotknij, aby spróbować ponownie.",
     open: "Otwórz",
     grant_added: "Dostęp przyznany",
     grant_revoked: "Dostęp odebrany",

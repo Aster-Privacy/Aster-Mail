@@ -6433,6 +6433,8 @@ export const en: Translations = {
     rotation_explainer: "Someone lost access to this mailbox. Renew its keys so removed members can no longer open new mail.",
     rotate: "Renew keys",
     rotated: "Mailbox keys renewed",
+    rotate_conflict: "The list of members changed while you were rotating. It has been refreshed - try renewing keys again.",
+    load_failed_retry: "Couldn't load shared mailboxes. Tap to retry.",
     open: "Open",
     grant_added: "Access granted",
     grant_revoked: "Access removed",

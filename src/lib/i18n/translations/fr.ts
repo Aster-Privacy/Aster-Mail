@@ -5800,6 +5800,8 @@ export const fr = {
     rotation_explainer: "Quelqu'un a perdu l'accès à cette boîte. Renouvelez ses clés pour que les membres retirés ne puissent plus ouvrir les nouveaux messages.",
     rotate: "Renouveler les clés",
     rotated: "Clés de la boîte renouvelées",
+    rotate_conflict: "La liste des membres a changé pendant le renouvellement. Elle a été actualisée - réessayez.",
+    load_failed_retry: "Impossible de charger les boîtes partagées. Touchez pour réessayer.",
     open: "Ouvrir",
     grant_added: "Accès accordé",
     grant_revoked: "Accès retiré",

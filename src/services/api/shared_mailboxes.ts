@@ -33,6 +33,10 @@ export interface MyGrant {
   credential_epoch: number;
   encrypted_vault: string;
   vault_nonce: string;
+  vault_updated_at: string;
+  granted_by: string;
+  granted_by_username: string;
+  granted_by_email_domain: string;
 }
 
 export interface SharedMailboxInfo {
@@ -84,6 +88,7 @@ export interface RotateSharedMailboxParams {
   encrypted_vault: string;
   vault_nonce: string;
   vault_format: number;
+  expected_vault_updated_at: string;
   grants: { member_user_id: string; wrapped_grant: string }[];
 }
 

@@ -5800,6 +5800,8 @@ export const tr = {
     rotation_explainer: "Birisi bu kutuya erişimini kaybetti. Kaldırılan üyelerin yeni postaları açamaması için anahtarları yenileyin.",
     rotate: "Anahtarları yenile",
     rotated: "Kutu anahtarları yenilendi",
+    rotate_conflict: "Yenileme sırasında üye listesi değişti. Liste güncellendi - tekrar deneyin.",
+    load_failed_retry: "Ortak posta kutuları yüklenemedi. Yeniden denemek için dokunun.",
     open: "Aç",
     grant_added: "Erişim verildi",
     grant_revoked: "Erişim kaldırıldı",
