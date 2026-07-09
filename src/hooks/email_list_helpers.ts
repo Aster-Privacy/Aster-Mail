@@ -681,6 +681,9 @@ export async function fetch_mail_from_api(
   const should_group =
     conversation_grouping && view !== "scheduled" && view !== "snoozed";
   const order = sort_order === "oldest_first" ? "asc" : "desc";
+  const category_index_module =
+    view === "inbox" ? await import("@/services/category_index") : null;
+  const index_generation = category_index_module?.get_index_generation();
 
   const params: ListMailItemsParams = {
     limit,
@@ -780,9 +783,16 @@ export async function fetch_mail_from_api(
     )
     .filter((email): email is InboxEmail => email !== null);
 
-  if (view === "inbox") {
+  if (view === "inbox" && category_index_module) {
     const index_entries = successful
       .filter(({ envelope }) => !!envelope)
+      .filter(
+        ({ item, metadata }) =>
+          !category_index_module.is_item_outside_inbox(item) &&
+          !metadata?.is_trashed &&
+          !metadata?.is_archived &&
+          !metadata?.is_spam,
+      )
       .flatMap(({ item, envelope, metadata }) => {
         try {
           return [
@@ -790,8 +800,10 @@ export async function fetch_mail_from_api(
               id: item.id,
               thread_token: item.thread_token,
               message_ts: item.message_ts || item.created_at,
-              is_read: metadata?.is_read ?? item.is_read ?? false,
+              is_read: item.is_read === true || (metadata?.is_read ?? false),
               category: classify(envelope!, metadata),
+              category_pinned:
+                metadata?.category_pinned === true && !!metadata?.category,
             },
           ];
         } catch {
@@ -800,9 +812,7 @@ export async function fetch_mail_from_api(
       });
 
     if (index_entries.length > 0) {
-      void import("@/services/category_index").then((m) =>
-        m.upsert_entries(index_entries),
-      );
+      category_index_module.upsert_entries(index_entries, index_generation);
     }
   }
 

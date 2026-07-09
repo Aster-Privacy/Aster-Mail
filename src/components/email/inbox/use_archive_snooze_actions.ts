@@ -35,6 +35,13 @@ import {
 } from "@/hooks/use_stat_helpers";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { invalidate_mail_cache } from "@/hooks/email_list_cache";
+import { get_thread_messages } from "@/services/api/mail";
+import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
+import {
+  remove_ids as remove_index_ids,
+  remove_thread_entries,
+  reindex_ids,
+} from "@/services/category_index";
 
 interface UseArchiveSnoozeActionsOptions {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -154,10 +161,41 @@ export function use_archive_snooze_actions({
         : [email.id];
 
     remove_email(email.id);
+    remove_index_ids(all_ids);
+
+    const removed_thread_ids = email.thread_token
+      ? remove_thread_entries(email.thread_token)
+      : [];
+
+    // Resolve every message of a grouped conversation up front so the archive
+    // and its Undo both operate on the same complete id set. Otherwise Undo
+    // restores only the visible message and leaves the siblings archived.
+    let archive_ids = [...all_ids];
+
+    if (email.thread_token && (email.thread_message_count ?? 1) > 1) {
+      try {
+        const thread = await get_thread_messages(email.thread_token);
+        const sibling_ids = (thread.data?.messages ?? [])
+          .filter(
+            (message) =>
+              message.item_type === "received" &&
+              !all_ids.includes(message.id),
+          )
+          .map((message) => message.id);
+
+        archive_ids = Array.from(new Set([...all_ids, ...sibling_ids]));
+      } catch {
+        archive_ids = [...all_ids];
+      }
+    }
+
     apply_stat_deltas(deltas);
-    const result = await batch_archive({ ids: all_ids, tier: "hot" });
+    const result = await batch_archive({ ids: archive_ids, tier: "hot" });
 
     if (result.data?.success) {
+      void bulk_update_metadata_by_ids(archive_ids, {
+        is_archived: true,
+      }).catch(() => {});
       invalidate_mail_cache();
       invalidate_mail_stats();
       show_action_toast({
@@ -166,13 +204,22 @@ export function use_archive_snooze_actions({
         email_ids: all_ids,
         on_undo: async () => {
           revert_stat_deltas(deltas);
-          await batch_unarchive({ ids: all_ids });
+          await batch_unarchive({ ids: archive_ids });
+          try {
+            await bulk_update_metadata_by_ids(archive_ids, {
+              is_archived: false,
+            });
+          } catch {
+            void 0;
+          }
+          reindex_ids(Array.from(new Set([...archive_ids, ...removed_thread_ids])));
           invalidate_mail_cache();
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
     } else {
       revert_stat_deltas(deltas);
+      reindex_ids(Array.from(new Set([...archive_ids, ...removed_thread_ids])));
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
     }
     set_show_single_archive_confirm(false);
@@ -215,6 +262,7 @@ export function use_archive_snooze_actions({
       }
       try {
         await bulk_snooze_action(ids, snooze_until);
+        remove_index_ids(ids);
         show_action_toast({
           message: t("common.conversations_snoozed_bulk", {
             count: selected.length,

@@ -39,6 +39,11 @@ import {
 import { adjust_stats_archived } from "@/hooks/use_mail_stats";
 import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
+import {
+  remove_ids as remove_index_ids,
+  remove_thread_entries,
+  reindex_ids,
+} from "@/services/category_index";
 
 interface UseEmailListBulkParams {
   state: EmailListState;
@@ -114,6 +119,16 @@ export function use_email_list_bulk({
         emails: prev.emails.filter((e) => !id_set.has(e.id)),
         total_messages: Math.max(0, prev.total_messages - ids.length),
       }));
+      const removed_index_ids = Array.from(
+        new Set([...ids, ...non_threaded_ids]),
+      );
+
+      remove_index_ids(removed_index_ids);
+      for (const email of threaded_emails) {
+        if (email.thread_token) {
+          removed_index_ids.push(...remove_thread_entries(email.thread_token));
+        }
+      }
       for (const id of ids) {
         remove_email_from_view_cache(id);
       }
@@ -165,6 +180,7 @@ export function use_email_list_bulk({
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         }, 300);
       } catch {
+        reindex_ids(removed_index_ids);
         if (unread_received_count > 0) {
           adjust_unread_count(unread_received_count);
         }
@@ -230,6 +246,7 @@ export function use_email_list_bulk({
         emails: prev.emails.filter((e) => !id_set.has(e.id)),
         total_messages: Math.max(0, prev.total_messages - ids.length),
       }));
+      remove_index_ids(expanded_ids);
       if (unread_received_count > 0) {
         adjust_unread_count(-unread_received_count);
       }
@@ -242,6 +259,10 @@ export function use_email_list_bulk({
       try {
         await api_batch_archive({ ids: expanded_ids, tier: "hot" });
 
+        void bulk_update_metadata_by_ids(expanded_ids, {
+          is_archived: true,
+        }).catch(() => {});
+
         set_state((prev) => {
           if (prev.emails.length === 0 && prev.has_more) {
             fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
@@ -250,6 +271,7 @@ export function use_email_list_bulk({
           return prev;
         });
       } catch {
+        reindex_ids(expanded_ids);
         if (unread_received_count > 0) {
           adjust_unread_count(unread_received_count);
         }
@@ -323,6 +345,15 @@ export function use_email_list_bulk({
 
       try {
         await api_batch_unarchive({ ids: expanded_ids });
+
+        try {
+          await bulk_update_metadata_by_ids(expanded_ids, {
+            is_archived: false,
+          });
+        } catch {
+          void 0;
+        }
+        reindex_ids(expanded_ids);
 
         const remaining = state.emails.filter((e) => !id_set.has(e.id));
 

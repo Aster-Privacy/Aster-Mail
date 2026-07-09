@@ -55,6 +55,7 @@ export interface MailItem {
   message_ts?: string;
   snoozed_until?: string;
   is_trashed?: boolean;
+  is_archived?: boolean;
   is_spam?: boolean;
   is_read?: boolean;
   folders?: MailItemFolder[];

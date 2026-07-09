@@ -64,6 +64,7 @@ export interface CategoryIndexEntry {
   message_ts: string;
   is_read: boolean;
   category: EmailCategory;
+  category_pinned?: boolean;
 }
 
 export interface CategoryCount {
@@ -82,6 +83,7 @@ interface PersistedIndex {
 }
 
 let active_account_id: string | null = null;
+let index_generation = 0;
 let entries_map: Map<string, CategoryIndexEntry> = new Map();
 let fully_built = false;
 let last_build_ms = 0;
@@ -100,7 +102,8 @@ let resync_timer: ReturnType<typeof setTimeout> | null = null;
 let listeners_started = false;
 
 const listeners = new Set<() => void>();
-const in_flight_reclassify = new Set<string>();
+const in_flight_reclassify = new Map<string, boolean>();
+const recent_reclassify_meta = new Map<string, string>();
 
 function now_ms(): number {
   return new Date().getTime();
@@ -150,7 +153,6 @@ function notify_soon(): void {
 }
 
 function schedule_persist(): void {
-  if (build_in_progress) return;
   if (persist_timer) {
     clearTimeout(persist_timer);
   }
@@ -275,6 +277,7 @@ async function ensure_loaded(): Promise<boolean> {
   ensure_loaded_promise = (async (): Promise<boolean> => {
     try {
       build_token += 1;
+      index_generation += 1;
       active_account_id = account_id;
       entries_map = new Map();
       fully_built = false;
@@ -324,7 +327,8 @@ function apply_upsert(incoming: CategoryIndexEntry[]): boolean {
       !existing ||
       existing.category !== entry.category ||
       existing.is_read !== entry.is_read ||
-      existing.message_ts !== entry.message_ts
+      existing.message_ts !== entry.message_ts ||
+      (existing.category_pinned ?? false) !== (entry.category_pinned ?? false)
     ) {
       entries_map.set(entry.id, entry);
       changed = true;
@@ -348,8 +352,16 @@ function enforce_cap(): void {
   entries_map = new Map(newest.map((e) => [e.id, e]));
 }
 
-export function upsert_entries(incoming: CategoryIndexEntry[]): void {
+export function get_index_generation(): number {
+  return index_generation;
+}
+
+export function upsert_entries(
+  incoming: CategoryIndexEntry[],
+  generation?: number,
+): void {
   if (incoming.length === 0) return;
+  if (generation !== undefined && generation !== index_generation) return;
 
   if (apply_upsert(incoming)) {
     enforce_cap();
@@ -374,6 +386,26 @@ export function mark_thread_read_entries(thread_token: string): void {
     schedule_persist();
     notify();
   }
+}
+
+export function remove_thread_entries(thread_token: string): string[] {
+  if (!thread_token) return [];
+
+  const removed: string[] = [];
+
+  for (const [id, entry] of entries_map) {
+    if (entry.thread_token === thread_token) {
+      entries_map.delete(id);
+      removed.push(id);
+    }
+  }
+
+  if (removed.length > 0) {
+    schedule_persist();
+    notify();
+  }
+
+  return removed;
 }
 
 export function remove_ids(ids: string[]): void {
@@ -416,7 +448,13 @@ function empty_counts(): CategoryCounts {
 function compute_derived(): DerivedData {
   const best = new Map<
     string,
-    { entry: CategoryIndexEntry; ts: number; any_unread: boolean }
+    {
+      entry: CategoryIndexEntry;
+      ts: number;
+      any_unread: boolean;
+      pinned_category?: EmailCategory;
+      pinned_ts: number;
+    }
   >();
 
   for (const entry of entries_map.values()) {
@@ -427,12 +465,22 @@ function compute_derived(): DerivedData {
     const current = best.get(key);
 
     if (!current) {
-      best.set(key, { entry, ts, any_unread: !entry.is_read });
+      best.set(key, {
+        entry,
+        ts,
+        any_unread: !entry.is_read,
+        pinned_category: entry.category_pinned ? entry.category : undefined,
+        pinned_ts: entry.category_pinned ? ts : 0,
+      });
 
       continue;
     }
 
     current.any_unread = current.any_unread || !entry.is_read;
+    if (entry.category_pinned && ts >= current.pinned_ts) {
+      current.pinned_category = entry.category;
+      current.pinned_ts = ts;
+    }
     if (ts > current.ts) {
       current.entry = entry;
       current.ts = ts;
@@ -448,7 +496,7 @@ function compute_derived(): DerivedData {
   }
 
   for (const rep of best.values()) {
-    const tab = category_for_tab(rep.entry.category);
+    const tab = category_for_tab(rep.pinned_category ?? rep.entry.category);
     const bucket = counts[tab];
     const list = grouped.get(tab);
 
@@ -489,8 +537,26 @@ export function get_counts(): CategoryCounts {
   return ensure_derived().counts;
 }
 
+export function is_index_loaded(): boolean {
+  return loaded_for_account !== null;
+}
+
 export function mark_category_seen(category: EmailCategory): void {
-  const stamp = now_ms();
+  // Stamp "seen" at the client clock, and absorb only entries whose timestamp
+  // is at or before now. message_ts is derived from the sender-controlled Date
+  // header, so a single future-dated message must NOT push the stamp forward -
+  // that would blind the "new" badge to genuinely new mail arriving later.
+  const wall = now_ms();
+  let newest_seen_ts = 0;
+
+  for (const entry of entries_map.values()) {
+    if (category_for_tab(entry.category) !== category) continue;
+    const ts = safe_ts(entry.message_ts);
+
+    if (ts <= wall && ts > newest_seen_ts) newest_seen_ts = ts;
+  }
+
+  const stamp = Math.max(wall, newest_seen_ts);
 
   if ((seen_ts[category] ?? 0) >= stamp) return;
   seen_ts[category] = stamp;
@@ -555,9 +621,34 @@ export function subscribe(listener: () => void): () => void {
   };
 }
 
+// Inbox membership is decided by the SERVER columns the API returns, never by
+// the encrypted metadata blob. The blob can lag a server-side move (archive,
+// trash, spam, snooze) and a stale blob would otherwise resurrect mail that
+// has already left the inbox. Labels/folders mirror the server inbox filter.
+export function is_item_outside_inbox(item: MailItem): boolean {
+  if (
+    item.is_archived === true ||
+    item.is_trashed === true ||
+    item.is_spam === true
+  ) {
+    return true;
+  }
+  if ((item.labels?.length ?? 0) > 0 || (item.folders?.length ?? 0) > 0) {
+    return true;
+  }
+  if (item.snoozed_until) {
+    const wake_ms = safe_ts(item.snoozed_until);
+
+    if (wake_ms > now_ms()) return true;
+  }
+
+  return false;
+}
+
 async function item_to_entry(
   item: MailItem,
 ): Promise<CategoryIndexEntry | null> {
+  if (is_item_outside_inbox(item)) return null;
   const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
 
   const [envelope, metadata] = await Promise.all([
@@ -582,6 +673,7 @@ async function item_to_entry(
     message_ts: item.message_ts || item.created_at,
     is_read: item.is_read === true || (metadata?.is_read ?? false),
     category: classify(envelope, metadata),
+    category_pinned: metadata?.category_pinned === true && !!metadata?.category,
   };
 }
 
@@ -630,6 +722,7 @@ export async function build_index(options?: {
     let processed = 0;
     let reached_end = false;
     const seen = new Set<string>();
+    const prebuild_ids = new Set(entries_map.keys());
 
     for (;;) {
       if (options?.signal?.aborted || token !== build_token) return;
@@ -639,6 +732,7 @@ export async function build_index(options?: {
         is_trashed: false,
         is_spam: false,
         is_archived: false,
+        is_snoozed: false,
         limit: BUILD_PAGE_SIZE,
         ...(cursor ? { cursor } : {}),
       });
@@ -678,7 +772,7 @@ export async function build_index(options?: {
 
     if (reached_end) {
       for (const id of Array.from(entries_map.keys())) {
-        if (!seen.has(id)) {
+        if (!seen.has(id) && prebuild_ids.has(id)) {
           entries_map.delete(id);
         }
       }
@@ -691,6 +785,7 @@ export async function build_index(options?: {
     notify();
   } finally {
     build_in_progress = false;
+    schedule_persist();
   }
 }
 
@@ -713,6 +808,7 @@ export async function sync_recent(): Promise<void> {
       is_trashed: false,
       is_spam: false,
       is_archived: false,
+      is_snoozed: false,
       limit: BUILD_PAGE_SIZE,
     });
 
@@ -734,6 +830,7 @@ export async function sync_recent(): Promise<void> {
     if (items.length > 0 && fresh.length > 0) {
       const returned = new Set(items.map((i) => i.id));
       let window_start = Infinity;
+      let window_end = 0;
 
       // Only use VALID (>0) timestamps to define the window. A single item with
       // a missing/0 timestamp must not collapse window_start to 0, which would
@@ -743,6 +840,7 @@ export async function sync_recent(): Promise<void> {
 
         if (ts > 0) {
           window_start = Math.min(window_start, ts);
+          window_end = Math.max(window_end, ts);
         }
       }
 
@@ -750,7 +848,7 @@ export async function sync_recent(): Promise<void> {
         for (const [id, entry] of entries_map) {
           const ts = safe_ts(entry.message_ts);
 
-          if (ts > window_start && !returned.has(id)) {
+          if (ts > window_start && ts <= window_end && !returned.has(id)) {
             entries_map.delete(id);
             changed = true;
           }
@@ -782,11 +880,20 @@ function schedule_resync(): void {
 
 async function reclassify_id(id: string): Promise<void> {
   if (!has_vault_in_memory()) return;
-  if (in_flight_reclassify.has(id)) return;
-  in_flight_reclassify.add(id);
+  if (in_flight_reclassify.has(id)) {
+    in_flight_reclassify.set(id, true);
+
+    return;
+  }
+  in_flight_reclassify.set(id, false);
+
+  const generation = index_generation;
 
   try {
     const response = await list_mail_items({ ids: [id] });
+
+    if (generation !== index_generation) return;
+
     const item = response.data?.items?.[0];
 
     if (!item) {
@@ -795,7 +902,7 @@ async function reclassify_id(id: string): Promise<void> {
       return;
     }
 
-    if (item.item_type !== "received") {
+    if (item.item_type !== "received" || is_item_outside_inbox(item)) {
       if (entries_map.has(id)) remove_ids([id]);
 
       return;
@@ -813,6 +920,7 @@ async function reclassify_id(id: string): Promise<void> {
         : Promise.resolve(null),
     ]);
 
+    if (generation !== index_generation) return;
     if (!envelope) return;
 
     if (metadata?.is_trashed || metadata?.is_archived || metadata?.is_spam) {
@@ -821,19 +929,50 @@ async function reclassify_id(id: string): Promise<void> {
       return;
     }
 
-    upsert_entries([
-      {
-        id: item.id,
-        thread_token: item.thread_token,
-        message_ts: item.message_ts || item.created_at,
-        is_read: item.is_read === true || (metadata?.is_read ?? false),
-        category: classify(envelope, metadata),
-      },
-    ]);
+    upsert_entries(
+      [
+        {
+          id: item.id,
+          thread_token: item.thread_token,
+          message_ts: item.message_ts || item.created_at,
+          is_read: item.is_read === true || (metadata?.is_read ?? false),
+          category: classify(envelope, metadata),
+          category_pinned:
+            metadata?.category_pinned === true && !!metadata?.category,
+        },
+      ],
+      generation,
+    );
   } catch {
     return;
   } finally {
+    const rerun_requested = in_flight_reclassify.get(id) === true;
+
     in_flight_reclassify.delete(id);
+    if (rerun_requested) void reclassify_id(id);
+  }
+}
+
+const REINDEX_DIRECT_CAP = 20;
+
+// Forces a full reconcile against the server inbox. Used when a thread-level
+// action touched more messages than a single thread page could enumerate, so
+// the index cannot be kept correct by per-id reclassify alone.
+export function request_full_rebuild(): void {
+  void build_index({ force: true });
+}
+
+export function reindex_ids(ids: string[]): void {
+  if (ids.length === 0) return;
+
+  if (ids.length > REINDEX_DIRECT_CAP) {
+    schedule_resync();
+
+    return;
+  }
+
+  for (const id of ids) {
+    void reclassify_id(id);
   }
 }
 
@@ -864,6 +1003,7 @@ export function clear_category_index_memory(): void {
   }
 
   build_token += 1;
+  index_generation += 1;
   build_in_progress = false;
   entries_map = new Map();
   derived = null;
@@ -894,12 +1034,28 @@ export function start_event_listeners(): void {
   });
 
   on_mail_event(MAIL_EVENTS.MAIL_ACTION, (detail) => {
-    if (detail?.action && TERMINAL_ACTIONS.has(detail.action)) {
+    if (!detail?.action) return;
+
+    if (TERMINAL_ACTIONS.has(detail.action)) {
       remove_ids(detail.ids ?? []);
+
+      return;
+    }
+
+    if ((detail.action as string) === "label") {
+      reindex_ids(detail.ids ?? []);
     }
   });
 
+  on_mail_event(MAIL_EVENTS.SNOOZED_CHANGED, () => {
+    schedule_resync();
+  });
+
   on_mail_event(MAIL_EVENTS.MAIL_CHANGED, () => {
+    schedule_resync();
+  });
+
+  on_mail_event(MAIL_EVENTS.MAIL_SOFT_REFRESH, () => {
     schedule_resync();
   });
 
@@ -933,12 +1089,17 @@ export function start_event_listeners(): void {
       // Not indexed yet (e.g. updated during the initial build). If it's a
       // substantive change to a message that should be in the inbox, pull it in
       // so read-state / category stay accurate; ignore plain flag toggles.
+      const explicit_restore =
+        detail.is_trashed === false ||
+        detail.is_archived === false ||
+        detail.is_spam === false;
+
       if (
         fully_built &&
         !detail.is_trashed &&
         !detail.is_archived &&
         !detail.is_spam &&
-        !!detail.encrypted_metadata
+        (!!detail.encrypted_metadata || explicit_restore)
       ) {
         void reclassify_id(detail.id);
       }
@@ -953,7 +1114,25 @@ export function start_event_listeners(): void {
     }
 
     if (detail.encrypted_metadata && detail.metadata_nonce) {
-      void reclassify_id(detail.id);
+      if (
+        typeof detail.is_read === "boolean" &&
+        existing.is_read !== detail.is_read
+      ) {
+        if (apply_upsert([{ ...existing, is_read: detail.is_read }])) {
+          schedule_persist();
+          notify();
+        }
+      }
+
+      if (recent_reclassify_meta.get(detail.id) !== detail.encrypted_metadata) {
+        recent_reclassify_meta.set(detail.id, detail.encrypted_metadata);
+        if (recent_reclassify_meta.size > 200) {
+          const oldest = recent_reclassify_meta.keys().next().value;
+
+          if (oldest) recent_reclassify_meta.delete(oldest);
+        }
+        void reclassify_id(detail.id);
+      }
 
       return;
     }
@@ -975,6 +1154,13 @@ export async function init_category_index(): Promise<void> {
 
   if (!ok) return;
   start_event_listeners();
+
+  if (fully_built && entries_map.size > 0) {
+    void sync_recent();
+
+    return;
+  }
+
   void build_index({ force: fully_built && entries_map.size === 0 });
 }
 
@@ -994,13 +1180,17 @@ export async function set_message_category(
 
   if (!result.success) return false;
 
+  const existing = entries_map.get(email.id);
+
   upsert_entries([
     {
       id: email.id,
       thread_token: email.thread_token,
-      message_ts: email.raw_timestamp || email.timestamp,
+      message_ts:
+        existing?.message_ts || email.raw_timestamp || email.timestamp,
       is_read: email.is_read,
       category,
+      category_pinned: true,
     },
   ]);
 
@@ -1022,6 +1212,7 @@ export async function clear_category_index(): Promise<void> {
   }
 
   build_token += 1;
+  index_generation += 1;
   entries_map = new Map();
   fully_built = false;
   last_build_ms = 0;

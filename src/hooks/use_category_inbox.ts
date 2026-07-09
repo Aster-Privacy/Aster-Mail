@@ -57,10 +57,17 @@ import {
   subscribe as subscribe_index,
   get_version as get_index_version,
   remove_ids,
+  remove_thread_entries,
+  reindex_ids,
+  request_full_rebuild,
   is_representative_unread,
   sync_recent,
   set_sort_order,
 } from "@/services/category_index";
+import { get_thread_messages, trash_thread } from "@/services/api/mail";
+import { batch_archive as api_batch_archive } from "@/services/api/archive";
+import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
+import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
 
 const EMPTY_STATE: EmailListState = {
   emails: [],
@@ -133,13 +140,19 @@ export function use_category_inbox(
 
   const [state, set_state] = useState<EmailListState>(EMPTY_STATE);
 
+  const page_variant = useMemo(
+    () =>
+      `${preferences.conversation_grouping !== false ? "g1" : "g0"}~${format_options.date_format}~${format_options.time_format}`,
+    [preferences.conversation_grouping, format_options],
+  );
+
   useEffect(() => {
     const handle_item_update = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       mark_preload_stale(detail.id);
 
       for (const key of page_cache.current.keys()) {
-        const ids_part = key.split(":").slice(2).join(":");
+        const ids_part = key.split(":").slice(4).join(":");
 
         if (ids_part.split(",").includes(detail.id)) {
           page_cache.current.delete(key);
@@ -274,12 +287,15 @@ export function use_category_inbox(
       const total = get_category_total(active_category);
       const has_more = (target_page + 1) * limit < total;
 
+      abort_ref.current?.abort();
+
       if (ids.length === 0) {
         // Only show the empty state once the index is fully built and no build
         // is in progress; keep the skeleton while building so we never flash
         // "No <tab>" before content loads.
         const built = is_fully_built() && !is_build_in_progress();
 
+        abort_ref.current = null;
         set_state({
           emails: [],
           is_loading: !built,
@@ -292,16 +308,20 @@ export function use_category_inbox(
         return;
       }
 
-      abort_ref.current?.abort();
       const controller = new AbortController();
 
       abort_ref.current = controller;
 
-      const cache_key = `${active_category}:${target_page}:${ids.join(",")}`;
+      const unread_bits = ids
+        .map((id) => (is_representative_unread(id) ? "u" : "r"))
+        .join("");
+      const cache_key = `${active_category}:${target_page}:${page_variant}:${unread_bits}:${ids.join(",")}`;
       const cached = page_cache.current.get(cache_key);
 
       if (cached) {
         abort_ref.current = null;
+        page_cache.current.delete(cache_key);
+        page_cache.current.set(cache_key, cached);
         set_state((prev) => build_list_state(prev, cached, total, has_more));
 
         return;
@@ -342,16 +362,22 @@ export function use_category_inbox(
           remove_ids(missing_ids);
         }
 
-        const stale_non_received = fetched
-          .filter((email) => email.item_type !== "received")
+        const belongs_in_inbox = (email: InboxEmail) =>
+          email.item_type === "received" &&
+          !email.is_trashed &&
+          !email.is_archived &&
+          !email.is_spam;
+
+        const stale_fetched = fetched
+          .filter((email) => !belongs_in_inbox(email))
           .map((email) => email.id);
 
-        if (stale_non_received.length > 0) {
-          remove_ids(stale_non_received);
+        if (stale_fetched.length > 0) {
+          remove_ids(stale_fetched);
         }
 
         const received_only = fetched
-          .filter((email) => email.item_type === "received")
+          .filter(belongs_in_inbox)
           .map((email) =>
             email.is_read && is_representative_unread(email.id)
               ? { ...email, is_read: false }
@@ -371,7 +397,7 @@ export function use_category_inbox(
         }
 
         const pruned =
-          missing_ids.length > 0 || stale_non_received.length > 0;
+          missing_ids.length > 0 || stale_fetched.length > 0;
         const effective_total = pruned
           ? get_category_total(active_category)
           : total;
@@ -399,23 +425,43 @@ export function use_category_inbox(
       format_options,
       user?.email,
       preferences.conversation_grouping,
+      page_variant,
     ],
   );
+
+  useEffect(() => {
+    if (fetch_retry_timer_ref.current) {
+      clearTimeout(fetch_retry_timer_ref.current);
+      fetch_retry_timer_ref.current = null;
+    }
+    fetch_retry_ref.current = { sig: "", attempts: 0 };
+  }, [active_category, page]);
 
   useEffect(() => {
     if (!enabled) return;
 
     const ids = get_page_ids(active_category, page, page_size);
-    const signature = `${active_category}|${page}|${ids.join(",")}`;
+    const built = is_fully_built() && !is_build_in_progress() ? "b1" : "b0";
+    const signature = `${active_category}|${page}|${page_variant}|${built}|${ids.join(",")}`;
 
     if (signature === last_signature_ref.current) return;
 
     last_signature_ref.current = signature;
     void fetch_page(page, page_size);
-  }, [enabled, active_category, page, page_size, index_version, fetch_page]);
+  }, [
+    enabled,
+    active_category,
+    page,
+    page_size,
+    index_version,
+    fetch_page,
+    page_variant,
+  ]);
 
   useEffect(() => {
     if (!enabled) return;
+
+    let cancelled = false;
 
     const handle_refresh_requested = () => {
       if (!has_passphrase_in_memory()) return;
@@ -441,6 +487,8 @@ export function use_category_inbox(
           );
         }
 
+        if (cancelled) return;
+
         await fetch_page(page, page_size);
       })();
     };
@@ -450,17 +498,19 @@ export function use_category_inbox(
       handle_refresh_requested,
     );
 
-    return () =>
+    return () => {
+      cancelled = true;
       window.removeEventListener(
         MAIL_EVENTS.REFRESH_REQUESTED,
         handle_refresh_requested,
       );
+    };
   }, [enabled, page, page_size, fetch_page]);
 
   const update_email = useCallback(
     (id: string, updates: Partial<InboxEmail>): void => {
       for (const key of page_cache.current.keys()) {
-        const ids_part = key.split(":").slice(2).join(":");
+        const ids_part = key.split(":").slice(4).join(":");
 
         if (ids_part.split(",").includes(id)) {
           page_cache.current.delete(key);
@@ -531,6 +581,112 @@ export function use_category_inbox(
     fetch_page_ref,
   });
 
+  const finish_thread_action = useCallback(
+    (
+      email: InboxEmail | undefined,
+      server_op: (sibling_ids: string[]) => Promise<boolean>,
+    ): void => {
+      if (!email?.thread_token) return;
+      if ((email.thread_message_count ?? 1) <= 1) return;
+
+      const token = email.thread_token;
+      const removed = remove_thread_entries(token);
+
+      void (async () => {
+        try {
+          const response = await get_thread_messages(token);
+          const messages = response.data?.messages ?? [];
+          const total = response.data?.thread?.message_count ?? messages.length;
+          const sibling_ids = messages
+            .filter(
+              (message) =>
+                message.item_type === "received" && message.id !== email.id,
+            )
+            .map((message) => message.id);
+
+          if (sibling_ids.length > 0) {
+            const ok = await server_op(sibling_ids);
+
+            if (!ok) {
+              reindex_ids(removed);
+
+              return;
+            }
+          }
+
+          // A thread larger than one message page could not be fully enumerated
+          // here, so some siblings were never acted on server-side. Reconcile
+          // the whole index against the server inbox instead of trusting the
+          // optimistic thread removal.
+          if (total > messages.length) {
+            request_full_rebuild();
+
+            return;
+          }
+
+          emit_mail_soft_refresh();
+        } catch {
+          reindex_ids(removed);
+        }
+      })();
+    },
+    [],
+  );
+
+  const delete_email_thread_aware = useCallback(
+    async (id: string): Promise<void> => {
+      const email = state.emails.find((e) => e.id === id);
+
+      await delete_email(id);
+      finish_thread_action(email, async () => {
+        const result = await trash_thread(email!.thread_token!, true);
+
+        return !!result.data;
+      });
+    },
+    [state.emails, delete_email, finish_thread_action],
+  );
+
+  const archive_email_thread_aware = useCallback(
+    async (id: string): Promise<void> => {
+      const email = state.emails.find((e) => e.id === id);
+
+      await archive_email(id);
+      finish_thread_action(email, async (sibling_ids) => {
+        const result = await api_batch_archive({
+          ids: sibling_ids,
+          tier: "hot",
+        });
+
+        if (result.data?.success) {
+          void bulk_update_metadata_by_ids(sibling_ids, {
+            is_archived: true,
+          }).catch(() => {});
+        }
+
+        return !!result.data?.success;
+      });
+    },
+    [state.emails, archive_email, finish_thread_action],
+  );
+
+  const mark_spam_thread_aware = useCallback(
+    async (id: string): Promise<void> => {
+      const email = state.emails.find((e) => e.id === id);
+
+      await mark_spam(id);
+      finish_thread_action(email, async (sibling_ids) => {
+        const result = await bulk_update_metadata_by_ids(sibling_ids, {
+          is_spam: true,
+          is_trashed: false,
+        });
+
+        return result.success;
+      });
+    },
+    [state.emails, mark_spam, finish_thread_action],
+  );
+
   const bulk_delete = useCallback(
     async (ids: string[]): Promise<void> => {
       remove_ids(ids);
@@ -541,10 +697,29 @@ export function use_category_inbox(
 
   const bulk_archive = useCallback(
     async (ids: string[]): Promise<void> => {
+      const id_set = new Set(ids);
+      const selected = state.emails.filter((e) => id_set.has(e.id));
+
       remove_ids(ids);
       await raw_bulk.bulk_archive(ids);
+      for (const email of selected) {
+        finish_thread_action(email, async (sibling_ids) => {
+          const result = await api_batch_archive({
+            ids: sibling_ids,
+            tier: "hot",
+          });
+
+          if (result.data?.success) {
+            void bulk_update_metadata_by_ids(sibling_ids, {
+              is_archived: true,
+            }).catch(() => {});
+          }
+
+          return !!result.data?.success;
+        });
+      }
     },
-    [raw_bulk],
+    [raw_bulk, state.emails, finish_thread_action],
   );
 
   return {
@@ -557,10 +732,10 @@ export function use_category_inbox(
     toggle_star,
     toggle_pin,
     mark_read,
-    delete_email,
-    archive_email,
+    delete_email: delete_email_thread_aware,
+    archive_email: archive_email_thread_aware,
     unarchive_email,
-    mark_spam,
+    mark_spam: mark_spam_thread_aware,
     bulk_delete,
     bulk_archive,
     bulk_unarchive: raw_bulk.bulk_unarchive,
