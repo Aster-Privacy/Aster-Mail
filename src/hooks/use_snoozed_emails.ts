@@ -306,11 +306,26 @@ function mail_to_email(
   };
 }
 
+export const SNOOZED_IDS_CHUNK_SIZE = 100;
+
+export function chunk_ids(ids: string[], chunk_size: number): string[][] {
+  if (chunk_size <= 0) return ids.length > 0 ? [ids] : [];
+
+  const chunks: string[][] = [];
+
+  for (let i = 0; i < ids.length; i += chunk_size) {
+    chunks.push(ids.slice(i, i + chunk_size));
+  }
+
+  return chunks;
+}
+
 export function use_snoozed_emails(): UseSnoozedEmailsReturn {
   const { t } = use_i18n();
   const { user } = use_auth();
   const { preferences } = use_preferences();
   const mounted_ref = useRef(false);
+  const fetch_seq_ref = useRef(0);
   const [state, set_state] = useState<SnoozedEmailListState>({
     emails: [],
     snoozed_items: [],
@@ -327,28 +342,30 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
       return;
     }
 
+    const seq = ++fetch_seq_ref.current;
+    const is_current = () =>
+      mounted_ref.current && seq === fetch_seq_ref.current;
+
     set_state((prev) => ({ ...prev, is_loading: true, error: null }));
 
     try {
       const snoozed_response = await list_snoozed_emails();
 
       if (snoozed_response.error) {
-        if (mounted_ref.current) {
-          set_state({
-            emails: [],
-            snoozed_items: [],
+        if (is_current()) {
+          set_state((prev) => ({
+            ...prev,
             is_loading: false,
             has_loaded: true,
-            error: null,
-            total: 0,
-          });
+            error: t("common.failed_to_load_snoozed_emails"),
+          }));
         }
 
         return;
       }
 
       if (!snoozed_response.data || snoozed_response.data.length === 0) {
-        if (mounted_ref.current) {
+        if (is_current()) {
           set_state({
             emails: [],
             snoozed_items: [],
@@ -365,24 +382,34 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
       const snoozed_items = snoozed_response.data;
       const mail_item_ids = snoozed_items.map((s) => s.mail_item_id);
 
-      const mail_response = await list_mail_items({ ids: mail_item_ids });
+      const mail_items: MailItem[] = [];
+      let mail_request_failed = false;
 
-      if (!mail_response.data?.items) {
-        if (mounted_ref.current) {
-          set_state({
-            emails: [],
+      for (const chunk of chunk_ids(mail_item_ids, SNOOZED_IDS_CHUNK_SIZE)) {
+        const mail_response = await list_mail_items({ ids: chunk });
+
+        if (!mail_response.data?.items) {
+          mail_request_failed = true;
+          break;
+        }
+
+        mail_items.push(...mail_response.data.items);
+      }
+
+      if (mail_request_failed) {
+        if (is_current()) {
+          set_state((prev) => ({
+            ...prev,
             snoozed_items,
             is_loading: false,
             has_loaded: true,
-            error: null,
-            total: 0,
-          });
+            error: t("common.failed_to_load_snoozed_emails"),
+          }));
         }
 
         return;
       }
 
-      const mail_items = mail_response.data.items;
       const snoozed_map = new Map(
         snoozed_items.map((s) => [s.mail_item_id, s.snoozed_until]),
       );
@@ -461,7 +488,7 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
 
       const visible_emails = filter_protected_folder_emails(decrypted_emails);
 
-      if (mounted_ref.current) {
+      if (is_current()) {
         set_state({
           emails: visible_emails,
           snoozed_items,
@@ -472,7 +499,7 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
         });
       }
     } catch (err) {
-      if (mounted_ref.current) {
+      if (is_current()) {
         set_state((prev) => ({
           ...prev,
           is_loading: false,

@@ -42,6 +42,7 @@ export const MAIL_EVENTS = {
   PROTECTED_FOLDERS_READY: "astermail:protected-folders-ready",
   REFRESH_REQUESTED: "astermail:refresh-requested",
   MAIL_SOFT_REFRESH: "astermail:mail-soft-refresh",
+  MAIL_STATS_STALE: "astermail:mail-stats-stale",
 } as const;
 
 export type MailEventType = (typeof MAIL_EVENTS)[keyof typeof MAIL_EVENTS];
@@ -150,6 +151,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.PROTECTED_FOLDERS_READY]: undefined;
   [MAIL_EVENTS.REFRESH_REQUESTED]: undefined;
   [MAIL_EVENTS.MAIL_SOFT_REFRESH]: undefined;
+  [MAIL_EVENTS.MAIL_STATS_STALE]: undefined;
 };
 
 type EventSubscription = () => void;
