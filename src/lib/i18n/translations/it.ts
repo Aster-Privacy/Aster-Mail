@@ -4119,6 +4119,7 @@ export const it = {
     academic_email_in_use: "Questa email accademica è già usata per uno sconto.",
     academic_request_failed: "Impossibile inviare l'email di verifica. Riprova.",
     academic_copy_failed: "Impossibile copiare il codice.",
+    academic_captcha_required: "Completa la verifica captcha.",
     academic_journalist_hint: "Giornalista? Contatta il supporto con le tue credenziali stampa per ricevere il tuo codice.",
     refer_a_friend: "Invita un amico",
     referral_how_it_works: "Come funziona",

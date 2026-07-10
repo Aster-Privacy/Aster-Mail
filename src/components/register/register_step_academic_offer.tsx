@@ -20,7 +20,7 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   AcademicCapIcon,
@@ -32,6 +32,11 @@ import { Button } from "@aster/ui";
 import { Logo } from "@/components/auth/auth_styles";
 import { request_academic_verification } from "@/services/api/billing";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  TurnstileWidget,
+  TURNSTILE_SITE_KEY,
+  type TurnstileWidgetRef,
+} from "@/components/auth/turnstile_widget";
 import {
   page_variants,
   page_transition,
@@ -51,6 +56,9 @@ export const RegisterStepAcademicOffer = ({
   const [academic_email, set_academic_email] = useState("");
   const [submitting, set_submitting] = useState(false);
   const [sent_to, set_sent_to] = useState("");
+  const [turnstile_token, set_turnstile_token] = useState("");
+  const turnstile_ref = useRef<TurnstileWidgetRef>(null);
+  const captcha_required = !!TURNSTILE_SITE_KEY;
 
   const continue_to_plans = () => reg.set_step("plan_selection");
 
@@ -58,11 +66,18 @@ export const RegisterStepAcademicOffer = ({
     const email = academic_email.trim();
 
     if (!email || submitting) return;
+    if (captcha_required && !turnstile_token) {
+      show_toast(t("settings.academic_captcha_required"), "error");
+
+      return;
+    }
     set_submitting(true);
     try {
-      const res = await request_academic_verification(email);
+      const res = await request_academic_verification(email, turnstile_token);
 
       if (res.error) {
+        turnstile_ref.current?.reset();
+        set_turnstile_token("");
         if (res.error.includes("NOT_ACADEMIC_DOMAIN")) {
           show_toast(t("settings.academic_invalid_email"), "error");
         } else if (
@@ -70,6 +85,8 @@ export const RegisterStepAcademicOffer = ({
           res.error.includes("ALREADY_VERIFIED")
         ) {
           show_toast(t("settings.academic_email_in_use"), "error");
+        } else if (res.error.includes("CAPTCHA")) {
+          show_toast(t("settings.academic_captcha_required"), "error");
         } else {
           show_toast(t("settings.academic_request_failed"), "error");
         }
@@ -188,9 +205,21 @@ export const RegisterStepAcademicOffer = ({
               if (e.key === "Enter") handle_submit();
             }}
           />
+          {captcha_required && (
+            <TurnstileWidget
+              ref={turnstile_ref}
+              class_name="flex justify-center"
+              on_expire={() => set_turnstile_token("")}
+              on_verify={(token) => set_turnstile_token(token)}
+            />
+          )}
           <Button
             className="w-full"
-            disabled={!academic_email.trim() || submitting}
+            disabled={
+              !academic_email.trim() ||
+              submitting ||
+              (captcha_required && !turnstile_token)
+            }
             size="xl"
             variant="depth"
             onClick={handle_submit}

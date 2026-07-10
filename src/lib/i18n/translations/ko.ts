@@ -4124,6 +4124,7 @@ export const ko = {
     academic_email_in_use: "이 학교 이메일은 이미 할인에 사용되었습니다.",
     academic_request_failed: "인증 메일을 보낼 수 없었습니다. 다시 시도하세요.",
     academic_copy_failed: "코드를 복사할 수 없었습니다.",
+    academic_captcha_required: "캡차 인증을 완료해 주세요.",
     academic_journalist_hint: "기자이신가요? 기자증과 함께 지원팀에 문의하면 코드를 받을 수 있습니다.",
     refer_a_friend: "친구 추천",
     referral_how_it_works: "작동 방식",

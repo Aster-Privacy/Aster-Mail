@@ -4124,6 +4124,7 @@ export const tr = {
     academic_email_in_use: "Bu akademik e-posta zaten bir indirim için kullanılıyor.",
     academic_request_failed: "Doğrulama e-postası gönderilemedi. Lütfen tekrar deneyin.",
     academic_copy_failed: "Kod kopyalanamadı.",
+    academic_captcha_required: "Lütfen captcha doğrulamasını tamamlayın.",
     academic_journalist_hint: "Gazeteci misiniz? Kodunuzu almak için basın kartınızla destek ekibine ulaşın.",
     refer_a_friend: "Arkadaşını Davet Et",
     referral_how_it_works: "Nasıl Çalışır",

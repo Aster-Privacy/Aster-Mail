@@ -4272,6 +4272,7 @@ export const es = {
     academic_email_in_use: "Este correo académico ya se usa para un descuento.",
     academic_request_failed: "No se pudo enviar el correo de verificación. Inténtalo de nuevo.",
     academic_copy_failed: "No se pudo copiar el código.",
+    academic_captcha_required: "Completa el desafío captcha.",
     academic_journalist_hint: "¿Periodista? Contacta con soporte con tus credenciales de prensa para recibir tu código.",
     refer_a_friend: "Referir a un amigo",
     referral_email_body: "¡Hola!\n\nEstoy usando Aster Mail y me gusta mucho. Tiene cifrado de extremo a extremo, así que nadie puede leer tus correos excepto tú, ni siquiera el propio Aster.\n\nSi quieres probarlo, aquí tienes mi enlace de referido:\n\n{{ referral_link }}\n\nAmbos obtenemos créditos si acabas suscribiéndote, pero sin presión. Solo pensé que te gustaría.\n\nSaludos",

@@ -4123,6 +4123,7 @@ export const pl = {
     academic_email_in_use: "Ten akademicki e-mail jest już używany do zniżki.",
     academic_request_failed: "Nie udało się wysłać e-maila weryfikacyjnego. Spróbuj ponownie.",
     academic_copy_failed: "Nie udało się skopiować kodu.",
+    academic_captcha_required: "Ukończ weryfikację captcha.",
     academic_journalist_hint: "Dziennikarz? Skontaktuj się z pomocą, podając legitymację prasową, aby otrzymać kod.",
     refer_a_friend: "Poleć znajomemu",
     referral_how_it_works: "Jak to działa",

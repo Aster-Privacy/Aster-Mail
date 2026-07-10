@@ -4285,6 +4285,7 @@ export const zh_CN = {
     academic_email_in_use: "该学术邮箱已用于优惠。",
     academic_request_failed: "验证邮件发送失败，请重试。",
     academic_copy_failed: "无法复制优惠码。",
+    academic_captcha_required: "请完成人机验证。",
     academic_journalist_hint: "您是记者？请携带记者证件联系客服获取优惠码。",
     refer_a_friend: "推荐朋友",
     referral_email_subject: "加入 Aster Mail",

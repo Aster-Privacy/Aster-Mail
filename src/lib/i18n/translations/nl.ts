@@ -4273,6 +4273,7 @@ export const nl = {
     academic_email_in_use: "Dit academische e-mailadres wordt al gebruikt voor een korting.",
     academic_request_failed: "De verificatiemail kon niet worden verstuurd. Probeer het opnieuw.",
     academic_copy_failed: "De code kon niet worden gekopieerd.",
+    academic_captcha_required: "Voltooi de captcha-uitdaging.",
     academic_journalist_hint: "Journalist? Neem contact op met support met je perskaart om je code te ontvangen.",
     refer_a_friend: "Vriend doorverwijzen",
     referral_email_body: "He, ik gebruik Aster Mail voor versleutelde e-mail. Probeer het eens! Meld je aan via mijn link: {{referral_link}}",

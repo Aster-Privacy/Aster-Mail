@@ -4118,6 +4118,7 @@ export const ar = {
     academic_email_in_use: "هذا البريد الجامعي مستخدم بالفعل للحصول على خصم.",
     academic_request_failed: "تعذّر إرسال بريد التحقق. حاول مرة أخرى.",
     academic_copy_failed: "تعذّر نسخ الرمز.",
+    academic_captcha_required: "يرجى إكمال اختبار captcha.",
     academic_journalist_hint: "هل أنت صحفي؟ تواصل مع الدعم مع إثبات اعتمادك الصحفي للحصول على الرمز.",
     refer_a_friend: "أحِل صديقًا",
     referral_how_it_works: "كيف يعمل",

@@ -4272,6 +4272,7 @@ export const de = {
     academic_email_in_use: "Diese Hochschul-E-Mail wird bereits für einen Rabatt verwendet.",
     academic_request_failed: "Die Verifizierungs-E-Mail konnte nicht gesendet werden. Bitte versuche es erneut.",
     academic_copy_failed: "Der Code konnte nicht kopiert werden.",
+    academic_captcha_required: "Bitte schließe die Captcha-Prüfung ab.",
     academic_journalist_hint: "Journalist? Kontaktiere den Support mit deinem Presseausweis, um deinen Code zu erhalten.",
     refer_a_friend: "Freund einladen",
     referral_email_body: "Hallo!\n\nIch benutze Aster Mail und mag es wirklich. Es ist Ende-zu-Ende-verschlüsselt, sodass niemand Ihre E-Mails lesen kann außer Ihnen - nicht einmal Aster selbst.\n\nFalls Sie es ausprobieren möchten, hier ist mein Empfehlungslink:\n\n{{ referral_link }}\n\nWir erhalten beide Guthaben, wenn Sie sich anschließend anmelden, aber kein Druck. Dachte nur, es könnte Sie interessieren.\n\nViele Grüße",
