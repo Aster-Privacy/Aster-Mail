@@ -463,10 +463,13 @@ export interface AcademicDiscountResponse {
   success: boolean;
 }
 
-export async function request_academic_verification(academic_email: string) {
+export async function request_academic_verification(
+  academic_email: string,
+  turnstile_token?: string,
+) {
   return api_client.post<AcademicDiscountResponse>(
     "/payments/v1/discounts/academic/request",
-    { academic_email },
+    { academic_email, ...(turnstile_token ? { turnstile_token } : {}) },
   );
 }
 

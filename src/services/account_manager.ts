@@ -35,6 +35,16 @@ async function clear_offline_email_cache(): Promise<void> {
   } catch {
     return;
   }
+
+  try {
+    const { clear_search_snapshots } = await import(
+      "@/services/search_index_store"
+    );
+
+    await clear_search_snapshots();
+  } catch {
+    return;
+  }
 }
 
 const ACCOUNTS_KEY = "astermail_accounts_v6";
@@ -56,6 +66,7 @@ export interface StoredAccount {
   id: string;
   user: User;
   added_at: number;
+  kind?: "personal" | "shared";
   access_token?: string;
   refresh_token?: string;
 }
@@ -198,8 +209,14 @@ export async function get_account_count(): Promise<number> {
   return data.accounts.length;
 }
 
+export async function get_personal_account_count(): Promise<number> {
+  const data = await get_accounts_data_async();
+
+  return data.accounts.filter((a) => a.kind !== "shared").length;
+}
+
 export async function can_add_account(max_accounts?: number): Promise<boolean> {
-  const count = await get_account_count();
+  const count = await get_personal_account_count();
 
   return count < (max_accounts ?? DEFAULT_MAX_ACCOUNTS);
 }
@@ -215,12 +232,17 @@ function merge_user(base: User, updates: Partial<User>): User {
   const key = <K extends keyof User>(k: K, v: User[K]) => {
     if (v !== undefined) result[k] = v;
   };
+
   if (updates.id !== undefined) key("id", updates.id);
   if (updates.username !== undefined) key("username", updates.username);
   if (updates.email !== undefined) key("email", updates.email);
-  if (updates.display_name !== undefined) key("display_name", updates.display_name);
-  if (updates.profile_color !== undefined) key("profile_color", updates.profile_color);
-  if (updates.profile_picture !== undefined) key("profile_picture", updates.profile_picture);
+  if (updates.display_name !== undefined)
+    key("display_name", updates.display_name);
+  if (updates.profile_color !== undefined)
+    key("profile_color", updates.profile_color);
+  if (updates.profile_picture !== undefined)
+    key("profile_picture", updates.profile_picture);
+
   return result;
 }
 
@@ -239,10 +261,17 @@ export async function add_account(
     return { success: true };
   }
 
-  if (data.accounts.length >= DEFAULT_MAX_ACCOUNTS) {
+  const personal_count = data.accounts.filter(
+    (a) => a.kind !== "shared",
+  ).length;
+
+  if (personal_count >= DEFAULT_MAX_ACCOUNTS) {
     return {
       success: false,
-      error: en.errors.max_accounts.replace("{{ max }}", String(DEFAULT_MAX_ACCOUNTS)),
+      error: en.errors.max_accounts.replace(
+        "{{ max }}",
+        String(DEFAULT_MAX_ACCOUNTS),
+      ),
     };
   }
 
@@ -257,6 +286,54 @@ export async function add_account(
   await save_accounts_data(data);
 
   return { success: true };
+}
+
+export async function upsert_shared_account(user: User): Promise<void> {
+  const data = await get_accounts_data_async();
+  const existing = data.accounts.find((a) => a.id === user.id);
+
+  if (existing) {
+    existing.user = merge_user(existing.user, user);
+    existing.kind = "shared";
+  } else {
+    data.accounts.push({
+      id: user.id,
+      user,
+      added_at: Date.now(),
+      kind: "shared",
+    });
+  }
+
+  await save_accounts_data(data);
+}
+
+export async function remove_stale_shared_accounts(
+  granted_ids: string[],
+): Promise<string[]> {
+  const data = await get_accounts_data_async();
+  const granted = new Set(granted_ids);
+  const stale = data.accounts.filter(
+    (a) =>
+      a.kind === "shared" &&
+      !granted.has(a.id) &&
+      a.id !== data.current_account_id,
+  );
+
+  if (stale.length === 0) return [];
+
+  data.accounts = data.accounts.filter((a) => !stale.includes(a));
+  await save_accounts_data(data);
+
+  return stale.map((a) => a.id);
+}
+
+export async function get_account_kind(
+  account_id: string,
+): Promise<"personal" | "shared"> {
+  const data = await get_accounts_data_async();
+  const account = data.accounts.find((a) => a.id === account_id);
+
+  return account?.kind === "shared" ? "shared" : "personal";
 }
 
 export async function switch_account(
@@ -379,6 +456,7 @@ export async function logout_all(): Promise<void> {
   try {
     if (typeof caches !== "undefined") {
       const keys = await caches.keys();
+
       await Promise.all(keys.map((k) => caches.delete(k)));
     }
   } catch {}
@@ -393,6 +471,11 @@ export async function get_other_accounts(): Promise<StoredAccount[]> {
 export function clear_cache(): void {
   cached_data = null;
   storage_initialized = false;
+}
+
+export async function reload_accounts_from_storage(): Promise<void> {
+  cached_data = null;
+  await get_accounts_data_async();
 }
 
 export function clear_all_switch_tokens(): void {

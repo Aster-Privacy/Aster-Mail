@@ -55,6 +55,42 @@ export interface TranslationNamespace {
   secure_view: SecureViewTranslations;
   compose: ComposeTranslations;
   passkeys: PasskeysTranslations;
+  shared_mailboxes: SharedMailboxesTranslations;
+}
+
+export interface SharedMailboxesTranslations {
+  tab_label: string;
+  shared_tag: string;
+  create: string;
+  created: string;
+  create_failed: string;
+  create_hint: string;
+  limit_reached: string;
+  address_placeholder: string;
+  empty_title: string;
+  empty_desc: string;
+  frozen: string;
+  rotation_needed: string;
+  rotation_explainer: string;
+  rotate: string;
+  rotated: string;
+  rotate_conflict: string;
+  revoke_rotation_pending: string;
+  created_grant_pending: string;
+  load_failed_retry: string;
+  open: string;
+  grant_added: string;
+  grant_revoked: string;
+  has_access: string;
+  give_access: string;
+  always_has_access: string;
+  members_heading: string;
+  storage_line: string;
+  deleted: string;
+  delete_confirm_button: string;
+  delete_confirm_message: string;
+  delete_confirm_title: string;
+  access_unavailable: string;
 }
 
 export interface PasskeysTranslations {
@@ -4203,6 +4239,7 @@ export interface SettingsTranslations {
   academic_email_in_use: string;
   academic_request_failed: string;
   academic_copy_failed: string;
+  academic_captcha_required: string;
   academic_journalist_hint: string;
   credit_packages_loading: string;
   credit_package_bonus: string;
@@ -5669,6 +5706,21 @@ export interface AuthTranslations {
   plan_selection_subtitle: string;
   plan_continue_with_free: string;
   plan_continue_as_free: string;
+  academic_offer_title: string;
+  academic_offer_desc: string;
+  academic_offer_sent: string;
+  academic_offer_journalist: string;
+  academic_offer_headline: string;
+  academic_offer_subline: string;
+  academic_offer_cta: string;
+  academic_offer_not_now: string;
+  academic_offer_journalist_link: string;
+  academic_offer_student_link: string;
+  academic_offer_sent_title: string;
+  academic_offer_continue: string;
+  academic_offer_j_step1: string;
+  academic_offer_j_step2: string;
+  academic_offer_j_step3: string;
   plan_star_description: string;
   plan_nova_description: string;
   plan_supernova_description: string;
@@ -5931,6 +5983,7 @@ export type TranslationKey =
   | `badges.${keyof BadgesTranslations}`
   | `secure_view.${keyof SecureViewTranslations}`
   | `compose.${keyof ComposeTranslations}`
-  | `passkeys.${keyof PasskeysTranslations}`;
+  | `passkeys.${keyof PasskeysTranslations}`
+  | `shared_mailboxes.${keyof SharedMailboxesTranslations}`;
 
 export type Translations = TranslationNamespace;
