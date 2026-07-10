@@ -585,7 +585,7 @@ export async function preload_email_detail(
         timestamp: new Date(
           envelope.sent_at || item.created_at,
         ).toLocaleString(),
-        is_read: decrypted_metadata?.is_read ?? false,
+        is_read: item.is_read === true || (decrypted_metadata?.is_read ?? false),
         is_starred: decrypted_metadata?.is_starred ?? false,
         has_attachment: decrypted_metadata?.has_attachments ?? false,
         thread_count: 1,
@@ -613,7 +613,7 @@ export async function preload_email_detail(
         body: body_text || "",
         html_content: safe_html,
         timestamp: item.message_ts || item.created_at,
-        is_read: decrypted_metadata?.is_read ?? false,
+        is_read: item.is_read === true || (decrypted_metadata?.is_read ?? false),
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
         is_external: item.is_external,

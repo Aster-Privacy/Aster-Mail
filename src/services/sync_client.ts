@@ -267,6 +267,8 @@ class SyncClient {
             detail: { email_id: data.mail_item_id || "" },
           }),
         );
+      } else {
+        window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_STATS_STALE));
       }
     }
 
