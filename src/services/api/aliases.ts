@@ -46,6 +46,8 @@ export interface EmailAlias {
   profile_picture?: string;
   encrypted_note?: string;
   note_nonce?: string;
+  encrypted_websites?: string;
+  websites_nonce?: string;
   downgrade_grace_expires_at?: string;
   created_at: string;
   updated_at: string;
@@ -56,6 +58,7 @@ export interface DecryptedEmailAlias {
   local_part: string;
   display_name?: string;
   note?: string;
+  websites?: string[];
   alias_address_hash: string;
   domain: string;
   full_address: string;
@@ -86,6 +89,8 @@ export interface CreateAliasRequest {
   domain: string;
   encrypted_note?: string;
   note_nonce?: string;
+  encrypted_websites?: string;
+  websites_nonce?: string;
   captcha_token?: string;
 }
 
@@ -103,7 +108,53 @@ export interface UpdateAliasRequest {
   local_part_nonce?: string;
   encrypted_note?: string | null;
   note_nonce?: string | null;
+  encrypted_websites?: string | null;
+  websites_nonce?: string | null;
   routing_address_hash?: string;
+}
+
+export const MAX_ALIAS_WEBSITES = 10;
+export const MAX_WEBSITE_URL_LENGTH = 200;
+
+export function normalize_website_url(raw: string): string | null {
+  const cleaned = raw.replace(/[\u0000-\u001f\u007f\s]/g, "");
+
+  if (!cleaned) return null;
+
+  const with_scheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(cleaned)
+    ? cleaned
+    : `https://${cleaned}`;
+
+  if (with_scheme.length > MAX_WEBSITE_URL_LENGTH) return null;
+
+  try {
+    const parsed = new URL(with_scheme);
+
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      return null;
+    }
+    if (!parsed.hostname || !parsed.hostname.includes(".")) return null;
+
+    return with_scheme;
+  } catch {
+    return null;
+  }
+}
+
+export function parse_websites_payload(payload: string): string[] {
+  try {
+    const parsed = JSON.parse(payload);
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter((entry): entry is string => typeof entry === "string")
+      .map((entry) => normalize_website_url(entry))
+      .filter((entry): entry is string => entry !== null)
+      .slice(0, MAX_ALIAS_WEBSITES);
+  } catch {
+    return [];
+  }
 }
 
 export interface AliasLimitResponse {
@@ -270,11 +321,26 @@ export async function decrypt_alias(
       } catch {}
     }
 
+    let websites: string[] | undefined;
+
+    if (alias.encrypted_websites && alias.websites_nonce) {
+      try {
+        const payload = await decrypt_alias_field(
+          alias.encrypted_websites,
+          alias.websites_nonce,
+        );
+        const parsed = parse_websites_payload(payload);
+
+        if (parsed.length > 0) websites = parsed;
+      } catch {}
+    }
+
     return {
       id: alias.id,
       local_part,
       display_name,
       note,
+      websites,
       alias_address_hash: alias.alias_address_hash,
       domain: alias.domain,
       full_address: `${local_part}@${alias.domain}`,
@@ -316,11 +382,26 @@ export async function decrypt_alias(
       } catch {}
     }
 
+    let websites: string[] | undefined;
+
+    if (alias.encrypted_websites && alias.websites_nonce) {
+      try {
+        const payload = await decrypt_alias_field(
+          alias.encrypted_websites,
+          alias.websites_nonce,
+        );
+        const parsed = parse_websites_payload(payload);
+
+        if (parsed.length > 0) websites = parsed;
+      } catch {}
+    }
+
     return {
       id: alias.id,
       local_part,
       display_name,
       note,
+      websites,
       alias_address_hash: alias.alias_address_hash,
       domain: alias.domain,
       full_address: `${local_part}@${alias.domain}`,
@@ -483,6 +564,7 @@ export async function update_alias(
     is_enabled?: boolean;
     profile_picture?: string | null;
     note?: string | null;
+    websites?: string[] | null;
   },
 ): Promise<ApiResponse<{ success: boolean }>> {
   const request: UpdateAliasRequest = {};
@@ -513,6 +595,25 @@ export async function update_alias(
 
       request.encrypted_note = encrypted;
       request.note_nonce = nonce;
+    }
+  }
+
+  if (updates.websites !== undefined) {
+    const normalized = (updates.websites ?? [])
+      .map((url) => normalize_website_url(url))
+      .filter((url): url is string => url !== null)
+      .slice(0, MAX_ALIAS_WEBSITES);
+
+    if (normalized.length === 0) {
+      request.encrypted_websites = null;
+      request.websites_nonce = null;
+    } else {
+      const { encrypted, nonce } = await encrypt_alias_field(
+        JSON.stringify(normalized),
+      );
+
+      request.encrypted_websites = encrypted;
+      request.websites_nonce = nonce;
     }
   }
 
@@ -748,6 +849,20 @@ export async function reencrypt_all_aliases(): Promise<void> {
           note_nonce: nonce,
         });
       }
+
+      if (alias.encrypted_websites && alias.websites_nonce) {
+        const websites_payload = await decrypt_alias_field(
+          alias.encrypted_websites,
+          alias.websites_nonce,
+        );
+        const { encrypted, nonce } =
+          await encrypt_alias_field(websites_payload);
+
+        await api_client.patch(`/addresses/v1/aliases/${alias.id}`, {
+          encrypted_websites: encrypted,
+          websites_nonce: nonce,
+        });
+      }
     } catch {
       continue;
     }
@@ -803,6 +918,8 @@ export interface DeletedAlias {
   display_name_nonce?: string;
   encrypted_note?: string;
   note_nonce?: string;
+  encrypted_websites?: string;
+  websites_nonce?: string;
   alias_address_hash: string;
   routing_address_hash?: string;
   domain: string;
@@ -894,6 +1011,8 @@ export interface BulkCreateAliasItem {
   domain: string;
   encrypted_note?: string;
   note_nonce?: string;
+  encrypted_websites?: string;
+  websites_nonce?: string;
   is_enabled?: boolean;
 }
 
