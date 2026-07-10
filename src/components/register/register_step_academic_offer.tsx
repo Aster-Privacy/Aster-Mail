@@ -41,19 +41,22 @@ import {
   page_variants,
   page_transition,
 } from "@/components/register/register_types";
+import {
+  read_offer_prefill,
+  type OfferRole,
+} from "@/components/register/academic_offer_prefill";
 
 interface RegisterStepAcademicOfferProps {
   reg: UseRegistrationReturn;
 }
 
-type OfferRole = "student" | "journalist";
-
 export const RegisterStepAcademicOffer = ({
   reg,
 }: RegisterStepAcademicOfferProps) => {
   const { t } = reg;
-  const [role, set_role] = useState<OfferRole>("student");
-  const [academic_email, set_academic_email] = useState("");
+  const prefill = read_offer_prefill();
+  const [role, set_role] = useState<OfferRole>(prefill.role);
+  const [academic_email, set_academic_email] = useState(prefill.email);
   const [submitting, set_submitting] = useState(false);
   const [sent_to, set_sent_to] = useState("");
   const [turnstile_token, set_turnstile_token] = useState("");

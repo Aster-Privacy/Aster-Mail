@@ -22,6 +22,7 @@ import type { UseRegistrationReturn } from "@/components/register/hooks/use_regi
 
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { AcademicCapIcon, NewspaperIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { Logo } from "@/components/auth/auth_styles";
@@ -29,12 +30,17 @@ import {
   page_variants,
   page_transition,
 } from "@/components/register/register_types";
+import { read_offer_prefill } from "@/components/register/academic_offer_prefill";
 
 interface RegisterStepWelcomeProps {
   reg: UseRegistrationReturn;
 }
 
 export const RegisterStepWelcome = ({ reg }: RegisterStepWelcomeProps) => {
+  const offer = read_offer_prefill();
+  const is_journalist = offer.role === "journalist";
+  const OfferIcon = is_journalist ? NewspaperIcon : AcademicCapIcon;
+
   return (
     <motion.div
       key="welcome"
@@ -69,12 +75,43 @@ export const RegisterStepWelcome = ({ reg }: RegisterStepWelcomeProps) => {
 
       <Logo />
 
-      <h1 className="text-2xl font-bold mt-6 text-txt-primary">
-        {reg.t("auth.create_aster_account")}
-      </h1>
-      <p className="text-sm mt-3 leading-relaxed text-txt-tertiary">
-        {reg.t("auth.one_account_all_services")}
-      </p>
+      {offer.has_offer ? (
+        <>
+          <span
+            className="inline-flex items-center gap-1.5 mt-6 px-3 py-1 rounded-full text-xs font-semibold"
+            style={{
+              backgroundColor: "var(--accent-blue-soft, rgba(37,99,235,0.12))",
+              color: "var(--accent-blue)",
+            }}
+          >
+            <OfferIcon className="w-3.5 h-3.5" />
+            {reg.t(
+              is_journalist
+                ? "auth.offer_welcome_badge_journalist"
+                : "auth.offer_welcome_badge_student",
+            )}
+          </span>
+          <h1 className="text-2xl font-bold mt-4 text-txt-primary">
+            {reg.t("auth.offer_welcome_headline")}
+          </h1>
+          <p className="text-sm mt-3 leading-relaxed text-txt-tertiary">
+            {reg.t(
+              is_journalist
+                ? "auth.offer_welcome_subline_journalist"
+                : "auth.offer_welcome_subline_student",
+            )}
+          </p>
+        </>
+      ) : (
+        <>
+          <h1 className="text-2xl font-bold mt-6 text-txt-primary">
+            {reg.t("auth.create_aster_account")}
+          </h1>
+          <p className="text-sm mt-3 leading-relaxed text-txt-tertiary">
+            {reg.t("auth.one_account_all_services")}
+          </p>
+        </>
+      )}
 
       <div className="w-full mt-8 space-y-3">
         <Button

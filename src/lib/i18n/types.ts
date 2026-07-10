@@ -5721,6 +5721,11 @@ export interface AuthTranslations {
   academic_offer_j_step1: string;
   academic_offer_j_step2: string;
   academic_offer_j_step3: string;
+  offer_welcome_badge_student: string;
+  offer_welcome_badge_journalist: string;
+  offer_welcome_headline: string;
+  offer_welcome_subline_student: string;
+  offer_welcome_subline_journalist: string;
   plan_star_description: string;
   plan_nova_description: string;
   plan_supernova_description: string;
