@@ -139,8 +139,10 @@ export function is_official_sender(email?: string | null): boolean {
   return OFFICIAL_SENDER_ROLES.has(parts.local_part);
 }
 
-export function get_email_username(email: string): string {
-  return email.split("@")[0] || "";
+export function get_email_username(
+  email: string | null | undefined,
+): string {
+  return email?.split("@")[0] || "";
 }
 
 export function get_root_domain(domain: string): string {
