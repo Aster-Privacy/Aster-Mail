@@ -197,9 +197,7 @@ export const RegisterStepAcademicOffer = ({
         variants={page_variants}
       >
         <Logo />
-        <CheckCircleIcon
-          className={`w-12 h-12 mt-8 ${verified ? "text-green-500" : "text-green-500"}`}
-        />
+        <CheckCircleIcon className="w-12 h-12 mt-8 text-green-500" />
         <h1 className="text-2xl font-bold mt-5 text-txt-primary">
           {verified
             ? t("auth.academic_verified_title")
