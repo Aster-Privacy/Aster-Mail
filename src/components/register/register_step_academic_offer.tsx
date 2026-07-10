@@ -48,12 +48,42 @@ interface RegisterStepAcademicOfferProps {
 
 type OfferRole = "student" | "journalist";
 
+function read_offer_prefill(): { role: OfferRole; email: string } {
+  if (typeof window === "undefined") return { role: "student", email: "" };
+  const params = new URLSearchParams(window.location.search);
+  const url_role = params.get("role");
+  const url_email = params.get("academic_email");
+
+  if (url_role || url_email) {
+    const value = JSON.stringify({ role: url_role, email: url_email });
+    try {
+      sessionStorage.setItem("academic_offer_prefill", value);
+    } catch {}
+  }
+
+  let stored: { role?: string; email?: string } = {};
+  try {
+    stored = JSON.parse(
+      sessionStorage.getItem("academic_offer_prefill") || "{}",
+    );
+  } catch {
+    stored = {};
+  }
+
+  const role: OfferRole =
+    (url_role ?? stored.role) === "journalist" ? "journalist" : "student";
+  const email = ((url_email ?? stored.email) || "").trim().slice(0, 254);
+
+  return { role, email };
+}
+
 export const RegisterStepAcademicOffer = ({
   reg,
 }: RegisterStepAcademicOfferProps) => {
   const { t } = reg;
-  const [role, set_role] = useState<OfferRole>("student");
-  const [academic_email, set_academic_email] = useState("");
+  const prefill = read_offer_prefill();
+  const [role, set_role] = useState<OfferRole>(prefill.role);
+  const [academic_email, set_academic_email] = useState(prefill.email);
   const [submitting, set_submitting] = useState(false);
   const [sent_to, set_sent_to] = useState("");
   const [turnstile_token, set_turnstile_token] = useState("");
