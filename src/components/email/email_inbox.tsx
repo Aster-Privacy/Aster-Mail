@@ -34,7 +34,11 @@ import { useSearchParams } from "react-router-dom";
 
 import { EmailListHeader } from "@/components/email/email_list_header";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
-import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  show_action_toast,
+  update_progress_toast,
+  hide_action_toast,
+} from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -57,10 +61,9 @@ import {
   remove_ids as remove_category_index_ids,
   reindex_ids as reindex_category_ids,
   is_fully_built as is_category_index_built,
-  get_page_ids as get_category_page_ids,
-  get_category_total,
 } from "@/services/category_index";
-import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
+import { run_category_scope_action } from "@/components/email/inbox/category_bulk_actions";
+import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { category_for_tab } from "@/services/mail_categorizer";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
@@ -883,57 +886,40 @@ export function EmailInbox({
 
   const run_category_bulk_action = useCallback(
     async (action: BulkScopeAction): Promise<boolean> => {
-      if (!is_category_index_built()) return false;
-      const total = get_category_total(categories.active_category);
-      const ids = get_category_page_ids(categories.active_category, 0, total);
+      let progress_toast_shown = false;
 
-      if (ids.length === 0) return true;
-      switch (action) {
-        case "trash":
-          await bulk_delete(ids);
+      try {
+        const outcome = await run_category_scope_action(
+          action,
+          categories.active_category,
+          {
+            on_progress: (completed, total) => {
+              if (total < PROGRESS_THRESHOLDS.SHOW_TOAST_PROGRESS) return;
+              if (!progress_toast_shown) {
+                progress_toast_shown = true;
+                show_action_toast({
+                  message: t("common.processing_count", {
+                    completed: String(completed),
+                    total: String(total),
+                  }),
+                  action_type: "progress",
+                  email_ids: [],
+                  progress: { completed, total },
+                });
 
-          return true;
-        case "archive":
-          await bulk_archive(ids);
+                return;
+              }
+              update_progress_toast(completed, total, t);
+            },
+          },
+        );
 
-          return true;
-        case "mark_spam": {
-          const result = await bulk_update_metadata_by_ids(ids, {
-            is_spam: true,
-            is_trashed: false,
-          });
-
-          if (!result.success) throw new Error("bulk mark_spam failed");
-          remove_category_index_ids(ids);
-
-          return true;
-        }
-        case "mark_read":
-        case "mark_unread": {
-          const result = await bulk_update_metadata_by_ids(ids, {
-            is_read: action === "mark_read",
-          });
-
-          if (!result.success) throw new Error("bulk read update failed");
-          reindex_category_ids(ids);
-
-          return true;
-        }
-        case "star":
-        case "unstar": {
-          const result = await bulk_update_metadata_by_ids(ids, {
-            is_starred: action === "star",
-          });
-
-          if (!result.success) throw new Error("bulk star update failed");
-
-          return true;
-        }
-        default:
-          return false;
+        return outcome !== "not_ready";
+      } finally {
+        if (progress_toast_shown) hide_action_toast();
       }
     },
-    [categories.active_category, bulk_delete, bulk_archive],
+    [categories.active_category, t],
   );
 
   const run_scope_action = useCallback(
