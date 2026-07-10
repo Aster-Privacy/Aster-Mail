@@ -409,6 +409,7 @@ export function use_email_viewer({
                   thread_message_count: item.thread_message_count,
                   grouped_count: grouped_email_ids_ref.current?.length,
                   conversation_grouping: preferences.conversation_grouping,
+                  acted_id: item.id,
                 });
               }
             } else if (!result.success && is_received) {
@@ -643,21 +644,24 @@ export function use_email_viewer({
             { is_read: true },
           );
 
-          if (result.success && !cancelled) {
-            set_is_read(true);
-            if (result.encrypted) {
-              set_mail_item((prev) =>
-                prev
-                  ? {
-                      ...prev,
-                      encrypted_metadata: result.encrypted!.encrypted_metadata,
-                      metadata_nonce: result.encrypted!.metadata_nonce,
-                      metadata: prev.metadata
-                        ? { ...prev.metadata, is_read: true }
-                        : undefined,
-                    }
-                  : prev,
-              );
+          if (result.success) {
+            if (!cancelled) {
+              set_is_read(true);
+              if (result.encrypted) {
+                set_mail_item((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        encrypted_metadata:
+                          result.encrypted!.encrypted_metadata,
+                        metadata_nonce: result.encrypted!.metadata_nonce,
+                        metadata: prev.metadata
+                          ? { ...prev.metadata, is_read: true }
+                          : undefined,
+                      }
+                    : prev,
+                );
+              }
             }
             emit_mail_item_updated({
               id: item.id,
@@ -671,6 +675,7 @@ export function use_email_viewer({
                 thread_message_count: item.thread_message_count,
                 grouped_count: grouped_email_ids_ref.current?.length,
                 conversation_grouping: preferences.conversation_grouping,
+                acted_id: item.id,
               });
             }
           } else if (!result.success && is_received_item) {

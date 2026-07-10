@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -295,6 +295,7 @@ export function use_single_actions(
           thread_message_count: email.thread_message_count,
           grouped_count: email.grouped_email_ids?.length,
           conversation_grouping: preferences.conversation_grouping,
+          acted_id: email.id,
         });
       }
 
@@ -351,6 +352,7 @@ export function use_single_actions(
           thread_message_count: email.thread_message_count,
           grouped_count: email.grouped_email_ids?.length,
           conversation_grouping: preferences.conversation_grouping,
+          acted_id: email.id,
         });
       }
 

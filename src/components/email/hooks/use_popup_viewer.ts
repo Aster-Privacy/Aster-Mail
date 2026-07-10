@@ -552,6 +552,7 @@ export function use_popup_viewer({
                   thread_message_count: mail_data.thread_message_count,
                   grouped_count: grouped_email_ids?.length,
                   conversation_grouping: preferences.conversation_grouping,
+                  acted_id: mail_data.id,
                 });
               }
             } else if (!result.success && is_received) {

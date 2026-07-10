@@ -204,7 +204,14 @@ export function use_archive_snooze_actions({
         email_ids: all_ids,
         on_undo: async () => {
           revert_stat_deltas(deltas);
-          await batch_unarchive({ ids: archive_ids });
+          const undo_result = await batch_unarchive({ ids: archive_ids });
+
+          if (undo_result.error || !undo_result.data?.success) {
+            reindex_ids(
+              Array.from(new Set([...archive_ids, ...removed_thread_ids])),
+            );
+            throw new Error("undo unarchive failed");
+          }
           try {
             await bulk_update_metadata_by_ids(archive_ids, {
               is_archived: false,

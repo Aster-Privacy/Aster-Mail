@@ -72,6 +72,8 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
+import { reindex_ids } from "@/services/category_index";
+import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { add_alias_pin } from "@/services/api/alias_pins";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
@@ -339,6 +341,13 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         encrypted_metadata: result.encrypted?.encrypted_metadata,
         metadata_nonce: result.encrypted?.metadata_nonce,
       });
+      if (new_state && is_received) {
+        mark_conversation_read({
+          thread_token: current_mail_item.thread_token,
+          thread_message_count: current_mail_item.thread_message_count,
+          acted_id: deps.email_id,
+        });
+      }
     }
   }, [deps.email_id, deps.is_read, deps.mail_item, deps.on_dismiss]);
 
@@ -426,7 +435,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         email_ids: [deps.email_id],
         on_undo: async () => {
           if (deltas) revert_stat_deltas(deltas);
-          await batch_unarchive({ ids: [deps.email_id] });
+          const undo_result = await batch_unarchive({ ids: [deps.email_id] });
+
+          if (undo_result.error || !undo_result.data?.success) {
+            reindex_ids([deps.email_id]);
+            throw new Error("undo unarchive failed");
+          }
           await bulk_update_metadata_by_ids([deps.email_id], {
             is_archived: false,
           });
@@ -462,7 +476,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       });
       invalidate_mail_cache();
       invalidate_mail_stats();
-      emit_mail_items_removed({ ids: [deps.email_id] });
+      reindex_ids([deps.email_id]);
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
       show_action_toast({
         message: deps.t("common.moved_to_inbox_toast"),
@@ -470,7 +484,15 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         email_ids: [deps.email_id],
         on_undo: async () => {
           if (deltas) revert_stat_deltas(deltas);
-          await batch_archive({ ids: [deps.email_id], tier: "hot" });
+          const undo_result = await batch_archive({
+            ids: [deps.email_id],
+            tier: "hot",
+          });
+
+          if (undo_result.error || !undo_result.data?.success) {
+            reindex_ids([deps.email_id]);
+            throw new Error("undo archive failed");
+          }
           await bulk_update_metadata_by_ids([deps.email_id], {
             is_archived: true,
           });
@@ -576,7 +598,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       if (sender) {
         remove_spam_sender(sender).catch(() => {});
       }
-      emit_mail_items_removed({ ids: [deps.email_id] });
+      reindex_ids([deps.email_id]);
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
       show_toast(deps.t("common.marked_as_not_spam"), "success");
       deps.on_dismiss();
@@ -818,6 +840,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       const result = await batch_archive({ ids: [msg.id], tier: "hot" });
 
       if (result.data?.success) {
+        await bulk_update_metadata_by_ids([msg.id], { is_archived: true });
         emit_mail_items_removed({ ids: [msg.id] });
         window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         show_action_toast({
@@ -825,7 +848,15 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           action_type: "archive",
           email_ids: [msg.id],
           on_undo: async () => {
-            await batch_unarchive({ ids: [msg.id] });
+            const undo_result = await batch_unarchive({ ids: [msg.id] });
+
+            if (undo_result.error || !undo_result.data?.success) {
+              reindex_ids([msg.id]);
+              throw new Error("undo unarchive failed");
+            }
+            await bulk_update_metadata_by_ids([msg.id], {
+              is_archived: false,
+            });
             window.dispatchEvent(
               new CustomEvent("astermail:mail-soft-refresh"),
             );
