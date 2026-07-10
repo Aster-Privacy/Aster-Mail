@@ -23,6 +23,9 @@ import { Preferences } from "@capacitor/preferences";
 import { is_native_platform, get_network_status } from "./capacitor_bridge";
 import { haptic_notification } from "./haptic_feedback";
 
+import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { get_current_account_id } from "@/services/account_manager";
+
 export type OfflineActionType =
   | "send_email"
   | "archive"
@@ -44,6 +47,74 @@ const QUEUE_KEY = "aster_offline_queue";
 const MAX_RETRIES = 3;
 
 let is_processing = false;
+
+function emit_window_event(name: string): void {
+  if (typeof window === "undefined") return;
+
+  window.dispatchEvent(new CustomEvent(name));
+}
+
+async function resolve_queue_key(): Promise<string> {
+  try {
+    const account_id = await get_current_account_id();
+
+    return account_id ? `${QUEUE_KEY}:${account_id}` : QUEUE_KEY;
+  } catch {
+    return QUEUE_KEY;
+  }
+}
+
+async function read_raw(key: string): Promise<string | null> {
+  if (!is_native_platform()) {
+    return localStorage.getItem(key);
+  }
+
+  const { value } = await Preferences.get({ key });
+
+  return value;
+}
+
+async function write_raw(key: string, value: string): Promise<void> {
+  if (!is_native_platform()) {
+    localStorage.setItem(key, value);
+
+    return;
+  }
+
+  await Preferences.set({ key, value });
+}
+
+async function remove_raw(key: string): Promise<void> {
+  if (!is_native_platform()) {
+    localStorage.removeItem(key);
+
+    return;
+  }
+
+  await Preferences.remove({ key });
+}
+
+async function migrate_legacy_queue(scoped_key: string): Promise<void> {
+  if (scoped_key === QUEUE_KEY) return;
+
+  const legacy = await read_raw(QUEUE_KEY);
+
+  if (!legacy) return;
+
+  const legacy_entries = JSON.parse(legacy) as QueuedAction[];
+  const stored = await read_raw(scoped_key);
+  const current_entries = stored
+    ? (JSON.parse(stored) as QueuedAction[])
+    : [];
+  const existing_ids = new Set(current_entries.map((a) => a.id));
+  const merged = [
+    ...current_entries,
+    ...legacy_entries.filter((a) => !existing_ids.has(a.id)),
+  ];
+
+  await write_raw(scoped_key, JSON.stringify(merged));
+  await remove_raw(QUEUE_KEY);
+}
 
 export async function initialize_offline_queue(): Promise<void> {
   if (!is_native_platform()) return;
@@ -83,15 +154,13 @@ export async function enqueue_action(
 
 export async function get_queue(): Promise<QueuedAction[]> {
   try {
-    if (!is_native_platform()) {
-      const stored = localStorage.getItem(QUEUE_KEY);
+    const key = await resolve_queue_key();
 
-      return stored ? JSON.parse(stored) : [];
-    }
+    await migrate_legacy_queue(key);
 
-    const { value } = await Preferences.get({ key: QUEUE_KEY });
+    const stored = await read_raw(key);
 
-    return value ? JSON.parse(value) : [];
+    return stored ? JSON.parse(stored) : [];
   } catch {
     await save_queue([]);
 
@@ -101,14 +170,9 @@ export async function get_queue(): Promise<QueuedAction[]> {
 
 async function save_queue(queue: QueuedAction[]): Promise<void> {
   const value = JSON.stringify(queue);
+  const key = await resolve_queue_key();
 
-  if (!is_native_platform()) {
-    localStorage.setItem(QUEUE_KEY, value);
-
-    return;
-  }
-
-  await Preferences.set({ key: QUEUE_KEY, value });
+  await write_raw(key, value);
 }
 
 export async function remove_from_queue(id: string): Promise<void> {
@@ -127,6 +191,9 @@ export async function process_offline_queue(): Promise<void> {
 
   is_processing = true;
 
+  let replayed_count = 0;
+  let dropped_count = 0;
+
   try {
     const queue = await get_queue();
 
@@ -134,6 +201,7 @@ export async function process_offline_queue(): Promise<void> {
       try {
         await process_action(action);
         await remove_from_queue(action.id);
+        replayed_count++;
         await haptic_notification("success");
       } catch (error) {
         action.retry_count++;
@@ -142,6 +210,7 @@ export async function process_offline_queue(): Promise<void> {
 
         if (action.retry_count >= MAX_RETRIES) {
           await remove_from_queue(action.id);
+          dropped_count++;
           notify_queue_failure(action);
         } else {
           const queue = await get_queue();
@@ -156,6 +225,14 @@ export async function process_offline_queue(): Promise<void> {
     }
   } finally {
     is_processing = false;
+
+    if (replayed_count > 0 || dropped_count > 0) {
+      emit_window_event(MAIL_EVENTS.MAIL_CHANGED);
+    }
+
+    if (replayed_count > 0) {
+      emit_window_event(MAIL_EVENTS.MAIL_STATS_STALE);
+    }
   }
 }
 
@@ -410,6 +487,8 @@ export function add_queue_status_listener(
 }
 
 function notify_queue_failure(action: QueuedAction): void {
+  if (typeof window === "undefined") return;
+
   const event = new CustomEvent("offline-queue-failure", {
     detail: { action },
   });
