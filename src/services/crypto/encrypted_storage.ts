@@ -37,10 +37,18 @@ const CURRENT_VERSION = 1;
 let db_instance: IDBDatabase | null = null;
 let db_promise: Promise<IDBDatabase> | null = null;
 
+function fill_random(buffer: Uint8Array): void {
+  const max = 65536;
+
+  for (let i = 0; i < buffer.length; i += max) {
+    crypto.getRandomValues(buffer.subarray(i, Math.min(i + max, buffer.length)));
+  }
+}
+
 function secure_zero_memory(buffer: Uint8Array): void {
-  crypto.getRandomValues(buffer);
+  fill_random(buffer);
   buffer.fill(0);
-  crypto.getRandomValues(buffer);
+  fill_random(buffer);
   buffer.fill(0);
 }
 
