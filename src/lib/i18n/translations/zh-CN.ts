@@ -1181,6 +1181,8 @@ export const zh_CN = {
     alias_avatars_locked: "自定义头像是付费套餐的功能，升级后即可开启。",
     alias_avatars_feature: "自定义别名和域名头像",
     remove_recovery_email: "移除恢复邮箱",
+    step_up_description: "为了您的安全，请确认密码以继续。",
+    step_up_error: "密码或验证码不正确，请重试。",
     remove_recovery_email_confirm: "确定要移除恢复邮箱吗？之后您将无法使用此邮箱恢复账户。",
     recovery_email_removed: "恢复邮箱已移除",
     failed_remove_recovery_email: "我们无法移除您的恢复邮箱，再试一次应该可以。您的恢复设置没有变化。",

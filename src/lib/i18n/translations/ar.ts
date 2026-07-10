@@ -1275,6 +1275,8 @@ export const ar = {
     sending_in_one_second: "الإرسال خلال ثانية واحدة...",
     message_will_be_sent_shortly: "ستُرسل رسالتك قريبًا",
     remove_recovery_email: "إزالة بريد الاسترداد",
+    step_up_description: "لأمانك، أكِّد كلمة المرور للمتابعة.",
+    step_up_error: "كلمة المرور أو رمز التحقق غير صحيح. حاول مرة أخرى.",
     remove_recovery_email_confirm: "هل أنت متأكد أنك تريد إزالة بريد الاسترداد؟ لن تتمكن بعد الآن من استرداد حسابك باستخدام هذا البريد.",
     recovery_email_removed: "تمت إزالة بريد الاسترداد",
     failed_remove_recovery_email: "تعذّرت إزالة بريد الاسترداد. محاولة أخرى ينبغي أن تنجح. إعداد الاسترداد لم يتغير.",
