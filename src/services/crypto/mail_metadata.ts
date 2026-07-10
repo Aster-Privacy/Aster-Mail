@@ -477,6 +477,13 @@ export async function update_item_metadata(
     const result = await promise;
 
     if (result.success) {
+      const item_prefix = `${item_id}|`;
+
+      for (const key of recently_completed.keys()) {
+        if (key !== dedup_key && key.startsWith(item_prefix)) {
+          recently_completed.delete(key);
+        }
+      }
       recently_completed.set(dedup_key, { result, timestamp: Date.now() });
     }
 

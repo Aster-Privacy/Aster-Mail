@@ -217,6 +217,7 @@ export function use_email_list_actions({
           mark_conversation_read({
             thread_token: email.thread_token,
             grouped_count: email.grouped_email_ids?.length,
+            acted_id: id,
           });
         }
       }
@@ -366,10 +367,6 @@ export function use_email_list_actions({
       }
       adjust_stats_archived(-1);
       invalidate_mail_cache();
-      emit_mail_item_updated({
-        id,
-        is_archived: false,
-      } as MailItemUpdatedEventDetail);
       const result = await api_batch_unarchive({ ids: [id] });
 
       if (result.data?.success) {
@@ -379,6 +376,10 @@ export function use_email_list_actions({
           void 0;
         }
         reindex_ids([id]);
+        emit_mail_item_updated({
+          id,
+          is_archived: false,
+        } as MailItemUpdatedEventDetail);
         setTimeout(() => {
           window.dispatchEvent(
             new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),

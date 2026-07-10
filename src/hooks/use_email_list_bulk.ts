@@ -257,11 +257,29 @@ export function use_email_list_bulk({
       invalidate_mail_cache();
 
       try {
-        await api_batch_archive({ ids: expanded_ids, tier: "hot" });
+        const result = await api_batch_archive({
+          ids: expanded_ids,
+          tier: "hot",
+        });
 
-        void bulk_update_metadata_by_ids(expanded_ids, {
-          is_archived: true,
-        }).catch(() => {});
+        if (result.error || !result.data?.success) {
+          throw new Error("batch archive failed");
+        }
+
+        let blob_updated = false;
+
+        try {
+          const blob_result = await bulk_update_metadata_by_ids(expanded_ids, {
+            is_archived: true,
+          });
+
+          blob_updated = blob_result.success;
+        } catch {
+          blob_updated = false;
+        }
+        if (!blob_updated) {
+          reindex_ids(expanded_ids);
+        }
 
         set_state((prev) => {
           if (prev.emails.length === 0 && prev.has_more) {
@@ -344,7 +362,11 @@ export function use_email_list_bulk({
       invalidate_mail_cache();
 
       try {
-        await api_batch_unarchive({ ids: expanded_ids });
+        const result = await api_batch_unarchive({ ids: expanded_ids });
+
+        if (result.error || !result.data?.success) {
+          throw new Error("batch unarchive failed");
+        }
 
         try {
           await bulk_update_metadata_by_ids(expanded_ids, {
