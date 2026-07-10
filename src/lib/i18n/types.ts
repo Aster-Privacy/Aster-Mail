@@ -1144,6 +1144,8 @@ export interface CommonTranslations {
   later: string;
   welcome_to_aster: string;
   purchase_thank_you: string;
+  purchase_congrats_title: string;
+  go_to_inbox: string;
   view_billing_settings: string;
   welcome_description: string;
   organize_with_folders: string;
