@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { EmailListState } from "@/types/email";
+import type { EmailListState, InboxEmail } from "@/types/email";
 
 import { useEffect, type MutableRefObject } from "react";
 
@@ -118,6 +118,40 @@ export function compute_should_remove_from_view(
 
       return false;
   }
+}
+
+export function apply_item_update_to_rows(
+  emails: InboxEmail[],
+  detail: MailItemUpdatedEventDetail,
+): { emails: InboxEmail[]; needs_refetch: boolean } {
+  let needs_refetch = false;
+
+  const next = emails.map((e) => {
+    if (e.id === detail.id) return { ...e, ...detail };
+
+    if (!e.grouped_email_ids?.includes(detail.id)) return e;
+
+    const updates: Partial<InboxEmail> = {};
+
+    if (detail.is_read === false) updates.is_read = false;
+    if (detail.is_starred === true) updates.is_starred = true;
+    if (detail.is_read === true || detail.is_starred === false) {
+      needs_refetch = true;
+    }
+
+    return Object.keys(updates).length > 0 ? { ...e, ...updates } : e;
+  });
+
+  return { emails: next, needs_refetch };
+}
+
+export function row_contains_sibling(
+  emails: InboxEmail[],
+  id: string,
+): boolean {
+  return emails.some(
+    (e) => e.id !== id && e.grouped_email_ids?.includes(id) === true,
+  );
 }
 
 export function use_email_list_events({
@@ -251,6 +285,7 @@ export function use_email_list_events({
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_soft_refresh);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, silent_handler);
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, silent_handler);
+    window.addEventListener(MAIL_EVENTS.SNOOZED_CHANGED, silent_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, full_fetch_handler);
     window.addEventListener(
@@ -275,6 +310,7 @@ export function use_email_list_events({
       );
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, silent_handler);
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, silent_handler);
+      window.removeEventListener(MAIL_EVENTS.SNOOZED_CHANGED, silent_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
       window.removeEventListener(
         MAIL_EVENTS.FOLDERS_CHANGED,
@@ -326,28 +362,49 @@ export function use_email_list_events({
 
       mark_preload_stale(detail.id);
 
+      let refetch_scheduled = false;
+      const schedule_silent_refetch = () => {
+        if (refetch_scheduled) return;
+        refetch_scheduled = true;
+        queueMicrotask(() => {
+          silent_fetch_ref.current?.();
+        });
+      };
+
       if (compute_should_remove_from_view(detail, current_view)) {
         set_state((prev) => {
           const had_email = prev.emails.some((e) => e.id === detail.id);
 
+          if (!had_email) {
+            if (row_contains_sibling(prev.emails, detail.id)) {
+              schedule_silent_refetch();
+            }
+
+            return prev;
+          }
+
           return {
             ...prev,
             emails: prev.emails.filter((e) => e.id !== detail.id),
-            total_messages: had_email
-              ? Math.max(0, prev.total_messages - 1)
-              : prev.total_messages,
+            total_messages: Math.max(0, prev.total_messages - 1),
           };
         });
 
         return;
       }
 
-      set_state((prev) => ({
-        ...prev,
-        emails: prev.emails.map((e) =>
-          e.id === detail.id ? { ...e, ...detail } : e,
-        ),
-      }));
+      set_state((prev) => {
+        const { emails, needs_refetch } = apply_item_update_to_rows(
+          prev.emails,
+          detail,
+        );
+
+        if (needs_refetch) {
+          schedule_silent_refetch();
+        }
+
+        return { ...prev, emails };
+      });
     };
 
     const handle_items_removed = (event: Event) => {
@@ -387,5 +444,5 @@ export function use_email_list_events({
         handle_items_removed,
       );
     };
-  }, [current_view, set_state]);
+  }, [current_view, set_state, silent_fetch_ref]);
 }

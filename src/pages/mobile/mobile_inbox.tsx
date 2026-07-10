@@ -358,13 +358,23 @@ function MobileInbox({
 
     if (emails.length === 0) return;
     haptic_impact("medium");
-    if (is_archive_view) {
-      await actions.bulk_unarchive(emails);
+    const ok = is_archive_view
+      ? await actions.bulk_unarchive(emails)
+      : await actions.bulk_archive(emails);
+
+    if (ok) {
+      for (const email of emails) {
+        remove_email(email.id);
+      }
     } else {
-      await actions.bulk_archive(emails);
-    }
-    for (const email of emails) {
-      remove_email(email.id);
+      show_toast(
+        t(
+          is_archive_view
+            ? "common.failed_to_move_email"
+            : "common.failed_to_archive_emails",
+        ),
+        "error",
+      );
     }
     exit_selection_mode();
   }, [
@@ -373,6 +383,7 @@ function MobileInbox({
     remove_email,
     exit_selection_mode,
     is_archive_view,
+    t,
   ]);
 
   const handle_bulk_delete = useCallback(async () => {
@@ -380,12 +391,17 @@ function MobileInbox({
 
     if (emails.length === 0) return;
     haptic_impact("medium");
-    await actions.bulk_delete(emails);
-    for (const email of emails) {
-      remove_email(email.id);
+    const ok = await actions.bulk_delete(emails);
+
+    if (ok) {
+      for (const email of emails) {
+        remove_email(email.id);
+      }
+    } else {
+      show_toast(t("common.failed_to_delete_emails"), "error");
     }
     exit_selection_mode();
-  }, [get_selected_emails, actions, remove_email, exit_selection_mode]);
+  }, [get_selected_emails, actions, remove_email, exit_selection_mode, t]);
 
   const handle_bulk_toggle_star = useCallback(async () => {
     const emails = get_selected_emails();
@@ -415,12 +431,11 @@ function MobileInbox({
 
   const handle_archive = useCallback(
     async (email: InboxEmail) => {
-      if (email.is_archived) {
-        await actions.unarchive_email(email);
-      } else {
-        await actions.archive_email(email);
-      }
-      remove_email(email.id);
+      const success = email.is_archived
+        ? await actions.unarchive_email(email)
+        : await actions.archive_email(email);
+
+      if (success) remove_email(email.id);
     },
     [actions, remove_email],
   );
@@ -428,14 +443,20 @@ function MobileInbox({
   const handle_delete = useCallback(
     async (email: InboxEmail) => {
       if (is_trash_view) {
-        remove_email(email.id);
-        await actions.permanently_delete(email);
+        const ok = await actions.permanently_delete(email);
+
+        if (ok) {
+          remove_email(email.id);
+        } else {
+          show_toast(t("common.failed_to_permanently_delete"), "error");
+        }
       } else {
-        await actions.delete_email(email);
-        remove_email(email.id);
+        const ok = await actions.delete_email(email);
+
+        if (ok) remove_email(email.id);
       }
     },
-    [actions, remove_email, is_trash_view],
+    [actions, remove_email, is_trash_view, t],
   );
 
   const handle_toggle_star = useCallback(
@@ -468,8 +489,9 @@ function MobileInbox({
 
   const handle_mark_spam = useCallback(
     async (email: InboxEmail) => {
-      await actions.mark_as_spam(email);
-      remove_email(email.id);
+      const success = await actions.mark_as_spam(email);
+
+      if (success) remove_email(email.id);
     },
     [actions, remove_email],
   );

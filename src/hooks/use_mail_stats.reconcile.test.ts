@@ -128,4 +128,44 @@ describe("use_mail_stats optimistic reconcile", () => {
     // Exactly one reconcile after the burst settles.
     expect(mock_get_mail_stats).toHaveBeenCalledTimes(2);
   });
+
+  it("runs a single follow-up reconcile a few seconds after an adjustment", async () => {
+    mock_get_mail_stats.mockResolvedValue(server_stats(5));
+
+    prefetch_mail_stats();
+    await flush();
+    expect(mock_get_mail_stats).toHaveBeenCalledTimes(1);
+
+    adjust_stats_unread(-1);
+
+    await vi.advanceTimersByTimeAsync(2_000);
+    await flush();
+    expect(mock_get_mail_stats).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    await flush();
+    expect(mock_get_mail_stats).toHaveBeenCalledTimes(3);
+
+    await vi.advanceTimersByTimeAsync(30_000);
+    await flush();
+    expect(mock_get_mail_stats).toHaveBeenCalledTimes(3);
+  });
+
+  it("coalesces the follow-up reconcile across a burst of adjustments", async () => {
+    mock_get_mail_stats.mockResolvedValue(server_stats(10));
+
+    prefetch_mail_stats();
+    await flush();
+    expect(mock_get_mail_stats).toHaveBeenCalledTimes(1);
+
+    for (let i = 0; i < 4; i++) {
+      adjust_stats_unread(-1);
+      await vi.advanceTimersByTimeAsync(200);
+    }
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    await flush();
+
+    expect(mock_get_mail_stats).toHaveBeenCalledTimes(3);
+  });
 });

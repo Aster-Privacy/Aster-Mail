@@ -396,6 +396,7 @@ export function use_context_menu_actions({
           mark_conversation_read({
             thread_token: email.thread_token,
             grouped_count: email.grouped_email_ids?.length,
+            acted_id: email.id,
           });
         }
         show_action_toast({

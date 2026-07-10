@@ -34,7 +34,11 @@ import { useSearchParams } from "react-router-dom";
 
 import { EmailListHeader } from "@/components/email/email_list_header";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
-import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  show_action_toast,
+  update_progress_toast,
+  hide_action_toast,
+} from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -58,6 +62,8 @@ import {
   reindex_ids as reindex_category_ids,
   is_fully_built as is_category_index_built,
 } from "@/services/category_index";
+import { run_category_scope_action } from "@/components/email/inbox/category_bulk_actions";
+import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { category_for_tab } from "@/services/mail_categorizer";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
@@ -727,7 +733,9 @@ export function EmailInbox({
     return () => clearTimeout(timer);
   }, [
     current_view,
+    current_page,
     email_state.is_loading,
+    email_state.emails,
     folders_loading_for_view,
     email_state.has_initial_load,
   ]);
@@ -831,6 +839,8 @@ export function EmailInbox({
   ]);
 
   const selection = use_inbox_selection({
+    current_view,
+    active_category: categories.enabled ? categories.active_category : "",
     is_drafts_view,
     is_scheduled_view,
     emails: email_state.emails,
@@ -874,15 +884,63 @@ export function EmailInbox({
     set_pending_select_all_action(() => action);
   }, []);
 
+  const run_category_bulk_action = useCallback(
+    async (action: BulkScopeAction): Promise<boolean> => {
+      let progress_toast_shown = false;
+
+      try {
+        const outcome = await run_category_scope_action(
+          action,
+          categories.active_category,
+          {
+            on_progress: (completed, total) => {
+              if (total < PROGRESS_THRESHOLDS.SHOW_TOAST_PROGRESS) return;
+              if (!progress_toast_shown) {
+                progress_toast_shown = true;
+                show_action_toast({
+                  message: t("common.processing_count", {
+                    completed: String(completed),
+                    total: String(total),
+                  }),
+                  action_type: "progress",
+                  email_ids: [],
+                  progress: { completed, total },
+                });
+
+                return;
+              }
+              update_progress_toast(completed, total, t);
+            },
+          },
+        );
+
+        return outcome !== "not_ready";
+      } finally {
+        if (progress_toast_shown) hide_action_toast();
+      }
+    },
+    [categories.active_category, t],
+  );
+
   const run_scope_action = useCallback(
     async (action: BulkScopeAction) => {
       try {
-        const res = await bulk_action_by_scope({
-          action,
-          scope: scope_for_view,
-        });
+        if (categories.enabled) {
+          const handled = await run_category_bulk_action(action);
 
-        if (res.error) throw new Error(res.error);
+          if (!handled) {
+            show_toast(t("mail.bulk_action_index_not_ready"), "error");
+
+            return;
+          }
+        } else {
+          const res = await bulk_action_by_scope({
+            action,
+            scope: scope_for_view,
+          });
+
+          if (res.error) throw new Error(res.error);
+        }
         selection.exit_select_all_mode();
         selection.handle_clear_selection();
         set_current_page(0);
@@ -893,7 +951,15 @@ export function EmailInbox({
         show_toast(t("common.something_went_wrong"), "error");
       }
     },
-    [scope_for_view, selection, fetch_page, set_current_page, t],
+    [
+      categories.enabled,
+      run_category_bulk_action,
+      scope_for_view,
+      selection,
+      fetch_page,
+      set_current_page,
+      t,
+    ],
   );
 
   const handle_delete_wrapped = useCallback(() => {

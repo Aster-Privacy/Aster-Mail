@@ -32,6 +32,10 @@ import {
   type BulkSnoozeResponse,
 } from "@/services/api/snooze";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  remove_ids as remove_index_ids,
+  reindex_ids,
+} from "@/services/category_index";
 
 interface UseSnoozeReturn {
   snooze: (mail_item_id: string, snoozed_until: Date) => Promise<void>;
@@ -63,6 +67,8 @@ export function use_snooze(): UseSnoozeReturn {
           throw new Error(response.error || t("errors.failed_to_snooze_email"));
         }
 
+        remove_index_ids([mail_item_id]);
+        reindex_ids([mail_item_id]);
         window.dispatchEvent(
           new CustomEvent("astermail:mail-snoozed", {
             detail: {
@@ -100,6 +106,8 @@ export function use_snooze(): UseSnoozeReturn {
           throw new Error(response.error || t("errors.failed_to_snooze_emails"));
         }
 
+        remove_index_ids(mail_item_ids);
+        reindex_ids(mail_item_ids);
         window.dispatchEvent(
           new CustomEvent("astermail:mail-bulk-snoozed", {
             detail: {
@@ -168,6 +176,7 @@ export function use_snooze(): UseSnoozeReturn {
         throw new Error(response.error || t("errors.failed_to_unsnooze_email"));
       }
 
+      reindex_ids([mail_item_id]);
       window.dispatchEvent(
         new CustomEvent("astermail:mail-unsnoozed", {
           detail: { mail_item_id },

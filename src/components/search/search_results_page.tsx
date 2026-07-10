@@ -29,6 +29,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { get_mail_item } from "@/services/api/mail";
+import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { InboxHeader } from "@/components/inbox/inbox_header";
@@ -435,16 +436,34 @@ export function SearchResultsPage({
           if (res.error || !res.data) return null;
           const m = res.data;
 
+          let metadata = m.metadata ?? null;
+
+          if (!metadata && m.encrypted_metadata && m.metadata_nonce) {
+            try {
+              metadata = await decrypt_mail_metadata(
+                m.encrypted_metadata,
+                m.metadata_nonce,
+                m.metadata_version,
+              );
+            } catch {
+              metadata = null;
+            }
+          }
+
           return {
             id: m.id,
+            item_type: m.item_type,
+            thread_token: m.thread_token,
+            thread_message_count: m.thread_message_count,
             encrypted_metadata: m.encrypted_metadata,
             metadata_nonce: m.metadata_nonce,
             metadata_version: m.metadata_version,
-            is_read: m.metadata?.is_read ?? true,
-            is_starred: m.metadata?.is_starred ?? false,
-            is_trashed: m.is_trashed ?? false,
-            is_archived: m.metadata?.is_archived ?? false,
-            is_spam: m.is_spam ?? false,
+            is_read: m.is_read === true || (metadata?.is_read ?? false),
+            is_starred: metadata?.is_starred ?? false,
+            is_trashed: m.is_trashed === true || (metadata?.is_trashed ?? false),
+            is_archived:
+              m.is_archived === true || (metadata?.is_archived ?? false),
+            is_spam: m.is_spam === true || (metadata?.is_spam ?? false),
           } as unknown as InboxEmail;
         }),
       );
