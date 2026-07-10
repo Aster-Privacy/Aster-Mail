@@ -613,6 +613,7 @@ export const en: Translations = {
     conversations_marked_as_spam_bulk:
       "{{count}} conversation(s) marked as spam",
     conversations_restored_bulk: "{{count}} conversation(s) restored",
+    failed_to_restore_conversations: "These conversations were not restored. Another attempt should do it.",
     conversations_snoozed_bulk: "{{count}} conversation(s) snoozed",
     conversations_marked_as_read_bulk:
       "{{count}} conversation(s) marked as read",
@@ -5037,6 +5038,7 @@ export const en: Translations = {
     delete_messages_confirmation: "The selected messages will be removed for good and you cannot undo it.",
     confirm_bulk_action_title: "Confirm bulk action",
     confirm_bulk_action_description: "This action will affect every conversation in this view.",
+    bulk_action_index_not_ready: "This tab is still being indexed. Try again in a moment.",
     archive_messages_title: "Archive Messages",
     archive_messages_confirmation:
       "Are you sure you want to archive the selected messages?",

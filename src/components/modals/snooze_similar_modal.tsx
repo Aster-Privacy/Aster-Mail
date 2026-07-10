@@ -60,6 +60,7 @@ import {
   emit_snoozed_changed,
 } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { remove_ids as remove_index_ids } from "@/services/category_index";
 import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -345,6 +346,7 @@ export function SnoozeSimilarModal({
         set_snoozed_count(result.data.snoozed_count);
         set_show_success(true);
 
+        remove_index_ids(all_ids);
         emit_mail_items_removed({ ids: all_ids });
         emit_snoozed_changed();
         invalidate_mail_stats();
