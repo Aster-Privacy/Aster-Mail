@@ -431,12 +431,11 @@ function MobileInbox({
 
   const handle_archive = useCallback(
     async (email: InboxEmail) => {
-      if (email.is_archived) {
-        await actions.unarchive_email(email);
-      } else {
-        await actions.archive_email(email);
-      }
-      remove_email(email.id);
+      const success = email.is_archived
+        ? await actions.unarchive_email(email)
+        : await actions.archive_email(email);
+
+      if (success) remove_email(email.id);
     },
     [actions, remove_email],
   );
@@ -490,8 +489,9 @@ function MobileInbox({
 
   const handle_mark_spam = useCallback(
     async (email: InboxEmail) => {
-      await actions.mark_as_spam(email);
-      remove_email(email.id);
+      const success = await actions.mark_as_spam(email);
+
+      if (success) remove_email(email.id);
     },
     [actions, remove_email],
   );

@@ -475,6 +475,15 @@ export function use_single_actions(
           action_type: "archive",
           email_ids: [email.id],
           on_undo: async () => {
+            const undo_result = await api_batch_unarchive({
+              ids: [email.id],
+            });
+
+            if (undo_result.error || !undo_result.data?.success) {
+              throw new Error(
+                undo_result.error || t("common.failed_to_move_email"),
+              );
+            }
             revert_stat_deltas(deltas);
             await update_with_metadata(email, original_state);
             emit_mail_soft_refresh();
@@ -526,6 +535,16 @@ export function use_single_actions(
           action_type: "restore",
           email_ids: [email.id],
           on_undo: async () => {
+            const undo_result = await api_batch_archive({
+              ids: [email.id],
+              tier: "hot",
+            });
+
+            if (undo_result.error || !undo_result.data?.success) {
+              throw new Error(
+                undo_result.error || t("common.failed_to_archive_emails"),
+              );
+            }
             revert_stat_deltas(deltas);
             await update_with_metadata(email, { is_archived: true });
             emit_mail_soft_refresh();
