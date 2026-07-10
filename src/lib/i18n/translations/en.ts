@@ -128,6 +128,8 @@ export const en: Translations = {
     verification_email_sent: "Verification email sent",
     failed_verification_email: "We could not send the verification email just now. Another attempt in a moment usually does it. Your account is unchanged.",
     remove_recovery_email: "Remove recovery email",
+    step_up_description: "For your security, confirm your password to continue.",
+    step_up_error: "Incorrect password or verification code. Please try again.",
     remove_recovery_email_confirm:
       "Are you sure you want to remove your recovery email? You will no longer be able to recover your account using this email.",
     recovery_email_removed: "Recovery email removed",

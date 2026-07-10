@@ -444,6 +444,8 @@ export interface CommonTranslations {
   verification_email_sent: string;
   failed_verification_email: string;
   remove_recovery_email: string;
+  step_up_description: string;
+  step_up_error: string;
   remove_recovery_email_confirm: string;
   recovery_email_removed: string;
   failed_remove_recovery_email: string;

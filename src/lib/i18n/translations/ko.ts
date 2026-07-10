@@ -1256,6 +1256,8 @@ export const ko = {
     sending_in_one_second: "1초 후에 전송됩니다...",
     message_will_be_sent_shortly: "메시지가 곧 전송됩니다",
     remove_recovery_email: "복구 이메일 제거",
+    step_up_description: "보안을 위해 계속하려면 비밀번호를 확인하세요.",
+    step_up_error: "비밀번호 또는 인증 코드가 올바르지 않습니다. 다시 시도하세요.",
     remove_recovery_email_confirm: "복구 이메일을 제거하시겠습니까? 이 이메일로 더 이상 계정을 복구할 수 없습니다.",
     recovery_email_removed: "복구 이메일이 제거되었습니다",
     failed_remove_recovery_email: "복구 이메일을 제거할 수 없었습니다. 다시 시도하면 됩니다. 복구 설정은 그대로입니다.",
