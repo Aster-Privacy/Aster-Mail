@@ -204,6 +204,12 @@ export function use_reply_modal({
   );
   const [show_quoted, set_show_quoted] = useState(false);
   const [include_quoted, set_include_quoted] = useState(true);
+  const [cc_recipients, set_cc_recipients] = useState<string[]>([]);
+  const [bcc_recipients, set_bcc_recipients] = useState<string[]>([]);
+  const [cc_input, set_cc_input] = useState("");
+  const [bcc_input, set_bcc_input] = useState("");
+  const [show_cc, set_show_cc] = useState(false);
+  const [show_bcc, set_show_bcc] = useState(false);
   const [draft_id, set_draft_id] = useState<string | null>(null);
   const [draft_version, set_draft_version] = useState<number>(1);
   const [expires_at, set_expires_at] = useState<Date | null>(null);
@@ -321,6 +327,39 @@ export function use_reply_modal({
     },
     [],
   );
+
+  const show_cc_field = useCallback(() => set_show_cc(true), []);
+  const show_bcc_field = useCallback(() => set_show_bcc(true), []);
+  const hide_cc_field = useCallback(() => {
+    set_show_cc(false);
+    set_cc_recipients([]);
+    set_cc_input("");
+  }, []);
+  const hide_bcc_field = useCallback(() => {
+    set_show_bcc(false);
+    set_bcc_recipients([]);
+    set_bcc_input("");
+  }, []);
+
+  const add_cc_recipient = useCallback((email: string) => {
+    set_cc_recipients((prev) => (prev.includes(email) ? prev : [...prev, email]));
+  }, []);
+  const remove_cc_recipient = useCallback((email: string) => {
+    set_cc_recipients((prev) => prev.filter((e) => e !== email));
+  }, []);
+  const remove_last_cc_recipient = useCallback(() => {
+    set_cc_recipients((prev) => prev.slice(0, -1));
+  }, []);
+
+  const add_bcc_recipient = useCallback((email: string) => {
+    set_bcc_recipients((prev) => (prev.includes(email) ? prev : [...prev, email]));
+  }, []);
+  const remove_bcc_recipient = useCallback((email: string) => {
+    set_bcc_recipients((prev) => prev.filter((e) => e !== email));
+  }, []);
+  const remove_last_bcc_recipient = useCallback(() => {
+    set_bcc_recipients((prev) => prev.slice(0, -1));
+  }, []);
 
   useEffect(() => {
     if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
@@ -456,6 +495,12 @@ export function use_reply_modal({
     set_last_saved_time(null);
     set_show_delete_confirm(false);
     set_is_plain_text_mode(false);
+    set_cc_recipients(matching_draft?.content.cc_recipients ?? []);
+    set_bcc_recipients(matching_draft?.content.bcc_recipients ?? []);
+    set_cc_input("");
+    set_bcc_input("");
+    set_show_cc((matching_draft?.content.cc_recipients?.length ?? 0) > 0);
+    set_show_bcc((matching_draft?.content.bcc_recipients?.length ?? 0) > 0);
     last_saved_text.current = matching_draft?.content.message ?? "";
   }, [is_open, original_email_id]);
 
@@ -567,8 +612,8 @@ export function use_reply_modal({
 
       const content: DraftContent = {
         to_recipients: [recipient_email],
-        cc_recipients: [],
-        bcc_recipients: [],
+        cc_recipients,
+        bcc_recipients,
         subject,
         message: text,
       };
@@ -633,6 +678,8 @@ export function use_reply_modal({
       draft_id,
       draft_version,
       on_draft_saved,
+      cc_recipients,
+      bcc_recipients,
     ],
   );
 
@@ -835,6 +882,8 @@ export function use_reply_modal({
         sender_alias_hash: sender_alias_hash_value,
         in_reply_to: original_rfc_message_id,
         attachments: attachments.length > 0 ? attachments : undefined,
+        extra_cc: cc_recipients.length > 0 ? cc_recipients : undefined,
+        extra_bcc: bcc_recipients.length > 0 ? bcc_recipients : undefined,
       },
       {
         on_complete: () => {
@@ -981,6 +1030,8 @@ export function use_reply_modal({
     user,
     is_plain_text_mode,
     attachments,
+    cc_recipients,
+    bcc_recipients,
   ]);
 
   const handle_scheduled_send = useCallback(async () => {
@@ -1010,8 +1061,8 @@ export function use_reply_modal({
 
     const content: ScheduledEmailContent = {
       to_recipients: [recipient_email],
-      cc_recipients: [],
-      bcc_recipients: [],
+      cc_recipients,
+      bcc_recipients,
       subject: build_reply_subject(
         original_subject,
         t("mail.reply_subject_prefix"),
@@ -1068,6 +1119,8 @@ export function use_reply_modal({
     draft_id,
     is_plain_text_mode,
     attachments,
+    cc_recipients,
+    bcc_recipients,
   ]);
 
   const handle_close = useCallback(() => {
@@ -1291,5 +1344,23 @@ export function use_reply_modal({
     original_body,
     preferred_sender_id,
     handle_set_preferred,
+    cc_recipients,
+    bcc_recipients,
+    cc_input,
+    bcc_input,
+    show_cc,
+    show_bcc,
+    set_cc_input,
+    set_bcc_input,
+    show_cc_field,
+    show_bcc_field,
+    hide_cc_field,
+    hide_bcc_field,
+    add_cc_recipient,
+    remove_cc_recipient,
+    remove_last_cc_recipient,
+    add_bcc_recipient,
+    remove_bcc_recipient,
+    remove_last_bcc_recipient,
   };
 }

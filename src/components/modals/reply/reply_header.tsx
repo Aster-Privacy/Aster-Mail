@@ -22,6 +22,7 @@ import type { SenderOption } from "@/hooks/use_sender_aliases";
 
 import { CloseIcon } from "@/components/common/icons";
 import { RecipientBadge } from "@/components/compose/compose_shared";
+import { RecipientField } from "@/components/compose/compose_recipients";
 import { SenderSelector } from "@/components/compose/sender_selector";
 import { use_i18n } from "@/lib/i18n/context";
 import { build_reply_subject } from "@/lib/reply_subject";
@@ -46,6 +47,24 @@ interface ReplyHeaderProps {
   ghost_locked?: boolean;
   preferred_id?: string | null;
   on_set_preferred?: (id: string | null) => void;
+  cc_recipients: string[];
+  bcc_recipients: string[];
+  cc_input: string;
+  bcc_input: string;
+  show_cc: boolean;
+  show_bcc: boolean;
+  set_cc_input: (val: string) => void;
+  set_bcc_input: (val: string) => void;
+  show_cc_field: () => void;
+  show_bcc_field: () => void;
+  hide_cc_field: () => void;
+  hide_bcc_field: () => void;
+  add_cc_recipient: (email: string) => void;
+  remove_cc_recipient: (email: string) => void;
+  remove_last_cc_recipient: () => void;
+  add_bcc_recipient: (email: string) => void;
+  remove_bcc_recipient: (email: string) => void;
+  remove_last_bcc_recipient: () => void;
 }
 
 export function ReplyHeader({
@@ -68,6 +87,24 @@ export function ReplyHeader({
   ghost_locked,
   preferred_id,
   on_set_preferred,
+  cc_recipients,
+  bcc_recipients,
+  cc_input,
+  bcc_input,
+  show_cc,
+  show_bcc,
+  set_cc_input,
+  set_bcc_input,
+  show_cc_field,
+  show_bcc_field,
+  hide_cc_field,
+  hide_bcc_field,
+  add_cc_recipient,
+  remove_cc_recipient,
+  remove_last_cc_recipient,
+  add_bcc_recipient,
+  remove_bcc_recipient,
+  remove_last_bcc_recipient,
 }: ReplyHeaderProps) {
   const { t } = use_i18n();
 
@@ -175,7 +212,57 @@ export function ReplyHeader({
               {t("mail.to")}
             </span>
             <RecipientBadge email={recipient_email} />
+            <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
+              {!show_cc && (
+                <button
+                  className="text-xs px-2 py-1 rounded transition-colors hover_bg text-txt-tertiary"
+                  title={t("common.carbon_copy")}
+                  onClick={show_cc_field}
+                >
+                  Cc
+                </button>
+              )}
+              {!show_bcc && (
+                <button
+                  className="text-xs px-2 py-1 rounded transition-colors hover_bg text-txt-tertiary"
+                  title={t("common.blind_carbon_copy")}
+                  onClick={show_bcc_field}
+                >
+                  Bcc
+                </button>
+              )}
+            </div>
           </div>
+
+          {show_cc && (
+            <div className="py-2 border-b border-edge-secondary">
+              <RecipientField
+                input_value={cc_input}
+                label={t("mail.cc")}
+                on_add_recipient={add_cc_recipient}
+                on_close={hide_cc_field}
+                on_input_change={set_cc_input}
+                on_remove_last={remove_last_cc_recipient}
+                on_remove_recipient={remove_cc_recipient}
+                recipients={cc_recipients}
+              />
+            </div>
+          )}
+
+          {show_bcc && (
+            <div className="py-2 border-b border-edge-secondary">
+              <RecipientField
+                input_value={bcc_input}
+                label={t("mail.bcc")}
+                on_add_recipient={add_bcc_recipient}
+                on_close={hide_bcc_field}
+                on_input_change={set_bcc_input}
+                on_remove_last={remove_last_bcc_recipient}
+                on_remove_recipient={remove_bcc_recipient}
+                recipients={bcc_recipients}
+              />
+            </div>
+          )}
 
           <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
             <span className="text-sm flex-shrink-0 text-txt-tertiary">

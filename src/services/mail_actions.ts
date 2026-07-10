@@ -60,6 +60,8 @@ export interface ReplyParams {
   sender_alias_hash?: string;
   in_reply_to?: string;
   attachments?: import("@/components/compose/compose_shared").Attachment[];
+  extra_cc?: string[];
+  extra_bcc?: string[];
 }
 
 export interface ForwardParams {
@@ -149,6 +151,15 @@ export async function send_reply(
 
   const current_user_email = current_account.user.email;
   const recipients = build_reply_recipients(params, current_user_email);
+  const cc_recipients = (params.extra_cc || []).filter((addr) => {
+    const normalized = addr.toLowerCase().trim();
+
+    return (
+      normalized !== current_user_email.toLowerCase() &&
+      !recipients.some((r) => r.toLowerCase() === normalized)
+    );
+  });
+  const bcc_recipients = params.extra_bcc || [];
   const subject = build_reply_subject(params.original.subject);
   const base_subject = strip_reply_prefix(
     params.original.subject,
@@ -174,6 +185,8 @@ export async function send_reply(
     const result = await queue_email_to_server(
       {
         to: recipients,
+        cc: cc_recipients,
+        bcc: bcc_recipients,
         subject,
         envelope_subject: base_subject,
         body: params.message,
@@ -211,6 +224,8 @@ export async function send_reply(
   const queued_id = queue_email(
     {
       to: recipients,
+      cc: cc_recipients,
+      bcc: bcc_recipients,
       subject,
       envelope_subject: base_subject,
       body: params.message,

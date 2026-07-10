@@ -208,6 +208,24 @@ export function ReplyModal({
               }
               preferred_id={modal.preferred_sender_id}
               on_set_preferred={modal.handle_set_preferred}
+              add_bcc_recipient={modal.add_bcc_recipient}
+              add_cc_recipient={modal.add_cc_recipient}
+              bcc_input={modal.bcc_input}
+              bcc_recipients={modal.bcc_recipients}
+              cc_input={modal.cc_input}
+              cc_recipients={modal.cc_recipients}
+              hide_bcc_field={modal.hide_bcc_field}
+              hide_cc_field={modal.hide_cc_field}
+              remove_bcc_recipient={modal.remove_bcc_recipient}
+              remove_cc_recipient={modal.remove_cc_recipient}
+              remove_last_bcc_recipient={modal.remove_last_bcc_recipient}
+              remove_last_cc_recipient={modal.remove_last_cc_recipient}
+              set_bcc_input={modal.set_bcc_input}
+              set_cc_input={modal.set_cc_input}
+              show_bcc={modal.show_bcc}
+              show_bcc_field={modal.show_bcc_field}
+              show_cc={modal.show_cc}
+              show_cc_field={modal.show_cc_field}
             />
 
             <ReplyBody
