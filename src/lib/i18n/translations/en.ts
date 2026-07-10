@@ -5839,6 +5839,18 @@ export const en: Translations = {
       "Pick the plan that fits you. You can change or cancel anytime.",
     plan_continue_with_free: "Continue with Free",
     plan_continue_as_free: "Continue as free",
+    academic_offer_title: "Student or journalist? Get 30% off",
+    academic_offer_desc: "30% off individual plans for 12 months. Students: verify your university email now and your personal code will be ready at checkout. Journalists: contact support after signup.",
+    academic_offer_sent: "Verification link sent to {{ email }}. Click it and your discount code will appear in Settings under Billing.",
+    academic_offer_journalist: "Journalist? Finish signup, then contact support with a press credential to receive your code.",
+    academic_offer_headline: "Student or journalist?",
+    academic_offer_subline: "Get 30% off Star, Nova, and Supernova for a year. Students: enter your university email and we send you one verification link.",
+    academic_offer_cta: "Email me a verification link",
+    academic_offer_not_now: "Not now",
+    academic_offer_journalist_link: "I'm a journalist",
+    academic_offer_student_link: "I'm a student",
+    academic_offer_sent_title: "Check your inbox",
+    academic_offer_continue: "Continue",
     plan_star_description:
       "More storage, more aliases, and your first custom domain.",
     plan_nova_description:

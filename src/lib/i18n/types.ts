@@ -5703,6 +5703,18 @@ export interface AuthTranslations {
   plan_selection_subtitle: string;
   plan_continue_with_free: string;
   plan_continue_as_free: string;
+  academic_offer_title: string;
+  academic_offer_desc: string;
+  academic_offer_sent: string;
+  academic_offer_journalist: string;
+  academic_offer_headline: string;
+  academic_offer_subline: string;
+  academic_offer_cta: string;
+  academic_offer_not_now: string;
+  academic_offer_journalist_link: string;
+  academic_offer_student_link: string;
+  academic_offer_sent_title: string;
+  academic_offer_continue: string;
   plan_star_description: string;
   plan_nova_description: string;
   plan_supernova_description: string;
