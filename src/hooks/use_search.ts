@@ -20,15 +20,16 @@
 //
 
 import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import {
   useState,
   useCallback,
+  useEffect,
   useRef,
   useSyncExternalStore,
 } from "react";
 
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { list_encrypted_mail_items, type MailItem } from "@/services/api/mail";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import {
@@ -63,6 +64,13 @@ import {
   secure_retrieve,
   secure_remove,
 } from "@/services/crypto/secure_storage";
+import {
+  build_snapshot,
+  clear_search_snapshots,
+  load_search_snapshot,
+  metadata_fingerprint,
+  save_search_snapshot,
+} from "@/services/search_index_store";
 
 export interface ActiveFilter {
   id: string;
@@ -301,7 +309,10 @@ export async function save_search_to_storage(
     created_at: Date.now(),
   };
 
-  await write_secure_array(key, [search, ...existing].slice(0, SAVED_SEARCH_LIMIT));
+  await write_secure_array(
+    key,
+    [search, ...existing].slice(0, SAVED_SEARCH_LIMIT),
+  );
 
   return { success: true, search };
 }
@@ -409,16 +420,17 @@ interface SearchOptions {
   search_body?: boolean;
 }
 
+interface DecryptedIndexEntry {
+  envelope: DecryptedEnvelope | null;
+  metadata: MailItemMetadata | null;
+  search_body_text: string;
+  meta_fp: string;
+  has_body: boolean;
+}
+
 interface CachedIndex {
   items: MailItem[];
-  decrypted: Map<
-    string,
-    {
-      envelope: DecryptedEnvelope | null;
-      metadata: MailItemMetadata | null;
-      search_body_text: string;
-    }
-  >;
+  decrypted: Map<string, DecryptedIndexEntry>;
   built_at: number;
   include_body: boolean;
   user_email: string;
@@ -453,7 +465,11 @@ async function try_decrypt_with_identity_key(
         false,
         ["decrypt"],
       );
-      const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, encrypted_bytes, nonce_bytes);
+      const decrypted = await decrypt_aes_gcm_with_fallback(
+        crypto_key,
+        encrypted_bytes,
+        nonce_bytes,
+      );
 
       const parsed = JSON.parse(new TextDecoder().decode(decrypted));
       const from = normalize_envelope_from(parsed.from);
@@ -573,6 +589,7 @@ function emit_indexing(next: Partial<IndexingProgress>) {
 
 function subscribe_indexing(cb: () => void): () => void {
   indexing_listeners.add(cb);
+
   return () => {
     indexing_listeners.delete(cb);
   };
@@ -590,9 +607,24 @@ export function use_indexing_progress(): IndexingProgress {
   );
 }
 
+const index_refresh_listeners = new Set<() => void>();
+
+function emit_index_refreshed(): void {
+  index_refresh_listeners.forEach((cb) => cb());
+}
+
+export function subscribe_index_refresh(cb: () => void): () => void {
+  index_refresh_listeners.add(cb);
+
+  return () => {
+    index_refresh_listeners.delete(cb);
+  };
+}
+
 async function do_build_search_index(
   user_email: string,
   include_body: boolean,
+  prior?: Map<string, DecryptedIndexEntry>,
 ): Promise<CachedIndex> {
   const my_gen = build_generation;
   let all_items: MailItem[] = [];
@@ -602,7 +634,7 @@ async function do_build_search_index(
   emit_indexing({ building: true, current: 0, total: 0 });
 
   do {
-    const response = await list_encrypted_mail_items({ cursor });
+    const response = await list_encrypted_mail_items({ cursor, limit: 1000 });
 
     if (my_gen !== build_generation) {
       emit_indexing({ building: false, current: 0, total: 0 });
@@ -610,7 +642,6 @@ async function do_build_search_index(
     }
 
     if (response.error) {
-      if (my_gen === build_generation) cached_index = null;
       emit_indexing({ building: false, current: 0, total: 0 });
       throw new Error(`search_fetch_failed:${response.error}`);
     }
@@ -622,21 +653,14 @@ async function do_build_search_index(
   } while (cursor);
 
   if (all_items.length === 0 && page_count === 0) {
-    cached_index = null;
     emit_indexing({ building: false, current: 0, total: 0 });
     throw new Error("search_fetch_failed:no_response");
   }
 
   emit_indexing({ total: all_items.length, current: 0 });
 
-  const decrypted = new Map<
-    string,
-    {
-      envelope: DecryptedEnvelope | null;
-      metadata: MailItemMetadata | null;
-      search_body_text: string;
-    }
-  >();
+  const decrypted = new Map<string, DecryptedIndexEntry>();
+  let fresh_count = 0;
 
   const batch_size = 20;
 
@@ -644,59 +668,105 @@ async function do_build_search_index(
     const batch = all_items.slice(i, i + batch_size);
 
     const results = await Promise.allSettled(
-      batch.map(async (item) => {
-        const envelope = await decrypt_envelope_for_search(
-          item.encrypted_envelope,
-          item.envelope_nonce,
-        );
+      batch.map(
+        async (
+          item,
+        ): Promise<{
+          id: string;
+          entry: DecryptedIndexEntry;
+          fresh: boolean;
+        }> => {
+          const meta_fp = metadata_fingerprint(item);
+          const prior_entry = prior?.get(item.id);
+          const immutable =
+            item.item_type === "received" || item.item_type === "sent";
 
-        if (envelope?.body_text) {
-          if (include_body || !envelope.subject) {
-            const sender_email = envelope.from?.email || "";
-
-            const bundle = await decrypt_body_text_with_bundle(
-              envelope.body_text,
-              user_email,
-              sender_email,
-              item.id,
-            );
-
-            if (bundle.subject !== null && !envelope.subject) {
-              envelope.subject = bundle.subject;
+          if (
+            prior_entry &&
+            immutable &&
+            (prior_entry.has_body || !include_body)
+          ) {
+            if (prior_entry.meta_fp === meta_fp) {
+              return { id: item.id, entry: prior_entry, fresh: false };
             }
-            envelope.body_text = include_body ? bundle.body : "";
-          } else {
-            envelope.body_text = "";
+
+            let refreshed_metadata: MailItemMetadata | null = null;
+
+            if (item.encrypted_metadata && item.metadata_nonce) {
+              refreshed_metadata = await decrypt_mail_metadata(
+                item.encrypted_metadata,
+                item.metadata_nonce,
+                item.metadata_version,
+              );
+            }
+
+            return {
+              id: item.id,
+              entry: { ...prior_entry, metadata: refreshed_metadata, meta_fp },
+              fresh: true,
+            };
           }
-        }
-        if (envelope && !include_body) {
-          envelope.body_html = "";
-          envelope.html_body = "";
-        }
 
-        let metadata: MailItemMetadata | null = null;
-
-        if (item.encrypted_metadata && item.metadata_nonce) {
-          metadata = await decrypt_mail_metadata(
-            item.encrypted_metadata,
-            item.metadata_nonce,
-            item.metadata_version,
+          const envelope = await decrypt_envelope_for_search(
+            item.encrypted_envelope,
+            item.envelope_nonce,
           );
-        }
 
-        return { id: item.id, envelope, metadata };
-      }),
+          if (envelope?.body_text) {
+            if (include_body || !envelope.subject) {
+              const sender_email = envelope.from?.email || "";
+
+              const bundle = await decrypt_body_text_with_bundle(
+                envelope.body_text,
+                user_email,
+                sender_email,
+                item.id,
+              );
+
+              if (bundle.subject !== null && !envelope.subject) {
+                envelope.subject = bundle.subject;
+              }
+              envelope.body_text = include_body ? bundle.body : "";
+            } else {
+              envelope.body_text = "";
+            }
+          }
+          if (envelope && !include_body) {
+            envelope.body_html = "";
+            envelope.html_body = "";
+          }
+
+          let metadata: MailItemMetadata | null = null;
+
+          if (item.encrypted_metadata && item.metadata_nonce) {
+            metadata = await decrypt_mail_metadata(
+              item.encrypted_metadata,
+              item.metadata_nonce,
+              item.metadata_version,
+            );
+          }
+
+          return {
+            id: item.id,
+            entry: {
+              envelope,
+              metadata,
+              search_body_text: envelope?.body_text
+                ? strip_html_tags(envelope.body_text).toLowerCase()
+                : "",
+              meta_fp,
+              has_body: include_body,
+            },
+            fresh: true,
+          };
+        },
+      ),
     );
 
     for (const result of results) {
       if (result.status === "fulfilled") {
-        decrypted.set(result.value.id, {
-          envelope: result.value.envelope,
-          metadata: result.value.metadata,
-          search_body_text: result.value.envelope?.body_text
-            ? strip_html_tags(result.value.envelope.body_text).toLowerCase()
-            : "",
-        });
+        if (result.value.fresh) fresh_count++;
+        decrypted.set(result.value.id, result.value.entry);
       }
     }
 
@@ -732,6 +802,10 @@ async function do_build_search_index(
   cached_index = index;
   emit_indexing({ building: false, current: 0, total: 0 });
 
+  if (fresh_count > 0 || !prior || prior.size !== decrypted.size) {
+    void save_search_snapshot(build_snapshot(user_email, all_items, decrypted));
+  }
+
   return index;
 }
 
@@ -740,6 +814,7 @@ export function clear_search_index(): void {
   build_generation++;
   index_build_promise = null;
   emit_indexing({ building: false, current: 0, total: 0 });
+  void clear_search_snapshots();
 }
 
 export async function prewarm_search_index(
@@ -753,6 +828,33 @@ export async function prewarm_search_index(
   }
 }
 
+function start_background_rebuild(
+  user_email: string,
+  include_body: boolean,
+  prior?: Map<string, DecryptedIndexEntry>,
+): Promise<CachedIndex> {
+  if (index_build_promise) {
+    return index_build_promise;
+  }
+
+  const promise = do_build_search_index(user_email, include_body, prior)
+    .then((index) => {
+      emit_index_refreshed();
+
+      return index;
+    })
+    .finally(() => {
+      if (index_build_promise === promise) {
+        index_build_promise = null;
+      }
+    });
+
+  index_build_promise = promise;
+  promise.catch(() => {});
+
+  return promise;
+}
+
 async function build_search_index(
   user_email: string,
   include_body: boolean,
@@ -764,27 +866,73 @@ async function build_search_index(
     index_build_promise = null;
   }
 
-  const cache_valid =
-    cached_index &&
-    cached_index.user_email === user_email &&
-    Date.now() - cached_index.built_at < ttl_ms &&
-    (cached_index.include_body || !include_body);
+  const body_compatible = (index: CachedIndex | null): index is CachedIndex =>
+    !!index &&
+    index.user_email === user_email &&
+    (index.include_body || !include_body);
 
-  if (cache_valid) {
-    return cached_index as CachedIndex;
+  if (
+    body_compatible(cached_index) &&
+    Date.now() - cached_index.built_at < ttl_ms
+  ) {
+    return cached_index;
+  }
+
+  if (body_compatible(cached_index)) {
+    const stale = cached_index;
+
+    void start_background_rebuild(user_email, include_body, stale.decrypted);
+
+    return stale;
   }
 
   if (index_build_promise) {
     return index_build_promise;
   }
 
-  index_build_promise = do_build_search_index(user_email, include_body).finally(
-    () => {
-      index_build_promise = null;
-    },
-  );
+  const snapshot = await load_search_snapshot(user_email);
 
-  return index_build_promise;
+  if (index_build_promise) {
+    return index_build_promise;
+  }
+  if (body_compatible(cached_index)) {
+    return cached_index;
+  }
+
+  if (!snapshot) {
+    return start_background_rebuild(user_email, include_body);
+  }
+
+  const restored = new Map<string, DecryptedIndexEntry>(
+    snapshot.entries.map((e) => [
+      e.id,
+      {
+        envelope: e.envelope,
+        metadata: e.metadata,
+        search_body_text: e.search_body_text,
+        meta_fp: e.meta_fp,
+        has_body: e.has_body,
+      },
+    ]),
+  );
+  const all_have_bodies =
+    snapshot.entries.length > 0 && snapshot.entries.every((e) => e.has_body);
+
+  if (snapshot.items.length > 0 && (!include_body || all_have_bodies)) {
+    cached_index = {
+      items: snapshot.items,
+      decrypted: restored,
+      built_at: 0,
+      include_body: all_have_bodies,
+      user_email,
+    };
+
+    void start_background_rebuild(user_email, include_body, restored);
+
+    return cached_index;
+  }
+
+  return start_background_rebuild(user_email, include_body, restored);
 }
 
 function date_boundary_local(value: string, end_of_day: boolean): number {
@@ -1077,9 +1225,7 @@ function to_search_result(
       envelope?.from?.name ||
       get_email_username(envelope?.from?.email || ""),
     sender_email:
-      forwarding_display?.display_sender_email ||
-      envelope?.from?.email ||
-      "",
+      forwarding_display?.display_sender_email || envelope?.from?.email || "",
     timestamp: item.message_ts || item.created_at,
     is_read: metadata?.is_read ?? false,
     is_starred: metadata?.is_starred ?? false,
@@ -1119,6 +1265,10 @@ export function use_search() {
   });
 
   const abort_ref = useRef<AbortController | null>(null);
+  const last_search_ref = useRef<{
+    query: string;
+    options?: SearchOptions;
+  } | null>(null);
 
   const [autocomplete_state] = useState<AutocompleteState>({
     suggestions: [],
@@ -1142,6 +1292,7 @@ export function use_search() {
       }));
 
       if (!query || query.length < 2) {
+        last_search_ref.current = null;
         set_state((prev) => ({
           ...prev,
           results: [],
@@ -1153,6 +1304,7 @@ export function use_search() {
         return;
       }
 
+      last_search_ref.current = { query, options };
       abort_ref.current?.abort();
       abort_ref.current = new AbortController();
 
@@ -1285,7 +1437,16 @@ export function use_search() {
     [user?.email, ttl, t],
   );
 
+  useEffect(() => {
+    return subscribe_index_refresh(() => {
+      const last = last_search_ref.current;
+
+      if (last) void search(last.query, last.options);
+    });
+  }, [search]);
+
   const clear_results = useCallback(() => {
+    last_search_ref.current = null;
     set_state({
       query: "",
       results: [],
@@ -1304,7 +1465,8 @@ export function use_search() {
     set_state((prev) => ({
       ...prev,
       query,
-      is_searching: query.length >= 2 && query !== prev.query ? true : prev.is_searching,
+      is_searching:
+        query.length >= 2 && query !== prev.query ? true : prev.is_searching,
       results: query !== prev.query ? [] : prev.results,
     }));
   }, []);
