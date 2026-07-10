@@ -810,6 +810,8 @@ export const en: Translations = {
     welcome_to_aster: "Welcome to Aster Mail",
     purchase_thank_you:
       "Thank you for your purchase. Your subscription is now active.",
+    purchase_congrats_title: "Congratulations!",
+    go_to_inbox: "Go to inbox",
     view_billing_settings: "View Billing Settings",
     welcome_description:
       "Let's take a quick tour to help you get started with your secure, private email platform.",
