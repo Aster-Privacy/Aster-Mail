@@ -38,6 +38,10 @@ import {
 
 import { report_spam_sender, mark_thread_read } from "@/services/api/mail";
 import {
+  batch_archive as api_batch_archive,
+  batch_unarchive as api_batch_unarchive,
+} from "@/services/api/archive";
+import {
   batched_bulk_add_folder,
   batched_bulk_remove_folder,
   get_thread_messages,
@@ -429,8 +433,31 @@ export function use_bulk_actions(
     [],
   );
 
+  const expand_grouped_ids = useCallback((emails: InboxEmail[]): string[] => {
+    return Array.from(
+      new Set(
+        emails.flatMap((e) =>
+          e.grouped_email_ids && e.grouped_email_ids.length > 1
+            ? e.grouped_email_ids
+            : [e.id],
+        ),
+      ),
+    );
+  }, []);
+
   const bulk_archive = useCallback(
     async (emails: InboxEmail[]): Promise<boolean> => {
+      const batch_result = await api_batch_archive({
+        ids: expand_grouped_ids(emails),
+        tier: "hot",
+      });
+
+      if (batch_result.error || !batch_result.data?.success) {
+        set_action_error("archive", t("common.failed_to_archive_emails"));
+
+        return false;
+      }
+
       const ok = await execute_bulk_action(emails, {
         action_type: "archive",
         optimistic_update: {
@@ -466,11 +493,27 @@ export function use_bulk_actions(
 
       return ok;
     },
-    [execute_bulk_action, sync_grouped_siblings, t],
+    [
+      execute_bulk_action,
+      sync_grouped_siblings,
+      expand_grouped_ids,
+      set_action_error,
+      t,
+    ],
   );
 
   const bulk_unarchive = useCallback(
     async (emails: InboxEmail[]): Promise<boolean> => {
+      const batch_result = await api_batch_unarchive({
+        ids: expand_grouped_ids(emails),
+      });
+
+      if (batch_result.error || !batch_result.data?.success) {
+        set_action_error("restore", t("common.failed_to_move_email"));
+
+        return false;
+      }
+
       const ok = await execute_bulk_action(emails, {
         action_type: "restore",
         optimistic_update: { is_archived: false },
@@ -492,7 +535,13 @@ export function use_bulk_actions(
 
       return ok;
     },
-    [execute_bulk_action, sync_grouped_siblings, t],
+    [
+      execute_bulk_action,
+      sync_grouped_siblings,
+      expand_grouped_ids,
+      set_action_error,
+      t,
+    ],
   );
 
   const bulk_delete = useCallback(
