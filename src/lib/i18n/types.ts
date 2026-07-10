@@ -5721,6 +5721,8 @@ export interface AuthTranslations {
   academic_offer_j_step1: string;
   academic_offer_j_step2: string;
   academic_offer_j_step3: string;
+  academic_offer_sending_title: string;
+  academic_offer_sending_body: string;
   offer_welcome_badge_student: string;
   offer_welcome_badge_journalist: string;
   offer_welcome_headline: string;
