@@ -5851,6 +5851,9 @@ export const en: Translations = {
     academic_offer_student_link: "I'm a student",
     academic_offer_sent_title: "Check your inbox",
     academic_offer_continue: "Continue",
+    academic_offer_j_step1: "Finish creating your account",
+    academic_offer_j_step2: "Email hello@astermail.org with a press card, staff page, or byline links",
+    academic_offer_j_step3: "Your 30% code appears in Settings under Billing",
     plan_star_description:
       "More storage, more aliases, and your first custom domain.",
     plan_nova_description:

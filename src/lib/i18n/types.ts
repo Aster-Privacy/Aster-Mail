@@ -5715,6 +5715,9 @@ export interface AuthTranslations {
   academic_offer_student_link: string;
   academic_offer_sent_title: string;
   academic_offer_continue: string;
+  academic_offer_j_step1: string;
+  academic_offer_j_step2: string;
+  academic_offer_j_step3: string;
   plan_star_description: string;
   plan_nova_description: string;
   plan_supernova_description: string;
