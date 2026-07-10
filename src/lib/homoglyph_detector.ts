@@ -160,28 +160,31 @@ function normalize_domain(domain: string): string {
 }
 
 function has_mixed_scripts(domain: string): boolean {
-  const label = domain.split(".")[0];
-  let has_latin = false;
-  let has_non_latin = false;
+  for (const label of domain.split(".")) {
+    let has_latin = false;
+    let has_non_latin = false;
 
-  for (const char of label) {
-    const code = char.codePointAt(0);
+    for (const char of label) {
+      const code = char.codePointAt(0);
 
-    if (!code) continue;
-    if (char === "-" || char === ".") continue;
+      if (!code) continue;
+      if (char === "-") continue;
 
-    if (
-      (code >= 0x41 && code <= 0x5a) ||
-      (code >= 0x61 && code <= 0x7a) ||
-      (code >= 0x30 && code <= 0x39)
-    ) {
-      has_latin = true;
-    } else if (code > 0x7f) {
-      has_non_latin = true;
+      if (
+        (code >= 0x41 && code <= 0x5a) ||
+        (code >= 0x61 && code <= 0x7a) ||
+        (code >= 0x30 && code <= 0x39)
+      ) {
+        has_latin = true;
+      } else if (code > 0x7f) {
+        has_non_latin = true;
+      }
     }
+
+    if (has_latin && has_non_latin) return true;
   }
 
-  return has_latin && has_non_latin;
+  return false;
 }
 
 export interface HomoglyphResult {

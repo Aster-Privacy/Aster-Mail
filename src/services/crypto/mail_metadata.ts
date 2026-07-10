@@ -334,7 +334,11 @@ export interface MetadataUpdateResult {
   metadata_nonce: string;
 }
 
-type UpdateResult = { success: boolean; encrypted?: MetadataUpdateResult };
+type UpdateResult = {
+  success: boolean;
+  encrypted?: MetadataUpdateResult;
+  written_version?: number;
+};
 
 const in_flight_requests = new Map<string, Promise<UpdateResult>>();
 const item_chains = new Map<string, Promise<UpdateResult>>();
@@ -342,7 +346,12 @@ const recently_completed = new Map<
   string,
   { result: UpdateResult; timestamp: number }
 >();
+const last_written_by_item = new Map<
+  string,
+  { version: number; encrypted: MetadataUpdateResult; timestamp: number }
+>();
 const DEDUP_WINDOW_MS = 2000;
+const LAST_WRITTEN_TTL_MS = 60000;
 
 function create_dedup_key(
   item_id: string,
@@ -364,6 +373,30 @@ function cleanup_completed_cache(): void {
       recently_completed.delete(key);
     }
   }
+
+  for (const [key, entry] of last_written_by_item) {
+    if (now - entry.timestamp > LAST_WRITTEN_TTL_MS) {
+      last_written_by_item.delete(key);
+    }
+  }
+}
+
+function get_last_written(
+  item_id: string,
+): { version: number; encrypted: MetadataUpdateResult } | null {
+  const entry = last_written_by_item.get(item_id);
+
+  if (!entry) {
+    return null;
+  }
+
+  if (Date.now() - entry.timestamp > LAST_WRITTEN_TTL_MS) {
+    last_written_by_item.delete(item_id);
+
+    return null;
+  }
+
+  return entry;
 }
 
 export async function update_item_metadata(
@@ -400,6 +433,7 @@ export async function update_item_metadata(
           base = {
             encrypted_metadata: prev.encrypted.encrypted_metadata,
             metadata_nonce: prev.encrypted.metadata_nonce,
+            metadata_version: prev.written_version,
           };
         }
       } catch {
@@ -407,7 +441,35 @@ export async function update_item_metadata(
       }
     }
 
-    const { patch_mail_item_metadata } = await import("@/services/api/mail");
+    const last_written = get_last_written(item_id);
+
+    if (last_written && (base.metadata_version ?? 0) < last_written.version) {
+      base = {
+        encrypted_metadata: last_written.encrypted.encrypted_metadata,
+        metadata_nonce: last_written.encrypted.metadata_nonce,
+        metadata_version: last_written.version,
+      };
+    }
+
+    const { patch_mail_item_metadata, get_mail_item } = await import(
+      "@/services/api/mail"
+    );
+
+    if (!base.encrypted_metadata || !base.metadata_nonce) {
+      const fetched = await get_mail_item(item_id);
+
+      if (!fetched.data) {
+        return { success: false };
+      }
+
+      if (fetched.data.encrypted_metadata && fetched.data.metadata_nonce) {
+        base = {
+          encrypted_metadata: fetched.data.encrypted_metadata,
+          metadata_nonce: fetched.data.metadata_nonce,
+          metadata_version: fetched.data.metadata_version,
+        };
+      }
+    }
 
     let current_metadata: MailItemMetadata | null = null;
 
@@ -464,7 +526,11 @@ export async function update_item_metadata(
       }),
     });
 
-    return { success: !!result.data, encrypted };
+    return {
+      success: !!result.data,
+      encrypted,
+      written_version: (base.metadata_version ?? 0) + 1,
+    };
   };
 
   const promise = execute();
@@ -477,7 +543,22 @@ export async function update_item_metadata(
     const result = await promise;
 
     if (result.success) {
+      const item_prefix = `${item_id}|`;
+
+      for (const key of recently_completed.keys()) {
+        if (key !== dedup_key && key.startsWith(item_prefix)) {
+          recently_completed.delete(key);
+        }
+      }
       recently_completed.set(dedup_key, { result, timestamp: Date.now() });
+
+      if (result.encrypted) {
+        last_written_by_item.set(item_id, {
+          version: result.written_version ?? 1,
+          encrypted: result.encrypted,
+          timestamp: Date.now(),
+        });
+      }
     }
 
     return result;

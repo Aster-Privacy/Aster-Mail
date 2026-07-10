@@ -97,4 +97,42 @@ describe("mail_to_email recipient_names", () => {
 
     expect(email.recipient_names).toBeUndefined();
   });
+
+  it("converts an imported envelope whose recipients are plain strings", () => {
+    const envelope = {
+      from: { name: "Newsletter", email: "news@example.com" },
+      to: ["imported@example.com", "Second Person <second@example.com>"],
+      cc: [],
+      bcc: [],
+      subject: "Imported subject",
+      body_text: "Imported body",
+      body_html: "",
+    } as unknown as DecryptedEnvelope;
+
+    const email = mail_to_email(make_item(), envelope, null, FORMAT);
+
+    expect(email.subject).toBe("Imported subject");
+    expect(email.recipient_addresses).toEqual([
+      "imported@example.com",
+      "second@example.com",
+    ]);
+    expect(email.recipient_names).toEqual(["imported", "Second Person"]);
+  });
+
+  it("tolerates recipient entries without an email field", () => {
+    const envelope = {
+      from: { name: "Newsletter", email: "news@example.com" },
+      to: [{ name: "No Address" }, "not-an-address", null],
+      cc: [],
+      bcc: [],
+      subject: "Odd recipients",
+      body_text: "Body",
+      body_html: "",
+    } as unknown as DecryptedEnvelope;
+
+    const email = mail_to_email(make_item(), envelope, null, FORMAT);
+
+    expect(email.subject).toBe("Odd recipients");
+    expect(email.recipient_addresses).toEqual([]);
+  });
 });

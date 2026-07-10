@@ -63,6 +63,9 @@ import {
   is_representative_unread,
   sync_recent,
   set_sort_order,
+  reconcile_server_read,
+  get_thread_rep_id,
+  set_thread_grouping,
 } from "@/services/category_index";
 import { get_thread_messages, trash_thread } from "@/services/api/mail";
 import { batch_archive as api_batch_archive } from "@/services/api/archive";
@@ -128,6 +131,10 @@ export function use_category_inbox(
     );
   }, [preferences.inbox_sort_order]);
 
+  useEffect(() => {
+    set_thread_grouping(preferences.conversation_grouping !== false);
+  }, [preferences.conversation_grouping]);
+
   const page_size = DEFAULT_PAGE_SIZE;
 
   const format_options: FormatOptions = useMemo(
@@ -151,10 +158,16 @@ export function use_category_inbox(
       const detail = (event as CustomEvent).detail;
       mark_preload_stale(detail.id);
 
+      const rep_id = get_thread_rep_id(detail.id);
+      const affected_ids = new Set(
+        rep_id && rep_id !== detail.id ? [detail.id, rep_id] : [detail.id],
+      );
+
       for (const key of page_cache.current.keys()) {
         const ids_part = key.split(":").slice(4).join(":");
+        const key_ids = ids_part.split(",");
 
-        if (ids_part.split(",").includes(detail.id)) {
+        if (key_ids.some((id) => affected_ids.has(id))) {
           page_cache.current.delete(key);
         }
       }
@@ -357,16 +370,30 @@ export function use_category_inbox(
         }
 
         fetch_retry_ref.current = { sig: `${active_category}|${target_page}`, attempts: 0 };
+        if (fetch_retry_timer_ref.current) {
+          clearTimeout(fetch_retry_timer_ref.current);
+          fetch_retry_timer_ref.current = null;
+        }
 
         if (missing_ids.length > 0) {
           remove_ids(missing_ids);
         }
 
+        reconcile_server_read(fetched);
+
         const belongs_in_inbox = (email: InboxEmail) =>
           email.item_type === "received" &&
           !email.is_trashed &&
           !email.is_archived &&
-          !email.is_spam;
+          !email.is_spam &&
+          (email.labels?.length ?? 0) === 0 &&
+          (email.folders?.length ?? 0) === 0 &&
+          (() => {
+            if (!email.snoozed_until) return true;
+            const wake_ms = new Date(email.snoozed_until).getTime();
+
+            return Number.isNaN(wake_ms) || wake_ms <= Date.now();
+          })();
 
         const stale_fetched = fetched
           .filter((email) => !belongs_in_inbox(email))
@@ -442,7 +469,10 @@ export function use_category_inbox(
 
     const ids = get_page_ids(active_category, page, page_size);
     const built = is_fully_built() && !is_build_in_progress() ? "b1" : "b0";
-    const signature = `${active_category}|${page}|${page_variant}|${built}|${ids.join(",")}`;
+    const unread_bits = ids
+      .map((id) => (is_representative_unread(id) ? "u" : "r"))
+      .join("");
+    const signature = `${active_category}|${page}|${page_variant}|${built}|${unread_bits}|${ids.join(",")}`;
 
     if (signature === last_signature_ref.current) return;
 

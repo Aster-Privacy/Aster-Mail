@@ -958,6 +958,7 @@ export interface CommonTranslations {
   trash_empty_failed: string;
   conversations_marked_as_spam_bulk: string;
   conversations_restored_bulk: string;
+  failed_to_restore_conversations: string;
   conversations_snoozed_bulk: string;
   conversations_marked_as_read_bulk: string;
   conversations_marked_as_unread_bulk: string;
@@ -4950,6 +4951,7 @@ export interface MailTranslations {
   delete_messages_confirmation: string;
   confirm_bulk_action_title: string;
   confirm_bulk_action_description: string;
+  bulk_action_index_not_ready: string;
   archive_messages_title: string;
   archive_messages_confirmation: string;
   mark_spam_title: string;

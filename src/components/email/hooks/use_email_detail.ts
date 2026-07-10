@@ -419,6 +419,9 @@ export function use_email_detail() {
                 metadata_nonce: result.encrypted?.metadata_nonce,
               });
               if (is_received) {
+                if (item.thread_token) {
+                  swept_threads_ref.current.add(item.thread_token);
+                }
                 mark_conversation_read({
                   thread_token: item.thread_token,
                   thread_message_count: item.thread_message_count,
@@ -593,8 +596,10 @@ export function use_email_detail() {
       const is_sent_type =
         response.data.item_type === "sent" ||
         response.data.item_type === "draft";
+      const is_read_on_server =
+        response.data.is_read === true || (decrypted_metadata?.is_read ?? false);
       const should_auto_mark_read =
-        !decrypted_metadata?.is_read &&
+        !is_read_on_server &&
         (is_sent_type ||
           (response.data.item_type === "received" &&
             mark_as_read_delay_ref.current !== "never"));
@@ -624,6 +629,9 @@ export function use_email_detail() {
                 metadata_nonce: result.encrypted?.metadata_nonce,
               });
               if (is_received) {
+                if (mail_data.thread_token) {
+                  swept_threads_ref.current.add(mail_data.thread_token);
+                }
                 mark_conversation_read({
                   thread_token: mail_data.thread_token,
                   thread_message_count: mail_data.thread_message_count,
