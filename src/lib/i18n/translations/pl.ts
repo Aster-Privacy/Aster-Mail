@@ -3824,6 +3824,14 @@ export const pl = {
     cant_scan_enter_manually: "Nie możesz zeskanować? Wprowadź ten kod ręcznie:",
     save_backup_codes_description: "Zapisz te kody zapasowe w bezpiecznym miejscu. Możesz ich użyć, aby uzyskać dostęp do konta w przypadku utraty urządzenia uwierzytelniającego.",
     copy_all_codes: "Kopiuj wszystkie kody",
+    backup_codes: "Kody zapasowe",
+    regenerate_backup_codes: "Wygeneruj nowe kody zapasowe",
+    regenerate_backup_codes_description:
+      "Zastępuje pozostałe kody 10 nowymi jednorazowymi kodami zapasowymi.",
+    backup_codes_regenerated: "Wygenerowano nowe kody zapasowe",
+    authenticator_or_backup_code: "Kod z aplikacji lub kod zapasowy",
+    disable_2fa_code_hint:
+      "Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej lub jeden z kodów zapasowych, jeśli nie masz już dostępu do aplikacji.",
     rotate_encryption_keys: "Rotuj klucze szyfrowania",
     key_rotation_required: "Wymagana rotacja kluczy",
     forward_secrecy_protection: "Ochrona forward secrecy",
@@ -5083,7 +5091,14 @@ export const pl = {
     decrypting_vault: "Odszyfrowywanie sejfu kluczy...",
     getting_user_info: "Pobieranie informacji o użytkowniku...",
     enter_backup_code: "Wprowadź kod zapasowy",
-    backup_code_length_error: "Kod zapasowy ma 12 znaków. Sprawdzenie liczby zwykle to rozwiązuje.",
+    backup_code_length_error: "Kod zapasowy ma 12 znaków (8 w starszych kodach). Sprawdzenie liczby zwykle to rozwiązuje.",
+    two_fa_temporarily_locked:
+      "Zbyt wiele nieudanych prób. Weryfikacja dwuetapowa jest zablokowana na około 15 minut.",
+    too_many_2fa_attempts:
+      "Zbyt wiele prób 2FA. Odczekaj kilka minut przed ponowną próbą.",
+    sign_in_session_expired:
+      "Sesja logowania wygasła. Wróć i zaloguj się ponownie.",
+    backup_codes_remaining_after_login: "Pozostało {{count}} kodów zapasowych",
     backup_code_description: "Wprowadź jeden z kodów zapasowych, aby się zalogować",
     backup_code_single_use: "Każdy kod zapasowy może być użyty tylko raz",
     backup_code_placeholder: "XXXX-XXXX-XXXX",

@@ -59,9 +59,11 @@ import { TotpVerification } from "@/components/auth/totp_verification";
 import { BackupCodeInput } from "@/components/auth/backup_code_input";
 import { WebauthnVerification } from "@/components/auth/webauthn_verification";
 import {
+  get_totp_status,
   is_totp_required_response,
   TotpVerifyResponse,
 } from "@/services/api/totp";
+import { show_toast } from "@/components/toast/simple_toast";
 import { is_webauthn_supported } from "@/services/api/webauthn";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_current_account_id } from "@/services/account_manager";
@@ -163,6 +165,10 @@ export default function MobileSignInPage() {
           sessionStorage.setItem("aster_suspended", "true");
           set_error(t("common.account_suspended"));
           set_is_loading(false);
+          set_totp_required(false);
+          set_pending_login_token("");
+          set_available_2fa_methods([]);
+          set_active_2fa_method("totp");
 
           return;
         }
@@ -227,6 +233,10 @@ export default function MobileSignInPage() {
           if (!add_result.success) {
             set_error(add_result.error || t("errors.login_failed"));
             set_is_loading(false);
+            set_totp_required(false);
+            set_pending_login_token("");
+            set_available_2fa_methods([]);
+            set_active_2fa_method("totp");
 
             return;
           }
@@ -244,6 +254,24 @@ export default function MobileSignInPage() {
 
         if (totp_response.needs_prekey_replenishment) {
           check_and_replenish_prekeys();
+        }
+
+        if (active_2fa_method === "backup") {
+          get_totp_status()
+            .then((status_response) => {
+              if (status_response.data) {
+                show_toast(
+                  t("auth.backup_codes_remaining_after_login", {
+                    count: status_response.data.backup_codes_remaining,
+                  }),
+                  status_response.data.backup_codes_remaining <= 3
+                    ? "error"
+                    : "success",
+                  5000,
+                );
+              }
+            })
+            .catch(() => {});
         }
 
         navigate("/");
@@ -264,9 +292,12 @@ export default function MobileSignInPage() {
         }
         set_is_loading(false);
         set_totp_required(false);
+        set_pending_login_token("");
+        set_available_2fa_methods([]);
+        set_active_2fa_method("totp");
       }
     },
-    [password, is_adding_account, add_account, login, navigate, t],
+    [password, is_adding_account, add_account, login, navigate, t, active_2fa_method],
   );
 
   if (auth_loading || has_existing_session) {
@@ -622,6 +653,11 @@ export default function MobileSignInPage() {
                 on_cancel={handle_totp_cancel}
                 on_success={handle_totp_success}
                 on_use_backup_code={() => set_active_2fa_method("backup")}
+                on_use_passkey={
+                  available_2fa_methods.includes("webauthn")
+                    ? () => set_active_2fa_method("webauthn")
+                    : undefined
+                }
                 pending_login_token={pending_login_token}
                 remember_me={remember_me}
               />

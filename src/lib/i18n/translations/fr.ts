@@ -3764,6 +3764,14 @@ export const fr = {
     cant_scan_enter_manually: "Impossible de scanner ? Saisissez ce code manuellement :",
     save_backup_codes_description: "Conservez ces codes de secours dans un endroit sûr. Vous pouvez les utiliser pour accéder à votre compte si vous perdez votre appareil d'authentification.",
     copy_all_codes: "Copier tous les codes",
+    backup_codes: "Codes de secours",
+    regenerate_backup_codes: "Régénérer les codes de secours",
+    regenerate_backup_codes_description:
+      "Remplace vos codes restants par 10 nouveaux codes de secours à usage unique.",
+    backup_codes_regenerated: "Nouveaux codes de secours générés",
+    authenticator_or_backup_code: "Code d'authentification ou de secours",
+    disable_2fa_code_hint:
+      "Saisissez un code à 6 chiffres de votre application d'authentification, ou l'un de vos codes de secours si vous n'y avez plus accès.",
     no_subscriptions_found: "Aucun abonnement trouvé",
     all_clear: "Tout est bon",
     scanning: "Analyse en cours...",
@@ -5083,7 +5091,14 @@ export const fr = {
     decrypting_vault: "Déchiffrement de votre coffre-fort de clés...",
     getting_user_info: "Récupération des informations utilisateur...",
     enter_backup_code: "Saisir le code de secours",
-    backup_code_length_error: "Un code de secours fait 12 caractères de long. Vérifier votre saisie suffit en général.",
+    backup_code_length_error: "Un code de secours fait 12 caractères (8 pour les anciens codes). Vérifier votre saisie suffit en général.",
+    two_fa_temporarily_locked:
+      "Trop de tentatives échouées. La vérification en deux étapes est bloquée pendant environ 15 minutes.",
+    too_many_2fa_attempts:
+      "Trop de tentatives 2FA. Veuillez patienter quelques minutes avant de réessayer.",
+    sign_in_session_expired:
+      "Votre session de connexion a expiré. Revenez en arrière et reconnectez-vous.",
+    backup_codes_remaining_after_login: "{{count}} codes de secours restants",
     backup_code_description: "Saisissez un de vos codes de secours pour vous connecter",
     backup_code_single_use: "Chaque code de secours ne peut être utilisé qu'une seule fois",
     backup_code_placeholder: "XXXX-XXXX-XXXX",

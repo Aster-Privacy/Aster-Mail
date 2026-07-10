@@ -3060,6 +3060,14 @@ export const it = {
     cant_scan_enter_manually: "Non riesci a scansionare? Inserisci questo codice manualmente:",
     save_backup_codes_description: "Salva questi codici di backup in un luogo sicuro. Puoi usarli per accedere al tuo account se perdi il tuo dispositivo di autenticazione.",
     copy_all_codes: "Copia tutti i codici",
+    backup_codes: "Codici di backup",
+    regenerate_backup_codes: "Rigenera i codici di backup",
+    regenerate_backup_codes_description:
+      "Sostituisce i codici rimanenti con 10 nuovi codici di backup monouso.",
+    backup_codes_regenerated: "Nuovi codici di backup generati",
+    authenticator_or_backup_code: "Codice authenticator o di backup",
+    disable_2fa_code_hint:
+      "Inserisci un codice a 6 cifre dalla tua app di autenticazione, oppure uno dei tuoi codici di backup se non hai più l'authenticator.",
     rotate_encryption_keys: "Ruota chiavi di crittografia",
     key_rotation_required: "Rotazione chiavi richiesta",
     forward_secrecy_protection: "Protezione forward secrecy",
@@ -5084,7 +5092,14 @@ export const it = {
     decrypting_vault: "Decrittazione del tuo vault di chiavi...",
     getting_user_info: "Recupero informazioni utente...",
     enter_backup_code: "Inserisci codice di backup",
-    backup_code_length_error: "Un codice di backup è lungo 12 caratteri. Controllare il conteggio di solito risolve la cosa.",
+    backup_code_length_error: "Un codice di backup è lungo 12 caratteri (8 per i codici più vecchi). Controllare il conteggio di solito risolve la cosa.",
+    two_fa_temporarily_locked:
+      "Troppi tentativi falliti. La verifica in due passaggi è bloccata per circa 15 minuti.",
+    too_many_2fa_attempts:
+      "Troppi tentativi 2FA. Attendi qualche minuto prima di riprovare.",
+    sign_in_session_expired:
+      "La sessione di accesso è scaduta. Torna indietro e accedi di nuovo.",
+    backup_codes_remaining_after_login: "{{count}} codici di backup rimanenti",
     backup_code_description: "Inserisci uno dei tuoi codici di backup per accedere",
     backup_code_single_use: "Ogni codice di backup può essere usato una sola volta",
     backup_code_placeholder: "XXXX-XXXX-XXXX",

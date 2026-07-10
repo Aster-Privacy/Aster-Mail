@@ -19,14 +19,30 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@aster/ui";
+import { Button, Checkbox } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
 import {
+  classify_totp_error,
   verify_backup_code_login,
   TotpVerifyResponse,
 } from "@/services/api/totp";
+
+const BACKUP_CODE_LENGTH = 12;
+const LEGACY_BACKUP_CODE_LENGTH = 8;
+
+function is_valid_backup_code_length(length: number): boolean {
+  return length === BACKUP_CODE_LENGTH || length === LEGACY_BACKUP_CODE_LENGTH;
+}
+
+function format_backup_code(normalized: string): string {
+  if (normalized.length === LEGACY_BACKUP_CODE_LENGTH) {
+    return `${normalized.slice(0, 4)}-${normalized.slice(4)}`;
+  }
+
+  return `${normalized.slice(0, 4)}-${normalized.slice(4, 8)}-${normalized.slice(8)}`;
+}
 
 interface BackupCodeInputProps {
   pending_login_token: string;
@@ -47,6 +63,7 @@ export function BackupCodeInput({
   const [code, set_code] = useState("");
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
+  const [trust_device, set_trust_device] = useState(false);
   const input_ref = useRef<HTMLInputElement>(null);
   const verifying_ref = useRef(false);
 
@@ -59,7 +76,7 @@ export function BackupCodeInput({
 
     const normalized = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
-    if (normalized.length !== 12) {
+    if (!is_valid_backup_code_length(normalized.length)) {
       set_error(t("auth.backup_code_length_error"));
 
       return;
@@ -69,16 +86,25 @@ export function BackupCodeInput({
     set_is_loading(true);
     set_error("");
 
-    const formatted_code = `${normalized.slice(0, 4)}-${normalized.slice(4, 8)}-${normalized.slice(8)}`;
-
     const response = await verify_backup_code_login({
-      code: formatted_code,
+      code: format_backup_code(normalized),
       pending_login_token,
+      trust_device,
       remember_me,
     });
 
     if (response.error) {
-      set_error(response.error);
+      const kind = classify_totp_error(response);
+
+      if (kind === "locked") {
+        set_error(t("auth.two_fa_temporarily_locked"));
+      } else if (kind === "rate_limited") {
+        set_error(t("auth.too_many_2fa_attempts"));
+      } else if (kind === "pending_expired") {
+        set_error(t("auth.sign_in_session_expired"));
+      } else {
+        set_error(response.error);
+      }
       verifying_ref.current = false;
       set_is_loading(false);
       input_ref.current?.focus();
@@ -99,7 +125,10 @@ export function BackupCodeInput({
   };
 
   const handle_input_change = (value: string) => {
-    const cleaned = value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+    const cleaned = value
+      .toUpperCase()
+      .replace(/[^A-Z0-9-]/g, "")
+      .slice(0, 20);
 
     set_code(cleaned);
     set_error("");
@@ -136,7 +165,6 @@ export function BackupCodeInput({
             ref={input_ref}
             className="text-center text-lg font-mono tracking-wider uppercase"
             disabled={is_loading}
-            maxLength={14}
             placeholder={t("auth.backup_code_placeholder")}
             status={error ? "error" : "default"}
             type="text"
@@ -149,16 +177,35 @@ export function BackupCodeInput({
           </p>
         </div>
 
+        <label className="flex items-center justify-center gap-2 text-sm text-txt-muted cursor-pointer select-none">
+          <Checkbox
+            checked={trust_device}
+            disabled={is_loading}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              set_trust_device(e.target.checked)
+            }
+          />
+          {t("auth.trust_this_device_30_days")}
+        </label>
+
         {error && <p className="text-sm text-center text-red-500">{error}</p>}
 
         <div className="flex gap-3">
-          <Button className="flex-1" variant="outline" onClick={on_cancel}>
+          <Button
+            className="flex-1"
+            disabled={is_loading}
+            variant="outline"
+            onClick={on_cancel}
+          >
             {t("common.cancel")}
           </Button>
           <Button
             className="flex-1"
             disabled={
-              is_loading || code.replace(/[^A-Z0-9]/gi, "").length !== 12
+              is_loading ||
+              !is_valid_backup_code_length(
+                code.replace(/[^A-Z0-9]/gi, "").length,
+              )
             }
             variant="depth"
             onClick={handle_verify}
@@ -168,7 +215,8 @@ export function BackupCodeInput({
         </div>
 
         <button
-          className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted"
+          className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted disabled:opacity-50"
+          disabled={is_loading}
           type="button"
           onClick={on_use_authenticator}
         >

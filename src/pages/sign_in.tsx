@@ -52,6 +52,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import {
+  get_totp_status,
   is_totp_required_response,
   TotpVerifyResponse,
 } from "@/services/api/totp";
@@ -564,6 +565,10 @@ export default function SignInPage() {
           sessionStorage.setItem("aster_suspended", "true");
           set_error(t("common.account_suspended"));
           set_is_loading(false);
+          set_totp_required(false);
+          set_pending_login_token("");
+          set_available_2fa_methods([]);
+          set_active_2fa_method("totp");
 
           return;
         }
@@ -630,6 +635,10 @@ export default function SignInPage() {
           if (!vault) {
             set_error(t("passkeys.vault_needs_password"));
             set_is_loading(false);
+            set_totp_required(false);
+            set_pending_login_token("");
+            set_available_2fa_methods([]);
+            set_active_2fa_method("totp");
 
             return;
           }
@@ -689,6 +698,10 @@ export default function SignInPage() {
           if (!add_result.success) {
             set_error(add_result.error || t("errors.login_failed"));
             set_is_loading(false);
+            set_totp_required(false);
+            set_pending_login_token("");
+            set_available_2fa_methods([]);
+            set_active_2fa_method("totp");
 
             return;
           }
@@ -706,6 +719,24 @@ export default function SignInPage() {
 
         if (totp_response.needs_prekey_replenishment) {
           check_and_replenish_prekeys();
+        }
+
+        if (active_2fa_method === "backup") {
+          get_totp_status()
+            .then((status_response) => {
+              if (status_response.data) {
+                show_toast(
+                  t("auth.backup_codes_remaining_after_login", {
+                    count: status_response.data.backup_codes_remaining,
+                  }),
+                  status_response.data.backup_codes_remaining <= 3
+                    ? "error"
+                    : "success",
+                  5000,
+                );
+              }
+            })
+            .catch(() => {});
         }
 
         set_is_loading(false);
@@ -735,7 +766,7 @@ export default function SignInPage() {
         }
       }
     },
-    [password, is_adding_account, add_account, login, t, navigate],
+    [password, is_adding_account, add_account, login, t, navigate, active_2fa_method],
   );
 
   const start_resend_cooldown = useCallback(() => {

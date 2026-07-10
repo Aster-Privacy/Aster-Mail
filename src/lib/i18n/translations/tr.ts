@@ -3770,6 +3770,14 @@ export const tr = {
     cant_scan_enter_manually: "Tarayamıyor musunuz? Bu kodu manuel olarak girin:",
     save_backup_codes_description: "Bu yedek kodları güvenli bir yerde saklayın. Kimlik doğrulama cihazınızı kaybederseniz hesabınıza erişmek için kullanabilirsiniz.",
     copy_all_codes: "Tüm Kodları Kopyala",
+    backup_codes: "Yedek kodlar",
+    regenerate_backup_codes: "Yedek kodları yeniden oluştur",
+    regenerate_backup_codes_description:
+      "Kalan kodlarınızı 10 yeni tek kullanımlık yedek kodla değiştirir.",
+    backup_codes_regenerated: "Yeni yedek kodlar oluşturuldu",
+    authenticator_or_backup_code: "Doğrulayıcı veya yedek kod",
+    disable_2fa_code_hint:
+      "Doğrulayıcı uygulamanızdan 6 haneli bir kod girin veya doğrulayıcınıza artık erişemiyorsanız yedek kodlarınızdan birini kullanın.",
     rotate_encryption_keys: "Şifreleme anahtarlarını döndür",
     key_rotation_required: "Anahtar döndürme gerekli",
     forward_secrecy_protection: "İleri gizlilik koruması",
@@ -5083,7 +5091,14 @@ export const tr = {
     decrypting_vault: "Anahtar kasanız çözülüyor...",
     getting_user_info: "Kullanıcı bilgileri alınıyor...",
     enter_backup_code: "Yedek Kodu Girin",
-    backup_code_length_error: "Bir yedek kod 12 karakter uzunluğundadır. Sayınızı kontrol etmek çoğunlukla bunu çözer.",
+    backup_code_length_error: "Bir yedek kod 12 karakter uzunluğundadır (eski kodlarda 8). Sayınızı kontrol etmek çoğunlukla bunu çözer.",
+    two_fa_temporarily_locked:
+      "Çok fazla başarısız deneme. İki adımlı doğrulama yaklaşık 15 dakika kilitlendi.",
+    too_many_2fa_attempts:
+      "Çok fazla 2FA denemesi. Lütfen birkaç dakika bekleyip tekrar deneyin.",
+    sign_in_session_expired:
+      "Oturum açma süreniz doldu. Geri dönüp tekrar giriş yapın.",
+    backup_codes_remaining_after_login: "{{count}} yedek kod kaldı",
     backup_code_description: "Giriş yapmak için yedek kodlarınızdan birini girin",
     backup_code_single_use: "Her yedek kod yalnızca bir kez kullanılabilir",
     backup_code_placeholder: "XXXX-XXXX-XXXX",

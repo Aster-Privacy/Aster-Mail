@@ -36,7 +36,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
-import { disable_totp } from "@/services/api/totp";
+import { classify_totp_error, disable_totp } from "@/services/api/totp";
 import { get_user_salt } from "@/services/api/auth";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -51,6 +51,13 @@ interface TotpDisableModalProps {
   is_open: boolean;
   on_close: () => void;
   on_success: () => void;
+}
+
+function is_valid_disable_code(code: string): boolean {
+  if (/^\d{6}$/.test(code)) return true;
+  const normalized = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+  return normalized.length === 8 || normalized.length === 12;
 }
 
 export function TotpDisableModal({
@@ -78,13 +85,18 @@ export function TotpDisableModal({
   }, [is_open]);
 
   const handle_code_change = (value: string) => {
-    set_code(value.replace(/\D/g, "").slice(0, 6));
+    set_code(
+      value
+        .toUpperCase()
+        .replace(/[^A-Z0-9-]/g, "")
+        .slice(0, 20),
+    );
     if (error) set_error("");
   };
 
   const handle_disable = async () => {
     if (
-      code.length !== 6 ||
+      !is_valid_disable_code(code) ||
       !password ||
       !user?.email ||
       verifying_ref.current
@@ -118,7 +130,13 @@ export function TotpDisableModal({
       });
 
       if (response.error) {
-        set_error(response.error);
+        const kind = classify_totp_error(response);
+
+        set_error(
+          kind === "locked"
+            ? t("auth.two_fa_temporarily_locked")
+            : response.error,
+        );
         set_is_loading(false);
 
         return;
@@ -155,16 +173,15 @@ export function TotpDisableModal({
               className="text-sm font-medium block mb-2 text-txt-primary"
               htmlFor="totp-code-0"
             >
-              {t("settings.authenticator_code")}
+              {t("settings.authenticator_or_backup_code")}
             </label>
             <Input
               ref={input_ref}
               autoComplete="one-time-code"
-              className="text-center text-2xl font-semibold tracking-[0.5em]"
+              className="text-center text-xl font-semibold tracking-[0.2em]"
               disabled={is_loading}
               id="totp-code-0"
-              inputMode="numeric"
-              maxLength={6}
+              maxLength={20}
               placeholder="000000"
               status={error ? "error" : "default"}
               type="text"
@@ -172,6 +189,9 @@ export function TotpDisableModal({
               onChange={(e) => handle_code_change(e.target.value)}
               onKeyDown={(e) => e["key"] === "Enter" && handle_disable()}
             />
+            <p className="text-xs mt-2 text-txt-muted">
+              {t("settings.disable_2fa_code_hint")}
+            </p>
           </div>
 
           <div>
@@ -215,7 +235,7 @@ export function TotpDisableModal({
           {t("common.cancel")}
         </Button>
         <Button
-          disabled={code.length !== 6 || !password || is_loading}
+          disabled={!is_valid_disable_code(code) || !password || is_loading}
           variant="destructive"
           onClick={handle_disable}
         >

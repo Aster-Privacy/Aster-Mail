@@ -4316,6 +4316,12 @@ export interface SettingsTranslations {
   cant_scan_enter_manually: string;
   save_backup_codes_description: string;
   copy_all_codes: string;
+  backup_codes: string;
+  regenerate_backup_codes: string;
+  regenerate_backup_codes_description: string;
+  backup_codes_regenerated: string;
+  authenticator_or_backup_code: string;
+  disable_2fa_code_hint: string;
   rotate_encryption_keys: string;
   key_rotation_required: string;
   forward_secrecy_protection: string;
@@ -5536,6 +5542,10 @@ export interface AuthTranslations {
   getting_user_info: string;
   enter_backup_code: string;
   backup_code_length_error: string;
+  two_fa_temporarily_locked: string;
+  too_many_2fa_attempts: string;
+  sign_in_session_expired: string;
+  backup_codes_remaining_after_login: string;
   backup_code_description: string;
   backup_code_single_use: string;
   backup_code_placeholder: string;

@@ -176,6 +176,23 @@ export async function regenerate_backup_codes(
   );
 }
 
+export type TotpErrorKind =
+  | "locked"
+  | "rate_limited"
+  | "pending_expired"
+  | "other";
+
+export function classify_totp_error(response: {
+  code?: string;
+  server_code?: string;
+}): TotpErrorKind {
+  if (response.server_code === "ACCOUNT_LOCKED") return "locked";
+  if (response.server_code === "PENDING_LOGIN_EXPIRED") return "pending_expired";
+  if (response.code === "RATE_LIMIT_EXCEEDED") return "rate_limited";
+
+  return "other";
+}
+
 export function is_totp_required_response(
   response: unknown,
 ): response is TotpRequiredResponse {
