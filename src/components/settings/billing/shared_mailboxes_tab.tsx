@@ -258,12 +258,28 @@ export function SharedMailboxesTab({
         my_public_key,
         signing_key,
       );
-      await add_shared_mailbox_grant(
+
+      let reissue = await add_shared_mailbox_grant(
         response.data.id,
         my_user_id,
         owner_grant,
         response.data.credential_epoch,
       );
+      if (reissue.error) {
+        reissue = await add_shared_mailbox_grant(
+          response.data.id,
+          my_user_id,
+          owner_grant,
+          response.data.credential_epoch,
+        );
+      }
+      if (reissue.error) {
+        show_toast(t("shared_mailboxes.created_grant_pending"), "error");
+        await load();
+        set_expanded(response.data.id);
+
+        return;
+      }
 
       await sync_shared_mailbox_grants().catch(() => {});
       set_new_prefix("");
@@ -282,8 +298,8 @@ export function SharedMailboxesTab({
   }, [new_prefix, new_domain, creating, me, my_user_id, remaining_pool, t, load]);
 
   const handle_rotate = useCallback(
-    async (mailbox_id: string) => {
-      if (busy_mailbox) return;
+    async (mailbox_id: string): Promise<boolean> => {
+      if (busy_mailbox) return false;
       set_busy_mailbox(mailbox_id);
       try {
         const signing_key = get_current_signing_key();
@@ -354,18 +370,22 @@ export function SharedMailboxesTab({
             "error",
           );
 
-          return;
+          return false;
         }
 
         await clear_shared_mailbox_session(mailbox.mailbox_user_id);
         await sync_shared_mailbox_grants().catch(() => {});
         show_toast(t("shared_mailboxes.rotated"), "success");
         await load();
+
+        return true;
       } catch (e) {
         show_toast(
           e instanceof Error ? e.message : t("settings.fam_org_action_failed"),
           "error",
         );
+
+        return false;
       } finally {
         set_busy_mailbox(null);
       }
@@ -395,9 +415,14 @@ export function SharedMailboxesTab({
 
             return;
           }
-          show_toast(t("shared_mailboxes.grant_revoked"), "success");
           set_busy_mailbox(null);
-          await handle_rotate(mailbox.id);
+          const fully_removed = await handle_rotate(mailbox.id);
+          show_toast(
+            fully_removed
+              ? t("shared_mailboxes.grant_revoked")
+              : t("shared_mailboxes.revoke_rotation_pending"),
+            fully_removed ? "success" : "error",
+          );
 
           return;
         } else {

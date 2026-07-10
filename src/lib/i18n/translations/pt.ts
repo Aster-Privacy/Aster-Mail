@@ -5801,6 +5801,8 @@ export const pt = {
     rotate: "Renovar chaves",
     rotated: "Chaves da caixa renovadas",
     rotate_conflict: "A lista de membros mudou durante a renovação. Foi atualizada - tente novamente.",
+    revoke_rotation_pending: "Acesso removido, mas não foi possível renovar as chaves. Toque em Atualizar acesso - até lá o membro mantém o acesso.",
+    created_grant_pending: "Caixa criada, mas a configuração do seu acesso falhou. Abra a linha da caixa e conceda acesso a si mesmo.",
     load_failed_retry: "Não foi possível carregar as caixas compartilhadas. Toque para tentar novamente.",
     open: "Abrir",
     grant_added: "Acesso concedido",

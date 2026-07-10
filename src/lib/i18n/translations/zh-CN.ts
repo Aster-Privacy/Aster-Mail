@@ -5801,6 +5801,8 @@ export const zh_CN = {
     rotate: "更新密钥",
     rotated: "邮箱密钥已更新",
     rotate_conflict: "更新期间成员列表发生了变化。已刷新，请重新更新密钥。",
+    revoke_rotation_pending: "已移除访问权限，但密钥未能更新。请点按“更新访问权限”完成，在此之前该成员仍保有访问权限。",
+    created_grant_pending: "邮箱已创建，但设置你的访问权限失败。请打开该邮箱行并给自己授予访问权限。",
     load_failed_retry: "无法加载共享邮箱。点按重试。",
     open: "打开",
     grant_added: "已授予访问权限",

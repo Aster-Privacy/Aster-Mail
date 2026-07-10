@@ -5801,6 +5801,8 @@ export const nl = {
     rotate: "Sleutels vernieuwen",
     rotated: "Mailboxsleutels vernieuwd",
     rotate_conflict: "De ledenlijst is gewijzigd tijdens het vernieuwen. De lijst is bijgewerkt - probeer het opnieuw.",
+    revoke_rotation_pending: "Toegang verwijderd, maar sleutels konden niet worden vernieuwd. Tik op Toegang bijwerken - tot dan behoudt het lid toegang.",
+    created_grant_pending: "Mailbox aangemaakt, maar het instellen van je toegang is mislukt. Open de mailboxregel en geef jezelf toegang.",
     load_failed_retry: "Kan gedeelde mailboxen niet laden. Tik om opnieuw te proberen.",
     open: "Openen",
     grant_added: "Toegang verleend",
