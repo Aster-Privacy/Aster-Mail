@@ -41,14 +41,16 @@ interface RegisterStepAcademicOfferProps {
   reg: UseRegistrationReturn;
 }
 
+type OfferRole = "student" | "journalist";
+
 export const RegisterStepAcademicOffer = ({
   reg,
 }: RegisterStepAcademicOfferProps) => {
   const { t } = reg;
+  const [role, set_role] = useState<OfferRole>("student");
   const [academic_email, set_academic_email] = useState("");
   const [submitting, set_submitting] = useState(false);
   const [sent_to, set_sent_to] = useState("");
-  const [show_journalist, set_show_journalist] = useState(false);
 
   const continue_to_plans = () => reg.set_step("plan_selection");
 
@@ -92,13 +94,8 @@ export const RegisterStepAcademicOffer = ({
         variants={page_variants}
       >
         <Logo />
-        <div
-          className="mt-8 flex items-center justify-center w-14 h-14 rounded-full"
-          style={{ backgroundColor: "rgba(34, 197, 94, 0.12)" }}
-        >
-          <CheckCircleIcon className="w-8 h-8 text-green-500" />
-        </div>
-        <h1 className="text-2xl font-bold mt-6 text-txt-primary">
+        <CheckCircleIcon className="w-12 h-12 mt-8 text-green-500" />
+        <h1 className="text-2xl font-bold mt-5 text-txt-primary">
           {t("auth.academic_offer_sent_title")}
         </h1>
         <p className="text-sm mt-3 leading-relaxed text-txt-tertiary">
@@ -129,25 +126,56 @@ export const RegisterStepAcademicOffer = ({
       variants={page_variants}
     >
       <Logo />
-      <div
-        className="mt-8 flex items-center justify-center w-14 h-14 rounded-full"
-        style={{ backgroundColor: "rgba(37, 99, 235, 0.12)" }}
-      >
-        <AcademicCapIcon
-          className="w-8 h-8"
-          style={{ color: "var(--accent-blue)" }}
-        />
-      </div>
+      <AcademicCapIcon
+        className="w-12 h-12 mt-8"
+        style={{ color: "var(--accent-blue)" }}
+      />
 
-      <h1 className="text-2xl font-bold mt-6 text-txt-primary">
+      <h1 className="text-2xl font-bold mt-5 text-txt-primary">
         {t("auth.academic_offer_headline")}
       </h1>
       <p className="text-sm mt-3 leading-relaxed text-txt-tertiary">
         {t("auth.academic_offer_subline")}
       </p>
 
-      {!show_journalist ? (
-        <div className="w-full mt-8 space-y-3 text-left">
+      <div
+        className="w-full mt-7 grid grid-cols-2 gap-1 p-1 rounded-full border border-edge-secondary"
+        role="tablist"
+      >
+        <button
+          aria-selected={role === "student"}
+          className="h-10 rounded-full text-sm font-medium transition-colors inline-flex items-center justify-center gap-1.5"
+          role="tab"
+          style={
+            role === "student"
+              ? { backgroundColor: "var(--accent-blue)", color: "#ffffff" }
+              : { color: "var(--text-tertiary)" }
+          }
+          type="button"
+          onClick={() => set_role("student")}
+        >
+          <AcademicCapIcon className="w-4 h-4" />
+          {t("auth.academic_offer_student_link")}
+        </button>
+        <button
+          aria-selected={role === "journalist"}
+          className="h-10 rounded-full text-sm font-medium transition-colors inline-flex items-center justify-center gap-1.5"
+          role="tab"
+          style={
+            role === "journalist"
+              ? { backgroundColor: "var(--accent-blue)", color: "#ffffff" }
+              : { color: "var(--text-tertiary)" }
+          }
+          type="button"
+          onClick={() => set_role("journalist")}
+        >
+          <NewspaperIcon className="w-4 h-4" />
+          {t("auth.academic_offer_journalist_link")}
+        </button>
+      </div>
+
+      {role === "student" ? (
+        <div className="w-full mt-5 space-y-3 text-left">
           <input
             autoFocus
             className="w-full h-12 px-4 rounded-xl border border-edge-secondary bg-transparent text-[15px] text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-blue-500"
@@ -171,23 +199,28 @@ export const RegisterStepAcademicOffer = ({
               ? t("settings.academic_sending")
               : t("auth.academic_offer_cta")}
           </Button>
-          <button
-            className="w-full inline-flex items-center justify-center gap-2 text-sm font-medium py-2 hover:underline"
-            style={{ color: "var(--accent-blue)" }}
-            type="button"
-            onClick={() => set_show_journalist(true)}
-          >
-            <NewspaperIcon className="w-4 h-4" />
-            {t("auth.academic_offer_journalist_link")}
-          </button>
         </div>
       ) : (
-        <div className="w-full mt-8 space-y-3">
-          <div className="w-full rounded-xl border border-edge-secondary px-4 py-4 text-left">
-            <p className="text-sm leading-relaxed text-txt-secondary">
-              {t("auth.academic_offer_journalist")}
-            </p>
-          </div>
+        <div className="w-full mt-5 space-y-3">
+          <ol className="w-full rounded-xl border border-edge-secondary px-4 py-4 text-left space-y-3">
+            {[
+              t("auth.academic_offer_j_step1"),
+              t("auth.academic_offer_j_step2"),
+              t("auth.academic_offer_j_step3"),
+            ].map((text, idx) => (
+              <li key={idx} className="flex items-start gap-3">
+                <span
+                  className="text-sm font-bold shrink-0"
+                  style={{ color: "var(--accent-blue)" }}
+                >
+                  {idx + 1}.
+                </span>
+                <span className="text-sm leading-relaxed text-txt-secondary">
+                  {text}
+                </span>
+              </li>
+            ))}
+          </ol>
           <Button
             className="w-full"
             size="xl"
@@ -196,26 +229,16 @@ export const RegisterStepAcademicOffer = ({
           >
             {t("auth.academic_offer_continue")}
           </Button>
-          <button
-            className="w-full text-sm font-medium py-2 hover:underline"
-            style={{ color: "var(--accent-blue)" }}
-            type="button"
-            onClick={() => set_show_journalist(false)}
-          >
-            {t("auth.academic_offer_student_link")}
-          </button>
         </div>
       )}
 
-      {!show_journalist && (
-        <button
-          className="mt-6 text-sm font-medium text-txt-tertiary hover:underline"
-          type="button"
-          onClick={continue_to_plans}
-        >
-          {t("auth.academic_offer_not_now")}
-        </button>
-      )}
+      <button
+        className="mt-5 text-sm font-medium text-txt-tertiary hover:underline"
+        type="button"
+        onClick={continue_to_plans}
+      >
+        {t("auth.academic_offer_not_now")}
+      </button>
     </motion.div>
   );
 };
