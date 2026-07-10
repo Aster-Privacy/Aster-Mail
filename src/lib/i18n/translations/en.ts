@@ -5861,6 +5861,10 @@ export const en: Translations = {
     academic_offer_journalist_link: "I'm a journalist",
     academic_offer_student_link: "I'm a student",
     academic_offer_sent_title: "Check your inbox",
+    academic_verified_title: "You're verified!",
+    academic_verified_body:
+      "Your 30% student discount is locked in. Taking you to your plans...",
+    academic_verified_continue: "Choose your plan",
     academic_offer_continue: "Continue",
     academic_offer_j_step1: "Finish creating your account",
     academic_offer_j_step2: "Email hello@astermail.org with a press card, staff page, or byline links",

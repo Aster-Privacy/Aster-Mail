@@ -5722,6 +5722,9 @@ export interface AuthTranslations {
   academic_offer_journalist_link: string;
   academic_offer_student_link: string;
   academic_offer_sent_title: string;
+  academic_verified_title: string;
+  academic_verified_body: string;
+  academic_verified_continue: string;
   academic_offer_continue: string;
   academic_offer_j_step1: string;
   academic_offer_j_step2: string;
