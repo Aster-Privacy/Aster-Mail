@@ -1138,9 +1138,10 @@ async function reclassify_many(ids: string[]): Promise<void> {
   if (!has_vault_in_memory()) return;
 
   const generation = index_generation;
+  const pending = ids.filter((id) => !in_flight_reclassify.has(id));
 
-  for (let i = 0; i < ids.length; i += REINDEX_CHUNK_SIZE) {
-    const chunk = ids.slice(i, i + REINDEX_CHUNK_SIZE);
+  for (let i = 0; i < pending.length; i += REINDEX_CHUNK_SIZE) {
+    const chunk = pending.slice(i, i + REINDEX_CHUNK_SIZE);
 
     try {
       const response = await list_mail_items({ ids: chunk });
@@ -1217,10 +1218,16 @@ export function clear_category_index_memory(): void {
     clearTimeout(resync_timer);
     resync_timer = null;
   }
+  if (wake_timer) {
+    clearTimeout(wake_timer);
+    wake_timer = null;
+  }
 
   build_token += 1;
   index_generation += 1;
   build_in_progress = false;
+  build_capped = false;
+  resync_failures = 0;
   entries_map = new Map();
   derived = null;
   seen_ts = {};

@@ -58,6 +58,22 @@ import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { use_i18n } from "@/lib/i18n/context";
 
+async function apply_archive_batch_for_undo(
+  meta: { is_archived?: boolean },
+  ids: string[],
+): Promise<void> {
+  if (meta.is_archived === undefined || ids.length === 0) return;
+
+  const result =
+    meta.is_archived === true
+      ? await api_batch_archive({ ids, tier: "hot" })
+      : await api_batch_unarchive({ ids });
+
+  if (result.error || !result.data?.success) {
+    throw new Error(result.error || "batch undo failed");
+  }
+}
+
 export interface BulkActions {
   bulk_star: (emails: InboxEmail[], starred: boolean) => Promise<boolean>;
   bulk_archive: (emails: InboxEmail[]) => Promise<boolean>;
@@ -298,12 +314,20 @@ export function use_bulk_actions(
                 }
 
                 for (const { meta, emails: group } of groups.values()) {
+                  await apply_archive_batch_for_undo(
+                    meta,
+                    group.map((e) => e.id),
+                  );
                   await bulk_update_with_metadata(group, meta);
                 }
                 emit_mail_soft_refresh();
               };
             } else if (fixed_undo) {
               toast_config.on_undo = async () => {
+                await apply_archive_batch_for_undo(
+                  fixed_undo,
+                  successful_emails.map((e) => e.id),
+                );
                 await bulk_update_with_metadata(successful_emails, fixed_undo);
                 emit_mail_soft_refresh();
               };
