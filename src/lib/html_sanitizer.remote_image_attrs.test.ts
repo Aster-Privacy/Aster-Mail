@@ -82,6 +82,36 @@ describe("remote image attribute leaks (srcset / background)", () => {
     expect(result.html).toContain(`${PROXY}?url=`);
   });
 
+  it("treats a protocol-relative (schemeless) img url as remote and blocks it", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="//tracker.example.com/leak.png" alt="pic">`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+
+    expect(result.external_content.has_remote_images).toBe(true);
+    expect(result.external_content.blocked_count).toBeGreaterThan(0);
+  });
+
+  it("routes a schemeless img url through the proxy when auto-loading", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="//tracker.example.com/leak.png" alt="pic">`,
+      { external_content_mode: "always", image_proxy_url: PROXY },
+    );
+
+    expect(result.html).toContain(`${PROXY}?url=`);
+    expect(result.html).not.toContain('src="//tracker.example.com');
+  });
+
+  it("blocks a schemeless background attribute when remote images are blocked", () => {
+    const result = sanitize_html(
+      `${LEAD}<table><tr><td background="//tracker.example.com/b.png">c</td></tr></table>`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+
+    expect(result.external_content.has_remote_images).toBe(true);
+    expect(result.html.toLowerCase()).not.toContain("tracker.example.com");
+  });
+
   it("routes a remote background through the proxy when auto-loading", () => {
     const result = sanitize_html(
       `${LEAD}<table><tr><td background="${TRACKER}">cell</td></tr></table>`,
