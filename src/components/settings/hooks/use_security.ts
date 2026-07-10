@@ -827,6 +827,7 @@ export function use_security() {
     security_score_loaded,
 
     totp_status,
+    fetch_totp_status,
     show_totp_setup_modal,
     set_show_totp_setup_modal,
     show_totp_disable_modal,

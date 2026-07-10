@@ -178,6 +178,14 @@ export function TotpSetupModal({
     on_close();
   };
 
+  const handle_modal_close = useCallback(() => {
+    if (verifying_ref.current) return;
+    if (step === "backup_codes") {
+      on_success();
+    }
+    on_close();
+  }, [step, on_success, on_close]);
+
   const render_qr_step = () => (
     <>
       <ModalHeader>
@@ -377,7 +385,7 @@ export function TotpSetupModal({
     <Modal
       close_on_overlay={false}
       is_open={is_open}
-      on_close={on_close}
+      on_close={handle_modal_close}
       size="md"
     >
       <AnimatePresence mode="wait">

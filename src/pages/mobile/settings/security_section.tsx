@@ -80,6 +80,7 @@ import {
 } from "@/services/api/auth";
 import { TotpSetupModal } from "@/components/settings/totp_setup_modal";
 import { TotpDisableModal } from "@/components/settings/totp_disable_modal";
+import { RegenerateBackupCodesModal } from "@/components/settings/regenerate_backup_codes_modal";
 import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
 import { check_password_breach } from "@/services/breach_check";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
@@ -116,6 +117,7 @@ export function SecuritySection({
   );
   const [show_totp_setup, set_show_totp_setup] = useState(false);
   const [show_totp_disable, set_show_totp_disable] = useState(false);
+  const [show_regenerate_codes, set_show_regenerate_codes] = useState(false);
   const [login_alerts_enabled, set_login_alerts_enabled] = useState(false);
   const [login_alerts_loading, set_login_alerts_loading] = useState(false);
   const [show_password_change, set_show_password_change] = useState(false);
@@ -168,16 +170,29 @@ export function SecuritySection({
     }
   }, [totp_status]);
 
+  const refetch_totp_status = useCallback(async () => {
+    try {
+      const res = await get_totp_status();
+
+      if (res.data) set_totp_status(res.data);
+    } catch (err) {
+      if (import.meta.env.DEV)
+        console.error("failed to fetch TOTP status", err);
+    }
+  }, []);
+
   const handle_totp_setup_success = useCallback(() => {
     set_totp_status((prev) => ({
       enabled: true,
-      backup_codes_remaining: prev?.backup_codes_remaining ?? 8,
+      backup_codes_remaining: prev?.backup_codes_remaining ?? 10,
     }));
-  }, []);
+    refetch_totp_status();
+  }, [refetch_totp_status]);
 
   const handle_totp_disable_success = useCallback(() => {
     set_totp_status((prev) => (prev ? { ...prev, enabled: false } : null));
-  }, []);
+    refetch_totp_status();
+  }, [refetch_totp_status]);
 
   const handle_login_alerts_toggle = useCallback(async () => {
     if (login_alerts_loading) return;
@@ -524,6 +539,17 @@ export function SecuritySection({
                 </p>
               </div>
             )}
+          {totp_status?.enabled && (
+            <div className="px-4 pb-3">
+              <button
+                className="text-[13px] font-medium text-[#4a7aff]"
+                type="button"
+                onClick={() => set_show_regenerate_codes(true)}
+              >
+                {t("settings.regenerate_backup_codes")}
+              </button>
+            </div>
+          )}
         </SettingsGroup>
 
         <SettingsGroup title={t("settings.login_alerts")}>
@@ -893,6 +919,11 @@ export function SecuritySection({
         is_open={show_totp_disable}
         on_close={() => set_show_totp_disable(false)}
         on_success={handle_totp_disable_success}
+      />
+      <RegenerateBackupCodesModal
+        is_open={show_regenerate_codes}
+        on_close={() => set_show_regenerate_codes(false)}
+        on_success={refetch_totp_status}
       />
       <DeleteAccountModal
         is_open={show_delete_modal}

@@ -1301,6 +1301,7 @@ class ApiClient {
 
           if (
             response.status === 403 &&
+            error_data.code !== "ACCOUNT_LOCKED" &&
             is_state_changing_method(method) &&
             attempt === 0 &&
             !skip_session_refresh &&

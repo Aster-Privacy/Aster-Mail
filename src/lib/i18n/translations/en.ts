@@ -4344,6 +4344,14 @@ export const en: Translations = {
     save_backup_codes_description:
       "Save these backup codes in a secure place. You can use them to access your account if you lose your authenticator device.",
     copy_all_codes: "Copy All Codes",
+    backup_codes: "Backup Codes",
+    regenerate_backup_codes: "Regenerate backup codes",
+    regenerate_backup_codes_description:
+      "Replace your remaining codes with 10 new single-use backup codes.",
+    backup_codes_regenerated: "New Backup Codes Generated",
+    authenticator_or_backup_code: "Authenticator or Backup Code",
+    disable_2fa_code_hint:
+      "Enter a 6-digit authenticator code, or one of your backup codes if you no longer have your authenticator.",
     rotate_encryption_keys: "Rotate Encryption Keys",
     key_rotation_required: "Key Rotation Required",
     forward_secrecy_protection: "Forward secrecy protection",
@@ -5611,7 +5619,14 @@ export const en: Translations = {
     decrypting_vault: "Decrypting your key vault...",
     getting_user_info: "Getting user info...",
     enter_backup_code: "Enter Backup Code",
-    backup_code_length_error: "A backup code is 12 characters long. Checking your count usually sorts it.",
+    backup_code_length_error: "A backup code is 12 characters long (8 for older codes). Checking your count usually sorts it.",
+    two_fa_temporarily_locked:
+      "Too many failed attempts. Two-factor verification is locked for about 15 minutes.",
+    too_many_2fa_attempts:
+      "Too many 2FA attempts. Please wait a few minutes before trying again.",
+    sign_in_session_expired:
+      "Your sign-in session expired. Go back and sign in again.",
+    backup_codes_remaining_after_login: "{{count}} backup codes remaining",
     backup_code_description: "Enter one of your backup codes to sign in",
     backup_code_single_use: "Each backup code can only be used once",
     backup_code_placeholder: "XXXX-XXXX-XXXX",

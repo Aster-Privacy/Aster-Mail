@@ -31,6 +31,7 @@ import {
 
 import { TotpSetupModal } from "./totp_setup_modal";
 import { TotpDisableModal } from "./totp_disable_modal";
+import { RegenerateBackupCodesModal } from "./regenerate_backup_codes_modal";
 
 import { KeyRotationModal } from "@/components/modals/key_rotation_modal";
 import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
@@ -108,6 +109,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
   const { preferences, update_preference, update_preferences } =
     use_preferences();
   const [show_delete_modal, set_show_delete_modal] = useState(false);
+  const [show_regenerate_modal, set_show_regenerate_modal] = useState(false);
   const [passkey_registered, set_passkey_registered] = useState(false);
   const [passkey_loaded, set_passkey_loaded] = useState(false);
 
@@ -467,6 +469,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         on_timeout_change={security.handle_timeout_change}
         on_timeout_toggle={security.handle_timeout_toggle}
         on_two_factor_toggle={security.handle_two_factor_toggle}
+        on_regenerate_backup_codes={() => set_show_regenerate_modal(true)}
         session_timeout_enabled={security.preferences.session_timeout_enabled}
         session_timeout_minutes={security.preferences.session_timeout_minutes}
         timeout_description={security.get_timeout_description()}
@@ -542,6 +545,12 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         is_open={security.show_totp_disable_modal}
         on_close={() => security.set_show_totp_disable_modal(false)}
         on_success={security.handle_totp_disable_success}
+      />
+
+      <RegenerateBackupCodesModal
+        is_open={show_regenerate_modal}
+        on_close={() => set_show_regenerate_modal(false)}
+        on_success={security.fetch_totp_status}
       />
 
       <KeyRotationModal

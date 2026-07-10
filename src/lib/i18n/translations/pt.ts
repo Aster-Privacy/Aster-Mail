@@ -3766,6 +3766,14 @@ export const pt = {
     cant_scan_enter_manually: "Não consegue escanear? Digite este código manualmente:",
     save_backup_codes_description: "Salve estes códigos de backup em um local seguro. Você pode usá-los para acessar sua conta caso perca seu dispositivo autenticador.",
     copy_all_codes: "Copiar todos os códigos",
+    backup_codes: "Códigos de backup",
+    regenerate_backup_codes: "Regenerar códigos de backup",
+    regenerate_backup_codes_description:
+      "Substitui os códigos restantes por 10 novos códigos de backup de uso único.",
+    backup_codes_regenerated: "Novos códigos de backup gerados",
+    authenticator_or_backup_code: "Código do autenticador ou de backup",
+    disable_2fa_code_hint:
+      "Digite um código de 6 dígitos do seu aplicativo autenticador, ou um dos seus códigos de backup se você não tiver mais o autenticador.",
     no_encryption_key_description: "Sua chave de criptografia será gerada automaticamente",
     encryption_banner_subtitle: "Os e-mails são criptografados antes de saírem do seu dispositivo. O Aster armazena apenas texto cifrado ilegível, nós nunca conseguimos ver seu e-mail.",
     storage_format_description: "Ative o armazenamento descentralizado para armazenar seus arquivos e conteúdo estático no Sistema de Arquivos Interplanetário (IPFS).",
@@ -5083,7 +5091,14 @@ export const pt = {
     decrypting_vault: "Descriptografando seu cofre de chaves...",
     getting_user_info: "Obtendo informações do usuário...",
     enter_backup_code: "Digite o Código de Backup",
-    backup_code_length_error: "Um código de backup tem 12 caracteres. Conferir a contagem costuma resolver.",
+    backup_code_length_error: "Um código de backup tem 12 caracteres (8 em códigos antigos). Conferir a contagem costuma resolver.",
+    two_fa_temporarily_locked:
+      "Muitas tentativas falharam. A verificação em duas etapas está bloqueada por cerca de 15 minutos.",
+    too_many_2fa_attempts:
+      "Muitas tentativas de 2FA. Aguarde alguns minutos antes de tentar novamente.",
+    sign_in_session_expired:
+      "Sua sessão de login expirou. Volte e entre novamente.",
+    backup_codes_remaining_after_login: "{{count}} códigos de backup restantes",
     backup_code_description: "Digite um dos seus códigos de backup para entrar",
     backup_code_single_use: "Cada código de backup só pode ser usado uma vez",
     backup_code_placeholder: "XXXX-XXXX-XXXX",

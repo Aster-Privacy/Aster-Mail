@@ -101,6 +101,7 @@ interface TwoFactorSectionProps {
   totp_enabled: boolean;
   totp_backup_codes_remaining: number | undefined;
   on_two_factor_toggle: () => void;
+  on_regenerate_backup_codes?: () => void;
   session_timeout_enabled: boolean;
   session_timeout_minutes: number;
   on_timeout_toggle: () => void;
@@ -127,6 +128,7 @@ export function TwoFactorSection({
   totp_enabled,
   totp_backup_codes_remaining,
   on_two_factor_toggle,
+  on_regenerate_backup_codes,
   session_timeout_enabled,
   session_timeout_minutes,
   on_timeout_toggle,
@@ -177,6 +179,22 @@ export function TwoFactorSection({
         }
         title={t("settings.two_factor_auth")}
       />
+
+      {totp_enabled && on_regenerate_backup_codes && (
+        <SecuritySetting
+          action={
+            <Button
+              size="md"
+              variant="outline"
+              onClick={on_regenerate_backup_codes}
+            >
+              {t("settings.regenerate_backup_codes")}
+            </Button>
+          }
+          description={t("settings.regenerate_backup_codes_description")}
+          title={t("settings.backup_codes")}
+        />
+      )}
 
       <SecuritySetting
         action={

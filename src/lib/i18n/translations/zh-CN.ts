@@ -3820,6 +3820,14 @@ export const zh_CN = {
     cant_scan_enter_manually: "无法扫描？手动输入此代码：",
     save_backup_codes_description: "请将这些备份代码保存在安全的地方。如果您丢失了验证器设备，可以使用它们访问账户。",
     copy_all_codes: "复制所有代码",
+    backup_codes: "备份码",
+    regenerate_backup_codes: "重新生成备份码",
+    regenerate_backup_codes_description:
+      "用 10 个新的一次性备份码替换您剩余的备份码。",
+    backup_codes_regenerated: "已生成新的备份码",
+    authenticator_or_backup_code: "验证器代码或备份码",
+    disable_2fa_code_hint:
+      "输入验证器应用中的 6 位代码；如果您无法再使用验证器，可输入任一备份码。",
     ghost_aliases: "隐身别名",
     rotate_encryption_keys: "轮换加密密钥",
     key_rotation_required: "需要轮换密钥",
@@ -5083,7 +5091,14 @@ export const zh_CN = {
     decrypting_vault: "解密密钥库中...",
     getting_user_info: "获取用户信息中...",
     enter_backup_code: "输入备份代码",
-    backup_code_length_error: "备份码是 12 个字符，检查一下字符数通常可以解决。",
+    backup_code_length_error: "备份码是 12 个字符（旧版为 8 个），检查一下字符数通常可以解决。",
+    two_fa_temporarily_locked:
+      "失败次数过多。两步验证已锁定约 15 分钟。",
+    too_many_2fa_attempts:
+      "2FA 尝试次数过多。请等待几分钟后重试。",
+    sign_in_session_expired:
+      "登录会话已过期。请返回并重新登录。",
+    backup_codes_remaining_after_login: "剩余 {{count}} 个备份码",
     backup_code_description: "输入您的一个备份代码以登录",
     backup_code_single_use: "每个备份代码只能使用一次",
     backup_code_placeholder: "XXXX-XXXX-XXXX",

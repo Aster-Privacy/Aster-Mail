@@ -3826,6 +3826,14 @@ export const nl = {
     cant_scan_enter_manually: "Kun je niet scannen? Voer deze code handmatig in:",
     save_backup_codes_description: "Bewaar deze back-upcodes op een veilige plek. Je kunt ze gebruiken om toegang te krijgen tot je account als je je authenticator-apparaat verliest.",
     copy_all_codes: "Alle codes kopiëren",
+    backup_codes: "Back-upcodes",
+    regenerate_backup_codes: "Back-upcodes opnieuw genereren",
+    regenerate_backup_codes_description:
+      "Vervangt uw resterende codes door 10 nieuwe back-upcodes voor eenmalig gebruik.",
+    backup_codes_regenerated: "Nieuwe back-upcodes gegenereerd",
+    authenticator_or_backup_code: "Authenticator- of back-upcode",
+    disable_2fa_code_hint:
+      "Voer een 6-cijferige code van uw authenticator-app in, of een van uw back-upcodes als u uw authenticator niet meer heeft.",
     rotate_encryption_keys: "Versleutelingssleutels roteren",
     key_rotation_required: "Sleutelrotatie vereist",
     forward_secrecy_protection: "Forward-secrecy-bescherming",
@@ -5082,7 +5090,14 @@ export const nl = {
     decrypting_vault: "Je sleutelkluis ontsleutelen...",
     getting_user_info: "Gebruikersinformatie ophalen...",
     enter_backup_code: "Reservecode invoeren",
-    backup_code_length_error: "Een back-upcode is 12 tekens lang. Uw aantal controleren lost dit meestal op.",
+    backup_code_length_error: "Een back-upcode is 12 tekens lang (8 bij oudere codes). Uw aantal controleren lost dit meestal op.",
+    two_fa_temporarily_locked:
+      "Te veel mislukte pogingen. Tweestapsverificatie is ongeveer 15 minuten geblokkeerd.",
+    too_many_2fa_attempts:
+      "Te veel 2FA-pogingen. Wacht enkele minuten voordat u het opnieuw probeert.",
+    sign_in_session_expired:
+      "Uw aanmeldsessie is verlopen. Ga terug en meld u opnieuw aan.",
+    backup_codes_remaining_after_login: "{{count}} back-upcodes over",
     backup_code_description: "Voer een van je reservecodes in om in te loggen",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Gebruik in plaats daarvan de authenticator-app",

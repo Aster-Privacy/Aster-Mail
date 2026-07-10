@@ -3824,6 +3824,14 @@ export const de = {
     cant_scan_enter_manually: "Können Sie nicht scannen? Geben Sie diesen Code manuell ein:",
     save_backup_codes_description: "Speichern Sie diese Backup-Codes an einem sicheren Ort. Sie können sie verwenden, um auf Ihr Konto zuzugreifen, wenn Sie Ihr Authenticator-Gerät verlieren.",
     copy_all_codes: "Alle Codes kopieren",
+    backup_codes: "Backup-Codes",
+    regenerate_backup_codes: "Backup-Codes neu erstellen",
+    regenerate_backup_codes_description:
+      "Ersetzt Ihre verbleibenden Codes durch 10 neue Einmal-Backup-Codes.",
+    backup_codes_regenerated: "Neue Backup-Codes erstellt",
+    authenticator_or_backup_code: "Authenticator- oder Backup-Code",
+    disable_2fa_code_hint:
+      "Geben Sie einen 6-stelligen Authenticator-Code ein oder einen Ihrer Backup-Codes, falls Sie Ihren Authenticator nicht mehr haben.",
     no_subscriptions_found: "Keine Abonnements gefunden",
     all_clear: "Alles erledigt",
     scanning: "Wird gescannt...",
@@ -5081,7 +5089,14 @@ export const de = {
     decrypting_vault: "Ihr Schlüsseltresor wird entschlüsselt...",
     getting_user_info: "Benutzerinformationen werden abgerufen...",
     enter_backup_code: "Backup-Code eingeben",
-    backup_code_length_error: "Ein Backup-Code ist 12 Zeichen lang. Ein Blick auf die Anzahl klärt das meist.",
+    backup_code_length_error: "Ein Backup-Code ist 12 Zeichen lang (8 bei älteren Codes). Ein Blick auf die Anzahl klärt das meist.",
+    two_fa_temporarily_locked:
+      "Zu viele Fehlversuche. Die Zwei-Faktor-Prüfung ist für etwa 15 Minuten gesperrt.",
+    too_many_2fa_attempts:
+      "Zu viele 2FA-Versuche. Bitte warten Sie einige Minuten und versuchen Sie es erneut.",
+    sign_in_session_expired:
+      "Ihre Anmeldesitzung ist abgelaufen. Gehen Sie zurück und melden Sie sich erneut an.",
+    backup_codes_remaining_after_login: "{{count}} Backup-Codes übrig",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Stattdessen Authentifizierungs-App verwenden",
     two_factor_auth_title: "Zwei-Faktor-Authentifizierung",
