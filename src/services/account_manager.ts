@@ -35,6 +35,16 @@ async function clear_offline_email_cache(): Promise<void> {
   } catch {
     return;
   }
+
+  try {
+    const { clear_search_snapshots } = await import(
+      "@/services/search_index_store"
+    );
+
+    await clear_search_snapshots();
+  } catch {
+    return;
+  }
 }
 
 const ACCOUNTS_KEY = "astermail_accounts_v6";
@@ -222,12 +232,17 @@ function merge_user(base: User, updates: Partial<User>): User {
   const key = <K extends keyof User>(k: K, v: User[K]) => {
     if (v !== undefined) result[k] = v;
   };
+
   if (updates.id !== undefined) key("id", updates.id);
   if (updates.username !== undefined) key("username", updates.username);
   if (updates.email !== undefined) key("email", updates.email);
-  if (updates.display_name !== undefined) key("display_name", updates.display_name);
-  if (updates.profile_color !== undefined) key("profile_color", updates.profile_color);
-  if (updates.profile_picture !== undefined) key("profile_picture", updates.profile_picture);
+  if (updates.display_name !== undefined)
+    key("display_name", updates.display_name);
+  if (updates.profile_color !== undefined)
+    key("profile_color", updates.profile_color);
+  if (updates.profile_picture !== undefined)
+    key("profile_picture", updates.profile_picture);
+
   return result;
 }
 
@@ -246,12 +261,17 @@ export async function add_account(
     return { success: true };
   }
 
-  const personal_count = data.accounts.filter((a) => a.kind !== "shared").length;
+  const personal_count = data.accounts.filter(
+    (a) => a.kind !== "shared",
+  ).length;
 
   if (personal_count >= DEFAULT_MAX_ACCOUNTS) {
     return {
       success: false,
-      error: en.errors.max_accounts.replace("{{ max }}", String(DEFAULT_MAX_ACCOUNTS)),
+      error: en.errors.max_accounts.replace(
+        "{{ max }}",
+        String(DEFAULT_MAX_ACCOUNTS),
+      ),
     };
   }
 
@@ -293,7 +313,10 @@ export async function remove_stale_shared_accounts(
   const data = await get_accounts_data_async();
   const granted = new Set(granted_ids);
   const stale = data.accounts.filter(
-    (a) => a.kind === "shared" && !granted.has(a.id) && a.id !== data.current_account_id,
+    (a) =>
+      a.kind === "shared" &&
+      !granted.has(a.id) &&
+      a.id !== data.current_account_id,
   );
 
   if (stale.length === 0) return [];
@@ -433,6 +456,7 @@ export async function logout_all(): Promise<void> {
   try {
     if (typeof caches !== "undefined") {
       const keys = await caches.keys();
+
       await Promise.all(keys.map((k) => caches.delete(k)));
     }
   } catch {}
