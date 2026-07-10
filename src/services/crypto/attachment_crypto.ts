@@ -21,6 +21,7 @@
 import type { Attachment } from "@/components/compose/compose_shared";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_attachment_key } from "@/services/crypto/inbound_attachment_keys";
+import { sanitize_download_filename } from "@/lib/attachment_utils";
 
 import {
   encrypt_envelope_with_bytes,
@@ -332,7 +333,7 @@ export function download_decrypted_attachment(
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = filename;
+  link.download = sanitize_download_filename(filename);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

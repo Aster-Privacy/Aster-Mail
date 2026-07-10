@@ -91,6 +91,7 @@ const DEBOUNCE_MS = 500;
 // timer resets on each edit, so a burst settles into a single fetch.
 //
 const RECONCILE_DELAY_MS = 1_500;
+const LATE_RECONCILE_DELAY_MS = 6_000;
 
 const INITIAL_STATS_DELAY_MS = 1_000;
 const STORAGE_KEY_PREFIX = "aster_mail_stats_";
@@ -125,7 +126,9 @@ class MailStatsStore {
   private active_request: Promise<MailStats | null> | null = null;
   private debounce_timer: ReturnType<typeof setTimeout> | null = null;
   private reconcile_timer: ReturnType<typeof setTimeout> | null = null;
+  private late_reconcile_timer: ReturnType<typeof setTimeout> | null = null;
   private user_id: string | null = null;
+  private account_generation = 0;
   private refetch_queued = false;
   private in_flight_deltas: Partial<Record<keyof MailStats, number>> | null =
     null;
@@ -141,8 +144,52 @@ class MailStatsStore {
 
   set_user_id(id: string | null): void {
     if (this.user_id === id) return;
+    if (this.user_id !== null && id !== null) {
+      this.reset_account_state();
+    }
     this.user_id = id;
     this.load_from_storage();
+  }
+
+  private clear_timers(): void {
+    if (this.debounce_timer) {
+      clearTimeout(this.debounce_timer);
+      this.debounce_timer = null;
+    }
+
+    if (this.reconcile_timer) {
+      clearTimeout(this.reconcile_timer);
+      this.reconcile_timer = null;
+    }
+
+    if (this.late_reconcile_timer) {
+      clearTimeout(this.late_reconcile_timer);
+      this.late_reconcile_timer = null;
+    }
+  }
+
+  private reset_account_state(): void {
+    this.account_generation += 1;
+    this.clear_timers();
+
+    const key = this.get_storage_key();
+
+    if (key) {
+      try {
+        localStorage.removeItem(key);
+      } catch {}
+    }
+
+    this.active_request = null;
+    this.refetch_queued = false;
+    this.in_flight_deltas = null;
+    this.cache = {
+      data: DEFAULT_STATS,
+      timestamp: 0,
+      fetching: false,
+      has_initialized: false,
+    };
+    this.notify();
   }
 
   private get_storage_key(): string | null {
@@ -241,6 +288,8 @@ class MailStatsStore {
   }
 
   private async execute_fetch(): Promise<MailStats | null> {
+    const fetch_generation = this.account_generation;
+
     this.in_flight_deltas = {};
 
     try {
@@ -256,7 +305,7 @@ class MailStatsStore {
           ? stats_response.value.data
           : null;
 
-      if (!server_stats) {
+      if (!server_stats || fetch_generation !== this.account_generation) {
         return null;
       }
 
@@ -300,15 +349,17 @@ class MailStatsStore {
     } catch {
       return null;
     } finally {
-      this.in_flight_deltas = null;
-      this.cache.fetching = false;
-      this.active_request = null;
-      this.notify();
+      if (fetch_generation === this.account_generation) {
+        this.in_flight_deltas = null;
+        this.cache.fetching = false;
+        this.active_request = null;
+        this.notify();
 
-      if (this.refetch_queued) {
-        this.refetch_queued = false;
-        this.cache.timestamp = 0;
-        this.fetch(true);
+        if (this.refetch_queued) {
+          this.refetch_queued = false;
+          this.cache.timestamp = 0;
+          this.fetch(true);
+        }
       }
     }
   }
@@ -330,36 +381,8 @@ class MailStatsStore {
   }
 
   clear(): void {
-    if (this.debounce_timer) {
-      clearTimeout(this.debounce_timer);
-      this.debounce_timer = null;
-    }
-
-    if (this.reconcile_timer) {
-      clearTimeout(this.reconcile_timer);
-      this.reconcile_timer = null;
-    }
-
-    const key = this.get_storage_key();
-
-    if (key) {
-      try {
-        localStorage.removeItem(key);
-      } catch {
-        return;
-      }
-    }
-
-    this.subscribers.clear();
-    this.active_request = null;
-    this.refetch_queued = false;
+    this.reset_account_state();
     this.user_id = null;
-    this.cache = {
-      data: DEFAULT_STATS,
-      timestamp: 0,
-      fetching: false,
-      has_initialized: false,
-    };
   }
 
   adjust(field: keyof MailStats, delta: number): void {
@@ -392,6 +415,13 @@ class MailStatsStore {
       this.reconcile_timer = null;
       void this.fetch(true);
     }, RECONCILE_DELAY_MS);
+
+    if (!this.late_reconcile_timer) {
+      this.late_reconcile_timer = setTimeout(() => {
+        this.late_reconcile_timer = null;
+        void this.fetch(true);
+      }, LATE_RECONCILE_DELAY_MS);
+    }
   }
 
   set_storage_total(bytes: number): void {
@@ -477,7 +507,6 @@ export function use_mail_stats(): UseMailStatsReturn {
       current_user_id !== null &&
       prev_user_id !== current_user_id
     ) {
-      stats_store.clear();
       set_state({
         stats: DEFAULT_STATS,
         is_loading: false,
@@ -549,6 +578,7 @@ export function use_mail_stats(): UseMailStatsReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_change);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_change);
+    window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
     window.addEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.SCHEDULED_CHANGED, handle_change);
@@ -568,6 +598,7 @@ export function use_mail_stats(): UseMailStatsReturn {
       window.removeEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_change);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_change);
+      window.removeEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
       window.removeEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.SCHEDULED_CHANGED, handle_change);

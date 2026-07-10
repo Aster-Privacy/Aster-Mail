@@ -29,6 +29,7 @@ import { Button } from "@aster/ui";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
+import { sanitize_download_filename } from "@/lib/attachment_utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
@@ -339,11 +340,11 @@ export default function SecureViewPage() {
     const anchor = document.createElement("a");
 
     anchor.href = url;
-    anchor.download = filename;
+    anchor.download = sanitize_download_filename(filename);
     document.body.appendChild(anchor);
     anchor.click();
     document.body.removeChild(anchor);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const render_meta = () => {

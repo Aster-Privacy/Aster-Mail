@@ -50,6 +50,7 @@ import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
+import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
 
 export interface PopupActionsDeps {
@@ -164,7 +165,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         action_type: "archive",
         email_ids: [deps.email_id],
         on_undo: async () => {
-          await batch_unarchive({ ids: [deps.email_id!] });
+          const undo_result = await batch_unarchive({ ids: [deps.email_id!] });
+
+          if (undo_result.error || !undo_result.data?.success) {
+            reindex_ids([deps.email_id!]);
+            throw new Error("undo unarchive failed");
+          }
           await bulk_update_metadata_by_ids([deps.email_id!], {
             is_archived: false,
           });
@@ -672,7 +678,6 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
   const handle_per_message_report_phishing = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      emit_mail_items_removed({ ids: [msg.id] });
       const result = await update_item_metadata(
         msg.id,
         {
@@ -683,11 +688,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       );
 
       if (result.success) {
+        emit_mail_items_removed({ ids: [msg.id] });
         if (msg.sender_email) {
           report_spam_sender(msg.sender_email).catch(() => {});
         }
         show_toast(deps.t("common.reported_as_phishing"), "success");
         deps.on_close();
+      } else {
+        show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
       }
     },
     [deps.on_close, deps.t],
@@ -695,7 +703,6 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
   const handle_per_message_not_spam = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      emit_mail_items_removed({ ids: [msg.id] });
       const result = await update_item_metadata(
         msg.id,
         {
@@ -706,11 +713,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       );
 
       if (result.success) {
+        reindex_ids([msg.id]);
         if (msg.sender_email) {
           remove_spam_sender(msg.sender_email).catch(() => {});
         }
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         deps.on_close();
+      } else {
+        show_toast(deps.t("common.failed_to_update"), "error");
       }
     },
     [deps.on_close, deps.t],

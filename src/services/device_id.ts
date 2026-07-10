@@ -25,13 +25,11 @@ let cached: string | null = null;
 function generate_random_id(): string {
   const bytes = new Uint8Array(32);
 
-  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-    crypto.getRandomValues(bytes);
-  } else {
-    for (let i = 0; i < bytes.length; i++) {
-      bytes[i] = Math.floor(Math.random() * 256);
-    }
+  if (typeof crypto === "undefined" || !crypto.getRandomValues) {
+    throw new Error("secure random source unavailable");
   }
+
+  crypto.getRandomValues(bytes);
 
   let hex = "";
   for (const b of bytes) hex += b.toString(16).padStart(2, "0");

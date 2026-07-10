@@ -20,12 +20,14 @@
 //
 import type { InboxEmail } from "@/types/email";
 
-import { useMemo, useCallback, useRef, useState } from "react";
+import { useMemo, useCallback, useRef, useState, useEffect } from "react";
 
 import { use_email_selection } from "@/hooks/use_email_selection";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 
 interface UseInboxSelectionOptions {
+  current_view: string;
+  active_category: string;
   is_drafts_view: boolean;
   is_scheduled_view: boolean;
   emails: InboxEmail[];
@@ -37,6 +39,8 @@ interface UseInboxSelectionOptions {
 }
 
 export function use_inbox_selection({
+  current_view,
+  active_category,
   is_drafts_view,
   is_scheduled_view,
   emails,
@@ -85,6 +89,33 @@ export function use_inbox_selection({
   const exit_select_all_mode = useCallback(() => {
     set_select_all_mode(false);
   }, []);
+
+  const selection_scope_ref = useRef({
+    view: current_view,
+    category: active_category,
+  });
+
+  useEffect(() => {
+    const prev = selection_scope_ref.current;
+
+    if (prev.view === current_view && prev.category === active_category) {
+      return;
+    }
+    selection_scope_ref.current = {
+      view: current_view,
+      category: active_category,
+    };
+    set_select_all_mode(false);
+    shift_anchor_ref.current = null;
+    last_shift_target_ref.current = null;
+    const update_fn = get_update_fn();
+
+    emails.forEach((e) => {
+      if (e.is_selected) {
+        update_fn(e.id, { is_selected: false });
+      }
+    });
+  }, [current_view, active_category, emails, get_update_fn]);
 
   const handle_toggle_select = useCallback(
     (id: string): void => {

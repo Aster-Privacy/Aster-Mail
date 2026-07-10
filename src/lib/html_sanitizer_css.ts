@@ -83,7 +83,7 @@ export function escape_style_terminator(css: string): string {
 export function strip_css_urls(css: string): string {
   const decoded = decode_css_escapes(css);
   return decoded.replace(
-    /url\s*\(\s*["']?(.*?)["']?\s*\)/gi,
+    /url\s*\(\s*["']?([\s\S]*?)["']?\s*\)/gi,
     (_match, url_content) => {
       const trimmed = (url_content || "").trim().toLowerCase();
 

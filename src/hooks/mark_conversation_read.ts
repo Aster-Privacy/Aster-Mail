@@ -21,7 +21,10 @@
 import { emit_mail_soft_refresh } from "./email_action_types";
 
 import { mark_thread_read } from "@/services/api/mail";
-import { mark_thread_read_entries } from "@/services/category_index";
+import {
+  mark_thread_read_entries,
+  thread_has_unread_entries,
+} from "@/services/category_index";
 
 //
 // Reading or marking a message read only ever touches the single message in
@@ -34,9 +37,11 @@ import { mark_thread_read_entries } from "@/services/category_index";
 //
 // Marking the whole thread read keeps the badge (and the inbox row) in step
 // with what the user actually read. Single-message threads already clear on
-// their own, so this only fires for real conversations and only when
-// conversation grouping is on (in ungrouped mode each message is its own row
-// and should clear independently).
+// their own, so this only fires for real conversations: grouped rows, opened
+// grouped threads, or threads the category index still counts unread. In
+// ungrouped mode every message is its own row (the index derives per-message
+// rows too), so siblings always clear independently and none of the thread
+// paths fire.
 //
 
 interface MarkConversationReadOptions {
@@ -44,28 +49,36 @@ interface MarkConversationReadOptions {
   thread_message_count?: number | null;
   grouped_count?: number | null;
   conversation_grouping?: boolean;
+  acted_id?: string;
 }
 
 //
-// A conversation worth clearing as a unit is either a grouped row the user
-// acted on (grouped_count > 1, only populated when grouping is on) or a
-// multi-message thread opened while grouping is enabled. Both checks fail for a
-// lone message and for ungrouped mode, so a single message still clears on its
-// own and we never mark siblings the user never saw.
+// A conversation worth clearing as a unit is a grouped row the user acted on
+// (grouped_count > 1), a multi-message thread opened while grouping is
+// enabled, or (grouping on) a thread whose category index entries are still
+// unread beyond the acted message - category rows carry grouped_count 1 even
+// for real conversations. A lone message with no unread indexed siblings
+// still clears on its own.
 //
 export function mark_conversation_read({
   thread_token,
   thread_message_count,
   grouped_count,
   conversation_grouping,
+  acted_id,
 }: MarkConversationReadOptions): void {
   if (!thread_token) return;
 
+  const grouping_on = conversation_grouping !== false;
   const acted_on_group = (grouped_count ?? 0) > 1;
   const opened_grouped_thread =
-    conversation_grouping !== false && (thread_message_count ?? 0) > 1;
+    grouping_on && (thread_message_count ?? 0) > 1;
+  const indexed_thread_pending =
+    grouping_on && thread_has_unread_entries(thread_token, acted_id);
 
-  if (!acted_on_group && !opened_grouped_thread) return;
+  if (!acted_on_group && !opened_grouped_thread && !indexed_thread_pending) {
+    return;
+  }
 
   void mark_thread_read(thread_token)
     .then((result) => {

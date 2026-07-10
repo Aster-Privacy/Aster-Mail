@@ -526,7 +526,7 @@ function sanitize_html_impl(
         ) {
           sanitized_value = strip_css_urls(sanitized_value);
         } else if (attr_lower === "srcset") {
-          if (!lockdown_mode && /https?:\/\//i.test(sanitized_value)) {
+          if (!lockdown_mode && /(?:https?:)?\/\//i.test(sanitized_value)) {
             external_content.has_remote_images = true;
             if (block_images) {
               external_content.blocked_count++;
@@ -541,7 +541,7 @@ function sanitize_html_impl(
           if (lockdown_mode) {
             continue;
           }
-          if (/https?:\/\//i.test(sanitized_value)) {
+          if (/(?:https?:)?\/\//i.test(sanitized_value)) {
             external_content.has_remote_images = true;
             if (block_images) {
               external_content.blocked_count++;
@@ -566,8 +566,12 @@ function sanitize_html_impl(
         new_element.setAttribute("target", "_blank");
       }
       const href = new_element.getAttribute("href");
+      const lower_href = (href || "").toLowerCase().trim();
 
-      if (href && (href.startsWith("http://") || href.startsWith("https://"))) {
+      if (
+        href &&
+        (lower_href.startsWith("http://") || lower_href.startsWith("https://"))
+      ) {
         const strip_result = strip_tracking_params(href);
 
         new_element.setAttribute("href", strip_result.url);
@@ -589,7 +593,10 @@ function sanitize_html_impl(
     if (tag_name === "img") {
       let src = new_element.getAttribute("src") || "";
       const lower_src = src.toLowerCase().trim();
-      const is_remote = src.startsWith("http://") || src.startsWith("https://");
+      const is_remote =
+        lower_src.startsWith("http://") ||
+        lower_src.startsWith("https://") ||
+        lower_src.startsWith("//");
       const is_data_url = lower_src.startsWith("data:");
       const is_pixel = is_tracking_pixel(new_element as HTMLImageElement);
 
@@ -603,8 +610,11 @@ function sanitize_html_impl(
         }
       }
 
-      if (is_remote && !is_first_party && src.startsWith("http://")) {
+      if (is_remote && !is_first_party && lower_src.startsWith("http://")) {
         src = "https://" + src.slice(7);
+        new_element.setAttribute("src", src);
+      } else if (is_remote && !is_first_party && lower_src.startsWith("//")) {
+        src = "https:" + src.trim();
         new_element.setAttribute("src", src);
       }
 

@@ -45,6 +45,7 @@ import {
   emit_mail_items_removed,
   emit_protected_folders_ready,
   MAIL_EVENTS,
+  type MailItemUpdatedEventDetail,
 } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -988,6 +989,14 @@ export function use_folders(): UseFoldersReturn {
       }, 500);
     };
 
+    const item_update_handler = (event: Event) => {
+      const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
+
+      if (detail?.is_read !== undefined) {
+        counts_handler();
+      }
+    };
+
     const folders_handler = () => {
       if (has_passphrase_in_memory()) {
         fetch_folders();
@@ -1019,6 +1028,8 @@ export function use_folders(): UseFoldersReturn {
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_ACTION, counts_handler);
+    window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, counts_handler);
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, item_update_handler);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
     document.addEventListener("visibilitychange", visibility_handler);
@@ -1030,6 +1041,11 @@ export function use_folders(): UseFoldersReturn {
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
       window.removeEventListener(MAIL_EVENTS.MAIL_ACTION, counts_handler);
+      window.removeEventListener(MAIL_EVENTS.MAIL_STATS_STALE, counts_handler);
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEM_UPDATED,
+        item_update_handler,
+      );
       window.removeEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
       document.removeEventListener("visibilitychange", visibility_handler);

@@ -18,12 +18,60 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-use pgp::composed::{Deserializable, Message, SignedPublicKey, SignedSecretKey};
+use chrono::{DateTime, Utc};
+use pgp::composed::{
+    Deserializable, Message, SignedPublicKey, SignedPublicSubKey, SignedSecretKey,
+};
 use pgp::crypto::hash::HashAlgorithm;
+use pgp::packet::SignatureType;
 use rand::rngs::OsRng;
 
 use crate::error::{CryptoError, Result};
 use crate::keys::{KeyPair, PublicKey, PublicKeyInner};
+
+fn primary_is_revoked(spk: &SignedPublicKey) -> bool {
+    spk.details
+        .revocation_signatures
+        .iter()
+        .any(|s| matches!(s.typ(), SignatureType::KeyRevocation))
+}
+
+fn primary_is_expired(spk: &SignedPublicKey, now: DateTime<Utc>) -> bool {
+    spk.expires_at().map(|e| e <= now).unwrap_or(false)
+}
+
+fn subkey_is_revoked(sub: &SignedPublicSubKey) -> bool {
+    sub.signatures
+        .iter()
+        .any(|s| matches!(s.typ(), SignatureType::SubkeyRevocation))
+}
+
+fn subkey_is_expired(sub: &SignedPublicSubKey, now: DateTime<Utc>) -> bool {
+    let created = *pgp::types::PublicKeyTrait::created_at(&sub.key);
+    match sub
+        .signatures
+        .iter()
+        .filter(|s| matches!(s.typ(), SignatureType::SubkeyBinding))
+        .filter_map(|s| s.key_expiration_time().copied())
+        .max()
+    {
+        Some(duration) => created + duration <= now,
+        None => false,
+    }
+}
+
+fn subkey_valid_for_signing(sub: &SignedPublicSubKey, now: DateTime<Utc>) -> bool {
+    !subkey_is_revoked(sub) && !subkey_is_expired(sub, now)
+}
+
+pub(crate) fn signing_identity_valid(spk: &SignedPublicKey, now: DateTime<Utc>) -> bool {
+    !primary_is_revoked(spk) && !primary_is_expired(spk, now)
+}
+
+pub(crate) fn signed_secret_signing_identity_valid(ssk: &SignedSecretKey, now: DateTime<Utc>) -> bool {
+    let spk: SignedPublicKey = ssk.clone().into();
+    signing_identity_valid(&spk, now)
+}
 
 pub fn sign_message(message: &[u8], signer: &KeyPair) -> Result<Vec<u8>> {
     let msg = Message::new_literal_bytes("", message);
@@ -65,6 +113,7 @@ pub(crate) fn signed_public_key_can_sign(spk: &SignedPublicKey) -> bool {
     if !primary_has_flags || primary_can_sign {
         return true;
     }
+    let now = Utc::now();
     for sub in &spk.public_subkeys {
         let mut sub_has_flags = false;
         let mut sub_can_sign = false;
@@ -77,7 +126,7 @@ pub(crate) fn signed_public_key_can_sign(spk: &SignedPublicKey) -> bool {
                 sub_can_sign = true;
             }
         }
-        if !sub_has_flags || sub_can_sign {
+        if (!sub_has_flags || sub_can_sign) && subkey_valid_for_signing(sub, now) {
             return true;
         }
     }
@@ -93,13 +142,18 @@ pub fn verify_signature(signed_message: &[u8], signer_keys: &[&PublicKey]) -> Re
     let (msg, _) = Message::from_armor_single(signed_message)
         .map_err(|e| CryptoError::SignatureVerification(e.to_string()))?;
 
+    let now = Utc::now();
     for pk in signer_keys {
         let verified = match &pk.inner {
             PublicKeyInner::Standalone(spk) => {
-                signed_public_key_can_sign(spk) && msg.verify(spk).is_ok()
+                signing_identity_valid(spk, now)
+                    && signed_public_key_can_sign(spk)
+                    && msg.verify(spk).is_ok()
             }
             PublicKeyInner::FromSecret(ssk) => {
-                signed_secret_key_can_sign(ssk) && msg.verify(ssk).is_ok()
+                signed_secret_signing_identity_valid(ssk, now)
+                    && signed_secret_key_can_sign(ssk)
+                    && msg.verify(ssk).is_ok()
             }
         };
         if verified {
@@ -192,5 +246,17 @@ mod tests {
 
         let result = verify_signature(&signed, &[&other_public]);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn signing_identity_valid_accepts_generated_key() {
+        let signer = generate_keypair("Signer", "signer@astermail.com").unwrap();
+        let spk: SignedPublicKey = signer.secret_key().clone().into();
+        let now = Utc::now();
+
+        assert!(signing_identity_valid(&spk, now));
+        assert!(signing_identity_valid(&spk, now + chrono::Duration::days(3650)));
+        assert!(!primary_is_revoked(&spk));
+        assert!(!primary_is_expired(&spk, now + chrono::Duration::days(3650)));
     }
 }

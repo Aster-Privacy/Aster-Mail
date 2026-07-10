@@ -100,6 +100,9 @@ vi.mock("@/services/category_index", () => ({
   is_representative_unread: () => false,
   sync_recent: vi.fn(async () => {}),
   set_sort_order: vi.fn(),
+  reconcile_server_read: vi.fn(),
+  set_thread_grouping: vi.fn(),
+  get_thread_rep_id: () => null,
 }));
 
 import { use_category_inbox } from "@/hooks/use_category_inbox";

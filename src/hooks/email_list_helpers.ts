@@ -50,6 +50,7 @@ import {
   decrypt_envelope_with_bytes,
   base64_to_array,
   normalize_envelope_from,
+  normalize_envelope_recipients,
 } from "@/services/crypto/envelope";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
@@ -167,12 +168,23 @@ export function resolve_list_display_name(params: {
   return params.fallback_name;
 }
 
+export function is_snoozed_in_future(
+  snoozed_until: string | null | undefined,
+): boolean {
+  if (!snoozed_until) return false;
+
+  const wake_ms = new Date(snoozed_until).getTime();
+
+  return Number.isFinite(wake_ms) && wake_ms > Date.now();
+}
+
 export function should_keep_email_in_view(
   flags: {
     is_trashed?: boolean;
     is_spam?: boolean;
     is_archived?: boolean;
     item_type?: string;
+    snoozed_until?: string | null;
   },
   view: string,
 ): boolean {
@@ -180,6 +192,13 @@ export function should_keep_email_in_view(
     (view === "inbox" || view === "") &&
     flags.item_type !== undefined &&
     flags.item_type !== "received"
+  ) {
+    return false;
+  }
+
+  if (
+    (view === "inbox" || view === "") &&
+    is_snoozed_in_future(flags.snoozed_until)
   ) {
     return false;
   }
@@ -404,8 +423,13 @@ export function mail_to_email(
     };
   }
 
-  const recipient_addresses = envelope.to?.map((r) => r.email).filter(Boolean);
-  const recipient_names = envelope.to
+  const to_recipients = envelope.to
+    ? normalize_envelope_recipients(envelope.to)
+    : undefined;
+  const recipient_addresses = to_recipients
+    ?.map((r) => r.email)
+    .filter(Boolean);
+  const recipient_names = to_recipients
     ?.map((r) => r.name || get_email_username(r.email))
     .filter(Boolean);
 
@@ -823,6 +847,7 @@ export async function fetch_mail_from_api(
         is_spam: e.is_spam,
         is_archived: e.is_archived,
         item_type: e.item_type,
+        snoozed_until: e.snoozed_until,
       },
       view,
     ),
