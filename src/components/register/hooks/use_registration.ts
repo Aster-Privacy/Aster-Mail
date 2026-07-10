@@ -754,7 +754,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
       return;
     }
-    set_step("plan_selection");
+    set_step("academic_offer");
   };
 
   complete_registration_ref.current = complete_registration;

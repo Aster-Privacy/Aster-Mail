@@ -35,6 +35,7 @@ import {
 import { RegisterStepRecoveryPhrase } from "@/components/register/register_step_recovery_phrase";
 import { RegisterStepPhraseConfirm } from "@/components/register/register_step_phrase_confirm";
 import { RegisterStepPlanSelection } from "@/components/register/register_step_plan_selection";
+import { RegisterStepAcademicOffer } from "@/components/register/register_step_academic_offer";
 
 export default function RegisterPage() {
   const reg = use_registration();
@@ -65,6 +66,8 @@ export default function RegisterPage() {
         return <RegisterStepRecoveryEmailVerification reg={reg} />;
       case "recovery_email_gate":
         return <RegisterStepRecoveryEmailGate reg={reg} />;
+      case "academic_offer":
+        return <RegisterStepAcademicOffer reg={reg} />;
       case "plan_selection":
         return <RegisterStepPlanSelection reg={reg} />;
       default:

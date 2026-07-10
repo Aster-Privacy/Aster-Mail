@@ -61,7 +61,13 @@ import {
   switch_account as storage_switch_account,
   update_account_user,
   update_account_tokens,
+  get_account_kind,
 } from "@/services/account_manager";
+import {
+  sync_shared_mailbox_grants,
+  perform_shared_mailbox_login,
+  clear_shared_mailbox_session,
+} from "@/services/shared_mailbox_session";
 import { get_account_limit } from "@/services/api/switch";
 import { sync_client } from "@/services/sync_client";
 import {
@@ -266,6 +272,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
           if (!has_keys) {
             sync_client.disconnect();
             api_client.set_authenticated(false);
+
+            const current_kind = await get_account_kind(current.id);
+            if (current_kind === "shared") {
+              await clear_shared_mailbox_session(current.id).catch(() => {});
+              const remaining = await get_all_accounts();
+              const fallback = remaining.find((a) => a.kind !== "shared");
+
+              if (fallback) {
+                await storage_switch_account(fallback.id);
+                set_state({
+                  user: null,
+                  is_loading: false,
+                  is_authenticated: false,
+                  has_keys: false,
+                  accounts: remaining,
+                  current_account_id: fallback.id,
+                });
+                navigate(
+                  `/sign-in?u=${encodeURIComponent(fallback.user.email.split("@")[0] ?? "")}`,
+                );
+              } else {
+                set_state({
+                  user: null,
+                  is_loading: false,
+                  is_authenticated: false,
+                  has_keys: false,
+                  accounts: remaining,
+                  current_account_id: null,
+                });
+                navigate("/sign-in");
+              }
+
+              return;
+            }
+
             set_state({
               user: null,
               is_loading: false,
@@ -321,6 +362,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
           backfill_user_profile(synced_user);
           ensure_default_labels(get_vault_from_memory(), t).catch(console.error);
+
+          sync_shared_mailbox_grants()
+            .then(async () => {
+              const refreshed = await get_all_accounts();
+
+              set_state((prev) => ({ ...prev, accounts: refreshed }));
+            })
+            .catch(() => {});
         } else {
           api_client.clear_auth_data();
           api_client.set_authenticated(false);
@@ -336,7 +385,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
 
           const remaining = await get_all_accounts();
-          const local = current.user.email.split("@")[0] ?? "";
+          const fallback =
+            remaining.find((a) => a.kind !== "shared") ?? remaining[0];
+          const prefill_local = fallback?.user.email.split("@")[0] ?? "";
+
+          if (fallback) await storage_switch_account(fallback.id);
 
           set_state({
             user: null,
@@ -344,7 +397,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             is_authenticated: false,
             has_keys: false,
             accounts: remaining,
-            current_account_id: remaining[0]?.id ?? null,
+            current_account_id: fallback?.id ?? null,
           });
 
           const uses_hash = "__TAURI_INTERNALS__" in window;
@@ -352,7 +405,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             ? window.location.hash.slice(1).split("?")[0] || "/"
             : window.location.pathname;
           if (path !== "/sign-in" && path !== "/register") {
-            navigate(`/sign-in?u=${encodeURIComponent(local)}`);
+            navigate(`/sign-in?u=${encodeURIComponent(prefill_local)}`);
           }
         }
       } catch (e) {
@@ -498,6 +551,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       set_is_adding_account(false);
 
       backfill_user_profile(user);
+
+      sync_shared_mailbox_grants()
+        .then(async () => {
+          const refreshed = await get_all_accounts();
+
+          set_state((prev) =>
+            prev.current_account_id === user.id
+              ? { ...prev, accounts: refreshed }
+              : prev,
+          );
+        })
+        .catch(() => {});
     },
     [t, backfill_user_profile],
   );
@@ -670,6 +735,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (target.id === state.current_account_id) return;
 
         const local = target.user.email.split("@")[0] ?? "";
+        const target_kind = await get_account_kind(target.id);
 
         set_is_adding_account(true);
         sync_client.disconnect();
@@ -686,6 +752,71 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         await storage_switch_account(target.id);
 
+        if (target_kind === "shared") {
+          try {
+            const result = await perform_shared_mailbox_login(
+              target.id,
+              target.user.email,
+              target.user.username,
+            );
+
+            await login(
+              {
+                ...result.user,
+                display_name: target.user.display_name,
+                profile_color: target.user.profile_color,
+              },
+              result.vault,
+              result.login_secret,
+              result.encrypted_vault,
+              result.vault_nonce,
+            );
+            hard_redirect("/");
+
+            return;
+          } catch (e) {
+            safe_log_error(e);
+
+            const message = e instanceof Error ? e.message : "";
+            const access_gone = /unavailable|no longer|not found/i.test(message);
+
+            if (access_gone) {
+              await clear_shared_mailbox_session(target.id);
+              await storage_remove_account(target.id);
+            }
+
+            const remaining = await get_all_accounts();
+            const fallback = remaining.find((a) => a.kind !== "shared");
+
+            show_toast(
+              access_gone
+                ? t("shared_mailboxes.access_unavailable")
+                : t("settings.switch_failed"),
+              "error",
+            );
+            set_state((prev) => ({
+              ...prev,
+              user: null,
+              is_loading: false,
+              is_authenticated: false,
+              has_keys: false,
+              accounts: remaining,
+              current_account_id: fallback?.id ?? null,
+            }));
+
+            if (fallback) {
+              await storage_switch_account(fallback.id);
+              navigate(
+                `/sign-in?u=${encodeURIComponent(fallback.user.email.split("@")[0] ?? "")}`,
+              );
+            } else {
+              navigate("/sign-in");
+            }
+
+            return;
+          }
+        }
+
         set_state((prev) => ({
           ...prev,
           user: null,
@@ -699,7 +830,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         switch_in_flight.current = false;
       }
     },
-    [navigate, state.current_account_id, set_is_adding_account],
+    [navigate, state.current_account_id, set_is_adding_account, login, t],
   );
 
   const clear_local_auth_data = useCallback(async () => {
@@ -989,21 +1120,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 
   const can_add = useCallback(async () => {
+    const personal_count = (await get_all_accounts()).filter(
+      (a) => a.kind !== "shared",
+    ).length;
+
     try {
       const limit_response = await get_account_limit();
 
       if (limit_response.data) {
-        const count = (await get_all_accounts()).length;
-
-        return count < limit_response.data.max_accounts;
+        return personal_count < limit_response.data.max_accounts;
       }
     } catch (e) {
       safe_log_error(e);
     }
 
-    const count = (await get_all_accounts()).length;
-
-    return count < 3;
+    return personal_count < 3;
   }, []);
 
   const update_user = useCallback(

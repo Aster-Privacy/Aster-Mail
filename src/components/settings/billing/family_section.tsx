@@ -43,7 +43,9 @@ import {
   ChartBarIcon,
   ArrowsRightLeftIcon,
   UserIcon,
+  InboxStackIcon,
 } from "@heroicons/react/24/outline";
+import { SharedMailboxesTab } from "@/components/settings/billing/shared_mailboxes_tab";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { TurnstileWidget, type TurnstileWidgetRef, TURNSTILE_SITE_KEY } from "@/components/auth/turnstile_widget";
@@ -102,7 +104,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert_dialog";
 
-type FamilyTab = "overview" | "members" | "kids" | "groups" | "activity" | "filters" | "domains" | "security" | "retention";
+type FamilyTab = "overview" | "members" | "kids" | "shared" | "groups" | "activity" | "filters" | "domains" | "security" | "retention";
 
 type TFn = (key: TranslationKey, params?: Record<string, string | number>) => string;
 
@@ -2105,6 +2107,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     { id: "overview", label: t("settings.fam_org_tab_overview"), Icon: Squares2X2Icon },
     { id: "members", label: t("settings.fam_org_tab_members"), Icon: UserPlusIcon },
     { id: "kids", label: t("settings.fam_kids_tab"), Icon: UserIcon },
+    { id: "shared", label: t("shared_mailboxes.tab_label"), Icon: InboxStackIcon },
     { id: "groups", label: t("settings.fam_org_tab_groups"), Icon: UserGroupIcon },
     { id: "activity", label: t("settings.fam_org_tab_activity"), Icon: ChartBarIcon },
     { id: "filters", label: t("settings.fam_org_tab_filters"), Icon: FunnelIcon },
@@ -2537,6 +2540,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       )}
 
       {tab === "kids"      && is_owner && <KidsContent group={group} />}
+      {tab === "shared"    && is_owner && <SharedMailboxesTab group={group} my_user_id={group.members.find(m => m.role === "owner")?.user_id ?? ""} />}
       {tab === "groups"    && is_owner && <GroupsContent members={active_members} />}
       {tab === "activity"  && is_owner && <ActivityContent members={active_members} />}
       {tab === "filters"   && is_owner && <FiltersContent other_member_count={active_members.length - 1} initial_filters={preloaded_filters} />}

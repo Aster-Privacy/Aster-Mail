@@ -88,11 +88,15 @@ export function WorkspaceSwitcher({
     };
   }, [is_open]);
 
-  const at_limit = max_allowed !== null && accounts.length >= max_allowed;
+  const personal_account_count = useMemo(
+    () => accounts.filter((a) => a.kind !== "shared").length,
+    [accounts],
+  );
+  const at_limit = max_allowed !== null && personal_account_count >= max_allowed;
   const display_max =
     max_allowed === null
-      ? accounts.length
-      : Math.max(max_allowed, accounts.length);
+      ? personal_account_count
+      : Math.max(max_allowed, personal_account_count);
 
   const account_email = user?.email ?? "";
   const primary_identity = use_primary_identity(account_email);
@@ -315,21 +319,31 @@ export function WorkspaceSwitcher({
                           {acc.user.email}
                         </span>
                       </div>
+                      {acc.kind === "shared" && (
+                        <EmailTag
+                          label={t("shared_mailboxes.shared_tag")}
+                          show_icon={false}
+                          size="xs"
+                          variant="sky"
+                        />
+                      )}
                       <ArrowsRightLeftIcon
                         className="w-3.5 h-3.5 flex-shrink-0 opacity-60"
                         style={{ color: "var(--text-muted)" }}
                       />
-                      <button
-                        aria-label={t("auth.remove_account")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 rounded hover:bg-[var(--surf-secondary,rgba(0,0,0,0.08))]"
-                        type="button"
-                        onClick={(e) => handle_request_remove(acc, e)}
-                      >
-                        <TrashIcon
-                          className="w-3.5 h-3.5"
-                          style={{ color: "var(--color-danger,#ef4444)" }}
-                        />
-                      </button>
+                      {acc.kind !== "shared" && (
+                        <button
+                          aria-label={t("auth.remove_account")}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 rounded hover:bg-[var(--surf-secondary,rgba(0,0,0,0.08))]"
+                          type="button"
+                          onClick={(e) => handle_request_remove(acc, e)}
+                        >
+                          <TrashIcon
+                            className="w-3.5 h-3.5"
+                            style={{ color: "var(--color-danger,#ef4444)" }}
+                          />
+                        </button>
+                      )}
                     </div>
                   );
                 })}
