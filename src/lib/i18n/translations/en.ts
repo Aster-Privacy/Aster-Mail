@@ -5549,6 +5549,10 @@ export const en: Translations = {
     username: "Username",
     sign_in_to_aster: "Sign in to Aster",
     enter_credentials: "Enter your credentials to access your account",
+    academic_verified_signin_note:
+      "Student status verified. Sign in and your 30% discount will be applied at checkout.",
+    academic_failed_signin_note:
+      "That verification link expired or was already used. Sign in and request a new one from Billing settings.",
     pair_device_title: "Pair device",
     pair_device_confirm:
       "Do you want to pair {{ name }} with your Aster Mail account?",
@@ -5842,6 +5846,8 @@ export const en: Translations = {
     plan_selection_title: "Choose your plan",
     plan_selection_subtitle:
       "Pick the plan that fits you. You can change or cancel anytime.",
+    plan_academic_discount_note:
+      "Your 30% discount is applied automatically at checkout once your email is verified.",
     plan_continue_with_free: "Continue with Free",
     plan_continue_as_free: "Continue as free",
     academic_offer_title: "Student or journalist? Get 30% off",

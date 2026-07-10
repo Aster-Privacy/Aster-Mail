@@ -5480,6 +5480,8 @@ export interface AuthTranslations {
   username: string;
   sign_in_to_aster: string;
   enter_credentials: string;
+  academic_verified_signin_note: string;
+  academic_failed_signin_note: string;
   pair_device_title: string;
   pair_device_confirm: string;
   pair_device_warning: string;
@@ -5706,6 +5708,7 @@ export interface AuthTranslations {
   skip_verification: string;
   plan_selection_title: string;
   plan_selection_subtitle: string;
+  plan_academic_discount_note: string;
   plan_continue_with_free: string;
   plan_continue_as_free: string;
   academic_offer_title: string;

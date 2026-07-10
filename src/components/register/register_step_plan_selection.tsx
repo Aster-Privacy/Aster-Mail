@@ -23,7 +23,7 @@ import type { AvailablePlan } from "@/services/api/billing";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowTopRightOnSquareIcon, UserGroupIcon } from "@heroicons/react/24/outline";
+import { AcademicCapIcon, ArrowTopRightOnSquareIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { Logo } from "@/components/auth/auth_styles";
@@ -56,6 +56,7 @@ import {
   page_variants,
   page_transition,
 } from "@/components/register/register_types";
+import { read_offer_prefill } from "@/components/register/academic_offer_prefill";
 
 interface RegisterStepPlanSelectionProps {
   reg: UseRegistrationReturn;
@@ -217,6 +218,7 @@ export const RegisterStepPlanSelection = ({
   reg,
 }: RegisterStepPlanSelectionProps) => {
   const { t } = reg;
+  const offer = read_offer_prefill();
   const [plan_type, set_plan_type] = useState<"individual" | "family">("individual");
   const [billing_period, set_billing_period] = useState<"monthly" | "yearly">(
     "yearly",
@@ -385,6 +387,19 @@ export const RegisterStepPlanSelection = ({
       <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center max-w-md">
         {t("auth.plan_selection_subtitle")}
       </p>
+
+      {offer.has_offer && (
+        <div
+          className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
+          style={{
+            backgroundColor: "var(--accent-blue-soft, rgba(37,99,235,0.12))",
+            color: "var(--accent-blue)",
+          }}
+        >
+          <AcademicCapIcon className="w-4 h-4 shrink-0" />
+          {t("auth.plan_academic_discount_note")}
+        </div>
+      )}
 
       <div className="flex flex-col items-center gap-3 mt-6">
         <div
