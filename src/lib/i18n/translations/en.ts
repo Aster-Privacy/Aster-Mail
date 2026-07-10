@@ -5857,6 +5857,9 @@ export const en: Translations = {
     academic_offer_j_step1: "Finish creating your account",
     academic_offer_j_step2: "Email hello@astermail.org with a press card, staff page, or byline links",
     academic_offer_j_step3: "Your 30% code appears in Settings under Billing",
+    academic_offer_sending_title: "Sending your verification link",
+    academic_offer_sending_body:
+      "Emailing a 30% verification link to {{ email }}.",
     offer_welcome_badge_student: "30% student discount",
     offer_welcome_badge_journalist: "30% journalist discount",
     offer_welcome_headline: "Claim your 30% off",

@@ -20,7 +20,7 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   AcademicCapIcon,
@@ -63,6 +63,17 @@ export const RegisterStepAcademicOffer = ({
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const captcha_required = !!TURNSTILE_SITE_KEY;
 
+  const looks_like_email = (value: string) =>
+    /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value.trim());
+  const can_auto_send =
+    prefill.has_offer &&
+    prefill.role === "student" &&
+    looks_like_email(prefill.email);
+  const [auto_sending, set_auto_sending] = useState(
+    can_auto_send && !captcha_required,
+  );
+  const auto_send_done = useRef(false);
+
   const continue_to_plans = () => reg.set_step("plan_selection");
 
   const handle_submit = async () => {
@@ -101,6 +112,51 @@ export const RegisterStepAcademicOffer = ({
       set_submitting(false);
     }
   };
+
+  useEffect(() => {
+    if (auto_send_done.current) return;
+    if (can_auto_send && !captcha_required) {
+      auto_send_done.current = true;
+      void (async () => {
+        await handle_submit();
+        set_auto_sending(false);
+      })();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (auto_send_done.current) return;
+    if (can_auto_send && captcha_required && turnstile_token) {
+      auto_send_done.current = true;
+      void handle_submit();
+    }
+  }, [turnstile_token]);
+
+  if (auto_sending && !sent_to) {
+    return (
+      <motion.div
+        key="academic_offer_sending"
+        animate="animate"
+        className="flex flex-col items-center w-full max-w-sm px-4 text-center"
+        exit="exit"
+        initial="initial"
+        transition={page_transition}
+        variants={page_variants}
+      >
+        <Logo />
+        <AcademicCapIcon
+          className="w-12 h-12 mt-8 animate-pulse"
+          style={{ color: "var(--accent-blue)" }}
+        />
+        <h1 className="text-2xl font-bold mt-5 text-txt-primary">
+          {t("auth.academic_offer_sending_title")}
+        </h1>
+        <p className="text-sm mt-3 leading-relaxed text-txt-tertiary">
+          {t("auth.academic_offer_sending_body", { email: academic_email })}
+        </p>
+      </motion.div>
+    );
+  }
 
   if (sent_to) {
     return (
