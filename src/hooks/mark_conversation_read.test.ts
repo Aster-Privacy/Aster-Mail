@@ -18,10 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const mock_mark_thread_read = vi.fn();
 const mock_emit_mail_soft_refresh = vi.fn();
+const mock_thread_has_unread_entries = vi.fn(
+  (..._args: unknown[]) => false,
+);
+const mock_mark_thread_read_entries = vi.fn((..._args: unknown[]) => {});
 
 vi.mock("@/services/api/mail", () => ({
   mark_thread_read: (...args: unknown[]) => mock_mark_thread_read(...args),
@@ -29,6 +33,13 @@ vi.mock("@/services/api/mail", () => ({
 
 vi.mock("./email_action_types", () => ({
   emit_mail_soft_refresh: () => mock_emit_mail_soft_refresh(),
+}));
+
+vi.mock("@/services/category_index", () => ({
+  mark_thread_read_entries: (...args: unknown[]) =>
+    mock_mark_thread_read_entries(...args),
+  thread_has_unread_entries: (...args: unknown[]) =>
+    mock_thread_has_unread_entries(...args),
 }));
 
 import { mark_conversation_read } from "./mark_conversation_read";
@@ -42,7 +53,14 @@ describe("mark_conversation_read", () => {
   beforeEach(() => {
     mock_mark_thread_read.mockReset();
     mock_emit_mail_soft_refresh.mockReset();
+    mock_mark_thread_read_entries.mockReset();
+    mock_thread_has_unread_entries.mockReset();
+    mock_thread_has_unread_entries.mockReturnValue(false);
     mock_mark_thread_read.mockResolvedValue({ data: { status: "ok" } });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("does nothing without a thread_token", () => {
@@ -128,5 +146,60 @@ describe("mark_conversation_read", () => {
     await flush();
 
     expect(mock_emit_mail_soft_refresh).not.toHaveBeenCalled();
+  });
+
+  it("clears a category-tab row whose indexed thread still has unread siblings", async () => {
+    mock_thread_has_unread_entries.mockReturnValue(true);
+
+    mark_conversation_read({
+      thread_token: "t1",
+      thread_message_count: 1,
+      grouped_count: 1,
+      conversation_grouping: false,
+      acted_id: "m1",
+    });
+
+    expect(mock_thread_has_unread_entries).toHaveBeenCalledWith("t1", "m1");
+    expect(mock_mark_thread_read).toHaveBeenCalledWith("t1");
+
+    await flush();
+
+    expect(mock_mark_thread_read_entries).toHaveBeenCalledWith("t1");
+  });
+
+  it("does not fire for a lone message whose only unread index entry is itself", () => {
+    mock_thread_has_unread_entries.mockReturnValue(false);
+
+    mark_conversation_read({
+      thread_token: "t1",
+      thread_message_count: 1,
+      grouped_count: 1,
+      conversation_grouping: true,
+      acted_id: "m1",
+    });
+
+    expect(mock_mark_thread_read).not.toHaveBeenCalled();
+  });
+
+  it("retries once after a failed thread-read request", async () => {
+    vi.useFakeTimers();
+    mock_mark_thread_read
+      .mockResolvedValueOnce({ error: "boom" })
+      .mockResolvedValueOnce({ data: { status: "ok" } });
+
+    mark_conversation_read({
+      thread_token: "t1",
+      thread_message_count: 2,
+      conversation_grouping: true,
+    });
+
+    await vi.advanceTimersByTimeAsync(2100);
+
+    expect(mock_mark_thread_read).toHaveBeenCalledTimes(2);
+    expect(mock_emit_mail_soft_refresh).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(mock_mark_thread_read).toHaveBeenCalledTimes(2);
   });
 });
