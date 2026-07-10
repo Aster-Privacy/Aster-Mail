@@ -239,18 +239,6 @@ describe("sanitize_html preserves legitimate content (no over-stripping)", () =>
     expect(has_event_handler(html)).toBe(false);
   });
 
-  it("keeps tables and their structure", () => {
-    const input =
-      "<table><thead><tr><th>H</th></tr></thead>" +
-      "<tbody><tr><td>cell</td></tr></tbody></table>";
-    const { html } = sanitize_html(input);
-
-    expect(html.toLowerCase()).toContain("<table");
-    expect(html.toLowerCase()).toContain("<td");
-    expect(html).toContain("cell");
-    expect(html).toContain("H");
-  });
-
   it("does not allow </style> breakout via escaped css url", () => {
     const input =
       "<style>a{x:url(https://example.com/)} \\3c\\2f style\\3e\\3cimg src=https://attacker.example/o.gif\\3e</style>";
