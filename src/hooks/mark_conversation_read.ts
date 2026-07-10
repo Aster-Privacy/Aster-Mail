@@ -38,9 +38,10 @@ import {
 // Marking the whole thread read keeps the badge (and the inbox row) in step
 // with what the user actually read. Single-message threads already clear on
 // their own, so this only fires for real conversations: grouped rows, opened
-// grouped threads, or threads the category index still counts unread (category
-// tabs always show one representative row per thread regardless of the
-// grouping preference, so the sibling messages are not reachable rows there).
+// grouped threads, or threads the category index still counts unread. In
+// ungrouped mode every message is its own row (the index derives per-message
+// rows too), so siblings always clear independently and none of the thread
+// paths fire.
 //
 
 interface MarkConversationReadOptions {
@@ -54,10 +55,10 @@ interface MarkConversationReadOptions {
 //
 // A conversation worth clearing as a unit is a grouped row the user acted on
 // (grouped_count > 1), a multi-message thread opened while grouping is
-// enabled, or a thread whose category index entries are still unread beyond
-// the acted message (category rows carry grouped_count 1 even for real
-// conversations). A lone message with no unread indexed siblings still clears
-// on its own.
+// enabled, or (grouping on) a thread whose category index entries are still
+// unread beyond the acted message - category rows carry grouped_count 1 even
+// for real conversations. A lone message with no unread indexed siblings
+// still clears on its own.
 //
 export function mark_conversation_read({
   thread_token,
@@ -68,34 +69,23 @@ export function mark_conversation_read({
 }: MarkConversationReadOptions): void {
   if (!thread_token) return;
 
+  const grouping_on = conversation_grouping !== false;
   const acted_on_group = (grouped_count ?? 0) > 1;
   const opened_grouped_thread =
-    conversation_grouping !== false && (thread_message_count ?? 0) > 1;
-  const indexed_thread_pending = thread_has_unread_entries(
-    thread_token,
-    acted_id,
-  );
+    grouping_on && (thread_message_count ?? 0) > 1;
+  const indexed_thread_pending =
+    grouping_on && thread_has_unread_entries(thread_token, acted_id);
 
   if (!acted_on_group && !opened_grouped_thread && !indexed_thread_pending) {
     return;
   }
 
-  const attempt = (retries_left: number): void => {
-    void mark_thread_read(thread_token)
-      .then((result) => {
-        if (!result.error) {
-          mark_thread_read_entries(thread_token);
-          emit_mail_soft_refresh();
-        } else if (retries_left > 0) {
-          window.setTimeout(() => attempt(retries_left - 1), 2000);
-        }
-      })
-      .catch(() => {
-        if (retries_left > 0) {
-          window.setTimeout(() => attempt(retries_left - 1), 2000);
-        }
-      });
-  };
-
-  attempt(1);
+  void mark_thread_read(thread_token)
+    .then((result) => {
+      if (!result.error) {
+        mark_thread_read_entries(thread_token);
+        emit_mail_soft_refresh();
+      }
+    })
+    .catch(() => {});
 }

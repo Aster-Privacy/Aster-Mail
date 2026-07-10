@@ -65,6 +65,7 @@ import {
   set_sort_order,
   reconcile_server_read,
   get_thread_rep_id,
+  set_thread_grouping,
 } from "@/services/category_index";
 import { get_thread_messages, trash_thread } from "@/services/api/mail";
 import { batch_archive as api_batch_archive } from "@/services/api/archive";
@@ -129,6 +130,10 @@ export function use_category_inbox(
       preferences.inbox_sort_order === "oldest_first" ? "asc" : "desc",
     );
   }, [preferences.inbox_sort_order]);
+
+  useEffect(() => {
+    set_thread_grouping(preferences.conversation_grouping !== false);
+  }, [preferences.conversation_grouping]);
 
   const page_size = DEFAULT_PAGE_SIZE;
 
@@ -383,8 +388,12 @@ export function use_category_inbox(
           !email.is_spam &&
           (email.labels?.length ?? 0) === 0 &&
           (email.folders?.length ?? 0) === 0 &&
-          (!email.snoozed_until ||
-            new Date(email.snoozed_until).getTime() <= Date.now());
+          (() => {
+            if (!email.snoozed_until) return true;
+            const wake_ms = new Date(email.snoozed_until).getTime();
+
+            return Number.isNaN(wake_ms) || wake_ms <= Date.now();
+          })();
 
         const stale_fetched = fetched
           .filter((email) => !belongs_in_inbox(email))

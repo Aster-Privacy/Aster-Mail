@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -47,6 +47,10 @@ import {
   report_spam_sender,
   remove_spam_sender,
 } from "@/services/api/mail";
+import {
+  batch_archive as api_batch_archive,
+  batch_unarchive as api_batch_unarchive,
+} from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
   adjust_starred_count,
@@ -448,7 +452,20 @@ export function use_single_actions(
         email,
         "archive",
         archive_update,
-        () => update_with_metadata(email, archive_update),
+        async () => {
+          const batch_result = await api_batch_archive({
+            ids: [email.id],
+            tier: "hot",
+          });
+
+          if (batch_result.error || !batch_result.data?.success) {
+            return {
+              error: batch_result.error || t("common.failed_to_archive_emails"),
+            };
+          }
+
+          return update_with_metadata(email, archive_update);
+        },
         true,
       );
 
@@ -488,7 +505,17 @@ export function use_single_actions(
         email,
         "archive",
         { is_archived: false },
-        () => update_with_metadata(email, { is_archived: false }),
+        async () => {
+          const batch_result = await api_batch_unarchive({ ids: [email.id] });
+
+          if (batch_result.error || !batch_result.data?.success) {
+            return {
+              error: batch_result.error || t("common.failed_to_move_email"),
+            };
+          }
+
+          return update_with_metadata(email, { is_archived: false });
+        },
         true,
       );
 

@@ -66,6 +66,7 @@ export interface CategoryIndexEntry {
   is_read: boolean;
   category: EmailCategory;
   category_pinned?: boolean;
+  snoozed_until?: string;
 }
 
 export interface CategoryCount {
@@ -91,6 +92,7 @@ let last_build_ms = 0;
 let seen_ts: Record<string, number> = {};
 let loaded_for_account: string | null = null;
 let build_in_progress = false;
+let build_capped = false;
 let build_progress_ms = 0;
 let build_token = 0;
 let version = 0;
@@ -100,7 +102,10 @@ let ensure_loaded_account: string | null = null;
 let persist_timer: ReturnType<typeof setTimeout> | null = null;
 let notify_timer: ReturnType<typeof setTimeout> | null = null;
 let resync_timer: ReturnType<typeof setTimeout> | null = null;
+let resync_failures = 0;
 let listeners_started = false;
+
+const MAX_RESYNC_FAILURES = 5;
 
 const listeners = new Set<() => void>();
 const in_flight_reclassify = new Map<string, boolean>();
@@ -329,7 +334,9 @@ function apply_upsert(incoming: CategoryIndexEntry[]): boolean {
       existing.category !== entry.category ||
       existing.is_read !== entry.is_read ||
       existing.message_ts !== entry.message_ts ||
-      (existing.category_pinned ?? false) !== (entry.category_pinned ?? false)
+      (existing.category_pinned ?? false) !==
+        (entry.category_pinned ?? false) ||
+      (existing.snoozed_until ?? "") !== (entry.snoozed_until ?? "")
     ) {
       entries_map.set(entry.id, entry);
       changed = true;
@@ -447,6 +454,30 @@ function empty_counts(): CategoryCounts {
 // Derived view (thread dedup, per-tab counts, pre-sorted page lists) is built
 // in a single pass and cached per `version`, so repeated get_counts /
 // get_page_ids calls during rendering are O(1) lookups, not O(n log n) rebuilds.
+let thread_grouping = true;
+let wake_timer: ReturnType<typeof setTimeout> | null = null;
+
+export function set_thread_grouping(enabled: boolean): void {
+  if (enabled === thread_grouping) return;
+  thread_grouping = enabled;
+  version += 1;
+  notify();
+}
+
+function arm_wake_timer(deadline_ms: number): void {
+  if (wake_timer) clearTimeout(wake_timer);
+  const delay = Math.min(
+    Math.max(deadline_ms - now_ms(), 0) + 1000,
+    6 * 60 * 60 * 1000,
+  );
+
+  wake_timer = setTimeout(() => {
+    wake_timer = null;
+    version += 1;
+    notify();
+  }, delay);
+}
+
 function compute_derived(): DerivedData {
   const best = new Map<
     string,
@@ -458,11 +489,23 @@ function compute_derived(): DerivedData {
       pinned_ts: number;
     }
   >();
+  const derive_wall = now_ms();
+  let earliest_wake = 0;
 
   for (const entry of entries_map.values()) {
-    const key = entry.thread_token
-      ? `t:${entry.thread_token}`
-      : `i:${entry.id}`;
+    if (entry.snoozed_until) {
+      const wake = safe_ts(entry.snoozed_until);
+
+      if (wake > derive_wall) {
+        if (earliest_wake === 0 || wake < earliest_wake) earliest_wake = wake;
+
+        continue;
+      }
+    }
+    const key =
+      entry.thread_token && thread_grouping
+        ? `t:${entry.thread_token}`
+        : `i:${entry.id}`;
     const ts = safe_ts(entry.message_ts);
     const current = best.get(key);
 
@@ -493,7 +536,7 @@ function compute_derived(): DerivedData {
   const grouped = new Map<EmailCategory, { id: string; ts: number }[]>();
   const unread_reps = new Set<string>();
   const thread_reps = new Map<string, string>();
-  const wall = now_ms();
+  const wall = derive_wall;
 
   for (const tab of CATEGORY_TABS) {
     grouped.set(tab, []);
@@ -528,6 +571,13 @@ function compute_derived(): DerivedData {
       tab,
       list.map((item) => item.id),
     );
+  }
+
+  if (earliest_wake > 0) {
+    arm_wake_timer(earliest_wake);
+  } else if (wake_timer) {
+    clearTimeout(wake_timer);
+    wake_timer = null;
   }
 
   return { version, counts, pages, unread_reps, thread_reps };
@@ -589,6 +639,39 @@ export function get_category_total(category: EmailCategory): number {
 
 export function is_representative_unread(id: string): boolean {
   return ensure_derived().unread_reps.has(id);
+}
+
+export function get_category_action_ids(category: EmailCategory): {
+  rep_ids: string[];
+  all_ids: string[];
+} {
+  const rep_ids = ensure_derived().pages.get(category) ?? [];
+  const rep_set = new Set(rep_ids);
+  const thread_tokens = new Set<string>();
+
+  if (thread_grouping) {
+    for (const id of rep_ids) {
+      const entry = entries_map.get(id);
+
+      if (entry?.thread_token) thread_tokens.add(entry.thread_token);
+    }
+  }
+
+  const all_ids: string[] = [];
+
+  for (const [id, entry] of entries_map) {
+    if (rep_set.has(id)) {
+      all_ids.push(id);
+    } else if (entry.thread_token && thread_tokens.has(entry.thread_token)) {
+      all_ids.push(id);
+    }
+  }
+
+  return { rep_ids: [...rep_ids], all_ids };
+}
+
+export function is_index_capped(): boolean {
+  return build_capped;
 }
 
 export function get_thread_rep_id(id: string): string | null {
@@ -680,7 +763,7 @@ export function subscribe(listener: () => void): () => void {
 // the encrypted metadata blob. The blob can lag a server-side move (archive,
 // trash, spam, snooze) and a stale blob would otherwise resurrect mail that
 // has already left the inbox. Labels/folders mirror the server inbox filter.
-export function is_item_outside_inbox(item: MailItem): boolean {
+function is_item_moved_out(item: MailItem): boolean {
   if (
     item.is_archived === true ||
     item.is_trashed === true ||
@@ -691,6 +774,12 @@ export function is_item_outside_inbox(item: MailItem): boolean {
   if ((item.labels?.length ?? 0) > 0 || (item.folders?.length ?? 0) > 0) {
     return true;
   }
+
+  return false;
+}
+
+export function is_item_outside_inbox(item: MailItem): boolean {
+  if (is_item_moved_out(item)) return true;
   if (item.snoozed_until) {
     const wake_ms = safe_ts(item.snoozed_until);
 
@@ -706,7 +795,7 @@ type ItemIndexResult =
   | { kind: "keep" };
 
 async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
-  if (is_item_outside_inbox(item)) return { kind: "remove" };
+  if (is_item_moved_out(item)) return { kind: "remove" };
   const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
 
   const [envelope, metadata] = await Promise.all([
@@ -725,6 +814,11 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
     return { kind: "remove" };
   }
 
+  const snoozed_until =
+    item.snoozed_until && safe_ts(item.snoozed_until) > now_ms()
+      ? item.snoozed_until
+      : undefined;
+
   return {
     kind: "upsert",
     entry: {
@@ -735,6 +829,7 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
       category: classify(envelope, metadata),
       category_pinned:
         metadata?.category_pinned === true && !!metadata?.category,
+      ...(snoozed_until ? { snoozed_until } : {}),
     },
   };
 }
@@ -855,6 +950,7 @@ export async function build_index(options?: {
     }
 
     fully_built = reached_end || processed >= BUILD_CAP;
+    build_capped = !reached_end && processed >= BUILD_CAP;
     last_build_ms = now_ms();
     build_in_progress = false;
     void persist_now();
@@ -890,10 +986,12 @@ export async function sync_recent(): Promise<void> {
 
     if (token !== build_token) return;
     if (!response.data) {
-      schedule_resync();
+      resync_failures += 1;
+      if (resync_failures < MAX_RESYNC_FAILURES) schedule_resync();
 
       return;
     }
+    resync_failures = 0;
 
     const items = response.data.items;
     const { upserts, removals } = await entries_from_items(items);
@@ -947,8 +1045,8 @@ export async function sync_recent(): Promise<void> {
     }
     last_build_ms = now_ms();
   } catch {
-    last_build_ms = 0;
-    schedule_resync();
+    resync_failures += 1;
+    if (resync_failures < MAX_RESYNC_FAILURES) schedule_resync();
     return;
   }
 }
@@ -996,47 +1094,24 @@ async function reclassify_id(id: string): Promise<void> {
       return;
     }
 
-    if (item.item_type !== "received" || is_item_outside_inbox(item)) {
+    if (item.item_type !== "received") {
       if (entries_map.has(id)) remove_ids([id]);
 
       return;
     }
 
-    const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
-    const [envelope, metadata] = await Promise.all([
-      decrypt_envelope(item.encrypted_envelope, item.envelope_nonce),
-      has_metadata
-        ? decrypt_mail_metadata(
-            item.encrypted_metadata!,
-            item.metadata_nonce!,
-            item.metadata_version,
-          )
-        : Promise.resolve(null),
-    ]);
+    const result = await item_to_entry(item);
 
     if (generation !== index_generation) return;
-    if (!envelope) return;
 
-    if (metadata?.is_trashed || metadata?.is_archived || metadata?.is_spam) {
-      remove_ids([item.id]);
+    if (result.kind === "remove") {
+      if (entries_map.has(id)) remove_ids([id]);
 
       return;
     }
+    if (result.kind === "keep") return;
 
-    upsert_entries(
-      [
-        {
-          id: item.id,
-          thread_token: item.thread_token,
-          message_ts: item.message_ts || item.created_at,
-          is_read: item.is_read === true || (metadata?.is_read ?? false),
-          category: classify(envelope, metadata),
-          category_pinned:
-            metadata?.category_pinned === true && !!metadata?.category,
-        },
-      ],
-      generation,
-    );
+    upsert_entries([result.entry], generation);
   } catch {
     return;
   } finally {
@@ -1056,18 +1131,65 @@ export function request_full_rebuild(): void {
   void build_index({ force: true });
 }
 
+const REINDEX_CHUNK_SIZE = 50;
+const REINDEX_FULL_REBUILD_CAP = 500;
+
+async function reclassify_many(ids: string[]): Promise<void> {
+  if (!has_vault_in_memory()) return;
+
+  const generation = index_generation;
+
+  for (let i = 0; i < ids.length; i += REINDEX_CHUNK_SIZE) {
+    const chunk = ids.slice(i, i + REINDEX_CHUNK_SIZE);
+
+    try {
+      const response = await list_mail_items({ ids: chunk });
+
+      if (generation !== index_generation) return;
+      if (!response.data) continue;
+
+      const items = response.data.items ?? [];
+      const returned = new Set(items.map((it) => it.id));
+      const gone = chunk.filter(
+        (id) => !returned.has(id) && entries_map.has(id),
+      );
+      const received_items = items.filter(
+        (it) => it.item_type === "received",
+      );
+      const non_received = items
+        .filter((it) => it.item_type !== "received")
+        .map((it) => it.id)
+        .filter((id) => entries_map.has(id));
+      const { upserts, removals } = await entries_from_items(received_items);
+
+      if (generation !== index_generation) return;
+
+      upsert_entries(upserts, generation);
+      remove_ids([...gone, ...non_received, ...removals]);
+    } catch {
+      continue;
+    }
+  }
+}
+
 export function reindex_ids(ids: string[]): void {
   if (ids.length === 0) return;
 
-  if (ids.length > REINDEX_DIRECT_CAP) {
+  if (ids.length > REINDEX_FULL_REBUILD_CAP) {
     request_full_rebuild();
 
     return;
   }
 
-  for (const id of ids) {
-    void reclassify_id(id);
+  if (ids.length <= REINDEX_DIRECT_CAP) {
+    for (const id of ids) {
+      void reclassify_id(id);
+    }
+
+    return;
   }
+
+  void reclassify_many(ids);
 }
 
 const TERMINAL_ACTIONS = new Set([
@@ -1142,14 +1264,22 @@ export function start_event_listeners(): void {
   });
 
   on_mail_event(MAIL_EVENTS.SNOOZED_CHANGED, () => {
+    resync_failures = 0;
+    schedule_resync();
+  });
+
+  on_mail_event(MAIL_EVENTS.MAIL_STATS_STALE, () => {
+    resync_failures = 0;
     schedule_resync();
   });
 
   on_mail_event(MAIL_EVENTS.MAIL_CHANGED, () => {
+    resync_failures = 0;
     schedule_resync();
   });
 
   on_mail_event(MAIL_EVENTS.MAIL_SOFT_REFRESH, () => {
+    resync_failures = 0;
     schedule_resync();
   });
 
