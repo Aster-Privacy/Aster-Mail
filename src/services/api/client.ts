@@ -630,6 +630,10 @@ class ApiClient {
           refresh_token?: string;
         }>("/core/v1/auth/refresh", body);
 
+        if (this.intentional_logout) {
+          return;
+        }
+
         if (response.data?.csrf_token) {
           this.is_authenticated_flag = true;
           this.last_refresh_timestamp = Date.now();
