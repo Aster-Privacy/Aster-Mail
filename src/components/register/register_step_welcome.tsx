@@ -78,10 +78,17 @@ export const RegisterStepWelcome = ({ reg }: RegisterStepWelcomeProps) => {
       {offer.has_offer ? (
         <>
           <span
-            className="inline-flex items-center gap-1.5 mt-6 px-3 py-1 rounded-full text-xs font-semibold"
+            className="inline-flex items-center gap-1.5 mt-6"
             style={{
-              backgroundColor: "var(--accent-blue-soft, rgba(37,99,235,0.12))",
-              color: "var(--accent-blue)",
+              padding: "5px 12px",
+              borderRadius: "6px",
+              fontSize: "12px",
+              fontWeight: 600,
+              lineHeight: 1,
+              color: "#1d4ed8",
+              backgroundColor: "#dbeafe",
+              border: "1px solid #93c5fd",
+              borderBottomWidth: "2.5px",
             }}
           >
             <OfferIcon className="w-3.5 h-3.5" />
