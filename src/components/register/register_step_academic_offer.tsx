@@ -30,7 +30,10 @@ import {
 import { Button } from "@aster/ui";
 
 import { Logo } from "@/components/auth/auth_styles";
-import { request_academic_verification } from "@/services/api/billing";
+import {
+  request_academic_verification,
+  get_academic_discount_status,
+} from "@/services/api/billing";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   TurnstileWidget,
@@ -72,6 +75,7 @@ export const RegisterStepAcademicOffer = ({
   const [auto_sending, set_auto_sending] = useState(
     can_auto_send && !captcha_required,
   );
+  const [verified, set_verified] = useState(false);
   const auto_send_done = useRef(false);
 
   const continue_to_plans = () => reg.set_step("plan_selection");
@@ -132,6 +136,29 @@ export const RegisterStepAcademicOffer = ({
     }
   }, [turnstile_token]);
 
+  useEffect(() => {
+    if (!sent_to || verified) return;
+    let cancelled = false;
+    const check = async () => {
+      const res = await get_academic_discount_status();
+      if (!cancelled && res.data?.status === "verified") set_verified(true);
+    };
+    const id = setInterval(check, 4000);
+    void check();
+
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [sent_to, verified]);
+
+  useEffect(() => {
+    if (!verified) return;
+    const id = setTimeout(() => continue_to_plans(), 2000);
+
+    return () => clearTimeout(id);
+  }, [verified]);
+
   if (auto_sending && !sent_to) {
     return (
       <motion.div
@@ -170,12 +197,18 @@ export const RegisterStepAcademicOffer = ({
         variants={page_variants}
       >
         <Logo />
-        <CheckCircleIcon className="w-12 h-12 mt-8 text-green-500" />
+        <CheckCircleIcon
+          className={`w-12 h-12 mt-8 ${verified ? "text-green-500" : "text-green-500"}`}
+        />
         <h1 className="text-2xl font-bold mt-5 text-txt-primary">
-          {t("auth.academic_offer_sent_title")}
+          {verified
+            ? t("auth.academic_verified_title")
+            : t("auth.academic_offer_sent_title")}
         </h1>
         <p className="text-sm mt-3 leading-relaxed text-txt-tertiary">
-          {t("auth.academic_offer_sent", { email: sent_to })}
+          {verified
+            ? t("auth.academic_verified_body")
+            : t("auth.academic_offer_sent", { email: sent_to })}
         </p>
         <div className="w-full mt-8">
           <Button
@@ -184,7 +217,9 @@ export const RegisterStepAcademicOffer = ({
             variant="depth"
             onClick={continue_to_plans}
           >
-            {t("auth.academic_offer_continue")}
+            {verified
+              ? t("auth.academic_verified_continue")
+              : t("auth.academic_offer_continue")}
           </Button>
         </div>
       </motion.div>
