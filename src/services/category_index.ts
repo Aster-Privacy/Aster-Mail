@@ -110,6 +110,18 @@ const MAX_RESYNC_FAILURES = 5;
 const listeners = new Set<() => void>();
 const in_flight_reclassify = new Map<string, boolean>();
 const recent_reclassify_meta = new Map<string, string>();
+const recently_read = new Map<string, number>();
+
+const RECENT_READ_GUARD_MS = 30000;
+
+function note_recently_read(id: string): void {
+  recently_read.set(id, now_ms());
+  if (recently_read.size > 500) {
+    const oldest = recently_read.keys().next().value;
+
+    if (oldest) recently_read.delete(oldest);
+  }
+}
 
 function now_ms(): number {
   return new Date().getTime();
@@ -322,12 +334,24 @@ async function ensure_loaded(): Promise<boolean> {
   return ensure_loaded_promise;
 }
 
-function apply_upsert(incoming: CategoryIndexEntry[]): boolean {
+function apply_upsert(
+  incoming: CategoryIndexEntry[],
+  guard_recent_read = false,
+): boolean {
   let changed = false;
 
-  for (const entry of incoming) {
-    if (!entry.id) continue;
-    const existing = entries_map.get(entry.id);
+  for (const raw of incoming) {
+    if (!raw.id) continue;
+    const existing = entries_map.get(raw.id);
+    let entry = raw;
+
+    if (guard_recent_read && existing?.is_read && !raw.is_read) {
+      const noted = recently_read.get(raw.id);
+
+      if (noted && now_ms() - noted < RECENT_READ_GUARD_MS) {
+        entry = { ...raw, is_read: true };
+      }
+    }
 
     if (
       !existing ||
@@ -367,11 +391,12 @@ export function get_index_generation(): number {
 export function upsert_entries(
   incoming: CategoryIndexEntry[],
   generation?: number,
+  guard_recent_read = false,
 ): void {
   if (incoming.length === 0) return;
   if (generation !== undefined && generation !== index_generation) return;
 
-  if (apply_upsert(incoming)) {
+  if (apply_upsert(incoming, guard_recent_read)) {
     enforce_cap();
     schedule_persist();
     notify_soon();
@@ -386,6 +411,7 @@ export function mark_thread_read_entries(thread_token: string): void {
   for (const [id, entry] of entries_map) {
     if (entry.thread_token === thread_token && !entry.is_read) {
       entries_map.set(id, { ...entry, is_read: true });
+      note_recently_read(id);
       changed = true;
     }
   }
@@ -711,6 +737,7 @@ export function reconcile_server_read(
 
     if (entry && !entry.is_read) {
       entries_map.set(row.id, { ...entry, is_read: true });
+      note_recently_read(row.id);
       changed = true;
     }
   }
@@ -916,7 +943,7 @@ export async function build_index(options?: {
 
       if (token !== build_token) return;
 
-      let page_changed = apply_upsert(upserts);
+      let page_changed = apply_upsert(upserts, true);
 
       for (const id of removals) {
         if (entries_map.delete(id)) page_changed = true;
@@ -942,8 +969,14 @@ export async function build_index(options?: {
     if (token !== build_token) return;
 
     if (reached_end) {
-      for (const id of Array.from(entries_map.keys())) {
+      for (const [id, entry] of Array.from(entries_map.entries())) {
         if (!seen.has(id) && prebuild_ids.has(id)) {
+          if (
+            entry.snoozed_until &&
+            safe_ts(entry.snoozed_until) > now_ms()
+          ) {
+            continue;
+          }
           entries_map.delete(id);
         }
       }
@@ -998,7 +1031,7 @@ export async function sync_recent(): Promise<void> {
 
     if (token !== build_token) return;
 
-    let changed = apply_upsert(upserts);
+    let changed = apply_upsert(upserts, true);
 
     for (const id of removals) {
       if (entries_map.delete(id)) changed = true;
@@ -1028,10 +1061,18 @@ export async function sync_recent(): Promise<void> {
       }
 
       if (window_start !== Infinity) {
+        const prune_wall = now_ms();
+
         for (const [id, entry] of entries_map) {
           const ts = safe_ts(entry.message_ts);
 
           if (ts > window_start && ts <= window_end && !returned.has(id)) {
+            if (
+              entry.snoozed_until &&
+              safe_ts(entry.snoozed_until) > prune_wall
+            ) {
+              continue;
+            }
             entries_map.delete(id);
             changed = true;
           }
@@ -1111,7 +1152,7 @@ async function reclassify_id(id: string): Promise<void> {
     }
     if (result.kind === "keep") return;
 
-    upsert_entries([result.entry], generation);
+    upsert_entries([result.entry], generation, true);
   } catch {
     return;
   } finally {
@@ -1138,7 +1179,15 @@ async function reclassify_many(ids: string[]): Promise<void> {
   if (!has_vault_in_memory()) return;
 
   const generation = index_generation;
-  const pending = ids.filter((id) => !in_flight_reclassify.has(id));
+  const pending: string[] = [];
+
+  for (const id of ids) {
+    if (in_flight_reclassify.has(id)) {
+      in_flight_reclassify.set(id, true);
+    } else {
+      pending.push(id);
+    }
+  }
 
   for (let i = 0; i < pending.length; i += REINDEX_CHUNK_SIZE) {
     const chunk = pending.slice(i, i + REINDEX_CHUNK_SIZE);
@@ -1165,7 +1214,7 @@ async function reclassify_many(ids: string[]): Promise<void> {
 
       if (generation !== index_generation) return;
 
-      upsert_entries(upserts, generation);
+      upsert_entries(upserts, generation, true);
       remove_ids([...gone, ...non_received, ...removals]);
     } catch {
       continue;
@@ -1229,6 +1278,7 @@ export function clear_category_index_memory(): void {
   build_capped = false;
   resync_failures = 0;
   entries_map = new Map();
+  recently_read.clear();
   derived = null;
   seen_ts = {};
   fully_built = false;
@@ -1349,6 +1399,7 @@ export function start_event_listeners(): void {
         typeof detail.is_read === "boolean" &&
         existing.is_read !== detail.is_read
       ) {
+        if (detail.is_read) note_recently_read(detail.id);
         if (apply_upsert([{ ...existing, is_read: detail.is_read }])) {
           schedule_persist();
           notify();
@@ -1372,6 +1423,7 @@ export function start_event_listeners(): void {
       typeof detail.is_read === "boolean" &&
       existing.is_read !== detail.is_read
     ) {
+      if (detail.is_read) note_recently_read(detail.id);
       if (apply_upsert([{ ...existing, is_read: detail.is_read }])) {
         schedule_persist();
         notify();
@@ -1441,11 +1493,18 @@ export async function clear_category_index(): Promise<void> {
     clearTimeout(resync_timer);
     resync_timer = null;
   }
+  if (wake_timer) {
+    clearTimeout(wake_timer);
+    wake_timer = null;
+  }
 
   build_token += 1;
   index_generation += 1;
   entries_map = new Map();
+  recently_read.clear();
   fully_built = false;
+  build_capped = false;
+  resync_failures = 0;
   last_build_ms = 0;
   seen_ts = {};
   loaded_for_account = null;
