@@ -5801,6 +5801,8 @@ export const tr = {
     rotate: "Anahtarları yenile",
     rotated: "Kutu anahtarları yenilendi",
     rotate_conflict: "Yenileme sırasında üye listesi değişti. Liste güncellendi - tekrar deneyin.",
+    revoke_rotation_pending: "Erişim kaldırıldı ancak anahtarlar yenilenemedi. Erişimi güncelle'ye dokunun - o zamana kadar üye erişimini korur.",
+    created_grant_pending: "Posta kutusu oluşturuldu ancak erişiminiz ayarlanamadı. Kutu satırını açın ve kendinize erişim verin.",
     load_failed_retry: "Ortak posta kutuları yüklenemedi. Yeniden denemek için dokunun.",
     open: "Aç",
     grant_added: "Erişim verildi",

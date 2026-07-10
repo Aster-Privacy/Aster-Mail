@@ -5801,6 +5801,8 @@ export const ko = {
     rotate: "키 갱신",
     rotated: "메일함 키를 갱신했습니다",
     rotate_conflict: "갱신하는 동안 구성원 목록이 변경되었습니다. 목록을 새로 고쳤으니 다시 시도하세요.",
+    revoke_rotation_pending: "접근을 제거했지만 키를 갱신하지 못했습니다. 접근 권한 업데이트를 누르세요. 그때까지 구성원은 접근 권한을 유지합니다.",
+    created_grant_pending: "메일함을 만들었지만 접근 설정에 실패했습니다. 메일함 행을 열어 본인에게 접근 권한을 부여하세요.",
     load_failed_retry: "공유 메일함을 불러오지 못했습니다. 다시 시도하려면 누르세요.",
     open: "열기",
     grant_added: "접근 권한을 부여했습니다",

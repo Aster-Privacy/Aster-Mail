@@ -5801,6 +5801,8 @@ export const de = {
     rotate: "Schlüssel erneuern",
     rotated: "Postfach-Schlüssel erneuert",
     rotate_conflict: "Die Mitgliederliste hat sich während der Erneuerung geändert. Sie wurde aktualisiert - versuche es erneut.",
+    revoke_rotation_pending: "Zugriff entfernt, aber die Schlüssel konnten nicht erneuert werden. Tippe auf Zugriff aktualisieren - bis dahin behält das Mitglied Zugriff.",
+    created_grant_pending: "Postfach erstellt, aber das Einrichten deines Zugriffs ist fehlgeschlagen. Öffne die Postfachzeile und gib dir selbst Zugriff.",
     load_failed_retry: "Geteilte Postfächer konnten nicht geladen werden. Zum Wiederholen tippen.",
     open: "Öffnen",
     grant_added: "Zugriff gewährt",

@@ -6434,6 +6434,8 @@ export const en: Translations = {
     rotate: "Renew keys",
     rotated: "Mailbox keys renewed",
     rotate_conflict: "The list of members changed while you were rotating. It has been refreshed - try renewing keys again.",
+    revoke_rotation_pending: "Access removed, but keys couldn't be renewed. Tap Update access to finish - the member keeps access until you do.",
+    created_grant_pending: "Mailbox created, but setting up your access failed. Open the mailbox row and grant yourself access to use it.",
     load_failed_retry: "Couldn't load shared mailboxes. Tap to retry.",
     open: "Open",
     grant_added: "Access granted",

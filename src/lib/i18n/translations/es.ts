@@ -5801,6 +5801,8 @@ export const es = {
     rotate: "Renovar claves",
     rotated: "Claves del buzón renovadas",
     rotate_conflict: "La lista de miembros cambió durante la renovación. Se ha actualizado; inténtalo de nuevo.",
+    revoke_rotation_pending: "Acceso eliminado, pero no se pudieron renovar las claves. Toca Actualizar acceso; el miembro conserva el acceso hasta entonces.",
+    created_grant_pending: "Buzón creado, pero no se pudo configurar tu acceso. Abre la fila del buzón y date acceso.",
     load_failed_retry: "No se pudieron cargar los buzones compartidos. Toca para reintentar.",
     open: "Abrir",
     grant_added: "Acceso concedido",

@@ -5801,6 +5801,8 @@ export const fr = {
     rotate: "Renouveler les clés",
     rotated: "Clés de la boîte renouvelées",
     rotate_conflict: "La liste des membres a changé pendant le renouvellement. Elle a été actualisée - réessayez.",
+    revoke_rotation_pending: "Accès retiré, mais les clés n'ont pas pu être renouvelées. Touchez Mettre à jour l'accès - le membre garde l'accès jusque-là.",
+    created_grant_pending: "Boîte créée, mais la configuration de votre accès a échoué. Ouvrez la ligne de la boîte et accordez-vous l'accès.",
     load_failed_retry: "Impossible de charger les boîtes partagées. Touchez pour réessayer.",
     open: "Ouvrir",
     grant_added: "Accès accordé",

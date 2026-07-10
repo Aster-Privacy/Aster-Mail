@@ -5801,6 +5801,8 @@ export const pl = {
     rotate: "Odnów klucze",
     rotated: "Klucze skrzynki odnowione",
     rotate_conflict: "Lista członków zmieniła się podczas odnawiania. Została odświeżona - spróbuj ponownie.",
+    revoke_rotation_pending: "Dostęp usunięty, ale nie udało się odnowić kluczy. Dotknij Zaktualizuj dostęp - do tego czasu członek zachowuje dostęp.",
+    created_grant_pending: "Skrzynka utworzona, ale nie udało się skonfigurować Twojego dostępu. Otwórz wiersz skrzynki i przyznaj sobie dostęp.",
     load_failed_retry: "Nie można załadować wspólnych skrzynek. Dotknij, aby spróbować ponownie.",
     open: "Otwórz",
     grant_added: "Dostęp przyznany",

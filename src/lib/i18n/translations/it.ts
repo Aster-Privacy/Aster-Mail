@@ -5802,6 +5802,8 @@ export const it = {
     rotate: "Rinnova chiavi",
     rotated: "Chiavi della casella rinnovate",
     rotate_conflict: "L'elenco dei membri è cambiato durante il rinnovo. È stato aggiornato: riprova.",
+    revoke_rotation_pending: "Accesso rimosso, ma non è stato possibile rinnovare le chiavi. Tocca Aggiorna accesso: fino ad allora il membro conserva l'accesso.",
+    created_grant_pending: "Casella creata, ma la configurazione del tuo accesso non è riuscita. Apri la riga della casella e concediti l'accesso.",
     load_failed_retry: "Impossibile caricare le caselle condivise. Tocca per riprovare.",
     open: "Apri",
     grant_added: "Accesso concesso",
