@@ -5857,6 +5857,13 @@ export const en: Translations = {
     academic_offer_j_step1: "Finish creating your account",
     academic_offer_j_step2: "Email hello@astermail.org with a press card, staff page, or byline links",
     academic_offer_j_step3: "Your 30% code appears in Settings under Billing",
+    offer_welcome_badge_student: "30% student discount",
+    offer_welcome_badge_journalist: "30% journalist discount",
+    offer_welcome_headline: "Claim your 30% off",
+    offer_welcome_subline_student:
+      "Create your free account, then verify your student email to unlock 30% off any paid plan for 12 months.",
+    offer_welcome_subline_journalist:
+      "Create your free account, then verify your press credentials to unlock 30% off any paid plan for 12 months.",
     plan_star_description:
       "More storage, more aliases, and your first custom domain.",
     plan_nova_description:
