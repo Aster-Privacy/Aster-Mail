@@ -57,7 +57,10 @@ import {
   remove_ids as remove_category_index_ids,
   reindex_ids as reindex_category_ids,
   is_fully_built as is_category_index_built,
+  get_page_ids as get_category_page_ids,
+  get_category_total,
 } from "@/services/category_index";
+import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { category_for_tab } from "@/services/mail_categorizer";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
@@ -727,7 +730,9 @@ export function EmailInbox({
     return () => clearTimeout(timer);
   }, [
     current_view,
+    current_page,
     email_state.is_loading,
+    email_state.emails,
     folders_loading_for_view,
     email_state.has_initial_load,
   ]);
@@ -831,6 +836,8 @@ export function EmailInbox({
   ]);
 
   const selection = use_inbox_selection({
+    current_view,
+    active_category: categories.enabled ? categories.active_category : "",
     is_drafts_view,
     is_scheduled_view,
     emails: email_state.emails,
@@ -874,15 +881,80 @@ export function EmailInbox({
     set_pending_select_all_action(() => action);
   }, []);
 
+  const run_category_bulk_action = useCallback(
+    async (action: BulkScopeAction): Promise<boolean> => {
+      if (!is_category_index_built()) return false;
+      const total = get_category_total(categories.active_category);
+      const ids = get_category_page_ids(categories.active_category, 0, total);
+
+      if (ids.length === 0) return true;
+      switch (action) {
+        case "trash":
+          await bulk_delete(ids);
+
+          return true;
+        case "archive":
+          await bulk_archive(ids);
+
+          return true;
+        case "mark_spam": {
+          const result = await bulk_update_metadata_by_ids(ids, {
+            is_spam: true,
+            is_trashed: false,
+          });
+
+          if (!result.success) throw new Error("bulk mark_spam failed");
+          remove_category_index_ids(ids);
+
+          return true;
+        }
+        case "mark_read":
+        case "mark_unread": {
+          const result = await bulk_update_metadata_by_ids(ids, {
+            is_read: action === "mark_read",
+          });
+
+          if (!result.success) throw new Error("bulk read update failed");
+          reindex_category_ids(ids);
+
+          return true;
+        }
+        case "star":
+        case "unstar": {
+          const result = await bulk_update_metadata_by_ids(ids, {
+            is_starred: action === "star",
+          });
+
+          if (!result.success) throw new Error("bulk star update failed");
+
+          return true;
+        }
+        default:
+          return false;
+      }
+    },
+    [categories.active_category, bulk_delete, bulk_archive],
+  );
+
   const run_scope_action = useCallback(
     async (action: BulkScopeAction) => {
       try {
-        const res = await bulk_action_by_scope({
-          action,
-          scope: scope_for_view,
-        });
+        if (categories.enabled) {
+          const handled = await run_category_bulk_action(action);
 
-        if (res.error) throw new Error(res.error);
+          if (!handled) {
+            show_toast(t("mail.bulk_action_index_not_ready"), "error");
+
+            return;
+          }
+        } else {
+          const res = await bulk_action_by_scope({
+            action,
+            scope: scope_for_view,
+          });
+
+          if (res.error) throw new Error(res.error);
+        }
         selection.exit_select_all_mode();
         selection.handle_clear_selection();
         set_current_page(0);
@@ -893,7 +965,15 @@ export function EmailInbox({
         show_toast(t("common.something_went_wrong"), "error");
       }
     },
-    [scope_for_view, selection, fetch_page, set_current_page, t],
+    [
+      categories.enabled,
+      run_category_bulk_action,
+      scope_for_view,
+      selection,
+      fetch_page,
+      set_current_page,
+      t,
+    ],
   );
 
   const handle_delete_wrapped = useCallback(() => {

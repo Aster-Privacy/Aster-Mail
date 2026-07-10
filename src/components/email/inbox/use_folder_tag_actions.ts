@@ -31,6 +31,10 @@ import {
 } from "@/hooks/mail_events";
 import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
 import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
+import {
+  remove_ids as remove_index_ids,
+  reindex_ids,
+} from "@/services/category_index";
 
 interface UseFolderTagActionsOptions {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -69,7 +73,6 @@ export function use_folder_tag_actions({
           ? e.grouped_email_ids
           : [e.id],
       );
-      const representative_ids = selected.map((e) => e.id);
       const previous_states = selected.map((e) => ({
         id: e.id,
         folders: e.folders || [],
@@ -83,7 +86,7 @@ export function use_folder_tag_actions({
         current_view === "snoozed";
 
       if (!should_remove && is_inbox) {
-        emit_mail_items_removed({ ids: representative_ids });
+        emit_mail_items_removed({ ids: all_ids });
       } else {
         for (const email of selected) {
           if (should_remove) {
@@ -110,6 +113,7 @@ export function use_folder_tag_actions({
           update_email(prev.id, { folders: prev.folders });
         }
         if (!should_remove && is_inbox) {
+          reindex_ids(all_ids);
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         }
 
@@ -144,8 +148,10 @@ export function use_folder_tag_actions({
         on_undo: async () => {
           if (should_remove) {
             await bulk_add_folder(all_ids, folder_token);
+            remove_index_ids(all_ids);
           } else {
             await bulk_remove_folder(all_ids, folder_token);
+            reindex_ids(all_ids);
           }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
