@@ -92,6 +92,20 @@ interface ThreadMessagesListProps {
   on_load_external_content?: (types?: string[]) => void;
 }
 
+export function resolve_default_expanded_id(
+  messages: Pick<DecryptedThreadMessage, "id">[],
+  default_expanded_id?: string | null,
+): string | undefined {
+  if (
+    default_expanded_id &&
+    messages.some((m) => m.id === default_expanded_id)
+  ) {
+    return default_expanded_id;
+  }
+
+  return messages.length > 0 ? messages[messages.length - 1].id : undefined;
+}
+
 export interface ThreadMessagesListRef {
   expand_all: () => void;
   collapse_all: () => void;
@@ -168,11 +182,10 @@ export const ThreadMessagesList = forwardRef<
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(() => {
     const initial = new Set<string>();
     const init_msgs = messages;
+    const to_expand = resolve_default_expanded_id(init_msgs, default_expanded_id);
 
-    if (default_expanded_id && init_msgs.some((m) => m.id === default_expanded_id)) {
-      initial.add(default_expanded_id);
-    } else if (init_msgs.length > 0) {
-      initial.add(init_msgs[init_msgs.length - 1].id);
+    if (to_expand) {
+      initial.add(to_expand);
     }
 
     if (init_msgs.length <= 4) {
@@ -261,14 +274,10 @@ export const ThreadMessagesList = forwardRef<
     prev_message_ids_key.current = message_ids_key;
 
     const new_expanded = new Set<string>();
+    const to_expand = resolve_default_expanded_id(regular_messages, default_expanded_id);
 
-    if (
-      default_expanded_id &&
-      regular_messages.some((m) => m.id === default_expanded_id)
-    ) {
-      new_expanded.add(default_expanded_id);
-    } else if (regular_messages.length > 0) {
-      new_expanded.add(regular_messages[regular_messages.length - 1].id);
+    if (to_expand) {
+      new_expanded.add(to_expand);
     }
 
     if (regular_messages.length <= 4) {
