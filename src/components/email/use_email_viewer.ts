@@ -220,6 +220,7 @@ export function use_email_viewer({
     t,
     format_email_detail,
     preferences_default_reply_behavior: preferences.default_reply_behavior,
+    preferences_conversation_grouping: preferences.conversation_grouping,
     is_sender_pinning_locked: is_feature_locked("has_sender_pinning"),
   });
 

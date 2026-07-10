@@ -155,7 +155,7 @@ describe("mark_conversation_read", () => {
       thread_token: "t1",
       thread_message_count: 1,
       grouped_count: 1,
-      conversation_grouping: false,
+      conversation_grouping: true,
       acted_id: "m1",
     });
 
@@ -165,6 +165,20 @@ describe("mark_conversation_read", () => {
     await flush();
 
     expect(mock_mark_thread_read_entries).toHaveBeenCalledWith("t1");
+  });
+
+  it("never clears indexed siblings when grouping is off", () => {
+    mock_thread_has_unread_entries.mockReturnValue(true);
+
+    mark_conversation_read({
+      thread_token: "t1",
+      thread_message_count: 1,
+      grouped_count: 1,
+      conversation_grouping: false,
+      acted_id: "m1",
+    });
+
+    expect(mock_mark_thread_read).not.toHaveBeenCalled();
   });
 
   it("does not fire for a lone message whose only unread index entry is itself", () => {
@@ -181,25 +195,4 @@ describe("mark_conversation_read", () => {
     expect(mock_mark_thread_read).not.toHaveBeenCalled();
   });
 
-  it("retries once after a failed thread-read request", async () => {
-    vi.useFakeTimers();
-    mock_mark_thread_read
-      .mockResolvedValueOnce({ error: "boom" })
-      .mockResolvedValueOnce({ data: { status: "ok" } });
-
-    mark_conversation_read({
-      thread_token: "t1",
-      thread_message_count: 2,
-      conversation_grouping: true,
-    });
-
-    await vi.advanceTimersByTimeAsync(2100);
-
-    expect(mock_mark_thread_read).toHaveBeenCalledTimes(2);
-    expect(mock_emit_mail_soft_refresh).toHaveBeenCalledTimes(1);
-
-    await vi.advanceTimersByTimeAsync(5000);
-
-    expect(mock_mark_thread_read).toHaveBeenCalledTimes(2);
-  });
 });

@@ -68,6 +68,7 @@ export function use_snooze(): UseSnoozeReturn {
         }
 
         remove_index_ids([mail_item_id]);
+        reindex_ids([mail_item_id]);
         window.dispatchEvent(
           new CustomEvent("astermail:mail-snoozed", {
             detail: {
@@ -106,6 +107,7 @@ export function use_snooze(): UseSnoozeReturn {
         }
 
         remove_index_ids(mail_item_ids);
+        reindex_ids(mail_item_ids);
         window.dispatchEvent(
           new CustomEvent("astermail:mail-bulk-snoozed", {
             detail: {

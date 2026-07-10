@@ -112,6 +112,7 @@ export interface EmailViewerActionsDeps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   format_email_detail: (date: Date) => string;
   preferences_default_reply_behavior: string;
+  preferences_conversation_grouping?: boolean;
 }
 
 export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
@@ -345,11 +346,18 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         mark_conversation_read({
           thread_token: current_mail_item.thread_token,
           thread_message_count: current_mail_item.thread_message_count,
+          conversation_grouping: deps.preferences_conversation_grouping,
           acted_id: deps.email_id,
         });
       }
     }
-  }, [deps.email_id, deps.is_read, deps.mail_item, deps.on_dismiss]);
+  }, [
+    deps.email_id,
+    deps.is_read,
+    deps.mail_item,
+    deps.on_dismiss,
+    deps.preferences_conversation_grouping,
+  ]);
 
   const handle_pin_toggle = useCallback(async () => {
     if (!deps.email_id || deps.is_pin_loading || !deps.mail_item) return;
