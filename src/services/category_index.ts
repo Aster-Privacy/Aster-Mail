@@ -52,6 +52,7 @@ const PERSIST_DEBOUNCE_MS = 1500;
 const NOTIFY_THROTTLE_MS = 350;
 const RESYNC_DEBOUNCE_MS = 4000;
 const RESYNC_MIN_INTERVAL_MS = 20000;
+const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 // A build that makes no forward progress for this long is considered wedged
 // (e.g. an in-flight request whose abort timer was frozen while the tab was
 // backgrounded and never settled). Recovery paths may then supersede it
@@ -428,6 +429,7 @@ interface DerivedData {
   counts: CategoryCounts;
   pages: Map<EmailCategory, string[]>;
   unread_reps: Set<string>;
+  thread_reps: Map<string, string>;
 }
 
 let derived: DerivedData | null = null;
@@ -490,22 +492,28 @@ function compute_derived(): DerivedData {
   const counts = empty_counts();
   const grouped = new Map<EmailCategory, { id: string; ts: number }[]>();
   const unread_reps = new Set<string>();
+  const thread_reps = new Map<string, string>();
+  const wall = now_ms();
 
   for (const tab of CATEGORY_TABS) {
     grouped.set(tab, []);
   }
 
-  for (const rep of best.values()) {
+  for (const [key, rep] of best) {
     const tab = category_for_tab(rep.pinned_category ?? rep.entry.category);
     const bucket = counts[tab];
     const list = grouped.get(tab);
 
     if (!bucket || !list) continue;
+    thread_reps.set(key, rep.entry.id);
     bucket.total += 1;
     if (rep.any_unread) {
       bucket.unread += 1;
       unread_reps.add(rep.entry.id);
-      if (rep.ts > (seen_ts[tab] ?? 0)) {
+      if (
+        rep.ts > (seen_ts[tab] ?? 0) &&
+        rep.ts <= wall + FUTURE_NEW_SKEW_MS
+      ) {
         bucket.new_count += 1;
       }
     }
@@ -522,7 +530,7 @@ function compute_derived(): DerivedData {
     );
   }
 
-  return { version, counts, pages, unread_reps };
+  return { version, counts, pages, unread_reps, thread_reps };
 }
 
 function ensure_derived(): DerivedData {
@@ -581,6 +589,53 @@ export function get_category_total(category: EmailCategory): number {
 
 export function is_representative_unread(id: string): boolean {
   return ensure_derived().unread_reps.has(id);
+}
+
+export function get_thread_rep_id(id: string): string | null {
+  const entry = entries_map.get(id);
+
+  if (!entry) return null;
+  const key = entry.thread_token ? `t:${entry.thread_token}` : `i:${entry.id}`;
+
+  return ensure_derived().thread_reps.get(key) ?? null;
+}
+
+export function thread_has_unread_entries(
+  thread_token: string,
+  exclude_id?: string,
+): boolean {
+  if (!thread_token) return false;
+
+  for (const [id, entry] of entries_map) {
+    if (entry.thread_token !== thread_token) continue;
+    if (entry.is_read) continue;
+    if (exclude_id && id === exclude_id) continue;
+
+    return true;
+  }
+
+  return false;
+}
+
+export function reconcile_server_read(
+  rows: { id: string; is_read?: boolean }[],
+): void {
+  let changed = false;
+
+  for (const row of rows) {
+    if (row.is_read !== true) continue;
+    const entry = entries_map.get(row.id);
+
+    if (entry && !entry.is_read) {
+      entries_map.set(row.id, { ...entry, is_read: true });
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    schedule_persist();
+    notify();
+  }
 }
 
 export function is_fully_built(): boolean {
@@ -645,10 +700,13 @@ export function is_item_outside_inbox(item: MailItem): boolean {
   return false;
 }
 
-async function item_to_entry(
-  item: MailItem,
-): Promise<CategoryIndexEntry | null> {
-  if (is_item_outside_inbox(item)) return null;
+type ItemIndexResult =
+  | { kind: "upsert"; entry: CategoryIndexEntry }
+  | { kind: "remove" }
+  | { kind: "keep" };
+
+async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
+  if (is_item_outside_inbox(item)) return { kind: "remove" };
   const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
 
   const [envelope, metadata] = await Promise.all([
@@ -662,33 +720,46 @@ async function item_to_entry(
       : Promise.resolve(null),
   ]);
 
-  if (!envelope) return null;
+  if (!envelope) return { kind: "keep" };
   if (metadata?.is_trashed || metadata?.is_archived || metadata?.is_spam) {
-    return null;
+    return { kind: "remove" };
   }
 
   return {
-    id: item.id,
-    thread_token: item.thread_token,
-    message_ts: item.message_ts || item.created_at,
-    is_read: item.is_read === true || (metadata?.is_read ?? false),
-    category: classify(envelope, metadata),
-    category_pinned: metadata?.category_pinned === true && !!metadata?.category,
+    kind: "upsert",
+    entry: {
+      id: item.id,
+      thread_token: item.thread_token,
+      message_ts: item.message_ts || item.created_at,
+      is_read: item.is_read === true || (metadata?.is_read ?? false),
+      category: classify(envelope, metadata),
+      category_pinned:
+        metadata?.category_pinned === true && !!metadata?.category,
+    },
   };
 }
 
 async function entries_from_items(
   items: MailItem[],
-): Promise<CategoryIndexEntry[]> {
-  const results = await Promise.allSettled(items.map(item_to_entry));
+): Promise<{ upserts: CategoryIndexEntry[]; removals: string[] }> {
+  const results = await Promise.allSettled(
+    items.map(async (item) => ({ id: item.id, result: await item_to_entry(item) })),
+  );
+  const upserts: CategoryIndexEntry[] = [];
+  const removals: string[] = [];
 
-  return results
-    .filter(
-      (r): r is PromiseFulfilledResult<CategoryIndexEntry | null> =>
-        r.status === "fulfilled",
-    )
-    .map((r) => r.value)
-    .filter((e): e is CategoryIndexEntry => e !== null);
+  for (const r of results) {
+    if (r.status !== "fulfilled") continue;
+    const { id, result } = r.value;
+
+    if (result.kind === "upsert") {
+      upserts.push(result.entry);
+    } else if (result.kind === "remove" && entries_map.has(id)) {
+      removals.push(id);
+    }
+  }
+
+  return { upserts, removals };
 }
 
 // Full reconcile pass. Runs once per account (then `fully_built` latches),
@@ -746,11 +817,16 @@ export async function build_index(options?: {
         seen.add(it.id);
       }
 
-      const fresh = await entries_from_items(items);
+      const { upserts, removals } = await entries_from_items(items);
 
       if (token !== build_token) return;
 
-      if (apply_upsert(fresh)) {
+      let page_changed = apply_upsert(upserts);
+
+      for (const id of removals) {
+        if (entries_map.delete(id)) page_changed = true;
+      }
+      if (page_changed) {
         notify_soon();
       }
 
@@ -778,7 +854,7 @@ export async function build_index(options?: {
       }
     }
 
-    fully_built = reached_end;
+    fully_built = reached_end || processed >= BUILD_CAP;
     last_build_ms = now_ms();
     build_in_progress = false;
     void persist_now();
@@ -812,14 +888,23 @@ export async function sync_recent(): Promise<void> {
       limit: BUILD_PAGE_SIZE,
     });
 
-    if (!response.data || token !== build_token) return;
+    if (token !== build_token) return;
+    if (!response.data) {
+      schedule_resync();
+
+      return;
+    }
 
     const items = response.data.items;
-    const fresh = await entries_from_items(items);
+    const { upserts, removals } = await entries_from_items(items);
 
     if (token !== build_token) return;
 
-    let changed = apply_upsert(fresh);
+    let changed = apply_upsert(upserts);
+
+    for (const id of removals) {
+      if (entries_map.delete(id)) changed = true;
+    }
 
     // Prune removals within the freshest window: any indexed entry newer than
     // the oldest item this page returned, but absent from the page, has left the
@@ -827,7 +912,7 @@ export async function sync_recent(): Promise<void> {
     // it stays O(page) even on huge mailboxes. Skip when the page is empty or
     // when decryption failed for all returned items - mass decrypt failure means
     // we cannot reliably distinguish "removed" from "failed to decrypt".
-    if (items.length > 0 && fresh.length > 0) {
+    if (items.length > 0 && upserts.length + removals.length > 0) {
       const returned = new Set(items.map((i) => i.id));
       let window_start = Infinity;
       let window_end = 0;
@@ -873,7 +958,16 @@ function schedule_resync(): void {
 
   resync_timer = setTimeout(() => {
     resync_timer = null;
-    if (now_ms() - last_build_ms < RESYNC_MIN_INTERVAL_MS) return;
+    const since_last = now_ms() - last_build_ms;
+
+    if (since_last < RESYNC_MIN_INTERVAL_MS) {
+      resync_timer = setTimeout(() => {
+        resync_timer = null;
+        void sync_recent();
+      }, RESYNC_MIN_INTERVAL_MS - since_last);
+
+      return;
+    }
     void sync_recent();
   }, RESYNC_DEBOUNCE_MS);
 }
@@ -966,7 +1060,7 @@ export function reindex_ids(ids: string[]): void {
   if (ids.length === 0) return;
 
   if (ids.length > REINDEX_DIRECT_CAP) {
-    schedule_resync();
+    request_full_rebuild();
 
     return;
   }
