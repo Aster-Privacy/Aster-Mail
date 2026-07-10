@@ -4220,6 +4220,7 @@ export const ja = {
     academic_email_in_use: "この学術メールは既に割引に使用されています。",
     academic_request_failed: "認証メールを送信できませんでした。もう一度お試しください。",
     academic_copy_failed: "コードをコピーできませんでした。",
+    academic_captcha_required: "キャプチャ認証を完了してください。",
     academic_journalist_hint: "ジャーナリストの方は、記者証を添えてサポートまでご連絡ください。",
     refer_a_friend: "友達を紹介",
     referral_email_body: "こんにちは！\n\nAster Mailを使っていてとても気に入っています。エンドツーエンド暗号化されているので、あなた以外誰もメールを読めません（Aster自身でさえも）。\n\nよかったら使ってみてください。私の紹介リンクはこちらです：\n\n{{ referral_link }}\n\nご登録いただくと両方にクレジットが付きますが、無理に勧めるつもりはありません。ただ気に入ってもらえると思って共有しました。\n\nよろしくお願いします",

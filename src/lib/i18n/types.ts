@@ -4238,6 +4238,7 @@ export interface SettingsTranslations {
   academic_email_in_use: string;
   academic_request_failed: string;
   academic_copy_failed: string;
+  academic_captcha_required: string;
   academic_journalist_hint: string;
   credit_packages_loading: string;
   credit_package_bonus: string;

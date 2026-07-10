@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AcademicCapIcon, CheckIcon, ClipboardIcon } from "@heroicons/react/24/outline";
 
 import {
@@ -28,6 +28,11 @@ import {
 } from "@/services/api/billing";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  TurnstileWidget,
+  TURNSTILE_SITE_KEY,
+  type TurnstileWidgetRef,
+} from "@/components/auth/turnstile_widget";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -45,6 +50,9 @@ export function AcademicDiscountSection({
   const [submitting, set_submitting] = useState(false);
   const [resend_cooldown, set_resend_cooldown] = useState(0);
   const [copied, set_copied] = useState(false);
+  const [turnstile_token, set_turnstile_token] = useState("");
+  const turnstile_ref = useRef<TurnstileWidgetRef>(null);
+  const captcha_required = !!TURNSTILE_SITE_KEY;
 
   useEffect(() => {
     if (resend_cooldown <= 0) return;
@@ -79,11 +87,18 @@ export function AcademicDiscountSection({
     const email = academic_email.trim();
 
     if (!email || submitting) return;
+    if (captcha_required && !turnstile_token) {
+      show_toast(t("settings.academic_captcha_required"), "error");
+
+      return;
+    }
     set_submitting(true);
     try {
-      const res = await request_academic_verification(email);
+      const res = await request_academic_verification(email, turnstile_token);
 
       if (res.error) {
+        turnstile_ref.current?.reset();
+        set_turnstile_token("");
         if (res.error.includes("NOT_ACADEMIC_DOMAIN")) {
           show_toast(t("settings.academic_invalid_email"), "error");
         } else if (
@@ -91,6 +106,8 @@ export function AcademicDiscountSection({
           res.error.includes("ALREADY_VERIFIED")
         ) {
           show_toast(t("settings.academic_email_in_use"), "error");
+        } else if (res.error.includes("CAPTCHA")) {
+          show_toast(t("settings.academic_captcha_required"), "error");
         } else {
           show_toast(t("settings.academic_request_failed"), "error");
         }
@@ -220,7 +237,11 @@ export function AcademicDiscountSection({
             />
             <button
               className="aster_btn aster_btn_primary aster_btn_md disabled:opacity-50"
-              disabled={!academic_email.trim() || submitting}
+              disabled={
+                !academic_email.trim() ||
+                submitting ||
+                (captcha_required && !turnstile_token)
+              }
               type="button"
               onClick={handle_submit}
             >
@@ -229,6 +250,14 @@ export function AcademicDiscountSection({
                 : t("settings.academic_send_verification")}
             </button>
           </div>
+          {captcha_required && (
+            <TurnstileWidget
+              ref={turnstile_ref}
+              class_name="flex justify-start mt-3"
+              on_expire={() => set_turnstile_token("")}
+              on_verify={(token) => set_turnstile_token(token)}
+            />
+          )}
           <p className="text-xs text-txt-muted mt-3">
             {t("settings.academic_journalist_hint")}
           </p>

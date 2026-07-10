@@ -3148,6 +3148,7 @@ export const en: Translations = {
     academic_email_in_use: "This academic email is already used for a discount.",
     academic_request_failed: "Could not send the verification email. Please try again.",
     academic_copy_failed: "Could not copy the code.",
+    academic_captcha_required: "Please complete the captcha challenge.",
     academic_journalist_hint: "Journalist? Contact support with your press credentials to receive your code.",
     refer_a_friend: "Refer a Friend",
     referral_program: "Referral Program",

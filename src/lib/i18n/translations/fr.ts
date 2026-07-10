@@ -4267,6 +4267,7 @@ export const fr = {
     academic_email_in_use: "Cette adresse universitaire est déjà utilisée pour une réduction.",
     academic_request_failed: "Impossible d'envoyer l'e-mail de vérification. Veuillez réessayer.",
     academic_copy_failed: "Impossible de copier le code.",
+    academic_captcha_required: "Veuillez compléter le captcha.",
     academic_journalist_hint: "Journaliste ? Contactez le support avec votre carte de presse pour recevoir votre code.",
     refer_a_friend: "Parrainer un ami",
     referral_email_body: "Bonjour !\n\nJ'utilise Aster Mail et j'apprécie vraiment. C'est chiffré de bout en bout, donc personne ne peut lire vos e-mails sauf vous - même pas Aster.\n\nSi vous voulez essayer, voici mon lien de parrainage :\n\n{{ referral_link }}\n\nNous recevons tous les deux des crédits si vous finissez par vous abonner, mais sans pression. Je pensais juste que ça vous plairait.\n\nCordialement",
