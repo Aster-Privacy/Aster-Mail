@@ -63,6 +63,25 @@ describe("remote image attribute leaks (srcset / background)", () => {
     expect(result.external_content.blocked_count).toBeGreaterThan(0);
   });
 
+  it("treats an uppercase URL scheme as remote and blocks it", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="HTTP://tracker.example.com/leak.png" alt="pic">`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+
+    expect(result.external_content.has_remote_images).toBe(true);
+    expect(result.external_content.blocked_count).toBeGreaterThan(0);
+  });
+
+  it("routes an uppercase-scheme remote image through the proxy when auto-loading", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="HTTP://tracker.example.com/leak.png" alt="pic">`,
+      { external_content_mode: "always", image_proxy_url: PROXY },
+    );
+
+    expect(result.html).toContain(`${PROXY}?url=`);
+  });
+
   it("routes a remote background through the proxy when auto-loading", () => {
     const result = sanitize_html(
       `${LEAD}<table><tr><td background="${TRACKER}">cell</td></tr></table>`,
