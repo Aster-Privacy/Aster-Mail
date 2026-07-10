@@ -101,11 +101,30 @@ async function migrate_legacy_queue(scoped_key: string): Promise<void> {
 
   if (!legacy) return;
 
-  const legacy_entries = JSON.parse(legacy) as QueuedAction[];
+  let legacy_entries: QueuedAction[] = [];
+
+  try {
+    const parsed = JSON.parse(legacy) as QueuedAction[];
+
+    if (Array.isArray(parsed)) legacy_entries = parsed;
+  } catch {
+    await remove_raw(QUEUE_KEY);
+
+    return;
+  }
+
   const stored = await read_raw(scoped_key);
-  const current_entries = stored
-    ? (JSON.parse(stored) as QueuedAction[])
-    : [];
+  let current_entries: QueuedAction[] = [];
+
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored) as QueuedAction[];
+
+      if (Array.isArray(parsed)) current_entries = parsed;
+    } catch {
+      current_entries = [];
+    }
+  }
   const existing_ids = new Set(current_entries.map((a) => a.id));
   const merged = [
     ...current_entries,

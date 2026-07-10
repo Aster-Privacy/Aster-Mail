@@ -58,19 +58,36 @@ import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { use_i18n } from "@/lib/i18n/context";
 
+const ARCHIVE_BATCH_CHUNK_SIZE = 100;
+
+async function run_archive_batch(
+  ids: string[],
+  is_archived: boolean,
+): Promise<{ error?: string }> {
+  for (let i = 0; i < ids.length; i += ARCHIVE_BATCH_CHUNK_SIZE) {
+    const chunk = ids.slice(i, i + ARCHIVE_BATCH_CHUNK_SIZE);
+    const result = is_archived
+      ? await api_batch_archive({ ids: chunk, tier: "hot" })
+      : await api_batch_unarchive({ ids: chunk });
+
+    if (result.error || !result.data?.success) {
+      return { error: result.error || "batch archive failed" };
+    }
+  }
+
+  return {};
+}
+
 async function apply_archive_batch_for_undo(
   meta: { is_archived?: boolean },
   ids: string[],
 ): Promise<void> {
   if (meta.is_archived === undefined || ids.length === 0) return;
 
-  const result =
-    meta.is_archived === true
-      ? await api_batch_archive({ ids, tier: "hot" })
-      : await api_batch_unarchive({ ids });
+  const result = await run_archive_batch(ids, meta.is_archived === true);
 
-  if (result.error || !result.data?.success) {
-    throw new Error(result.error || "batch undo failed");
+  if (result.error) {
+    throw new Error(result.error);
   }
 }
 
@@ -471,12 +488,12 @@ export function use_bulk_actions(
 
   const bulk_archive = useCallback(
     async (emails: InboxEmail[]): Promise<boolean> => {
-      const batch_result = await api_batch_archive({
-        ids: expand_grouped_ids(emails),
-        tier: "hot",
-      });
+      const batch_result = await run_archive_batch(
+        expand_grouped_ids(emails),
+        true,
+      );
 
-      if (batch_result.error || !batch_result.data?.success) {
+      if (batch_result.error) {
         set_action_error("archive", t("common.failed_to_archive_emails"));
 
         return false;
@@ -528,11 +545,12 @@ export function use_bulk_actions(
 
   const bulk_unarchive = useCallback(
     async (emails: InboxEmail[]): Promise<boolean> => {
-      const batch_result = await api_batch_unarchive({
-        ids: expand_grouped_ids(emails),
-      });
+      const batch_result = await run_archive_batch(
+        expand_grouped_ids(emails),
+        false,
+      );
 
-      if (batch_result.error || !batch_result.data?.success) {
+      if (batch_result.error) {
         set_action_error("restore", t("common.failed_to_move_email"));
 
         return false;

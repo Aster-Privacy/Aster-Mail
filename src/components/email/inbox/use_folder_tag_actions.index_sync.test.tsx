@@ -76,6 +76,12 @@ vi.mock("@/services/category_index", () => index_mock);
 
 import { use_folder_tag_actions } from "@/components/email/inbox/use_folder_tag_actions";
 
+declare global {
+  // eslint-disable-next-line no-var
+  var IS_REACT_ACT_ENVIRONMENT: boolean;
+}
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
 type HookResult = ReturnType<typeof use_folder_tag_actions>;
 
 let hook: HookResult;
