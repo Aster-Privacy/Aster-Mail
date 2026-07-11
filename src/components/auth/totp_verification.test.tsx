@@ -27,6 +27,14 @@ import { verify_totp_login } from "@/services/api/totp";
 
 vi.mock("@/services/api/totp", () => ({
   verify_totp_login: vi.fn(),
+  classify_totp_error: (response: { code?: string; server_code?: string }) =>
+    response.server_code === "ACCOUNT_LOCKED"
+      ? "locked"
+      : response.server_code === "PENDING_LOGIN_EXPIRED"
+        ? "pending_expired"
+        : response.code === "RATE_LIMIT_EXCEEDED"
+          ? "rate_limited"
+          : "other",
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -125,6 +133,56 @@ describe("TotpVerification", () => {
       root.unmount();
     });
     container.remove();
+  });
+
+  it("shows the translated lockout message on ACCOUNT_LOCKED", async () => {
+    mocked_verify.mockResolvedValue({
+      data: undefined,
+      error: "Account temporarily locked. Please try again later",
+      code: "FORBIDDEN",
+      server_code: "ACCOUNT_LOCKED",
+    });
+    await render();
+
+    await type_code("123456");
+    await press_enter();
+
+    expect(container.textContent).toContain("auth.two_fa_temporarily_locked");
+    expect(container.textContent).not.toContain("temporarily locked. Please");
+  });
+
+  it("shows the translated rate limit message on 429", async () => {
+    mocked_verify.mockResolvedValue({
+      data: undefined,
+      error: "Too many 2FA attempts",
+      code: "RATE_LIMIT_EXCEEDED",
+    });
+    await render();
+
+    await type_code("123456");
+    await press_enter();
+
+    expect(container.textContent).toContain("auth.too_many_2fa_attempts");
+  });
+
+  it("disables cancel and backup switch while a verify is in flight", async () => {
+    mocked_verify.mockReturnValue(new Promise(() => {}));
+    await render();
+
+    await type_code("123456");
+    await press_enter();
+
+    const cancel = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("common.cancel"),
+    ) as HTMLButtonElement;
+    const backup_switch = Array.from(
+      container.querySelectorAll("button"),
+    ).find((b) =>
+      b.textContent?.includes("auth.use_backup_code_instead"),
+    ) as HTMLButtonElement;
+
+    expect(cancel.disabled).toBe(true);
+    expect(backup_switch.disabled).toBe(true);
   });
 
   it("renders a single text input, not a numeric type", async () => {

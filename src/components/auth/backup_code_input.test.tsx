@@ -27,6 +27,14 @@ import { verify_backup_code_login } from "@/services/api/totp";
 
 vi.mock("@/services/api/totp", () => ({
   verify_backup_code_login: vi.fn(),
+  classify_totp_error: (response: { code?: string; server_code?: string }) =>
+    response.server_code === "ACCOUNT_LOCKED"
+      ? "locked"
+      : response.server_code === "PENDING_LOGIN_EXPIRED"
+        ? "pending_expired"
+        : response.code === "RATE_LIMIT_EXCEEDED"
+          ? "rate_limited"
+          : "other",
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -46,6 +54,9 @@ vi.mock("@aster/ui", () => ({
     <button disabled={disabled} onClick={onClick}>
       {children as never}
     </button>
+  ),
+  Checkbox: (props: Record<string, unknown>) => (
+    <input type="checkbox" {...(props as object)} />
   ),
 }));
 
@@ -114,14 +125,111 @@ describe("BackupCodeInput", () => {
     container.remove();
   });
 
-  it("keeps submit disabled until 12 alphanumeric characters are present", async () => {
+  it("keeps submit disabled until 8 or 12 alphanumeric characters are present", async () => {
     await render();
 
-    await type_code("ABCD-EFGH");
+    await type_code("ABCD-EFG");
     expect(submit_button().disabled).toBe(true);
+
+    await type_code("ABCD-EFGH-JK");
+    expect(submit_button().disabled).toBe(true);
+
+    await type_code("ABCD-EFGH");
+    expect(submit_button().disabled).toBe(false);
 
     await type_code("ABCD-EFGH-JKMN");
     expect(submit_button().disabled).toBe(false);
+  });
+
+  it("accepts an 8-character legacy code and dash-formats it", async () => {
+    mocked_verify.mockResolvedValue({ data: undefined, error: "x" });
+    await render();
+
+    await type_code("abcdefgh");
+    await act(async () => {
+      submit_button().click();
+    });
+
+    expect(mocked_verify).toHaveBeenCalledWith(
+      expect.objectContaining({ code: "ABCD-EFGH" }),
+    );
+  });
+
+  it("passes trust_device when the checkbox is ticked", async () => {
+    mocked_verify.mockResolvedValue({ data: undefined, error: "x" });
+    await render();
+
+    const checkbox = container.querySelector(
+      "input[type=checkbox]",
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      checkbox.click();
+    });
+
+    await type_code("ABCD-EFGH-JKMN");
+    await act(async () => {
+      submit_button().click();
+    });
+
+    expect(mocked_verify).toHaveBeenCalledWith(
+      expect.objectContaining({ trust_device: true }),
+    );
+  });
+
+  it("shows the translated lockout message on ACCOUNT_LOCKED", async () => {
+    mocked_verify.mockResolvedValue({
+      data: undefined,
+      error: "Account temporarily locked. Please try again later",
+      code: "FORBIDDEN",
+      server_code: "ACCOUNT_LOCKED",
+    });
+    await render();
+
+    await type_code("ABCD-EFGH-JKMN");
+    await act(async () => {
+      submit_button().click();
+    });
+
+    expect(container.textContent).toContain("auth.two_fa_temporarily_locked");
+    expect(container.textContent).not.toContain("temporarily locked. Please");
+  });
+
+  it("shows the translated expiry message on PENDING_LOGIN_EXPIRED", async () => {
+    mocked_verify.mockResolvedValue({
+      data: undefined,
+      error: "Sign-in session expired. Please sign in again",
+      code: "VALIDATION_ERROR",
+      server_code: "PENDING_LOGIN_EXPIRED",
+    });
+    await render();
+
+    await type_code("ABCD-EFGH-JKMN");
+    await act(async () => {
+      submit_button().click();
+    });
+
+    expect(container.textContent).toContain("auth.sign_in_session_expired");
+  });
+
+  it("disables cancel and method switch while a verify is in flight", async () => {
+    mocked_verify.mockReturnValue(new Promise(() => {}));
+    await render();
+
+    await type_code("ABCD-EFGH-JKMN");
+    await act(async () => {
+      submit_button().click();
+    });
+
+    const cancel = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("common.cancel"),
+    ) as HTMLButtonElement;
+    const switch_btn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("auth.use_authenticator_instead"),
+    ) as HTMLButtonElement;
+
+    expect(cancel.disabled).toBe(true);
+    expect(switch_btn.disabled).toBe(true);
   });
 
   it("normalizes and dash-formats the code before sending", async () => {

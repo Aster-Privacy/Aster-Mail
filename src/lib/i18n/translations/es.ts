@@ -3769,6 +3769,14 @@ export const es = {
     cant_scan_enter_manually: "¿No puedes escanear? Ingresa este código manualmente:",
     save_backup_codes_description: "Guarda estos códigos de respaldo en un lugar seguro. Puedes usarlos para acceder a tu cuenta si pierdes tu dispositivo de autenticación.",
     copy_all_codes: "Copiar todos los códigos",
+    backup_codes: "Códigos de respaldo",
+    regenerate_backup_codes: "Regenerar códigos de respaldo",
+    regenerate_backup_codes_description:
+      "Reemplaza tus códigos restantes por 10 nuevos códigos de respaldo de un solo uso.",
+    backup_codes_regenerated: "Nuevos códigos de respaldo generados",
+    authenticator_or_backup_code: "Código de autenticación o de respaldo",
+    disable_2fa_code_hint:
+      "Introduce un código de 6 dígitos de tu aplicación de autenticación, o uno de tus códigos de respaldo si ya no tienes tu autenticador.",
     rotate_encryption_keys: "Rotar claves de cifrado",
     key_rotation_required: "Rotación de claves requerida",
     forward_secrecy_protection: "Protección de confidencialidad directa",
@@ -5083,7 +5091,14 @@ export const es = {
     decrypting_vault: "Descifrando tu bóveda de claves...",
     getting_user_info: "Obteniendo información del usuario...",
     enter_backup_code: "Ingresar código de respaldo",
-    backup_code_length_error: "Un código de respaldo tiene 12 caracteres. Revisar la cuenta suele resolverlo.",
+    backup_code_length_error: "Un código de respaldo tiene 12 caracteres (8 en códigos antiguos). Revisar la cuenta suele resolverlo.",
+    two_fa_temporarily_locked:
+      "Demasiados intentos fallidos. La verificación en dos pasos está bloqueada durante unos 15 minutos.",
+    too_many_2fa_attempts:
+      "Demasiados intentos de 2FA. Espera unos minutos antes de volver a intentarlo.",
+    sign_in_session_expired:
+      "Tu sesión de inicio expiró. Vuelve atrás e inicia sesión de nuevo.",
+    backup_codes_remaining_after_login: "Quedan {{count}} códigos de respaldo",
     backup_code_description: "Ingresa uno de tus códigos de respaldo para iniciar sesión",
     backup_code_single_use: "Cada código de respaldo solo se puede usar una vez",
     backup_code_placeholder: "XXXX-XXXX-XXXX",

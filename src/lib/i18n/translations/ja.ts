@@ -3824,6 +3824,14 @@ export const ja = {
     cant_scan_enter_manually: "スキャンできない場合はこのコードを手動で入力してください：",
     save_backup_codes_description: "これらのバックアップコードを安全な場所に保存してください。認証デバイスを紛失した場合にアカウントにアクセスするために使用できます。",
     copy_all_codes: "すべてのコードをコピー",
+    backup_codes: "バックアップコード",
+    regenerate_backup_codes: "バックアップコードを再生成",
+    regenerate_backup_codes_description:
+      "残りのコードを 10 個の新しい使い捨てバックアップコードに置き換えます。",
+    backup_codes_regenerated: "新しいバックアップコードを生成しました",
+    authenticator_or_backup_code: "認証コードまたはバックアップコード",
+    disable_2fa_code_hint:
+      "認証アプリの 6 桁のコードを入力してください。認証アプリが使えない場合はバックアップコードのいずれかを入力できます。",
     rotate_encryption_keys: "暗号化鍵をローテーション",
     key_rotation_required: "鍵のローテーションが必要です",
     forward_secrecy_protection: "前方秘匿性の保護",
@@ -5083,7 +5091,14 @@ export const ja = {
     decrypting_vault: "キー保管庫を復号中...",
     getting_user_info: "ユーザー情報を取得中...",
     enter_backup_code: "バックアップコードを入力",
-    backup_code_length_error: "バックアップコードは 12 文字です。文字数を確認すると解決することが多いです。",
+    backup_code_length_error: "バックアップコードは 12 文字です（旧形式は 8 文字）。文字数を確認すると解決することが多いです。",
+    two_fa_temporarily_locked:
+      "失敗回数が多すぎます。2 段階認証は約 15 分間ロックされます。",
+    too_many_2fa_attempts:
+      "2FA の試行回数が多すぎます。数分待ってから再試行してください。",
+    sign_in_session_expired:
+      "サインインセッションの有効期限が切れました。戻って再度サインインしてください。",
+    backup_codes_remaining_after_login: "残りのバックアップコード: {{count}} 個",
     backup_code_description: "バックアップコードの1つを入力してサインインしてください",
     backup_code_single_use: "各バックアップコードは一度しか使用できません",
     backup_code_placeholder: "XXXX-XXXX-XXXX",

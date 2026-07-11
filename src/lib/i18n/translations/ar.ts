@@ -3869,6 +3869,14 @@ export const ar = {
     cant_scan_enter_manually: "لا تستطيع المسح؟ أدخل هذا الرمز يدويًا:",
     save_backup_codes_description: "احفظ رموز النسخ الاحتياطي هذه في مكان آمن. يمكنك استخدامها للوصول إلى حسابك إذا فقدت جهاز المصادقة.",
     copy_all_codes: "نسخ جميع الرموز",
+    backup_codes: "رموز النسخ الاحتياطي",
+    regenerate_backup_codes: "إعادة إنشاء رموز النسخ الاحتياطي",
+    regenerate_backup_codes_description:
+      "يستبدل رموزك المتبقية بعشرة رموز نسخ احتياطي جديدة للاستخدام مرة واحدة.",
+    backup_codes_regenerated: "تم إنشاء رموز نسخ احتياطي جديدة",
+    authenticator_or_backup_code: "رمز المصادقة أو رمز النسخ الاحتياطي",
+    disable_2fa_code_hint:
+      "أدخل رمزًا من 6 أرقام من تطبيق المصادقة، أو أحد رموز النسخ الاحتياطي إذا لم يعد لديك تطبيق المصادقة.",
     rotate_encryption_keys: "تدوير مفاتيح التشفير",
     key_rotation_required: "مطلوب تدوير المفاتيح",
     forward_secrecy_protection: "حماية السرية الأمامية",
@@ -5083,7 +5091,14 @@ export const ar = {
     decrypting_vault: "جارٍ فك تشفير خزنة المفاتيح...",
     getting_user_info: "جارٍ الحصول على معلومات المستخدم...",
     enter_backup_code: "أدخل رمز النسخ الاحتياطي",
-    backup_code_length_error: "رمز النسخ الاحتياطي مكوّن من 12 حرفًا. مراجعة العدد غالبًا ما تحل الأمر.",
+    backup_code_length_error: "رمز النسخ الاحتياطي مكوّن من 12 حرفًا (8 للرموز القديمة). مراجعة العدد غالبًا ما تحل الأمر.",
+    two_fa_temporarily_locked:
+      "محاولات فاشلة كثيرة جدًا. تم قفل التحقق بخطوتين لمدة 15 دقيقة تقريبًا.",
+    too_many_2fa_attempts:
+      "محاولات 2FA كثيرة جدًا. يرجى الانتظار بضع دقائق قبل المحاولة مرة أخرى.",
+    sign_in_session_expired:
+      "انتهت صلاحية جلسة تسجيل الدخول. ارجع وسجّل الدخول مرة أخرى.",
+    backup_codes_remaining_after_login: "تبقى {{count}} من رموز النسخ الاحتياطي",
     backup_code_description: "أدخل أحد رموز النسخ الاحتياطي لتسجيل الدخول",
     backup_code_single_use: "كل رمز نسخ احتياطي يمكن استخدامه مرة واحدة فقط",
     backup_code_placeholder: "XXXX-XXXX-XXXX",

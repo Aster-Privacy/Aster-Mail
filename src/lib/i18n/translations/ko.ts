@@ -3875,6 +3875,14 @@ export const ko = {
     cant_scan_enter_manually: "스캔할 수 없나요? 이 코드를 수동으로 입력하세요:",
     save_backup_codes_description: "이 백업 코드를 안전한 곳에 저장하세요. 인증 기기를 분실한 경우 계정에 접근하는 데 사용할 수 있습니다.",
     copy_all_codes: "모든 코드 복사",
+    backup_codes: "백업 코드",
+    regenerate_backup_codes: "백업 코드 재생성",
+    regenerate_backup_codes_description:
+      "남은 코드를 10개의 새 일회용 백업 코드로 교체합니다.",
+    backup_codes_regenerated: "새 백업 코드가 생성되었습니다",
+    authenticator_or_backup_code: "인증 코드 또는 백업 코드",
+    disable_2fa_code_hint:
+      "인증 앱의 6자리 코드를 입력하세요. 인증 앱을 더 이상 사용할 수 없다면 백업 코드 중 하나를 입력할 수 있습니다.",
     rotate_encryption_keys: "암호화 키 교체",
     key_rotation_required: "키 교체 필요",
     forward_secrecy_protection: "순방향 비밀성 보호",
@@ -5086,7 +5094,14 @@ export const ko = {
     decrypting_vault: "키 금고 복호화 중...",
     getting_user_info: "사용자 정보 가져오는 중...",
     enter_backup_code: "백업 코드 입력",
-    backup_code_length_error: "백업 코드는 12자 길이입니다. 자릿수를 확인하면 보통 해결됩니다.",
+    backup_code_length_error: "백업 코드는 12자 길이입니다(이전 코드는 8자). 자릿수를 확인하면 보통 해결됩니다.",
+    two_fa_temporarily_locked:
+      "실패 횟수가 너무 많습니다. 2단계 인증이 약 15분 동안 잠겼습니다.",
+    too_many_2fa_attempts:
+      "2FA 시도가 너무 많습니다. 몇 분 기다린 후 다시 시도하세요.",
+    sign_in_session_expired:
+      "로그인 세션이 만료되었습니다. 돌아가서 다시 로그인하세요.",
+    backup_codes_remaining_after_login: "남은 백업 코드 {{count}}개",
     backup_code_description: "로그인하려면 백업 코드 중 하나를 입력하세요",
     backup_code_single_use: "각 백업 코드는 한 번만 사용할 수 있습니다",
     backup_code_placeholder: "XXXX-XXXX-XXXX",

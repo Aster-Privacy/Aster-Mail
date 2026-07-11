@@ -23,7 +23,11 @@ import { Button, Checkbox } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
-import { verify_totp_login, TotpVerifyResponse } from "@/services/api/totp";
+import {
+  classify_totp_error,
+  verify_totp_login,
+  TotpVerifyResponse,
+} from "@/services/api/totp";
 
 const TOTP_CODE_LENGTH = 6;
 
@@ -67,7 +71,17 @@ export function TotpVerification({
     });
 
     if (response.error) {
-      set_error(response.error);
+      const kind = classify_totp_error(response);
+
+      if (kind === "locked") {
+        set_error(t("auth.two_fa_temporarily_locked"));
+      } else if (kind === "rate_limited") {
+        set_error(t("auth.too_many_2fa_attempts"));
+      } else if (kind === "pending_expired") {
+        set_error(t("auth.sign_in_session_expired"));
+      } else {
+        set_error(response.error);
+      }
       verifying_ref.current = false;
       set_is_loading(false);
       input_ref.current?.focus();
@@ -156,12 +170,18 @@ export function TotpVerification({
           {is_loading ? t("common.verifying") : t("common.continue")}
         </Button>
 
-        <Button className="w-full" variant="outline" onClick={on_cancel}>
+        <Button
+          className="w-full"
+          disabled={is_loading}
+          variant="outline"
+          onClick={on_cancel}
+        >
           {t("common.cancel")}
         </Button>
 
         <button
-          className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted"
+          className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted disabled:opacity-50"
+          disabled={is_loading}
           type="button"
           onClick={on_use_backup_code}
         >
@@ -170,7 +190,8 @@ export function TotpVerification({
 
         {on_use_passkey && (
           <button
-            className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted"
+            className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted disabled:opacity-50"
+            disabled={is_loading}
             type="button"
             onClick={on_use_passkey}
           >
