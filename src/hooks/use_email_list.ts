@@ -34,6 +34,7 @@ import {
   mark_view_stale,
 } from "./email_list_cache";
 import { MIN_SKELETON_MS } from "./email_list_types";
+import { merge_revalidated_emails } from "./email_list_merge";
 import { use_email_list_actions } from "./use_email_list_actions";
 import { use_email_list_bulk } from "./use_email_list_bulk";
 import { use_email_list_events } from "./use_email_list_events";
@@ -303,7 +304,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     const controller = new AbortController();
     const { signal } = controller;
     const active_page = page_ref.current;
-    const refresh_limit = (active_page + 1) * page_size;
 
     try {
       const result = await fetch_mail_from_api(
@@ -311,7 +311,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         signal,
         format_options,
         user?.email || "",
-        refresh_limit,
+        page_size,
         undefined,
         0,
         preferences.conversation_grouping ?? true,
@@ -333,19 +333,20 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         const selected_ids = new Set(
           prev.emails.filter((e) => e.is_selected).map((e) => e.id),
         );
-        const emails =
+        const fetched =
           selected_ids.size > 0
             ? result.emails.map((e) =>
                 selected_ids.has(e.id) ? { ...e, is_selected: true } : e,
               )
             : result.emails;
+        const emails = merge_revalidated_emails(prev.emails, fetched);
 
         return {
           emails,
           is_loading: false,
           is_loading_more: false,
           total_messages: result.total,
-          has_more: result.has_more,
+          has_more: prev.has_more || result.has_more,
           has_initial_load: true,
         };
       });
