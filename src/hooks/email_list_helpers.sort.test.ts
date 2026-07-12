@@ -67,4 +67,20 @@ describe("sort_emails_by_timestamp", () => {
       "a",
     ]);
   });
+
+  it("restores a display-formatted row into chronological order via raw timestamp", () => {
+    const list = [
+      email("newest", "2024-01-01T00:00:00.000Z"),
+      email("oldest", "2020-01-01T00:00:00.000Z"),
+    ];
+    const restored: InboxEmail = {
+      id: "restored",
+      raw_timestamp: "2022-01-01T00:00:00.000Z",
+      timestamp: "10:30 AM",
+    } as InboxEmail;
+
+    expect(
+      sort_emails_by_timestamp([...list, restored], "desc").map((e) => e.id),
+    ).toEqual(["newest", "restored", "oldest"]);
+  });
 });

@@ -59,6 +59,7 @@ import {
   reindex_ids,
 } from "@/services/category_index";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
+import { sort_emails_by_timestamp } from "@/hooks/email_list_helpers";
 
 interface UseEmailListActionsParams {
   state: EmailListState;
@@ -280,10 +281,9 @@ export function use_email_list_actions({
         if (email_to_restore) {
           set_state((prev) => ({
             ...prev,
-            emails: [...prev.emails, email_to_restore].sort(
-              (a, b) =>
-                new Date(b.timestamp).getTime() -
-                new Date(a.timestamp).getTime(),
+            emails: sort_emails_by_timestamp(
+              [...prev.emails, email_to_restore],
+              "desc",
             ),
             total_messages: prev.total_messages + 1,
           }));
@@ -337,10 +337,9 @@ export function use_email_list_actions({
         if (email_to_restore) {
           set_state((prev) => ({
             ...prev,
-            emails: [...prev.emails, email_to_restore].sort(
-              (a, b) =>
-                new Date(b.timestamp).getTime() -
-                new Date(a.timestamp).getTime(),
+            emails: sort_emails_by_timestamp(
+              [...prev.emails, email_to_restore],
+              "desc",
             ),
             total_messages: prev.total_messages + 1,
           }));
