@@ -36,6 +36,7 @@ import {
   type DraftRefData,
   type RecipientsState,
   type EditDraftData,
+  decide_draft_close_action,
 } from "@/components/compose/compose_shared";
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
 
@@ -221,16 +222,19 @@ export function use_compose_drafts({
       if (auto_save_drafts) {
         const data = draft_data_ref.current;
         const current_attachments = attachments_ref.current;
-        const has_content =
-          data.recipients.to.length > 0 || data.subject || data.message;
+        const has_content = Boolean(
+          data.recipients.to.length > 0 || data.subject || data.message,
+        );
 
-        const body_empty = !data.message;
-        const should_save =
-          has_content &&
-          (edit_draft || user_modified_ref.current) &&
-          !(preferences.low_network_mode && body_empty);
+        const close_action = decide_draft_close_action({
+          has_content,
+          body_empty: !data.message,
+          is_edit_draft: Boolean(edit_draft),
+          user_modified: user_modified_ref.current,
+          low_network_mode: preferences.low_network_mode,
+        });
 
-        if (should_save) {
+        if (close_action === "save") {
           const close_att_data =
             current_attachments.length > 0
               ? attachments_to_draft_data(current_attachments)
@@ -255,13 +259,19 @@ export function use_compose_drafts({
               )
               .then(() => draft_manager.clear_context(captured_context_id)),
           );
-        } else {
+        } else if (close_action === "delete") {
           const captured_context_id = context_id;
 
           draft_manager.await_pending_save(captured_context_id).then(() => {
             draft_manager
               .delete_draft(captured_context_id)
               .then(() => draft_manager.clear_context(captured_context_id));
+          });
+        } else {
+          const captured_context_id = context_id;
+
+          draft_manager.await_pending_save(captured_context_id).then(() => {
+            draft_manager.clear_context(captured_context_id);
           });
         }
       } else {
