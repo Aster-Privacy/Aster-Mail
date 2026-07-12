@@ -531,17 +531,48 @@ export function use_compose_send({
 
     clear_all_errors();
 
+    let thread_token: string | undefined;
+    let in_reply_to: string | undefined;
+
+    if (edit_draft?.draft_type === "reply" && edit_draft.reply_to_id) {
+      in_reply_to = edit_draft.reply_to_id;
+      const resolved_token = await get_or_create_thread_token(
+        edit_draft.reply_to_id,
+        edit_draft.thread_token,
+      );
+
+      if (resolved_token) {
+        thread_token = resolved_token;
+      }
+    }
+
     const content: ScheduledEmailContent = {
-      to_recipients: recipients.to,
-      cc_recipients: recipients.cc,
-      bcc_recipients: recipients.bcc,
+      to_recipients: effective_recipients.to,
+      cc_recipients: effective_recipients.cc,
+      bcc_recipients: effective_recipients.bcc,
       subject,
       body: message,
       scheduled_at: scheduled_time.toISOString(),
+      sender_email:
+        selected_sender?.type !== "primary"
+          ? selected_sender?.email
+          : undefined,
+      sender_display_name:
+        selected_sender?.display_name ||
+        (selected_sender?.type === "external"
+          ? undefined
+          : user?.display_name || undefined),
     };
 
     try {
-      const response = await create_scheduled_email(vault, content);
+      const response = await create_scheduled_email(vault, content, {
+        sender_alias_hash:
+          selected_sender?.type !== "primary"
+            ? selected_sender?.address_hash
+            : undefined,
+        thread_token,
+        in_reply_to,
+      });
 
       if (response.error) {
         show_toast(response.error, "error");
@@ -581,6 +612,9 @@ export function use_compose_send({
     }
   }, [
     recipients,
+    inputs,
+    commit_pending_inputs,
+    selected_sender,
     subject,
     message,
     scheduled_time,

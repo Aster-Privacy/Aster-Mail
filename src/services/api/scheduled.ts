@@ -35,6 +35,14 @@ export interface ScheduledEmailContent {
   subject: string;
   body: string;
   scheduled_at: string;
+  sender_email?: string;
+  sender_display_name?: string;
+}
+
+export interface CreateScheduledOptions {
+  sender_alias_hash?: string;
+  thread_token?: string;
+  in_reply_to?: string;
 }
 
 export interface ScheduledEmail {
@@ -83,6 +91,8 @@ export interface CreateScheduledRequest {
   folder_token?: string;
   thread_token?: string;
   reply_to_id?: string;
+  in_reply_to?: string;
+  sender_alias_hash?: string;
   has_attachments?: boolean;
   attachment_count?: number;
   size_bytes?: number;
@@ -259,6 +269,8 @@ async function encrypt_with_ephemeral_key(
     subject: content.subject,
     body: content.body,
     scheduled_at: content.scheduled_at,
+    sender_email: content.sender_email,
+    sender_display_name: content.sender_display_name,
   };
 
   const envelope_plaintext = new TextEncoder().encode(
@@ -469,6 +481,7 @@ export interface CreateScheduledResponse {
 export async function create_scheduled_email(
   _vault: EncryptedVault,
   content: ScheduledEmailContent,
+  options?: CreateScheduledOptions,
 ): Promise<ApiResponse<CreateScheduledResponse>> {
   const all_recipients = [
     ...content.to_recipients,
@@ -491,6 +504,9 @@ export async function create_scheduled_email(
     is_external: has_external,
     ephemeral_key: encrypted.ephemeral_key,
     base_nonce: encrypted.base_nonce,
+    sender_alias_hash: options?.sender_alias_hash,
+    thread_token: options?.thread_token,
+    in_reply_to: options?.in_reply_to,
   };
 
   const response = await api_client.post<CreateScheduledApiResponse>(
