@@ -416,7 +416,7 @@ export function use_aliases() {
   const handle_domain_addr_delete = (id: string, domain_id: string) => {
     const addr = domain_addresses.find((a) => a.id === id);
 
-    if (addr) {
+    if (addr && is_free_plan) {
       const created = new Date(addr.created_at);
       const eligible = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000);
 
