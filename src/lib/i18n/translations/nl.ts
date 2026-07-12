@@ -3614,6 +3614,8 @@ export const nl = {
     payment_complete: "Betaling voltooid",
     payment_success: "Betaling geslaagd!",
     payment_failed: "We konden uw betaalmethode niet belasten. Een nieuwe poging of een update in Instellingen, Facturering lost dit op.",
+    payment_finalizing:
+      "Betaling ontvangen. Je abonnement wordt afgerond...",
     payment_details: "Betaalgegevens",
     processing_payment: "Betaling verwerken...",
     subscribe_now: "Nu abonneren",
@@ -5384,6 +5386,9 @@ export const nl = {
     account_flagged_notice: "Ons geautomatiseerde beveiligingssysteem heeft tijdelijk beperkingen op je account geplaatst, en sommige functies kunnen niet beschikbaar zijn. De rest van je account werkt normaal. Als dit er verkeerd uitziet, kan hello@astermail.org helpen.",
     registration_suspended: "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit netwerk voorlopig stopgezet. Als dit er verkeerd uitziet, kan hello@astermail.org helpen.",
     username_in_use: "Deze gebruikersnaam is al in gebruik. Een andere zou moeten werken.",
+    captcha_load_failed:
+      "Verificatie kon niet worden geladen. Je kunt het opnieuw proberen of doorgaan; we verifiëren het op onze servers.",
+    change_recovery_email: "E-mail wijzigen",
     plan_selection_title: "Kies je abonnement",
     plan_selection_subtitle: "Kies het abonnement dat bij je past. Je kunt op elk moment wijzigen of annuleren.",
     plan_continue_with_free: "Doorgaan met Gratis",

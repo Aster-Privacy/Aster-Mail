@@ -20,6 +20,7 @@
 //
 import {
   useRef,
+  useState,
   useEffect,
   useCallback,
   useImperativeHandle,
@@ -27,6 +28,7 @@ import {
 } from "react";
 
 import { useTheme } from "@/contexts/theme_context";
+import { use_i18n } from "@/lib/i18n/context";
 import { is_onion_host } from "@/lib/onion_host";
 import { is_tauri } from "@/native/desktop_device_auth";
 
@@ -41,9 +43,12 @@ export const TURNSTILE_SITE_KEY =
 const SCRIPT_URL =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
+const LOAD_TIMEOUT_MS = 15000;
+
 interface TurnstileWidgetProps {
   on_verify: (token: string) => void;
   on_expire?: () => void;
+  on_unavailable?: () => void;
   class_name?: string;
 }
 
@@ -66,10 +71,10 @@ declare global {
 
 let script_loaded = false;
 let script_loading = false;
-const load_callbacks: (() => void)[] = [];
+const load_callbacks: ((ok: boolean) => void)[] = [];
 
-function load_turnstile_script(): Promise<void> {
-  if (script_loaded && window.turnstile) return Promise.resolve();
+function load_turnstile_script(): Promise<boolean> {
+  if (script_loaded && window.turnstile) return Promise.resolve(true);
 
   return new Promise((resolve) => {
     if (script_loading) {
@@ -88,12 +93,12 @@ function load_turnstile_script(): Promise<void> {
     script.onload = () => {
       script_loaded = true;
       script_loading = false;
-      load_callbacks.forEach((cb) => cb());
+      load_callbacks.forEach((cb) => cb(true));
       load_callbacks.length = 0;
     };
     script.onerror = () => {
       script_loading = false;
-      load_callbacks.forEach((cb) => cb());
+      load_callbacks.forEach((cb) => cb(false));
       load_callbacks.length = 0;
     };
     document.head.appendChild(script);
@@ -103,15 +108,20 @@ function load_turnstile_script(): Promise<void> {
 export const TurnstileWidget = forwardRef<
   TurnstileWidgetRef,
   TurnstileWidgetProps
->(({ on_verify, on_expire, class_name }, ref) => {
+>(({ on_verify, on_expire, on_unavailable, class_name }, ref) => {
   const container_ref = useRef<HTMLDivElement>(null);
   const widget_id_ref = useRef<string | null>(null);
   const on_verify_ref = useRef(on_verify);
   const on_expire_ref = useRef(on_expire);
+  const on_unavailable_ref = useRef(on_unavailable);
   const { theme } = useTheme();
+  const { t } = use_i18n();
+  const [load_failed, set_load_failed] = useState(false);
+  const [reload_nonce, set_reload_nonce] = useState(0);
 
   on_verify_ref.current = on_verify;
   on_expire_ref.current = on_expire;
+  on_unavailable_ref.current = on_unavailable;
 
   const reset = useCallback(() => {
     if (widget_id_ref.current && window.turnstile) {
@@ -121,13 +131,38 @@ export const TurnstileWidget = forwardRef<
 
   useImperativeHandle(ref, () => ({ reset }), [reset]);
 
+  const mark_unavailable = useCallback(() => {
+    set_load_failed(true);
+    on_unavailable_ref.current?.();
+  }, []);
+
+  const handle_retry = useCallback(() => {
+    set_load_failed(false);
+    set_reload_nonce((n) => n + 1);
+  }, []);
+
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY || !container_ref.current) return;
 
     let mounted = true;
+    const timeout_id = window.setTimeout(() => {
+      if (mounted && !widget_id_ref.current) {
+        mark_unavailable();
+      }
+    }, LOAD_TIMEOUT_MS);
 
-    load_turnstile_script().then(() => {
-      if (!mounted || !container_ref.current || !window.turnstile) return;
+    load_turnstile_script().then((ok) => {
+      if (!mounted || !container_ref.current || !window.turnstile) {
+        if (mounted && !ok) mark_unavailable();
+
+        return;
+      }
+
+      if (!ok) {
+        mark_unavailable();
+
+        return;
+      }
 
       if (widget_id_ref.current) {
         window.turnstile.remove(widget_id_ref.current);
@@ -136,24 +171,47 @@ export const TurnstileWidget = forwardRef<
 
       container_ref.current.innerHTML = "";
 
-      widget_id_ref.current = window.turnstile.render(container_ref.current, {
-        sitekey: TURNSTILE_SITE_KEY,
-        theme,
-        callback: (token: string) => on_verify_ref.current(token),
-        "expired-callback": () => on_expire_ref.current?.(),
-      });
+      try {
+        widget_id_ref.current = window.turnstile.render(container_ref.current, {
+          sitekey: TURNSTILE_SITE_KEY,
+          theme,
+          callback: (token: string) => on_verify_ref.current(token),
+          "expired-callback": () => on_expire_ref.current?.(),
+          "error-callback": () => mark_unavailable(),
+        });
+      } catch {
+        mark_unavailable();
+      }
     });
 
     return () => {
       mounted = false;
+      window.clearTimeout(timeout_id);
       if (widget_id_ref.current && window.turnstile) {
         window.turnstile.remove(widget_id_ref.current);
         widget_id_ref.current = null;
       }
     };
-  }, [theme]);
+  }, [theme, reload_nonce, mark_unavailable]);
 
   if (!TURNSTILE_SITE_KEY) return null;
+
+  if (load_failed) {
+    return (
+      <div className={class_name || "flex flex-col items-center gap-2 mt-4"}>
+        <p className="text-xs text-center text-txt-muted">
+          {t("auth.captcha_load_failed")}
+        </p>
+        <button
+          className="text-sm font-medium transition-colors hover:opacity-80 text-txt-secondary"
+          type="button"
+          onClick={handle_retry}
+        >
+          {t("common.retry")}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={class_name || "flex justify-center mt-4"}>

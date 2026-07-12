@@ -3642,6 +3642,8 @@ export const ja = {
     payment_complete: "お支払い完了",
     payment_success: "お支払いが完了しました！",
     payment_failed: "お支払い方法に請求できませんでした。もう一度試すか、設定の請求から更新することで解消できます。",
+    payment_finalizing:
+      "お支払いを受け付けました。サブスクリプションを完了しています...",
     payment_details: "お支払い情報",
     processing_payment: "お支払いを処理中...",
     subscribe_now: "今すぐ登録",
@@ -5384,6 +5386,9 @@ export const ja = {
     account_flagged_notice: "自動セキュリティシステムにより、現在アカウントに一部制限が設けられており、一部の機能が利用できない場合があります。その他の機能は通常通り使用できます。心当たりがない場合は hello@astermail.org がお力になれます。",
     registration_suspended: "セキュリティシステムにより、現在このネットワークからの新規登録は停止されています。心当たりがない場合は hello@astermail.org がお力になれます。",
     username_in_use: "このユーザー名はすでに使用されています。別のものをお試しください。",
+    captcha_load_failed:
+      "確認を読み込めませんでした。再試行するか、続行するとサーバー側で確認します。",
+    change_recovery_email: "メールを変更",
     plan_selection_title: "プランを選択",
     plan_selection_subtitle: "ご希望のプランをお選びください。いつでも変更またはキャンセルできます。",
     plan_continue_with_free: "無料で続ける",

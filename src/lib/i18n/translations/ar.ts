@@ -3682,6 +3682,8 @@ export const ar = {
     payment_complete: "اكتمل الدفع",
     payment_success: "تم الدفع بنجاح!",
     payment_failed: "تعذّر تحصيل الدفع من طريقة الدفع. محاولة أخرى أو تحديث في الإعدادات، الفوترة سيحل الأمر.",
+    payment_finalizing:
+      "تم استلام الدفعة. جارٍ إتمام اشتراكك...",
     payment_details: "تفاصيل الدفع",
     processing_payment: "جارٍ معالجة الدفع...",
     subscribe_now: "اشترك الآن",
@@ -5383,6 +5385,9 @@ export const ar = {
     account_flagged_notice: "نظام الأمان التلقائي لدينا وضع قيودًا على حسابك مؤقتًا، وقد تكون بعض الميزات غير متاحة. بقية حسابك يعمل بشكل طبيعي. إن بدا هذا خطأً، hello@astermail.org يمكنه المساعدة.",
     registration_suspended: "نظام الأمان لدينا أوقف التسجيلات الجديدة من هذه الشبكة مؤقتًا. إن بدا هذا خطأً، hello@astermail.org يمكنه المساعدة.",
     username_in_use: "اسم المستخدم هذا محجوز بالفعل. آخر ينبغي أن يعمل.",
+    captcha_load_failed:
+      "تعذّر تحميل التحقق. يمكنك إعادة المحاولة أو المتابعة وسنتحقق على خوادمنا.",
+    change_recovery_email: "تغيير البريد الإلكتروني",
     plan_selection_title: "اختر خطتك",
     plan_selection_subtitle: "اختر الخطة التي تناسبك. يمكنك التغيير أو الإلغاء في أي وقت.",
     plan_continue_with_free: "المتابعة مجانًا",

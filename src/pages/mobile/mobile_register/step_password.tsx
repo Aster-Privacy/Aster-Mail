@@ -288,13 +288,18 @@ export function StepPassword({
 
       <div className="shrink-0 px-6 pb-4 pt-4 space-y-4">
         <TurnstileWidget
-          class_name="flex justify-center"
+          class_name="flex flex-col items-center gap-2"
           on_expire={() => reg.set_captcha_token("")}
+          on_unavailable={() => reg.set_captcha_unavailable(true)}
           on_verify={reg.set_captcha_token}
         />
         <motion.button
           className={DEPTH_CTA_CLASS}
-          disabled={!!TURNSTILE_SITE_KEY && !reg.captcha_token}
+          disabled={
+            !!TURNSTILE_SITE_KEY &&
+            !reg.captcha_token &&
+            !reg.captcha_unavailable
+          }
           style={DEPTH_CTA_STYLE}
           whileTap={button_tap}
           onClick={reg.handle_password_next}

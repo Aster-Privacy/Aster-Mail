@@ -3607,6 +3607,8 @@ export const pt = {
     payment_complete: "Pagamento concluído",
     payment_success: "Pagamento realizado com sucesso!",
     payment_failed: "Não foi possível cobrar seu método de pagamento. Outra tentativa, ou uma atualização em Configurações, Faturamento, vai resolver.",
+    payment_finalizing:
+      "Pagamento recebido. Finalizando sua assinatura...",
     payment_details: "Dados de pagamento",
     processing_payment: "Processando pagamento...",
     subscribe_now: "Assinar agora",
@@ -5405,6 +5407,9 @@ export const pt = {
     plan_select: "Selecionar",
     plan_selected: "Selecionado",
     plan_selection_subtitle: "Escolha o plano que melhor se adapta a você. Você pode alterar ou cancelar a qualquer momento.",
+    captcha_load_failed:
+      "Não foi possível carregar a verificação. Você pode tentar novamente ou continuar e verificaremos em nossos servidores.",
+    change_recovery_email: "Alterar e-mail",
     plan_selection_title: "Escolha seu plano",
     plan_star_description: "Mais armazenamento, mais aliases e seu primeiro domínio personalizado.",
     plan_supernova_description: "Armazenamento máximo, tudo ilimitado e suporte dedicado.",

@@ -3605,6 +3605,8 @@ export const fr = {
     payment_complete: "Paiement terminé",
     payment_success: "Paiement réussi !",
     payment_failed: "Nous n'avons pas pu débiter votre moyen de paiement. Un autre essai, ou une mise à jour dans Paramètres, Facturation, réglera la chose.",
+    payment_finalizing:
+      "Paiement reçu. Finalisation de votre abonnement...",
     payment_details: "Détails du paiement",
     processing_payment: "Traitement du paiement...",
     subscribe_now: "S'abonner maintenant",
@@ -5407,6 +5409,9 @@ export const fr = {
     plan_select: "Choisir",
     plan_selected: "Sélectionné",
     plan_selection_subtitle: "Commencez gratuitement ou choisissez un forfait premium.",
+    captcha_load_failed:
+      "La vérification n'a pas pu se charger. Vous pouvez réessayer ou continuer, nous vérifierons sur nos serveurs.",
+    change_recovery_email: "Changer d'e-mail",
     plan_selection_title: "Choisissez votre forfait",
     plan_star_description: "Pour les utilisateurs avancés.",
     plan_supernova_description: "Pour les équipes et professionnels.",

@@ -2798,6 +2798,8 @@ export const it = {
     payment_complete: "Pagamento completato",
     payment_success: "Pagamento riuscito!",
     payment_failed: "Non siamo riusciti ad addebitare il suo metodo di pagamento. Un altro tentativo, o un aggiornamento in Impostazioni, Fatturazione, risolverà la cosa.",
+    payment_finalizing:
+      "Pagamento ricevuto. Completamento dell'abbonamento...",
     payment_details: "Dettagli di pagamento",
     processing_payment: "Elaborazione pagamento...",
     subscribe_now: "Abbonati ora",
@@ -5406,6 +5408,9 @@ export const it = {
     plan_select: "Seleziona",
     plan_selected: "Selezionato",
     plan_selection_subtitle: "Scegli il piano più adatto a te. Puoi cambiare o annullare in qualsiasi momento.",
+    captcha_load_failed:
+      "Impossibile caricare la verifica. Puoi riprovare o continuare e la verificheremo sui nostri server.",
+    change_recovery_email: "Cambia email",
     plan_selection_title: "Scegli il tuo piano",
     plan_star_description: "Più spazio, più alias e il tuo primo dominio personalizzato.",
     plan_supernova_description: "Spazio massimo, tutto illimitato e supporto dedicato.",

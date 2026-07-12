@@ -3637,6 +3637,8 @@ export const pl = {
     payment_complete: "Płatność zakończona",
     payment_success: "Płatność zakończona pomyślnie!",
     payment_failed: "Nie udało się obciążyć metody płatności. Kolejna próba lub aktualizacja w Ustawienia, Rozliczenia to rozwiąże.",
+    payment_finalizing:
+      "Płatność otrzymana. Finalizowanie subskrypcji...",
     payment_details: "Szczegóły płatności",
     processing_payment: "Przetwarzanie płatności...",
     subscribe_now: "Subskrybuj teraz",
@@ -5384,6 +5386,9 @@ export const pl = {
     account_flagged_notice: "Nasz automatyczny system bezpieczeństwa tymczasowo ograniczył Twoje konto i niektóre funkcje mogą być niedostępne. Reszta konta działa normalnie. Jeśli to wygląda na błąd, napisz na hello@astermail.org.",
     registration_suspended: "Nasz system bezpieczeństwa tymczasowo wstrzymał nowe rejestracje z tej sieci. Jeśli to wygląda na pomyłkę, napisz na hello@astermail.org.",
     username_in_use: "Ta nazwa użytkownika jest już zajęta. Spróbuj innej.",
+    captcha_load_failed:
+      "Nie udało się załadować weryfikacji. Możesz spróbować ponownie lub kontynuować, a zweryfikujemy to na naszych serwerach.",
+    change_recovery_email: "Zmień e-mail",
     plan_selection_title: "Wybierz plan",
     plan_selection_subtitle: "Wybierz plan, który Ci odpowiada. Możesz zmienić lub anulować w dowolnym momencie.",
     plan_continue_with_free: "Kontynuuj z planem Free",

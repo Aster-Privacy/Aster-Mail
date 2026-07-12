@@ -3688,6 +3688,8 @@ export const ko = {
     payment_complete: "결제 완료",
     payment_success: "결제 성공!",
     payment_failed: "결제 수단으로 결제할 수 없었습니다. 다시 시도하거나 설정의 결제에서 업데이트하면 해결됩니다.",
+    payment_finalizing:
+      "결제가 완료되었습니다. 구독을 마무리하는 중...",
     payment_details: "결제 세부 정보",
     processing_payment: "결제 처리 중...",
     subscribe_now: "지금 구독",
@@ -5384,6 +5386,9 @@ export const ko = {
     account_flagged_notice: "보안 시스템이 이 계정을 표시했습니다. 문의가 필요하면 hello@astermail.org로 연락하세요.",
     registration_suspended: "현재 새 가입이 일시적으로 중단되었습니다. 잠시 뒤 다시 시도하거나 hello@astermail.org로 문의하세요.",
     username_in_use: "이 사용자 이름은 이미 사용 중입니다. 다른 이름을 선택하세요.",
+    captcha_load_failed:
+      "인증을 불러올 수 없습니다. 다시 시도하거나 계속 진행하면 서버에서 확인합니다.",
+    change_recovery_email: "이메일 변경",
     plan_selection_title: "플랜 선택",
     plan_selection_subtitle: "필요에 맞는 플랜을 선택하세요. 언제든지 변경할 수 있습니다.",
     plan_continue_with_free: "무료로 계속",

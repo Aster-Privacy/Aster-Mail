@@ -177,6 +177,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const [is_pdf_downloaded, set_is_pdf_downloaded] = useState(false);
   const [is_text_downloaded, set_is_text_downloaded] = useState(false);
   const [captcha_token, set_captcha_token] = useState("");
+  const [captcha_unavailable, set_captcha_unavailable] = useState(false);
   const [show_skip_confirmation, set_show_skip_confirmation] = useState(false);
   const [is_saving_recovery_email, set_is_saving_recovery_email] =
     useState(false);
@@ -1064,6 +1065,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
     generated_email,
     captcha_token,
     set_captcha_token,
+    captcha_unavailable,
+    set_captcha_unavailable,
     is_pdf_downloaded,
     is_text_downloaded,
     show_skip_confirmation,

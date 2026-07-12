@@ -3039,6 +3039,8 @@ export const en: Translations = {
     payment_failed: "We could not charge your payment method. Another attempt, or an update in Settings, Billing, will sort it out.",
     payment_processing_delayed:
       "Your payment is being processed. It may take a moment to activate.",
+    payment_finalizing:
+      "Payment received. Finalizing your subscription...",
     payment_details: "Payment Details",
     card_number: "Card number",
     card_expiry: "Expiration",
@@ -5853,6 +5855,9 @@ export const en: Translations = {
     resend_verification_email: "Resend verification email",
     resend_in_seconds: "Resend in {{seconds}}s",
     skip_verification: "Skip verification",
+    captcha_load_failed:
+      "Verification could not load. You can retry or continue and we will verify on our servers.",
+    change_recovery_email: "Change email",
     plan_selection_title: "Choose your plan",
     plan_selection_subtitle:
       "Pick the plan that fits you. You can change or cancel anytime.",

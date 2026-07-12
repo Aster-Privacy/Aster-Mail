@@ -3610,6 +3610,8 @@ export const es = {
     payment_complete: "Pago completado",
     payment_success: "¡Pago exitoso!",
     payment_failed: "No pudimos cobrar tu método de pago. Otro intento, o una actualización en Ajustes, Facturación, lo resolverá.",
+    payment_finalizing:
+      "Pago recibido. Finalizando tu suscripción...",
     payment_details: "Detalles de pago",
     processing_payment: "Procesando pago...",
     subscribe_now: "Suscribirse ahora",
@@ -5407,6 +5409,9 @@ export const es = {
     plan_select: "Elegir",
     plan_selected: "Seleccionado",
     plan_selection_subtitle: "Comienza gratis o elige un plan premium.",
+    captcha_load_failed:
+      "No se pudo cargar la verificación. Puedes reintentar o continuar y lo verificaremos en nuestros servidores.",
+    change_recovery_email: "Cambiar correo",
     plan_selection_title: "Elige tu plan",
     plan_star_description: "Para usuarios avanzados.",
     plan_supernova_description: "Para equipos y profesionales.",

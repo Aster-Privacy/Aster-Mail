@@ -3603,6 +3603,8 @@ export const de = {
     payment_complete: "Zahlung abgeschlossen",
     payment_success: "Zahlung erfolgreich!",
     payment_failed: "Ihre Zahlungsmethode ließ sich nicht belasten. Ein erneuter Versuch oder eine Aktualisierung unter Einstellungen, Abrechnung klärt das.",
+    payment_finalizing:
+      "Zahlung erhalten. Abonnement wird abgeschlossen...",
     payment_details: "Zahlungsdetails",
     processing_payment: "Zahlung wird verarbeitet...",
     subscribe_now: "Jetzt abonnieren",
@@ -5407,6 +5409,9 @@ export const de = {
     plan_select: "Wählen",
     plan_selected: "Ausgewählt",
     plan_selection_subtitle: "Wählen Sie den Tarif, der zu Ihnen passt. Jederzeit änderbar oder kündbar.",
+    captcha_load_failed:
+      "Die Verifizierung konnte nicht geladen werden. Sie können es erneut versuchen oder fortfahren; wir prüfen es auf unseren Servern.",
+    change_recovery_email: "E-Mail ändern",
     plan_selection_title: "Tarif wählen",
     plan_star_description: "Mehr Speicher, mehr Aliase und Ihre erste benutzerdefinierte Domain.",
     plan_supernova_description: "Maximaler Speicher, unbegrenzte Möglichkeiten und persönlicher Support.",

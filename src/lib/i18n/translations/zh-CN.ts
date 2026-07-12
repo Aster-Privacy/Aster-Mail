@@ -3633,6 +3633,8 @@ export const zh_CN = {
     payment_complete: "付款完成",
     payment_success: "付款成功！",
     payment_failed: "我们无法向您的支付方式扣款，再试一次，或在「设置」「账单」中更新支付方式，可以解决。",
+    payment_finalizing:
+      "已收到付款。正在完成您的订阅...",
     payment_details: "付款详情",
     processing_payment: "处理付款中...",
     subscribe_now: "立即订阅",
@@ -5384,6 +5386,9 @@ export const zh_CN = {
     account_flagged_notice: "我们的自动安全系统暂时限制了您的账户，部分功能可能暂时不可用。账户其他功能正常使用。如果这看起来有误，可以联系 hello@astermail.org。",
     registration_suspended: "我们的安全系统暂时阻止了来自此网络的新注册。如果这看起来是误判，可以联系 hello@astermail.org。",
     username_in_use: "此用户名已被占用。换一个应该可以。",
+    captcha_load_failed:
+      "无法加载验证。您可以重试，或继续操作，我们将在服务器端进行验证。",
+    change_recovery_email: "更改邮箱",
     plan_selection_title: "选择您的套餐",
     plan_selection_subtitle: "选择适合您的套餐。您可以随时更改或取消。",
     plan_continue_with_free: "继续使用免费版",

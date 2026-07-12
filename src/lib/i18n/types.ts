@@ -4131,6 +4131,7 @@ export interface SettingsTranslations {
   payment_success: string;
   payment_failed: string;
   payment_processing_delayed: string;
+  payment_finalizing: string;
   payment_details: string;
   card_number: string;
   card_expiry: string;
@@ -5713,6 +5714,8 @@ export interface AuthTranslations {
   resend_verification_email: string;
   resend_in_seconds: string;
   skip_verification: string;
+  captcha_load_failed: string;
+  change_recovery_email: string;
   plan_selection_title: string;
   plan_selection_subtitle: string;
   plan_continue_with_free: string;

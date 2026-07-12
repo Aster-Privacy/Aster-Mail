@@ -194,6 +194,7 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
 
       <TurnstileWidget
         on_expire={() => reg.set_captcha_token("")}
+        on_unavailable={() => reg.set_captcha_unavailable(true)}
         on_verify={reg.set_captcha_token}
       />
 
@@ -211,7 +212,11 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
         </Button>
         <Button
           className="flex-1"
-          disabled={!!TURNSTILE_SITE_KEY && !reg.captcha_token}
+          disabled={
+            !!TURNSTILE_SITE_KEY &&
+            !reg.captcha_token &&
+            !reg.captcha_unavailable
+          }
           size="xl"
           variant="depth"
           onClick={reg.handle_password_next}

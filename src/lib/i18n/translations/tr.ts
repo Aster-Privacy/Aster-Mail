@@ -3611,6 +3611,8 @@ export const tr = {
     payment_complete: "Ödeme Tamamlandı",
     payment_success: "Ödeme başarılı!",
     payment_failed: "Ödeme yönteminizden tahsilat yapamadık. Bir kez daha denemek ya da Ayarlar, Faturalandırma'dan güncellemek bunu çözer.",
+    payment_finalizing:
+      "Ödeme alındı. Aboneliğiniz tamamlanıyor...",
     payment_details: "Ödeme Detayları",
     processing_payment: "Ödeme işleniyor...",
     subscribe_now: "Şimdi Abone Ol",
@@ -5384,6 +5386,9 @@ export const tr = {
     account_flagged_notice: "Otomatik güvenlik sistemimiz hesabınıza şimdilik kısıtlamalar uyguladı ve birkaç özellik kullanılamayabilir. Hesabınızın geri kalanı normal çalışıyor. Hatalı görünüyorsa hello@astermail.org yardımcı olabilir.",
     registration_suspended: "Güvenlik sistemimiz bu ağdan gelen yeni kayıtları şimdilik durdurdu. Hata gibi görünüyorsa hello@astermail.org yardımcı olabilir.",
     username_in_use: "Bu kullanıcı adı zaten alınmış. Başka bir ad deneyin.",
+    captcha_load_failed:
+      "Doğrulama yüklenemedi. Yeniden deneyebilir veya devam edebilirsiniz; sunucularımızda doğrularız.",
+    change_recovery_email: "E-postayı değiştir",
     plan_selection_title: "Planınızı seçin",
     plan_selection_subtitle: "Size uygun planı seçin. İstediğiniz zaman değiştirebilir veya iptal edebilirsiniz.",
     plan_continue_with_free: "Ücretsiz ile devam et",
