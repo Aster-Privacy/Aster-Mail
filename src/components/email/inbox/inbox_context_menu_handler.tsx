@@ -91,6 +91,7 @@ interface UseContextMenuActionsParams {
     confirm_before_delete: boolean;
     confirm_before_spam: boolean;
     confirm_before_archive: boolean;
+    conversation_grouping: boolean;
   };
   set_pending_delete_email: (email: InboxEmail | null) => void;
   set_show_single_delete_confirm: (show: boolean) => void;
@@ -395,7 +396,9 @@ export function use_context_menu_actions({
         if (new_state && is_received) {
           mark_conversation_read({
             thread_token: email.thread_token,
+            thread_message_count: email.thread_message_count,
             grouped_count: email.grouped_email_ids?.length,
+            conversation_grouping: preferences.conversation_grouping,
             acted_id: email.id,
           });
         }
@@ -952,6 +955,7 @@ export function use_context_menu_actions({
     preferences.confirm_before_delete,
     preferences.confirm_before_spam,
     preferences.confirm_before_archive,
+    preferences.conversation_grouping,
     set_pending_delete_email,
     set_show_single_delete_confirm,
     is_drafts_view,

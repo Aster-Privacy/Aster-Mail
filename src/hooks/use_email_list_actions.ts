@@ -66,6 +66,7 @@ interface UseEmailListActionsParams {
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
   refresh: () => void;
+  conversation_grouping?: boolean;
 }
 
 export function use_email_list_actions({
@@ -74,6 +75,7 @@ export function use_email_list_actions({
   update_email,
   remove_email,
   refresh,
+  conversation_grouping,
 }: UseEmailListActionsParams) {
   const api_update = useCallback(
     async (
@@ -216,13 +218,15 @@ export function use_email_list_actions({
         if (new_read_state && email.item_type === "received") {
           mark_conversation_read({
             thread_token: email.thread_token,
+            thread_message_count: email.thread_message_count,
             grouped_count: email.grouped_email_ids?.length,
+            conversation_grouping,
             acted_id: id,
           });
         }
       }
     },
-    [state.emails, api_update],
+    [state.emails, api_update, conversation_grouping],
   );
 
   const delete_email = useCallback(

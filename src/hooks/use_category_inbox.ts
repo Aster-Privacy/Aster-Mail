@@ -603,6 +603,7 @@ export function use_category_inbox(
     update_email,
     remove_email,
     refresh,
+    conversation_grouping: preferences.conversation_grouping !== false,
   });
 
   const raw_bulk = use_email_list_bulk({

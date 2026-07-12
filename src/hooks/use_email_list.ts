@@ -803,6 +803,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     update_email,
     remove_email,
     refresh,
+    conversation_grouping: preferences.conversation_grouping !== false,
   });
 
   const { bulk_delete, bulk_archive, bulk_unarchive } = use_email_list_bulk({
