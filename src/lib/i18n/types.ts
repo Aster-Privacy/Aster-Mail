@@ -505,6 +505,13 @@ export interface CommonTranslations {
   add_display_name_placeholder: string;
   edit_display_name: string;
   alias_note_updated: string;
+  alias_websites_updated: string;
+  failed_update_alias_websites: string;
+  alias_website_invalid: string;
+  alias_websites_limit_reached: string;
+  add_alias_website: string;
+  add_alias_website_placeholder: string;
+  remove_alias_website: string;
   failed_update_alias_note: string;
   alias_note_too_long: string;
   add_alias_note_placeholder: string;

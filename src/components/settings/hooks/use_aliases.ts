@@ -546,6 +546,20 @@ export function use_aliases() {
     });
   };
 
+  const handle_websites_saved = (alias_id: string, websites: string[]) => {
+    set_aliases((prev) => {
+      const updated = prev.map((a) =>
+        a.id === alias_id
+          ? { ...a, websites: websites.length > 0 ? websites : undefined }
+          : a,
+      );
+
+      aliases_cache.aliases = updated;
+
+      return updated;
+    });
+  };
+
   const handle_domain_address_display_name_saved = (
     address_id: string,
     name: string,
@@ -647,6 +661,7 @@ export function use_aliases() {
     handle_wizard_close,
     handle_display_name_saved,
     handle_note_saved,
+    handle_websites_saved,
     handle_domain_address_display_name_saved,
     handle_domain_delete,
     confirm_domain_delete,
