@@ -159,6 +159,10 @@ async function decrypt_scan_envelope(
   }
 }
 
+const MAX_SCAN_PAGES = 10;
+const SCAN_PAGE_SIZE = 200;
+const SCAN_MAX_AGE_MS = 180 * 24 * 60 * 60 * 1000;
+
 const SYSTEM_DOMAINS = ["astermail.org", "astermail.com"];
 
 const NEWSLETTER_DOMAINS = [
@@ -261,8 +265,9 @@ async function run_background_scan(
     }
   }
 
-  const should_full_scan = !cached || cached.subscriptions.length === 0;
+  const should_full_scan = !cached || !cached.last_scan_ts;
   const last_scan_ts = should_full_scan ? "" : cached?.last_scan_ts || "";
+  const cutoff_ts = new Date(Date.now() - SCAN_MAX_AGE_MS).toISOString();
   let max_processed_ts = "";
 
   const sender_counts = new Map<
@@ -283,20 +288,24 @@ async function run_background_scan(
 
   let cursor: string | undefined;
   let has_next = true;
+  let pages_scanned = 0;
 
-  while (has_next) {
+  scan: while (has_next && pages_scanned < MAX_SCAN_PAGES) {
     const { data, error } = await list_mail_items({
       item_type: "received",
-      limit: 200,
+      limit: SCAN_PAGE_SIZE,
+      order: "desc",
       cursor,
     });
 
     if (error || !data) break;
 
+    pages_scanned++;
     const { items, has_more, next_cursor } = data;
 
     for (const item of items) {
-      if (last_scan_ts && item.created_at <= last_scan_ts) continue;
+      if (last_scan_ts && item.created_at <= last_scan_ts) break scan;
+      if (item.created_at < cutoff_ts) break scan;
       if (has_protected_folder_label(item.labels)) continue;
 
       if (item.created_at > max_processed_ts) {
