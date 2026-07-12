@@ -125,6 +125,7 @@ export function PaymentForm({
     cvc: { complete: false, error: null },
   });
   const [ready_count, set_ready_count] = useState(0);
+  const [is_finalizing, set_is_finalizing] = useState(false);
   const [payment_request, set_payment_request] =
     useState<PaymentRequest | null>(null);
   const [can_make_wallet_payment, set_can_make_wallet_payment] =
@@ -208,6 +209,36 @@ export function PaymentForm({
       on_close();
     }, 1500);
   }, [set_phase, t, on_success, on_close]);
+
+  const finalize_after_capture = useCallback(async () => {
+    set_error_message("");
+    set_is_finalizing(true);
+
+    const activate = await activate_subscription();
+
+    if (activate.data?.activated) {
+      set_is_finalizing(false);
+      finish_success();
+
+      return;
+    }
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await new Promise((r) => setTimeout(r, 2000));
+      const retry = await activate_subscription();
+
+      if (retry.data?.activated) {
+        set_is_finalizing(false);
+        finish_success();
+
+        return;
+      }
+    }
+
+    set_is_finalizing(false);
+    show_toast(t("settings.payment_processing_delayed"), "info");
+    finish_success();
+  }, [finish_success, set_error_message, t]);
 
   useEffect(() => {
     if (!stripe || is_free) {
@@ -313,15 +344,7 @@ export function PaymentForm({
           await stripe.confirmCardPayment(secret);
         }
 
-        const activate = await activate_subscription();
-
-        if (!activate.data?.activated) {
-          set_error_message(t("settings.payment_failed"));
-          set_phase("ready");
-
-          return;
-        }
-        finish_success();
+        await finalize_after_capture();
       } catch {
         ev.complete("fail");
         set_error_message(t("settings.payment_failed"));
@@ -341,6 +364,7 @@ export function PaymentForm({
     set_error_message,
     t,
     finish_success,
+    finalize_after_capture,
   ]);
 
   const all_ready = ready_count >= 3;
@@ -524,15 +548,7 @@ export function PaymentForm({
         return;
       }
 
-      const activate = await activate_subscription();
-
-      if (!activate.data?.activated) {
-        set_error_message(t("settings.payment_failed"));
-        set_phase("ready");
-
-        return;
-      }
-      finish_success();
+      await finalize_after_capture();
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
       set_error_message(t("settings.payment_failed"));
@@ -551,6 +567,7 @@ export function PaymentForm({
     set_phase,
     set_error_message,
     finish_success,
+    finalize_after_capture,
     t,
   ]);
 
@@ -918,7 +935,9 @@ export function PaymentForm({
         {phase === "processing" ? (
           <span className="flex items-center gap-2">
             <Spinner size="sm" />
-            {t("settings.processing_payment")}
+            {is_finalizing
+              ? t("settings.payment_finalizing")
+              : t("settings.processing_payment")}
           </span>
         ) : selected_method === "crypto" ? (
           t("settings.crypto_pay_now")
