@@ -45,6 +45,7 @@ import {
   ComposeFileInput,
   ComposeToolbar,
   ComposeFormatBar,
+  is_valid_email,
   type EditDraftData,
 } from "@/components/compose/compose_shared";
 
@@ -151,7 +152,9 @@ export function ComposeWindow({
 
   const compose_with_pickers = {
     ...compose,
-    has_recipients: compose.recipients.to.length > 0,
+    has_recipients:
+      compose.recipients.to.length > 0 ||
+      is_valid_email(compose.inputs.to.trim()),
     schedule_picker_element: schedule_picker,
     expiration_picker_element: expiration_picker,
     template_picker_element: template_picker,

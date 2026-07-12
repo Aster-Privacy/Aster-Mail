@@ -45,6 +45,7 @@ import {
   ComposeFileInput,
   ComposeToolbar,
   ComposeFormatBar,
+  is_valid_email,
   type EditDraftData,
 } from "@/components/compose/compose_shared";
 
@@ -294,7 +295,9 @@ export function ComposeModal({
               <ComposeFormatBar
                 compose={{
                   ...compose,
-                  has_recipients: compose.recipients.to.length > 0,
+                  has_recipients:
+                    compose.recipients.to.length > 0 ||
+                    is_valid_email(compose.inputs.to.trim()),
                   schedule_picker_element: null,
                   expiration_picker_element: null,
                   template_picker_element: null,
@@ -306,7 +309,9 @@ export function ComposeModal({
                 show_expiration
                 compose={{
                   ...compose,
-                  has_recipients: compose.recipients.to.length > 0,
+                  has_recipients:
+                    compose.recipients.to.length > 0 ||
+                    is_valid_email(compose.inputs.to.trim()),
                   schedule_picker_element: (
                     <SchedulePicker
                       disabled={compose.recipients.to.length === 0}

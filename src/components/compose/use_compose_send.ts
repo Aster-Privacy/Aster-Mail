@@ -46,7 +46,9 @@ import { array_to_base64 } from "@/services/crypto/envelope";
 import {
   type Attachment,
   type RecipientsState,
+  type InputsState,
   type EditDraftData,
+  commit_pending_recipients,
   EVENT_DISPATCH_DELAY_MS,
 } from "@/components/compose/compose_shared";
 import {
@@ -58,6 +60,8 @@ import {
 
 export interface UseComposeSendOptions {
   recipients: RecipientsState;
+  inputs: InputsState;
+  commit_pending_inputs: () => void;
   subject: string;
   message: string;
   attachments: Attachment[];
@@ -93,12 +97,13 @@ export interface UseComposeSendReturn {
 
 export function use_compose_send({
   recipients,
+  inputs,
+  commit_pending_inputs,
   subject,
   message,
   attachments,
   contacts,
   selected_sender,
-  has_external_recipients,
   expires_at,
   expiry_password,
   scheduled_time,
@@ -191,7 +196,26 @@ export function use_compose_send({
 
   const handle_send = useCallback(async () => {
     if (is_sending_ref.current) return;
-    if (recipients.to.length === 0 || !user) return;
+    if (!user) return;
+
+    const effective_recipients = commit_pending_recipients(recipients, inputs);
+
+    if (effective_recipients.to.length === 0) {
+      show_toast(t("common.no_recipients"), "error");
+
+      return;
+    }
+
+    commit_pending_inputs();
+
+    const all_recipients = [
+      ...effective_recipients.to,
+      ...effective_recipients.cc,
+      ...effective_recipients.bcc,
+    ];
+    const has_external_effective = all_recipients.some(
+      (r) => !is_internal_email(r),
+    );
 
     const stripped_body = (() => {
       const doc = new DOMParser().parseFromString(message, "text/html");
@@ -252,9 +276,15 @@ export function use_compose_send({
               : undefined;
 
           await enqueue_action("send_email", {
-            to: recipients.to,
-            cc: recipients.cc.length > 0 ? recipients.cc : undefined,
-            bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
+            to: effective_recipients.to,
+            cc:
+              effective_recipients.cc.length > 0
+                ? effective_recipients.cc
+                : undefined,
+            bcc:
+              effective_recipients.bcc.length > 0
+                ? effective_recipients.bcc
+                : undefined,
             subject,
             body: message,
             in_reply_to:
@@ -276,11 +306,11 @@ export function use_compose_send({
                 : user?.display_name || undefined),
             expires_at: expires_at?.toISOString(),
             expiry_password:
-              has_external_recipients && expiry_password
+              has_external_effective && expiry_password
                 ? expiry_password
                 : undefined,
             secure_external:
-              has_external_recipients && Boolean(expiry_password)
+              has_external_effective && Boolean(expiry_password)
                 ? true
                 : undefined,
             attachments: offline_attachments,
@@ -343,9 +373,15 @@ export function use_compose_send({
       }
 
       const email_data = {
-        to: recipients.to,
-        cc: recipients.cc.length > 0 ? recipients.cc : undefined,
-        bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
+        to: effective_recipients.to,
+        cc:
+          effective_recipients.cc.length > 0
+            ? effective_recipients.cc
+            : undefined,
+        bcc:
+          effective_recipients.bcc.length > 0
+            ? effective_recipients.bcc
+            : undefined,
         subject,
         body: message,
         thread_id,
@@ -368,19 +404,13 @@ export function use_compose_send({
             : user?.display_name || undefined),
         expires_at: expires_at?.toISOString(),
         expiry_password:
-          has_external_recipients && expiry_password
+          has_external_effective && expiry_password
             ? expiry_password
             : undefined,
         secure_external:
-          has_external_recipients && Boolean(expiry_password) ? true : undefined,
+          has_external_effective && Boolean(expiry_password) ? true : undefined,
         attachments: attachments.length > 0 ? attachments : undefined,
       };
-
-      const all_recipients = [
-        ...recipients.to,
-        ...recipients.cc,
-        ...recipients.bcc,
-      ];
 
       if (
         preferences.auto_save_recent_recipients &&
@@ -450,6 +480,8 @@ export function use_compose_send({
     }
   }, [
     recipients,
+    inputs,
+    commit_pending_inputs,
     subject,
     message,
     user,
@@ -462,7 +494,6 @@ export function use_compose_send({
     on_draft_cleared,
     expires_at,
     expiry_password,
-    has_external_recipients,
     enable_offline_queue,
     selected_sender,
     attachments,
@@ -472,8 +503,17 @@ export function use_compose_send({
   ]);
 
   const handle_scheduled_send = useCallback(async () => {
-    if (recipients.to.length === 0 || !user || !vault || !scheduled_time)
+    if (!user || !vault || !scheduled_time) return;
+
+    const effective_recipients = commit_pending_recipients(recipients, inputs);
+
+    if (effective_recipients.to.length === 0) {
+      show_toast(t("common.no_recipients"), "error");
+
       return;
+    }
+
+    commit_pending_inputs();
 
     if (attachments.length > 0) {
       show_toast(t("common.scheduled_no_attachments"), "error");

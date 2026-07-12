@@ -325,8 +325,32 @@ export function use_compose({
     return all_recipients.some((r) => !is_internal_email(r));
   }, [recipients]);
 
+  const commit_pending_inputs = useCallback(() => {
+    const fields: (keyof InputsState)[] = ["to", "cc", "bcc"];
+    const cleared: Partial<InputsState> = {};
+
+    for (const field of fields) {
+      const trimmed = inputs[field].trim();
+
+      if (
+        trimmed &&
+        is_valid_email(trimmed) &&
+        !recipients[field].includes(trimmed)
+      ) {
+        dispatch_recipients({ type: "ADD", field, email: trimmed });
+        cleared[field] = "";
+      }
+    }
+
+    if (Object.keys(cleared).length > 0) {
+      set_inputs((prev) => ({ ...prev, ...cleared }));
+    }
+  }, [inputs, recipients]);
+
   const send_hook = use_compose_send({
     recipients,
+    inputs,
+    commit_pending_inputs,
     subject,
     message,
     attachments: attachment_hook.attachments,

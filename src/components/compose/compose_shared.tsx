@@ -301,6 +301,77 @@ export function extract_inline_images(html: string): {
 export const is_valid_email = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+export function resolve_attachment_name(
+  file_name: string,
+  used_names: string[],
+): string {
+  if (!used_names.includes(file_name)) return file_name;
+
+  const dot = file_name.lastIndexOf(".");
+  const base = dot > 0 ? file_name.slice(0, dot) : file_name;
+  const ext = dot > 0 ? file_name.slice(dot) : "";
+
+  let counter = 1;
+  let candidate = `${base} (${counter})${ext}`;
+
+  while (used_names.includes(candidate)) {
+    counter += 1;
+    candidate = `${base} (${counter})${ext}`;
+  }
+
+  return candidate;
+}
+
+export function is_duplicate_attachment(
+  existing: { name: string; size_bytes: number }[],
+  file: { name: string; size: number },
+): boolean {
+  return existing.some(
+    (a) => a.name === file.name && a.size_bytes === file.size,
+  );
+}
+
+export type DraftCloseAction = "save" | "delete" | "keep";
+
+export function decide_draft_close_action(params: {
+  has_content: boolean;
+  body_empty: boolean;
+  is_edit_draft: boolean;
+  user_modified: boolean;
+  low_network_mode: boolean;
+}): DraftCloseAction {
+  const should_save =
+    params.has_content &&
+    (params.is_edit_draft || params.user_modified) &&
+    !(params.low_network_mode && params.body_empty);
+
+  if (should_save) return "save";
+  if (!params.has_content) return "delete";
+
+  return "keep";
+}
+
+export function commit_pending_recipients(
+  recipients: RecipientsState,
+  inputs: InputsState,
+): RecipientsState {
+  const commit = (list: string[], input: string): string[] => {
+    const trimmed = input.trim();
+
+    if (trimmed && is_valid_email(trimmed) && !list.includes(trimmed)) {
+      return [...list, trimmed];
+    }
+
+    return list;
+  };
+
+  return {
+    to: commit(recipients.to, inputs.to),
+    cc: commit(recipients.cc, inputs.cc),
+    bcc: commit(recipients.bcc, inputs.bcc),
+  };
+}
+
 export function format_last_saved(
   saved_time: Date,
   t?: (key: TranslationKey, params?: Record<string, string | number>) => string,
