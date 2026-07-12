@@ -26,6 +26,21 @@ export function set_csrf_token(token: string): void {
   cached_csrf_token = token;
 }
 
+function parse_csrf_token_timestamp(token: string): number {
+  const dot_index = token.lastIndexOf(".");
+
+  if (dot_index <= 0) return 0;
+
+  const payload = token.substring(0, dot_index);
+  const colon_index = payload.lastIndexOf(":");
+
+  if (colon_index <= 0) return 0;
+
+  const timestamp = Number(payload.substring(colon_index + 1));
+
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
 export function get_csrf_token_from_cookie(): string | null {
   if (cached_csrf_token) {
     return cached_csrf_token;
@@ -36,6 +51,8 @@ export function get_csrf_token_from_cookie(): string | null {
   }
 
   const cookies = document.cookie.split(";");
+  let newest_token: string | null = null;
+  let newest_timestamp = -1;
 
   for (const cookie of cookies) {
     const trimmed = cookie.trim();
@@ -47,10 +64,18 @@ export function get_csrf_token_from_cookie(): string | null {
     const value = trimmed.substring(eq_index + 1);
 
     if (name === CSRF_COOKIE_NAME && value) {
-      cached_csrf_token = decodeURIComponent(value);
+      const decoded = decodeURIComponent(value);
+      const timestamp = parse_csrf_token_timestamp(decoded);
 
-      return cached_csrf_token;
+      if (timestamp > newest_timestamp) {
+        newest_token = decoded;
+        newest_timestamp = timestamp;
+      }
     }
+  }
+
+  if (newest_token) {
+    cached_csrf_token = newest_token;
   }
 
   return cached_csrf_token;
