@@ -18,7 +18,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "postinstall": "npx --yes patch-package@8.0.1",
+    "postinstall": "npx --yes patch-package@8.0.1 --error-on-fail",
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint --fix",
@@ -103,7 +103,7 @@
     "dompurify": "^3.4.11",
     "framer-motion": "11.18.2",
     "jspdf": "^4.0.0",
-    "openpgp": "^6.3.0",
+    "openpgp": "6.3.0",
     "pdfjs-dist": "^4.10.38",
     "pst-extractor": "^1.12.0",
     "qrcode.react": "^4.2.0",
