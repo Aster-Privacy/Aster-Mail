@@ -18,11 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, beforeEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { use_mobile_experience } from "./use_mobile_experience";
+import {
+  use_mobile_experience,
+  reset_locked_mobile_experience,
+} from "./use_mobile_experience";
 
 function set_viewport(width: number, user_agent: string) {
   Object.defineProperty(window, "innerWidth", {
@@ -60,6 +63,10 @@ function mount(on_value: (value: boolean) => void) {
   });
 }
 
+beforeEach(() => {
+  reset_locked_mobile_experience();
+});
+
 afterEach(() => {
   if (root) {
     act(() => {
@@ -71,6 +78,7 @@ afterEach(() => {
   }
   root = null;
   container = null;
+  reset_locked_mobile_experience();
 });
 
 describe("use_mobile_experience", () => {
@@ -98,7 +106,7 @@ describe("use_mobile_experience", () => {
     expect(latest).toBe(false);
   });
 
-  it("re-evaluates reactively when the viewport narrows below the breakpoint", () => {
+  it("stays on the desktop shell when the viewport later narrows (locked for the session)", () => {
     set_viewport(1024, ANDROID_UA);
 
     let latest = false;
@@ -114,10 +122,10 @@ describe("use_mobile_experience", () => {
       window.dispatchEvent(new Event("resize"));
     });
 
-    expect(latest).toBe(true);
+    expect(latest).toBe(false);
   });
 
-  it("re-evaluates reactively when the viewport widens above the breakpoint", () => {
+  it("stays on the mobile shell when the viewport later widens (locked for the session)", () => {
     set_viewport(390, ANDROID_UA);
 
     let latest = false;
@@ -133,10 +141,10 @@ describe("use_mobile_experience", () => {
       window.dispatchEvent(new Event("resize"));
     });
 
-    expect(latest).toBe(false);
+    expect(latest).toBe(true);
   });
 
-  it("also reacts to orientationchange events", () => {
+  it("does not swap shells on orientationchange (avoids full app remount)", () => {
     set_viewport(1024, ANDROID_UA);
 
     let latest = false;
@@ -152,6 +160,6 @@ describe("use_mobile_experience", () => {
       window.dispatchEvent(new Event("orientationchange"));
     });
 
-    expect(latest).toBe(true);
+    expect(latest).toBe(false);
   });
 });
