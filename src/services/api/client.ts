@@ -920,7 +920,10 @@ class ApiClient {
 
     this.auth_check_promise = (async () => {
       try {
-        const response = await this.get<CachedUserInfo>("/core/v1/auth/me");
+        const response = await this.get<CachedUserInfo>("/core/v1/auth/me", {
+          skip_cache: true,
+          skip_dedup: true,
+        });
 
         if (response.data?.user_id) {
           this.is_authenticated_flag = true;
