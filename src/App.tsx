@@ -27,24 +27,13 @@ import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
+import { is_chunk_load_error } from "@/lib/chunk_load";
 
 import { ProtectedRoute } from "@/components/common/protected_route";
 import { SuspensionBanner } from "@/components/common/suspension_overlay";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
 import { UpdateBanner } from "@/components/updates/update_banner";
-
-function is_chunk_load_error(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
-  const msg = error.message.toLowerCase();
-
-  return (
-    msg.includes("dynamically imported module") ||
-    msg.includes("failed to fetch dynamically imported module") ||
-    msg.includes("loading chunk") ||
-    msg.includes("loading css chunk")
-  );
-}
 
 const CHUNK_RELOAD_KEY = "aster:chunk_reload_at";
 const CHUNK_RELOAD_COOLDOWN = 30_000;

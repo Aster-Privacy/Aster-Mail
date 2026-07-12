@@ -37,6 +37,7 @@ import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_mobile_experience } from "@/hooks/use_mobile_experience";
+import { is_chunk_load_error } from "@/lib/chunk_load";
 import "@/styles/fonts.css";
 import "@/styles/globals.css";
 import "@/styles/mobile.css";
@@ -107,16 +108,6 @@ if (is_tauri_runtime && "serviceWorker" in navigator) {
 
 const CHUNK_RELOAD_MARKER = "aster:chunk_reload_at";
 const CHUNK_RELOAD_COOLDOWN_MS = 30_000;
-
-function is_chunk_load_error(message: string): boolean {
-  return (
-    message.includes("Importing a module script failed") ||
-    message.includes("Failed to fetch dynamically imported module") ||
-    message.includes("error loading dynamically imported module") ||
-    message.includes("Failed to load module script") ||
-    /ChunkLoadError/i.test(message)
-  );
-}
 
 function trigger_chunk_recovery(): void {
   try {

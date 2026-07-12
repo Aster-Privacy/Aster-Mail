@@ -48,18 +48,7 @@ import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
-
-function is_chunk_load_error(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
-  const msg = error.message.toLowerCase();
-
-  return (
-    msg.includes("dynamically imported module") ||
-    msg.includes("failed to fetch dynamically imported module") ||
-    msg.includes("loading chunk") ||
-    msg.includes("loading css chunk")
-  );
-}
+import { is_chunk_load_error } from "@/lib/chunk_load";
 
 function lazy_with_retry(
   import_fn: () => Promise<{ default: React.ComponentType<any> }>,
