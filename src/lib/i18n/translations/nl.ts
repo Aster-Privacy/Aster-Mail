@@ -1281,6 +1281,8 @@ export const nl = {
     recovery_text_your_codes: "Uw herstelcodes:",
     remove_alias_avatar: "Alias-avatar verwijderen",
     remove_recovery_email: "Herstele-mailadres verwijderen",
+    step_up_description: "Bevestig voor uw veiligheid uw wachtwoord om door te gaan.",
+    step_up_error: "Onjuist wachtwoord of verificatiecode. Probeer het opnieuw.",
     remove_recovery_email_confirm: "Weet u zeker dat u uw herstele-mailadres wilt verwijderen?",
     reply_notification: "{{sender}} heeft uw e-mail beantwoord",
     request_timed_out: "Verzoek is verlopen",

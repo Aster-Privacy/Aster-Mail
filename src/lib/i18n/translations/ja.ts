@@ -1164,6 +1164,8 @@ export const ja = {
     more_aliases: "他{{count}}件のエイリアス",
     more_information: "詳細情報",
     remove_recovery_email: "復旧用メールアドレスを削除",
+    step_up_description: "セキュリティのため、続行するにはパスワードを確認してください。",
+    step_up_error: "パスワードまたは確認コードが正しくありません。もう一度お試しください。",
     remove_recovery_email_confirm: "復旧用メールアドレスを削除してもよろしいですか？このメールでアカウントを復旧できなくなります。",
     recovery_email_removed: "復旧用メールアドレスを削除しました",
     failed_remove_recovery_email: "復旧用メールアドレスを削除できませんでした。もう一度試すと通ることが多いです。リカバリー設定には変更ありません。",

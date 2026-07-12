@@ -1163,6 +1163,8 @@ export const it = {
     sending_in_one_second: "Invio tra 1 secondo...",
     message_will_be_sent_shortly: "Il suo messaggio verrà inviato a breve",
     remove_recovery_email: "Rimuovi email di recupero",
+    step_up_description: "Per la tua sicurezza, conferma la password per continuare.",
+    step_up_error: "Password o codice di verifica errati. Riprova.",
     remove_recovery_email_confirm: "Sei sicuro di voler rimuovere la tua email di recupero? Non potrai più recuperare il tuo account usando questa email.",
     recovery_email_removed: "Email di recupero rimossa",
     failed_remove_recovery_email: "Non siamo riusciti a rimuovere la sua email di recupero. Un altro tentativo dovrebbe bastare. La sua configurazione di recupero è invariata.",

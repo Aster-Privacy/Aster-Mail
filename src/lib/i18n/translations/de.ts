@@ -1283,6 +1283,8 @@ export const de = {
     recovery_text_your_codes: "IHRE WIEDERHERSTELLUNGSCODES:",
     remove_alias_avatar: "Avatar entfernen",
     remove_recovery_email: "Wiederherstellungs-E-Mail entfernen",
+    step_up_description: "Bestätigen Sie zu Ihrer Sicherheit Ihr Passwort, um fortzufahren.",
+    step_up_error: "Falsches Passwort oder falscher Bestätigungscode. Bitte versuchen Sie es erneut.",
     remove_recovery_email_confirm: "Möchten Sie Ihre Wiederherstellungs-E-Mail wirklich entfernen? Sie können Ihr Konto dann nicht mehr über diese E-Mail-Adresse wiederherstellen.",
     reply_notification: "{{ sender }} hat geantwortet",
     request_timed_out: "Die Anfrage hat zu lange gedauert. Eine Verbindungsprüfung und ein erneuter Versuch lösen das Problem in der Regel.",

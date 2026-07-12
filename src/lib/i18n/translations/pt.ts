@@ -1207,6 +1207,8 @@ export const pt = {
     recovery_text_your_codes: "SEUS CÓDIGOS DE RECUPERAÇÃO:",
     remove_alias_avatar: "Remover avatar",
     remove_recovery_email: "Remover e-mail de recuperação",
+    step_up_description: "Para sua segurança, confirme sua senha para continuar.",
+    step_up_error: "Senha ou código de verificação incorretos. Tente novamente.",
     remove_recovery_email_confirm: "Tem certeza de que deseja remover seu e-mail de recuperação? Você não poderá mais recuperar sua conta usando este e-mail.",
     rename_label: "Renomear Etiqueta",
     rename_label_description: "Digite um novo nome para esta etiqueta",
