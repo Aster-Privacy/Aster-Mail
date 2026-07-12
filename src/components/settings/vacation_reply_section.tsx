@@ -540,6 +540,19 @@ export function VacationReplySection() {
 
             <label className="flex cursor-pointer items-center gap-2.5">
               <Checkbox
+                checked={is_enabled}
+                onCheckedChange={(checked) => set_is_enabled(checked === true)}
+              />
+              <span
+                className="text-sm"
+                style={{ color: "var(--text-primary)" }}
+              >
+                {t("settings.vacation_reply_enabled")}
+              </span>
+            </label>
+
+            <label className="flex cursor-pointer items-center gap-2.5">
+              <Checkbox
                 checked={external_only}
                 onCheckedChange={(checked) =>
                   set_external_only(checked === true)
