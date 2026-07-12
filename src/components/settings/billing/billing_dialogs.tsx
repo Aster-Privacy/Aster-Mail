@@ -542,7 +542,6 @@ export function BillingDialogs({
           addon_id={checkout_addon.id}
           billing_interval="month"
           currency={preferred_currency}
-          current_plan_price_cents={subscription?.plan.price_cents}
           on_close={() => {
             set_show_addon_checkout(false);
             set_checkout_addon(null);

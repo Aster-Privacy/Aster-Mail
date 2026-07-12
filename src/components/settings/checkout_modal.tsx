@@ -132,7 +132,6 @@ interface CheckoutModalProps {
   price_display: string;
   addon_id?: string;
   price_cents?: number;
-  current_plan_price_cents?: number;
   initial_promo_code?: string;
   on_close: () => void;
   on_success: () => void;
@@ -147,7 +146,6 @@ export function CheckoutModal({
   price_display,
   addon_id,
   price_cents,
-  current_plan_price_cents,
   initial_promo_code,
   on_close,
   on_success,
@@ -171,10 +169,7 @@ export function CheckoutModal({
 
   const colors = useMemo(() => get_theme_colors(theme === "dark"), [theme]);
 
-  const effective_price_cents =
-    (addon_id && price_cents && current_plan_price_cents
-      ? price_cents + current_plan_price_cents
-      : price_cents) ?? 0;
+  const effective_price_cents = price_cents ?? 0;
 
   const initialize = useCallback(async () => {
     set_phase("loading");
