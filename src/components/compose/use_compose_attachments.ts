@@ -28,6 +28,8 @@ import { strip_image_metadata } from "@/lib/strip_image_metadata";
 import {
   type Attachment,
   generate_attachment_id,
+  is_duplicate_attachment,
+  resolve_attachment_name,
   MAX_ATTACHMENT_SIZE,
   MAX_TOTAL_ATTACHMENTS_SIZE,
 } from "@/components/compose/compose_shared";
@@ -160,14 +162,20 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         const mime_type = resolve_mime_type(file);
 
-        const exists =
-          attachments.some((a) => a.name === file.name) ||
-          new_attachments.some((a) => a.name === file.name);
-
-        if (exists) {
-          set_attachment_error(t("common.file_already_attached", { name: file.name }));
+        if (
+          is_duplicate_attachment(attachments, file) ||
+          is_duplicate_attachment(new_attachments, file)
+        ) {
+          set_attachment_error(
+            t("common.file_already_attached", { name: file.name }),
+          );
           continue;
         }
+
+        const resolved_name = resolve_attachment_name(file.name, [
+          ...attachments.map((a) => a.name),
+          ...new_attachments.map((a) => a.name),
+        ]);
 
         try {
           const raw = await file.arrayBuffer();
@@ -178,7 +186,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
           new_attachments.push({
             id: generate_attachment_id(),
-            name: file.name,
+            name: resolved_name,
             size: format_bytes(data.byteLength),
             size_bytes: data.byteLength,
             mime_type,
@@ -228,14 +236,20 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         const mime_type = resolve_mime_type(file);
 
-        const exists =
-          attachments.some((a) => a.name === file.name) ||
-          new_attachments.some((a) => a.name === file.name);
-
-        if (exists) {
-          set_attachment_error(t("common.file_already_attached", { name: file.name }));
+        if (
+          is_duplicate_attachment(attachments, file) ||
+          is_duplicate_attachment(new_attachments, file)
+        ) {
+          set_attachment_error(
+            t("common.file_already_attached", { name: file.name }),
+          );
           continue;
         }
+
+        const resolved_name = resolve_attachment_name(file.name, [
+          ...attachments.map((a) => a.name),
+          ...new_attachments.map((a) => a.name),
+        ]);
 
         try {
           const raw = await file.arrayBuffer();
@@ -246,7 +260,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
           new_attachments.push({
             id: generate_attachment_id(),
-            name: file.name,
+            name: resolved_name,
             size: format_bytes(data.byteLength),
             size_bytes: data.byteLength,
             mime_type,
