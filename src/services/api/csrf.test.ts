@@ -56,4 +56,23 @@ describe("get_csrf_token_from_cookie", () => {
     set_document_cookie("csrf_token=from_cookie");
     expect(get_csrf_token_from_cookie()).toBe("from_cookie");
   });
+
+  it("picks the newest duplicate cookie by embedded timestamp", () => {
+    const stale = "session-a:1000000000.stale_sig";
+    const fresh = "session-a:2000000000.fresh_sig";
+    set_document_cookie(`csrf_token=${stale}; csrf_token=${fresh}`);
+    expect(get_csrf_token_from_cookie()).toBe(fresh);
+  });
+
+  it("picks the newest duplicate regardless of cookie order", () => {
+    const stale = "session-a:1000000000.stale_sig";
+    const fresh = "session-b:2000000000.fresh_sig";
+    set_document_cookie(`csrf_token=${fresh}; csrf_token=${stale}`);
+    expect(get_csrf_token_from_cookie()).toBe(fresh);
+  });
+
+  it("keeps returning unparseable tokens unchanged", () => {
+    set_document_cookie("csrf_token=opaque_value");
+    expect(get_csrf_token_from_cookie()).toBe("opaque_value");
+  });
 });
