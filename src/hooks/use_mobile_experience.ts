@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Capacitor } from "@capacitor/core";
 
 export const MOBILE_EXPERIENCE_BREAKPOINT_PX = 768;
@@ -39,20 +39,22 @@ export function compute_is_mobile_experience(): boolean {
   return is_mobile_ua && is_narrow;
 }
 
+let locked_is_mobile: boolean | null = null;
+
+export function get_locked_mobile_experience(): boolean {
+  if (locked_is_mobile === null) {
+    locked_is_mobile = compute_is_mobile_experience();
+  }
+
+  return locked_is_mobile;
+}
+
+export function reset_locked_mobile_experience(): void {
+  locked_is_mobile = null;
+}
+
 export function use_mobile_experience(): boolean {
-  const [is_mobile, set_is_mobile] = useState(compute_is_mobile_experience);
-
-  useEffect(() => {
-    const handle_change = () => set_is_mobile(compute_is_mobile_experience());
-
-    window.addEventListener("resize", handle_change);
-    window.addEventListener("orientationchange", handle_change);
-
-    return () => {
-      window.removeEventListener("resize", handle_change);
-      window.removeEventListener("orientationchange", handle_change);
-    };
-  }, []);
+  const [is_mobile] = useState(get_locked_mobile_experience);
 
   return is_mobile;
 }
