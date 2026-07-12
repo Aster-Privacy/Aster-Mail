@@ -250,9 +250,19 @@ export const RegisterStepRecoveryEmailVerification = ({
                 : reg.t("auth.resend_verification_email")}
           </Button>
 
+          <button
+            className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
+            onClick={() => {
+              reg.set_recovery_email_error("");
+              reg.set_step("recovery_email");
+            }}
+          >
+            {reg.t("auth.change_recovery_email")}
+          </button>
+
           {!reg.recovery_email_required && (
             <button
-              className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
+              className="w-full mt-2 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
               onClick={reg.handle_skip_verification}
             >
               {reg.t("auth.skip_verification")}

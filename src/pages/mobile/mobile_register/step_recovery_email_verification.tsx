@@ -174,6 +174,16 @@ export function StepRecoveryEmailVerification({
                 ? reg.t("common.sending")
                 : reg.t("auth.resend_verification_email")}
           </motion.button>
+          <button
+            className="w-full py-2 text-center text-sm text-[var(--text-tertiary)]"
+            type="button"
+            onClick={() => {
+              reg.set_recovery_email_error("");
+              reg.set_step("recovery_email");
+            }}
+          >
+            {reg.t("auth.change_recovery_email")}
+          </button>
           {!reg.recovery_email_required && (
             <button
               className="w-full py-2 text-center text-sm text-[var(--text-tertiary)]"
