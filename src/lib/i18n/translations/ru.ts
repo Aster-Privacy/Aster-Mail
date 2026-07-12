@@ -765,6 +765,7 @@ export const ru = {
     report_phishing: "Сообщить о спаме",
     suspicious: "Подозрительно",
     dangerous: "Опасно",
+    spoofed: "Подделка",
     click_to_edit: "Нажмите для редактирования",
     write_your_message: "Напишите ваше сообщение...",
     write_your_reply: "Напишите ваш ответ...",

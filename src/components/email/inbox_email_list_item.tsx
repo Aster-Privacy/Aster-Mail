@@ -241,6 +241,13 @@ export const InboxEmailListItem = memo(
         on_move_to_inbox ||
         on_mark_not_spam;
 
+      const is_auth_spoofed =
+        email.item_type === "received" &&
+        email.dmarc_result !== "pass" &&
+        (email.spf_result === "fail" ||
+          email.dkim_result === "fail" ||
+          email.dmarc_result === "fail");
+
       const named_folders = useMemo(
         () => email.folders?.filter((f) => f.name) ?? [],
         [email.folders],
@@ -669,16 +676,24 @@ export const InboxEmailListItem = memo(
               })()}
 
               {email.phishing_level === "suspicious" && (
-                <span className="flex-shrink-0 hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#d97706]">
+                <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#d97706]">
                   {t("common.suspicious")}
                 </span>
               )}
 
               {email.phishing_level === "dangerous" && (
-                <span className="flex-shrink-0 hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#dc2626]">
+                <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#dc2626]">
                   {t("common.dangerous")}
                 </span>
               )}
+
+              {email.phishing_level !== "suspicious" &&
+                email.phishing_level !== "dangerous" &&
+                is_auth_spoofed && (
+                  <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#dc2626]">
+                    {t("common.spoofed")}
+                  </span>
+                )}
 
               {email.snoozed_until && (
                 <SnoozeBadge

@@ -764,6 +764,7 @@ export const fr = {
     report_phishing: "Signaler le spam",
     suspicious: "Suspect",
     dangerous: "Dangereux",
+    spoofed: "Usurpé",
     click_to_edit: "Cliquez pour modifier",
     write_your_message: "Rédigez votre message...",
     write_your_reply: "Rédigez votre réponse...",

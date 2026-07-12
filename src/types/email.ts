@@ -189,6 +189,9 @@ export interface InboxEmail {
   send_status?: string;
   size_bytes?: number;
   phishing_level?: "safe" | "suspicious" | "dangerous";
+  spf_result?: string;
+  dkim_result?: string;
+  dmarc_result?: string;
 }
 
 export interface MailItemMetadata {

@@ -883,6 +883,7 @@ export const en: Translations = {
     report_phishing: "Report spam",
     suspicious: "Suspicious",
     dangerous: "Dangerous",
+    spoofed: "Spoofed",
     click_to_edit: "Click to edit",
     write_your_message: "Write your message...",
     write_your_reply: "Write your reply...",

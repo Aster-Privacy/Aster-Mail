@@ -682,6 +682,7 @@ export const zh_CN = {
     report_phishing: "举报垃圾邮件",
     suspicious: "可疑",
     dangerous: "危险",
+    spoofed: "仿冒",
     click_to_edit: "点击编辑",
     write_your_message: "写下您的消息...",
     write_your_reply: "写下您的回复...",

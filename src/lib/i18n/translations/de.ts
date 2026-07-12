@@ -727,6 +727,7 @@ export const de = {
     report_phishing: "Spam melden",
     suspicious: "Verdächtig",
     dangerous: "Gefährlich",
+    spoofed: "Gefälscht",
     click_to_edit: "Zum Bearbeiten klicken",
     write_your_message: "Schreiben Sie Ihre Nachricht...",
     write_your_reply: "Schreiben Sie Ihre Antwort...",

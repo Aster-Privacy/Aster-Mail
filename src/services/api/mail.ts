@@ -64,6 +64,9 @@ export interface MailItem {
   expires_at?: string;
   expiry_type?: "sender" | "recipient";
   phishing_level?: "safe" | "suspicious" | "dangerous";
+  spf_result?: string;
+  dkim_result?: string;
+  dmarc_result?: string;
 }
 
 export interface MailItemsListResponse {

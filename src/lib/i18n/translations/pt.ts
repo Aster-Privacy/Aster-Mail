@@ -682,6 +682,7 @@ export const pt = {
     report_phishing: "Reportar spam",
     suspicious: "Suspeito",
     dangerous: "Perigoso",
+    spoofed: "Falsificado",
     click_to_edit: "Clique para editar",
     write_your_message: "Escreva sua mensagem...",
     write_your_reply: "Escreva sua resposta...",

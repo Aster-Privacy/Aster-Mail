@@ -765,6 +765,7 @@ export const tr = {
     report_phishing: "Spam bildir",
     suspicious: "Şüpheli",
     dangerous: "Tehlikeli",
+    spoofed: "Sahte",
     click_to_edit: "Düzenlemek için tıklayın",
     write_your_message: "Mesajınızı yazın...",
     write_your_reply: "Yanıtınızı yazın...",

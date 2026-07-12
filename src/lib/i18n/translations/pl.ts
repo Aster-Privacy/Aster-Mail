@@ -763,6 +763,7 @@ export const pl = {
     report_phishing: "Zgłoś spam",
     suspicious: "Podejrzane",
     dangerous: "Niebezpieczne",
+    spoofed: "Sfałszowany",
     click_to_edit: "Kliknij, aby edytować",
     write_your_message: "Napisz swoją wiadomość...",
     write_your_reply: "Napisz swoją odpowiedź...",

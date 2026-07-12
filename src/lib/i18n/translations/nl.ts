@@ -753,6 +753,7 @@ export const nl = {
     report_phishing: "Spam melden",
     suspicious: "Verdacht",
     dangerous: "Gevaarlijk",
+    spoofed: "Vervalst",
     click_to_edit: "Klik om te bewerken",
     write_your_message: "Schrijf je bericht...",
     write_your_reply: "Schrijf je antwoord...",

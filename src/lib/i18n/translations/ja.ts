@@ -763,6 +763,7 @@ export const ja = {
     report_phishing: "スパムを報告",
     suspicious: "不審",
     dangerous: "危険",
+    spoofed: "なりすまし",
     click_to_edit: "クリックして編集",
     write_your_message: "メッセージを入力...",
     write_your_reply: "返信を入力...",

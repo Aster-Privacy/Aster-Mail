@@ -765,6 +765,7 @@ export const ar = {
     report_phishing: "الإبلاغ عن بريد مزعج",
     suspicious: "مشبوه",
     dangerous: "خطير",
+    spoofed: "منتحل",
     click_to_edit: "انقر للتعديل",
     write_your_message: "اكتب رسالتك...",
     write_your_reply: "اكتب ردك...",

@@ -504,6 +504,9 @@ export function mail_to_email(
       effective_metadata.size_bytes ||
       Math.ceil((item.encrypted_envelope?.length || 0) * 0.75),
     phishing_level: item.phishing_level,
+    spf_result: item.spf_result,
+    dkim_result: item.dkim_result,
+    dmarc_result: item.dmarc_result,
   };
 }
 

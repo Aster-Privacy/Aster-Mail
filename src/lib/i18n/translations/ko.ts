@@ -765,6 +765,7 @@ export const ko = {
     report_phishing: "스팸 신고",
     suspicious: "의심스러움",
     dangerous: "위험",
+    spoofed: "위장됨",
     click_to_edit: "편집하려면 클릭",
     write_your_message: "메시지를 작성하세요...",
     write_your_reply: "답장을 작성하세요...",

@@ -1208,6 +1208,7 @@ export interface CommonTranslations {
   report_phishing: string;
   suspicious: string;
   dangerous: string;
+  spoofed: string;
   click_to_edit: string;
   write_your_message: string;
   write_your_reply: string;
