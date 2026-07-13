@@ -1024,23 +1024,29 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       raf_ref.current = requestAnimationFrame(() => measure_and_apply());
     };
 
-    const body_rect = iframe.contentDocument.body.getBoundingClientRect();
-    const immediate_height = Math.max(
-      body_rect.bottom,
-      iframe.contentDocument.body.scrollHeight,
-    );
+    const reveal_content = () => {
+      const content_doc = iframe.contentDocument;
 
-    if (immediate_height > 0) {
-      const clamped = Math.min(immediate_height + 8, MAX_IFRAME_HEIGHT);
+      if (!content_doc?.body) return;
 
-      last_height = clamped;
-      set_iframe_height(`${clamped}px`);
-      set_height_ready(true);
-      if (email_id) {
-        iframe_height_cache.set(email_id, clamped);
-        schedule_ready();
+      const body_rect = content_doc.body.getBoundingClientRect();
+      const immediate_height = Math.max(
+        body_rect.bottom,
+        content_doc.body.scrollHeight,
+      );
+
+      if (immediate_height > 0) {
+        const clamped = Math.min(immediate_height + 8, MAX_IFRAME_HEIGHT);
+
+        last_height = clamped;
+        set_iframe_height(`${clamped}px`);
+        set_height_ready(true);
+        if (email_id) {
+          iframe_height_cache.set(email_id, clamped);
+          schedule_ready();
+        }
       }
-    }
+    };
 
     const listen_to_images = (root: Element | Document) => {
       const images = root.querySelectorAll("img");
@@ -1091,13 +1097,15 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       });
     };
 
-    attach_observer();
+    const fonts_ready =
+      iframe.contentDocument.fonts && iframe.contentDocument.fonts.status !== "loaded"
+        ? iframe.contentDocument.fonts.ready
+        : Promise.resolve(iframe.contentDocument.fonts);
 
-    const doc = iframe.contentDocument;
-
-    if (doc.fonts?.ready) {
-      doc.fonts.ready.then(() => update_height());
-    }
+    fonts_ready.then(() => {
+      reveal_content();
+      attach_observer();
+    });
 
     iframe.contentDocument.addEventListener(
       "wheel",
