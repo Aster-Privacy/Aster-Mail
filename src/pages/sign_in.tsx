@@ -536,6 +536,7 @@ export default function SignInPage() {
   }, [auth_loading, login]);
 
   const [captcha_token, set_captcha_token] = useState("");
+  const [captcha_unavailable, set_captcha_unavailable] = useState(false);
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const [pending_verification_hash, set_pending_verification_hash] = useState<
     string | null
@@ -1427,12 +1428,19 @@ export default function SignInPage() {
             <TurnstileWidget
               ref={turnstile_ref}
               on_expire={() => set_captcha_token("")}
-              on_verify={set_captcha_token}
+              on_unavailable={() => set_captcha_unavailable(true)}
+              on_verify={(token) => {
+                set_captcha_unavailable(false);
+                set_captcha_token(token);
+              }}
             />
 
             <Button
               className="w-full mt-6"
-              disabled={is_loading || (!!TURNSTILE_SITE_KEY && !captcha_token)}
+              disabled={
+                is_loading ||
+                (!!TURNSTILE_SITE_KEY && !captcha_token && !captcha_unavailable)
+              }
               size="xl"
               variant="depth"
               onClick={handle_login}

@@ -144,6 +144,7 @@ export default function MobileSignInPage() {
   const [status, set_status] = useState("");
 
   const [captcha_token, set_captcha_token] = useState("");
+  const [captcha_unavailable, set_captcha_unavailable] = useState(false);
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
 
   const [totp_required, set_totp_required] = useState(false);
@@ -970,7 +971,11 @@ export default function MobileSignInPage() {
                 ref={turnstile_ref}
                 class_name="flex justify-center"
                 on_expire={() => set_captcha_token("")}
-                on_verify={set_captcha_token}
+                on_unavailable={() => set_captcha_unavailable(true)}
+                on_verify={(token) => {
+                  set_captcha_unavailable(false);
+                  set_captcha_token(token);
+                }}
               />
             </motion.div>
 
@@ -981,7 +986,10 @@ export default function MobileSignInPage() {
               <motion.button
                 className={DEPTH_CTA_CLASS}
                 disabled={
-                  is_loading || (!!TURNSTILE_SITE_KEY && !captcha_token)
+                  is_loading ||
+                  (!!TURNSTILE_SITE_KEY &&
+                    !captcha_token &&
+                    !captcha_unavailable)
                 }
                 style={DEPTH_CTA_STYLE}
                 whileTap={button_tap}
