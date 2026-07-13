@@ -4993,6 +4993,7 @@ export const pl = {
     search_taking_too_long: "Wyszukiwanie trwa zbyt długo",
     search_refine_terms: "Spróbuj zawęzić wyszukiwanie, używając bardziej szczegółowych słów.",
     content_search_slower: "Przeszukiwanie treści wiadomości może być wolne przy dużych skrzynkach.",
+    content_search_off_hint: "Nie przeszukano treści wiadomości. Włącz wyszukiwanie treści, aby znaleźć tekst w wiadomościach.",
     search_message_content_help: "O wyszukiwaniu w treści wiadomości",
     search_message_content_help_body: "Twoje wiadomości są szyfrowane end-to-end, dlatego muszą zostać pobrane i zaindeksowane na tym urządzeniu, zanim będzie można przeszukać ich tekst. Może to zużyć znaczną ilość miejsca. Indeks nigdy nie opuszcza tego urządzenia i jest usuwany po wylogowaniu.",
     op_search_by_sender: "Szukaj według nadawcy",

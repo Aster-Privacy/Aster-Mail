@@ -5211,6 +5211,7 @@ export interface MailTranslations {
   search_taking_too_long: string;
   search_refine_terms: string;
   content_search_slower: string;
+  content_search_off_hint: string;
   search_message_content_help: string;
   search_message_content_help_body: string;
   active_filters: string;

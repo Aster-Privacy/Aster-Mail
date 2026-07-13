@@ -5312,6 +5312,7 @@ export const en: Translations = {
     search_refine_terms: "Try refining your search with more specific terms.",
     content_search_slower:
       "Searching message content can be slow on large mailboxes.",
+    content_search_off_hint: "Message contents were not searched. Enable content search to find text inside emails.",
     search_message_content_help: "About message content search",
     search_message_content_help_body:
       "Your messages are end-to-end encrypted, so they have to be downloaded and indexed on this device before their text can be searched. This may use significant storage. The index never leaves this device and is removed when you sign out.",

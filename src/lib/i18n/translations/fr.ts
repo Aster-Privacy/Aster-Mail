@@ -5080,6 +5080,7 @@ export const fr = {
     search_taking_too_long: "La recherche prend trop de temps",
     search_refine_terms: "Essayez d'affiner votre recherche avec des termes plus précis.",
     content_search_slower: "La recherche dans le contenu des messages peut être lente sur les grandes boîtes mail.",
+    content_search_off_hint: "Le contenu des messages n'a pas été recherché. Activez la recherche de contenu pour trouver du texte dans les e-mails.",
     select_all_in_folder: "Sélectionner toutes les {{ count }} conversations dans {{ folder }}",
     shortcut_next_email: "E-mail suivant",
     show_headers: "Afficher les en-têtes",

@@ -4993,6 +4993,7 @@ export const it = {
     search_taking_too_long: "La ricerca sta richiedendo troppo tempo",
     search_refine_terms: "Prova a restringere la ricerca con termini più specifici.",
     content_search_slower: "La ricerca nel contenuto dei messaggi può essere lenta con caselle di grandi dimensioni.",
+    content_search_off_hint: "Il contenuto dei messaggi non è stato cercato. Attiva la ricerca nei contenuti per trovare testo nelle email.",
     search_message_content_help: "Informazioni sulla ricerca nel contenuto",
     search_message_content_help_body: "I tuoi messaggi sono crittografati end-to-end, quindi devono essere scaricati e indicizzati su questo dispositivo prima che il loro testo possa essere cercato. Questo potrebbe usare spazio significativo. L'indice non lascia mai questo dispositivo e viene rimosso quando esci.",
     op_search_by_sender: "Cerca per mittente",

@@ -5070,6 +5070,7 @@ export const ja = {
     search_taking_too_long: "検索に時間がかかっています",
     search_refine_terms: "より具体的な語句で検索を絞り込んでみてください。",
     content_search_slower: "メッセージ本文の検索は、メールボックスが大きいと遅くなることがあります。",
+    content_search_off_hint: "メッセージ本文は検索されていません。メール内のテキストを探すには本文検索を有効にしてください。",
     search_message_content_help: "メッセージ内容検索について",
     search_message_content_help_body: "メッセージはエンドツーエンドで暗号化されているため、テキスト検索を行うにはこのデバイスにダウンロードしてインデックスを作成する必要があります。かなりのストレージを使用する場合があります。インデックスはこのデバイスから外に出ることはなく、サインアウト時に削除されます。",
     op_search_by_sender: "送信者で検索",

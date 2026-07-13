@@ -159,6 +159,13 @@ export function SearchBar({
     input_ref.current?.focus();
   };
 
+  const start_operator = (operator: string) => {
+    const next = query ? `${query.trimEnd()} ${operator}` : operator;
+
+    set_query(next);
+    input_ref.current?.focus();
+  };
+
   const handle_key_down = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       e.preventDefault();
@@ -284,6 +291,12 @@ export function SearchBar({
     show_results && !show_loading && results.length === 0 && !state.error;
   const show_slow_loading = show_loading && is_slow;
   const show_slow_empty = show_empty && finished_slow;
+  const show_content_hint =
+    show_results &&
+    !show_loading &&
+    !content_search_enabled &&
+    !state.error &&
+    results.length < 3;
 
   const slow_notice = (
     <div className="px-6 py-8 flex flex-col items-center justify-center text-center gap-1.5">
@@ -399,7 +412,7 @@ export function SearchBar({
               <Chip
                 icon={<UserIcon className="w-3.5 h-3.5" />}
                 label={t("common.from_label")}
-                on_click={() => handle_chip("from:")}
+                on_click={() => start_operator("from:")}
               />
               <button
                 className="ml-auto inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
@@ -481,6 +494,22 @@ export function SearchBar({
                     </li>
                   ))}
                 </ul>
+              )}
+
+              {show_content_hint && (
+                <button
+                  className="w-full text-left px-4 py-3 flex items-start gap-2 border-t border-[var(--border-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+                  type="button"
+                  onClick={handle_enable_content_search}
+                >
+                  <MagnifyingGlassIcon className="w-4 h-4 mt-0.5 text-[var(--text-muted)] flex-shrink-0" />
+                  <span className="flex-1 text-xs text-[var(--text-muted)]">
+                    {t("mail.content_search_off_hint")}
+                  </span>
+                  <span className="text-[11px] font-medium text-blue-500 flex-shrink-0">
+                    {t("common.enable")}
+                  </span>
+                </button>
               )}
 
               {show_results && query.trim().length >= 2 && (

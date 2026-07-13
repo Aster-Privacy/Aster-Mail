@@ -5081,6 +5081,7 @@ export const de = {
     search_taking_too_long: "Die Suche dauert zu lange",
     search_refine_terms: "Versuchen Sie, Ihre Suche mit spezifischeren Begriffen einzugrenzen.",
     content_search_slower: "Das Durchsuchen von Nachrichteninhalten kann bei großen Postfächern langsam sein.",
+    content_search_off_hint: "Nachrichteninhalte wurden nicht durchsucht. Aktiviere die Inhaltssuche, um Text in E-Mails zu finden.",
     select_all_in_folder: "Alle {{ count }} Unterhaltungen in {{ folder }} auswählen",
     show_headers: "Vollständige Kopfzeilen anzeigen",
     show_trimmed_content: "Gekürzten Inhalt anzeigen",

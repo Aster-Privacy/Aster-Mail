@@ -5070,6 +5070,7 @@ export const nl = {
     search_taking_too_long: "Zoeken duurt te lang",
     search_refine_terms: "Probeer uw zoekopdracht te verfijnen met specifiekere termen.",
     content_search_slower: "Zoeken in berichtinhoud kan traag zijn bij grote postvakken.",
+    content_search_off_hint: "Berichtinhoud is niet doorzocht. Schakel inhoud zoeken in om tekst in e-mails te vinden.",
     search_message_content_help: "Over het doorzoeken van berichtinhoud",
     search_message_content_help_body: "Je berichten zijn end-to-end versleuteld, dus ze moeten worden gedownload en geïndexeerd op dit apparaat voordat de tekst kan worden doorzocht. Dit kan aanzienlijke opslag gebruiken. De index verlaat dit apparaat nooit en wordt verwijderd wanneer je uitlogt.",
     op_search_by_sender: "Zoeken op afzender",

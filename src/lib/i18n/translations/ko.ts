@@ -4994,6 +4994,7 @@ export const ko = {
     search_taking_too_long: "검색에 시간이 너무 오래 걸립니다",
     search_refine_terms: "더 구체적인 검색어로 검색 범위를 좁혀 보세요.",
     content_search_slower: "메시지 내용 검색은 사서함이 크면 느릴 수 있습니다.",
+    content_search_off_hint: "메시지 내용은 검색되지 않았습니다. 이메일 안의 텍스트를 찾으려면 내용 검색을 켜세요.",
     search_message_content_help: "메시지 내용 검색",
     search_message_content_help_body: "메시지 본문에서 텍스트를 검색합니다. 검색 색인이 구축되는 동안 기다리면 됩니다.",
     op_search_by_sender: "발신자로 검색",

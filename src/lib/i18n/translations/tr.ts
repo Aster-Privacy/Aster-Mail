@@ -4993,6 +4993,7 @@ export const tr = {
     search_taking_too_long: "Arama çok uzun sürüyor",
     search_refine_terms: "Aramanızı daha belirgin terimlerle daraltmayı deneyin.",
     content_search_slower: "Mesaj içeriğinde arama, büyük posta kutularında yavaş olabilir.",
+    content_search_off_hint: "Mesaj içeriği aranmadı. E-postalardaki metni bulmak için içerik aramasını etkinleştirin.",
     search_message_content_help: "Mesaj içeriği araması hakkında",
     search_message_content_help_body: "Mesajlarınız uçtan uca şifrelidir, bu nedenle metinleri aranabilmesi için bu cihaza indirilip dizinlenmesi gerekir. Bu önemli miktarda depolama kullanabilir. Dizin bu cihazdan asla çıkmaz ve oturumu kapattığınızda silinir.",
     op_search_by_sender: "Gönderene göre ara",

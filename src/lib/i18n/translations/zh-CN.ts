@@ -5069,6 +5069,7 @@ export const zh_CN = {
     search_taking_too_long: "搜索时间过长",
     search_refine_terms: "请尝试使用更具体的关键词缩小搜索范围。",
     content_search_slower: "在大型邮箱中搜索邮件内容可能会很慢。",
+    content_search_off_hint: "未搜索邮件内容。启用内容搜索以查找邮件中的文本。",
     search_message_content_help: "关于邮件内容搜索",
     search_message_content_help_body: "您的邮件是端到端加密的，因此需要先在此设备上下载并建立索引，才能搜索其文本。这可能会占用大量存储空间。索引不会离开此设备，退出登录时将被删除。",
     op_search_by_sender: "按发件人搜索",
