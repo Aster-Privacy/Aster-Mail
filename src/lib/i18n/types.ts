@@ -290,6 +290,9 @@ export interface MailRulesTranslations {
   menu_duplicate: string;
   menu_delete: string;
   menu_run_on_existing: string;
+  run_on_existing_result: string;
+  run_on_existing_failed: string;
+  paused_badge: string;
   and_label: string;
   or_label: string;
   value_placeholder: string;

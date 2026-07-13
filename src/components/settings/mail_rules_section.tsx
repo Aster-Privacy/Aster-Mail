@@ -25,6 +25,8 @@ import {
   BoltIcon,
   Squares2X2Icon,
   ClockIcon,
+  PlayIcon,
+  PauseIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -43,6 +45,8 @@ import {
   use_mail_rules_store,
   load_rules,
   reorder,
+  update_rule,
+  run_on_existing,
 } from "@/stores/mail_rules_store";
 import { ConditionChip } from "@/components/mail_rules/condition_chip";
 import { ActionChip } from "@/components/mail_rules/action_chip";
@@ -355,6 +359,27 @@ function RuleCard({
 }: RuleCardProps) {
   const { t } = use_i18n();
   const [draggable_on, set_draggable_on] = React.useState(false);
+  const [is_running, set_is_running] = React.useState(false);
+
+  const handle_toggle_enabled = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await update_rule(rule.id, { enabled: !rule.enabled });
+  };
+
+  const handle_run_on_existing = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (is_running) return;
+    set_is_running(true);
+    const result = await run_on_existing(rule.id);
+
+    set_is_running(false);
+    show_toast(
+      result
+        ? t("mail_rules.run_on_existing_result", { count: result.applied })
+        : t("mail_rules.run_on_existing_failed"),
+      result ? "success" : "error",
+    );
+  };
 
   return (
     <div
@@ -387,6 +412,11 @@ function RuleCard({
             <span className="text-[13px] font-medium text-txt-primary truncate">
               {rule.name}
             </span>
+            {!rule.enabled && (
+              <span className="text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded bg-surf-tertiary text-txt-tertiary flex-shrink-0">
+                {t("mail_rules.paused_badge")}
+              </span>
+            )}
             {rule.applied_count > 0 && (
               <span className="text-[11px] text-txt-tertiary flex-shrink-0">
                 · {t("mail_rules.applied_count", { count: rule.applied_count })}
@@ -428,6 +458,37 @@ function RuleCard({
           </div>
         </button>
         <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            type="button"
+            onClick={handle_run_on_existing}
+            disabled={is_running || !rule.enabled}
+            title={t("mail_rules.menu_run_on_existing")}
+            aria-label={t("mail_rules.menu_run_on_existing")}
+            className="p-1 rounded text-neutral-400 hover:text-txt-primary hover:bg-surf-tertiary transition-colors disabled:opacity-40 disabled:hover:bg-transparent"
+          >
+            <BoltIcon className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handle_toggle_enabled}
+            title={
+              rule.enabled
+                ? t("mail_rules.menu_disable")
+                : t("mail_rules.menu_enable")
+            }
+            aria-label={
+              rule.enabled
+                ? t("mail_rules.menu_disable")
+                : t("mail_rules.menu_enable")
+            }
+            className="p-1 rounded text-neutral-400 hover:text-txt-primary hover:bg-surf-tertiary transition-colors"
+          >
+            {rule.enabled ? (
+              <PauseIcon className="w-4 h-4" />
+            ) : (
+              <PlayIcon className="w-4 h-4" />
+            )}
+          </button>
           <span
             className="text-neutral-400 cursor-grab transition-opacity opacity-0 group-hover:opacity-100"
             onMouseDown={() => set_draggable_on(true)}
