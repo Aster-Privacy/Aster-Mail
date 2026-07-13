@@ -36,7 +36,7 @@ import {
   ClockIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Checkbox, Switch } from "@aster/ui";
+import { Badge, Button, Checkbox, Switch } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
@@ -439,9 +439,9 @@ export function AliasItem({
             {alias.full_address}
           </p>
           {alias.is_random && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surf-tertiary text-txt-muted">
+            <Badge color="gray" className="flex-shrink-0">
               {t("common.random")}
-            </span>
+            </Badge>
           )}
           {in_grace_period && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">

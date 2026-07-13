@@ -23,12 +23,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FingerPrintIcon,
   KeyIcon,
-  TrashIcon,
   PlusIcon,
-  PencilIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Badge } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { is_desktop } from "@/native/invoke_bridge";
@@ -156,11 +154,11 @@ function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
                       ? t("passkeys.unnamed_passkey")
                       : t("passkeys.unnamed_security_key"))}
                 </span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 bg-surf-tertiary text-txt-muted">
+                <Badge color="gray" className="flex-shrink-0">
                   {display_type === "passkey"
                     ? t("passkeys.passkey_badge")
                     : t("passkeys.security_key_badge")}
-                </span>
+                </Badge>
               </div>
             )}
             {!editing && (
@@ -177,23 +175,16 @@ function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
 
         {!editing && (
           <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-            <button
-              className="p-1.5 rounded-md text-txt-muted hover:text-txt-primary hover:bg-surf-tertiary transition-colors"
-              title={t("passkeys.rename")}
-              onClick={start_edit}
-            >
-              <PencilIcon className="w-4 h-4" />
-            </button>
             {confirm ? (
-              <div className="flex items-center gap-2 ml-1">
+              <div className="flex items-center gap-3">
                 <button
-                  className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
+                  className="text-xs font-medium text-txt-muted hover:text-txt-primary transition-colors"
                   onClick={() => set_confirm(false)}
                 >
                   {t("common.cancel")}
                 </button>
                 <button
-                  className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors"
+                  className="text-xs font-medium text-red-500 hover:text-red-600 transition-colors"
                   disabled={removing}
                   onClick={() => on_remove(key_info.id)}
                 >
@@ -205,12 +196,20 @@ function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
                 </button>
               </div>
             ) : (
-              <button
-                className="p-1.5 rounded-md text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                onClick={() => set_confirm(true)}
-              >
-                <TrashIcon className="w-4 h-4" />
-              </button>
+              <>
+                <button
+                  className="text-xs font-medium text-txt-muted hover:text-txt-primary transition-colors px-1.5 py-1"
+                  onClick={start_edit}
+                >
+                  {t("passkeys.rename")}
+                </button>
+                <button
+                  className="text-xs font-medium text-txt-muted hover:text-red-500 transition-colors px-1.5 py-1"
+                  onClick={() => set_confirm(true)}
+                >
+                  {t("common.delete")}
+                </button>
+              </>
             )}
           </div>
         )}
