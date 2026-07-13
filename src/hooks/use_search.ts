@@ -114,6 +114,41 @@ export interface SearchResultItem {
   folders?: { folder_token: string; name: string }[];
 }
 
+export function sort_search_results(
+  results: SearchResultItem[],
+  sort_option: SortOption,
+): SearchResultItem[] {
+  if (sort_option === "relevance") return results;
+
+  const sorted = [...results];
+
+  switch (sort_option) {
+    case "date_newest":
+      sorted.sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      );
+      break;
+    case "date_oldest":
+      sorted.sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+      );
+      break;
+    case "sender":
+      sorted.sort((a, b) =>
+        (a.sender_name || a.sender_email).localeCompare(
+          b.sender_name || b.sender_email,
+          undefined,
+          { sensitivity: "base" },
+        ),
+      );
+      break;
+  }
+
+  return sorted;
+}
+
 export interface TextHighlight {
   text: string;
   is_match: boolean;
@@ -1515,7 +1550,7 @@ export function use_advanced_search() {
   const state: AdvancedSearchState = {
     raw_query,
     text_query: parsed.text_query,
-    results: underlying.results,
+    results: sort_search_results(underlying.results, sort_option),
     is_loading: underlying.is_loading,
     is_searching: underlying.is_searching,
     has_more: underlying.has_more,

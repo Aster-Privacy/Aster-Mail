@@ -20,7 +20,11 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { matches_query } from "@/hooks/use_search";
+import {
+  matches_query,
+  sort_search_results,
+  type SearchResultItem,
+} from "@/hooks/use_search";
 import { parse_search_query } from "@/utils/search_operators";
 import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
@@ -139,5 +143,70 @@ describe("matches_query - encrypted content search toggle", () => {
 
     expect(run("quarterly", env, false)).toBe(true);
     expect(run("revenue", env, false)).toBe(false);
+  });
+});
+
+function make_result(
+  id: string,
+  timestamp: string,
+  sender_name: string,
+): SearchResultItem {
+  return {
+    id,
+    subject: id,
+    preview: "",
+    sender_name,
+    sender_email: `${sender_name.toLowerCase()}@example.com`,
+    timestamp,
+    is_read: false,
+    is_starred: false,
+    has_attachment: false,
+  };
+}
+
+describe("sort_search_results", () => {
+  const items = [
+    make_result("a", "2026-01-02T00:00:00Z", "Charlie"),
+    make_result("b", "2026-01-03T00:00:00Z", "alice"),
+    make_result("c", "2026-01-01T00:00:00Z", "Bob"),
+  ];
+
+  it("keeps original order for relevance", () => {
+    expect(sort_search_results(items, "relevance").map((r) => r.id)).toEqual([
+      "a",
+      "b",
+      "c",
+    ]);
+  });
+
+  it("sorts newest first", () => {
+    expect(sort_search_results(items, "date_newest").map((r) => r.id)).toEqual([
+      "b",
+      "a",
+      "c",
+    ]);
+  });
+
+  it("sorts oldest first", () => {
+    expect(sort_search_results(items, "date_oldest").map((r) => r.id)).toEqual([
+      "c",
+      "a",
+      "b",
+    ]);
+  });
+
+  it("sorts by sender case-insensitively", () => {
+    expect(sort_search_results(items, "sender").map((r) => r.id)).toEqual([
+      "b",
+      "c",
+      "a",
+    ]);
+  });
+
+  it("does not mutate the input array", () => {
+    const copy = [...items];
+
+    sort_search_results(items, "date_oldest");
+    expect(items).toEqual(copy);
   });
 });
