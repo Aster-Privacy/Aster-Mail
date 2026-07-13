@@ -324,7 +324,9 @@ export default function IndexPage() {
           on_close={() => {
             state.set_is_settings_open(false);
             state.set_settings_section(undefined);
-            navigate("/", { replace: true });
+            if (state.location.pathname.startsWith("/settings")) {
+              navigate("/", { replace: true });
+            }
           }}
         />
       </Suspense>
