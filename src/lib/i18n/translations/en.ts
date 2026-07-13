@@ -1914,6 +1914,7 @@ export const en: Translations = {
     toast_position: "Notification Position",
     toast_position_description: "Where notification popups appear on screen",
     toast_position_top_right: "Top right",
+    toast_position_middle: "Middle",
     toast_position_bottom_right: "Bottom right",
     toast_position_top_left: "Top left",
     toast_position_bottom_left: "Bottom left",

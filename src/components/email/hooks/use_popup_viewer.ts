@@ -649,21 +649,9 @@ export function use_popup_viewer({
   useEffect(() => {
     if (local_email) return;
 
-    if (mark_as_read_timeout.current) {
-      clearTimeout(mark_as_read_timeout.current);
-      mark_as_read_timeout.current = null;
-    }
-
     if (email_id) {
       fetch_email();
     }
-
-    return () => {
-      if (mark_as_read_timeout.current) {
-        clearTimeout(mark_as_read_timeout.current);
-        mark_as_read_timeout.current = null;
-      }
-    };
   }, [email_id, fetch_email, local_email]);
 
   useEffect(() => {

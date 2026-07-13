@@ -349,7 +349,13 @@ export function NotificationsSection() {
             onValueChange={(v) =>
               update_preference(
                 "toast_position",
-                v as "top-right" | "bottom-right" | "top-left" | "bottom-left",
+                v as
+                  | "top"
+                  | "bottom"
+                  | "top-right"
+                  | "bottom-right"
+                  | "top-left"
+                  | "bottom-left",
                 true,
               )
             }
@@ -358,6 +364,9 @@ export function NotificationsSection() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="bottom">
+                {t("settings.toast_position_middle")}
+              </SelectItem>
               <SelectItem value="top-right">
                 {t("settings.toast_position_top_right")}
               </SelectItem>

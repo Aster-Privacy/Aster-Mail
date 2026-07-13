@@ -2507,6 +2507,7 @@ export const ja = {
     toast_position: "通知の表示位置",
     toast_position_description: "通知ポップアップが画面のどこに表示されるか",
     toast_position_top_right: "右上",
+    toast_position_middle: "中央",
     toast_position_bottom_right: "右下",
     toast_position_top_left: "左上",
     toast_position_bottom_left: "左下",

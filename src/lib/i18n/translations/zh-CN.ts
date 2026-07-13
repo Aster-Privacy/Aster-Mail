@@ -2506,6 +2506,7 @@ export const zh_CN = {
     toast_position: "通知位置",
     toast_position_description: "通知弹窗在屏幕上出现的位置",
     toast_position_top_right: "右上角",
+    toast_position_middle: "居中",
     toast_position_bottom_right: "右下角",
     toast_position_top_left: "左上角",
     toast_position_bottom_left: "左下角",

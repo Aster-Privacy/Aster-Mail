@@ -365,7 +365,6 @@ export function use_email_viewer({
         if (!pe.is_read && preferences.mark_as_read_delay !== "never") {
           const is_received = preloaded.mail_item.item_type === "received";
           const mark_read = async () => {
-            if (cancelled) return;
             const item = preloaded.mail_item;
 
             if (is_received) {
@@ -635,8 +634,6 @@ export function use_email_viewer({
       ) {
         const is_received_item = item.item_type === "received";
         const mark_read = async () => {
-          if (cancelled) return;
-
           if (is_received_item) {
             adjust_unread_count(-1);
           }
@@ -703,11 +700,6 @@ export function use_email_viewer({
       }
     }
 
-    if (mark_as_read_timeout.current) {
-      clearTimeout(mark_as_read_timeout.current);
-      mark_as_read_timeout.current = null;
-    }
-
     if (loaded_email_id_ref.current !== email_id || refresh_key > 0) {
       loaded_email_id_ref.current = null;
       load_email();
@@ -715,10 +707,6 @@ export function use_email_viewer({
 
     return () => {
       cancelled = true;
-      if (mark_as_read_timeout.current) {
-        clearTimeout(mark_as_read_timeout.current);
-        mark_as_read_timeout.current = null;
-      }
     };
   }, [email_id, preferences.mark_as_read_delay, refresh_key]);
 

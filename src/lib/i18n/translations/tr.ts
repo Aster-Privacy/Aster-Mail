@@ -2508,6 +2508,7 @@ export const tr = {
     toast_position_description:
       "Bildirim açılır pencerelerinin ekranda nerede görüneceği",
     toast_position_top_right: "Sağ üst",
+    toast_position_middle: "Ortada",
     toast_position_bottom_right: "Sağ alt",
     toast_position_top_left: "Sol üst",
     toast_position_bottom_left: "Sol alt",

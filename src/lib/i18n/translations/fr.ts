@@ -2508,6 +2508,7 @@ export const fr = {
     toast_position_description:
       "Où les notifications apparaissent à l'écran",
     toast_position_top_right: "En haut à droite",
+    toast_position_middle: "Au milieu",
     toast_position_bottom_right: "En bas à droite",
     toast_position_top_left: "En haut à gauche",
     toast_position_bottom_left: "En bas à gauche",

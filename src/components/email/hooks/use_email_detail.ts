@@ -802,19 +802,7 @@ export function use_email_detail() {
   }, [email_id, folders_state.folders, user?.id, user?.email, preferences.low_network_mode, preferences.conversation_grouping]);
 
   useEffect(() => {
-    if (mark_as_read_timeout.current) {
-      clearTimeout(mark_as_read_timeout.current);
-      mark_as_read_timeout.current = null;
-    }
-
     fetch_email();
-
-    return () => {
-      if (mark_as_read_timeout.current) {
-        clearTimeout(mark_as_read_timeout.current);
-        mark_as_read_timeout.current = null;
-      }
-    };
   }, [fetch_email]);
 
   useEffect(() => {

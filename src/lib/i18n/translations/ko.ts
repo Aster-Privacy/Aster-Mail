@@ -2556,6 +2556,7 @@ export const ko = {
     toast_position: "알림 위치",
     toast_position_description: "알림 팝업이 화면에 표시되는 위치",
     toast_position_top_right: "오른쪽 위",
+    toast_position_middle: "중앙",
     toast_position_bottom_right: "오른쪽 아래",
     toast_position_top_left: "왼쪽 위",
     toast_position_bottom_left: "왼쪽 아래",

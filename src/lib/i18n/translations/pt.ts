@@ -2507,6 +2507,7 @@ export const pt = {
     toast_position_description:
       "Onde os pop-ups de notificação aparecem na tela",
     toast_position_top_right: "Superior direito",
+    toast_position_middle: "Ao centro",
     toast_position_bottom_right: "Inferior direito",
     toast_position_top_left: "Superior esquerdo",
     toast_position_bottom_left: "Inferior esquerdo",

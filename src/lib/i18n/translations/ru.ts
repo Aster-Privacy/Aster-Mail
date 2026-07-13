@@ -2508,6 +2508,7 @@ export const ru = {
     toast_position_description:
       "Где всплывающие уведомления появляются на экране",
     toast_position_top_right: "Сверху справа",
+    toast_position_middle: "По центру",
     toast_position_bottom_right: "Снизу справа",
     toast_position_top_left: "Сверху слева",
     toast_position_bottom_left: "Снизу слева",
