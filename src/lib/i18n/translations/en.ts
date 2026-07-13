@@ -3089,7 +3089,11 @@ export const en: Translations = {
     card_removed: "Payment method removed",
     default_updated: "Default payment method updated",
     no_payment_methods: "No payment methods saved",
+    loading_payment_form: "Loading...",
+    delete_card_confirm_title: "Remove payment method",
+    delete_card_confirm_description:
       "Are you sure you want to remove this payment method?",
+    delete_card_default_warning:
       "This is the card funding your active plan. Removing it may interrupt renewals. Add another card first to stay covered.",
     save_card: "Save Card",
     cancel_confirm_title: "Cancel Subscription",

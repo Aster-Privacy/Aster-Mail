@@ -46,6 +46,16 @@ import {
   ModalDescription,
   ModalBody,
 } from "@/components/ui/modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert_dialog";
 import { Spinner } from "@/components/ui/spinner";
 import {
   list_payment_methods,
@@ -297,6 +307,9 @@ export function PaymentMethodsModal({
     null,
   );
   const [show_add_form, set_show_add_form] = useState(false);
+  const [is_preparing_add, set_is_preparing_add] = useState(false);
+  const [pending_delete, set_pending_delete] =
+    useState<PaymentMethodItem | null>(null);
   const [stripe_promise, set_stripe_promise] =
     useState<Promise<Stripe | null> | null>(null);
   const [client_secret, set_client_secret] = useState<string | null>(null);
@@ -328,6 +341,8 @@ export function PaymentMethodsModal({
       fetch_methods();
       set_show_add_form(false);
       set_client_secret(null);
+      set_pending_delete(null);
+      set_is_preparing_add(false);
     }
   }, [open, fetch_methods]);
 
@@ -372,6 +387,7 @@ export function PaymentMethodsModal({
       return;
     }
 
+    set_is_preparing_add(true);
     try {
       const config_response = await get_stripe_config();
 
@@ -400,6 +416,8 @@ export function PaymentMethodsModal({
       set_show_add_form(true);
     } catch {
       show_toast(t("settings.payment_failed"), "error");
+    } finally {
+      set_is_preparing_add(false);
     }
   }, [t]);
 
@@ -502,7 +520,7 @@ export function PaymentMethodsModal({
             className="flex items-center justify-center rounded-[14px] p-1.5 transition-colors hover:opacity-80"
             disabled={is_any_busy}
             style={{ color: "var(--text-tertiary)" }}
-            onClick={() => handle_delete(method.id)}
+            onClick={() => set_pending_delete(method)}
           >
             {is_deleting ? (
               <Spinner size="xs" />
@@ -571,26 +589,86 @@ export function PaymentMethodsModal({
         ) : (
           <Button
             className="w-full"
+            disabled={is_preparing_add}
             variant="outline"
             onClick={handle_show_add_form}
           >
-            <PlusIcon className="w-4 h-4" />
-            {t("settings.add_payment_method")}
+            {is_preparing_add ? (
+              <span className="flex items-center gap-2">
+                <Spinner size="xs" />
+                {t("settings.loading_payment_form")}
+              </span>
+            ) : (
+              <>
+                <PlusIcon className="w-4 h-4" />
+                {t("settings.add_payment_method")}
+              </>
+            )}
           </Button>
         )}
       </div>
     );
   };
 
+  const pending_delete_is_critical =
+    !!pending_delete && (pending_delete.is_default || methods.length === 1);
+
   return (
-    <Modal show_close_button is_open={open} on_close={on_close} size="md">
-      <ModalHeader>
-        <ModalTitle>{t("settings.payment_methods_title")}</ModalTitle>
-        <ModalDescription>
-          {t("settings.payment_methods_description")}
-        </ModalDescription>
-      </ModalHeader>
-      <ModalBody>{render_content()}</ModalBody>
-    </Modal>
+    <>
+      <Modal show_close_button is_open={open} on_close={on_close} size="md">
+        <ModalHeader>
+          <ModalTitle>{t("settings.payment_methods_title")}</ModalTitle>
+          <ModalDescription>
+            {t("settings.payment_methods_description")}
+          </ModalDescription>
+        </ModalHeader>
+        <ModalBody>{render_content()}</ModalBody>
+      </Modal>
+
+      <AlertDialog
+        open={!!pending_delete}
+        onOpenChange={(is_open) => {
+          if (!is_open) set_pending_delete(null);
+        }}
+      >
+        <AlertDialogContent
+          on_overlay_click={() => set_pending_delete(null)}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("settings.delete_card_confirm_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("settings.delete_card_confirm_description")}
+              {pending_delete_is_critical && (
+                <span
+                  className="block mt-2 font-medium"
+                  style={{ color: "var(--color-warning)" }}
+                >
+                  {t("settings.delete_card_default_warning")}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="max-sm:flex-row max-sm:gap-3">
+            <AlertDialogCancel className="max-sm:flex-1">
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="aster_btn_destructive max-sm:flex-1"
+              onClick={(e) => {
+                e.preventDefault();
+                const target = pending_delete;
+
+                set_pending_delete(null);
+                if (target) handle_delete(target.id);
+              }}
+            >
+              {t("common.remove")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

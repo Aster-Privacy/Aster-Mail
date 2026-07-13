@@ -4186,6 +4186,10 @@ export interface SettingsTranslations {
   card_removed: string;
   default_updated: string;
   no_payment_methods: string;
+  loading_payment_form: string;
+  delete_card_confirm_title: string;
+  delete_card_confirm_description: string;
+  delete_card_default_warning: string;
   save_card: string;
   cancel_confirm_title: string;
   cancel_confirm_description: string;
