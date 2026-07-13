@@ -33,7 +33,6 @@ import { Button } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_desktop } from "@/native/invoke_bridge";
 import { show_toast } from "@/components/toast/simple_toast";
-import { cn } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
 import {
@@ -157,14 +156,7 @@ function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
                       ? t("passkeys.unnamed_passkey")
                       : t("passkeys.unnamed_security_key"))}
                 </span>
-                <span
-                  className={cn(
-                    "text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0",
-                    display_type === "passkey"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-surf-secondary text-txt-muted border border-edge-secondary",
-                  )}
-                >
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 bg-surf-tertiary text-txt-muted">
                   {display_type === "passkey"
                     ? t("passkeys.passkey_badge")
                     : t("passkeys.security_key_badge")}
