@@ -444,6 +444,7 @@ export const pl = {
     email_unsnoozed: "E-mail przywrócony z odłożenia",
     failed_to_snooze: "Ta wiadomość nie została odłożona. Kolejna próba powinna to załatwić. Pozostaje w skrzynce odbiorczej.",
     failed_to_unsnooze: "Ta wiadomość nie wróciła do skrzynki odbiorczej. Kolejna próba powinna to załatwić.",
+    failed_to_update_star: "Nie zapisano gwiazdki. Spróbuj ponownie.",
     conversation_moved_to_trash: "Rozmowa przeniesiona do kosza",
     conversation_archived: "Rozmowa zarchiwizowana",
     conversation_marked_as_spam: "Rozmowa oznaczona jako spam",

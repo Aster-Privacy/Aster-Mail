@@ -503,6 +503,7 @@ export const en: Translations = {
     email_unsnoozed: "Email unsnoozed",
     failed_to_snooze: "This email did not snooze. Another attempt should do it. It is still in your inbox.",
     failed_to_unsnooze: "This email did not return to your inbox. Another attempt should do it.",
+    failed_to_update_star: "The star did not save. Another attempt should do it.",
     conversation_moved_to_trash: "Conversation moved to trash",
     conversation_archived: "Conversation archived",
     conversation_marked_as_spam: "Conversation marked as spam",

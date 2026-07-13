@@ -446,6 +446,7 @@ export const ko = {
     email_unsnoozed: "이메일 다시 알림 해제됨",
     failed_to_snooze: "이 이메일은 다시 알림으로 설정되지 않았습니다. 다시 시도하면 됩니다. 받은편지함에 그대로 있습니다.",
     failed_to_unsnooze: "이 이메일이 받은편지함으로 돌아오지 않았습니다. 다시 시도하면 됩니다.",
+    failed_to_update_star: "별표를 저장하지 못했습니다. 다시 시도하면 됩니다.",
     conversation_moved_to_trash: "대화가 휴지통으로 이동됨",
     conversation_archived: "대화가 보관됨",
     conversation_marked_as_spam: "대화가 스팸으로 표시됨",

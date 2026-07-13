@@ -446,6 +446,7 @@ export const ar = {
     email_unsnoozed: "تم إلغاء تأجيل البريد",
     failed_to_snooze: "هذا البريد لم يُؤجَّل. محاولة أخرى ينبغي أن تنجح. وهو لا يزال في صندوق الوارد.",
     failed_to_unsnooze: "هذا البريد لم يعد إلى صندوق الوارد. محاولة أخرى ينبغي أن تنجح.",
+    failed_to_update_star: "لم يتم حفظ النجمة. حاول مرة أخرى.",
     conversation_moved_to_trash: "تم نقل المحادثة إلى سلة المهملات",
     conversation_archived: "تم أرشفة المحادثة",
     conversation_marked_as_spam: "تم تعليم المحادثة كرسالة مزعجة",

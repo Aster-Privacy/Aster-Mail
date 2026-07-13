@@ -446,6 +446,7 @@ export const tr = {
     email_unsnoozed: "E-posta ertelemesi kaldırıldı",
     failed_to_snooze: "Bu e-posta ertelenmedi. Bir kez daha denemek genellikle yeterli olur. Hâlâ gelen kutunuzda.",
     failed_to_unsnooze: "Bu e-posta gelen kutunuza dönmedi. Bir kez daha denemek genellikle yeterli olur.",
+    failed_to_update_star: "Yıldız kaydedilmedi. Tekrar deneyin.",
     conversation_moved_to_trash: "Görüşme çöp kutusuna taşındı",
     conversation_archived: "Görüşme arşivlendi",
     conversation_marked_as_spam: "Görüşme spam olarak işaretlendi",

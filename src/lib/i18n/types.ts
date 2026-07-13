@@ -850,6 +850,7 @@ export interface CommonTranslations {
   email_unsnoozed: string;
   failed_to_snooze: string;
   failed_to_unsnooze: string;
+  failed_to_update_star: string;
   conversation_moved_to_trash: string;
   conversation_archived: string;
   conversation_marked_as_spam: string;

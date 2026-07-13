@@ -450,6 +450,7 @@ export const it = {
     email_unsnoozed: "Posticipazione email annullata",
     failed_to_snooze: "Questa email non è stata rinviata. Un altro tentativo dovrebbe bastare. È ancora nella sua casella.",
     failed_to_unsnooze: "Questa email non è tornata nella sua casella. Un altro tentativo dovrebbe bastare.",
+    failed_to_update_star: "La stella non è stata salvata. Un altro tentativo dovrebbe bastare.",
     conversation_moved_to_trash: "Conversazione spostata nel cestino",
     conversation_archived: "Conversazione archiviata",
     conversation_marked_as_spam: "Conversazione contrassegnata come spam",

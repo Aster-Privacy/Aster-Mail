@@ -446,6 +446,7 @@ export const es = {
     email_unsnoozed: "Correo despospuesto",
     failed_to_snooze: "Este correo no se pospuso. Otro intento debería resolverlo. Sigue en tu bandeja de entrada.",
     failed_to_unsnooze: "Este correo no volvió a tu bandeja de entrada. Otro intento debería resolverlo.",
+    failed_to_update_star: "La estrella no se guardó. Otro intento debería resolverlo.",
     conversation_moved_to_trash: "Conversación movida a la papelera",
     conversation_archived: "Conversación archivada",
     conversation_marked_as_spam: "Conversación marcada como spam",

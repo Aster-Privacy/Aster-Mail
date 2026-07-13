@@ -444,6 +444,7 @@ export const ja = {
     email_unsnoozed: "メールのスヌーズを解除しました",
     failed_to_snooze: "このメールはスヌーズできませんでした。もう一度試すと通ることが多いです。まだ受信箱にあります。",
     failed_to_unsnooze: "このメールは受信箱に戻りませんでした。もう一度試すと通ることが多いです。",
+    failed_to_update_star: "スターを保存できませんでした。もう一度お試しください。",
     conversation_moved_to_trash: "会話をゴミ箱に移動しました",
     conversation_archived: "会話をアーカイブしました",
     conversation_marked_as_spam: "会話をスパムとしてマークしました",

@@ -440,6 +440,7 @@ export const nl = {
     email_unsnoozed: "E-mail uitstel opgeheven",
     failed_to_snooze: "Deze e-mail is niet gesnoozed. Een nieuwe poging zou werken. Hij staat nog in uw inbox.",
     failed_to_unsnooze: "Deze e-mail is niet teruggekeerd naar uw inbox. Een nieuwe poging zou werken.",
+    failed_to_update_star: "De ster is niet opgeslagen. Probeer het opnieuw.",
     conversation_moved_to_trash: "Gesprek naar prullenbak verplaatst",
     conversation_archived: "Gesprek gearchiveerd",
     conversation_marked_as_spam: "Gesprek als spam gemarkeerd",

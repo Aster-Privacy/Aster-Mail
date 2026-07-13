@@ -20,7 +20,7 @@
 //
 import type { InboxEmail, InboxFilterType } from "@/types/email";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   FunnelIcon,
@@ -462,13 +462,19 @@ function MobileInbox({
   const handle_toggle_star = useCallback(
     async (email: InboxEmail) => {
       update_email(email.id, { is_starred: !email.is_starred });
+      let success = false;
+
       try {
-        await actions.toggle_star(email);
+        success = await actions.toggle_star(email);
       } catch {
+        success = false;
+      }
+      if (!success) {
         update_email(email.id, { is_starred: email.is_starred });
+        show_toast(t("common.failed_to_update_star"), "error");
       }
     },
-    [actions, update_email],
+    [actions, update_email, t],
   );
 
   const handle_toggle_read = useCallback(
@@ -505,9 +511,11 @@ function MobileInbox({
         set_snooze_email_target(null);
       } catch (err) {
         if (import.meta.env.DEV) console.error("failed to snooze email", err);
+        set_snooze_email_target(null);
+        show_toast(t("common.failed_to_snooze"), "error");
       }
     },
-    [snooze_actions, snooze_email_target, remove_email],
+    [snooze_actions, snooze_email_target, remove_email, t],
   );
 
   const handle_load_more = useCallback(() => {
@@ -527,9 +535,11 @@ function MobileInbox({
     refresh_drafts,
   ]);
 
+  const refresh_saw_loading_ref = useRef(false);
+
   const handle_refresh = useCallback(() => {
+    refresh_saw_loading_ref.current = false;
     set_is_refreshing(true);
-    setTimeout(() => set_is_refreshing(false), 1000);
     if (is_drafts_view) {
       refresh_drafts();
 
@@ -537,6 +547,30 @@ function MobileInbox({
     }
     refresh();
   }, [is_drafts_view, refresh, refresh_drafts]);
+
+  const refresh_is_loading = is_drafts_view
+    ? drafts_state.is_loading
+    : mail_state.is_loading;
+
+  useEffect(() => {
+    if (!is_refreshing) return;
+
+    if (refresh_is_loading) {
+      refresh_saw_loading_ref.current = true;
+
+      return;
+    }
+
+    if (refresh_saw_loading_ref.current) {
+      set_is_refreshing(false);
+
+      return;
+    }
+
+    const fallback = setTimeout(() => set_is_refreshing(false), 8000);
+
+    return () => clearTimeout(fallback);
+  }, [is_refreshing, refresh_is_loading]);
 
   const confirm_empty_trash = useCallback(async () => {
     set_is_emptying_trash(true);

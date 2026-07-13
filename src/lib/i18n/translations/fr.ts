@@ -445,6 +445,7 @@ export const fr = {
     email_unsnoozed: "E-mail sorti de la veille",
     failed_to_snooze: "Ce message n'a pas été mis en veille. Un autre essai devrait suffire. Il est toujours dans votre boîte de réception.",
     failed_to_unsnooze: "Ce message n'est pas revenu dans votre boîte de réception. Un autre essai devrait suffire.",
+    failed_to_update_star: "L'étoile n'a pas été enregistrée. Un nouvel essai devrait suffire.",
     conversation_moved_to_trash: "Conversation déplacée vers la corbeille",
     conversation_archived: "Conversation archivée",
     conversation_marked_as_spam: "Conversation marquée comme indésirable",

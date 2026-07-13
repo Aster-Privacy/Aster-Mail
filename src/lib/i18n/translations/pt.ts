@@ -387,6 +387,7 @@ export const pt = {
     email_unsnoozed: "E-mail reativado",
     failed_to_snooze: "Este e-mail não foi adiado. Outra tentativa deve funcionar. Ele continua na sua caixa de entrada.",
     failed_to_unsnooze: "Este e-mail não voltou para sua caixa de entrada. Outra tentativa deve funcionar.",
+    failed_to_update_star: "A estrela não foi salva. Outra tentativa deve resolver.",
     conversation_moved_to_trash: "Conversa movida para a lixeira",
     conversation_archived: "Conversa arquivada",
     conversation_marked_as_spam: "Conversa marcada como spam",

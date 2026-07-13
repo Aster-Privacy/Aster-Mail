@@ -387,6 +387,7 @@ export const zh_CN = {
     email_unsnoozed: "邮件已恢复提醒",
     failed_to_snooze: "这封邮件未能延后，再试一次应该可以。它仍在您的收件箱中。",
     failed_to_unsnooze: "这封邮件没能回到收件箱，再试一次应该可以。",
+    failed_to_update_star: "星标未保存。请重试。",
     conversation_moved_to_trash: "对话已移至回收站",
     conversation_archived: "对话已归档",
     conversation_marked_as_spam: "对话已标记为垃圾邮件",

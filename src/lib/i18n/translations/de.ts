@@ -439,6 +439,7 @@ export const de = {
     email_unsnoozed: "E-Mail-Zurückstellung aufgehoben",
     failed_to_snooze: "Diese E-Mail wurde nicht schlummern gelegt. Ein erneuter Versuch genügt meist. Sie ist weiterhin in Ihrem Posteingang.",
     failed_to_unsnooze: "Diese E-Mail kam nicht in Ihren Posteingang zurück. Ein erneuter Versuch genügt meist.",
+    failed_to_update_star: "Der Stern wurde nicht gespeichert. Ein weiterer Versuch sollte helfen.",
     conversation_moved_to_trash: "Unterhaltung in den Papierkorb verschoben",
     conversation_archived: "Unterhaltung archiviert",
     conversation_marked_as_spam: "Unterhaltung als Spam markiert",
