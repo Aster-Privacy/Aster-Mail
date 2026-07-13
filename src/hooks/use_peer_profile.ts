@@ -29,15 +29,19 @@ import {
 } from "@/services/api/profiles";
 import { use_preferences } from "@/contexts/preferences_context";
 
-export function use_peer_profile(email: string | undefined | null): PublicProfile | null {
+export function use_peer_profile(
+  email: string | undefined | null,
+): PublicProfile | null | undefined {
   const { preferences } = use_preferences();
   const low_network = preferences.low_network_mode;
   const normalized = email ? email.trim().toLowerCase() : "";
   const initial =
     !low_network && normalized && is_aster_email(normalized)
-      ? (get_cached_peer_profile(normalized) ?? null)
+      ? get_cached_peer_profile(normalized)
       : null;
-  const [profile, set_profile] = useState<PublicProfile | null>(initial);
+  const [profile, set_profile] = useState<PublicProfile | null | undefined>(
+    initial,
+  );
 
   useEffect(() => {
     if (low_network || !normalized || !is_aster_email(normalized)) {
