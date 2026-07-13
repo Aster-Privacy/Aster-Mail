@@ -226,7 +226,7 @@ export function AcademicDiscountSection({
           </p>
           <div className="flex flex-col sm:flex-row gap-2">
             <input
-              className="flex-1 px-3 py-2 rounded-lg border border-edge-secondary bg-transparent text-sm text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-blue-500"
+              className="flex-1 h-10 px-3 rounded-lg border border-edge-secondary bg-transparent text-sm text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-blue-500"
               placeholder={t("settings.academic_email_placeholder")}
               type="email"
               value={academic_email}
@@ -236,7 +236,7 @@ export function AcademicDiscountSection({
               }}
             />
             <button
-              className="aster_btn aster_btn_primary aster_btn_md disabled:opacity-50"
+              className="aster_btn aster_btn_primary h-10 disabled:opacity-50"
               disabled={
                 !academic_email.trim() ||
                 submitting ||
