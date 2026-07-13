@@ -27,7 +27,6 @@ import {
   ArrowPathIcon,
   BoltIcon,
   CheckIcon,
-  Bars2Icon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -56,7 +55,6 @@ import {
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { show_action_toast } from "@/components/toast/action_toast";
-import { show_toast } from "@/components/toast/simple_toast";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
@@ -244,17 +242,14 @@ export function HeaderToolbar({
             <DropdownMenuItem
               onClick={() => handle_batch_action("mark_all_read")}
             >
-              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.mark_all_read")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handle_batch_action("archive_all_read")}
             >
-              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.archive_all_read_emails")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handle_batch_action("delete_old")}>
-              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.delete_emails_older_than_30_days")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -262,19 +257,16 @@ export function HeaderToolbar({
             <DropdownMenuItem
               onClick={() => handle_batch_action("archive_from_sender")}
             >
-              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.archive_all_from_sender")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handle_batch_action("delete_from_sender")}
             >
-              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.delete_all_from_sender")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handle_batch_action("move_from_sender")}
             >
-              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.move_all_from_sender")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -282,19 +274,16 @@ export function HeaderToolbar({
             <DropdownMenuItem
               onClick={() => handle_batch_action("snooze_similar")}
             >
-              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.snooze_similar_emails")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handle_batch_action("unsubscribe_bulk")}
             >
-              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.bulk_unsubscribe")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handle_batch_action("archive_newsletters")}
             >
-              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.archive_all_newsletters")}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -400,17 +389,14 @@ export function MobileOverflowMenu({
         <DropdownMenuSeparator />
         <DropdownMenuLabel>{t("mail.quick_actions")}</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => handle_batch_action("mark_all_read")}>
-          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.mark_all_read")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handle_batch_action("archive_all_read")}
         >
-          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.archive_all_read_emails")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handle_batch_action("delete_old")}>
-          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.delete_emails_older_than_30_days")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -418,37 +404,31 @@ export function MobileOverflowMenu({
         <DropdownMenuItem
           onClick={() => handle_batch_action("archive_from_sender")}
         >
-          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.archive_all_from_sender")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handle_batch_action("delete_from_sender")}
         >
-          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.delete_all_from_sender")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handle_batch_action("move_from_sender")}
         >
-          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.move_all_from_sender")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuLabel>{t("mail.smart_actions")}</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => handle_batch_action("snooze_similar")}>
-          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.snooze_similar_emails")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handle_batch_action("unsubscribe_bulk")}
         >
-          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.bulk_unsubscribe")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handle_batch_action("archive_newsletters")}
         >
-          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.archive_all_newsletters")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -486,11 +466,13 @@ export function ToolbarModals({
     <>
       <SenderActionModal
         action_type={sender_modal_action}
-        folders={folders_state.folders.map((f) => ({
-          token: f.folder_token,
-          name: f.name,
-          color: f.color,
-        }))}
+        folders={folders_state.folders
+          .filter((f) => !f.is_system)
+          .map((f) => ({
+            token: f.folder_token,
+            name: f.name,
+            color: f.color,
+          }))}
         is_open={is_sender_modal_open}
         on_close={() => set_is_sender_modal_open(false)}
       />
@@ -523,7 +505,11 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
     set_is_refreshing(true);
     window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
     invalidate_mail_stats();
-    show_toast(t("common.inbox_refreshed"), "info");
+    show_action_toast({
+      message: t("common.inbox_refreshed"),
+      action_type: "refresh",
+      email_ids: [],
+    });
     setTimeout(() => {
       set_is_refreshing(false);
     }, REFRESH_STATE_MS);
