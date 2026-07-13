@@ -572,6 +572,7 @@ export function BillingSection() {
         show_toast(t("settings.subscription_cancelled"), "success");
         set_cancel_password("");
         set_show_cancel_password(false);
+        set_show_cancel_dialog(false);
         request_cache.invalidate("/payments/v1");
         await load_data();
       } else {
@@ -582,7 +583,6 @@ export function BillingSection() {
       set_cancel_password_error(t("settings.cancel_password_error"));
     } finally {
       set_is_action_loading(false);
-      set_show_cancel_dialog(false);
     }
   };
 
