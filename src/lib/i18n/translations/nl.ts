@@ -236,6 +236,7 @@ export const nl = {
     move_emails_from_sender: "E-mails van afzender verplaatsen",
     compose_new_email: "Nieuwe e-mail opstellen",
     refresh_inbox: "Inbox vernieuwen",
+    inbox_refreshed: "Inbox vernieuwd",
     upgrade_plan: "Abonnement upgraden",
     alias_limit_reached: "Aliaslimiet bereikt",
     delete_alias: "Alias verwijderen",

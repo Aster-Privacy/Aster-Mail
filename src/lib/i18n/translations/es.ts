@@ -239,6 +239,7 @@ export const es = {
     move_emails_from_sender: "Mover correos del remitente",
     compose_new_email: "Redactar nuevo correo",
     refresh_inbox: "Actualizar bandeja de entrada",
+    inbox_refreshed: "Bandeja de entrada actualizada",
     upgrade_plan: "Mejorar plan",
     alias_limit_reached: "Límite de alias alcanzado",
     delete_alias: "Eliminar alias",

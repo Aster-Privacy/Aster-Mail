@@ -194,6 +194,7 @@ export const pt = {
     move_emails_from_sender: "Mover e-mails do remetente",
     compose_new_email: "Escrever novo e-mail",
     refresh_inbox: "Atualizar caixa de entrada",
+    inbox_refreshed: "Caixa de entrada atualizada",
     upgrade_plan: "Atualizar Plano",
     alias_limit_reached: "Limite de Aliases Atingido",
     delete_alias: "Excluir Alias",

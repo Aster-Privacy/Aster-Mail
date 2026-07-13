@@ -239,6 +239,7 @@ export const ru = {
     move_emails_from_sender: "Переместить письма от отправителя",
     compose_new_email: "Написать новое письмо",
     refresh_inbox: "Обновить входящие",
+    inbox_refreshed: "Входящие обновлены",
     upgrade_plan: "Улучшить тариф",
     alias_limit_reached: "Достигнут лимит псевдонимов",
     delete_alias: "Удалить псевдоним",

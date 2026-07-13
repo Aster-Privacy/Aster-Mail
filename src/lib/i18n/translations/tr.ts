@@ -239,6 +239,7 @@ export const tr = {
     move_emails_from_sender: "Gönderenden gelen e-postaları taşı",
     compose_new_email: "Yeni e-posta yaz",
     refresh_inbox: "Gelen kutusunu yenile",
+    inbox_refreshed: "Gelen kutusu yenilendi",
     upgrade_plan: "Planı Yükselt",
     alias_limit_reached: "Takma Ad Sınırına Ulaşıldı",
     delete_alias: "Takma Adı Sil",

@@ -237,6 +237,7 @@ export const pl = {
     move_emails_from_sender: "Przenieś e-maile od nadawcy",
     compose_new_email: "Napisz nowy e-mail",
     refresh_inbox: "Odśwież skrzynkę odbiorczą",
+    inbox_refreshed: "Skrzynka odbiorcza odświeżona",
     upgrade_plan: "Ulepsz plan",
     alias_limit_reached: "Osiągnięto limit aliasów",
     delete_alias: "Usuń alias",

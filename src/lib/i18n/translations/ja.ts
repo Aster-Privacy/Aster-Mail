@@ -237,6 +237,7 @@ export const ja = {
     move_emails_from_sender: "送信者のメールを移動",
     compose_new_email: "新規メールを作成",
     refresh_inbox: "受信トレイを更新",
+    inbox_refreshed: "受信トレイを更新しました",
     upgrade_plan: "プランをアップグレード",
     alias_limit_reached: "エイリアスの上限に達しました",
     delete_alias: "エイリアスを削除",

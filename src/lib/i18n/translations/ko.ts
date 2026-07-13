@@ -239,6 +239,7 @@ export const ko = {
     move_emails_from_sender: "발신자의 이메일 이동",
     compose_new_email: "새 이메일 작성",
     refresh_inbox: "받은 편지함 새로고침",
+    inbox_refreshed: "받은 편지함을 새로고침했습니다",
     upgrade_plan: "플랜 업그레이드",
     alias_limit_reached: "별칭 제한에 도달했습니다",
     delete_alias: "별칭 삭제",

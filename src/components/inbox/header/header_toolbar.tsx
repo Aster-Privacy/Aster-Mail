@@ -56,6 +56,7 @@ import {
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { show_action_toast } from "@/components/toast/action_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
@@ -522,10 +523,11 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
     set_is_refreshing(true);
     window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
     invalidate_mail_stats();
+    show_toast(t("common.inbox_refreshed"), "info");
     setTimeout(() => {
       set_is_refreshing(false);
     }, REFRESH_STATE_MS);
-  }, [is_refreshing]);
+  }, [is_refreshing, t]);
 
   const handle_batch_action = useCallback(
     async (action: string) => {

@@ -194,6 +194,7 @@ export const zh_CN = {
     move_emails_from_sender: "移动该发件人的邮件",
     compose_new_email: "撰写新邮件",
     refresh_inbox: "刷新收件箱",
+    inbox_refreshed: "收件箱已刷新",
     upgrade_plan: "升级套餐",
     alias_limit_reached: "已达别名上限",
     delete_alias: "删除别名",

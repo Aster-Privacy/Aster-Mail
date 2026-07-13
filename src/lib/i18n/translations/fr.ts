@@ -239,6 +239,7 @@ export const fr = {
     move_emails_from_sender: "Déplacer les e-mails de l'expéditeur",
     compose_new_email: "Rédiger un nouvel e-mail",
     refresh_inbox: "Actualiser la boîte de réception",
+    inbox_refreshed: "Boîte de réception actualisée",
     upgrade_plan: "Mettre à niveau le forfait",
     alias_limit_reached: "Limite d'alias atteinte",
     delete_alias: "Supprimer l'alias",

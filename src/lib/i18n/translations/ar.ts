@@ -239,6 +239,7 @@ export const ar = {
     move_emails_from_sender: "نقل رسائل المرسل",
     compose_new_email: "كتابة رسالة جديدة",
     refresh_inbox: "تحديث صندوق الوارد",
+    inbox_refreshed: "تم تحديث صندوق الوارد",
     upgrade_plan: "ترقية الخطة",
     alias_limit_reached: "تم الوصول إلى حد الأسماء المستعارة",
     delete_alias: "حذف الاسم المستعار",
