@@ -129,6 +129,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   { label: "Notification sound",   section: "notifications", breadcrumb: "Notifications > Sound" },
   { label: "Badge count",          section: "notifications", breadcrumb: "Notifications > Badge", keywords: ["unread badge", "app icon badge"] },
   { label: "Email summary",        section: "notifications", breadcrumb: "Notifications > Email" },
+  { label: "Notification Position", section: "notifications", breadcrumb: "Notifications > Position", keywords: ["toast position", "popup position", "top right", "bottom right", "top left", "bottom left"] },
 
   // ── Signature ─────────────────────────────────────────────────────────────
   { label: "Add signature",        section: "signature", breadcrumb: "Signature > Create" },

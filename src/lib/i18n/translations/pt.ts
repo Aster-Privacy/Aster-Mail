@@ -2502,6 +2502,13 @@ export const pt = {
     replies_description: "Quando alguém responde ao seu e-mail",
     mentions: "Menções",
     mentions_description: "Quando alguém menciona você",
+    toast_position: "Posição das notificações",
+    toast_position_description:
+      "Onde os pop-ups de notificação aparecem na tela",
+    toast_position_top_right: "Superior direito",
+    toast_position_bottom_right: "Inferior direito",
+    toast_position_top_left: "Superior esquerdo",
+    toast_position_bottom_left: "Inferior esquerdo",
     quiet_hours: "Horário Silencioso",
     enable_quiet_hours: "Ativar horário silencioso",
     mute_notifications_description: "Silenciar notificações durante horários definidos",

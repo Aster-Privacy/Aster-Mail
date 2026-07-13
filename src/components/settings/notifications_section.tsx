@@ -38,6 +38,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
@@ -328,6 +335,44 @@ export function NotificationsSection() {
           }
           title={t("settings.push")}
         />
+        <div className="flex items-center justify-between py-3">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.toast_position")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.toast_position_description")}
+            </p>
+          </div>
+          <Select
+            value={preferences.toast_position}
+            onValueChange={(v) =>
+              update_preference(
+                "toast_position",
+                v as "top-right" | "bottom-right" | "top-left" | "bottom-left",
+                true,
+              )
+            }
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="top-right">
+                {t("settings.toast_position_top_right")}
+              </SelectItem>
+              <SelectItem value="bottom-right">
+                {t("settings.toast_position_bottom_right")}
+              </SelectItem>
+              <SelectItem value="top-left">
+                {t("settings.toast_position_top_left")}
+              </SelectItem>
+              <SelectItem value="bottom-left">
+                {t("settings.toast_position_bottom_left")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="pt-3">

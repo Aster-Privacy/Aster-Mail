@@ -2503,6 +2503,13 @@ export const tr = {
     replies_description: "Birisi e-postanızı yanıtladığında",
     mentions: "Bahsetmeler",
     mentions_description: "Birisi sizden bahsettiğinde",
+    toast_position: "Bildirim Konumu",
+    toast_position_description:
+      "Bildirim açılır pencerelerinin ekranda nerede görüneceği",
+    toast_position_top_right: "Sağ üst",
+    toast_position_bottom_right: "Sağ alt",
+    toast_position_top_left: "Sol üst",
+    toast_position_bottom_left: "Sol alt",
     quiet_hours: "Sessiz Saatler",
     enable_quiet_hours: "Sessiz saatleri etkinleştir",
     mute_notifications_description: "Belirlenen saatlerde bildirimleri sessize al",

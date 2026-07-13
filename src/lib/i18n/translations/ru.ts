@@ -2503,6 +2503,13 @@ export const ru = {
     replies_description: "Когда кто-то отвечает на ваше письмо",
     mentions: "Упоминания",
     mentions_description: "Когда кто-то упоминает вас",
+    toast_position: "Положение уведомлений",
+    toast_position_description:
+      "Где всплывающие уведомления появляются на экране",
+    toast_position_top_right: "Сверху справа",
+    toast_position_bottom_right: "Снизу справа",
+    toast_position_top_left: "Сверху слева",
+    toast_position_bottom_left: "Снизу слева",
     quiet_hours: "Тихие часы",
     enable_quiet_hours: "Включить тихие часы",
     mute_notifications_description: "Отключить уведомления в установленное время",

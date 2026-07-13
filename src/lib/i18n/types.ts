@@ -2161,6 +2161,12 @@ export interface SettingsTranslations {
   replies_description: string;
   mentions: string;
   mentions_description: string;
+  toast_position: string;
+  toast_position_description: string;
+  toast_position_top_right: string;
+  toast_position_bottom_right: string;
+  toast_position_top_left: string;
+  toast_position_bottom_left: string;
   choose_notification_events: string;
   quiet_hours: string;
   enable_quiet_hours: string;
