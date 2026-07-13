@@ -99,4 +99,37 @@ describe("merge_revalidated_emails", () => {
 
     expect(merged.map((e) => e.id)).toEqual(["a", "b"]);
   });
+
+  it("drops a first-page row absent from a non-full authoritative refetch", () => {
+    const existing = [email("a"), email("b"), email("c")];
+    const fetched = [email("a"), email("c")];
+
+    const merged = merge_revalidated_emails(existing, fetched, 30);
+
+    expect(merged.map((e) => e.id)).toEqual(["a", "c"]);
+  });
+
+  it("keeps a missing row when the refetched page is full", () => {
+    const existing = [email("a"), email("b"), email("c")];
+    const fetched = [email("a"), email("c")];
+
+    const merged = merge_revalidated_emails(existing, fetched, 2);
+
+    expect(merged.map((e) => e.id)).toEqual(["a", "c", "b"]);
+  });
+
+  it("preserves loaded later pages beyond the first-page window on an authoritative refetch", () => {
+    const existing = [
+      email("a"),
+      email("b"),
+      email("c"),
+      email("d"),
+      email("e"),
+    ];
+    const fetched = [email("a"), email("c")];
+
+    const merged = merge_revalidated_emails(existing, fetched, 3);
+
+    expect(merged.map((e) => e.id)).toEqual(["a", "c", "d", "e"]);
+  });
 });

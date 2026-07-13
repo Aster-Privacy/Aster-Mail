@@ -339,7 +339,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
                 selected_ids.has(e.id) ? { ...e, is_selected: true } : e,
               )
             : result.emails;
-        const emails = merge_revalidated_emails(prev.emails, fetched);
+        const emails = merge_revalidated_emails(prev.emails, fetched, page_size);
 
         return {
           emails,

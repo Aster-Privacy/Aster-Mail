@@ -53,9 +53,16 @@ function row_content_equal(a: InboxEmail, b: InboxEmail): boolean {
 // selves only when their content actually changed; rows beyond the refetched
 // page are preserved in place.
 //
+// When the refetched page is not full (fewer rows than page_size) it is an
+// authoritative complete view of the first page: a previously-known first-page
+// row that is absent from it was deleted or moved elsewhere and must be
+// dropped. When the page is full a missing row may simply have shifted onto a
+// later page, so it is kept to avoid deleting real mail.
+//
 export function merge_revalidated_emails(
   existing: InboxEmail[],
   fetched: InboxEmail[],
+  page_size?: number,
 ): InboxEmail[] {
   const existing_by_id = new Map(existing.map((email) => [email.id, email]));
   const fetched_ids = new Set(fetched.map((email) => email.id));
@@ -73,7 +80,18 @@ export function merge_revalidated_emails(
     return row_content_equal(prev, reconciled) ? prev : reconciled;
   });
 
-  const tail = existing.filter((email) => !fetched_ids.has(email.id));
+  const page_is_authoritative =
+    page_size !== undefined && fetched.length < page_size;
+  const first_page_ids = page_is_authoritative
+    ? new Set(existing.slice(0, page_size).map((email) => email.id))
+    : null;
+
+  const tail = existing.filter((email) => {
+    if (fetched_ids.has(email.id)) return false;
+    if (first_page_ids?.has(email.id)) return false;
+
+    return true;
+  });
 
   return [...head, ...tail];
 }
