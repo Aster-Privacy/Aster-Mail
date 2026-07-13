@@ -29,6 +29,7 @@ import { is_valid_email } from "@/lib/utils";
 export interface ComposeToolbarState {
   scheduled_time: Date | null;
   is_scheduling: boolean;
+  is_sending?: boolean;
   has_recipients: boolean;
   handle_scheduled_send: () => void;
   handle_send: () => void;

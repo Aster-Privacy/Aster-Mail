@@ -837,13 +837,29 @@ export function ComposeToolbar({
       ) : (
         <Button
           className="h-8 px-5"
-          disabled={!compose.has_recipients}
+          disabled={!compose.has_recipients || compose.is_sending}
           size="md"
           title={compose.is_mac ? "\u2318+Enter" : "Ctrl+Enter"}
           variant="depth"
           onClick={compose.handle_send}
         >
-          {t("mail.send")}
+          {compose.is_sending ? (
+            <span className="flex items-center gap-1.5">
+              <svg
+                className="w-3.5 h-3.5 animate-spin"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
+              </svg>
+              {t("common.sending")}
+            </span>
+          ) : (
+            t("mail.send")
+          )}
         </Button>
       )}
 

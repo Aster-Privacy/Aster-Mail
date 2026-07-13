@@ -164,6 +164,7 @@ export interface UseComposeReturn {
   handle_insert_link: () => void;
   handle_send: () => Promise<void>;
   handle_scheduled_send: () => Promise<void>;
+  is_sending: boolean;
   handle_delete_draft: () => Promise<void>;
   handle_show_delete_confirm: () => void;
   handle_hide_delete_confirm: () => void;
@@ -875,6 +876,7 @@ export function use_compose({
     handle_insert_link: editor_hook.handle_insert_link,
     handle_send: send_hook.handle_send,
     handle_scheduled_send: send_hook.handle_scheduled_send,
+    is_sending: send_hook.is_sending,
     handle_delete_draft: draft_hook.handle_delete_draft,
     handle_show_delete_confirm,
     pgp_enabled: send_hook.pgp_enabled,

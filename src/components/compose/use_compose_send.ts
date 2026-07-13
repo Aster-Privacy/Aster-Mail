@@ -91,6 +91,7 @@ export interface UseComposeSendReturn {
   set_queued_email_id: (val: string | null) => void;
   handle_send: () => Promise<void>;
   handle_scheduled_send: () => Promise<void>;
+  is_sending: boolean;
   pgp_enabled: boolean;
   toggle_pgp: () => void;
 }
@@ -124,6 +125,7 @@ export function use_compose_send({
   const { preferences } = use_preferences();
 
   const [queued_email_id, set_queued_email_id] = useState<string | null>(null);
+  const [is_sending, set_is_sending] = useState(false);
   const [send_error] = useState<string | null>(null);
   const [restore_error] = useState<string | null>(null);
   const [pgp_override, set_pgp_override] = useState<boolean | null>(null);
@@ -246,6 +248,7 @@ export function use_compose_send({
     if (now - last_send_time_ref.current < 2000) return;
 
     is_sending_ref.current = true;
+    set_is_sending(true);
     last_send_time_ref.current = now;
 
     if (save_timer_ref.current) {
@@ -338,6 +341,7 @@ export function use_compose_send({
           show_toast(t("common.failed_to_queue_offline"), "error");
         } finally {
           is_sending_ref.current = false;
+          set_is_sending(false);
         }
 
         return;
@@ -477,6 +481,7 @@ export function use_compose_send({
       );
     } finally {
       is_sending_ref.current = false;
+      set_is_sending(false);
     }
   }, [
     recipients,
@@ -636,6 +641,7 @@ export function use_compose_send({
     set_queued_email_id,
     handle_send,
     handle_scheduled_send,
+    is_sending,
     pgp_enabled,
     toggle_pgp,
   };
