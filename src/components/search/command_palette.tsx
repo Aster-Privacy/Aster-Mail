@@ -110,6 +110,50 @@ export function CommandPalette({
   const [loading_action, set_loading_action] = useState<string | null>(null);
   const input_ref = useRef<HTMLInputElement>(null);
   const list_ref = useRef<HTMLDivElement>(null);
+  const dialog_ref = useRef<HTMLDivElement>(null);
+  const previous_focus_ref = useRef<HTMLElement | null>(null);
+
+  const handle_dialog_keydown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        on_close();
+
+        return;
+      }
+
+      if (e.key !== "Tab") return;
+
+      const container = dialog_ref.current;
+
+      if (!container) return;
+
+      const focusables = container.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+      );
+
+      if (focusables.length === 0) {
+        e.preventDefault();
+
+        return;
+      }
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+
+      if (e.shiftKey) {
+        if (active === first || !container.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last || !container.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
+    },
+    [on_close],
+  );
 
   const decrypt_items_metadata = useCallback(
     async (items: MailItem[]): Promise<Map<string, MailItemMetadata>> => {
@@ -759,9 +803,15 @@ export function CommandPalette({
 
   useEffect(() => {
     if (is_open) {
+      previous_focus_ref.current =
+        document.activeElement as HTMLElement | null;
       set_query("");
       set_selected_index(0);
       setTimeout(() => input_ref.current?.focus(), FOCUS_DELAY_MS);
+
+      return () => {
+        previous_focus_ref.current?.focus?.();
+      };
     }
   }, [is_open]);
 
@@ -828,13 +878,18 @@ export function CommandPalette({
             onClick={on_close}
           />
           <motion.div
+            ref={dialog_ref}
             animate={{ opacity: 1, scale: 1, y: 0 }}
+            aria-label={t("mail.shortcut_command_palette")}
+            aria-modal="true"
             className="relative w-full max-w-xl rounded-xl overflow-hidden shadow-2xl bg-surf-primary border border-edge-secondary"
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             initial={
               reduce_motion ? false : { opacity: 0, scale: 0.95, y: -20 }
             }
+            role="dialog"
             transition={{ duration: reduce_motion ? 0 : 0.2, ease: "easeOut" }}
+            onKeyDown={handle_dialog_keydown}
           >
             <div className="flex items-center gap-3 px-4 py-3 border-b border-edge-secondary">
               <CommandLineIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
