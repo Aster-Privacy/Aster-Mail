@@ -96,6 +96,43 @@ describe("list_drafts_with_content - single request, no N+1", () => {
     expect(res.data?.drafts[0].content.to_recipients).toEqual(["a@b.com"]);
   });
 
+  it("forwards the pagination cursor and returns the next cursor", async () => {
+    get_mock.mockResolvedValueOnce({
+      data: {
+        items: [api_item("d3")],
+        has_more: true,
+        next_cursor: "cursor-2",
+      },
+    });
+    decrypt_mock.mockImplementation(async () =>
+      encoded({
+        to_recipients: [],
+        cc_recipients: [],
+        bcc_recipients: [],
+        subject: "",
+        message: "",
+      }),
+    );
+
+    const res = await list_drafts_with_content(50, vault, undefined, "cursor-1");
+
+    const url = String(get_mock.mock.calls[0][0]);
+
+    expect(url).toContain("cursor=cursor-1");
+    expect(res.data?.has_more).toBe(true);
+    expect(res.data?.next_cursor).toBe("cursor-2");
+  });
+
+  it("omits the cursor param on the first page", async () => {
+    get_mock.mockResolvedValueOnce({
+      data: { items: [], has_more: false },
+    });
+
+    await list_drafts_with_content(50, vault);
+
+    expect(String(get_mock.mock.calls[0][0])).not.toContain("cursor=");
+  });
+
   it("keeps a draft as an empty placeholder when its content fails to decrypt", async () => {
     get_mock.mockResolvedValueOnce({
       data: { items: [api_item("d1")], has_more: false },

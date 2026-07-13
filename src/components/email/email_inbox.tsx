@@ -303,6 +303,7 @@ export function EmailInbox({
   const {
     state: drafts_state,
     update_draft,
+    load_more: load_more_drafts,
     schedule_delete_drafts,
   } = use_drafts_list(is_drafts_view);
   const { state: scheduled_state, update_scheduled } =
@@ -393,12 +394,20 @@ export function EmailInbox({
 
   const raw_email_state = useMemo(() => {
     if (is_drafts_view) {
+      const page_start = current_page * page_size;
+      const page_drafts = (drafts_state.drafts as InboxEmail[]).slice(
+        page_start,
+        page_start + page_size,
+      );
+
       return {
-        emails: drafts_state.drafts as InboxEmail[],
+        emails: page_drafts,
         is_loading: drafts_state.is_loading,
-        is_loading_more: false,
-        total_messages: drafts_state.total_count,
-        has_more: false,
+        is_loading_more: drafts_state.is_loading_more,
+        total_messages: drafts_state.has_more
+          ? drafts_state.total_count + page_size
+          : drafts_state.total_count,
+        has_more: drafts_state.has_more,
         has_initial_load: !drafts_state.is_loading,
       };
     }
@@ -432,6 +441,8 @@ export function EmailInbox({
     scheduled_state,
     snoozed_state,
     mail_state,
+    current_page,
+    page_size,
   ]);
 
   const email_state = raw_email_state;
@@ -642,6 +653,30 @@ export function EmailInbox({
       }
     }
   }, [email_state.has_initial_load, current_page, fetch_page, page_size]);
+
+  useEffect(() => {
+    if (!is_drafts_view) return;
+
+    const needed = (current_page + 1) * page_size;
+
+    if (
+      drafts_state.drafts.length < needed &&
+      drafts_state.has_more &&
+      !drafts_state.is_loading &&
+      !drafts_state.is_loading_more
+    ) {
+      load_more_drafts();
+    }
+  }, [
+    is_drafts_view,
+    current_page,
+    page_size,
+    drafts_state.drafts.length,
+    drafts_state.has_more,
+    drafts_state.is_loading,
+    drafts_state.is_loading_more,
+    load_more_drafts,
+  ]);
 
   const [custom_snooze_email, set_custom_snooze_email] =
     useState<InboxEmail | null>(null);

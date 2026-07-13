@@ -113,6 +113,7 @@ export interface DraftListItem extends InboxEmail {
 export interface DraftsListState {
   drafts: DraftListItem[];
   is_loading: boolean;
+  is_loading_more: boolean;
   total_count: number;
   has_more: boolean;
   error: string | null;
@@ -121,6 +122,7 @@ export interface DraftsListState {
 interface UseDraftsListReturn {
   state: DraftsListState;
   refresh: () => void;
+  load_more: () => void;
   update_draft: (id: string, updates: Partial<DraftListItem>) => void;
   schedule_delete_drafts: (ids: string[]) => () => void;
 }
@@ -179,12 +181,22 @@ async function fetch_drafts_from_api(
   no_recipients_text: string,
   no_subject_text: string,
   draft_category_text: string,
-): Promise<{ drafts: DraftListItem[]; has_more: boolean } | null> {
+  cursor?: string,
+): Promise<{
+  drafts: DraftListItem[];
+  has_more: boolean;
+  next_cursor?: string;
+} | null> {
   const vault = get_vault_from_memory();
 
   if (!vault) return null;
 
-  const response = await list_drafts_with_content(DRAFT_FETCH_LIMIT, vault);
+  const response = await list_drafts_with_content(
+    DRAFT_FETCH_LIMIT,
+    vault,
+    undefined,
+    cursor,
+  );
 
   if (signal.aborted || !response.data) return null;
 
@@ -198,7 +210,11 @@ async function fetch_drafts_from_api(
     ),
   );
 
-  return { drafts, has_more: response.data.has_more };
+  return {
+    drafts,
+    has_more: response.data.has_more,
+    next_cursor: response.data.next_cursor,
+  };
 }
 
 export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
@@ -207,12 +223,16 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
   const { preferences } = use_preferences();
   const [drafts, set_drafts] = useState<DraftListItem[]>([]);
   const [is_loading, set_is_loading] = useState(true);
+  const [is_loading_more, set_is_loading_more] = useState(false);
   const [has_more, set_has_more] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
   const [suppressed_ids, set_suppressed_ids] = useState<ReadonlySet<string>>(new Set());
 
   const abort_ref = useRef<AbortController | null>(null);
+  const load_more_abort_ref = useRef<AbortController | null>(null);
+  const next_cursor_ref = useRef<string | undefined>(undefined);
+  const is_loading_more_ref = useRef(false);
   const vault_check_ref = useRef<NodeJS.Timeout | null>(null);
 
   const format_options: FormatOptions = useMemo(
@@ -258,6 +278,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       if (result) {
         set_drafts(result.drafts);
         set_has_more(result.has_more);
+        next_cursor_ref.current = result.next_cursor;
         invalidate_mail_stats();
       } else {
         set_error(t("common.failed_to_load_drafts"));
@@ -274,6 +295,50 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
   const refresh = useCallback(() => {
     fetch_drafts();
   }, [fetch_drafts]);
+
+  const load_more = useCallback(() => {
+    if (is_loading_more_ref.current) return;
+
+    const cursor = next_cursor_ref.current;
+
+    if (!cursor || !get_vault_from_memory()) return;
+
+    is_loading_more_ref.current = true;
+    set_is_loading_more(true);
+
+    load_more_abort_ref.current?.abort();
+    load_more_abort_ref.current = new AbortController();
+    const { signal } = load_more_abort_ref.current;
+
+    void (async () => {
+      try {
+        const result = await fetch_drafts_from_api(
+          signal,
+          format_options,
+          t("common.no_recipients"),
+          t("mail.no_subject"),
+          t("common.draft_category"),
+          cursor,
+        );
+
+        if (signal.aborted || !result) return;
+
+        next_cursor_ref.current = result.next_cursor;
+        set_has_more(result.has_more);
+        set_drafts((prev) => {
+          const seen = new Set(prev.map((d) => d.id));
+          const appended = result.drafts.filter((d) => !seen.has(d.id));
+
+          return [...prev, ...appended];
+        });
+      } catch {
+        void 0;
+      } finally {
+        is_loading_more_ref.current = false;
+        set_is_loading_more(false);
+      }
+    })();
+  }, [format_options, t]);
 
   const update_draft = useCallback(
     (id: string, updates: Partial<DraftListItem>) => {
@@ -482,7 +547,10 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       set_drafts([]);
     }
 
-    return () => abort_ref.current?.abort();
+    return () => {
+      abort_ref.current?.abort();
+      load_more_abort_ref.current?.abort();
+    };
   }, [auth_loading, has_keys, is_authenticated, is_active, fetch_drafts]);
 
   useEffect(() => {
@@ -616,21 +684,23 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     () => ({
       drafts: visible_drafts,
       is_loading,
+      is_loading_more,
       total_count: visible_drafts.length,
       has_more,
       error,
     }),
-    [visible_drafts, is_loading, has_more, error],
+    [visible_drafts, is_loading, is_loading_more, has_more, error],
   );
 
   return useMemo(
     () => ({
       state,
       refresh,
+      load_more,
       update_draft,
       schedule_delete_drafts,
     }),
-    [state, refresh, update_draft, schedule_delete_drafts],
+    [state, refresh, load_more, update_draft, schedule_delete_drafts],
   );
 }
 
