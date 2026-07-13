@@ -129,9 +129,27 @@ interface FamilyWelcomeState {
   storage_pool_bytes: number;
 }
 
+const FAMILY_WELCOME_SEEN_KEY_PREFIX = "aster_family_welcome_seen_";
+
+function has_seen_family_welcome(account_id: string): boolean {
+  try {
+    return localStorage.getItem(`${FAMILY_WELCOME_SEEN_KEY_PREFIX}${account_id}`) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function mark_family_welcome_seen(account_id: string): void {
+  try {
+    localStorage.setItem(`${FAMILY_WELCOME_SEEN_KEY_PREFIX}${account_id}`, "1");
+  } catch {
+    // best-effort persistence; a full disk or blocked storage should not crash the app
+  }
+}
+
 function BillingSuccessHandler() {
   const { t } = use_i18n();
-  const { is_authenticated } = use_auth();
+  const { is_authenticated, current_account_id } = use_auth();
   const handled = useRef(false);
   const [family_welcome, set_family_welcome] = useState<FamilyWelcomeState | null>(null);
 
@@ -160,9 +178,14 @@ function BillingSuccessHandler() {
           window.dispatchEvent(new CustomEvent("aster:plan-changed"));
           show_toast(t("settings.payment_success"), "success");
           const code = res.data.plan.code;
-          if (code === "duo" || code === "family") {
+          if (
+            (code === "duo" || code === "family") &&
+            current_account_id &&
+            !has_seen_family_welcome(current_account_id)
+          ) {
             const max_members = code === "duo" ? 2 : 6;
             const storage_gb = code === "duo" ? 500 : 3000;
+            mark_family_welcome_seen(current_account_id);
             set_family_welcome({
               plan_name: res.data.plan.name ?? (code === "duo" ? "Duo" : "Family"),
               max_members,
@@ -174,7 +197,7 @@ function BillingSuccessHandler() {
       }
       show_toast(t("settings.payment_success"), "success");
     })();
-  }, [is_authenticated, t]);
+  }, [is_authenticated, current_account_id, t]);
 
   if (!family_welcome) return null;
 
