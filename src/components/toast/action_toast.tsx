@@ -287,7 +287,7 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
               )}
               <button
                 aria-label={t("common.dismiss")}
-                className="ml-1 flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
+                className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors p-1.5 -m-1.5"
                 onClick={handle_cancel}
               >
                 <XMarkIcon className="w-3.5 h-3.5" />
