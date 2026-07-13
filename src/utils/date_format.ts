@@ -40,9 +40,18 @@ const DEFAULT_OPTIONS: FormatOptions = {
 const LANGUAGE_STORAGE_KEY = "astermail_language";
 
 export function get_active_locale(): string {
-  if (typeof localStorage === "undefined") return "en";
+  try {
+    if (
+      typeof localStorage === "undefined" ||
+      typeof localStorage.getItem !== "function"
+    ) {
+      return "en";
+    }
 
-  return localStorage.getItem(LANGUAGE_STORAGE_KEY) || "en";
+    return localStorage.getItem(LANGUAGE_STORAGE_KEY) || "en";
+  } catch {
+    return "en";
+  }
 }
 
 function pad(n: number): string {
