@@ -706,22 +706,25 @@ export const InboxEmailListItem = memo(
               })()}
 
               {email.phishing_level === "suspicious" && (
-                <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#d97706]">
-                  {t("common.suspicious")}
+                <span className="min-w-0 max-w-[32vw] sm:max-w-none sm:flex-shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#d97706]">
+                  <ExclamationTriangleIcon className="w-2.5 h-2.5 flex-shrink-0" />
+                  <span className="truncate">{t("common.suspicious")}</span>
                 </span>
               )}
 
               {email.phishing_level === "dangerous" && (
-                <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#dc2626]">
-                  {t("common.dangerous")}
+                <span className="min-w-0 max-w-[32vw] sm:max-w-none sm:flex-shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#dc2626]">
+                  <ExclamationTriangleIcon className="w-2.5 h-2.5 flex-shrink-0" />
+                  <span className="truncate">{t("common.dangerous")}</span>
                 </span>
               )}
 
               {email.phishing_level !== "suspicious" &&
                 email.phishing_level !== "dangerous" &&
                 is_auth_spoofed && (
-                  <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#dc2626]">
-                    {t("common.spoofed")}
+                  <span className="min-w-0 max-w-[32vw] sm:max-w-none sm:flex-shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#dc2626]">
+                    <ExclamationTriangleIcon className="w-2.5 h-2.5 flex-shrink-0" />
+                    <span className="truncate">{t("common.spoofed")}</span>
                   </span>
                 )}
 
