@@ -68,6 +68,7 @@ interface UseEmailListActionsParams {
   remove_email: (id: string) => void;
   refresh: () => void;
   conversation_grouping?: boolean;
+  sort_direction?: "asc" | "desc";
 }
 
 export function use_email_list_actions({
@@ -77,6 +78,7 @@ export function use_email_list_actions({
   remove_email,
   refresh,
   conversation_grouping,
+  sort_direction = "desc",
 }: UseEmailListActionsParams) {
   const api_update = useCallback(
     async (
@@ -199,6 +201,7 @@ export function use_email_list_actions({
         if (email.item_type === "received") {
           adjust_unread_count(new_read_state ? -1 : 1);
         }
+        update_email(id, { is_read: new_read_state });
 
         let success = false;
 
@@ -212,6 +215,7 @@ export function use_email_list_actions({
           if (email.item_type === "received") {
             adjust_unread_count(new_read_state ? 1 : -1);
           }
+          update_email(id, { is_read: email.is_read });
 
           return;
         }
@@ -227,7 +231,7 @@ export function use_email_list_actions({
         }
       }
     },
-    [state.emails, api_update, conversation_grouping],
+    [state.emails, api_update, conversation_grouping, update_email],
   );
 
   const delete_email = useCallback(
@@ -283,14 +287,14 @@ export function use_email_list_actions({
             ...prev,
             emails: sort_emails_by_timestamp(
               [...prev.emails, email_to_restore],
-              "desc",
+              sort_direction,
             ),
             total_messages: prev.total_messages + 1,
           }));
         }
       }
     },
-    [state.emails, remove_email, set_state],
+    [state.emails, remove_email, set_state, sort_direction],
   );
 
   const archive_email = useCallback(
@@ -339,7 +343,7 @@ export function use_email_list_actions({
             ...prev,
             emails: sort_emails_by_timestamp(
               [...prev.emails, email_to_restore],
-              "desc",
+              sort_direction,
             ),
             total_messages: prev.total_messages + 1,
           }));
@@ -352,7 +356,7 @@ export function use_email_list_actions({
         } as MailItemUpdatedEventDetail);
       }
     },
-    [state.emails, remove_email, set_state],
+    [state.emails, remove_email, set_state, sort_direction],
   );
 
   const unarchive_email = useCallback(
