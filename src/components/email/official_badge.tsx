@@ -51,7 +51,7 @@ export function OfficialBadge({
       <PopoverTrigger asChild>
         <button
           aria-label={label}
-          className={`inline-flex items-center flex-shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${className}`}
+          className={`inline-flex items-center self-center flex-shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${className}`}
           onClick={(e) => e.stopPropagation()}
           title={label}
           type="button"
