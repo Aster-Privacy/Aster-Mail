@@ -24,7 +24,7 @@ export const MIN_SKELETON_MS = 0;
 
 export interface UseEmailListReturn {
   state: EmailListState;
-  fetch_page: (page: number, limit: number) => Promise<void>;
+  fetch_page: (page: number, limit: number, force?: boolean) => Promise<void>;
   load_more: () => Promise<void>;
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;

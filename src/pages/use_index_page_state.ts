@@ -842,7 +842,10 @@ export function use_index_page_state() {
   }, [open_compose_instance]);
 
   useEffect(() => {
-    const nav_state = location.state as { search_query?: string } | null;
+    const nav_state = location.state as {
+      search_query?: string;
+      from_sender?: boolean;
+    } | null;
 
     if (nav_state?.search_query) {
       const query = nav_state.search_query;
@@ -851,7 +854,9 @@ export function use_index_page_state() {
       set_split_email_id(null);
       set_popup_scheduled(null);
       set_split_scheduled_data(null);
-      set_sender_subscription(null);
+      if (!nav_state.from_sender) {
+        set_sender_subscription(null);
+      }
       set_active_search_query(query);
     }
   }, [location.state, location.pathname]);
@@ -931,7 +936,7 @@ export function use_index_page_state() {
       set_split_scheduled_data(null);
       set_active_search_query(query);
       set_sender_subscription(subscription);
-      navigate("/", { state: { search_query: query } });
+      navigate("/", { state: { search_query: query, from_sender: true } });
     },
     [navigate],
   );
