@@ -28,7 +28,10 @@ import {
   type MailItemsRemovedEventDetail,
 } from "./mail_events";
 import { mark_view_stale } from "./email_list_cache";
+import { compute_should_remove_from_view } from "./view_membership";
 import { DEFAULT_PAGE_SIZE } from "./email_list_helpers";
+
+export { compute_should_remove_from_view } from "./view_membership";
 
 import { add_app_state_listener } from "@/native/capacitor_bridge";
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
@@ -54,70 +57,6 @@ interface UseEmailListEventsParams {
     page: number;
     time: number;
   } | null>;
-}
-
-export function compute_should_remove_from_view(
-  detail: MailItemUpdatedEventDetail,
-  current_view: string,
-): boolean {
-  const is_non_trash_spam_view =
-    current_view !== "trash" && current_view !== "spam";
-
-  if (is_non_trash_spam_view) {
-    if (detail.is_trashed === true || detail.is_spam === true) {
-      return true;
-    }
-  }
-
-  const is_folder_like_view =
-    current_view.startsWith("folder-") ||
-    current_view.startsWith("tag-") ||
-    current_view.startsWith("alias-");
-
-  if (
-    current_view !== "archive" &&
-    current_view !== "all" &&
-    !is_folder_like_view &&
-    detail.is_archived === true
-  ) {
-    return true;
-  }
-
-  switch (current_view) {
-    case "starred":
-      return detail.is_starred === false;
-    case "trash":
-      return detail.is_trashed === false;
-    case "archive":
-      return detail.is_archived === false;
-    case "spam":
-      return detail.is_spam === false;
-    default:
-      if (
-        (current_view === "inbox" || current_view === "") &&
-        detail.folders !== undefined &&
-        detail.folders.length > 0
-      ) {
-        return true;
-      }
-
-      if (
-        current_view.startsWith("folder-") &&
-        detail.folders !== undefined
-      ) {
-        const folder_token = current_view.replace("folder-", "");
-
-        return !detail.folders.some((f) => f.folder_token === folder_token);
-      }
-
-      if (current_view.startsWith("tag-") && detail.tags !== undefined) {
-        const tag_token = current_view.replace("tag-", "");
-
-        return !detail.tags.some((t) => t.id === tag_token);
-      }
-
-      return false;
-  }
 }
 
 export function apply_item_update_to_rows(

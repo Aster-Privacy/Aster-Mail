@@ -111,6 +111,7 @@ vi.mock("@/services/category_index", () => ({
   reconcile_server_read: vi.fn(),
   set_thread_grouping: vi.fn(),
   get_thread_rep_id: () => null,
+  set_ids_read: vi.fn(),
 }));
 
 import { use_category_inbox } from "@/hooks/use_category_inbox";

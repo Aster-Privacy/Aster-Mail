@@ -404,6 +404,25 @@ export function upsert_entries(
   }
 }
 
+export function set_ids_read(ids: string[], is_read: boolean): void {
+  let changed = false;
+
+  for (const id of ids) {
+    const entry = entries_map.get(id);
+
+    if (entry && entry.is_read !== is_read) {
+      entries_map.set(id, { ...entry, is_read });
+      if (is_read) note_recently_read(id);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    schedule_persist();
+    notify();
+  }
+}
+
 export function mark_thread_read_entries(thread_token: string): void {
   if (!thread_token) return;
 

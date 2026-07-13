@@ -37,7 +37,7 @@ import {
   adjust_sent_count,
 } from "@/hooks/use_mail_counts";
 import { adjust_stats_archived } from "@/hooks/use_mail_stats";
-import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import { stale_all_view_caches, remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   remove_ids as remove_index_ids,
@@ -254,7 +254,7 @@ export function use_email_list_bulk({
         adjust_inbox_count(-received_count);
       }
       adjust_stats_archived(expanded_ids.length);
-      invalidate_mail_cache();
+      stale_all_view_caches();
 
       try {
         const result = await api_batch_archive({
@@ -359,7 +359,7 @@ export function use_email_list_bulk({
         adjust_inbox_count(received_count);
       }
       adjust_stats_archived(-expanded_ids.length);
-      invalidate_mail_cache();
+      stale_all_view_caches();
 
       try {
         const result = await api_batch_unarchive({ ids: expanded_ids });

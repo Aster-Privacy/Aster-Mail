@@ -82,7 +82,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     if (
       cached &&
-      cached.state.emails.length > 0 &&
+      cached.state.has_initial_load &&
       cached.conversation_grouping ===
         (preferences.conversation_grouping ?? true)
     ) {
@@ -114,7 +114,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     if (
       cached &&
-      cached.state.emails.length > 0 &&
+      cached.state.has_initial_load &&
       cached.conversation_grouping ===
         (preferences.conversation_grouping ?? true)
     ) {
@@ -157,7 +157,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   const committed_view_ref = useRef(current_view);
   committed_view_ref.current = current_view;
   const has_data_ref = useRef(false);
-  has_data_ref.current = state.emails.length > 0 && !state.is_loading;
+  has_data_ref.current = state.has_initial_load && !state.is_loading;
   const main_effect_fetched_ref = useRef(false);
 
   const is_mail_view = useMemo(() => current_view !== "drafts", [current_view]);
@@ -497,8 +497,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
   useEffect(() => {
     if (
-      state.emails.length > 0 &&
+      state.has_initial_load &&
       !state.is_loading &&
+      !state.has_load_error &&
       state_view_ref.current === current_view
     ) {
       view_cache.set(current_view, {
@@ -546,7 +547,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         !auth_changed &&
         !user_changed &&
         cached &&
-        cached.state.emails.length > 0 &&
+        cached.state.has_initial_load &&
         cached.conversation_grouping ===
           (preferences.conversation_grouping ?? true)
       ) {

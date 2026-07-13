@@ -93,6 +93,16 @@ const DEBOUNCE_MS = 500;
 const RECONCILE_DELAY_MS = 1_500;
 const LATE_RECONCILE_DELAY_MS = 6_000;
 
+//
+// A server stats fetch issued right after an optimistic edit can race the write
+// that triggered it and come back reflecting the pre-edit state, clobbering the
+// optimistic value (a read message whose unread badge silently pops back). For
+// this long, a field that was just adjusted locally keeps its optimistic value
+// instead of being overwritten by the server; a later reconcile (once the write
+// has propagated) corrects any thread-collapse discrepancy.
+//
+const OPTIMISTIC_HOLD_MS = 4_000;
+
 const INITIAL_STATS_DELAY_MS = 1_000;
 const STORAGE_KEY_PREFIX = "aster_mail_stats_";
 const STORAGE_SCHEMA_VERSION = 3;
@@ -132,6 +142,7 @@ class MailStatsStore {
   private refetch_queued = false;
   private in_flight_deltas: Partial<Record<keyof MailStats, number>> | null =
     null;
+  private last_adjust_at: Partial<Record<keyof MailStats, number>> = {};
 
   get_cache(): StatsCache {
     return this.cache;
@@ -183,6 +194,7 @@ class MailStatsStore {
     this.active_request = null;
     this.refetch_queued = false;
     this.in_flight_deltas = null;
+    this.last_adjust_at = {};
     this.cache = {
       data: DEFAULT_STATS,
       timestamp: 0,
@@ -291,6 +303,7 @@ class MailStatsStore {
     const fetch_generation = this.account_generation;
 
     this.in_flight_deltas = {};
+    const query_started_at = Date.now();
 
     try {
       const [stats_response, contacts_response, snoozed_response] =
@@ -321,8 +334,20 @@ class MailStatsStore {
           : this.cache.data.snoozed;
 
       const deltas = this.in_flight_deltas ?? {};
-      const reconcile = (field: keyof MailStats, value: number): number =>
-        Math.max(0, value + (deltas[field] ?? 0));
+      const reconcile = (field: keyof MailStats, value: number): number => {
+        const adjusted_at = this.last_adjust_at[field] ?? 0;
+
+        if (
+          adjusted_at > query_started_at &&
+          adjusted_at < query_started_at + OPTIMISTIC_HOLD_MS
+        ) {
+          const held = this.cache.data[field];
+
+          return typeof held === "number" ? held : value;
+        }
+
+        return Math.max(0, value + (deltas[field] ?? 0));
+      };
 
       this.cache.data = {
         total_items: reconcile("total_items", server_stats.total_items),
@@ -393,6 +418,7 @@ class MailStatsStore {
         ...this.cache.data,
         [field]: Math.max(0, current + delta),
       };
+      this.last_adjust_at[field] = Date.now();
 
       if (this.in_flight_deltas) {
         this.in_flight_deltas[field] =

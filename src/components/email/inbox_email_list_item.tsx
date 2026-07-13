@@ -526,7 +526,7 @@ export const InboxEmailListItem = memo(
 
               <OfficialBadge
                 className="hidden sm:inline"
-                email={email.sender_email}
+                email={outgoing_names ? profile_target_email : email.sender_email}
               />
 
               {show_thread_count &&

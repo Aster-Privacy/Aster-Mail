@@ -26,7 +26,6 @@ import { useCallback } from "react";
 
 import {
   emit_mail_item_updated,
-  MAIL_EVENTS,
   type MailItemUpdatedEventDetail,
 } from "../mail_events";
 import {
@@ -62,7 +61,7 @@ import {
   adjust_stats_unread,
 } from "@/hooks/use_mail_stats";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
-import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import {
   compute_trash_deltas,
   compute_archive_deltas,
@@ -864,11 +863,7 @@ export function use_single_actions(
       );
 
       if (success) {
-        invalidate_mail_cache();
         emit_mail_changed();
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.REFRESH_REQUESTED));
-        }, 450);
 
         show_action_toast({
           message: t("common.restored_from_trash"),
@@ -877,7 +872,7 @@ export function use_single_actions(
           on_undo: async () => {
             revert_stat_deltas(deltas);
             await update_with_metadata(email, { is_trashed: true });
-            invalidate_mail_cache();
+            emit_mail_item_updated({ id: email.id, is_trashed: true });
             emit_mail_soft_refresh();
           },
         });

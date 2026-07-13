@@ -32,7 +32,7 @@ import {
   emit_mail_item_updated,
   type MailItemUpdatedEventDetail,
 } from "./mail_events";
-import { mark_view_stale, invalidate_mail_cache, remove_email_from_view_cache } from "./email_list_cache";
+import { mark_view_stale, remove_email_from_view_cache } from "./email_list_cache";
 
 import {
   patch_mail_item_metadata,
@@ -312,7 +312,6 @@ export function use_email_list_actions({
         adjust_inbox_count(-1);
       }
       adjust_stats_archived(all_ids.length);
-      invalidate_mail_cache();
       const result = await api_batch_archive({ ids: all_ids, tier: "hot" });
 
       if (result.data?.success) {
@@ -366,7 +365,6 @@ export function use_email_list_actions({
         adjust_inbox_count(1);
       }
       adjust_stats_archived(-1);
-      invalidate_mail_cache();
       const result = await api_batch_unarchive({ ids: [id] });
 
       if (result.data?.success) {

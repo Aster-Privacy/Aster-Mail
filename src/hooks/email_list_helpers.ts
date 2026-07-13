@@ -651,6 +651,41 @@ export function group_emails_by_thread(emails: InboxEmail[]): InboxEmail[] {
         existing.has_attachment = true;
       }
 
+      // The row must preview the newest message in the thread, not whichever
+      // message happened to be encountered first. Promote the later message's
+      // content onto the representative while keeping the aggregated thread
+      // fields (grouped ids, count, read/attachment state, folders, tags).
+      const existing_ts = new Date(
+        existing.raw_timestamp || existing.timestamp,
+      ).getTime();
+      const incoming_ts = new Date(
+        email.raw_timestamp || email.timestamp,
+      ).getTime();
+
+      if (
+        Number.isFinite(incoming_ts) &&
+        (!Number.isFinite(existing_ts) || incoming_ts > existing_ts)
+      ) {
+        existing.id = email.id;
+        existing.subject = email.subject;
+        existing.preview = email.preview;
+        existing.body_html = email.body_html;
+        existing.sender_name = email.sender_name;
+        existing.sender_email = email.sender_email;
+        existing.display_sender_name = email.display_sender_name;
+        existing.display_sender_email = email.display_sender_email;
+        existing.avatar_url = email.avatar_url;
+        existing.timestamp = email.timestamp;
+        existing.raw_timestamp = email.raw_timestamp;
+        existing.item_type = email.item_type;
+        existing.recipient_names = email.recipient_names;
+        existing.recipient_addresses = email.recipient_addresses;
+        existing.reply_to = email.reply_to;
+        existing.mail_category = email.mail_category;
+        existing.send_status = email.send_status;
+        existing.snoozed_until = email.snoozed_until;
+      }
+
       if (email.folders && email.folders.length > 0) {
         const existing_tokens = new Set(
           (existing.folders || []).map((f) => f.folder_token),

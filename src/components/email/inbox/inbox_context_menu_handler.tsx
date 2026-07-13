@@ -46,7 +46,7 @@ import {
 } from "@/hooks/use_stat_helpers";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
-import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { emit_mail_changed } from "@/hooks/email_action_types";
 import {
   permanent_delete_mail_item,
@@ -216,6 +216,9 @@ export function use_context_menu_actions({
         const result = await trash_thread(email.thread_token, true);
 
         if (result.data) {
+          for (const id of grouped_ids) {
+            emit_mail_item_updated({ id, is_trashed: true });
+          }
           show_action_toast({
             message: t("common.conversation_moved_to_trash"),
             action_type: "trash",
@@ -223,6 +226,9 @@ export function use_context_menu_actions({
             on_undo: async () => {
               revert_stat_deltas(deltas);
               await trash_thread(email.thread_token!, false);
+              for (const id of grouped_ids) {
+                emit_mail_item_updated({ id, is_trashed: false });
+              }
               window.dispatchEvent(
                 new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
               );
@@ -238,13 +244,21 @@ export function use_context_menu_actions({
         });
 
         if (result.success) {
+          for (const id of grouped_ids) {
+            emit_mail_item_updated({ id, is_trashed: true });
+          }
           show_action_toast({
             message: t("common.conversation_moved_to_trash"),
             action_type: "trash",
             email_ids: grouped_ids,
             on_undo: async () => {
               revert_stat_deltas(deltas);
-              await bulk_update_metadata_by_ids(grouped_ids, { is_trashed: false });
+              await bulk_update_metadata_by_ids(grouped_ids, {
+                is_trashed: false,
+              });
+              for (const id of grouped_ids) {
+                emit_mail_item_updated({ id, is_trashed: false });
+              }
               window.dispatchEvent(
                 new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
               );
@@ -270,7 +284,6 @@ export function use_context_menu_actions({
         for (const eid of all_ids) {
           emit_mail_item_updated({ id: eid, is_archived: true });
         }
-        invalidate_mail_cache();
         invalidate_mail_stats();
         show_action_toast({
           message: t("common.conversation_archived"),
@@ -279,7 +292,9 @@ export function use_context_menu_actions({
           on_undo: async () => {
             revert_stat_deltas(deltas);
             await batch_unarchive({ ids: all_ids });
-            invalidate_mail_cache();
+            for (const eid of all_ids) {
+              emit_mail_item_updated({ id: eid, is_archived: false });
+            }
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -332,6 +347,9 @@ export function use_context_menu_actions({
       });
 
       if (result.success) {
+        for (const id of combined_ids) {
+          emit_mail_item_updated({ id, is_spam: true });
+        }
         if (sender) {
           report_spam_sender(sender).catch(() => {});
         }
@@ -347,6 +365,9 @@ export function use_context_menu_actions({
             await bulk_update_metadata_by_ids(combined_ids, {
               is_spam: false,
             });
+            for (const id of combined_ids) {
+              emit_mail_item_updated({ id, is_spam: false });
+            }
             if (sender) {
               remove_spam_sender(sender).catch(() => {});
             }
@@ -733,11 +754,10 @@ export function use_context_menu_actions({
         const result = await trash_thread(email.thread_token!, false);
 
         if (result.data) {
-          invalidate_mail_cache();
+          for (const id of grouped_ids) {
+            emit_mail_item_updated({ id, is_trashed: false });
+          }
           emit_mail_changed();
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent(MAIL_EVENTS.REFRESH_REQUESTED));
-          }, 450);
 
           show_action_toast({
             message: t("common.restored_from_trash"),
@@ -746,7 +766,9 @@ export function use_context_menu_actions({
             on_undo: async () => {
               revert_stat_deltas(deltas);
               await trash_thread(email.thread_token!, true);
-              invalidate_mail_cache();
+              for (const id of grouped_ids) {
+                emit_mail_item_updated({ id, is_trashed: true });
+              }
               emit_mail_changed();
               window.dispatchEvent(
                 new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
@@ -779,11 +801,7 @@ export function use_context_menu_actions({
           encrypted_metadata: result.encrypted?.encrypted_metadata,
           metadata_nonce: result.encrypted?.metadata_nonce,
         });
-        invalidate_mail_cache();
         emit_mail_changed();
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.REFRESH_REQUESTED));
-        }, 450);
 
         show_action_toast({
           message: t("common.restored_from_trash"),
@@ -799,7 +817,7 @@ export function use_context_menu_actions({
               },
               { is_trashed: true },
             );
-            invalidate_mail_cache();
+            emit_mail_item_updated({ id: email.id, is_trashed: true });
             emit_mail_changed();
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
@@ -827,6 +845,12 @@ export function use_context_menu_actions({
       );
 
       if (result.success) {
+        emit_mail_item_updated({
+          id: email.id,
+          is_spam: false,
+          encrypted_metadata: result.encrypted?.encrypted_metadata,
+          metadata_nonce: result.encrypted?.metadata_nonce,
+        });
         if (email.sender_email) {
           remove_spam_sender(email.sender_email).catch(() => {});
         }
@@ -844,6 +868,7 @@ export function use_context_menu_actions({
               },
               { is_spam: true },
             );
+            emit_mail_item_updated({ id: email.id, is_spam: true });
             if (email.sender_email) {
               report_spam_sender(email.sender_email).catch(() => {});
             }
@@ -871,7 +896,6 @@ export function use_context_menu_actions({
         for (const eid of all_ids) {
           emit_mail_item_updated({ id: eid, is_archived: false });
         }
-        invalidate_mail_cache();
         invalidate_mail_stats();
         show_action_toast({
           message: t("common.moved_to_inbox_toast"),
@@ -881,7 +905,9 @@ export function use_context_menu_actions({
             revert_stat_deltas(deltas);
             await batch_archive({ ids: all_ids, tier: "hot" });
             await bulk_update_metadata_by_ids(all_ids, { is_archived: true });
-            invalidate_mail_cache();
+            for (const eid of all_ids) {
+              emit_mail_item_updated({ id: eid, is_archived: true });
+            }
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );

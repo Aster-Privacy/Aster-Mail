@@ -30,7 +30,7 @@ import {
   remove_ids,
   reindex_ids,
 } from "@/services/category_index";
-import { invalidate_mail_cache } from "@/hooks/email_list_cache";
+import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
 export const CATEGORY_ACTION_CHUNK_SIZE = 100;
@@ -200,7 +200,7 @@ export async function run_category_scope_action(
   }
 
   invalidate_mail_stats();
-  invalidate_mail_cache();
+  stale_all_view_caches();
 
   return "done";
 }
