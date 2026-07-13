@@ -34,6 +34,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useLayoutEffect,
   useCallback,
   useMemo,
   type ReactNode,
@@ -96,15 +97,27 @@ export function I18nProvider({
   on_language_change,
 }: I18nProviderProps) {
   const initial_language = default_language || get_initial_language();
+  const initial_translations = get_translations(initial_language);
+  const initial_ready =
+    initial_language === "en" ||
+    initial_translations !== get_translations("en");
   const [language, set_language_state] = useState<LanguageCode>(initial_language);
-  const [is_loading, set_is_loading] = useState(initial_language !== "en");
+  const [is_loading, set_is_loading] = useState(!initial_ready);
   const [translations, set_translations] = useState<Translations>(
-    get_translations(initial_language),
+    initial_translations,
   );
 
   useEffect(() => {
     if (language === "en") {
       set_translations(get_translations("en"));
+      set_is_loading(false);
+      return;
+    }
+
+    const cached = get_translations(language);
+
+    if (cached !== get_translations("en")) {
+      set_translations(cached);
       set_is_loading(false);
       return;
     }
@@ -171,7 +184,7 @@ export function I18nProvider({
     [language, translations],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = is_rtl ? "rtl" : "ltr";
   }, [language, is_rtl]);
@@ -190,7 +203,7 @@ export function I18nProvider({
 
   return (
     <I18nContext.Provider value={context_value}>
-      {children}
+      {is_loading ? null : children}
     </I18nContext.Provider>
   );
 }
