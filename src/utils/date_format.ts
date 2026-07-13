@@ -37,6 +37,14 @@ const DEFAULT_OPTIONS: FormatOptions = {
   time_format: "12h",
 };
 
+const LANGUAGE_STORAGE_KEY = "astermail_language";
+
+export function get_active_locale(): string {
+  if (typeof localStorage === "undefined") return "en";
+
+  return localStorage.getItem(LANGUAGE_STORAGE_KEY) || "en";
+}
+
 function pad(n: number): string {
   return n < 10 ? `0${n}` : `${n}`;
 }
@@ -71,7 +79,7 @@ export function format_time(
     return `${pad(hours)}:${minutes}`;
   }
 
-  const parts = new Intl.DateTimeFormat(undefined, {
+  const parts = new Intl.DateTimeFormat(get_active_locale(), {
     hour: "numeric",
     hour12: true,
   }).formatToParts(date);
@@ -86,13 +94,18 @@ export function format_date_short(
   options: FormatOptions = DEFAULT_OPTIONS,
 ): string {
   const day = date.getDate();
-  const month = new Intl.DateTimeFormat(undefined, { month: "short" }).format(date);
+
+  if (options.date_format === "YYYY-MM-DD") {
+    return `${pad(date.getMonth() + 1)}-${pad(day)}`;
+  }
+
+  const month = new Intl.DateTimeFormat(get_active_locale(), {
+    month: "short",
+  }).format(date);
 
   switch (options.date_format) {
     case "DD/MM/YYYY":
       return `${day} ${month}`;
-    case "YYYY-MM-DD":
-      return `${month} ${day}`;
     case "MM/DD/YYYY":
     default:
       return `${month} ${day}`;
@@ -100,22 +113,30 @@ export function format_date_short(
 }
 
 export function format_weekday_short(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(date);
+  return new Intl.DateTimeFormat(get_active_locale(), {
+    weekday: "short",
+  }).format(date);
 }
 
 export function format_full_date(
   date: Date,
   options: FormatOptions = DEFAULT_OPTIONS,
 ): string {
-  const weekday = new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(date);
-  const month = new Intl.DateTimeFormat(undefined, { month: "long" }).format(date);
+  const locale = get_active_locale();
+  const weekday = new Intl.DateTimeFormat(locale, { weekday: "long" }).format(
+    date,
+  );
   const day = date.getDate();
+
+  if (options.date_format === "YYYY-MM-DD") {
+    return `${weekday}, ${pad(date.getMonth() + 1)}-${pad(day)}`;
+  }
+
+  const month = new Intl.DateTimeFormat(locale, { month: "long" }).format(date);
 
   switch (options.date_format) {
     case "DD/MM/YYYY":
       return `${weekday}, ${day} ${month}`;
-    case "YYYY-MM-DD":
-      return `${weekday}, ${month} ${day}`;
     case "MM/DD/YYYY":
     default:
       return `${weekday}, ${month} ${day}`;
@@ -134,7 +155,7 @@ export function format_full_datetime(
     });
   }
 
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(get_active_locale(), {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -281,7 +302,7 @@ export function format_snooze_target(
 
   today.setHours(0, 0, 0, 0);
 
-  const time_str = snooze_date.toLocaleTimeString([], {
+  const time_str = snooze_date.toLocaleTimeString(get_active_locale(), {
     hour: "numeric",
     minute: "2-digit",
   });
@@ -295,7 +316,7 @@ export function format_snooze_target(
       ? t("common.tomorrow_at_time", { time: time_str })
       : `Tomorrow at ${time_str}`;
   } else {
-    const date_str = snooze_date.toLocaleDateString([], {
+    const date_str = snooze_date.toLocaleDateString(get_active_locale(), {
       weekday: "long",
       month: "short",
       day: "numeric",
