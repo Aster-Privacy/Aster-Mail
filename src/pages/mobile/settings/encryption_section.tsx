@@ -275,7 +275,12 @@ export function EncryptionSection({
                   <div className="w-3 h-px bg-purple-300/30" />
                 </div>
                 <span className="text-[10px] font-mono text-purple-200/40 tracking-wider">
-                  a4f8 e91c
+                  {enc.pgp_key
+                    ? enc.format_fingerprint(enc.pgp_key.fingerprint)
+                        .split(" ")
+                        .slice(0, 2)
+                        .join(" ")
+                    : "-- --"}
                 </span>
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-px bg-purple-300/30" />

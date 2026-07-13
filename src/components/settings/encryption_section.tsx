@@ -34,7 +34,9 @@ export function EncryptionSection() {
 
   return (
     <div className="space-y-6">
-      <EncryptionFlowBanner />
+      <EncryptionFlowBanner
+        your_fingerprint={encryption.pgp_key?.fingerprint}
+      />
 
       <KeyRotationPanel
         close_export_prompt={encryption.close_export_prompt}

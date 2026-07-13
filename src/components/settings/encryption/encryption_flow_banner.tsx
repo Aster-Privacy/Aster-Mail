@@ -18,8 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState, useRef } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useMemo } from "react";
 import {
   LockClosedIcon,
   ShieldCheckIcon,
@@ -28,47 +27,41 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 
-const CIPHER = "a4f8 e91c 0b7d 3f2a";
-const HEX = "0123456789abcdef ";
+const GROUP_SIZE = 4;
+const GROUP_COUNT = 4;
 
-function ScrambleLoop({ reduced }: { reduced: boolean }) {
-  const [text, set_text] = useState(CIPHER);
-  const frame_ref = useRef<number>();
+function generate_hex_groups(): string {
+  const bytes = new Uint8Array((GROUP_COUNT * GROUP_SIZE) / 2);
+  crypto.getRandomValues(bytes);
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join(
+    "",
+  );
 
-  useEffect(() => {
-    if (reduced) {
-      set_text(CIPHER);
-
-      return;
-    }
-
-    let last = 0;
-    const tick = (now: number) => {
-      if (now - last > 80) {
-        last = now;
-        let r = "";
-
-        for (let i = 0; i < CIPHER.length; i++) {
-          r += CIPHER[i] === " " ? " " : HEX[Math.floor(Math.random() * 16)];
-        }
-        set_text(r);
-      }
-      frame_ref.current = requestAnimationFrame(tick);
-    };
-
-    frame_ref.current = requestAnimationFrame(tick);
-
-    return () => {
-      if (frame_ref.current) cancelAnimationFrame(frame_ref.current);
-    };
-  }, [reduced]);
-
-  return <>{text}</>;
+  return hex.match(new RegExp(`.{1,${GROUP_SIZE}}`, "g"))?.join(" ") || hex;
 }
 
-export function EncryptionFlowBanner() {
+function to_hex_groups(fingerprint: string): string {
+  const hex = fingerprint.replace(/[^0-9a-f]/gi, "").toLowerCase();
+  const truncated = hex.slice(0, GROUP_COUNT * GROUP_SIZE);
+
+  return (
+    truncated.match(new RegExp(`.{1,${GROUP_SIZE}}`, "g"))?.join(" ") ||
+    truncated
+  );
+}
+
+interface EncryptionFlowBannerProps {
+  your_fingerprint?: string;
+}
+
+export function EncryptionFlowBanner({
+  your_fingerprint,
+}: EncryptionFlowBannerProps) {
   const { t } = use_i18n();
-  const reduced = useReducedMotion() ?? false;
+  const fallback_hex = useMemo(() => generate_hex_groups(), []);
+  const display_hex = your_fingerprint
+    ? to_hex_groups(your_fingerprint)
+    : fallback_hex;
 
   return (
     <div
@@ -128,7 +121,7 @@ export function EncryptionFlowBanner() {
           </div>
 
           <span className="text-[11px] font-mono text-purple-200/40 tracking-wider min-w-[120px]">
-            <ScrambleLoop reduced={reduced} />
+            {display_hex}
           </span>
 
           <div className="flex items-center gap-1.5">
