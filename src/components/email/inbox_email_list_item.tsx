@@ -21,7 +21,15 @@
 import type { InboxEmail } from "@/types/email";
 import type { AttachmentPreviewEntry } from "@/hooks/use_attachment_previews";
 
-import { forwardRef, memo, useMemo, useState, useRef, useEffect } from "react";
+import {
+  forwardRef,
+  memo,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import {
   ArchiveBoxArrowDownIcon,
   ArrowUturnLeftIcon,
@@ -157,6 +165,7 @@ function StarToggleButton({
     <Tooltip tip={email.is_starred ? t("mail.unstar") : t("mail.star")}>
       <button
         ref={star_ref}
+        aria-label={email.is_starred ? t("mail.unstar") : t("mail.star")}
         className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
         onClick={handle_click}
       >
@@ -183,7 +192,7 @@ export const InboxEmailListItem = memo(
         search_preview_node,
         current_view,
         is_active,
-        is_focused: _is_focused,
+        is_focused,
         selected_ids,
         selected_folder_tokens,
         selected_tag_tokens,
@@ -260,7 +269,26 @@ export const InboxEmailListItem = memo(
 
       const [is_dragging, set_is_dragging] = useState(false);
       const drag_image_ref = useRef<HTMLDivElement | null>(null);
+      const row_ref = useRef<HTMLDivElement | null>(null);
       const [, set_alias_version] = useState(0);
+
+      const set_row_ref = useCallback(
+        (node: HTMLDivElement | null) => {
+          row_ref.current = node;
+          if (typeof ref === "function") {
+            ref(node);
+          } else if (ref) {
+            ref.current = node;
+          }
+        },
+        [ref],
+      );
+
+      useEffect(() => {
+        if (is_focused && row_ref.current) {
+          row_ref.current.scrollIntoView({ block: "nearest" });
+        }
+      }, [is_focused]);
 
       useEffect(() => {
         return subscribe_aliases(() => set_alias_version((v) => v + 1));
@@ -380,7 +408,7 @@ export const InboxEmailListItem = memo(
 
       return (
         <div
-          ref={ref}
+          ref={set_row_ref}
           draggable
           className={cn(
             "group relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 cursor-pointer w-full",
@@ -390,6 +418,8 @@ export const InboxEmailListItem = memo(
               : email.is_selected === true
                 ? "bg-surf-tertiary"
                 : "hover:bg-surf-hover",
+            is_focused &&
+              "ring-2 ring-inset ring-[var(--accent-blue)] bg-surf-hover",
             is_dragging && "opacity-50",
             className,
           )}
@@ -829,7 +859,7 @@ export const InboxEmailListItem = memo(
           {show_hover_actions && (
             <div
               className={cn(
-                "absolute right-0 top-0 bottom-0 w-64 pointer-events-none opacity-0 group-hover:opacity-100 hidden sm:block",
+                "absolute right-0 top-0 bottom-0 w-64 pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hidden sm:block",
                 is_active
                   ? "bg-gradient-to-r from-transparent via-surf-hover to-surf-hover"
                   : email.is_selected === true
@@ -886,21 +916,14 @@ export const InboxEmailListItem = memo(
             {show_hover_actions && (
               <div
                 className={cn(
-                  "absolute right-3 sm:right-4 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 pl-10",
+                  "absolute right-3 sm:right-4 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pl-10",
                   is_active
                     ? "bg-gradient-to-r from-transparent to-surf-hover"
                     : email.is_selected === true
                       ? "bg-gradient-to-r from-transparent to-surf-tertiary"
                       : "bg-gradient-to-r from-transparent to-surf-primary group-hover:to-surf-hover",
                 )}
-                role="button"
-                tabIndex={0}
                 onClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => {
-                  if (e["key"] === "Enter" || e["key"] === " ") {
-                    e.stopPropagation();
-                  }
-                }}
               >
                 {on_toggle_read && (
                   <Tooltip
@@ -911,6 +934,11 @@ export const InboxEmailListItem = memo(
                     }
                   >
                     <button
+                      aria-label={
+                        email.is_read
+                          ? t("mail.mark_as_unread")
+                          : t("mail.mark_as_read")
+                      }
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_toggle_read(email)}
                     >
@@ -933,6 +961,7 @@ export const InboxEmailListItem = memo(
                 {is_trash_view && on_restore && (
                   <Tooltip tip={t("mail.restore")}>
                     <button
+                      aria-label={t("mail.restore")}
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_restore(email)}
                     >
@@ -944,6 +973,7 @@ export const InboxEmailListItem = memo(
                 {is_archive_view && on_move_to_inbox && (
                   <Tooltip tip={t("mail.move_to_inbox")}>
                     <button
+                      aria-label={t("mail.move_to_inbox")}
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_move_to_inbox(email)}
                     >
@@ -955,6 +985,7 @@ export const InboxEmailListItem = memo(
                 {is_spam_view && on_mark_not_spam && (
                   <Tooltip tip={t("mail.not_spam")}>
                     <button
+                      aria-label={t("mail.not_spam")}
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_mark_not_spam(email)}
                     >
@@ -966,6 +997,7 @@ export const InboxEmailListItem = memo(
                 {!is_trash_view && !is_archive_view && on_archive && (
                   <Tooltip tip={t("mail.archive")}>
                     <button
+                      aria-label={t("mail.archive")}
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_archive(email)}
                     >
@@ -977,6 +1009,7 @@ export const InboxEmailListItem = memo(
                 {!is_trash_view && !is_spam_view && on_spam && (
                   <Tooltip tip={t("mail.report_spam")}>
                     <button
+                      aria-label={t("mail.report_spam")}
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_spam(email)}
                     >
@@ -988,6 +1021,11 @@ export const InboxEmailListItem = memo(
                 {on_delete && (
                   <Tooltip tip={is_trash_view ? t("mail.delete_permanently") : t("mail.move_to_trash")}>
                     <button
+                      aria-label={
+                        is_trash_view
+                          ? t("mail.delete_permanently")
+                          : t("mail.move_to_trash")
+                      }
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_delete(email)}
                     >
