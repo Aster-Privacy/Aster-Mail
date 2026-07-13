@@ -119,7 +119,14 @@ export function SearchBar({
     set_query(value);
     set_selected_index(-1);
     if (debounce_ref.current) clearTimeout(debounce_ref.current);
-    debounce_ref.current = setTimeout(() => run_search(value), DEBOUNCE_MS);
+    debounce_ref.current = setTimeout(() => {
+      if (search_context !== undefined && on_search_submit) {
+        on_search_submit(value.trim());
+
+        return;
+      }
+      run_search(value);
+    }, DEBOUNCE_MS);
   };
 
   const handle_clear = () => {
