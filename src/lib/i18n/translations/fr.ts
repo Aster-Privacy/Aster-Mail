@@ -5421,6 +5421,7 @@ export const fr = {
     trust_this_device_30_days: "Faire confiance à cet appareil pendant 30 jours",
     use_another_method: "Utiliser une autre méthode",
     username_in_use: "Ce nom d'utilisateur est déjà pris.",
+    password_breach_warning: "Ce mot de passe est apparu dans une fuite de données. Utilisez-en un autre de préférence.",
     verification_success_desc: "Votre adresse e-mail a été vérifiée avec succès.",
     verification_success_title: "E-mail vérifié",
     view_privacy_policy: "Voir la politique de confidentialité",

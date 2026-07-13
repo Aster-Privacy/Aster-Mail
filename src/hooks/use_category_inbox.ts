@@ -146,6 +146,7 @@ export function use_category_inbox(
   );
 
   const [state, set_state] = useState<EmailListState>(EMPTY_STATE);
+  const prev_category_ref = useRef(active_category);
 
   const page_variant = useMemo(
     () =>
@@ -458,6 +459,12 @@ export function use_category_inbox(
       page_variant,
     ],
   );
+
+  useEffect(() => {
+    if (prev_category_ref.current === active_category) return;
+    prev_category_ref.current = active_category;
+    set_state((prev) => ({ ...EMPTY_STATE, total_messages: prev.total_messages }));
+  }, [active_category]);
 
   useEffect(() => {
     if (fetch_retry_timer_ref.current) {

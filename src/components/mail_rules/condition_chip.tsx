@@ -204,7 +204,6 @@ export function ConditionChip({
     if (kind === "boolean" || kind === "auth") return "";
     if (kind === "numeric_size") {
       const bytes = Number((condition as { value: number }).value) || 0;
-      const display = bytes / [1, 1024, 1024 * 1024, 1024 * 1024 * 1024]["BKMG".indexOf(size_unit[0]) as number] || bytes;
       const factor =
         size_unit === "B"
           ? 1
@@ -223,7 +222,6 @@ export function ConditionChip({
               ? t("mail_rules.value_unit_mb")
               : t("mail_rules.value_unit_gb");
 
-      void display;
       return bytes === 0
         ? t("mail_rules.value_placeholder")
         : `${shown} ${unit_label}`;

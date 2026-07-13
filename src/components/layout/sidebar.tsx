@@ -208,8 +208,9 @@ export const Sidebar = ({
 
   const user_email = user?.email || "";
   const raw_display_name = user?.display_name || user?.username || user_email;
-  const display_name =
-    raw_display_name.charAt(0).toUpperCase() + raw_display_name.slice(1);
+  const display_name = user?.display_name || user?.username
+    ? raw_display_name.charAt(0).toUpperCase() + raw_display_name.slice(1)
+    : raw_display_name;
 
   const get_initial_selected_item = () => {
     const path = location.pathname;

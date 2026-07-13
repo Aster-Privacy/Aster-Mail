@@ -51,8 +51,6 @@ export function TrackingProtectionShield({
   const { t } = use_i18n();
   const { preferences } = use_preferences();
 
-  if (!preferences.block_external_content) return null;
-
   const spy_pixels = useMemo(
     () => report.blocked_items.filter((item) => item.type === "tracking_pixel"),
     [report.blocked_items],
@@ -85,6 +83,7 @@ export function TrackingProtectionShield({
   const total_count =
     spy_pixels.length + report.cleaned_links.length;
 
+  if (!preferences.block_external_content) return null;
   if (total_count === 0) return null;
 
   return (

@@ -80,6 +80,7 @@ export function PdfPreviewModal({
   const scroll_ref = useRef<HTMLDivElement>(null);
   const pdf_doc_ref = useRef<PDFDocumentProxy | null>(null);
   const render_lock_ref = useRef(false);
+  const created_urls_ref = useRef<string[]>([]);
   const [total_pages, set_total_pages] = useState(0);
   const [is_loading, set_is_loading] = useState(true);
   const [render_error, set_render_error] = useState<string | false>(false);
@@ -143,6 +144,7 @@ export function PdfPreviewModal({
           );
 
           urls.push(URL.createObjectURL(blob));
+          created_urls_ref.current = urls;
 
           if (i === 1 || i % 3 === 0 || i === doc.numPages) {
             set_page_canvases([...urls]);
@@ -170,14 +172,10 @@ export function PdfPreviewModal({
       cancelled = true;
       pdf_doc_ref.current?.destroy();
       pdf_doc_ref.current = null;
+      created_urls_ref.current.forEach((url) => URL.revokeObjectURL(url));
+      created_urls_ref.current = [];
     };
   }, [att]);
-
-  useEffect(() => {
-    return () => {
-      page_canvases.forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, [page_canvases]);
 
   const handle_download = useCallback(async () => {
     try {

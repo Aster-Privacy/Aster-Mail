@@ -94,10 +94,12 @@ export function FolderManagementModal({
     if (trimmed_name.toLowerCase() === folder_name.toLowerCase()) {
       return null;
     }
+    const current_folder = folders_state.folders.find((f) => f.id === folder_id);
     const duplicate_exists = folders_state.folders.some(
       (f) =>
         f.id !== folder_id &&
-        f.name.toLowerCase() === trimmed_name.toLowerCase(),
+        f.name.toLowerCase() === trimmed_name.toLowerCase() &&
+        f.parent_token === current_folder?.parent_token,
     );
 
     if (duplicate_exists) {

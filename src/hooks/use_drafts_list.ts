@@ -97,6 +97,8 @@ function remove_from_persisted_deletes(ids: string[]) {
 const DRAFT_CATEGORY_STYLE =
   "bg-orange-100 text-orange-700 border border-orange-300 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-500";
 
+let drafts_cache: DraftListItem[] | null = null;
+
 export interface DraftListItem extends InboxEmail {
   version: number;
   draft_type: string;
@@ -205,8 +207,10 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
   const { t } = use_i18n();
   const { has_keys, is_loading: auth_loading, is_authenticated } = use_auth();
   const { preferences } = use_preferences();
-  const [drafts, set_drafts] = useState<DraftListItem[]>([]);
-  const [is_loading, set_is_loading] = useState(true);
+  const [drafts, set_drafts] = useState<DraftListItem[]>(
+    () => drafts_cache ?? [],
+  );
+  const [is_loading, set_is_loading] = useState(() => drafts_cache === null);
   const [has_more, set_has_more] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
@@ -214,6 +218,17 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
 
   const abort_ref = useRef<AbortController | null>(null);
   const vault_check_ref = useRef<NodeJS.Timeout | null>(null);
+  const fetch_seq_ref = useRef(0);
+  const mounted_ref = useRef(true);
+  const has_loaded_ref = useRef(drafts_cache !== null);
+
+  useEffect(() => {
+    mounted_ref.current = true;
+
+    return () => {
+      mounted_ref.current = false;
+    };
+  }, []);
 
   const format_options: FormatOptions = useMemo(
     () => ({
@@ -233,8 +248,10 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     abort_ref.current?.abort();
     abort_ref.current = new AbortController();
     const { signal } = abort_ref.current;
+    const seq = ++fetch_seq_ref.current;
+    const is_current = () => seq === fetch_seq_ref.current && mounted_ref.current;
 
-    set_is_loading(true);
+    if (!has_loaded_ref.current) set_is_loading(true);
     set_error(null);
 
     const timeout_id = setTimeout(
@@ -251,11 +268,10 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
         t("common.draft_category"),
       );
 
-      clearTimeout(timeout_id);
-
-      if (signal.aborted) return;
+      if (signal.aborted || !is_current()) return;
 
       if (result) {
+        has_loaded_ref.current = true;
         set_drafts(result.drafts);
         set_has_more(result.has_more);
         invalidate_mail_stats();
@@ -263,11 +279,12 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
         set_error(t("common.failed_to_load_drafts"));
       }
     } catch {
-      if (!signal.aborted) {
+      if (is_current()) {
         set_error(t("common.failed_to_load_drafts"));
       }
     } finally {
-      set_is_loading(false);
+      clearTimeout(timeout_id);
+      if (is_current()) set_is_loading(false);
     }
   }, [format_options, t]);
 
@@ -478,6 +495,8 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     if (has_keys && get_vault_from_memory()) {
       fetch_drafts();
     } else if (!has_keys) {
+      drafts_cache = null;
+      has_loaded_ref.current = false;
       set_is_loading(false);
       set_drafts([]);
     }
@@ -493,7 +512,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       clearInterval(vault_check_ref.current);
     }
 
-    set_is_loading(true);
+    if (!has_loaded_ref.current) set_is_loading(true);
     let attempts = 0;
     const max_attempts = 20;
 
@@ -612,6 +631,12 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     [drafts, suppressed_ids],
   );
 
+  useEffect(() => {
+    if (has_keys && !is_loading) {
+      drafts_cache = visible_drafts;
+    }
+  }, [visible_drafts, is_loading, has_keys]);
+
   const state = useMemo(
     () => ({
       drafts: visible_drafts,
@@ -636,4 +661,8 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
 
 export function invalidate_drafts_cache(): void {
   emit_drafts_changed();
+}
+
+export function clear_drafts_cache(): void {
+  drafts_cache = null;
 }

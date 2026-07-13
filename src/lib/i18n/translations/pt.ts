@@ -5419,6 +5419,7 @@ export const pt = {
     trust_this_device_30_days: "Confiar neste dispositivo por 30 dias",
     use_another_method: "Usar outro método de verificação",
     username_in_use: "Este nome de usuário já está em uso. Outro deve funcionar.",
+    password_breach_warning: "Esta senha apareceu em um vazamento de dados. Considere usar outra.",
     verification_success_desc: "Seu e-mail de recuperação foi verificado. Você pode fechar esta aba e voltar para a outra janela.",
     verification_success_title: "E-mail verificado",
     view_privacy_policy: "Ver política de privacidade",

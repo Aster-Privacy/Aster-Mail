@@ -5383,6 +5383,7 @@ export const zh_CN = {
     account_flagged_notice: "我们的自动安全系统暂时限制了您的账户，部分功能可能暂时不可用。账户其他功能正常使用。如果这看起来有误，可以联系 hello@astermail.org。",
     registration_suspended: "我们的安全系统暂时阻止了来自此网络的新注册。如果这看起来是误判，可以联系 hello@astermail.org。",
     username_in_use: "此用户名已被占用。换一个应该可以。",
+    password_breach_warning: "此密码已在数据泄露中出现过，建议使用其他密码。",
     plan_selection_title: "选择您的套餐",
     plan_selection_subtitle: "选择适合您的套餐。您可以随时更改或取消。",
     plan_continue_with_free: "继续使用免费版",

@@ -52,6 +52,8 @@ interface ModalFooterProps {
   className?: string;
 }
 
+const open_modal_stack: symbol[] = [];
+
 const SIZE_CLASSES = {
   sm: "max-w-[360px]",
   md: "max-w-[440px]",
@@ -82,11 +84,34 @@ export function Modal({
 
   const reduce_motion = use_should_reduce_motion();
 
+  const modal_id_ref = React.useRef<symbol | null>(null);
+
+  if (modal_id_ref.current === null) {
+    modal_id_ref.current = Symbol("modal");
+  }
+
+  React.useEffect(() => {
+    if (!is_open) return;
+
+    const id = modal_id_ref.current!;
+
+    open_modal_stack.push(id);
+
+    return () => {
+      const index = open_modal_stack.indexOf(id);
+
+      if (index !== -1) open_modal_stack.splice(index, 1);
+    };
+  }, [is_open]);
+
   React.useEffect(() => {
     const handle_escape = (e: KeyboardEvent) => {
-      if (e["key"] === "Escape" && is_open) {
-        on_close();
+      if (e["key"] !== "Escape" || !is_open) return;
+      if (open_modal_stack[open_modal_stack.length - 1] !== modal_id_ref.current) {
+        return;
       }
+
+      on_close();
     };
 
     window.addEventListener("keydown", handle_escape);

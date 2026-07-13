@@ -24,7 +24,6 @@ import { XMarkIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   is_desktop_runtime,
-  get_auto_update_enabled,
   get_last_notified_version,
   mark_version_notified,
   check_for_update,
@@ -64,7 +63,7 @@ export function UpdateBanner() {
   if (!info || dismissed) return null;
 
   const handle_install = async () => {
-    if (!get_auto_update_enabled() && installing) return;
+    if (installing) return;
     set_installing(true);
     try {
       await download_and_install_update();

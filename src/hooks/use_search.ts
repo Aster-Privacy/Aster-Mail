@@ -71,6 +71,7 @@ import {
   metadata_fingerprint,
   save_search_snapshot,
 } from "@/services/search_index_store";
+import { MAIL_EVENTS } from "@/hooks/mail_events";
 
 export interface ActiveFilter {
   id: string;
@@ -817,6 +818,12 @@ export function clear_search_index(): void {
   void clear_search_snapshots();
 }
 
+export function mark_search_index_stale(): void {
+  if (cached_index) {
+    cached_index = { ...cached_index, built_at: 0 };
+  }
+}
+
 export async function prewarm_search_index(
   user_email: string,
   include_body: boolean,
@@ -1280,6 +1287,30 @@ export function use_search() {
     build_generation++;
     index_build_promise = null;
     emit_indexing({ building: false, current: 0, total: 0 });
+  }, []);
+
+  useEffect(() => {
+    const handle_mail_changed = () => {
+      mark_search_index_stale();
+    };
+
+    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_mail_changed);
+    window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_mail_changed);
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_mail_changed);
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, handle_mail_changed);
+
+    return () => {
+      window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_mail_changed);
+      window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_mail_changed);
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEM_UPDATED,
+        handle_mail_changed,
+      );
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEMS_REMOVED,
+        handle_mail_changed,
+      );
+    };
   }, []);
 
   const search = useCallback(

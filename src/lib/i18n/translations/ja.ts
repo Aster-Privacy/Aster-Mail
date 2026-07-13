@@ -5383,6 +5383,7 @@ export const ja = {
     account_flagged_notice: "自動セキュリティシステムにより、現在アカウントに一部制限が設けられており、一部の機能が利用できない場合があります。その他の機能は通常通り使用できます。心当たりがない場合は hello@astermail.org がお力になれます。",
     registration_suspended: "セキュリティシステムにより、現在このネットワークからの新規登録は停止されています。心当たりがない場合は hello@astermail.org がお力になれます。",
     username_in_use: "このユーザー名はすでに使用されています。別のものをお試しください。",
+    password_breach_warning: "このパスワードはデータ漏洩で確認されています。別のパスワードの使用をおすすめします。",
     plan_selection_title: "プランを選択",
     plan_selection_subtitle: "ご希望のプランをお選びください。いつでも変更またはキャンセルできます。",
     plan_continue_with_free: "無料で続ける",

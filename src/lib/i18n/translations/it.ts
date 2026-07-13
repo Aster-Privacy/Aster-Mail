@@ -5420,6 +5420,7 @@ export const it = {
     trust_this_device_30_days: "Considera affidabile questo dispositivo per 30 giorni",
     use_another_method: "Usa un altro metodo di verifica",
     username_in_use: "Questo nome utente è già preso. Un altro dovrebbe funzionare.",
+    password_breach_warning: "Questa password è comparsa in una violazione di dati. Prendine in considerazione un'altra.",
     verification_success_desc: "La tua email di recupero è stata verificata. Puoi chiudere questa scheda e tornare all'altra finestra.",
     verification_success_title: "Email verificata",
     view_privacy_policy: "Visualizza informativa sulla privacy",
