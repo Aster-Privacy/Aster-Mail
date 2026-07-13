@@ -2497,6 +2497,13 @@ export const nl = {
     replies_description: "Wanneer iemand op je e-mail antwoordt",
     mentions: "Vermeldingen",
     mentions_description: "Wanneer iemand je vermeldt",
+    toast_position: "Meldingspositie",
+    toast_position_description:
+      "Waar meldingspop-ups op het scherm verschijnen",
+    toast_position_top_right: "Rechtsboven",
+    toast_position_bottom_right: "Rechtsonder",
+    toast_position_top_left: "Linksboven",
+    toast_position_bottom_left: "Linksonder",
     quiet_hours: "Stille uren",
     enable_quiet_hours: "Stille uren inschakelen",
     from: "Van",

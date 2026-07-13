@@ -2503,6 +2503,13 @@ export const fr = {
     replies_description: "Quand quelqu'un répond à votre e-mail",
     mentions: "Mentions",
     mentions_description: "Quand quelqu'un vous mentionne",
+    toast_position: "Position des notifications",
+    toast_position_description:
+      "Où les notifications apparaissent à l'écran",
+    toast_position_top_right: "En haut à droite",
+    toast_position_bottom_right: "En bas à droite",
+    toast_position_top_left: "En haut à gauche",
+    toast_position_bottom_left: "En bas à gauche",
     quiet_hours: "Heures calmes",
     enable_quiet_hours: "Activer les heures calmes",
     mute_notifications_description: "Couper les notifications pendant les heures définies",

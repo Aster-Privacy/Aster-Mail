@@ -2492,6 +2492,13 @@ export const de = {
     replies_description: "Wenn jemand auf Ihre E-Mail antwortet",
     mentions: "Erwähnungen",
     mentions_description: "Wenn jemand Sie erwähnt",
+    toast_position: "Benachrichtigungsposition",
+    toast_position_description:
+      "Wo Benachrichtigungen auf dem Bildschirm erscheinen",
+    toast_position_top_right: "Oben rechts",
+    toast_position_bottom_right: "Unten rechts",
+    toast_position_top_left: "Oben links",
+    toast_position_bottom_left: "Unten links",
     quiet_hours: "Ruhezeiten",
     enable_quiet_hours: "Ruhezeiten aktivieren",
     from: "Von",

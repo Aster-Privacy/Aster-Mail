@@ -2503,6 +2503,13 @@ export const pl = {
     replies_description: "Gdy ktoś odpowie na Twój e-mail",
     mentions: "Wzmianki",
     mentions_description: "Gdy ktoś Cię wspomni",
+    toast_position: "Pozycja powiadomień",
+    toast_position_description:
+      "Gdzie na ekranie pojawiają się powiadomienia",
+    toast_position_top_right: "Prawy górny róg",
+    toast_position_bottom_right: "Prawy dolny róg",
+    toast_position_top_left: "Lewy górny róg",
+    toast_position_bottom_left: "Lewy dolny róg",
     quiet_hours: "Godziny ciszy",
     enable_quiet_hours: "Włącz godziny ciszy",
     mute_notifications_description: "Wycisz powiadomienia w określonych godzinach",
