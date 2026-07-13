@@ -119,25 +119,14 @@ export function normalize_font_size_scale(value: unknown): number {
   return FONT_SIZE_DEFAULT;
 }
 
-const TOAST_POSITION_MIGRATION_KEY = "aster_toast_position_migrated_v1";
-
 function normalize_preferences(prefs: UserPreferences): UserPreferences {
   const scale = normalize_font_size_scale(prefs.font_size_scale);
-  let toast_position = prefs.toast_position;
 
-  if (
-    toast_position === "bottom-right" &&
-    !localStorage.getItem(TOAST_POSITION_MIGRATION_KEY)
-  ) {
-    toast_position = "bottom";
-    localStorage.setItem(TOAST_POSITION_MIGRATION_KEY, "1");
-  }
-
-  if (scale === prefs.font_size_scale && toast_position === prefs.toast_position) {
+  if (scale === prefs.font_size_scale) {
     return prefs;
   }
 
-  return { ...prefs, font_size_scale: scale, toast_position };
+  return { ...prefs, font_size_scale: scale };
 }
 
 interface PreferencesProviderProps {

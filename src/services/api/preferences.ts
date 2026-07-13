@@ -147,6 +147,7 @@ export interface UserPreferences {
   search_encrypted_content: boolean;
   migration_haptic_v1_done: boolean;
   migration_tracker_blocking_v2_done: boolean;
+  migration_toast_position_v1_done: boolean;
   html_rendering_mode: "html" | "plain_text";
   low_network_mode: boolean;
   strip_exif_on_compose: boolean;
@@ -248,7 +249,8 @@ const MIGRATION_FLAGS_KEY = "aster_pref_migrations_done";
 
 type MigrationFlag =
   | "migration_haptic_v1_done"
-  | "migration_tracker_blocking_v2_done";
+  | "migration_tracker_blocking_v2_done"
+  | "migration_toast_position_v1_done";
 
 function read_local_migration_flag(flag: MigrationFlag): boolean {
   try {
@@ -441,6 +443,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   search_encrypted_content: false,
   migration_haptic_v1_done: false,
   migration_tracker_blocking_v2_done: false,
+  migration_toast_position_v1_done: false,
   html_rendering_mode: "html",
   low_network_mode: false,
   strip_exif_on_compose: true,
@@ -568,10 +571,12 @@ export async function get_preferences(
         ...DEFAULT_PREFERENCES,
         migration_haptic_v1_done: true,
         migration_tracker_blocking_v2_done: true,
+        migration_toast_position_v1_done: true,
       };
 
       write_local_migration_flag("migration_haptic_v1_done");
       write_local_migration_flag("migration_tracker_blocking_v2_done");
+      write_local_migration_flag("migration_toast_position_v1_done");
 
       return { data: initial, loaded_from_server: true, server_blob_unusable: true };
     }
@@ -585,6 +590,7 @@ export async function get_preferences(
           ...cached,
           migration_haptic_v1_done: true,
           migration_tracker_blocking_v2_done: true,
+          migration_toast_position_v1_done: true,
         };
 
         return {
@@ -639,6 +645,21 @@ export async function get_preferences(
       needs_migration_save = true;
     } else if (!merged.migration_tracker_blocking_v2_done) {
       merged.migration_tracker_blocking_v2_done = true;
+      needs_migration_save = true;
+    }
+
+    if (
+      !merged.migration_toast_position_v1_done &&
+      !read_local_migration_flag("migration_toast_position_v1_done")
+    ) {
+      if (merged.toast_position === "bottom-right") {
+        merged.toast_position = "bottom";
+      }
+      merged.migration_toast_position_v1_done = true;
+      write_local_migration_flag("migration_toast_position_v1_done");
+      needs_migration_save = true;
+    } else if (!merged.migration_toast_position_v1_done) {
+      merged.migration_toast_position_v1_done = true;
       needs_migration_save = true;
     }
 
