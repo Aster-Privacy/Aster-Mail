@@ -37,8 +37,10 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
+import { is_aster_email } from "@/services/api/profiles";
 
 import { AvatarRing } from "./avatar_ring";
+import { Skeleton } from "./skeleton";
 
 const SenderProfileTrigger = lazy(() =>
   import("@/components/profile/sender_profile_trigger").then((mod) => ({
@@ -235,6 +237,14 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     profile_color ||
     (is_current_user ? user?.profile_color : peer_profile?.profile_color) ||
     undefined;
+  const normalized_for_pending = (email || "").trim().toLowerCase();
+  const profile_pending =
+    !profile_color &&
+    !is_current_user &&
+    !low_network &&
+    !!normalized_for_pending &&
+    is_aster_email(normalized_for_pending) &&
+    peer_profile === undefined;
 
   const handle_load = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -258,6 +268,20 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   );
 
   if (!actual_src) {
+    if (profile_pending) {
+      return wrap_ring(
+        <Skeleton
+          className={`rounded-full flex-shrink-0 ${className}`}
+          style={{
+            width: pixel_size,
+            height: pixel_size,
+            minWidth: pixel_size,
+            minHeight: pixel_size,
+          }}
+        />,
+      );
+    }
+
     const initials = get_initials(name, email, get_active_locale());
     const font_size = Math.round(
       pixel_size * (initials.length > 1 ? 0.36 : 0.44),
