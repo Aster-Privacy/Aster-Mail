@@ -46,6 +46,10 @@ import {
   resolve_list_display_name,
 } from "@/hooks/email_list_helpers";
 import { haptic_long_press, haptic_impact } from "@/native/haptic_feedback";
+import {
+  RATCHET_UNDECRYPTABLE_SENTINEL,
+  PGP_UNDECRYPTABLE_SENTINEL,
+} from "@/utils/email_crypto";
 
 interface MobileEmailRowProps {
   email: InboxEmail;
@@ -347,7 +351,10 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
         <div className="mt-0.5 flex items-center gap-1.5">
           <span className="min-w-0 flex-1 truncate text-[13px] leading-tight text-[var(--text-muted)]">
-            {email.preview}
+            {email.preview === RATCHET_UNDECRYPTABLE_SENTINEL ||
+            email.preview === PGP_UNDECRYPTABLE_SENTINEL
+              ? t("mail.encrypted_message_unavailable")
+              : email.preview}
           </span>
 
           <div
