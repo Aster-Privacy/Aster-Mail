@@ -357,6 +357,8 @@ function sanitize_html_impl(
       "datetime",
       "span",
       "background",
+      "data-aster-signature",
+      "data-aster-signature-id",
     ],
     FORBID_TAGS: Array.from(DANGEROUS_TAGS),
     ALLOW_DATA_ATTR: false,
