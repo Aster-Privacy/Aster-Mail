@@ -48,6 +48,29 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_attachment_previews } from "@/hooks/use_attachment_previews";
 
+const EMPTY_STRING_LIST: string[] = [];
+
+export function reconcile_string_list(
+  prev: string[],
+  next: string[],
+): string[] {
+  if (next.length === 0) return EMPTY_STRING_LIST;
+  if (prev.length === next.length && prev.every((v, i) => v === next[i])) {
+    return prev;
+  }
+
+  return next;
+}
+
+function use_stable_string_list(values: string[]): string[] {
+  const ref = useRef<string[]>(values);
+  const stable = reconcile_string_list(ref.current, values);
+
+  ref.current = stable;
+
+  return stable;
+}
+
 export interface EmailListProps {
   pinned_emails: InboxEmail[];
   primary_emails: InboxEmail[];
@@ -128,6 +151,73 @@ export function EmailList({
   on_tag_toggle_ref.current = on_tag_toggle;
   const on_folder_toggle_ref = useRef(on_folder_toggle);
   on_folder_toggle_ref.current = on_folder_toggle;
+
+  const row_callbacks_ref = useRef({
+    on_toggle_select,
+    on_email_click,
+    on_archive,
+    on_delete,
+    on_mark_not_spam,
+    on_move_to_inbox,
+    on_restore,
+    on_spam,
+    on_toggle_read,
+    on_toggle_star,
+  });
+
+  row_callbacks_ref.current = {
+    on_toggle_select,
+    on_email_click,
+    on_archive,
+    on_delete,
+    on_mark_not_spam,
+    on_move_to_inbox,
+    on_restore,
+    on_spam,
+    on_toggle_read,
+    on_toggle_star,
+  };
+
+  const stable_toggle_select = useCallback(
+    (id: string) => row_callbacks_ref.current.on_toggle_select(id),
+    [],
+  );
+  const stable_email_click = useCallback(
+    (id: string) => row_callbacks_ref.current.on_email_click(id),
+    [],
+  );
+  const stable_archive = useCallback(
+    (email: InboxEmail) => row_callbacks_ref.current.on_archive(email),
+    [],
+  );
+  const stable_delete = useCallback(
+    (email: InboxEmail) => row_callbacks_ref.current.on_delete(email),
+    [],
+  );
+  const stable_mark_not_spam = useCallback(
+    (email: InboxEmail) => row_callbacks_ref.current.on_mark_not_spam(email),
+    [],
+  );
+  const stable_move_to_inbox = useCallback(
+    (email: InboxEmail) => row_callbacks_ref.current.on_move_to_inbox(email),
+    [],
+  );
+  const stable_restore = useCallback(
+    (email: InboxEmail) => row_callbacks_ref.current.on_restore(email),
+    [],
+  );
+  const stable_spam = useCallback(
+    (email: InboxEmail) => row_callbacks_ref.current.on_spam(email),
+    [],
+  );
+  const stable_toggle_read = useCallback(
+    (email: InboxEmail) => row_callbacks_ref.current.on_toggle_read(email),
+    [],
+  );
+  const stable_toggle_star = useCallback(
+    (email: InboxEmail) => row_callbacks_ref.current.on_toggle_star(email),
+    [],
+  );
 
   const all_emails = useMemo(
     () => [...pinned_emails, ...primary_emails],
@@ -227,12 +317,12 @@ export function EmailList({
   }, []);
   const show_hover_actions = !is_special_view;
 
-  const selected_ids = useMemo(
+  const selected_ids_raw = useMemo(
     () => all_emails.filter((e) => e.is_selected).map((e) => e.id),
     [all_emails],
   );
 
-  const selected_folder_tokens = useMemo(() => {
+  const selected_folder_tokens_raw = useMemo(() => {
     const tokens = new Set<string>();
 
     for (const e of all_emails) {
@@ -244,7 +334,7 @@ export function EmailList({
     return Array.from(tokens);
   }, [all_emails]);
 
-  const selected_tag_tokens = useMemo(() => {
+  const selected_tag_tokens_raw = useMemo(() => {
     const tokens = new Set<string>();
 
     for (const e of all_emails) {
@@ -256,14 +346,11 @@ export function EmailList({
     return Array.from(tokens);
   }, [all_emails]);
 
-  const hover_archive = show_hover_actions ? on_archive : undefined;
-  const hover_delete = show_hover_actions ? on_delete : undefined;
-  const hover_mark_not_spam = show_hover_actions ? on_mark_not_spam : undefined;
-  const hover_move_to_inbox = show_hover_actions ? on_move_to_inbox : undefined;
-  const hover_restore = show_hover_actions ? on_restore : undefined;
-  const hover_spam = show_hover_actions ? on_spam : undefined;
-  const hover_toggle_read = show_hover_actions ? on_toggle_read : undefined;
-  const hover_toggle_star = show_hover_actions ? on_toggle_star : undefined;
+  const selected_ids = use_stable_string_list(selected_ids_raw);
+  const selected_folder_tokens = use_stable_string_list(
+    selected_folder_tokens_raw,
+  );
+  const selected_tag_tokens = use_stable_string_list(selected_tag_tokens_raw);
 
   const render_email_item = (email: InboxEmail) => (
     <InboxEmailListItem
@@ -273,16 +360,16 @@ export function EmailList({
       email={email}
       is_active={email.id === selected_email_id}
       is_focused={email.id === focused_email_id}
-      on_archive={hover_archive}
-      on_delete={hover_delete}
-      on_email_click={on_email_click}
-      on_mark_not_spam={hover_mark_not_spam}
-      on_move_to_inbox={hover_move_to_inbox}
-      on_restore={hover_restore}
-      on_spam={hover_spam}
-      on_toggle_read={hover_toggle_read}
-      on_toggle_select={on_toggle_select}
-      on_toggle_star={hover_toggle_star}
+      on_archive={show_hover_actions ? stable_archive : undefined}
+      on_delete={show_hover_actions ? stable_delete : undefined}
+      on_email_click={stable_email_click}
+      on_mark_not_spam={show_hover_actions ? stable_mark_not_spam : undefined}
+      on_move_to_inbox={show_hover_actions ? stable_move_to_inbox : undefined}
+      on_restore={show_hover_actions ? stable_restore : undefined}
+      on_spam={show_hover_actions ? stable_spam : undefined}
+      on_toggle_read={show_hover_actions ? stable_toggle_read : undefined}
+      on_toggle_select={stable_toggle_select}
+      on_toggle_star={show_hover_actions ? stable_toggle_star : undefined}
       selected_folder_tokens={selected_folder_tokens}
       selected_ids={selected_ids}
       selected_tag_tokens={selected_tag_tokens}
