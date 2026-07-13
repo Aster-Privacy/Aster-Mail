@@ -277,10 +277,16 @@ export function use_split_pane({
 
     window.addEventListener("mousemove", on_move, { passive: false });
     window.addEventListener("mouseup", on_up);
+    window.addEventListener("blur", on_up);
+    window.addEventListener("pointercancel", on_up);
+    document.addEventListener("visibilitychange", on_up);
 
     return () => {
       window.removeEventListener("mousemove", on_move);
       window.removeEventListener("mouseup", on_up);
+      window.removeEventListener("blur", on_up);
+      window.removeEventListener("pointercancel", on_up);
+      document.removeEventListener("visibilitychange", on_up);
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);
     };
   }, [is_dragging, is_bottom_pane, update_preference]);
