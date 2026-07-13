@@ -21,7 +21,7 @@
 import type { SenderOption } from "@/hooks/use_sender_aliases";
 import type { MobileComposePageProps } from "./mobile_compose_helpers";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import {
@@ -124,8 +124,22 @@ function MobileComposePage({
     enable_ctrl_enter_send: false,
   });
 
-  const is_sending = compose.draft_status === "saving";
+  const is_sending = compose.is_sending || compose.is_scheduling;
   const has_recipients = compose.recipients.to.length > 0;
+
+  const did_auto_expand_ref = useRef(false);
+
+  useEffect(() => {
+    if (did_auto_expand_ref.current) return;
+    const has_cc = compose.recipients.cc.length > 0;
+    const has_bcc = compose.recipients.bcc.length > 0;
+
+    if (has_cc || has_bcc) {
+      did_auto_expand_ref.current = true;
+      if (has_cc) set_show_cc(true);
+      if (has_bcc) set_show_bcc(true);
+    }
+  }, [compose.recipients.cc.length, compose.recipients.bcc.length]);
 
   const contact_avatar_map = useMemo(() => {
     const map = new Map<string, string>();
