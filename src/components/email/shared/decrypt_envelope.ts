@@ -27,6 +27,7 @@ import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
   get_vault_from_memory,
+  wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import {
   decrypt_message_verified_with_any_key,
@@ -204,8 +205,14 @@ export async function decrypt_mail_envelope<
         return normalize_parsed_envelope(parsed_obj) as T;
       }
 
-      const vault = get_vault_from_memory();
-      const pass = get_passphrase_from_memory();
+      let vault = get_vault_from_memory();
+      let pass = get_passphrase_from_memory();
+
+      if (!vault || !pass) {
+        await wait_for_keys_ready();
+        vault = get_vault_from_memory();
+        pass = get_passphrase_from_memory();
+      }
 
       if (vault?.identity_key && pass) {
         const envelope_keys = [
@@ -253,6 +260,10 @@ export async function decrypt_mail_envelope<
 
       return null;
     }
+  }
+
+  if (!get_passphrase_from_memory()) {
+    await wait_for_keys_ready();
   }
 
   const passphrase_bytes = get_passphrase_bytes();

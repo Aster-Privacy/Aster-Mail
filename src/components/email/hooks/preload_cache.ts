@@ -42,7 +42,10 @@ import {
   extract_subject_bundle,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
-import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  get_vault_from_memory,
+  wait_for_keys_ready,
+} from "@/services/crypto/memory_key_store";
 import {
   get_draft_by_thread,
   type DraftWithContent,
@@ -641,6 +644,10 @@ export async function preload_email_detail(
       let thread_draft: DraftWithContent | null = null;
 
       if (item.thread_token) {
+        if (!get_vault_from_memory()) {
+          await wait_for_keys_ready();
+        }
+
         const vault = get_vault_from_memory();
 
         if (vault) {

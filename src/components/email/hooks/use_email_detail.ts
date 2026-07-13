@@ -52,7 +52,10 @@ import {
   get_preferences,
   DEFAULT_PREFERENCES,
 } from "@/services/api/preferences";
-import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  get_vault_from_memory,
+  wait_for_keys_ready,
+} from "@/services/crypto/memory_key_store";
 import { use_folders } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
@@ -769,15 +772,19 @@ export function use_email_detail() {
         }
 
         if (response.data.thread_token) {
+          if (!get_vault_from_memory()) {
+            await wait_for_keys_ready();
+          }
+
           const current_vault = get_vault_from_memory();
 
-          if (current_vault) {
+          if (current_vault && !is_stale()) {
             const draft_result = await get_draft_by_thread(
               response.data.thread_token,
               current_vault,
             );
 
-            if (draft_result.data) {
+            if (draft_result.data && !is_stale()) {
               set_thread_draft(draft_result.data);
             }
           }

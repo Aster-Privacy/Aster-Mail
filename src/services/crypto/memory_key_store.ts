@@ -398,7 +398,45 @@ export function on_keys_ready(callback: () => void): () => void {
   };
 }
 
+const KEYS_READY_WAIT_MS = 15000;
+
+let keys_ready_seen = false;
+
+export function wait_for_keys_ready(
+  timeout_ms: number = KEYS_READY_WAIT_MS,
+): Promise<boolean> {
+  if (derived_encryption_key !== null && has_passphrase_in_memory()) {
+    return Promise.resolve(true);
+  }
+
+  if (keys_ready_seen) {
+    return Promise.resolve(false);
+  }
+
+  return new Promise((resolve) => {
+    let unsubscribe: (() => void) | null = null;
+    let settled = false;
+
+    const settle = (ready: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      unsubscribe?.();
+      resolve(ready);
+    };
+
+    const timer = setTimeout(() => {
+      keys_ready_seen = true;
+      settle(false);
+    }, timeout_ms);
+
+    unsubscribe = on_keys_ready(() => settle(true));
+    if (settled) unsubscribe();
+  });
+}
+
 function notify_keys_ready(): void {
+  keys_ready_seen = true;
   keys_ready_listeners.forEach((callback) => {
     try {
       callback();

@@ -10,6 +10,7 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => vault_state.vault,
   get_passphrase_from_memory: () => vault_state.passphrase,
   get_passphrase_bytes: () => null,
+  wait_for_keys_ready: async () => false,
 }));
 
 import {

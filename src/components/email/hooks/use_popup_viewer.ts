@@ -143,6 +143,7 @@ export function use_popup_viewer({
     return { mode: cached || "blocked", report: null };
   });
   const timestamp_date = useRef<Date | null>(null);
+  const fetch_seq_ref = useRef(0);
   const mark_as_read_timeout = useRef<number | null>(null);
 
   const unsubscribe_info = useMemo(() => {
@@ -273,6 +274,8 @@ export function use_popup_viewer({
       return;
     }
 
+    const fetch_seq = ++fetch_seq_ref.current;
+
     set_email(null);
     set_mail_item(null);
     set_error(null);
@@ -329,18 +332,23 @@ export function use_popup_viewer({
       set_current_thread_token(preloaded.mail_item.thread_token || null);
 
       if (preloaded.mail_item.thread_token) {
-        const { get_vault_from_memory } = await import(
+        const { get_vault_from_memory, wait_for_keys_ready } = await import(
           "@/services/crypto/memory_key_store"
         );
+
+        if (!get_vault_from_memory()) {
+          await wait_for_keys_ready();
+        }
+
         const current_vault = get_vault_from_memory();
 
-        if (current_vault) {
+        if (current_vault && fetch_seq === fetch_seq_ref.current) {
           const draft_result = await get_draft_by_thread(
             preloaded.mail_item.thread_token,
             current_vault,
           );
 
-          if (draft_result.data) {
+          if (draft_result.data && fetch_seq === fetch_seq_ref.current) {
             set_thread_draft(draft_result.data);
           }
         }
@@ -482,18 +490,23 @@ export function use_popup_viewer({
         }
 
         if (response.data.thread_token) {
-          const { get_vault_from_memory } = await import(
+          const { get_vault_from_memory, wait_for_keys_ready } = await import(
             "@/services/crypto/memory_key_store"
           );
+
+          if (!get_vault_from_memory()) {
+            await wait_for_keys_ready();
+          }
+
           const current_vault = get_vault_from_memory();
 
-          if (current_vault) {
+          if (current_vault && fetch_seq === fetch_seq_ref.current) {
             const draft_result = await get_draft_by_thread(
               response.data.thread_token,
               current_vault,
             );
 
-            if (draft_result.data) {
+            if (draft_result.data && fetch_seq === fetch_seq_ref.current) {
               set_thread_draft(draft_result.data);
             }
           }

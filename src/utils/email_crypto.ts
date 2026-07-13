@@ -30,6 +30,7 @@ import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
   get_vault_from_memory,
+  wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import {
   parse_ratchet_envelope,
@@ -63,8 +64,14 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
         return JSON.parse(text) as T;
       }
 
-      const vault = get_vault_from_memory();
-      const pass = get_passphrase_from_memory();
+      let vault = get_vault_from_memory();
+      let pass = get_passphrase_from_memory();
+
+      if (!vault || !pass) {
+        await wait_for_keys_ready();
+        vault = get_vault_from_memory();
+        pass = get_passphrase_from_memory();
+      }
 
       if (vault?.identity_key && pass) {
         const decrypted = await decrypt_message_with_any_key(
@@ -80,6 +87,10 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
     } catch {
       return null;
     }
+  }
+
+  if (!get_passphrase_from_memory()) {
+    await wait_for_keys_ready();
   }
 
   const passphrase_bytes = get_passphrase_bytes();
@@ -128,7 +139,12 @@ export async function try_decrypt_ratchet_body(
     return body_text;
   }
 
-  const vault = get_vault_from_memory();
+  let vault = get_vault_from_memory();
+
+  if (!vault) {
+    await wait_for_keys_ready();
+    vault = get_vault_from_memory();
+  }
 
   if (!vault) return RATCHET_UNDECRYPTABLE_SENTINEL;
 
@@ -298,8 +314,14 @@ export const PGP_UNDECRYPTABLE_SENTINEL = "\x00ASTER_PGP_UNDECRYPTABLE\x00";
 export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
   if (!body_text.includes(PGP_MESSAGE_BEGIN)) return body_text;
 
-  const vault = get_vault_from_memory();
-  const passphrase = get_passphrase_from_memory();
+  let vault = get_vault_from_memory();
+  let passphrase = get_passphrase_from_memory();
+
+  if (!vault || !passphrase) {
+    await wait_for_keys_ready();
+    vault = get_vault_from_memory();
+    passphrase = get_passphrase_from_memory();
+  }
 
   if (!vault || !passphrase) return PGP_UNDECRYPTABLE_SENTINEL;
 

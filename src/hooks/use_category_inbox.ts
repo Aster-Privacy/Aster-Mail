@@ -244,6 +244,9 @@ export function use_category_inbox(
     // A healthy build still in progress keeps the skeleton up.
     const soft = setTimeout(() => {
       if (is_build_in_progress() && !is_build_stalled()) return;
+      if (is_build_stalled()) {
+        void init_category_index();
+      }
       set_state((prev) =>
         prev.is_loading
           ? { ...prev, is_loading: false, has_initial_load: true }
