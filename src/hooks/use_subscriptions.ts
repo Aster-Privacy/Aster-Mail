@@ -31,7 +31,7 @@ import {
   SUBSCRIPTION_CACHE_VERSION,
 } from "@/services/subscription_cache";
 import { perform_unsubscribe, execute_unsubscribe, UnsubscribeError } from "@/utils/unsubscribe_detector";
-import { confirm_unsubscribe_bulk } from "@/components/modals/unsubscribe_confirmation_modal";
+import { confirm_unsubscribe, confirm_unsubscribe_bulk } from "@/components/modals/unsubscribe_confirmation_modal";
 import { UNSUBSCRIBE_EVENT } from "@/hooks/use_unsubscribed_senders";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -124,15 +124,31 @@ export function use_subscriptions() {
 
   const unsubscribe_sender = useCallback(
     async (sender_email: string): Promise<"success" | "manual" | "failed"> => {
-      mutating_ref.current++;
       const current_subs = cache_ref.current?.subscriptions || subscriptions;
       const sub = current_subs.find((s) => s.sender_email === sender_email);
 
       if (!sub) {
-        mutating_ref.current--;
-
         return "failed";
       }
+
+      const confirm_kind = sub.has_one_click
+        ? "one_click"
+        : sub.unsubscribe_link
+          ? "url"
+          : "mailto";
+      const confirm_destination = sub.unsubscribe_link || "";
+
+      const confirmed = await confirm_unsubscribe(
+        confirm_kind,
+        confirm_destination,
+        sub.sender_name,
+      );
+
+      if (!confirmed) {
+        return "failed";
+      }
+
+      mutating_ref.current++;
 
       const optimistic = current_subs.map((s) =>
         s.sender_email === sender_email
@@ -167,6 +183,7 @@ export function use_subscriptions() {
             list_unsubscribe_header: sub.list_unsubscribe_header,
             list_unsubscribe_post: sub.list_unsubscribe_post,
           },
+          { skip_confirm: true },
         );
 
         if (result === "api") {

@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useRef } from "react";
-import { EnvelopeIcon } from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   AlertDialog,
@@ -159,11 +159,7 @@ export function UnsubscribeConfirmationModal() {
         <div className="flex h-full flex-col">
           <div className="flex-1 px-6 pt-6 pb-5 max-sm:pt-[env(safe-area-inset-top,0px)]">
             <AlertDialogHeader className="space-y-2">
-              <AlertDialogTitle className="text-[16px] font-semibold flex items-center gap-2">
-                <EnvelopeIcon
-                  className="w-5 h-5"
-                  style={{ color: "var(--text-muted)" }}
-                />
+              <AlertDialogTitle className="text-[16px] font-semibold">
                 {t("mail.unsubscribe_title")}
               </AlertDialogTitle>
               <AlertDialogDescription className="text-[14px] leading-normal">
@@ -198,18 +194,20 @@ export function UnsubscribeConfirmationModal() {
           </div>
 
           <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end max-sm:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]">
-            <button
-              className="mt-0 max-sm:flex-1 px-4 py-2.5 rounded-xl text-sm font-medium border border-edge-secondary bg-surf-secondary text-txt-primary hover:bg-surf-tertiary transition-colors"
+            <Button
+              className="mt-0 max-sm:flex-1"
+              variant="secondary"
               onClick={handle_cancel}
             >
               {t("common.cancel")}
-            </button>
-            <button
-              className="max-sm:flex-1 px-4 py-2.5 rounded-xl text-sm font-medium bg-accent-primary text-white hover:opacity-90 transition-opacity"
+            </Button>
+            <Button
+              className="max-sm:flex-1"
+              variant="primary"
               onClick={handle_confirm}
             >
               {t("mail.unsubscribe")}
-            </button>
+            </Button>
           </AlertDialogFooter>
         </div>
       </AlertDialogContent>
