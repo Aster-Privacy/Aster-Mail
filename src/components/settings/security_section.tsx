@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button, Switch } from "@aster/ui";
 import { InfoPopover } from "@/components/ui/info_popover";
 import {
@@ -27,6 +27,9 @@ import {
   CodeBracketIcon,
   CpuChipIcon,
 } from "@heroicons/react/24/outline";
+import type { ApiResponse } from "@/services/api/client";
+import type { HardwareKeysListResponse } from "@/services/api/webauthn";
+import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
 
 import { TotpSetupModal } from "./totp_setup_modal";
 import { TotpDisableModal } from "./totp_disable_modal";
@@ -45,7 +48,6 @@ import { AccountProtectionScore } from "@/components/settings/security/account_p
 import { use_security } from "@/components/settings/hooks/use_security";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { list_hardware_keys } from "@/services/api/webauthn";
 import {
   Select,
   SelectContent,
@@ -108,25 +110,14 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
     use_preferences();
   const [show_delete_modal, set_show_delete_modal] = useState(false);
   const [show_regenerate_modal, set_show_regenerate_modal] = useState(false);
-  const [passkey_registered, set_passkey_registered] = useState(false);
-  const [passkey_loaded, set_passkey_loaded] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-
-    list_hardware_keys()
-      .then((resp) => {
-        if (!active) return;
-        set_passkey_registered((resp.data?.keys?.length ?? 0) > 0);
-      })
-      .finally(() => {
-        if (active) set_passkey_loaded(true);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
+  const {
+    data: passkey_data,
+    is_loading: passkey_is_loading,
+  } = use_settings_panel_data<ApiResponse<HardwareKeysListResponse>>(
+    "passkey_list",
+  );
+  const passkey_registered = (passkey_data?.data?.keys?.length ?? 0) > 0;
+  const passkey_loaded = !passkey_is_loading;
 
   return (
     <div className="space-y-4">
