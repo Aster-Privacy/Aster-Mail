@@ -139,6 +139,76 @@ describe("is_duplicate_attachment", () => {
   });
 });
 
+describe("has_meaningful_compose_content", () => {
+  const signature_only = "<div>Jane Doe</div><br><br>Secured by Aster Mail";
+
+  it("treats a signature-only body as empty", () => {
+    expect(
+      has_meaningful_compose_content({
+        to_count: 0,
+        subject: "",
+        message: signature_only,
+        initial_body: signature_only,
+      }),
+    ).toBe(false);
+  });
+
+  it("counts a body the user changed beyond the signature", () => {
+    expect(
+      has_meaningful_compose_content({
+        to_count: 0,
+        subject: "",
+        message: `<div>hi there</div>${signature_only}`,
+        initial_body: signature_only,
+      }),
+    ).toBe(true);
+  });
+
+  it("counts a recipient the user entered", () => {
+    expect(
+      has_meaningful_compose_content({
+        to_count: 1,
+        subject: "",
+        message: signature_only,
+        initial_body: signature_only,
+      }),
+    ).toBe(true);
+  });
+
+  it("counts a non-whitespace subject the user entered", () => {
+    expect(
+      has_meaningful_compose_content({
+        to_count: 0,
+        subject: "Hello",
+        message: signature_only,
+        initial_body: signature_only,
+      }),
+    ).toBe(true);
+  });
+
+  it("ignores a whitespace-only subject", () => {
+    expect(
+      has_meaningful_compose_content({
+        to_count: 0,
+        subject: "   ",
+        message: signature_only,
+        initial_body: signature_only,
+      }),
+    ).toBe(false);
+  });
+
+  it("treats a fully empty body as empty", () => {
+    expect(
+      has_meaningful_compose_content({
+        to_count: 0,
+        subject: "",
+        message: "   ",
+        initial_body: "",
+      }),
+    ).toBe(false);
+  });
+});
+
 describe("is_valid_email shared predicate", () => {
   it("is the same predicate used by send acceptance and chip commit", () => {
     expect(is_valid_email).toBe(is_valid_email_utils);

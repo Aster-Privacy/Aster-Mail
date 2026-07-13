@@ -229,6 +229,7 @@ export function use_compose({
   const draft_context_id_ref = useRef<string | null>(null);
   const initialized_ref = useRef(false);
   const content_initialized_ref = useRef(false);
+  const initial_body_ref = useRef<string>("");
   const [scheduled_time, set_scheduled_time] = useState<Date | null>(null);
   const [is_scheduling, set_is_scheduling] = useState(false);
   const [expires_at, set_expires_at] = useState<Date | null>(null);
@@ -296,6 +297,7 @@ export function use_compose({
     if (message_textarea_ref.current) {
       message_textarea_ref.current.innerHTML = "";
     }
+    initial_body_ref.current = "";
   }, [attachment_hook.set_attachments]);
 
   const clear_all_errors = useCallback(() => {}, []);
@@ -313,6 +315,7 @@ export function use_compose({
     is_sending_ref,
     save_timer_ref,
     draft_context_id_ref,
+    initial_body_ref,
   });
 
   const has_external_recipients = useMemo(() => {
@@ -614,6 +617,7 @@ export function use_compose({
 
       message_textarea_ref.current.innerHTML = sanitized_result.html;
       set_message(message_textarea_ref.current.innerHTML);
+      initial_body_ref.current = message_textarea_ref.current.innerHTML;
     }, INITIAL_CONTENT_DELAY_MS);
   }, [
     init_trigger,
@@ -647,6 +651,7 @@ export function use_compose({
     if (!target) return;
     if (last_signature_id_ref.current === target.id) return;
 
+    const body_was_untouched = editor.innerHTML === initial_body_ref.current;
     const existing = editor.querySelector<HTMLElement>(
       "[data-aster-signature='1']",
     );
@@ -665,6 +670,9 @@ export function use_compose({
       editor.insertBefore(new_node, editor.firstChild);
     }
     set_message(editor.innerHTML);
+    if (body_was_untouched) {
+      initial_body_ref.current = editor.innerHTML;
+    }
     last_signature_id_ref.current = target.id;
   }, [
     selected_sender,

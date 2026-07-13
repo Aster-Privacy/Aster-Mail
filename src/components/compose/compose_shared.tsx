@@ -332,6 +332,19 @@ export function is_duplicate_attachment(
   );
 }
 
+export function has_meaningful_compose_content(params: {
+  to_count: number;
+  subject: string;
+  message: string;
+  initial_body: string;
+}): boolean {
+  if (params.to_count > 0) return true;
+  if (params.subject.trim().length > 0) return true;
+  if (params.message.trim().length === 0) return false;
+
+  return params.message !== params.initial_body;
+}
+
 export type DraftCloseAction = "save" | "delete" | "keep";
 
 export function decide_draft_close_action(params: {

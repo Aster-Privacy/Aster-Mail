@@ -37,6 +37,7 @@ import {
   type RecipientsState,
   type EditDraftData,
   decide_draft_close_action,
+  has_meaningful_compose_content,
 } from "@/components/compose/compose_shared";
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
 
@@ -53,6 +54,7 @@ export interface UseComposeDraftsOptions {
   is_sending_ref: React.MutableRefObject<boolean>;
   save_timer_ref: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   draft_context_id_ref: React.MutableRefObject<string | null>;
+  initial_body_ref: React.MutableRefObject<string>;
 }
 
 export interface UseComposeDraftsReturn {
@@ -81,6 +83,7 @@ export function use_compose_drafts({
   is_sending_ref,
   save_timer_ref,
   draft_context_id_ref,
+  initial_body_ref,
 }: UseComposeDraftsOptions): UseComposeDraftsReturn {
   const { vault } = use_auth();
   const { preferences } = use_preferences();
@@ -120,7 +123,14 @@ export function use_compose_drafts({
       return;
     }
 
-    const has_content = recipients.to.length > 0 || subject || message;
+    const has_content =
+      attachments.length > 0 ||
+      has_meaningful_compose_content({
+        to_count: recipients.to.length,
+        subject,
+        message,
+        initial_body: initial_body_ref.current,
+      });
 
     if (!has_content) {
       set_draft_status("idle");
@@ -222,9 +232,14 @@ export function use_compose_drafts({
       if (auto_save_drafts) {
         const data = draft_data_ref.current;
         const current_attachments = attachments_ref.current;
-        const has_content = Boolean(
-          data.recipients.to.length > 0 || data.subject || data.message,
-        );
+        const has_content =
+          current_attachments.length > 0 ||
+          has_meaningful_compose_content({
+            to_count: data.recipients.to.length,
+            subject: data.subject,
+            message: data.message,
+            initial_body: initial_body_ref.current,
+          });
 
         const close_action = decide_draft_close_action({
           has_content,
