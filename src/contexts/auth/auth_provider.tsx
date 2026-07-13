@@ -171,6 +171,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
   const [is_completing_registration, set_is_completing_registration] =
     useState(false);
+  const [max_account_limit, set_max_account_limit] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     const init = async () => {
@@ -1110,6 +1113,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => window.removeEventListener("focus", handle_focus);
   }, [clear_local_auth_data, state.is_authenticated]);
 
+  useEffect(() => {
+    if (!state.is_authenticated) return;
+    let cancelled = false;
+
+    get_account_limit()
+      .then((res) => {
+        if (cancelled) return;
+        if (res.data) set_max_account_limit(res.data.max_accounts);
+      })
+      .catch((e) => {
+        safe_log_error(e);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.is_authenticated]);
+
   const set_vault = useCallback(
     async (vault: EncryptedVault, passphrase: string) => {
       await store_vault_in_memory(vault, passphrase);
@@ -1179,6 +1200,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       update_user,
       is_completing_registration,
       set_is_completing_registration,
+      max_account_limit,
     }),
     [
       state,
@@ -1196,6 +1218,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       update_user,
       is_completing_registration,
       set_is_completing_registration,
+      max_account_limit,
     ],
   );
 

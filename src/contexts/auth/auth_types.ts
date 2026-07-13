@@ -59,6 +59,7 @@ export interface AuthContextType extends AuthState {
   update_user: (updated_user: User) => Promise<void>;
   is_completing_registration: boolean;
   set_is_completing_registration: (value: boolean) => void;
+  max_account_limit: number | null;
 }
 
 export interface AuthProviderProps {

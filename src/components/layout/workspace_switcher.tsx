@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRightStartOnRectangleIcon,
@@ -42,7 +42,6 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
 import type { StoredAccount } from "@/services/account_manager";
-import { get_account_limit } from "@/services/api/switch";
 
 interface WorkspaceSwitcherProps {
   trigger: React.ReactNode;
@@ -65,6 +64,7 @@ export function WorkspaceSwitcher({
     remove_account,
     switch_to_account,
     set_is_adding_account,
+    max_account_limit,
   } = use_auth();
   const { preferences } = use_preferences();
 
@@ -72,21 +72,7 @@ export function WorkspaceSwitcher({
   const [pending_remove, set_pending_remove] = useState<StoredAccount | null>(
     null,
   );
-  const [max_allowed, set_max_allowed] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!is_open) return;
-    let cancelled = false;
-
-    get_account_limit().then((res) => {
-      if (cancelled) return;
-      if (res.data) set_max_allowed(res.data.max_accounts);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [is_open]);
+  const max_allowed = max_account_limit;
 
   const personal_account_count = useMemo(
     () => accounts.filter((a) => a.kind !== "shared").length,

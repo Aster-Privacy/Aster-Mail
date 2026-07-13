@@ -51,6 +51,7 @@ const AUTH_LOADING_FALLBACK: AuthContextType = {
   is_completing_registration: false,
   set_is_completing_registration: () =>
     no_provider("set_is_completing_registration"),
+  max_account_limit: null,
 };
 
 export function use_auth(): AuthContextType {
