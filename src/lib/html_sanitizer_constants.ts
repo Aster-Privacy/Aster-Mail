@@ -152,7 +152,16 @@ export const DANGEROUS_TAGS = new Set([
 ]);
 
 export const ALLOWED_ATTRIBUTES: Record<string, Set<string>> = {
-  "*": new Set(["class", "id", "title", "dir", "lang", "style"]),
+  "*": new Set([
+    "class",
+    "id",
+    "title",
+    "dir",
+    "lang",
+    "style",
+    "data-aster-signature",
+    "data-aster-signature-id",
+  ]),
   a: new Set(["href", "target", "rel", "name"]),
   img: new Set(["src", "alt", "width", "height", "loading", "srcset"]),
   div: new Set(["align"]),
