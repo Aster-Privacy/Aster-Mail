@@ -94,7 +94,7 @@ export function MobileRecipientRow({
         </div>
       ) : (
         <div
-          className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden"
+          className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden cursor-pointer"
           onClick={on_expand}
         >
           <span className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--bg-tertiary)] pl-0.5 pr-2 py-0.5 text-[13px] text-[var(--text-primary)]">
