@@ -120,7 +120,7 @@ export function SendToast({
                 </Button>
                 <button
                   aria-label={t("common.dismiss")}
-                  className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
+                  className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors p-1.5 -m-1.5"
                   onClick={() => set_is_visible(false)}
                 >
                   <XMarkIcon className="w-4 h-4" />

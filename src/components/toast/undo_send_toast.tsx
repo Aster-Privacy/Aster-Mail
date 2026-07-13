@@ -211,7 +211,7 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
                 </Button>
                 <button
                   aria-label={t("common.dismiss")}
-                  className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors p-0.5"
+                  className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors p-1.5 -m-1.5"
                   onClick={on_dismiss}
                 >
                   <XMarkIcon className="w-4 h-4" />
