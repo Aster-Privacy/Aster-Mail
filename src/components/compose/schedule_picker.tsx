@@ -55,6 +55,7 @@ interface SchedulePickerProps {
   scheduled_time: Date | null;
   on_schedule: (date: Date | null) => void;
   disabled?: boolean;
+  disabled_reason?: string;
 }
 
 interface QuickOption {
@@ -86,6 +87,7 @@ export function SchedulePicker({
   scheduled_time,
   on_schedule,
   disabled = false,
+  disabled_reason,
 }: SchedulePickerProps) {
   const { t } = use_i18n();
   const [is_open, set_is_open] = useState(false);
@@ -211,11 +213,19 @@ export function SchedulePicker({
 
   return (
     <Popover open={is_open} onOpenChange={set_is_open}>
-      <Tooltip tip={t("mail.schedule_send")}>
+      <Tooltip
+        tip={disabled && disabled_reason ? disabled_reason : t("mail.schedule_send")}
+      >
         <PopoverTrigger asChild>
           <button
+            aria-label={
+              disabled && disabled_reason
+                ? disabled_reason
+                : t("mail.schedule_send")
+            }
             className="h-8 w-8 p-0 inline-flex items-center justify-center rounded transition-colors duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-secondary hover:text-txt-primary disabled:opacity-50"
             disabled={disabled}
+            title={disabled && disabled_reason ? disabled_reason : undefined}
             type="button"
           >
             <ClockIcon className="w-4 h-4" />

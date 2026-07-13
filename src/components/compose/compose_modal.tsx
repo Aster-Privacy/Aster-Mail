@@ -312,9 +312,18 @@ export function ComposeModal({
                   has_recipients:
                     compose.recipients.to.length > 0 ||
                     is_valid_email(compose.inputs.to.trim()),
+                  has_attachments: compose.attachments.length > 0,
                   schedule_picker_element: (
                     <SchedulePicker
-                      disabled={compose.recipients.to.length === 0}
+                      disabled={
+                        compose.recipients.to.length === 0 ||
+                        compose.attachments.length > 0
+                      }
+                      disabled_reason={
+                        compose.attachments.length > 0
+                          ? t("common.scheduled_no_attachments")
+                          : undefined
+                      }
                       on_schedule={compose.set_scheduled_time}
                       scheduled_time={compose.scheduled_time}
                     />

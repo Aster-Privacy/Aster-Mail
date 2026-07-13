@@ -31,6 +31,7 @@ export interface ComposeToolbarState {
   is_scheduling: boolean;
   is_sending?: boolean;
   has_recipients: boolean;
+  has_attachments?: boolean;
   handle_scheduled_send: () => void;
   handle_send: () => void;
   is_mac: boolean;

@@ -827,8 +827,17 @@ export function ComposeToolbar({
       {compose.scheduled_time ? (
         <Button
           className="h-8 px-4"
-          disabled={!compose.has_recipients || compose.is_scheduling}
+          disabled={
+            !compose.has_recipients ||
+            compose.is_scheduling ||
+            compose.has_attachments
+          }
           size="md"
+          title={
+            compose.has_attachments
+              ? t("common.scheduled_no_attachments")
+              : undefined
+          }
           variant="depth"
           onClick={compose.handle_scheduled_send}
         >

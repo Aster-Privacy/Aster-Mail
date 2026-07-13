@@ -125,7 +125,14 @@ export function ComposeWindow({
 
   const schedule_picker = (
     <SchedulePicker
-      disabled={compose.recipients.to.length === 0}
+      disabled={
+        compose.recipients.to.length === 0 || compose.attachments.length > 0
+      }
+      disabled_reason={
+        compose.attachments.length > 0
+          ? t("common.scheduled_no_attachments")
+          : undefined
+      }
       on_schedule={compose.set_scheduled_time}
       scheduled_time={compose.scheduled_time}
     />
@@ -155,6 +162,7 @@ export function ComposeWindow({
     has_recipients:
       compose.recipients.to.length > 0 ||
       is_valid_email(compose.inputs.to.trim()),
+    has_attachments: compose.attachments.length > 0,
     schedule_picker_element: schedule_picker,
     expiration_picker_element: expiration_picker,
     template_picker_element: template_picker,
