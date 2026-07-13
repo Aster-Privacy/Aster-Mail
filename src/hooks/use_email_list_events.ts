@@ -185,6 +185,9 @@ export function use_email_list_events({
       request_cache.invalidate("GET:/mail/v1/messages");
       mark_view_stale();
       mark_preload_stale();
+      set_state((prev) =>
+        prev.has_initial_load ? { ...prev, has_initial_load: false } : prev,
+      );
       if (debounce_timer) {
         clearTimeout(debounce_timer);
       }
@@ -275,6 +278,7 @@ export function use_email_list_events({
     fetch_page_ref,
     silent_fetch_ref,
     last_fetch_ref,
+    set_state,
   ]);
 
   useEffect(() => {

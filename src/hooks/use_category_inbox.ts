@@ -562,7 +562,9 @@ export function use_category_inbox(
       page_cache.current.clear();
       last_signature_ref.current = "";
       set_state((prev) =>
-        prev.is_loading ? prev : { ...prev, is_loading: true },
+        prev.is_loading && !prev.has_initial_load
+          ? prev
+          : { ...prev, is_loading: true, has_initial_load: false },
       );
       void (async () => {
         const started = Date.now();
