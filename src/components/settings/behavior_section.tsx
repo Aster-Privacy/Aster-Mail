@@ -141,7 +141,9 @@ function SelectSetting({
       </div>
       <Select disabled={disabled} value={value} onValueChange={on_change}>
         <SelectTrigger className="w-[200px]">
-          <SelectValue />
+          <SelectValue>
+            {disabled && disabled_note ? disabled_note : undefined}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {options.map((opt) => (
