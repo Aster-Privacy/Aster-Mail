@@ -222,6 +222,10 @@ button:focus:not(:focus-visible),
   outline-offset: 2px;
 }
 
+[tabindex="-1"]:focus-visible {
+  outline: none;
+}
+
 input:focus,
 input:focus-visible,
 textarea:focus,
