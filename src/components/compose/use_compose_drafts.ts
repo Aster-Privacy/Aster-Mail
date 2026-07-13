@@ -121,7 +121,12 @@ export function use_compose_drafts({
       return;
     }
 
-    const has_content = recipients.to.length > 0 || subject || message;
+    const has_content =
+      recipients.to.length > 0 ||
+      recipients.cc.length > 0 ||
+      recipients.bcc.length > 0 ||
+      subject ||
+      message;
 
     if (!has_content) {
       set_draft_status("idle");
@@ -228,7 +233,11 @@ export function use_compose_drafts({
         const data = draft_data_ref.current;
         const current_attachments = attachments_ref.current;
         const has_content =
-          data.recipients.to.length > 0 || data.subject || data.message;
+          data.recipients.to.length > 0 ||
+          data.recipients.cc.length > 0 ||
+          data.recipients.bcc.length > 0 ||
+          data.subject ||
+          data.message;
 
         const body_empty = !data.message;
         const should_save =

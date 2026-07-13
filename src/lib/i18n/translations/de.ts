@@ -5421,6 +5421,7 @@ export const de = {
     trust_this_device_30_days: "Diesem Gerät 30 Tage vertrauen",
     use_another_method: "Eine andere Verifizierungsmethode verwenden",
     username_in_use: "Dieser Nutzername ist bereits vergeben. Ein anderer sollte funktionieren.",
+    password_breach_warning: "Dieses Passwort ist in einem Datenleck aufgetaucht. Verwende besser ein anderes.",
     verification_success_desc: "Ihre Wiederherstellungs-E-Mail wurde verifiziert. Sie können diesen Tab schließen und zum anderen Fenster zurückkehren.",
     verification_success_title: "E-Mail verifiziert",
     view_privacy_policy: "Datenschutzrichtlinie ansehen",

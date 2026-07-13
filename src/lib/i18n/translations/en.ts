@@ -5828,6 +5828,7 @@ export const en: Translations = {
     preparing_pgp_key: "Preparing PGP key...",
     creating_your_account: "Creating your account...",
     username_in_use: "This username is already taken. Another one should work.",
+    password_breach_warning: "This password has appeared in a data breach. Consider using a different one.",
     by_continuing: "By continuing, you agree to our",
     copyright: "Copyright {{year}} Aster Communications Inc.",
     display_name_optional: "Display name (optional)",

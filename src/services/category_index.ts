@@ -1013,7 +1013,7 @@ export async function build_index(options?: {
 // Cheap incremental sync: only the newest page, never the whole mailbox.
 // This is what runs on routine mail changes, so it stays O(page) even with
 // a million messages. Deletions are handled by the event listeners.
-export async function sync_recent(): Promise<void> {
+export async function sync_recent(notify_new = false): Promise<void> {
   if (build_in_progress) return;
   if (!has_vault_in_memory()) return;
 
@@ -1050,7 +1050,19 @@ export async function sync_recent(): Promise<void> {
 
     if (token !== build_token) return;
 
+    const newly_received_ids = notify_new
+      ? upserts.filter((e) => e.id && !entries_map.has(e.id)).map((e) => e.id)
+      : [];
+
     let changed = apply_upsert(upserts, true);
+
+    if (newly_received_ids.length > 0) {
+      for (const id of newly_received_ids) {
+        window.dispatchEvent(
+          new CustomEvent(MAIL_EVENTS.EMAIL_RECEIVED, { detail: { email_id: id } }),
+        );
+      }
+    }
 
     for (const id of removals) {
       if (entries_map.delete(id)) changed = true;

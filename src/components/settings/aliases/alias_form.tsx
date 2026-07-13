@@ -296,7 +296,7 @@ export function CreateAliasModal({
   const remaining =
     max_aliases === -1
       ? Infinity
-      : Math.max(0, max_aliases - current_count);
+      : Math.max(0, max_aliases - (current_count + domain_addresses.length));
 
   const show_remaining = !is_custom_domain;
 
@@ -323,7 +323,7 @@ export function CreateAliasModal({
         <ModalDescription>
           {at_limit
             ? t("settings.alias_limit_all_used", {
-                used: current_count,
+                used: current_count + domain_addresses.length,
                 count: max_aliases,
               })
             : t("settings.alias_forwards_description")}

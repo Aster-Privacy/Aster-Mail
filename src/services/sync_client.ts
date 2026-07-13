@@ -76,6 +76,7 @@ class SyncClient {
   private auth_error_count = 0;
   private last_auth_error = false;
   private reconnect_attempt = 0;
+  private pending_connect_reject: ((err: Error) => void) | null = null;
 
   async connect(): Promise<void> {
     const method = connection_store.get_method();
@@ -120,7 +121,28 @@ class SyncClient {
       this.socket = null;
     }
 
+    if (this.pending_connect_reject) {
+      this.pending_connect_reject(
+        new Error("Superseded by a new connection attempt"),
+      );
+      this.pending_connect_reject = null;
+    }
+
     return new Promise((resolve, reject) => {
+      this.pending_connect_reject = reject;
+
+      const settle_resolve = () => {
+        if (this.pending_connect_reject === reject) {
+          this.pending_connect_reject = null;
+        }
+        resolve();
+      };
+      const settle_reject = (err: Error) => {
+        if (this.pending_connect_reject === reject) {
+          this.pending_connect_reject = null;
+        }
+        reject(err);
+      };
       const is_native =
         (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) ||
         false;
@@ -150,7 +172,7 @@ class SyncClient {
           this.send_message({ type: "auth", token });
         } else {
           this.socket?.close();
-          reject(new Error("No access token available"));
+          settle_reject(new Error("No access token available"));
         }
       };
 
@@ -182,18 +204,18 @@ class SyncClient {
           this.last_auth_error = false;
           this.reconnect_attempt = 0;
           if (is_reconnect) {
-            void sync_recent();
+            void sync_recent(true);
             window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
           }
-          resolve();
+          settle_resolve();
         } else if (data.type === "auth_error") {
           this.last_auth_error = true;
-          reject(new Error(data.message || "Authentication failed"));
+          settle_reject(new Error(data.message || "Authentication failed"));
         }
       };
 
       this.socket.onerror = () => {
-        reject(new Error("WebSocket connection failed"));
+        settle_reject(new Error("WebSocket connection failed"));
       };
 
       this.socket.onclose = () => {

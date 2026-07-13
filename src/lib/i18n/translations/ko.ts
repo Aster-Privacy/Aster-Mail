@@ -5383,6 +5383,7 @@ export const ko = {
     account_flagged_notice: "보안 시스템이 이 계정을 표시했습니다. 문의가 필요하면 hello@astermail.org로 연락하세요.",
     registration_suspended: "현재 새 가입이 일시적으로 중단되었습니다. 잠시 뒤 다시 시도하거나 hello@astermail.org로 문의하세요.",
     username_in_use: "이 사용자 이름은 이미 사용 중입니다. 다른 이름을 선택하세요.",
+    password_breach_warning: "이 비밀번호는 데이터 유출에서 발견되었습니다. 다른 비밀번호를 사용하는 것이 좋습니다.",
     plan_selection_title: "플랜 선택",
     plan_selection_subtitle: "필요에 맞는 플랜을 선택하세요. 언제든지 변경할 수 있습니다.",
     plan_continue_with_free: "무료로 계속",

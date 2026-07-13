@@ -5383,6 +5383,7 @@ export const pl = {
     account_flagged_notice: "Nasz automatyczny system bezpieczeństwa tymczasowo ograniczył Twoje konto i niektóre funkcje mogą być niedostępne. Reszta konta działa normalnie. Jeśli to wygląda na błąd, napisz na hello@astermail.org.",
     registration_suspended: "Nasz system bezpieczeństwa tymczasowo wstrzymał nowe rejestracje z tej sieci. Jeśli to wygląda na pomyłkę, napisz na hello@astermail.org.",
     username_in_use: "Ta nazwa użytkownika jest już zajęta. Spróbuj innej.",
+    password_breach_warning: "To hasło pojawiło się w wycieku danych. Rozważ użycie innego.",
     plan_selection_title: "Wybierz plan",
     plan_selection_subtitle: "Wybierz plan, który Ci odpowiada. Możesz zmienić lub anulować w dowolnym momencie.",
     plan_continue_with_free: "Kontynuuj z planem Free",

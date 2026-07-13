@@ -5383,6 +5383,7 @@ export const nl = {
     account_flagged_notice: "Ons geautomatiseerde beveiligingssysteem heeft tijdelijk beperkingen op je account geplaatst, en sommige functies kunnen niet beschikbaar zijn. De rest van je account werkt normaal. Als dit er verkeerd uitziet, kan hello@astermail.org helpen.",
     registration_suspended: "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit netwerk voorlopig stopgezet. Als dit er verkeerd uitziet, kan hello@astermail.org helpen.",
     username_in_use: "Deze gebruikersnaam is al in gebruik. Een andere zou moeten werken.",
+    password_breach_warning: "Dit wachtwoord is verschenen in een datalek. Overweeg een ander wachtwoord te gebruiken.",
     plan_selection_title: "Kies je abonnement",
     plan_selection_subtitle: "Kies het abonnement dat bij je past. Je kunt op elk moment wijzigen of annuleren.",
     plan_continue_with_free: "Doorgaan met Gratis",

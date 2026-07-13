@@ -56,6 +56,8 @@ const FETCH_TIMEOUT_MS = 15_000;
 const SCHEDULED_CATEGORY_STYLE =
   "bg-indigo-100 text-indigo-700 border border-indigo-300 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-500";
 
+let scheduled_cache: ScheduledListItem[] | null = null;
+
 export interface ScheduledListItem extends InboxEmail {
   scheduled_at: string;
   status: ScheduledEmailStatus;
@@ -207,13 +209,26 @@ export function use_scheduled_emails(
   const { t } = use_i18n();
   const { has_keys, is_loading: auth_loading, is_authenticated } = use_auth();
   const { preferences } = use_preferences();
-  const [emails, set_emails] = useState<ScheduledListItem[]>([]);
-  const [is_loading, set_is_loading] = useState(true);
+  const [emails, set_emails] = useState<ScheduledListItem[]>(
+    () => scheduled_cache ?? [],
+  );
+  const [is_loading, set_is_loading] = useState(() => scheduled_cache === null);
   const [has_more, set_has_more] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
   const abort_ref = useRef<AbortController | null>(null);
   const vault_check_ref = useRef<NodeJS.Timeout | null>(null);
+  const fetch_seq_ref = useRef(0);
+  const mounted_ref = useRef(true);
+  const has_loaded_ref = useRef(scheduled_cache !== null);
+
+  useEffect(() => {
+    mounted_ref.current = true;
+
+    return () => {
+      mounted_ref.current = false;
+    };
+  }, []);
 
   const format_options: FormatOptions = useMemo(
     () => ({
@@ -233,8 +248,10 @@ export function use_scheduled_emails(
     abort_ref.current?.abort();
     abort_ref.current = new AbortController();
     const { signal } = abort_ref.current;
+    const seq = ++fetch_seq_ref.current;
+    const is_current = () => seq === fetch_seq_ref.current && mounted_ref.current;
 
-    set_is_loading(true);
+    if (!has_loaded_ref.current) set_is_loading(true);
     set_error(null);
 
     const timeout_id = setTimeout(
@@ -256,11 +273,10 @@ export function use_scheduled_emails(
         t,
       );
 
-      clearTimeout(timeout_id);
-
-      if (signal.aborted) return;
+      if (signal.aborted || !is_current()) return;
 
       if (result) {
+        has_loaded_ref.current = true;
         set_emails(result.emails);
         set_has_more(result.has_more);
         invalidate_mail_stats();
@@ -268,11 +284,12 @@ export function use_scheduled_emails(
         set_error(t("common.failed_to_load_scheduled_emails"));
       }
     } catch {
-      if (!signal.aborted) {
+      if (is_current()) {
         set_error(t("common.failed_to_load_scheduled_emails"));
       }
     } finally {
-      set_is_loading(false);
+      clearTimeout(timeout_id);
+      if (is_current()) set_is_loading(false);
     }
   }, [format_options, t]);
 
@@ -351,6 +368,8 @@ export function use_scheduled_emails(
     if (has_keys && get_vault_from_memory()) {
       fetch_scheduled();
     } else if (!has_keys) {
+      scheduled_cache = null;
+      has_loaded_ref.current = false;
       set_is_loading(false);
       set_emails([]);
     }
@@ -366,7 +385,7 @@ export function use_scheduled_emails(
       clearInterval(vault_check_ref.current);
     }
 
-    set_is_loading(true);
+    if (!has_loaded_ref.current) set_is_loading(true);
     let attempts = 0;
     const max_attempts = 20;
 
@@ -431,6 +450,12 @@ export function use_scheduled_emails(
     return () => clearTimeout(safety_timeout);
   }, [is_loading]);
 
+  useEffect(() => {
+    if (has_keys && !is_loading) {
+      scheduled_cache = emails;
+    }
+  }, [emails, is_loading, has_keys]);
+
   const state = useMemo(
     () => ({
       emails,
@@ -456,4 +481,8 @@ export function use_scheduled_emails(
 
 export function invalidate_scheduled_cache(): void {
   emit_scheduled_changed({ action: "updated" });
+}
+
+export function clear_scheduled_cache(): void {
+  scheduled_cache = null;
 }

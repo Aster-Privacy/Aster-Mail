@@ -96,7 +96,11 @@ import {
 import { clear_search_index } from "@/hooks/use_search";
 import { clear_undo_send_state } from "@/hooks/use_undo_send";
 import { clear_sender_aliases_cache } from "@/hooks/use_sender_aliases";
-import { clear_persisted_draft_deletes } from "@/hooks/use_drafts_list";
+import {
+  clear_persisted_draft_deletes,
+  clear_drafts_cache,
+} from "@/hooks/use_drafts_list";
+import { clear_scheduled_cache } from "@/hooks/use_scheduled_emails";
 import { clear_recovery_email_cache } from "@/services/api/recovery_email";
 import { clear_preferences_cache } from "@/services/api/preferences";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -126,6 +130,8 @@ async function clear_account_scoped_caches(): Promise<void> {
   clear_undo_send_state();
   clear_sender_aliases_cache();
   clear_persisted_draft_deletes();
+  clear_drafts_cache();
+  clear_scheduled_cache();
   clear_attachment_preview_cache();
   clear_attachment_keys();
   request_cache.clear();

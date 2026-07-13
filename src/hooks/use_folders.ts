@@ -607,7 +607,9 @@ export function use_folders(): UseFoldersReturn {
       }
 
       const duplicate_exists = cached_folders.data.some(
-        (f) => f.name.toLowerCase() === trimmed_name.toLowerCase(),
+        (f) =>
+          f.name.toLowerCase() === trimmed_name.toLowerCase() &&
+          f.parent_token === parent_token,
       );
 
       if (duplicate_exists) {

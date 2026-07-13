@@ -37,6 +37,8 @@ import { stop_session_timeout } from "@/services/session_timeout_service";
 import { sync_client } from "@/services/sync_client";
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_mail_cache } from "@/hooks/use_email_list";
+import { clear_drafts_cache } from "@/hooks/use_drafts_list";
+import { clear_scheduled_cache } from "@/hooks/use_scheduled_emails";
 import { clear_recovery_email_cache } from "@/services/api/recovery_email";
 import { clear_search_index } from "@/hooks/use_search";
 import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
@@ -85,6 +87,8 @@ export async function purge_all_local_data(): Promise<void> {
   clear_cache();
   clear_mail_stats();
   clear_mail_cache();
+  clear_drafts_cache();
+  clear_scheduled_cache();
   clear_recovery_email_cache();
   clear_search_index();
   clear_session();

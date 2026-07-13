@@ -5383,6 +5383,7 @@ export const tr = {
     account_flagged_notice: "Otomatik güvenlik sistemimiz hesabınıza şimdilik kısıtlamalar uyguladı ve birkaç özellik kullanılamayabilir. Hesabınızın geri kalanı normal çalışıyor. Hatalı görünüyorsa hello@astermail.org yardımcı olabilir.",
     registration_suspended: "Güvenlik sistemimiz bu ağdan gelen yeni kayıtları şimdilik durdurdu. Hata gibi görünüyorsa hello@astermail.org yardımcı olabilir.",
     username_in_use: "Bu kullanıcı adı zaten alınmış. Başka bir ad deneyin.",
+    password_breach_warning: "Bu şifre bir veri ihlalinde ortaya çıktı. Başka bir şifre kullanmanız önerilir.",
     plan_selection_title: "Planınızı seçin",
     plan_selection_subtitle: "Size uygun planı seçin. İstediğiniz zaman değiştirebilir veya iptal edebilirsiniz.",
     plan_continue_with_free: "Ücretsiz ile devam et",

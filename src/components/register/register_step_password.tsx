@@ -100,8 +100,7 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
               className="text-sm mt-1"
               style={{ color: "var(--color-warning, #f59e0b)" }}
             >
-              This password has appeared in a data breach. Consider using a
-              different one.
+              {reg.t("auth.password_breach_warning")}
             </p>
           )}
         </div>

@@ -708,7 +708,16 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
   const handle_skip_confirm_check = async () => {
     set_show_skip_confirmation(false);
-    await ensure_phrase_wrap_saved();
+    set_phrase_wrap_error(false);
+
+    const saved = await ensure_phrase_wrap_saved();
+
+    if (!saved) {
+      set_phrase_wrap_error(true);
+
+      return;
+    }
+
     await advance_from_phrase();
   };
 

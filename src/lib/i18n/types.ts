@@ -5691,6 +5691,7 @@ export interface AuthTranslations {
   preparing_pgp_key: string;
   creating_your_account: string;
   username_in_use: string;
+  password_breach_warning: string;
   by_continuing: string;
   copyright: string;
   display_name_optional: string;
