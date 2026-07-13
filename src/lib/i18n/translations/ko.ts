@@ -3774,6 +3774,7 @@ export const ko = {
     delete_card_confirm_title: "결제 수단 제거",
     delete_card_confirm_description: "이 결제 수단을 제거하시겠습니까?",
     delete_card_default_warning: "이 카드는 활성 요금제를 결제하는 카드입니다. 제거하면 갱신이 중단될 수 있습니다. 먼저 다른 카드를 추가하세요.",
+    amounts_in_usd: "금액은 USD로 표시됩니다",
     save_card: "카드 저장",
     cancel_confirm_title: "구독 취소",
     cancel_confirm_description: "구독을 취소하시겠습니까? 현재 결제 기간이 끝날 때까지 플랜이 활성 상태로 유지됩니다.",

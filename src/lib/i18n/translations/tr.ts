@@ -3697,6 +3697,7 @@ export const tr = {
     delete_card_confirm_title: "Ödeme yöntemini kaldır",
     delete_card_confirm_description: "Bu ödeme yöntemini kaldırmak istediğinizden emin misiniz?",
     delete_card_default_warning: "Bu kart etkin planınızı finanse ediyor. Kaldırmak yenilemeleri kesintiye uğratabilir. Önce başka bir kart ekleyin.",
+    amounts_in_usd: "Tutarlar USD olarak gösterilir",
     save_card: "Kartı Kaydet",
     cancel_confirm_title: "Aboneliği İptal Et",
     cancel_enter_password: "İptal işlemini onaylamak için parolanızı girin:",

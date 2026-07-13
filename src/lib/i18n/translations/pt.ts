@@ -3693,6 +3693,7 @@ export const pt = {
     delete_card_confirm_title: "Remover forma de pagamento",
     delete_card_confirm_description: "Tem certeza de que deseja remover esta forma de pagamento?",
     delete_card_default_warning: "Este é o cartão que financia o seu plano ativo. Removê-lo pode interromper as renovações. Adicione outro cartão primeiro.",
+    amounts_in_usd: "Valores exibidos em USD",
     save_card: "Salvar cartão",
     cancel_confirm_title: "Cancelar assinatura",
     cancel_enter_password: "Digite sua senha para confirmar o cancelamento:",

@@ -3700,6 +3700,7 @@ export const nl = {
     delete_card_confirm_title: "Betaalmethode verwijderen",
     delete_card_confirm_description: "Weet je zeker dat je deze betaalmethode wilt verwijderen?",
     delete_card_default_warning: "Deze kaart betaalt je actieve abonnement. Verwijderen kan verlengingen onderbreken. Voeg eerst een andere kaart toe.",
+    amounts_in_usd: "Bedragen weergegeven in USD",
     save_card: "Kaart opslaan",
     cancel_confirm_title: "Abonnement opzeggen",
     cancel_confirm_description: "Weet je zeker dat je je abonnement wilt opzeggen? Je abonnement blijft actief tot het einde van de huidige factureringsperiode.",

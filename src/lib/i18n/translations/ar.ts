@@ -3768,6 +3768,7 @@ export const ar = {
     delete_card_confirm_title: "إزالة طريقة الدفع",
     delete_card_confirm_description: "هل أنت متأكد أنك تريد إزالة طريقة الدفع هذه؟",
     delete_card_default_warning: "هذه هي البطاقة التي تمول خطتك النشطة. قد تؤدي إزالتها إلى تعطيل التجديدات. أضف بطاقة أخرى أولًا لتبقى مغطى.",
+    amounts_in_usd: "المبالغ معروضة بالدولار الأمريكي",
     save_card: "حفظ البطاقة",
     cancel_confirm_title: "إلغاء الاشتراك",
     cancel_confirm_description: "هل أنت متأكد أنك تريد إلغاء اشتراكك؟ ستظل خطتك نشطة حتى نهاية فترة الفوترة الحالية.",

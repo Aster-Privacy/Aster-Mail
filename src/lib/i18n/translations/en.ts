@@ -3095,6 +3095,7 @@ export const en: Translations = {
       "Are you sure you want to remove this payment method?",
     delete_card_default_warning:
       "This is the card funding your active plan. Removing it may interrupt renewals. Add another card first to stay covered.",
+    amounts_in_usd: "Amounts shown in USD",
     save_card: "Save Card",
     cancel_confirm_title: "Cancel Subscription",
     cancel_confirm_description:

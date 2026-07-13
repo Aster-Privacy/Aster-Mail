@@ -3689,6 +3689,7 @@ export const de = {
     delete_card_confirm_title: "Zahlungsmethode entfernen",
     delete_card_confirm_description: "Möchten Sie diese Zahlungsmethode wirklich entfernen?",
     delete_card_default_warning: "Mit dieser Karte wird Ihr aktiver Tarif bezahlt. Beim Entfernen können Verlängerungen fehlschlagen. Fügen Sie zuerst eine andere Karte hinzu.",
+    amounts_in_usd: "Beträge in USD angezeigt",
     save_card: "Karte speichern",
     cancel_confirm_title: "Abonnement kündigen",
     cancel_confirm_description: "Sind Sie sicher, dass Sie Ihr Abonnement kündigen möchten? Ihr Tarif bleibt bis zum Ende des aktuellen Abrechnungszeitraums aktiv.",

@@ -2884,6 +2884,7 @@ export const it = {
     delete_card_confirm_title: "Rimuovi metodo di pagamento",
     delete_card_confirm_description: "Vuoi davvero rimuovere questo metodo di pagamento?",
     delete_card_default_warning: "Questa è la carta che finanzia il tuo piano attivo. Rimuoverla può interrompere i rinnovi. Aggiungi prima un'altra carta per restare coperto.",
+    amounts_in_usd: "Importi mostrati in USD",
     save_card: "Salva carta",
     cancel_confirm_title: "Annulla abbonamento",
     cancel_confirm_description: "Sei sicuro di voler annullare il tuo abbonamento? Il tuo piano rimarrà attivo fino alla fine del periodo di fatturazione corrente.",

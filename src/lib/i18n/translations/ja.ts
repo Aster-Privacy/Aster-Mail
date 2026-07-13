@@ -3728,6 +3728,7 @@ export const ja = {
     delete_card_confirm_title: "支払い方法を削除",
     delete_card_confirm_description: "この支払い方法を削除してもよろしいですか？",
     delete_card_default_warning: "このカードは現在のプランの支払いに使用されています。削除すると更新が中断される可能性があります。先に別のカードを追加してください。",
+    amounts_in_usd: "金額は米ドルで表示されます",
     save_card: "カードを保存",
     cancel_confirm_title: "サブスクリプションをキャンセル",
     cancel_enter_password: "キャンセルを確認するためにパスワードを入力してください：",

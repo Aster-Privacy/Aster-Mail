@@ -3719,6 +3719,7 @@ export const zh_CN = {
     delete_card_confirm_title: "移除付款方式",
     delete_card_confirm_description: "确定要移除此付款方式吗？",
     delete_card_default_warning: "此卡用于支付您当前的套餐。移除后可能会中断续订。请先添加另一张卡。",
+    amounts_in_usd: "金额以美元显示",
     save_card: "保存卡片",
     cancel_confirm_title: "取消订阅",
     cancel_confirm_description: "确定要取消订阅吗？您的套餐将在当前计费周期结束前保持有效。",

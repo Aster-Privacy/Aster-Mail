@@ -170,3 +170,45 @@ describe("CreditsSection top-up bfcache restore", () => {
     expect(find_button("settings.buy_credits")!.disabled).toBe(false);
   });
 });
+
+describe("CreditsSection balance currency", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    mocked_packages.mockReset();
+    mocked_packages.mockResolvedValue({ data: { packages: [PACKAGE] } });
+  });
+
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+    vi.restoreAllMocks();
+  });
+
+  it("renders the balance from cents in USD and labels it, ignoring local currency", async () => {
+    await act(async () => {
+      root.render(
+        <CreditsSection
+          credit_balance={{
+            balance_cents: 1234,
+            balance_dollars: "999.99",
+            use_credits_for_renewals: false,
+            recent_transactions: [],
+          }}
+          set_credit_balance={vi.fn()}
+          preferred_currency="eur"
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain("$12.34");
+    expect(container.textContent).not.toContain("999.99");
+    expect(container.textContent).toContain("settings.amounts_in_usd");
+  });
+});

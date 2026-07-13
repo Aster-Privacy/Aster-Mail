@@ -3723,6 +3723,7 @@ export const pl = {
     delete_card_confirm_title: "Usuń metodę płatności",
     delete_card_confirm_description: "Czy na pewno chcesz usunąć tę metodę płatności?",
     delete_card_default_warning: "Ta karta finansuje Twój aktywny plan. Jej usunięcie może przerwać odnowienia. Najpierw dodaj inną kartę.",
+    amounts_in_usd: "Kwoty podane w USD",
     save_card: "Zapisz kartę",
     cancel_confirm_title: "Anuluj subskrypcję",
     cancel_confirm_description: "Czy na pewno chcesz anulować subskrypcję? Plan pozostanie aktywny do końca bieżącego okresu rozliczeniowego.",

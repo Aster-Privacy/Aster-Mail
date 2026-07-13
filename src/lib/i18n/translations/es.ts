@@ -3696,6 +3696,7 @@ export const es = {
     delete_card_confirm_title: "Eliminar método de pago",
     delete_card_confirm_description: "¿Seguro que quieres eliminar este método de pago?",
     delete_card_default_warning: "Esta es la tarjeta que financia tu plan activo. Eliminarla puede interrumpir las renovaciones. Añade otra tarjeta primero para no quedarte sin cobertura.",
+    amounts_in_usd: "Importes mostrados en USD",
     save_card: "Guardar tarjeta",
     cancel_confirm_title: "Cancelar suscripción",
     cancel_enter_password: "Ingresa tu contraseña para confirmar la cancelación:",

@@ -3695,6 +3695,7 @@ export const ru = {
     delete_card_confirm_title: "Удалить способ оплаты",
     delete_card_confirm_description: "Вы уверены, что хотите удалить этот способ оплаты?",
     delete_card_default_warning: "Этой картой оплачивается ваш активный план. Её удаление может прервать продления. Сначала добавьте другую карту.",
+    amounts_in_usd: "Суммы показаны в долларах США",
     save_card: "Сохранить карту",
     cancel_confirm_title: "Отмена подписки",
     cancel_enter_password: "Введите пароль для подтверждения отмены:",

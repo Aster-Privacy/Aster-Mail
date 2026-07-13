@@ -34,7 +34,6 @@ import {
 } from "@/services/api/billing";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-import { convert_cents } from "@/components/settings/billing/billing_constants";
 
 interface CreditsSectionProps {
   credit_balance: CreditBalanceResponse | null;
@@ -118,7 +117,10 @@ export function CreditsSection({
         <div>
           <p className="text-xs text-txt-muted">{t("settings.credit_balance")}</p>
           <p className="text-2xl font-bold text-txt-primary mt-0.5">
-            {credit_balance ? `$${credit_balance.balance_dollars}` : "$0.00"}
+            {format_price(credit_balance?.balance_cents ?? 0, "usd")}
+          </p>
+          <p className="text-[10px] text-txt-muted mt-0.5">
+            {t("settings.amounts_in_usd")}
           </p>
         </div>
         <button
@@ -145,7 +147,6 @@ export function CreditsSection({
             <div className="p-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
                 {packages.map((pkg) => {
-                  const price = convert_cents(pkg.price_cents, preferred_currency);
                   const total = pkg.amount_cents + pkg.bonus_cents;
                   const bonus = pkg.bonus_cents;
                   const is_selected = selected_package?.id === pkg.id;
@@ -161,18 +162,18 @@ export function CreditsSection({
                       }`}
                     >
                       <p className="text-base font-bold text-txt-primary">
-                        {format_price(price, preferred_currency)}
+                        {format_price(pkg.price_cents, "usd")}
                       </p>
                       {bonus > 0 && (
                         <p className="text-xs text-green-500 mt-0.5">
                           {t("settings.credit_package_bonus", {
-                            bonus: format_price(bonus),
+                            bonus: format_price(bonus, "usd"),
                           })}
                         </p>
                       )}
                       <p className="text-xs text-txt-muted mt-0.5">
                         {t("settings.credit_package_total", {
-                          total: format_price(total),
+                          total: format_price(total, "usd"),
                         })}
                       </p>
                     </button>
@@ -282,7 +283,7 @@ export function CreditsSection({
                           {type_label}
                         </span>
                         <p className={`text-sm font-medium ${is_positive ? "text-green-500" : "text-red-500"}`}>
-                          {is_positive ? "+" : ""}{format_price(Math.abs(tx.amount_cents))}
+                          {is_positive ? "+" : ""}{format_price(Math.abs(tx.amount_cents), "usd")}
                         </p>
                       </div>
                     </div>

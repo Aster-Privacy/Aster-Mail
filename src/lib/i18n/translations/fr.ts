@@ -3691,6 +3691,7 @@ export const fr = {
     delete_card_confirm_title: "Supprimer le moyen de paiement",
     delete_card_confirm_description: "Voulez-vous vraiment supprimer ce moyen de paiement ?",
     delete_card_default_warning: "Cette carte finance votre offre active. La supprimer peut interrompre les renouvellements. Ajoutez d'abord une autre carte pour rester couvert.",
+    amounts_in_usd: "Montants affichés en USD",
     save_card: "Enregistrer la carte",
     cancel_confirm_title: "Annuler l'abonnement",
     cancel_enter_password: "Saisissez votre mot de passe pour confirmer l'annulation :",
