@@ -28,6 +28,10 @@ import {
   is_state_changing_method,
 } from "./csrf";
 import { request_cache } from "./request_cache";
+import {
+  is_app_network_locked,
+  is_endpoint_allowed_while_locked,
+} from "../app_lock_network_gate";
 
 import { refresh_session_activity } from "@/services/session_timeout_service";
 import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
@@ -152,7 +156,8 @@ export type ApiErrorCode =
   | "ABUSE_ACCOUNT_LIMIT"
   | "USERNAME_IN_USE"
   | "REGISTRATION_SUSPENDED"
-  | "RECOVERY_EMAIL_REQUIRED";
+  | "RECOVERY_EMAIL_REQUIRED"
+  | "APP_LOCKED";
 
 export interface ApiError {
   message: string;
@@ -1028,6 +1033,10 @@ class ApiClient {
     endpoint: string,
     config: RequestConfig = {},
   ): Promise<ApiResponse<T>> {
+    if (is_app_network_locked() && !is_endpoint_allowed_while_locked(endpoint)) {
+      return { error: "App is locked", code: "APP_LOCKED" };
+    }
+
     await this.ensure_fresh_token(endpoint, config.skip_session_refresh);
 
     const {

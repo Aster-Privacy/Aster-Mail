@@ -48,6 +48,10 @@ import {
   attempt_pin_unlock,
 } from "@/services/app_lock_store";
 import { purge_all_local_data } from "@/contexts/auth/purge_local_data";
+import { sync_client } from "@/services/sync_client";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { set_app_network_locked } from "@/services/app_lock_network_gate";
 
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -430,6 +434,23 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   const hidden_at_ref = useRef<number | null>(null);
   const is_authenticated_ref = useRef(false);
   const account_id_ref = useRef("");
+  const was_locked_ref = useRef(false);
+
+  useEffect(() => {
+    const locked_now = is_locked || (is_web_locked && !!account_id);
+
+    if (locked_now) {
+      was_locked_ref.current = true;
+      sync_client.disconnect();
+      set_app_network_locked(true);
+    } else if (was_locked_ref.current) {
+      was_locked_ref.current = false;
+      set_app_network_locked(false);
+      sync_client.connect().catch(() => {});
+      invalidate_mail_stats();
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+    }
+  }, [is_locked, is_web_locked, account_id]);
 
   useEffect(() => {
     is_authenticated_ref.current = auth?.is_authenticated ?? false;
