@@ -290,10 +290,10 @@ export function SubscriptionsContent({
           </button>
         </div>
         <div className="flex-1" />
-        <div className="relative flex-shrink-0 w-48">
+        <div className="relative flex-1 max-w-xs">
           <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
           <Input
-            className="w-48 pl-8 pr-3 bg-transparent"
+            className="w-full pl-8 pr-3 bg-transparent"
             placeholder={t("common.search")}
             size="md"
             type="text"
@@ -309,6 +309,7 @@ export function SubscriptionsContent({
         </div>
       ) : current_list.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-txt-muted">
+          <MagnifyingGlassIcon className="w-6 h-6" />
           <p className="text-sm">
             {search_query
               ? t("common.no_results")
