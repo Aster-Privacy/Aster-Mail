@@ -101,6 +101,8 @@ export function use_attachment_previews(
     const map = new Map<string, string[]>();
 
     for (const email of emails) {
+      if (!email.has_attachment) continue;
+
       const ids =
         email.grouped_email_ids && email.grouped_email_ids.length > 0
           ? email.grouped_email_ids
