@@ -1264,7 +1264,7 @@ function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
         <div className="divide-y divide-edge-secondary">
           {domains.map(d => {
             return (
-              <div key={d.domain_name} className="py-3 hover:bg-surf-secondary/50 transition-colors rounded-lg px-2 -mx-2">
+              <div key={d.domain_name} className="py-3 hover:bg-surf-secondary transition-colors rounded-lg px-2 -mx-2">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <ProfileAvatar
