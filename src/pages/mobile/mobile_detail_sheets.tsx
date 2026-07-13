@@ -810,10 +810,13 @@ export function MobileMessageDetailsSheet({
               <EncryptionInfoDropdown
                 has_pq_protection={false}
                 has_recipient_key={message.has_recipient_key}
+                was_pgp_encrypted={message.was_pgp_encrypted}
                 is_external={message.is_external}
                 sender_verification={message.sender_verification}
                 label={
-                  message.is_external && !message.has_recipient_key
+                  message.is_external &&
+                  !message.has_recipient_key &&
+                  !message.was_pgp_encrypted
                     ? t("common.protected_in_transit")
                     : t("mail.zero_access_encrypted")
                 }

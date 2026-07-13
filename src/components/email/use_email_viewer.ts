@@ -128,6 +128,7 @@ export function use_email_viewer({
   const [current_user_name, set_current_user_name] = useState<string>("");
   const [is_external, set_is_external] = useState(false);
   const [has_recipient_key, set_has_recipient_key] = useState(false);
+  const [was_pgp_encrypted, set_was_pgp_encrypted] = useState(false);
   const [has_pq_protection, set_has_pq_protection] = useState(false);
   const [thread_draft, set_thread_draft] = useState<DraftWithContent | null>(
     null,
@@ -329,6 +330,9 @@ export function use_email_viewer({
         });
         set_is_external(preloaded.mail_item.is_external);
         set_has_recipient_key(!!preloaded.mail_item.has_recipient_key);
+        set_was_pgp_encrypted(
+          preloaded.thread_messages?.some((m) => m.was_pgp_encrypted) ?? false,
+        );
         set_has_pq_protection(!!preloaded.mail_item.ephemeral_pq_key);
         set_mail_item(preloaded.mail_item);
         set_is_read(pe.is_read);
@@ -492,6 +496,7 @@ export function use_email_viewer({
         body_text,
         safe_html,
         unsubscribe_info: unsubscribe,
+        was_pgp_encrypted,
       } = await process_envelope_body(envelope, user_email, item.id);
 
       let decrypted_metadata = item.metadata;
@@ -554,6 +559,7 @@ export function use_email_viewer({
       });
       set_is_external(item.is_external);
       set_has_recipient_key(!!item.has_recipient_key);
+      set_was_pgp_encrypted(was_pgp_encrypted);
       set_has_pq_protection(!!item.ephemeral_pq_key);
       set_mail_item(item_with_metadata);
       set_is_read(decrypted_metadata?.is_read ?? false);
@@ -565,6 +571,7 @@ export function use_email_viewer({
         body_text,
         safe_html,
         decrypted_metadata ?? null,
+        was_pgp_encrypted,
       );
 
       const should_load_thread =
@@ -1096,6 +1103,7 @@ export function use_email_viewer({
     current_user_name,
     is_external,
     has_recipient_key,
+    was_pgp_encrypted,
     has_pq_protection,
     thread_draft,
     sending_message,

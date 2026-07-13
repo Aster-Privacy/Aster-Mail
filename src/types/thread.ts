@@ -50,6 +50,7 @@ export interface DecryptedThreadMessage {
   is_deleted: boolean;
   is_external: boolean;
   has_recipient_key?: boolean;
+  was_pgp_encrypted?: boolean;
   is_sending?: boolean;
   send_status?: string;
   encrypted_metadata?: string;

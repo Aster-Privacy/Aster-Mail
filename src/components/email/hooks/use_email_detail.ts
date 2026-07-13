@@ -668,7 +668,7 @@ export function use_email_detail() {
           : null;
 
       if (envelope) {
-        const { body_text, safe_html, unsubscribe_info } =
+        const { body_text, safe_html, unsubscribe_info, was_pgp_encrypted } =
           await process_envelope_body(envelope, user?.email, response.data.id);
 
         const decrypted: import("@/components/email/hooks/email_detail_types").DecryptedEmail =
@@ -719,6 +719,7 @@ export function use_email_detail() {
           body_text,
           safe_html,
           decrypted_metadata,
+          was_pgp_encrypted,
         );
 
         if (

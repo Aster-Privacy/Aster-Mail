@@ -450,6 +450,7 @@ export function SplitEmailViewer({
                   <EncryptionInfoDropdown
                     has_pq_protection={viewer.has_pq_protection}
                     has_recipient_key={viewer.has_recipient_key}
+                    was_pgp_encrypted={viewer.was_pgp_encrypted}
                     is_external={viewer.is_external}
                     sender_verification={email.sender_verification}
                     size={18}

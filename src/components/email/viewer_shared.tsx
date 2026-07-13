@@ -622,6 +622,7 @@ interface ViewerEmailHeaderProps {
   mail_item: MailItem | null;
   is_external: boolean;
   has_recipient_key?: boolean;
+  was_pgp_encrypted?: boolean;
   has_pq_protection: boolean;
   thread_messages: DecryptedThreadMessage[];
   format_email_detail: (date: Date) => string;
@@ -644,6 +645,7 @@ export function ViewerEmailHeader({
   mail_item,
   is_external,
   has_recipient_key,
+  was_pgp_encrypted,
   has_pq_protection,
   thread_messages,
   format_email_detail,
@@ -680,6 +682,7 @@ export function ViewerEmailHeader({
             <EncryptionInfoDropdown
               has_pq_protection={has_pq_protection}
               has_recipient_key={has_recipient_key}
+              was_pgp_encrypted={was_pgp_encrypted}
               is_external={is_external}
               sender_verification={email.sender_verification}
               size={encryption_size}

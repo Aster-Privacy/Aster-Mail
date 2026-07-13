@@ -36,6 +36,7 @@ export interface ProcessedEnvelope {
   body_text: string;
   safe_html: string | undefined;
   unsubscribe_info: UnsubscribeInfo | undefined;
+  was_pgp_encrypted: boolean;
 }
 
 export async function process_envelope_body(
@@ -113,6 +114,12 @@ export async function process_envelope_body(
     body_text,
     safe_html,
     unsubscribe_info: unsubscribe ?? undefined,
+    // A body that arrived as an OpenPGP message (whether or not we could decrypt it) was
+    // genuinely end-to-end encrypted by the sender - the only such signal for received mail.
+    was_pgp_encrypted:
+      pgp_was_decrypted ||
+      html_has_pgp ||
+      pre_pgp_text.includes("-----BEGIN PGP MESSAGE-----"),
   };
 }
 
@@ -146,6 +153,7 @@ export function build_single_thread_message(
   body_text: string,
   safe_html: string | undefined,
   decrypted_metadata: { is_read?: boolean; is_starred?: boolean } | null,
+  was_pgp_encrypted: boolean = false,
 ): DecryptedThreadMessage {
   const forwarding = resolve_forwarding_display(
     envelope.from,
@@ -170,6 +178,7 @@ export function build_single_thread_message(
     is_deleted: false,
     is_external: item.is_external,
     has_recipient_key: item.has_recipient_key,
+    was_pgp_encrypted,
     encrypted_metadata: item.encrypted_metadata,
     metadata_nonce: item.metadata_nonce,
     to_recipients: envelope.to || [],

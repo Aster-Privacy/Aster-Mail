@@ -29,6 +29,7 @@ import {
 } from "@heroicons/react/24/solid";
 
 import { LockIcon } from "@/components/common/icons";
+import { compute_is_e2e } from "@/utils/encryption_status";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
@@ -37,6 +38,7 @@ interface EncryptionInfoDropdownProps {
   is_external: boolean;
   has_pq_protection: boolean;
   has_recipient_key?: boolean;
+  was_pgp_encrypted?: boolean;
   size?: number;
   label?: string;
   context?: "message" | "attachments";
@@ -48,6 +50,7 @@ export function EncryptionInfoDropdown({
   is_external,
   has_pq_protection,
   has_recipient_key = false,
+  was_pgp_encrypted = false,
   size = 18,
   label,
   context = "message",
@@ -79,7 +82,11 @@ export function EncryptionInfoDropdown({
     return null;
   }
 
-  const is_encrypted = !is_external || has_recipient_key;
+  const is_encrypted = compute_is_e2e({
+    is_external,
+    has_recipient_key,
+    was_pgp_encrypted,
+  });
   const lock_color = is_encrypted ? "rgb(59, 130, 246)" : "var(--text-muted)";
 
   return (
