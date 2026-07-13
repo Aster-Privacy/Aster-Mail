@@ -31,6 +31,7 @@ import {
 import { use_folders } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_email_actions } from "@/hooks/use_email_actions";
+import { remove_operator_by_id } from "@/utils/search_operators";
 import { search_result_to_inbox_email } from "@/components/search/search_modal_types";
 
 interface UseAdvancedSearchModalOptions {
@@ -61,21 +62,14 @@ export function use_advanced_search_modal({
 
   const remove_filter = useCallback(
     (id: string) => {
-      const target = state.active_filters.find((f) => f.id === id);
+      const next = remove_operator_by_id(state.raw_query, id);
 
-      if (!target) return;
-
-      const token = target.label;
-      const next = state.raw_query
-        .split(/\s+/)
-        .filter((w) => w !== token)
-        .join(" ")
-        .trim();
+      if (next === state.raw_query) return;
 
       set_raw_query(next);
       search(next);
     },
-    [state.active_filters, state.raw_query, set_raw_query, search],
+    [state.raw_query, set_raw_query, search],
   );
   const { state: folders_state } = use_folders();
 

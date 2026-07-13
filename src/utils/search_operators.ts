@@ -206,6 +206,22 @@ export function parse_search_query(query: string): ParsedSearchQuery {
   };
 }
 
+export function remove_operator_by_id(query: string, id: string): string {
+  const parsed = parse_search_query(query);
+  const operator = parsed.operators.find((o) => `${o.type}-${o.value}` === id);
+
+  if (!operator) return query;
+
+  const index = query.indexOf(operator.raw);
+
+  if (index === -1) return query;
+
+  const next =
+    query.slice(0, index) + " " + query.slice(index + operator.raw.length);
+
+  return next.replace(/\s+/g, " ").trim();
+}
+
 export function validate_operator(operator: ParsedOperator): boolean {
   switch (operator.type) {
     case "from":
