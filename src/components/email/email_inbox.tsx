@@ -657,7 +657,7 @@ export function EmailInbox({
     if (!initial_page_synced.current || page_changed) {
       initial_page_synced.current = true;
       if (current_page > 0 || page_changed) {
-        fetch_page(current_page, page_size);
+        fetch_page(current_page, page_size, true);
       }
     }
   }, [email_state.has_initial_load, current_page, fetch_page, page_size]);
@@ -1209,9 +1209,8 @@ export function EmailInbox({
       list_scroll_top_ref.current = 0;
       split_pane.list_panel_ref.current?.scrollTo(0, 0);
       split_pane.list_scroll_ref.current?.scrollTo(0, 0);
-      fetch_page(page, page_size);
     },
-    [fetch_page, page_size],
+    [],
   );
   const handle_filter_change = useCallback((filter: InboxFilterType): void => {
     set_active_filter(filter);
