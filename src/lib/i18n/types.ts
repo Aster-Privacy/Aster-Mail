@@ -639,6 +639,7 @@ export interface CommonTranslations {
   move_emails_from_sender: string;
   compose_new_email: string;
   refresh_inbox: string;
+  inbox_refreshed: string;
   upgrade_plan: string;
   alias_limit_reached: string;
   delete_alias: string;

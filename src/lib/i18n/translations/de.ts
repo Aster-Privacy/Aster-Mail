@@ -237,6 +237,7 @@ export const de = {
     move_emails_from_sender: "E-Mails vom Absender verschieben",
     compose_new_email: "Neue E-Mail verfassen",
     refresh_inbox: "Posteingang aktualisieren",
+    inbox_refreshed: "Posteingang aktualisiert",
     upgrade_plan: "Plan upgraden",
     alias_limit_reached: "Alias-Limit erreicht",
     delete_alias: "Alias löschen",

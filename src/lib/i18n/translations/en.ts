@@ -292,6 +292,7 @@ export const en: Translations = {
     move_emails_from_sender: "Move emails from sender",
     compose_new_email: "Compose new email",
     refresh_inbox: "Refresh inbox",
+    inbox_refreshed: "Inbox refreshed",
     upgrade_plan: "Upgrade Plan",
     alias_limit_reached: "Alias Limit Reached",
     delete_alias: "Delete Alias",
