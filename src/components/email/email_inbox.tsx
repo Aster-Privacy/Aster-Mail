@@ -69,6 +69,7 @@ import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { MAIL_EVENTS, mail_event_bus, on_mail_event } from "@/hooks/mail_events";
+import { REFRESH_STATE_MS } from "@/constants/timings";
 import {
   patch_all_view_caches,
   remove_ids_from_all_view_caches,
@@ -328,6 +329,32 @@ export function EmailInbox({
   useEffect(() => {
     if (is_snoozed_view) fetch_snoozed();
   }, [is_snoozed_view, fetch_snoozed]);
+
+  const [manual_refresh_active, set_manual_refresh_active] = useState(false);
+
+  useEffect(() => {
+    let timeout_id: ReturnType<typeof setTimeout> | undefined;
+    const handle_refresh_requested = () => {
+      set_manual_refresh_active(true);
+      clearTimeout(timeout_id);
+      timeout_id = setTimeout(() => {
+        set_manual_refresh_active(false);
+      }, REFRESH_STATE_MS);
+    };
+
+    window.addEventListener(
+      MAIL_EVENTS.REFRESH_REQUESTED,
+      handle_refresh_requested,
+    );
+
+    return () => {
+      window.removeEventListener(
+        MAIL_EVENTS.REFRESH_REQUESTED,
+        handle_refresh_requested,
+      );
+      clearTimeout(timeout_id);
+    };
+  }, []);
 
   useEffect(() => {
     const unsub = mail_event_bus.subscribe(MAIL_EVENTS.MAIL_CHANGED, () => {
@@ -1157,11 +1184,13 @@ export function EmailInbox({
   }, [split_email_id, filtered_emails, email_state.emails]);
   const viewer_folders = useMemo(
     () =>
-      folders_state.folders.map((f) => ({
-        id: f.folder_token,
-        name: f.name,
-        color: f.color || "#6366f1",
-      })),
+      folders_state.folders
+        .filter((f) => !f.is_system)
+        .map((f) => ({
+          id: f.folder_token,
+          name: f.name,
+          color: f.color || "#6366f1",
+        })),
     [folders_state.folders],
   );
   const handle_viewer_folder_toggle = useCallback(
@@ -1251,11 +1280,13 @@ export function EmailInbox({
                 density={preferences.density}
                 focused_email_id={focused_email_id}
                 on_category_change={handle_category_change}
-                folders={folders_state.folders.map((f) => ({
-                  id: f.folder_token,
-                  name: f.name,
-                  color: f.color || "#6366f1",
-                }))}
+                folders={folders_state.folders
+                  .filter((f) => !f.is_system)
+                  .map((f) => ({
+                    id: f.folder_token,
+                    name: f.name,
+                    color: f.color || "#6366f1",
+                  }))}
                 on_archive={context_menu_actions.handle_archive}
                 on_custom_snooze={(email) => set_custom_snooze_email(email)}
                 on_delete={context_menu_actions.handle_delete}
@@ -1303,6 +1334,7 @@ export function EmailInbox({
               )}
           </div>
           {(skeleton_visible ||
+            manual_refresh_active ||
             (email_state.is_loading_more && primary_emails.length === 0)) && (
             <div className="absolute inset-0 z-10 bg-surf-primary">
               <LoadingState />
@@ -1343,12 +1375,16 @@ export function EmailInbox({
                           : undefined
           }
           filtered_count={effective_total_for_pages}
-          folders={folders_state.folders.map((f) => ({
-            folder_token: f.folder_token,
-            name: f.name,
-            color: f.color || "#6366f1",
-            status: selection.get_folder_status_for_selection(f.folder_token),
-          }))}
+          folders={folders_state.folders
+            .filter((f) => !f.is_system)
+            .map((f) => ({
+              folder_token: f.folder_token,
+              name: f.name,
+              color: f.color || "#6366f1",
+              status: selection.get_folder_status_for_selection(
+                f.folder_token,
+              ),
+            }))}
           is_archive_view={is_archive_view}
           is_drafts_view={is_drafts_view}
           is_scheduled_view={is_scheduled_view}
