@@ -556,6 +556,10 @@ export function MassUnsubscribeModal({
                     </div>
                   ) : filtered_subscriptions.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full px-6">
+                      <MagnifyingGlassIcon
+                        className="w-6 h-6 mb-2"
+                        style={{ color: "var(--text-muted)" }}
+                      />
                       <p
                         className="text-[13px] font-medium mb-0.5"
                         style={{ color: "var(--text-primary)" }}
