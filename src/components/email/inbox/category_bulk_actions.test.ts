@@ -37,7 +37,7 @@ vi.mock("@/services/category_index", () => ({
 }));
 
 vi.mock("@/hooks/email_list_cache", () => ({
-  invalidate_mail_cache: vi.fn(),
+  stale_all_view_caches: vi.fn(),
 }));
 
 vi.mock("@/hooks/use_mail_stats", () => ({
@@ -53,7 +53,7 @@ import {
   remove_ids,
   reindex_ids,
 } from "@/services/category_index";
-import { invalidate_mail_cache } from "@/hooks/email_list_cache";
+import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
   run_category_scope_action,
@@ -159,7 +159,7 @@ describe("run_category_scope_action", () => {
 
     expect(removed).toEqual(all_ids);
     expect(vi.mocked(invalidate_mail_stats)).toHaveBeenCalled();
-    expect(vi.mocked(invalidate_mail_cache)).toHaveBeenCalled();
+    expect(vi.mocked(stale_all_view_caches)).toHaveBeenCalled();
   });
 
   it("archives through the batch endpoint before the blob write", async () => {

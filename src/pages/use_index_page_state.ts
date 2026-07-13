@@ -52,7 +52,7 @@ import {
 import { use_show_mobile_ui } from "@/hooks/use_platform";
 import { adjust_inbox_count } from "@/hooks/use_mail_counts";
 import { adjust_stats_archived } from "@/hooks/use_mail_stats";
-import { invalidate_mail_cache } from "@/hooks/email_list_cache";
+import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
 import {
   batch_archive as api_batch_archive,
@@ -713,7 +713,7 @@ export function use_index_page_state() {
           }).catch(() => {});
           adjust_inbox_count(-email_ids.length);
           adjust_stats_archived(email_ids.length);
-          invalidate_mail_cache();
+          stale_all_view_caches();
         } else {
           emit_mail_soft_refresh();
         }
@@ -748,7 +748,7 @@ export function use_index_page_state() {
               }).catch(() => {});
               adjust_inbox_count(email_ids.length);
               adjust_stats_archived(-email_ids.length);
-              invalidate_mail_cache();
+              stale_all_view_caches();
             }
           }
           emit_mail_soft_refresh();

@@ -293,7 +293,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
           <OfficialBadge
             className="shrink-0"
-            email={email.sender_email}
+            email={show_sender_email}
           />
 
           {thread_count > 1 && (

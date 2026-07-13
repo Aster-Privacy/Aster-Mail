@@ -68,7 +68,11 @@ import { category_for_tab } from "@/services/mail_categorizer";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
-import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
+import { MAIL_EVENTS, mail_event_bus, on_mail_event } from "@/hooks/mail_events";
+import {
+  patch_all_view_caches,
+  remove_ids_from_all_view_caches,
+} from "@/hooks/email_list_cache";
 import {
   bulk_action_by_scope,
   type BulkScopeAction,
@@ -278,7 +282,10 @@ export function EmailInbox({
   );
 
   const prev_categories_enabled_ref = useRef(categories.enabled);
-  const categories_just_disabled = prev_categories_enabled_ref.current && !categories.enabled;
+  const categories_just_disabled =
+    prev_categories_enabled_ref.current &&
+    !categories.enabled &&
+    (current_view === "inbox" || current_view === "");
   prev_categories_enabled_ref.current = categories.enabled;
 
   const active_list = categories.enabled ? category_list : default_list;
@@ -330,6 +337,22 @@ export function EmailInbox({
     });
 
     return unsub;
+  }, []);
+
+  useEffect(() => {
+    const unsub_updated = on_mail_event(
+      MAIL_EVENTS.MAIL_ITEM_UPDATED,
+      (detail) => patch_all_view_caches(detail),
+    );
+    const unsub_removed = on_mail_event(
+      MAIL_EVENTS.MAIL_ITEMS_REMOVED,
+      (detail) => remove_ids_from_all_view_caches(detail.ids),
+    );
+
+    return () => {
+      unsub_updated();
+      unsub_removed();
+    };
   }, []);
 
   const handle_snooze = useCallback(
@@ -435,9 +458,6 @@ export function EmailInbox({
   ]);
 
   const email_state = raw_email_state;
-  const [skeleton_visible, set_skeleton_visible] = useState(
-    () => !email_state.has_initial_load || email_state.is_loading,
-  );
 
   const handle_open_compose = useCallback(
     (mode: "reply" | "forward", email: InboxEmail) => {
@@ -710,35 +730,9 @@ export function EmailInbox({
   );
   const primary_emails = all_primary_emails;
 
-  const prev_view_ref = useRef(current_view);
-
-  useEffect(() => {
-    if (prev_view_ref.current !== current_view) {
-      prev_view_ref.current = current_view;
-      if (email_state.is_loading || !email_state.has_initial_load) {
-        set_skeleton_visible(true);
-      }
-    }
-    if (
-      email_state.is_loading ||
-      folders_loading_for_view ||
-      !email_state.has_initial_load
-    ) {
-      set_skeleton_visible(true);
-
-      return;
-    }
-    const timer = setTimeout(() => set_skeleton_visible(false), 0);
-
-    return () => clearTimeout(timer);
-  }, [
-    current_view,
-    current_page,
-    email_state.is_loading,
-    email_state.emails,
-    folders_loading_for_view,
-    email_state.has_initial_load,
-  ]);
+  const skeleton_visible =
+    filtered_emails.length === 0 &&
+    (folders_loading_for_view || !email_state.has_initial_load);
 
   const is_client_filtered = active_filter !== "all";
   const stats_total_for_view = useMemo(() => {
@@ -823,7 +817,6 @@ export function EmailInbox({
     if (!should_recover) return;
 
     empty_recovery_ref.current.attempts += 1;
-    set_skeleton_visible(true);
     refresh_active_list();
   }, [
     categories.enabled,
@@ -1212,7 +1205,6 @@ export function EmailInbox({
 
   const handle_page_change = useCallback(
     (page: number): void => {
-      set_skeleton_visible(true);
       set_current_page(page);
       list_scroll_top_ref.current = 0;
       split_pane.list_panel_ref.current?.scrollTo(0, 0);
@@ -1238,8 +1230,6 @@ export function EmailInbox({
           folder_name={locked_folder.name}
         />
       ) : !skeleton_visible &&
-        !email_state.is_loading &&
-        !folders_loading_for_view &&
         filtered_emails.length === 0 &&
         email_state.has_initial_load ? (
         categories.enabled && !email_state.has_load_error ? (

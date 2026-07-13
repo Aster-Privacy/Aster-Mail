@@ -18,8 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { EmailListState } from "@/types/email";
+import type { EmailListState, InboxEmail } from "@/types/email";
+import type { MailItemUpdatedEventDetail } from "./mail_events";
 
+import {
+  compute_should_remove_from_view,
+  destination_views_for_update,
+} from "./view_membership";
 import {
   clear_email_cache,
   clear_view_cache,
@@ -52,6 +57,15 @@ export function clear_mail_cache(): void {
   clear_email_cache().catch(() => {});
 }
 
+export function stale_all_view_caches(): void {
+  for (const [key, cached] of view_cache.entries()) {
+    if (!cached.is_stale) {
+      view_cache.set(key, { ...cached, is_stale: true });
+    }
+  }
+  request_cache.invalidate("GET:/mail/v1/messages");
+}
+
 export function mark_view_stale(view?: string): void {
   if (view) {
     const cached = view_cache.get(view);
@@ -64,6 +78,97 @@ export function mark_view_stale(view?: string): void {
       view_cache.set(key, { ...cached, is_stale: true });
     }
   }
+}
+
+function build_row_patch(
+  detail: MailItemUpdatedEventDetail,
+): Partial<InboxEmail> {
+  const patch: Partial<InboxEmail> = {};
+
+  if (detail.is_read !== undefined) patch.is_read = detail.is_read;
+  if (detail.is_starred !== undefined) patch.is_starred = detail.is_starred;
+  if (detail.is_pinned !== undefined) patch.is_pinned = detail.is_pinned;
+  if (detail.is_archived !== undefined) patch.is_archived = detail.is_archived;
+  if (detail.is_trashed !== undefined) patch.is_trashed = detail.is_trashed;
+  if (detail.is_spam !== undefined) patch.is_spam = detail.is_spam;
+  if (detail.folders !== undefined) patch.folders = detail.folders;
+  if (detail.tags !== undefined) patch.tags = detail.tags;
+  if (detail.encrypted_metadata !== undefined) {
+    patch.encrypted_metadata = detail.encrypted_metadata;
+  }
+  if (detail.metadata_nonce !== undefined) {
+    patch.metadata_nonce = detail.metadata_nonce;
+  }
+
+  return patch;
+}
+
+export function patch_all_view_caches(
+  detail: MailItemUpdatedEventDetail,
+): void {
+  const patch = build_row_patch(detail);
+
+  for (const [view, cached] of view_cache.entries()) {
+    const index = cached.state.emails.findIndex(
+      (e) => e.id === detail.id || e.grouped_email_ids?.includes(detail.id),
+    );
+
+    if (index === -1) continue;
+
+    if (compute_should_remove_from_view(detail, view)) {
+      const emails = cached.state.emails.filter((_, i) => i !== index);
+
+      view_cache.set(view, {
+        ...cached,
+        state: {
+          ...cached.state,
+          emails,
+          total_messages: Math.max(0, cached.state.total_messages - 1),
+        },
+      });
+    } else {
+      const emails = cached.state.emails.map((e, i) =>
+        i === index ? { ...e, ...patch } : e,
+      );
+
+      view_cache.set(view, {
+        ...cached,
+        state: { ...cached.state, emails },
+      });
+    }
+  }
+
+  for (const view of destination_views_for_update(detail)) {
+    const cached = view_cache.get(view);
+
+    if (cached && !cached.is_stale) {
+      view_cache.set(view, { ...cached, is_stale: true });
+    }
+  }
+
+  request_cache.invalidate("GET:/mail/v1/messages");
+}
+
+export function remove_ids_from_all_view_caches(ids: string[]): void {
+  const id_set = new Set(ids);
+
+  for (const [view, cached] of view_cache.entries()) {
+    const emails = cached.state.emails.filter((e) => !id_set.has(e.id));
+    const removed = cached.state.emails.length - emails.length;
+
+    if (removed > 0) {
+      view_cache.set(view, {
+        ...cached,
+        state: {
+          ...cached.state,
+          emails,
+          total_messages: Math.max(0, cached.state.total_messages - removed),
+        },
+      });
+    }
+  }
+
+  request_cache.invalidate("GET:/mail/v1/messages");
 }
 
 export function remove_email_from_view_cache(email_id: string): void {

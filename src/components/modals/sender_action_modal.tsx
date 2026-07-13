@@ -42,7 +42,7 @@ import {
   bulk_patch_metadata,
 } from "@/services/api/mail";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
-import { invalidate_mail_cache } from "@/hooks/email_list_cache";
+import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import {
   decrypt_mail_envelope,
   normalize_envelope_from,
@@ -347,7 +347,7 @@ export function SenderActionModal({
         if (valid_updates.length > 0) {
           await bulk_patch_metadata({ items: valid_updates });
         }
-        invalidate_mail_cache();
+        stale_all_view_caches();
         await batch_archive({ ids: all_ids, tier: "hot" });
         emit_mail_items_removed({ ids: all_ids });
         invalidate_mail_stats();

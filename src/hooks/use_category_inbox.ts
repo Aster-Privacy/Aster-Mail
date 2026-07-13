@@ -66,6 +66,7 @@ import {
   reconcile_server_read,
   get_thread_rep_id,
   set_thread_grouping,
+  set_ids_read,
 } from "@/services/category_index";
 import { get_thread_messages, trash_thread } from "@/services/api/mail";
 import { batch_archive as api_batch_archive } from "@/services/api/archive";
@@ -173,7 +174,13 @@ export function use_category_inbox(
         }
       }
 
-      if (detail.is_trashed || detail.is_archived || detail.is_spam) {
+      const left_inbox =
+        detail.is_trashed === true ||
+        detail.is_archived === true ||
+        detail.is_spam === true ||
+        (detail.folders !== undefined && detail.folders.length > 0);
+
+      if (left_inbox) {
         remove_ids([detail.id]);
         set_state((prev) => {
           const had_email = prev.emails.some((e) => e.id === detail.id);
@@ -190,6 +197,10 @@ export function use_category_inbox(
         return;
       }
 
+      if (detail.is_read !== undefined) {
+        set_ids_read([detail.id], detail.is_read);
+      }
+
       set_state((prev) => ({
         ...prev,
         emails: prev.emails.map((e) =>
@@ -197,8 +208,52 @@ export function use_category_inbox(
         ),
       }));
     };
+    const handle_items_removed = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { ids: string[] };
+
+      if (!detail?.ids?.length) return;
+
+      const id_set = new Set(detail.ids);
+
+      for (const id of detail.ids) mark_preload_stale(id);
+      remove_ids(detail.ids);
+
+      for (const key of page_cache.current.keys()) {
+        const ids_part = key.split(":").slice(4).join(":");
+
+        if (ids_part.split(",").some((id) => id_set.has(id))) {
+          page_cache.current.delete(key);
+        }
+      }
+
+      set_state((prev) => {
+        const emails = prev.emails.filter((e) => !id_set.has(e.id));
+        const removed = prev.emails.length - emails.length;
+
+        return {
+          ...prev,
+          emails,
+          total_messages: Math.max(0, prev.total_messages - removed),
+        };
+      });
+    };
+
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_update);
-    return () => window.removeEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_update);
+    window.addEventListener(
+      MAIL_EVENTS.MAIL_ITEMS_REMOVED,
+      handle_items_removed,
+    );
+
+    return () => {
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEM_UPDATED,
+        handle_item_update,
+      );
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEMS_REMOVED,
+        handle_items_removed,
+      );
+    };
   }, [set_state]);
 
   const last_signature_ref = useRef<string>("");

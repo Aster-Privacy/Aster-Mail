@@ -47,7 +47,6 @@ import {
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
-import { invalidate_mail_cache } from "@/hooks/email_list_cache";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -433,9 +432,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     deps.set_is_archive_loading(false);
     if (result.data?.success) {
       await bulk_update_metadata_by_ids([deps.email_id], { is_archived: true });
-      invalidate_mail_cache();
       invalidate_mail_stats();
-      emit_mail_items_removed({ ids: [deps.email_id] });
+      emit_mail_item_updated({ id: deps.email_id, is_archived: true });
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
       show_action_toast({
         message: deps.t("common.conversation_archived"),
@@ -452,8 +450,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           await bulk_update_metadata_by_ids([deps.email_id], {
             is_archived: false,
           });
-          invalidate_mail_cache();
           invalidate_mail_stats();
+          emit_mail_item_updated({ id: deps.email_id, is_archived: false });
           window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
         },
       });
@@ -482,8 +480,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       await bulk_update_metadata_by_ids([deps.email_id], {
         is_archived: false,
       });
-      invalidate_mail_cache();
       invalidate_mail_stats();
+      emit_mail_item_updated({ id: deps.email_id, is_archived: false });
       reindex_ids([deps.email_id]);
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
       show_action_toast({
@@ -504,8 +502,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           await bulk_update_metadata_by_ids([deps.email_id], {
             is_archived: true,
           });
-          invalidate_mail_cache();
           invalidate_mail_stats();
+          emit_mail_item_updated({ id: deps.email_id, is_archived: true });
           window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
         },
       });

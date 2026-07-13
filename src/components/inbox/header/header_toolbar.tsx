@@ -53,7 +53,7 @@ import {
   create_default_metadata,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
-import { invalidate_mail_cache } from "@/hooks/email_list_cache";
+import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -577,7 +577,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               await bulk_patch_metadata({ items: valid_updates });
             }
 
-            invalidate_mail_cache();
+            stale_all_view_caches();
             await batch_archive({ ids: read_ids, tier: "hot" });
             emit_mail_items_removed({ ids: read_ids });
             invalidate_mail_stats();
@@ -932,7 +932,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               await bulk_patch_metadata({ items: valid_updates });
             }
 
-            invalidate_mail_cache();
+            stale_all_view_caches();
             await batch_archive({ ids: newsletter_ids, tier: "hot" });
             emit_mail_items_removed({ ids: newsletter_ids });
             invalidate_mail_stats();

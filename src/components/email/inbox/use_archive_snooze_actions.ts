@@ -26,7 +26,7 @@ import { useCallback } from "react";
 
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
-import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { MAIL_EVENTS, emit_mail_item_updated } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
   compute_archive_deltas,
@@ -34,7 +34,6 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
-import { invalidate_mail_cache } from "@/hooks/email_list_cache";
 import { get_thread_messages } from "@/services/api/mail";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import {
@@ -196,7 +195,9 @@ export function use_archive_snooze_actions({
       void bulk_update_metadata_by_ids(archive_ids, {
         is_archived: true,
       }).catch(() => {});
-      invalidate_mail_cache();
+      for (const id of archive_ids) {
+        emit_mail_item_updated({ id, is_archived: true });
+      }
       invalidate_mail_stats();
       show_action_toast({
         message: t("common.conversation_archived"),
@@ -220,7 +221,9 @@ export function use_archive_snooze_actions({
             void 0;
           }
           reindex_ids(Array.from(new Set([...archive_ids, ...removed_thread_ids])));
-          invalidate_mail_cache();
+          for (const id of archive_ids) {
+            emit_mail_item_updated({ id, is_archived: false });
+          }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });

@@ -158,7 +158,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
               </div>
               <div className="h-1.5 w-full rounded-full overflow-hidden bg-black/[0.05] dark:bg-white/[0.06]">
                 <div
-                  className="h-full rounded-full transition-all duration-300"
+                  className="h-full transition-all duration-300"
                   style={{
                     width: `${storage_percentage}%`,
                     backgroundColor:
