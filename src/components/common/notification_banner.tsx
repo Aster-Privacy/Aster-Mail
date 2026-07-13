@@ -64,9 +64,33 @@ export function NotificationBanner() {
       set_browser_permission(Notification.permission);
     };
 
-    const interval = setInterval(check_permission, 1000);
+    check_permission();
 
-    return () => clearInterval(interval);
+    window.addEventListener("focus", check_permission);
+    document.addEventListener("visibilitychange", check_permission);
+
+    let permission_status: PermissionStatus | null = null;
+    let cancelled = false;
+
+    if (navigator.permissions?.query) {
+      navigator.permissions
+        .query({ name: "notifications" as PermissionName })
+        .then((status) => {
+          if (cancelled) return;
+          permission_status = status;
+          status.addEventListener("change", check_permission);
+        })
+        .catch(() => {});
+    }
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", check_permission);
+      document.removeEventListener("visibilitychange", check_permission);
+      if (permission_status) {
+        permission_status.removeEventListener("change", check_permission);
+      }
+    };
   }, []);
 
   const should_hide =
