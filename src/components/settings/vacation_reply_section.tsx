@@ -301,21 +301,25 @@ export function VacationReplySection() {
     if (!subject.trim() || !body.trim()) return;
     set_is_saving(true);
     try {
-      const start_iso = start_date
-        ? setMinutes(
-            setHours(start_date, start_hour),
-            start_minute,
-          ).toISOString()
+      const format_ymd = (d: Date): string => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+
+        return `${y}-${m}-${day}`;
+      };
+      const start_ymd = start_date
+        ? format_ymd(setMinutes(setHours(start_date, start_hour), start_minute))
         : null;
-      const end_iso = end_date
-        ? setMinutes(setHours(end_date, end_hour), end_minute).toISOString()
+      const end_ymd = end_date
+        ? format_ymd(setMinutes(setHours(end_date, end_hour), end_minute))
         : null;
       const result = await upsert_vacation_reply({
         subject: subject.trim(),
         body: body.trim(),
         is_enabled,
-        start_date: start_iso,
-        end_date: end_iso,
+        start_date: start_ymd,
+        end_date: end_ymd,
         external_only,
       });
 
