@@ -225,6 +225,8 @@ export function use_keyboard_shortcuts(
     if (is_typing()) return;
 
     if (key === "c" && !has_cmd && !has_shift) {
+      if (is_any_modal_open) return;
+
       handle(h.on_compose);
 
       return;
