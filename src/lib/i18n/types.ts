@@ -1261,6 +1261,10 @@ export interface CommonTranslations {
   no_content: string;
   unblocked_count_senders: string;
   removed_count_from_allowlist: string;
+  unblock_failed: string;
+  remove_from_allowlist_failed: string;
+  bulk_unblock_failed: string;
+  bulk_remove_allowlist_failed: string;
   failed_to_add_label: string;
   failed_to_remove_label: string;
   failed_to_move_email: string;
