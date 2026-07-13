@@ -497,23 +497,30 @@ export const MobileEmailList = memo(function MobileEmailList({
         )}
 
         {emails.map((email) => (
-          <MobileEmailRow
+          <div
             key={email.id}
-            current_view={current_view}
-            email={email}
-            is_selected={selected_ids?.has(email.id)}
-            on_archive={on_archive}
-            on_delete={on_delete}
-            on_long_press={on_long_press}
-            on_mark_spam={on_mark_spam}
-            on_press={on_email_press}
-            on_snooze={on_snooze}
-            on_toggle_read={on_toggle_read}
-            on_toggle_star={on_toggle_star}
-            selection_mode={selection_mode}
-            swipe_left_action={swipe_left_action}
-            swipe_right_action={swipe_right_action}
-          />
+            style={{
+              contentVisibility: "auto",
+              containIntrinsicSize: "auto 76px",
+            }}
+          >
+            <MobileEmailRow
+              current_view={current_view}
+              email={email}
+              is_selected={selected_ids?.has(email.id)}
+              on_archive={on_archive}
+              on_delete={on_delete}
+              on_long_press={on_long_press}
+              on_mark_spam={on_mark_spam}
+              on_press={on_email_press}
+              on_snooze={on_snooze}
+              on_toggle_read={on_toggle_read}
+              on_toggle_star={on_toggle_star}
+              selection_mode={selection_mode}
+              swipe_left_action={swipe_left_action}
+              swipe_right_action={swipe_right_action}
+            />
+          </div>
         ))}
 
         {has_more && (
