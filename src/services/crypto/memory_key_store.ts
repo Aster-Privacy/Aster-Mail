@@ -41,6 +41,7 @@ import {
 } from "./crypto_key_cache";
 import {
   load_legacy_keks_into_memory,
+  load_previous_key_derived_keks_into_memory,
   clear_legacy_keks_from_memory,
   append_legacy_key_raw_bytes,
 } from "./legacy_keks";
@@ -209,6 +210,7 @@ export async function store_vault_in_memory(
   };
 
   await load_legacy_keks_into_memory(vault.legacy_keks);
+  await load_previous_key_derived_keks_into_memory(vault.previous_keys);
 
   secure_passphrase = SecureBuffer.from_string(
     passphrase,
