@@ -153,7 +153,9 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
                           : "var(--text-tertiary)",
                   }}
                 >
-                  {storage_percentage.toFixed(0)}%
+                  {storage_percentage > 0 && storage_percentage < 1
+                    ? "<1%"
+                    : `${storage_percentage.toFixed(0)}%`}
                 </span>
               </div>
               <div className="h-1.5 w-full rounded-full overflow-hidden bg-black/[0.05] dark:bg-white/[0.06]">
