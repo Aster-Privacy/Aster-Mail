@@ -257,6 +257,7 @@ export interface EmailListState {
   has_more: boolean;
   has_initial_load: boolean;
   has_load_error?: boolean;
+  has_load_more_error?: boolean;
   next_cursor?: string;
 }
 

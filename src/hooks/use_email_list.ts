@@ -363,7 +363,11 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     const next_page = page_ref.current + 1;
     const offset = next_page * page_size;
 
-    set_state((prev) => ({ ...prev, is_loading_more: true }));
+    set_state((prev) => ({
+      ...prev,
+      is_loading_more: true,
+      has_load_more_error: false,
+    }));
 
     load_more_abort_ref.current?.abort();
     const controller = new AbortController();
@@ -389,7 +393,11 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         return;
 
       if (!result) {
-        set_state((prev) => ({ ...prev, is_loading_more: false }));
+        set_state((prev) => ({
+          ...prev,
+          is_loading_more: false,
+          has_load_more_error: true,
+        }));
 
         return;
       }
@@ -409,6 +417,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           total_messages: result.total,
           has_more: result.has_more,
           has_initial_load: true,
+          has_load_more_error: false,
         };
       });
     } catch {
@@ -416,7 +425,11 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         !controller.signal.aborted &&
         committed_view_ref.current === fetch_view
       ) {
-        set_state((prev) => ({ ...prev, is_loading_more: false }));
+        set_state((prev) => ({
+          ...prev,
+          is_loading_more: false,
+          has_load_more_error: true,
+        }));
       }
     }
   }, [

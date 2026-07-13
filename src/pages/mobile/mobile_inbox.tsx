@@ -748,6 +748,9 @@ function MobileInbox({
           }
           is_loading_more={is_drafts_view ? false : mail_state.is_loading_more}
           has_load_error={is_drafts_view ? false : mail_state.has_load_error}
+          has_load_more_error={
+            is_drafts_view ? false : mail_state.has_load_more_error
+          }
           is_refreshing={is_refreshing}
           on_archive={is_drafts_view ? undefined : handle_archive}
           on_delete={handle_delete}

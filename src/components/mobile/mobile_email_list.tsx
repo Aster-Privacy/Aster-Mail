@@ -58,6 +58,7 @@ interface MobileEmailListProps {
   is_loading_more?: boolean;
   has_more?: boolean;
   has_load_error?: boolean;
+  has_load_more_error?: boolean;
   current_view: string;
   on_email_press: (id: string) => void;
   on_long_press: (id: string) => void;
@@ -181,6 +182,7 @@ export const MobileEmailList = memo(function MobileEmailList({
   is_loading_more,
   has_more,
   has_load_error,
+  has_load_more_error,
   current_view,
   on_email_press,
   on_long_press,
@@ -239,7 +241,7 @@ export const MobileEmailList = memo(function MobileEmailList({
     if (!el) return;
 
     const handle_scroll = () => {
-      if (has_more && !is_loading_more) {
+      if (has_more && !is_loading_more && !has_load_more_error) {
         const { scrollTop, scrollHeight, clientHeight } = el;
 
         if (scrollTop > 0) {
@@ -256,7 +258,7 @@ export const MobileEmailList = memo(function MobileEmailList({
     el.addEventListener("scroll", handle_scroll, { passive: true });
 
     return () => el.removeEventListener("scroll", handle_scroll);
-  }, [has_more, is_loading_more, on_load_more]);
+  }, [has_more, is_loading_more, has_load_more_error, on_load_more]);
 
   const on_drag_select_ref = useRef(on_drag_select);
 
@@ -525,7 +527,22 @@ export const MobileEmailList = memo(function MobileEmailList({
 
         {has_more && (
           <div className="flex items-center justify-center py-4">
-            {is_loading_more && <Spinner size="sm" />}
+            {is_loading_more ? (
+              <Spinner size="sm" />
+            ) : has_load_more_error ? (
+              <div className="flex flex-col items-center gap-1.5">
+                <span className="text-[13px] text-[var(--text-muted)]">
+                  {t("common.failed_to_load_more")}
+                </span>
+                <button
+                  className="text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
+                  type="button"
+                  onClick={on_load_more}
+                >
+                  {t("common.retry")}
+                </button>
+              </div>
+            ) : null}
           </div>
         )}
 
