@@ -55,11 +55,19 @@ export function dismiss_toast(id: string) {
   toast_listeners.forEach((listener) => listener([...toast_stack]));
 }
 
+export function resolve_toast_duration(
+  icon_type?: ToastIconType,
+  duration?: number,
+): number {
+  return duration ?? (icon_type === "error" ? 6000 : 2000);
+}
+
 export function show_toast(
   message: string,
   icon_type?: ToastIconType,
-  duration = 2000,
+  duration?: number,
 ): string {
+  const effective_duration = resolve_toast_duration(icon_type, duration);
   const new_toast: ToastState = {
     message,
     icon_type,
@@ -88,7 +96,7 @@ export function show_toast(
     toast_timeouts.delete(new_toast.id);
     toast_stack = toast_stack.filter((t) => t.id !== new_toast.id);
     toast_listeners.forEach((listener) => listener([...toast_stack]));
-  }, duration);
+  }, effective_duration);
 
   toast_timeouts.set(new_toast.id, timeout);
 
@@ -161,13 +169,13 @@ export function SimpleToast({ position = "bottom" }: SimpleToastProps) {
             layout={!reduce_motion}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
-            <div className="px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 bg-modal-bg border border-edge-secondary">
+            <div className="max-w-[min(92vw,420px)] px-4 py-2.5 rounded-xl shadow-lg flex items-start gap-2 bg-modal-bg border border-edge-secondary">
               {get_toast_icon(toast.icon_type) && (
-                <span className="flex-shrink-0 text-txt-primary">
+                <span className="flex-shrink-0 mt-0.5 text-txt-primary">
                   {get_toast_icon(toast.icon_type)}
                 </span>
               )}
-              <span className="text-[13px] font-medium text-txt-primary whitespace-nowrap">
+              <span className="text-[13px] font-medium text-txt-primary break-words">
                 {toast.message}
               </span>
               <button
