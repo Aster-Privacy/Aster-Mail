@@ -1601,6 +1601,7 @@ export interface CommonTranslations {
   max_size_per_file: string;
   uploading_progress: string;
   n_messages_count: string;
+  n_messages_count_one: string;
   view_all_messages: string;
   unable_to_decrypt: string;
   decrypt_session_expired_message: string;
@@ -3860,6 +3861,7 @@ export interface SettingsTranslations {
   snoozed_appear_here: string;
   scan_inbox_description: string;
   emails_count: string;
+  emails_count_one: string;
   newsletter: string;
   social: string;
   transactional: string;

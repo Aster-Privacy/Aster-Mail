@@ -202,9 +202,14 @@ export function EmailDetailBody({
                 {thread_messages.length > 1 && (
                   <span className="text-xs text-txt-muted">
                     ·{" "}
-                    {t("common.n_messages_count" as TranslationKey, {
-                      count: thread_messages.length,
-                    })}
+                    {t(
+                      (thread_messages.length === 1
+                        ? "common.n_messages_count_one"
+                        : "common.n_messages_count") as TranslationKey,
+                      {
+                        count: thread_messages.length,
+                      },
+                    )}
                   </span>
                 )}
               </div>

@@ -1268,6 +1268,7 @@ export const en: Translations = {
     max_size_per_file: "Max {{size}} per file",
     uploading_progress: "Uploading...",
     n_messages_count: "{{count}} messages",
+    n_messages_count_one: "{{count}} message",
     view_all_messages: "View all messages",
     unable_to_decrypt: "We could not open this message",
     decrypt_session_expired_message: "We could not open this message on this device, often because the session has ended. Your message and keys on the server are unchanged.",
@@ -4080,6 +4081,7 @@ export const en: Translations = {
     scan_inbox_description:
       "Click 'Scan Inbox' to detect newsletters and marketing emails",
     emails_count: "{{count}} emails",
+    emails_count_one: "{{count}} email",
     newsletter: "Newsletter",
     social: "Social",
     transactional: "Transactional",

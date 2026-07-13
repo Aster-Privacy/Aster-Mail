@@ -449,7 +449,12 @@ function SubscriptionRow({
           <span className="truncate">{sub.sender_email}</span>
           <span>·</span>
           <span className="flex-shrink-0">
-            {t("settings.emails_count", { count: String(sub.email_count) })}
+            {t(
+              sub.email_count === 1
+                ? "settings.emails_count_one"
+                : "settings.emails_count",
+              { count: String(sub.email_count) },
+            )}
           </span>
           <span>·</span>
           <span className="flex-shrink-0">

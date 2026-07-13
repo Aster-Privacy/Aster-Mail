@@ -96,7 +96,12 @@ export function SenderDetailHeader({
           <span className="truncate">{sub.sender_email}</span>
           <span>·</span>
           <span>
-            {t("settings.emails_count", { count: String(sub.email_count) })}
+            {t(
+              sub.email_count === 1
+                ? "settings.emails_count_one"
+                : "settings.emails_count",
+              { count: String(sub.email_count) },
+            )}
           </span>
         </div>
       </div>

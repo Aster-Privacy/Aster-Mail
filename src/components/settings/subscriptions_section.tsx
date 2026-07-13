@@ -436,9 +436,14 @@ export function SubscriptionsSection() {
                 <div className="flex items-center gap-4 flex-shrink-0">
                   <div className="text-right">
                     <p className="text-[12px] font-medium tabular-nums text-txt-secondary">
-                      {t("settings.emails_count", {
-                        count: String(sub.email_count),
-                      })}
+                      {t(
+                        sub.email_count === 1
+                          ? "settings.emails_count_one"
+                          : "settings.emails_count",
+                        {
+                          count: String(sub.email_count),
+                        },
+                      )}
                     </p>
                     <div className="flex items-center gap-1 justify-end">
                       <CalendarIcon className="w-3 h-3 text-txt-muted" />

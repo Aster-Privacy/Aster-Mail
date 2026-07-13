@@ -285,9 +285,14 @@ export function ImportSection({
                     <p className="text-[12px] text-[var(--mobile-text-muted)]">
                       {job.status === "processing" || job.status === "pending"
                         ? `${job.processed_emails}/${job.total_emails}`
-                        : t("settings.emails_count", {
-                            count: job.processed_emails,
-                          })}
+                        : t(
+                            job.processed_emails === 1
+                              ? "settings.emails_count_one"
+                              : "settings.emails_count",
+                            {
+                              count: job.processed_emails,
+                            },
+                          )}
                     </p>
                   </div>
                   <span
