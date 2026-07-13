@@ -248,16 +248,22 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
         >
           <div
-            className="px-4 py-2.5 rounded-xl shadow-lg flex flex-col gap-2 bg-modal-bg border border-edge-secondary"
+            className={`rounded-xl shadow-lg flex flex-col bg-modal-bg border border-edge-secondary ${
+              toast.progress ? "gap-2.5 px-4 py-3" : "gap-2 px-4 py-2.5"
+            }`}
             style={{
-              minWidth: toast.progress ? "280px" : undefined,
+              minWidth: toast.progress ? "300px" : undefined,
             }}
           >
             <div className="flex items-center gap-2 whitespace-nowrap">
               <span className="flex-shrink-0 text-txt-primary">
                 {get_icon_for_action(toast.action_type)}
               </span>
-              <span className="text-[13px] font-medium text-txt-primary">
+              <span
+                className={`text-[13px] font-medium text-txt-primary ${
+                  toast.progress ? "flex-1 min-w-0 truncate" : ""
+                }`}
+              >
                 {toast.message}
               </span>
               {toast.on_undo && !toast.progress && (
@@ -277,24 +283,16 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
                   {t("mail.view_message")}
                 </button>
               )}
-              {toast.on_cancel && toast.progress && (
-                <button
-                  className="text-[13px] font-medium ml-1 hover:underline text-brand"
-                  onClick={handle_cancel}
-                >
-                  {t("common.cancel")}
-                </button>
-              )}
               <button
                 aria-label={t("common.dismiss")}
-                className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors p-1.5 -m-1.5"
+                className="flex-shrink-0 text-txt-muted hover:text-txt-primary hover:bg-edge-primary/60 rounded-full p-1 transition-colors ml-1"
                 onClick={handle_cancel}
               >
                 <XMarkIcon className="w-3.5 h-3.5" />
               </button>
             </div>
             {toast.progress && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 pt-0.5">
                 <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-edge-primary">
                   <div
                     className="h-full rounded-full transition-all duration-200 bg-brand"
@@ -303,9 +301,17 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
                     }}
                   />
                 </div>
-                <span className="text-xs font-medium min-w-[32px] text-right text-txt-secondary">
+                <span className="text-xs font-medium tabular-nums min-w-[32px] text-right text-txt-secondary">
                   {progress_percentage}%
                 </span>
+                {toast.on_cancel && (
+                  <button
+                    className="text-[13px] font-medium text-brand hover:underline flex-shrink-0"
+                    onClick={handle_cancel}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                )}
               </div>
             )}
           </div>
