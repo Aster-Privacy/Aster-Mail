@@ -291,10 +291,10 @@ export function SubscriptionsContent({
         </div>
         <div className="flex-1" />
         <div className="relative flex-1 max-w-xs">
-          <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
           <Input
             autoComplete="off"
-            className="w-full pl-8 pr-3 bg-transparent"
+            className="w-full !pl-9 bg-transparent"
             placeholder={t("common.search")}
             size="md"
             type="text"
