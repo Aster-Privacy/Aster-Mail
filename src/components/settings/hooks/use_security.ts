@@ -22,6 +22,8 @@ import { useState, useEffect, useCallback } from "react";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
+import { use_settings_cache } from "@/contexts/settings_cache_context";
+import type { ApiResponse } from "@/services/api/client";
 import { get_totp_status, TotpStatusResponse } from "@/services/api/totp";
 import {
   change_password,
@@ -118,6 +120,7 @@ export function use_security() {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
   const { user } = use_auth();
+  const cache = use_settings_cache();
   const {
     key_age_hours,
     key_fingerprint,
@@ -168,13 +171,19 @@ export function use_security() {
 
       if (response.data) {
         set_totp_status(response.data);
+        cache.set_entry("totp_status", {
+          data: response,
+          error: null,
+          fetched_at: Date.now(),
+          is_loading: false,
+        });
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
 
       return;
     }
-  }, []);
+  }, [cache]);
 
   const fetch_login_alerts_status = useCallback(async () => {
     try {
@@ -182,13 +191,19 @@ export function use_security() {
 
       if (response.data) {
         set_login_alerts_enabled(response.data.enabled);
+        cache.set_entry("login_alerts_status", {
+          data: response,
+          error: null,
+          fetched_at: Date.now(),
+          is_loading: false,
+        });
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
 
       return;
     }
-  }, []);
+  }, [cache]);
 
   const fetch_login_events = useCallback(async () => {
     set_login_events_loading(true);
@@ -231,8 +246,56 @@ export function use_security() {
       const result = await get_recovery_email(vault);
 
       set_recovery_email_verified(result.data.verified ?? false);
+      cache.set_entry("recovery_email_status", {
+        data: result,
+        error: null,
+        fetched_at: Date.now(),
+        is_loading: false,
+      });
     } catch {}
-  }, []);
+  }, [cache]);
+
+  const hydrate_totp_status = useCallback(async () => {
+    const cached = cache.get_entry<ApiResponse<TotpStatusResponse>>(
+      "totp_status",
+    );
+
+    if (cache.is_fresh("totp_status") && cached?.data?.data) {
+      set_totp_status(cached.data.data);
+
+      return;
+    }
+
+    await fetch_totp_status();
+  }, [cache, fetch_totp_status]);
+
+  const hydrate_login_alerts_status = useCallback(async () => {
+    const cached = cache.get_entry<ApiResponse<{ enabled: boolean }>>(
+      "login_alerts_status",
+    );
+
+    if (cache.is_fresh("login_alerts_status") && cached?.data?.data) {
+      set_login_alerts_enabled(cached.data.data.enabled);
+
+      return;
+    }
+
+    await fetch_login_alerts_status();
+  }, [cache, fetch_login_alerts_status]);
+
+  const hydrate_recovery_email_status = useCallback(async () => {
+    const cached = cache.get_entry<{ data: { verified: boolean } }>(
+      "recovery_email_status",
+    );
+
+    if (cache.is_fresh("recovery_email_status") && cached?.data) {
+      set_recovery_email_verified(cached.data.data.verified ?? false);
+
+      return;
+    }
+
+    await fetch_recovery_email_status();
+  }, [cache, fetch_recovery_email_status]);
 
   const fetch_sessions = useCallback(async () => {
     set_sessions_loading(true);
@@ -258,19 +321,19 @@ export function use_security() {
 
   useEffect(() => {
     Promise.all([
-      fetch_totp_status(),
-      fetch_login_alerts_status(),
-      fetch_recovery_email_status(),
+      hydrate_totp_status(),
+      hydrate_login_alerts_status(),
+      hydrate_recovery_email_status(),
     ]).then(() => set_security_score_loaded(true));
     fetch_ipfs_status();
     fetch_sessions();
     fetch_login_events();
   }, [
-    fetch_totp_status,
-    fetch_login_alerts_status,
+    hydrate_totp_status,
+    hydrate_login_alerts_status,
+    hydrate_recovery_email_status,
     fetch_ipfs_status,
     fetch_sessions,
-    fetch_recovery_email_status,
     fetch_login_events,
   ]);
 

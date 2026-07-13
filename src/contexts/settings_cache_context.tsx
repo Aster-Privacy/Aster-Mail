@@ -42,7 +42,11 @@ export type SettingsPanelName =
   | "sessions"
   | "recovery_email"
   | "preferences"
-  | "trusted_devices";
+  | "trusted_devices"
+  | "totp_status"
+  | "login_alerts_status"
+  | "recovery_email_status"
+  | "passkey_list";
 
 export interface SettingsPanelEntry<T = unknown> {
   data: T | null;

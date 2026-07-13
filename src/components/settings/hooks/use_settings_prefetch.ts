@@ -38,6 +38,11 @@ import { list_ghost_aliases } from "@/services/api/ghost_aliases";
 import { list_aliases } from "@/services/api/aliases";
 import { list_sessions } from "@/services/api/sessions";
 import { list_devices } from "@/services/api/devices";
+import { get_totp_status } from "@/services/api/totp";
+import { get_login_alerts_status } from "@/services/api/auth";
+import { get_recovery_email } from "@/services/api/recovery_email";
+import { list_hardware_keys } from "@/services/api/webauthn";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 
 type Fetcher = () => Promise<unknown>;
 
@@ -57,6 +62,10 @@ const PANEL_FETCHERS: Record<SettingsPanelName, Fetcher> = {
   recovery_email: () => Promise.resolve(null),
   preferences: () => Promise.resolve(null),
   trusted_devices: () => list_devices(),
+  totp_status: () => get_totp_status(),
+  login_alerts_status: () => get_login_alerts_status(),
+  recovery_email_status: () => get_recovery_email(get_vault_from_memory()),
+  passkey_list: () => list_hardware_keys(),
 };
 
 const PREFETCH_PANELS: SettingsPanelName[] = [
@@ -73,6 +82,10 @@ const PREFETCH_PANELS: SettingsPanelName[] = [
   "aliases",
   "sessions",
   "trusted_devices",
+  "totp_status",
+  "login_alerts_status",
+  "recovery_email_status",
+  "passkey_list",
 ];
 
 export function use_settings_prefetch(is_active: boolean) {
