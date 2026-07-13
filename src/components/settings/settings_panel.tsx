@@ -236,7 +236,9 @@ function SettingsPanelInner({
     () => sessionStorage.getItem("aster_suspended") === "true",
   );
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
-  const [has_devices, set_has_devices] = useState(false);
+  const [has_devices, set_has_devices] = useState(
+    () => localStorage.getItem("aster_has_devices") === "1",
+  );
   const [is_family_plan, set_is_family_plan] = useState(
     () => localStorage.getItem("aster_is_family_plan") === "1",
   );
@@ -309,7 +311,10 @@ function SettingsPanelInner({
       get_storage_addons();
       get_credits();
       list_devices().then((res) => {
-        set_has_devices((res.data?.devices?.length ?? 0) > 0);
+        const has_any = (res.data?.devices?.length ?? 0) > 0;
+
+        localStorage.setItem("aster_has_devices", has_any ? "1" : "0");
+        set_has_devices(has_any);
       });
     } else if (!is_open) {
       animation_complete_ref.current = false;
