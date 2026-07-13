@@ -58,6 +58,7 @@ const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 // backgrounded and never settled). Recovery paths may then supersede it
 // instead of deferring forever to a dead `build_in_progress` latch.
 const BUILD_STALE_MS = 30000;
+const BUILD_FETCH_DEADLINE_MS = 30000;
 
 export interface CategoryIndexEntry {
   id: string;
@@ -861,6 +862,18 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
   };
 }
 
+function with_deadline<T>(
+  promise: Promise<T>,
+  deadline_ms: number,
+): Promise<T | null> {
+  return Promise.race([
+    promise,
+    new Promise<null>((resolve) => {
+      setTimeout(() => resolve(null), deadline_ms);
+    }),
+  ]);
+}
+
 async function entries_from_items(
   items: MailItem[],
 ): Promise<{ upserts: CategoryIndexEntry[]; removals: string[] }> {
@@ -920,17 +933,20 @@ export async function build_index(options?: {
     for (;;) {
       if (options?.signal?.aborted || token !== build_token) return;
 
-      const response = await list_mail_items({
-        item_type: "received",
-        is_trashed: false,
-        is_spam: false,
-        is_archived: false,
-        is_snoozed: false,
-        limit: BUILD_PAGE_SIZE,
-        ...(cursor ? { cursor } : {}),
-      });
+      const response = await with_deadline(
+        list_mail_items({
+          item_type: "received",
+          is_trashed: false,
+          is_spam: false,
+          is_archived: false,
+          is_snoozed: false,
+          limit: BUILD_PAGE_SIZE,
+          ...(cursor ? { cursor } : {}),
+        }),
+        BUILD_FETCH_DEADLINE_MS,
+      );
 
-      if (!response.data) break;
+      if (!response?.data) break;
       if (token !== build_token) return;
 
       const { items, has_more, next_cursor } = response.data;
@@ -1008,17 +1024,20 @@ export async function sync_recent(): Promise<void> {
   const token = build_token;
 
   try {
-    const response = await list_mail_items({
-      item_type: "received",
-      is_trashed: false,
-      is_spam: false,
-      is_archived: false,
-      is_snoozed: false,
-      limit: BUILD_PAGE_SIZE,
-    });
+    const response = await with_deadline(
+      list_mail_items({
+        item_type: "received",
+        is_trashed: false,
+        is_spam: false,
+        is_archived: false,
+        is_snoozed: false,
+        limit: BUILD_PAGE_SIZE,
+      }),
+      BUILD_FETCH_DEADLINE_MS,
+    );
 
     if (token !== build_token) return;
-    if (!response.data) {
+    if (!response?.data) {
       resync_failures += 1;
       if (resync_failures < MAX_RESYNC_FAILURES) schedule_resync();
 

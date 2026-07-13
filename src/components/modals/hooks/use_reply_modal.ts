@@ -51,7 +51,10 @@ import {
   delete_draft,
   type DraftContent,
 } from "@/services/api/multi_drafts";
-import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  get_vault_from_memory,
+  wait_for_keys_ready,
+} from "@/services/crypto/memory_key_store";
 import { api_client } from "@/services/api/client";
 import { has_csrf_token } from "@/services/api/csrf";
 import { use_should_reduce_motion } from "@/provider";
@@ -544,6 +547,10 @@ export function use_reply_modal({
   const save_thread_draft = useCallback(
     async (text: string) => {
       if (!has_user_content(text) || !original_email_id) return;
+
+      if (!get_vault_from_memory()) {
+        await wait_for_keys_ready();
+      }
 
       const draft_vault = get_vault_from_memory();
 

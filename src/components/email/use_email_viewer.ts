@@ -607,12 +607,17 @@ export function use_email_viewer({
       loaded_email_id_ref.current = email_id;
 
       if (item.thread_token && !cancelled) {
-        const { get_vault_from_memory } = await import(
+        const { get_vault_from_memory, wait_for_keys_ready } = await import(
           "@/services/crypto/memory_key_store"
         );
+
+        if (!get_vault_from_memory()) {
+          await wait_for_keys_ready();
+        }
+
         const current_vault = get_vault_from_memory();
 
-        if (current_vault) {
+        if (current_vault && !cancelled) {
           const draft_result = await get_draft_by_thread(
             item.thread_token,
             current_vault,

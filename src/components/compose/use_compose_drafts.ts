@@ -30,6 +30,8 @@ import {
   draft_manager,
   type DraftData,
 } from "@/services/crypto/encrypted_drafts";
+import { api_client } from "@/services/api/client";
+import { has_csrf_token } from "@/services/api/csrf";
 import {
   type Attachment,
   type DraftStatus,
@@ -163,6 +165,10 @@ export function use_compose_drafts({
       };
 
       try {
+        if (!has_csrf_token()) {
+          await api_client.refresh_session();
+        }
+
         const result = await draft_manager.save_draft(
           context_id,
           draft_data,
