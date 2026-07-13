@@ -121,7 +121,7 @@ function VacationDatePicker({
             <span className="flex-1 truncate">{display_text}</span>
             {date && (
               <span
-                className="text-xs opacity-60 hover:opacity-100 transition-opacity"
+                className="text-xs opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                   on_clear();
