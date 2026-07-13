@@ -2502,6 +2502,7 @@ export const nl = {
     toast_position_description:
       "Waar meldingspop-ups op het scherm verschijnen",
     toast_position_top_right: "Rechtsboven",
+    toast_position_middle: "Midden",
     toast_position_bottom_right: "Rechtsonder",
     toast_position_top_left: "Linksboven",
     toast_position_bottom_left: "Linksonder",

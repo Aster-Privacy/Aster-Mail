@@ -131,19 +131,19 @@ export function CurrentPlanCard({
       </div>
 
       {has_payment_failed && (
-        <div className="p-4 rounded-lg flex items-start gap-3 bg-yellow-400">
-          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-yellow-950" />
+        <div className="p-4 rounded-lg flex items-start gap-3 bg-red-600">
+          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-50" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-yellow-950">
+            <p className="text-sm font-medium text-red-50">
               {t("settings.payment_failed_warning")}
             </p>
-            <p className="text-xs mt-1 text-yellow-900">
+            <p className="text-xs mt-1 text-red-100">
               {t("settings.grace_period_remaining", {
                 days: String(grace_days_remaining),
               })}
             </p>
             <button
-              className="mt-3 inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-yellow-950 text-yellow-50 hover:bg-yellow-900 transition-colors disabled:opacity-50"
+              className="mt-3 inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-950 text-red-50 hover:bg-red-900 transition-colors disabled:opacity-50"
               disabled={is_action_loading}
               type="button"
               onClick={on_manage_billing}

@@ -2508,6 +2508,7 @@ export const pl = {
     toast_position_description:
       "Gdzie na ekranie pojawiają się powiadomienia",
     toast_position_top_right: "Prawy górny róg",
+    toast_position_middle: "Na środku",
     toast_position_bottom_right: "Prawy dolny róg",
     toast_position_top_left: "Lewy górny róg",
     toast_position_bottom_left: "Lewy dolny róg",

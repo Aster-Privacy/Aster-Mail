@@ -49,7 +49,13 @@ export interface UserPreferences {
   notify_new_email: boolean;
   notify_replies: boolean;
   notify_mentions: boolean;
-  toast_position: "top-right" | "bottom-right" | "top-left" | "bottom-left";
+  toast_position:
+    | "top"
+    | "bottom"
+    | "top-right"
+    | "bottom-right"
+    | "top-left"
+    | "bottom-left";
   quiet_hours_enabled: boolean;
   quiet_hours_start: string;
   quiet_hours_end: string;
@@ -348,7 +354,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   notify_new_email: true,
   notify_replies: true,
   notify_mentions: true,
-  toast_position: "bottom-right",
+  toast_position: "bottom",
   quiet_hours_enabled: false,
   quiet_hours_start: "22:00",
   quiet_hours_end: "07:00",

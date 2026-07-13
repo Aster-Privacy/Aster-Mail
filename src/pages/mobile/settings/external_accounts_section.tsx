@@ -792,7 +792,7 @@ export function ExternalAccountsSection({
                       >
                         <img
                           alt=""
-                          className="h-5 w-5 object-contain"
+                          className="h-full w-full object-cover"
                           src={get_favicon_url(domain)}
                           onError={() =>
                             state.set_failed_icons(

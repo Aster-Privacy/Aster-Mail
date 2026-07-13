@@ -2508,6 +2508,7 @@ export const es = {
     toast_position_description:
       "Dónde aparecen las notificaciones emergentes en la pantalla",
     toast_position_top_right: "Arriba a la derecha",
+    toast_position_middle: "En el centro",
     toast_position_bottom_right: "Abajo a la derecha",
     toast_position_top_left: "Arriba a la izquierda",
     toast_position_bottom_left: "Abajo a la izquierda",

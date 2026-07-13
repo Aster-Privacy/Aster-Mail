@@ -2165,6 +2165,7 @@ export interface SettingsTranslations {
   toast_position: string;
   toast_position_description: string;
   toast_position_top_right: string;
+  toast_position_middle: string;
   toast_position_bottom_right: string;
   toast_position_top_left: string;
   toast_position_bottom_left: string;

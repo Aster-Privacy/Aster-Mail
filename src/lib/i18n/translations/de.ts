@@ -2497,6 +2497,7 @@ export const de = {
     toast_position_description:
       "Wo Benachrichtigungen auf dem Bildschirm erscheinen",
     toast_position_top_right: "Oben rechts",
+    toast_position_middle: "Mitte",
     toast_position_bottom_right: "Unten rechts",
     toast_position_top_left: "Oben links",
     toast_position_bottom_left: "Unten links",

@@ -2556,6 +2556,7 @@ export const ar = {
     toast_position: "موضع الإشعارات",
     toast_position_description: "أين تظهر الإشعارات المنبثقة على الشاشة",
     toast_position_top_right: "أعلى اليمين",
+    toast_position_middle: "في المنتصف",
     toast_position_bottom_right: "أسفل اليمين",
     toast_position_top_left: "أعلى اليسار",
     toast_position_bottom_left: "أسفل اليسار",

@@ -2524,6 +2524,7 @@ export const it = {
     toast_position_description:
       "Dove appaiono le notifiche a comparsa sullo schermo",
     toast_position_top_right: "In alto a destra",
+    toast_position_middle: "Al centro",
     toast_position_bottom_right: "In basso a destra",
     toast_position_top_left: "In alto a sinistra",
     toast_position_bottom_left: "In basso a sinistra",

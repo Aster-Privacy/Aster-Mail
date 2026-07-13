@@ -85,7 +85,7 @@ export function AccountCard({
               >
                 <img
                   alt=""
-                  className="w-5 h-5 object-contain"
+                  className="w-full h-full object-cover"
                   src={get_favicon_url(domain)}
                   onError={() => {
                     set_failed_icons((prev) => new Set([...prev, domain]));

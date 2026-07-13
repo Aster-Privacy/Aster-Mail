@@ -28,9 +28,11 @@ import {
   XCircleIcon,
   ArrowRightIcon,
   ChevronRightIcon,
+  LockClosedIcon,
+  KeyIcon,
+  FingerPrintIcon,
 } from "@heroicons/react/24/outline";
 
-import { Button } from "@aster/ui";
 import { Modal, ModalHeader, ModalTitle, ModalBody } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -60,39 +62,11 @@ function get_status(score: number): Status {
   return "weak";
 }
 
-const PANEL_CLASS: Record<Status, string> = {
-  weak:    "bg-red-500/10 border-red-500/20",
-  fair:    "bg-amber-500/10 border-amber-500/20",
-  partial: "bg-blue-500/10 border-blue-500/20",
-  strong:  "bg-green-500/10 border-green-500/20",
-};
-
-const BADGE_CLASS: Record<Status, string> = {
-  weak:    "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400",
-  fair:    "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400",
-  partial: "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400",
-  strong:  "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400",
-};
-
-const SCORE_TEXT_CLASS: Record<Status, string> = {
-  weak:    "text-red-600 dark:text-red-400",
-  fair:    "text-amber-600 dark:text-amber-400",
-  partial: "text-blue-600 dark:text-blue-400",
-  strong:  "text-green-600 dark:text-green-400",
-};
-
-const TRACK_CLASS: Record<Status, string> = {
-  weak:    "bg-red-500/15",
-  fair:    "bg-amber-500/15",
-  partial: "bg-blue-500/15",
-  strong:  "bg-green-500/15",
-};
-
-const FILL_CLASS: Record<Status, string> = {
-  weak:    "bg-red-500",
-  fair:    "bg-amber-500",
-  partial: "bg-blue-500",
-  strong:  "bg-green-500",
+const BG_COLOR: Record<Status, string> = {
+  weak:    "#7f1d1d",
+  fair:    "#78350f",
+  partial: "#1e3a8a",
+  strong:  "#14532d",
 };
 
 
@@ -161,44 +135,71 @@ export function AccountProtectionScore({
   const bar_pct = Math.round((score / MAX_SCORE) * 100);
 
   return (
-    <div className={`rounded-lg p-4 border ${PANEL_CLASS[status]}`}>
-      <div className="flex items-center justify-between mb-3">
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border ${BADGE_CLASS[status]}`}
-        >
-          <ShieldIcon className="w-3.5 h-3.5" />
-          {status_label}
-        </span>
-        <span className={`text-xs font-semibold tabular-nums ${SCORE_TEXT_CLASS[status]}`}>
-          {score}
-          <span className="font-normal text-txt-muted">/{MAX_SCORE}</span>
-        </span>
-      </div>
-
-      <h3 className="text-base font-bold text-txt-primary mb-1 tracking-tight">
-        {t("settings.account_protection_title")}
-      </h3>
-
-      <p className="text-sm text-txt-muted mb-4 max-w-xs">{hint}</p>
-
-      <div className={`mb-4 h-1.5 rounded-full overflow-hidden ${TRACK_CLASS[status]}`}>
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${FILL_CLASS[status]}`}
-          style={{ width: `${bar_pct}%` }}
+    <div
+      className="relative overflow-hidden rounded-2xl p-5"
+      style={{ backgroundColor: BG_COLOR[status] }}
+    >
+      <div
+        className="absolute right-4 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none select-none"
+        aria-hidden
+      >
+        <KeyIcon
+          className="w-8 h-8 text-white/15"
+          style={{ transform: "translateY(-20px) rotate(-15deg)" }}
+        />
+        <ShieldIcon className="w-20 h-20 text-white/20" />
+        <FingerPrintIcon
+          className="w-10 h-10 text-white/12"
+          style={{ transform: "translateY(-24px) rotate(12deg)" }}
+        />
+        <LockClosedIcon
+          className="w-7 h-7 text-white/10"
+          style={{ transform: "translateY(-4px) rotate(-8deg)" }}
         />
       </div>
 
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => set_popover_open(true)}
-      >
-        {t("settings.protection_breakdown_title")}
-        <ArrowRightIcon className="w-4 h-4" />
-      </Button>
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-3">
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] leading-none font-medium bg-white/20 text-white border border-white/30">
+            {status_label}
+          </span>
+          <span className="text-xs font-semibold text-white/60 tabular-nums">
+            {score}
+            <span className="font-normal">/{MAX_SCORE}</span>
+          </span>
+        </div>
 
-      <Modal
-        is_open={popover_open}
+        <h3
+          className="text-base font-bold text-white mb-1 tracking-tight"
+          style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
+        >
+          {t("settings.account_protection_title")}
+        </h3>
+
+        <p className="text-sm text-white/65 mb-4 max-w-xs">{hint}</p>
+
+        <div className="mb-4 h-1.5 rounded-full bg-white/20 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-white/70 transition-all duration-500"
+            style={{ width: `${bar_pct}%` }}
+          />
+        </div>
+
+        <button
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[14px] text-sm font-semibold bg-white transition-opacity hover:opacity-90"
+          style={{
+            color: BG_COLOR[status],
+            boxShadow: "0 2px 8px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.9) inset",
+          }}
+          type="button"
+          onClick={() => set_popover_open(true)}
+        >
+          {t("settings.protection_breakdown_title")}
+          <ArrowRightIcon className="w-4 h-4" />
+        </button>
+
+        <Modal
+          is_open={popover_open}
           size="sm"
           on_close={() => set_popover_open(false)}
         >
@@ -259,6 +260,7 @@ export function AccountProtectionScore({
             </ul>
           </ModalBody>
         </Modal>
+      </div>
     </div>
   );
 }
