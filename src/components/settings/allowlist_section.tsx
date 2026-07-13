@@ -397,6 +397,7 @@ export function AllowlistSection() {
         </div>
       ) : filtered_senders.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 rounded-lg border bg-surf-tertiary border-edge-secondary">
+          <MagnifyingGlassIcon className="w-6 h-6 mb-2 text-txt-muted" />
           <p className="text-[14px] font-medium text-txt-primary">
             {t("common.no_results")}
           </p>
