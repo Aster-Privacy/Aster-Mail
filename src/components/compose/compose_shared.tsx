@@ -24,6 +24,8 @@ import type {
 } from "@/services/api/multi_drafts";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { is_valid_email } from "@/lib/utils";
+
 export interface ComposeToolbarState {
   scheduled_time: Date | null;
   is_scheduling: boolean;
@@ -298,8 +300,7 @@ export function extract_inline_images(html: string): {
   };
 }
 
-export const is_valid_email = (email: string): boolean =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+export { is_valid_email };
 
 export function resolve_attachment_name(
   file_name: string,

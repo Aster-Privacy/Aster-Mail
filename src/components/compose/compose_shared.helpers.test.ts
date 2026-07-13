@@ -25,7 +25,10 @@ import {
   resolve_attachment_name,
   is_duplicate_attachment,
   decide_draft_close_action,
+  has_meaningful_compose_content,
+  is_valid_email,
 } from "@/components/compose/compose_shared";
+import { is_valid_email as is_valid_email_utils } from "@/lib/utils";
 
 describe("commit_pending_recipients", () => {
   it("appends a valid typed to-recipient that was never committed", () => {
@@ -133,6 +136,23 @@ describe("is_duplicate_attachment", () => {
         size: 200,
       }),
     ).toBe(false);
+  });
+});
+
+describe("is_valid_email shared predicate", () => {
+  it("is the same predicate used by send acceptance and chip commit", () => {
+    expect(is_valid_email).toBe(is_valid_email_utils);
+  });
+
+  it("accepts an address that both send and Enter should agree on", () => {
+    expect(is_valid_email("a@b.c")).toBe(true);
+    expect(is_valid_email("alice@example.com")).toBe(true);
+  });
+
+  it("rejects malformed addresses", () => {
+    expect(is_valid_email("not-an-email")).toBe(false);
+    expect(is_valid_email("a@b")).toBe(false);
+    expect(is_valid_email("a b@c.d")).toBe(false);
   });
 });
 

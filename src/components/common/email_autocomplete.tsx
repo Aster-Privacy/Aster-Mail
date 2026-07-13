@@ -30,10 +30,8 @@ import {
 } from "@/components/ui/popover";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { BadgeChip } from "@/components/ui/badge_chip";
-import { cn, get_email_username } from "@/lib/utils";
+import { cn, get_email_username, is_valid_email } from "@/lib/utils";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
-
-const EMAIL_REGEX = /^[^\s@]+@[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z]{2,}$/;
 
 function SuggestionRow({
   suggestion,
@@ -216,7 +214,7 @@ export function EmailAutocomplete({
 
       const trimmed = value.trim();
 
-      if (trimmed && EMAIL_REGEX.test(trimmed)) {
+      if (trimmed && is_valid_email(trimmed)) {
         on_select(trimmed);
       }
     }, 0);
@@ -229,7 +227,7 @@ export function EmailAutocomplete({
           e.preventDefault();
           const trimmed = value.trim();
 
-          if (trimmed && EMAIL_REGEX.test(trimmed)) {
+          if (trimmed && is_valid_email(trimmed)) {
             on_select(trimmed);
           }
         }
@@ -290,10 +288,10 @@ export function EmailAutocomplete({
       for (const part of parts) {
         const email = extract_email_from_text(part);
 
-        if (EMAIL_REGEX.test(email) && !seen.has(email.toLowerCase())) {
+        if (is_valid_email(email) && !seen.has(email.toLowerCase())) {
           on_select(email);
           seen.add(email.toLowerCase());
-        } else if (!EMAIL_REGEX.test(email)) {
+        } else if (!is_valid_email(email)) {
           remaining.push(part);
         }
       }
@@ -310,7 +308,7 @@ export function EmailAutocomplete({
       if (/[,;]$/.test(new_value)) {
         const email_part = new_value.slice(0, -1).trim();
 
-        if (EMAIL_REGEX.test(email_part)) {
+        if (is_valid_email(email_part)) {
           on_select(email_part);
 
           return;
