@@ -27,6 +27,7 @@ import {
   ArrowPathIcon,
   BoltIcon,
   CheckIcon,
+  Bars2Icon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -242,14 +243,17 @@ export function HeaderToolbar({
             <DropdownMenuItem
               onClick={() => handle_batch_action("mark_all_read")}
             >
+              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.mark_all_read")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handle_batch_action("archive_all_read")}
             >
+              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.archive_all_read_emails")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handle_batch_action("delete_old")}>
+              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.delete_emails_older_than_30_days")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -257,16 +261,19 @@ export function HeaderToolbar({
             <DropdownMenuItem
               onClick={() => handle_batch_action("archive_from_sender")}
             >
+              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.archive_all_from_sender")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handle_batch_action("delete_from_sender")}
             >
+              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.delete_all_from_sender")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handle_batch_action("move_from_sender")}
             >
+              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.move_all_from_sender")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -274,16 +281,19 @@ export function HeaderToolbar({
             <DropdownMenuItem
               onClick={() => handle_batch_action("snooze_similar")}
             >
+              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.snooze_similar_emails")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handle_batch_action("unsubscribe_bulk")}
             >
+              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.bulk_unsubscribe")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handle_batch_action("archive_newsletters")}
             >
+              <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
               {t("mail.archive_all_newsletters")}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -389,14 +399,17 @@ export function MobileOverflowMenu({
         <DropdownMenuSeparator />
         <DropdownMenuLabel>{t("mail.quick_actions")}</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => handle_batch_action("mark_all_read")}>
+          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.mark_all_read")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handle_batch_action("archive_all_read")}
         >
+          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.archive_all_read_emails")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handle_batch_action("delete_old")}>
+          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.delete_emails_older_than_30_days")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -404,31 +417,37 @@ export function MobileOverflowMenu({
         <DropdownMenuItem
           onClick={() => handle_batch_action("archive_from_sender")}
         >
+          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.archive_all_from_sender")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handle_batch_action("delete_from_sender")}
         >
+          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.delete_all_from_sender")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handle_batch_action("move_from_sender")}
         >
+          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.move_all_from_sender")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuLabel>{t("mail.smart_actions")}</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => handle_batch_action("snooze_similar")}>
+          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.snooze_similar_emails")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handle_batch_action("unsubscribe_bulk")}
         >
+          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.bulk_unsubscribe")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handle_batch_action("archive_newsletters")}
         >
+          <Bars2Icon className="w-4 h-4 mr-2 text-txt-muted cursor-grab" />
           {t("mail.archive_all_newsletters")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
