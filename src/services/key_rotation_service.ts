@@ -236,6 +236,12 @@ export async function perform_key_rotation(
     const old_folder_hash = new Uint8Array(
       await crypto.subtle.digest(HASH_ALG, old_folder_material),
     );
+    const old_tag_material = new TextEncoder().encode(
+      old_identity_key + "astermail-tags-v1",
+    );
+    const old_tag_hash = new Uint8Array(
+      await crypto.subtle.digest(HASH_ALG, old_tag_material),
+    );
 
     let previous_keys = current_vault.previous_keys
       ? [...current_vault.previous_keys]
@@ -260,6 +266,10 @@ export async function perform_key_rotation(
     legacy_keks = prepend_kek_to_list(
       legacy_keks,
       serialize_kek_for_vault(old_folder_hash),
+    );
+    legacy_keks = prepend_kek_to_list(
+      legacy_keks,
+      serialize_kek_for_vault(old_tag_hash),
     );
 
     const new_ratchet_keys = await generate_ratchet_keys();

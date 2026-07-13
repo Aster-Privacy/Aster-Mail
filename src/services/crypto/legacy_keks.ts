@@ -28,6 +28,19 @@ const DERIVED_KEY_INFO = "aster-storage-encryption-key-v1";
 const SALT_DERIVATION_PREFIX = "aster-hkdf-salt-v1:";
 const MAX_LEGACY_KEKS = 16;
 
+const PREVIOUS_KEY_CONTEXTS = [
+  "astermail-tags-v1",
+  "astermail-labels-v1",
+  "astermail-preferences-v1",
+  "astermail-devmode-v1",
+  "astermail-draft-v1",
+  "astermail-draft-v2",
+  "astermail-scheduled-v1",
+  "astermail-onboarding-v1",
+  "astermail-subscriptions-v1",
+  "astermail-recovery-email-v1",
+];
+
 let legacy_crypto_keys: CryptoKey[] = [];
 
 async function derive_salt_from_passphrase(
@@ -157,6 +170,31 @@ export async function load_legacy_keks_into_memory(
   }
 
   legacy_crypto_keys = imported;
+}
+
+export async function load_previous_key_derived_keks_into_memory(
+  previous_keys: string[] | undefined,
+): Promise<void> {
+  if (!previous_keys || previous_keys.length === 0) {
+    return;
+  }
+
+  for (const previous_key of previous_keys) {
+    for (const context of PREVIOUS_KEY_CONTEXTS) {
+      try {
+        const material = new TextEncoder().encode(previous_key + context);
+        const raw = new Uint8Array(
+          await crypto.subtle.digest(HASH_ALG, material),
+        );
+        const key = await import_raw_as_aes_key(raw);
+
+        legacy_crypto_keys.push(key);
+        zero_uint8_array(raw);
+      } catch {
+        continue;
+      }
+    }
+  }
 }
 
 export function clear_legacy_keks_from_memory(): void {
