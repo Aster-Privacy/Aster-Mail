@@ -276,7 +276,10 @@ class MailStatsStore {
     });
   }
 
-  async fetch(force: boolean = false): Promise<MailStats | null> {
+  async fetch(
+    force: boolean = false,
+    is_reconcile_fetch: boolean = false,
+  ): Promise<MailStats | null> {
     if (!force && !this.is_stale() && this.cache.timestamp > 0) {
       return this.cache.data;
     }
@@ -294,12 +297,14 @@ class MailStatsStore {
     this.cache.fetching = true;
     this.notify();
 
-    this.active_request = this.execute_fetch();
+    this.active_request = this.execute_fetch(is_reconcile_fetch);
 
     return this.active_request;
   }
 
-  private async execute_fetch(): Promise<MailStats | null> {
+  private async execute_fetch(
+    is_reconcile_fetch: boolean,
+  ): Promise<MailStats | null> {
     const fetch_generation = this.account_generation;
 
     this.in_flight_deltas = {};
@@ -337,10 +342,16 @@ class MailStatsStore {
       const reconcile = (field: keyof MailStats, value: number): number => {
         const adjusted_at = this.last_adjust_at[field] ?? 0;
 
-        if (
+        const held_against_inflight_fetch =
           adjusted_at > query_started_at &&
-          adjusted_at < query_started_at + OPTIMISTIC_HOLD_MS
-        ) {
+          adjusted_at < query_started_at + OPTIMISTIC_HOLD_MS;
+
+        const held_against_own_followup_fetch =
+          is_reconcile_fetch &&
+          adjusted_at > 0 &&
+          query_started_at < adjusted_at + OPTIMISTIC_HOLD_MS;
+
+        if (held_against_inflight_fetch || held_against_own_followup_fetch) {
           const held = this.cache.data[field];
 
           return typeof held === "number" ? held : value;
@@ -401,7 +412,7 @@ class MailStatsStore {
 
     this.debounce_timer = setTimeout(() => {
       this.debounce_timer = null;
-      this.fetch(true);
+      this.fetch(true, true);
     }, DEBOUNCE_MS);
   }
 
@@ -439,13 +450,13 @@ class MailStatsStore {
 
     this.reconcile_timer = setTimeout(() => {
       this.reconcile_timer = null;
-      void this.fetch(true);
+      void this.fetch(true, true);
     }, RECONCILE_DELAY_MS);
 
     if (!this.late_reconcile_timer) {
       this.late_reconcile_timer = setTimeout(() => {
         this.late_reconcile_timer = null;
-        void this.fetch(true);
+        void this.fetch(true, true);
       }, LATE_RECONCILE_DELAY_MS);
     }
   }
