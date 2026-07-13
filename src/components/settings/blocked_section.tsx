@@ -376,6 +376,7 @@ export function BlockedSection() {
         </div>
       ) : filtered_senders.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 rounded-lg border bg-surf-tertiary border-edge-secondary">
+          <MagnifyingGlassIcon className="w-6 h-6 mb-2 text-txt-muted" />
           <p className="text-[14px] font-medium text-txt-primary">
             {t("common.no_results")}
           </p>
@@ -388,6 +389,7 @@ export function BlockedSection() {
           <div className="flex items-center px-4 py-2 border-b border-edge-secondary">
             <Checkbox
               checked={selected_ids.size === filtered_senders.length}
+              className="p-2 -m-2"
               onCheckedChange={handle_select_all}
             />
             <span className="ml-3 text-xs font-medium text-txt-muted">
@@ -407,6 +409,7 @@ export function BlockedSection() {
             >
               <Checkbox
                 checked={selected_ids.has(sender.id)}
+                className="p-2 -m-2 flex-shrink-0"
                 onCheckedChange={() => handle_select(index)}
               />
 
