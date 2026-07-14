@@ -1291,6 +1291,8 @@ export const fr = {
     recovery_text_your_codes: "Vos codes",
     remove_alias_avatar: "Supprimer l'avatar de l'alias",
     remove_recovery_email: "Supprimer l'e-mail de récupération",
+    step_up_description: "Pour votre sécurité, confirmez votre mot de passe pour continuer.",
+    step_up_error: "Mot de passe ou code de vérification incorrect. Veuillez réessayer.",
     remove_recovery_email_confirm: "Confirmer la suppression de l'e-mail de récupération",
     reply_notification: "{{ sender }} a répondu",
     request_timed_out: "La requête a expiré",
