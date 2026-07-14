@@ -44,9 +44,28 @@ export interface QueuedAction {
 }
 
 const QUEUE_KEY = "aster_offline_queue";
+const FAILED_KEY = "aster_offline_failed_queue";
 const MAX_RETRIES = 3;
 
 let is_processing = false;
+let queue_mutex: Promise<void> = Promise.resolve();
+
+async function run_exclusive<T>(operation: () => Promise<T>): Promise<T> {
+  const previous = queue_mutex;
+  let release: () => void;
+
+  queue_mutex = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  await previous;
+
+  try {
+    return await operation();
+  } finally {
+    release!();
+  }
+}
 
 function emit_window_event(name: string): void {
   if (typeof window === "undefined") return;
@@ -92,6 +111,18 @@ async function remove_raw(key: string): Promise<void> {
   }
 
   await Preferences.remove({ key });
+}
+
+export async function durable_read(key: string): Promise<string | null> {
+  return read_raw(key);
+}
+
+export async function durable_write(key: string, value: string): Promise<void> {
+  await write_raw(key, value);
+}
+
+export async function durable_remove(key: string): Promise<void> {
+  await remove_raw(key);
 }
 
 async function migrate_legacy_queue(scoped_key: string): Promise<void> {
@@ -157,10 +188,12 @@ export async function enqueue_action(
     retry_count: 0,
   };
 
-  const queue = await get_queue();
+  await run_exclusive(async () => {
+    const queue = await read_queue_unlocked();
 
-  queue.push(action);
-  await save_queue(queue);
+    queue.push(action);
+    await write_queue_unlocked(queue);
+  });
 
   const status = await get_network_status();
 
@@ -171,7 +204,7 @@ export async function enqueue_action(
   return action.id;
 }
 
-export async function get_queue(): Promise<QueuedAction[]> {
+async function read_queue_unlocked(): Promise<QueuedAction[]> {
   try {
     const key = await resolve_queue_key();
 
@@ -181,24 +214,116 @@ export async function get_queue(): Promise<QueuedAction[]> {
 
     return stored ? JSON.parse(stored) : [];
   } catch {
-    await save_queue([]);
+    await write_queue_unlocked([]);
 
     return [];
   }
 }
 
-async function save_queue(queue: QueuedAction[]): Promise<void> {
+async function write_queue_unlocked(queue: QueuedAction[]): Promise<void> {
   const value = JSON.stringify(queue);
   const key = await resolve_queue_key();
 
   await write_raw(key, value);
 }
 
-export async function remove_from_queue(id: string): Promise<void> {
-  const queue = await get_queue();
-  const filtered = queue.filter((action) => action.id !== id);
+export async function get_queue(): Promise<QueuedAction[]> {
+  return run_exclusive(read_queue_unlocked);
+}
 
-  await save_queue(filtered);
+async function save_queue(queue: QueuedAction[]): Promise<void> {
+  await run_exclusive(() => write_queue_unlocked(queue));
+}
+
+export async function remove_from_queue(id: string): Promise<void> {
+  await run_exclusive(async () => {
+    const queue = await read_queue_unlocked();
+    const filtered = queue.filter((action) => action.id !== id);
+
+    await write_queue_unlocked(filtered);
+  });
+}
+
+async function resolve_failed_key(): Promise<string> {
+  try {
+    const account_id = await get_current_account_id();
+
+    return account_id ? `${FAILED_KEY}:${account_id}` : FAILED_KEY;
+  } catch {
+    return FAILED_KEY;
+  }
+}
+
+async function read_failed_unlocked(): Promise<QueuedAction[]> {
+  try {
+    const key = await resolve_failed_key();
+    const stored = await read_raw(key);
+
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function write_failed_unlocked(actions: QueuedAction[]): Promise<void> {
+  const key = await resolve_failed_key();
+
+  await write_raw(key, JSON.stringify(actions));
+}
+
+async function move_action_to_failed(action: QueuedAction): Promise<void> {
+  await run_exclusive(async () => {
+    const queue = await read_queue_unlocked();
+
+    await write_queue_unlocked(queue.filter((a) => a.id !== action.id));
+
+    const failed = await read_failed_unlocked();
+
+    if (!failed.some((a) => a.id === action.id)) {
+      failed.push(action);
+    }
+    await write_failed_unlocked(failed);
+  });
+}
+
+export async function get_failed_actions(): Promise<QueuedAction[]> {
+  return run_exclusive(read_failed_unlocked);
+}
+
+export async function retry_failed_action(id: string): Promise<void> {
+  await run_exclusive(async () => {
+    const failed = await read_failed_unlocked();
+    const target = failed.find((a) => a.id === id);
+
+    if (!target) return;
+
+    await write_failed_unlocked(failed.filter((a) => a.id !== id));
+
+    const queue = await read_queue_unlocked();
+
+    queue.push({ ...target, retry_count: 0, last_error: undefined });
+    await write_queue_unlocked(queue);
+  });
+
+  const status = await get_network_status();
+
+  if (status.connected) {
+    process_offline_queue();
+  }
+}
+
+export async function clear_failed_action(id: string): Promise<void> {
+  await run_exclusive(async () => {
+    const failed = await read_failed_unlocked();
+
+    await write_failed_unlocked(failed.filter((a) => a.id !== id));
+  });
+}
+
+export async function get_failed_count(): Promise<number> {
+  const failed = await get_failed_actions();
+
+  return failed.length;
 }
 
 export async function process_offline_queue(): Promise<void> {
@@ -228,17 +353,19 @@ export async function process_offline_queue(): Promise<void> {
           error instanceof Error ? error.message : "Unknown error";
 
         if (action.retry_count >= MAX_RETRIES) {
-          await remove_from_queue(action.id);
+          await move_action_to_failed(action);
           dropped_count++;
           notify_queue_failure(action);
         } else {
-          const queue = await get_queue();
-          const index = queue.findIndex((a) => a.id === action.id);
+          await run_exclusive(async () => {
+            const queue = await read_queue_unlocked();
+            const index = queue.findIndex((a) => a.id === action.id);
 
-          if (index !== -1) {
-            queue[index] = action;
-            await save_queue(queue);
-          }
+            if (index !== -1) {
+              queue[index] = action;
+              await write_queue_unlocked(queue);
+            }
+          });
         }
       }
     }
@@ -278,7 +405,7 @@ async function process_action(action: QueuedAction): Promise<void> {
   }
 }
 
-interface SendEmailPayload {
+export interface SendEmailPayload {
   to: string[];
   cc?: string[];
   bcc?: string[];
@@ -526,13 +653,15 @@ export async function clear_queue(): Promise<void> {
 }
 
 export async function retry_failed_actions(): Promise<void> {
-  const queue = await get_queue();
-  const updated = queue.map((action) => ({
-    ...action,
-    retry_count: 0,
-    last_error: undefined,
-  }));
+  await run_exclusive(async () => {
+    const queue = await read_queue_unlocked();
+    const updated = queue.map((action) => ({
+      ...action,
+      retry_count: 0,
+      last_error: undefined,
+    }));
 
-  await save_queue(updated);
+    await write_queue_unlocked(updated);
+  });
   process_offline_queue();
 }
