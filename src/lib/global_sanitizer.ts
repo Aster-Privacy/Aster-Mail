@@ -55,7 +55,7 @@ const PATH_TRAVERSAL_PATTERNS = [
 const COMMAND_INJECTION_PATTERNS = [/[;&|`$\n\r]/, /\$\(/, /`/];
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-const USERNAME_REGEX = /^[a-z0-9._-]+$/;
+const USERNAME_REGEX = /^[a-z0-9]+$/;
 const URL_REGEX = /^https?:\/\/[a-zA-Z0-9.-]+(?:\.[a-zA-Z]{2,})?(?:\/[^\s]*)?$/;
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -219,21 +219,15 @@ export class GlobalSanitizer {
   }
 
   static validate_username(username: string): string {
-    const trimmed = username.trim().toLowerCase();
+    const trimmed = username.trim().toLowerCase().replace(/\./g, "");
 
-    if (trimmed.length === 0) {
-      throw new SanitizerError("username is required");
-    }
-
-    if (trimmed.length > 64) {
-      throw new SanitizerError(
-        `username exceeds maximum length: ${trimmed.length} > 64`,
-      );
+    if (trimmed.length < 3 || trimmed.length > 40) {
+      throw new SanitizerError("username must be 3-40 characters");
     }
 
     if (!USERNAME_REGEX.test(trimmed)) {
       throw new SanitizerError(
-        "username can only contain lowercase letters, numbers, dots, underscores and hyphens",
+        "username can only contain letters and numbers",
       );
     }
 
