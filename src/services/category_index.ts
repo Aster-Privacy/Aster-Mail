@@ -44,7 +44,8 @@ import { on_mail_event, MAIL_EVENTS } from "@/hooks/mail_events";
 
 const DB_NAME = "astermail_category_index";
 const STORE_NAME = "indexes";
-const BUILD_PAGE_SIZE = 100;
+const BUILD_FETCH_SIZE = 1000;
+const BUILD_DECRYPT_CHUNK = 100;
 const BUILD_CAP = 10000;
 const MAX_ENTRIES = 20000;
 const CAP_TARGET = 12000;
@@ -966,7 +967,7 @@ export async function build_index(options?: {
           is_spam: false,
           is_archived: false,
           is_snoozed: false,
-          limit: BUILD_PAGE_SIZE,
+          limit: BUILD_FETCH_SIZE,
           ...(cursor ? { cursor } : {}),
         }),
         BUILD_FETCH_DEADLINE_MS,
@@ -981,20 +982,28 @@ export async function build_index(options?: {
         seen.add(it.id);
       }
 
-      const { upserts, removals } = await entries_from_items(items);
+      for (let start = 0; start < items.length; start += BUILD_DECRYPT_CHUNK) {
+        const chunk = items.slice(start, start + BUILD_DECRYPT_CHUNK);
+        const { upserts, removals } = await entries_from_items(chunk);
 
-      if (token !== build_token) return;
+        if (options?.signal?.aborted || token !== build_token) return;
 
-      let page_changed = apply_upsert(upserts, true);
+        let chunk_changed = apply_upsert(upserts, true);
 
-      for (const id of removals) {
-        if (entries_map.delete(id)) page_changed = true;
+        for (const id of removals) {
+          if (entries_map.delete(id)) chunk_changed = true;
+        }
+        if (chunk_changed) {
+          notify_soon();
+        }
+
+        build_progress_ms = now_ms();
+
+        if (start + BUILD_DECRYPT_CHUNK < items.length) {
+          await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        }
       }
-      if (page_changed) {
-        notify_soon();
-      }
 
-      build_progress_ms = now_ms();
       processed += items.length;
       cursor = next_cursor;
 
@@ -1057,7 +1066,7 @@ export async function sync_recent(notify_new = false): Promise<void> {
         is_spam: false,
         is_archived: false,
         is_snoozed: false,
-        limit: BUILD_PAGE_SIZE,
+        limit: BUILD_DECRYPT_CHUNK,
       }),
       BUILD_FETCH_DEADLINE_MS,
     );
