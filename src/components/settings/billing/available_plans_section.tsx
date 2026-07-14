@@ -181,6 +181,32 @@ interface SegmentedProps<T extends string> {
   on_change: (value: T) => void;
 }
 
+function Tabs<T extends string>({ value, options, on_change }: SegmentedProps<T>) {
+  return (
+    <div className="inline-flex items-center gap-8 border-b border-edge-secondary">
+      {options.map((opt) => {
+        const active = value === opt.id;
+        return (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => on_change(opt.id)}
+            className={`relative px-4 pt-1 pb-2.5 text-sm font-semibold transition-colors focus:outline-none ${
+              active ? "text-txt-primary" : "text-txt-muted hover:text-txt-secondary"
+            }`}
+          >
+            {opt.label}
+            <span
+              className="absolute left-0 right-0 -bottom-px h-0.5 rounded-full transition-opacity"
+              style={{ backgroundColor: "var(--accent-blue)", opacity: active ? 1 : 0 }}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function Segmented<T extends string>({ value, options, on_change }: SegmentedProps<T>) {
   return (
     <div className="inline-flex rounded-full p-1 gap-1 bg-surf-tertiary border border-edge-secondary">
@@ -258,7 +284,7 @@ export function AvailablePlansSection({
   const handle_family_card = async () => {
     if (!pending_family_tier) return;
     const tier = pending_family_tier;
-    const card_interval: "month" | "year" = "year";
+    const card_interval: "month" | "year" = billing_period === "yearly" ? "year" : "month";
     set_pending_family_tier(null);
 
     const has_existing_sub =
@@ -321,8 +347,8 @@ export function AvailablePlansSection({
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
-      <div className="flex flex-col items-center gap-2.5 mb-4">
-        <Segmented
+      <div className="flex flex-col items-center gap-4 mb-4">
+        <Tabs
           value={plan_type}
           on_change={set_plan_type}
           options={[
@@ -330,16 +356,14 @@ export function AvailablePlansSection({
             { id: "family", label: t("settings.plan_type_family") },
           ]}
         />
-        {plan_type === "individual" && (
-          <Segmented
-            value={billing_period === "yearly" ? "yearly" : "monthly"}
-            on_change={(v) => set_billing_period(v)}
-            options={[
-              { id: "monthly", label: t("settings.billing_monthly") },
-              { id: "yearly", label: t("settings.billing_yearly") },
-            ]}
-          />
-        )}
+        <Segmented
+          value={billing_period === "yearly" ? "yearly" : "monthly"}
+          on_change={(v) => set_billing_period(v)}
+          options={[
+            { id: "monthly", label: t("settings.billing_monthly") },
+            { id: "yearly", label: t("settings.billing_yearly") },
+          ]}
+        />
       </div>
 
       <div className="flex items-center justify-center gap-2 mb-5">
@@ -361,8 +385,10 @@ export function AvailablePlansSection({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3">
           {FAMILY_PLAN_TIERS.map((tier) => {
             const is_same_plan = subscription?.plan.code === tier.id;
-            const is_current = is_same_plan && current_billing_interval === "year";
-            const price_cents = Math.round(tier.yearly_cents / 12);
+            const is_current = is_same_plan && current_billing_interval === card_interval;
+            const is_interval_switch = is_same_plan && current_billing_interval !== card_interval;
+            const price_cents =
+              billing_period === "yearly" ? Math.round(tier.yearly_cents / 12) : tier.monthly_cents;
             const features = tier.max_members === 2 ? FAMILY_PLAN_DUO_FEATURES : FAMILY_PLAN_FAMILY_FEATURES;
 
             return (
@@ -372,13 +398,21 @@ export function AvailablePlansSection({
                 description={tier.description}
                 price_label={format_price(convert_cents(price_cents, preferred_currency), preferred_currency)}
                 period_label={period_label}
-                anchor_label={format_price(convert_cents(tier.monthly_cents, preferred_currency), preferred_currency)}
-                save_label={`SAVE ${Math.round((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100)}%`}
-                billed_note={t("settings.billed_annually")}
+                anchor_label={billing_period === "yearly"
+                  ? format_price(convert_cents(tier.monthly_cents, preferred_currency), preferred_currency)
+                  : null}
+                save_label={billing_period === "yearly"
+                  ? `SAVE ${Math.round((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100)}%`
+                  : null}
+                billed_note={billing_period === "yearly" ? t("settings.billed_annually") : null}
                 badge={!!tier.is_recommended && !is_current ? t("settings.plan_recommended") : null}
                 featured={!!tier.is_recommended}
                 is_current={is_current}
-                cta_label={is_current ? t("settings.current_plan") : `Get ${tier.name}`}
+                cta_label={is_current
+                  ? t("settings.current_plan")
+                  : is_interval_switch
+                    ? (card_interval === "year" ? t("settings.switch_to_yearly") : t("settings.switch_to_monthly"))
+                    : `Get ${tier.name}`}
                 cta_disabled={is_action_loading || family_loading || is_current}
                 on_cta={() => { if (!is_current) handle_family_select(tier); }}
                 features={features}
