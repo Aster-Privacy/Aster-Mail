@@ -22,10 +22,10 @@ import { useState, useEffect, useCallback } from "react";
 import {
   UserGroupIcon,
   ClipboardDocumentIcon,
-  GiftIcon,
   ArrowPathIcon,
+  EnvelopeIcon,
+  GiftIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -36,6 +36,7 @@ import {
   type ReferralInfo,
   type ReferralHistoryItem,
 } from "@/services/api/billing";
+import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { show_toast } from "@/components/toast/simple_toast";
 
 export function ReferralTab() {
@@ -47,6 +48,63 @@ export function ReferralTab() {
     ReferralHistoryItem[]
   >([]);
   const [is_loading, set_is_loading] = useState(true);
+  const [is_sending_referral, set_is_sending_referral] = useState(false);
+
+  const handle_send_referral = useCallback(async () => {
+    if (!referral_info) return;
+
+    set_is_sending_referral(true);
+
+    try {
+      const all_emails: string[] = [];
+      let cursor: string | undefined;
+      let has_more = true;
+
+      while (has_more) {
+        const res = await list_contacts({ limit: 100, cursor });
+
+        if (!res.data?.items?.length) break;
+
+        const decrypted = await decrypt_contacts(res.data.items);
+
+        for (const contact of decrypted) {
+          if (contact.emails) {
+            all_emails.push(...contact.emails);
+          }
+        }
+
+        has_more = res.data.has_more;
+        cursor = res.data.next_cursor || undefined;
+      }
+
+      if (all_emails.length === 0) {
+        show_toast(t("settings.referral_no_contacts"), "error");
+
+        return;
+      }
+
+      const body_text = t("settings.referral_email_body", {
+        referral_link: referral_info.referral_link,
+      });
+
+      const body_html = body_text
+        .split("\n")
+        .map((line: string) => (line.trim() === "" ? "<br>" : `<p>${line}</p>`))
+        .join("");
+
+      window.dispatchEvent(
+        new CustomEvent("aster:open-compose-prefilled", {
+          detail: {
+            to: all_emails,
+            subject: t("settings.referral_email_subject"),
+            body: body_html,
+          },
+        }),
+      );
+    } finally {
+      set_is_sending_referral(false);
+    }
+  }, [referral_info, t]);
 
   const load_data = useCallback(async () => {
     set_is_loading(true);
@@ -95,89 +153,98 @@ export function ReferralTab() {
     );
   }
 
+  const total_earned_cents =
+    (referral_info.credits_earned_cents || 0) +
+    (referral_info.commission_earned_cents || 0);
+
   return (
     <div>
-      <div className="mb-6">
-        <h3 className="text-base font-semibold text-txt-primary">
-          {t("settings.referral_program")}
-        </h3>
-        <p className="text-xs text-txt-muted mt-1">
-          {t("settings.referral_program_description")}
-        </p>
-      </div>
+      <p className="text-xs font-semibold tracking-wide uppercase text-txt-muted mb-3">
+        {t("settings.referral_program")}
+      </p>
 
-      <div className="rounded-xl border border-edge-secondary p-4 mb-5 bg-surf-secondary/30">
-        <div className="flex items-center gap-2 mb-3">
-          <GiftIcon className="w-4 h-4 text-txt-secondary" />
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.your_referral_link")}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <input
-            readOnly
-            className="flex-1 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary outline-none font-mono text-xs"
-            value={referral_info.referral_link}
-          />
-          <Button
-            className="h-9 px-3 text-sm"
-            variant="secondary"
-            onClick={() => {
-              navigator.clipboard.writeText(referral_info.referral_link);
-              show_toast(t("settings.link_copied"), "success");
-            }}
+      <div
+        className="relative overflow-hidden rounded-2xl p-6 mb-5"
+        style={{ backgroundColor: "#1d4ed8" }}
+      >
+        <img
+          alt=""
+          className="pointer-events-none absolute right-0 top-0 h-full w-1/2 object-cover opacity-60 mix-blend-screen"
+          draggable={false}
+          src="/settings/decentralized.webp"
+          style={{
+            maskImage:
+              "linear-gradient(to right, transparent, black 35%, black 90%, transparent)",
+            WebkitMaskImage:
+              "linear-gradient(to right, transparent, black 35%, black 90%, transparent)",
+          }}
+        />
+        <div className="relative z-10">
+          <div className="flex items-start justify-between gap-3 mb-1">
+            <h3
+              className="text-lg font-bold text-white tracking-tight"
+              style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.15)" }}
+            >
+              {t("settings.your_referral_link")}
+            </h3>
+            <span className="flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-white/15 text-white tabular-nums">
+              {format_price(total_earned_cents)} {t("settings.total_earned")}
+            </span>
+          </div>
+          <p
+            className="text-sm text-blue-100/70 mb-4 max-w-[420px]"
+            style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
           >
-            <ClipboardDocumentIcon className="w-4 h-4" />
-            {t("settings.copy_link")}
-          </Button>
-        </div>
-      </div>
-
-      <div className="mb-5">
-        <p className="text-xs font-medium text-txt-secondary mb-2">
-          {t("settings.referral_how_it_works")}
-        </p>
-        <div className="space-y-2">
-          <div className="flex items-start gap-3 text-xs text-txt-muted">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-surf-tertiary text-txt-secondary flex items-center justify-center text-[10px] font-bold mt-0.5">
-              1
-            </span>
-            <span>{t("settings.referral_step_share")}</span>
-          </div>
-          <div className="flex items-start gap-3 text-xs text-txt-muted">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-surf-tertiary text-txt-secondary flex items-center justify-center text-[10px] font-bold mt-0.5">
-              2
-            </span>
-            <span>{t("settings.referral_step_signup")}</span>
-          </div>
-          <div className="flex items-start gap-3 text-xs text-txt-muted">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-surf-tertiary text-txt-secondary flex items-center justify-center text-[10px] font-bold mt-0.5">
-              3
-            </span>
-            <span>{t("settings.referral_step_earn")}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="mb-5">
-        <p className="text-xs font-medium text-txt-secondary mb-2">
-          {t("settings.referral_rewards")}
-        </p>
-        <div className="rounded-xl border border-edge-secondary p-3 space-y-2 bg-surf-secondary/30">
-          <p className="text-xs text-txt-muted">
-            {t("settings.referral_reward_info")}
+            {t("settings.referral_program_description")}
           </p>
-          <p className="text-xs text-txt-muted">
-            {t("settings.referral_commission_info", {
-              percent: String(referral_info.commission_percent || 5),
-            })}
-          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex-1 h-9 px-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2 min-w-0">
+              <GiftIcon className="w-4 h-4 text-white/60 flex-shrink-0" />
+              <span className="font-mono text-xs text-white whitespace-nowrap overflow-x-auto">
+                {referral_info.referral_link}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="h-9 px-3 rounded-lg text-sm font-semibold bg-white text-blue-900 inline-flex items-center justify-center gap-2 whitespace-nowrap"
+                style={{
+                  boxShadow:
+                    "0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
+                }}
+                onClick={() => {
+                  navigator.clipboard.writeText(referral_info.referral_link);
+                  show_toast(t("settings.link_copied"), "success");
+                }}
+              >
+                <ClipboardDocumentIcon className="w-4 h-4" />
+                {t("settings.copy_link")}
+              </button>
+              <button
+                type="button"
+                disabled={is_sending_referral}
+                className="h-9 px-3 rounded-lg text-sm font-semibold bg-white text-blue-900 inline-flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-60"
+                style={{
+                  boxShadow:
+                    "0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
+                }}
+                onClick={handle_send_referral}
+              >
+                {is_sending_referral ? (
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                ) : (
+                  <EnvelopeIcon className="w-4 h-4" />
+                )}
+                {t("settings.send_referral_to_contacts")}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-3 gap-3 mb-5">
         <div className="px-3 py-3 rounded-xl border border-edge-secondary text-center">
-          <p className="text-xl font-bold text-txt-primary">
+          <p className="text-2xl font-bold text-txt-primary tabular-nums">
             {referral_info.total_referrals}
           </p>
           <p className="text-xs text-txt-muted mt-0.5">
@@ -185,7 +252,7 @@ export function ReferralTab() {
           </p>
         </div>
         <div className="px-3 py-3 rounded-xl border border-edge-secondary text-center">
-          <p className="text-xl font-bold text-yellow-500">
+          <p className="text-2xl font-bold text-yellow-500 tabular-nums">
             {referral_info.pending_referrals}
           </p>
           <p className="text-xs text-txt-muted mt-0.5">
@@ -193,23 +260,83 @@ export function ReferralTab() {
           </p>
         </div>
         <div className="px-3 py-3 rounded-xl border border-edge-secondary text-center">
-          <p className="text-xl font-bold text-green-500">
+          <p className="text-2xl font-bold text-green-500 tabular-nums">
             {referral_info.completed_referrals}
           </p>
           <p className="text-xs text-txt-muted mt-0.5">
             {t("settings.completed_referrals")}
           </p>
         </div>
-        <div className="px-3 py-3 rounded-xl border border-edge-secondary text-center">
-          <p className="text-xl font-bold text-txt-primary">
-            {format_price(
-              (referral_info.credits_earned_cents || 0) +
-                (referral_info.commission_earned_cents || 0),
-            )}
+      </div>
+
+      <div className="mb-5">
+        <p className="text-xs font-medium text-txt-secondary mb-2">
+          {t("settings.referral_how_it_works")}
+        </p>
+        <div className="p-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
+          <ol className="space-y-1.5">
+            <li className="flex items-start gap-2">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold mt-0.5 border border-edge-secondary text-txt-secondary">
+                1
+              </span>
+              <span className="text-sm text-txt-secondary">
+                {t("settings.referral_step_share")}
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold mt-0.5 border border-edge-secondary text-txt-secondary">
+                2
+              </span>
+              <span className="text-sm text-txt-secondary">
+                {t("settings.referral_step_signup")}
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold mt-0.5 border border-edge-secondary text-txt-secondary">
+                3
+              </span>
+              <span className="text-sm text-txt-secondary">
+                {t("settings.referral_step_earn")}
+              </span>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div className="mb-5">
+        <p className="text-xs font-medium text-txt-secondary mb-2">
+          {t("settings.referral_rewards")}
+        </p>
+        <div className="rounded-lg border border-edge-secondary p-4 space-y-2 bg-surf-tertiary">
+          <p className="text-sm text-txt-secondary">
+            {t("settings.referral_reward_info")}
           </p>
-          <p className="text-xs text-txt-muted mt-0.5">
-            {t("settings.total_earned")}
+          <p className="text-sm text-txt-secondary">
+            {t("settings.referral_commission_info", {
+              percent: String(referral_info.commission_percent || 5),
+            })}
           </p>
+          {referral_info.max_credits_cents > 0 && (
+            <div className="pt-1">
+              <div className="h-1.5 rounded-full bg-txt-primary/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-txt-primary transition-all duration-500"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      (total_earned_cents / referral_info.max_credits_cents) *
+                        100,
+                    )}%`,
+                  }}
+                />
+              </div>
+              <p className="text-xs text-txt-muted mt-1.5">
+                {t("settings.referral_max_credits", {
+                  value: format_price(referral_info.max_credits_cents),
+                })}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
