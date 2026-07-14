@@ -54,6 +54,7 @@ import {
 import {
   get_vault_from_memory,
   wait_for_keys_ready,
+  are_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import { api_client } from "@/services/api/client";
 import { has_csrf_token } from "@/services/api/csrf";
@@ -548,7 +549,7 @@ export function use_reply_modal({
     async (text: string) => {
       if (!has_user_content(text) || !original_email_id) return;
 
-      if (!get_vault_from_memory()) {
+      if (!are_keys_ready()) {
         await wait_for_keys_ready();
       }
 
