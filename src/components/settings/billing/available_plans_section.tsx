@@ -19,7 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState } from "react";
-import { CheckIcon, MinusIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { XCircleIcon, SparklesIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 
 import {
@@ -42,6 +43,179 @@ import { create_family_group } from "@/services/api/family";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
+interface PlanFeature {
+  label: string;
+  on: boolean;
+}
+
+function render_feature_label(label: string) {
+  const match = label.match(/^(Unlimited|\d[\d.,]*(?:\s?[GMT]B)?)\s+(.*)$/i);
+  if (!match) return label;
+  return (
+    <>
+      <strong className="font-semibold text-txt-primary">{match[1]}</strong> {match[2]}
+    </>
+  );
+}
+
+interface PlanCardProps {
+  name: string;
+  description: string;
+  price_label: string;
+  period_label: string;
+  anchor_label?: string | null;
+  save_label?: string | null;
+  billed_note?: string | null;
+  badge?: string | null;
+  featured: boolean;
+  is_current: boolean;
+  cta_label: string;
+  cta_disabled: boolean;
+  on_cta: () => void;
+  features: PlanFeature[];
+}
+
+function PlanCard({
+  name,
+  description,
+  price_label,
+  period_label,
+  anchor_label,
+  save_label,
+  billed_note,
+  badge,
+  featured,
+  is_current,
+  cta_label,
+  cta_disabled,
+  on_cta,
+  features,
+}: PlanCardProps) {
+  const highlighted = featured || is_current;
+  return (
+    <div
+      className={`relative flex flex-col p-6 rounded-2xl border transition-colors ${
+        featured
+          ? "border-brand bg-surf-selected sm:-my-2 sm:py-8 z-10"
+          : highlighted
+            ? "border-brand bg-surf-selected"
+            : "border-edge-secondary bg-surf-tertiary"
+      }`}
+    >
+      {badge && (
+        <span
+          className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white whitespace-nowrap shadow-sm"
+          style={{ backgroundColor: "var(--accent-blue)" }}
+        >
+          {badge}
+        </span>
+      )}
+
+      <div className="text-center">
+        <h4 className="text-base font-semibold text-txt-primary">{name}</h4>
+
+        <div className="mt-2 flex items-baseline justify-center gap-1.5 flex-wrap">
+          {anchor_label && (
+            <span className="text-lg font-semibold text-txt-muted line-through">
+              {anchor_label}
+            </span>
+          )}
+          <span className="text-3xl font-bold text-txt-primary tracking-tight">
+            {price_label}
+          </span>
+          <span className="text-sm text-txt-muted">{period_label}</span>
+          {save_label && (
+            <span
+              className="ml-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
+              style={{ backgroundColor: "var(--accent-blue)" }}
+            >
+              {save_label}
+            </span>
+          )}
+        </div>
+
+        <p className="mt-1 h-4 text-xs text-txt-muted">{billed_note || ""}</p>
+
+        <p className="mt-1.5 text-sm text-txt-muted leading-snug">{description}</p>
+      </div>
+
+      <Button
+        className="w-full mt-5"
+        variant={featured && !is_current ? "primary" : "outline"}
+        disabled={cta_disabled}
+        onClick={on_cta}
+      >
+        {cta_label}
+      </Button>
+
+      <ul
+        className="mt-5 pt-5 border-t space-y-2.5 list-none"
+        style={{
+          borderTopColor: featured ? "rgba(59,130,246,0.4)" : "var(--border-secondary)",
+        }}
+      >
+        {features.map((feature, i) => (
+          <li key={i} className="flex items-start gap-2.5 text-sm text-txt-secondary">
+            {feature.on ? (
+              <CheckCircleIcon
+                className="w-[18px] h-[18px] flex-shrink-0 mt-0.5"
+                style={{ color: "var(--accent-blue)" }}
+              />
+            ) : (
+              <XCircleIcon
+                className="w-[18px] h-[18px] flex-shrink-0 mt-0.5"
+                style={{ color: "var(--color-danger)" }}
+              />
+            )}
+            <span>{render_feature_label(feature.label)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+interface SegmentedProps<T extends string> {
+  value: T;
+  options: { id: T; label: string; badge?: string }[];
+  on_change: (value: T) => void;
+}
+
+function Segmented<T extends string>({ value, options, on_change }: SegmentedProps<T>) {
+  return (
+    <div className="inline-flex rounded-full p-1 gap-1 bg-surf-tertiary border border-edge-secondary">
+      {options.map((opt) => {
+        const active = value === opt.id;
+        return (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => on_change(opt.id)}
+            className={`px-5 py-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none ${
+              active ? "text-white" : "text-txt-muted hover:text-txt-secondary"
+            }`}
+            style={active ? { backgroundColor: "var(--accent-blue)" } : undefined}
+          >
+            {opt.label}
+            {opt.badge && (
+              <span
+                className="ml-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide"
+                style={
+                  active
+                    ? { backgroundColor: "rgba(255,255,255,0.22)", color: "#ffffff" }
+                    : { backgroundColor: "var(--accent-blue)", color: "#ffffff" }
+                }
+              >
+                {opt.badge}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 interface AvailablePlansSectionProps {
   subscription: SubscriptionResponse | null;
   plans: AvailablePlan[];
@@ -56,124 +230,6 @@ interface AvailablePlansSectionProps {
   on_tauri_checkout_opened?: () => void;
   current_billing_interval: "month" | "year";
 }
-
-interface PlanFeature {
-  label: string;
-  on: boolean;
-}
-
-interface PlanCardProps {
-  name: string;
-  price_label: string;
-  period_label: string;
-  savings_label?: string | null;
-  badge?: string | null;
-  highlighted: boolean;
-  cta_label: string;
-  cta_disabled: boolean;
-  cta_variant: "primary" | "outline";
-  on_cta: () => void;
-  features: PlanFeature[];
-}
-
-function PlanCard({
-  name,
-  price_label,
-  period_label,
-  savings_label,
-  badge,
-  highlighted,
-  cta_label,
-  cta_disabled,
-  cta_variant,
-  on_cta,
-  features,
-}: PlanCardProps) {
-  return (
-    <div
-      className="relative flex flex-col rounded-2xl border p-5 transition-shadow duration-200 hover:shadow-md"
-      style={{
-        backgroundColor: "var(--bg-card)",
-        borderColor: highlighted ? "var(--accent-blue)" : "var(--border-secondary)",
-        boxShadow: highlighted ? "0 0 0 1px var(--accent-blue)" : undefined,
-      }}
-    >
-      {badge && (
-        <span
-          className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-0.5 text-[11px] font-semibold whitespace-nowrap"
-          style={{ backgroundColor: "var(--accent-blue)", color: "#fff" }}
-        >
-          {badge}
-        </span>
-      )}
-
-      <div className="text-center">
-        <h4 className="text-base font-semibold text-txt-primary tracking-tight">
-          {name}
-        </h4>
-
-        <div className="mt-2 flex items-baseline justify-center gap-1">
-          <span className="text-3xl font-bold text-txt-primary tracking-tight">
-            {price_label}
-          </span>
-          <span className="text-sm text-txt-muted">{period_label}</span>
-        </div>
-
-        <p
-          className="mt-1 h-4 text-xs font-medium"
-          style={{ color: "var(--color-success)" }}
-        >
-          {savings_label || ""}
-        </p>
-      </div>
-
-      <Button
-        className="w-full mt-4"
-        disabled={cta_disabled}
-        variant={cta_variant}
-        onClick={on_cta}
-      >
-        {cta_label}
-      </Button>
-
-      <div
-        className="mt-5 pt-4 space-y-2.5 border-t"
-        style={{ borderColor: "var(--border-secondary)" }}
-      >
-        {features.map((feature, i) => (
-          <div key={i} className="flex items-center gap-2">
-            {feature.on ? (
-              <CheckIcon
-                className="w-4 h-4 flex-shrink-0"
-                strokeWidth={2.5}
-                style={{ color: "var(--accent-blue)" }}
-              />
-            ) : (
-              <MinusIcon
-                className="w-4 h-4 flex-shrink-0 text-txt-muted"
-                strokeWidth={2.5}
-              />
-            )}
-            <span
-              className={
-                feature.on
-                  ? "text-xs text-txt-secondary"
-                  : "text-xs text-txt-muted"
-              }
-            >
-              {feature.label}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const TOGGLE_GROUP_STYLE: React.CSSProperties = {
-  background: "var(--bg-tertiary)",
-  border: "1px solid var(--border-secondary)",
-};
 
 export function AvailablePlansSection({
   subscription,
@@ -202,7 +258,7 @@ export function AvailablePlansSection({
   const handle_family_card = async () => {
     if (!pending_family_tier) return;
     const tier = pending_family_tier;
-    const card_interval: "month" | "year" = billing_period === "yearly" ? "year" : "month";
+    const card_interval: "month" | "year" = "year";
     set_pending_family_tier(null);
 
     const has_existing_sub =
@@ -253,9 +309,7 @@ export function AvailablePlansSection({
   };
 
   const card_interval: "month" | "year" = billing_period === "yearly" ? "year" : "month";
-  const period_label = billing_period === "monthly"
-    ? t("settings.per_month_short")
-    : t("settings.per_year_short");
+  const period_label = t("settings.per_month_short");
 
   return (
     <div className="pt-4" id="available-plans">
@@ -267,40 +321,25 @@ export function AvailablePlansSection({
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
-      <div className="flex flex-col items-center gap-3 mb-4">
-        <div className="inline-flex rounded-full p-1 gap-1" style={TOGGLE_GROUP_STYLE}>
-          {(["individual", "family"] as const).map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => set_plan_type(type)}
-              className="px-5 py-1.5 rounded-full text-sm font-semibold transition-colors"
-              style={plan_type === type
-                ? { background: "var(--accent-blue)", color: "#fff" }
-                : { background: "transparent", color: "var(--txt-secondary)" }
-              }
-            >
-              {type === "individual" ? t("settings.plan_type_individual") : t("settings.plan_type_family")}
-            </button>
-          ))}
-        </div>
-
-        <div className="inline-flex rounded-full p-1 gap-1" style={TOGGLE_GROUP_STYLE}>
-          {(["monthly", "yearly"] as const).map((period) => (
-            <button
-              key={period}
-              type="button"
-              onClick={() => set_billing_period(period)}
-              className="px-4 py-1 rounded-full text-xs font-medium transition-colors"
-              style={billing_period === period
-                ? { background: "var(--accent-blue)", color: "#fff" }
-                : { background: "transparent", color: "var(--txt-muted)" }
-              }
-            >
-              {period === "monthly" ? t("settings.billing_monthly") : t("settings.billing_yearly")}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-col items-center gap-2.5 mb-4">
+        <Segmented
+          value={plan_type}
+          on_change={set_plan_type}
+          options={[
+            { id: "individual", label: t("settings.plan_type_individual") },
+            { id: "family", label: t("settings.plan_type_family") },
+          ]}
+        />
+        {plan_type === "individual" && (
+          <Segmented
+            value={billing_period === "yearly" ? "yearly" : "monthly"}
+            on_change={(v) => set_billing_period(v)}
+            options={[
+              { id: "monthly", label: t("settings.billing_monthly") },
+              { id: "yearly", label: t("settings.billing_yearly") },
+            ]}
+          />
+        )}
       </div>
 
       <div className="flex items-center justify-center gap-2 mb-5">
@@ -322,29 +361,25 @@ export function AvailablePlansSection({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3">
           {FAMILY_PLAN_TIERS.map((tier) => {
             const is_same_plan = subscription?.plan.code === tier.id;
-            const is_current = is_same_plan && current_billing_interval === card_interval;
-            const is_interval_switch = is_same_plan && current_billing_interval !== card_interval;
-            const price_cents = billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents;
+            const is_current = is_same_plan && current_billing_interval === "year";
+            const price_cents = Math.round(tier.yearly_cents / 12);
             const features = tier.max_members === 2 ? FAMILY_PLAN_DUO_FEATURES : FAMILY_PLAN_FAMILY_FEATURES;
 
             return (
               <PlanCard
                 key={tier.id}
                 name={tier.name}
+                description={tier.description}
                 price_label={format_price(convert_cents(price_cents, preferred_currency), preferred_currency)}
                 period_label={period_label}
-                savings_label={billing_period === "yearly" ? tier.savings_label : null}
-                badge={is_current
-                  ? t("settings.current_plan")
-                  : tier.is_recommended ? t("settings.plan_recommended") : null}
-                highlighted={is_current || !!tier.is_recommended}
-                cta_label={is_current
-                  ? t("settings.current_plan")
-                  : is_interval_switch
-                    ? (card_interval === "year" ? t("settings.switch_to_yearly") : t("settings.switch_to_monthly"))
-                    : t("settings.upgrade")}
+                anchor_label={format_price(convert_cents(tier.monthly_cents, preferred_currency), preferred_currency)}
+                save_label={`SAVE ${Math.round((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100)}%`}
+                billed_note={t("settings.billed_annually")}
+                badge={!!tier.is_recommended && !is_current ? t("settings.plan_recommended") : null}
+                featured={!!tier.is_recommended}
+                is_current={is_current}
+                cta_label={is_current ? t("settings.current_plan") : `Get ${tier.name}`}
                 cta_disabled={is_action_loading || family_loading || is_current}
-                cta_variant={is_current ? "outline" : "primary"}
                 on_cta={() => { if (!is_current) handle_family_select(tier); }}
                 features={features}
               />
@@ -392,33 +427,33 @@ export function AvailablePlansSection({
               <PlanCard
                 key={tier.id}
                 name={tier.name}
+                description={tier.description}
                 price_label={format_price(
                   convert_cents(
-                    billing_period === "monthly" ? tier.monthly_cents : tier.yearly_cents,
+                    billing_period === "monthly"
+                      ? tier.monthly_cents
+                      : Math.round(tier.yearly_cents / 12),
                     preferred_currency,
                   ),
                   preferred_currency,
                 )}
                 period_label={period_label}
-                savings_label={billing_period === "yearly"
-                  ? t("settings.save_yearly", {
-                      amount: format_price(
-                        convert_cents(tier.savings_cents, preferred_currency),
-                        preferred_currency,
-                      ),
-                    })
+                anchor_label={billing_period === "yearly"
+                  ? format_price(convert_cents(tier.monthly_cents, preferred_currency), preferred_currency)
                   : null}
-                badge={is_current
-                  ? t("settings.current_plan")
-                  : tier.is_recommended ? t("settings.plan_recommended") : null}
-                highlighted={is_current || !!tier.is_recommended}
+                save_label={billing_period === "yearly"
+                  ? `SAVE ${Math.round((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100)}%`
+                  : null}
+                billed_note={billing_period === "yearly" ? t("settings.billed_annually") : null}
+                badge={!!tier.is_recommended && !is_current ? t("settings.plan_recommended") : null}
+                featured={!!tier.is_recommended}
+                is_current={is_current}
                 cta_label={is_current
                   ? t("settings.current_plan")
                   : is_interval_switch
                     ? (card_interval === "year" ? t("settings.switch_to_yearly") : t("settings.switch_to_monthly"))
-                    : is_downgrade ? t("settings.downgrade") : t("settings.upgrade")}
+                    : is_downgrade ? t("settings.downgrade") : `Get ${tier.name}`}
                 cta_disabled={is_action_loading || is_current}
-                cta_variant={is_current ? "outline" : "primary"}
                 on_cta={() => {
                   if (is_current) return;
                   const api_plan = plans.find((p) => p.code === tier.id);
@@ -434,6 +469,13 @@ export function AvailablePlansSection({
           })}
         </div>
       )}
+
+      <div className="mt-6 flex items-center justify-center gap-1.5 text-xs text-txt-muted">
+        <ShieldCheckIcon className="w-3.5 h-3.5 text-txt-muted" />
+        <span>
+          {t("settings.money_back_guarantee")} · {t("settings.cancel_anytime")}
+        </span>
+      </div>
     </div>
   );
 }

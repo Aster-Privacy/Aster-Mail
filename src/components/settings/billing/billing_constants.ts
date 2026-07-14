@@ -26,6 +26,7 @@ export const ADDON_BADGES: Record<string, "popular" | "best_value"> = {
 export interface PlanTier {
   id: string;
   name: string;
+  description: string;
   monthly_cents: number;
   yearly_cents: number;
   biennial_cents: number;
@@ -37,6 +38,7 @@ export interface PlanTier {
 export interface FamilyPlanTier {
   id: string;
   name: string;
+  description: string;
   max_members: number;
   storage_label: string;
   monthly_cents: number;
@@ -49,6 +51,7 @@ export const FAMILY_PLAN_TIERS: FamilyPlanTier[] = [
   {
     id: "duo",
     name: "Duo",
+    description: "Two members with separate accounts and shared storage.",
     max_members: 2,
     storage_label: "1 TB shared",
     monthly_cents: 1299,
@@ -58,6 +61,7 @@ export const FAMILY_PLAN_TIERS: FamilyPlanTier[] = [
   {
     id: "family",
     name: "Family",
+    description: "Up to six members, more storage, and premium features.",
     max_members: 6,
     storage_label: "3 TB shared",
     monthly_cents: 2699,
@@ -71,6 +75,7 @@ export const PLAN_TIERS: PlanTier[] = [
   {
     id: "star",
     name: "Star",
+    description: "More storage, more aliases, and your first custom domains.",
     monthly_cents: 299,
     yearly_cents: 2899,
     biennial_cents: 4999,
@@ -80,6 +85,7 @@ export const PLAN_TIERS: PlanTier[] = [
   {
     id: "nova",
     name: "Nova",
+    description: "More storage, custom domains, and unlimited aliases.",
     monthly_cents: 899,
     yearly_cents: 8699,
     biennial_cents: 14999,
@@ -90,6 +96,7 @@ export const PLAN_TIERS: PlanTier[] = [
   {
     id: "supernova",
     name: "Supernova",
+    description: "Maximum storage, unlimited everything, and dedicated support.",
     monthly_cents: 1799,
     yearly_cents: 17399,
     biennial_cents: 29999,
@@ -193,6 +200,7 @@ export interface FamilyPlanFeature {
 
 export const FAMILY_PLAN_DUO_FEATURES: FamilyPlanFeature[] = [
   { label: "2 members, separate accounts", on: true },
+  { label: "Everything in Nova, for every member", on: true },
   { label: "1 TB shared pool, privately allocated per member", on: true },
   { label: "End-to-end encryption", on: true },
   { label: "Zero-access architecture", on: true },
@@ -215,6 +223,7 @@ export const FAMILY_PLAN_DUO_FEATURES: FamilyPlanFeature[] = [
 
 export const FAMILY_PLAN_FAMILY_FEATURES: FamilyPlanFeature[] = [
   { label: "Up to 6 members, separate accounts", on: true },
+  { label: "Everything in Supernova, for every member", on: true },
   { label: "3 TB shared pool, privately allocated per member", on: true },
   { label: "End-to-end encryption", on: true },
   { label: "Zero-access architecture", on: true },
