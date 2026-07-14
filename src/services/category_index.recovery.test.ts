@@ -236,7 +236,7 @@ describe("category_index build recovery", () => {
     expect(is_build_stalled()).toBe(false); // just started, making progress
 
     // Time passes while the tab is backgrounded; the build makes no progress.
-    vi.setSystemTime(BASE_NOW + 31_000);
+    vi.setSystemTime(BASE_NOW + 91_000);
     expect(is_build_stalled()).toBe(true);
 
     // The user returns. The next attempt now succeeds.
@@ -259,7 +259,7 @@ describe("category_index build recovery", () => {
     await flush();
     expect(is_build_in_progress()).toBe(true);
 
-    vi.setSystemTime(BASE_NOW + 31_000);
+    vi.setSystemTime(BASE_NOW + 91_000);
     expect(is_build_stalled()).toBe(true);
 
     // A fresh caller (not the visibility handler) also takes over a stalled build.
