@@ -351,7 +351,14 @@ export default function SignInPage() {
 
   useEffect(() => {
     if (has_existing_session) {
-      navigate(get_safe_next_path(), { replace: true });
+      const academic = new URLSearchParams(window.location.search).get(
+        "academic",
+      );
+      if (academic === "verified") {
+        navigate("/settings/billing?academic=verified", { replace: true });
+      } else {
+        navigate(get_safe_next_path(), { replace: true });
+      }
     }
   }, [has_existing_session, navigate]);
 
@@ -1259,6 +1266,51 @@ export default function SignInPage() {
             <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
               {t("auth.enter_credentials")}
             </p>
+
+            {(() => {
+              const academic = new URLSearchParams(
+                window.location.search,
+              ).get("academic");
+              if (academic !== "verified" && academic !== "failed") return null;
+              const is_ok = academic === "verified";
+
+              return (
+                <div
+                  className="w-full mt-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2.5"
+                  style={{
+                    backgroundColor: is_ok
+                      ? "rgba(34,197,94,0.12)"
+                      : "rgba(245,158,11,0.12)",
+                    color: is_ok ? "#16a34a" : "#b45309",
+                  }}
+                >
+                  <svg
+                    className="w-5 h-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d={
+                        is_ok
+                          ? "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                          : "M12 9v3.75m0 3.75h.008M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                      }
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="text-left leading-snug">
+                    {t(
+                      is_ok
+                        ? "auth.academic_verified_signin_note"
+                        : "auth.academic_failed_signin_note",
+                    )}
+                  </span>
+                </div>
+              );
+            })()}
 
             <AnimatePresence>
               {error && <Alert is_dark={is_dark} message={error} />}

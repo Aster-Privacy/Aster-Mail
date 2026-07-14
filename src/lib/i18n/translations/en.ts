@@ -821,6 +821,8 @@ export const en: Translations = {
     welcome_to_aster: "Welcome to Aster Mail",
     purchase_thank_you:
       "Thank you for your purchase. Your subscription is now active.",
+    purchase_congrats_title: "Congratulations!",
+    go_to_inbox: "Go to inbox",
     view_billing_settings: "View Billing Settings",
     welcome_description:
       "Let's take a quick tour to help you get started with your secure, private email platform.",
@@ -5577,6 +5579,10 @@ export const en: Translations = {
     username: "Username",
     sign_in_to_aster: "Sign in to Aster",
     enter_credentials: "Enter your credentials to access your account",
+    academic_verified_signin_note:
+      "Student status verified. Sign in and your 30% discount will be applied at checkout.",
+    academic_failed_signin_note:
+      "That verification link expired or was already used. Sign in and request a new one from Billing settings.",
     pair_device_title: "Pair device",
     pair_device_confirm:
       "Do you want to pair {{ name }} with your Aster Mail account?",
@@ -5878,6 +5884,8 @@ export const en: Translations = {
     plan_selection_title: "Choose your plan",
     plan_selection_subtitle:
       "Pick the plan that fits you. You can change or cancel anytime.",
+    plan_academic_discount_note:
+      "Your 30% discount is applied automatically at checkout once your email is verified.",
     plan_continue_with_free: "Continue with Free",
     plan_continue_as_free: "Continue as free",
     academic_offer_title: "Student or journalist? Get 30% off",
@@ -5891,6 +5899,10 @@ export const en: Translations = {
     academic_offer_journalist_link: "I'm a journalist",
     academic_offer_student_link: "I'm a student",
     academic_offer_sent_title: "Check your inbox",
+    academic_verified_title: "You're verified!",
+    academic_verified_body:
+      "Your 30% student discount is locked in. Taking you to your plans...",
+    academic_verified_continue: "Choose your plan",
     academic_offer_continue: "Continue",
     academic_offer_j_step1: "Finish creating your account",
     academic_offer_j_step2: "Email hello@astermail.org with a press card, staff page, or byline links",

@@ -93,7 +93,7 @@ export function PurchaseSuccessModal({
               />
 
               <h2 className="text-lg font-semibold text-txt-primary mb-2">
-                {t("common.welcome_to_aster")}
+                {t("common.purchase_congrats_title")}
               </h2>
 
               <p className="text-sm text-txt-secondary leading-relaxed mb-1">
@@ -121,20 +121,20 @@ export function PurchaseSuccessModal({
                 className="w-full"
                 size="xl"
                 variant="depth"
+                onClick={on_close}
+              >
+                {t("common.go_to_inbox")}
+              </Button>
+              <Button
+                className="w-full"
+                size="xl"
+                variant="secondary"
                 onClick={() => {
                   on_close();
                   on_view_billing();
                 }}
               >
                 {t("common.view_billing_settings")}
-              </Button>
-              <Button
-                className="w-full"
-                size="xl"
-                variant="secondary"
-                onClick={on_close}
-              >
-                {t("common.get_started")}
               </Button>
             </div>
           </motion.div>

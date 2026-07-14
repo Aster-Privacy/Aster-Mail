@@ -80,15 +80,15 @@ export const RegisterStepWelcome = ({ reg }: RegisterStepWelcomeProps) => {
           <span
             className="inline-flex items-center gap-1.5 mt-6"
             style={{
-              padding: "5px 12px",
-              borderRadius: "6px",
-              fontSize: "12px",
-              fontWeight: 600,
+              padding: "6px 14px",
+              borderRadius: "999px",
+              fontSize: "11px",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
               lineHeight: 1,
-              color: "#1d4ed8",
-              backgroundColor: "#dbeafe",
-              border: "1px solid #93c5fd",
-              borderBottomWidth: "2.5px",
+              color: "#ffffff",
+              backgroundColor: "#2563eb",
             }}
           >
             <OfferIcon className="w-3.5 h-3.5" />

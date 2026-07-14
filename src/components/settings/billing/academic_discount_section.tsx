@@ -125,9 +125,17 @@ export function AcademicDiscountSection({
 
   const handle_resend = async () => {
     if (resend_cooldown > 0 || submitting) return;
+    if (captcha_required && !turnstile_token) {
+      show_toast(t("settings.academic_captcha_required"), "error");
+
+      return;
+    }
     set_submitting(true);
     try {
-      const res = await resend_academic_verification();
+      const res = await resend_academic_verification(turnstile_token);
+
+      turnstile_ref.current?.reset();
+      set_turnstile_token("");
 
       if (res.error) {
         show_toast(t("settings.academic_request_failed"), "error");
@@ -205,9 +213,21 @@ export function AcademicDiscountSection({
           <p className="text-xs text-txt-muted mt-1">
             {t("settings.academic_pending_description")}
           </p>
+          {captcha_required && (
+            <TurnstileWidget
+              ref={turnstile_ref}
+              class_name="flex justify-start mt-3"
+              on_expire={() => set_turnstile_token("")}
+              on_verify={(token) => set_turnstile_token(token)}
+            />
+          )}
           <button
             className="aster_btn aster_btn_outline aster_btn_sm mt-3 disabled:opacity-50"
-            disabled={resend_cooldown > 0 || submitting}
+            disabled={
+              resend_cooldown > 0 ||
+              submitting ||
+              (captcha_required && !turnstile_token)
+            }
             type="button"
             onClick={handle_resend}
           >

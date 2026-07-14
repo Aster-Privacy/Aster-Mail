@@ -473,10 +473,10 @@ export async function request_academic_verification(
   );
 }
 
-export async function resend_academic_verification() {
+export async function resend_academic_verification(turnstile_token?: string) {
   return api_client.post<AcademicDiscountResponse>(
     "/payments/v1/discounts/academic/resend",
-    {},
+    { ...(turnstile_token ? { turnstile_token } : {}) },
   );
 }
 
