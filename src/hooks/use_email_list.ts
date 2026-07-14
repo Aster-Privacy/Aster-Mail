@@ -756,20 +756,26 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   useEffect(() => {
     if (!state.is_loading) return;
     const safety_timeout = setTimeout(() => {
-      set_state((prev) =>
-        prev.is_loading
-          ? {
-              ...prev,
-              is_loading: false,
-              has_initial_load: true,
-              has_load_error: prev.emails.length === 0,
-            }
-          : prev,
-      );
+      set_state((prev) => {
+        if (!prev.is_loading) return prev;
+
+        const keys_pending =
+          (is_authenticated && !has_keys) ||
+          (has_keys && !has_passphrase_in_memory());
+
+        if (keys_pending) return prev;
+
+        return {
+          ...prev,
+          is_loading: false,
+          has_initial_load: true,
+          has_load_error: prev.emails.length === 0,
+        };
+      });
     }, 10_000);
 
     return () => clearTimeout(safety_timeout);
-  }, [state.is_loading]);
+  }, [state.is_loading, has_keys, is_authenticated]);
 
   useEffect(() => {
     if (!is_mail_view || !has_keys) return;

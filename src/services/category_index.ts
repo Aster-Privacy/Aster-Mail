@@ -207,7 +207,14 @@ async function persist_now(): Promise<void> {
     });
 
     db.close();
-  } catch {
+  } catch (e) {
+    const is_quota = e instanceof DOMException && e.name === "QuotaExceededError";
+
+    console.warn(
+      `category_index: failed to persist index${is_quota ? " (quota exceeded)" : ""}`,
+      e,
+    );
+
     return;
   }
 }

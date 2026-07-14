@@ -127,6 +127,8 @@ export function patch_all_view_caches(
         },
       });
     } else {
+      if (cached.state.emails[index].id !== detail.id) continue;
+
       const emails = cached.state.emails.map((e, i) =>
         i === index ? { ...e, ...patch } : e,
       );

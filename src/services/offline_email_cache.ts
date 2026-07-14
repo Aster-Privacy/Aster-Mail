@@ -83,7 +83,14 @@ export async function cache_email_list(
     });
 
     db.close();
-  } catch {
+  } catch (e) {
+    const is_quota = e instanceof DOMException && e.name === "QuotaExceededError";
+
+    console.warn(
+      `offline_email_cache: failed to cache view "${view}"${is_quota ? " (quota exceeded)" : ""}`,
+      e,
+    );
+
     return;
   }
 }
@@ -135,7 +142,9 @@ export async function clear_email_cache(): Promise<void> {
     });
 
     db.close();
-  } catch {
+  } catch (e) {
+    console.warn("offline_email_cache: failed to clear cache", e);
+
     return;
   }
 }
