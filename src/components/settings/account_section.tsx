@@ -31,6 +31,8 @@ import {
 import { Button } from "@aster/ui";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { StepUpModal } from "./step_up_modal";
+import type { StepUpCredentials } from "@/services/api/step_up";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { use_should_reduce_motion } from "@/provider";
 import { Spinner } from "@/components/ui/spinner";
@@ -236,9 +238,11 @@ export function AccountSection() {
   const [pending, set_pending] = useState(false);
   const [resending, set_resending] = useState(false);
   const [show_reset_confirm, set_show_reset_confirm] = useState(false);
-  const [show_remove_recovery_confirm, set_show_remove_recovery_confirm] =
-    useState(false);
-  const [removing_recovery, set_removing_recovery] = useState(false);
+  const [show_step_up, set_show_step_up] = useState(false);
+  const [step_up_mode, set_step_up_mode] = useState<"change" | "remove">(
+    "change",
+  );
+  const [pending_recovery_email, set_pending_recovery_email] = useState("");
   const [photo_error, set_photo_error] = useState<string | null>(null);
   const [inactivity_window, set_inactivity_window] = useState(24);
   const [saving_inactivity, set_saving_inactivity] = useState(false);
@@ -424,37 +428,58 @@ export function AccountSection() {
 
   const save_recovery = async (email: string) => {
     if (!vault) return;
+
+    if (recovery.email) {
+      set_pending_recovery_email(email);
+      set_step_up_mode("change");
+      set_show_step_up(true);
+
+      return;
+    }
+
     const r = await save_recovery_email(email, vault);
 
     if (r.code === "CONFLICT") {
       throw new Error(t("common.recovery_conflict"));
     }
+    if (!r.data.success) {
+      throw new Error(r.error || t("common.failed_to_save"));
+    }
 
-    if (r.data.success) {
-      set_recovery({ email, verified: false });
-      set_pending(true);
-    } else throw new Error("Failed");
+    set_recovery({ email, verified: false });
+    set_pending(true);
   };
 
-  const handle_remove_recovery = async () => {
-    if (removing_recovery) return;
-    set_removing_recovery(true);
-    try {
-      const r = await remove_recovery_email();
+  const handle_step_up_confirm = async (credentials: StepUpCredentials) => {
+    if (step_up_mode === "change") {
+      if (!vault) throw new Error(t("common.failed_to_save"));
+      const r = await save_recovery_email(
+        pending_recovery_email,
+        vault,
+        credentials,
+      );
 
-      if (r.data.success) {
-        set_recovery({ email: null, verified: false });
-        set_pending(false);
-        show_toast(t("common.recovery_email_removed"), "success");
-      } else {
-        show_toast(t("common.failed_remove_recovery_email"), "error");
+      if (r.code === "CONFLICT") {
+        throw new Error(t("common.recovery_conflict"));
       }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      show_toast(t("common.failed_remove_recovery_email"), "error");
-    } finally {
-      set_removing_recovery(false);
-      set_show_remove_recovery_confirm(false);
+      if (!r.data.success) {
+        throw new Error(r.error || t("common.step_up_error"));
+      }
+
+      set_recovery({ email: pending_recovery_email, verified: false });
+      set_pending(true);
+      set_show_step_up(false);
+    } else {
+      const r = await remove_recovery_email(credentials);
+
+      if (!r.data.success) {
+        throw new Error(r.error || t("common.step_up_error"));
+      }
+
+      set_recovery({ email: null, verified: false });
+      set_pending(false);
+      set_show_step_up(false);
+      show_toast(t("common.recovery_email_removed"), "success");
     }
   };
 
@@ -833,11 +858,13 @@ export function AccountSection() {
             )}
             {recovery.email && (
               <Button
-                disabled={removing_recovery}
                 variant="ghost"
-                onClick={() => set_show_remove_recovery_confirm(true)}
+                onClick={() => {
+                  set_step_up_mode("remove");
+                  set_show_step_up(true);
+                }}
               >
-                {removing_recovery ? <Spinner size="md" /> : t("common.remove")}
+                {t("common.remove")}
               </Button>
             )}
           </div>
@@ -918,15 +945,20 @@ export function AccountSection() {
         variant="warning"
       />
 
-      <ConfirmationModal
-        cancel_text={t("common.cancel")}
-        confirm_text={t("common.remove")}
-        is_open={show_remove_recovery_confirm}
-        message={t("common.remove_recovery_email_confirm")}
-        on_cancel={() => set_show_remove_recovery_confirm(false)}
-        on_confirm={handle_remove_recovery}
-        title={t("common.remove_recovery_email")}
-        variant="danger"
+      <StepUpModal
+        confirm_label={
+          step_up_mode === "remove" ? t("common.remove") : t("common.save")
+        }
+        description={t("common.step_up_description")}
+        destructive={step_up_mode === "remove"}
+        is_open={show_step_up}
+        on_close={() => set_show_step_up(false)}
+        on_confirm={handle_step_up_confirm}
+        title={
+          step_up_mode === "remove"
+            ? t("common.remove_recovery_email")
+            : t("common.recovery_email")
+        }
       />
 
       <RecoveryModal

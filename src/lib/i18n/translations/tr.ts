@@ -1165,6 +1165,8 @@ export const tr = {
     sending_in_one_second: "1 saniye içinde gönderiliyor...",
     message_will_be_sent_shortly: "Mesajınız kısa süre içinde gönderilecek",
     remove_recovery_email: "Kurtarma e-postasını kaldır",
+    step_up_description: "Güvenliğiniz için devam etmek üzere şifrenizi onaylayın.",
+    step_up_error: "Şifre veya doğrulama kodu yanlış. Lütfen tekrar deneyin.",
     remove_recovery_email_confirm: "Kurtarma e-postanızı kaldırmak istediğinizden emin misiniz? Bu e-postayı kullanarak artık hesabınızı kurtaramazsınız.",
     recovery_email_removed: "Kurtarma e-postası kaldırıldı",
     failed_remove_recovery_email: "Kurtarma e-postanız kaldırılamadı. Bir kez daha denemek genellikle yeterli olur. Kurtarma ayarlarınız değişmedi.",

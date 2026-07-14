@@ -1163,6 +1163,8 @@ export const pl = {
     sending_in_one_second: "Wysyłanie za 1 sekundę...",
     message_will_be_sent_shortly: "Twoja wiadomość zostanie wkrótce wysłana",
     remove_recovery_email: "Usuń e-mail odzyskiwania",
+    step_up_description: "Ze względów bezpieczeństwa potwierdź hasło, aby kontynuować.",
+    step_up_error: "Nieprawidłowe hasło lub kod weryfikacyjny. Spróbuj ponownie.",
     remove_recovery_email_confirm: "Czy na pewno chcesz usunąć adres e-mail odzyskiwania? Nie będziesz już móc odzyskać konta przy użyciu tego adresu.",
     recovery_email_removed: "E-mail odzyskiwania został usunięty",
     failed_remove_recovery_email: "Nie udało się usunąć adresu e-mail odzyskiwania. Spróbuj jeszcze raz. Ustawienia odzyskiwania nie zostały zmienione.",
