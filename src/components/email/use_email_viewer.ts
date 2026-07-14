@@ -291,76 +291,82 @@ export function use_email_viewer({
         preferences.conversation_grouping !== false,
       );
 
-      if (preloaded && !cancelled) {
+      if (preloaded) {
         const pe = preloaded.email;
 
-        set_email({
-          id: pe.id,
-          sender: pe.sender,
-          sender_email: pe.sender_email,
-          display_sender_name: pe.display_sender_name,
-          display_sender_email: pe.display_sender_email,
-          forwarding_service: pe.forwarding_service,
-          subject: pe.subject,
-          preview: pe.preview,
-          timestamp: preloaded.mail_item.created_at,
-          is_read: pe.is_read,
-          is_starred: pe.is_starred,
-          is_trashed: false,
-          is_archived: false,
-          body: pe.html_content || pe.body,
-          html_content: pe.html_content,
-          unsubscribe_info: pe.unsubscribe_info,
-          thread_token: preloaded.mail_item.thread_token,
-          raw_headers: pe.raw_headers,
-          reply_to: pe.reply_to
-            ? { name: pe.reply_to.name ?? "", email: pe.reply_to.email }
-            : undefined,
-          to: pe.to?.map((r) => ({ name: r.name || "", email: r.email })) || [],
-          cc:
-            pe.cc?.map((r) => ({ name: r.name || "", email: r.email || "" })) ||
-            [],
-          bcc:
-            pe.bcc?.map((r) => ({
-              name: r.name || "",
-              email: r.email || "",
-            })) || [],
-          expires_at: preloaded.mail_item.expires_at,
-        });
-        set_is_external(preloaded.mail_item.is_external);
-        set_has_recipient_key(!!preloaded.mail_item.has_recipient_key);
-        set_has_pq_protection(!!preloaded.mail_item.ephemeral_pq_key);
-        set_mail_item(preloaded.mail_item);
-        set_is_read(pe.is_read);
-        set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
-        set_thread_messages(preloaded.thread_messages);
-        set_thread_draft(preloaded.thread_draft);
-        set_current_user_email(preloaded.current_user_email);
-        thread_sanitized_ref.current = preloaded.thread_sanitized;
+        if (!cancelled) {
+          set_email({
+            id: pe.id,
+            sender: pe.sender,
+            sender_email: pe.sender_email,
+            display_sender_name: pe.display_sender_name,
+            display_sender_email: pe.display_sender_email,
+            forwarding_service: pe.forwarding_service,
+            subject: pe.subject,
+            preview: pe.preview,
+            timestamp: preloaded.mail_item.created_at,
+            is_read: pe.is_read,
+            is_starred: pe.is_starred,
+            is_trashed: false,
+            is_archived: false,
+            body: pe.html_content || pe.body,
+            html_content: pe.html_content,
+            unsubscribe_info: pe.unsubscribe_info,
+            thread_token: preloaded.mail_item.thread_token,
+            raw_headers: pe.raw_headers,
+            reply_to: pe.reply_to
+              ? { name: pe.reply_to.name ?? "", email: pe.reply_to.email }
+              : undefined,
+            to:
+              pe.to?.map((r) => ({ name: r.name || "", email: r.email })) ||
+              [],
+            cc:
+              pe.cc?.map((r) => ({
+                name: r.name || "",
+                email: r.email || "",
+              })) || [],
+            bcc:
+              pe.bcc?.map((r) => ({
+                name: r.name || "",
+                email: r.email || "",
+              })) || [],
+            expires_at: preloaded.mail_item.expires_at,
+          });
+          set_is_external(preloaded.mail_item.is_external);
+          set_has_recipient_key(!!preloaded.mail_item.has_recipient_key);
+          set_has_pq_protection(!!preloaded.mail_item.ephemeral_pq_key);
+          set_mail_item(preloaded.mail_item);
+          set_is_read(pe.is_read);
+          set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
+          set_thread_messages(preloaded.thread_messages);
+          set_thread_draft(preloaded.thread_draft);
+          set_current_user_email(preloaded.current_user_email);
+          thread_sanitized_ref.current = preloaded.thread_sanitized;
 
-        if (preloaded.current_user_name) {
-          set_current_user_name(preloaded.current_user_name);
-        } else {
-          try {
-            const { get_current_account } = await import(
-              "@/services/account_manager"
-            );
-            const account = await get_current_account();
-
-            if (account) {
-              set_current_user_name(
-                account.user.display_name || account.user.email,
+          if (preloaded.current_user_name) {
+            set_current_user_name(preloaded.current_user_name);
+          } else {
+            try {
+              const { get_current_account } = await import(
+                "@/services/account_manager"
               );
-              set_current_user_email(account.user.email);
-            }
-          } catch (e) {
-            if (import.meta.env.DEV) console.error(e);
-          }
-        }
+              const account = await get_current_account();
 
-        was_preloaded_ref.current = true;
-        set_is_loading(false);
-        loaded_email_id_ref.current = email_id;
+              if (account) {
+                set_current_user_name(
+                  account.user.display_name || account.user.email,
+                );
+                set_current_user_email(account.user.email);
+              }
+            } catch (e) {
+              if (import.meta.env.DEV) console.error(e);
+            }
+          }
+
+          was_preloaded_ref.current = true;
+          set_is_loading(false);
+          loaded_email_id_ref.current = email_id;
+        }
 
         if (!pe.is_read && preferences.mark_as_read_delay !== "never") {
           const is_received = preloaded.mail_item.item_type === "received";
@@ -435,11 +441,11 @@ export function use_email_viewer({
 
       const result = await get_mail_item(email_id);
 
-      if (cancelled) return;
-
       if (result.error || !result.data) {
-        set_error(t("common.failed_to_load_email"));
-        set_is_loading(false);
+        if (!cancelled) {
+          set_error(t("common.failed_to_load_email"));
+          set_is_loading(false);
+        }
 
         return;
       }
@@ -447,8 +453,10 @@ export function use_email_viewer({
       const item = result.data;
 
       if (!item.encrypted_envelope || item.envelope_nonce == null) {
-        set_error(t("common.email_data_missing"));
-        set_is_loading(false);
+        if (!cancelled) {
+          set_error(t("common.email_data_missing"));
+          set_is_loading(false);
+        }
 
         return;
       }
@@ -458,11 +466,11 @@ export function use_email_viewer({
         item.envelope_nonce,
       );
 
-      if (cancelled) return;
-
       if (!envelope) {
-        set_error(t("common.failed_to_decrypt_email"));
-        set_is_loading(false);
+        if (!cancelled) {
+          set_error(t("common.failed_to_decrypt_email"));
+          set_is_loading(false);
+        }
 
         return;
       }
@@ -519,44 +527,46 @@ export function use_email_viewer({
 
       const parsed_reply_to = extract_reply_to(envelope.raw_headers);
 
-      set_email({
-        id: item.id,
-        sender:
-          envelope.from.name ||
-          get_email_username(envelope.from.email) ||
-          t("common.unknown"),
-        sender_email: envelope.from.email || "",
-        ...(resolve_forwarding_display(
-          envelope.from,
-          envelope.raw_headers,
-        ) ?? {}),
-        subject: envelope.subject || t("mail.no_subject"),
-        preview: build_preview_text(body_text, safe_html),
-        timestamp: item.created_at,
-        is_read: decrypted_metadata?.is_read ?? false,
-        is_starred: decrypted_metadata?.is_starred ?? false,
-        is_trashed: decrypted_metadata?.is_trashed ?? false,
-        is_archived: decrypted_metadata?.is_archived ?? false,
-        body: safe_html || body_text,
-        html_content: safe_html,
-        unsubscribe_info: unsubscribe,
-        thread_token: item.thread_token,
-        to: envelope.to || [],
-        cc: envelope.cc || [],
-        bcc: envelope.bcc || [],
-        expires_at: item.expires_at,
-        raw_headers: envelope.raw_headers,
-        reply_to: parsed_reply_to
-          ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
-          : undefined,
-        sender_verification: envelope.sender_verification,
-      });
-      set_is_external(item.is_external);
-      set_has_recipient_key(!!item.has_recipient_key);
-      set_has_pq_protection(!!item.ephemeral_pq_key);
-      set_mail_item(item_with_metadata);
-      set_is_read(decrypted_metadata?.is_read ?? false);
-      set_is_pinned(decrypted_metadata?.is_pinned ?? false);
+      if (!cancelled) {
+        set_email({
+          id: item.id,
+          sender:
+            envelope.from.name ||
+            get_email_username(envelope.from.email) ||
+            t("common.unknown"),
+          sender_email: envelope.from.email || "",
+          ...(resolve_forwarding_display(
+            envelope.from,
+            envelope.raw_headers,
+          ) ?? {}),
+          subject: envelope.subject || t("mail.no_subject"),
+          preview: build_preview_text(body_text, safe_html),
+          timestamp: item.created_at,
+          is_read: decrypted_metadata?.is_read ?? false,
+          is_starred: decrypted_metadata?.is_starred ?? false,
+          is_trashed: decrypted_metadata?.is_trashed ?? false,
+          is_archived: decrypted_metadata?.is_archived ?? false,
+          body: safe_html || body_text,
+          html_content: safe_html,
+          unsubscribe_info: unsubscribe,
+          thread_token: item.thread_token,
+          to: envelope.to || [],
+          cc: envelope.cc || [],
+          bcc: envelope.bcc || [],
+          expires_at: item.expires_at,
+          raw_headers: envelope.raw_headers,
+          reply_to: parsed_reply_to
+            ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
+            : undefined,
+          sender_verification: envelope.sender_verification,
+        });
+        set_is_external(item.is_external);
+        set_has_recipient_key(!!item.has_recipient_key);
+        set_has_pq_protection(!!item.ephemeral_pq_key);
+        set_mail_item(item_with_metadata);
+        set_is_read(decrypted_metadata?.is_read ?? false);
+        set_is_pinned(decrypted_metadata?.is_pinned ?? false);
+      }
 
       const single_message = build_single_thread_message(
         item,
@@ -602,8 +612,10 @@ export function use_email_viewer({
         set_thread_messages([single_message]);
       }
 
-      set_is_loading(false);
-      loaded_email_id_ref.current = email_id;
+      if (!cancelled) {
+        set_is_loading(false);
+        loaded_email_id_ref.current = email_id;
+      }
 
       if (item.thread_token && !cancelled) {
         const { get_vault_from_memory, wait_for_keys_ready } = await import(
