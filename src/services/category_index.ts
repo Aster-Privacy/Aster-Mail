@@ -58,8 +58,8 @@ const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 // (e.g. an in-flight request whose abort timer was frozen while the tab was
 // backgrounded and never settled). Recovery paths may then supersede it
 // instead of deferring forever to a dead `build_in_progress` latch.
-const BUILD_STALE_MS = 30000;
-const BUILD_FETCH_DEADLINE_MS = 30000;
+const BUILD_STALE_MS = 90000;
+const BUILD_FETCH_DEADLINE_MS = 75000;
 
 export interface CategoryIndexEntry {
   id: string;
