@@ -1154,6 +1154,8 @@ export interface CommonTranslations {
   later: string;
   welcome_to_aster: string;
   purchase_thank_you: string;
+  purchase_congrats_title: string;
+  go_to_inbox: string;
   view_billing_settings: string;
   welcome_description: string;
   organize_with_folders: string;
@@ -5505,6 +5507,8 @@ export interface AuthTranslations {
   username: string;
   sign_in_to_aster: string;
   enter_credentials: string;
+  academic_verified_signin_note: string;
+  academic_failed_signin_note: string;
   pair_device_title: string;
   pair_device_confirm: string;
   pair_device_warning: string;
@@ -5736,6 +5740,7 @@ export interface AuthTranslations {
   skip_verification: string;
   plan_selection_title: string;
   plan_selection_subtitle: string;
+  plan_academic_discount_note: string;
   plan_continue_with_free: string;
   plan_continue_as_free: string;
   academic_offer_title: string;
@@ -5749,6 +5754,9 @@ export interface AuthTranslations {
   academic_offer_journalist_link: string;
   academic_offer_student_link: string;
   academic_offer_sent_title: string;
+  academic_verified_title: string;
+  academic_verified_body: string;
+  academic_verified_continue: string;
   academic_offer_continue: string;
   academic_offer_j_step1: string;
   academic_offer_j_step2: string;

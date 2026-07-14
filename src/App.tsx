@@ -114,6 +114,7 @@ const ExternalRedirect = ({ url }: { url: string }) => {
 import { ActionToast } from "@/components/toast/action_toast";
 import { SimpleToast } from "@/components/toast/simple_toast";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
+import { PurchaseSuccessModal } from "@/components/modals/purchase_success_modal";
 import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
@@ -152,6 +153,10 @@ function BillingSuccessHandler() {
   const { is_authenticated, current_account_id } = use_auth();
   const handled = useRef(false);
   const [family_welcome, set_family_welcome] = useState<FamilyWelcomeState | null>(null);
+  const [individual_welcome, set_individual_welcome] = useState<{
+    plan: string;
+    billing: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!is_authenticated || handled.current) return;
@@ -176,7 +181,6 @@ function BillingSuccessHandler() {
         if (res.data && res.data.plan.code !== "free") {
           invalidate_mail_stats();
           window.dispatchEvent(new CustomEvent("aster:plan-changed"));
-          show_toast(t("settings.payment_success"), "success");
           const code = res.data.plan.code;
           if (
             (code === "duo" || code === "family") &&
@@ -191,6 +195,13 @@ function BillingSuccessHandler() {
               max_members,
               storage_pool_bytes: storage_gb * 1073741824,
             });
+          } else {
+            const billing = (res.data.plan.billing_period || "").startsWith(
+              "year",
+            )
+              ? "year"
+              : "month";
+            set_individual_welcome({ plan: code, billing });
           }
           return;
         }
@@ -199,20 +210,36 @@ function BillingSuccessHandler() {
     })();
   }, [is_authenticated, current_account_id, t]);
 
-  if (!family_welcome) return null;
+  if (!family_welcome && !individual_welcome) return null;
 
   return (
-    <FamilyWelcomeModal
-      is_open={true}
-      on_close={() => set_family_welcome(null)}
-      plan_name={family_welcome.plan_name}
-      max_members={family_welcome.max_members}
-      storage_pool_bytes={family_welcome.storage_pool_bytes}
-      on_go_to_family={() => {
-        set_family_welcome(null);
-        window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "family" }));
-      }}
-    />
+    <>
+      {family_welcome && (
+        <FamilyWelcomeModal
+          is_open={true}
+          on_close={() => set_family_welcome(null)}
+          plan_name={family_welcome.plan_name}
+          max_members={family_welcome.max_members}
+          storage_pool_bytes={family_welcome.storage_pool_bytes}
+          on_go_to_family={() => {
+            set_family_welcome(null);
+            window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "family" }));
+          }}
+        />
+      )}
+      {individual_welcome && (
+        <PurchaseSuccessModal
+          billing={individual_welcome.billing}
+          is_open={true}
+          on_close={() => set_individual_welcome(null)}
+          on_view_billing={() => {
+            set_individual_welcome(null);
+            window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }));
+          }}
+          plan={individual_welcome.plan}
+        />
+      )}
+    </>
   );
 }
 
