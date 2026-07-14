@@ -291,6 +291,76 @@ export function use_compose_drafts({
     }
   }, [on_close, edit_draft, on_draft_cleared, vault, auto_save_drafts, preferences.low_network_mode]);
 
+  const flush_pending_draft_ref = useRef<() => void>(() => {});
+
+  flush_pending_draft_ref.current = () => {
+    if (!save_timer_ref.current) return;
+
+    const context_id = draft_context_id_ref.current;
+
+    if (!context_id || !vault || !auto_save_drafts) return;
+
+    clearTimeout(save_timer_ref.current);
+    save_timer_ref.current = null;
+
+    if (is_sending_ref.current) return;
+
+    const data = draft_data_ref.current;
+    const current_attachments = attachments_ref.current;
+    const has_content =
+      data.recipients.to.length > 0 ||
+      data.recipients.cc.length > 0 ||
+      data.recipients.bcc.length > 0 ||
+      data.subject ||
+      data.message;
+
+    const body_empty = !data.message;
+    const should_save =
+      has_content &&
+      (edit_draft || user_modified_ref.current) &&
+      !(preferences.low_network_mode && body_empty);
+
+    if (!should_save) return;
+
+    const flush_att_data =
+      current_attachments.length > 0
+        ? attachments_to_draft_data(current_attachments)
+        : undefined;
+
+    draft_manager.save_draft(
+      context_id,
+      {
+        to_recipients: data.recipients.to,
+        cc_recipients: data.recipients.cc,
+        bcc_recipients: data.recipients.bcc,
+        subject: data.subject,
+        message: data.message,
+        attachments: flush_att_data,
+      },
+      vault,
+    );
+  };
+
+  useEffect(() => {
+    const handle_pagehide = () => {
+      flush_pending_draft_ref.current();
+    };
+
+    const handle_visibilitychange = () => {
+      if (document.visibilityState === "hidden") {
+        flush_pending_draft_ref.current();
+      }
+    };
+
+    window.addEventListener("pagehide", handle_pagehide);
+    document.addEventListener("visibilitychange", handle_visibilitychange);
+
+    return () => {
+      window.removeEventListener("pagehide", handle_pagehide);
+      document.removeEventListener("visibilitychange", handle_visibilitychange);
+    };
+  }, []);
+
   return {
     draft_status,
     set_draft_status,
