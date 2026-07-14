@@ -654,6 +654,7 @@ export function EmailInbox({
   });
 
   const [active_filter, set_active_filter] = useState<InboxFilterType>("all");
+  const [is_paginating, set_is_paginating] = useState(false);
   const prev_view_ref_page = useRef(current_view);
   const prev_page_ref = useRef(current_page);
   const initial_page_synced = useRef(false);
@@ -684,7 +685,10 @@ export function EmailInbox({
     if (!initial_page_synced.current || page_changed) {
       initial_page_synced.current = true;
       if (current_page > 0 || page_changed) {
-        fetch_page(current_page, page_size, true);
+        set_is_paginating(true);
+        fetch_page(current_page, page_size, true).finally(() =>
+          set_is_paginating(false),
+        );
       }
     }
   }, [email_state.has_initial_load, current_page, fetch_page, page_size]);
@@ -758,8 +762,9 @@ export function EmailInbox({
   const primary_emails = all_primary_emails;
 
   const skeleton_visible =
-    filtered_emails.length === 0 &&
-    (folders_loading_for_view || !email_state.has_initial_load);
+    is_paginating ||
+    (filtered_emails.length === 0 &&
+      (folders_loading_for_view || !email_state.has_initial_load));
 
   const is_client_filtered = active_filter !== "all";
   const stats_total_for_view = useMemo(() => {
