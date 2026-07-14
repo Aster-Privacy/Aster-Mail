@@ -54,6 +54,7 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
+import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
 import { AliasAdvancedPanel } from "@/components/settings/aliases/alias_advanced_panel";
 
 const AVATAR_MAX_SIZE = 256;
@@ -242,6 +243,7 @@ interface AliasItemProps {
   on_avatar_changed?: () => void;
   on_display_name_saved?: (alias_id: string, name: string) => void;
   on_note_saved?: (alias_id: string, note: string) => void;
+  on_websites_saved?: (alias_id: string, websites: string[]) => void;
   toggling: boolean;
   deleting: boolean;
   is_avatar_locked: boolean;
@@ -259,6 +261,7 @@ export function AliasItem({
   on_avatar_changed,
   on_display_name_saved,
   on_note_saved,
+  on_websites_saved,
   toggling,
   deleting,
   is_avatar_locked,
@@ -466,6 +469,18 @@ export function AliasItem({
             update_alias(alias.id, { note: note_value || null })
           }
           on_saved={(note_value) => on_note_saved?.(alias.id, note_value)}
+        />
+        <AliasWebsitesEditor
+          alias_address={alias.full_address}
+          websites={alias.websites}
+          on_save={(websites_value) =>
+            update_alias(alias.id, {
+              websites: websites_value.length > 0 ? websites_value : null,
+            })
+          }
+          on_saved={(websites_value) =>
+            on_websites_saved?.(alias.id, websites_value)
+          }
         />
         {!is_feature_locked("has_advanced_aliases") && stats && (
           <div className="mt-0.5 flex items-center gap-2">

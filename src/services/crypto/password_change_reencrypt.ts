@@ -38,6 +38,8 @@ export interface ReEncryptedAlias {
   alias_address_hash: string;
   encrypted_note?: string;
   note_nonce?: string;
+  encrypted_websites?: string;
+  websites_nonce?: string;
 }
 
 export interface ReEncryptedContact {
@@ -302,6 +304,19 @@ export async function re_encrypt_user_data(
 
           result.encrypted_note = encrypted_note;
           result.note_nonce = note_nonce;
+        }
+
+        if (alias.encrypted_websites && alias.websites_nonce) {
+          const { encrypted: encrypted_websites, nonce: websites_nonce } =
+            await re_encrypt_field(
+              alias.encrypted_websites,
+              alias.websites_nonce,
+              old_aes,
+              new_aes,
+            );
+
+          result.encrypted_websites = encrypted_websites;
+          result.websites_nonce = websites_nonce;
         }
 
         re_encrypted_aliases.push(result);

@@ -54,6 +54,7 @@ import {
 } from "@/services/api/domains";
 import { update_alias } from "@/services/api/aliases";
 import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
+import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
 
 const ALIASES_PER_PAGE = 50;
 
@@ -80,7 +81,10 @@ export function AliasesSection({
       (a) =>
         a.full_address.toLowerCase().includes(normalized_query) ||
         (a.display_name ?? "").toLowerCase().includes(normalized_query) ||
-        (a.note ?? "").toLowerCase().includes(normalized_query),
+        (a.note ?? "").toLowerCase().includes(normalized_query) ||
+        (a.websites ?? []).some((url) =>
+          url.toLowerCase().includes(normalized_query),
+        ),
     );
   }, [hook.aliases, normalized_query]);
 
@@ -321,6 +325,20 @@ export function AliasesSection({
                   }
                   on_saved={(note_value) =>
                     hook.handle_note_saved(alias.id, note_value)
+                  }
+                />
+                <AliasWebsitesEditor
+                  alias_address={alias.full_address}
+                  variant="mobile"
+                  websites={alias.websites}
+                  on_save={(websites_value) =>
+                    update_alias(alias.id, {
+                      websites:
+                        websites_value.length > 0 ? websites_value : null,
+                    })
+                  }
+                  on_saved={(websites_value) =>
+                    hook.handle_websites_saved(alias.id, websites_value)
                   }
                 />
                 <div className="mt-2 flex items-center gap-3">
