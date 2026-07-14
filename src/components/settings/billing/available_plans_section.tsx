@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState } from "react";
-import { CheckIcon, SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, MinusIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -56,6 +56,124 @@ interface AvailablePlansSectionProps {
   on_tauri_checkout_opened?: () => void;
   current_billing_interval: "month" | "year";
 }
+
+interface PlanFeature {
+  label: string;
+  on: boolean;
+}
+
+interface PlanCardProps {
+  name: string;
+  price_label: string;
+  period_label: string;
+  savings_label?: string | null;
+  badge?: string | null;
+  highlighted: boolean;
+  cta_label: string;
+  cta_disabled: boolean;
+  cta_variant: "primary" | "outline";
+  on_cta: () => void;
+  features: PlanFeature[];
+}
+
+function PlanCard({
+  name,
+  price_label,
+  period_label,
+  savings_label,
+  badge,
+  highlighted,
+  cta_label,
+  cta_disabled,
+  cta_variant,
+  on_cta,
+  features,
+}: PlanCardProps) {
+  return (
+    <div
+      className="relative flex flex-col rounded-2xl border p-5 transition-shadow duration-200 hover:shadow-md"
+      style={{
+        backgroundColor: "var(--bg-card)",
+        borderColor: highlighted ? "var(--accent-blue)" : "var(--border-secondary)",
+        boxShadow: highlighted ? "0 0 0 1px var(--accent-blue)" : undefined,
+      }}
+    >
+      {badge && (
+        <span
+          className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-0.5 text-[11px] font-semibold whitespace-nowrap"
+          style={{ backgroundColor: "var(--accent-blue)", color: "#fff" }}
+        >
+          {badge}
+        </span>
+      )}
+
+      <div className="text-center">
+        <h4 className="text-base font-semibold text-txt-primary tracking-tight">
+          {name}
+        </h4>
+
+        <div className="mt-2 flex items-baseline justify-center gap-1">
+          <span className="text-3xl font-bold text-txt-primary tracking-tight">
+            {price_label}
+          </span>
+          <span className="text-sm text-txt-muted">{period_label}</span>
+        </div>
+
+        <p
+          className="mt-1 h-4 text-xs font-medium"
+          style={{ color: "var(--color-success)" }}
+        >
+          {savings_label || ""}
+        </p>
+      </div>
+
+      <Button
+        className="w-full mt-4"
+        disabled={cta_disabled}
+        variant={cta_variant}
+        onClick={on_cta}
+      >
+        {cta_label}
+      </Button>
+
+      <div
+        className="mt-5 pt-4 space-y-2.5 border-t"
+        style={{ borderColor: "var(--border-secondary)" }}
+      >
+        {features.map((feature, i) => (
+          <div key={i} className="flex items-center gap-2">
+            {feature.on ? (
+              <CheckIcon
+                className="w-4 h-4 flex-shrink-0"
+                strokeWidth={2.5}
+                style={{ color: "var(--accent-blue)" }}
+              />
+            ) : (
+              <MinusIcon
+                className="w-4 h-4 flex-shrink-0 text-txt-muted"
+                strokeWidth={2.5}
+              />
+            )}
+            <span
+              className={
+                feature.on
+                  ? "text-xs text-txt-secondary"
+                  : "text-xs text-txt-muted"
+              }
+            >
+              {feature.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const TOGGLE_GROUP_STYLE: React.CSSProperties = {
+  background: "var(--bg-tertiary)",
+  border: "1px solid var(--border-secondary)",
+};
 
 export function AvailablePlansSection({
   subscription,
@@ -134,6 +252,11 @@ export function AvailablePlansSection({
     set_pending_family_tier(null);
   };
 
+  const card_interval: "month" | "year" = billing_period === "yearly" ? "year" : "month";
+  const period_label = billing_period === "monthly"
+    ? t("settings.per_month_short")
+    : t("settings.per_year_short");
+
   return (
     <div className="pt-4" id="available-plans">
       <div className="mb-4">
@@ -144,17 +267,14 @@ export function AvailablePlansSection({
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
-      <div className="flex flex-col items-center gap-2 mb-4">
-        <div
-          className="inline-flex rounded-full p-1 gap-0.5"
-          style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-secondary)" }}
-        >
+      <div className="flex flex-col items-center gap-3 mb-4">
+        <div className="inline-flex rounded-full p-1 gap-1" style={TOGGLE_GROUP_STYLE}>
           {(["individual", "family"] as const).map((type) => (
             <button
               key={type}
               type="button"
               onClick={() => set_plan_type(type)}
-              className="px-5 py-1.5 rounded-full text-sm font-semibold transition-all flex items-center gap-1.5"
+              className="px-5 py-1.5 rounded-full text-sm font-semibold transition-colors"
               style={plan_type === type
                 ? { background: "var(--accent-blue)", color: "#fff" }
                 : { background: "transparent", color: "var(--txt-secondary)" }
@@ -165,16 +285,13 @@ export function AvailablePlansSection({
           ))}
         </div>
 
-        <div
-          className="inline-flex rounded-full p-0.5 gap-0.5"
-          style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-secondary)" }}
-        >
+        <div className="inline-flex rounded-full p-1 gap-1" style={TOGGLE_GROUP_STYLE}>
           {(["monthly", "yearly"] as const).map((period) => (
             <button
               key={period}
               type="button"
               onClick={() => set_billing_period(period)}
-              className="px-4 py-1 rounded-full text-xs font-medium transition-all"
+              className="px-4 py-1 rounded-full text-xs font-medium transition-colors"
               style={billing_period === period
                 ? { background: "var(--accent-blue)", color: "#fff" }
                 : { background: "transparent", color: "var(--txt-muted)" }
@@ -186,10 +303,8 @@ export function AvailablePlansSection({
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 mb-4">
-        <p className="text-xs text-txt-muted">
-          {t("settings.prices_in_usd_note")}
-        </p>
+      <div className="flex items-center justify-center gap-2 mb-5">
+        <p className="text-xs text-txt-muted">{t("settings.prices_in_usd_note")}</p>
         <select
           className="text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1 text-txt-secondary cursor-pointer outline-none focus:border-blue-500 transition-colors"
           value={preferred_currency}
@@ -204,79 +319,35 @@ export function AvailablePlansSection({
       </div>
 
       {plan_type === "family" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3">
           {FAMILY_PLAN_TIERS.map((tier) => {
-            const current_plan_code = subscription?.plan.code;
-            const card_interval: "month" | "year" = billing_period === "yearly" ? "year" : "month";
-            const is_same_plan = current_plan_code === tier.id;
-            const is_same_interval = current_billing_interval === card_interval;
-            const is_current = is_same_plan && is_same_interval;
-            const is_interval_switch = is_same_plan && !is_same_interval;
+            const is_same_plan = subscription?.plan.code === tier.id;
+            const is_current = is_same_plan && current_billing_interval === card_interval;
+            const is_interval_switch = is_same_plan && current_billing_interval !== card_interval;
             const price_cents = billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents;
             const features = tier.max_members === 2 ? FAMILY_PLAN_DUO_FEATURES : FAMILY_PLAN_FAMILY_FEATURES;
 
             return (
-              <div
+              <PlanCard
                 key={tier.id}
-                className="relative rounded-2xl border-2 overflow-hidden flex flex-col"
-                style={{
-                  borderColor: is_current ? "var(--accent-blue)" : "var(--border-secondary)",
-                  backgroundColor: "var(--bg-tertiary)",
-                }}
-              >
-                <div className="px-5 pt-5 pb-4 text-center" style={{ backgroundColor: "transparent" }}>
-                  {is_current && (
-                    <div className="inline-flex px-3 py-1 rounded-full text-xs font-medium mb-3" style={{ backgroundColor: "#2563eb", color: "#fff" }}>
-                      {t("settings.current_plan")}
-                    </div>
-                  )}
-
-                  <h4 className="text-lg font-bold text-txt-primary">{tier.name}</h4>
-
-                  <div className="mt-2">
-                    <span className="text-3xl font-bold text-txt-primary">
-                      {format_price(convert_cents(price_cents, preferred_currency), preferred_currency)}
-                    </span>
-                    <span className="text-sm text-txt-muted">
-                      {billing_period === "monthly" ? t("settings.per_month_short") : t("settings.per_year_short")}
-                    </span>
-                  </div>
-
-                  {billing_period === "yearly" && (
-                    <p className="text-xs font-medium mt-1.5" style={{ color: "var(--color-success)" }}>
-                      {tier.savings_label}
-                    </p>
-                  )}
-
-                  <Button
-                    className="w-full mt-4"
-                    disabled={is_action_loading || family_loading || is_current}
-                    variant={is_current ? "outline" : "primary"}
-                    onClick={() => { if (!is_current) handle_family_select(tier); }}
-                  >
-                    {is_current
-                      ? t("settings.current_plan")
-                      : is_interval_switch
-                        ? (card_interval === "year" ? t("settings.switch_to_yearly") : t("settings.switch_to_monthly"))
-                        : t("settings.upgrade")}
-                  </Button>
-                </div>
-
-                <div className="px-5 pb-5 flex-1" style={{ borderTop: "1px solid var(--border-secondary)" }}>
-                  <div className="space-y-2.5 pt-4">
-                    {features.map((feat, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        {feat.on ? (
-                          <CheckIcon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} style={{ color: "var(--accent-blue)" }} />
-                        ) : (
-                          <XMarkIcon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} style={{ color: "#dc2626" }} />
-                        )}
-                        <span className="text-xs text-txt-secondary">{feat.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                name={tier.name}
+                price_label={format_price(convert_cents(price_cents, preferred_currency), preferred_currency)}
+                period_label={period_label}
+                savings_label={billing_period === "yearly" ? tier.savings_label : null}
+                badge={is_current
+                  ? t("settings.current_plan")
+                  : tier.is_recommended ? t("settings.plan_recommended") : null}
+                highlighted={is_current || !!tier.is_recommended}
+                cta_label={is_current
+                  ? t("settings.current_plan")
+                  : is_interval_switch
+                    ? (card_interval === "year" ? t("settings.switch_to_yearly") : t("settings.switch_to_monthly"))
+                    : t("settings.upgrade")}
+                cta_disabled={is_action_loading || family_loading || is_current}
+                cta_variant={is_current ? "outline" : "primary"}
+                on_cta={() => { if (!is_current) handle_family_select(tier); }}
+                features={features}
+              />
             );
           })}
         </div>
@@ -307,150 +378,61 @@ export function AvailablePlansSection({
       )}
 
       {plan_type === "individual" && (
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {PLAN_TIERS.map((tier, tier_index) => {
-          const current_plan_code = subscription?.plan.code;
-          const current_tier_index = PLAN_TIERS.findIndex(
-            (t) => t.id === current_plan_code,
-          );
-          const card_interval: "month" | "year" =
-            billing_period === "yearly" ? "year" : "month";
-          const is_same_plan = current_plan_code === tier.id;
-          const is_same_interval = current_billing_interval === card_interval;
-          const is_current = is_same_plan && is_same_interval;
-          const is_interval_switch = is_same_plan && !is_same_interval;
-          const is_downgrade =
-            !is_same_plan &&
-            current_tier_index > -1 &&
-            tier_index < current_tier_index;
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3">
+          {PLAN_TIERS.map((tier, tier_index) => {
+            const current_plan_code = subscription?.plan.code;
+            const current_tier_index = PLAN_TIERS.findIndex((p) => p.id === current_plan_code);
+            const is_same_plan = current_plan_code === tier.id;
+            const is_current = is_same_plan && current_billing_interval === card_interval;
+            const is_interval_switch = is_same_plan && current_billing_interval !== card_interval;
+            const is_downgrade =
+              !is_same_plan && current_tier_index > -1 && tier_index < current_tier_index;
 
-          return (
-            <div
-              key={tier.id}
-              className="relative rounded-2xl border-2 overflow-hidden flex flex-col"
-              style={{
-                borderColor: is_current
-                  ? "var(--accent-blue)"
-                  : "var(--border-secondary)",
-                backgroundColor: "var(--bg-tertiary)",
-              }}
-            >
-              <div
-                className="px-5 pt-5 pb-4 text-center"
-                style={{
-                  backgroundColor: "transparent",
-                }}
-              >
-                {is_current && (
-                  <div
-                    className="inline-flex px-3 py-1 rounded-full text-xs font-medium mb-3"
-                    style={{
-                      backgroundColor: "#2563eb",
-                      color: "#fff",
-                    }}
-                  >
-                    {t("settings.current_plan")}
-                  </div>
+            return (
+              <PlanCard
+                key={tier.id}
+                name={tier.name}
+                price_label={format_price(
+                  convert_cents(
+                    billing_period === "monthly" ? tier.monthly_cents : tier.yearly_cents,
+                    preferred_currency,
+                  ),
+                  preferred_currency,
                 )}
-
-                <h4 className="text-lg font-bold text-txt-primary">
-                  {tier.name}
-                </h4>
-
-                <div className="mt-2">
-                  <span className="text-3xl font-bold text-txt-primary">
-                    {format_price(
-                      convert_cents(
-                        billing_period === "monthly"
-                          ? tier.monthly_cents
-                          : tier.yearly_cents,
-                        preferred_currency,
-                      ),
-                      preferred_currency,
-                    )}
-                  </span>
-                  <span className="text-sm text-txt-muted">
-                    {billing_period === "monthly"
-                      ? t("settings.per_month_short")
-                      : t("settings.per_year_short")}
-                  </span>
-                </div>
-
-                {billing_period === "yearly" && (
-                  <p
-                    className="text-xs font-medium mt-1.5"
-                    style={{ color: "var(--color-success)" }}
-                  >
-                    {t("settings.save_yearly", {
+                period_label={period_label}
+                savings_label={billing_period === "yearly"
+                  ? t("settings.save_yearly", {
                       amount: format_price(
                         convert_cents(tier.savings_cents, preferred_currency),
                         preferred_currency,
                       ),
-                    })}
-                  </p>
-                )}
-
-                <Button
-                  className="w-full mt-4"
-                  disabled={is_action_loading || is_current}
-                  variant={is_current ? "outline" : "primary"}
-                  onClick={() => {
-                    if (is_current) return;
-                    const api_plan = plans.find((p) => p.code === tier.id);
-
-                    if (api_plan) {
-                      on_upgrade(api_plan);
-                    } else {
-                      show_toast(t("settings.plans_coming_soon"), "info");
-                    }
-                  }}
-                >
-                  {is_current
-                    ? t("settings.current_plan")
-                    : is_interval_switch
-                      ? card_interval === "year"
-                        ? t("settings.switch_to_yearly")
-                        : t("settings.switch_to_monthly")
-                      : is_downgrade
-                        ? t("settings.downgrade")
-                        : t("settings.upgrade")}
-                </Button>
-
-              </div>
-
-              <div
-                className="px-5 pb-5 flex-1"
-                style={{
-                  borderTop: "1px solid var(--border-secondary)",
+                    })
+                  : null}
+                badge={is_current
+                  ? t("settings.current_plan")
+                  : tier.is_recommended ? t("settings.plan_recommended") : null}
+                highlighted={is_current || !!tier.is_recommended}
+                cta_label={is_current
+                  ? t("settings.current_plan")
+                  : is_interval_switch
+                    ? (card_interval === "year" ? t("settings.switch_to_yearly") : t("settings.switch_to_monthly"))
+                    : is_downgrade ? t("settings.downgrade") : t("settings.upgrade")}
+                cta_disabled={is_action_loading || is_current}
+                cta_variant={is_current ? "outline" : "primary"}
+                on_cta={() => {
+                  if (is_current) return;
+                  const api_plan = plans.find((p) => p.code === tier.id);
+                  if (api_plan) {
+                    on_upgrade(api_plan);
+                  } else {
+                    show_toast(t("settings.plans_coming_soon"), "info");
+                  }
                 }}
-              >
-                <div className="space-y-2.5 pt-4">
-                  {plan_features[tier.id]?.map((feature, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      {feature.on ? (
-                        <CheckIcon
-                          className="w-3.5 h-3.5 flex-shrink-0"
-                          strokeWidth={2.5}
-                          style={{ color: "var(--accent-blue)" }}
-                        />
-                      ) : (
-                        <XMarkIcon
-                          className="w-3.5 h-3.5 flex-shrink-0"
-                          strokeWidth={2.5}
-                          style={{ color: "#dc2626" }}
-                        />
-                      )}
-                      <span className="text-xs text-txt-secondary">
-                        {feature.label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                features={plan_features[tier.id] ?? []}
+              />
+            );
+          })}
+        </div>
       )}
     </div>
   );
