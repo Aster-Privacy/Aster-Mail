@@ -426,6 +426,8 @@ interface ReEncryptedAlias {
   alias_address_hash: string;
   encrypted_note?: string;
   note_nonce?: string;
+  encrypted_websites?: string;
+  websites_nonce?: string;
 }
 
 interface ReEncryptedContact {
@@ -544,6 +546,18 @@ async function re_encrypt_aliases_contacts(
 
           entry.encrypted_note = encrypted;
           entry.note_nonce = nonce;
+        }
+
+        if (alias.encrypted_websites && alias.websites_nonce) {
+          const { encrypted, nonce } = await re_encrypt_field(
+            alias.encrypted_websites,
+            alias.websites_nonce,
+            old_aes,
+            new_aes,
+          );
+
+          entry.encrypted_websites = encrypted;
+          entry.websites_nonce = nonce;
         }
 
         re_encrypted_aliases.push(entry);
