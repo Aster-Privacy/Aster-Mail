@@ -26,7 +26,12 @@ import App from "@/App";
 import { evict_stale_favicons } from "@/lib/favicon_cache_db";
 import UnsupportedBrowserPage from "@/pages/unsupported_browser";
 import { Provider } from "@/provider";
-import { initialize_capacitor, hide_splash } from "@/native/capacitor_bridge";
+import {
+  initialize_capacitor,
+  hide_splash,
+  is_native_platform,
+} from "@/native/capacitor_bridge";
+import { recover_fallback_sends } from "@/services/send_queue";
 import {
   start_version_check,
   hard_flush_and_reload,
@@ -46,6 +51,10 @@ const MobileApp = lazy(() => import("@/mobile_app"));
 initialize_capacitor().catch((e) => {
   if (import.meta.env.DEV) console.error(e);
 });
+
+if (!is_native_platform()) {
+  recover_fallback_sends().catch(() => {});
+}
 
 const cached_prefs_raw = localStorage.getItem("aster_preferences_cache");
 let low_network_on_startup = false;

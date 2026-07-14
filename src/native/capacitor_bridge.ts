@@ -36,6 +36,7 @@ import {
   initialize_offline_queue,
   process_offline_queue,
 } from "./offline_queue";
+import { recover_fallback_sends } from "@/services/send_queue";
 
 let is_initialized = false;
 
@@ -63,6 +64,8 @@ export async function initialize_capacitor(): Promise<void> {
     initialize_share_receiver(),
     initialize_offline_queue(),
   ]);
+
+  await recover_fallback_sends().catch(() => {});
 
   App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
     handle_deep_link(event.url);

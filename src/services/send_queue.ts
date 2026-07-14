@@ -46,6 +46,14 @@ import {
 import { encrypt_attachments_for_send } from "./crypto/attachment_crypto";
 import { get_current_account } from "./account_manager";
 
+import {
+  enqueue_action,
+  durable_read,
+  durable_write,
+  durable_remove,
+  type SendEmailPayload,
+} from "@/native/offline_queue";
+
 import { emit_email_sent } from "@/hooks/mail_events";
 import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -589,6 +597,96 @@ export function can_cancel_server_send(queue_id: string): boolean {
   return undo_send_manager.can_cancel(queue_id);
 }
 
+const FALLBACK_STORE_KEY = "aster_fallback_undo_sends";
+
+interface PersistedFallbackSend {
+  queue_id: string;
+  scheduled_time: number;
+  payload: SendEmailPayload;
+}
+
+async function build_fallback_payload(
+  email: ServerQueueEmailParams,
+): Promise<SendEmailPayload> {
+  const attachments = (email.attachments || []).map((attachment) => ({
+    name: attachment.name,
+    data: array_to_base64(new Uint8Array(attachment.data)),
+    type: attachment.mime_type,
+  }));
+
+  return {
+    to: email.to,
+    cc: email.cc,
+    bcc: email.bcc,
+    subject: email.subject,
+    body: email.body,
+    in_reply_to: email.in_reply_to,
+    sender_email: email.sender_email,
+    sender_alias_hash: email.sender_alias_hash,
+    sender_display_name: email.sender_display_name,
+    expires_at: email.expires_at,
+    expiry_password: email.expiry_password,
+    secure_external: email.secure_external,
+    attachments: attachments.length > 0 ? attachments : undefined,
+  };
+}
+
+async function read_fallback_store(): Promise<PersistedFallbackSend[]> {
+  try {
+    const raw = await durable_read(FALLBACK_STORE_KEY);
+
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+async function write_fallback_store(
+  records: PersistedFallbackSend[],
+): Promise<void> {
+  if (records.length === 0) {
+    await durable_remove(FALLBACK_STORE_KEY);
+
+    return;
+  }
+
+  await durable_write(FALLBACK_STORE_KEY, JSON.stringify(records));
+}
+
+async function persist_fallback_send(
+  queue_id: string,
+  email: ServerQueueEmailParams,
+  scheduled_time: number,
+): Promise<void> {
+  const payload = await build_fallback_payload(email);
+  const records = await read_fallback_store();
+  const filtered = records.filter((record) => record.queue_id !== queue_id);
+
+  filtered.push({ queue_id, scheduled_time, payload });
+  await write_fallback_store(filtered);
+}
+
+async function remove_fallback_send(queue_id: string): Promise<void> {
+  const records = await read_fallback_store();
+
+  await write_fallback_store(
+    records.filter((record) => record.queue_id !== queue_id),
+  );
+}
+
+export async function recover_fallback_sends(): Promise<void> {
+  const records = await read_fallback_store();
+
+  for (const record of records) {
+    await enqueue_action("send_email", record.payload);
+    await remove_fallback_send(record.queue_id);
+  }
+}
+
 export async function send_email_with_undo(
   email: ServerQueueEmailParams & ServerQueueCallbacks,
   delay_seconds: number,
@@ -610,13 +708,21 @@ export async function send_email_with_undo(
   }
 
   const delay_ms = delay_seconds * 1000;
-  const queue_id = queue_email(
+  let queue_id: string | null = null;
+
+  queue_id = queue_email(
     {
       ...email,
       on_complete: () => {
+        if (queue_id) {
+          void remove_fallback_send(queue_id);
+        }
         email.on_sent?.();
       },
       on_cancel: () => {
+        if (queue_id) {
+          void remove_fallback_send(queue_id);
+        }
         email.on_cancelled?.();
       },
       on_error: email.on_error,
@@ -627,6 +733,8 @@ export async function send_email_with_undo(
   if (!queue_id) {
     return null;
   }
+
+  await persist_fallback_send(queue_id, email, Date.now() + delay_ms);
 
   return {
     queue_id,
