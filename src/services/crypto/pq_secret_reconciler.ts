@@ -210,26 +210,26 @@ export async function handle_missing_pq_secret(): Promise<void> {
   if (self_heal_in_progress) return;
   if (!has_vault_in_memory()) return;
 
-  const uid = await current_uid();
-
-  try {
-    const raw = localStorage.getItem(SELF_HEAL_AT_PREFIX + (uid ?? ""));
-
-    if (raw) {
-      const ts = parseInt(raw, 10);
-
-      if (!Number.isNaN(ts) && Date.now() - ts < SELF_HEAL_INTERVAL_MS) {
-        return;
-      }
-    }
-    localStorage.setItem(SELF_HEAL_AT_PREFIX + (uid ?? ""), String(Date.now()));
-  } catch {
-    return;
-  }
-
   self_heal_in_progress = true;
 
   try {
+    const uid = await current_uid();
+
+    try {
+      const raw = localStorage.getItem(SELF_HEAL_AT_PREFIX + (uid ?? ""));
+
+      if (raw) {
+        const ts = parseInt(raw, 10);
+
+        if (!Number.isNaN(ts) && Date.now() - ts < SELF_HEAL_INTERVAL_MS) {
+          return;
+        }
+      }
+      localStorage.setItem(SELF_HEAL_AT_PREFIX + (uid ?? ""), String(Date.now()));
+    } catch {
+      return;
+    }
+
     const ok = await rotate_pq_pool();
 
     if (is_dev()) {
