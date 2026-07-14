@@ -188,6 +188,7 @@ export const Sidebar = ({
 
   const [is_mobile, set_is_mobile] = useState(false);
   const [is_tablet, set_is_tablet] = useState(false);
+  const [force_expanded, set_force_expanded] = useState(false);
 
   useEffect(() => {
     const check_breakpoints = () => {
@@ -203,8 +204,15 @@ export const Sidebar = ({
     return () => window.removeEventListener("resize", check_breakpoints);
   }, []);
 
-  const is_collapsed =
+  useEffect(() => {
+    if (!is_tablet && !(preferences.sidebar_minimized ?? false)) {
+      set_force_expanded(false);
+    }
+  }, [is_tablet, preferences.sidebar_minimized]);
+
+  const forced_collapse =
     is_tablet || ((preferences.sidebar_minimized ?? false) && !is_mobile);
+  const is_collapsed = forced_collapse && !force_expanded;
 
   const user_email = user?.email || "";
   const raw_display_name = user?.display_name || user?.username || user_email;
@@ -632,15 +640,37 @@ export const Sidebar = ({
             }
       }
     >
+      {is_collapsed && (
+        <div className="px-2 pt-3 flex justify-center">
+          <button
+            aria-label={t("common.open_menu")}
+            className="flex items-center justify-center w-10 h-10 rounded-[10px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-primary"
+            type="button"
+            onClick={() => set_force_expanded(true)}
+          >
+            <Bars3Icon className="w-5 h-5" />
+          </button>
+        </div>
+      )}
       <div
         ref={workspace_switcher_ref}
-        className={`${is_collapsed ? "px-2" : "px-3"} ${is_mobile ? "pr-12" : ""} pt-4 pb-3 relative`}
+        className={`${is_collapsed ? "px-2" : "px-3"} ${is_mobile || (forced_collapse && !is_collapsed) ? "pr-12" : ""} pt-4 pb-3 relative`}
       >
         {is_mobile && on_mobile_toggle && (
           <button
             aria-label={t("common.close_menu")}
             className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-txt-muted"
             onClick={on_mobile_toggle}
+          >
+            <XMarkIcon className="w-5 h-5" />
+          </button>
+        )}
+        {!is_mobile && forced_collapse && !is_collapsed && (
+          <button
+            aria-label={t("common.close_menu")}
+            className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-txt-muted"
+            type="button"
+            onClick={() => set_force_expanded(false)}
           >
             <XMarkIcon className="w-5 h-5" />
           </button>
