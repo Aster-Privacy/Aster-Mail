@@ -3042,6 +3042,10 @@ export interface SettingsTranslations {
   addon_purchase_success: string;
   addon_checkout_opened: string;
   plan_recommended: string;
+  money_back_guarantee: string;
+  cancel_anytime: string;
+  billed_annually: string;
+  save_annually_hint: string;
   per_year_short: string;
   save_yearly: string;
   billing_monthly: string;

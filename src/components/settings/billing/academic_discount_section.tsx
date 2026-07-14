@@ -20,6 +20,7 @@
 //
 import { useEffect, useRef, useState } from "react";
 import { AcademicCapIcon, CheckIcon, ClipboardIcon } from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
 
 import {
   request_academic_verification,
@@ -235,20 +236,20 @@ export function AcademicDiscountSection({
                 if (e.key === "Enter") handle_submit();
               }}
             />
-            <button
-              className="aster_btn aster_btn_primary h-10 disabled:opacity-50"
+            <Button
+              variant="primary"
+              className="h-10 shrink-0"
               disabled={
                 !academic_email.trim() ||
                 submitting ||
                 (captcha_required && !turnstile_token)
               }
-              type="button"
               onClick={handle_submit}
             >
               {submitting
                 ? t("settings.academic_sending")
                 : t("settings.academic_send_verification")}
-            </button>
+            </Button>
           </div>
           {captcha_required && (
             <TurnstileWidget
