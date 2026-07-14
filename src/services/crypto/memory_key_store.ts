@@ -98,6 +98,7 @@ let secure_passphrase: SecureBuffer | null = null;
 let derived_encryption_key: Uint8Array | null = null;
 let session_expire_unsubscribe: (() => void) | null = null;
 let keys_ready_listeners: Set<() => void> = new Set();
+let keys_ready_seen = false;
 const vault_cleared_listeners: Set<() => void> = new Set();
 
 export function on_vault_cleared(callback: () => void): () => void {
@@ -359,6 +360,7 @@ export function clear_passphrase(): void {
     zero_uint8_array(derived_encryption_key);
     derived_encryption_key = null;
   }
+  keys_ready_seen = false;
 }
 
 export function clear_vault_from_memory(): void {
@@ -366,6 +368,7 @@ export function clear_vault_from_memory(): void {
   clear_legacy_keks_from_memory();
   vault_in_memory = null;
   clear_crypto_key_cache();
+  keys_ready_seen = false;
 
   if (session_expire_unsubscribe) {
     session_expire_unsubscribe();
@@ -389,6 +392,10 @@ export function has_passphrase_in_memory(): boolean {
   return secure_passphrase !== null && !secure_passphrase.is_cleared();
 }
 
+export function are_keys_ready(): boolean {
+  return derived_encryption_key !== null && has_passphrase_in_memory();
+}
+
 export function on_keys_ready(callback: () => void): () => void {
   if (derived_encryption_key !== null && has_passphrase_in_memory()) {
     callback();
@@ -401,8 +408,6 @@ export function on_keys_ready(callback: () => void): () => void {
 }
 
 const KEYS_READY_WAIT_MS = 15000;
-
-let keys_ready_seen = false;
 
 export function wait_for_keys_ready(
   timeout_ms: number = KEYS_READY_WAIT_MS,

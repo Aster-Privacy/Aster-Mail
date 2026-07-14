@@ -618,11 +618,10 @@ export function use_email_viewer({
       }
 
       if (item.thread_token && !cancelled) {
-        const { get_vault_from_memory, wait_for_keys_ready } = await import(
-          "@/services/crypto/memory_key_store"
-        );
+        const { get_vault_from_memory, wait_for_keys_ready, are_keys_ready } =
+          await import("@/services/crypto/memory_key_store");
 
-        if (!get_vault_from_memory()) {
+        if (!are_keys_ready()) {
           await wait_for_keys_ready();
         }
 

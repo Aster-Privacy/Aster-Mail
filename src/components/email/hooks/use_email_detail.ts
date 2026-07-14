@@ -55,6 +55,7 @@ import {
 import {
   get_vault_from_memory,
   wait_for_keys_ready,
+  are_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import { use_folders } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
@@ -772,7 +773,7 @@ export function use_email_detail() {
         }
 
         if (response.data.thread_token) {
-          if (!get_vault_from_memory()) {
+          if (!are_keys_ready()) {
             await wait_for_keys_ready();
           }
 

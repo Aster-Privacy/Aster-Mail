@@ -82,16 +82,29 @@ describe("wait_for_keys_ready", () => {
     store.clear_vault_from_memory();
   });
 
-  it("resolves false without waiting once keys were ready and then cleared", async () => {
+  it("waits again after keys were ready and then cleared", async () => {
     const store = await fresh_store();
 
     await store.store_vault_in_memory(build_vault(), "passphrase");
     store.clear_vault_from_memory();
 
     const started = Date.now();
-    const result = await store.wait_for_keys_ready(5000);
+    const result = await store.wait_for_keys_ready(300);
 
     expect(result).toBe(false);
-    expect(Date.now() - started).toBeLessThan(1000);
+    expect(Date.now() - started).toBeGreaterThanOrEqual(250);
+  });
+
+  it("resolves true when keys are re-stored after a clear", async () => {
+    const store = await fresh_store();
+
+    await store.store_vault_in_memory(build_vault(), "passphrase");
+    store.clear_vault_from_memory();
+
+    const pending = store.wait_for_keys_ready(5000);
+    await store.store_vault_in_memory(build_vault(), "passphrase");
+
+    await expect(pending).resolves.toBe(true);
+    store.clear_vault_from_memory();
   });
 });
