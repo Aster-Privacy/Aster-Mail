@@ -4567,6 +4567,8 @@ export interface SettingsTranslations {
   alias_directories_info: string;
   alias_directories_description: string;
   alias_directories_empty: string;
+  alias_directory_search_placeholder: string;
+  alias_directory_no_matches: string;
   alias_directory_key_label: string;
   alias_directory_key_placeholder: string;
   alias_directory_create: string;

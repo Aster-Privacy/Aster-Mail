@@ -4642,6 +4642,8 @@ export const en: Translations = {
     alias_directories_description:
       "Mail to anything.<key>@astermail.org auto-creates an alias for you.",
     alias_directories_empty: "No directories yet.",
+    alias_directory_search_placeholder: "Search directories...",
+    alias_directory_no_matches: "No directories match your search.",
     alias_directory_key_label: "Directory key",
     alias_directory_key_placeholder: "shopping",
     alias_directory_create: "Create directory",

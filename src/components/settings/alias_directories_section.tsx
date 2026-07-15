@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FolderIcon,
+  MagnifyingGlassIcon,
   PlusIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
@@ -61,12 +62,18 @@ const INPUT_CLASS =
 
 export function AliasDirectoriesSection() {
   const { t } = use_i18n();
-  const { is_feature_locked, is_loading: limits_loading } = use_plan_limits();
+  const {
+    is_feature_locked,
+    is_loading: limits_loading,
+    limits,
+  } = use_plan_limits();
   const locked = is_feature_locked("max_alias_directories");
+  const max_directories = limits?.limits?.["max_alias_directories"]?.limit;
   const [directories, set_directories] = useState<DecryptedAliasDirectory[]>(
     [],
   );
   const [loading, set_loading] = useState(true);
+  const [search_query, set_search_query] = useState("");
   const [directory_key, set_directory_key] = useState("");
   const [domain, set_domain] = useState<string>(DIRECTORY_DOMAINS[0]);
   const [custom_domains, set_custom_domains] = useState<string[]>([]);
@@ -110,6 +117,18 @@ export function AliasDirectoriesSection() {
     }
     load();
   }, [load, limits_loading, locked]);
+
+  const filtered_directories = useMemo(() => {
+    const query = search_query.trim().toLowerCase();
+
+    if (!query) return directories;
+
+    return directories.filter(
+      (d) =>
+        d.label.toLowerCase().includes(query) ||
+        d.domain.toLowerCase().includes(query),
+    );
+  }, [directories, search_query]);
 
   useEffect(() => {
     if (limits_loading || locked) return;
@@ -242,11 +261,22 @@ export function AliasDirectoriesSection() {
     <div className="space-y-4">
       <div>
         <div className="mb-2">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <FolderIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.alias_directories_title")}
-            <InfoHint tip={t("settings.alias_directories_info")} title={t("settings.alias_directories_title")} />
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
+              <FolderIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+              {t("settings.alias_directories_title")}
+              <InfoHint
+                tip={t("settings.alias_directories_info")}
+                title={t("settings.alias_directories_title")}
+              />
+            </h3>
+            {!locked && typeof max_directories === "number" && (
+              <span className="text-xs text-txt-muted">
+                {directories.length}/
+                {max_directories === -1 ? "∞" : max_directories}
+              </span>
+            )}
+          </div>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-3 text-txt-muted">
@@ -353,7 +383,21 @@ export function AliasDirectoriesSection() {
         </div>
       ) : (
         <div className="space-y-2">
-          {directories.map((directory) => (
+          <div className="relative">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
+            <input
+              className="w-full h-9 pl-9 pr-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none focus:border-blue-500"
+              placeholder={t("settings.alias_directory_search_placeholder")}
+              value={search_query}
+              onChange={(e) => set_search_query(e.target.value)}
+            />
+          </div>
+          {filtered_directories.length === 0 && (
+            <p className="text-sm text-txt-muted text-center py-4">
+              {t("settings.alias_directory_no_matches")}
+            </p>
+          )}
+          {filtered_directories.map((directory) => (
             <div
               key={directory.id}
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary"
