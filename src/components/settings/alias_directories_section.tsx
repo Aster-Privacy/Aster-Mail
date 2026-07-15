@@ -46,6 +46,7 @@ import {
 } from "@/services/api/alias_directories";
 import { list_domains } from "@/services/api/domains";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -74,6 +75,10 @@ export function AliasDirectoriesSection() {
   );
   const [loading, set_loading] = useState(true);
   const [search_query, set_search_query] = useState("");
+  const [delete_confirm, set_delete_confirm] = useState<{
+    is_open: boolean;
+    id: string | null;
+  }>({ is_open: false, id: null });
   const [directory_key, set_directory_key] = useState("");
   const [domain, set_domain] = useState<string>(DIRECTORY_DOMAINS[0]);
   const [custom_domains, set_custom_domains] = useState<string[]>([]);
@@ -120,13 +125,16 @@ export function AliasDirectoriesSection() {
 
   const filtered_directories = useMemo(() => {
     const query = search_query.trim().toLowerCase();
+    const matched = query
+      ? directories.filter(
+          (d) =>
+            d.label.toLowerCase().includes(query) ||
+            d.domain.toLowerCase().includes(query),
+        )
+      : directories;
 
-    if (!query) return directories;
-
-    return directories.filter(
-      (d) =>
-        d.label.toLowerCase().includes(query) ||
-        d.domain.toLowerCase().includes(query),
+    return [...matched].sort(
+      (a, b) => Number(b.auto_create_enabled) - Number(a.auto_create_enabled),
     );
   }, [directories, search_query]);
 
@@ -208,6 +216,7 @@ export function AliasDirectoriesSection() {
       } else {
         set_directory_key("");
         set_is_available(null);
+        set_search_query("");
         show_toast(t("settings.alias_directory_created"), "success");
         await load();
       }
@@ -242,7 +251,12 @@ export function AliasDirectoriesSection() {
     }
   };
 
-  const handle_delete = async (directory_id: string) => {
+  const handle_delete = async () => {
+    const directory_id = delete_confirm.id;
+
+    if (!directory_id) return;
+    set_delete_confirm({ is_open: false, id: null });
+
     const response = await delete_alias_directory(directory_id);
 
     if (response.error) {
@@ -428,7 +442,9 @@ export function AliasDirectoriesSection() {
                   className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
                   size="icon"
                   variant="ghost"
-                  onClick={() => handle_delete(directory.id)}
+                  onClick={() =>
+                    set_delete_confirm({ is_open: true, id: directory.id })
+                  }
                 >
                   <TrashIcon className="w-4 h-4" />
                 </Button>
@@ -439,6 +455,16 @@ export function AliasDirectoriesSection() {
       )}
         </>
       )}
+
+      <ConfirmationModal
+        confirm_text={t("common.delete")}
+        is_open={delete_confirm.is_open}
+        message={t("settings.alias_directory_delete_confirmation")}
+        on_cancel={() => set_delete_confirm({ is_open: false, id: null })}
+        on_confirm={handle_delete}
+        title={t("settings.alias_directory_delete_title")}
+        variant="danger"
+      />
     </div>
   );
 }

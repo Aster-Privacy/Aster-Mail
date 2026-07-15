@@ -4644,6 +4644,9 @@ export const en: Translations = {
     alias_directories_empty: "No directories yet.",
     alias_directory_search_placeholder: "Search directories...",
     alias_directory_no_matches: "No directories match your search.",
+    alias_directory_delete_title: "Delete directory",
+    alias_directory_delete_confirmation:
+      "Are you sure you want to delete this directory? This action cannot be undone.",
     alias_directory_key_label: "Directory key",
     alias_directory_key_placeholder: "shopping",
     alias_directory_create: "Create directory",
