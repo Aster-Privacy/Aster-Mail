@@ -47,7 +47,10 @@ import {
   build_preview_text,
   build_single_thread_message,
 } from "@/components/email/shared/build_email_from_envelope";
-import { is_ghost_email } from "@/stores/ghost_alias_store";
+import {
+  is_ghost_email,
+  looks_like_unregistered_ghost_email,
+} from "@/stores/ghost_alias_store";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -164,7 +167,6 @@ export function use_email_viewer({
     }
 
     const primary = current_user_email.toLowerCase();
-    const ghost_pattern = /^[a-z]+\.[a-z]+\d{2}@/;
 
     for (const m of thread_messages) {
       if (m.item_type !== "sent") continue;
@@ -173,13 +175,7 @@ export function use_email_viewer({
 
       if (sender === primary) continue;
 
-      if (is_ghost_email(sender)) {
-        set_thread_ghost_email(sender);
-
-        return;
-      }
-
-      if (ghost_pattern.test(sender)) {
+      if (is_ghost_email(sender) || looks_like_unregistered_ghost_email(sender)) {
         set_thread_ghost_email(sender);
 
         return;

@@ -28,7 +28,10 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { get_email_username, is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
-import { is_ghost_email } from "@/stores/ghost_alias_store";
+import {
+  is_ghost_email,
+  looks_like_unregistered_ghost_email,
+} from "@/stores/ghost_alias_store";
 import { get_recipient_hint } from "@/stores/recipient_hint_store";
 import { get_mail_item } from "@/services/api/mail";
 import {
@@ -274,7 +277,6 @@ export function use_email_detail() {
       return;
     }
 
-    const ghost_pattern = /^[a-z]+\.[a-z]+\d{2}@/;
     let latest_sent: DecryptedThreadMessage | null = null;
 
     for (const m of thread_messages) {
@@ -296,7 +298,7 @@ export function use_email_detail() {
 
     const sender = latest_sent.sender_email.toLowerCase();
 
-    if (is_ghost_email(sender) || ghost_pattern.test(sender)) {
+    if (is_ghost_email(sender) || looks_like_unregistered_ghost_email(sender)) {
       set_thread_ghost_email(sender);
     } else {
       set_thread_ghost_email(undefined);
