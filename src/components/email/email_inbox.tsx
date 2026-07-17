@@ -293,6 +293,7 @@ export function EmailInbox({
   const {
     state: raw_mail_state,
     fetch_page,
+    load_more: load_more_active_list,
     update_email,
     remove_email,
     remove_emails,
@@ -871,6 +872,8 @@ export function EmailInbox({
     emails: email_state.emails,
     pinned_emails,
     primary_emails,
+    has_more: email_state.has_more,
+    load_more: load_more_active_list,
     update_email,
     update_draft: update_draft as (
       id: string,

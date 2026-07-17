@@ -33,6 +33,8 @@ interface UseInboxSelectionOptions {
   emails: InboxEmail[];
   pinned_emails: InboxEmail[];
   primary_emails: InboxEmail[];
+  has_more: boolean;
+  load_more: () => Promise<void>;
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   update_draft: (id: string, updates: Partial<InboxEmail>) => void;
   update_scheduled: (id: string, updates: Partial<InboxEmail>) => void;
@@ -46,6 +48,8 @@ export function use_inbox_selection({
   emails,
   pinned_emails,
   primary_emails,
+  has_more,
+  load_more,
   update_email,
   update_draft,
   update_scheduled,
@@ -95,6 +99,8 @@ export function use_inbox_selection({
     category: active_category,
   });
 
+  const pending_select_all_load_ref = useRef(false);
+
   useEffect(() => {
     const prev = selection_scope_ref.current;
 
@@ -106,6 +112,7 @@ export function use_inbox_selection({
       category: active_category,
     };
     set_select_all_mode(false);
+    pending_select_all_load_ref.current = false;
     shift_anchor_ref.current = null;
     last_shift_target_ref.current = null;
     const update_fn = get_update_fn();
@@ -116,6 +123,25 @@ export function use_inbox_selection({
       }
     });
   }, [current_view, active_category, emails, get_update_fn]);
+
+  useEffect(() => {
+    if (!pending_select_all_load_ref.current) return;
+
+    if (has_more) {
+      void load_more();
+
+      return;
+    }
+
+    pending_select_all_load_ref.current = false;
+    const update_fn = get_update_fn();
+
+    page_emails.forEach((e) => {
+      if (!e.is_selected) {
+        update_fn(e.id, { is_selected: true });
+      }
+    });
+  }, [has_more, page_emails, load_more, get_update_fn]);
 
   const handle_toggle_select = useCallback(
     (id: string): void => {
@@ -182,22 +208,30 @@ export function use_inbox_selection({
 
   const handle_toggle_select_all = useCallback((): void => {
     const page_id_set = new Set(page_emails.map((e) => e.id));
-    const all_page_selected = page_emails.every((e) => e.is_selected);
+    const all_page_selected =
+      page_emails.length > 0 && page_emails.every((e) => e.is_selected);
     const update_fn = get_update_fn();
 
     set_select_all_mode(false);
+
+    if (all_page_selected) {
+      pending_select_all_load_ref.current = false;
+    } else if (has_more) {
+      pending_select_all_load_ref.current = true;
+    }
 
     emails.forEach((e) => {
       if (page_id_set.has(e.id)) {
         update_fn(e.id, { is_selected: !all_page_selected });
       }
     });
-  }, [page_emails, emails, get_update_fn]);
+  }, [page_emails, emails, get_update_fn, has_more]);
 
   const handle_clear_selection = useCallback((): void => {
     const update_fn = get_update_fn();
 
     set_select_all_mode(false);
+    pending_select_all_load_ref.current = false;
 
     emails.forEach((e) => {
       if (e.is_selected) {
