@@ -123,6 +123,8 @@ export type {
   ScheduledClickData,
 } from "@/components/email/inbox/inbox_types";
 
+const noop_load_more = async (): Promise<void> => {};
+
 export function EmailInbox({
   on_settings_click,
   current_view,
@@ -872,8 +874,8 @@ export function EmailInbox({
     emails: email_state.emails,
     pinned_emails,
     primary_emails,
-    has_more: email_state.has_more,
-    load_more: load_more_active_list,
+    has_more: categories.enabled ? false : email_state.has_more,
+    load_more: categories.enabled ? noop_load_more : load_more_active_list,
     update_email,
     update_draft: update_draft as (
       id: string,
