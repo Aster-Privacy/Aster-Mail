@@ -69,6 +69,8 @@ function Probe({ view, category, emails, update_email }: ProbeProps) {
     emails,
     pinned_emails: [],
     primary_emails: emails,
+    has_more: false,
+    load_more: async () => {},
     update_email,
     update_draft: () => {},
     update_scheduled: () => {},
