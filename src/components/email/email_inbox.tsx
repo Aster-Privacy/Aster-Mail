@@ -1555,8 +1555,14 @@ export function EmailInbox({
                       height: split_pane.pane_height,
                       flexShrink: 0,
                       flexGrow: 0,
+                      overflowAnchor: "none",
                     }
-                  : { width: split_pane.pane_width, flexShrink: 0, flexGrow: 0 }
+                  : {
+                      width: split_pane.pane_width,
+                      flexShrink: 0,
+                      flexGrow: 0,
+                      overflowAnchor: "none",
+                    }
               }
             >
               {email_list_content}
@@ -1607,6 +1613,7 @@ export function EmailInbox({
           <div
             ref={split_pane.list_scroll_ref}
             className="flex-1 overflow-y-auto relative"
+            style={{ overflowAnchor: "none" }}
             onScroll={handle_list_scroll}
           >
             {email_list_content}
