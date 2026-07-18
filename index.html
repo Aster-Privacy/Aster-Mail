@@ -85,6 +85,44 @@
       @keyframes initial-loader-spin {
         to { transform: rotate(360deg); }
       }
+      #initial-loader-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      #initial-loader-text {
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.5);
+      }
+      html.dark #initial-loader-text {
+        color: rgba(255, 255, 255, 0.6);
+      }
+      #initial-loader-dots span {
+        opacity: 0;
+      }
+      #initial-loader-dots span:nth-child(1) {
+        animation: initial-loader-dot-one 1.6s steps(1, end) infinite;
+      }
+      #initial-loader-dots span:nth-child(2) {
+        animation: initial-loader-dot-two 1.6s steps(1, end) infinite;
+      }
+      #initial-loader-dots span:nth-child(3) {
+        animation: initial-loader-dot-three 1.6s steps(1, end) infinite;
+      }
+      @keyframes initial-loader-dot-one {
+        0% { opacity: 0; }
+        25%, 100% { opacity: 1; }
+      }
+      @keyframes initial-loader-dot-two {
+        0% { opacity: 0; }
+        50%, 100% { opacity: 1; }
+      }
+      @keyframes initial-loader-dot-three {
+        0% { opacity: 0; }
+        75%, 100% { opacity: 1; }
+      }
       @font-face {
         font-family: 'OpenDyslexic';
         font-style: normal;
@@ -118,7 +156,10 @@
     <div id="initial-loader">
       <div id="initial-loader-content">
         <img alt="Aster" src="/text_logo.png" />
-        <div id="initial-loader-spinner"></div>
+        <div id="initial-loader-stack">
+          <div id="initial-loader-spinner"></div>
+          <div id="initial-loader-text">Loading<span id="initial-loader-dots"><span>.</span><span>.</span><span>.</span></span></div>
+        </div>
       </div>
     </div>
     <div id="root"></div>

@@ -20,6 +20,8 @@
 //
 import { useEffect, useState } from "react";
 
+import { use_i18n } from "@/lib/i18n/context";
+
 let active_count = 0;
 
 function dismiss_loader() {
@@ -33,6 +35,8 @@ function dismiss_loader() {
 }
 
 export function FullPageLoader() {
+  const { t } = use_i18n();
+  const loading_label = t("common.loading").replace(/(\.{3}|…)\s*$/, "");
   const [static_present, set_static_present] = useState(
     () => !!document.getElementById("initial-loader"),
   );
@@ -80,7 +84,17 @@ export function FullPageLoader() {
           draggable={false}
           src="/text_logo.png"
         />
-        <div className="loader-spinner" />
+        <div className="loader-stack">
+          <div className="loader-spinner" />
+          <div className="loader-text">
+            {loading_label}
+            <span className="loader-dots">
+              <span>.</span>
+              <span>.</span>
+              <span>.</span>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

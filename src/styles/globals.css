@@ -693,6 +693,50 @@ html {
   to { transform: rotate(360deg); }
 }
 
+.loader-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.loader-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+.loader-dots span {
+  opacity: 0;
+}
+
+.loader-dots span:nth-child(1) {
+  animation: loader-dot-one 1.6s steps(1, end) infinite;
+}
+
+.loader-dots span:nth-child(2) {
+  animation: loader-dot-two 1.6s steps(1, end) infinite;
+}
+
+.loader-dots span:nth-child(3) {
+  animation: loader-dot-three 1.6s steps(1, end) infinite;
+}
+
+@keyframes loader-dot-one {
+  0% { opacity: 0; }
+  25%, 100% { opacity: 1; }
+}
+
+@keyframes loader-dot-two {
+  0% { opacity: 0; }
+  50%, 100% { opacity: 1; }
+}
+
+@keyframes loader-dot-three {
+  0% { opacity: 0; }
+  75%, 100% { opacity: 1; }
+}
+
 @keyframes sync_bar_indeterminate {
   0% { transform: translateX(-100%); }
   50% { transform: translateX(250%); }
