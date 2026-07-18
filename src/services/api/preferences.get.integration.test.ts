@@ -61,6 +61,7 @@ function complete_server_blob(
     ...DEFAULT_PREFERENCES,
     migration_haptic_v1_done: true,
     migration_tracker_blocking_v2_done: true,
+    migration_toast_position_v1_done: true,
     ...overrides,
   };
 }
