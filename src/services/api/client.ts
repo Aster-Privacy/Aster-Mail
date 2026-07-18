@@ -515,6 +515,10 @@ class ApiClient {
 
         return true;
       }
+
+      if (tokens.refresh_token) {
+        return true;
+      }
     } catch {}
 
     return false;
@@ -849,12 +853,59 @@ class ApiClient {
   async reestablish_session_for_account(account_id: string): Promise<boolean> {
     const loaded = await this.load_tokens_for_account(account_id);
 
-    if (!loaded || !this.dev_access_token) {
+    if (!loaded) {
       return false;
     }
 
-    if (!this.token_survives_reload() && !this.active_refresh_token) {
+    if (!this.dev_access_token && !this.active_refresh_token) {
       return false;
+    }
+
+    let cookies_reissued = false;
+
+    const reissue_cookies = async (): Promise<boolean> => {
+      try {
+        const refreshed = await this.post<{
+          csrf_token: string;
+          access_token?: string;
+          refresh_token?: string;
+        }>(
+          "/core/v1/auth/refresh",
+          this.active_refresh_token
+            ? { refresh_token: this.active_refresh_token }
+            : {},
+          { skip_session_refresh: true },
+        );
+
+        if (!refreshed.data?.csrf_token) {
+          return false;
+        }
+
+        clear_csrf_cache();
+        this.set_csrf(refreshed.data.csrf_token);
+        if (refreshed.data.access_token) {
+          this.set_dev_token(
+            refreshed.data.access_token,
+            refreshed.data.refresh_token,
+          );
+        } else if (refreshed.data.refresh_token) {
+          this.active_refresh_token = refreshed.data.refresh_token;
+        }
+
+        return true;
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+
+        return false;
+      }
+    };
+
+    if (!this.dev_access_token) {
+      cookies_reissued = await reissue_cookies();
+
+      if (!cookies_reissued) {
+        return false;
+      }
     }
 
     this.is_authenticated_flag = true;
@@ -874,33 +925,8 @@ class ApiClient {
     this.has_ever_authenticated = true;
     this.last_refresh_timestamp = Date.now();
 
-    let cookies_reissued = false;
-    try {
-      const refreshed = await this.post<{
-        csrf_token: string;
-        access_token?: string;
-        refresh_token?: string;
-      }>(
-        "/core/v1/auth/refresh",
-        this.active_refresh_token
-          ? { refresh_token: this.active_refresh_token }
-          : {},
-        { skip_session_refresh: true },
-      );
-
-      if (refreshed.data?.csrf_token) {
-        cookies_reissued = true;
-        clear_csrf_cache();
-        this.set_csrf(refreshed.data.csrf_token);
-        if (refreshed.data.access_token) {
-          this.set_dev_token(
-            refreshed.data.access_token,
-            refreshed.data.refresh_token,
-          );
-        }
-      }
-    } catch (e) {
-      if (import.meta.env.DEV) console.error(e);
+    if (!cookies_reissued) {
+      cookies_reissued = await reissue_cookies();
     }
 
     if (!cookies_reissued && !this.token_survives_reload()) {
@@ -908,6 +934,18 @@ class ApiClient {
 
       return false;
     }
+
+    try {
+      const { update_account_tokens } = await import(
+        "@/services/account_manager"
+      );
+
+      await update_account_tokens(
+        account_id,
+        this.dev_access_token,
+        this.active_refresh_token,
+      );
+    } catch {}
 
     this.schedule_token_refresh();
 

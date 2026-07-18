@@ -390,15 +390,15 @@ export async function update_account_tokens(
 
   if (!account) return false;
 
-  const persist_tokens = api_client.can_persist_session();
+  const persist_access = api_client.can_persist_session();
 
-  if (access_token === null || !persist_tokens) {
+  if (access_token === null || !persist_access) {
     delete account.access_token;
   } else {
     account.access_token = access_token;
   }
 
-  if (refresh_token === null || !persist_tokens) {
+  if (refresh_token === null) {
     delete account.refresh_token;
   } else if (refresh_token !== undefined) {
     account.refresh_token = refresh_token;

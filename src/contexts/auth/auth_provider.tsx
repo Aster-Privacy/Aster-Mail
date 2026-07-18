@@ -826,6 +826,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
 
+        let stored_passphrase: string | null = null;
+
+        try {
+          stored_passphrase = await get_session_passphrase(target.id);
+        } catch {
+          stored_passphrase = null;
+        }
+        const stored_vault = get_stored_encrypted_vault(target.id);
+
+        if (stored_passphrase && stored_vault) {
+          set_is_adding_account(false);
+
+          let session_ok = false;
+
+          try {
+            session_ok = await api_client.reestablish_session_for_account(
+              target.id,
+            );
+          } catch (e) {
+            safe_log_error(e);
+          }
+
+          if (session_ok) {
+            hard_redirect("/");
+
+            return;
+          }
+
+          set_is_adding_account(true);
+        }
+
         set_state((prev) => ({
           ...prev,
           user: null,
