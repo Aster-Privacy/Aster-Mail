@@ -56,6 +56,7 @@ export interface QueueEmailRequest {
   sender_display_name?: string;
   forward_original_mail_id?: string;
   in_reply_to?: string;
+  expires_at?: string;
 }
 
 export interface QueueEmailResponse {

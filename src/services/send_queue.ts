@@ -62,6 +62,7 @@ import {
   type Attachment,
 } from "@/components/compose/compose_shared";
 import { format_bytes } from "@/lib/utils";
+import { build_subject_bundle } from "@/utils/email_crypto";
 import { en } from "@/lib/i18n/translations/en";
 
 export type {
@@ -434,8 +435,13 @@ async function prepare_email_for_server_queue(
   }
   const sender_email = email.sender_email || current_account.user.email;
 
-  const { encrypted_body, is_encrypted } = await encrypt_for_recipients(
+  const bundled_body_for_recipient = build_subject_bundle(
+    email.subject || "",
     body_for_encryption,
+  );
+
+  const { encrypted_body, is_encrypted } = await encrypt_for_recipients(
+    bundled_body_for_recipient,
     all_recipients,
     sender_email,
   );
@@ -490,8 +496,8 @@ async function prepare_email_for_server_queue(
     to: email.to,
     cc: email.cc,
     bcc: email.bcc,
-    subject: email.subject,
-    body: encrypted_body,
+    subject: is_encrypted ? "" : email.subject,
+    body: is_encrypted ? encrypted_body : body_for_encryption,
     is_e2e_encrypted: is_encrypted,
     encrypted_envelope: envelope_data.encrypted_envelope,
     envelope_nonce: envelope_data.envelope_nonce,
@@ -505,6 +511,7 @@ async function prepare_email_for_server_queue(
     attachments: encrypted_attachments,
     forward_original_mail_id: email.forward_original_mail_id,
     in_reply_to: email.in_reply_to,
+    expires_at: email.expires_at,
   };
 
   return { request, is_encrypted };
