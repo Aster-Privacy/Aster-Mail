@@ -166,7 +166,10 @@ export function SchedulePicker({
 
   const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i), []);
 
-  const minutes = useMemo(() => Array.from({ length: 12 }, (_, i) => i * 5), []);
+  const minutes = useMemo(
+    () => Array.from({ length: 12 }, (_, i) => i * 5),
+    [],
+  );
 
   const format_hour = (hour: number) => {
     const period = hour >= 12 ? t("common.pm") : t("common.am");
@@ -214,7 +217,7 @@ export function SchedulePicker({
       <Tooltip tip={t("mail.schedule_send")}>
         <PopoverTrigger asChild>
           <button
-            className="h-8 w-8 p-0 inline-flex items-center justify-center rounded transition-colors duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-secondary hover:text-txt-primary disabled:opacity-50"
+            className="w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-all duration-150 active:scale-90 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
             disabled={disabled}
             type="button"
           >

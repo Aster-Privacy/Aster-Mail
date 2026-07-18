@@ -73,7 +73,7 @@ export function TemplatePicker({
   return (
     <div ref={container_ref} className="relative">
       <button
-        className="p-1.5 rounded transition-colors duration-150 disabled:opacity-50 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary"
+        className="w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-all duration-150 active:scale-90 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
         disabled={disabled}
         title={t("mail.insert_template")}
         type="button"

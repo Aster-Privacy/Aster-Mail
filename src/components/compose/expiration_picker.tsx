@@ -272,7 +272,7 @@ export function ExpirationPicker({
         <Tooltip tip={t("mail.self_destruct")}>
           <PopoverTrigger asChild>
             <button
-              className="h-8 w-8 p-0 inline-flex items-center justify-center rounded transition-colors duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-secondary hover:text-txt-primary disabled:opacity-50"
+              className="w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-all duration-150 active:scale-90 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
               disabled={disabled}
               type="button"
             >
@@ -481,9 +481,11 @@ export function ExpirationPicker({
                 type="button"
                 onClick={() => set_show_password((v) => !v)}
               >
-                {show_password
-                  ? <EyeSlashIcon className="w-4 h-4" />
-                  : <EyeIcon className="w-4 h-4" />}
+                {show_password ? (
+                  <EyeSlashIcon className="w-4 h-4" />
+                ) : (
+                  <EyeIcon className="w-4 h-4" />
+                )}
               </button>
             </div>
           </div>
