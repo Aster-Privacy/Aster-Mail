@@ -5417,7 +5417,7 @@ export const en: Translations = {
     pick_expiration: "Pick expiration",
     set_expiration: "Set expiration",
     password_description:
-      "External recipients will need this password to view the email",
+      "Recipients will need this password to view the email",
     no_password: "No password",
     replying_to: "Replying to {{name}}",
     reply_sent_successfully: "Reply sent successfully",

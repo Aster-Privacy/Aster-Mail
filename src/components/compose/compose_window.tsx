@@ -137,7 +137,7 @@ export function ComposeWindow({
       on_expiration_change={compose.set_expires_at}
       on_password_change={compose.set_expiry_password}
       password={compose.expiry_password}
-      show_password_option={compose.has_external_recipients}
+      show_password_option
     />
   );
 
