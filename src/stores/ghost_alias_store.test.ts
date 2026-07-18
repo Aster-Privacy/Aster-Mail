@@ -25,13 +25,19 @@ import { looks_like_unregistered_ghost_email } from "./ghost_alias_store";
 describe("looks_like_unregistered_ghost_email (reply From-field alias bug)", () => {
   it("matches a real ghost-shaped address on the ghost domain", () => {
     expect(
+      looks_like_unregistered_ghost_email("sage.ridge7k2m9adx@realiased.me"),
+    ).toBe(true);
+  });
+
+  it("matches a ghost-shaped address on the legacy ghost domain", () => {
+    expect(
       looks_like_unregistered_ghost_email("sage.ridge7k2m9adx@astermail.org"),
     ).toBe(true);
   });
 
   it("matches a ghost-shaped address regardless of case", () => {
     expect(
-      looks_like_unregistered_ghost_email("Sage.Ridge7K2M9ADX@AsterMail.org"),
+      looks_like_unregistered_ghost_email("Sage.Ridge7K2M9ADX@Realiased.Me"),
     ).toBe(true);
   });
 

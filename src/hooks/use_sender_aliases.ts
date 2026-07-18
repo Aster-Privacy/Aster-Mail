@@ -42,7 +42,6 @@ import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
 import {
   list_ghost_aliases,
   decrypt_ghost_aliases,
-  GHOST_DOMAIN,
 } from "@/services/api/ghost_aliases";
 import { register_ghost_email } from "@/stores/ghost_alias_store";
 
@@ -209,7 +208,7 @@ export function use_sender_aliases() {
         for (const g of decrypted_ghosts) {
           const ghost_hash = await compute_alias_hash(
             g.local_part,
-            GHOST_DOMAIN,
+            g.domain,
           );
           const ghost_sender: SenderOption = {
             id: `ghost-${g.id}`,

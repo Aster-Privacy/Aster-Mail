@@ -27,7 +27,9 @@ import {
   decrypt_alias_field,
 } from "./aliases";
 
-export const GHOST_DOMAIN = "astermail.org";
+export const GHOST_DOMAIN = "realiased.me";
+export const LEGACY_GHOST_DOMAINS = ["astermail.org"];
+export const ALL_GHOST_DOMAINS = [GHOST_DOMAIN, ...LEGACY_GHOST_DOMAINS];
 
 const FIRST_WORDS = [
   "sage",
