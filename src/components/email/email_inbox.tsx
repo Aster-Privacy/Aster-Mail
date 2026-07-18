@@ -680,8 +680,25 @@ export function EmailInbox({
     page_category_ref.current = categories.active_category;
   }, [categories.active_category, set_current_page]);
 
+  const prev_initial_load_ref = useRef(false);
+
   useEffect(() => {
+    const reloaded_from_reset =
+      !prev_initial_load_ref.current && email_state.has_initial_load;
+
+    prev_initial_load_ref.current = email_state.has_initial_load;
     if (!email_state.has_initial_load) return;
+
+    if (
+      reloaded_from_reset &&
+      initial_page_synced.current &&
+      current_page > 0
+    ) {
+      set_current_page(0);
+
+      return;
+    }
+
     const page_changed = prev_page_ref.current !== current_page;
 
     prev_page_ref.current = current_page;
@@ -694,7 +711,13 @@ export function EmailInbox({
         );
       }
     }
-  }, [email_state.has_initial_load, current_page, fetch_page, page_size]);
+  }, [
+    email_state.has_initial_load,
+    current_page,
+    fetch_page,
+    page_size,
+    set_current_page,
+  ]);
 
   const [custom_snooze_email, set_custom_snooze_email] =
     useState<InboxEmail | null>(null);
@@ -818,11 +841,16 @@ export function EmailInbox({
     Math.ceil(effective_total_for_pages / page_size),
   );
 
+  const totals_authoritative = categories.enabled
+    ? is_category_index_built()
+    : email_state.has_initial_load && !email_state.is_loading;
+
   useEffect(() => {
+    if (!totals_authoritative) return;
     if (current_page >= total_pages && total_pages > 0) {
       set_current_page(total_pages - 1);
     }
-  }, [current_page, total_pages, set_current_page]);
+  }, [current_page, total_pages, set_current_page, totals_authoritative]);
 
   const empty_recovery_ref = useRef<{ view: string; attempts: number }>({
     view: current_view,
