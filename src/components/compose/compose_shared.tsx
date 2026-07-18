@@ -28,6 +28,7 @@ export interface ComposeToolbarState {
   scheduled_time: Date | null;
   is_scheduling: boolean;
   has_recipients: boolean;
+  is_sending?: boolean;
   handle_scheduled_send: () => void;
   handle_send: () => void;
   is_mac: boolean;
