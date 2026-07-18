@@ -36,7 +36,6 @@ import {
   type Attachment,
   type DraftStatus,
   ComposeToolbar,
-  ComposeFormatBar,
   ComposeFileInputSimple,
   AttachmentListSimple,
 } from "@/components/compose/compose_shared";
@@ -272,7 +271,9 @@ export function ReplyBody({
             <div
               dangerouslySetInnerHTML={{
                 __html: sanitize_html(build_quoted_content(true), {
-                  external_content_mode: is_any_lockdown_active() ? "never" : "always",
+                  external_content_mode: is_any_lockdown_active()
+                    ? "never"
+                    : "always",
                   lockdown_mode: is_any_lockdown_active(),
                   image_proxy_url: get_image_proxy_url(),
                 }).html,
@@ -355,33 +356,6 @@ export function ReplyBody({
         file_input_ref={file_input_ref as React.RefObject<HTMLInputElement>}
         handle_file_select={handle_file_select}
       />
-
-      {!is_minimized && (
-        <ComposeFormatBar
-          compose={{
-            scheduled_time,
-            is_scheduling,
-            has_recipients: can_send || is_sending,
-            handle_scheduled_send,
-            handle_send,
-            is_mac,
-            schedule_picker_element: null,
-            expiration_picker_element: null,
-            template_picker_element: null,
-            active_formats,
-            exec_format_command,
-            handle_insert_link,
-            trigger_file_select,
-            draft_status,
-            last_saved_time,
-            handle_show_delete_confirm: null,
-            editor,
-            is_plain_text_mode,
-            toggle_plain_text_mode,
-          }}
-          reduce_motion={reduce_motion}
-        />
-      )}
 
       {!is_minimized && (
         <ComposeToolbar

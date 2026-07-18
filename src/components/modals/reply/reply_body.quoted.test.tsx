@@ -63,7 +63,6 @@ vi.mock("@/components/compose/signature_picker", () => ({
 
 vi.mock("@/components/compose/compose_shared", () => ({
   ComposeToolbar: () => null,
-  ComposeFormatBar: () => null,
   ComposeFileInputSimple: () => null,
   AttachmentListSimple: () => null,
 }));

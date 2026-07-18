@@ -36,9 +36,26 @@ import { Button } from "@aster/ui";
 import { Input } from "@/components/ui/input";
 import { AttachmentIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
-import { LinkDialog } from "@/components/compose/link_dialog";
 import { format_last_saved } from "@/components/compose/compose_shared";
 import EmojiPicker from "@/components/compose/emoji_picker";
+
+const FORMAT_BAR_STORAGE_KEY = "aster_compose_format_bar_open";
+
+function read_format_bar_preference(): boolean {
+  try {
+    return localStorage.getItem(FORMAT_BAR_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function store_format_bar_preference(open: boolean) {
+  try {
+    localStorage.setItem(FORMAT_BAR_STORAGE_KEY, open ? "1" : "0");
+  } catch {
+    return;
+  }
+}
 
 const PRESET_COLORS = [
   "#000000",
@@ -108,9 +125,8 @@ export function ToolbarButton({
 }: ToolbarButtonProps) {
   return (
     <button
-      className={`p-1.5 rounded transition-colors duration-150 disabled:opacity-50 ${active ? "bg-blue-500/15" : "hover:bg-black/5 dark:hover:bg-white/10"} ${active ? "" : "text-txt-tertiary"}`}
+      className={`w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-all duration-150 active:scale-90 disabled:opacity-50 ${active ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"}`}
       disabled={disabled}
-      style={active ? { color: "var(--color-info)" } : undefined}
       title={title}
       type="button"
       onClick={onClick}
@@ -122,7 +138,44 @@ export function ToolbarButton({
 }
 
 function Divider() {
-  return <div className="w-px h-4 mx-0.5 flex-shrink-0 bg-edge-secondary" />;
+  return <div className="w-px h-4 mx-1 flex-shrink-0 bg-edge-secondary" />;
+}
+
+function use_frozen_selection(
+  editor: ComposeToolbarState["editor"] | undefined,
+) {
+  const frozen_range_ref = useRef<Range | null>(null);
+
+  const freeze_selection = useCallback(() => {
+    const sel = window.getSelection();
+
+    if (sel && sel.rangeCount > 0) {
+      frozen_range_ref.current = sel.getRangeAt(0).cloneRange();
+    }
+  }, []);
+
+  const apply_with_frozen_selection = useCallback(
+    (fn: () => void) => {
+      if (!editor) return;
+
+      const frozen = frozen_range_ref.current;
+
+      if (frozen) {
+        editor.focus();
+        const sel = window.getSelection();
+
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(frozen);
+        }
+      }
+      editor.save_selection();
+      fn();
+    },
+    [editor],
+  );
+
+  return { freeze_selection, apply_with_frozen_selection };
 }
 
 function FontSizeSelect({
@@ -164,7 +217,7 @@ function FontSizeSelect({
       <button
         ref={button_ref}
         aria-label={t("common.font_size_label")}
-        className="h-7 px-2 text-xs rounded border cursor-pointer flex items-center gap-1 transition-colors hover:bg-black/5 dark:hover:bg-white/10 whitespace-nowrap bg-transparent border-edge-secondary text-txt-muted"
+        className="h-7 px-2 text-xs rounded-md cursor-pointer flex items-center gap-1 transition-colors hover:bg-black/5 dark:hover:bg-white/10 whitespace-nowrap bg-transparent text-txt-muted"
         type="button"
         onClick={() => {
           if (!open && button_ref.current) {
@@ -207,12 +260,8 @@ function FontSizeSelect({
               {FONT_SIZE_OPTIONS.map((option) => (
                 <button
                   key={option.value}
-                  className={`w-full text-left px-3 py-1.5 text-xs transition-colors hover:bg-black/5 dark:hover:bg-white/10 ${current_size === option.value ? "" : "text-txt-primary"}`}
+                  className="w-full text-left px-3 py-1.5 text-xs transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-primary"
                   style={{
-                    color:
-                      current_size === option.value
-                        ? "var(--color-info)"
-                        : undefined,
                     fontWeight: current_size === option.value ? 600 : 400,
                   }}
                   type="button"
@@ -306,7 +355,7 @@ function ColorPickerPopover({
     <div>
       <button
         ref={button_ref}
-        className="p-1.5 rounded transition-colors duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary"
+        className="w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-all duration-150 active:scale-90 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"
         title={t("mail.font_color")}
         type="button"
         onClick={() => {
@@ -503,77 +552,12 @@ function AlignmentGroup({
   );
 }
 
-function FormatTools({
-  compose,
-  show_link_dialog,
-  selected_text_for_link,
-  on_open_link_dialog,
-  on_close_link_dialog,
-  on_insert_link,
-}: {
-  compose: ComposeToolbarState;
-  show_link_dialog: boolean;
-  selected_text_for_link: string;
-  on_open_link_dialog: () => void;
-  on_close_link_dialog: () => void;
-  on_insert_link: (url: string, text?: string) => void;
-}) {
+function FormatTools({ compose }: { compose: ComposeToolbarState }) {
   const { t } = use_i18n();
   const editor = compose.editor;
-  const mod = compose.is_mac ? "\u2318" : "Ctrl";
-
-  const frozen_range_ref = useRef<Range | null>(null);
-
-  const freeze_selection = useCallback(() => {
-    const sel = window.getSelection();
-
-    if (sel && sel.rangeCount > 0) {
-      frozen_range_ref.current = sel.getRangeAt(0).cloneRange();
-    }
-  }, []);
-
-  const apply_with_frozen_selection = useCallback(
-    (fn: () => void) => {
-      if (!editor) return;
-
-      const frozen = frozen_range_ref.current;
-
-      if (frozen) {
-        editor.focus();
-        const sel = window.getSelection();
-
-        if (sel) {
-          sel.removeAllRanges();
-          sel.addRange(frozen);
-        }
-      }
-      editor.save_selection();
-      fn();
-    },
-    [editor],
-  );
-
-  const [show_emoji, set_show_emoji] = useState(false);
-  const [emoji_pos, set_emoji_pos] = useState({ top: 0, right: 0 });
-  const emoji_btn_ref = useRef<HTMLButtonElement>(null);
-  const emoji_picker_ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!show_emoji) return;
-
-    const handle_click_outside = (e: MouseEvent) => {
-      const target = e.target as Node;
-
-      if (emoji_btn_ref.current?.contains(target)) return;
-      if (emoji_picker_ref.current?.contains(target)) return;
-      set_show_emoji(false);
-    };
-
-    document.addEventListener("mousedown", handle_click_outside);
-
-    return () =>
-      document.removeEventListener("mousedown", handle_click_outside);
-  }, [show_emoji]);
+  const mod = compose.is_mac ? "⌘" : "Ctrl";
+  const { freeze_selection, apply_with_frozen_selection } =
+    use_frozen_selection(editor);
 
   return (
     <>
@@ -583,25 +567,6 @@ function FormatTools({
             on_before_open={freeze_selection}
             on_change={(size) =>
               apply_with_frozen_selection(() => editor.set_font_size(size))
-            }
-          />
-          <Divider />
-        </>
-      )}
-
-      {editor && (
-        <>
-          <ColorPickerPopover
-            bg_color={editor.format_state.current_bg_color}
-            font_color={editor.format_state.current_font_color}
-            on_before_open={freeze_selection}
-            on_bg_color_change={(color) =>
-              apply_with_frozen_selection(() =>
-                editor.set_background_color(color),
-              )
-            }
-            on_font_color_change={(color) =>
-              apply_with_frozen_selection(() => editor.set_font_color(color))
             }
           />
           <Divider />
@@ -645,6 +610,22 @@ function FormatTools({
         </svg>
       </ToolbarButton>
 
+      {editor && (
+        <ColorPickerPopover
+          bg_color={editor.format_state.current_bg_color}
+          font_color={editor.format_state.current_font_color}
+          on_before_open={freeze_selection}
+          on_bg_color_change={(color) =>
+            apply_with_frozen_selection(() =>
+              editor.set_background_color(color),
+            )
+          }
+          on_font_color_change={(color) =>
+            apply_with_frozen_selection(() => editor.set_font_color(color))
+          }
+        />
+      )}
+
       <Divider />
 
       <ToolbarButton
@@ -666,94 +647,15 @@ function FormatTools({
         </svg>
       </ToolbarButton>
 
-      <Divider />
-
       {editor && (
         <>
+          <Divider />
           <AlignmentGroup
             current={editor.format_state.current_alignment}
             on_change={editor.set_alignment}
           />
-          <Divider />
         </>
       )}
-
-      <div>
-        <button
-          ref={emoji_btn_ref}
-          className={`p-1.5 rounded transition-colors duration-150 ${show_emoji ? "bg-blue-500/15" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary"}`}
-          style={show_emoji ? { color: "var(--color-info)" } : undefined}
-          title={t("common.emoji")}
-          type="button"
-          onClick={() => {
-            if (!show_emoji && emoji_btn_ref.current) {
-              freeze_selection();
-              const rect = emoji_btn_ref.current.getBoundingClientRect();
-
-              set_emoji_pos({
-                top: rect.top,
-                right: window.innerWidth - rect.right,
-              });
-            }
-            set_show_emoji(!show_emoji);
-          }}
-          onMouseDown={(e) => e.preventDefault()}
-        >
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
-          </svg>
-        </button>
-        {createPortal(
-          <AnimatePresence>
-            {show_emoji && (
-              <div
-                ref={emoji_picker_ref}
-                className="fixed"
-                style={{
-                  zIndex: 9999,
-                  right: emoji_pos.right,
-                  bottom: window.innerHeight - emoji_pos.top + 8,
-                }}
-              >
-                <EmojiPicker
-                  on_select={(emoji) => {
-                    apply_with_frozen_selection(() =>
-                      editor?.insert_emoji(emoji),
-                    );
-                    set_show_emoji(false);
-                  }}
-                />
-              </div>
-            )}
-          </AnimatePresence>,
-          document.body,
-        )}
-      </div>
-
-      <div className="relative">
-        <ToolbarButton
-          active={show_link_dialog}
-          title={t("mail.insert_link")}
-          onClick={on_open_link_dialog}
-        >
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
-          </svg>
-        </ToolbarButton>
-        <LinkDialog
-          on_close={on_close_link_dialog}
-          on_insert={on_insert_link}
-          open={show_link_dialog}
-          selected_text={selected_text_for_link}
-        />
-      </div>
-
-      <ToolbarButton
-        title={t("mail.attach_file")}
-        onClick={compose.trigger_file_select}
-      >
-        <AttachmentIcon className="w-4 h-4" />
-      </ToolbarButton>
 
       <Divider />
 
@@ -769,41 +671,339 @@ function FormatTools({
   );
 }
 
-interface ComposeFormatBarProps {
-  compose: ComposeToolbarState;
-  reduce_motion: boolean;
+function LinkPopover({
+  open,
+  anchor_ref,
+  selected_text,
+  on_close,
+  on_insert,
+}: {
+  open: boolean;
+  anchor_ref: React.RefObject<HTMLButtonElement | null>;
+  selected_text: string;
+  on_close: () => void;
+  on_insert: (url: string, text?: string) => void;
+}) {
+  const { t } = use_i18n();
+  const [url, set_url] = useState("https://");
+  const [text, set_text] = useState("");
+  const [pos, set_pos] = useState({ top: 0, left: 0 });
+  const card_ref = useRef<HTMLDivElement>(null);
+  const url_input_ref = useRef<HTMLInputElement>(null);
+
+  useLayoutEffect(() => {
+    if (!open || !anchor_ref.current) return;
+
+    const rect = anchor_ref.current.getBoundingClientRect();
+
+    set_pos({
+      top: rect.top,
+      left: Math.max(8, Math.min(rect.left, window.innerWidth - 308)),
+    });
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    set_url("https://");
+    set_text(selected_text);
+    requestAnimationFrame(() => url_input_ref.current?.focus());
+
+    const handle_click_outside = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      if (anchor_ref.current?.contains(target)) return;
+      if (card_ref.current?.contains(target)) return;
+      on_close();
+    };
+
+    document.addEventListener("mousedown", handle_click_outside);
+
+    return () =>
+      document.removeEventListener("mousedown", handle_click_outside);
+  }, [open]);
+
+  const handle_insert = () => {
+    const trimmed = url.trim().toLowerCase();
+    const valid =
+      trimmed.startsWith("http://") ||
+      trimmed.startsWith("https://") ||
+      trimmed.startsWith("mailto:");
+
+    if (!valid) return;
+    on_insert(url.trim(), text.trim() || undefined);
+    on_close();
+  };
+
+  if (!open) return null;
+
+  return createPortal(
+    <div
+      ref={card_ref}
+      className="fixed w-[300px] rounded-xl border shadow-lg p-3 flex flex-col gap-2 bg-modal-bg border-edge-primary"
+      style={{
+        zIndex: 9999,
+        left: pos.left,
+        bottom: window.innerHeight - pos.top + 8,
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handle_insert();
+        }
+        if (e.key === "Escape") on_close();
+      }}
+    >
+      <Input
+        ref={url_input_ref}
+        className="w-full"
+        placeholder={t("mail.url_placeholder")}
+        size="sm"
+        type="url"
+        value={url}
+        onChange={(e) => set_url(e.target.value)}
+      />
+      {!selected_text && (
+        <Input
+          className="w-full"
+          placeholder={t("mail.display_text_placeholder")}
+          size="sm"
+          type="text"
+          value={text}
+          onChange={(e) => set_text(e.target.value)}
+        />
+      )}
+      <div className="flex justify-end gap-2 mt-0.5">
+        <Button size="sm" variant="outline" onClick={on_close}>
+          {t("common.cancel")}
+        </Button>
+        <Button size="sm" variant="depth" onClick={handle_insert}>
+          {t("mail.insert_link")}
+        </Button>
+      </div>
+    </div>,
+    document.body,
+  );
 }
 
-export function ComposeFormatBar({ compose }: ComposeFormatBarProps) {
+function InsertTools({ compose }: { compose: ComposeToolbarState }) {
   const { t } = use_i18n();
+  const editor = compose.editor;
+  const { freeze_selection, apply_with_frozen_selection } =
+    use_frozen_selection(editor);
+
   const [show_link_dialog, set_show_link_dialog] = useState(false);
   const [selected_text_for_link, set_selected_text_for_link] = useState("");
+  const link_btn_ref = useRef<HTMLButtonElement>(null);
+  const [show_emoji, set_show_emoji] = useState(false);
+  const [emoji_pos, set_emoji_pos] = useState({ top: 0, right: 0 });
+  const emoji_btn_ref = useRef<HTMLButtonElement>(null);
+  const emoji_picker_ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!show_emoji) return;
+
+    const handle_click_outside = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      if (emoji_btn_ref.current?.contains(target)) return;
+      if (emoji_picker_ref.current?.contains(target)) return;
+      set_show_emoji(false);
+    };
+
+    document.addEventListener("mousedown", handle_click_outside);
+
+    return () =>
+      document.removeEventListener("mousedown", handle_click_outside);
+  }, [show_emoji]);
 
   const handle_open_link_dialog = () => {
-    compose.editor?.save_selection();
+    freeze_selection();
+    editor?.save_selection();
     set_selected_text_for_link(window.getSelection()?.toString() || "");
     set_show_link_dialog(true);
   };
 
-  const handle_insert_link = (url: string, text?: string) => {
-    compose.editor?.insert_link(url, text);
-  };
+  return (
+    <>
+      <ToolbarButton
+        title={t("mail.attach_file")}
+        onClick={compose.trigger_file_select}
+      >
+        <AttachmentIcon className="w-4 h-4" />
+      </ToolbarButton>
+
+      {editor && (
+        <div>
+          <button
+            ref={link_btn_ref}
+            className={`w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-all duration-150 active:scale-90 ${show_link_dialog ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"}`}
+            title={t("mail.insert_link")}
+            type="button"
+            onClick={handle_open_link_dialog}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+            </svg>
+          </button>
+          <LinkPopover
+            anchor_ref={link_btn_ref}
+            on_close={() => set_show_link_dialog(false)}
+            on_insert={(url, text) =>
+              apply_with_frozen_selection(() => editor.insert_link(url, text))
+            }
+            open={show_link_dialog}
+            selected_text={selected_text_for_link}
+          />
+        </div>
+      )}
+
+      {editor && (
+        <div>
+          <button
+            ref={emoji_btn_ref}
+            className={`w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-all duration-150 active:scale-90 ${show_emoji ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"}`}
+            title={t("common.emoji")}
+            type="button"
+            onClick={() => {
+              if (!show_emoji && emoji_btn_ref.current) {
+                freeze_selection();
+                const rect = emoji_btn_ref.current.getBoundingClientRect();
+
+                set_emoji_pos({
+                  top: rect.top,
+                  right: window.innerWidth - rect.right,
+                });
+              }
+              set_show_emoji(!show_emoji);
+            }}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
+            </svg>
+          </button>
+          {createPortal(
+            <AnimatePresence>
+              {show_emoji && (
+                <div
+                  ref={emoji_picker_ref}
+                  className="fixed"
+                  style={{
+                    zIndex: 9999,
+                    right: emoji_pos.right,
+                    bottom: window.innerHeight - emoji_pos.top + 8,
+                  }}
+                >
+                  <EmojiPicker
+                    on_select={(emoji) => {
+                      apply_with_frozen_selection(() =>
+                        editor.insert_emoji(emoji),
+                      );
+                      set_show_emoji(false);
+                    }}
+                  />
+                </div>
+              )}
+            </AnimatePresence>,
+            document.body,
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+function DraftStatusIndicator({
+  compose,
+  reduce_motion,
+}: {
+  compose: ComposeToolbarState;
+  reduce_motion: boolean;
+}) {
+  const { t } = use_i18n();
 
   return (
-    <div
-      aria-label={t("mail.text_formatting")}
-      className="border-t px-3 py-1.5 flex items-center gap-0.5 flex-shrink-0 overflow-x-auto scrollbar-hide border-edge-primary"
-      role="toolbar"
-    >
-      <FormatTools
-        compose={compose}
-        on_close_link_dialog={() => set_show_link_dialog(false)}
-        on_insert_link={handle_insert_link}
-        on_open_link_dialog={handle_open_link_dialog}
-        selected_text_for_link={selected_text_for_link}
-        show_link_dialog={show_link_dialog}
-      />
-    </div>
+    <AnimatePresence>
+      {compose.draft_status !== "idle" && (
+        <motion.div
+          animate={{ opacity: 1 }}
+          className="text-xs flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-txt-muted"
+          exit={{ opacity: 0 }}
+          initial={reduce_motion ? false : { opacity: 0 }}
+          transition={{ duration: reduce_motion ? 0 : 0.2, ease: "easeOut" }}
+        >
+          <AnimatePresence initial={false} mode="wait">
+            {compose.draft_status === "saving" ? (
+              <motion.div
+                key="saving"
+                animate={{ opacity: 1 }}
+                className="flex items-center gap-1.5"
+                exit={{ opacity: 0 }}
+                initial={reduce_motion ? false : { opacity: 0 }}
+                transition={{ duration: reduce_motion ? 0 : 0.15 }}
+              >
+                <svg
+                  className="w-3.5 h-3.5 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                  <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
+                </svg>
+                <span>{t("common.saving")}</span>
+              </motion.div>
+            ) : compose.draft_status === "error" ? (
+              <motion.div
+                key="error"
+                animate={{ opacity: 1 }}
+                className="flex items-center gap-1.5 text-red-500 dark:text-red-400"
+                exit={{ opacity: 0 }}
+                initial={reduce_motion ? false : { opacity: 0 }}
+                transition={{ duration: reduce_motion ? 0 : 0.15 }}
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" x2="12" y1="8" y2="12" />
+                  <line x1="12" x2="12.01" y1="16" y2="16" />
+                </svg>
+                <span>{t("common.save_failed")}</span>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="saved"
+                animate={{ opacity: 1 }}
+                className="flex items-center gap-1.5"
+                exit={{ opacity: 0 }}
+                initial={reduce_motion ? false : { opacity: 0 }}
+                transition={{ duration: reduce_motion ? 0 : 0.15 }}
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                </svg>
+                <span>
+                  {compose.last_saved_time
+                    ? format_last_saved(compose.last_saved_time, t)
+                    : t("mail.saved")}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -821,148 +1021,94 @@ export function ComposeToolbar({
   extra_toolbar_items,
 }: ComposeToolbarProps) {
   const { t } = use_i18n();
+  const [show_format_bar, set_show_format_bar] = useState(
+    read_format_bar_preference,
+  );
+
+  const toggle_format_bar = () => {
+    set_show_format_bar((open) => {
+      store_format_bar_preference(!open);
+
+      return !open;
+    });
+  };
 
   return (
-    <div className="border-t px-3 py-2 flex items-center gap-2 flex-shrink-0 border-edge-primary">
-      {compose.scheduled_time ? (
-        <Button
-          className="h-8 px-4"
-          disabled={!compose.has_recipients || compose.is_scheduling}
-          size="md"
-          variant="depth"
-          onClick={compose.handle_scheduled_send}
-        >
-          {compose.is_scheduling ? t("mail.scheduling") : t("mail.schedule")}
-        </Button>
-      ) : (
-        <Button
-          className="h-8 px-5"
-          disabled={!compose.has_recipients || compose.is_sending}
-          size="md"
-          title={compose.is_mac ? "\u2318+Enter" : "Ctrl+Enter"}
-          variant="depth"
-          onClick={compose.handle_send}
-        >
-          {compose.is_sending ? t("common.sending") : t("mail.send")}
-        </Button>
+    <div className="relative flex-shrink-0">
+      {show_format_bar && (
+        <div className="absolute bottom-full left-2 right-2 mb-1.5 z-20 rounded-xl border shadow-lg bg-modal-bg border-edge-primary">
+          <div
+            aria-label={t("mail.text_formatting")}
+            className="px-1.5 py-1 flex items-center gap-0.5 overflow-x-auto scrollbar-hide"
+            role="toolbar"
+          >
+            <FormatTools compose={compose} />
+          </div>
+        </div>
       )}
 
-      <div className="flex items-center gap-0.5">
-        {compose.schedule_picker_element}
-
-        {show_expiration && compose.expiration_picker_element}
-      </div>
-
-      {extra_toolbar_items}
-
-      {compose.template_picker_element}
-
-      <AnimatePresence>
-        {compose.draft_status !== "idle" && (
-          <motion.div
-            animate={{ opacity: 1, x: 0 }}
-            className="text-xs flex items-center gap-1.5 px-2 overflow-hidden text-txt-muted"
-            exit={{ opacity: 0, x: -8 }}
-            initial={reduce_motion ? false : { opacity: 0, x: -8 }}
-            transition={{ duration: reduce_motion ? 0 : 0.2, ease: "easeOut" }}
+      <div className="px-4 pt-1 pb-2.5 flex items-center gap-2">
+        {compose.scheduled_time ? (
+          <Button
+            className="h-9 px-5 rounded-full"
+            disabled={!compose.has_recipients || compose.is_scheduling}
+            size="md"
+            variant="depth"
+            onClick={compose.handle_scheduled_send}
           >
-            <AnimatePresence initial={false} mode="wait">
-              {compose.draft_status === "saving" ? (
-                <motion.div
-                  key="saving"
-                  animate={{ opacity: 1 }}
-                  className="flex items-center gap-1.5"
-                  exit={{ opacity: 0 }}
-                  initial={reduce_motion ? false : { opacity: 0 }}
-                  transition={{ duration: reduce_motion ? 0 : 0.15 }}
-                >
-                  <svg
-                    className="w-3.5 h-3.5 animate-spin"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-                    <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
-                  </svg>
-                  <span>{t("common.saving")}</span>
-                </motion.div>
-              ) : compose.draft_status === "error" ? (
-                <motion.div
-                  key="error"
-                  animate={{ opacity: 1 }}
-                  className="flex items-center gap-1.5 text-red-500 dark:text-red-400"
-                  exit={{ opacity: 0 }}
-                  initial={reduce_motion ? false : { opacity: 0 }}
-                  transition={{ duration: reduce_motion ? 0 : 0.15 }}
-                >
-                  <svg
-                    className="w-3.5 h-3.5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" x2="12" y1="8" y2="12" />
-                    <line x1="12" x2="12.01" y1="16" y2="16" />
-                  </svg>
-                  <span>{t("common.save_failed")}</span>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="saved"
-                  animate={{ opacity: 1 }}
-                  className="flex items-center gap-1.5"
-                  exit={{ opacity: 0 }}
-                  initial={reduce_motion ? false : { opacity: 0 }}
-                  transition={{ duration: reduce_motion ? 0 : 0.15 }}
-                >
-                  <motion.svg
-                    animate={{ scale: 1 }}
-                    className="w-3.5 h-3.5"
-                    fill="currentColor"
-                    initial={reduce_motion ? false : { scale: 0 }}
-                    transition={{
-                      type: "tween",
-                      ease: "easeOut",
-                      duration: 0.2,
-                    }}
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                  </motion.svg>
-                  <span>
-                    {compose.last_saved_time
-                      ? format_last_saved(compose.last_saved_time, t)
-                      : t("mail.saved")}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+            {compose.is_scheduling ? t("mail.scheduling") : t("mail.schedule")}
+          </Button>
+        ) : (
+          <Button
+            className="h-9 px-6 rounded-full"
+            disabled={!compose.has_recipients || compose.is_sending}
+            size="md"
+            title={compose.is_mac ? "⌘+Enter" : "Ctrl+Enter"}
+            variant="depth"
+            onClick={compose.handle_send}
+          >
+            {compose.is_sending ? t("common.sending") : t("mail.send")}
+          </Button>
         )}
-      </AnimatePresence>
 
-      <div className="ml-auto flex items-center gap-2">
-        <span className="text-xs hidden sm:inline text-txt-muted">
-          {compose.is_mac ? "\u2318\u21B5" : "Ctrl+\u21B5"}
-        </span>
-        {compose.handle_show_delete_confirm && (
+        <div className="flex items-center gap-1 ml-1">
           <ToolbarButton
-            title={t("common.delete_draft")}
-            onClick={compose.handle_show_delete_confirm}
+            active={show_format_bar}
+            title={t("mail.text_formatting")}
+            onClick={toggle_format_bar}
           >
-            <svg
-              className="w-4 h-4 text-red-400 dark:text-red-500"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M5 17v2h14v-2H5zm4.5-4.2h5l.9 2.2h2.1L12.75 4h-1.5L6.5 15h2.1l.9-2.2zm2.5-6.13L13.87 11h-3.74L12 6.67z" />
             </svg>
           </ToolbarButton>
-        )}
+
+          <InsertTools compose={compose} />
+
+          {compose.schedule_picker_element}
+
+          {show_expiration && compose.expiration_picker_element}
+
+          {extra_toolbar_items}
+
+          {compose.template_picker_element}
+        </div>
+
+        <div className="ml-auto flex items-center gap-2 min-w-0">
+          <DraftStatusIndicator
+            compose={compose}
+            reduce_motion={reduce_motion}
+          />
+          {compose.handle_show_delete_confirm && (
+            <ToolbarButton
+              title={t("common.delete_draft")}
+              onClick={compose.handle_show_delete_confirm}
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+              </svg>
+            </ToolbarButton>
+          )}
+        </div>
       </div>
     </div>
   );

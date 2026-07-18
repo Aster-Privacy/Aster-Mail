@@ -44,7 +44,6 @@ import {
   ComposeErrors,
   ComposeFileInput,
   ComposeToolbar,
-  ComposeFormatBar,
   type EditDraftData,
 } from "@/components/compose/compose_shared";
 
@@ -166,6 +165,7 @@ export function ComposeModal({
               e.preventDefault();
               e.stopPropagation();
               const files = Array.from(e.dataTransfer?.files || []);
+
               if (files.length > 0) {
                 compose.handle_files_drop(files);
               }
@@ -285,22 +285,11 @@ export function ComposeModal({
                 </div>
               )}
 
-              <ComposeAttachments compose={compose} show_add_button />
+              <ComposeAttachments show_add_button compose={compose} />
 
               <ComposeErrors compose={compose} />
 
               <ComposeFileInput compose={compose} />
-
-              <ComposeFormatBar
-                compose={{
-                  ...compose,
-                  has_recipients: compose.recipients.to.length > 0,
-                  schedule_picker_element: null,
-                  expiration_picker_element: null,
-                  template_picker_element: null,
-                }}
-                reduce_motion={reduce_motion}
-              />
 
               <ComposeToolbar
                 show_expiration
@@ -316,12 +305,12 @@ export function ComposeModal({
                   ),
                   expiration_picker_element: (
                     <ExpirationPicker
+                      show_password_option
                       disabled={compose.recipients.to.length === 0}
                       expires_at={compose.expires_at}
                       on_expiration_change={compose.set_expires_at}
                       on_password_change={compose.set_expiry_password}
                       password={compose.expiry_password}
-                      show_password_option
                     />
                   ),
                   template_picker_element: (
