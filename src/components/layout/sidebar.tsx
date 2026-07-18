@@ -42,7 +42,6 @@ import {
 import { Button, Kbd } from "@aster/ui";
 
 import { WorkspaceSwitcher } from "@/components/layout/workspace_switcher";
-
 import { ShareModal } from "@/components/modals/share_modal";
 import { CreateFolderModal } from "@/components/folders/create_folder_modal";
 import { FolderManagementModal } from "@/components/folders/folder_management_modal";
@@ -65,7 +64,10 @@ import { SidebarAccountSwitcher } from "@/components/layout/sidebar/sidebar_acco
 import { use_sidebar_aliases } from "@/hooks/use_sidebar_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
 import { cache_sidebar_state } from "@/services/api/preferences";
-import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import {
+  is_lockdown_enabled,
+  LOCKDOWN_CHANGED_EVENT,
+} from "@/services/lockdown_store";
 
 function LockdownBanner({
   on_settings_click,
@@ -84,8 +86,10 @@ function LockdownBanner({
     const on_storage = (e: StorageEvent) => {
       if (e.key?.startsWith("aster:lockdown:")) update();
     };
+
     window.addEventListener("storage", on_storage);
     window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
+
     return () => {
       window.removeEventListener("storage", on_storage);
       window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
@@ -164,8 +168,11 @@ export const Sidebar = ({
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { stats, has_initialized } = use_mail_stats();
-  const { state: folders_state, unread_counts: folder_unread_counts } =
-    use_folders();
+  const {
+    state: folders_state,
+    unread_counts: folder_unread_counts,
+    reorder_folders,
+  } = use_folders();
   const { state: tags_state } = use_tags();
   const {
     aliases,
@@ -216,9 +223,10 @@ export const Sidebar = ({
 
   const user_email = user?.email || "";
   const raw_display_name = user?.display_name || user?.username || user_email;
-  const display_name = user?.display_name || user?.username
-    ? raw_display_name.charAt(0).toUpperCase() + raw_display_name.slice(1)
-    : raw_display_name;
+  const display_name =
+    user?.display_name || user?.username
+      ? raw_display_name.charAt(0).toUpperCase() + raw_display_name.slice(1)
+      : raw_display_name;
 
   const get_initial_selected_item = () => {
     const path = location.pathname;
@@ -358,7 +366,10 @@ export const Sidebar = ({
   );
 
   const handle_folder_modal = useCallback(
-    (folder: FolderModalData, action: "rename" | "recolor" | "delete" | "move") => {
+    (
+      folder: FolderModalData,
+      action: "rename" | "recolor" | "delete" | "move",
+    ) => {
       set_selected_folder_for_modal(folder);
       set_folder_modal_action(action);
     },
@@ -632,12 +643,12 @@ export const Sidebar = ({
         is_collapsed
           ? undefined
           : is_mobile
-          ? { width: "100vw", minWidth: "100vw", maxWidth: "100vw" }
-          : {
-              width: expanded_width,
-              minWidth: expanded_width,
-              maxWidth: expanded_width,
-            }
+            ? { width: "100vw", minWidth: "100vw", maxWidth: "100vw" }
+            : {
+                width: expanded_width,
+                minWidth: expanded_width,
+                maxWidth: expanded_width,
+              }
       }
     >
       {is_collapsed && (
@@ -843,11 +854,11 @@ export const Sidebar = ({
             inbox_children_slot={
               inbox_pinned_folders.length > 0 ? (
                 <SidebarFolders
+                  folders_expanded
                   effective_selected={effective_selected}
                   folder_refs={folder_refs}
                   folder_unread_counts={folder_unread_counts}
                   folders={inbox_pinned_folders}
-                  folders_expanded
                   handle_folder_lock={handle_folder_lock}
                   handle_folder_modal={handle_folder_modal}
                   handle_nav_click={handle_nav_click}
@@ -855,7 +866,10 @@ export const Sidebar = ({
                   is_loading={folders_state.is_loading}
                   navigate={navigate}
                   on_drop_emails={on_drop_to_folder}
-                  set_create_folder_parent_token={set_create_folder_parent_token}
+                  reorder_folders={reorder_folders}
+                  set_create_folder_parent_token={
+                    set_create_folder_parent_token
+                  }
                   set_folders_expanded={set_folders_expanded}
                   set_is_create_folder_open={set_is_create_folder_open}
                   set_password_modal_folder={set_password_modal_folder}
@@ -895,6 +909,7 @@ export const Sidebar = ({
             navigate={navigate}
             on_drop_emails={on_drop_to_folder}
             on_toggle_section={toggle_folders_collapsed}
+            reorder_folders={reorder_folders}
             section_collapsed={preferences.sidebar_folders_collapsed}
             set_create_folder_parent_token={set_create_folder_parent_token}
             set_folders_expanded={set_folders_expanded}
@@ -989,7 +1004,9 @@ export const Sidebar = ({
                 animate={{ x: 0 }}
                 className="fixed top-0 left-0 h-full z-50"
                 exit={{ x: -(window.innerWidth + 20) }}
-                initial={reduce_motion ? false : { x: -(window.innerWidth + 20) }}
+                initial={
+                  reduce_motion ? false : { x: -(window.innerWidth + 20) }
+                }
                 transition={{
                   type: "tween",
                   duration: reduce_motion ? 0 : 0.25,

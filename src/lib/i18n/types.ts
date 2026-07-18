@@ -563,6 +563,9 @@ export interface CommonTranslations {
   move_folder_description: string;
   select_parent_folder: string;
   top_level_no_parent: string;
+  parent_folder: string;
+  move_up: string;
+  move_down: string;
   move_to: string;
   change_folder_color: string;
   select_a_color: string;

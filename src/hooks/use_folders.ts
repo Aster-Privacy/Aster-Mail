@@ -19,13 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback, useEffect, useRef } from "react";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   list_folders,
   create_folder,
   update_folder,
   delete_folder,
+  bulk_reorder_folders,
   get_folder_counts,
   type FolderDefinition,
   type CreateFolderRequest,
@@ -97,8 +98,21 @@ const SYSTEM_FOLDER_TYPES = new Set([
   "archive",
 ]);
 
-export function is_system_folder_type(folder_type: string | undefined): boolean {
+export function is_system_folder_type(
+  folder_type: string | undefined,
+): boolean {
   return folder_type !== undefined && SYSTEM_FOLDER_TYPES.has(folder_type);
+}
+
+export function compare_sibling_folders(
+  a: DecryptedFolder,
+  b: DecryptedFolder,
+): number {
+  return (
+    a.sort_order - b.sort_order ||
+    (a.created_at || "").localeCompare(b.created_at || "") ||
+    a.folder_token.localeCompare(b.folder_token)
+  );
 }
 
 export function build_folder_tree(
@@ -121,7 +135,7 @@ export function build_folder_tree(
   }
 
   const build = (items: DecryptedFolder[], depth: number): FolderTreeNode[] =>
-    items.map((folder) => ({
+    [...items].sort(compare_sibling_folders).map((folder) => ({
       folder,
       children:
         depth < 4
@@ -131,6 +145,38 @@ export function build_folder_tree(
     }));
 
   return build(roots, 0);
+}
+
+export function get_sibling_folders(
+  folders: DecryptedFolder[],
+  folder_id: string,
+): DecryptedFolder[] {
+  const non_system = folders.filter((f) => !f.is_system);
+  const target = non_system.find((f) => f.id === folder_id);
+
+  if (!target) return [];
+
+  const token_set = new Set(non_system.map((f) => f.folder_token));
+  const effective_parent = (folder: DecryptedFolder): string | undefined =>
+    folder.parent_token && token_set.has(folder.parent_token)
+      ? folder.parent_token
+      : undefined;
+  const parent = effective_parent(target);
+
+  return non_system
+    .filter((f) => effective_parent(f) === parent)
+    .sort(compare_sibling_folders);
+}
+
+export function flatten_folder_tree(nodes: FolderTreeNode[]): FolderTreeNode[] {
+  const result: FolderTreeNode[] = [];
+
+  for (const node of nodes) {
+    result.push(node);
+    result.push(...flatten_folder_tree(node.children));
+  }
+
+  return result;
 }
 
 export function flatten_visible_tree(
@@ -209,6 +255,7 @@ function get_folder_broadcast_channel(): BroadcastChannel | null {
   if (!folder_broadcast_channel) {
     folder_broadcast_channel = new BroadcastChannel(FOLDER_SYNC_CHANNEL);
   }
+
   return folder_broadcast_channel;
 }
 
@@ -273,13 +320,20 @@ interface UseFoldersReturn {
     name: string,
     color?: string,
     parent_token?: string,
-  ) => Promise<{ folder: DecryptedFolder | null; error?: string; code?: string }>;
+  ) => Promise<{
+    folder: DecryptedFolder | null;
+    error?: string;
+    code?: string;
+  }>;
   update_existing_folder: (
     folder_id: string,
     name?: string,
     color?: string,
     sort_order?: number,
     parent_token?: string,
+  ) => Promise<boolean>;
+  reorder_folders: (
+    entries: { id: string; sort_order: number }[],
   ) => Promise<boolean>;
   delete_existing_folder: (folder_id: string) => Promise<boolean>;
   toggle_folder_lock: (
@@ -374,7 +428,11 @@ async function decrypt_folder_field(
   const encrypted_data = base64_to_array(encrypted);
   const nonce_data = base64_to_array(nonce);
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data);
+  const decrypted = await decrypt_aes_gcm_with_fallback(
+    key,
+    encrypted_data,
+    nonce_data,
+  );
 
   return new TextDecoder().decode(decrypted);
 }
@@ -776,6 +834,60 @@ export function use_folders(): UseFoldersReturn {
     [],
   );
 
+  const reorder_folders = useCallback(
+    async (entries: { id: string; sort_order: number }[]): Promise<boolean> => {
+      if (entries.length === 0) return true;
+
+      const previous = cached_folders.data;
+      const order_map = new Map(entries.map((e) => [e.id, e.sort_order]));
+
+      set_state((prev) => {
+        const updated_folders = prev.folders.map((folder) => {
+          const next_order = order_map.get(folder.id);
+
+          return next_order === undefined
+            ? folder
+            : { ...folder, sort_order: next_order };
+        });
+
+        cached_folders.data = updated_folders;
+
+        return {
+          ...prev,
+          folders: updated_folders,
+        };
+      });
+
+      try {
+        const response = await bulk_reorder_folders(entries);
+
+        if (response.error) {
+          set_state((prev) => {
+            cached_folders.data = previous;
+
+            return { ...prev, folders: previous };
+          });
+
+          return false;
+        }
+
+        emit_folders_changed();
+        broadcast_folders_changed();
+
+        return true;
+      } catch {
+        set_state((prev) => {
+          cached_folders.data = previous;
+
+          return { ...prev, folders: previous };
+        });
+
+        return false;
+      }
+    },
+    [],
+  );
+
   const delete_existing_folder = useCallback(
     async (folder_id: string): Promise<boolean> => {
       try {
@@ -1013,7 +1125,10 @@ export function use_folders(): UseFoldersReturn {
     };
 
     const visibility_handler = () => {
-      if (document.visibilityState === "visible" && has_passphrase_in_memory()) {
+      if (
+        document.visibilityState === "visible" &&
+        has_passphrase_in_memory()
+      ) {
         fetch_folders();
         fetch_counts();
       }
@@ -1021,7 +1136,10 @@ export function use_folders(): UseFoldersReturn {
 
     const channel = get_folder_broadcast_channel();
     const broadcast_handler = (event: MessageEvent) => {
-      if (event.data?.type === "folders_changed" && has_passphrase_in_memory()) {
+      if (
+        event.data?.type === "folders_changed" &&
+        has_passphrase_in_memory()
+      ) {
         fetch_folders();
       }
     };
@@ -1063,6 +1181,7 @@ export function use_folders(): UseFoldersReturn {
     fetch_counts,
     create_new_folder,
     update_existing_folder,
+    reorder_folders,
     delete_existing_folder,
     toggle_folder_lock,
     add_folder_to_email,

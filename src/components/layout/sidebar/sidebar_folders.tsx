@@ -31,7 +31,11 @@ import {
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 
-import { build_folder_tree, flatten_visible_tree } from "@/hooks/use_folders";
+import {
+  build_folder_tree,
+  flatten_visible_tree,
+  get_sibling_folders,
+} from "@/hooks/use_folders";
 import { CountBadge } from "@/components/common/count_badge";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
@@ -81,6 +85,9 @@ interface SidebarFoldersProps {
   section_collapsed?: boolean;
   on_toggle_section?: () => void;
   variant?: "section" | "pinned";
+  reorder_folders?: (
+    entries: { id: string; sort_order: number }[],
+  ) => Promise<boolean>;
 }
 
 export const SidebarFolders = memo(function SidebarFolders({
@@ -104,6 +111,7 @@ export const SidebarFolders = memo(function SidebarFolders({
   section_collapsed = false,
   on_toggle_section,
   variant = "section",
+  reorder_folders,
 }: SidebarFoldersProps) {
   const { t } = use_i18n();
   const is_pinned = variant === "pinned";
@@ -131,10 +139,7 @@ export const SidebarFolders = memo(function SidebarFolders({
     return () => window.removeEventListener("astermail:folder-locked", handler);
   }, []);
 
-  const tree = useMemo(
-    () => build_folder_tree(folders),
-    [folders],
-  );
+  const tree = useMemo(() => build_folder_tree(folders), [folders]);
 
   const visible_nodes = useMemo(() => {
     if (is_collapsed) {
@@ -228,6 +233,33 @@ export const SidebarFolders = memo(function SidebarFolders({
             const hasChildren = node.children.length > 0;
             const is_expanded = expanded_folders.has(folder.folder_token);
             const indent = is_collapsed ? 0 : node.depth * 16;
+            const siblings = reorder_folders
+              ? get_sibling_folders(folders, folder.id)
+              : [];
+            const sibling_index = siblings.findIndex((f) => f.id === folder.id);
+            const handle_sibling_reorder = (direction: number) => {
+              const target = sibling_index + direction;
+
+              if (
+                !reorder_folders ||
+                sibling_index < 0 ||
+                target < 0 ||
+                target >= siblings.length
+              ) {
+                return;
+              }
+
+              const next = [...siblings];
+              const [moved] = next.splice(sibling_index, 1);
+
+              next.splice(target, 0, moved);
+
+              const entries = next
+                .map((f, i) => ({ id: f.id, sort_order: i }))
+                .filter((entry, i) => next[i].sort_order !== entry.sort_order);
+
+              void reorder_folders(entries);
+            };
             const is_locked_closed =
               folder.is_locked ||
               (folder.is_password_protected &&
@@ -237,6 +269,10 @@ export const SidebarFolders = memo(function SidebarFolders({
               <FolderContextMenu
                 key={folder.id}
                 can_have_children={node.depth < 4}
+                can_move_down={
+                  sibling_index >= 0 && sibling_index < siblings.length - 1
+                }
+                can_move_up={sibling_index > 0}
                 folder_color={folder_color}
                 on_create_subfolder={
                   set_create_folder_parent_token
@@ -251,6 +287,12 @@ export const SidebarFolders = memo(function SidebarFolders({
                   handle_folder_lock(folder_data, folder.password_set)
                 }
                 on_move={() => handle_folder_modal(folder_data, "move")}
+                on_move_down={
+                  reorder_folders ? () => handle_sibling_reorder(1) : undefined
+                }
+                on_move_up={
+                  reorder_folders ? () => handle_sibling_reorder(-1) : undefined
+                }
                 on_recolor={() => handle_folder_modal(folder_data, "recolor")}
                 on_rename={() => handle_folder_modal(folder_data, "rename")}
                 password_set={folder.password_set}
@@ -429,11 +471,14 @@ export const SidebarFolders = memo(function SidebarFolders({
             </span>
           </button>
         )}
-        {root_count === 0 && !is_collapsed && !section_collapsed && !is_pinned && (
-          <p className="text-[11px] px-2.5 py-2 text-txt-muted">
-            {t("common.no_folders_yet")}
-          </p>
-        )}
+        {root_count === 0 &&
+          !is_collapsed &&
+          !section_collapsed &&
+          !is_pinned && (
+            <p className="text-[11px] px-2.5 py-2 text-txt-muted">
+              {t("common.no_folders_yet")}
+            </p>
+          )}
       </div>
     </>
   );
