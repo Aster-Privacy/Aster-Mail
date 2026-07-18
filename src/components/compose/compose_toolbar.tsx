@@ -1036,14 +1036,12 @@ export function ComposeToolbar({
   return (
     <div className="relative flex-shrink-0">
       {show_format_bar && (
-        <div className="absolute bottom-full left-2 right-2 mb-1.5 z-20 rounded-xl border shadow-lg bg-modal-bg border-edge-primary">
-          <div
-            aria-label={t("mail.text_formatting")}
-            className="px-1.5 py-1 flex items-center gap-0.5 overflow-x-auto scrollbar-hide"
-            role="toolbar"
-          >
-            <FormatTools compose={compose} />
-          </div>
+        <div
+          aria-label={t("mail.text_formatting")}
+          className="px-3 pt-1.5 flex items-center gap-0.5 overflow-x-auto scrollbar-hide"
+          role="toolbar"
+        >
+          <FormatTools compose={compose} />
         </div>
       )}
 
