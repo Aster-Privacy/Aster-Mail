@@ -67,19 +67,56 @@ export function MobileSenderSheet({
   on_select: (sender: SenderOption) => void;
   t: (key: TranslationKey) => string;
 }) {
+  const [sender_query, set_sender_query] = useState("");
+  const normalized_sender_query = sender_query.trim().toLowerCase();
+  const filtered_sender_options = normalized_sender_query
+    ? sender_options.filter(
+        (sender) =>
+          sender.email.toLowerCase().includes(normalized_sender_query) ||
+          (sender.display_name
+            ?.toLowerCase()
+            .includes(normalized_sender_query) ??
+            false),
+      )
+    : sender_options;
+
+  const handle_close = () => {
+    set_sender_query("");
+    on_close();
+  };
+
+  const handle_select = (sender: SenderOption) => {
+    set_sender_query("");
+    on_select(sender);
+  };
+
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
+    <MobileBottomSheet is_open={is_open} on_close={handle_close}>
       <div className="px-4 pb-4">
         <h3 className="mb-3 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("mail.from")}
         </h3>
+        {sender_options.length >= 8 && (
+          <Input
+            className="mb-3"
+            placeholder={t("settings.alias_search_placeholder")}
+            type="text"
+            value={sender_query}
+            onChange={(e) => set_sender_query(e.target.value)}
+          />
+        )}
+        {normalized_sender_query && filtered_sender_options.length === 0 && (
+          <p className="py-4 text-center text-[14px] text-[var(--text-muted)]">
+            {t("common.no_results")}
+          </p>
+        )}
         <div className="space-y-1">
-          {sender_options.map((sender) => (
+          {filtered_sender_options.map((sender) => (
             <button
               key={sender.id}
               className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
               type="button"
-              onClick={() => on_select(sender)}
+              onClick={() => handle_select(sender)}
             >
               <MobileSenderIcon option={sender} size="sm" />
               <div className="min-w-0 flex-1">

@@ -21,7 +21,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 import {
-  list_aliases,
+  list_all_aliases,
   decrypt_aliases,
   compute_alias_hash,
   type DecryptedEmailAlias,
@@ -131,10 +131,10 @@ export function use_sender_aliases() {
       cached_user = resolved_user;
       set_user(resolved_user);
 
-      const response = await list_aliases({ limit: 100 });
+      const alias_result = await list_all_aliases();
 
-      if (response.data?.aliases) {
-        const decrypted = await decrypt_aliases(response.data.aliases);
+      if (!alias_result.error) {
+        const decrypted = await decrypt_aliases(alias_result.aliases);
         const enabled_aliases = decrypted.filter((a) => a.is_enabled);
 
         const hashes = new Map<string, string>();
