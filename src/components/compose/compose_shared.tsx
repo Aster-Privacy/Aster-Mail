@@ -352,10 +352,7 @@ export {
   RecipientField,
   ComposeFormFields,
 } from "@/components/compose/compose_recipients";
-export {
-  ComposeToolbar,
-  ComposeFormatBar,
-} from "@/components/compose/compose_toolbar";
+export { ComposeToolbar } from "@/components/compose/compose_toolbar";
 export {
   ComposeAttachments,
   AttachmentListSimple,

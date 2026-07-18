@@ -44,7 +44,6 @@ import {
   ComposeErrors,
   ComposeFileInput,
   ComposeToolbar,
-  ComposeFormatBar,
   type EditDraftData,
 } from "@/components/compose/compose_shared";
 
@@ -132,12 +131,12 @@ export function ComposeWindow({
 
   const expiration_picker = (
     <ExpirationPicker
+      show_password_option
       disabled={compose.recipients.to.length === 0}
       expires_at={compose.expires_at}
       on_expiration_change={compose.set_expires_at}
       on_password_change={compose.set_expiry_password}
       password={compose.expiry_password}
-      show_password_option
     />
   );
 
@@ -229,6 +228,7 @@ export function ComposeWindow({
           e.preventDefault();
           e.stopPropagation();
           const files = Array.from(e.dataTransfer?.files || []);
+
           if (files.length > 0) {
             compose.handle_files_drop(files);
           }
@@ -358,13 +358,6 @@ export function ComposeWindow({
           {!is_minimized && <ComposeErrors compose={compose} />}
 
           <ComposeFileInput compose={compose} />
-
-          {!is_minimized && (
-            <ComposeFormatBar
-              compose={compose_with_pickers}
-              reduce_motion={reduce_motion}
-            />
-          )}
 
           {!is_minimized && (
             <ComposeToolbar

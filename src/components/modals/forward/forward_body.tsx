@@ -35,7 +35,6 @@ import {
   type Attachment,
   type DraftStatus,
   ComposeToolbar,
-  ComposeFormatBar,
   ComposeFileInputSimple,
   AttachmentListSimple,
 } from "@/components/compose/compose_shared";
@@ -197,14 +196,13 @@ export function ForwardBody({
                 {is_forward_visible && (
                   <div
                     dangerouslySetInnerHTML={{
-                      __html: sanitize_html(
-                        forward_content_ref.current ?? "",
-                        {
-                          external_content_mode: is_any_lockdown_active() ? "never" : "always",
-                          lockdown_mode: is_any_lockdown_active(),
-                          image_proxy_url: get_image_proxy_url(),
-                        },
-                      ).html,
+                      __html: sanitize_html(forward_content_ref.current ?? "", {
+                        external_content_mode: is_any_lockdown_active()
+                          ? "never"
+                          : "always",
+                        lockdown_mode: is_any_lockdown_active(),
+                        image_proxy_url: get_image_proxy_url(),
+                      }).html,
                     }}
                     className="mt-2 py-3 px-4 rounded-md text-sm leading-relaxed overflow-y-auto max-h-[150px] bg-surf-tertiary text-txt-secondary"
                     style={{
@@ -294,33 +292,6 @@ export function ForwardBody({
         file_input_ref={file_input_ref as React.RefObject<HTMLInputElement>}
         handle_file_select={handle_file_select}
       />
-
-      {!is_minimized && (
-        <ComposeFormatBar
-          compose={{
-            scheduled_time,
-            is_scheduling,
-            has_recipients: can_send || is_sending,
-            handle_scheduled_send,
-            handle_send: handle_forward,
-            is_mac: editor.is_mac,
-            schedule_picker_element: null,
-            expiration_picker_element: null,
-            template_picker_element: null,
-            active_formats,
-            exec_format_command,
-            handle_insert_link: () => {},
-            trigger_file_select,
-            draft_status,
-            last_saved_time,
-            handle_show_delete_confirm: on_discard ?? null,
-            editor,
-            is_plain_text_mode,
-            toggle_plain_text_mode,
-          }}
-          reduce_motion={reduce_motion}
-        />
-      )}
 
       {!is_minimized && (
         <ComposeToolbar
