@@ -170,14 +170,18 @@ function ImagePreviewModal({
 
   useEffect(() => {
     const handle_key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") on_close();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        on_close();
+      }
     };
 
-    document.addEventListener("keydown", handle_key);
+    window.addEventListener("keydown", handle_key, true);
     document.body.style.overflow = "hidden";
 
     return () => {
-      document.removeEventListener("keydown", handle_key);
+      window.removeEventListener("keydown", handle_key, true);
       document.body.style.overflow = "";
     };
   }, [on_close]);

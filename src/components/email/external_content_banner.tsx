@@ -158,7 +158,11 @@ export function ExternalContentBanner({
     };
 
     const handle_escape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") set_is_open(false);
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        set_is_open(false);
+      }
     };
 
     const handle_blur = () => {
@@ -166,12 +170,12 @@ export function ExternalContentBanner({
     };
 
     document.addEventListener("mousedown", handle_click_outside);
-    document.addEventListener("keydown", handle_escape);
+    window.addEventListener("keydown", handle_escape, true);
     window.addEventListener("blur", handle_blur);
 
     return () => {
       document.removeEventListener("mousedown", handle_click_outside);
-      document.removeEventListener("keydown", handle_escape);
+      window.removeEventListener("keydown", handle_escape, true);
       window.removeEventListener("blur", handle_blur);
     };
   }, [is_open]);

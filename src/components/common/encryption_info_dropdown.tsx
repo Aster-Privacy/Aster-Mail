@@ -64,14 +64,16 @@ export function EncryptionInfoDropdown({
 
     const handle_escape = (event: KeyboardEvent) => {
       if (event["key"] === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
         set_is_open(false);
       }
     };
 
-    document.addEventListener("keydown", handle_escape);
+    window.addEventListener("keydown", handle_escape, true);
 
     return () => {
-      document.removeEventListener("keydown", handle_escape);
+      window.removeEventListener("keydown", handle_escape, true);
     };
   }, [is_open]);
 
