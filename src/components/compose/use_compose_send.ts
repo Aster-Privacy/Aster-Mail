@@ -275,14 +275,8 @@ export function use_compose_send({
                 ? undefined
                 : user?.display_name || undefined),
             expires_at: expires_at?.toISOString(),
-            expiry_password:
-              has_external_recipients && expiry_password
-                ? expiry_password
-                : undefined,
-            secure_external:
-              has_external_recipients && Boolean(expiry_password)
-                ? true
-                : undefined,
+            expiry_password: expiry_password || undefined,
+            secure_external: expiry_password ? true : undefined,
             attachments: offline_attachments,
           });
 
@@ -367,12 +361,8 @@ export function use_compose_send({
             ? undefined
             : user?.display_name || undefined),
         expires_at: expires_at?.toISOString(),
-        expiry_password:
-          has_external_recipients && expiry_password
-            ? expiry_password
-            : undefined,
-        secure_external:
-          has_external_recipients && Boolean(expiry_password) ? true : undefined,
+        expiry_password: expiry_password || undefined,
+        secure_external: expiry_password ? true : undefined,
         attachments: attachments.length > 0 ? attachments : undefined,
       };
 
@@ -429,7 +419,7 @@ export function use_compose_send({
         return;
       }
 
-      if (has_external) {
+      if (has_external || email_data.secure_external) {
         await execute_external_email_send(ctx, email_data, pgp_enabled);
         await confirm_draft_deleted();
 

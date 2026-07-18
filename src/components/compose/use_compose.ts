@@ -325,12 +325,6 @@ export function use_compose({
     return all_recipients.some((r) => !is_internal_email(r));
   }, [recipients]);
 
-  useEffect(() => {
-    if (!has_external_recipients && expiry_password) {
-      set_expiry_password(null);
-    }
-  }, [has_external_recipients, expiry_password]);
-
   const send_hook = use_compose_send({
     recipients,
     subject,
