@@ -34,6 +34,7 @@ export interface PendingSend {
   bcc?: string[];
   subject: string;
   body: string;
+  sender_email?: string;
   scheduled_time: number;
   total_seconds: number;
   timeout_id?: number;

@@ -719,6 +719,7 @@ export function use_forward_modal({
           to: recipients.to,
           subject: `${t("mail.forward_subject_prefix")} ${email_subject}`,
           body: forward_message,
+          sender_email: fwd_sender_email,
           scheduled_time: Date.now() + delay_ms,
           total_seconds: delay_seconds,
           is_server_queued: result.is_server_queued,

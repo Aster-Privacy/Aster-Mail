@@ -224,7 +224,7 @@ export function use_email_viewer({
     if (!local_email) return;
 
     const s_email = local_email.sender_email || user?.email || "me";
-    const s_name = local_email.sender_name || user?.email || t("common.me");
+    const s_name = local_email.sender_name || s_email || t("common.me");
     const now_str = format_email_detail(new Date());
 
     set_email({

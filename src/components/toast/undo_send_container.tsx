@@ -104,6 +104,7 @@ export function UndoSendContainer({
             to: pending_data.to,
             cc: pending_data.cc,
             bcc: pending_data.bcc,
+            sender_email: pending_data.sender_email,
           });
         },
       });

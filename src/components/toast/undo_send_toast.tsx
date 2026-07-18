@@ -36,6 +36,7 @@ interface UndoSendToastProps {
   to_list?: string[];
   cc_list?: string[];
   bcc_list?: string[];
+  sender_email?: string;
   seconds_remaining: number;
   total_seconds: number;
   is_mac: boolean;
@@ -62,6 +63,7 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
       to_list,
       cc_list,
       bcc_list,
+      sender_email,
       seconds_remaining,
       total_seconds,
       is_mac,
@@ -135,8 +137,9 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
         to: to_list || [recipient],
         cc: cc_list,
         bcc: bcc_list,
+        sender_email,
       });
-    }, [body, subject, to_list, recipient, cc_list, bcc_list]);
+    }, [body, subject, to_list, recipient, cc_list, bcc_list, sender_email]);
 
     const y_offset = is_top ? -100 : 100;
 

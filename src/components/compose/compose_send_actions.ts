@@ -120,6 +120,7 @@ export async function execute_internal_send(
     bcc?: string[];
     subject: string;
     body: string;
+    sender_email?: string;
     expires_at?: string;
     attachments?: Attachment[];
   },
@@ -170,6 +171,7 @@ export async function execute_internal_send(
       bcc: email_data.bcc,
       subject: email_data.subject,
       body: email_data.body,
+      sender_email: email_data.sender_email,
       scheduled_time: Date.now() + delay_ms,
       total_seconds: delay_seconds,
       is_server_queued: true,
@@ -222,6 +224,7 @@ export async function execute_external_email_send(
     bcc?: string[];
     subject: string;
     body: string;
+    sender_email?: string;
     expires_at?: string;
     expiry_password?: string;
     secure_external?: boolean;
@@ -278,6 +281,7 @@ export async function execute_external_email_send(
       bcc: email_data.bcc,
       subject: email_data.subject,
       body: email_data.body,
+      sender_email: email_data.sender_email,
       scheduled_time: Date.now() + delay_ms,
       total_seconds: delay_seconds,
       is_external: true,
@@ -324,6 +328,7 @@ export async function execute_external_email_send(
       bcc: email_data.bcc,
       subject: email_data.subject,
       body: email_data.body,
+      sender_email: email_data.sender_email,
       scheduled_time: Date.now() + delay_ms,
       total_seconds: delay_seconds,
       timeout_id,
@@ -388,6 +393,7 @@ export async function execute_external_account_email_send(
     bcc?: string[];
     subject: string;
     body: string;
+    sender_email?: string;
     sender_alias_hash?: string;
     attachments?: Attachment[];
   },
@@ -453,6 +459,7 @@ export async function execute_external_account_email_send(
       bcc: email_data.bcc,
       subject: email_data.subject,
       body: email_data.body,
+      sender_email: email_data.sender_email,
       scheduled_time: Date.now() + delay_ms,
       total_seconds: delay_seconds,
       timeout_id,
