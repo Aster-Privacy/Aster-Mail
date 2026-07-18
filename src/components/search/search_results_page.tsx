@@ -346,6 +346,17 @@ export function SearchResultsPage({
     1,
     Math.ceil(filtered_results.length / SEARCH_PAGE_SIZE),
   );
+
+  useEffect(() => {
+    if (
+      search_page > 0 &&
+      search_page >= total_search_pages &&
+      !state.has_more &&
+      !state.is_loading_more
+    ) {
+      set_search_page(total_search_pages - 1);
+    }
+  }, [search_page, total_search_pages, state.has_more, state.is_loading_more]);
   useEffect(() => {
     const needed = (search_page + 1) * SEARCH_PAGE_SIZE;
 
