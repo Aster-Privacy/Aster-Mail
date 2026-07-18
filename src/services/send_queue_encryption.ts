@@ -298,20 +298,29 @@ export async function encrypt_for_recipients(
     const username = await resolve_username_for_key_lookup(recipient);
 
     if (!username) {
-      return { encrypted_body: body, is_encrypted: false };
+      throw create_error(
+        "encryption_failed",
+        en.errors.internal_recipient_encryption_failed,
+      );
     }
 
     const key_response = await get_recipient_public_key(username, recipient);
 
     if (key_response.error || !key_response.data) {
-      return { encrypted_body: body, is_encrypted: false };
+      throw create_error(
+        "encryption_failed",
+        en.errors.internal_recipient_encryption_failed,
+      );
     }
 
     public_keys.push(key_response.data.public_key);
   }
 
   if (public_keys.length === 0) {
-    return { encrypted_body: body, is_encrypted: false };
+    throw create_error(
+      "encryption_failed",
+      en.errors.internal_recipient_encryption_failed,
+    );
   }
 
   try {
@@ -343,13 +352,23 @@ export async function fetch_internal_public_keys(
   for (const recipient of internal_recipients) {
     const username = await resolve_username_for_key_lookup(recipient);
 
-    if (!username) continue;
+    if (!username) {
+      throw create_error(
+        "encryption_failed",
+        en.errors.internal_recipient_encryption_failed,
+      );
+    }
 
     const key_response = await get_recipient_public_key(username, recipient);
 
-    if (key_response.data) {
-      public_keys.push(key_response.data.public_key);
+    if (key_response.error || !key_response.data) {
+      throw create_error(
+        "encryption_failed",
+        en.errors.internal_recipient_encryption_failed,
+      );
     }
+
+    public_keys.push(key_response.data.public_key);
   }
 
   return public_keys;

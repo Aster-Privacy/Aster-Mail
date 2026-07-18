@@ -36,6 +36,7 @@ const HASH_ALG = ["SHA", "256"].join("-");
 const KDF_INFO_ROOT = new TextEncoder().encode("Aster Mail_Root_KDF");
 const KDF_INFO_CHAIN = new TextEncoder().encode("Aster Mail_Chain_KDF");
 const MAX_SKIP = 1000;
+const SKIPPED_KEY_RETENTION_MS = 45 * 24 * 60 * 60 * 1000;
 
 interface RatchetKeyPair {
   public_key: Uint8Array;
@@ -671,10 +672,10 @@ export class DoubleRatchet {
   }
 
   private static cleanup_old_skipped_keys_on(state: RatchetState): void {
-    const one_week_ago = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const retention_cutoff = Date.now() - SKIPPED_KEY_RETENTION_MS;
 
     state.skipped_message_keys = state.skipped_message_keys.filter(
-      (k) => k.timestamp > one_week_ago,
+      (k) => k.timestamp > retention_cutoff,
     );
 
     while (state.skipped_message_keys.length > MAX_SKIP) {

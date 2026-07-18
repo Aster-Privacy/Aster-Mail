@@ -5902,6 +5902,7 @@ export interface ErrorTranslations {
   session_expired_send: string;
   failed_encrypt_envelope: string;
   failed_pgp_encrypt: string;
+  internal_recipient_encryption_failed: string;
   no_authenticated_account: string;
   daily_limit_reached: string;
   failed_send_email: string;

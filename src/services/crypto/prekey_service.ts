@@ -163,25 +163,23 @@ export async function generate_and_upload_prekeys(
     let persistence_ok = true;
 
     try {
-      await save_pq_secrets_bulk(
+      const saved_otp_ids = await save_pq_secrets_bulk(
         otp.prekeys.map((p, i) => ({
           key_id: p.key_id,
           secret: otp.secret_keys[i],
         })),
       );
-      for (const p of otp.prekeys) {
-        persisted_otp_ids.push(p.key_id);
-      }
 
-      await save_pq_secrets_bulk(
+      persisted_otp_ids.push(...saved_otp_ids);
+
+      const saved_pq_ids = await save_pq_secrets_bulk(
         pq.prekeys.map((p, i) => ({
           key_id: p.key_id,
           secret: pq.secret_keys[i],
         })),
       );
-      for (const p of pq.prekeys) {
-        persisted_pq_ids.push(p.key_id);
-      }
+
+      persisted_pq_ids.push(...saved_pq_ids);
     } catch {
       persistence_ok = false;
     }

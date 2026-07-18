@@ -54,6 +54,19 @@ export async function purge_all_local_data(): Promise<void> {
 
   stop_session_timeout();
   sync_client.disconnect();
+
+  try {
+    await clear_all_ratchet_states();
+  } catch (e) {
+    errors.push(e instanceof Error ? e : new Error(String(e)));
+  }
+
+  try {
+    await clear_plaintext_cache();
+  } catch (e) {
+    errors.push(e instanceof Error ? e : new Error(String(e)));
+  }
+
   clear_vault_from_memory();
 
   api_client.begin_intentional_logout();
@@ -98,18 +111,6 @@ export async function purge_all_local_data(): Promise<void> {
 
   try {
     await clear_category_index();
-  } catch (e) {
-    errors.push(e instanceof Error ? e : new Error(String(e)));
-  }
-
-  try {
-    await clear_all_ratchet_states();
-  } catch (e) {
-    errors.push(e instanceof Error ? e : new Error(String(e)));
-  }
-
-  try {
-    await clear_plaintext_cache();
   } catch (e) {
     errors.push(e instanceof Error ? e : new Error(String(e)));
   }

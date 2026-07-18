@@ -6109,6 +6109,7 @@ export const en: Translations = {
     session_expired_send: "Your session ended before this email could send. Signing in again will send it. Your draft is saved.",
     failed_encrypt_envelope: "We could not secure this email for sending. Another attempt should do it. Your draft is saved.",
     failed_pgp_encrypt: "We could not encrypt this email with the recipient's PGP key. Another attempt should do it. Your draft is saved.",
+    internal_recipient_encryption_failed: "We could not fetch the encryption keys for an Aster recipient, so this email was not sent. It will never go out unencrypted. Another attempt should do it. Your draft is saved.",
     no_authenticated_account: "We could not find a signed-in account on this device. Signing in will get you through.",
     daily_limit_reached: "You have hit your daily sending limit. Another attempt in {{time}} will work. Your draft is saved.",
     failed_send_email: "This email did not send. Another attempt should do it. Your draft is saved.",

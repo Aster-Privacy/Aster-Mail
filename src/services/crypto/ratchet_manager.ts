@@ -531,6 +531,31 @@ function build_dedupe_key(
   return `${message_id}:${data.header.dh_public}:${data.header.message_number}`;
 }
 
+function collect_candidate_addresses(
+  our_email: string,
+  envelope: RatchetEnvelope,
+): string[] {
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+
+  const push = (addr: string | undefined): void => {
+    const lower = (addr ?? "").trim().toLowerCase();
+
+    if (!lower || seen.has(lower)) return;
+
+    seen.add(lower);
+    ordered.push(lower);
+  };
+
+  push(our_email);
+
+  for (const key of Object.keys(envelope.recipients)) {
+    push(key);
+  }
+
+  return ordered;
+}
+
 export async function decrypt_ratchet_message(
   our_email: string,
   sender_email: string,
@@ -538,7 +563,36 @@ export async function decrypt_ratchet_message(
   vault: EncryptedVault,
   message_id?: string,
 ): Promise<string | null> {
-  const our_data = resolve_recipient_data(our_email, envelope);
+  const candidates = collect_candidate_addresses(our_email, envelope);
+
+  for (const candidate of candidates) {
+    const our_data = resolve_recipient_data(candidate, envelope);
+
+    if (!our_data) continue;
+
+    const plaintext = await decrypt_ratchet_message_for_address(
+      candidate,
+      sender_email,
+      envelope,
+      vault,
+      our_data,
+      message_id,
+    );
+
+    if (plaintext !== null) return plaintext;
+  }
+
+  return null;
+}
+
+async function decrypt_ratchet_message_for_address(
+  our_email: string,
+  sender_email: string,
+  envelope: RatchetEnvelope,
+  vault: EncryptedVault,
+  our_data: RatchetRecipientData,
+  message_id?: string,
+): Promise<string | null> {
   const dedupe_key = message_id
     ? build_dedupe_key(message_id, our_data)
     : undefined;
@@ -563,7 +617,7 @@ export async function decrypt_ratchet_message(
 
     let plaintext: string | null = null;
 
-    if (our_data) {
+    try {
       plaintext = await decrypt_ratchet_for_recipient(
         our_email,
         sender_email,
@@ -571,6 +625,8 @@ export async function decrypt_ratchet_message(
         envelope.sender_identity_key,
         vault,
       );
+    } catch {
+      plaintext = null;
     }
 
     if (plaintext !== null) {
@@ -737,8 +793,6 @@ async function decrypt_ratchet_for_recipient(
   }
 
   if (plaintext === null) {
-    let last_error: unknown = null;
-
     for (const keys of key_sets) {
       let candidate: DoubleRatchet | null = null;
 
@@ -749,8 +803,7 @@ async function decrypt_ratchet_for_recipient(
           keys,
           conversation_id,
         );
-      } catch (err) {
-        last_error = err;
+      } catch {
         continue;
       }
 
@@ -762,8 +815,8 @@ async function decrypt_ratchet_for_recipient(
         plaintext = await candidate.decrypt(message);
         ratchet = candidate;
         break;
-      } catch (err) {
-        last_error = err;
+      } catch {
+        /* try the next key set */
       }
     }
 
@@ -792,10 +845,6 @@ async function decrypt_ratchet_for_recipient(
     }
 
     if (plaintext === null || !ratchet) {
-      if (last_error) {
-        throw last_error;
-      }
-
       return null;
     }
   }

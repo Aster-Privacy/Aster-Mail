@@ -333,20 +333,30 @@ export async function save_pq_secret(
 
 export async function save_pq_secrets_bulk(
   items: { key_id: number; secret: Uint8Array }[],
-): Promise<void> {
-  if (items.length === 0) return;
+): Promise<number[]> {
+  if (items.length === 0) return [];
 
   const storage_key = await get_storage_key();
   const uid = await current_account_uid();
 
+  const saved: { key_id: number; secret: Uint8Array }[] = [];
+
   for (const { key_id, secret } of items) {
+    const rk = record_key(uid, key_id);
+
+    const existing = await encrypted_get<StoredPqSecret>(rk, storage_key);
+
+    if (existing) {
+      continue;
+    }
+
     const record: StoredPqSecret = {
       key_id,
       secret_key_b64: array_to_base64(secret),
     };
 
-    await encrypted_set(record_key(uid, key_id), record, storage_key);
-    clear_pq_secret_missing(record_key(uid, key_id));
+    await encrypted_set(rk, record, storage_key);
+    clear_pq_secret_missing(rk);
 
     await update_index(storage_key, uid, (current) => {
       if (current.includes(key_id)) {
@@ -355,12 +365,16 @@ export async function save_pq_secrets_bulk(
 
       return [...current, key_id];
     });
+
+    saved.push({ key_id, secret });
   }
+
+  if (saved.length === 0) return [];
 
   try {
     const sync_key = await get_sync_key();
 
-    if (!sync_key) return;
+    if (!sync_key) return saved.map((s) => s.key_id);
 
     const secrets: {
       key_id: number;
@@ -368,7 +382,7 @@ export async function save_pq_secrets_bulk(
       secret_nonce: string;
     }[] = [];
 
-    for (const { key_id, secret } of items) {
+    for (const { key_id, secret } of saved) {
       const { encrypted_secret, secret_nonce } = await encrypt_pq_for_server(
         secret,
         sync_key,
@@ -392,6 +406,8 @@ export async function save_pq_secrets_bulk(
     }
     /* best-effort */
   }
+
+  return saved.map((s) => s.key_id);
 }
 
 export async function load_pq_secret(
