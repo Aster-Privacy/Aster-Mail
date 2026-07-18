@@ -694,6 +694,7 @@ export function EmailInbox({
       initial_page_synced.current &&
       current_page > 0
     ) {
+      prev_page_ref.current = 0;
       set_current_page(0);
 
       return;

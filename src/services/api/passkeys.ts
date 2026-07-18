@@ -100,7 +100,10 @@ export async function passkey_login_verify(
   if (response.data) {
     clear_csrf_cache();
     if (response.data.access_token) {
-      api_client.set_dev_token(response.data.access_token);
+      api_client.set_dev_token(
+        response.data.access_token,
+        (response.data as { refresh_token?: string }).refresh_token,
+      );
     }
     api_client.set_authenticated(true);
   }
