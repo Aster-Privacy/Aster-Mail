@@ -837,13 +837,13 @@ export function ComposeToolbar({
       ) : (
         <Button
           className="h-8 px-5"
-          disabled={!compose.has_recipients}
+          disabled={!compose.has_recipients || compose.is_sending}
           size="md"
           title={compose.is_mac ? "\u2318+Enter" : "Ctrl+Enter"}
           variant="depth"
           onClick={compose.handle_send}
         >
-          {t("mail.send")}
+          {compose.is_sending ? t("common.sending") : t("mail.send")}
         </Button>
       )}
 
