@@ -68,6 +68,7 @@ export interface ForwardParams {
   cc_recipients?: string[];
   bcc_recipients?: string[];
   message: string;
+  prebuilt_content?: string;
   badge_html?: string;
   expires_at?: string;
   sender_email?: string;
@@ -269,12 +270,13 @@ export async function send_forward(
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  const forwarded_header =
-    `${en.common.forwarded_message_header}<br>` +
-    `${en.common.from_label} ${safe_name} &lt;${safe_email}&gt;<br>` +
-    `${en.common.date_label} ${params.original.timestamp}<br>` +
-    `${en.common.subject_label} ${safe_subject}<br><br>` +
-    sanitize_outgoing_html(params.original.body);
+  const forwarded_header = params.prebuilt_content
+    ? sanitize_outgoing_html(params.prebuilt_content)
+    : `${en.common.forwarded_message_header}<br>` +
+      `${en.common.from_label} ${safe_name} &lt;${safe_email}&gt;<br>` +
+      `${en.common.date_label} ${params.original.timestamp}<br>` +
+      `${en.common.subject_label} ${safe_subject}<br><br>` +
+      sanitize_outgoing_html(params.original.body);
 
   const badge_block = params.badge_html ?? "";
   const full_body = params.message

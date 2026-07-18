@@ -84,7 +84,11 @@ import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { use_signatures } from "@/contexts/signatures_context";
 import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
+import { inline_email_css } from "@/lib/forward_css_inliner";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+
+const escape_regexp = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 interface UseForwardModalProps {
   is_open: boolean;
@@ -245,13 +249,7 @@ export function use_forward_modal({
 
     const header = `---------- ${t("common.forwarded_message")} ---------<br>${t("common.from_label")} ${safe_name} &lt;${safe_email}&gt;<br>${t("common.date_label")} ${formatted_date}<br>${t("common.subject_label")} ${email_subject.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}<br><br>`;
 
-    const sanitized_body = (() => {
-      const doc = new DOMParser().parseFromString(email_body, "text/html");
-      doc.querySelectorAll("script, style, head, link").forEach((el) => el.remove());
-      return doc.body.innerHTML;
-    })();
-
-    return header + sanitized_body;
+    return header + inline_email_css(email_body);
   }, [
     t,
     email_body,
@@ -415,8 +413,33 @@ export function use_forward_modal({
 
             if (inline_atts.length > 0) {
               let content = forward_content_ref.current;
-              const blob_srcs = content.match(/src="blob:[^"]+"/g) || [];
               const inline_queue = [...inline_atts];
+
+              for (const att of inline_atts) {
+                const cid = (att.content_id || "").replace(/^<|>$/g, "");
+
+                if (!cid) continue;
+
+                const cid_pattern = new RegExp(
+                  `src="cid:${escape_regexp(cid)}"`,
+                  "gi",
+                );
+
+                if (!cid_pattern.test(content)) continue;
+
+                cid_pattern.lastIndex = 0;
+                const b64 = array_to_base64(new Uint8Array(att.data));
+
+                content = content.replace(
+                  cid_pattern,
+                  `src="data:${att.mime_type};base64,${b64}"`,
+                );
+                const idx = inline_queue.indexOf(att);
+
+                if (idx !== -1) inline_queue.splice(idx, 1);
+              }
+
+              const blob_srcs = content.match(/src="blob:[^"]+"/g) || [];
 
               for (const blob_match of blob_srcs) {
                 const att = inline_queue.shift();
@@ -590,6 +613,7 @@ export function use_forward_modal({
         cc_recipients: recipients.cc,
         bcc_recipients: recipients.bcc,
         message: forward_message,
+        prebuilt_content: forward_content_ref.current,
         expires_at: expires_at?.toISOString(),
         sender_email: fwd_sender_email,
         sender_alias_hash: fwd_sender_alias_hash,

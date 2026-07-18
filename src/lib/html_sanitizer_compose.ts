@@ -34,9 +34,17 @@ export function sanitize_outgoing_html(html: string): string {
     ADD_ATTR: ["target"],
     ALLOW_DATA_ATTR: true,
     ALLOWED_URI_REGEXP: OUTGOING_URI_REGEXP,
+    FORCE_BODY: true,
   });
 
   const doc = new DOMParser().parseFromString(purified, "text/html");
+
+  const head_styles = Array.from(doc.head?.querySelectorAll("style") || []);
+  const body_anchor = doc.body.firstChild;
+
+  for (const head_style of head_styles) {
+    doc.body.insertBefore(head_style, body_anchor);
+  }
 
   const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT);
   const elements: Element[] = [];

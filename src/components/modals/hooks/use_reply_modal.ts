@@ -82,6 +82,7 @@ import {
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
+import { inline_email_css } from "@/lib/forward_css_inliner";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { fetch_my_badges } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
@@ -399,7 +400,7 @@ export function use_reply_modal({
         return `<div>${header}<br><br>${quoted_body}</div>`;
       }
 
-      return `<br><br><div class="aster_quote"><div class="aster_quote_attr">${header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(original_body)}</blockquote></div>`;
+      return `<br><br><div class="aster_quote"><div class="aster_quote_attr">${header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(original_body))}</blockquote></div>`;
     },
     [
       t,
