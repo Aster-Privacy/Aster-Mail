@@ -1719,6 +1719,18 @@ export const zh_CN = {
       "永久删除“最近删除”中的全部 {{ count }} 个别名？此操作无法撤销。这些地址将继续为你的账户保留，因此其他任何人都无法占用它们。",
     trash_emptied: "最近删除已清空",
     failed_empty_trash: "无法清空“最近删除”。请再试一次。",
+    recently_deleted_directories_title: "最近删除",
+    recently_deleted_directories_description:
+      "恢复已删除的目录。已删除的目录在恢复前不会接收新邮件。",
+    directory_restored: "目录已恢复",
+    failed_restore_directory: "目录未能恢复。请再试一次。",
+    purge_directory_confirm_title: "永久删除目录？",
+    purge_directory_confirm_message:
+      "永久删除 {{ key }}@{{ domain }}？此操作无法撤销。该目录将继续保留给你的账户，其他人永远无法认领。",
+    directory_purged: "目录已永久删除",
+    failed_purge_directory: "目录未能删除。请再试一次。",
+    empty_directory_trash_confirm_message:
+      "永久删除“最近删除”中的全部 {{ count }} 个目录？此操作无法撤销。这些目录将继续保留给你的账户，其他人无法认领。",
     alias_stats_received: "已接收 {{ count }} 封",
     alias_stats_blocked: "已屏蔽 {{ count }} 封",
     alias_generate_random: "生成随机别名",

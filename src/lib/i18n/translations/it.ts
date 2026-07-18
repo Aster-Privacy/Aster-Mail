@@ -1720,6 +1720,19 @@ export const it = {
       "Eliminare definitivamente tutti i {{ count }} alias in Eliminati di recente? L'operazione non può essere annullata. Gli indirizzi restano riservati al tuo account, quindi nessun altro potrà rivendicarli.",
     trash_emptied: "Elementi eliminati di recente svuotati",
     failed_empty_trash: "Impossibile svuotare Eliminati di recente. Riprova.",
+    recently_deleted_directories_title: "Eliminati di recente",
+    recently_deleted_directories_description:
+      "Ripristina una directory eliminata. Le directory eliminate non ricevono nuova posta finché non vengono ripristinate.",
+    directory_restored: "Directory ripristinata",
+    failed_restore_directory:
+      "Questa directory non è stata ripristinata. Un altro tentativo dovrebbe bastare.",
+    purge_directory_confirm_title: "Eliminare definitivamente la directory?",
+    purge_directory_confirm_message:
+      "Eliminare definitivamente {{ key }}@{{ domain }}? L'operazione non può essere annullata. La directory resta riservata al tuo account, quindi nessun altro potrà mai reclamarla.",
+    directory_purged: "Directory eliminata definitivamente",
+    failed_purge_directory: "Questa directory non è stata eliminata. Riprova.",
+    empty_directory_trash_confirm_message:
+      "Eliminare definitivamente tutte le {{ count }} directory in Eliminati di recente? L'operazione non può essere annullata. Le directory restano riservate al tuo account, quindi nessun altro potrà reclamarle.",
     alias_stats_received: "{{ count }} ricevute",
     alias_stats_blocked: "{{ count }} bloccate",
     alias_generate_random: "Genera alias casuale",

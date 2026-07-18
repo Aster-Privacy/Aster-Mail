@@ -1719,6 +1719,20 @@ export const pl = {
       "Trwale usunąć wszystkie {{ count }} aliasów w Ostatnio usuniętych? Tej operacji nie można cofnąć. Adresy pozostają zarezerwowane dla Twojego konta, więc nikt inny nie będzie mógł ich przejąć.",
     trash_emptied: "Ostatnio usunięte opróżnione",
     failed_empty_trash: "Nie udało się opróżnić Ostatnio usuniętych. Spróbuj ponownie.",
+    recently_deleted_directories_title: "Ostatnio usunięte",
+    recently_deleted_directories_description:
+      "Przywróć usunięty katalog. Usunięte katalogi nie odbierają nowej poczty, dopóki nie zostaną przywrócone.",
+    directory_restored: "Katalog przywrócony",
+    failed_restore_directory:
+      "Ten katalog nie został przywrócony. Kolejna próba powinna się udać.",
+    purge_directory_confirm_title: "Usunąć katalog trwale?",
+    purge_directory_confirm_message:
+      "Trwale usunąć {{ key }}@{{ domain }}? Tej operacji nie można cofnąć. Katalog pozostaje zarezerwowany dla Twojego konta, więc nikt inny nigdy go nie przejmie.",
+    directory_purged: "Katalog trwale usunięty",
+    failed_purge_directory:
+      "Ten katalog nie został usunięty. Spróbuj ponownie.",
+    empty_directory_trash_confirm_message:
+      "Trwale usunąć wszystkie katalogi ({{ count }}) z Ostatnio usuniętych? Tej operacji nie można cofnąć. Katalogi pozostają zarezerwowane dla Twojego konta, więc nikt inny ich nie przejmie.",
     alias_stats_received: "Odebrano: {{ count }}",
     alias_stats_blocked: "Zablokowano: {{ count }}",
     alias_generate_random: "Wygeneruj losowy alias",

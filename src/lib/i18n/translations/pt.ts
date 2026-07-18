@@ -1719,6 +1719,20 @@ export const pt = {
       "Excluir permanentemente todos os {{ count }} aliases em Excluídos recentemente? Esta ação não pode ser desfeita. Os endereços permanecem reservados para a sua conta, de modo que mais ninguém poderá reivindicá-los.",
     trash_emptied: "Excluídos recentemente esvaziado",
     failed_empty_trash: "Não foi possível esvaziar Excluídos recentemente. Tente novamente.",
+    recently_deleted_directories_title: "Excluídos recentemente",
+    recently_deleted_directories_description:
+      "Restaure um diretório que você excluiu. Diretórios excluídos param de receber novos e-mails até serem restaurados.",
+    directory_restored: "Diretório restaurado",
+    failed_restore_directory:
+      "Este diretório não foi restaurado. Outra tentativa deve resolver.",
+    purge_directory_confirm_title: "Excluir o diretório permanentemente?",
+    purge_directory_confirm_message:
+      "Excluir permanentemente {{ key }}@{{ domain }}? Isso não pode ser desfeito. O diretório continua reservado à sua conta, então ninguém mais poderá reivindicá-lo.",
+    directory_purged: "Diretório excluído permanentemente",
+    failed_purge_directory:
+      "Este diretório não foi excluído. Tente novamente.",
+    empty_directory_trash_confirm_message:
+      "Excluir permanentemente todos os {{ count }} diretórios em Excluídos recentemente? Isso não pode ser desfeito. Os diretórios continuam reservados à sua conta, então ninguém mais poderá reivindicá-los.",
     alias_stats_received: "{{ count }} recebido(s)",
     alias_stats_blocked: "{{ count }} bloqueado(s)",
     alias_generate_random: "Gerar alias aleatório",

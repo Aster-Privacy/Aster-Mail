@@ -1719,6 +1719,18 @@ export const ar = {
       "هل تريد حذف جميع الأسماء المستعارة البالغ عددها {{ count }} في المحذوفة مؤخرًا نهائيًا؟ لا يمكن التراجع عن هذا الإجراء. تبقى العناوين محجوزة لحسابك، لذا لا يمكن لأي شخص آخر المطالبة بها.",
     trash_emptied: "تم إفراغ المحذوفة مؤخرًا",
     failed_empty_trash: "تعذّر إفراغ المحذوفة مؤخرًا. يرجى المحاولة مرة أخرى.",
+    recently_deleted_directories_title: "المحذوفة مؤخرًا",
+    recently_deleted_directories_description:
+      "استعد دليلًا حذفته. الأدلة المحذوفة تتوقف عن استقبال البريد الجديد حتى تتم استعادتها.",
+    directory_restored: "تمت استعادة الدليل",
+    failed_restore_directory: "لم تتم استعادة هذا الدليل. حاول مرة أخرى.",
+    purge_directory_confirm_title: "حذف الدليل نهائيًا؟",
+    purge_directory_confirm_message:
+      "هل تريد حذف {{ key }}@{{ domain }} نهائيًا؟ لا يمكن التراجع عن هذا الإجراء. يبقى الدليل محجوزًا لحسابك، فلا يمكن لأي شخص آخر المطالبة به أبدًا.",
+    directory_purged: "تم حذف الدليل نهائيًا",
+    failed_purge_directory: "لم يتم حذف هذا الدليل. يرجى المحاولة مرة أخرى.",
+    empty_directory_trash_confirm_message:
+      "هل تريد حذف جميع الأدلة ({{ count }}) في المحذوفة مؤخرًا نهائيًا؟ لا يمكن التراجع عن هذا الإجراء. تبقى الأدلة محجوزة لحسابك فلا يمكن لأي شخص آخر المطالبة بها.",
     alias_stats_received: "{{ count }} مستلَمة",
     alias_stats_blocked: "{{ count }} محظورة",
     alias_generate_random: "توليد اسم مستعار عشوائي",

@@ -1694,6 +1694,20 @@ export const ko = {
       "최근 삭제됨에 있는 {{ count }}개의 별칭을 모두 영구적으로 삭제하시겠습니까? 이 작업은 취소할 수 없습니다. 주소는 계정에 예약된 상태로 유지되므로 다른 사람이 사용할 수 없습니다.",
     trash_emptied: "최근 삭제된 항목을 비웠습니다",
     failed_empty_trash: "최근 삭제됨을 비울 수 없습니다. 다시 시도해 주세요.",
+    recently_deleted_directories_title: "최근 삭제됨",
+    recently_deleted_directories_description:
+      "삭제한 디렉터리를 복원하세요. 삭제된 디렉터리는 복원될 때까지 새 메일을 받지 않습니다.",
+    directory_restored: "디렉터리가 복원되었습니다",
+    failed_restore_directory:
+      "디렉터리가 복원되지 않았습니다. 다시 시도해 주세요.",
+    purge_directory_confirm_title: "디렉터리를 영구 삭제할까요?",
+    purge_directory_confirm_message:
+      "{{ key }}@{{ domain }}을(를) 영구 삭제할까요? 이 작업은 되돌릴 수 없습니다. 디렉터리는 계정에 예약된 상태로 유지되어 다른 사람이 가져갈 수 없습니다.",
+    directory_purged: "디렉터리가 영구 삭제되었습니다",
+    failed_purge_directory:
+      "디렉터리가 삭제되지 않았습니다. 다시 시도해 주세요.",
+    empty_directory_trash_confirm_message:
+      "최근 삭제됨의 디렉터리 {{ count }}개를 모두 영구 삭제할까요? 이 작업은 되돌릴 수 없습니다. 디렉터리는 계정에 예약된 상태로 유지되어 다른 사람이 가져갈 수 없습니다.",
     alias_stats_received: "{{ count }}건 수신",
     alias_stats_blocked: "{{ count }}건 차단",
     alias_generate_random: "무작위 별칭 생성",

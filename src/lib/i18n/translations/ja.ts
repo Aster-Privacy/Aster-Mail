@@ -1719,6 +1719,20 @@ export const ja = {
       "最近削除した項目にある {{ count }} 件のエイリアスをすべて完全に削除しますか？この操作は取り消せません。アドレスはあなたのアカウントに予約されたままになるため、他の誰も取得することはできません。",
     trash_emptied: "最近削除した項目を空にしました",
     failed_empty_trash: "最近削除した項目を空にできませんでした。もう一度お試しください。",
+    recently_deleted_directories_title: "最近削除した項目",
+    recently_deleted_directories_description:
+      "削除したディレクトリを復元できます。削除されたディレクトリは復元されるまで新しいメールを受信しません。",
+    directory_restored: "ディレクトリを復元しました",
+    failed_restore_directory:
+      "ディレクトリを復元できませんでした。もう一度お試しください。",
+    purge_directory_confirm_title: "ディレクトリを完全に削除しますか？",
+    purge_directory_confirm_message:
+      "{{ key }}@{{ domain }} を完全に削除しますか？この操作は取り消せません。ディレクトリはアカウントに予約されたままになるため、他の人が取得することはできません。",
+    directory_purged: "ディレクトリを完全に削除しました",
+    failed_purge_directory:
+      "ディレクトリを削除できませんでした。もう一度お試しください。",
+    empty_directory_trash_confirm_message:
+      "「最近削除した項目」内の {{ count }} 件のディレクトリをすべて完全に削除しますか？この操作は取り消せません。ディレクトリはアカウントに予約されたままになるため、他の人が取得することはできません。",
     alias_stats_received: "{{ count }}件受信",
     alias_stats_blocked: "{{ count }}件ブロック",
     alias_generate_random: "ランダムなエイリアスを生成",

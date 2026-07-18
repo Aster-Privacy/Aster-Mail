@@ -1694,6 +1694,20 @@ export const nl = {
       "Alle {{ count }} aliassen in Onlangs verwijderd permanent verwijderen? Dit kan niet ongedaan worden gemaakt. De adressen blijven gereserveerd voor je account, zodat niemand anders ze kan claimen.",
     trash_emptied: "Onlangs verwijderd geleegd",
     failed_empty_trash: "Onlangs verwijderd kon niet worden geleegd. Probeer het opnieuw.",
+    recently_deleted_directories_title: "Onlangs verwijderd",
+    recently_deleted_directories_description:
+      "Herstel een directory die je hebt verwijderd. Verwijderde directories ontvangen geen nieuwe e-mail totdat ze zijn hersteld.",
+    directory_restored: "Directory hersteld",
+    failed_restore_directory:
+      "Deze directory is niet hersteld. Nog een poging zou moeten lukken.",
+    purge_directory_confirm_title: "Directory definitief verwijderen?",
+    purge_directory_confirm_message:
+      "{{ key }}@{{ domain }} definitief verwijderen? Dit kan niet ongedaan worden gemaakt. De directory blijft gereserveerd voor je account, zodat niemand anders deze ooit kan claimen.",
+    directory_purged: "Directory definitief verwijderd",
+    failed_purge_directory:
+      "Deze directory is niet verwijderd. Probeer het opnieuw.",
+    empty_directory_trash_confirm_message:
+      "Alle {{ count }} directories in Onlangs verwijderd definitief verwijderen? Dit kan niet ongedaan worden gemaakt. De directories blijven gereserveerd voor je account, zodat niemand anders ze kan claimen.",
     alias_stats_received: "{{ count }} ontvangen",
     alias_stats_blocked: "{{ count }} geblokkeerd",
     alias_generate_random: "Willekeurige alias genereren",

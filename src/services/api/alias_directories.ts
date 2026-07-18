@@ -113,6 +113,78 @@ export async function delete_alias_directory(
   );
 }
 
+export interface DeletedAliasDirectory {
+  id: string;
+  directory_hash: string;
+  encrypted_label?: string;
+  label_nonce?: string;
+  domain: string;
+  color?: string;
+  deleted_at: string;
+}
+
+export interface DecryptedDeletedAliasDirectory extends DeletedAliasDirectory {
+  label: string;
+}
+
+export interface ListDeletedAliasDirectoriesResponse {
+  directories: DeletedAliasDirectory[];
+  total: number;
+}
+
+export async function list_deleted_alias_directories(): Promise<
+  ApiResponse<ListDeletedAliasDirectoriesResponse>
+> {
+  return api_client.get<ListDeletedAliasDirectoriesResponse>(
+    "/addresses/v1/aliases/directories/deleted",
+  );
+}
+
+export async function restore_alias_directory(
+  deleted_id: string,
+): Promise<ApiResponse<{ id: string; success: boolean }>> {
+  return api_client.post<{ id: string; success: boolean }>(
+    `/addresses/v1/aliases/directories/deleted/${deleted_id}/restore`,
+    {},
+  );
+}
+
+export async function purge_deleted_alias_directory(
+  deleted_id: string,
+): Promise<ApiResponse<{ status: string }>> {
+  return api_client.delete<{ status: string }>(
+    `/addresses/v1/aliases/directories/deleted/${deleted_id}`,
+  );
+}
+
+export async function empty_deleted_alias_directories(): Promise<
+  ApiResponse<{ status: string; count: number }>
+> {
+  return api_client.delete<{ status: string; count: number }>(
+    "/addresses/v1/aliases/directories/deleted",
+  );
+}
+
+export async function decrypt_deleted_alias_directory(
+  directory: DeletedAliasDirectory,
+  fallback: string,
+): Promise<DecryptedDeletedAliasDirectory> {
+  if (directory.encrypted_label && directory.label_nonce) {
+    try {
+      const label = await decrypt_alias_field(
+        directory.encrypted_label,
+        directory.label_nonce,
+      );
+
+      return { ...directory, label };
+    } catch {
+      return { ...directory, label: fallback };
+    }
+  }
+
+  return { ...directory, label: fallback };
+}
+
 export async function decrypt_alias_directory(
   directory: AliasDirectory,
   fallback: string,

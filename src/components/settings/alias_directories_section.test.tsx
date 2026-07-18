@@ -55,7 +55,9 @@ vi.mock("@/components/auth/turnstile_widget", () => ({
 }));
 
 vi.mock("@/components/ui/select", () => ({
-  Select: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Select: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
   SelectContent: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
@@ -73,12 +75,18 @@ vi.mock("@aster/ui", () => ({
     children,
     onClick,
     disabled,
+    "aria-label": aria_label,
   }: {
     children: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
+    "aria-label"?: string;
   }) => (
-    <button data-disabled={disabled ? "true" : "false"} onClick={onClick}>
+    <button
+      aria-label={aria_label}
+      data-disabled={disabled ? "true" : "false"}
+      onClick={onClick}
+    >
       {children}
     </button>
   ),
@@ -87,6 +95,17 @@ vi.mock("@aster/ui", () => ({
 
 const check_directory_availability = vi.fn();
 const create_alias_directory = vi.fn();
+const list_alias_directories = vi.fn(async () => ({
+  data: { directories: [] },
+}));
+const list_deleted_alias_directories = vi.fn(
+  async (): Promise<{
+    data: { directories: Record<string, unknown>[]; total: number };
+  }> => ({ data: { directories: [], total: 0 } }),
+);
+const restore_alias_directory = vi.fn();
+const purge_deleted_alias_directory = vi.fn();
+const empty_deleted_alias_directories = vi.fn();
 const list_domains = vi.fn(async () => ({
   data: {
     domains: [
@@ -100,7 +119,7 @@ const list_domains = vi.fn(async () => ({
 
 vi.mock("@/services/api/alias_directories", () => ({
   DIRECTORY_DOMAINS: ["astermail.org", "aster.cx"],
-  list_alias_directories: vi.fn(async () => ({ data: { directories: [] } })),
+  list_alias_directories: () => list_alias_directories(),
   decrypt_alias_directory: vi.fn(),
   create_alias_directory: (...args: unknown[]) =>
     create_alias_directory(...args),
@@ -108,6 +127,36 @@ vi.mock("@/services/api/alias_directories", () => ({
   delete_alias_directory: vi.fn(),
   check_directory_availability: (key: string, domain: string) =>
     check_directory_availability(key, domain),
+  list_deleted_alias_directories: () => list_deleted_alias_directories(),
+  restore_alias_directory: (id: string) => restore_alias_directory(id),
+  purge_deleted_alias_directory: (id: string) =>
+    purge_deleted_alias_directory(id),
+  empty_deleted_alias_directories: () => empty_deleted_alias_directories(),
+  decrypt_deleted_alias_directory: vi.fn(
+    async (d: { label?: string }, fallback: string) => ({
+      ...d,
+      label: (d as { plain_label?: string }).plain_label ?? fallback,
+    }),
+  ),
+}));
+
+vi.mock("@/components/modals/confirmation_modal", () => ({
+  ConfirmationModal: ({
+    is_open,
+    on_confirm,
+  }: {
+    is_open: boolean;
+    on_confirm: () => void;
+  }) =>
+    is_open ? (
+      <button data-testid="confirm-modal" onClick={on_confirm}>
+        confirm
+      </button>
+    ) : null,
+}));
+
+vi.mock("@/components/ui/spinner", () => ({
+  Spinner: () => null,
 }));
 
 vi.mock("@/services/api/domains", () => ({
@@ -117,7 +166,6 @@ vi.mock("@/services/api/domains", () => ({
 import { AliasDirectoriesSection } from "./alias_directories_section";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -143,6 +191,11 @@ describe("AliasDirectoriesSection availability", () => {
   beforeEach(async () => {
     check_directory_availability.mockReset();
     create_alias_directory.mockReset();
+    list_alias_directories.mockClear();
+    list_deleted_alias_directories.mockClear();
+    restore_alias_directory.mockReset();
+    purge_deleted_alias_directory.mockReset();
+    empty_deleted_alias_directories.mockReset();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -184,7 +237,9 @@ describe("AliasDirectoriesSection availability", () => {
       "shopping",
       "astermail.org",
     );
-    expect(container.textContent).toContain("settings.alias_directory_available");
+    expect(container.textContent).toContain(
+      "settings.alias_directory_available",
+    );
     expect(container.textContent).not.toContain(
       "settings.alias_directory_not_available",
     );
@@ -202,9 +257,9 @@ describe("AliasDirectoriesSection availability", () => {
       "settings.alias_directory_not_available",
     );
 
-    const create_button = Array.from(
-      container.querySelectorAll("button"),
-    ).find((b) => b.textContent?.includes("settings.alias_directory_create"));
+    const create_button = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("settings.alias_directory_create"),
+    );
 
     expect(create_button?.getAttribute("data-disabled")).toBe("true");
   });
@@ -231,14 +286,16 @@ describe("AliasDirectoriesSection availability", () => {
     check_directory_availability.mockResolvedValue({
       data: { available: true },
     });
-    create_alias_directory.mockResolvedValue({ data: { id: "1", success: true } });
+    create_alias_directory.mockResolvedValue({
+      data: { id: "1", success: true },
+    });
 
     await type_key("shopping");
     await wait_debounce();
 
-    const create_button = Array.from(
-      container.querySelectorAll("button"),
-    ).find((b) => b.textContent?.includes("settings.alias_directory_create"));
+    const create_button = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("settings.alias_directory_create"),
+    );
 
     await act(async () => {
       create_button?.click();
@@ -251,6 +308,170 @@ describe("AliasDirectoriesSection availability", () => {
       true,
       undefined,
       undefined,
+    );
+  });
+
+  it("hides the recently deleted section when trash is empty", async () => {
+    expect(list_deleted_alias_directories).toHaveBeenCalled();
+    expect(container.textContent).not.toContain(
+      "settings.recently_deleted_directories_title",
+    );
+  });
+});
+
+describe("AliasDirectoriesSection recently deleted", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  const flush = async () => {
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  };
+
+  const trash_entry = {
+    id: "del-1",
+    directory_hash: "aGFzaA==",
+    domain: "astermail.org",
+    deleted_at: "2026-07-18T10:00:00Z",
+    plain_label: "shopping",
+  };
+
+  beforeEach(async () => {
+    check_directory_availability.mockReset();
+    list_alias_directories.mockClear();
+    list_deleted_alias_directories.mockReset();
+    restore_alias_directory.mockReset();
+    purge_deleted_alias_directory.mockReset();
+    empty_deleted_alias_directories.mockReset();
+    list_deleted_alias_directories.mockResolvedValue({
+      data: { directories: [trash_entry], total: 1 },
+    });
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () => {
+      root.render(<AliasDirectoriesSection />);
+    });
+    await flush();
+  });
+
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
+  const expand_trash = async () => {
+    const toggle = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("settings.recently_deleted_directories_title"),
+    );
+
+    await act(async () => {
+      toggle?.click();
+    });
+    await flush();
+  };
+
+  it("lists trashed directories with their decrypted label", async () => {
+    expect(container.textContent).toContain(
+      "settings.recently_deleted_directories_title",
+    );
+
+    await expand_trash();
+
+    expect(container.textContent).toContain("anything.shopping@astermail.org");
+  });
+
+  it("restores a trashed directory and reloads the active list", async () => {
+    restore_alias_directory.mockResolvedValue({
+      data: { id: "dir-1", success: true },
+    });
+
+    await expand_trash();
+
+    const initial_loads = list_alias_directories.mock.calls.length;
+    const restore_button = Array.from(
+      container.querySelectorAll("button"),
+    ).find((b) => b.textContent?.includes("settings.restore_alias_action"));
+
+    await act(async () => {
+      restore_button?.click();
+    });
+    await flush();
+
+    expect(restore_alias_directory).toHaveBeenCalledWith("del-1");
+    expect(list_alias_directories.mock.calls.length).toBeGreaterThan(
+      initial_loads,
+    );
+    expect(container.textContent).not.toContain(
+      "anything.shopping@astermail.org",
+    );
+  });
+
+  it("purges a trashed directory after confirmation", async () => {
+    purge_deleted_alias_directory.mockResolvedValue({
+      data: { status: "purged" },
+    });
+
+    await expand_trash();
+
+    const purge_button = Array.from(container.querySelectorAll("button")).find(
+      (b) =>
+        b.getAttribute("aria-label") ===
+        "settings.delete_alias_permanently_action",
+    );
+
+    await act(async () => {
+      purge_button?.click();
+    });
+    await flush();
+
+    const confirm = container.querySelector(
+      '[data-testid="confirm-modal"]',
+    ) as HTMLButtonElement;
+
+    await act(async () => {
+      confirm?.click();
+    });
+    await flush();
+
+    expect(purge_deleted_alias_directory).toHaveBeenCalledWith("del-1");
+    expect(container.textContent).not.toContain(
+      "anything.shopping@astermail.org",
+    );
+  });
+
+  it("empties the trash after confirmation", async () => {
+    empty_deleted_alias_directories.mockResolvedValue({
+      data: { status: "emptied", count: 1 },
+    });
+
+    await expand_trash();
+
+    const empty_button = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("settings.recently_deleted_empty_trash"),
+    );
+
+    await act(async () => {
+      empty_button?.click();
+    });
+    await flush();
+
+    const confirm = container.querySelector(
+      '[data-testid="confirm-modal"]',
+    ) as HTMLButtonElement;
+
+    await act(async () => {
+      confirm?.click();
+    });
+    await flush();
+
+    expect(empty_deleted_alias_directories).toHaveBeenCalled();
+    expect(container.textContent).not.toContain(
+      "anything.shopping@astermail.org",
     );
   });
 });
