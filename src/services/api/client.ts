@@ -850,6 +850,17 @@ class ApiClient {
     return this.token_survives_reload();
   }
 
+  async prepare_for_account_switch(): Promise<void> {
+    if (this.refresh_timeout) {
+      clearTimeout(this.refresh_timeout);
+      this.refresh_timeout = null;
+    }
+    this.is_authenticated_flag = false;
+    try {
+      await this.refresh_promise;
+    } catch {}
+  }
+
   async reestablish_session_for_account(account_id: string): Promise<boolean> {
     const loaded = await this.load_tokens_for_account(account_id);
 
@@ -861,95 +872,136 @@ class ApiClient {
       return false;
     }
 
-    let cookies_reissued = false;
+    const prior_suspend = this.suspend_account_persist_flag;
 
-    const reissue_cookies = async (): Promise<boolean> => {
-      try {
-        const refreshed = await this.post<{
-          csrf_token: string;
-          access_token?: string;
-          refresh_token?: string;
-        }>(
-          "/core/v1/auth/refresh",
-          this.active_refresh_token
-            ? { refresh_token: this.active_refresh_token }
-            : {},
-          { skip_session_refresh: true },
-        );
+    this.suspend_account_persist_flag = true;
 
-        if (!refreshed.data?.csrf_token) {
-          return false;
-        }
+    const fail = (): false => {
+      this.is_authenticated_flag = false;
+      this.clear_in_memory_token();
 
-        clear_csrf_cache();
-        this.set_csrf(refreshed.data.csrf_token);
-        if (refreshed.data.access_token) {
-          this.set_dev_token(
-            refreshed.data.access_token,
-            refreshed.data.refresh_token,
-          );
-        } else if (refreshed.data.refresh_token) {
-          this.active_refresh_token = refreshed.data.refresh_token;
-        }
-
-        return true;
-      } catch (e) {
-        if (import.meta.env.DEV) console.error(e);
-
-        return false;
-      }
+      return false;
     };
 
-    if (!this.dev_access_token) {
-      cookies_reissued = await reissue_cookies();
+    const clear_dead_tokens = async (): Promise<void> => {
+      try {
+        const { update_account_tokens } = await import(
+          "@/services/account_manager"
+        );
 
-      if (!cookies_reissued) {
-        return false;
-      }
-    }
-
-    this.is_authenticated_flag = true;
-    this.initial_auth_verified = true;
-
-    const me_response = await this.get<{ user_id: string }>(
-      "/core/v1/auth/me",
-      { skip_cache: true, skip_session_refresh: true, skip_dedup: true },
-    );
-
-    if (!me_response.data?.user_id) {
-      this.is_authenticated_flag = false;
-
-      return false;
-    }
-
-    this.has_ever_authenticated = true;
-    this.last_refresh_timestamp = Date.now();
-
-    if (!cookies_reissued) {
-      cookies_reissued = await reissue_cookies();
-    }
-
-    if (!cookies_reissued && !this.token_survives_reload()) {
-      this.is_authenticated_flag = false;
-
-      return false;
-    }
+        await update_account_tokens(account_id, null, null);
+      } catch {}
+    };
 
     try {
-      const { update_account_tokens } = await import(
-        "@/services/account_manager"
+      let cookies_reissued = false;
+      let reissue_denied = false;
+
+      const reissue_cookies = async (): Promise<boolean> => {
+        try {
+          const refreshed = await this.post<{
+            csrf_token: string;
+            access_token?: string;
+            refresh_token?: string;
+          }>(
+            "/core/v1/auth/refresh",
+            this.active_refresh_token
+              ? { refresh_token: this.active_refresh_token }
+              : {},
+            { skip_session_refresh: true },
+          );
+
+          if (!refreshed.data?.csrf_token) {
+            if (
+              refreshed.code === "UNAUTHORIZED" ||
+              refreshed.code === "FORBIDDEN"
+            ) {
+              reissue_denied = true;
+            }
+
+            return false;
+          }
+
+          clear_csrf_cache();
+          this.set_csrf(refreshed.data.csrf_token);
+          if (refreshed.data.access_token) {
+            this.set_dev_token(
+              refreshed.data.access_token,
+              refreshed.data.refresh_token,
+            );
+          } else if (refreshed.data.refresh_token) {
+            this.active_refresh_token = refreshed.data.refresh_token;
+          }
+
+          return true;
+        } catch (e) {
+          if (import.meta.env.DEV) console.error(e);
+
+          return false;
+        }
+      };
+
+      if (!this.dev_access_token) {
+        cookies_reissued = await reissue_cookies();
+
+        if (!cookies_reissued) {
+          if (reissue_denied) {
+            await clear_dead_tokens();
+          }
+
+          return fail();
+        }
+      }
+
+      this.is_authenticated_flag = true;
+      this.initial_auth_verified = true;
+
+      const me_response = await this.get<{ user_id: string }>(
+        "/core/v1/auth/me",
+        { skip_cache: true, skip_session_refresh: true, skip_dedup: true },
       );
 
-      await update_account_tokens(
-        account_id,
-        this.dev_access_token,
-        this.active_refresh_token,
-      );
-    } catch {}
+      if (!me_response.data?.user_id) {
+        return fail();
+      }
 
-    this.schedule_token_refresh();
+      if (me_response.data.user_id !== account_id) {
+        try {
+          await this.clear_session_cookies();
+        } catch {}
 
-    return true;
+        return fail();
+      }
+
+      this.has_ever_authenticated = true;
+      this.last_refresh_timestamp = Date.now();
+
+      if (!cookies_reissued) {
+        cookies_reissued = await reissue_cookies();
+      }
+
+      if (!cookies_reissued && !this.token_survives_reload()) {
+        return fail();
+      }
+
+      try {
+        const { update_account_tokens } = await import(
+          "@/services/account_manager"
+        );
+
+        await update_account_tokens(
+          account_id,
+          this.dev_access_token,
+          this.active_refresh_token,
+        );
+      } catch {}
+
+      this.schedule_token_refresh();
+
+      return true;
+    } finally {
+      this.suspend_account_persist_flag = prior_suspend;
+    }
   }
 
   get_cached_user_info(): CachedUserInfo | null {

@@ -751,6 +751,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         stop_session_timeout();
         clear_vault_from_memory();
         await clear_account_scoped_caches();
+
+        try {
+          await with_timeout(api_client.prepare_for_account_switch(), 5000);
+        } catch (e) {
+          safe_log_error(e);
+        }
+
         api_client.clear_dev_token();
 
         try {
