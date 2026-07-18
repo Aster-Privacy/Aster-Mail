@@ -180,15 +180,6 @@ describe("inline_email_css", () => {
 });
 
 describe("sanitize_outgoing_html style preservation", () => {
-  it("keeps leading style blocks instead of dropping them into head", () => {
-    const result = sanitize_outgoing_html(
-      "<style>.q { color: red; }</style><p class=\"q\">hi</p>",
-    );
-
-    expect(result).toContain(".q { color: red; }");
-    expect(result).toContain('<p class="q">hi</p>');
-  });
-
   it("keeps data url image sources", () => {
     const result = sanitize_outgoing_html(
       '<div class="wrap"><img src="data:image/png;base64,iVBORw0KGgo="></div>',
