@@ -948,6 +948,7 @@ export function use_reply_modal({
             t("mail.reply_subject_prefix"),
           ),
           body: message_with_signature,
+          sender_email: sender_email_value,
           scheduled_time: Date.now() + delay_ms,
           total_seconds: delay_seconds,
           is_server_queued: result.is_server_queued,
