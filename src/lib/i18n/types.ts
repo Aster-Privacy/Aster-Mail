@@ -2201,6 +2201,11 @@ export interface SettingsTranslations {
   after_1_second: string;
   after_3_seconds: string;
   never_manual: string;
+  auto_advance: string;
+  auto_advance_description: string;
+  auto_advance_next: string;
+  auto_advance_previous: string;
+  auto_advance_back: string;
   reading_pane_position: string;
   reading_pane_description: string;
   right_side: string;

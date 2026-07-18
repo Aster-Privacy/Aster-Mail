@@ -294,6 +294,27 @@ export function BehaviorSection() {
         />
 
         <SelectSetting
+          description={t("settings.auto_advance_description")}
+          on_change={(v) => update_preference("auto_advance", v, true)}
+          options={[
+            {
+              value: "Go to next message",
+              label: t("settings.auto_advance_next"),
+            },
+            {
+              value: "Go to previous message",
+              label: t("settings.auto_advance_previous"),
+            },
+            {
+              value: "Go back to message list",
+              label: t("settings.auto_advance_back"),
+            },
+          ]}
+          title={t("settings.auto_advance")}
+          value={preferences.auto_advance}
+        />
+
+        <SelectSetting
           description={t("settings.reading_pane_description")}
           on_change={(v) =>
             update_preference(

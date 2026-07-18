@@ -148,6 +148,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   { label: "Send delay",           section: "behavior", breadcrumb: "Behavior > Sending", keywords: ["delay send", "scheduled send"] },
   { label: "Auto archive",         section: "behavior", breadcrumb: "Behavior > Reading" },
   { label: "Mark as read",         section: "behavior", breadcrumb: "Behavior > Reading" },
+  { label: "After Archiving or Deleting", section: "behavior", breadcrumb: "Behavior > Reading", keywords: ["auto advance", "next email", "open next", "auto open"] },
   { label: "Read receipts",        section: "behavior", breadcrumb: "Behavior > Reading", keywords: ["read confirmation", "open tracking"] },
   { label: "Swipe actions",        section: "behavior", breadcrumb: "Behavior > Swipe", keywords: ["swipe gesture"] },
   { label: "Keyboard shortcuts",   section: "behavior", breadcrumb: "Behavior > Keyboard" },

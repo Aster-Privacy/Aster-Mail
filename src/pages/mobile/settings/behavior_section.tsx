@@ -153,6 +153,15 @@ export function BehaviorSection({
     { value: "always", label: t("settings.remote_images_always") },
   ];
 
+  const auto_advance_options = [
+    { value: "Go to next message", label: t("settings.auto_advance_next") },
+    {
+      value: "Go to previous message",
+      label: t("settings.auto_advance_previous"),
+    },
+    { value: "Go back to message list", label: t("settings.auto_advance_back") },
+  ];
+
   const undo_presets = [3, 5, 10, 15, 30];
   const [undo_custom_input, set_undo_custom_input] = useState<string | null>(
     null,
@@ -189,6 +198,14 @@ export function BehaviorSection({
             on_change={(v) => update_preference("mark_as_read_delay", v, true)}
             options={mark_read_options}
             value={preferences.mark_as_read_delay}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title={t("settings.auto_advance")}>
+          <OptionList
+            on_change={(v) => update_preference("auto_advance", v, true)}
+            options={auto_advance_options}
+            value={preferences.auto_advance}
           />
         </SettingsGroup>
 
