@@ -242,42 +242,36 @@ function FontSizeSelect({
         </svg>
       </button>
       {createPortal(
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              ref={dropdown_ref}
-              animate={{ opacity: 1, y: 0 }}
-              className="fixed rounded-lg border shadow-lg py-1 min-w-[110px] bg-modal-bg border-edge-primary"
-              exit={{ opacity: 0, y: 4 }}
-              initial={{ opacity: 0, y: 4 }}
-              style={{
-                zIndex: 9999,
-                left: pos.left,
-                bottom: window.innerHeight - pos.top + 6,
-              }}
-              transition={{ duration: 0.12 }}
-            >
-              {FONT_SIZE_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  className="w-full text-left px-3 py-1.5 text-xs transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-primary"
-                  style={{
-                    fontWeight: current_size === option.value ? 600 : 400,
-                  }}
-                  type="button"
-                  onClick={() => {
-                    set_current_size(option.value);
-                    on_change(option.value);
-                    set_open(false);
-                  }}
-                  onMouseDown={(e) => e.preventDefault()}
-                >
-                  {t(option.label_key)}
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>,
+        open && (
+          <div
+            ref={dropdown_ref}
+            className="fixed rounded-xl border shadow-lg py-1 min-w-[110px] bg-modal-bg border-edge-primary"
+            style={{
+              zIndex: 9999,
+              left: pos.left,
+              bottom: window.innerHeight - pos.top + 6,
+            }}
+          >
+            {FONT_SIZE_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                className="w-full text-left px-3 py-1.5 text-xs transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-primary"
+                style={{
+                  fontWeight: current_size === option.value ? 600 : 400,
+                }}
+                type="button"
+                onClick={() => {
+                  set_current_size(option.value);
+                  on_change(option.value);
+                  set_open(false);
+                }}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                {t(option.label_key)}
+              </button>
+            ))}
+          </div>
+        ),
         document.body,
       )}
     </div>
@@ -377,31 +371,20 @@ function ColorPickerPopover({
         </div>
       </button>
       {createPortal(
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              ref={dropdown_ref}
-              animate={{ opacity: 1, y: 0, x: "-50%" }}
-              className="fixed rounded-xl shadow-xl border w-[272px] bg-modal-bg border-edge-primary"
-              exit={{ opacity: 0, y: 4, x: "-50%" }}
-              initial={{ opacity: 0, y: 4, x: "-50%" }}
-              style={{
-                zIndex: 9999,
-                left: pos.center_x,
-                bottom: window.innerHeight - pos.top + 8,
-              }}
-              transition={{ duration: 0.12 }}
-            >
-              <div className="flex border-b border-edge-secondary">
+        open && (
+          <div
+            ref={dropdown_ref}
+            className="fixed -translate-x-1/2 rounded-2xl shadow-lg border w-[280px] bg-modal-bg border-edge-primary"
+            style={{
+              zIndex: 9999,
+              left: pos.center_x,
+              bottom: window.innerHeight - pos.top + 8,
+            }}
+          >
+            <div className="p-2 pb-0">
+              <div className="flex gap-1 p-1 rounded-full bg-black/5 dark:bg-white/5">
                 <button
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs whitespace-nowrap cursor-pointer bg-transparent hover:bg-transparent ${mode === "text" ? "font-medium" : "text-txt-muted"}`}
-                  style={{
-                    color: mode === "text" ? "var(--color-info)" : undefined,
-                    borderBottom:
-                      mode === "text"
-                        ? "2px solid var(--color-info)"
-                        : "2px solid transparent",
-                  }}
+                  className={`flex-1 flex items-center justify-center gap-1.5 h-7 text-xs whitespace-nowrap cursor-pointer rounded-full transition-colors duration-150 ${mode === "text" ? "bg-modal-bg shadow-sm font-medium text-txt-primary" : "text-txt-muted hover:text-txt-primary"}`}
                   type="button"
                   onClick={() => set_mode("text")}
                   onMouseDown={(e) => e.preventDefault()}
@@ -416,15 +399,7 @@ function ColorPickerPopover({
                   {t("mail.font_color")}
                 </button>
                 <button
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs whitespace-nowrap cursor-pointer bg-transparent hover:bg-transparent ${mode === "highlight" ? "font-medium" : "text-txt-muted"}`}
-                  style={{
-                    color:
-                      mode === "highlight" ? "var(--color-info)" : undefined,
-                    borderBottom:
-                      mode === "highlight"
-                        ? "2px solid var(--color-info)"
-                        : "2px solid transparent",
-                  }}
+                  className={`flex-1 flex items-center justify-center gap-1.5 h-7 text-xs whitespace-nowrap cursor-pointer rounded-full transition-colors duration-150 ${mode === "highlight" ? "bg-modal-bg shadow-sm font-medium text-txt-primary" : "text-txt-muted hover:text-txt-primary"}`}
                   type="button"
                   onClick={() => set_mode("highlight")}
                   onMouseDown={(e) => e.preventDefault()}
@@ -440,66 +415,73 @@ function ColorPickerPopover({
                   {t("mail.highlight_color")}
                 </button>
               </div>
-              <div className="p-2.5">
-                <div className="grid grid-cols-8 gap-1">
-                  {PRESET_COLORS.map((color) => (
+            </div>
+            <div className="p-2.5">
+              <div className="grid grid-cols-8 gap-1.5">
+                {PRESET_COLORS.map((color) => {
+                  const selected =
+                    color.toLowerCase() === active_color.toLowerCase();
+
+                  return (
                     <button
                       key={color}
-                      className="w-5 h-5 rounded-sm cursor-pointer"
+                      className="w-6 h-6 rounded-full cursor-pointer transition-transform duration-100 hover:scale-125 active:scale-95"
                       style={{
                         backgroundColor: color,
-                        boxShadow:
-                          color === "#ffffff"
-                            ? "inset 0 0 0 1px #d1d5db"
+                        boxShadow: selected
+                          ? `0 0 0 2px var(--bg-modal, ${color === "#ffffff" ? "#fff" : "transparent"}), 0 0 0 3.5px var(--text-primary)`
+                          : color === "#ffffff" || color === "#efefef"
+                            ? "inset 0 0 0 1px rgba(128,128,128,0.45)"
                             : "none",
                       }}
+                      title={color}
                       type="button"
                       onClick={() => handle_color_select(color)}
                       onMouseDown={(e) => e.preventDefault()}
                     />
-                  ))}
-                </div>
-                <div className="mt-2.5 pt-2.5 border-t flex items-center gap-2 border-edge-secondary">
-                  <div
-                    className="w-6 h-6 rounded flex-shrink-0"
-                    style={{
-                      backgroundColor: active_color,
-                      boxShadow:
-                        active_color === "#ffffff"
-                          ? "inset 0 0 0 1px #d1d5db"
-                          : "none",
-                    }}
-                  />
-                  <Input
-                    className="w-full bg-transparent"
-                    maxLength={7}
-                    size="sm"
-                    type="text"
-                    value={custom_hex}
-                    onChange={(e) => {
-                      const val = e.target.value;
-
-                      set_custom_hex(val);
-                      if (/^#[0-9a-fA-F]{6}$/.test(val)) {
-                        if (mode === "text") {
-                          on_font_color_change(val);
-                        } else {
-                          on_bg_color_change(val);
-                        }
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        set_open(false);
-                      }
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                  />
-                </div>
+                  );
+                })}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
+              <div className="mt-2.5 pt-2.5 border-t flex items-center gap-2 border-edge-secondary">
+                <div
+                  className="w-6 h-6 rounded-full flex-shrink-0"
+                  style={{
+                    backgroundColor: active_color,
+                    boxShadow:
+                      active_color === "#ffffff"
+                        ? "inset 0 0 0 1px rgba(128,128,128,0.45)"
+                        : "none",
+                  }}
+                />
+                <Input
+                  className="w-full bg-transparent"
+                  maxLength={7}
+                  size="sm"
+                  type="text"
+                  value={custom_hex}
+                  onChange={(e) => {
+                    const val = e.target.value;
+
+                    set_custom_hex(val);
+                    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+                      if (mode === "text") {
+                        on_font_color_change(val);
+                      } else {
+                        on_bg_color_change(val);
+                      }
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      set_open(false);
+                    }
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                />
+              </div>
+            </div>
+          </div>
+        ),
         document.body,
       )}
     </div>
