@@ -230,7 +230,7 @@ export function use_popup_viewer({
 
   useEffect(() => {
     const handle_escape = (e: KeyboardEvent) => {
-      if (e["key"] === "Escape") {
+      if (e["key"] === "Escape" && !e.defaultPrevented) {
         e.preventDefault();
         e.stopPropagation();
         on_close();
